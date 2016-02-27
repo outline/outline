@@ -1,0 +1,9 @@
+{
+  "extends": "airbnb",
+  "parser": "babel-eslint",
+  "rules": {
+    "arrow-body-style":[0, "as-needed"], // fix `this` shortcut on ES6 classes
+    "react/jsx-no-bind": 0, // Makes difficult to pass args to prop functions
+    "no-else-return": 0,
+  }
+}

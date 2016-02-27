@@ -1,0 +1,67 @@
+{
+  "name": "BeautifulAtlas",
+  "version": "0.0.1",
+  "description": "For writing",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build:webpack": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --progress --colors",
+    "build": "npm run clean && npm run build:webpack",
+    "start": "node server.js",
+    "lint": "eslint src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jorilallo/atlas.git"
+  },
+  "author": "Jori Lallo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jorilallo/atlas/issues"
+  },
+  "homepage": "https://github.com/jorilallo/atlas#readme",
+  "dependencies": {
+    "express": "^4.13.4",
+    "react": "^0.14.7",
+    "react-dom": "^0.14.7"
+  },
+  "devDependencies": {
+    "babel-core": "^6.4.5",
+    "babel-eslint": "^4.1.8",
+    "babel-loader": "^6.2.1",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-react": "^6.3.13",
+    "babel-preset-react-hmre": "^1.0.1",
+    "babel-preset-stage-0": "^6.5.0",
+    "body-parser": "^1.15.0",
+    "codemirror": "^5.11.0",
+    "cross-env": "^1.0.7",
+    "css-loader": "^0.23.1",
+    "dotenv": "^2.0.0",
+    "eslint": "^1.10.3",
+    "eslint-config-airbnb": "^5.0.0",
+    "eslint-plugin-react": "^3.16.1",
+    "exports-loader": "^0.6.3",
+    "fetch": "^1.0.1",
+    "history": "^1.17.0",
+    "imports-loader": "^0.6.5",
+    "json-loader": "^0.5.4",
+    "lodash": "^4.3.0",
+    "marked": "^0.3.5",
+    "node-sass": "^3.4.2",
+    "normalize.css": "^3.0.3",
+    "react": "^0.14.7",
+    "react-codemirror": "^0.2.5",
+    "react-medium-editor": "^1.6.2",
+    "react-redux": "^4.4.0",
+    "react-router": "^2.0.0",
+    "redux": "^3.3.1",
+    "sass-loader": "^3.1.2",
+    "style-loader": "^0.13.0",
+    "to-markdown": "^2.0.1",
+    "webpack": "^1.12.12",
+    "webpack-dev-middleware": "^1.5.1",
+    "webpack-hot-middleware": "^2.6.4",
+    "whatwg-fetch": "^0.11.0"
+  }
+}

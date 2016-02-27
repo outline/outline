@@ -1,0 +1,47 @@
+.header {
+  display: flex;
+  width: 100%;
+  height: 42px;
+  justify-content: space-between;
+
+  background-color: #111;
+  color: #fff;
+
+  i {
+    color: #fff;
+    font-family: serif;
+  }
+
+  .headerItem {
+    width: 150px;
+    padding: 12px 22px;
+
+    font-size: 13px;
+    font-weight: 300;
+    text-align: center;
+
+    &:first-child {
+      text-align: left;
+    }
+
+    &:last-child {
+      text-align: right;
+    }
+  }
+
+  .editorToggle {
+    span {
+      margin-right: 12px;
+      cursor: pointer;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  .active {
+    text-decoration: underline;
+    text-decoration-color: #fff;
+  }
+}
