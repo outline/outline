@@ -15,6 +15,8 @@ import App from './Views/App';
 import Login from './Views/Login';
 import Dashboard from './Views/Dashboard';
 
+// Redux
+
 const reducer = storage.reducer(reducers);
 const engine = createEngine('atlas-store');
 const storageMiddleware = storage.createMiddleware(engine);
@@ -26,6 +28,8 @@ const load = storage.createLoader(engine);
 load(store)
   .then((newState) => console.log('Loaded state:', newState))
   .catch(() => console.log('Failed to load previous state'));
+
+// React router
 
 function requireAuth(nextState, replace) {
   if (!Auth.loggedIn()) {
