@@ -4,7 +4,10 @@ import { connect } from 'react-redux';
 import 'normalize.css/normalize.css';
 import styles from './App.scss';
 
-import { toggleEditors } from '../../Actions';
+import {
+  toggleEditors,
+  toggleHistorySidebar,
+ } from '../../Actions';
 
 import Header from '../../Components/Header';
 
@@ -13,17 +16,18 @@ import Auth from '../../Utils/Auth';
 class App extends Component {
   static propTypes = {
     children: React.PropTypes.element,
-    activeEditors: React.PropTypes.isRequired,
+    activeEditors: React.PropTypes.array.isRequired,
     toggleEditors: React.PropTypes.func.isRequired,
+    showHistorySidebar: React.PropTypes.bool.isRequired,
+    toggleHistorySidebar: React.PropTypes.func.isRequired,
   }
-
-  static defaultProps = {}
 
   state = {
     loggedIn: Auth.loggedIn(),
   }
 
   componentWillMount = () => {
+    console.log(this.props);
     Auth.onChange = this.updateAuth;
   }
 
@@ -44,6 +48,8 @@ class App extends Component {
         <Header
           activeEditors={this.props.activeEditors}
           toggleEditors={this.props.toggleEditors}
+          showHistorySidebar={this.props.showHistorySidebar}
+          toggleHistorySidebar={this.props.toggleHistorySidebar}
         />
         <div className={ styles.content }>
           { this.props.children }
@@ -56,6 +62,7 @@ class App extends Component {
 const mapStateToProps = (state) => {
   return {
     activeEditors: state.activeEditors,
+    showHistorySidebar: state.historySidebar.visible,
   };
 };
 
@@ -64,6 +71,9 @@ const mapDispatchToProps = (dispatch) => {
     toggleEditors: (toggledEditor) => {
       dispatch(toggleEditors(toggledEditor));
     },
+    toggleHistorySidebar: () => {
+      dispatch(toggleHistorySidebar());
+    }
   };
 };
 

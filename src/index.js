@@ -2,7 +2,9 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { Router, Route } from 'react-router';
-import { createStore, compose } from 'redux';
+import { createStore, applyMiddleware, compose } from 'redux';
+import * as storage from 'redux-storage';
+import createEngine from 'redux-storage-engine-localstorage';
 import History from './Utils/History';
 
 import Auth from './Utils/Auth';
@@ -13,12 +15,17 @@ import App from './Views/App';
 import Login from './Views/Login';
 import Dashboard from './Views/Dashboard';
 
-const store = createStore(
-  reducers,
-  compose(
-    window.devToolsExtension ? window.devToolsExtension() : f => f
-  )
-);
+const reducer = storage.reducer(reducers);
+const engine = createEngine('atlas-store');
+const storageMiddleware = storage.createMiddleware(engine);
+
+const createStoreWithMiddleware = applyMiddleware(storageMiddleware)(createStore);
+const store = createStoreWithMiddleware(reducer);
+
+const load = storage.createLoader(engine);
+load(store)
+  .then((newState) => console.log('Loaded state:', newState))
+  .catch(() => console.log('Failed to load previous state'));
 
 function requireAuth(nextState, replace) {
   if (!Auth.loggedIn()) {

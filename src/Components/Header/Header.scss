@@ -40,6 +40,13 @@
     }
   }
 
+  .sidebar {
+    span {
+      margin-right: 12px;
+      cursor: pointer;
+    }
+  }
+
   .active {
     text-decoration: underline;
     text-decoration-color: #fff;

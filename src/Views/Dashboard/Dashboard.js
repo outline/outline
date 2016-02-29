@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 
 import MarkdownEditor from '../../Components/MarkdownEditor';
 import TextEditor from '../../Components/TextEditor';
+import HistorySidebar from '../../Components/HistorySidebar';
 
 import { toMarkdown } from '../../Utils/Markdown';
 import { updateText } from '../../Actions';
@@ -14,7 +15,8 @@ class Dashboard extends Component {
     editMarkdown: React.PropTypes.func.isRequired,
     editText: React.PropTypes.func.isRequired,
     text: React.PropTypes.string,
-    activeEditors: React.PropTypes.array,
+    activeEditors: React.PropTypes.arrayOf(React.PropTypes.string),
+    showHistorySidebar: React.PropTypes.bool.isRequired,
   }
 
   // componentDidMount = () => {
@@ -25,6 +27,7 @@ class Dashboard extends Component {
   // }
 
   render() {
+    console.log(this.props.showHistorySidebar);
     const activeEditors = this.props.activeEditors;
 
     return (
@@ -47,6 +50,13 @@ class Dashboard extends Component {
             </div>
           ) : null
         }
+        {
+          this.props.showHistorySidebar ?
+            <div className={styles.sidebar}>
+              <HistorySidebar />
+            </div>
+            : null
+        }
       </div>
     );
   }
@@ -57,6 +67,7 @@ const mapStateToProps = (state) => {
     text: state.text,
     editor: state.editor,
     activeEditors: state.activeEditors,
+    showHistorySidebar: state.historySidebar.visible,
   };
 };
 
