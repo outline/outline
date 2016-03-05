@@ -6,7 +6,7 @@ import styles from './App.scss';
 
 import {
   toggleEditors,
-  toggleHistorySidebar,
+  addRevision,
  } from '../../Actions';
 
 import Header from '../../Components/Header';
@@ -18,8 +18,7 @@ class App extends Component {
     children: React.PropTypes.element,
     activeEditors: React.PropTypes.array.isRequired,
     toggleEditors: React.PropTypes.func.isRequired,
-    showHistorySidebar: React.PropTypes.bool.isRequired,
-    toggleHistorySidebar: React.PropTypes.func.isRequired,
+    addRevision: React.PropTypes.func.isRequired,
   }
 
   state = {
@@ -27,7 +26,6 @@ class App extends Component {
   }
 
   componentWillMount = () => {
-    console.log(this.props);
     Auth.onChange = this.updateAuth;
   }
 
@@ -48,8 +46,7 @@ class App extends Component {
         <Header
           activeEditors={this.props.activeEditors}
           toggleEditors={this.props.toggleEditors}
-          showHistorySidebar={this.props.showHistorySidebar}
-          toggleHistorySidebar={this.props.toggleHistorySidebar}
+          addRevision={this.props.addRevision}
         />
         <div className={ styles.content }>
           { this.props.children }
@@ -71,9 +68,9 @@ const mapDispatchToProps = (dispatch) => {
     toggleEditors: (toggledEditor) => {
       dispatch(toggleEditors(toggledEditor));
     },
-    toggleHistorySidebar: () => {
-      dispatch(toggleHistorySidebar());
-    }
+    addRevision: () => {
+      dispatch(addRevision());
+    },
   };
 };
 

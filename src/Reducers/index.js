@@ -5,6 +5,7 @@ import {
   UPDATE_TEXT,
   TOGGLE_EDITORS,
   TOGGLE_HISTORY_SIDEBAR,
+  ADD_REVISION,
   ActiveEditors,
 } from '../Actions';
 
@@ -21,7 +22,7 @@ const activeEditors = (state = [ActiveEditors.MARKDOWN, ActiveEditors.TEXT], act
     default:
       return state;
   }
-}
+};
 
 const historySidebar = (state = { visible: false }, action) => {
   switch (action.type) {
@@ -34,16 +35,39 @@ const historySidebar = (state = { visible: false }, action) => {
     default:
       return state;
   }
-}
+};
 
-const text = (state = '', action) => {
+const text = (state = { text: '', revisions: [] }, action) => {
   switch (action.type) {
     case UPDATE_TEXT:
-      return action.text;
+      return {
+        ...state,
+        text: action.text,
+      };
+    case ADD_REVISION: {
+      const lastRevision = _.last(state.revisions);
+      // Create new revision if it differs from the previous one
+      if (!lastRevision || lastRevision.text !== state.text) {
+        const lastId = lastRevision ? lastRevision.id : 0;
+        return {
+          ...state,
+          revisions: [
+            ...state.revisions,
+            {
+              id: lastId + 1,
+              text: state.text,
+              created_at: action.createdAt,
+            },
+          ],
+        };
+      } else {
+        return state;
+      }
+    }
     default:
       return state;
   }
-}
+};
 
 export default combineReducers({
   activeEditors,

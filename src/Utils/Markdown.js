@@ -30,13 +30,11 @@ const ulConverter = {
 };
 
 export function toMarkdown(html) {
-  console.log(html);
   const markdown = toMd(
     html, {
       gfm: true,
       converters: [ liConverter, ulConverter ],
     },
   );
-  console.log(markdown);
   return markdown;
 }

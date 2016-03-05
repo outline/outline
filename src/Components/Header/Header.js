@@ -4,7 +4,11 @@ import styles from './Header.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-const Header = ({ activeEditors, toggleEditors, showHistorySidebar, toggleHistorySidebar }) => {
+const Header = ({
+                activeEditors,
+                toggleEditors,
+                addRevision,
+              }) => {
   return (
     <div className={ styles.header }>
       <div className={ styles.headerItem }><i>Beautiful</i> Atlas</div>
@@ -19,18 +23,16 @@ const Header = ({ activeEditors, toggleEditors, showHistorySidebar, toggleHistor
         >Text</span>
       </div>
       <div className={ cx('headerItem', 'sidebar') }>
-        <span
-          onClick={toggleHistorySidebar}
-          className={ showHistorySidebar ? styles.active : '' }
-        >History</span>
+        <span onClick={addRevision.bind(this, (new Date()).toISOString())}>Save</span>
       </div>
     </div>
   );
 };
 
 Header.propTypes = {
-  showHistorySidebar: React.PropTypes.bool.isRequired,
-  toggleHistorySidebar: React.PropTypes.func.isRequired,
-}
+  activeEditors: React.PropTypes.array.isRequired,
+  toggleEditors: React.PropTypes.func.isRequired,
+  addRevision: React.PropTypes.func.isRequired,
+};
 
 export default Header;

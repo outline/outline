@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { Router, Route } from 'react-router';
-import { createStore, applyMiddleware, compose } from 'redux';
+import { createStore, applyMiddleware } from 'redux';
 import * as storage from 'redux-storage';
 import createEngine from 'redux-storage-engine-localstorage';
 import History from './Utils/History';
@@ -25,9 +25,9 @@ const createStoreWithMiddleware = applyMiddleware(storageMiddleware)(createStore
 const store = createStoreWithMiddleware(reducer);
 
 const load = storage.createLoader(engine);
-load(store)
-  .then((newState) => console.log('Loaded state:', newState))
-  .catch(() => console.log('Failed to load previous state'));
+load(store);
+// .then((newState) => console.log('Loaded state:', newState));
+// .catch(() => console.log('Failed to load previous state'));
 
 // React router
 
