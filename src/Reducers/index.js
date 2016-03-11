@@ -38,8 +38,18 @@ const historySidebar = (state = { visible: false }, action) => {
   }
 };
 
+const defaultTest = `# Welcome to Beautiful Atlas
+
+This is just a small preview here's what you can do:
+
+- Write markdown or rich text, you choose
+- Dont' worry about saving
+- One document for now
+- More to come
+`
+
 const textDefaultState = {
-  text: '',
+  text: defaultTest,
   revisions: [],
   unsavedChanges: false,
 };
