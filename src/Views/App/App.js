@@ -19,6 +19,7 @@ class App extends Component {
     activeEditors: React.PropTypes.array.isRequired,
     toggleEditors: React.PropTypes.func.isRequired,
     addRevision: React.PropTypes.func.isRequired,
+    unsavedChanges: React.PropTypes.bool.isRequired,
   }
 
   state = {
@@ -47,6 +48,7 @@ class App extends Component {
           activeEditors={this.props.activeEditors}
           toggleEditors={this.props.toggleEditors}
           addRevision={this.props.addRevision}
+          unsavedChanges={this.props.unsavedChanges}
         />
         <div className={ styles.content }>
           { this.props.children }
@@ -59,7 +61,7 @@ class App extends Component {
 const mapStateToProps = (state) => {
   return {
     activeEditors: state.activeEditors,
-    showHistorySidebar: state.historySidebar.visible,
+    unsavedChanges: state.text.unsavedChanges,
   };
 };
 

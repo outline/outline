@@ -11,10 +11,11 @@
 @import url(https://fonts.googleapis.com/css?family=Cousine:400,700,700italic,400italic);
 
 .cm-s-atlas.CodeMirror {
-  background: #fcfcfc;
+  background: #ffffff;
   color: #202020;
   font-family: 'Cousine', 'Monaco', monospace;
   font-weight: 300;
+  height: auto;
 }
 .cm-s-atlas div.CodeMirror-selected {
   background: #90CAF9;

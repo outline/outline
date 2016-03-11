@@ -12,11 +12,12 @@ import {
 const activeEditors = (state = [ActiveEditors.MARKDOWN, ActiveEditors.TEXT], action) => {
   switch (action.type) {
     case TOGGLE_EDITORS: {
+      // TODO: A rewrite would be nice
       const newState = _.xor(state, [action.toggledEditor]);
       if (newState.length > 0) {
         return newState;
       } else {
-        return [action.toggledEditor];
+        return _.xor([ActiveEditors.MARKDOWN, ActiveEditors.TEXT], [action.toggledEditor]);
       }
     }
     default:
@@ -37,15 +38,28 @@ const historySidebar = (state = { visible: false }, action) => {
   }
 };
 
-const text = (state = { text: '', revisions: [] }, action) => {
+const textDefaultState = {
+  text: '',
+  revisions: [],
+  unsavedChanges: false,
+};
+
+const text = (state = textDefaultState, action) => {
+  const lastRevision = _.last(state.revisions);
+
   switch (action.type) {
-    case UPDATE_TEXT:
+    case UPDATE_TEXT: {
+      let unsavedChanges = false;
+      if (lastRevision && lastRevision.text !== state.text) {
+        unsavedChanges = true;
+      }
       return {
         ...state,
+        unsavedChanges,
         text: action.text,
       };
+    }
     case ADD_REVISION: {
-      const lastRevision = _.last(state.revisions);
       // Create new revision if it differs from the previous one
       if (!lastRevision || lastRevision.text !== state.text) {
         const lastId = lastRevision ? lastRevision.id : 0;
@@ -59,6 +73,7 @@ const text = (state = { text: '', revisions: [] }, action) => {
               created_at: action.createdAt,
             },
           ],
+          unsavedChanges: false,
         };
       } else {
         return state;

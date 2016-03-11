@@ -1,6 +1,7 @@
 import React from 'react';
 import Codemirror from 'react-codemirror';
 import 'codemirror/mode/gfm/gfm';
+import 'codemirror/mode/javascript/javascript';
 import 'codemirror/addon/edit/continuelist';
 
 import styles from './MarkdownEditor.scss';

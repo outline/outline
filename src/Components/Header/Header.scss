@@ -2,6 +2,9 @@
   display: flex;
   width: 100%;
   height: 42px;
+  position: fixed;
+  z-index: 9999;
+
   justify-content: space-between;
 
   background-color: #111;
@@ -29,26 +32,29 @@
     }
   }
 
-  .editorToggle {
-    span {
-      margin-right: 12px;
-      cursor: pointer;
+  .editorToggle div {
+    margin-right: 12px;
+    cursor: pointer;
+    opacity: 0.4;
+    color: #fff;
 
-      &:last-child {
-        margin-right: 0;
-      }
+    &.active {
+      opacity: 1;
+    }
+
+    &:first-child {
+      margin-top: 2px;
+      margin-right: 15px;
+    }
+
+    &:last-child {
+      margin-top: -2px;
     }
   }
 
-  .sidebar {
-    span {
-      margin-right: 12px;
-      cursor: pointer;
-    }
-  }
+  .textIcon {
+    font-family: Times, serif;
+    font-size: 20px;
 
-  .active {
-    text-decoration: underline;
-    text-decoration-color: #fff;
   }
 }
