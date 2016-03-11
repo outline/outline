@@ -10,6 +10,7 @@ import {
  } from '../../Actions';
 
 import Header from '../../Components/Header';
+import Dashboard from '../Dashboard';
 
 import Auth from '../../Utils/Auth';
 
@@ -51,7 +52,7 @@ class App extends Component {
           unsavedChanges={this.props.unsavedChanges}
         />
         <div className={ styles.content }>
-          { this.props.children }
+          <Dashboard />
         </div>
       </div>
     );
