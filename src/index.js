@@ -43,7 +43,7 @@ function requireAuth(nextState, replace) {
 render((
   <Provider store={store}>
     <Router history={History}>
-      <Route path="/" component={App}>
+      <Route path="/" component={Dashboard}>
         <Route path="login" component={Login} />
         <Route path="dashboard" component={Dashboard} onEnter={requireAuth} />
       </Route>
