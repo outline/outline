@@ -7,6 +7,7 @@ import keyMirror from 'fbjs/lib/keyMirror';
 export const UPDATE_TEXT = 'UPDATE_TEXT';
 export const TOGGLE_EDITORS = 'TOGGLE_EDITORS';
 export const ADD_REVISION = 'ADD_REVISION';
+export const REPLACE_TEXT= 'REPLACE_TEXT';
 
 /*
  * Other Constants
@@ -31,4 +32,8 @@ export function toggleEditors(toggledEditor) {
 
 export function addRevision(createdAt) {
   return { type: ADD_REVISION, createdAt };
+}
+
+export function replaceText(originalText, replacedText) {
+  return { type: REPLACE_TEXT, originalText, replacedText };
 }

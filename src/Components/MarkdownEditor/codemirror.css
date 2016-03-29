@@ -10,6 +10,7 @@
 
 @import url(https://fonts.googleapis.com/css?family=Cousine:400,700,700italic,400italic);
 
+/* Custom styling */
 .cm-s-atlas.CodeMirror {
   background: #ffffff;
   color: #202020;
@@ -19,6 +20,11 @@
 }
 .cm-s-atlas div.CodeMirror-selected {
   background: #90CAF9;
+}
+
+/* Disable ondrag cursor for file uploads */
+.cm-s-atlas div.CodeMirror-dragcursors {
+  visibility: hidden;
 }
 
 .cm-s-atlas .CodeMirror-line::selection,

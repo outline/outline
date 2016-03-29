@@ -5,7 +5,12 @@ import MarkdownEditor from '../../Components/MarkdownEditor';
 import TextEditor from '../../Components/TextEditor';
 
 import { toMarkdown } from '../../Utils/Markdown';
-import { updateText } from '../../Actions';
+import {
+  updateText,
+  replaceText,
+} from '../../Actions';
+
+import Constants from '../../Constants';
 
 import styles from './Dashboard.scss';
 
@@ -14,28 +19,26 @@ class Dashboard extends Component {
     editMarkdown: React.PropTypes.func.isRequired,
     editText: React.PropTypes.func.isRequired,
     text: React.PropTypes.string,
+    replaceText: React.PropTypes.func.isRequired,
     activeEditors: React.PropTypes.arrayOf(React.PropTypes.string),
     showHistorySidebar: React.PropTypes.bool.isRequired,
   }
-
-  // componentDidMount = () => {
-  //   client.get('/user')
-  //   .then(data => {
-  //     this.setState({ user: data });
-  //   });
-  // }
 
   render() {
     const activeEditors = this.props.activeEditors;
 
     return (
-      <div className={ styles.container }>
+      <div className={styles.container}>
         {
           activeEditors.includes('MARKDOWN') ? (
             <div className={ `${activeEditors.length > 1 ?
                 styles.panel : styles.fullscreen} ${styles.markdown}`}
             >
-              <MarkdownEditor onChange={this.props.editMarkdown} text={this.props.text} />
+              <MarkdownEditor
+                onChange={this.props.editMarkdown}
+                text={this.props.text}
+                replaceText={this.props.replaceText}
+              />
             </div>
           ) : null
         }
@@ -71,6 +74,9 @@ const mapDispatchToProps = (dispatch) => {
     editText: (html) => {
       const text = toMarkdown(html);
       dispatch(updateText(text, 'text'));
+    },
+    replaceText: (originalText, replacedText) => {
+      dispatch(replaceText(originalText, replacedText));
     },
   };
 };

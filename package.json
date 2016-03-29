@@ -54,6 +54,7 @@
     "normalize.css": "^3.0.3",
     "react": "^0.14.7",
     "react-codemirror": "^0.2.5",
+    "react-dropzone": "^3.3.2",
     "react-medium-editor": "^1.6.2",
     "react-redux": "^4.4.0",
     "react-router": "^2.0.0",

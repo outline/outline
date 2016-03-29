@@ -6,6 +6,7 @@ import {
   TOGGLE_EDITORS,
   TOGGLE_HISTORY_SIDEBAR,
   ADD_REVISION,
+  REPLACE_TEXT,
   ActiveEditors,
 } from '../Actions';
 
@@ -88,6 +89,14 @@ const text = (state = textDefaultState, action) => {
       } else {
         return state;
       }
+    }
+    case REPLACE_TEXT: {
+      const newText = state.text.replace(action.originalText, action.replacedText);
+
+      return {
+        ...state,
+        text: newText,
+      };
     }
     default:
       return state;
