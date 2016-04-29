@@ -9,6 +9,10 @@ export const TOGGLE_EDITORS = 'TOGGLE_EDITORS';
 export const ADD_REVISION = 'ADD_REVISION';
 export const REPLACE_TEXT= 'REPLACE_TEXT';
 
+export const SLACK_AUTH_PENDING = 'SLACK_AUTH_PENDING';
+export const SLACK_AUTH_SUCCESS = 'SLACK_AUTH_SUCCESS';
+export const SLACK_AUTH_FAILURE = 'SLACK_AUTH_FAILURE';
+
 /*
  * Other Constants
  */

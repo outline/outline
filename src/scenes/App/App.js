@@ -8,39 +8,16 @@ import styles from './App.scss';
 import {
   toggleEditors,
   addRevision,
- } from '../../Actions';
+ } from '../../actions';
 
-import Header from '../../Components/Header';
-import Dashboard from '../Dashboard';
-
-import Auth from '../../Utils/Auth';
+import Header from '../../components/Header';
+import Editor from '../../components/Editor';
 
 class App extends Component {
   static propTypes = {
     children: React.PropTypes.element,
-    activeEditors: React.PropTypes.array.isRequired,
-    toggleEditors: React.PropTypes.func.isRequired,
     addRevision: React.PropTypes.func.isRequired,
     unsavedChanges: React.PropTypes.bool.isRequired,
-  }
-
-  state = {
-    loggedIn: Auth.loggedIn(),
-  }
-
-  componentWillMount = () => {
-    Auth.onChange = this.updateAuth;
-  }
-
-  updateAuth = (loggedIn) => {
-    this.setState({
-      loggedIn,
-    });
-  }
-
-  logout = () => {
-    // TODO: Replace with Redux actions
-    Auth.logout();
   }
 
   render() {
@@ -48,12 +25,11 @@ class App extends Component {
       <div className={ styles.container }>
         <Header
           activeEditors={this.props.activeEditors}
-          toggleEditors={this.props.toggleEditors}
           addRevision={this.props.addRevision}
           unsavedChanges={this.props.unsavedChanges}
         />
         <div className={ styles.content }>
-          <Dashboard />
+          <Editor />
         </div>
       </div>
     );
@@ -69,9 +45,6 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    toggleEditors: (toggledEditor) => {
-      dispatch(toggleEditors(toggledEditor));
-    },
     addRevision: () => {
       dispatch(addRevision());
     },
@@ -84,9 +57,3 @@ App = connect(
 )(App);
 
 export default App;
-
-// {this.state.loggedIn ? (
-//   <a href="#" onClick={this.logout}>Logout</a>
-// ) : (
-//   <Link to="/login">Login</Link>
-// )}

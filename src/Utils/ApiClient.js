@@ -1,12 +1,12 @@
 import _ from 'lodash';
 
-import Auth from './Auth';
-import Constants from '../Constants';
+import auth from './auth';
+import constants from '../constants';
 
 class ApiClient {
   constructor(options = {}) {
-    this.baseUrl = options.baseUrl || Constants.API_BASE_URL;
-    this.userAgent = options.userAgent || Constants.API_USER_AGENT;
+    this.baseUrl = options.baseUrl || constants.API_BASE_URL;
+    this.userAgent = options.userAgent || constants.API_USER_AGENT;
   }
 
   fetch = (path, method, data) => {
@@ -25,8 +25,8 @@ class ApiClient {
       'Content-Type': 'application/json',
       'User-Agent': this.userAgent,
     });
-    if (Auth.getToken()) {
-      headers.set('Authorization', `JWT ${Auth.getToken()}`);
+    if (auth.getToken()) {
+      headers.set('Authorization', `Bearer ${auth.getToken()}`);
     }
 
     // Construct request
@@ -48,7 +48,7 @@ class ApiClient {
 
         // Handle 401, log out user
         if (response.status === 401) {
-          Auth.logout();
+          auth.logout(); // replace with dispatch+action
         }
 
         // Handle failed responses
@@ -79,18 +79,6 @@ class ApiClient {
 
   post = (path, data) => {
     return this.fetch(path, 'POST', data);
-  }
-
-  put = (path, data) => {
-    return this.fetch(path, 'PUT', data);
-  }
-
-  get = (path, data) => {
-    return this.fetch(path, 'GET', data);
-  }
-
-  delete = (path, data) => {
-    return this.fetch(path, 'DELETE', data);
   }
 
   // Helpers

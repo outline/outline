@@ -1,13 +1,10 @@
 import React from 'react';
 
-import MarkdownIcon from '../../Components/Icons/Markdown';
-
 import styles from './Header.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
 const Header = ({
-                activeEditors,
                 toggleEditors,
               }) => {
   return (
@@ -17,16 +14,7 @@ const Header = ({
         className={ cx('headerItem', 'editorToggle') }
         style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}
       >
-        <div
-          onClick={toggleEditors.bind(this, 'MARKDOWN')}
-          className={ activeEditors.includes('MARKDOWN') ? styles.active : '' }
-        >
-          <MarkdownIcon style={{ width: '32px', height: '20px', color: '#fff' }} />
-        </div>
-        <div
-          onClick={toggleEditors.bind(this, 'TEXT')}
-          className={ activeEditors.includes('TEXT') ? styles.active : '' }
-        >
+        <div>
           <span className={ styles.textIcon }>Aa</span>
         </div>
       </div>

@@ -1,40 +1,46 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
-import { Router, Route } from 'react-router';
+import { Router, Route, IndexRoute } from 'react-router';
 import { createStore, applyMiddleware } from 'redux';
+import { routerMiddleware } from 'react-router-redux';
+import { persistStore, autoRehydrate } from 'redux-persist';
+import thunkMiddleware from 'redux-thunk';
 import * as storage from 'redux-storage';
 import createEngine from 'redux-storage-engine-localstorage';
-import History from './Utils/History';
+import createLogger from 'redux-logger';
+import History from 'utils/History';
 
-import Auth from './Utils/Auth';
+import auth from 'utils/auth';
 
-import reducers from './Reducers';
+import reducers from 'reducers';
 
-import App from './Views/App';
-import Login from './Views/Login';
-import Dashboard from './Views/Dashboard';
+import 'utils/base-styles.scss';
+
+import Home from 'scenes/Home';
+import App from 'scenes/App';
+import Dashboard from 'scenes/Dashboard';
+import SlackAuth from 'scenes/SlackAuth';
 
 // Redux
 
 const reducer = storage.reducer(reducers);
-const engine = createEngine('atlas-store');
-const storageMiddleware = storage.createMiddleware(engine);
+const loggerMiddleware = createLogger();
+const routerMiddlewareWithHistory = routerMiddleware(History);
 
-const createStoreWithMiddleware = applyMiddleware(storageMiddleware)(createStore);
-const store = createStoreWithMiddleware(reducer);
+const createStoreWithMiddleware = (createStore);
 
-const load = storage.createLoader(engine);
-load(store);
-// .then((newState) => console.log('Loaded state:', newState));
-// .catch(() => console.log('Failed to load previous state'));
-
-// React router
+const store = createStore(reducer, applyMiddleware(
+  thunkMiddleware,
+  routerMiddlewareWithHistory,
+  loggerMiddleware,
+), autoRehydrate());
+persistStore(store);
 
 function requireAuth(nextState, replace) {
-  if (!Auth.loggedIn()) {
+  if (!auth.loggedIn()) {
     replace({
-      pathname: '/login',
+      pathname: '/',
       state: { nextPathname: nextState.location.pathname },
     });
   }
@@ -43,7 +49,14 @@ function requireAuth(nextState, replace) {
 render((
   <Provider store={store}>
     <Router history={History}>
-      <Route path="/" component={App} />
+      <Route path="/">
+        <IndexRoute component={Home} />
+
+        <Route path="/dashboard" component={Dashboard} onEnter={ requireAuth } />
+        <Route path="/editor" component={App} />
+
+        <Route path="/auth/slack" component={SlackAuth} />
+      </Route>
     </Router>
   </Provider>
 ), document.getElementById('root'));

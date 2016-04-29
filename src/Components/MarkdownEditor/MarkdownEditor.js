@@ -3,12 +3,13 @@ import Codemirror from 'react-codemirror';
 import 'codemirror/mode/gfm/gfm';
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/addon/edit/continuelist';
+import 'codemirror/addon/display/placeholder.js';
 import Dropzone from 'react-dropzone';
 
 import styles from './MarkdownEditor.scss';
-import './codemirror.css';
+import './codemirror.scss';
 
-import { client } from '../../Utils/ApiClient';
+import { client } from '../../utils/ApiClient';
 
 class MarkdownAtlas extends React.Component {
   static propTypes = {
@@ -97,6 +98,7 @@ class MarkdownAtlas extends React.Component {
       extraKeys: {
         Enter: 'newlineAndIndentContinueMarkdownList',
       },
+      placeholder: "# Start with a title...",
     };
 
     // http://codepen.io/lubelski/pen/fnGae

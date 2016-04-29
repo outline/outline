@@ -6,7 +6,10 @@ commonWebpackConfig = require('./webpack.config');
 productionWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
   devtool: 'cheap-module-source-map',
-  entry: './src/index',
+  entry: [
+  'babel-polyfill',
+    './src/index',
+  ],
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js',

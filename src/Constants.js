@@ -11,9 +11,7 @@ const keys = keyMirror({
 // Constant values
 const constants = {
   API_USER_AGENT: `${name}/${version}`,
-  API_BASE_URL: 'http://localhost:8000/api',
-  LOGIN_PATH: '/login',
-  LOGIN_SUCCESS_PATH: '/dashboard',
+  API_BASE_URL: 'http://localhost:3000/api',
 };
 
 export default Object.assign(keys, constants);

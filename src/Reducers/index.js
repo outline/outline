@@ -7,8 +7,8 @@ import {
   TOGGLE_HISTORY_SIDEBAR,
   ADD_REVISION,
   REPLACE_TEXT,
-  ActiveEditors,
-} from '../Actions';
+  ActiveEditors
+} from '../actions';
 
 const activeEditors = (state = [ActiveEditors.MARKDOWN, ActiveEditors.TEXT], action) => {
   switch (action.type) {
@@ -103,8 +103,13 @@ const text = (state = textDefaultState, action) => {
   }
 };
 
+import team from './team';
+import user from './user';
+
 export default combineReducers({
   activeEditors,
   historySidebar,
   text,
+  user,
+  team,
 });

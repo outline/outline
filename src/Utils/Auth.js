@@ -1,42 +1,19 @@
-// Inspired by https://github.com/reactjs/react-router/blob/master/examples/auth-flow/auth.js
-import Constants from '../Constants';
-import History from './History';
-
-import { client } from './ApiClient';
+import constants from '../constants';
 
 export default {
-  login(email, password) {
-    return new Promise((resolve, reject) => {
-      client.post('/authenticate', {
-        email,
-        password,
-      })
-      .then((data) => {
-        localStorage.setItem(Constants.JWT_STORE_KEY, data.jwt_token);
-        this.onChange(true);
-        resolve(data);
-      })
-      .catch((error) => {
-        reject(error);
-      });
-    });
+  setToken(token) {
+    localStorage.setItem(constants.JWT_STORE_KEY, token);
   },
 
   getToken() {
-    return localStorage.getItem(Constants.JWT_STORE_KEY);
+    return localStorage.getItem(constants.JWT_STORE_KEY);
   },
 
   logout() {
-    localStorage.removeItem(Constants.JWT_STORE_KEY);
-    History.push(Constants.LOGIN_PATH);
-    this.onChange(false);
+    localStorage.removeItem(constants.JWT_STORE_KEY);
   },
 
   loggedIn() {
-    return !!localStorage.getItem(Constants.JWT_STORE_KEY);
-  },
-
-  onChange() {
-    // This is overriden with a callback function in `Views/App/App.js`
+    return !!localStorage.getItem(constants.JWT_STORE_KEY);
   },
 };

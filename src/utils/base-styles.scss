@@ -1,0 +1,23 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body, .viewport {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+html, body {
+  font-family: 'Atlas Grotesk', 'Helvetica Neue', sans-serif;
+}
+
+a {
+  color: #0C77F8;
+}
+
+:global {
+  .Codemirror {
+    height: auto;
+  }
+}
