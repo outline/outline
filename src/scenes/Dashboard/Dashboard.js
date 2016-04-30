@@ -6,6 +6,8 @@ import { replace } from 'react-router-redux';
 import { client } from 'utils/ApiClient';
 
 import Layout from 'components/Layout';
+import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+
 import styles from './Dashboard.scss';
 
 class Dashboard extends React.Component {
@@ -18,7 +20,9 @@ class Dashboard extends React.Component {
       <Layout
         header={<div>header!</div>}
       >
-        holla!
+        <div className={ styles.content }>
+          <AtlasPreviewLoading />
+        </div>
       </Layout>
     );
   }
