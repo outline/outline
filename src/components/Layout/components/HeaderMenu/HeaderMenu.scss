@@ -1,0 +1,50 @@
+@import '../../../../utils/constants.scss';
+
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  min-height: 43px;
+  min-width: 43px;
+}
+
+.menu {
+  position: relative;
+
+  img {
+    height: 24px;
+    width: 24px;
+    border-radius: 12px;
+  }
+
+  .menu {
+    position: absolute;
+    top: 42px;
+    right: 0;
+    z-index: 1000;
+    border: 1px solid #eee;
+
+    ul {
+      margin: 0;
+      padding: 5px 0;
+      font-size: 0.9em;
+    }
+
+    li {
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
+
+      a {
+        display: flex;
+        margin: 0;
+        padding: 5px 10px;
+        min-width: 150px;
+
+        color: $textColor;
+        text-decoration: none;
+      }
+    }
+  }
+}

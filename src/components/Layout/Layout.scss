@@ -21,15 +21,7 @@
   font-weight: bold;
 }
 
-.user {
-
-  img {
-    height: 24px;
-    width: 24px;
-    border-radius: 12px;
-  }
-}
-
 .content {
-  flex: 1;
+  display: flex;
+  justify-content: center;
 }

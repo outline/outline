@@ -1,6 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
+import HeaderMenu from './components/HeaderMenu';
+
 import styles from './Layout.scss';
 
 class Layout extends React.Component {
@@ -13,9 +15,9 @@ class Layout extends React.Component {
       <div className={ styles.container }>
         <div className={ styles.header }>
           <div className={ styles.teamName }>Coinbase</div>
-          <div className={ styles.user }>
+          <HeaderMenu>
             <img src={ this.props.avatarUrl } />
-          </div>
+          </HeaderMenu>
         </div>
         <div className={ styles.content }>
           { this.props.children }
@@ -31,4 +33,6 @@ const mapStateToProps = (state) => {
   }
 };
 
-export default connect(mapStateToProps)(Layout);
+export default connect(
+  mapStateToProps,
+)(Layout);

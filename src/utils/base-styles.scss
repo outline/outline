@@ -1,3 +1,5 @@
+@import './constants.scss';
+
 * {
   box-sizing: border-box;
 }
@@ -10,6 +12,7 @@ html, body, .viewport {
 
 html, body {
   font-family: 'Atlas Grotesk', 'Helvetica Neue', sans-serif;
+  color: $textColor;
 }
 
 a {

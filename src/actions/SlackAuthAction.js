@@ -1,5 +1,5 @@
 import makeActionCreator from '../utils/actions';
-import { push } from 'react-router-redux';
+import { replace } from 'react-router-redux';
 import { client } from 'utils/ApiClient';
 import auth from 'utils/auth';
 
@@ -25,7 +25,7 @@ export function slackAuthAsync(code) {
       auth.setToken(data.data.accessToken);
       dispatch(updateUser(data.data.user));
       dispatch(updateTeam(data.data.team));
-      dispatch(push('/dashboard'));
+      dispatch(replace('/dashboard'));
     })
     // .catch((err) => {
     //   dispatch(push('/error'));
