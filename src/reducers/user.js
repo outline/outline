@@ -1,8 +1,8 @@
-import { UPDATE_USER } from 'actions/UserActions';
+import { SLACK_AUTH_SUCCESS } from 'actions/SlackAuthAction';
 
 const user = (state = null, action) => {
   switch (action.type) {
-    case UPDATE_USER: {
+    case SLACK_AUTH_SUCCESS: {
       return {
         ...action.user,
       };

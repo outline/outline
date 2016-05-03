@@ -20,7 +20,7 @@ class SlackAuth extends React.Component {
 
   render() {
     return (
-      <div>Loading...</div>
+      <div></div>
     );
   }
 }

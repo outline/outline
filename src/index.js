@@ -35,7 +35,32 @@ const store = createStore(reducer, applyMiddleware(
   routerMiddlewareWithHistory,
   loggerMiddleware,
 ), autoRehydrate());
-persistStore(store);
+
+persistStore(store, {
+  whitelist: [
+    'user',
+    'team',
+  ]
+}, () => {
+  render((
+    <Provider store={store}>
+      <Router history={History}>
+        <Route path="/">
+          <IndexRoute component={Home} />
+
+          <Route path="/dashboard" component={Dashboard
+          } onEnter={ requireAuth } />
+          <Route path="/atlas/:id" component={Dashboard} onEnter={ requireAuth } />
+          <Route path="/atlas/:id/new" component={Dashboard} onEnter={ requireAuth } />
+
+          <Route path="/editor" component={Dashboard} />
+
+          <Route path="/auth/slack" component={SlackAuth} />
+        </Route>
+      </Router>
+    </Provider>
+  ), document.getElementById('root'));
+});
 
 function requireAuth(nextState, replace) {
   if (!auth.loggedIn()) {
@@ -46,17 +71,3 @@ function requireAuth(nextState, replace) {
   }
 }
 
-render((
-  <Provider store={store}>
-    <Router history={History}>
-      <Route path="/">
-        <IndexRoute component={Home} />
-
-        <Route path="/dashboard" component={Dashboard} onEnter={ requireAuth } />
-        <Route path="/editor" component={App} />
-
-        <Route path="/auth/slack" component={SlackAuth} />
-      </Route>
-    </Router>
-  </Provider>
-), document.getElementById('root'));
