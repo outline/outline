@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _map from 'lodash/map';
 
 import auth from './auth';
 import constants from '../constants';
@@ -84,7 +84,7 @@ class ApiClient {
   // Helpers
 
   constructQueryString = (data) => {
-    return _.map(data, (v, k) => {
+    return _map(data, (v, k) => {
       return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
     }).join('&');
   };

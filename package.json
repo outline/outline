@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build:webpack": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --progress --colors",
+    "build:webpack": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --progress",
+    "build:analyze": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "cross-env NODE_ENV=development DEBUG=1 ./node_modules/.bin/nodemon --watch server index.js",
     "lint": "eslint src"
@@ -43,7 +44,6 @@
     "koa-mount": "^2.0.0",
     "koa-router": "^7.0.1",
     "koa-sendfile": "^2.0.0",
-    "koa-webpack-dev-middleware": "^1.2.0",
     "localenv": "^0.2.2",
     "pg": "^4.5.3",
     "pg-hstore": "^2.3.2",
@@ -75,7 +75,6 @@
     "koa-convert": "^1.2.0",
     "koa-webpack-dev-middleware": "^1.2.0",
     "koa-webpack-hot-middleware": "^1.0.3",
-    "localforage": "^1.4.0",
     "lodash": "^4.3.0",
     "marked": "^0.3.5",
     "node-dev": "^3.1.0",
@@ -92,15 +91,12 @@
     "redux": "^3.3.1",
     "redux-logger": "^2.6.1",
     "redux-persist": "^3.0.1",
-    "redux-storage": "^4.0.0",
-    "redux-storage-engine-localstorage": "^1.0.0",
     "redux-thunk": "^2.0.1",
     "sass-loader": "^3.2.0",
     "style-loader": "^0.13.0",
     "sw-toolbox": "^3.1.1",
     "to-markdown": "^2.0.1",
     "url-loader": "^0.5.7",
-    "webpack": "^1.12.12",
-    "webpack-koa-hot-middleware": "^0.1.2"
+    "webpack": "^1.12.12"
   }
 }

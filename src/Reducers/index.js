@@ -1,4 +1,5 @@
-import _ from 'lodash';
+import _xor from 'lodash/xor';
+import _last from 'lodash/last';
 import { combineReducers } from 'redux';
 
 import {
@@ -14,11 +15,11 @@ const activeEditors = (state = [ActiveEditors.MARKDOWN, ActiveEditors.TEXT], act
   switch (action.type) {
     case TOGGLE_EDITORS: {
       // TODO: A rewrite would be nice
-      const newState = _.xor(state, [action.toggledEditor]);
+      const newState = _xor(state, [action.toggledEditor]);
       if (newState.length > 0) {
         return newState;
       } else {
-        return _.xor([ActiveEditors.MARKDOWN, ActiveEditors.TEXT], [action.toggledEditor]);
+        return _xor([ActiveEditors.MARKDOWN, ActiveEditors.TEXT], [action.toggledEditor]);
       }
     }
     default:
@@ -56,7 +57,7 @@ const textDefaultState = {
 };
 
 const text = (state = textDefaultState, action) => {
-  const lastRevision = _.last(state.revisions);
+  const lastRevision = _last(state.revisions);
 
   switch (action.type) {
     case UPDATE_TEXT: {

@@ -7,7 +7,6 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
   devtool: 'cheap-module-source-map',
   entry: [
-  'babel-polyfill',
     './src/index',
   ],
   output: {

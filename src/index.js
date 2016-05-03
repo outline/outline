@@ -6,8 +6,6 @@ import { createStore, applyMiddleware } from 'redux';
 import { routerMiddleware } from 'react-router-redux';
 import { persistStore, autoRehydrate } from 'redux-persist';
 import thunkMiddleware from 'redux-thunk';
-import * as storage from 'redux-storage';
-import createEngine from 'redux-storage-engine-localstorage';
 import createLogger from 'redux-logger';
 import History from 'utils/History';
 
@@ -18,19 +16,16 @@ import reducers from 'reducers';
 import 'utils/base-styles.scss';
 
 import Home from 'scenes/Home';
-import App from 'scenes/App';
+// import App from 'scenes/App';
 import Dashboard from 'scenes/Dashboard';
 import SlackAuth from 'scenes/SlackAuth';
 
 // Redux
 
-const reducer = storage.reducer(reducers);
 const loggerMiddleware = createLogger();
 const routerMiddlewareWithHistory = routerMiddleware(History);
 
-const createStoreWithMiddleware = (createStore);
-
-const store = createStore(reducer, applyMiddleware(
+const store = createStore(reducers, applyMiddleware(
   thunkMiddleware,
   routerMiddlewareWithHistory,
   loggerMiddleware,
