@@ -12,7 +12,7 @@ export default function pagination(options) {
     };
 
     let query = ctx.request.query;
-    let limit = 1000;//parseInt(query.limit);
+    let limit = parseInt(query.limit);
     let offset = parseInt(query.offset);
     limit = isNaN(limit) ? opts.defaultLimit : limit;
     offset = isNaN(offset) ? 0 : offset;
