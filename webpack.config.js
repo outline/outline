@@ -1,5 +1,7 @@
 var path = require('path');
 var webpack = require('webpack');
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // Load .env
 require('dotenv').config();
@@ -23,9 +25,15 @@ module.exports = {
         include: path.join(__dirname, 'src')
       },
       { test: /\.json$/, loader: 'json-loader' },
-      { test: /\.s?css$/, loader: 'style!css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!sass?sourceMap' },
+      {
+        test: /\.s?css$/,
+        loader: ExtractTextPlugin.extract('style-loader', 'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!sass?sourceMap')
+      },
       { test: /\.(png|jpg|svg)$/, loader: 'url-loader' }, // inline base64 URLs for <=8k images, direct URLs for the rest
-      { test: /\.woff$/, loader: 'url-loader?limit=65000&mimetype=application/font-woff&name=public/fonts/[name].[ext]' },
+      {
+        test: /\.woff$/,
+        loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]'
+      },
     ]
   },
   resolve: {
@@ -37,6 +45,11 @@ module.exports = {
     definePlugin,
     new webpack.ProvidePlugin({
       'fetch': 'imports?this=>global!exports?global.fetch!isomorphic-fetch'
+    }),
+    new ExtractTextPlugin("styles.css"),
+    new HtmlWebpackPlugin({
+      title: 'Atlas',
+      template: 'server/static/index.html',
     }),
   ]
 };

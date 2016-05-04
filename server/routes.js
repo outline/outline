@@ -25,7 +25,7 @@ router.get('/service-worker.js', async (ctx) => {
 });
 
 router.get('*', async (ctx) => {
-  const stats = await sendfile(ctx, path.join(__dirname, 'static/index.html'));
+  const stats = await sendfile(ctx, path.join(__dirname, './static/dev.html'));
   if (!ctx.status) ctx.throw(httpErrors.NotFound());
 });
 

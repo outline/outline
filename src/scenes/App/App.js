@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import 'normalize.css/normalize.css';
-import '../../fonts/atlas/atlas.css';
 import styles from './App.scss';
 
 import {

@@ -13,7 +13,9 @@ import auth from 'utils/auth';
 
 import reducers from 'reducers';
 
+import 'normalize.css/normalize.css';
 import 'utils/base-styles.scss';
+import 'fonts/atlas/atlas.css';
 
 import Home from 'scenes/Home';
 // import App from 'scenes/App';
