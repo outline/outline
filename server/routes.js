@@ -17,12 +17,17 @@ const router = new Router();
 //   }
 // });
 
-// Frontend
-router.get('/service-worker.js', async (ctx) => {
-  ctx.set('Content-Type', 'application/javascript');
-  const stats = await sendfile(ctx, path.join(__dirname, 'static/service-worker.js'));
-  if (!ctx.status) ctx.throw(httpErrors.NotFound());
-});
+if (process.env.NODE_ENV === 'production') {
+  router.get('/service-worker.js', async (ctx) => {
+    ctx.set('Content-Type', 'application/javascript');
+    const stats = await sendfile(ctx, path.join(__dirname, 'static/service-worker.js'));
+    if (!ctx.status) ctx.throw(httpErrors.NotFound());
+  });
+
+  router.get('/static/*', async (ctx) => {
+    const stats = await sendfile(ctx, path.join(__dirname, '../dist/', ctx.path.substring(8)));
+  });
+}
 
 router.get('*', async (ctx) => {
   const stats = await sendfile(ctx, path.join(__dirname, './static/dev.html'));
