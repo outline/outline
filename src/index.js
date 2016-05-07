@@ -22,6 +22,7 @@ import 'fonts/atlas/atlas.css';
 import Home from 'scenes/Home';
 // import App from 'scenes/App';
 import Dashboard from 'scenes/Dashboard';
+import Atlas from 'scenes/Atlas';
 import SlackAuth from 'scenes/SlackAuth';
 
 // Redux
@@ -47,12 +48,10 @@ persistStore(store, {
         <Route path="/">
           <IndexRoute component={Home} />
 
-          <Route path="/dashboard" component={Dashboard
-          } onEnter={ requireAuth } />
-          <Route path="/atlas/:id" component={Dashboard} onEnter={ requireAuth } />
-          <Route path="/atlas/:id/new" component={Dashboard} onEnter={ requireAuth } />
+          <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
+          <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
 
-          <Route path="/editor" component={Dashboard} />
+          <Route path="/editor" component={Dashboard} onEnter={ requireAuth } />
 
           <Route path="/auth/slack" component={SlackAuth} />
         </Route>
@@ -69,4 +68,3 @@ function requireAuth(nextState, replace) {
     });
   }
 }
-

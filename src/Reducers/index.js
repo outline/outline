@@ -106,6 +106,7 @@ const text = (state = textDefaultState, action) => {
 
 import team from './team';
 import user from './user';
+import atlases from './atlases';
 
 export default combineReducers({
   activeEditors,
@@ -113,4 +114,5 @@ export default combineReducers({
   text,
   user,
   team,
+  atlases,
 });

@@ -6,6 +6,7 @@ import Sequelize from 'sequelize';
 
 import auth from './auth';
 import user from './user';
+import atlases from './atlases';
 
 import validation from './validation';
 
@@ -42,6 +43,7 @@ api.use(validation());
 
 router.use('/', auth.routes());
 router.use('/', user.routes());
+router.use('/', atlases.routes());
 
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.

@@ -1,3 +1,5 @@
+@import '../../utils/constants.scss';
+
 .container {
   display: flex;
   flex: 1;
@@ -16,9 +18,11 @@
   border-bottom: 1px solid #eee;
 }
 
-.teamName {
+.teamName a {
   font-family: 'Atlas Grotesk';
   font-weight: bold;
+  color: $textColor;
+  text-decoration: none;
 }
 
 .content {

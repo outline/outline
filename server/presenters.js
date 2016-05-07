@@ -14,3 +14,13 @@ export function presentTeam(team) {
     name: team.name,
   };
 }
+
+export function presentAtlas(atlas) {
+  return {
+    id: atlas.id,
+    name: atlas.name,
+    description: atlas.description,
+    type: atlas.type,
+    recentDocuments: atlas.getRecentDocuments(),
+  }
+}

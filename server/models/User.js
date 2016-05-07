@@ -23,6 +23,9 @@ const User = sequelize.define('user', {
     getJwtToken() {
       return JWT.sign({ id: this.id }, this.jwtSecret);
     },
+    async getTeam() {
+      return this.team;
+    }
   },
   indexes: [
     {

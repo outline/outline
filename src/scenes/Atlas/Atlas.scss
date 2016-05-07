@@ -1,0 +1,31 @@
+.container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.atlasDetails {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  blockquote {
+    padding: 0;
+    margin: 0 0 20px 0;
+    font-style: italic;
+  }
+}
+
+.divider {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+
+  span {
+    display: flex;
+    width: 50%;
+    margin: 20px 0;
+
+    border-bottom: 1px solid #eee;
+  }
+}
