@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'react-router/lib/Link';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { replace } from 'react-router-redux';
@@ -44,7 +45,12 @@ class Atlas extends React.Component {
     const data = this.state.data;
 
     return (
-      <Layout>
+      <Layout
+        actions={(
+          <Link to="/new-document">New document</Link>
+        )}
+        title={ data.name }
+      >
         <CenteredContent>
           { this.state.isLoading ? (
             <AtlasPreviewLoading />
