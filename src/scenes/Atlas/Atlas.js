@@ -47,7 +47,7 @@ class Atlas extends React.Component {
     return (
       <Layout
         actions={(
-          <Link to="/new-document">New document</Link>
+          <Link to={ `/atlas/${data.id}/new` }>New document</Link>
         )}
         title={ data.name }
       >

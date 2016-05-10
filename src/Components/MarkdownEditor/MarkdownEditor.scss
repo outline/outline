@@ -1,4 +1,7 @@
 .container {
+  display: flex;
+  flex: 1;
+
   font-weight: 400;
   font-size: 1em;
   line-height: 1.5em;
@@ -9,5 +12,14 @@
 }
 
 @media all and (max-width: 2000px) and (min-width: 960px) {
-  .container {font-size: 1.1em}
+  .container {
+    margin-top: 48px;
+    font-size: 1.1em;
+  }
+}
+
+@media all and (max-width: 960px) {
+  .container {
+    font-size: 0.9em;
+  }
 }

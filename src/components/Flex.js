@@ -24,7 +24,7 @@ Flex.defaultProps = {
 };
 
 Flex.propTypes = {
-  children: React.PropTypes.arrayOf(React.PropTypes.node).isRequired,
+  children: React.PropTypes.node.isRequired,
   direction: React.PropTypes.string,
   justify: React.PropTypes.string,
   align: React.PropTypes.string,

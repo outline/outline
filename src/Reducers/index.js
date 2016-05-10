@@ -1,118 +1,13 @@
-import _xor from 'lodash/xor';
-import _last from 'lodash/last';
 import { combineReducers } from 'redux';
 
-import {
-  UPDATE_TEXT,
-  TOGGLE_EDITORS,
-  TOGGLE_HISTORY_SIDEBAR,
-  ADD_REVISION,
-  REPLACE_TEXT,
-  ActiveEditors
-} from '../actions';
-
-const activeEditors = (state = [ActiveEditors.MARKDOWN, ActiveEditors.TEXT], action) => {
-  switch (action.type) {
-    case TOGGLE_EDITORS: {
-      // TODO: A rewrite would be nice
-      const newState = _xor(state, [action.toggledEditor]);
-      if (newState.length > 0) {
-        return newState;
-      } else {
-        return _xor([ActiveEditors.MARKDOWN, ActiveEditors.TEXT], [action.toggledEditor]);
-      }
-    }
-    default:
-      return state;
-  }
-};
-
-const historySidebar = (state = { visible: false }, action) => {
-  switch (action.type) {
-    case TOGGLE_HISTORY_SIDEBAR: {
-      return {
-        ...state,
-        visible: !state.visible,
-      };
-    }
-    default:
-      return state;
-  }
-};
-
-const defaultTest = `# Welcome to Beautiful Atlas
-
-This is just a small preview here's what you can do:
-
-- Write markdown or rich text, you choose
-- Dont' worry about saving
-- One document for now
-- More to come
-`
-
-const textDefaultState = {
-  text: defaultTest,
-  revisions: [],
-  unsavedChanges: false,
-};
-
-const text = (state = textDefaultState, action) => {
-  const lastRevision = _last(state.revisions);
-
-  switch (action.type) {
-    case UPDATE_TEXT: {
-      let unsavedChanges = false;
-      if (lastRevision && lastRevision.text !== state.text) {
-        unsavedChanges = true;
-      }
-      return {
-        ...state,
-        unsavedChanges,
-        text: action.text,
-      };
-    }
-    case ADD_REVISION: {
-      // Create new revision if it differs from the previous one
-      if (!lastRevision || lastRevision.text !== state.text) {
-        const lastId = lastRevision ? lastRevision.id : 0;
-        return {
-          ...state,
-          revisions: [
-            ...state.revisions,
-            {
-              id: lastId + 1,
-              text: state.text,
-              created_at: action.createdAt,
-            },
-          ],
-          unsavedChanges: false,
-        };
-      } else {
-        return state;
-      }
-    }
-    case REPLACE_TEXT: {
-      const newText = state.text.replace(action.originalText, action.replacedText);
-
-      return {
-        ...state,
-        text: newText,
-      };
-    }
-    default:
-      return state;
-  }
-};
-
-import team from './team';
-import user from './user';
 import atlases from './atlases';
+import team from './team';
+import editor from './editor';
+import user from './user';
 
 export default combineReducers({
-  activeEditors,
-  historySidebar,
-  text,
-  user,
-  team,
   atlases,
+  team,
+  editor,
+  user,
 });

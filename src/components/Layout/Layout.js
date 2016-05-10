@@ -1,4 +1,5 @@
 import React from 'react';
+import _truncate from 'lodash/truncate';
 import { connect } from 'react-redux';
 import Link from 'react-router/lib/Link';
 
@@ -9,8 +10,8 @@ import styles from './Layout.scss';
 
 class Layout extends React.Component {
   static propTypes = {
-    actions: React.PropTypes.arrayOf(React.PropTypes.node),
-    title: React.PropTypes.node,
+    actions: React.PropTypes.node,
+    title: React.PropTypes.string,
   }
 
   render() {
@@ -21,7 +22,11 @@ class Layout extends React.Component {
             <Link to="/">{ this.props.teamName }</Link>
           </div>
           <Flex align="center" className={ styles.title }>
-            { this.props.title }
+            { this.props.title ? (
+              <span title={this.props.title}>{ _truncate(this.props.title, 60) }</span>
+            ) : (
+              <span className={ styles.untitled }>Untitled document</span>
+            )}
           </Flex>
           <Flex direction="row">
             <Flex align="center" className={ styles.actions }>

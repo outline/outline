@@ -20,7 +20,7 @@ import 'utils/base-styles.scss';
 import 'fonts/atlas/atlas.css';
 
 import Home from 'scenes/Home';
-// import App from 'scenes/App';
+import Editor from 'scenes/Editor';
 import Dashboard from 'scenes/Dashboard';
 import Atlas from 'scenes/Atlas';
 import SlackAuth from 'scenes/SlackAuth';
@@ -50,6 +50,7 @@ persistStore(store, {
 
           <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
           <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
+          <Route path="/atlas/:id/new" component={ Editor } onEnter={ requireAuth } />
 
           <Route path="/editor" component={Dashboard} onEnter={ requireAuth } />
 
