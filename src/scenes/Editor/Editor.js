@@ -10,7 +10,7 @@ import {
 import styles from './Editor.scss';
 import 'assets/styles/codemirror.css';
 
-import Layout from 'components/Layout';
+import Layout, { Title } from 'components/Layout';
 import Flex from 'components/Flex';
 import MarkdownEditor from 'components/MarkdownEditor';
 
@@ -26,6 +26,15 @@ class Editor extends Component {
   }
 
   render() {
+    let title = (
+      <Title
+        truncate={ 60 }
+        placeholder={ "Untitle document" }
+      >
+        { this.props.title }
+      </Title>
+    );
+
     return (
       <Layout
         actions={(
@@ -34,15 +43,13 @@ class Editor extends Component {
             <MoreAction />
           </Flex>
         )}
-        title={ this.props.title }
+        title={ title }
       >
-
-          <MarkdownEditor
-            onChange={ this.props.updateText }
-            text={ this.props.text }
-            replaceText={this.props.replaceText}
-          />
-
+        <MarkdownEditor
+          onChange={ this.props.updateText }
+          text={ this.props.text }
+          replaceText={this.props.replaceText}
+        />
       </Layout>
     );
   }

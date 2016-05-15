@@ -8,7 +8,7 @@ import { fetchAtlasAsync } from 'actions/AtlasActions';
 // Temp
 import { client } from 'utils/ApiClient';
 
-import Layout from 'components/Layout';
+import Layout, { Title } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
@@ -49,7 +49,7 @@ class Atlas extends React.Component {
         actions={(
           <Link to={ `/atlas/${data.id}/new` }>New document</Link>
         )}
-        title={ data.name }
+        title={ <Title>{ data.name }</Title> }
       >
         <CenteredContent>
           { this.state.isLoading ? (
