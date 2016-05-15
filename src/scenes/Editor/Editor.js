@@ -36,13 +36,13 @@ class Editor extends Component {
         )}
         title={ this.props.title }
       >
-        <Flex flex={ true } align="center">
+
           <MarkdownEditor
             onChange={ this.props.updateText }
             text={ this.props.text }
             replaceText={this.props.replaceText}
           />
-        </Flex>
+
       </Layout>
     );
   }

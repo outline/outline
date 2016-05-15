@@ -11,14 +11,12 @@
 :global {
   /* Custom styling */
   .cm-s-atlas.CodeMirror {
-    background: #ffffff;
+    background: #fff;
     color: #202020;
     font-family: 'Atlas Typewriter', 'Cousine', 'Monaco', monospace;
     font-weight: 300;
-    height: auto;
-  }
-  .cm-s-atlas div.CodeMirror-selected {
-    background: #90CAF9;
+    height: auto; // This will break layout for some reason. TODO: investigate
+    width: 100%;
   }
 
   /* Disable ondrag cursor for file uploads */

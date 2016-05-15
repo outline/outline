@@ -93,7 +93,7 @@ class MarkdownAtlas extends React.Component {
       mode: 'gfm',
       matchBrackets: true,
       lineWrapping: true,
-      // viewportMargin: Infinity,
+      viewportMargin: Infinity,
       theme: 'atlas',
       extraKeys: {
         Enter: 'newlineAndIndentContinueMarkdownList',
@@ -104,7 +104,6 @@ class MarkdownAtlas extends React.Component {
     // http://codepen.io/lubelski/pen/fnGae
     // TODO:
     // - Emojify
-    // -
     return (
       <Dropzone
         onDropAccepted={this.onDropAccepted}
@@ -118,6 +117,7 @@ class MarkdownAtlas extends React.Component {
           onChange={this.onChange}
           options={options}
           ref="editor"
+          className={styles.codeMirrorContainer}
         />
       </Dropzone>
     );
