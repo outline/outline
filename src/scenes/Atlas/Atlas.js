@@ -16,50 +16,41 @@ import styles from './Atlas.scss';
 
 class Atlas extends React.Component {
   static propTypes = {
+    isLoading: React.PropTypes.bool,
     atlas: React.PropTypes.object,
-  }
-
-  state = {
-    isLoading: true,
-    data: null,
   }
 
   componentDidMount = () => {
     const { id } = this.props.params;
 
-    // this.props.fetchAtlasAsync(id);
-
-    // Temp before breaking out redux store
-    client.post('/atlases.info', {
-      id: id,
-    })
-    .then(data => {
-      this.setState({
-        isLoading: false,
-        data: data.data
-      });
-    })
+    this.props.fetchAtlasAsync(id);
   }
 
   render() {
-    const data = this.state.data;
+    const atlas = this.props.atlas;
+
+    let actions;
+    let title;
+
+    if (this.props.isLoading === false) {
+      actions = <Link to={ `/atlas/${atlas.id}/new` }>New document</Link>;
+      title = <Title>{ atlas.name }</Title>;
+    }
 
     return (
       <Layout
-        actions={(
-          <Link to={ `/atlas/${data.id}/new` }>New document</Link>
-        )}
-        title={ <Title>{ data.name }</Title> }
+        actions={ actions }
+        title={ title }
       >
         <CenteredContent>
-          { this.state.isLoading ? (
+          { this.props.isLoading ? (
             <AtlasPreviewLoading />
           ) : (
             <div className={ styles.container }>
               <div className={ styles.atlasDetails }>
-                <h2>{ data.name }</h2>
+                <h2>{ atlas.name }</h2>
                 <blockquote>
-                  { data.description }
+                  { atlas.description }
                 </blockquote>
               </div>
 
@@ -72,9 +63,12 @@ class Atlas extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state, currentProps) => {
+  const id = currentProps.params.id;
+
   return {
     isLoading: state.atlases.isLoading,
+    atlas: state.atlases.entities ? state.atlases.entities.atlases[id] : null, // reselect
   }
 };
 

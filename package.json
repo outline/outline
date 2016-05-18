@@ -83,6 +83,7 @@
     "node-sass": "^3.4.2",
     "nodemon": "^1.9.1",
     "normalize.css": "^3.0.3",
+    "normalizr": "^2.0.1",
     "react": "^0.14.7",
     "react-codemirror": "^0.2.5",
     "react-dropzone": "^3.3.2",

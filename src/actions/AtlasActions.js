@@ -1,12 +1,15 @@
 import makeActionCreator from '../utils/actions';
 import { client } from 'utils/ApiClient';
+import { normalize, Schema, arrayOf } from 'normalizr';
+
+const atlas = new Schema('atlases');
 
 export const FETCH_ATLASES_PENDING = 'FETCH_ATLASES_PENDING';
 export const FETCH_ATLASES_SUCCESS = 'FETCH_ATLASES_SUCCESS';
 export const FETCH_ATLASES_FAILURE = 'FETCH_ATLASES_FAILURE';
 
 const fetchAtlasesPending = makeActionCreator(FETCH_ATLASES_PENDING);
-const fetchAtlasesSuccess = makeActionCreator(FETCH_ATLASES_SUCCESS, 'items', 'pagination');
+const fetchAtlasesSuccess = makeActionCreator(FETCH_ATLASES_SUCCESS, 'data', 'pagination');
 const fetchAtlasesFailure = makeActionCreator(FETCH_ATLASES_FAILURE, 'error');
 
 export function fetchAtlasesAsync(teamId) {
@@ -17,7 +20,9 @@ export function fetchAtlasesAsync(teamId) {
       teamId: teamId,
     })
     .then(data => {
-      dispatch(fetchAtlasesSuccess(data.data, data.pagination));
+      const response = normalize(data.data, arrayOf(atlas));
+
+      dispatch(fetchAtlasesSuccess(response, data.pagination));
     })
     .catch((err) => {
       dispatch(fetchAtlasesFailure(err));
@@ -43,7 +48,9 @@ export function fetchAtlasAsync(atlasId) {
       id: atlasId,
     })
     .then(data => {
-      dispatch(fetchAtlasSuccess(data.data,));
+      const response = normalize(data.data, atlas);
+
+      dispatch(fetchAtlasSuccess(response));
     })
     .catch((err) => {
       dispatch(fetchAtlasFailure(err));

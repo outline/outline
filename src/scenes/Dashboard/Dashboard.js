@@ -37,7 +37,7 @@ const mapStateToProps = (state) => {
   return {
     teamId: state.team ? state.team.id : null,
     isLoading: state.atlases.isLoading,
-    items: state.atlases.items,
+    items: Array.isArray(state.atlases.result) ? state.atlases.result.map((id) => state.atlases.entities.atlases[id]) : [], // reselect
   }
 };
 

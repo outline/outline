@@ -11,10 +11,12 @@ class AtlasPreview extends React.Component {
   }
 
   render() {
+    const data = this.props.data;
+
     return (
       <div className={ styles.container }>
-        <h2><Link to={ `/atlas/${this.props.data.id}` } className={ styles.atlasLink }>{ this.props.data.name }</Link></h2>
-        <div>No documents. Why not <Link to='/new-document'>create one</Link>?</div>
+        <h2><Link to={ `/atlas/${data.id}` } className={ styles.atlasLink }>{ data.name }</Link></h2>
+        <div>No documents. Why not <Link to={ `/atlas/${data.id}/new` }>create one</Link>?</div>
       </div>
     );
   }
