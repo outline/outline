@@ -6,17 +6,20 @@ import HeaderMenu from './components/HeaderMenu';
 import Flex from 'components/Flex';
 
 import styles from './Layout.scss';
+import classNames from 'classnames/bind';
+const cx = classNames.bind(styles);
 
 class Layout extends React.Component {
   static propTypes = {
     actions: React.PropTypes.node,
     title: React.PropTypes.node,
+    fixed: React.PropTypes.bool,
   }
 
   render() {
     return (
       <div className={ styles.container }>
-        <div className={ styles.header }>
+        <div className={ cx(styles.header, { fixed: this.props.fixed }) }>
           <div className={ styles.teamName }>
             <Link to="/">{ this.props.teamName }</Link>
           </div>

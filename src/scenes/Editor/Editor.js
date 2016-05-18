@@ -44,6 +44,7 @@ class Editor extends Component {
           </Flex>
         )}
         title={ title }
+        fixed={ true }
       >
         <MarkdownEditor
           onChange={ this.props.updateText }

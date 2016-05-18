@@ -6,6 +6,8 @@ import 'codemirror/addon/edit/continuelist';
 import 'codemirror/addon/display/placeholder.js';
 import Dropzone from 'react-dropzone';
 
+import ClickablePadding from './components/ClickablePadding';
+
 import styles from './MarkdownEditor.scss';
 import './codemirror.scss';
 
@@ -85,8 +87,20 @@ class MarkdownAtlas extends React.Component {
     });
   }
 
+  onPaddingTopClick = () => {
+    const cm = this.getEditorInstance();
+    console.log(cm)
+    cm.setCursor(0, 0);
+    cm.focus();
+  }
+
+  onPaddingBottomClick = () => {
+    const cm = this.getEditorInstance();
+    cm.setCursor(cm.lineCount(), 0);
+    cm.focus();
+  }
+
   render = () => {
-    // https://github.com/jbt/markdown-editor/blob/master/index.html
     const options = {
       readOnly: false,
       lineNumbers: false,
@@ -112,6 +126,7 @@ class MarkdownAtlas extends React.Component {
         accept={'image/*'}
         className={styles.container}
       >
+        <ClickablePadding onClick={ this.onPaddingTopClick } />
         <Codemirror
           value={this.props.text}
           onChange={this.onChange}
@@ -119,6 +134,7 @@ class MarkdownAtlas extends React.Component {
           ref="editor"
           className={styles.codeMirrorContainer}
         />
+        <ClickablePadding onClick={ this.onPaddingBottomClick } />
       </Dropzone>
     );
   }
