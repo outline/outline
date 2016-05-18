@@ -1,0 +1,10 @@
+.container {
+  padding-top: 100px;
+  cursor: text;
+}
+
+@media all and (max-width: 960px) {
+  .container {
+    padding-top: 50px;
+  }
+}

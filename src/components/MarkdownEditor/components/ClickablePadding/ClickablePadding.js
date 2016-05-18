@@ -1,13 +1,13 @@
 import React from 'react';
 
-const styles = {
-  paddingTop: "100px",
-  cursor: "text",
-};
+import styles from './ClickablePadding.scss';
 
 const ClickablePadding = (props) => {
   return (
-    <div style={ styles } onClick={ props.onClick }>&nbsp;</div>
+    <div
+      className={ styles.container }
+      onClick={ props.onClick }
+    >&nbsp;</div>
   )
 };
 
