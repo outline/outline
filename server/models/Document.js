@@ -7,11 +7,11 @@ import Team from './Team';
 
 const Document = sequelize.define('document', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  name: DataTypes.STRING,
-  content: DataTypes.STRING,
+  title: DataTypes.STRING,
+  text: DataTypes.TEXT,
 });
 
-Document.belongsTo(Atlas);
+Document.belongsTo(Atlas, { as: 'atlas' });
 Document.belongsTo(Team);
 
-export default Atlas;
+export default Document;

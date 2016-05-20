@@ -6,6 +6,9 @@ import {
   updateText,
   replaceText,
 } from 'actions/EditorActions';
+import {
+  saveDocumentAsync,
+} from 'actions/DocumentActions';
 
 import styles from './Editor.scss';
 import 'assets/styles/codemirror.css';
@@ -21,8 +24,28 @@ class Editor extends Component {
   static propTypes = {
     updateText: React.PropTypes.func.isRequired,
     replaceText: React.PropTypes.func.isRequired,
+    saveDocumentAsync: React.PropTypes.func.isRequired,
     text: React.PropTypes.string,
     title: React.PropTypes.string,
+  }
+
+  componentDidMount = () => {
+    const atlasId = this.props.routeParams.id;
+    this.setState({ atlasId: atlasId });
+  }
+
+  onSave = () => {
+    if (this.props.title.length === 0) {
+      alert("Please add a title before saving (hint: Write a markdown header)");
+      return
+    }
+
+    this.props.saveDocumentAsync(
+      this.state.atlasId,
+      null,
+      this.props.title,
+      this.props.text,
+    )
   }
 
   render() {
@@ -39,7 +62,7 @@ class Editor extends Component {
       <Layout
         actions={(
           <Flex direction="row" align="center">
-            <SaveAction />
+            <SaveAction onClick={ this.onSave } />
             <MoreAction />
           </Flex>
         )}
@@ -60,6 +83,7 @@ const mapStateToProps = (state) => {
   return {
     text: state.editor.text,
     title: state.editor.title,
+    isSaving: state.document.isLoading,
   };
 };
 
@@ -67,6 +91,7 @@ const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
     updateText,
     replaceText,
+    saveDocumentAsync,
   }, dispatch)
 };
 

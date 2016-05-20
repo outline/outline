@@ -23,6 +23,7 @@ import Home from 'scenes/Home';
 import Editor from 'scenes/Editor';
 import Dashboard from 'scenes/Dashboard';
 import Atlas from 'scenes/Atlas';
+import Document from 'scenes/Document';
 import SlackAuth from 'scenes/SlackAuth';
 
 // Redux
@@ -51,8 +52,7 @@ persistStore(store, {
           <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
           <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
           <Route path="/atlas/:id/new" component={ Editor } onEnter={ requireAuth } />
-
-          <Route path="/editor" component={Dashboard} onEnter={ requireAuth } />
+          <Route path="/documents/:id" component={ Document } onEnter={ requireAuth } />
 
           <Route path="/auth/slack" component={SlackAuth} />
         </Route>

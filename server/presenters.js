@@ -1,3 +1,5 @@
+var marked = require('marked');
+
 export function presentUser(user) {
   return {
     id: user.id,
@@ -15,7 +17,7 @@ export function presentTeam(team) {
   };
 }
 
-export function presentAtlas(atlas) {
+export function presentAtlas(atlas, includeRecentDocuments=true) {
   return {
     id: atlas.id,
     name: atlas.name,
@@ -23,4 +25,24 @@ export function presentAtlas(atlas) {
     type: atlas.type,
     recentDocuments: atlas.getRecentDocuments(),
   }
+}
+
+export async function presentDocument(document, includeAtlas=false) {
+  const data = {
+    id: document.id,
+    title: document.title,
+    text: document.text,
+    html: marked(document.text),
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+    atlas: document.atlaId,
+    team: document.teamId,
+  }
+
+  if (includeAtlas) {
+    const atlas = await document.getAtlas();
+    data.atlas = presentAtlas(atlas, false);
+  }
+
+  return data;
 }
