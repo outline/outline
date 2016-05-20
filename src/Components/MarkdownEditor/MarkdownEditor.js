@@ -53,12 +53,13 @@ class MarkdownAtlas extends React.Component {
     }
     editor.setCursor(newCursorPositionLine, 0);
 
-    client.post('/v0/user/s3', {
+    client.post('/user.s3Upload', {
       kind: file.type,
       size: file.size,
       filename: file.name,
     })
-    .then(data => {
+    .then(response => {
+      const data = response.data;
       // Upload using FormData API
       let formData = new FormData();
 

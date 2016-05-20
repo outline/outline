@@ -30,6 +30,7 @@
     "babel-preset-react": "^6.3.13",
     "babel-preset-react-hmre": "^1.0.1",
     "babel-preset-stage-0": "^6.5.0",
+    "crypto": "0.0.3",
     "debug": "^2.2.0",
     "extract-text-webpack-plugin": "^1.0.1",
     "html-webpack-plugin": "^2.16.1",
@@ -47,6 +48,7 @@
     "koa-router": "^7.0.1",
     "koa-sendfile": "^2.0.0",
     "localenv": "^0.2.2",
+    "moment": "^2.13.0",
     "pg": "^4.5.3",
     "pg-hstore": "^2.3.2",
     "querystring": "^0.2.0",
@@ -57,6 +59,7 @@
     "sequelize": "^3.21.0",
     "sequelize-cli": "^2.3.1",
     "sequelize-encrypted": "^0.1.0",
+    "uuid": "^2.0.2",
     "validator": "^5.2.0"
   },
   "devDependencies": {
