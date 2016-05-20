@@ -63,7 +63,6 @@ class Editor extends Component {
         actions={(
           <Flex direction="row" align="center">
             <SaveAction onClick={ this.onSave } />
-            <MoreAction />
           </Flex>
         )}
         title={ title }
