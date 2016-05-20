@@ -16,7 +16,7 @@ class AtlasPreview extends React.Component {
     return (
       <div className={ styles.container }>
         <h2><Link to={ `/atlas/${data.id}` } className={ styles.atlasLink }>{ data.name }</Link></h2>
-        <div>No documents. Why not <Link to={ `/atlas/${data.id}/new` }>create one</Link>?</div>
+        <div className={ styles.description }>No documents. Why not <Link to={ `/atlas/${data.id}/new` }>create one</Link>?</div>
       </div>
     );
   }

@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { fetchAtlasesAsync } from 'actions/AtlasActions';
 
+import Flex from 'components/Flex';
 import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -22,11 +23,13 @@ class Dashboard extends React.Component {
     return (
       <Layout>
         <CenteredContent>
-          { this.props.isLoading ? (
-            <AtlasPreviewLoading />
-          ) : this.props.items.map((item) => {
-           return  (<AtlasPreview data={ item } />);
-          }) }
+          <Flex direction="column" flex={ true }>
+            { this.props.isLoading ? (
+              <AtlasPreviewLoading />
+            ) : this.props.items.map((item) => {
+             return  (<AtlasPreview data={ item } />);
+            }) }
+          </Flex>
         </CenteredContent>
       </Layout>
     );
