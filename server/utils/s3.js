@@ -14,8 +14,6 @@ const makePolicy = () => {
     expiration: moment().add(24*60, 'minutes').format('YYYY-MM-DDTHH:mm:ss\\Z'),
   };
 
-  console.log(policy)
-
   return new Buffer(JSON.stringify(policy)).toString('base64')
 };
 
@@ -24,6 +22,7 @@ const signPolicy = (policy) => {
     'sha1',
     process.env.AWS_SECRET_ACCESS_KEY
   ).update(policy).digest('base64');
+
   return signature;
 };
 

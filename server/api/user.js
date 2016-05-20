@@ -25,8 +25,6 @@ router.post('user.s3Upload', auth(), async (ctx) => {
   const key = `${s3Key}/${filename}`;
   const policy = makePolicy();
 
-  console.log(policy, signPolicy(policy));
-
   ctx.body = { data: {
     max_upload_size:          process.env.AWS_S3_UPLOAD_MAX_SIZE,
     upload_url:               process.env.AWS_S3_UPLOAD_BUCKET_URL,
