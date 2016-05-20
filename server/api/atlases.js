@@ -1,5 +1,6 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
+import _orderBy from 'lodash/orderBy';
 
 import auth from './authentication';
 import pagination from './middlewares/pagination';
@@ -29,14 +30,14 @@ router.post('atlases.info', auth(), async (ctx) => {
 
 
 router.post('atlases.list', auth(), pagination(), async (ctx) => {
-  let { teamId } = ctx.request.body;
-  ctx.assertPresent(teamId, 'teamId is required');
-
   const team = await ctx.state.user.getTeam();
   const atlases = await Atlas.findAll({
     where: {
-      teamId: teamId,
+      teamId: team.id,
     },
+    order: [
+      ['updatedAt', 'DESC'],
+    ],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
@@ -44,8 +45,10 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
   // Atlases
   let data = [];
   await Promise.all(atlases.map(async (atlas) => {
-    data.push(await presentAtlas(atlas));
-  }))
+    data.push(await presentAtlas(atlas, true));
+  }));
+
+  data = _orderBy(data, ['updatedAt'], ['desc']);
 
   ctx.body = {
     pagination: ctx.state.pagination,

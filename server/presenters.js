@@ -1,4 +1,5 @@
-var marked = require('marked');
+import marked from 'marked';
+
 import Document from './models/Document';
 
 export function presentUser(user) {
@@ -37,6 +38,9 @@ export function presentAtlas(atlas, includeRecentDocuments=false) {
           atlasId: atlas.id,
         },
         limit: 10,
+        order: [
+          ['updatedAt', 'DESC'],
+        ],
       });
 
       let recentDocuments = [];
