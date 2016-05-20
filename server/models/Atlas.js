@@ -11,12 +11,6 @@ const Atlas = sequelize.define('atlas', {
   name: DataTypes.STRING,
   description: DataTypes.STRING,
   type: { type: DataTypes.STRING, validate: { isIn: allowedAtlasTypes }},
-}, {
-  instanceMethods: {
-    getRecentDocuments() {
-      return [];
-    },
-  },
 });
 
 Atlas.belongsTo(Team);

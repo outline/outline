@@ -23,7 +23,7 @@ router.post('atlases.info', auth(), async (ctx) => {
   if (!atlas) throw httpErrors.NotFound();
 
   ctx.body = {
-    data: presentAtlas(atlas),
+    data: await presentAtlas(atlas, true),
   };
 });
 
@@ -41,11 +41,15 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
     limit: ctx.state.pagination.limit,
   });
 
+  // Atlases
+  let data = [];
+  await Promise.all(atlases.map(async (atlas) => {
+    data.push(await presentAtlas(atlas));
+  }))
+
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: atlases.map((atlas) => {
-      return presentAtlas(atlas);
-    })
+    data: data,
   };
 });
 
