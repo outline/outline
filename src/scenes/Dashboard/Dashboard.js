@@ -27,7 +27,7 @@ class Dashboard extends React.Component {
             { this.props.isLoading ? (
               <AtlasPreviewLoading />
             ) : this.props.items.map((item) => {
-             return  (<AtlasPreview data={ item } />);
+             return  (<AtlasPreview key={ item.id } data={ item } />);
             }) }
           </Flex>
         </CenteredContent>
