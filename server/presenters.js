@@ -69,6 +69,9 @@ export async function presentDocument(document, includeAtlas=false) {
   if (includeAtlas) {
     const atlas = await document.getAtlas();
     data.atlas = await presentAtlas(atlas, false);
+
+    const user = await document.getUser();
+    data.user = await presentUser(user, false);
   }
 
   return data;

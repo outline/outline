@@ -6,10 +6,11 @@ import { fetchDocumentAsync } from 'actions/DocumentActions';
 import Layout from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
+import Document from 'components/Document';
 
-import styles from './Document.scss';
+import styles from './DocumentScene.scss';
 
-class Document extends React.Component {
+class DocumentScene extends React.Component {
   componentDidMount = () => {
     const documentId = this.props.routeParams.id;
     this.props.fetchDocumentAsync(documentId);
@@ -30,7 +31,7 @@ class Document extends React.Component {
           { this.props.isLoading || !document ? (
             <AtlasPreviewLoading />
           ) : (
-            <div dangerouslySetInnerHTML={{ __html: document.html }} />
+            <Document document={ document } />
           ) }
         </CenteredContent>
       </Layout>
@@ -55,4 +56,4 @@ const mapDispatchToProps = (dispatch) => {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Document);
+)(DocumentScene);

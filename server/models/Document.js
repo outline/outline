@@ -4,6 +4,7 @@ import {
 } from '../sequelize';
 import Atlas from './Atlas';
 import Team from './Team';
+import User from './User';
 
 const Document = sequelize.define('document', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -13,5 +14,6 @@ const Document = sequelize.define('document', {
 
 Document.belongsTo(Atlas, { as: 'atlas' });
 Document.belongsTo(Team);
+Document.belongsTo(User);
 
 export default Document;
