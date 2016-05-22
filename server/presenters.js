@@ -1,4 +1,5 @@
 import marked from 'marked';
+import { truncateMarkdown } from './utils/truncate';
 
 import Document from './models/Document';
 
@@ -45,7 +46,7 @@ export function presentAtlas(atlas, includeRecentDocuments=false) {
 
       let recentDocuments = [];
       await Promise.all(documents.map(async (document) => {
-        recentDocuments.push(await presentDocument(document));
+        recentDocuments.push(await presentDocument(document, true));
       }))
       data.recentDocuments = recentDocuments;
     }
@@ -60,6 +61,7 @@ export async function presentDocument(document, includeAtlas=false) {
     title: document.title,
     text: document.text,
     html: marked(document.text),
+    preview: truncateMarkdown(document.text, 160),
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
     atlas: document.atlaId,

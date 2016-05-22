@@ -38,7 +38,8 @@ router.post('documents.create', auth(), async (ctx) => {
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
 
-  const team = await ctx.state.user.getTeam();
+  const user = ctx.state.user;
+  const team = await user.getTeam();
   const ownerAtlas = await Atlas.findOne({
     where: {
       id: atlas,
@@ -51,6 +52,7 @@ router.post('documents.create', auth(), async (ctx) => {
   const document = await Document.create({
     atlasId: ownerAtlas.id,
     teamId: team.id,
+    userId: user.id,
     title: title,
     text: text,
   });
