@@ -11,6 +11,8 @@ import { client } from 'utils/ApiClient';
 import Layout, { Title } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
+import DocumentList from 'components/DocumentList';
+import Divider from 'components/Divider';
 
 import styles from './Atlas.scss';
 
@@ -54,7 +56,9 @@ class Atlas extends React.Component {
                 </blockquote>
               </div>
 
-              <div className={ styles.divider }><span></span></div>
+              <Divider />
+
+              <DocumentList documents={ atlas.recentDocuments } preview={ true } />
             </div>
           ) }
         </CenteredContent>

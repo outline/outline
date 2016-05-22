@@ -1,23 +1,20 @@
 @import '../../utils/constants.scss';
 
-.documentPreview {
-  display: flex;
-  flex: 1;
-  justify-content: space-between;
 
-  margin-bottom: 20px;
-  text-decoration: none;
+.container {
+  width: 100%;
+  padding: 20px 0;
 }
 
-h3 {
-  font-weight: normal;
-  font-size: 15px;
+.title {
   color: $textColor;
+  text-decoration: none;
 
-  margin: 0;
+  h2 {
+    font-size: 1.3em;
+  }
 }
 
-span {
-  font-size: 13px;
-  color: #ccc;
+.continueLink {
+  text-decoration: none;
 }

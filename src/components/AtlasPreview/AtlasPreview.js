@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'react-router/lib/Link';
 
-import DocumentPreview from 'components/DocumentPreview';
+import DocumentLink from './components/DocumentLink';
 
 import styles from './AtlasPreview.scss';
 import classNames from 'classnames/bind';
@@ -21,7 +21,7 @@ class AtlasPreview extends React.Component {
         { data.recentDocuments.length > 0 ?
           data.recentDocuments.map(document => {
             return (
-              <DocumentPreview document={ document } />)
+              <DocumentLink document={ document } key={ document.id } />)
           })
         : (
           <div className={ styles.description }>No documents. Why not <Link to={ `/atlas/${data.id}/new` }>create one</Link>?</div>

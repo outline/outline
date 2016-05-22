@@ -1,26 +1,46 @@
 import React from 'react';
-import moment from 'moment';
-import Link from 'react-router/lib/Link';
+import marked from 'marked';
 
-import styles from './documentPreview.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
+import { Link } from 'react-router';
 
-class documentPreview extends React.Component {
+import PublishingInfo from 'components/PublishingInfo';
+
+import styles from './DocumentPreview.scss';
+
+class Document extends React.Component {
   static propTypes = {
     document: React.PropTypes.object.isRequired,
   }
 
   render() {
-    const document = this.props.document;
-
     return (
-      <Link to={ `/documents/${document.id}` } className={ styles.documentPreview }>
-        <h3>{ document.title }</h3>
-        <span>{ moment(document.updatedAt).fromNow() }</span>
-      </Link>
+      <div className={ styles.container }>
+        <PublishingInfo
+          avatarUrl={ this.props.document.user.avatarUrl }
+          name={ this.props.document.user.name }
+          timestamp={ document.createdAt }
+        />
+
+        <Link
+          to={ `/documents/${this.props.document.id}` }
+          className={ styles.title }
+        >
+          <h2>{ this.props.document.title }</h2>
+        </Link>
+
+        <div dangerouslySetInnerHTML={{ __html: this.props.document.preview }} />
+
+        <div>
+          <Link
+            to={ `/documents/${this.props.document.id}` }
+            className={ styles.continueLink }
+          >
+            Continue reading...
+          </Link>
+        </div>
+      </div>
     );
   }
 };
 
-export default documentPreview;
+export default Document;

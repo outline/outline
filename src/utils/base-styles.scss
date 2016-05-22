@@ -4,16 +4,84 @@
   box-sizing: border-box;
 }
 
+:root {
+  --line-height-1: 1;
+  --line-height-2: 1.125;
+  --line-height-3: 1.25;
+  --line-height-4: 1.5;
+  --letter-spacing: 1;
+  --caps-letter-spacing: .2em;
+  --bold-font-weight: bold;
+}
+
 html, body, .viewport {
   width: 100%;
   margin: 0;
 }
 
-html, body {
-  font-family: 'Atlas Grotesk', 'Helvetica Neue', sans-serif;
+body {
+  font-family: 'Atlas Grotesk', -apple-system, 'Helvetica Neue', Helvetica, sans-serif;
+  line-height: 1.5;
+  margin: 0;
   color: $textColor;
+  background-color: #fff;
 }
-
+img {
+  max-width: 100%;
+  height: auto;
+}
+svg {
+  max-height: 100%;
+}
 a {
   color: #0C77F8;
+}
+h1, h2, h3,
+h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1em;
+  margin-bottom: .5em;
+}
+h1 { font-size: 2rem }
+h2 { font-size: 1.5rem }
+h3 { font-size: 1.25rem }
+h4 { font-size: 1rem }
+h5 { font-size: .875rem }
+h6 { font-size: .75rem }
+p, dl, ol, ul, pre, blockquote {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+code,
+pre,
+samp {
+  font-family:
+    'Atlas Typewriter',
+    'Source Code Pro',
+    Menlo,
+    Consolas,
+    'Liberation Mono',
+    monospace;
+}
+code, samp {
+  font-size: 87.5%;
+  padding: .125em;
+}
+pre {
+  font-size: 87.5%;
+  overflow: scroll;
+}
+blockquote {
+  font-size: 1.25rem;
+  font-style: italic;
+  margin-left: 0;
+}
+hr {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+  border: 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #ccc;
 }

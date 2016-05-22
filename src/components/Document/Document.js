@@ -1,24 +1,29 @@
 import React from 'react';
 import moment from 'moment';
+import marked from 'marked';
 
-import { Avatar } from 'rebass';
-import Flex from 'components/Flex';
+import { Link } from 'react-router';
+import PublishingInfo from 'components/PublishingInfo';
 
 import styles from './Document.scss';
 
-const Document = (props) => {
-  return (
-    <div className={ styles.container }>
-      <Flex align="center" className={ styles.user }>
-        <Avatar src={ props.document.user.avatarUrl } size={ 24 } />
-        <span className={ styles.userName }>
-          { props.document.user.name } published { moment(document.createdAt).fromNow() }
-        </span>
-      </Flex>
+class Document extends React.Component {
+  static propTypes = {
+    document: React.PropTypes.object.isRequired,
+  }
 
-      <div dangerouslySetInnerHTML={{ __html: props.document.html }} />
-    </div>
-  );
+  render() {
+    return (
+      <div className={ styles.container }>
+        <PublishingInfo
+          avatarUrl={ this.props.document.user.avatarUrl }
+          name={ this.props.document.user.name }
+          timestamp={ this.props.document.createdAt }
+        />
+        <div dangerouslySetInnerHTML={{ __html: this.props.document.html }} />
+      </div>
+    );
+  }
 };
 
 export default Document;

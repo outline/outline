@@ -15,17 +15,3 @@
     font-style: italic;
   }
 }
-
-.divider {
-  display: flex;
-  flex: 1;
-  justify-content: center;
-
-  span {
-    display: flex;
-    width: 50%;
-    margin: 20px 0;
-
-    border-bottom: 1px solid #eee;
-  }
-}
