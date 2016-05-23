@@ -30,6 +30,10 @@ router.post('auth.slack', async (ctx) => {
 
   if (!data.ok) throw httpErrors.BadRequest(data.error);
 
+  // Temp to block
+  let allowedSlackIds = process.env.ALLOWED_SLACK_IDS.split(',');
+  if (!allowedSlackIds.includes(data.team_id)) throw httpErrors.BadRequest("Invalid Slack team");
+
   // User
   let userData;
   let user = await User.findOne({ slackId: data.user_id });
