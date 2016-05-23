@@ -8,6 +8,7 @@
     "build:webpack": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --progress",
     "build:analyze": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
+    "heroku-postbuild": "npm build",
     "start": "cross-env NODE_ENV=development DEBUG=1 ./node_modules/.bin/nodemon --watch server index.js",
     "lint": "eslint src"
   },
