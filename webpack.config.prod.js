@@ -11,7 +11,7 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
   ],
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: 'bundle.[hash].js',
     publicPath: '/static/'
   },
 });

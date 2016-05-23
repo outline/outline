@@ -28,15 +28,21 @@ import DocumentScene from 'scenes/DocumentScene';
 import SlackAuth from 'scenes/SlackAuth';
 
 // Redux
-
-const loggerMiddleware = createLogger();
-const routerMiddlewareWithHistory = routerMiddleware(History);
-
-const store = createStore(reducers, applyMiddleware(
-  thunkMiddleware,
-  routerMiddlewareWithHistory,
-  loggerMiddleware,
-), autoRehydrate());
+if (process.env.PRODUCTION) {
+  const routerMiddlewareWithHistory = routerMiddleware(History);
+  const store = createStore(reducers, applyMiddleware(
+    thunkMiddleware,
+    routerMiddlewareWithHistory,
+  ), autoRehydrate());
+} else {
+  const loggerMiddleware = createLogger();
+  const routerMiddlewareWithHistory = routerMiddleware(History);
+  const store = createStore(reducers, applyMiddleware(
+    thunkMiddleware,
+    routerMiddlewareWithHistory,
+    loggerMiddleware,
+  ), autoRehydrate());
+}
 
 persistStore(store, {
   whitelist: [
