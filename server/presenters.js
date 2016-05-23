@@ -1,6 +1,3 @@
-import marked from 'marked';
-import { truncateMarkdown } from './utils/truncate';
-
 import Document from './models/Document';
 
 export function presentUser(user) {
@@ -60,8 +57,8 @@ export async function presentDocument(document, includeAtlas=false) {
     id: document.id,
     title: document.title,
     text: document.text,
-    html: marked(document.text),
-    preview: truncateMarkdown(document.text, 160),
+    html: document.html,
+    preview: document.preview,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
     atlas: document.atlaId,

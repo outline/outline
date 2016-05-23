@@ -18,6 +18,7 @@ import reducers from 'reducers';
 import 'normalize.css/normalize.css';
 import 'utils/base-styles.scss';
 import 'fonts/atlas/atlas.css';
+import 'assets/styles/github-gist.scss';
 
 import Home from 'scenes/Home';
 import Editor from 'scenes/Editor';

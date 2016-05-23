@@ -85,3 +85,11 @@ hr {
   border-bottom-style: solid;
   border-bottom-color: #ccc;
 }
+
+:global {
+  .hljs {
+    border: 1px solid rgba(0,0,0,.0625);
+    padding: 1rem;
+    border-radius: 0.25rem;
+  }
+}

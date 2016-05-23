@@ -16,7 +16,7 @@ const CenteredContent = (props) => {
 };
 
 CenteredContent.defaultProps = {
-  maxWidth: '600px',
+  maxWidth: '740px',
 };
 
 CenteredContent.propTypes = {
