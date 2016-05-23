@@ -17,6 +17,8 @@ const router = new Router();
 //   }
 // });
 
+console.log(process.env.NODE_ENV);
+
 if (process.env.NODE_ENV === 'production') {
   router.get('/service-worker.js', async (ctx) => {
     ctx.set('Content-Type', 'application/javascript');
@@ -25,6 +27,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 
   router.get('/static/*', async (ctx) => {
+    console.log(path.join(__dirname, '../dist/', ctx.path.substring(8)));
     const stats = await sendfile(ctx, path.join(__dirname, '../dist/', ctx.path.substring(8)));
   });
 }
