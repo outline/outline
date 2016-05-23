@@ -17,12 +17,10 @@ const router = new Router();
 //   }
 // });
 
-console.log(process.env.NODE_ENV);
-
 if (process.env.NODE_ENV === 'production') {
   router.get('/service-worker.js', async (ctx) => {
     ctx.set('Content-Type', 'application/javascript');
-    const stats = await sendfile(ctx, path.join(__dirname, 'static/service-worker.js'));
+    const stats = await sendfile(ctx, path.join(__dirname, './static/service-worker.js'));
     if (!ctx.status) ctx.throw(httpErrors.NotFound());
   });
 
