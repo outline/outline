@@ -28,16 +28,16 @@ import DocumentScene from 'scenes/DocumentScene';
 import SlackAuth from 'scenes/SlackAuth';
 
 // Redux
+let store;
+const routerMiddlewareWithHistory = routerMiddleware(History);
 if (process.env.PRODUCTION) {
-  const routerMiddlewareWithHistory = routerMiddleware(History);
-  const store = createStore(reducers, applyMiddleware(
+  store = createStore(reducers, applyMiddleware(
     thunkMiddleware,
     routerMiddlewareWithHistory,
   ), autoRehydrate());
 } else {
   const loggerMiddleware = createLogger();
-  const routerMiddlewareWithHistory = routerMiddleware(History);
-  const store = createStore(reducers, applyMiddleware(
+  store = createStore(reducers, applyMiddleware(
     thunkMiddleware,
     routerMiddlewareWithHistory,
     loggerMiddleware,
