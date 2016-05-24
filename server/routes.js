@@ -31,7 +31,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 router.get('*', async (ctx) => {
-  const stats = await sendfile(ctx, path.join(__dirname, './static/dev.html'));
+  const stats = await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
   if (!ctx.status) ctx.throw(httpErrors.NotFound());
 });
 

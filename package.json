@@ -34,7 +34,7 @@
     "debug": "^2.2.0",
     "extract-text-webpack-plugin": "^1.0.1",
     "highlight.js": "^9.4.0",
-    "html-webpack-plugin": "^2.16.1",
+    "html-webpack-plugin": "^2.17.0",
     "http-errors": "^1.4.0",
     "isomorphic-fetch": "^2.2.1",
     "jsonwebtoken": "^5.7.0",
