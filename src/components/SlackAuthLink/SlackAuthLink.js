@@ -24,7 +24,9 @@ export default class SlackAuthLink extends React.Component {
     const params = {
       client_id: '30086650419.30130733398',
       scope: this.props.scopes.join(" "),
-      redirect_uri: 'http://localhost:3000/auth/slack/',
+      redirect_uri: __DEV__ ?
+          'http://localhost:3000/auth/slack/' :
+          'https://beautifulatlas.herokuapp.com/auth/slack/',
       state: this.state.oauthState,
     };
 
