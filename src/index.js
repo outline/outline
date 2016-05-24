@@ -30,19 +30,20 @@ import SlackAuth from 'scenes/SlackAuth';
 // Redux
 let store;
 const routerMiddlewareWithHistory = routerMiddleware(History);
-if (process.env.PRODUCTION) {
-  store = createStore(reducers, applyMiddleware(
-    thunkMiddleware,
-    routerMiddlewareWithHistory,
-  ), autoRehydrate());
-} else {
+if (__DEV__) {
   const loggerMiddleware = createLogger();
   store = createStore(reducers, applyMiddleware(
     thunkMiddleware,
     routerMiddlewareWithHistory,
     loggerMiddleware,
   ), autoRehydrate());
+} else {
+  store = createStore(reducers, applyMiddleware(
+    thunkMiddleware,
+    routerMiddlewareWithHistory,
+  ), autoRehydrate());
 }
+
 
 persistStore(store, {
   whitelist: [
