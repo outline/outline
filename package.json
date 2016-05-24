@@ -76,7 +76,6 @@
     "eslint-plugin-react": "^3.16.1",
     "exports-loader": "^0.6.3",
     "file-loader": "^0.8.5",
-    "fsevents": "^1.0.11",
     "history": "^1.17.0",
     "imports-loader": "^0.6.5",
     "json-loader": "^0.5.4",
@@ -110,6 +109,7 @@
     "koa-webpack-dev-middleware": "^1.2.0",
     "koa-webpack-hot-middleware": "^1.0.3",
     "node-dev": "^3.1.0",
-    "nodemon": "^1.9.1"
+    "nodemon": "^1.9.1",
+    "fsevents": "^1.0.11"
   }
 }
