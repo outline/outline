@@ -11,6 +11,8 @@ var definePlugin = new webpack.DefinePlugin({
   SLACK_REDIRECT_URI: process.env.SLACK_REDIRECT_URI,
 });
 
+console.log("DIR: ", path.join(__dirname));
+
 module.exports = {
   output: {
     path: path.join(__dirname, 'dist'),
