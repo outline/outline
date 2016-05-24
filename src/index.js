@@ -20,6 +20,8 @@ import 'utils/base-styles.scss';
 import 'fonts/atlas/atlas.css';
 import 'assets/styles/github-gist.scss';
 
+import Application from 'scenes/Application';
+
 import Home from 'scenes/Home';
 import Editor from 'scenes/Editor';
 import Dashboard from 'scenes/Dashboard';
@@ -54,7 +56,7 @@ persistStore(store, {
   render((
     <Provider store={store}>
       <Router history={History}>
-        <Route path="/">
+        <Route path="/" component={ Application }>
           <IndexRoute component={Home} />
 
           <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
