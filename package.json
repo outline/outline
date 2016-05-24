@@ -9,7 +9,8 @@
     "build:analyze": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "cross-env NODE_ENV=development DEBUG=1 ./node_modules/.bin/nodemon --watch server index.js",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "heroku-postbuild": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -64,9 +65,7 @@
     "sequelize-encrypted": "^0.1.0",
     "truncate-html": "0.0.6",
     "uuid": "^2.0.2",
-    "validator": "^5.2.0"
-  },
-  "devDependencies": {
+    "validator": "^5.2.0",
     "classnames": "^2.2.3",
     "codemirror": "^5.11.0",
     "cross-env": "^1.0.7",
@@ -103,9 +102,14 @@
     "redux-thunk": "^2.0.1",
     "sass-loader": "^3.2.0",
     "style-loader": "^0.13.0",
-    "sw-toolbox": "^3.1.1",
     "to-markdown": "^2.0.1",
     "url-loader": "^0.5.7",
     "webpack": "^1.12.12"
+  },
+  "devDependencies": {
+    "koa-webpack-dev-middleware": "^1.2.0",
+    "koa-webpack-hot-middleware": "^1.0.3",
+    "node-dev": "^3.1.0",
+    "nodemon": "^1.9.1"
   }
 }

@@ -7,8 +7,9 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 require('dotenv').config();
 
 var definePlugin = new webpack.DefinePlugin({
-  __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'true')),
-  __PRERELEASE__: JSON.stringify(JSON.parse(process.env.BUILD_PRERELEASE || 'false'))
+  __DEV__: JSON.stringify(JSON.parse(process.env.NODE_ENV !== 'production')),
+  __PRERELEASE__: JSON.stringify(JSON.parse(process.env.BUILD_PRERELEASE || 'false')),
+  SLACK_REDIRECT_URI: process.env.SLACK_REDIRECT_URI,
 });
 
 module.exports = {
@@ -46,10 +47,6 @@ module.exports = {
     new webpack.ProvidePlugin({
       'fetch': 'imports?this=>global!exports?global.fetch!isomorphic-fetch'
     }),
-    new ExtractTextPlugin("styles.css"),
-    new HtmlWebpackPlugin({
-      title: 'Atlas',
-      template: 'server/static/index.html',
-    }),
+    new ExtractTextPlugin('styles.[hash].css'),
   ]
 };

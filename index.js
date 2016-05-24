@@ -2,6 +2,8 @@ require('./init');
 var app = require('./server').default;
 var http = require('http');
 
+console.log(process.env);
+
 var server = http.createServer(app.callback());
 server.listen(process.env.PORT || '3000');
 server.on('error', (err) => {
