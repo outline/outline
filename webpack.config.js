@@ -48,5 +48,6 @@ module.exports = {
     new webpack.ProvidePlugin({
       'fetch': 'imports?this=>global!exports?global.fetch!isomorphic-fetch'
     }),
+    new webpack.ContextReplacementPlugin(/moment[\\\/]locale$/, /^\.\/(en)$/)
   ]
 };
