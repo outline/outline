@@ -28,12 +28,17 @@ if (process.env.NODE_ENV === 'production') {
     console.log(path.join(__dirname, '../dist/', ctx.path.substring(8)));
     const stats = await sendfile(ctx, path.join(__dirname, '../dist/', ctx.path.substring(8)));
   });
-}
 
-router.get('*', async (ctx) => {
-  const stats = await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
-  if (!ctx.status) ctx.throw(httpErrors.NotFound());
-});
+  router.get('*', async (ctx) => {
+    const stats = await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
+    if (!ctx.status) ctx.throw(httpErrors.NotFound());
+  });
+} else {
+  router.get('*', async (ctx) => {
+    const stats = await sendfile(ctx, path.join(__dirname, './static/dev.html'));
+    if (!ctx.status) ctx.throw(httpErrors.NotFound());
+  });
+}
 
 koa.use(router.routes());
 

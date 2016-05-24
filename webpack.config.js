@@ -1,7 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // Load .env
 require('dotenv').config();
@@ -38,7 +37,7 @@ module.exports = {
     ]
   },
   resolve: {
-    root: path.resolve('./src'),
+    root: path.join(__dirname, 'src'),
     // you can now require('file') instead of require('file.json')
     extensions: ['', '.js', '.json']
   },
@@ -47,6 +46,5 @@ module.exports = {
     new webpack.ProvidePlugin({
       'fetch': 'imports?this=>global!exports?global.fetch!isomorphic-fetch'
     }),
-    new ExtractTextPlugin('styles.[hash].css'),
   ]
 };

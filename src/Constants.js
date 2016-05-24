@@ -1,7 +1,8 @@
-// Constant values
-const constants = {
+let constants;
+
+constants = {
   API_USER_AGENT: `Atlas`,
-  API_BASE_URL: 'http://localhost:3000/api',
+  API_BASE_URL: '/api',
 };
 
-export default Object.assign(keys, constants);
+export default constants;
