@@ -1,4 +1,4 @@
-import _orderBy from 'lodash/orderby';
+import _orderBy from 'lodash.orderby';
 import Document from './models/Document';
 
 export function presentUser(user) {
