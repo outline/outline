@@ -1,6 +1,6 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
-import _orderBy from 'lodash/orderBy';
+import _orderBy from 'lodash/orderby';
 
 import auth from './authentication';
 import pagination from './middlewares/pagination';

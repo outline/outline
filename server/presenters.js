@@ -1,3 +1,4 @@
+import _orderBy from 'lodash/orderby';
 import Document from './models/Document';
 
 export function presentUser(user) {
@@ -45,7 +46,7 @@ export function presentAtlas(atlas, includeRecentDocuments=false) {
       await Promise.all(documents.map(async (document) => {
         recentDocuments.push(await presentDocument(document, true));
       }))
-      data.recentDocuments = recentDocuments;
+      data.recentDocuments = _orderBy(recentDocuments, ['updatedAt'], ['desc']);
     }
 
     resolve(data);
