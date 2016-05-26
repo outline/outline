@@ -22,6 +22,7 @@ const generateSlug = (title, urlId) => {
 const Document = sequelize.define('document', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   urlId: { type: DataTypes.STRING, primaryKey: true },
+  private: { type: DataTypes.BOOLEAN, defaultValue: true },
   title: DataTypes.STRING,
   text: DataTypes.TEXT,
   html: DataTypes.TEXT,
