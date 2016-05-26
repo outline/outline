@@ -56,6 +56,7 @@ export function presentAtlas(atlas, includeRecentDocuments=false) {
 export async function presentDocument(document, includeAtlas=false) {
   const data = {
     id: document.id,
+    url: document.buildUrl(),
     title: document.title,
     text: document.text,
     html: document.html,
