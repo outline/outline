@@ -34,7 +34,7 @@ class Atlas extends React.Component {
     let actions;
     let title;
 
-    if (this.props.isLoading === false) {
+    if (!this.props.isLoading) {
       actions = <Link to={ `/atlas/${atlas.id}/new` }>New document</Link>;
       title = <Title>{ atlas.name }</Title>;
     }

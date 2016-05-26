@@ -30,10 +30,6 @@ class MarkdownAtlas extends React.Component {
     }
   }
 
-  componentDidMount = () => {
-    console.log(this.props);
-  }
-
   onDropAccepted = (files) => {
     const file = files[0];
     const editor = this.getEditorInstance();
@@ -78,11 +74,17 @@ class MarkdownAtlas extends React.Component {
         body: formData
       })
       .then(s3Response => {
-        this.props.replaceText(pendingUploadTag, `![${file.name}](${data.asset.url})`);
+        this.props.replaceText({
+          original: pendingUploadTag,
+          new: `![${file.name}](${data.asset.url})`
+        });
         editor.setCursor(newCursorPositionLine, 0);
       })
       .catch(err => {
-        this.props.replaceText(pendingUploadTag, '');
+        this.props.replaceText({
+          original: pendingUploadTag,
+          new: '',
+        });
         editor.setCursor(newCursorPositionLine, 0);
       });
     });

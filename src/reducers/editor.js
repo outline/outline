@@ -1,8 +1,3 @@
-import {
-  UPDATE_TEXT,
-  REPLACE_TEXT,
-} from 'actions/EditorActions';
-
 const initialState = {
   originalText: null,
   text: null,
@@ -21,24 +16,38 @@ const parseHeader = (text) => {
 
 const editor = (state = initialState, action) => {
   switch (action.type) {
-    case UPDATE_TEXT: {
-      const title = parseHeader(action.text);
+    case 'EDITOR_RESET': {
+      return {
+        ...initialState,
+      }
+    }
+    case 'EDITOR_UPDATE_TITLE': {
+      return {
+        ...state,
+        title: action.payload,
+      }
+    }
+    case 'EDITOR_UPDATE_TEXT': {
+      const title = parseHeader(action.payload);
 
       console.log(title);
 
       let unsavedChanges = false;
-      if (state.originalText !== action.text) {
+      if (state.originalText !== action.payload) {
         unsavedChanges = true;
       }
       return {
         ...state,
         unsavedChanges,
-        text: action.text,
+        text: action.payload,
         title: title || state.title,
       };
     }
-    case REPLACE_TEXT: {
-      const newText = state.text.replace(action.originalText, action.replacedText);
+    case 'EDITOR_REPLACE_TEXT': {
+      const newText = state.text.replace(
+        action.payload.original,
+        action.payload.new
+      );
 
       return {
         ...state,

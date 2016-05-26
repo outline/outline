@@ -5,9 +5,12 @@ import { bindActionCreators } from 'redux';
 import {
   resetEditor,
   updateText,
+  updateTitle,
   replaceText,
 } from 'actions/EditorActions';
 import {
+  resetDocument,
+  fetchDocumentAsync,
   saveDocumentAsync,
 } from 'actions/DocumentActions';
 
@@ -18,22 +21,38 @@ import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
 import SaveAction from './components/SaveAction';
-import MoreAction from './components/MoreAction';
 
-class Editor extends Component {
+class DocumentEdit extends Component {
   static propTypes = {
     updateText: React.PropTypes.func.isRequired,
+    updateTitle: React.PropTypes.func.isRequired,
     replaceText: React.PropTypes.func.isRequired,
+    resetDocument: React.PropTypes.func.isRequired,
     saveDocumentAsync: React.PropTypes.func.isRequired,
     text: React.PropTypes.string,
     title: React.PropTypes.string,
   }
 
+  state = {
+    loadingDocument: false,
+  }
+
+  componentWillMount = () => {
+    this.props.resetEditor();
+    this.props.resetDocument();
+  }
+
   componentDidMount = () => {
-    const atlasId = this.props.routeParams.id;
-    this.setState({
-      atlasId: atlasId,
-    });
+    const id = this.props.routeParams.id;
+    this.props.fetchDocumentAsync(id);
+  }
+
+  componentWillReceiveProps = (nextProps) => {
+    if (!this.props.document && nextProps.document) {
+      const doc = nextProps.document;
+      this.props.updateText(doc.text);
+      this.props.updateTitle(doc.title);
+    }
   }
 
   onSave = () => {
@@ -43,8 +62,8 @@ class Editor extends Component {
     }
 
     this.props.saveDocumentAsync(
-      this.state.atlasId,
       null,
+      this.props.document.id,
       this.props.title,
       this.props.text,
     )
@@ -70,11 +89,17 @@ class Editor extends Component {
         title={ title }
         fixed={ true }
       >
-        <MarkdownEditor
-          onChange={ this.props.updateText }
-          text={ this.props.text }
-          replaceText={this.props.replaceText}
-        />
+        { (this.props.isLoading && !this.props.document) ? (
+          <CenteredContent>
+            <AtlasPreviewLoading />
+          </CenteredContent>
+        ) : (
+          <MarkdownEditor
+            onChange={ this.props.updateText }
+            text={ this.props.text }
+            replaceText={this.props.replaceText}
+          />
+        ) }
       </Layout>
     );
   }
@@ -82,9 +107,10 @@ class Editor extends Component {
 
 const mapStateToProps = (state) => {
   return {
+    document: state.document.data,
     text: state.editor.text,
     title: state.editor.title,
-    isSaving: state.document.isLoading,
+    isLoading: state.document.isLoading,
   };
 };
 
@@ -92,14 +118,17 @@ const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
     resetEditor,
     updateText,
+    updateTitle,
     replaceText,
+    resetDocument,
+    fetchDocumentAsync,
     saveDocumentAsync,
   }, dispatch)
 };
 
-Editor = connect(
+DocumentEdit = connect(
   mapStateToProps,
   mapDispatchToProps,
-)(Editor);
+)(DocumentEdit);
 
-export default Editor;
+export default DocumentEdit;

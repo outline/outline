@@ -1,9 +1,7 @@
-import makeActionCreator from '../utils/actions';
+import { createAction } from 'redux-actions';
 
-// export const TOGGLE_PREVIEW = 'TOGGLE_PREVIEW';
-export const UPDATE_TEXT = 'UPDATE_TEXT';
-export const REPLACE_TEXT = 'REPLACE_TEXT';
+export const resetEditor = createAction('EDITOR_RESET');
+export const updateText  = createAction('EDITOR_UPDATE_TEXT');
+export const updateTitle = createAction('EDITOR_UPDATE_TITLE');
+export const replaceText = createAction('EDITOR_REPLACE_TEXT');
 
-// export const togglePreview = makeActionCreator(TOGGLE_PREVIEW);
-export const updateText = makeActionCreator(UPDATE_TEXT, 'text');
-export const replaceText = makeActionCreator(REPLACE_TEXT, 'originalText', 'replacedText');

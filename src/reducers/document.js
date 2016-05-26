@@ -16,6 +16,11 @@ const initialState = {
 
 const doc = (state = initialState, action) => {
   switch (action.type) {
+    case 'RESET_DOCUMENT': {
+      return {
+        ...initialState,
+      }
+    }
     case FETCH_DOCUMENT_PENDING: {
         return {
           ...state,

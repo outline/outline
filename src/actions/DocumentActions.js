@@ -1,6 +1,9 @@
 import makeActionCreator from '../utils/actions';
 import { replace } from 'react-router-redux';
 import { client } from 'utils/ApiClient';
+import { createAction } from 'redux-actions';
+
+export const resetDocument = createAction('RESET_DOCUMENT');
 
 export const FETCH_DOCUMENT_PENDING = 'FETCH_DOCUMENT_PENDING';
 export const FETCH_DOCUMENT_SUCCESS = 'FETCH_DOCUMENT_SUCCESS';
@@ -39,18 +42,19 @@ export function saveDocumentAsync(atlasId, documentId, title, text) {
     dispatch(saveDocumentPending());
 
     let url;
-    if (documentId) {
-      url = '/documents.update'
-    } else {
-      url = '/documents.create'
-    }
-
-    client.post(url, {
-      atlas: atlasId,
-      document: documentId,
+    let data = {
       title,
       text,
-    })
+    };
+    if (documentId) {
+      url = '/documents.update';
+      data.id = documentId;
+    } else {
+      url = '/documents.create';
+      data.atlas = atlasId;
+    }
+
+    client.post(url, data)
     .then(data => {
       dispatch(saveDocumentSuccess(data.data, data.pagination));
       dispatch(replace(`/documents/${data.data.id}`));

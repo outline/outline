@@ -62,4 +62,34 @@ router.post('documents.create', auth(), async (ctx) => {
   };
 });
 
+router.post('documents.update', auth(), async (ctx) => {
+  let {
+    id,
+    title,
+    text,
+  } = ctx.request.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(title, 'title is required');
+  ctx.assertPresent(text, 'text is required');
+
+  const user = ctx.state.user;
+  const team = await user.getTeam();
+  let document = await Document.findOne({
+    where: {
+      id: id,
+      teamId: team.id,
+    },
+  });
+
+  if (!document) throw httpErrors.BadRequest();
+
+  document.title = title;
+  document.text = text;
+  await document.save();
+
+  ctx.body = {
+    data: await presentDocument(document, true),
+  };
+});
+
 export default router;

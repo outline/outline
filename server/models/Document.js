@@ -22,6 +22,10 @@ const Document = sequelize.define('document', {
       doc.html = convertToMarkdown(doc.text);
       doc.preview = truncateMarkdown(doc.text, 160);
     },
+    beforeUpdate: (doc) => {
+      doc.html = convertToMarkdown(doc.text);
+      doc.preview = truncateMarkdown(doc.text, 160);
+    },
   }
 });
 

@@ -19,6 +19,7 @@ import 'normalize.css/normalize.css';
 import 'utils/base-styles.scss';
 import 'fonts/atlas/atlas.css';
 import 'assets/styles/github-gist.scss';
+import 'assets/styles/codemirror.css';
 
 import Application from 'scenes/Application';
 
@@ -27,6 +28,7 @@ import Editor from 'scenes/Editor';
 import Dashboard from 'scenes/Dashboard';
 import Atlas from 'scenes/Atlas';
 import DocumentScene from 'scenes/DocumentScene';
+import DocumentEdit from 'scenes/DocumentEdit';
 import SlackAuth from 'scenes/SlackAuth';
 
 // Redux
@@ -63,6 +65,7 @@ persistStore(store, {
           <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
           <Route path="/atlas/:id/new" component={ Editor } onEnter={ requireAuth } />
           <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
+          <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
 
           <Route path="/auth/slack" component={SlackAuth} />
         </Route>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import Link from 'react-router/lib/Link';
 import { bindActionCreators } from 'redux';
 import { fetchDocumentAsync } from 'actions/DocumentActions';
 
@@ -19,13 +20,16 @@ class DocumentScene extends React.Component {
   render() {
     const document = this.props.document;
     let title;
+    let actions;
     if (document) {
+      actions = <Link to={ `/documents/${document.id}/edit` }>Edit</Link>;
       title = `${document.atlas.name} - ${document.title}`;
     }
 
     return (
       <Layout
         title={ title }
+        actions={ actions }
       >
         <CenteredContent>
           { this.props.isLoading || !document ? (

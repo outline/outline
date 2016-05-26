@@ -89,6 +89,7 @@
     "react-router-redux": "^4.0.4",
     "rebass": "^0.2.6",
     "redux": "^3.3.1",
+    "redux-actions": "^0.9.1",
     "redux-logger": "^2.6.1",
     "redux-persist": "3.0.3",
     "redux-thunk": "^2.0.1",
