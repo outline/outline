@@ -1,23 +1,18 @@
-/*
-
-    Name:       Base16 Default Light
-    Author:     Chris Kempson (http://chriskempson.com)
-
-    CodeMirror template by Jan T. Sott (https://github.com/idleberg/base16-codemirror)
-    Original Base16 color scheme by Chris Kempson (https://github.com/chriskempson/base16)
-
-*/
+@import '../../utils/constants.scss';
 
 :global {
   /* Custom styling */
   .cm-s-atlas.CodeMirror {
     background: #fff;
     color: #202020;
-    font-family: 'Atlas Typewriter', 'Cousine', 'Monaco', monospace;
+    font-family: 'Atlas Typewriter', 'Menlo', 'Cousine', 'Monaco', monospace;
     font-weight: 300;
     height: auto; // This will break layout for some reason. TODO: investigate
     width: 100%;
   }
+
+  // Use Menlo for stronger weight
+  .cm-s-atlas .cm-header { font-family: 'Menlo', 'Cousine', 'Monaco', monospace; }
 
   /* Disable ondrag cursor for file uploads */
   .cm-s-atlas div.CodeMirror-dragcursors {
@@ -42,20 +37,20 @@
   .cm-s-atlas span.cm-quote {
     font-style: italic;
   }
-  .cm-s-atlas span.cm-comment { color: #8f5536; }
-  .cm-s-atlas span.cm-atom { color: #aa759f; }
-  .cm-s-atlas span.cm-number { color: #aa759f; }
+  .cm-s-atlas span.cm-comment { color: #969896; }
+  .cm-s-atlas span.cm-atom { color: #0086b3; }
+  .cm-s-atlas span.cm-number { color: $textColor; }
 
-  .cm-s-atlas span.cm-property, .cm-s-atlas span.cm-attribute { color: #90a959; }
-  .cm-s-atlas span.cm-keyword { color: #ac4142; }
-  .cm-s-atlas span.cm-string { color: #f4bf75; }
+  .cm-s-atlas span.cm-property, .cm-s-atlas span.cm-attribute { color: $textColor; }
+  .cm-s-atlas span.cm-keyword { color: #a71d5d; }
+  .cm-s-atlas span.cm-string { color: #df5000; }
 
-  .cm-s-atlas span.cm-variable { color: #90a959; }
-  .cm-s-atlas span.cm-variable-2 { color: #788696; }
-  .cm-s-atlas span.cm-def { color: #d28445; }
+  .cm-s-atlas span.cm-variable { color: $textColor; }
+  .cm-s-atlas span.cm-variable-2 { color: $textColor; }
+  .cm-s-atlas span.cm-def { color: $textColor; }
   .cm-s-atlas span.cm-bracket { color: #202020; }
   .cm-s-atlas span.cm-tag { color: #ac4142; }
-  .cm-s-atlas span.cm-link { color: #aa759f; }
+  .cm-s-atlas span.cm-link { color: $linkColor; }
   .cm-s-atlas span.cm-error { background: #ac4142; color: #505050; }
 
   .cm-s-atlas .CodeMirror-activeline-background { background: #DDDCDC; }
