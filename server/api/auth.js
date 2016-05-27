@@ -31,36 +31,37 @@ router.post('auth.slack', async (ctx) => {
 
   // Temp to block
   let allowedSlackIds = process.env.ALLOWED_SLACK_IDS.split(',');
-  if (!allowedSlackIds.includes(data.team_id)) throw httpErrors.BadRequest("Invalid Slack team");
+  if (!allowedSlackIds.includes(data.team.id)) throw httpErrors.BadRequest("Invalid Slack team");
 
   // User
   let userData;
-  let user = await User.findOne({ where: { slackId: data.user_id }});
+  let user = await User.findOne({ where: { slackId: data.user.id }});
+
+  const authResponse = await fetch(`https://slack.com/api/auth.test?token=${data.access_token}`);
+  const authData = await authResponse.json();
 
   if (user) {
     user.slackAccessToken = data.access_token;
-    user.save();
+    user = await user.save();
   } else {
-    // Find existing user
-    const userParams = { token: data.access_token, user: data.user_id }
-    const response = await fetch('https://slack.com/api/users.info?' + querystring.stringify(userParams));
-    userData = await response.json();
+    // Existing user
     user = await User.create({
-      slackId: data.user_id,
-      username: userData.user.name,
-      name: userData.user.profile.real_name,
-      email: userData.user.profile.email,
-      slackData: userData.user,
+      slackId: data.user.id,
+      username: authData.user,
+      name: data.user.name,
+      email: data.user.email,
+      slackData: data.user,
       slackAccessToken: data.access_token,
     });
   }
 
   // Team
-  let team = await Team.findOne({ where: { slackId: data.team_id } });
+  let team = await Team.findOne({ where: { slackId: data.team.id } });
   if (!team) {
     team = await Team.create({
-      slackId: data.team_id,
-      name: data.team_name,
+      name: data.team.name,
+      slackId: data.team.id,
+      slackData: data.team,
     });
   }
 
@@ -72,6 +73,7 @@ router.post('auth.slack', async (ctx) => {
     team: await presentTeam(team),
     accessToken: user.getJwtToken(),
   }};
+  console.log("enf")
 });
 
 export default router;

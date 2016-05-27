@@ -12,7 +12,12 @@ export default class SlackAuthLink extends React.Component {
   }
 
   static defaultProps = {
-    scopes: ['identify']
+    scopes: [
+      'identity.email',
+      'identity.basic',
+      'identity.avatar',
+      'identity.team',
+    ]
   }
 
   componentDidMount = () => {
