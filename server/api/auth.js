@@ -10,7 +10,6 @@ const router = new Router();
 
 router.post('auth.slack', async (ctx) => {
   const { code } = ctx.request.body;
-
   ctx.assertPresent(code, 'code is required');
 
   const body = {
@@ -36,7 +35,8 @@ router.post('auth.slack', async (ctx) => {
 
   // User
   let userData;
-  let user = await User.findOne({ slackId: data.user_id });
+  let user = await User.findOne({ where: { slackId: data.user_id }});
+
   if (user) {
     user.slackAccessToken = data.access_token;
     user.save();
@@ -56,7 +56,7 @@ router.post('auth.slack', async (ctx) => {
   }
 
   // Team
-  let team = await Team.findOne({ slackId: data.team_id });
+  let team = await Team.findOne({ where: { slackId: data.team_id } });
   if (!team) {
     team = await Team.create({
       slackId: data.team_id,
