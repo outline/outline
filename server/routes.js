@@ -4,6 +4,8 @@ import Koa from 'koa';
 import Router from 'koa-router';
 import sendfile from 'koa-sendfile';
 
+import subdomainRedirect from './middlewares/subdomainRedirect';
+
 const koa = new Koa();
 const router = new Router();
 
@@ -33,6 +35,8 @@ if (process.env.NODE_ENV === 'production') {
     const stats = await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
     if (!ctx.status) ctx.throw(httpErrors.NotFound());
   });
+
+  koa.use(subdomainRedirect());
 } else {
   router.get('*', async (ctx) => {
     const stats = await sendfile(ctx, path.join(__dirname, './static/dev.html'));
