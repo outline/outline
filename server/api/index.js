@@ -9,6 +9,7 @@ import user from './user';
 import atlases from './atlases';
 import documents from './documents';
 
+import subdomainRedirect from './middlewares/subdomainRedirect';
 import validation from './validation';
 
 const api = new Koa();
@@ -39,6 +40,7 @@ api.use(async (ctx, next) => {
   }
 });
 
+api.use(subdomainRedirect());
 api.use(bodyParser());
 api.use(validation());
 
