@@ -63,6 +63,11 @@ router.post('auth.slack', async (ctx) => {
       slackId: data.team.id,
       slackData: data.team,
     });
+  } else {
+    // Update data
+    team.name = data.team.name;
+    team.slackData = data.team;
+    team = await team.save();
   }
 
   // Add to correct team
