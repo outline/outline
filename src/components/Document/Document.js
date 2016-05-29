@@ -20,7 +20,10 @@ class Document extends React.Component {
           name={ this.props.document.user.name }
           timestamp={ this.props.document.createdAt }
         />
-        <div dangerouslySetInnerHTML={{ __html: this.props.document.html }} />
+        <div
+          className={ styles.document }
+          dangerouslySetInnerHTML={{ __html: this.props.document.html }}
+        />
       </div>
     );
   }

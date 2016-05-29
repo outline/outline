@@ -17,6 +17,19 @@ class DocumentScene extends React.Component {
     this.props.fetchDocumentAsync(documentId);
   }
 
+  componentWillReceiveProps = (nextProps) => {
+    // Scroll to anchor after loading
+    const hash = this.props.location.hash;
+
+    if (nextProps.document && hash) {
+      const name = hash.split('#')[1];
+      setTimeout(() => {
+        const element = document.getElementsByName(name)[0];
+        if (element) element.scrollIntoView()
+      }, 0);
+    }
+  }
+
   render() {
     const document = this.props.document;
     let title;
