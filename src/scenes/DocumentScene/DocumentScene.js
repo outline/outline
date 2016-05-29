@@ -12,18 +12,23 @@ import Document from 'components/Document';
 import styles from './DocumentScene.scss';
 
 class DocumentScene extends React.Component {
+  state = {
+    didScroll: false,
+  }
+
   componentDidMount = () => {
     const documentId = this.props.routeParams.id;
     this.props.fetchDocumentAsync(documentId);
   }
 
   componentWillReceiveProps = (nextProps) => {
-    // Scroll to anchor after loading
+    // Scroll to anchor after loading, and only once
     const hash = this.props.location.hash;
 
-    if (nextProps.document && hash) {
+    if (nextProps.document && hash && !this.state.didScroll) {
       const name = hash.split('#')[1];
       setTimeout(() => {
+        this.setState({ didScroll: true });
         const element = document.getElementsByName(name)[0];
         if (element) element.scrollIntoView()
       }, 0);
