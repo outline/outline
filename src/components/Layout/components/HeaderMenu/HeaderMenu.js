@@ -21,6 +21,10 @@ class HeaderMenu extends React.Component {
     this.setState({ menuVisible: false });
   }
 
+  onClick = () => {
+    this.setState({ menuVisible: !this.state.menuVisible });
+  }
+
   logout = (event) => {
     event.preventDefault();
     this.props.logout();
@@ -33,7 +37,7 @@ class HeaderMenu extends React.Component {
         onMouseEnter={ this.onMouseEnter }
         onMouseLeave={ this.onMouseLeave }
       >
-        <div className={ styles.content }>
+        <div className={ styles.content } onClick={ this.onClick }>
           { this.props.children }
         </div>
 
