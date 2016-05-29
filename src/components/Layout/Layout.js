@@ -4,6 +4,7 @@ import Link from 'react-router/lib/Link';
 
 import HeaderMenu from './components/HeaderMenu';
 import Flex from 'components/Flex';
+import LoadingIndicator from 'components/LoadingIndicator';
 
 import styles from './Layout.scss';
 import classNames from 'classnames/bind';
@@ -14,11 +15,15 @@ class Layout extends React.Component {
     actions: React.PropTypes.node,
     title: React.PropTypes.node,
     fixed: React.PropTypes.bool,
+    loading: React.PropTypes.bool,
   }
 
   render() {
     return (
       <div className={ styles.container }>
+        { this.props.loading ? (
+          <LoadingIndicator />
+        ) : null }
         <div className={ cx(styles.header, { fixed: this.props.fixed }) }>
           <div className={ styles.teamName }>
             <Link to="/">{ this.props.teamName }</Link>
