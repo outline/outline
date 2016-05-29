@@ -12,6 +12,7 @@ const initialState = {
   data: null,
   error: null,
   isLoading: false,
+  isSaving: false,
 }
 
 const doc = (state = initialState, action) => {
@@ -44,20 +45,20 @@ const doc = (state = initialState, action) => {
     case SAVE_DOCUMENT_PENDING: {
         return {
           ...state,
-          isLoading: true,
+          isSaving: true,
         };
       }
     case SAVE_DOCUMENT_SUCCESS: {
         return {
           data: action.date,
-          isLoading: false,
+          isSaving: false,
         };
       }
     case SAVE_DOCUMENT_FAILURE: {
         return {
           ...state,
           error: action.error,
-          isLoading: false,
+          isSaving: false,
         };
       }
     default:

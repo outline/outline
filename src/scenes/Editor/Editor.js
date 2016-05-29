@@ -69,6 +69,7 @@ class Editor extends Component {
         )}
         title={ title }
         fixed={ true }
+        loading={ this.props.isSaving }
       >
         <MarkdownEditor
           onChange={ this.props.updateText }
@@ -84,7 +85,7 @@ const mapStateToProps = (state) => {
   return {
     text: state.editor.text,
     title: state.editor.title,
-    isSaving: state.document.isLoading,
+    isSaving: state.document.isSaving,
   };
 };
 

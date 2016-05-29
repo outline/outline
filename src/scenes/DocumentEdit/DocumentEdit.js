@@ -31,6 +31,7 @@ class DocumentEdit extends Component {
     saveDocumentAsync: React.PropTypes.func.isRequired,
     text: React.PropTypes.string,
     title: React.PropTypes.string,
+    isSaving: React.PropTypes.bool,
   }
 
   state = {
@@ -88,6 +89,7 @@ class DocumentEdit extends Component {
         )}
         title={ title }
         fixed={ true }
+        loading={ this.props.isSaving }
       >
         { (this.props.isLoading && !this.props.document) ? (
           <CenteredContent>
@@ -111,6 +113,7 @@ const mapStateToProps = (state) => {
     text: state.editor.text,
     title: state.editor.title,
     isLoading: state.document.isLoading,
+    isSaving: state.document.isSaving,
   };
 };
 
