@@ -42,6 +42,7 @@ router.post('auth.slack', async (ctx) => {
 
   if (user) {
     user.slackAccessToken = data.access_token;
+    user.slackData = data.user;
     user = await user.save();
   } else {
     // Existing user
