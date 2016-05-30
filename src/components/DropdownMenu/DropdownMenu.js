@@ -19,7 +19,7 @@ MenuItem.propTypes = {
 
 class DropdownMenu extends React.Component {
   static propTypes = {
-    label: React.PropTypes.string.isRequired,
+    label: React.PropTypes.node.isRequired,
     children: React.PropTypes.node.isRequired,
   }
 
