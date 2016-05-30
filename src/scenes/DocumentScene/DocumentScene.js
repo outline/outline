@@ -7,7 +7,7 @@ import {
   deleteDocument,
 } from 'actions/DocumentActions';
 
-import Layout, { HeaderLink } from 'components/Layout';
+import Layout, { HeaderAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import Document from 'components/Document';
@@ -55,9 +55,9 @@ class DocumentScene extends React.Component {
     if (document) {
       actions = (
         <div className={ styles.actions }>
-          <HeaderLink>
+          <HeaderAction>
             <Link to={ `/documents/${document.id}/edit` }>Edit</Link>
-          </HeaderLink>
+          </HeaderAction>
           <DropdownMenu label="More">
             <MenuItem onClick={ this.onDelete }>Delete</MenuItem>
           </DropdownMenu>

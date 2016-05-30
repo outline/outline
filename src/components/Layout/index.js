@@ -1,10 +1,10 @@
 import Layout from './Layout';
 import Title from './components/Title';
-import HeaderLink from './components/HeaderLink';
+import HeaderAction from './components/HeaderAction';
 
 export default Layout;
 
 export {
   Title,
-  HeaderLink,
+  HeaderAction,
 };

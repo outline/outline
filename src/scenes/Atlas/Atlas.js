@@ -8,7 +8,7 @@ import { fetchAtlasAsync } from 'actions/AtlasActions';
 // Temp
 import { client } from 'utils/ApiClient';
 
-import Layout, { Title } from 'components/Layout';
+import Layout, { Title, HeaderAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
@@ -35,7 +35,9 @@ class Atlas extends React.Component {
     let title;
 
     if (!this.props.isLoading) {
-      actions = <Link to={ `/atlas/${atlas.id}/new` }>New document</Link>;
+      actions = <HeaderAction>
+          <Link to={ `/atlas/${atlas.id}/new` }>New document</Link>
+        </HeaderAction>;
       title = <Title>{ atlas.name }</Title>;
     }
 

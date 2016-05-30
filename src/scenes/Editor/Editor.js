@@ -11,7 +11,7 @@ import {
   saveDocumentAsync,
 } from 'actions/DocumentActions';
 
-import Layout, { Title } from 'components/Layout';
+import Layout, { Title, HeaderAction } from 'components/Layout';
 import Flex from 'components/Flex';
 import MarkdownEditor from 'components/MarkdownEditor';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -63,9 +63,9 @@ class Editor extends Component {
     return (
       <Layout
         actions={(
-          <Flex direction="row" align="center">
+          <HeaderAction>
             <SaveAction onClick={ this.onSave } />
-          </Flex>
+          </HeaderAction>
         )}
         title={ title }
         fixed={ true }
