@@ -92,4 +92,32 @@ router.post('documents.update', auth(), async (ctx) => {
   };
 });
 
+router.post('documents.delete', auth(), async (ctx) => {
+  let {
+    id,
+  } = ctx.request.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const user = ctx.state.user;
+  const team = await user.getTeam();
+  let document = await Document.findOne({
+    where: {
+      id: id,
+      teamId: team.id,
+    },
+  });
+
+  if (!document) throw httpErrors.BadRequest();
+
+  try {
+    await document.destroy();
+  } catch (e) {
+    throw httpErrors.BadRequest('Error while deleting');
+  };
+
+  ctx.body = {
+    ok: true,
+  };
+});
+
 export default router;
