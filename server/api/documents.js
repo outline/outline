@@ -8,6 +8,7 @@ import { Document, Atlas } from '../models';
 
 const router = new Router();
 
+// FIXME: This really needs specs :/
 router.post('documents.info', auth({ require: false }), async (ctx) => {
   let { id } = ctx.request.body;
   ctx.assertPresent(id, 'id is required');
