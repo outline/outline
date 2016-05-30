@@ -8,23 +8,35 @@ import { Document, Atlas } from '../models';
 
 const router = new Router();
 
-router.post('documents.info', auth(), async (ctx) => {
+router.post('documents.info', auth({ require: false }), async (ctx) => {
   let { id } = ctx.request.body;
   ctx.assertPresent(id, 'id is required');
 
-  const team = await ctx.state.user.getTeam();
   const document = await Document.findOne({
     where: {
       id: id,
-      teamId: team.id,
     },
   });
 
-  if (!document) throw httpErrors.NotFound();
+  // Don't expose private documents outside the team
+  if (document.private) {
+    if (!ctx.state.user) throw httpErrors.NotFound();
 
-  ctx.body = {
-    data: await presentDocument(document, true),
-  };
+    const team = await ctx.state.user.getTeam();
+    if (document.teamId !== team.id) {
+      if (!document) throw httpErrors.NotFound();
+    }
+
+    ctx.body = {
+      data: await presentDocument(document, true),
+    };
+  } else {
+    ctx.body = {
+      data: await presentDocument(document),
+    };
+  }
+
+  if (!document) throw httpErrors.NotFound();
 });
 
 

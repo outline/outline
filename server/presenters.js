@@ -3,13 +3,13 @@ import Document from './models/Document';
 
 export function presentUser(user) {
   return new Promise(async (resolve, reject) => {
-    resolve({
+    const data = {
       id: user.id,
       name: user.name,
       username: user.username,
-      email: user.email,
       avatarUrl: user.slackData.image_192,
-    });
+    };
+    resolve(data);
   });
 }
 
@@ -62,6 +62,7 @@ export async function presentDocument(document, includeAtlas=false) {
     text: document.text,
     html: document.html,
     preview: document.preview,
+    private: document.private,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
     atlas: document.atlaId,
@@ -71,10 +72,10 @@ export async function presentDocument(document, includeAtlas=false) {
   if (includeAtlas) {
     const atlas = await document.getAtlas();
     data.atlas = await presentAtlas(atlas, false);
-
-    const user = await document.getUser();
-    data.user = await presentUser(user, false);
   }
+
+  const user = await document.getUser();
+  data.user = await presentUser(user);
 
   return data;
 }

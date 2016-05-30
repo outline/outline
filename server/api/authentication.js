@@ -30,26 +30,27 @@ export default function auth({ require = true } = {}) {
       throw httpErrors.Unauthorized('Authentication required');
     }
 
-    // Get user without verifying payload signature
-    let payload;
-    try {
-      payload = JWT.decode(token);
-    } catch(_e) {
-      throw httpErrors.Unauthorized('Unable to decode JWT token');
-    }
-    console.log(payload)
-    const user = await User.findOne({
-      where: { id: payload.id },
-    });
+    if (token && require) {
+      // Get user without verifying payload signature
+      let payload;
+      try {
+        payload = JWT.decode(token);
+      } catch(_e) {
+        throw httpErrors.Unauthorized('Unable to decode JWT token');
+      }
+      const user = await User.findOne({
+        where: { id: payload.id },
+      });
 
-    try {
-      JWT.verify(token, user.jwtSecret);
-    } catch(e) {
-      throw httpErrors.Unauthorized('Invalid token');
-    }
+      try {
+        JWT.verify(token, user.jwtSecret);
+      } catch(e) {
+        throw httpErrors.Unauthorized('Invalid token');
+      }
 
-    ctx.state.token = token;
-    ctx.state.user = user;
+      ctx.state.token = token;
+      ctx.state.user = user;
+    }
 
     return next();
   };
