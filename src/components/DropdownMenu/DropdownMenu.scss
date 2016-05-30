@@ -1,0 +1,40 @@
+@import '../../utils/constants.scss';
+
+.label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+
+  min-height: 43px;
+  padding: 0 0.5rem;
+  color: $linkColor;
+}
+
+.menuContainer {
+  position: relative;
+
+  .menu {
+    position: absolute;
+    top: 42px;
+    right: 0;
+    z-index: 1000;
+    border: 1px solid #eee;
+    min-width: 150px;
+    padding: 5px 0;
+  }
+}
+
+.menuItem {
+  margin: 0;
+  padding: 5px 10px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  cursor: pointer;
+
+  a {
+    color: $textColor;
+    text-decoration: none;
+  }
+}

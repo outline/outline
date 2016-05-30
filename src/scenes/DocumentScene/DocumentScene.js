@@ -2,12 +2,16 @@ import React from 'react';
 import { connect } from 'react-redux';
 import Link from 'react-router/lib/Link';
 import { bindActionCreators } from 'redux';
-import { fetchDocumentAsync } from 'actions/DocumentActions';
+import {
+  fetchDocumentAsync,
+  deleteDocument,
+} from 'actions/DocumentActions';
 
-import Layout from 'components/Layout';
+import Layout, { HeaderLink } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import Document from 'components/Document';
+import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 
 import styles from './DocumentScene.scss';
 
@@ -35,12 +39,30 @@ class DocumentScene extends React.Component {
     }
   }
 
+  onDelete = () => {
+    if (confirm("Are you sure you want to delete this document?")) {
+      this.props.deleteDocument(
+        this.props.document.id,
+        `/atlas/${ this.props.document.atlas.id }`,
+      );
+    };
+  }
+
   render() {
     const document = this.props.document;
     let title;
     let actions;
     if (document) {
-      actions = <Link to={ `/documents/${document.id}/edit` }>Edit</Link>;
+      actions = (
+        <div className={ styles.actions }>
+          <HeaderLink>
+            <Link to={ `/documents/${document.id}/edit` }>Edit</Link>
+          </HeaderLink>
+          <DropdownMenu label="More">
+            <MenuItem onClick={ this.onDelete }>Delete</MenuItem>
+          </DropdownMenu>
+        </div>
+      );
       title = `${document.atlas.name} - ${document.title}`;
     }
 
@@ -72,6 +94,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
     fetchDocumentAsync,
+    deleteDocument,
   }, dispatch)
 }
 

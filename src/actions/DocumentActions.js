@@ -5,6 +5,8 @@ import { createAction } from 'redux-actions';
 
 export const resetDocument = createAction('RESET_DOCUMENT');
 
+// GET
+
 export const FETCH_DOCUMENT_PENDING = 'FETCH_DOCUMENT_PENDING';
 export const FETCH_DOCUMENT_SUCCESS = 'FETCH_DOCUMENT_SUCCESS';
 export const FETCH_DOCUMENT_FAILURE = 'FETCH_DOCUMENT_FAILURE';
@@ -28,6 +30,8 @@ export function fetchDocumentAsync(documentId) {
     })
   };
 };
+
+// POST/UPDATE
 
 export const SAVE_DOCUMENT_PENDING = 'SAVE_DOCUMENT_PENDING';
 export const SAVE_DOCUMENT_SUCCESS = 'SAVE_DOCUMENT_SUCCESS';
@@ -65,3 +69,23 @@ export function saveDocumentAsync(atlasId, documentId, title, text) {
   };
 };
 
+// documents.delete
+
+export const deleteDocumentPending = createAction('DELETE_DOCUMENT_PENDING');
+export const deleteDocumentSuccess = createAction('DELETE_DOCUMENT_SUCCESS');
+export const deleteDocumentFailure = createAction('DELETE_DOCUMENT_FAILURE');
+
+export const deleteDocument = (documentId, returnPath) => {
+  return (dispatch) => {
+    dispatch(deleteDocumentPending());
+
+    client.post('/documents.delete', { id: documentId })
+    .then(data => {
+      dispatch(deleteDocumentSuccess(documentId));
+      dispatch(replace(returnPath));
+    })
+    .catch((err) => {
+      dispatch(deleteDocumentFailure(err));
+    })
+  };
+};

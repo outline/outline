@@ -1,10 +1,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import Link from 'react-router/lib/Link';
+import { bindActionCreators } from 'redux';
+import { logoutUser } from 'actions/UserActions';
 
-import HeaderMenu from './components/HeaderMenu';
+import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import Flex from 'components/Flex';
 import LoadingIndicator from 'components/LoadingIndicator';
+import { Avatar } from 'rebass';
 
 import styles from './Layout.scss';
 import classNames from 'classnames/bind';
@@ -16,6 +19,10 @@ class Layout extends React.Component {
     title: React.PropTypes.node,
     fixed: React.PropTypes.bool,
     loading: React.PropTypes.bool,
+  }
+
+  onLogout = () => {
+    this.props.logoutUser();
   }
 
   render() {
@@ -35,11 +42,19 @@ class Layout extends React.Component {
             <Flex align="center" className={ styles.actions }>
               { this.props.actions }
             </Flex>
-            <HeaderMenu>
-              <img src={ this.props.avatarUrl } />
-            </HeaderMenu>
+
+            <DropdownMenu label={
+              <Avatar
+                circle
+                size={24}
+                src={ this.props.avatarUrl }
+              />
+            }>
+              <MenuItem onClick={ this.onLogout }>Logout</MenuItem>
+            </DropdownMenu>
           </Flex>
         </div>
+
         <div className={ styles.content }>
           { this.props.children }
         </div>
@@ -55,6 +70,13 @@ const mapStateToProps = (state) => {
   }
 };
 
+const mapDispatchToProps = (dispatch) => {
+  return bindActionCreators({
+    logoutUser,
+  }, dispatch)
+}
+
 export default connect(
   mapStateToProps,
+  mapDispatchToProps,
 )(Layout);
