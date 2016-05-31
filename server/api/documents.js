@@ -25,7 +25,7 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
 
     const team = await ctx.state.user.getTeam();
     if (document.teamId !== team.id) {
-      if (!document) throw httpErrors.NotFound();
+      throw httpErrors.NotFound();
     }
 
     ctx.body = {

@@ -30,7 +30,7 @@ export default function auth({ require = true } = {}) {
       throw httpErrors.Unauthorized('Authentication required');
     }
 
-    if (token && require) {
+    if (token) {
       // Get user without verifying payload signature
       let payload;
       try {
