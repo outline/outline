@@ -27,7 +27,10 @@ if (process.env.NODE_ENV === 'production') {
   });
 
   router.get('/static/*', async (ctx) => {
-    console.log(path.join(__dirname, '../dist/', ctx.path.substring(8)));
+    ctx.set({
+      'Cache-Control': 'max-age=999999999999',
+    });
+
     const stats = await sendfile(ctx, path.join(__dirname, '../dist/', ctx.path.substring(8)));
   });
 
