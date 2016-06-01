@@ -26,6 +26,7 @@
     "babel-core": "^6.4.5",
     "babel-eslint": "^4.1.8",
     "babel-loader": "^6.2.1",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-polyfill": "^6.7.4",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-react": "^6.3.13",
@@ -69,6 +70,9 @@
     "lodash": "^4.13.1",
     "lodash.orderby": "^4.4.0",
     "marked": "^0.3.5",
+    "mobx": "^2.2.2",
+    "mobx-react": "^3.3.0",
+    "mobx-react-devtools": "^4.2.0",
     "moment": "^2.13.0",
     "node-dev": "^3.1.0",
     "node-sass": "^3.4.2",
@@ -110,10 +114,11 @@
     "webpack": "^1.12.12"
   },
   "devDependencies": {
+    "babel-regenerator-runtime": "^6.5.0",
+    "fsevents": "^1.0.11",
     "koa-webpack-dev-middleware": "^1.2.0",
     "koa-webpack-hot-middleware": "^1.0.3",
     "node-dev": "^3.1.0",
-    "nodemon": "^1.9.1",
-    "fsevents": "^1.0.11"
+    "nodemon": "^1.9.1"
   }
 }

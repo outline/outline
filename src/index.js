@@ -10,6 +10,8 @@ import { persistStore, autoRehydrate } from 'redux-persist';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
 import History from 'utils/History';
+import { useStrict } from 'mobx';
+import DevTools from 'mobx-react-devtools';
 
 import auth from 'utils/auth';
 
@@ -30,6 +32,9 @@ import Atlas from 'scenes/Atlas';
 import DocumentScene from 'scenes/DocumentScene';
 import DocumentEdit from 'scenes/DocumentEdit';
 import SlackAuth from 'scenes/SlackAuth';
+
+// MobX
+useStrict(true);
 
 // Redux
 let store;
@@ -61,16 +66,18 @@ persistStore(store, {
         <Route path="/" component={ Application }>
           <IndexRoute component={Home} />
 
-          <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
-          <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
-          <Route path="/atlas/:id/new" component={ Editor } onEnter={ requireAuth } />
-          <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
-          <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
+            <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
+            <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
+            <Route path="/atlas/:id/new" component={ Editor } onEnter={ requireAuth } />
+            <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
+            <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
 
-          <Route path="/auth/slack" component={SlackAuth} />
-        </Route>
-      </Router>
-    </Provider>
+            <Route path="/auth/slack" component={SlackAuth} />
+          </Route>
+        </Router>
+      </Provider>
+      { __DEV__ ? <DevTools position={{ bottom: 0, right: 0 }} /> : null }
+    </div>
   ), document.getElementById('root'));
 });
 
