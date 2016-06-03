@@ -43,9 +43,7 @@ class DocumentEdit extends Component {
   }
 
   onPreviewToggle = () => {
-    // Force re-render to fix issues with
-    // Codemirror cursor (gets out of sync)
-    state.togglePreview(this.forceUpdate());
+    state.togglePreview();
   }
 
   render() {
@@ -94,6 +92,7 @@ class DocumentEdit extends Component {
                 onChange={ state.updateText }
                 text={ state.text }
                 replaceText={ state.replaceText }
+                preview={ state.preview }
               />
             </EditorPane>
             { state.preview ? (

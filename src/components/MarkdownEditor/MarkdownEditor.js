@@ -17,9 +17,13 @@ import { client } from '../../utils/ApiClient';
 @observer
 class MarkdownAtlas extends React.Component {
   static propTypes = {
-    text: React.PropTypes.string,
-    onChange: React.PropTypes.func,
-    replaceText: React.PropTypes.func,
+    text: React.PropTypes.string.isRequired,
+    onChange: React.PropTypes.func.isRequired,
+    replaceText: React.PropTypes.func.isRequired,
+
+    // This is actually not used but it triggers
+    // re-render to help with CodeMirror focus issues
+    preview: React.PropTypes.bool.isRequired,
   }
 
   getEditorInstance = () => {
