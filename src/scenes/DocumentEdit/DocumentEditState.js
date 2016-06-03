@@ -83,9 +83,9 @@ const documentEditState = new class DocumentEditState {
       this.text = this.text.replace(args.original, args.new);
     }
 
-    @action togglePreview = () => {
-      console.log('toggle')
+    @action togglePreview = (callback) => {
       this.preview = !this.preview;
+      callback();
     }
 
     constructor() {

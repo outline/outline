@@ -42,6 +42,12 @@ class DocumentEdit extends Component {
     })
   }
 
+  onPreviewToggle = () => {
+    // Force re-render to fix issues with
+    // Codemirror cursor (gets out of sync)
+    state.togglePreview(this.forceUpdate());
+  }
+
   render() {
     let title = (
       <Title
@@ -60,7 +66,7 @@ class DocumentEdit extends Component {
           />
         </HeaderAction>
         <DropdownMenu label="More">
-          <MenuItem onClick={ state.togglePreview }>
+          <MenuItem onClick={ this.onPreviewToggle }>
             Preview <Switch checked={ state.preview } />
           </MenuItem>
         </DropdownMenu>
