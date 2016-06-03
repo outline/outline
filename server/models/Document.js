@@ -7,7 +7,7 @@ import {
 import {
   convertToMarkdown,
   truncateMarkdown,
-} from '../utils/markdown';
+} from '../../src/utils/markdown';
 import Atlas from './Atlas';
 import Team from './Team';
 import User from './User';

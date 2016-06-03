@@ -1,2 +1,6 @@
-import Document from './Document';
+import Document, { DocumentHtml } from './Document';
+
 export default Document;
+export {
+  DocumentHtml,
+};

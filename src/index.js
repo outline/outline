@@ -33,8 +33,10 @@ import DocumentScene from 'scenes/DocumentScene';
 import DocumentEdit from 'scenes/DocumentEdit';
 import SlackAuth from 'scenes/SlackAuth';
 
-// MobX
-useStrict(true);
+// Can't run in strict mode with async/await yet
+
+// // MobX
+// useStrict(true);
 
 // Redux
 let store;
@@ -61,10 +63,11 @@ persistStore(store, {
   ]
 }, () => {
   render((
-    <Provider store={store}>
-      <Router history={History}>
-        <Route path="/" component={ Application }>
-          <IndexRoute component={Home} />
+    <div style={{ display: 'flex', flex: 1, }}>
+      <Provider store={store}>
+        <Router history={History}>
+          <Route path="/" component={ Application }>
+            <IndexRoute component={Home} />
 
             <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
             <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
