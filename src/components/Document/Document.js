@@ -1,4 +1,5 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 import moment from 'moment';
 import marked from 'marked';
 
@@ -7,6 +8,17 @@ import PublishingInfo from 'components/PublishingInfo';
 
 import styles from './Document.scss';
 
+const DocumentHtml = observer((props) => {
+  return (
+    <div
+      className={ styles.document }
+      dangerouslySetInnerHTML={{ __html: props.html }}
+      { ...props }
+    />
+  );
+});
+
+@observer
 class Document extends React.Component {
   static propTypes = {
     document: React.PropTypes.object.isRequired,
@@ -20,13 +32,13 @@ class Document extends React.Component {
           name={ this.props.document.user.name }
           timestamp={ this.props.document.createdAt }
         />
-        <div
-          className={ styles.document }
-          dangerouslySetInnerHTML={{ __html: this.props.document.html }}
-        />
+        <DocumentHtml html={ this.props.document.html } />
       </div>
     );
   }
 };
 
 export default Document;
+export {
+  DocumentHtml
+};

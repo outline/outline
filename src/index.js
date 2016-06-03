@@ -10,7 +10,6 @@ import { persistStore, autoRehydrate } from 'redux-persist';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
 import History from 'utils/History';
-import { useStrict } from 'mobx';
 import DevTools from 'mobx-react-devtools';
 
 import auth from 'utils/auth';
@@ -32,9 +31,6 @@ import Atlas from 'scenes/Atlas';
 import DocumentScene from 'scenes/DocumentScene';
 import DocumentEdit from 'scenes/DocumentEdit';
 import SlackAuth from 'scenes/SlackAuth';
-
-// MobX
-useStrict(true);
 
 // Redux
 let store;
@@ -61,10 +57,11 @@ persistStore(store, {
   ]
 }, () => {
   render((
-    <Provider store={store}>
-      <Router history={History}>
-        <Route path="/" component={ Application }>
-          <IndexRoute component={Home} />
+    <div style={{ display: 'flex', flex: 1, }}>
+      <Provider store={store}>
+        <Router history={History}>
+          <Route path="/" component={ Application }>
+            <IndexRoute component={Home} />
 
             <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
             <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />

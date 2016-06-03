@@ -1,4 +1,5 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 import Codemirror from 'react-codemirror';
 import 'codemirror/mode/gfm/gfm';
 import 'codemirror/mode/javascript/javascript';
@@ -13,6 +14,7 @@ import './codemirror.scss';
 
 import { client } from '../../utils/ApiClient';
 
+@observer
 class MarkdownAtlas extends React.Component {
   static propTypes = {
     text: React.PropTypes.string,
@@ -111,6 +113,7 @@ class MarkdownAtlas extends React.Component {
       matchBrackets: true,
       lineWrapping: true,
       viewportMargin: Infinity,
+      scrollbarStyle: 'null',
       theme: 'atlas',
       extraKeys: {
         Enter: 'newlineAndIndentContinueMarkdownList',

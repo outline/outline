@@ -16,7 +16,7 @@
 
   .menu {
     position: absolute;
-    top: 42px;
+    top: $headerHeight;
     right: 0;
     z-index: 1000;
     border: 1px solid #eee;
@@ -28,8 +28,10 @@
 .menuItem {
   margin: 0;
   padding: 5px 10px;
+  height: 24px;
+
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   cursor: pointer;
 

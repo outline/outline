@@ -67,6 +67,7 @@
     "koa-webpack-dev-middleware": "^1.2.0",
     "koa-webpack-hot-middleware": "^1.0.3",
     "localenv": "^0.2.2",
+    "localforage": "^1.4.2",
     "lodash": "^4.13.1",
     "lodash.orderby": "^4.4.0",
     "marked": "^0.3.5",

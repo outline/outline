@@ -21,13 +21,12 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
 
   // Don't expose private documents outside the team
   if (document.private) {
-    if (!ctx.state.user) throw httpErrors.NotFound();
+    // if (!ctx.state.user) throw httpErrors.NotFound();
 
     const team = await ctx.state.user.getTeam();
     if (document.teamId !== team.id) {
       throw httpErrors.NotFound();
     }
-
 
     ctx.body = {
       data: await presentDocument(document, true),
