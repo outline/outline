@@ -1,0 +1,45 @@
+@import '../../utils/constants.scss';
+
+.preview {
+  display: flex;
+  flex: 1;
+  padding: 50px 0;
+  padding: 50px 3em;
+  max-width: 50em;
+  line-height: 1.5em;
+}
+
+.container {
+  display: flex;
+  position: fixed;
+  top: $headerHeight;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.editorPane {
+  flex: 0 0 50%;
+  justify-content: center;
+  overflow: scroll;
+}
+
+.paneContent {
+  flex: 1;
+  justify-content: center;
+}
+
+.fullWidth {
+  flex: 1;
+  display: flex;
+
+  .paneContent {
+    display: flex;
+  }
+}
+
+:global {
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
