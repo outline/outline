@@ -28,6 +28,7 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
       throw httpErrors.NotFound();
     }
 
+
     ctx.body = {
       data: await presentDocument(document, true),
     };
