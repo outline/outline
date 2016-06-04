@@ -1,8 +1,8 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import Link from 'react-router/lib/Link';
-import { bindActionCreators } from 'redux';
-import { logoutUser } from 'actions/UserActions';
+import { observe } from 'mobx';
+
+import store from 'stores/UserStore';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import Flex from 'components/Flex';
@@ -21,10 +21,6 @@ class Layout extends React.Component {
     loading: React.PropTypes.bool,
   }
 
-  onLogout = () => {
-    this.props.logoutUser();
-  }
-
   render() {
     return (
       <div className={ styles.container }>
@@ -33,7 +29,7 @@ class Layout extends React.Component {
         ) : null }
         <div className={ cx(styles.header, { fixed: this.props.fixed }) }>
           <div className={ styles.teamName }>
-            <Link to="/">{ this.props.teamName }</Link>
+            <Link to="/">{ store.team.name }</Link>
           </div>
           <Flex align="center" className={ styles.title }>
             { this.props.title }
@@ -47,10 +43,10 @@ class Layout extends React.Component {
               <Avatar
                 circle
                 size={24}
-                src={ this.props.avatarUrl }
+                src={ store.user.avatarUrl }
               />
             }>
-              <MenuItem onClick={ this.onLogout }>Logout</MenuItem>
+              <MenuItem onClick={ store.logout }>Logout</MenuItem>
             </DropdownMenu>
           </Flex>
         </div>
@@ -63,20 +59,4 @@ class Layout extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => {
-  return {
-    teamName: state.team ? state.team.name : null,
-    avatarUrl: state.user ? state.user.avatarUrl : null,
-  }
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return bindActionCreators({
-    logoutUser,
-  }, dispatch)
-}
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Layout);
+export default Layout;

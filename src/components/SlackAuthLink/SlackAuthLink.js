@@ -1,14 +1,12 @@
 import React from 'react';
+import { observe } from 'mobx'
+import store from 'stores/UserStore';
 
 import styles from './SlackAuthLink.scss';
 
-export default class SlackAuthLink extends React.Component {
+class SlackAuthLink extends React.Component {
   static propTypes = {
     scopes: React.PropTypes.arrayOf(React.PropTypes.string),
-  }
-
-  state = {
-    oauthState: Math.random().toString(36).substring(7),
   }
 
   static defaultProps = {
@@ -20,10 +18,6 @@ export default class SlackAuthLink extends React.Component {
     ]
   }
 
-  componentDidMount = () => {
-    localStorage.oauthState = this.state.oauthState;
-  }
-
   slackUrl = () => {
     const baseUrl = 'https://slack.com/oauth/authorize';
     const params = {
@@ -32,7 +26,7 @@ export default class SlackAuthLink extends React.Component {
       redirect_uri: __DEV__ ?
           'http://localhost:3000/auth/slack/' :
           'https://www.beautifulatlas.com/auth/slack/',
-      state: this.state.oauthState,
+      state: store.getOauthState(),
     };
 
     const urlParams = Object.keys(params).map(function(key) {
@@ -48,3 +42,5 @@ export default class SlackAuthLink extends React.Component {
     )
   }
 }
+
+export default SlackAuthLink;

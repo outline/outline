@@ -88,7 +88,7 @@ const documentEditState = new class DocumentEditState {
     }
 
     constructor() {
-      // Rehydrate
+      // Rehydrate syncronously
       localforage.getItem(DOCUMENT_EDIT_SETTINGS)
       .then(data => {
         this.preview = data.preview;

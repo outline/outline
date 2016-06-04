@@ -1,6 +1,6 @@
 import _map from 'lodash/map';
+import store from 'stores/UserStore';
 
-import auth from './auth';
 import constants from '../constants';
 
 class ApiClient {
@@ -25,8 +25,8 @@ class ApiClient {
       'Content-Type': 'application/json',
       'User-Agent': this.userAgent,
     });
-    if (auth.getToken()) {
-      headers.set('Authorization', `Bearer ${auth.getToken()}`);
+    if (store.authenticated) {
+      headers.set('Authorization', `Bearer ${store.token}`);
     }
 
     // Construct request
@@ -48,7 +48,7 @@ class ApiClient {
 
         // Handle 401, log out user
         if (response.status === 401) {
-          auth.logout(); // replace with dispatch+action
+          store.logout();
         }
 
         // Handle failed responses

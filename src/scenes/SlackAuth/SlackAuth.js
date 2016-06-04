@@ -1,21 +1,10 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import store from 'stores/UserStore';
 
-import { slackAuthAsync } from '../../actions/SlackAuthAction';
-
-import { client } from '../../utils/ApiClient';
-
-class SlackAuth extends React.Component {
+export default class SlackAuth extends React.Component {
   componentDidMount = () => {
-    const { query } = this.props.location
-
-    // Validate OAuth2 state param
-    if (localStorage.oauthState != query.state) {
-      return;
-    }
-
-    this.props.slackAuthAsync(query.code);
+    const { code, state } = this.props.location.query;
+    store.authWithSlack(code, state);
   }
 
   render() {
@@ -24,12 +13,3 @@ class SlackAuth extends React.Component {
     );
   }
 }
-
-const mapDispactcToProps = (dispatch) => {
-  return bindActionCreators({ slackAuthAsync }, dispatch);
-};
-
-export default connect(
-  null,
-  mapDispactcToProps
-)(SlackAuth);
