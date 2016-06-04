@@ -1,22 +1,15 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { replace } from 'react-router-redux';
-
-import auth from '../../utils/auth';
+import store from 'stores/UserStore';
+import { browserHistory } from 'react-router'
 
 import SlackAuthLink from '../../components/SlackAuthLink';
 
 import styles from './Home.scss';
 
-class Home extends React.Component {
-  static propTypes = {
-    replace: React.PropTypes.func.isRequired,
-  }
-
+export default class Home extends React.Component {
   componentDidMount = () => {
-    if (auth.loggedIn()) {
-      this.props.replace('/dashboard');
+    if (store.authenticated) {
+      browserHistory.replace('/dashboard');
     }
   }
 
@@ -53,11 +46,3 @@ class Home extends React.Component {
     );
   }
 }
-
-const mapDispatchToProps = (dispatch) => {
-  return bindActionCreators({ replace }, dispatch)
-}
-
-export default connect(
-  null, mapDispatchToProps
-)(Home);
