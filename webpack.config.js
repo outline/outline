@@ -34,6 +34,13 @@ module.exports = {
         test: /\.woff$/,
         loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]'
       },
+
+      // Excludes
+      {
+        // slug
+        test: /unicode/,
+        loader: 'ignore-loader',
+      }
     ]
   },
   resolve: {

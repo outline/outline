@@ -1,5 +1,4 @@
 import slug from 'slug';
-import truncate from 'truncate-html';
 import marked, { Renderer } from 'marked';
 import highlight from 'highlight.js';
 
@@ -34,25 +33,11 @@ marked.setOptions({
   smartypants: true,
 });
 
-// TODO: This is syncronous and can be costly,
-// should be performed outside http request
+// TODO: This is syncronous and can be costly
 const convertToMarkdown = (text) => {
   return marked(text);
 };
 
-truncate.defaultOptions = {
-  stripTags: false,
-  ellipsis: '...',
-  decodeEntities: false,
-  excludes: ['h1', 'pre', ],
-};
-
-const truncateMarkdown = (text, length) => {
-  const html = convertToMarkdown(text);
-  return truncate(html, length);
-};
-
 export {
   convertToMarkdown,
-  truncateMarkdown,
 };

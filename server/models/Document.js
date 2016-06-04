@@ -6,8 +6,10 @@ import {
 } from '../sequelize';
 import {
   convertToMarkdown,
-  truncateMarkdown,
 } from '../../src/utils/markdown';
+import {
+  truncateMarkdown,
+} from '../utils/truncate';
 import Atlas from './Atlas';
 import Team from './Team';
 import User from './User';
