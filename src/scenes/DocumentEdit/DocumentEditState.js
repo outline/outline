@@ -63,7 +63,7 @@ const documentEditState = new class DocumentEditState {
           title: this.title,
           text: this.text,
         })
-        browserHistory.push(`/atlas/${data.data.atlas.id}`);
+        browserHistory.push(`/documents/${this.documentId}`);
       } catch (e) {
         console.error("Something went wrong");
       }
