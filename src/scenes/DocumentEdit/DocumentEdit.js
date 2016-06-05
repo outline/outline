@@ -25,7 +25,6 @@ class DocumentEdit extends Component {
 
     EditorLoader()
     .then(({ Editor }) => {
-      console.log("loaded", Editor);
       this.setState({ Editor });
     });
   }

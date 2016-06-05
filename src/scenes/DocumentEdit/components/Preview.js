@@ -9,7 +9,7 @@ const cx = classNames.bind(styles);
 const Preview = (props) => {
   return (
     <div className={ styles.preview }>
-      <DocumentHtml  html={ props.html } />
+      <DocumentHtml html={ props.html } />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
+import { convertToMarkdown } from 'utils/markdown';
 
 import MarkdownEditor from 'components/MarkdownEditor';
 import Preview from './Preview';
@@ -27,7 +28,7 @@ const Editor = observer((props) => {
         <EditorPane
           scrollTop={ props.scrollTop }
         >
-          <Preview html={ store.htmlPreview } />
+          <Preview html={ store.text } />
         </EditorPane>
       ) : null }
     </div>

@@ -4,12 +4,7 @@ import { Provider } from 'react-redux';
 import Router     from 'react-router/lib/Router';
 import Route      from 'react-router/lib/Route';
 import IndexRoute from 'react-router/lib/IndexRoute';
-import { createStore, applyMiddleware } from 'redux';
-import { routerMiddleware } from 'react-router-redux';
-import thunkMiddleware from 'redux-thunk';
-import createLogger from 'redux-logger';
 import History from 'utils/History';
-import DevTools from 'mobx-react-devtools';
 
 import userStore from 'stores/UserStore';
 
@@ -22,12 +17,13 @@ import 'assets/styles/codemirror.css';
 import Application from 'scenes/Application';
 
 import Home from 'scenes/Home';
-import Editor from 'scenes/Editor';
 import Dashboard from 'scenes/Dashboard';
 import Atlas from 'scenes/Atlas';
 import DocumentScene from 'scenes/DocumentScene';
 import DocumentEdit from 'scenes/DocumentEdit';
 import SlackAuth from 'scenes/SlackAuth';
+
+import DevTools from 'mobx-react-devtools';
 
 function requireAuth(nextState, replace) {
   if (!userStore.authenticated) {
@@ -46,7 +42,6 @@ render((
 
         <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
         <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
-        <Route path="/atlas/:id/new" component={ Editor } onEnter={ requireAuth } />
         <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
         <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
 

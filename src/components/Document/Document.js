@@ -1,7 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import moment from 'moment';
-import marked from 'marked';
 
 import { Link } from 'react-router';
 import PublishingInfo from 'components/PublishingInfo';

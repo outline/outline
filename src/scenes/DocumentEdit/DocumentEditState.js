@@ -1,7 +1,6 @@
 import { observable, action, computed, autorun } from 'mobx';
 import { client } from 'utils/ApiClient';
 import localforage from 'localforage';
-import { convertToMarkdown } from 'utils/markdown';
 import { browserHistory } from 'react-router'
 
 const DOCUMENT_EDIT_SETTINGS = 'DOCUMENT_EDIT_SETTINGS';
@@ -23,15 +22,6 @@ const documentEditState = new class DocumentEditState {
     @observable preview;
     @observable isFetching;
     @observable isSaving;
-
-    /* Computed */
-
-    @computed get htmlPreview() {
-      // Only compute if preview is active
-      if (this.preview) {
-        return convertToMarkdown(this.text);
-      }
-    }
 
     /* Actions */
 
