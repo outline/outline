@@ -2,14 +2,14 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import {
-  resetEditor,
-  updateText,
-  replaceText,
-} from 'actions/EditorActions';
-import {
-  saveDocumentAsync,
-} from 'actions/DocumentActions';
+// import {
+//   resetEditor,
+//   updateText,
+//   replaceText,
+// } from 'actions/EditorActions';
+// import {
+//   saveDocumentAsync,
+// } from 'actions/DocumentActions';
 
 import Layout, { Title, HeaderAction } from 'components/Layout';
 import Flex from 'components/Flex';
@@ -81,26 +81,21 @@ class Editor extends Component {
   }
 }
 
-const mapStateToProps = (state) => {
-  return {
-    text: state.editor.text,
-    title: state.editor.title,
-    isSaving: state.document.isSaving,
-  };
-};
+// const mapStateToProps = (state) => {
+//   return {
+//     text: state.editor.text,
+//     title: state.editor.title,
+//     isSaving: state.document.isSaving,
+//   };
+// };
 
-const mapDispatchToProps = (dispatch) => {
-  return bindActionCreators({
-    resetEditor,
-    updateText,
-    replaceText,
-    saveDocumentAsync,
-  }, dispatch)
-};
-
-Editor = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Editor);
+// const mapDispatchToProps = (dispatch) => {
+//   return bindActionCreators({
+//     resetEditor,
+//     updateText,
+//     replaceText,
+//     saveDocumentAsync,
+//   }, dispatch)
+// };
 
 export default Editor;

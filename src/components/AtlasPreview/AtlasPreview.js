@@ -1,4 +1,5 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 import Link from 'react-router/lib/Link';
 
 import DocumentLink from './components/DocumentLink';
@@ -7,6 +8,7 @@ import styles from './AtlasPreview.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
+@observer
 class AtlasPreview extends React.Component {
   static propTypes = {
     data: React.PropTypes.object.isRequired,

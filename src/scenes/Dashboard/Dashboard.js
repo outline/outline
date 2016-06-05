@@ -1,7 +1,8 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { fetchAtlasesAsync } from 'actions/AtlasActions';
+import { observer } from 'mobx-react';
+
+import userStore from 'stores/UserStore';
+import store from './DashboardStore';
 
 import Flex from 'components/Flex';
 import Layout from 'components/Layout';
@@ -11,12 +12,10 @@ import CenteredContent from 'components/CenteredContent';
 
 import styles from './Dashboard.scss';
 
+@observer
 class Dashboard extends React.Component {
-  static propTypes = {
-  }
-
   componentDidMount = () => {
-    this.props.fetchAtlasesAsync(this.props.teamId);
+    store.fetchAtlases(userStore.team.id);
   }
 
   render() {
@@ -24,10 +23,10 @@ class Dashboard extends React.Component {
       <Layout>
         <CenteredContent>
           <Flex direction="column" flex={ true }>
-            { this.props.isLoading ? (
+            { store.isFetching ? (
               <AtlasPreviewLoading />
-            ) : this.props.items.map((item) => {
-             return  (<AtlasPreview key={ item.id } data={ item } />);
+            ) : store.atlases.map((atlas) => {
+             return  (<AtlasPreview key={ atlas.id } data={ atlas } />);
             }) }
           </Flex>
         </CenteredContent>
@@ -36,21 +35,4 @@ class Dashboard extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => {
-  return {
-    teamId: state.team ? state.team.id : null,
-    isLoading: state.atlases.isLoading,
-    items: Array.isArray(state.atlases.result) ? state.atlases.result.map((id) => state.atlases.entities.atlases[id]) : [], // reselect
-  }
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return bindActionCreators({
-    fetchAtlasesAsync,
-  }, dispatch)
-}
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Dashboard);
+export default Dashboard;

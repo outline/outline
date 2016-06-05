@@ -98,7 +98,6 @@ class MarkdownAtlas extends React.Component {
 
   onPaddingTopClick = () => {
     const cm = this.getEditorInstance();
-    console.log(cm)
     cm.setCursor(0, 0);
     cm.focus();
   }

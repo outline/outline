@@ -1,11 +1,8 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import Link from 'react-router/lib/Link';
-import { bindActionCreators } from 'redux';
-import {
-  fetchDocumentAsync,
-  deleteDocument,
-} from 'actions/DocumentActions';
+import { Link } from 'react-router';
+import { observer } from 'mobx-react';
+
+import store from './DocumentSceneStore';
 
 import Layout, { HeaderAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -15,25 +12,26 @@ import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 
 import styles from './DocumentScene.scss';
 
+@observer
 class DocumentScene extends React.Component {
   state = {
     didScroll: false,
   }
 
   componentDidMount = () => {
-    const documentId = this.props.routeParams.id;
-    this.props.fetchDocumentAsync(documentId);
+    const { id } = this.props.routeParams;
+    store.fetchDocument(id);
   }
 
   componentWillReceiveProps = (nextProps) => {
     // Scroll to anchor after loading, and only once
-    const hash = this.props.location.hash;
+    const { hash } = this.props.location;
 
-    if (nextProps.document && hash && !this.state.didScroll) {
+    if (nextProps.doc && hash && !this.state.didScroll) {
       const name = hash.split('#')[1];
       setTimeout(() => {
         this.setState({ didScroll: true });
-        const element = document.getElementsByName(name)[0];
+        const element = doc.getElementsByName(name)[0];
         if (element) element.scrollIntoView()
       }, 0);
     }
@@ -41,29 +39,26 @@ class DocumentScene extends React.Component {
 
   onDelete = () => {
     if (confirm("Are you sure you want to delete this document?")) {
-      this.props.deleteDocument(
-        this.props.document.id,
-        `/atlas/${ this.props.document.atlas.id }`,
-      );
+      store.deleteDocument();
     };
   }
 
   render() {
-    const document = this.props.document;
+    const doc = store.document;
     let title;
     let actions;
-    if (document) {
+    if (doc) {
       actions = (
         <div className={ styles.actions }>
           <HeaderAction>
-            <Link to={ `/documents/${document.id}/edit` }>Edit</Link>
+            <Link to={ `/documents/${doc.id}/edit` }>Edit</Link>
           </HeaderAction>
           <DropdownMenu label="More">
             <MenuItem onClick={ this.onDelete }>Delete</MenuItem>
           </DropdownMenu>
         </div>
       );
-      title = `${document.atlas.name} - ${document.title}`;
+      title = `${doc.atlas.name} - ${doc.title}`;
     }
 
     return (
@@ -72,10 +67,10 @@ class DocumentScene extends React.Component {
         actions={ actions }
       >
         <CenteredContent>
-          { this.props.isLoading || !document ? (
+          { store.isFetching ? (
             <AtlasPreviewLoading />
           ) : (
-            <Document document={ document } />
+            <Document document={ doc } />
           ) }
         </CenteredContent>
       </Layout>
@@ -83,22 +78,4 @@ class DocumentScene extends React.Component {
   }
 };
 
-
-const mapStateToProps = (state) => {
-  return {
-    isLoading: state.document.isLoading,
-    document: state.document.data,
-  }
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return bindActionCreators({
-    fetchDocumentAsync,
-    deleteDocument,
-  }, dispatch)
-}
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(DocumentScene);
+export default DocumentScene;

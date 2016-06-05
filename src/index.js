@@ -11,9 +11,7 @@ import createLogger from 'redux-logger';
 import History from 'utils/History';
 import DevTools from 'mobx-react-devtools';
 
-import auth from 'utils/auth';
-
-import reducers from 'reducers';
+import userStore from 'stores/UserStore';
 
 import 'normalize.css/normalize.css';
 import 'utils/base-styles.scss';
@@ -31,49 +29,30 @@ import DocumentScene from 'scenes/DocumentScene';
 import DocumentEdit from 'scenes/DocumentEdit';
 import SlackAuth from 'scenes/SlackAuth';
 
-// Redux
-let store;
-const routerMiddlewareWithHistory = routerMiddleware(History);
-if (__DEV__) {
-  const loggerMiddleware = createLogger();
-  store = createStore(reducers, applyMiddleware(
-    thunkMiddleware,
-    routerMiddlewareWithHistory,
-    loggerMiddleware,
-  ));
-} else {
-  store = createStore(reducers, applyMiddleware(
-    thunkMiddleware,
-    routerMiddlewareWithHistory,
-  ));
-}
-
-render((
-  <div style={{ display: 'flex', flex: 1, }}>
-    <Provider store={store}>
-      <Router history={History}>
-        <Route path="/" component={ Application }>
-          <IndexRoute component={Home} />
-
-          <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
-          <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
-          <Route path="/atlas/:id/new" component={ Editor } onEnter={ requireAuth } />
-          <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
-          <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
-
-          <Route path="/auth/slack" component={SlackAuth} />
-        </Route>
-      </Router>
-    </Provider>
-    { __DEV__ ? <DevTools position={{ bottom: 0, right: 0 }} /> : null }
-  </div>
-), document.getElementById('root'));
-
 function requireAuth(nextState, replace) {
-  if (!auth.loggedIn()) {
+  if (!userStore.authenticated) {
     replace({
       pathname: '/',
       state: { nextPathname: nextState.location.pathname },
     });
   }
 }
+
+render((
+  <div style={{ display: 'flex', flex: 1, }}>
+    <Router history={History}>
+      <Route path="/" component={ Application }>
+        <IndexRoute component={Home} />
+
+        <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
+        <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
+        <Route path="/atlas/:id/new" component={ Editor } onEnter={ requireAuth } />
+        <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
+        <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
+
+        <Route path="/auth/slack" component={SlackAuth} />
+      </Route>
+    </Router>
+    { __DEV__ ? <DevTools position={{ bottom: 0, right: 0 }} /> : null }
+  </div>
+), document.getElementById('root'));

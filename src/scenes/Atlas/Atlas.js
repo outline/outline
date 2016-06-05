@@ -1,12 +1,8 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 import Link from 'react-router/lib/Link';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { replace } from 'react-router-redux';
-import { fetchAtlasAsync } from 'actions/AtlasActions';
 
-// Temp
-import { client } from 'utils/ApiClient';
+import store from './AtlasStore';
 
 import Layout, { Title, HeaderAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -16,25 +12,20 @@ import Divider from 'components/Divider';
 
 import styles from './Atlas.scss';
 
+@observer
 class Atlas extends React.Component {
-  static propTypes = {
-    isLoading: React.PropTypes.bool,
-    atlas: React.PropTypes.object,
-  }
-
   componentDidMount = () => {
     const { id } = this.props.params;
-
-    this.props.fetchAtlasAsync(id);
+    store.fetchAtlas(id);
   }
 
   render() {
-    const atlas = this.props.atlas;
+    const atlas = store.atlas;
 
     let actions;
     let title;
 
-    if (!this.props.isLoading) {
+    if (atlas) {
       actions = <HeaderAction>
           <Link to={ `/atlas/${atlas.id}/new` }>New document</Link>
         </HeaderAction>;
@@ -47,7 +38,7 @@ class Atlas extends React.Component {
         title={ title }
       >
         <CenteredContent>
-          { this.props.isLoading ? (
+          { store.isFetching ? (
             <AtlasPreviewLoading />
           ) : (
             <div className={ styles.container }>
@@ -68,24 +59,4 @@ class Atlas extends React.Component {
     );
   }
 }
-
-const mapStateToProps = (state, currentProps) => {
-  const id = currentProps.params.id;
-
-  return {
-    isLoading: state.atlases.isLoading,
-    atlas: state.atlases.entities ? state.atlases.entities.atlases[id] : null, // reselect
-  }
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return bindActionCreators({
-    replace,
-    fetchAtlasAsync,
-  }, dispatch)
-}
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Atlas);
+export default Atlas;
