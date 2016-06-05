@@ -4,7 +4,7 @@ import { client } from 'utils/ApiClient';
 const store = new class AtlasStore {
   @observable atlas;
 
-  @observable isFetching;
+  @observable isFetching = true;
 
   /* Actions */
 

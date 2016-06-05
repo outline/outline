@@ -24,13 +24,13 @@ productionWebpackConfig.plugins.push(new HtmlWebpackPlugin({
 }));
 productionWebpackConfig.plugins.push(new ExtractTextPlugin('styles.[hash].css'));
 productionWebpackConfig.plugins.push(new webpack.optimize.OccurenceOrderPlugin());
-// productionWebpackConfig.plugins.push(
-//   new webpack.optimize.UglifyJsPlugin({
-//     compress: {
-//         warnings: false
-//     }
-//   })
-// );
+productionWebpackConfig.plugins.push(
+  new webpack.optimize.UglifyJsPlugin({
+    compress: {
+        warnings: false
+    }
+  })
+);
 productionWebpackConfig.plugins.push(
   new webpack.DefinePlugin({
     'process.env': {

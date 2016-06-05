@@ -53,6 +53,6 @@ render((
         <Route path="/auth/slack" component={SlackAuth} />
       </Route>
     </Router>
-    { true || __DEV__ ? <DevTools position={{ bottom: 0, right: 0 }} /> : null }
+    { __DEV__ ? <DevTools position={{ bottom: 0, right: 0 }} /> : null }
   </div>
 ), document.getElementById('root'));
