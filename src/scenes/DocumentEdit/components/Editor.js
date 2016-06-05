@@ -28,7 +28,7 @@ const Editor = observer((props) => {
         <EditorPane
           scrollTop={ props.scrollTop }
         >
-          <Preview html={ store.text } />
+          <Preview html={ convertToMarkdown(store.text) } />
         </EditorPane>
       ) : null }
     </div>
