@@ -28,10 +28,9 @@ const documentEditState = new class DocumentEditState {
 
     @computed get htmlPreview() {
       // Only compute if preview is active
-      // if (this.preview) {
-
-      // }
-      return convertToMarkdown(this.text);
+      if (this.preview) {
+        return convertToMarkdown(this.text);
+      }
     }
 
     /* Actions */
