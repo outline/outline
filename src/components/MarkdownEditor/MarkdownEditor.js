@@ -15,7 +15,7 @@ import './codemirror.scss';
 import { client } from '../../utils/ApiClient';
 
 @observer
-class MarkdownAtlas extends React.Component {
+class MarkdownEditor extends React.Component {
   static propTypes = {
     text: React.PropTypes.string.isRequired,
     onChange: React.PropTypes.func.isRequired,
@@ -149,4 +149,4 @@ class MarkdownAtlas extends React.Component {
   }
 }
 
-export default MarkdownAtlas;
+export default MarkdownEditor;
