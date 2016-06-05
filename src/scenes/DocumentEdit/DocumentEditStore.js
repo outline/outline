@@ -14,7 +14,7 @@ const parseHeader = (text) => {
   }
 }
 
-const documentEditState = new class DocumentEditState {
+const documentEditStore = new class DocumentEditStore {
     @observable documentId = null;
     @observable title = 'title';
     @observable text = 'default state';
@@ -88,9 +88,9 @@ const documentEditState = new class DocumentEditState {
 // Persist settings to localStorage
 autorun(() => {
   localforage.setItem(DOCUMENT_EDIT_SETTINGS, {
-    preview: documentEditState.preview,
+    preview: documentEditStore.preview,
   });
 });
 
 
-export default documentEditState;
+export default documentEditStore;

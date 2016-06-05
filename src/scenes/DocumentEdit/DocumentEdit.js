@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 
-import store from './DocumentEditState';
+import store from './DocumentEditStore';
 
 import Switch from 'components/Switch';
 import Layout, { Title, HeaderAction } from 'components/Layout';
