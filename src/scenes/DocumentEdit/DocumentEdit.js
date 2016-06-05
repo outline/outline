@@ -76,8 +76,6 @@ class DocumentEdit extends Component {
       </Flex>
     );
 
-    console.log(store.isFetching, this.state)
-
     return (
       <Layout
         actions={ actions }
