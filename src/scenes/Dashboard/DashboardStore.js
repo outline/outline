@@ -5,7 +5,7 @@ const store = new class DashboardStore {
   @observable atlases;
   @observable pagination;
 
-  @observable isFetching;
+  @observable isFetching = true;
 
   /* Actions */
 
