@@ -12,6 +12,11 @@ const PublishingInfo = (props) => {
       <Avatar src={ props.avatarUrl } size={ 24 } />
       <span className={ styles.userName }>
         { props.name } published { moment(props.timestamp).fromNow() }
+        { props.createdAt !== props.updatedAt ? (
+          <span>
+            &nbsp;and modified { moment(props.timestamp).fromNow() }
+          </span>
+        ) : null }
       </span>
     </Flex>
   );
@@ -20,7 +25,8 @@ const PublishingInfo = (props) => {
 PublishingInfo.propTypes = {
   avatarUrl: React.PropTypes.string.isRequired,
   name: React.PropTypes.string.isRequired,
-  timestamp: React.PropTypes.string.isRequired,
+  createdAt: React.PropTypes.string.isRequired,
+  updatedAt: React.PropTypes.string.isRequired,
 };
 
 export default PublishingInfo;

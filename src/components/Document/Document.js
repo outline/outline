@@ -27,9 +27,10 @@ class Document extends React.Component {
     return (
       <div className={ styles.container }>
         <PublishingInfo
-          avatarUrl={ this.props.document.user.avatarUrl }
+          document={ this.props.document }
           name={ this.props.document.user.name }
-          timestamp={ this.props.document.createdAt }
+          createdAt={ this.props.document.createdAt }
+          updatedAt={ this.props.document.updatedAt }
         />
         <DocumentHtml html={ this.props.document.html } />
       </div>

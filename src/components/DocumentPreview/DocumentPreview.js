@@ -18,7 +18,7 @@ class Document extends React.Component {
         <PublishingInfo
           avatarUrl={ this.props.document.user.avatarUrl }
           name={ this.props.document.user.name }
-          timestamp={ document.createdAt }
+          createdAt={ document.createdAt }
         />
 
         <Link
