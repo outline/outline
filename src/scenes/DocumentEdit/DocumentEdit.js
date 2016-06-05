@@ -1,19 +1,17 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 
-import state from './DocumentEditState';
+import store from './DocumentEditState';
 
 import Switch from 'components/Switch';
 import Layout, { Title, HeaderAction } from 'components/Layout';
 import Flex from 'components/Flex';
-import MarkdownEditor from 'components/MarkdownEditor';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 
+import EditorLoader from './components/EditorLoader';
 import SaveAction from './components/SaveAction';
-import Preview from './components/Preview';
-import EditorPane from './components/EditorPane';
 
 import styles from './DocumentEdit.scss';
 import classNames from 'classnames/bind';
@@ -22,8 +20,14 @@ const cx = classNames.bind(styles);
 @observer
 class DocumentEdit extends Component {
   componentDidMount = () => {
-    state.documentId = this.props.params.id;
-    state.fetchDocument();
+    store.documentId = this.props.params.id;
+    store.fetchDocument();
+
+    EditorLoader()
+    .then(({ Editor }) => {
+      console.log("loaded", Editor);
+      this.setState({ Editor });
+    });
   }
 
   onSave = () => {
@@ -31,10 +35,12 @@ class DocumentEdit extends Component {
     //   alert("Please add a title before saving (hint: Write a markdown header)");
     //   return
     // }
-    state.updateDocument();
+    store.updateDocument();
   }
 
-  state = {}
+  state = {
+    scrollTop: 0,
+  }
 
   onScroll = (scrollTop) => {
     this.setState({
@@ -43,7 +49,7 @@ class DocumentEdit extends Component {
   }
 
   onPreviewToggle = () => {
-    state.togglePreview();
+    store.togglePreview();
   }
 
   render() {
@@ -52,7 +58,7 @@ class DocumentEdit extends Component {
         truncate={ 60 }
         placeholder={ "Untitle document" }
       >
-        { state.title  }
+        { store.title  }
       </Title>
     );
     const actions = (
@@ -60,49 +66,36 @@ class DocumentEdit extends Component {
         <HeaderAction>
           <SaveAction
             onClick={ this.onSave }
-            disabled={ state.isSaving }
+            disabled={ store.isSaving }
           />
         </HeaderAction>
         <DropdownMenu label="More">
           <MenuItem onClick={ this.onPreviewToggle }>
-            Preview <Switch checked={ state.preview } />
+            Preview <Switch checked={ store.preview } />
           </MenuItem>
         </DropdownMenu>
       </Flex>
     );
+
+    console.log(store.isFetching, this.state)
 
     return (
       <Layout
         actions={ actions }
         title={ title }
         fixed={ true }
-        loading={ state.isSaving }
+        loading={ store.isSaving }
       >
-        { (state.isFetching) ? (
+        { (store.isFetching || !('Editor' in this.state)) ? (
           <CenteredContent>
             <AtlasPreviewLoading />
           </CenteredContent>
         ) : (
-          <div className={ styles.container }>
-            <EditorPane
-              fullWidth={ !state.preview }
-              onScroll={ this.onScroll }
-            >
-              <MarkdownEditor
-                onChange={ state.updateText }
-                text={ state.text }
-                replaceText={ state.replaceText }
-                preview={ state.preview }
-              />
-            </EditorPane>
-            { state.preview ? (
-              <EditorPane
-                scrollTop={ this.state.scrollTop }
-              >
-                <Preview html={ state.htmlPreview } />
-              </EditorPane>
-            ) : null }
-          </div>
+          <this.state.Editor
+            store={ store }
+            scrollTop={ this.state.scrollTop }
+            onScroll={ this.onScroll }
+          />
         ) }
       </Layout>
     );
