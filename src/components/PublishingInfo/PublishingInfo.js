@@ -11,10 +11,10 @@ const PublishingInfo = (props) => {
     <Flex align="center" className={ styles.user }>
       <Avatar src={ props.avatarUrl } size={ 24 } />
       <span className={ styles.userName }>
-        { props.name } published { moment(props.timestamp).fromNow() }
+        { props.name } published { moment(props.createdAt).fromNow() }
         { props.createdAt !== props.updatedAt ? (
           <span>
-            &nbsp;and modified { moment(props.timestamp).fromNow() }
+            &nbsp;and modified { moment(props.updatedAt).fromNow() }
           </span>
         ) : null }
       </span>
