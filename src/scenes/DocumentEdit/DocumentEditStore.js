@@ -2,6 +2,7 @@ import { observable, action, computed, autorun } from 'mobx';
 import { client } from 'utils/ApiClient';
 import localforage from 'localforage';
 import { browserHistory } from 'react-router';
+import emojify from 'utils/emojify';
 
 const DOCUMENT_EDIT_SETTINGS = 'DOCUMENT_EDIT_SETTINGS';
 
@@ -10,7 +11,7 @@ const parseHeader = (text) => {
   const match = firstLine.match(/^#+ +(.*)$/);
 
   if (match) {
-    return match[1];
+    return emojify(match[1]);
   }
 }
 

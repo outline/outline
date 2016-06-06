@@ -40,6 +40,7 @@
     "css-loader": "^0.23.1",
     "debug": "^2.2.0",
     "dotenv": "^2.0.0",
+    "emoji-name-map": "^1.1.1",
     "eslint": "^1.10.3",
     "eslint-config-airbnb": "^5.0.0",
     "eslint-plugin-react": "^3.16.1",

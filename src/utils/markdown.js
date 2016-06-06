@@ -1,6 +1,7 @@
 import slug from 'slug';
 import marked, { Renderer } from 'marked';
 import highlight from 'highlight.js';
+import emojify from './emojify';
 
 slug.defaults.mode ='rfc3986';
 
@@ -35,7 +36,7 @@ marked.setOptions({
 
 // TODO: This is syncronous and can be costly
 const convertToMarkdown = (text) => {
-  return marked(text);
+  return marked(emojify(text));
 };
 
 export {
