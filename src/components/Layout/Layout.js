@@ -38,13 +38,13 @@ class Layout extends React.Component {
           <LoadingIndicator />
         ) : null }
         <div className={ cx(styles.header, { fixed: this.props.fixed }) }>
-          <div className={ styles.teamName }>
+          <div className={ styles.headerLeft }>
             <Link to="/">{ store.team.name }</Link>
           </div>
           <Flex align="center" className={ styles.title }>
             { this.props.title }
           </Flex>
-          <Flex direction="row">
+          <Flex direction="row" className={ styles.headerRight }>
             <Flex align="center" className={ styles.actions }>
               { this.props.actions }
             </Flex>
