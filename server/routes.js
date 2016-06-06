@@ -28,16 +28,15 @@ if (process.env.NODE_ENV === 'production') {
 
   router.get('/static/*', async (ctx) => {
     ctx.set({
-      'Cache-Control': 'max-age=999999999999',
+      'Cache-Control': `max-age=${356*24*60*60}`,
     });
 
     const stats = await sendfile(ctx, path.join(__dirname, '../dist/', ctx.path.substring(8)));
   });
 
   router.get('*', async (ctx) => {
-    // Cache forever
     ctx.set({
-      'Cache-Control': 'max-age=999999999999',
+      'Cache-Control': `max-age=${24*60*60}`,
     });
 
     const stats = await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
