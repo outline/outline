@@ -2,7 +2,7 @@ import React from 'react';
 import store from 'stores/UserStore';
 import { browserHistory } from 'react-router'
 
-import SlackAuthLink from '../../components/SlackAuthLink';
+import SlackAuthLink from 'components/SlackAuthLink';
 
 import styles from './Home.scss';
 

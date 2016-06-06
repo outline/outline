@@ -12,7 +12,7 @@ import ClickablePadding from './components/ClickablePadding';
 import styles from './MarkdownEditor.scss';
 import './codemirror.scss';
 
-import { client } from '../../utils/ApiClient';
+import { client } from 'utils/ApiClient';
 
 @observer
 class MarkdownEditor extends React.Component {
@@ -124,9 +124,6 @@ class MarkdownEditor extends React.Component {
       placeholder: "# Start with a title...",
     };
 
-    // http://codepen.io/lubelski/pen/fnGae
-    // TODO:
-    // - Emojify
     return (
       <Dropzone
         onDropAccepted={this.onDropAccepted}
