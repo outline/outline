@@ -21,22 +21,30 @@
     z-index: 1000;
     border: 1px solid #eee;
     min-width: 150px;
-    padding: 5px 0;
   }
 }
 
 .menuItem {
   margin: 0;
   padding: 5px 10px;
-  height: 24px;
+  height: 32px;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  border-left: 2px solid transparent;
+
+  span {
+    margin-top: 2px;
+  }
 
   a {
     color: $textColor;
     text-decoration: none;
+  }
+
+  &:hover {
+    border-left: 2px solid #2196F3;
   }
 }

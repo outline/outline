@@ -1,7 +1,7 @@
 import { observable, action, computed, autorun } from 'mobx';
 import { client } from 'utils/ApiClient';
 import localforage from 'localforage';
-import { browserHistory } from 'react-router'
+import { browserHistory } from 'react-router';
 
 const DOCUMENT_EDIT_SETTINGS = 'DOCUMENT_EDIT_SETTINGS';
 

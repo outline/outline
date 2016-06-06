@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
+import { browserHistory } from 'react-router';
 
 import store from './DocumentEditStore';
 
@@ -50,6 +51,10 @@ class DocumentEdit extends Component {
     }
   }
 
+  onCancel = () => {
+    browserHistory.goBack();
+  }
+
   state = {
     scrollTop: 0,
   }
@@ -84,6 +89,9 @@ class DocumentEdit extends Component {
         <DropdownMenu label="More">
           <MenuItem onClick={ this.onPreviewToggle }>
             Preview <Switch checked={ store.preview } />
+          </MenuItem>
+          <MenuItem onClick={ this.onCancel }>
+            Cancel
           </MenuItem>
         </DropdownMenu>
       </Flex>
