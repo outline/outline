@@ -51,7 +51,7 @@ class Layout extends React.Component {
           </Flex>
         </div>
 
-        <div className={ styles.content }>
+        <div className={ cx(styles.content, { fixed: this.props.fixed }) }>
           { this.props.children }
         </div>
       </div>

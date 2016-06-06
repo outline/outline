@@ -8,15 +8,6 @@
   width: 100%;
 }
 
-.fixed {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 900;
-  background: #fff;
-}
-
 .header {
   display: flex;
   justify-content: space-between;
@@ -28,6 +19,15 @@
 
   font-size: 14px;
   line-height: 1;
+
+  &.fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    background: #fff;
+  }
 }
 
 .teamName a {
@@ -41,5 +41,9 @@
 .content {
   display: flex;
   justify-content: center;
+
+  &.fixed {
+    padding-top: $headerHeight;
+  }
 }
 
