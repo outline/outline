@@ -20,9 +20,17 @@ const cx = classNames.bind(styles);
 @observer
 class DocumentEdit extends Component {
   componentDidMount = () => {
-    store.documentId = this.props.params.id;
-    store.fetchDocument();
+    // This is a bit hacky, should find a better way
+    if (this.props.route.newDocument) {
+      store.atlasId = this.props.params.id;
+      store.newDocument = true;
+    } else {
+      store.documentId = this.props.params.id;
+      store.newDocument = false;
+      store.fetchDocument();
+    }
 
+    // Load editor async
     EditorLoader()
     .then(({ Editor }) => {
       this.setState({ Editor });
@@ -34,7 +42,11 @@ class DocumentEdit extends Component {
     //   alert("Please add a title before saving (hint: Write a markdown header)");
     //   return
     // }
-    store.updateDocument();
+    if (store.newDocument) {
+      store.saveDocument();
+    } else {
+      store.updateDocument();
+    }
   }
 
   state = {

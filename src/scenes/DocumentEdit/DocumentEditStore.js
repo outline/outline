@@ -16,8 +16,10 @@ const parseHeader = (text) => {
 
 const documentEditStore = new class DocumentEditStore {
     @observable documentId = null;
-    @observable title = 'title';
-    @observable text = 'default state';
+    @observable atlasId = null;
+    @observable title = 'Lets start with a title';
+    @observable text = '# Lets start with a title\n\nAnd continue from there...';
+    @observable newDocument;
 
     @observable preview;
     @observable isFetching;
@@ -39,6 +41,25 @@ const documentEditStore = new class DocumentEditStore {
         console.error("Something went wrong");
       }
       this.isFetching = false;
+    }
+
+    @action saveDocument = async (nextPath) => {
+      if (this.isSaving) return;
+
+      this.isSaving = true;
+
+      try {
+        const data = await client.post('/documents.create', {
+          atlas: this.atlasId,
+          title: this.title,
+          text: this.text,
+        })
+        const { id } = data.data;
+        browserHistory.push(`/documents/${id}`);
+      } catch (e) {
+        console.error("Something went wrong");
+      }
+      this.isSaving = false;
     }
 
     @action updateDocument = async (nextPath) => {
