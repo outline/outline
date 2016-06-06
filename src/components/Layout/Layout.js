@@ -39,11 +39,11 @@ class Layout extends React.Component {
         ) : null }
         <div className={ cx(styles.header, { fixed: this.props.fixed }) }>
           <div className={ styles.headerLeft }>
-            <Link to="/">{ store.team.name }</Link>
+            <Link to="/" className={ styles.team }>{ store.team.name }</Link>
+            <span className={ styles.title }>
+              { this.props.title && (<span>&nbsp;/&nbsp;</span>) }{ this.props.title }
+            </span>
           </div>
-          <Flex align="center" className={ styles.title }>
-            { this.props.title }
-          </Flex>
           <Flex direction="row" className={ styles.headerRight }>
             <Flex align="center" className={ styles.actions }>
               { this.props.actions }

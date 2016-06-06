@@ -10,10 +10,9 @@
 
 .header {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
 
-  position: relative;
   padding: 0 20px;
 
   height: $headerHeight;
@@ -32,34 +31,32 @@
   }
 }
 
-.title {
-  a {
-    color: $textColor;
-  }
-}
-
 .headerLeft {
   display: flex;
   align-items: center;
 
-  position: absolute;
-  left: 20px;
-  top: 0;
-  bottom: 0;
-
-  a {
+  .team {
     font-family: 'Atlas Grotesk';
     font-weight: bold;
     color: $textColor;
     text-decoration: none;
     font-size: 16px;
   }
+
+  .title {
+    color: #ccc;
+
+    a {
+      color: #ccc;
+    }
+
+    a:hover {
+      color: $textColor;
+    }
+  }
 }
 
 .headerRight {
-  position: absolute;
-  right: 20px;
-  margin-top: -1px;
 }
 
 .content {
