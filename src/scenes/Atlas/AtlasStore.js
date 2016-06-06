@@ -10,6 +10,7 @@ const store = new class AtlasStore {
 
   @action fetchAtlas = async (id) => {
     this.isFetching = true;
+    this.atlas = null;
 
     try {
       const res = await client.post('/atlases.info', { id: id });

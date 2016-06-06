@@ -12,6 +12,7 @@ const store = new class DocumentSceneStore {
 
   @action fetchDocument = async (id) => {
     this.isFetching = true;
+    this.document = null;
 
     try {
       const res = await client.post('/documents.info', { id: id });
