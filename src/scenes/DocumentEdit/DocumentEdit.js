@@ -78,6 +78,9 @@ class DocumentEdit extends Component {
         { store.title  }
       </Title>
     );
+
+    let titleText = store.title;
+
     const actions = (
       <Flex direction="row">
         <HeaderAction>
@@ -101,6 +104,7 @@ class DocumentEdit extends Component {
       <Layout
         actions={ actions }
         title={ title }
+        titleText={ titleText }
         fixed={ true }
         loading={ store.isSaving }
       >

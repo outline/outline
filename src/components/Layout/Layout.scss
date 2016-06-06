@@ -30,6 +30,12 @@
   }
 }
 
+.title {
+  a {
+    color: $textColor;
+  }
+}
+
 .teamName a {
   font-family: 'Atlas Grotesk';
   font-weight: bold;

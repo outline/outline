@@ -24,18 +24,21 @@ class Atlas extends React.Component {
 
     let actions;
     let title;
+    let titleText;
 
     if (atlas) {
       actions = <HeaderAction>
           <Link to={ `/atlas/${atlas.id}/new` }>New document</Link>
         </HeaderAction>;
       title = <Title>{ atlas.name }</Title>;
+      titleText = atlas.name;
     }
 
     return (
       <Layout
         actions={ actions }
         title={ title }
+        titleText={ titleText }
       >
         <CenteredContent>
           { store.isFetching ? (

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'react-router/lib/Link';
+import Helmet from 'react-helmet';
 import { observe } from 'mobx';
 
 import store from 'stores/UserStore';
@@ -17,6 +18,7 @@ class Layout extends React.Component {
   static propTypes = {
     actions: React.PropTypes.node,
     title: React.PropTypes.node,
+    titleText: React.PropTypes.node,
     fixed: React.PropTypes.bool,
     loading: React.PropTypes.bool,
   }
@@ -24,6 +26,14 @@ class Layout extends React.Component {
   render() {
     return (
       <div className={ styles.container }>
+        <Helmet
+          title={
+            this.props.titleText
+              ? `${this.props.titleText} - Beautiful Atlas`
+              : 'Beautiful Atlas'
+          }
+        />
+
         { this.props.loading ? (
           <LoadingIndicator />
         ) : null }

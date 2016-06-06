@@ -46,6 +46,7 @@ class DocumentScene extends React.Component {
   render() {
     const doc = store.document;
     let title;
+    let titleText;
     let actions;
     if (doc) {
       actions = (
@@ -58,12 +59,19 @@ class DocumentScene extends React.Component {
           </DropdownMenu>
         </div>
       );
-      title = `${doc.atlas.name} - ${doc.title}`;
+      title = (
+        <span>
+          <Link to={ `/atlas/${doc.atlas.id}` }>{doc.atlas.name}</Link>
+          { ` / ${doc.title}` }
+        </span>
+      );
+      titleText = `${doc.atlas.name} - ${doc.title}`;
     }
 
     return (
       <Layout
         title={ title }
+        titleText={ titleText }
         actions={ actions }
       >
         <CenteredContent>
