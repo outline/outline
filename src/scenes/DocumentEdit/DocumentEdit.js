@@ -21,6 +21,7 @@ const cx = classNames.bind(styles);
 class DocumentEdit extends Component {
   componentDidMount = () => {
     // This is a bit hacky, should find a better way
+    store.reset();
     if (this.props.route.newDocument) {
       store.atlasId = this.props.params.id;
       store.newDocument = true;

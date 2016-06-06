@@ -17,8 +17,8 @@ const parseHeader = (text) => {
 const documentEditStore = new class DocumentEditStore {
     @observable documentId = null;
     @observable atlasId = null;
-    @observable title = 'Lets start with a title';
-    @observable text = '# Lets start with a title\n\nAnd continue from there...';
+    @observable title;
+    @observable text;
     @observable newDocument;
 
     @observable preview;
@@ -95,6 +95,11 @@ const documentEditStore = new class DocumentEditStore {
 
     @action togglePreview = () => {
       this.preview = !this.preview;
+    }
+
+    @action reset = () => {
+      this.title = 'Lets start with a title';
+      this.text = '# Lets start with a title\n\nAnd continue from there...';
     }
 
     constructor() {
