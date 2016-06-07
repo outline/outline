@@ -1,0 +1,46 @@
+.container {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  display: flex;
+  justify-content: center;
+
+  background-color: #fff;
+}
+
+.content {
+  padding: 100px 0;
+}
+
+.field {
+  padding: 20px 0;
+
+  .label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #242425;
+  }
+
+  input {
+    font-size: 32px;
+    width: 100%;
+    padding: 5px 0;
+
+    border: 0;
+    border-bottom: 1px solid #242425;
+    border-radius: 0;
+
+    outline: none;
+  }
+}
+
+.button {
+  font-size: 20px;
+  background-color: #171B35;
+  color: #FAFAFA;
+  padding: 8px 20px 5px;
+  border: none;
+}
