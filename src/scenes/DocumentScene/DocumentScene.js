@@ -9,13 +9,48 @@ import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import Document from 'components/Document';
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import Flex from 'components/Flex';
+import Tree from 'components/Tree';
 
 import styles from './DocumentScene.scss';
+import classNames from 'classnames/bind';
+const cx = classNames.bind(styles);
+
+import treeStyles from 'components/Tree/Tree.scss';
+
+const tree = {
+  module: {
+    name: "Introduction",
+    id: "1",
+  },
+  children: [{
+    collapsed: false,
+    module: {
+      name: "dist",
+      id: "2"
+    },
+    children: [
+      {
+        module: {
+          name: "Details",
+          id: "21",
+        },
+      },
+      {
+        module: {
+          name: "Distribution",
+          id: "22",
+        },
+      }
+    ]
+  }]
+};
 
 @observer
 class DocumentScene extends React.Component {
   state = {
     didScroll: false,
+    tree: tree,
   }
 
   componentDidMount = () => {
@@ -41,6 +76,26 @@ class DocumentScene extends React.Component {
     if (confirm("Are you sure you want to delete this document?")) {
       store.deleteDocument();
     };
+  }
+
+  renderNode = (node) => {
+    return (
+      <span className={ treeStyles.nodeLabel } onClick={this.onClickNode.bind(null, node)}>
+        {node.module.name}
+      </span>
+    );
+  }
+
+  onClickNode = (node) => {
+    this.setState({
+      active: node
+    });
+  }
+
+  handleChange = (tree) => {
+    this.setState({
+      tree: tree
+    });
   }
 
   render() {
@@ -74,13 +129,28 @@ class DocumentScene extends React.Component {
         titleText={ titleText }
         actions={ actions }
       >
-        <CenteredContent>
-          { store.isFetching ? (
+        { store.isFetching ? (
+          <CenteredContent>
             <AtlasPreviewLoading />
-          ) : (
-            <Document document={ doc } />
-          ) }
-        </CenteredContent>
+          </CenteredContent>
+        ) : (
+          <Flex flex={ true }>
+            <div className={ styles.sidebar }>
+              <Tree
+                paddingLeft={20}
+                tree={this.state.tree}
+                onChange={this.handleChange}
+                isNodeCollapsed={this.isNodeCollapsed}
+                renderNode={this.renderNode}
+              />
+            </div>
+            <Flex flex={ true } justify={ 'center' }>
+              <CenteredContent>
+                <Document document={ doc } />
+              </CenteredContent>
+            </Flex>
+          </Flex>
+        ) }
       </Layout>
     );
   }
