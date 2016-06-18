@@ -80,6 +80,7 @@ var Node = React.createClass({
           <span
             className={ cx(styles.nodeLabel, { rootLabel: this.props.rootNode }) }
             onClick={() => {}}
+            onMouseDown={this.props.rootNode ? function(e){e.stopPropagation()} : undefined}
           >
             {node.name}
           </span>
