@@ -81,7 +81,7 @@ var Node = React.createClass({
             className={ cx(styles.nodeLabel, { rootLabel: this.props.rootNode }) }
             onClick={() => {}}
           >
-            {node.module.name}
+            {node.name}
           </span>
         </div>
         {this.renderChildren()}

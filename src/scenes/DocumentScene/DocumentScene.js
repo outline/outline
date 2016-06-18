@@ -19,28 +19,20 @@ const cx = classNames.bind(styles);
 import treeStyles from 'components/Tree/Tree.scss';
 
 const tree = {
-  module: {
-    name: "Introduction",
-    id: "1",
-  },
+  name: "Introduction",
+  id: "1",
   children: [{
     collapsed: false,
-    module: {
-      name: "dist",
-      id: "2"
-    },
+    name: "dist",
+    id: "2",
     children: [
       {
-        module: {
-          name: "Details",
-          id: "21",
-        },
+        name: "Details",
+        id: "21",
       },
       {
-        module: {
-          name: "Distribution",
-          id: "22",
-        },
+        name: "Distribution",
+        id: "22",
       }
     ]
   }]
