@@ -127,15 +127,17 @@ class DocumentScene extends React.Component {
           </CenteredContent>
         ) : (
           <Flex flex={ true }>
-            <div className={ styles.sidebar }>
-              <Tree
-                paddingLeft={20}
-                tree={this.state.tree}
-                onChange={this.handleChange}
-                isNodeCollapsed={this.isNodeCollapsed}
-                renderNode={this.renderNode}
-              />
-            </div>
+            { doc.atlas.type === 'atlas' ? (
+              <div className={ styles.sidebar }>
+                <Tree
+                  paddingLeft={20}
+                  tree={this.state.tree}
+                  onChange={this.handleChange}
+                  isNodeCollapsed={this.isNodeCollapsed}
+                  renderNode={this.renderNode}
+                />
+              </div>
+            ) : null }
             <Flex flex={ true } justify={ 'center' }>
               <CenteredContent>
                 <Document document={ doc } />
