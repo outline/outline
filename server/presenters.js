@@ -1,5 +1,5 @@
 import _orderBy from 'lodash.orderby';
-import Document from './models/Document';
+import { Document, Atlas } from './models';
 
 export function presentUser(user) {
   return new Promise(async (resolve, reject) => {
@@ -65,12 +65,14 @@ export async function presentDocument(document, includeAtlas=false) {
     private: document.private,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
-    atlas: document.atlaId,
+    atlas: document.atlasId,
     team: document.teamId,
   }
 
   if (includeAtlas) {
-    const atlas = await document.getAtlas();
+    const atlas = await Atlas.findOne({ where: {
+      id: document.atlasId,
+    }});
     data.atlas = await presentAtlas(atlas, false);
   }
 

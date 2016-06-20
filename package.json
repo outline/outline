@@ -11,7 +11,8 @@
     "start": "cross-env NODE_ENV=development DEBUG=1 ./node_modules/.bin/nodemon --watch server index.js",
     "lint": "eslint src",
     "deploy": "git push heroku master",
-    "heroku-postbuild": "npm run build"
+    "heroku-postbuild": "npm run build && npm run sequelize db:migrate",
+    "sequelize": "./node_modules/.bin/sequelize"
   },
   "repository": {
     "type": "git",
@@ -97,7 +98,7 @@
     "safestart": "^0.8.0",
     "sass-loader": "^3.2.0",
     "sequelize": "^3.21.0",
-    "sequelize-cli": "^2.3.1",
+    "sequelize-cli": "^2.4.0",
     "sequelize-encrypted": "^0.1.0",
     "slug": "^0.9.1",
     "style-loader": "^0.13.0",

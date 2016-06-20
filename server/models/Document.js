@@ -10,8 +10,6 @@ import {
 import {
   truncateMarkdown,
 } from '../utils/truncate';
-import Atlas from './Atlas';
-import Team from './Team';
 import User from './User';
 
 slug.defaults.mode ='rfc3986';
@@ -51,8 +49,6 @@ const Document = sequelize.define('document', {
   }
 });
 
-Document.belongsTo(Atlas, { as: 'atlas' });
-Document.belongsTo(Team);
 Document.belongsTo(User);
 
 export default Document;

@@ -4,7 +4,6 @@ import {
   sequelize,
   encryptedFields
 } from '../sequelize';
-import Team from './Team';
 
 import JWT from 'jsonwebtoken';
 
@@ -39,8 +38,5 @@ const setRandomJwtSecret = (model) => {
 };
 
 User.beforeCreate(setRandomJwtSecret);
-User.belongsTo(Team);
-
-sequelize.sync();
 
 export default User;
