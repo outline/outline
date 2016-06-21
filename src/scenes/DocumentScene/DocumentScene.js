@@ -18,31 +18,10 @@ const cx = classNames.bind(styles);
 
 import treeStyles from 'components/Tree/Tree.scss';
 
-const tree = {
-  name: "Introduction",
-  id: "1",
-  children: [{
-    collapsed: false,
-    name: "dist",
-    id: "2",
-    children: [
-      {
-        name: "Details",
-        id: "21",
-      },
-      {
-        name: "Distribution",
-        id: "22",
-      }
-    ]
-  }]
-};
-
 @observer
 class DocumentScene extends React.Component {
   state = {
     didScroll: false,
-    tree: tree,
   }
 
   componentDidMount = () => {
@@ -78,17 +57,17 @@ class DocumentScene extends React.Component {
     );
   }
 
-  onClickNode = (node) => {
-    this.setState({
-      active: node
-    });
-  }
+  // onClickNode = (node) => {
+  //   this.setState({
+  //     active: node
+  //   });
+  // }
 
-  handleChange = (tree) => {
-    this.setState({
-      tree: tree
-    });
-  }
+  // handleChange = (tree) => {
+  //   this.setState({
+  //     tree: tree
+  //   });
+  // }
 
   render() {
     const doc = store.document;
@@ -131,7 +110,7 @@ class DocumentScene extends React.Component {
               <div className={ styles.sidebar }>
                 <Tree
                   paddingLeft={20}
-                  tree={this.state.tree}
+                  tree={ doc.atlas.structure }
                   onChange={this.handleChange}
                   isNodeCollapsed={this.isNodeCollapsed}
                   renderNode={this.renderNode}

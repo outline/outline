@@ -45,7 +45,10 @@ const Document = sequelize.define('document', {
     buildUrl() {
       const slugifiedTitle = slug(this.title);
       return `${slugifiedTitle}-${this.urlId}`;
-    }
+    },
+    getUrl() {
+      return `/documents/${ this.id }`;
+    },
   }
 });
 

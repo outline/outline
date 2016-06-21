@@ -31,6 +31,11 @@ export function presentAtlas(atlas, includeRecentDocuments=false) {
       type: atlas.type,
     }
 
+    if (atlas.type === 'atlas') {
+      // Todo replace with `.atlasStructure`
+      data.structure = await atlas.buildStructure();
+    }
+
     if (includeRecentDocuments) {
       const documents = await Document.findAll({
         where: {

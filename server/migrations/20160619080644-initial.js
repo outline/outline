@@ -122,7 +122,7 @@ module.exports = {
          defaultValue: null,
          special: [],
          primaryKey: false },
-      rootDocumentForId:
+      parentDocumentForId:
        { type: 'UUID',
          allowNull: true,
          defaultValue: null,

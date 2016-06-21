@@ -34,10 +34,24 @@ const Atlas = sequelize.define('atlas', {
     //   const slugifiedTitle = slug(this.title);
     //   return `${slugifiedTitle}-${this.urlId}`;
     // }
+    async buildStructure() {
+      // TODO
+      const rootDocument = await Document.findOne({ where: {
+        parentDocumentForId: null,
+        atlasId: this.id,
+      }});
+
+      return {
+        name: rootDocument.title,
+        id: rootDocument.id,
+        url: rootDocument.getUrl(),
+        children: null,
+      }
+    }
   }
 });
 
 Atlas.hasMany(Document, { as: 'documents', foreignKey: 'atlasId' });
-Atlas.hasOne(Document, { as: 'rootDocument', foreignKey: 'rootDocumentForId', constraints: false });
+Atlas.hasOne(Document, { as: 'parentDocument', foreignKey: 'parentDocumentForId', constraints: false });
 
 export default Atlas;

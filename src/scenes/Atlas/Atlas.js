@@ -1,6 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import Link from 'react-router/lib/Link';
+import History from 'utils/History';
 
 import store from './AtlasStore';
 
@@ -16,7 +17,13 @@ import styles from './Atlas.scss';
 class Atlas extends React.Component {
   componentDidMount = () => {
     const { id } = this.props.params;
-    store.fetchAtlas(id);
+    store.fetchAtlas(id, data => {
+
+      // Forward directly to root document
+      if (data.type === 'atlas') {
+        History.replace(data.structure.url);
+      }
+    })
   }
 
   render() {
