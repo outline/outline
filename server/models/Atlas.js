@@ -30,28 +30,37 @@ const Atlas = sequelize.define('atlas', {
   //   },
   },
   instanceMethods: {
-    // buildUrl() {
-    //   const slugifiedTitle = slug(this.title);
-    //   return `${slugifiedTitle}-${this.urlId}`;
-    // }
     async buildStructure() {
-      // TODO
+      const getNodeForDocument = async (document) => {
+        const children = await Document.findAll({ where: {
+          parentDocumentId: document.id,
+          atlasId: this.id,
+        }});
+
+        let childNodes = []
+        await Promise.all(children.map(async (child) => {
+          console.log(child.id)
+          childNodes.push(await getNodeForDocument(child));
+        }));
+
+        return {
+          name: document.title,
+          id: document.id,
+          url: document.getUrl(),
+          children: childNodes,
+        };
+      }
+
       const rootDocument = await Document.findOne({ where: {
-        parentDocumentForId: null,
+        parentDocumentId: null,
         atlasId: this.id,
       }});
 
-      return {
-        name: rootDocument.title,
-        id: rootDocument.id,
-        url: rootDocument.getUrl(),
-        children: null,
-      }
+      return await getNodeForDocument(rootDocument);
     }
   }
 });
 
 Atlas.hasMany(Document, { as: 'documents', foreignKey: 'atlasId' });
-Atlas.hasOne(Document, { as: 'parentDocument', foreignKey: 'parentDocumentForId', constraints: false });
 
 export default Atlas;

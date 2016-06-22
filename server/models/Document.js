@@ -27,6 +27,8 @@ const Document = sequelize.define('document', {
   text: DataTypes.TEXT,
   html: DataTypes.TEXT,
   preview: DataTypes.TEXT,
+
+  parentDocumentId: DataTypes.UUID,
 }, {
   hooks: {
     beforeValidate: (doc) => {
