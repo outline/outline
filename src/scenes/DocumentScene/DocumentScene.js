@@ -77,6 +77,11 @@ class DocumentScene extends React.Component {
     if (doc) {
       actions = (
         <div className={ styles.actions }>
+          { store.isAtlas ? (
+            <HeaderAction>
+              <Link to={ `/documents/${doc.id}/new` }>New document</Link>
+            </HeaderAction>
+          ) : null }
           <HeaderAction>
             <Link to={ `/documents/${doc.id}/edit` }>Edit</Link>
           </HeaderAction>
@@ -106,7 +111,7 @@ class DocumentScene extends React.Component {
           </CenteredContent>
         ) : (
           <Flex flex={ true }>
-            { doc.atlas.type === 'atlas' ? (
+            { store.isAtlas ? (
               <div className={ styles.sidebar }>
                 <Tree
                   paddingLeft={20}

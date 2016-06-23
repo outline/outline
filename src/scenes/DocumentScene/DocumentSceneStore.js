@@ -1,4 +1,4 @@
-import { observable, action } from 'mobx';
+import { observable, action, computed } from 'mobx';
 import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
 
@@ -7,6 +7,13 @@ const store = new class DocumentSceneStore {
 
   @observable isFetching = true;
   @observable isDeleting;
+
+  /* Computed */
+
+  @computed get isAtlas() {
+    console.log(this.document.atlas.type)
+    return this.document.atlas.type === 'atlas';
+  }
 
   /* Actions */
 
