@@ -56,7 +56,11 @@ const Atlas = sequelize.define('atlas', {
         atlasId: this.id,
       }});
 
-      return await getNodeForDocument(rootDocument);
+      if (rootDocument) {
+        return await getNodeForDocument(rootDocument);
+      } else {
+        return; // TODO should create a root doc
+      }
     }
   }
 });

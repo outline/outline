@@ -119,6 +119,9 @@ router.post('documents.delete', auth(), async (ctx) => {
 
   if (!document) throw httpErrors.BadRequest();
 
+  // TODO: Don't allow to destroy root docs
+  // TODO: handle sub documents
+
   try {
     await document.destroy();
   } catch (e) {
