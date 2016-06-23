@@ -2,6 +2,35 @@
 
 module.exports = {
   up: function (queryInterface, Sequelize) {
+    queryInterface.createTable('teams', {
+      id: {
+        type: 'UUID',
+        allowNull: false,
+        primaryKey: true
+      },
+      name: {
+        type: 'CHARACTER VARYING',
+        allowNull: true,
+      },
+      slackId: {
+        type: 'CHARACTER VARYING',
+        allowNull: true,
+        unique: true
+      },
+      slackData: {
+        type: 'JSONB',
+        allowNull: true,
+      },
+      createdAt: {
+        type: 'TIMESTAMP WITH TIME ZONE',
+        allowNull: false,
+      },
+      updatedAt: {
+        type: 'TIMESTAMP WITH TIME ZONE',
+        allowNull: false,
+      }
+    });
+
     queryInterface.createTable('atlases', {
       id: {
         type: 'UUID',
@@ -35,103 +64,10 @@ module.exports = {
       teamId: {
         type: 'UUID',
         allowNull: false,
-        references: {
-          model: "teams",
-          key: "id",
-        }
-      }
-    });
-
-    queryInterface.createTable('documents', {
-      id:
-       { type: 'UUID',
-         allowNull: false,
-         primaryKey: true },
-      urlId:
-       { type: 'CHARACTER VARYING',
-         allowNull: false,
-         unique: true, },
-      private:
-       { type: 'BOOLEAN',
-         allowNull: false,
-         defaultValue: true,
-          },
-      title:
-       { type: 'CHARACTER VARYING',
-         allowNull: false,
-      },
-      text:
-       { type: 'TEXT',
-         allowNull: true,
-      },
-      html:
-       { type: 'TEXT',
-         allowNull: true,
-      },
-      preview:
-       { type: 'TEXT',
-         allowNull: true,
-      },
-      createdAt:
-       { type: 'TIMESTAMP WITH TIME ZONE',
-         allowNull: false,
-      },
-      updatedAt:
-       { type: 'TIMESTAMP WITH TIME ZONE',
-         allowNull: false,
-      },
-      userId: {
-        type: 'UUID',
-        allowNull: true,
-        references: {
-          model: "users",
-          key: "id",
-        }
-      },
-      atlasId: {
-        type: 'UUID',
-        allowNull: true,
-        references: {
-          model: "atlases",
-          key: "id",
-        }
-      },
-      teamId: {
-        type: 'UUID',
-        allowNull: true,
-        references: {
-          model: "teams",
-          key: "id",
-        }
-      }
-    });
-
-    queryInterface.createTable('teams', {
-      id: {
-        type: 'UUID',
-        allowNull: false,
-        primaryKey: true
-      },
-      name: {
-        type: 'CHARACTER VARYING',
-        allowNull: true,
-      },
-      slackId: {
-        type: 'CHARACTER VARYING',
-        allowNull: true,
-        unique: true
-      },
-      slackData: {
-        type: 'JSONB',
-        allowNull: true,
-      },
-      createdAt: {
-        type: 'TIMESTAMP WITH TIME ZONE',
-        allowNull: false,
-      },
-      updatedAt: {
-        type: 'TIMESTAMP WITH TIME ZONE',
-        allowNull: false,
+        // references: {
+        //   model: "teams",
+        //   key: "id",
+        // }
       }
     });
 
@@ -185,10 +121,74 @@ module.exports = {
       teamId: {
         type: 'UUID',
         allowNull: true,
-        references: {
-          model: "teams",
-          key: "id",
-        }
+        // references: {
+        //   model: "teams",
+        //   key: "id",
+        // }
+      }
+    });
+
+    queryInterface.createTable('documents', {
+      id:
+       { type: 'UUID',
+         allowNull: false,
+         primaryKey: true },
+      urlId:
+       { type: 'CHARACTER VARYING',
+         allowNull: false,
+         unique: true, },
+      private:
+       { type: 'BOOLEAN',
+         allowNull: false,
+         defaultValue: true,
+          },
+      title:
+       { type: 'CHARACTER VARYING',
+         allowNull: false,
+      },
+      text:
+       { type: 'TEXT',
+         allowNull: true,
+      },
+      html:
+       { type: 'TEXT',
+         allowNull: true,
+      },
+      preview:
+       { type: 'TEXT',
+         allowNull: true,
+      },
+      createdAt:
+       { type: 'TIMESTAMP WITH TIME ZONE',
+         allowNull: false,
+      },
+      updatedAt:
+       { type: 'TIMESTAMP WITH TIME ZONE',
+         allowNull: false,
+      },
+      userId: {
+        type: 'UUID',
+        allowNull: true,
+        // references: {
+        //   model: "users",
+        //   key: "id",
+        // }
+      },
+      atlasId: {
+        type: 'UUID',
+        allowNull: true,
+        // references: {
+        //   model: "atlases",
+        //   key: "id",
+        // }
+      },
+      teamId: {
+        type: 'UUID',
+        allowNull: true,
+        // references: {
+        //   model: "teams",
+        //   key: "id",
+        // }
       }
     });
   },
