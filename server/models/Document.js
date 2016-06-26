@@ -11,12 +11,20 @@ import {
   truncateMarkdown,
 } from '../utils/truncate';
 import User from './User';
+import Revision from './Revision';
 
 slug.defaults.mode ='rfc3986';
 
 const generateSlug = (title, urlId) => {
   const slugifiedTitle = slug(title);
   return `${slugifiedTitle}-${urlId}`;
+};
+
+const documentBeforeSave = (doc) => {
+  doc.html = convertToMarkdown(doc.text);
+  doc.preview = truncateMarkdown(doc.text, 160);
+  doc.revisionCount = doc.revisionCount + 1;
+  return doc;
 };
 
 const Document = sequelize.define('document', {
@@ -27,21 +35,23 @@ const Document = sequelize.define('document', {
   text: DataTypes.TEXT,
   html: DataTypes.TEXT,
   preview: DataTypes.TEXT,
+  revisionCount: { type: DataTypes.INTEGER, defaultValue: 0, },
 
   parentDocumentId: DataTypes.UUID,
+  lastModifiedById: {
+    type: 'UUID',
+    allowNull: false,
+    references: {
+      model: 'users',
+    }
+  },
 }, {
   hooks: {
     beforeValidate: (doc) => {
       doc.urlId = randomstring.generate(15);
     },
-    beforeCreate: (doc) => {
-      doc.html = convertToMarkdown(doc.text);
-      doc.preview = truncateMarkdown(doc.text, 160);
-    },
-    beforeUpdate: (doc) => {
-      doc.html = convertToMarkdown(doc.text);
-      doc.preview = truncateMarkdown(doc.text, 160);
-    },
+    beforeCreate: documentBeforeSave,
+    beforeUpdate: documentBeforeSave,
   },
   instanceMethods: {
     buildUrl() {
@@ -50,6 +60,17 @@ const Document = sequelize.define('document', {
     },
     getUrl() {
       return `/documents/${ this.id }`;
+    },
+    async createRevision() {
+      // Create revision of the current (latest)
+      await Revision.create({
+        title: this.title,
+        text: this.text,
+        html: this.html,
+        preview: this.preview,
+        userId: this.lastModifiedById,
+        documentId: this.id,
+      });
     },
   }
 });

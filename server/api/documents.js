@@ -62,7 +62,7 @@ router.post('documents.create', auth(), async (ctx) => {
 
   if (!ownerAtlas) throw httpErrors.BadRequest();
 
-  let parentDocumentObj;
+  let parentDocumentObj = {};
   if (parentDocument && ownerAtlas.type === 'atlas') {
     parentDocumentObj = await Document.findOne({
       where: {
@@ -77,13 +77,17 @@ router.post('documents.create', auth(), async (ctx) => {
     atlasId: ownerAtlas.id,
     teamId: user.teamId,
     userId: user.id,
+    lastModifiedById: user.id,
     title: title,
     text: text,
   });
+  await document.createRevision();
 
   // TODO: Move to afterSave hook if possible with imports
-  ownerAtlas.addNodeToNavigationTree(document);
-  await ownerAtlas.save();
+  if (parentDocument && ownerAtlas.type === 'atlas') {
+    ownerAtlas.addNodeToNavigationTree(document);
+    await ownerAtlas.save();
+  }
 
   ctx.body = {
     data: await presentDocument(document, true),
@@ -112,7 +116,9 @@ router.post('documents.update', auth(), async (ctx) => {
 
   document.title = title;
   document.text = text;
+  document.lastModifiedById = user.id;
   await document.save();
+  await document.createRevision();
 
   ctx.body = {
     data: await presentDocument(document, true),
