@@ -21,7 +21,7 @@ class Atlas extends React.Component {
 
       // Forward directly to root document
       if (data.type === 'atlas') {
-        History.replace(data.structure.url);
+        History.replace(data.navigationTree.url);
       }
     })
   }

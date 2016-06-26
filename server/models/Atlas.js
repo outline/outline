@@ -14,7 +14,7 @@ const Atlas = sequelize.define('atlas', {
   type: { type: DataTypes.STRING, validate: { isIn: allowedAtlasTypes }},
 
   /* type: atlas */
-  atlasStructure: DataTypes.JSONB,
+  navigationTree: DataTypes.JSONB,
 }, {
   tableName: 'atlases',
   hooks: {
@@ -32,8 +32,8 @@ const Atlas = sequelize.define('atlas', {
   },
   instanceMethods: {
     async getStructure() {
-      if (this.atlasStructure) {
-        return this.atlasStructure;
+      if (this.navigationTree) {
+        return this.navigationTree;
       }
 
       const getNodeForDocument = async (document) => {
@@ -122,7 +122,7 @@ const Atlas = sequelize.define('atlas', {
         throw new Error('Invalid navigation tree');
       }
 
-      this.atlasStructure = newTree;
+      this.navigationTree = newTree;
       await this.save();
 
       return newTree;
@@ -147,7 +147,7 @@ const Atlas = sequelize.define('atlas', {
         return node;
       };
 
-      this.atlasStructure = insertNode(this.atlasStructure);
+      this.navigationTree = insertNode(this.navigationTree);
     }
   }
 });

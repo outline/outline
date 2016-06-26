@@ -115,7 +115,7 @@ class DocumentScene extends React.Component {
               <div className={ styles.sidebar }>
                 <Tree
                   paddingLeft={10}
-                  tree={ doc.atlas.structure }
+                  tree={ doc.atlas.navigationTree }
                   onChange={this.handleChange}
                   isNodeCollapsed={this.isNodeCollapsed}
                   renderNode={this.renderNode}

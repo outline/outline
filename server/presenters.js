@@ -32,8 +32,7 @@ export function presentAtlas(atlas, includeRecentDocuments=false) {
     }
 
     if (atlas.type === 'atlas') {
-      // Todo replace with `.atlasStructure`
-      data.structure = await atlas.getStructure();
+      data.navigationTree = await atlas.getStructure();
     }
 
     if (includeRecentDocuments) {
