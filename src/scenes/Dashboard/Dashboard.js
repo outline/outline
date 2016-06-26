@@ -1,7 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 
-import userStore from 'stores/UserStore';
 import store from './DashboardStore';
 
 import Flex from 'components/Flex';
@@ -14,10 +13,14 @@ import FullscreenField from 'components/FullscreenField';
 
 import styles from './Dashboard.scss';
 
-@observer
+@observer(['user'])
 class Dashboard extends React.Component {
+  static propTypes = {
+    user: React.PropTypes.object.isRequired,
+  }
+
   componentDidMount = () => {
-    store.fetchAtlases(userStore.team.id);
+    store.fetchAtlases(this.props.user.team.id);
   }
 
   state = {

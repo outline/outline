@@ -1,12 +1,13 @@
 import React from 'react';
-import { observe } from 'mobx'
-import store from 'stores/UserStore';
+import { observer } from 'mobx-react';
 
 import styles from './SlackAuthLink.scss';
 
+@observer(['user'])
 class SlackAuthLink extends React.Component {
   static propTypes = {
     scopes: React.PropTypes.arrayOf(React.PropTypes.string),
+    user: React.PropTypes.object.isRequired,
   }
 
   static defaultProps = {
@@ -26,7 +27,7 @@ class SlackAuthLink extends React.Component {
       redirect_uri: __DEV__ ?
           'http://localhost:3000/auth/slack/' :
           'https://www.beautifulatlas.com/auth/slack/',
-      state: store.getOauthState(),
+      state: this.props.user.getOauthState(),
     };
 
     const urlParams = Object.keys(params).map(function(key) {

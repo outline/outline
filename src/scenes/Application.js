@@ -1,7 +1,8 @@
 import React from "react";
+import { observer } from 'mobx-react';
 import Helmet from "react-helmet";
 
-const Application = (props) => {
+const Application = observer((props) => {
   return (
     <div style={{ width: '100%' }}>
       <Helmet
@@ -13,7 +14,7 @@ const Application = (props) => {
       { props.children }
     </div>
   );
-};
+});
 
 Application.propTypes = {
   children: React.PropTypes.node.isRequired,

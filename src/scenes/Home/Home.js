@@ -1,14 +1,19 @@
 import React from 'react';
-import store from 'stores/UserStore';
+import { observer } from 'mobx-react';
 import { browserHistory } from 'react-router'
 
 import SlackAuthLink from 'components/SlackAuthLink';
 
 import styles from './Home.scss';
 
+@observer(['user'])
 export default class Home extends React.Component {
+  static propTypes = {
+    user: React.PropTypes.object.isRequired,
+  }
+
   componentDidMount = () => {
-    if (store.authenticated) {
+    if (this.props.user.authenticated) {
       browserHistory.replace('/dashboard');
     }
   }

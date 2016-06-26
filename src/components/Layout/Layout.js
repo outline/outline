@@ -1,9 +1,7 @@
 import React from 'react';
 import Link from 'react-router/lib/Link';
 import Helmet from 'react-helmet';
-import { observe } from 'mobx';
-
-import store from 'stores/UserStore';
+import { observer } from 'mobx-react';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import Flex from 'components/Flex';
@@ -14,6 +12,7 @@ import styles from './Layout.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
+@observer(['user'])
 class Layout extends React.Component {
   static propTypes = {
     actions: React.PropTypes.node,
@@ -21,9 +20,12 @@ class Layout extends React.Component {
     titleText: React.PropTypes.node,
     fixed: React.PropTypes.bool,
     loading: React.PropTypes.bool,
+    user: React.PropTypes.object.isRequired,
   }
 
   render() {
+    const user = this.props.user;
+
     return (
       <div className={ styles.container }>
         <Helmet
@@ -39,7 +41,7 @@ class Layout extends React.Component {
         ) : null }
         <div className={ cx(styles.header, { fixed: this.props.fixed }) }>
           <div className={ styles.headerLeft }>
-            <Link to="/" className={ styles.team }>{ store.team.name }</Link>
+            <Link to="/" className={ styles.team }>{ user.team.name }</Link>
             <span className={ styles.title }>
               { this.props.title && (<span>&nbsp;/&nbsp;</span>) }{ this.props.title }
             </span>
@@ -53,10 +55,10 @@ class Layout extends React.Component {
               <Avatar
                 circle
                 size={24}
-                src={ store.user.avatarUrl }
+                src={ user.user.avatarUrl }
               />
             }>
-              <MenuItem onClick={ store.logout }>Logout</MenuItem>
+              <MenuItem onClick={ user.logout }>Logout</MenuItem>
             </DropdownMenu>
           </Flex>
         </div>

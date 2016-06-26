@@ -1,10 +1,15 @@
 import React from 'react';
-import store from 'stores/UserStore';
+import { observer } from 'mobx-react';
 
-export default class SlackAuth extends React.Component {
+@observer(['user'])
+class SlackAuth extends React.Component {
+  static propTypes = {
+    user: React.PropTypes.object.isRequired,
+  }
+
   componentDidMount = () => {
     const { code, state } = this.props.location.query;
-    store.authWithSlack(code, state);
+    this.props.user.authWithSlack(code, state);
   }
 
   render() {
@@ -13,3 +18,5 @@ export default class SlackAuth extends React.Component {
     );
   }
 }
+
+export default SlackAuth;

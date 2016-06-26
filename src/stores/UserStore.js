@@ -1,11 +1,10 @@
-import { observable, action, computed, autorun } from 'mobx';
+import { observable, action, computed } from 'mobx';
 import { browserHistory } from 'react-router';
 import { client } from 'utils/ApiClient';
-import localforage from 'localforage';
 
 const USER_STORE = 'USER_STORE';
 
-const store = new class UserStore {
+class UserStore {
   @observable user;
   @observable team;
 
@@ -71,12 +70,9 @@ const store = new class UserStore {
     this.token = data.token;
     this.oauthState = data.oauthState;
   }
-}();
+};
 
-// Persist store to localStorage
-autorun(() => {
-  localStorage.setItem(USER_STORE, store.asJson);
-});
-
-
-export default store;
+export default UserStore;
+export {
+  USER_STORE,
+};
