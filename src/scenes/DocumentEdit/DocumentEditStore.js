@@ -1,4 +1,4 @@
-import { observable, action, computed, autorun } from 'mobx';
+import { observable, action, computed, autorun, toJS } from 'mobx';
 import { client } from 'utils/ApiClient';
 import localforage from 'localforage';
 import { browserHistory } from 'react-router';
@@ -37,12 +37,12 @@ const documentEditStore = new class DocumentEditStore {
         const data = await client.post('/documents.info', {
           id: this.documentId,
         })
-        if (this.newDocument) {
+        if (this.newChildDocument) {
+          this.parentDocument = data.data;
+        } else {
           const { title, text } = data.data;
           this.title = title;
           this.text = text;
-        } else {
-          this.parentDocument = data.data;
         }
       } catch (e) {
         console.error("Something went wrong");
