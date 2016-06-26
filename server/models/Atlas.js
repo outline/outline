@@ -2,6 +2,7 @@ import {
   DataTypes,
   sequelize,
 } from '../sequelize';
+import _isEqual from 'lodash/isEqual';
 import Document from './Document';
 
 const allowedAtlasTypes = [['atlas', 'journal']];
@@ -30,7 +31,11 @@ const Atlas = sequelize.define('atlas', {
   //   },
   },
   instanceMethods: {
-    async buildStructure() {
+    async getStructure() {
+      if (this.atlasStructure) {
+        return this.atlasStructure;
+      }
+
       const getNodeForDocument = async (document) => {
         const children = await Document.findAll({ where: {
           parentDocumentId: document.id,
@@ -39,28 +44,110 @@ const Atlas = sequelize.define('atlas', {
 
         let childNodes = []
         await Promise.all(children.map(async (child) => {
-          console.log(child.id)
           childNodes.push(await getNodeForDocument(child));
         }));
 
         return {
-          name: document.title,
+          title: document.title,
           id: document.id,
           url: document.getUrl(),
           children: childNodes,
         };
       }
 
-      const rootDocument = await Document.findOne({ where: {
-        parentDocumentId: null,
-        atlasId: this.id,
-      }});
+      const rootDocument = await Document.findOne({
+        where: {
+          parentDocumentId: null,
+          atlasId: this.id,
+        }
+      });
 
       if (rootDocument) {
         return await getNodeForDocument(rootDocument);
       } else {
         return; // TODO should create a root doc
       }
+    },
+    async updateNavigationTree(tree) {
+      let nodeIds = [];
+      nodeIds.push(tree.id);
+
+      const rootDocument = await Document.findOne({
+        where: {
+          id: tree.id,
+          atlasId: this.id,
+        },
+      });
+      if (!rootDocument) throw new Error;
+
+      let newTree = {
+        id: tree.id,
+        title: rootDocument.title,
+        url: rootDocument.getUrl(),
+        children: [],
+      };
+
+      const getIdsForChildren = async (children) => {
+        const childNodes = [];
+        for (const child of children) {
+          const childDocument = await Document.findOne({
+            where: {
+              id: child.id,
+              atlasId: this.id,
+            },
+          });
+          if (!childDocument) throw new Error;
+
+          childNodes.push({
+            id: childDocument.id,
+            title: childDocument.title,
+            url: childDocument.getUrl(),
+            children: await getIdsForChildren(child.children),
+          })
+          nodeIds.push(child.id);
+        }
+        return childNodes;
+      };
+      newTree.children = await getIdsForChildren(tree.children);
+
+      const documents = await Document.findAll({
+        attributes: ['id'],
+        where: {
+          atlasId: this.id,
+        }
+      });
+      const documentIds = documents.map(doc => doc.id);
+
+      if (!_isEqual(nodeIds.sort(), documentIds.sort())) {
+        throw new Error('Invalid navigation tree');
+      }
+
+      this.atlasStructure = newTree;
+      await this.save();
+
+      return newTree;
+    },
+    async addNodeToNavigationTree(document) {
+      const newNode = {
+        id: document.id,
+        title: document.title,
+        url: document.getUrl(),
+        children: [],
+      }
+
+      const insertNode = (node) => {
+        if (document.parentDocumentId === node.id) {
+          node.children.push(newNode);
+        } else {
+          node.children = node.children.map(childNode => {
+            return insertNode(childNode);
+          })
+        }
+
+        return node;
+      };
+
+      this.atlasStructure = insertNode(this.atlasStructure);
     }
   }
 });

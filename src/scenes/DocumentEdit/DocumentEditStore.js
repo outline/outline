@@ -18,9 +18,11 @@ const parseHeader = (text) => {
 const documentEditStore = new class DocumentEditStore {
     @observable documentId = null;
     @observable atlasId = null;
+    @observable parentDocument;
     @observable title;
     @observable text;
     @observable newDocument;
+    @observable newChildDocument;
 
     @observable preview;
     @observable isFetching;
@@ -35,9 +37,13 @@ const documentEditStore = new class DocumentEditStore {
         const data = await client.post('/documents.info', {
           id: this.documentId,
         })
-        const { title, text } = data.data;
-        this.title = title;
-        this.text = text;
+        if (this.newDocument) {
+          const { title, text } = data.data;
+          this.title = title;
+          this.text = text;
+        } else {
+          this.parentDocument = data.data;
+        }
       } catch (e) {
         console.error("Something went wrong");
       }
@@ -51,7 +57,8 @@ const documentEditStore = new class DocumentEditStore {
 
       try {
         const data = await client.post('/documents.create', {
-          atlas: this.atlasId,
+          parentDocument: this.parentDocument && this.parentDocument.id,
+          atlas: this.atlasId || this.parentDocument.atlas.id,
           title: this.title,
           text: this.text,
         })

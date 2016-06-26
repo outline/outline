@@ -11,8 +11,8 @@ const store = new class DocumentSceneStore {
   /* Computed */
 
   @computed get isAtlas() {
-    console.log(this.document.atlas.type)
-    return this.document.atlas.type === 'atlas';
+    return this.document &&
+      this.document.atlas.type === 'atlas';
   }
 
   /* Actions */
@@ -37,6 +37,20 @@ const store = new class DocumentSceneStore {
     try {
       const res = await client.post('/documents.delete', { id: this.document.id });
       browserHistory.push(`/atlas/${this.document.atlas.id}`);
+    } catch (e) {
+      console.error("Something went wrong");
+    }
+    this.isFetching = false;
+  }
+
+  @action updateNavigationTree = async (tree) => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post('/atlases.updateNavigationTree', {
+        id: this.document.atlas.id,
+        tree: tree,
+      });
     } catch (e) {
       console.error("Something went wrong");
     }

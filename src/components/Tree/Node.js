@@ -1,4 +1,5 @@
 var React = require('react');
+import history from 'utils/History';
 
 import styles from './Tree.scss';
 import classNames from 'classnames/bind';
@@ -79,10 +80,10 @@ var Node = React.createClass({
           {!this.props.rootNode && this.renderCollapse()}
           <span
             className={ cx(styles.nodeLabel, { rootLabel: this.props.rootNode }) }
-            onClick={() => {}}
+            onClick={() => { history.push(node.url) }}
             onMouseDown={this.props.rootNode ? function(e){e.stopPropagation()} : undefined}
           >
-            {node.name}
+            { node.title }
           </span>
         </div>
         {this.renderChildren()}

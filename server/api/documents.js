@@ -46,6 +46,7 @@ router.post('documents.create', auth(), async (ctx) => {
     atlas,
     title,
     text,
+    parentDocument,
   } = ctx.request.body;
   ctx.assertPresent(atlas, 'atlas is required');
   ctx.assertPresent(title, 'title is required');
@@ -61,13 +62,28 @@ router.post('documents.create', auth(), async (ctx) => {
 
   if (!ownerAtlas) throw httpErrors.BadRequest();
 
+  let parentDocumentObj;
+  if (parentDocument && ownerAtlas.type === 'atlas') {
+    parentDocumentObj = await Document.findOne({
+      where: {
+        id: parentDocument,
+        atlasId: ownerAtlas.id,
+      },
+    });
+  }
+
   const document = await Document.create({
+    parentDocumentId: parentDocumentObj.id,
     atlasId: ownerAtlas.id,
     teamId: user.teamId,
     userId: user.id,
     title: title,
     text: text,
   });
+
+  // TODO: Move to afterSave hook if possible with imports
+  ownerAtlas.addNodeToNavigationTree(document);
+  await ownerAtlas.save();
 
   ctx.body = {
     data: await presentDocument(document, true),

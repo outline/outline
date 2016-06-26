@@ -56,4 +56,26 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
   };
 });
 
+router.post('atlases.updateNavigationTree', auth(), async (ctx) => {
+  let { id, tree } = ctx.request.body;
+    ctx.assertPresent(id, 'id is required');
+
+    const user = ctx.state.user;
+    const atlas = await Atlas.findOne({
+      where: {
+        id: id,
+        teamId: user.teamId,
+      },
+    });
+
+    if (!atlas) throw httpErrors.NotFound();
+
+    const newTree = await atlas.updateNavigationTree(tree);
+
+    ctx.body = {
+      data: await presentAtlas(atlas, true),
+      tree: newTree,
+    };
+});
+
 export default router;

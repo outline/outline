@@ -30,6 +30,13 @@ class DocumentScene extends React.Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
+    // Reload on url change
+    const oldId = this.props.params.id;
+    const newId = nextProps.params.id;
+    if (oldId !== newId) {
+      store.fetchDocument(newId);
+    }
+
     // Scroll to anchor after loading, and only once
     const { hash } = this.props.location;
 
@@ -57,17 +64,10 @@ class DocumentScene extends React.Component {
     );
   }
 
-  // onClickNode = (node) => {
-  //   this.setState({
-  //     active: node
-  //   });
-  // }
-
-  // handleChange = (tree) => {
-  //   this.setState({
-  //     tree: tree
-  //   });
-  // }
+  handleChange = (tree) => {
+    console.log(tree);
+    store.updateNavigationTree(tree);
+  }
 
   render() {
     const doc = store.document;
@@ -114,7 +114,7 @@ class DocumentScene extends React.Component {
             { store.isAtlas ? (
               <div className={ styles.sidebar }>
                 <Tree
-                  paddingLeft={20}
+                  paddingLeft={10}
                   tree={ doc.atlas.structure }
                   onChange={this.handleChange}
                   isNodeCollapsed={this.isNodeCollapsed}
