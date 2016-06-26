@@ -22,7 +22,10 @@ import DocumentScene from 'scenes/DocumentScene';
 import DocumentEdit from 'scenes/DocumentEdit';
 import SlackAuth from 'scenes/SlackAuth';
 
-import DevTools from 'mobx-react-devtools';
+let DevTools;
+if (__DEV__) {
+  DevTools = require('mobx-react-devtools').default;
+}
 
 function requireAuth(nextState, replace) {
   if (!userStore.authenticated) {
