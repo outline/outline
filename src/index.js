@@ -44,6 +44,7 @@ render((
         <Route path="/atlas/:id/new" component={ DocumentEdit } onEnter={ requireAuth } newDocument={ true } />
         <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
         <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
+        <Route path="/documents/:id/new" component={ DocumentEdit } onEnter={ requireAuth } newChildDocument={ true } />
 
         <Route path="/auth/slack" component={SlackAuth} />
       </Route>

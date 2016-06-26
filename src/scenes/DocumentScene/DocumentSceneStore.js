@@ -1,4 +1,4 @@
-import { observable, action } from 'mobx';
+import { observable, action, computed } from 'mobx';
 import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
 
@@ -7,6 +7,13 @@ const store = new class DocumentSceneStore {
 
   @observable isFetching = true;
   @observable isDeleting;
+
+  /* Computed */
+
+  @computed get isAtlas() {
+    return this.document &&
+      this.document.atlas.type === 'atlas';
+  }
 
   /* Actions */
 
@@ -30,6 +37,20 @@ const store = new class DocumentSceneStore {
     try {
       const res = await client.post('/documents.delete', { id: this.document.id });
       browserHistory.push(`/atlas/${this.document.atlas.id}`);
+    } catch (e) {
+      console.error("Something went wrong");
+    }
+    this.isFetching = false;
+  }
+
+  @action updateNavigationTree = async (tree) => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post('/atlases.updateNavigationTree', {
+        id: this.document.atlas.id,
+        tree: tree,
+      });
     } catch (e) {
       console.error("Something went wrong");
     }

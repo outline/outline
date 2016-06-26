@@ -26,6 +26,10 @@ class DocumentEdit extends Component {
     if (this.props.route.newDocument) {
       store.atlasId = this.props.params.id;
       store.newDocument = true;
+    } else if (this.props.route.newChildDocument) {
+      store.documentId = this.props.params.id;
+      store.newChildDocument = true;
+      store.fetchDocument();
     } else {
       store.documentId = this.props.params.id;
       store.newDocument = false;
@@ -44,7 +48,7 @@ class DocumentEdit extends Component {
     //   alert("Please add a title before saving (hint: Write a markdown header)");
     //   return
     // }
-    if (store.newDocument) {
+    if (store.newDocument || store.newChildDocument) {
       store.saveDocument();
     } else {
       store.updateDocument();

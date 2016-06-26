@@ -8,13 +8,7 @@
     :global {
       .anchor {
         visibility: hidden;
-        background-image: url('../../assets/icons/anchor.svg');
-        background-repeat: no-repeat;
-        background-size: 100%;
-        background-position: 0 center;
-        margin-left: -26px;
-        width: 20px;
-        display: inline-block;
+        color: #ccc;
       }
     }
 
@@ -28,9 +22,10 @@
   }
 
   ul {
+    padding-left: 1.5em;
+
     ul {
       margin: 0;
-      padding-left: 1.5em;
     }
   }
 }

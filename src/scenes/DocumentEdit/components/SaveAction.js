@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 
 @observer
 class SaveAction extends React.Component {
-  propTypes = {
+  static propTypes = {
     onClick: React.PropTypes.func.isRequired,
     disabled: React.PropTypes.bool,
   }

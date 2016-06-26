@@ -16,10 +16,8 @@ renderer.heading = (text, level) => {
   const headingSlug = slug(text);
   return `
     <h${level}>
-      <a name="${headingSlug}" class="anchor" href="#${headingSlug}">
-        <span class="header-link">&nbsp;</span>
-      </a>
       ${text}
+      <a name="${headingSlug}" class="anchor" href="#${headingSlug}">#</a>
     </h${level}>
   `;
 },

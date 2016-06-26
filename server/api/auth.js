@@ -40,13 +40,27 @@ router.post('auth.slack', async (ctx) => {
   const authResponse = await fetch(`https://slack.com/api/auth.test?token=${data.access_token}`);
   const authData = await authResponse.json();
 
+  // Team
+  let team = await Team.findOne({ where: { slackId: data.team.id } });
+  if (!team) {
+    team = await Team.create({
+      name: data.team.name,
+      slackId: data.team.id,
+      slackData: data.team,
+    });
+    const atlas = await team.createFirstAtlas();
+  } else {
+    team.name = data.team.name;
+    team.slackData = data.team;
+    team = await team.save();
+  }
+
   if (user) {
     user.slackAccessToken = data.access_token;
     user.slackData = data.user;
     user = await user.save();
   } else {
-    // Existing user
-    user = await User.create({
+    user = await team.createUser({
       slackId: data.user.id,
       username: authData.user,
       name: data.user.name,
@@ -56,30 +70,11 @@ router.post('auth.slack', async (ctx) => {
     });
   }
 
-  // Team
-  let team = await Team.findOne({ where: { slackId: data.team.id } });
-  if (!team) {
-    team = await Team.create({
-      name: data.team.name,
-      slackId: data.team.id,
-      slackData: data.team,
-    });
-  } else {
-    // Update data
-    team.name = data.team.name;
-    team.slackData = data.team;
-    team = await team.save();
-  }
-
-  // Add to correct team
-  user.setTeam(team);
-
   ctx.body = { data: {
     user: await presentUser(user),
     team: await presentTeam(team),
     accessToken: user.getJwtToken(),
   }};
-  console.log("enf")
 });
 
 export default router;

@@ -23,8 +23,8 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
   if (document.private) {
     if (!ctx.state.user) throw httpErrors.NotFound();
 
-    const team = await ctx.state.user.getTeam();
-    if (document.teamId !== team.id) {
+    const user = await ctx.state.user;
+    if (document.teamId !== user.teamId) {
       throw httpErrors.NotFound();
     }
 
@@ -46,29 +46,44 @@ router.post('documents.create', auth(), async (ctx) => {
     atlas,
     title,
     text,
+    parentDocument,
   } = ctx.request.body;
   ctx.assertPresent(atlas, 'atlas is required');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
 
   const user = ctx.state.user;
-  const team = await user.getTeam();
   const ownerAtlas = await Atlas.findOne({
     where: {
       id: atlas,
-      teamId: team.id,
+      teamId: user.teamId,
     },
   });
 
   if (!ownerAtlas) throw httpErrors.BadRequest();
 
+  let parentDocumentObj;
+  if (parentDocument && ownerAtlas.type === 'atlas') {
+    parentDocumentObj = await Document.findOne({
+      where: {
+        id: parentDocument,
+        atlasId: ownerAtlas.id,
+      },
+    });
+  }
+
   const document = await Document.create({
+    parentDocumentId: parentDocumentObj.id,
     atlasId: ownerAtlas.id,
-    teamId: team.id,
+    teamId: user.teamId,
     userId: user.id,
     title: title,
     text: text,
   });
+
+  // TODO: Move to afterSave hook if possible with imports
+  ownerAtlas.addNodeToNavigationTree(document);
+  await ownerAtlas.save();
 
   ctx.body = {
     data: await presentDocument(document, true),
@@ -86,11 +101,10 @@ router.post('documents.update', auth(), async (ctx) => {
   ctx.assertPresent(text, 'text is required');
 
   const user = ctx.state.user;
-  const team = await user.getTeam();
   let document = await Document.findOne({
     where: {
       id: id,
-      teamId: team.id,
+      teamId: user.teamId,
     },
   });
 
@@ -112,15 +126,17 @@ router.post('documents.delete', auth(), async (ctx) => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const team = await user.getTeam();
   let document = await Document.findOne({
     where: {
       id: id,
-      teamId: team.id,
+      teamId: user.teamId,
     },
   });
 
   if (!document) throw httpErrors.BadRequest();
+
+  // TODO: Don't allow to destroy root docs
+  // TODO: handle sub documents
 
   try {
     await document.destroy();

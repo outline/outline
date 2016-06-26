@@ -8,7 +8,7 @@ const store = new class AtlasStore {
 
   /* Actions */
 
-  @action fetchAtlas = async (id) => {
+  @action fetchAtlas = async (id, successCallback) => {
     this.isFetching = true;
     this.atlas = null;
 
@@ -16,6 +16,7 @@ const store = new class AtlasStore {
       const res = await client.post('/atlases.info', { id: id });
       const { data } = res;
       this.atlas = data;
+      successCallback(data);
     } catch (e) {
       console.error("Something went wrong");
     }

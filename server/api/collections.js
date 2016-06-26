@@ -13,11 +13,11 @@ router.post('atlases.info', auth(), async (ctx) => {
   let { id } = ctx.request.body;
   ctx.assertPresent(id, 'id is required');
 
-  const team = await ctx.state.user.getTeam();
+  const user = ctx.state.user;
   const atlas = await Atlas.findOne({
     where: {
       id: id,
-      teamId: team.id,
+      teamId: user.teamId,
     },
   });
 
@@ -30,10 +30,10 @@ router.post('atlases.info', auth(), async (ctx) => {
 
 
 router.post('atlases.list', auth(), pagination(), async (ctx) => {
-  const team = await ctx.state.user.getTeam();
+  const user = ctx.state.user;
   const atlases = await Atlas.findAll({
     where: {
-      teamId: team.id,
+      teamId: user.teamId,
     },
     order: [
       ['updatedAt', 'DESC'],
@@ -54,6 +54,28 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
     pagination: ctx.state.pagination,
     data: data,
   };
+});
+
+router.post('atlases.updateNavigationTree', auth(), async (ctx) => {
+  let { id, tree } = ctx.request.body;
+    ctx.assertPresent(id, 'id is required');
+
+    const user = ctx.state.user;
+    const atlas = await Atlas.findOne({
+      where: {
+        id: id,
+        teamId: user.teamId,
+      },
+    });
+
+    if (!atlas) throw httpErrors.NotFound();
+
+    const newTree = await atlas.updateNavigationTree(tree);
+
+    ctx.body = {
+      data: await presentAtlas(atlas, true),
+      tree: newTree,
+    };
 });
 
 export default router;

@@ -10,8 +10,6 @@ import {
 import {
   truncateMarkdown,
 } from '../utils/truncate';
-import Atlas from './Atlas';
-import Team from './Team';
 import User from './User';
 
 slug.defaults.mode ='rfc3986';
@@ -29,6 +27,8 @@ const Document = sequelize.define('document', {
   text: DataTypes.TEXT,
   html: DataTypes.TEXT,
   preview: DataTypes.TEXT,
+
+  parentDocumentId: DataTypes.UUID,
 }, {
   hooks: {
     beforeValidate: (doc) => {
@@ -47,12 +47,13 @@ const Document = sequelize.define('document', {
     buildUrl() {
       const slugifiedTitle = slug(this.title);
       return `${slugifiedTitle}-${this.urlId}`;
-    }
+    },
+    getUrl() {
+      return `/documents/${ this.id }`;
+    },
   }
 });
 
-Document.belongsTo(Atlas, { as: 'atlas' });
-Document.belongsTo(Team);
 Document.belongsTo(User);
 
 export default Document;

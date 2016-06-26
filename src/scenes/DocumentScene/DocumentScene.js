@@ -9,8 +9,14 @@ import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import Document from 'components/Document';
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import Flex from 'components/Flex';
+import Tree from 'components/Tree';
 
 import styles from './DocumentScene.scss';
+import classNames from 'classnames/bind';
+const cx = classNames.bind(styles);
+
+import treeStyles from 'components/Tree/Tree.scss';
 
 @observer
 class DocumentScene extends React.Component {
@@ -24,6 +30,13 @@ class DocumentScene extends React.Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
+    // Reload on url change
+    const oldId = this.props.params.id;
+    const newId = nextProps.params.id;
+    if (oldId !== newId) {
+      store.fetchDocument(newId);
+    }
+
     // Scroll to anchor after loading, and only once
     const { hash } = this.props.location;
 
@@ -43,6 +56,19 @@ class DocumentScene extends React.Component {
     };
   }
 
+  renderNode = (node) => {
+    return (
+      <span className={ treeStyles.nodeLabel } onClick={this.onClickNode.bind(null, node)}>
+        {node.module.name}
+      </span>
+    );
+  }
+
+  handleChange = (tree) => {
+    console.log(tree);
+    store.updateNavigationTree(tree);
+  }
+
   render() {
     const doc = store.document;
     let title;
@@ -51,6 +77,11 @@ class DocumentScene extends React.Component {
     if (doc) {
       actions = (
         <div className={ styles.actions }>
+          { store.isAtlas ? (
+            <HeaderAction>
+              <Link to={ `/documents/${doc.id}/new` }>New document</Link>
+            </HeaderAction>
+          ) : null }
           <HeaderAction>
             <Link to={ `/documents/${doc.id}/edit` }>Edit</Link>
           </HeaderAction>
@@ -74,13 +105,30 @@ class DocumentScene extends React.Component {
         titleText={ titleText }
         actions={ actions }
       >
-        <CenteredContent>
-          { store.isFetching ? (
+        { store.isFetching ? (
+          <CenteredContent>
             <AtlasPreviewLoading />
-          ) : (
-            <Document document={ doc } />
-          ) }
-        </CenteredContent>
+          </CenteredContent>
+        ) : (
+          <Flex flex={ true }>
+            { store.isAtlas ? (
+              <div className={ styles.sidebar }>
+                <Tree
+                  paddingLeft={10}
+                  tree={ doc.atlas.navigationTree }
+                  onChange={this.handleChange}
+                  isNodeCollapsed={this.isNodeCollapsed}
+                  renderNode={this.renderNode}
+                />
+              </div>
+            ) : null }
+            <Flex flex={ true } justify={ 'center' }>
+              <CenteredContent>
+                <Document document={ doc } />
+              </CenteredContent>
+            </Flex>
+          </Flex>
+        ) }
       </Layout>
     );
   }
