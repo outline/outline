@@ -49,7 +49,7 @@ module.exports = {
         type: 'CHARACTER VARYING',
         allowNull: true,
       },
-      atlasStructure: {
+      navigationTree: {
         type: 'JSONB',
         allowNull: true,
       },
