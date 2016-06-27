@@ -20,7 +20,7 @@ class Dashboard extends React.Component {
   }
 
   componentDidMount = () => {
-    store.fetchAtlases(this.props.user.team.id);
+    // store.fetchAtlases(this.props.user.team.id);
   }
 
   state = {
