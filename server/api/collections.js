@@ -74,7 +74,6 @@ router.post('atlases.updateNavigationTree', auth(), async (ctx) => {
 
     ctx.body = {
       data: await presentAtlas(atlas, true),
-      tree: newTree,
     };
 });
 

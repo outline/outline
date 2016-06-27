@@ -51,6 +51,8 @@ const store = new class DocumentSceneStore {
         id: this.document.atlas.id,
         tree: tree,
       });
+      const { data } = res;
+      this.document.atlas = data;
     } catch (e) {
       console.error("Something went wrong");
     }

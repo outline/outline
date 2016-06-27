@@ -76,12 +76,15 @@ var Node = React.createClass({
         placeholder: index.id === dragging,
         rootNode: this.props.rootNode,
       })} style={style}>
-        <div className={ styles.inner } ref="inner" onMouseDown={this.handleMouseDown}>
+        <div
+          className={ styles.inner }
+          ref="inner"
+          onMouseDown={this.props.rootNode ? (e) => e.stopPropagation() : this.handleMouseDown}
+        >
           {!this.props.rootNode && this.renderCollapse()}
           <span
             className={ cx(styles.nodeLabel, { rootLabel: this.props.rootNode }) }
             onClick={() => { history.push(node.url) }}
-            onMouseDown={this.props.rootNode ? function(e){e.stopPropagation()} : undefined}
           >
             { node.title }
           </span>

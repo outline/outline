@@ -1,4 +1,6 @@
 import React from 'react';
+import { toJS } from 'mobx';
+import _isEqual from 'lodash/isEqual';
 import { Link } from 'react-router';
 import { observer } from 'mobx-react';
 
@@ -65,8 +67,10 @@ class DocumentScene extends React.Component {
   }
 
   handleChange = (tree) => {
-    console.log(tree);
-    store.updateNavigationTree(tree);
+    // Only update when tree changes, otherwise link clicks toggle tree handleChanges changes
+    if (!_isEqual(toJS(tree), toJS(store.document.atlas.navigationTree))) {
+      store.updateNavigationTree(tree);
+    }
   }
 
   render() {
@@ -115,7 +119,7 @@ class DocumentScene extends React.Component {
               <div className={ styles.sidebar }>
                 <Tree
                   paddingLeft={10}
-                  tree={ doc.atlas.navigationTree }
+                  tree={ toJS(doc.atlas.navigationTree) }
                   onChange={this.handleChange}
                   isNodeCollapsed={this.isNodeCollapsed}
                   renderNode={this.renderNode}

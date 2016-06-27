@@ -230,7 +230,8 @@ module.exports = React.createClass({
       tree: tree
     });
 
-    this.change(tree);
+    // Don't push updates as collapsing is separated from store state
+    // this.change(tree);
   },
 
   // buildTreeNumbering(tree) {
