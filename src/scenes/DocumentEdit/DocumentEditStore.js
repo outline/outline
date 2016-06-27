@@ -126,5 +126,4 @@ autorun(() => {
   });
 });
 
-
 export default documentEditStore;
