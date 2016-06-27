@@ -19,6 +19,8 @@ export default class Home extends React.Component {
   }
 
   render() {
+    if (this.props.user.authenticated) return (<div></div>);
+
     return (
       <div className={ styles.container }>
         <div className={ styles.content }>
