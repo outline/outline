@@ -20,7 +20,7 @@ class Dashboard extends React.Component {
   }
 
   componentDidMount = () => {
-    // store.fetchAtlases(this.props.user.team.id);
+    store.fetchAtlases(this.props.user.team.id);
   }
 
   state = {
@@ -49,27 +49,25 @@ class Dashboard extends React.Component {
       </Flex>
     );
 
-    return (<div></div>);
+    return (
+      <Flex flex={ true }>
+        <Layout
+          actions={ actions }
+        >
+          <CenteredContent>
+            <Flex direction="column" flex={ true }>
+              { store.isFetching ? (
+                <AtlasPreviewLoading />
+              ) : store.atlases && store.atlases.map((atlas) => {
+               return  (<AtlasPreview key={ atlas.id } data={ atlas } />);
+              }) }
+            </Flex>
+          </CenteredContent>
+        </Layout>
 
-    // return (
-    //   <Flex flex={ true }>
-    //     <Layout
-    //       actions={ actions }
-    //     >
-    //       <CenteredContent>
-    //         <Flex direction="column" flex={ true }>
-    //           { store.isFetching ? (
-    //             <AtlasPreviewLoading />
-    //           ) : store.atlases && store.atlases.map((atlas) => {
-    //            return  (<AtlasPreview key={ atlas.id } data={ atlas } />);
-    //           }) }
-    //         </Flex>
-    //       </CenteredContent>
-    //     </Layout>
-
-    //     { this.state.newAtlasVisible && <FullscreenField /> }
-    //   </Flex>
-    // );
+        { this.state.newAtlasVisible && <FullscreenField /> }
+      </Flex>
+    );
   }
 }
 

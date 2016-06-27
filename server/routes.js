@@ -35,10 +35,6 @@ if (process.env.NODE_ENV === 'production') {
   });
 
   router.get('*', async (ctx) => {
-    ctx.set({
-      'Cache-Control': `max-age=${24*60*60}`,
-    });
-
     const stats = await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
     if (!ctx.status) ctx.throw(httpErrors.NotFound());
   });

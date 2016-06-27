@@ -19,8 +19,6 @@ export default class Home extends React.Component {
   }
 
   render() {
-    // <SlackAuthLink />
-
     return (
       <div className={ styles.container }>
         <div className={ styles.content }>
@@ -46,7 +44,7 @@ export default class Home extends React.Component {
             </p>
           </div>
           <div className={ styles.action }>
-
+            <SlackAuthLink />
           </div>
         </div>
       </div>
