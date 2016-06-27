@@ -2,7 +2,7 @@ import { observable, action } from 'mobx';
 import { client } from 'utils/ApiClient';
 
 const store = new class DashboardStore {
-  @observable atlases = [];
+  @observable atlases;
   @observable pagination;
 
   @observable isFetching = true;
