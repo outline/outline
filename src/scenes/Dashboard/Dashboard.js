@@ -56,7 +56,11 @@ class Dashboard extends React.Component {
         >
           <CenteredContent>
             <Flex direction="column" flex={ true }>
-
+              { store.isFetching ? (
+                <AtlasPreviewLoading />
+              ) : store.atlases && store.atlases.map((atlas) => {
+               return  (<AtlasPreview key={ atlas.id } data={ atlas } />);
+              }) }
             </Flex>
           </CenteredContent>
         </Layout>

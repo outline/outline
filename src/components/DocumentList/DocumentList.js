@@ -13,7 +13,7 @@ class DocumentList extends React.Component {
   render() {
     return (
       <div>
-        { this.props.documents.map((document) => {
+        { this.props.documents && this.props.documents.map((document) => {
           return (
             <div>
               <DocumentPreview document={ document } />
