@@ -1,6 +1,6 @@
 var React = require('react');
-var Tree = require('./tree');
-var Node = require('./node');
+var Tree = require('./Tree');
+var Node = require('./Node');
 
 import styles from './Tree.scss';
 
