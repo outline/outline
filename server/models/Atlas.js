@@ -68,7 +68,7 @@ const Atlas = sequelize.define('atlas', {
         return; // TODO should create a root doc
       }
     },
-    async updateNavigationTree(tree) {
+    async updateNavigationTree(tree = this.navigationTree) {
       let nodeIds = [];
       nodeIds.push(tree.id);
 

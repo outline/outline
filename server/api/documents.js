@@ -114,11 +114,18 @@ router.post('documents.update', auth(), async (ctx) => {
 
   if (!document) throw httpErrors.BadRequest();
 
+  // Update document
   document.title = title;
   document.text = text;
   document.lastModifiedById = user.id;
   await document.save();
   await document.createRevision();
+
+  // Update
+  const atlas = await Atlas.findById(document.atlasId);
+  if (atlas.type === 'atlas') {
+    await atlas.updateNavigationTree();
+  }
 
   ctx.body = {
     data: await presentDocument(document, true),
