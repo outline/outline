@@ -1,5 +1,5 @@
 import _isEqual from 'lodash/isEqual';
-import { observable, action, computed, runInAction } from 'mobx';
+import { observable, action, computed, runInAction, toJS } from 'mobx';
 import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
 
