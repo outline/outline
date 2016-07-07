@@ -8,10 +8,6 @@ module.exports = {
       {
         type: Sequelize.UUID,
         allowNull: true,
-        references: {
-          model: "documents",
-          key: "id",
-        }
       }
     );
   },

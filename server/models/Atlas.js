@@ -96,15 +96,15 @@ const Atlas = sequelize.define('atlas', {
               atlasId: this.id,
             },
           });
-          if (!childDocument) throw new Error;
-
-          childNodes.push({
-            id: childDocument.id,
-            title: childDocument.title,
-            url: childDocument.getUrl(),
-            children: await getIdsForChildren(child.children),
-          })
-          nodeIds.push(child.id);
+          if (childDocument) {
+            childNodes.push({
+              id: childDocument.id,
+              title: childDocument.title,
+              url: childDocument.getUrl(),
+              children: await getIdsForChildren(child.children),
+            })
+            nodeIds.push(child.id);
+          }
         }
         return childNodes;
       };

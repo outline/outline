@@ -139,20 +139,29 @@ router.post('documents.delete', auth(), async (ctx) => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  let document = await Document.findOne({
+  const document = await Document.findOne({
     where: {
       id: id,
       teamId: user.teamId,
     },
   });
+  const atlas = await Atlas.findById(document.atlasId);
 
   if (!document) throw httpErrors.BadRequest();
 
-  // TODO: Don't allow to destroy root docs
   // TODO: handle sub documents
+
+  // Don't allow deletion of root docs
+  if (atlas.type === 'atlas' && !document.parentDocumentId) {
+    throw httpErrors.BadRequest('Unable to delete atlas\'s root document');
+  }
 
   try {
     await document.destroy();
+
+    if (atlas.type === 'atlas') {
+      await atlas.updateNavigationTree();
+    }
   } catch (e) {
     throw httpErrors.BadRequest('Error while deleting');
   };
