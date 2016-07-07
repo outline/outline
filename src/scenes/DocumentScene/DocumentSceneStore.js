@@ -113,7 +113,7 @@ class DocumentSceneStore {
 
   constructor(settings) {
     // Rehydrate settings
-    this.collapsedNodes = settings.collapsedNodes;
+    this.collapsedNodes = settings.collapsedNodes || [];
 
     // Persist settings to localStorage
     // TODO: This could be done more selectively
