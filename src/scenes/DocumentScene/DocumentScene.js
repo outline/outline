@@ -116,6 +116,7 @@ class DocumentScene extends React.Component {
         title={ title }
         titleText={ titleText }
         actions={ actions }
+        loading={ this.store.updatingStructure }
       >
         { this.store.isFetching ? (
           <CenteredContent>

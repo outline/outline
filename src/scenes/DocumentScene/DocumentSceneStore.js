@@ -7,6 +7,7 @@ class DocumentSceneStore {
   @observable document;
 
   @observable isFetching = true;
+  @observable updatingStructure = false;
   @observable isDeleting;
 
   /* Computed */
@@ -52,7 +53,7 @@ class DocumentSceneStore {
       return true;
     }
 
-    this.isFetching = true;
+    this.updatingStructure = true;
 
     try {
       const res = await client.post('/atlases.updateNavigationTree', {
@@ -66,7 +67,7 @@ class DocumentSceneStore {
     } catch (e) {
       console.error("Something went wrong");
     }
-    this.isFetching = false;
+    this.updatingStructure = false;
   }
 };
 
