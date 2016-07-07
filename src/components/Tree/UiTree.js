@@ -10,7 +10,8 @@ module.exports = React.createClass({
   propTypes: {
     tree: React.PropTypes.object.isRequired,
     paddingLeft: React.PropTypes.number,
-    renderNode: React.PropTypes.func.isRequired
+    renderNode: React.PropTypes.func.isRequired,
+    onCollapse: React.PropTypes.func,
   },
 
   getDefaultProps() {
@@ -230,8 +231,7 @@ module.exports = React.createClass({
       tree: tree
     });
 
-    // Don't push updates as collapsing is separated from store state
-    // this.change(tree);
+    if(this.props.onCollapse) this.props.onCollapse(node.id, node.collapsed);
   },
 
   // buildTreeNumbering(tree) {

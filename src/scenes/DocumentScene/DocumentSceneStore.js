@@ -1,10 +1,15 @@
 import _isEqual from 'lodash/isEqual';
-import { observable, action, computed, runInAction, toJS } from 'mobx';
+import _indexOf from 'lodash/indexOf';
+import _without from 'lodash/without';
+import { observable, action, computed, runInAction, toJS, autorun } from 'mobx';
 import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
 
+const DOCUMENT_PREFERENCES = 'DOCUMENT_PREFERENCES';
+
 class DocumentSceneStore {
   @observable document;
+  @observable collapsedNodes = [];
 
   @observable isFetching = true;
   @observable updatingContent = false;
@@ -16,6 +21,24 @@ class DocumentSceneStore {
   @computed get isAtlas() {
     return this.document &&
       this.document.atlas.type === 'atlas';
+  }
+
+  @computed get atlasTree() {
+    if (this.document.atlas.type !== 'atlas') return;
+    let tree = this.document.atlas.navigationTree;
+
+    const collapseNodes = (node) => {
+      if (this.collapsedNodes.includes(node.id)) {
+        node.collapsed = true;
+      }
+      node.children = node.children.map(childNode => {
+        return collapseNodes(childNode);
+      })
+
+      return node;
+    };
+
+    return collapseNodes(toJS(tree));
   }
 
   /* Actions */
@@ -71,6 +94,36 @@ class DocumentSceneStore {
     }
     this.updatingStructure = false;
   }
+
+  @action onNodeCollapse = (nodeId, collapsed) => {
+    if (_indexOf(this.collapsedNodes, nodeId) >= 0) {
+      this.collapsedNodes = _without(this.collapsedNodes, nodeId);
+    } else {
+      this.collapsedNodes.push(nodeId);
+    }
+  }
+
+  // General
+
+  persistSettings = () => {
+    localStorage[DOCUMENT_PREFERENCES] = JSON.stringify({
+      collapsedNodes: toJS(this.collapsedNodes),
+    });
+  }
+
+  constructor(settings) {
+    // Rehydrate settings
+    this.collapsedNodes = settings.collapsedNodes;
+
+    // Persist settings to localStorage
+    // TODO: This could be done more selectively
+    autorun(() => {
+      this.persistSettings();
+    });
+  }
 };
 
 export default DocumentSceneStore;
+export {
+  DOCUMENT_PREFERENCES,
+};

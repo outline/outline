@@ -3,7 +3,9 @@ import { toJS } from 'mobx';
 import { Link, browserHistory } from 'react-router';
 import { observer } from 'mobx-react';
 
-import DocumentSceneStore from './DocumentSceneStore';
+import DocumentSceneStore, {
+  DOCUMENT_PREFERENCES
+} from './DocumentSceneStore';
 
 import Layout, { HeaderAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -29,7 +31,7 @@ class DocumentScene extends React.Component {
 
   constructor(props) {
     super(props);
-    this.store = new DocumentSceneStore();
+    this.store = new DocumentSceneStore(JSON.parse(localStorage[DOCUMENT_PREFERENCES]));
   }
 
   componentDidMount = () => {
@@ -75,10 +77,6 @@ class DocumentScene extends React.Component {
         {node.module.name}
       </span>
     );
-  }
-
-  handleChange = (tree) => {
-    this.store.updateNavigationTree(tree);
   }
 
   render() {
@@ -127,11 +125,12 @@ class DocumentScene extends React.Component {
             { this.store.isAtlas ? (
               <div className={ styles.sidebar }>
                 <Tree
-                  paddingLeft={10}
-                  tree={ toJS(doc.atlas.navigationTree) }
-                  onChange={this.handleChange}
-                  isNodeCollapsed={this.isNodeCollapsed}
-                  renderNode={this.renderNode}
+                  paddingLeft={ 10 }
+                  tree={ toJS(this.store.atlasTree) }
+                  onChange={ this.store.updateNavigationTree  }
+                  onCollapse={ this.store.onNodeCollapse }
+                  isNodeCollapsed={ this.isNodeCollapsed }
+                  renderNode={ this.renderNode }
                 />
               </div>
             ) : null }
