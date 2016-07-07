@@ -31,7 +31,7 @@ class DocumentScene extends React.Component {
 
   constructor(props) {
     super(props);
-    this.store = new DocumentSceneStore(JSON.parse(localStorage[DOCUMENT_PREFERENCES]));
+    this.store = new DocumentSceneStore(JSON.parse(localStorage[DOCUMENT_PREFERENCES] || "{}"));
   }
 
   componentDidMount = () => {
