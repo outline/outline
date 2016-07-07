@@ -1,7 +1,6 @@
 import React from 'react';
 import { toJS } from 'mobx';
-import _isEqual from 'lodash/isEqual';
-import { Link } from 'react-router';
+import { Link, browserHistory } from 'react-router';
 import { observer } from 'mobx-react';
 
 import store from './DocumentSceneStore';
@@ -52,6 +51,11 @@ class DocumentScene extends React.Component {
     }
   }
 
+  onEdit = () => {
+    const url = `/documents/${store.document.id}/edit`;
+    browserHistory.push(url);
+  }
+
   onDelete = () => {
     if (confirm("Are you sure you want to delete this document?")) {
       store.deleteDocument();
@@ -67,14 +71,13 @@ class DocumentScene extends React.Component {
   }
 
   handleChange = (tree) => {
-    // Only update when tree changes, otherwise link clicks toggle tree handleChanges changes
-    if (!_isEqual(toJS(tree), toJS(store.document.atlas.navigationTree))) {
-      store.updateNavigationTree(tree);
-    }
+    store.updateNavigationTree(tree);
   }
 
   render() {
     const doc = store.document;
+    const allowDelete = doc && doc.atlas.type === 'atlas' &&
+      doc.id !== doc.atlas.navigationTree.id;
     let title;
     let titleText;
     let actions;
@@ -86,11 +89,9 @@ class DocumentScene extends React.Component {
               <Link to={ `/documents/${doc.id}/new` }>New document</Link>
             </HeaderAction>
           ) : null }
-          <HeaderAction>
-            <Link to={ `/documents/${doc.id}/edit` }>Edit</Link>
-          </HeaderAction>
           <DropdownMenu label="More">
-            <MenuItem onClick={ this.onDelete }>Delete</MenuItem>
+            <MenuItem onClick={ this.onEdit }>Edit</MenuItem>
+            { allowDelete && <MenuItem onClick={ this.onDelete }>Delete</MenuItem> }
           </DropdownMenu>
         </div>
       );

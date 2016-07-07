@@ -1,3 +1,4 @@
+import _isEqual from 'lodash/isEqual';
 import { observable, action, computed } from 'mobx';
 import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
@@ -44,6 +45,11 @@ const store = new class DocumentSceneStore {
   }
 
   @action updateNavigationTree = async (tree) => {
+    // Only update when tree changes
+    if (_isEqual(toJS(tree), toJS(this.document.atlas.navigationTree))) {
+      return true;
+    }
+
     this.isFetching = true;
 
     try {
