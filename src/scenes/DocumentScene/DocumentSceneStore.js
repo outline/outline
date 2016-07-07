@@ -1,9 +1,9 @@
 import _isEqual from 'lodash/isEqual';
-import { observable, action, computed } from 'mobx';
+import { observable, action, computed, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
 
-const store = new class DocumentSceneStore {
+class DocumentSceneStore {
   @observable document;
 
   @observable isFetching = true;
@@ -25,7 +25,9 @@ const store = new class DocumentSceneStore {
     try {
       const res = await client.post('/documents.info', { id: id });
       const { data } = res;
-      this.document = data;
+      runInAction('fetchDocument', () => {
+        this.document = data;
+      });
     } catch (e) {
       console.error("Something went wrong");
     }
@@ -57,13 +59,15 @@ const store = new class DocumentSceneStore {
         id: this.document.atlas.id,
         tree: tree,
       });
-      const { data } = res;
-      this.document.atlas = data;
+      runInAction('updateNavigationTree', () => {
+        const { data } = res;
+        this.document.atlas = data;
+      });
     } catch (e) {
       console.error("Something went wrong");
     }
     this.isFetching = false;
   }
-}();
+};
 
-export default store;
+export default DocumentSceneStore;

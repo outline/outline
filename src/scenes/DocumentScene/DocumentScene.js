@@ -3,7 +3,7 @@ import { toJS } from 'mobx';
 import { Link, browserHistory } from 'react-router';
 import { observer } from 'mobx-react';
 
-import store from './DocumentSceneStore';
+import DocumentSceneStore from './DocumentSceneStore';
 
 import Layout, { HeaderAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -21,13 +21,20 @@ import treeStyles from 'components/Tree/Tree.scss';
 
 @observer
 class DocumentScene extends React.Component {
+  static store;
+
   state = {
     didScroll: false,
   }
 
+  constructor(props) {
+    super(props);
+    this.store = new DocumentSceneStore();
+  }
+
   componentDidMount = () => {
     const { id } = this.props.routeParams;
-    store.fetchDocument(id);
+    this.store.fetchDocument(id);
   }
 
   componentWillReceiveProps = (nextProps) => {
@@ -35,7 +42,7 @@ class DocumentScene extends React.Component {
     const oldId = this.props.params.id;
     const newId = nextProps.params.id;
     if (oldId !== newId) {
-      store.fetchDocument(newId);
+      this.store.fetchDocument(newId);
     }
 
     // Scroll to anchor after loading, and only once
@@ -52,13 +59,13 @@ class DocumentScene extends React.Component {
   }
 
   onEdit = () => {
-    const url = `/documents/${store.document.id}/edit`;
+    const url = `/documents/${this.store.document.id}/edit`;
     browserHistory.push(url);
   }
 
   onDelete = () => {
     if (confirm("Are you sure you want to delete this document?")) {
-      store.deleteDocument();
+      this.store.deleteDocument();
     };
   }
 
@@ -71,11 +78,11 @@ class DocumentScene extends React.Component {
   }
 
   handleChange = (tree) => {
-    store.updateNavigationTree(tree);
+    this.store.updateNavigationTree(tree);
   }
 
   render() {
-    const doc = store.document;
+    const doc = this.store.document;
     const allowDelete = doc && doc.atlas.type === 'atlas' &&
       doc.id !== doc.atlas.navigationTree.id;
     let title;
@@ -84,7 +91,7 @@ class DocumentScene extends React.Component {
     if (doc) {
       actions = (
         <div className={ styles.actions }>
-          { store.isAtlas ? (
+          { this.store.isAtlas ? (
             <HeaderAction>
               <Link to={ `/documents/${doc.id}/new` }>New document</Link>
             </HeaderAction>
@@ -110,13 +117,13 @@ class DocumentScene extends React.Component {
         titleText={ titleText }
         actions={ actions }
       >
-        { store.isFetching ? (
+        { this.store.isFetching ? (
           <CenteredContent>
             <AtlasPreviewLoading />
           </CenteredContent>
         ) : (
           <Flex flex={ true }>
-            { store.isAtlas ? (
+            { this.store.isAtlas ? (
               <div className={ styles.sidebar }>
                 <Tree
                   paddingLeft={10}
