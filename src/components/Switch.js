@@ -1,11 +1,12 @@
-import React from 'react'
-import { Base } from 'rebass'
+import React from 'react';
+import { Base } from 'rebass';
+import { observer } from 'mobx-react';
 
 /**
  * Binary toggle switch component
  */
 
-const Switch = ({
+const Switch = observer(({
   checked,
   ...props
 }) => {
@@ -55,7 +56,7 @@ const Switch = ({
       <div style={sx.dot} />
     </Base>
   )
-}
+});
 
 Switch.propTypes = {
   /** Sets the Switch to an active style */
@@ -66,4 +67,4 @@ Switch.contextTypes = {
   rebass: React.PropTypes.object
 }
 
-export default Switch
+export default Switch;
