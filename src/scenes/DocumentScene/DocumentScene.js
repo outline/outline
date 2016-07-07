@@ -42,7 +42,7 @@ class DocumentScene extends React.Component {
     const oldId = this.props.params.id;
     const newId = nextProps.params.id;
     if (oldId !== newId) {
-      this.store.fetchDocument(newId);
+      this.store.fetchDocument(newId, true);
     }
 
     // Scroll to anchor after loading, and only once
@@ -137,7 +137,11 @@ class DocumentScene extends React.Component {
             ) : null }
             <Flex flex={ true } justify={ 'center' }>
               <CenteredContent>
-                <Document document={ doc } />
+                { this.store.updatingContent ? (
+                  <AtlasPreviewLoading />
+                ) : (
+                  <Document document={ doc } />
+                ) }
               </CenteredContent>
             </Flex>
           </Flex>

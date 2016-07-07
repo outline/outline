@@ -7,6 +7,7 @@ class DocumentSceneStore {
   @observable document;
 
   @observable isFetching = true;
+  @observable updatingContent = false;
   @observable updatingStructure = false;
   @observable isDeleting;
 
@@ -19,9 +20,9 @@ class DocumentSceneStore {
 
   /* Actions */
 
-  @action fetchDocument = async (id) => {
-    this.isFetching = true;
-    this.document = null;
+  @action fetchDocument = async (id, softLoad) => {
+    this.isFetching = !softLoad;
+    this.updatingContent = softLoad;
 
     try {
       const res = await client.post('/documents.info', { id: id });
@@ -33,6 +34,7 @@ class DocumentSceneStore {
       console.error("Something went wrong");
     }
     this.isFetching = false;
+    this.updatingContent = false;
   }
 
   @action deleteDocument = async () => {
