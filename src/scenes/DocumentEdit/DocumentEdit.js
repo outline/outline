@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
-import { browserHistory } from 'react-router';
+import { browserHistory, withRouter } from 'react-router';
 
-import store from './DocumentEditStore';
+import DocumentEditStore, {
+  DOCUMENT_EDIT_SETTINGS,
+} from './DocumentEditStore';
 
 import Switch from 'components/Switch';
 import Layout, { Title, HeaderAction } from 'components/Layout';
@@ -14,32 +16,57 @@ import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import EditorLoader from './components/EditorLoader';
 import SaveAction from './components/SaveAction';
 
-import styles from './DocumentEdit.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
+const DISREGARD_CHANGES = `You have unsaved changes.
+Are you sure you want to disgard them?`;
 
+@withRouter
 @observer
 class DocumentEdit extends Component {
+  static store;
+
+  static propTypes = {
+    route: React.PropTypes.object.isRequired,
+    router: React.PropTypes.object.isRequired,
+    params: React.PropTypes.object,
+  }
+
+  state = {
+    scrollTop: 0,
+  }
+
+  constructor(props) {
+    super(props);
+    this.store = new DocumentEditStore(
+      JSON.parse(localStorage[DOCUMENT_EDIT_SETTINGS] || '{}')
+    );
+  }
+
   componentDidMount = () => {
-    // This is a bit hacky, should find a better way
-    store.reset();
     if (this.props.route.newDocument) {
-      store.atlasId = this.props.params.id;
-      store.newDocument = true;
+      this.store.atlasId = this.props.params.id;
+      this.store.newDocument = true;
     } else if (this.props.route.newChildDocument) {
-      store.documentId = this.props.params.id;
-      store.newChildDocument = true;
-      store.fetchDocument();
+      this.store.documentId = this.props.params.id;
+      this.store.newChildDocument = true;
+      this.store.fetchDocument();
     } else {
-      store.documentId = this.props.params.id;
-      store.newDocument = false;
-      store.fetchDocument();
+      this.store.documentId = this.props.params.id;
+      this.store.newDocument = false;
+      this.store.fetchDocument();
     }
 
     // Load editor async
     EditorLoader()
     .then(({ Editor }) => {
       this.setState({ Editor });
+    });
+
+    // Set onLeave hook
+    this.props.router.setRouteLeaveHook(this.props.route, () => {
+      if (this.store.hasPendingChanges) {
+        return confirm(DISREGARD_CHANGES);
+      }
+      return;
     });
   }
 
@@ -48,10 +75,10 @@ class DocumentEdit extends Component {
     //   alert("Please add a title before saving (hint: Write a markdown header)");
     //   return
     // }
-    if (store.newDocument || store.newChildDocument) {
-      store.saveDocument();
+    if (this.store.newDocument || this.store.newChildDocument) {
+      this.store.saveDocument();
     } else {
-      store.updateDocument();
+      this.store.updateDocument();
     }
   }
 
@@ -59,43 +86,37 @@ class DocumentEdit extends Component {
     browserHistory.goBack();
   }
 
-  state = {
-    scrollTop: 0,
-  }
-
   onScroll = (scrollTop) => {
     this.setState({
-      scrollTop: scrollTop,
-    })
-  }
-
-  onPreviewToggle = () => {
-    store.togglePreview();
+      scrollTop,
+    });
   }
 
   render() {
+    console.log("DocumentEdit#render", this.store.preview);
+
     let title = (
       <Title
         truncate={ 60 }
         placeholder={ "Untitle document" }
       >
-        { store.title  }
+        { this.store.title }
       </Title>
     );
 
-    let titleText = store.title;
+    let titleText = this.store.title;
 
     const actions = (
       <Flex direction="row">
         <HeaderAction>
           <SaveAction
             onClick={ this.onSave }
-            disabled={ store.isSaving }
+            disabled={ this.store.isSaving }
           />
         </HeaderAction>
         <DropdownMenu label="More">
-          <MenuItem onClick={ this.onPreviewToggle }>
-            Preview <Switch checked={ store.preview } />
+          <MenuItem onClick={ this.store.togglePreview }>
+            Preview <Switch checked={ this.store.preview } />
           </MenuItem>
           <MenuItem onClick={ this.onCancel }>
             Cancel
@@ -109,16 +130,16 @@ class DocumentEdit extends Component {
         actions={ actions }
         title={ title }
         titleText={ titleText }
-        fixed={ true }
-        loading={ store.isSaving }
+        fixed
+        loading={ this.store.isSaving }
       >
-        { (store.isFetching || !('Editor' in this.state)) ? (
+        { (this.store.isFetching || !('Editor' in this.state)) ? (
           <CenteredContent>
             <AtlasPreviewLoading />
           </CenteredContent>
         ) : (
           <this.state.Editor
-            store={ store }
+            store={ this.store }
             scrollTop={ this.state.scrollTop }
             onScroll={ this.onScroll }
           />

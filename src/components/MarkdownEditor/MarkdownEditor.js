@@ -17,13 +17,13 @@ import { client } from 'utils/ApiClient';
 @observer
 class MarkdownEditor extends React.Component {
   static propTypes = {
-    text: React.PropTypes.string.isRequired,
+    text: React.PropTypes.string,
     onChange: React.PropTypes.func.isRequired,
     replaceText: React.PropTypes.func.isRequired,
 
     // This is actually not used but it triggers
     // re-render to help with CodeMirror focus issues
-    preview: React.PropTypes.bool.isRequired,
+    preview: React.PropTypes.bool,
   }
 
   getEditorInstance = () => {
