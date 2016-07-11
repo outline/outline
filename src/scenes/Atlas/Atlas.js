@@ -1,7 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import Link from 'react-router/lib/Link';
-import History from 'utils/History';
+import { Link, browserHistory } from 'react-router';
 
 import store from './AtlasStore';
 
@@ -10,6 +9,8 @@ import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import Divider from 'components/Divider';
+import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
+import Flex from 'components/Flex';
 
 import styles from './Atlas.scss';
 
@@ -21,9 +22,14 @@ class Atlas extends React.Component {
 
       // Forward directly to root document
       if (data.type === 'atlas') {
-        History.replace(data.navigationTree.url);
+        browserHistory.replace(data.navigationTree.url);
       }
     })
+  }
+
+  onClickCreate = (event) => {
+    event.preventDefault();
+    browserHistory.push(`/atlas/${store.atlas.id}/new`);
   }
 
   render() {
@@ -34,9 +40,15 @@ class Atlas extends React.Component {
     let titleText;
 
     if (atlas) {
-      actions = <HeaderAction>
-          <Link to={ `/atlas/${atlas.id}/new` }>New document</Link>
-        </HeaderAction>;
+      actions = (
+        <Flex direction="row">
+          <DropdownMenu label={ <MoreIcon /> } >
+            <MenuItem onClick={ this.onClickCreate }>
+              New document
+            </MenuItem>
+          </DropdownMenu>
+        </Flex>
+      );
       title = <Title>{ atlas.name }</Title>;
       titleText = atlas.name;
     }

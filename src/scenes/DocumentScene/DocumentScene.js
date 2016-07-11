@@ -11,7 +11,7 @@ import Layout, { HeaderAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import Document from 'components/Document';
-import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 import Flex from 'components/Flex';
 import Tree from 'components/Tree';
 
@@ -65,6 +65,11 @@ class DocumentScene extends React.Component {
     browserHistory.push(url);
   }
 
+  onCreate = () => {
+    const url = `/documents/${this.store.document.id}/new`;
+    browserHistory.push(url);
+  }
+
   onDelete = () => {
     let msg;
     if (this.store.document.atlas.type === 'atlas') {
@@ -96,12 +101,8 @@ class DocumentScene extends React.Component {
     if (doc) {
       actions = (
         <div className={ styles.actions }>
-          { this.store.isAtlas ? (
-            <HeaderAction>
-              <Link to={ `/documents/${doc.id}/new` }>New document</Link>
-            </HeaderAction>
-          ) : null }
-          <DropdownMenu label="More">
+          <DropdownMenu label={ <MoreIcon /> }>
+            { this.store.isAtlas && <MenuItem onClick={ this.onCreate }>New document</MenuItem> }
             <MenuItem onClick={ this.onEdit }>Edit</MenuItem>
             { allowDelete && <MenuItem onClick={ this.onDelete }>Delete</MenuItem> }
           </DropdownMenu>

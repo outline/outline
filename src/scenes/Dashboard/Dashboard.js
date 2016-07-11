@@ -8,7 +8,7 @@ import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
-import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 import FullscreenField from 'components/FullscreenField';
 
 import styles from './Dashboard.scss';
@@ -36,12 +36,7 @@ class Dashboard extends React.Component {
   render() {
     const actions = (
       <Flex direction="row">
-        <DropdownMenu label={
-          <img
-            src={ require("../../assets/icons/more.svg") }
-            className={ styles.moreIcon }
-          />
-        } >
+        <DropdownMenu label={ <MoreIcon /> } >
           <MenuItem onClick={ this.onClickNewAtlas }>
             New Atlas
           </MenuItem>
