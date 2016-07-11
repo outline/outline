@@ -66,7 +66,14 @@ class DocumentScene extends React.Component {
   }
 
   onDelete = () => {
-    if (confirm("Are you sure you want to delete this document?")) {
+    let msg;
+    if (this.store.document.atlas.type === 'atlas') {
+      msg = 'Are you sure you want to delete this document and all it\'s child documents (if any)?'
+    } else {
+      msg = "Are you sure you want to delete this document?";
+    }
+
+    if (confirm(msg)) {
       this.store.deleteDocument();
     };
   }

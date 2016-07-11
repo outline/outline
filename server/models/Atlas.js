@@ -148,6 +148,30 @@ const Atlas = sequelize.define('atlas', {
       };
 
       this.navigationTree = insertNode(this.navigationTree);
+    },
+    async deleteDocument(document) {
+      const deleteNodeAndDocument = async (node, documentId, shouldDelete = false) => {
+        if (document.id === node.id) {
+          shouldDelete = true;
+        }
+        const newChildren = [];
+        node.children.map(async childNode => {
+          const child = await deleteNodeAndDocument(childNode, documentId, shouldDelete);
+          if (child) {
+            newChildren.push(child);
+          }
+        });
+        node.children = newChildren;
+
+        if (shouldDelete) {
+          const document = await Document.findById(node.id);
+          await document.destroy();
+        }
+
+        return shouldDelete ? null : node;
+      };
+
+      this.navigationTree = await deleteNodeAndDocument(this.navigationTree, document.id);
     }
   }
 });

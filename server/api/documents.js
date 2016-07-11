@@ -149,22 +149,26 @@ router.post('documents.delete', auth(), async (ctx) => {
 
   if (!document) throw httpErrors.BadRequest();
 
-  // TODO: handle sub documents
-
-  // Don't allow deletion of root docs
-  if (atlas.type === 'atlas' && !document.parentDocumentId) {
-    throw httpErrors.BadRequest('Unable to delete atlas\'s root document');
-  }
-
-  try {
-    await document.destroy();
-
-    if (atlas.type === 'atlas') {
-      await atlas.updateNavigationTree();
+  if (atlas.type === 'atlas') {
+    // Don't allow deletion of root docs
+    if(!document.parentDocumentId) {
+      throw httpErrors.BadRequest('Unable to delete atlas\'s root document');
     }
-  } catch (e) {
-    throw httpErrors.BadRequest('Error while deleting');
-  };
+
+    // Delete all chilren
+    try {
+      await atlas.deleteDocument(document);
+      await atlas.save();
+    } catch (e) {
+      throw httpErrors.BadRequest('Error while deleting');
+    };
+  } else {
+    try {
+      await document.destroy();
+    } catch (e) {
+      throw httpErrors.BadRequest('Error while deleting');
+    };
+  }
 
   ctx.body = {
     ok: true,
