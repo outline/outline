@@ -1,5 +1,8 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
+import {
+  sequelize,
+} from '../sequelize';
 
 import auth from './authentication';
 import pagination from './middlewares/pagination';
@@ -38,6 +41,42 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
   }
 
   if (!document) throw httpErrors.NotFound();
+});
+
+router.post('documents.search', auth(), async (ctx) => {
+  let { query } = ctx.request.body;
+  ctx.assertPresent(query, 'query is required');
+
+  const user = await ctx.state.user;
+
+  const sql = `
+  SELECT * FROM documents
+  WHERE "searchVector" @@ to_tsquery('english', :query) AND
+    "teamId" = '${user.teamId}'::uuid
+  ORDER BY ts_rank(documents."searchVector", to_tsquery('english', :query))
+  DESC;
+  `;
+
+  const documents = await sequelize
+  .query(
+    sql,
+    {
+      replacements: {
+        query: query,
+      },
+      model: Document,
+    }
+  );
+
+  let data = [];
+  await Promise.all(documents.map(async (document) => {
+    data.push(await presentDocument(document));
+  }));
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: data,
+  };
 });
 
 
