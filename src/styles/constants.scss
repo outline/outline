@@ -1,10 +1,11 @@
 $lightGray: #eee;
 
 $textColor: #171B35;
-$linkColor: #0C77F8;
+$actionColor: #2da9e1;
 
 $headerHeight: 42px;
 
 :export {
   textColor: $textColor;
+  actionColor: $actionColor;
 }

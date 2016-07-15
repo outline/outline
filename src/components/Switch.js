@@ -2,6 +2,8 @@ import React from 'react';
 import { Base } from 'rebass';
 import { observer } from 'mobx-react';
 
+import { actionColor } from 'styles/constants.scss';
+
 /**
  * Binary toggle switch component
  */
@@ -12,10 +14,10 @@ const Switch = observer(({
 }) => {
   const scale = '18';
   const colors = {
-    success: '#2196F3',
+    success: actionColor,
     white: '#fff',
   };
-  const borderColor = '#2196F3';
+  const borderColor = actionColor;
 
 
   const color = checked ? colors.success : borderColor
