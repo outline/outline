@@ -64,7 +64,7 @@ class UserStore {
 
   constructor() {
     // Rehydrate
-    const data = JSON.parse(localStorage.getItem(USER_STORE)) || {};
+    const data = JSON.parse(localStorage.getItem(USER_STORE) || '{}');
     this.user = data.user;
     this.team = data.team;
     this.token = data.token;

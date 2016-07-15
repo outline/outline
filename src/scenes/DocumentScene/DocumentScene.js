@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { toJS } from 'mobx';
 import { Link, browserHistory } from 'react-router';
 import { observer } from 'mobx-react';
@@ -21,13 +21,16 @@ const cx = classNames.bind(styles);
 
 import treeStyles from 'components/Tree/Tree.scss';
 
-@observer
+@observer(['ui'])
 class DocumentScene extends React.Component {
+  static propTypes = {
+    ui: PropTypes.object.isRequired,
+  }
+
   static store;
 
   state = {
     didScroll: false,
-    showSidebar: true,
   }
 
   constructor(props) {
@@ -84,10 +87,6 @@ class DocumentScene extends React.Component {
     };
   }
 
-  toggleSidebar = () => {
-    this.setState({ showSidebar: !this.state.showSidebar });
-  }
-
   renderNode = (node) => {
     return (
       <span className={ treeStyles.nodeLabel } onClick={this.onClickNode.bind(null, node)}>
@@ -97,6 +96,11 @@ class DocumentScene extends React.Component {
   }
 
   render() {
+    const {
+      sidebar,
+      toggleSidebar,
+    } = this.props.ui;
+
     const doc = this.store.document;
     const allowDelete = doc && doc.atlas.type === 'atlas' &&
       doc.id !== doc.atlas.navigationTree.id;
@@ -135,7 +139,7 @@ class DocumentScene extends React.Component {
           </CenteredContent>
         ) : (
           <Flex flex={ true }>
-            { this.store.isAtlas && this.state.showSidebar ? (
+            { this.store.isAtlas && sidebar && (
               <div className={ styles.sidebar }>
                 <Tree
                   paddingLeft={ 10 }
@@ -146,13 +150,13 @@ class DocumentScene extends React.Component {
                   renderNode={ this.renderNode }
                 />
               </div>
-            ) : null }
+            ) }
             <Flex flex={ true } justify={ 'center' } className={ styles.content}>
-              <img
+              { this.store.isAtlas && (<img
                 src={ require("assets/icons/menu.svg") }
                 className={ styles.menuIcon }
-                onClick={ this.toggleSidebar }
-              />
+                onClick={ toggleSidebar }
+              />) }
               <CenteredContent>
                 { this.store.updatingContent ? (
                   <AtlasPreviewLoading />

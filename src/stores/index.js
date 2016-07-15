@@ -1,13 +1,16 @@
 import UserStore, { USER_STORE } from './UserStore';
-import { autorun } from 'mobx';
+import UiStore, { UI_STORE } from './UiStore';
+import { autorun, toJS } from 'mobx';
 
 const stores = {
   user: new UserStore(),
+  ui: new UiStore(),
 };
 
-// Persist store to localStorage
+// Persist stores to localStorage
 autorun(() => {
   localStorage.setItem(USER_STORE, stores.user.asJson);
+  localStorage.setItem(UI_STORE, stores.ui.asJson);
 });
 
 export default stores;
