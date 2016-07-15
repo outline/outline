@@ -27,6 +27,7 @@ class DocumentScene extends React.Component {
 
   state = {
     didScroll: false,
+    showSidebar: true,
   }
 
   constructor(props) {
@@ -83,6 +84,10 @@ class DocumentScene extends React.Component {
     };
   }
 
+  toggleSidebar = () => {
+    this.setState({ showSidebar: !this.state.showSidebar });
+  }
+
   renderNode = (node) => {
     return (
       <span className={ treeStyles.nodeLabel } onClick={this.onClickNode.bind(null, node)}>
@@ -130,7 +135,7 @@ class DocumentScene extends React.Component {
           </CenteredContent>
         ) : (
           <Flex flex={ true }>
-            { this.store.isAtlas ? (
+            { this.store.isAtlas && this.state.showSidebar ? (
               <div className={ styles.sidebar }>
                 <Tree
                   paddingLeft={ 10 }
@@ -142,7 +147,12 @@ class DocumentScene extends React.Component {
                 />
               </div>
             ) : null }
-            <Flex flex={ true } justify={ 'center' }>
+            <Flex flex={ true } justify={ 'center' } className={ styles.content}>
+              <img
+                src={ require("assets/icons/menu.svg") }
+                className={ styles.menuIcon }
+                onClick={ this.toggleSidebar }
+              />
               <CenteredContent>
                 { this.store.updatingContent ? (
                   <AtlasPreviewLoading />

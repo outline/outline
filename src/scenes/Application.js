@@ -4,7 +4,7 @@ import Helmet from "react-helmet";
 
 const Application = observer((props) => {
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{ width: '100%', display: 'flex', flex: 1, }}>
       <Helmet
         title="Beautiful Atlas"
         meta={[

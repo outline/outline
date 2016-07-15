@@ -5,5 +5,23 @@
 
 .sidebar {
   width: 250px;
-  padding: 40px 20px;
+  padding: 20px 20px 20px 5px;
+
+  border-right: 1px solid #eee;
+}
+
+.content {
+  position: relative;
+}
+
+.menuIcon {
+  position: absolute;
+  top: 22px;
+  left: 17px;
+  height: 28px;
+  opacity: 0.5;
+
+  &:hover {
+    opacity: 1;
+  }
 }
