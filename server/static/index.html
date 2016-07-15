@@ -2,9 +2,30 @@
 <html>
   <head>
     <title>Beautiful Atlas</title>
+    <style>
+      #root {
+        flex: 1;
+      }
+
+      .container {
+        display: flex;
+        flex;
+      }
+
+      .header {
+        display: flex;
+        flex: 1;
+        height: 42px;
+        border-bottom: 1px solid #eee;
+      }
+    </style>
   </head>
   <body style='display: flex; width: 100%'>
-    <div id="root" style='display: flex; width: 100%'></div>
+    <div id="root">
+      <div class="container">
+        <div class="header"></div>
+      </div>
+    </div>
     <script type="text/javascript">
       // if ('serviceWorker' in navigator) {
       //   navigator.serviceWorker.register('/service-worker.js')
