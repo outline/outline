@@ -10,10 +10,10 @@ import stores from 'stores';
 window.stores = stores;
 
 import 'normalize.css/normalize.css';
-import 'utils/base-styles.scss';
-import 'fonts/atlas/atlas.css';
-import 'assets/styles/github-gist.scss';
-import 'assets/styles/codemirror.css';
+import 'styles/base.scss';
+import 'styles/fonts.css';
+import 'styles/hljs-github-gist.scss';
+import 'styles/codemirror.scss';
 
 import Application from 'scenes/Application';
 
