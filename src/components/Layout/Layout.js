@@ -50,7 +50,11 @@ class Layout extends React.Component {
             <Flex align="center" className={ styles.actions }>
               { this.props.actions }
             </Flex>
-
+            <Flex>
+              <div className={ styles.search }>
+                <img src={ require('assets/icons/search.svg') } />
+              </div>
+            </Flex>
             <DropdownMenu label={
               <Avatar
                 circle

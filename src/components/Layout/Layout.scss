@@ -59,6 +59,16 @@
 .headerRight {
 }
 
+.search {
+  margin: 0 5px;
+  padding: 15px 5px 0 5px;
+  cursor: pointer;
+
+  img {
+    height: 20px;
+  }
+}
+
 .content {
   display: flex;
   flex: 1;
