@@ -139,24 +139,29 @@ class DocumentScene extends React.Component {
           </CenteredContent>
         ) : (
           <Flex flex={ true }>
-            { this.store.isAtlas && sidebar && (
-              <div className={ styles.sidebar }>
-                <Tree
-                  paddingLeft={ 10 }
-                  tree={ toJS(this.store.atlasTree) }
-                  onChange={ this.store.updateNavigationTree  }
-                  onCollapse={ this.store.onNodeCollapse }
-                  isNodeCollapsed={ this.isNodeCollapsed }
-                  renderNode={ this.renderNode }
-                />
-              </div>
+            { this.store.isAtlas && (
+              <Flex>
+                { sidebar && (
+                  <div className={ styles.sidebar }>
+                    <Tree
+                      paddingLeft={ 10 }
+                      tree={ toJS(this.store.atlasTree) }
+                      onChange={ this.store.updateNavigationTree  }
+                      onCollapse={ this.store.onNodeCollapse }
+                      isNodeCollapsed={ this.isNodeCollapsed }
+                      renderNode={ this.renderNode }
+                    />
+                  </div>
+                ) }
+                <div className={ styles.sidebarToggle } onClick={ toggleSidebar }>
+                  <img
+                    src={ require("assets/icons/menu.svg") }
+                    className={ styles.menuIcon }
+                  />
+                </div>
+              </Flex>
             ) }
             <Flex flex={ true } justify={ 'center' } className={ styles.content}>
-              { this.store.isAtlas && (<img
-                src={ require("assets/icons/menu.svg") }
-                className={ styles.menuIcon }
-                onClick={ toggleSidebar }
-              />) }
               <CenteredContent>
                 { this.store.updatingContent ? (
                   <AtlasPreviewLoading />

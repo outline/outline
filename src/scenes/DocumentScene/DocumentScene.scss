@@ -14,15 +14,24 @@
   position: relative;
 }
 
-.menuIcon {
-  position: absolute;
-  top: 22px;
-  left: 17px;
-  height: 28px;
-  opacity: 0.15;
+.sidebarToggle {
+  display: flex;
+  position: relative;
+  width: 60px;
   cursor: pointer;
+  justify-content: center;
 
   &:hover {
-    opacity: 1;
+    background-color: #f5f5f5;
+
+    .menuIcon {
+      opacity: 1;
+    }
   }
+}
+
+.menuIcon {
+  margin-top: 18px;
+  height: 28px;
+  opacity: 0.15;
 }

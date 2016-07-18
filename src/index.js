@@ -39,7 +39,7 @@ function requireAuth(nextState, replace) {
 }
 
 render((
-  <div style={{ display: 'flex', flex: 1, }}>
+  <div style={{ display: 'flex', flex: 1, minHeight: '100%', }}>
     <Provider { ...stores }>
       <Router history={History}>
         <Route path="/" component={ Application }>
