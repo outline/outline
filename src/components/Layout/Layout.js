@@ -1,7 +1,8 @@
 import React from 'react';
-import Link from 'react-router/lib/Link';
+import { browserHistory, Link } from 'react-router';
 import Helmet from 'react-helmet';
 import { observer } from 'mobx-react';
+import keydown from 'react-keydown';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import Flex from 'components/Flex';
@@ -21,6 +22,17 @@ class Layout extends React.Component {
     fixed: React.PropTypes.bool,
     loading: React.PropTypes.bool,
     user: React.PropTypes.object.isRequired,
+    search: React.PropTypes.bool,
+  }
+
+  static defaultProps = {
+    search: true,
+  }
+
+  @keydown(['/', 't'])
+  search() {
+    if (!this.props.search) return;
+    browserHistory.push('/search');
   }
 
   render() {
@@ -50,11 +62,13 @@ class Layout extends React.Component {
             <Flex align="center" className={ styles.actions }>
               { this.props.actions }
             </Flex>
-            <Flex>
-              <div className={ styles.search }>
-                <img src={ require('assets/icons/search.svg') } />
-              </div>
-            </Flex>
+            { this.props.search && (
+              <Flex>
+                <div className={ styles.search } onClick={ this.search }>
+                  <img src={ require('assets/icons/search.svg') } />
+                </div>
+              </Flex>
+            ) }
             <DropdownMenu label={
               <Avatar
                 circle

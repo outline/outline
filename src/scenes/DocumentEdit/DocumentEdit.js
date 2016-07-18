@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { browserHistory, withRouter } from 'react-router';
+import keydown from 'react-keydown';
 
 import DocumentEditStore, {
   DOCUMENT_EDIT_SETTINGS,
@@ -132,6 +133,7 @@ class DocumentEdit extends Component {
         titleText={ titleText }
         fixed
         loading={ this.store.isSaving }
+        search={ false }
       >
         { (this.store.isFetching || !('Editor' in this.state)) ? (
           <CenteredContent>

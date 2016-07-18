@@ -22,6 +22,7 @@ import Dashboard from 'scenes/Dashboard';
 import Atlas from 'scenes/Atlas';
 import DocumentScene from 'scenes/DocumentScene';
 import DocumentEdit from 'scenes/DocumentEdit';
+import Search from 'scenes/Search';
 import SlackAuth from 'scenes/SlackAuth';
 
 let DevTools;
@@ -51,6 +52,8 @@ render((
           <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
           <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
           <Route path="/documents/:id/new" component={ DocumentEdit } onEnter={ requireAuth } newChildDocument={ true } />
+
+          <Route path="/search" component={ Search } onEnter={ requireAuth } />
 
           <Route path="/auth/slack" component={SlackAuth} />
         </Route>
