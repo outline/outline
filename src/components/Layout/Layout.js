@@ -64,7 +64,11 @@ class Layout extends React.Component {
             </Flex>
             { this.props.search && (
               <Flex>
-                <div className={ styles.search } onClick={ this.search }>
+                <div
+                  onClick={ this.search }
+                  className={ styles.search }
+                  title="Search (/)"
+                >
                   <img src={ require('assets/icons/search.svg') } />
                 </div>
               </Flex>

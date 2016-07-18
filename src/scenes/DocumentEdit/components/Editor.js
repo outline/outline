@@ -22,6 +22,7 @@ const Editor = observer((props) => {
           text={ store.text }
           replaceText={ store.replaceText }
           preview={ store.preview }
+          onSave={ props.onSave }
         />
       </EditorPane>
       { store.preview ? (

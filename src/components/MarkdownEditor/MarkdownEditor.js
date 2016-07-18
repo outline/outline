@@ -20,6 +20,7 @@ class MarkdownEditor extends React.Component {
     text: React.PropTypes.string,
     onChange: React.PropTypes.func.isRequired,
     replaceText: React.PropTypes.func.isRequired,
+    onSave: React.PropTypes.func.isRequired,
 
     // This is actually not used but it triggers
     // re-render to help with CodeMirror focus issues
@@ -120,6 +121,8 @@ class MarkdownEditor extends React.Component {
       theme: 'atlas',
       extraKeys: {
         Enter: 'newlineAndIndentContinueMarkdownList',
+        "Ctrl-Enter": this.props.onSave,
+        "Cmd-Enter": this.props.onSave,
       },
       placeholder: "# Start with a title...",
     };

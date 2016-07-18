@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import { toJS } from 'mobx';
 import { Link, browserHistory } from 'react-router';
 import { observer } from 'mobx-react';
+import keydown, { keydownScoped } from 'react-keydown';
 
 import DocumentSceneStore, {
   DOCUMENT_PREFERENCES
@@ -21,6 +22,7 @@ const cx = classNames.bind(styles);
 
 import treeStyles from 'components/Tree/Tree.scss';
 
+@keydown(['cmd+/', 'ctrl+/'])
 @observer(['ui'])
 class DocumentScene extends React.Component {
   static propTypes = {
@@ -44,6 +46,11 @@ class DocumentScene extends React.Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
+    const key = nextProps.keydown.event;
+    if (key && key.key === '/' && (key.metaKey || key.ctrl.Key)) {
+      this.toggleSidebar();
+    }
+
     // Reload on url change
     const oldId = this.props.params.id;
     const newId = nextProps.params.id;
@@ -87,6 +94,10 @@ class DocumentScene extends React.Component {
     };
   }
 
+  toggleSidebar = () => {
+    this.props.ui.toggleSidebar();
+  }
+
   renderNode = (node) => {
     return (
       <span className={ treeStyles.nodeLabel } onClick={this.onClickNode.bind(null, node)}>
@@ -98,7 +109,6 @@ class DocumentScene extends React.Component {
   render() {
     const {
       sidebar,
-      toggleSidebar,
     } = this.props.ui;
 
     const doc = this.store.document;
@@ -153,7 +163,11 @@ class DocumentScene extends React.Component {
                     />
                   </div>
                 ) }
-                <div className={ styles.sidebarToggle } onClick={ toggleSidebar }>
+                <div
+                  onClick={ this.toggleSidebar }
+                  className={ styles.sidebarToggle }
+                  title="Toggle sidebar (Cmd+/)"
+                >
                   <img
                     src={ require("assets/icons/menu.svg") }
                     className={ styles.menuIcon }
