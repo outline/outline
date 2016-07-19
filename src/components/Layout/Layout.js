@@ -31,8 +31,11 @@ class Layout extends React.Component {
 
   @keydown(['/', 't'])
   search() {
-    if (!this.props.search) return;
-    browserHistory.push('/search');
+    // if (!this.props.search) return;
+
+    setTimeout(() => {
+      browserHistory.push('/search');
+    }, 0);
   }
 
   render() {
