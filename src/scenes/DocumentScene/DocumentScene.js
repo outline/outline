@@ -94,6 +94,15 @@ class DocumentScene extends React.Component {
     };
   }
 
+  onExport = () => {
+    const doc = this.store.document;
+    const a = document.createElement('a');
+    a.textContent = 'download';
+    a.download = `${doc.title}.md`;
+    a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(doc.text)}`;
+    a.click();
+  }
+
   toggleSidebar = () => {
     this.props.ui.toggleSidebar();
   }
@@ -123,6 +132,7 @@ class DocumentScene extends React.Component {
           <DropdownMenu label={ <MoreIcon /> }>
             { this.store.isAtlas && <MenuItem onClick={ this.onCreate }>New document</MenuItem> }
             <MenuItem onClick={ this.onEdit }>Edit</MenuItem>
+            <MenuItem onClick={ this.onExport }>Export</MenuItem>
             { allowDelete && <MenuItem onClick={ this.onDelete }>Delete</MenuItem> }
           </DropdownMenu>
         </div>
@@ -140,7 +150,7 @@ class DocumentScene extends React.Component {
       <Layout
         title={ title }
         titleText={ titleText }
-        actions={ actions }
+        actions={ doc && actions }
         loading={ this.store.updatingStructure }
       >
         { this.store.isFetching ? (
