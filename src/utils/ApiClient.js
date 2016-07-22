@@ -14,7 +14,7 @@ class ApiClient {
     let modifiedPath;
 
     if (method === 'GET') {
-      modifiedPath = path + this.constructQueryString(data);
+      modifiedPath = `${path}?${this.constructQueryString(data)}`;
     } else if (method === 'POST' || method === 'PUT') {
       body = JSON.stringify(data);
     }
@@ -78,7 +78,7 @@ class ApiClient {
   }
 
   post = (path, data) => {
-    return this.fetch(path, 'POST', data);
+    return this.fetch(path, 'GET', data);
   }
 
   // Helpers

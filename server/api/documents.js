@@ -13,7 +13,7 @@ const router = new Router();
 
 // FIXME: This really needs specs :/
 router.post('documents.info', auth({ require: false }), async (ctx) => {
-  let { id } = ctx.request.body;
+  let { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
   const document = await Document.findOne({
@@ -44,7 +44,7 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
 });
 
 router.post('documents.search', auth(), async (ctx) => {
-  let { query } = ctx.request.body;
+  let { query } = ctx.body;
   ctx.assertPresent(query, 'query is required');
 
   const user = await ctx.state.user;
@@ -86,7 +86,7 @@ router.post('documents.create', auth(), async (ctx) => {
     title,
     text,
     parentDocument,
-  } = ctx.request.body;
+  } = ctx.body;
   ctx.assertPresent(atlas, 'atlas is required');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
@@ -138,7 +138,7 @@ router.post('documents.update', auth(), async (ctx) => {
     id,
     title,
     text,
-  } = ctx.request.body;
+  } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
@@ -174,7 +174,7 @@ router.post('documents.update', auth(), async (ctx) => {
 router.post('documents.delete', auth(), async (ctx) => {
   let {
     id,
-  } = ctx.request.body;
+  } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;

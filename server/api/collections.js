@@ -14,7 +14,7 @@ router.post('atlases.create', auth(), async (ctx) => {
     name,
     description,
     type,
-  } = ctx.request.body;
+  } = ctx.body;
   ctx.assertPresent(name, 'name is required');
 
   const user = ctx.state.user;
@@ -32,7 +32,7 @@ router.post('atlases.create', auth(), async (ctx) => {
 });
 
 router.post('atlases.info', auth(), async (ctx) => {
-  let { id } = ctx.request.body;
+  let { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
@@ -79,7 +79,7 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
 });
 
 router.post('atlases.updateNavigationTree', auth(), async (ctx) => {
-  let { id, tree } = ctx.request.body;
+  let { id, tree } = ctx.body;
     ctx.assertPresent(id, 'id is required');
 
     const user = ctx.state.user;

@@ -9,7 +9,7 @@ import { User, Team } from '../models';
 const router = new Router();
 
 router.post('auth.slack', async (ctx) => {
-  const { code } = ctx.request.body;
+  const { code } = ctx.body;
   ctx.assertPresent(code, 'code is required');
 
   const body = {

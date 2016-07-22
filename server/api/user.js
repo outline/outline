@@ -16,7 +16,7 @@ router.post('user.info', auth(), async (ctx) => {
 });
 
 router.post('user.s3Upload', auth(), async (ctx) => {
-  let { filename, kind, size } = ctx.request.body;
+  let { filename, kind, size } = ctx.body;
   ctx.assertPresent(filename, 'filename is required');
   ctx.assertPresent(kind, 'kind is required');
   ctx.assertPresent(size, 'size is required');

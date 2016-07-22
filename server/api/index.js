@@ -10,6 +10,7 @@ import collections from './collections';
 import documents from './documents';
 
 import validation from './validation';
+import methodOverride from '../middlewares/methodOverride';
 
 const api = new Koa();
 const router = new Router();
@@ -40,6 +41,7 @@ api.use(async (ctx, next) => {
 });
 
 api.use(bodyParser());
+api.use(methodOverride());
 api.use(validation());
 
 router.use('/', auth.routes());
