@@ -54,11 +54,11 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
   global.toolbox.options.debug = true;
 
   // Index page and assets
-  global.toolbox.router.get('/', global.toolbox.cacheFirst);
-  global.toolbox.router.get(/\/dashboard/, global.toolbox.cacheFirst);
-  global.toolbox.router.get(/\/atlas\/\/[\w]+/, global.toolbox.cacheFirst);
-  global.toolbox.router.get(/\/documents\/\/[\w]+/, global.toolbox.cacheFirst);
-  global.toolbox.router.get(/\/static\//, global.toolbox.cacheFirst);
+  global.toolbox.router.get('/', global.toolbox.networkFirst);
+  global.toolbox.router.get(/\/dashboard/, global.toolbox.networkFirst);
+  global.toolbox.router.get(/\/atlas\/\/[\w]+/, global.toolbox.networkFirst);
+  global.toolbox.router.get(/\/documents\/\/[\w]+/, global.toolbox.networkFirst);
+  global.toolbox.router.get(/\/static\//, global.toolbox.fastest);
 
   // API get calls
   global.toolbox.router.get(/\/api\/[\w\.]+/, global.toolbox.networkFirst);
