@@ -50,19 +50,10 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
 (global => {
   'use strict';
 
-  // Turn on debug logging, visible in the Developer Tools' console.
-  global.toolbox.options.debug = true;
+  // Assets
+  global.toolbox.router.get(/\/static\//, global.toolbox.cacheFirst);
 
-  // Index page and assets
-  global.toolbox.router.get('/', global.toolbox.networkFirst);
-  global.toolbox.router.get(/\/dashboard/, global.toolbox.networkFirst);
-  global.toolbox.router.get(/\/atlas\/\/[\w]+/, global.toolbox.networkFirst);
-  global.toolbox.router.get(/\/documents\/\/[\w]+/, global.toolbox.networkFirst);
-  global.toolbox.router.get(/\/static\//, global.toolbox.fastest);
-
-  // API get calls
-  // global.toolbox.router.get(/\/api\//, global.toolbox.networkFirst);
-
+  // API GET calls
   global.toolbox.router.default = global.toolbox.networkFirst;
 
   // Boilerplate to ensure our service worker takes control of the page as soon
