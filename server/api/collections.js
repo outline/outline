@@ -9,6 +9,28 @@ import { Team, Atlas } from '../models';
 
 const router = new Router();
 
+router.post('atlases.create', auth(), async (ctx) => {
+  let {
+    name,
+    description,
+    type,
+  } = ctx.request.body;
+  ctx.assertPresent(name, 'name is required');
+
+  const user = ctx.state.user;
+
+  const atlas = await Atlas.create({
+    name,
+    description,
+    type: type || 'atlas',
+    teamId: user.teamId,
+  });
+
+  ctx.body = {
+    data: await presentAtlas(atlas, true),
+  };
+});
+
 router.post('atlases.info', auth(), async (ctx) => {
   let { id } = ctx.request.body;
   ctx.assertPresent(id, 'id is required');
