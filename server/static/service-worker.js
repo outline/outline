@@ -61,7 +61,7 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
   global.toolbox.router.get(/\/static\//, global.toolbox.fastest);
 
   // API get calls
-  global.toolbox.router.get(/\/api\/[\w\.]+/, global.toolbox.networkFirst);
+  // global.toolbox.router.get(/\/api\//, global.toolbox.networkFirst);
 
   global.toolbox.router.default = global.toolbox.networkFirst;
 
