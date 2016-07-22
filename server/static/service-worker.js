@@ -76,9 +76,9 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
   global.toolbox.router.get(/\/static\//, global.toolbox.cacheFirst);
 
   // API get calls
-  global.toolbox.router.get(/\/api\//, global.toolbox.networkFirst);
+  global.toolbox.router.post(/\/api\//, global.toolbox.networkFirst);
 
-  // global.toolbox.router.default = global.toolbox.networkFirst;
+  global.toolbox.router.default = global.toolbox.networkFirst;
 
   // Boilerplate to ensure our service worker takes control of the page as soon
   // as possible.
