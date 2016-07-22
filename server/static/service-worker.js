@@ -71,12 +71,12 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
   // });
 
   // Index page and assets
-  global.toolbox.router.get(/^\/$/, global.toolbox.cacheFirst);
-  global.toolbox.router.get(/^\/dashboard/, global.toolbox.cacheFirst);
+  global.toolbox.router.get('/', global.toolbox.cacheFirst);
+  global.toolbox.router.get('/dashboard', global.toolbox.cacheFirst);
   global.toolbox.router.get(/\/static\//, global.toolbox.cacheFirst);
 
   // API get calls
-  global.toolbox.router.post(/\/api\//, global.toolbox.networkFirst);
+  global.toolbox.router.post('/api/*', global.toolbox.networkFirst);
 
   global.toolbox.router.default = global.toolbox.networkFirst;
 
