@@ -53,35 +53,15 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
   // Turn on debug logging, visible in the Developer Tools' console.
   global.toolbox.options.debug = true;
 
-  // Set up a handler for HTTP GET requests:
-  // - /\.ytimg\.com\// will match any requests whose URL contains 'ytimg.com'.
-  //   A narrower RegExp could be used, but just checking for ytimg.com anywhere
-  //   in the URL should be fine for this sample.
-  // - toolbox.cacheFirst let us to use the predefined cache strategy for those
-  //   requests.
-  // global.toolbox.router.get(/\.ytimg\.com\//, global.toolbox.cacheFirst, {
-  //   // Use a dedicated cache for the responses, separate from the default cache.
-  //   cache: {
-  //     name: 'youtube-thumbnails',
-  //     // Store up to 10 entries in that cache.
-  //     maxEntries: 10,
-  //     // Expire any entries that are older than 30 seconds.
-  //     maxAgeSeconds: 30
-  //   }
-  // });
-
   // Index page and assets
   global.toolbox.router.get('/', global.toolbox.cacheFirst);
-  global.toolbox.router.get('/dashboard', global.toolbox.cacheFirst);
-  global.toolbox.router.get('/atlas/:id', global.toolbox.cacheFirst);
-  global.toolbox.router.get('/documents/:id', global.toolbox.cacheFirst);
+  global.toolbox.router.get(/\/dashboard/, global.toolbox.cacheFirst);
+  global.toolbox.router.get(/\/atlas/, global.toolbox.cacheFirst);
+  global.toolbox.router.get(/\/documents\//, global.toolbox.cacheFirst);
   global.toolbox.router.get(/\/static\//, global.toolbox.cacheFirst);
 
   // API get calls
-  global.toolbox.router.post('/api/documents.list', global.toolbox.networkFirst);
-  global.toolbox.router.post('/api/documents.info', global.toolbox.networkFirst);
-  global.toolbox.router.post('/api/atlases.list', global.toolbox.networkFirst);
-  global.toolbox.router.post('/api/atlases.info', global.toolbox.networkFirst);
+  global.toolbox.router.post(/\/api\//, global.toolbox.networkFirst);
 
   global.toolbox.router.default = global.toolbox.networkFirst;
 
