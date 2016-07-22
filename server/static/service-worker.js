@@ -59,21 +59,26 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
   //   in the URL should be fine for this sample.
   // - toolbox.cacheFirst let us to use the predefined cache strategy for those
   //   requests.
-  global.toolbox.router.get(/\.ytimg\.com\//, global.toolbox.cacheFirst, {
-    // Use a dedicated cache for the responses, separate from the default cache.
-    cache: {
-      name: 'youtube-thumbnails',
-      // Store up to 10 entries in that cache.
-      maxEntries: 10,
-      // Expire any entries that are older than 30 seconds.
-      maxAgeSeconds: 30
-    }
-  });
+  // global.toolbox.router.get(/\.ytimg\.com\//, global.toolbox.cacheFirst, {
+  //   // Use a dedicated cache for the responses, separate from the default cache.
+  //   cache: {
+  //     name: 'youtube-thumbnails',
+  //     // Store up to 10 entries in that cache.
+  //     maxEntries: 10,
+  //     // Expire any entries that are older than 30 seconds.
+  //     maxAgeSeconds: 30
+  //   }
+  // });
 
-  // By default, all requests that don't match our custom handler will use the
-  // toolbox.networkFirst cache strategy, and their responses will be stored in
-  // the default cache.
-  global.toolbox.router.default = global.toolbox.networkFirst;
+  // Index page and assets
+  global.toolbox.router.get(/^\/$/, global.toolbox.cacheFirst);
+  global.toolbox.router.get(/^\/dashboard/, global.toolbox.cacheFirst);
+  global.toolbox.router.get(/\/static\//, global.toolbox.cacheFirst);
+
+  // API get calls
+  global.toolbox.router.get(/\/api\//, global.toolbox.networkFirst);
+
+  // global.toolbox.router.default = global.toolbox.networkFirst;
 
   // Boilerplate to ensure our service worker takes control of the page as soon
   // as possible.
