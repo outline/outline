@@ -77,8 +77,12 @@ class ApiClient {
     });
   }
 
-  post = (path, data) => {
+  get = (path, data) => {
     return this.fetch(path, 'GET', data);
+  }
+
+  post = (path, data) => {
+    return this.fetch(path, 'POST', data);
   }
 
   // Helpers

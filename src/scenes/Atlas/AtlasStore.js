@@ -13,7 +13,7 @@ const store = new class AtlasStore {
     this.atlas = null;
 
     try {
-      const res = await client.post('/atlases.info', { id: id });
+      const res = await client.get('/atlases.info', { id: id });
       const { data } = res;
       this.atlas = data;
       successCallback(data);

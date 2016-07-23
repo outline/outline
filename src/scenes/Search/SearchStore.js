@@ -18,7 +18,7 @@ class SearchStore {
 
     if (query) {
       try {
-        const res = await client.post('/documents.search', { query });
+        const res = await client.get('/documents.search', { query });
         const { data, pagination } = res;
         runInAction('search document', () => {
           this.documents = data;

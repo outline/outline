@@ -48,7 +48,7 @@ class DocumentSceneStore {
     this.updatingContent = softLoad;
 
     try {
-      const res = await client.post('/documents.info', { id: id });
+      const res = await client.get('/documents.info', { id: id });
       const { data } = res;
       runInAction('fetchDocument', () => {
         this.document = data;

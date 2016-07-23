@@ -39,7 +39,7 @@ class DocumentEditStore {
     this.isFetching = true;
 
     try {
-      const data = await client.post('/documents.info', {
+      const data = await client.get('/documents.info', {
         id: this.documentId,
       });
       if (this.newChildDocument) {
