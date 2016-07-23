@@ -78,7 +78,18 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
   // Boilerplate to ensure our service worker takes control of the page as soon
   // as possible.
   global.addEventListener('install',
-      event => event.waitUntil(global.skipWaiting()));
+    event => event.waitUntil(global.skipWaiting()));
   global.addEventListener('activate',
-      event => event.waitUntil(global.clients.claim()));
+    event => event.waitUntil(global.clients.claim()));
+
+    // Listen for claiming of our ServiceWorker
+  navigator.serviceWorker.addEventListener('controllerchange', function(event) {
+    // Listen for changes in the state of our ServiceWorker
+    navigator.serviceWorker.controller.addEventListener('statechange', function() {
+      // If the ServiceWorker becomes "activated", let the user know they can go offline!
+      if (this.state === 'activated') {
+        console.log("we're offline")
+      }
+    });
+  });
 })(self);
