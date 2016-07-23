@@ -3,6 +3,7 @@ import { browserHistory, Link } from 'react-router';
 import Helmet from 'react-helmet';
 import { observer } from 'mobx-react';
 import keydown from 'react-keydown';
+import _ from 'lodash';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import Flex from 'components/Flex';
@@ -32,10 +33,13 @@ class Layout extends React.Component {
   @keydown(['/', 't'])
   search() {
     // if (!this.props.search) return;
+    _.defer(() => browserHistory.push('/search'));
+  }
 
-    setTimeout(() => {
-      browserHistory.push('/search');
-    }, 0);
+  @keydown(['d'])
+  dashboard() {
+    // if (!this.props.search) return;
+    _.defer(() => browserHistory.push('/'));
   }
 
   render() {
