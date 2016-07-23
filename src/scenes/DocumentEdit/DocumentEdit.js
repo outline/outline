@@ -20,7 +20,10 @@ import SaveAction from './components/SaveAction';
 const DISREGARD_CHANGES = `You have unsaved changes.
 Are you sure you want to disgard them?`;
 
-@keydown(['cmd+enter', 'ctrl+enter', 'esc'])
+@keydown([
+  'cmd+enter', 'ctrl+enter',
+  'cmd+esc', 'ctrl+esc',
+  'cmd+shift+p', 'ctrl+shift+p'])
 @withRouter
 @observer
 class DocumentEdit extends Component {
@@ -75,9 +78,22 @@ class DocumentEdit extends Component {
   componentWillReceiveProps = (nextProps) => {
     const key = nextProps.keydown.event;
 
-    // Cmd + Enter
-    if (key && key.key === 'Enter' && (key.metaKey || key.ctrl.Key)) {
-      this.onSave();
+    if (key) {
+      // Cmd + Enter
+      if(key.key === 'Enter' && (key.metaKey || key.ctrl.Key)) {
+        this.onSave();
+      }
+
+      // Cmd + Esc
+      if(key.key === 'Escape' && (key.metaKey || key.ctrl.Key)) {
+        this.onCancel();
+      }
+
+      // Cmd + m
+      console.log(key)
+      if(key.key === 'P' && key.shiftKey && (key.metaKey || key.ctrl.Key)) {
+        this.store.togglePreview();
+      }
     }
   }
 
@@ -155,6 +171,8 @@ class DocumentEdit extends Component {
             scrollTop={ this.state.scrollTop }
             onScroll={ this.onScroll }
             onSave={ this.onSave }
+            onCancel={ this.onCancel }
+            togglePreview={ this.togglePreview }
           />
         ) }
       </Layout>

@@ -23,6 +23,8 @@ const Editor = observer((props) => {
           replaceText={ store.replaceText }
           preview={ store.preview }
           onSave={ props.onSave }
+          onCancel={ props.onCancel }
+          togglePreview={ props.togglePreview }
         />
       </EditorPane>
       { store.preview ? (

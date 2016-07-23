@@ -121,8 +121,15 @@ class MarkdownEditor extends React.Component {
       theme: 'atlas',
       extraKeys: {
         Enter: 'newlineAndIndentContinueMarkdownList',
+
         "Ctrl-Enter": this.props.onSave,
         "Cmd-Enter": this.props.onSave,
+
+        "Cmd-Esc": this.props.onCancel,
+        "Ctrl-Esc": this.props.onCancel,
+
+        // "Cmd-Shift-p": this.props.togglePreview,
+        // "Ctrl-Shift-p": this.props.togglePreview,
       },
       placeholder: "# Start with a title...",
     };

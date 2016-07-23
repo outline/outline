@@ -1,6 +1,8 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { Link, browserHistory } from 'react-router';
+import keydown, { keydownScoped } from 'react-keydown';
+import _ from 'lodash';
 
 import store from './AtlasStore';
 
@@ -14,6 +16,7 @@ import Flex from 'components/Flex';
 
 import styles from './Atlas.scss';
 
+@keydown(['c'])
 @observer
 class Atlas extends React.Component {
   componentDidMount = () => {
@@ -27,8 +30,17 @@ class Atlas extends React.Component {
     })
   }
 
-  onClickCreate = (event) => {
-    event.preventDefault();
+  componentWillReceiveProps = (nextProps) => {
+    const key = nextProps.keydown.event;
+    if (key) {
+      if (key.key === 'c') {
+        _.defer(this.onCreate);
+      }
+    }
+  }
+
+  onCreate = (event) => {
+    if (event) event.preventDefault();
     browserHistory.push(`/atlas/${store.atlas.id}/new`);
   }
 
@@ -43,7 +55,7 @@ class Atlas extends React.Component {
       actions = (
         <Flex direction="row">
           <DropdownMenu label={ <MoreIcon /> } >
-            <MenuItem onClick={ this.onClickCreate }>
+            <MenuItem onClick={ this.onCreate }>
               New document
             </MenuItem>
           </DropdownMenu>

@@ -2,7 +2,8 @@ import React, { PropTypes } from 'react';
 import { toJS } from 'mobx';
 import { Link, browserHistory } from 'react-router';
 import { observer } from 'mobx-react';
-import keydown, { keydownScoped } from 'react-keydown';
+import keydown from 'react-keydown';
+import _ from 'lodash';
 
 import DocumentSceneStore, {
   DOCUMENT_PREFERENCES
@@ -22,7 +23,7 @@ const cx = classNames.bind(styles);
 
 import treeStyles from 'components/Tree/Tree.scss';
 
-@keydown(['cmd+/', 'ctrl+/'])
+@keydown(['cmd+/', 'ctrl+/', 'c', 'e'])
 @observer(['ui'])
 class DocumentScene extends React.Component {
   static propTypes = {
@@ -47,8 +48,18 @@ class DocumentScene extends React.Component {
 
   componentWillReceiveProps = (nextProps) => {
     const key = nextProps.keydown.event;
-    if (key && key.key === '/' && (key.metaKey || key.ctrl.Key)) {
-      this.toggleSidebar();
+    if (key) {
+      if (key.key === '/' && (key.metaKey || key.ctrl.Key)) {
+        this.toggleSidebar();
+      }
+
+      if (key.key === 'c') {
+        _.defer(this.onCreate);
+      }
+
+      if (key.key === 'e') {
+        _.defer(this.onEdit);
+      }
     }
 
     // Reload on url change
