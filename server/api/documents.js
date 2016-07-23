@@ -51,9 +51,9 @@ router.post('documents.search', auth(), async (ctx) => {
 
   const sql = `
   SELECT * FROM documents
-  WHERE "searchVector" @@ to_tsquery('english', :query) AND
+  WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
     "teamId" = '${user.teamId}'::uuid
-  ORDER BY ts_rank(documents."searchVector", to_tsquery('english', :query))
+  ORDER BY ts_rank(documents."searchVector", plainto_tsquery('english', :query))
   DESC;
   `;
 
