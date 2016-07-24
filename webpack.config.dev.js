@@ -10,7 +10,7 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   entry: [
     'babel-regenerator-runtime',
     'webpack-hot-middleware/client',
-    './src/index',
+    './frontend/index',
   ],
 });
 

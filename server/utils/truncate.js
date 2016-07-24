@@ -1,5 +1,5 @@
 import truncate from 'truncate-html';
-import { convertToMarkdown } from '../../src/utils/markdown';
+import { convertToMarkdown } from '../../frontend/utils/markdown';
 
 truncate.defaultOptions = {
   stripTags: false,

@@ -11,7 +11,7 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
   entry: [
     'babel-polyfill',
     'babel-regenerator-runtime',
-    './src/index',
+    './frontend/index',
   ],
   output: {
     path: path.join(__dirname, 'dist'),

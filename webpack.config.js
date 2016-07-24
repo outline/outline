@@ -22,7 +22,7 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel',
-        include: path.join(__dirname, 'src')
+        include: path.join(__dirname, 'frontend')
       },
       { test: /\.json$/, loader: 'json-loader' },
       {
@@ -44,7 +44,7 @@ module.exports = {
     ]
   },
   resolve: {
-    root: path.join(__dirname, 'src'),
+    root: path.join(__dirname, 'frontend'),
     // you can now require('file') instead of require('file.json')
     extensions: ['', '.js', '.json']
   },

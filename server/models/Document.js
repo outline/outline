@@ -6,7 +6,7 @@ import {
 } from '../sequelize';
 import {
   convertToMarkdown,
-} from '../../src/utils/markdown';
+} from '../../frontend/utils/markdown';
 import {
   truncateMarkdown,
 } from '../utils/truncate';
