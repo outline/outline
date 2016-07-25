@@ -3,6 +3,7 @@ import helmet from 'koa-helmet';
 import logger from 'koa-logger';
 import mount from 'koa-mount';
 import Koa from 'koa';
+import bugsnag from 'bugsnag';
 
 import api from './api';
 import routes from './routes';
@@ -51,6 +52,10 @@ if (process.env.NODE_ENV === 'development') {
     heartbeat: 10 * 1000
   })));
   app.use(logger());
+}
+
+if (process.env.NODE_ENV === 'production') {
+  bugsnag.register('ad7a85f99b1b9324a31e16732cdf3192');
 }
 
 app.use(mount('/api', api));
