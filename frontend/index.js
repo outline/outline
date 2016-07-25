@@ -1,13 +1,12 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
-import Router     from 'react-router/lib/Router';
-import Route      from 'react-router/lib/Route';
+import Router from 'react-router/lib/Router';
+import Route from 'react-router/lib/Route';
 import IndexRoute from 'react-router/lib/IndexRoute';
 import History from 'utils/History';
 
 import stores from 'stores';
-window.stores = stores;
 
 import 'normalize.css/normalize.css';
 import 'styles/base.scss';
@@ -42,9 +41,9 @@ function requireAuth(nextState, replace) {
 render((
   <div style={{ display: 'flex', flex: 1, minHeight: '100%', }}>
     <Provider { ...stores }>
-      <Router history={History}>
+      <Router history={ History }>
         <Route path="/" component={ Application }>
-          <IndexRoute component={Home} />
+          <IndexRoute component={ Home } />
 
           <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
           <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
@@ -59,6 +58,6 @@ render((
         </Route>
       </Router>
     </Provider>
-    { __DEV__ ? <DevTools position={{ bottom: 0, right: 0 }} /> : null }
+    { __DEV__ && <DevTools position={{ bottom: 0, right: 0 }} /> }
   </div>
 ), document.getElementById('root'));
