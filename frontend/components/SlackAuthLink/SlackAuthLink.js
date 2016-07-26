@@ -16,22 +16,20 @@ class SlackAuthLink extends React.Component {
       'identity.basic',
       'identity.avatar',
       'identity.team',
-    ]
+    ],
   }
 
   slackUrl = () => {
     const baseUrl = 'https://slack.com/oauth/authorize';
     const params = {
-      client_id: '30086650419.30130733398',
-      scope: this.props.scopes.join(" "),
-      redirect_uri: __DEV__ ?
-          'http://localhost:3000/auth/slack/' :
-          'https://www.beautifulatlas.com/auth/slack/',
+      client_id: SLACK_KEY,
+      scope: this.props.scopes.join(' '),
+      redirect_uri: SLACK_REDIRECT_URI,
       state: this.props.user.getOauthState(),
     };
 
-    const urlParams = Object.keys(params).map(function(key) {
-        return key + '=' + encodeURIComponent(params[key]);
+    const urlParams = Object.keys(params).map((key) => {
+      return `${key}=${encodeURIComponent(params[key])}`;
     }).join('&');
 
     return `${baseUrl}?${urlParams}`;
@@ -40,7 +38,7 @@ class SlackAuthLink extends React.Component {
   render() {
     return (
       <a href={ this.slackUrl() } className={ styles.link }>Authorize /w Slack</a>
-    )
+    );
   }
 }
 

@@ -13,5 +13,10 @@
         "config": "webpack.config.js"
       }
     }
-  }
+  },
+  "globals": {
+    __DEV__: true,
+    SLACK_KEY: true,
+    SLACK_REDIRECT_URI: true,
+  },
 }

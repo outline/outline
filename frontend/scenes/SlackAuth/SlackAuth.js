@@ -5,6 +5,7 @@ import { observer } from 'mobx-react';
 class SlackAuth extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,
+    location: React.PropTypes.object.isRequired,
   }
 
   componentDidMount = () => {
