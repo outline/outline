@@ -27,8 +27,6 @@ router.post('auth.slack', async (ctx) => {
     throw httpErrors.BadRequest();
   }
 
-  console.log(data);
-
   if (!data.ok) throw httpErrors.BadRequest(data.error);
 
   // Temp to block
@@ -40,13 +38,13 @@ router.post('auth.slack', async (ctx) => {
 
   // Team
   let team = await Team.findOne({ where: { slackId: data.team.id } });
+  let teamExisted = !!team;
   if (!team) {
     team = await Team.create({
       name: data.team.name,
       slackId: data.team.id,
       slackData: data.team,
     });
-    await team.createFirstAtlas();
   } else {
     team.name = data.team.name;
     team.slackData = data.team;
@@ -56,16 +54,21 @@ router.post('auth.slack', async (ctx) => {
   if (user) {
     user.slackAccessToken = data.access_token;
     user.slackData = data.user;
-    user = await user.save();
+    await user.save();
   } else {
-    user = await team.createUser({
+    user = await User.create({
       slackId: data.user.id,
       username: data.user.name,
       name: data.user.name,
       email: data.user.email,
+      teamId: team.id,
       slackData: data.user,
       slackAccessToken: data.access_token,
     });
+  }
+
+  if (!teamExisted) {
+    await team.createFirstAtlas(user.id);
   }
 
   ctx.body = { data: {

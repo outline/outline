@@ -24,6 +24,7 @@ router.post('atlases.create', auth(), async (ctx) => {
     description,
     type: type || 'atlas',
     teamId: user.teamId,
+    creatorId: user.id,
   });
 
   ctx.body = {
@@ -66,8 +67,8 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
 
   // Atlases
   let data = [];
-  await Promise.all(atlases.forEach(async (atlas) => {
-    data.push(await presentAtlas(atlas, true));
+  await Promise.all(atlases.map(async (atlas) => {
+    return data.push(await presentAtlas(atlas, true));
   }));
 
   data = _orderBy(data, ['updatedAt'], ['desc']);

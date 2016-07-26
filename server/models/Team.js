@@ -13,12 +13,13 @@ const Team = sequelize.define('team', {
   slackData: DataTypes.JSONB,
 }, {
   instanceMethods: {
-    async createFirstAtlas() {
+    async createFirstAtlas(userId) {
       const atlas = await Atlas.create({
         name: this.name,
         description: 'Your first Atlas',
         type: 'journal',
         teamId: this.id,
+        creatorId: userId,
       });
       return atlas;
     }

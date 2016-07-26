@@ -11,24 +11,27 @@ const Atlas = sequelize.define('atlas', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   name: DataTypes.STRING,
   description: DataTypes.STRING,
-  type: { type: DataTypes.STRING, validate: { isIn: allowedAtlasTypes }},
+  type: { type: DataTypes.STRING, validate: { isIn: allowedAtlasTypes } },
+  creatorId: DataTypes.UUID,
 
   /* type: atlas */
   navigationTree: DataTypes.JSONB,
 }, {
   tableName: 'atlases',
   hooks: {
-  //   beforeValidate: (doc) => {
-  //     doc.urlId = randomstring.generate(15);
-  //   },
-  //   beforeCreate: (doc) => {
-  //     doc.html = convertToMarkdown(doc.text);
-  //     doc.preview = truncateMarkdown(doc.text, 160);
-  //   },
-  //   beforeUpdate: (doc) => {
-  //     doc.html = convertToMarkdown(doc.text);
-  //     doc.preview = truncateMarkdown(doc.text, 160);
-  //   },
+    afterCreate: async (atlas) => {
+      if (atlas.type !== 'atlas') return;
+
+      await Document.create({
+        parentDocumentId: null,
+        atlasId: atlas.id,
+        teamId: atlas.teamId,
+        userId: atlas.creatorId,
+        lastModifiedById: atlas.creatorId,
+        title: 'Introduction',
+        text: '# Introduction',
+      });
+    },
   },
   instanceMethods: {
     async getStructure() {
@@ -40,9 +43,9 @@ const Atlas = sequelize.define('atlas', {
         const children = await Document.findAll({ where: {
           parentDocumentId: document.id,
           atlasId: this.id,
-        }});
+        } });
 
-        let childNodes = []
+        const childNodes = [];
         await Promise.all(children.map(async (child) => {
           childNodes.push(await getNodeForDocument(child));
         }));
@@ -53,23 +56,23 @@ const Atlas = sequelize.define('atlas', {
           url: document.getUrl(),
           children: childNodes,
         };
-      }
+      };
 
       const rootDocument = await Document.findOne({
         where: {
           parentDocumentId: null,
           atlasId: this.id,
-        }
+        },
       });
 
       if (rootDocument) {
         return await getNodeForDocument(rootDocument);
       } else {
-        return; // TODO should create a root doc
+        return true; // TODO should create a root doc
       }
     },
     async updateNavigationTree(tree = this.navigationTree) {
-      let nodeIds = [];
+      const nodeIds = [];
       nodeIds.push(tree.id);
 
       const rootDocument = await Document.findOne({
@@ -80,7 +83,7 @@ const Atlas = sequelize.define('atlas', {
       });
       if (!rootDocument) throw new Error;
 
-      let newTree = {
+      const newTree = {
         id: tree.id,
         title: rootDocument.title,
         url: rootDocument.getUrl(),
@@ -102,7 +105,7 @@ const Atlas = sequelize.define('atlas', {
               title: childDocument.title,
               url: childDocument.getUrl(),
               children: await getIdsForChildren(child.children),
-            })
+            });
             nodeIds.push(child.id);
           }
         }
@@ -114,7 +117,7 @@ const Atlas = sequelize.define('atlas', {
         attributes: ['id'],
         where: {
           atlasId: this.id,
-        }
+        },
       });
       const documentIds = documents.map(doc => doc.id);
 
@@ -133,7 +136,7 @@ const Atlas = sequelize.define('atlas', {
         title: document.title,
         url: document.getUrl(),
         children: [],
-      }
+      };
 
       const insertNode = (node) => {
         if (document.parentDocumentId === node.id) {
@@ -141,7 +144,7 @@ const Atlas = sequelize.define('atlas', {
         } else {
           node.children = node.children.map(childNode => {
             return insertNode(childNode);
-          })
+          });
         }
 
         return node;
@@ -172,8 +175,8 @@ const Atlas = sequelize.define('atlas', {
       };
 
       this.navigationTree = await deleteNodeAndDocument(this.navigationTree, document.id);
-    }
-  }
+    },
+  },
 });
 
 Atlas.hasMany(Document, { as: 'documents', foreignKey: 'atlasId' });

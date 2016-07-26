@@ -13,7 +13,7 @@ import {
 import User from './User';
 import Revision from './Revision';
 
-slug.defaults.mode ='rfc3986';
+slug.defaults.mode = 'rfc3986';
 
 const generateSlug = (title, urlId) => {
   const slugifiedTitle = slug(title);
@@ -35,7 +35,7 @@ const Document = sequelize.define('document', {
   text: DataTypes.TEXT,
   html: DataTypes.TEXT,
   preview: DataTypes.TEXT,
-  revisionCount: { type: DataTypes.INTEGER, defaultValue: 0, },
+  revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
 
   parentDocumentId: DataTypes.UUID,
   lastModifiedById: {
@@ -43,7 +43,7 @@ const Document = sequelize.define('document', {
     allowNull: false,
     references: {
       model: 'users',
-    }
+    },
   },
 }, {
   hooks: {
@@ -59,7 +59,7 @@ const Document = sequelize.define('document', {
       return `${slugifiedTitle}-${this.urlId}`;
     },
     getUrl() {
-      return `/documents/${ this.id }`;
+      return `/documents/${this.id}`;
     },
     async createRevision() {
       // Create revision of the current (latest)
@@ -72,7 +72,7 @@ const Document = sequelize.define('document', {
         documentId: this.id,
       });
     },
-  }
+  },
 });
 
 Document.belongsTo(User);
