@@ -5,12 +5,12 @@ import _orderBy from 'lodash.orderby';
 import auth from './authentication';
 import pagination from './middlewares/pagination';
 import { presentAtlas } from '../presenters';
-import { Team, Atlas } from '../models';
+import { Atlas } from '../models';
 
 const router = new Router();
 
 router.post('atlases.create', auth(), async (ctx) => {
-  let {
+  const {
     name,
     description,
     type,
@@ -32,13 +32,13 @@ router.post('atlases.create', auth(), async (ctx) => {
 });
 
 router.post('atlases.info', auth(), async (ctx) => {
-  let { id } = ctx.body;
+  const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
   const atlas = await Atlas.findOne({
     where: {
-      id: id,
+      id,
       teamId: user.teamId,
     },
   });
@@ -66,7 +66,7 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
 
   // Atlases
   let data = [];
-  await Promise.all(atlases.map(async (atlas) => {
+  await Promise.all(atlases.forEach(async (atlas) => {
     data.push(await presentAtlas(atlas, true));
   }));
 
@@ -74,29 +74,29 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: data,
+    data,
   };
 });
 
 router.post('atlases.updateNavigationTree', auth(), async (ctx) => {
-  let { id, tree } = ctx.body;
-    ctx.assertPresent(id, 'id is required');
+  const { id, tree } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
 
-    const user = ctx.state.user;
-    const atlas = await Atlas.findOne({
-      where: {
-        id: id,
-        teamId: user.teamId,
-      },
-    });
+  const user = ctx.state.user;
+  const atlas = await Atlas.findOne({
+    where: {
+      id,
+      teamId: user.teamId,
+    },
+  });
 
-    if (!atlas) throw httpErrors.NotFound();
+  if (!atlas) throw httpErrors.NotFound();
 
-    const newTree = await atlas.updateNavigationTree(tree);
+  await atlas.updateNavigationTree(tree);
 
-    ctx.body = {
-      data: await presentAtlas(atlas, true),
-    };
+  ctx.body = {
+    data: await presentAtlas(atlas, true),
+  };
 });
 
 export default router;
