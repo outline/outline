@@ -78,7 +78,7 @@
     "localenv": "0.2.2",
     "lodash": "4.13.1",
     "lodash.orderby": "4.4.0",
-    "marked": "0.3.5",
+    "marked": "0.3.6",
     "mobx": "2.4.1",
     "mobx-react": "3.4.0",
     "mobx-react-devtools": "4.2.0",
