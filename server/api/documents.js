@@ -81,7 +81,7 @@ router.post('documents.search', auth(), async (ctx) => {
 
 
 router.post('documents.create', auth(), async (ctx) => {
-  let {
+  const {
     atlas,
     title,
     text,
@@ -117,8 +117,8 @@ router.post('documents.create', auth(), async (ctx) => {
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,
-    title: title,
-    text: text,
+    title,
+    text,
   });
   await document.createRevision();
 
@@ -134,7 +134,7 @@ router.post('documents.create', auth(), async (ctx) => {
 });
 
 router.post('documents.update', auth(), async (ctx) => {
-  let {
+  const {
     id,
     title,
     text,
@@ -144,9 +144,9 @@ router.post('documents.update', auth(), async (ctx) => {
   ctx.assertPresent(text, 'text is required');
 
   const user = ctx.state.user;
-  let document = await Document.findOne({
+  const document = await Document.findOne({
     where: {
-      id: id,
+      id,
       teamId: user.teamId,
     },
   });
@@ -172,7 +172,7 @@ router.post('documents.update', auth(), async (ctx) => {
 });
 
 router.post('documents.delete', auth(), async (ctx) => {
-  let {
+  const {
     id,
   } = ctx.body;
   ctx.assertPresent(id, 'id is required');
@@ -180,7 +180,7 @@ router.post('documents.delete', auth(), async (ctx) => {
   const user = ctx.state.user;
   const document = await Document.findOne({
     where: {
-      id: id,
+      id,
       teamId: user.teamId,
     },
   });
@@ -190,7 +190,7 @@ router.post('documents.delete', auth(), async (ctx) => {
 
   if (atlas.type === 'atlas') {
     // Don't allow deletion of root docs
-    if(!document.parentDocumentId) {
+    if (!document.parentDocumentId) {
       throw httpErrors.BadRequest('Unable to delete atlas\'s root document');
     }
 
@@ -200,13 +200,13 @@ router.post('documents.delete', auth(), async (ctx) => {
       await atlas.save();
     } catch (e) {
       throw httpErrors.BadRequest('Error while deleting');
-    };
+    }
   } else {
     try {
       await document.destroy();
     } catch (e) {
       throw httpErrors.BadRequest('Error while deleting');
-    };
+    }
   }
 
   ctx.body = {
