@@ -24,6 +24,8 @@ import DocumentEdit from 'scenes/DocumentEdit';
 import Search from 'scenes/Search';
 import SlackAuth from 'scenes/SlackAuth';
 
+window.stores = stores;
+
 let DevTools;
 if (__DEV__) {
   DevTools = require('mobx-react-devtools').default;
