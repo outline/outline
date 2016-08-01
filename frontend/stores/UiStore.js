@@ -24,7 +24,7 @@ class UiStore {
     const data = JSON.parse(localStorage.getItem(UI_STORE) || '{}');
     this.sidebar = data.sidebar;
   }
-};
+}
 
 export default UiStore;
 export {

@@ -1,5 +1,5 @@
-import { observable, action } from 'mobx';
-import { client } from 'utils/ApiClient';
+import { observable, action, runInAction } from 'mobx';
+import { client, cacheResponse } from 'utils/ApiClient';
 
 const store = new class DashboardStore {
   @observable atlases;
@@ -15,8 +15,11 @@ const store = new class DashboardStore {
     try {
       const res = await client.post('/atlases.list', { id: teamId });
       const { data, pagination } = res;
-      this.atlases = data;
-      this.pagination = pagination;
+      runInAction('fetchAtlases', () => {
+        this.atlases = data;
+        this.pagination = pagination;
+        data.forEach((collection) => cacheResponse(collection.recentDocuments));
+      });
     } catch (e) {
       console.error("Something went wrong");
     }

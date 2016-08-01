@@ -41,7 +41,7 @@ class DocumentEditStore {
     try {
       const data = await client.get('/documents.info', {
         id: this.documentId,
-      });
+      }, { cache: true });
       if (this.newChildDocument) {
         this.parentDocument = data.data;
       } else {
@@ -66,7 +66,7 @@ class DocumentEditStore {
         atlas: this.atlasId || this.parentDocument.atlas.id,
         title: this.title,
         text: this.text,
-      });
+      }, { cache: true });
       const { id } = data.data;
 
       this.hasPendingChanges = false;
@@ -87,7 +87,7 @@ class DocumentEditStore {
         id: this.documentId,
         title: this.title,
         text: this.text,
-      });
+      }, { cache: true });
 
       this.hasPendingChanges = false;
       browserHistory.push(`/documents/${this.documentId}`);
@@ -131,7 +131,7 @@ class DocumentEditStore {
 
   constructor(settings) {
     // Rehydrate settings
-    this.preview = settings.preview
+    this.preview = settings.preview;
 
     // Persist settings to localStorage
     // TODO: This could be done more selectively
@@ -139,7 +139,7 @@ class DocumentEditStore {
       this.persistSettings();
     });
   }
-};
+}
 
 export default DocumentEditStore;
 export {

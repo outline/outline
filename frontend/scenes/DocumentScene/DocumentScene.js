@@ -24,10 +24,11 @@ const cx = classNames.bind(styles);
 import treeStyles from 'components/Tree/Tree.scss';
 
 @keydown(['cmd+/', 'ctrl+/', 'c', 'e'])
-@observer(['ui'])
+@observer(['ui', 'cache'])
 class DocumentScene extends React.Component {
   static propTypes = {
     ui: PropTypes.object.isRequired,
+    cache: PropTypes.object.isRequired,
   }
 
   static store;
@@ -38,7 +39,12 @@ class DocumentScene extends React.Component {
 
   constructor(props) {
     super(props);
-    this.store = new DocumentSceneStore(JSON.parse(localStorage[DOCUMENT_PREFERENCES] || "{}"));
+    this.store = new DocumentSceneStore(
+      JSON.parse(localStorage[DOCUMENT_PREFERENCES] || "{}"),
+      {
+        cache: this.props.cache,
+      }
+    );
   }
 
   componentDidMount = () => {

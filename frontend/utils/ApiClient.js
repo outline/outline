@@ -1,7 +1,18 @@
-import _map from 'lodash/map';
+import _ from 'lodash';
 import stores from 'stores';
 
 import constants from '../constants';
+
+const isIterable = object =>
+  object != null && typeof object[Symbol.iterator] === 'function';
+
+const cacheResponse = (data) => {
+  if (isIterable(data)) {
+    stores.cache.cacheList(data);
+  } else {
+    stores.cache.cacheWithId(data.id, data);
+  }
+};
 
 class ApiClient {
   constructor(options = {}) {
@@ -9,7 +20,7 @@ class ApiClient {
     this.userAgent = options.userAgent || constants.API_USER_AGENT;
   }
 
-  fetch = (path, method, data) => {
+  fetch = (path, method, data, options = {}) => {
     let body;
     let modifiedPath;
 
@@ -63,12 +74,16 @@ class ApiClient {
 
         error.statusCode = response.status;
         error.response = response;
-        reject(error);
+        return reject(error);
       })
       .then((response) => {
         return response.json();
       })
       .then((json) => {
+        // Cache responses
+        if (options.cache) {
+          cacheResponse(json.data);
+        }
         resolve(json);
       })
       .catch(() => {
@@ -77,18 +92,18 @@ class ApiClient {
     });
   }
 
-  get = (path, data) => {
-    return this.fetch(path, 'GET', data);
+  get = (path, data, options) => {
+    return this.fetch(path, 'GET', data, options);
   }
 
-  post = (path, data) => {
-    return this.fetch(path, 'POST', data);
+  post = (path, data, options) => {
+    return this.fetch(path, 'POST', data, options);
   }
 
   // Helpers
 
   constructQueryString = (data) => {
-    return _map(data, (v, k) => {
+    return _.map(data, (v, k) => {
       return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
     }).join('&');
   };
@@ -98,4 +113,4 @@ export default ApiClient;
 
 // In case you don't want to always initiate, just import with `import { client } ...`
 const client = new ApiClient();
-export { client };
+export { client, cacheResponse };

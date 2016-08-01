@@ -1,17 +1,19 @@
 import _isEqual from 'lodash/isEqual';
 import _indexOf from 'lodash/indexOf';
 import _without from 'lodash/without';
-import { observable, action, computed, runInAction, toJS, autorun } from 'mobx';
+import { observable, action, computed, runInAction, toJS, autorunAsync } from 'mobx';
 import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
 
 const DOCUMENT_PREFERENCES = 'DOCUMENT_PREFERENCES';
 
 class DocumentSceneStore {
+  static cache;
+
   @observable document;
   @observable collapsedNodes = [];
 
-  @observable isFetching = true;
+  @observable isFetching;
   @observable updatingContent = false;
   @observable updatingStructure = false;
   @observable isDeleting;
@@ -24,8 +26,8 @@ class DocumentSceneStore {
   }
 
   @computed get atlasTree() {
-    if (this.document.atlas.type !== 'atlas') return;
-    let tree = this.document.atlas.navigationTree;
+    if (!this.document || this.document.atlas.type !== 'atlas') return;
+    const tree = this.document.atlas.navigationTree;
 
     const collapseNodes = (node) => {
       if (this.collapsedNodes.includes(node.id)) {
@@ -43,12 +45,19 @@ class DocumentSceneStore {
 
   /* Actions */
 
-  @action fetchDocument = async (id, softLoad) => {
+  @action fetchDocument = async (id, softLoad = false) => {
+    let cacheHit = false;
+    runInAction('retrieve document from cache', () => {
+      const cachedValue = this.cache.fetchFromCache(id);
+      cacheHit = !!cachedValue;
+      if (cacheHit) this.document = cachedValue;
+    });
+
     this.isFetching = !softLoad;
-    this.updatingContent = softLoad;
+    this.updatingContent = softLoad && !cacheHit;
 
     try {
-      const res = await client.get('/documents.info', { id: id });
+      const res = await client.get('/documents.info', { id }, { cache: true });
       const { data } = res;
       runInAction('fetchDocument', () => {
         this.document = data;
@@ -64,7 +73,7 @@ class DocumentSceneStore {
     this.isFetching = true;
 
     try {
-      const res = await client.post('/documents.delete', { id: this.document.id });
+      await client.post('/documents.delete', { id: this.document.id });
       browserHistory.push(`/atlas/${this.document.atlas.id}`);
     } catch (e) {
       console.error("Something went wrong");
@@ -83,7 +92,7 @@ class DocumentSceneStore {
     try {
       const res = await client.post('/atlases.updateNavigationTree', {
         id: this.document.atlas.id,
-        tree: tree,
+        tree,
       });
       runInAction('updateNavigationTree', () => {
         const { data } = res;
@@ -111,17 +120,18 @@ class DocumentSceneStore {
     });
   }
 
-  constructor(settings) {
+  constructor(settings, options) {
     // Rehydrate settings
     this.collapsedNodes = settings.collapsedNodes || [];
+    this.cache = options.cache;
 
     // Persist settings to localStorage
     // TODO: This could be done more selectively
-    autorun(() => {
+    autorunAsync(() => {
       this.persistSettings();
     });
   }
-};
+}
 
 export default DocumentSceneStore;
 export {
