@@ -18,7 +18,7 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
 
   const document = await Document.findOne({
     where: {
-      id: id,
+      id,
     },
   });
 
@@ -44,7 +44,7 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
 });
 
 router.post('documents.search', auth(), async (ctx) => {
-  let { query } = ctx.body;
+  const { query } = ctx.body;
   ctx.assertPresent(query, 'query is required');
 
   const user = await ctx.state.user;
@@ -75,7 +75,7 @@ router.post('documents.search', auth(), async (ctx) => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: data,
+    data,
   };
 });
 
