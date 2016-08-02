@@ -11,7 +11,7 @@ import CenteredContent from 'components/CenteredContent';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 import FullscreenField from 'components/FullscreenField';
 
-import styles from './Dashboard.scss';
+// import styles from './Dashboard.scss';
 
 @observer(['user'])
 class Dashboard extends React.Component {
@@ -19,12 +19,12 @@ class Dashboard extends React.Component {
     user: React.PropTypes.object.isRequired,
   }
 
-  componentDidMount = () => {
-    store.fetchAtlases(this.props.user.team.id);
+  state = {
+    newAtlasVisible: false,
   }
 
-  state = {
-    newAtlasVisible: false
+  componentDidMount = () => {
+    store.fetchAtlases(this.props.user.team.id);
   }
 
   onClickNewAtlas = () => {
@@ -45,16 +45,16 @@ class Dashboard extends React.Component {
     );
 
     return (
-      <Flex flex={ true }>
+      <Flex flex>
         <Layout
           actions={ actions }
         >
           <CenteredContent>
-            <Flex direction="column" flex={ true }>
+            <Flex direction="column" flex>
               { store.isFetching ? (
                 <AtlasPreviewLoading />
               ) : store.atlases && store.atlases.map((atlas) => {
-               return  (<AtlasPreview key={ atlas.id } data={ atlas } />);
+                return (<AtlasPreview key={ atlas.id } data={ atlas } />);
               }) }
             </Flex>
           </CenteredContent>
