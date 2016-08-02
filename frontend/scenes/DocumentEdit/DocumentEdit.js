@@ -8,14 +8,13 @@ import DocumentEditStore, {
 } from './DocumentEditStore';
 
 import Switch from 'components/Switch';
-import Layout, { Title, HeaderAction } from 'components/Layout';
+import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
 import Flex from 'components/Flex';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
-import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 
 import EditorLoader from './components/EditorLoader';
-import SaveAction from './components/SaveAction';
 
 const DISREGARD_CHANGES = `You have unsaved changes.
 Are you sure you want to disgard them?`;
@@ -120,8 +119,6 @@ class DocumentEdit extends Component {
   }
 
   render() {
-    console.log("DocumentEdit#render", this.store.preview);
-
     let title = (
       <Title
         truncate={ 60 }
@@ -141,7 +138,7 @@ class DocumentEdit extends Component {
             disabled={ this.store.isSaving }
           />
         </HeaderAction>
-        <DropdownMenu label="More">
+        <DropdownMenu label={ <MoreIcon /> }>
           <MenuItem onClick={ this.store.togglePreview }>
             Preview <Switch checked={ this.store.preview } />
           </MenuItem>

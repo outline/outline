@@ -21,11 +21,12 @@ class SaveAction extends React.Component {
         <a
           href
           onClick={ this.onClick }
-          style={{ opacity: this.props.disabled ? 0.5 : 1 }}
+          style={ { opacity: this.props.disabled ? 0.5 : 1 } }
+          title="Save changes (Cmd+Enter)"
         >Save</a>
       </div>
     );
   }
-};
+}
 
 export default SaveAction;
