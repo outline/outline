@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { observer } from 'mobx-react';
 import moment from 'moment';
 
@@ -7,15 +7,40 @@ import PublishingInfo from 'components/PublishingInfo';
 
 import styles from './Document.scss';
 
-const DocumentHtml = observer((props) => {
-  return (
-    <div
-      className={ styles.document }
-      dangerouslySetInnerHTML={{ __html: props.html }}
-      { ...props }
-    />
-  );
-});
+@observer
+class DocumentHtml extends React.Component {
+  static propTypes = {
+    html: PropTypes.string.isRequired,
+  }
+
+  componentDidMount = () => {
+    this.setExternalLinks();
+  }
+
+  componentDidUpdate = () => {
+    this.setExternalLinks();
+  }
+
+  setExternalLinks = () => {
+    const links = this.refs.content.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.hostname !== window.location.hostname) {
+        link.target = '_blank'; // eslint-disable-line no-param-reassign
+      }
+    });
+  }
+
+  render() {
+    return (
+      <div
+        ref="content"
+        className={ styles.document }
+        dangerouslySetInnerHTML={ { __html: this.props.html } }
+        { ...this.props }
+      />
+    );
+  }
+}
 
 @observer
 class Document extends React.Component {
