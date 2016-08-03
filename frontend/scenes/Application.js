@@ -6,7 +6,7 @@ const Application = observer((props) => {
   return (
     <div style={{ width: '100%', display: 'flex', flex: 1, }}>
       <Helmet
-        title="Beautiful Atlas"
+        title="Atlas"
         meta={[
           {"name": "viewport", "content": "width=device-width, initial-scale=1.0"},
         ]}

@@ -51,8 +51,8 @@ class Layout extends React.Component {
       <div className={ styles.container }>
         <Helmet
           title={ this.props.titleText
-              ? `${this.props.titleText} - Beautiful Atlas`
-              : 'Beautiful Atlas' }
+              ? `${this.props.titleText} - Atlas`
+              : 'Atlas' }
         />
 
         { this.props.loading ? (

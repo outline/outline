@@ -17,7 +17,7 @@ const line7 = (<p>share ideas,</p>);
 const line8 = (<p>tell stories,</p>);
 const line9 = (<p>and build knowledge.</p>);
 const line10 = (<p>We're just getting started.</p>);
-const line11 = (<p>Welcome to Beautiful Atlas.</p>);
+const line11 = (<p>Welcome to Atlas.</p>);
 
 p(<E>{line1}{line2}{line3}{line4}{line5}{line6}{line7}{line8}{line9}{line10}{line11}</E>);
 

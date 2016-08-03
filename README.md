@@ -1,4 +1,4 @@
-# Beautiful Atlas
+# Atlas
 
 ## Ideas
 
