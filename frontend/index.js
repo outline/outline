@@ -30,7 +30,7 @@ window.stores = stores;
 
 let DevTools;
 if (__DEV__) {
-  DevTools = require('mobx-react-devtools').default;
+  DevTools = require('mobx-react-devtools').default; // eslint-disable-line global-require
 }
 
 function requireAuth(nextState, replace) {
@@ -43,7 +43,7 @@ function requireAuth(nextState, replace) {
 }
 
 render((
-  <div style={ { display: 'flex', flex: 1, minHeight: '100%' } }>
+  <div style={{ display: 'flex', flex: 1, minHeight: '100%' }}>
     <Provider { ...stores }>
       <Router history={ History }>
         <Route path="/" component={ Application }>
@@ -75,6 +75,6 @@ render((
         </Route>
       </Router>
     </Provider>
-    { __DEV__ && <DevTools position={ { bottom: 0, right: 0 } } /> }
+    { __DEV__ && <DevTools position={{ bottom: 0, right: 0 }} /> }
   </div>
 ), document.getElementById('root'));
