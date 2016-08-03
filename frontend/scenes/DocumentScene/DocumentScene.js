@@ -6,10 +6,10 @@ import keydown from 'react-keydown';
 import _ from 'lodash';
 
 import DocumentSceneStore, {
-  DOCUMENT_PREFERENCES
+  DOCUMENT_PREFERENCES,
 } from './DocumentSceneStore';
 
-import Layout, { HeaderAction } from 'components/Layout';
+import Layout from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import Document from 'components/Document';
@@ -18,8 +18,8 @@ import Flex from 'components/Flex';
 import Tree from 'components/Tree';
 
 import styles from './DocumentScene.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
+// import classNames from 'classnames/bind';
+// const cx = classNames.bind(styles);
 
 import treeStyles from 'components/Tree/Tree.scss';
 
@@ -29,22 +29,25 @@ class DocumentScene extends React.Component {
   static propTypes = {
     ui: PropTypes.object.isRequired,
     cache: PropTypes.object.isRequired,
+    routeParams: PropTypes.object,
+    params: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired,
   }
 
   static store;
 
-  state = {
-    didScroll: false,
-  }
-
   constructor(props) {
     super(props);
     this.store = new DocumentSceneStore(
-      JSON.parse(localStorage[DOCUMENT_PREFERENCES] || "{}"),
+      JSON.parse(localStorage[DOCUMENT_PREFERENCES] || '{}'),
       {
         cache: this.props.cache,
       }
     );
+  }
+
+  state = {
+    didScroll: false,
   }
 
   componentDidMount = () => {
@@ -82,8 +85,8 @@ class DocumentScene extends React.Component {
       const name = hash.split('#')[1];
       setTimeout(() => {
         this.setState({ didScroll: true });
-        const element = doc.getElementsByName(name)[0];
-        if (element) element.scrollIntoView()
+        const element = window.document.getElementsByName(name)[0];
+        if (element) element.scrollIntoView();
       }, 0);
     }
   }
@@ -101,14 +104,14 @@ class DocumentScene extends React.Component {
   onDelete = () => {
     let msg;
     if (this.store.document.atlas.type === 'atlas') {
-      msg = 'Are you sure you want to delete this document and all it\'s child documents (if any)?'
+      msg = 'Are you sure you want to delete this document and all it\'s child documents (if any)?';
     } else {
-      msg = "Are you sure you want to delete this document?";
+      msg = 'Are you sure you want to delete this document?';
     }
 
     if (confirm(msg)) {
       this.store.deleteDocument();
-    };
+    }
   }
 
   onExport = () => {
@@ -126,8 +129,8 @@ class DocumentScene extends React.Component {
 
   renderNode = (node) => {
     return (
-      <span className={ treeStyles.nodeLabel } onClick={this.onClickNode.bind(null, node)}>
-        {node.module.name}
+      <span className={ treeStyles.nodeLabel } onClick={ this.onClickNode.bind(null, node) }>
+        { node.module.name }
       </span>
     );
   }
@@ -156,12 +159,14 @@ class DocumentScene extends React.Component {
       );
       title = (
         <span>
-          <Link to={ `/atlas/${doc.atlas.id}` }>{doc.atlas.name}</Link>
+          <Link to={ `/atlas/${doc.atlas.id}` }>{ doc.atlas.name }</Link>
           { ` / ${doc.title}` }
         </span>
       );
       titleText = `${doc.atlas.name} - ${doc.title}`;
     }
+
+    console.log(toJS(doc));
 
     return (
       <Layout
@@ -175,7 +180,7 @@ class DocumentScene extends React.Component {
             <AtlasPreviewLoading />
           </CenteredContent>
         ) : (
-          <Flex flex={ true }>
+          <Flex flex>
             { this.store.isAtlas && (
               <Flex>
                 { sidebar && (
@@ -183,7 +188,7 @@ class DocumentScene extends React.Component {
                     <Tree
                       paddingLeft={ 10 }
                       tree={ toJS(this.store.atlasTree) }
-                      onChange={ this.store.updateNavigationTree  }
+                      onChange={ this.store.updateNavigationTree }
                       onCollapse={ this.store.onNodeCollapse }
                       isNodeCollapsed={ this.isNodeCollapsed }
                       renderNode={ this.renderNode }
@@ -198,11 +203,12 @@ class DocumentScene extends React.Component {
                   <img
                     src={ require("assets/icons/menu.svg") }
                     className={ styles.menuIcon }
+                    alt="Menu"
                   />
                 </div>
               </Flex>
             ) }
-            <Flex flex={ true } justify={ 'center' } className={ styles.content}>
+            <Flex flex justify="center" className={ styles.content }>
               <CenteredContent>
                 { this.store.updatingContent ? (
                   <AtlasPreviewLoading />
@@ -216,6 +222,6 @@ class DocumentScene extends React.Component {
       </Layout>
     );
   }
-};
+}
 
 export default DocumentScene;

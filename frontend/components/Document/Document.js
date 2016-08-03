@@ -1,8 +1,6 @@
 import React, { PropTypes } from 'react';
 import { observer } from 'mobx-react';
-import moment from 'moment';
 
-import { Link } from 'react-router';
 import PublishingInfo from 'components/PublishingInfo';
 
 import styles from './Document.scss';
@@ -35,7 +33,7 @@ class DocumentHtml extends React.Component {
       <div
         ref="content"
         className={ styles.document }
-        dangerouslySetInnerHTML={ { __html: this.props.html } }
+        dangerouslySetInnerHTML={{ __html: this.props.html }}
         { ...this.props }
       />
     );
@@ -61,9 +59,9 @@ class Document extends React.Component {
       </div>
     );
   }
-};
+}
 
 export default Document;
 export {
-  DocumentHtml
+  DocumentHtml,
 };
