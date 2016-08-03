@@ -22,6 +22,8 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
     },
   });
 
+  if (!document) throw httpErrors.NotFound();
+
   // Don't expose private documents outside the team
   if (document.private) {
     if (!ctx.state.user) throw httpErrors.NotFound();
@@ -39,8 +41,6 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
       data: await presentDocument(document),
     };
   }
-
-  if (!document) throw httpErrors.NotFound();
 });
 
 router.post('documents.search', auth(), async (ctx) => {

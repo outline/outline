@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { browserHistory } from 'react-router';
 import stores from 'stores';
 
 import constants from '../constants';
@@ -55,6 +56,11 @@ class ApiClient {
         // Handle successful responses
         if (response.status >= 200 && response.status < 300) {
           return response;
+        }
+
+        // Handle 404
+        if (response.status === 404) {
+          return browserHistory.push('/404');
         }
 
         // Handle 401, log out user
