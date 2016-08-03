@@ -4,6 +4,7 @@ import { Provider } from 'mobx-react';
 import Router from 'react-router/lib/Router';
 import Route from 'react-router/lib/Route';
 import IndexRoute from 'react-router/lib/IndexRoute';
+import Redirect from 'react-router/lib/Redirect';
 import History from 'utils/History';
 
 import stores from 'stores';
@@ -23,6 +24,7 @@ import DocumentScene from 'scenes/DocumentScene';
 import DocumentEdit from 'scenes/DocumentEdit';
 import Search from 'scenes/Search';
 import SlackAuth from 'scenes/SlackAuth';
+import Error404 from 'scenes/Error404';
 
 window.stores = stores;
 
@@ -41,7 +43,7 @@ function requireAuth(nextState, replace) {
 }
 
 render((
-  <div style={{ display: 'flex', flex: 1, minHeight: '100%', }}>
+  <div style={ { display: 'flex', flex: 1, minHeight: '100%' } }>
     <Provider { ...stores }>
       <Router history={ History }>
         <Route path="/" component={ Application }>
@@ -49,17 +51,30 @@ render((
 
           <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
           <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
-          <Route path="/atlas/:id/new" component={ DocumentEdit } onEnter={ requireAuth } newDocument={ true } />
+          <Route
+            path="/atlas/:id/new"
+            component={ DocumentEdit }
+            onEnter={ requireAuth }
+            newDocument
+          />
           <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
           <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
-          <Route path="/documents/:id/new" component={ DocumentEdit } onEnter={ requireAuth } newChildDocument={ true } />
+          <Route
+            path="/documents/:id/new"
+            component={ DocumentEdit }
+            onEnter={ requireAuth }
+            newChildDocument
+          />
 
           <Route path="/search" component={ Search } onEnter={ requireAuth } />
 
-          <Route path="/auth/slack" component={SlackAuth} />
+          <Route path="/auth/slack" component={ SlackAuth } />
+
+          <Route path="/404" component={ Error404 } />
+          <Redirect from="*" to="/404" />
         </Route>
       </Router>
     </Provider>
-    { __DEV__ && <DevTools position={{ bottom: 0, right: 0 }} /> }
+    { __DEV__ && <DevTools position={ { bottom: 0, right: 0 } } /> }
   </div>
 ), document.getElementById('root'));
