@@ -18,8 +18,8 @@ import Flex from 'components/Flex';
 import Tree from 'components/Tree';
 
 import styles from './DocumentScene.scss';
-// import classNames from 'classnames/bind';
-// const cx = classNames.bind(styles);
+import classNames from 'classnames/bind';
+const cx = classNames.bind(styles);
 
 import treeStyles from 'components/Tree/Tree.scss';
 
@@ -166,8 +166,6 @@ class DocumentScene extends React.Component {
       titleText = `${doc.atlas.name} - ${doc.title}`;
     }
 
-    console.log(toJS(doc));
-
     return (
       <Layout
         title={ title }
@@ -184,7 +182,7 @@ class DocumentScene extends React.Component {
             { this.store.isAtlas && (
               <Flex>
                 { sidebar && (
-                  <div className={ styles.sidebar }>
+                  <div className={ cx(styles.sidebar) }>
                     <Tree
                       paddingLeft={ 10 }
                       tree={ toJS(this.store.atlasTree) }

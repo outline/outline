@@ -13,7 +13,7 @@ class DocumentSceneStore {
   @observable document;
   @observable collapsedNodes = [];
 
-  @observable isFetching;
+  @observable isFetching = true;
   @observable updatingContent = false;
   @observable updatingStructure = false;
   @observable isDeleting;
