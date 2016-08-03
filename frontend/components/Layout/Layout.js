@@ -8,6 +8,7 @@ import _ from 'lodash';
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import Flex from 'components/Flex';
 import LoadingIndicator from 'components/LoadingIndicator';
+import Alert from 'components/Alert';
 import { Avatar } from 'rebass';
 
 import styles from './Layout.scss';
@@ -17,6 +18,7 @@ const cx = classNames.bind(styles);
 @observer(['user'])
 class Layout extends React.Component {
   static propTypes = {
+    children: React.PropTypes.node,
     actions: React.PropTypes.node,
     title: React.PropTypes.node,
     titleText: React.PropTypes.node,
@@ -48,16 +50,15 @@ class Layout extends React.Component {
     return (
       <div className={ styles.container }>
         <Helmet
-          title={
-            this.props.titleText
+          title={ this.props.titleText
               ? `${this.props.titleText} - Beautiful Atlas`
-              : 'Beautiful Atlas'
-          }
+              : 'Beautiful Atlas' }
         />
 
         { this.props.loading ? (
           <LoadingIndicator />
         ) : null }
+
         <div className={ cx(styles.header, { fixed: this.props.fixed }) }>
           <div className={ styles.headerLeft }>
             <Link to="/" className={ styles.team }>{ user.team.name }</Link>
@@ -76,17 +77,17 @@ class Layout extends React.Component {
                   className={ styles.search }
                   title="Search (/)"
                 >
-                  <img src={ require('assets/icons/search.svg') } />
+                  <img src={ require('assets/icons/search.svg') } alt="Search" />
                 </div>
               </Flex>
             ) }
-            <DropdownMenu label={
-              <Avatar
+            <DropdownMenu
+              label={ <Avatar
                 circle
-                size={24}
+                size={ 24 }
                 src={ user.user.avatarUrl }
-              />
-            }>
+              /> }
+            >
               <MenuItem onClick={ user.logout }>Logout</MenuItem>
             </DropdownMenu>
           </Flex>

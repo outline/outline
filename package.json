@@ -102,6 +102,7 @@
     "react-keydown": "^1.6.1",
     "react-router": "2.5.1",
     "rebass": "0.2.6",
+    "reflexbox": "^2.0.0",
     "safestart": "0.8.0",
     "sass-loader": "4.0.0",
     "sequelize": "3.23.4",
