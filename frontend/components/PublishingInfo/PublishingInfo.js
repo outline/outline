@@ -2,7 +2,7 @@ import React from 'react';
 import moment from 'moment';
 
 import { Avatar } from 'rebass';
-import Flex from 'components/Flex';
+import { Flex } from 'reflexbox';
 
 import styles from './PublishingInfo.scss';
 

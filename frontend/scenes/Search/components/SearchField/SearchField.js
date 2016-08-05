@@ -1,8 +1,6 @@
 import React, { PropTypes } from 'react';
 import { observer } from 'mobx-react';
 
-import Flex from 'components/Flex';
-
 import styles from './SearchField.scss';
 
 @observer

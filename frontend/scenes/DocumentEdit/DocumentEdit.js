@@ -9,7 +9,7 @@ import DocumentEditStore, {
 
 import Switch from 'components/Switch';
 import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
-import Flex from 'components/Flex';
+import { Flex } from 'reflexbox';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
@@ -131,7 +131,7 @@ class DocumentEdit extends Component {
     let titleText = this.store.title;
 
     const actions = (
-      <Flex direction="row">
+      <Flex>
         <HeaderAction>
           <SaveAction
             onClick={ this.onSave }

@@ -2,12 +2,11 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import _debounce from 'lodash/debounce';
 
-import Flex from 'components/Flex';
+import { Flex } from 'reflexbox';
 import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SearchField from './components/SearchField';
 import DocumentPreview from 'components/DocumentPreview';
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 
 import styles from './Search.scss';
 
@@ -35,11 +34,12 @@ class Search extends React.Component {
         loading={ this.store.isFetching }
       >
         <CenteredContent>
-          <Flex direction="column" flex={ true }>
-            <Flex flex={ true }>
+          <Flex column auto>
+            <Flex auto>
               <img
                 src={ require('assets/icons/search.svg') }
                 className={ styles.icon }
+                alt="Search"
               />
               <SearchField
                 searchTerm={ this.store.searchTerm }
@@ -47,7 +47,7 @@ class Search extends React.Component {
               />
             </Flex>
             { this.store.documents && this.store.documents.map((document) => {
-             return  (<DocumentPreview key={ document.id } document={ document } />);
+              return (<DocumentPreview key={ document.id } document={ document } />);
             }) }
           </Flex>
         </CenteredContent>

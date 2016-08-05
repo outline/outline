@@ -6,7 +6,7 @@ import keydown from 'react-keydown';
 import _ from 'lodash';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
-import Flex from 'components/Flex';
+import { Flex } from 'reflexbox';
 import LoadingIndicator from 'components/LoadingIndicator';
 import Alert from 'components/Alert';
 import { Avatar } from 'rebass';
@@ -66,7 +66,7 @@ class Layout extends React.Component {
               { this.props.title && (<span>&nbsp;/&nbsp;</span>) }{ this.props.title }
             </span>
           </div>
-          <Flex direction="row" className={ styles.headerRight }>
+          <Flex className={ styles.headerRight }>
             <Flex align="center" className={ styles.actions }>
               { this.props.actions }
             </Flex>

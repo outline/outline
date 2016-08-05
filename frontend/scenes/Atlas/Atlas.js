@@ -12,7 +12,7 @@ import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import Divider from 'components/Divider';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
-import Flex from 'components/Flex';
+import { Flex } from 'reflexbox';
 
 import styles from './Atlas.scss';
 
@@ -53,7 +53,7 @@ class Atlas extends React.Component {
 
     if (collection) {
       actions = (
-        <Flex direction="row">
+        <Flex>
           <DropdownMenu label={ <MoreIcon /> } >
             <MenuItem onClick={ this.onCreate }>
               New document

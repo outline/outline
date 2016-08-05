@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 
 import store from './DashboardStore';
 
-import Flex from 'components/Flex';
+import { Flex } from 'reflexbox';
 import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -35,7 +35,7 @@ class Dashboard extends React.Component {
 
   render() {
     const actions = (
-      <Flex direction="row">
+      <Flex>
         <DropdownMenu label={ <MoreIcon /> } >
           <MenuItem onClick={ this.onClickNewAtlas }>
             New Atlas
@@ -45,7 +45,7 @@ class Dashboard extends React.Component {
     );
 
     return (
-      <Flex flex>
+      <Flex auto>
         <Layout
           actions={ actions }
         >
