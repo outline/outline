@@ -21,13 +21,13 @@ import styles from './Atlas.scss';
 class Atlas extends React.Component {
   componentDidMount = () => {
     const { id } = this.props.params;
-    store.fetchAtlas(id, data => {
+    store.fetchCollection(id, data => {
 
       // Forward directly to root document
       if (data.type === 'atlas') {
         browserHistory.replace(data.navigationTree.url);
       }
-    })
+    });
   }
 
   componentWillReceiveProps = (nextProps) => {
@@ -41,17 +41,17 @@ class Atlas extends React.Component {
 
   onCreate = (event) => {
     if (event) event.preventDefault();
-    browserHistory.push(`/atlas/${store.atlas.id}/new`);
+    browserHistory.push(`/collections/${store.collection.id}/new`);
   }
 
   render() {
-    const atlas = store.atlas;
+    const collection = store.collection;
 
     let actions;
     let title;
     let titleText;
 
-    if (atlas) {
+    if (collection) {
       actions = (
         <Flex direction="row">
           <DropdownMenu label={ <MoreIcon /> } >
@@ -61,8 +61,8 @@ class Atlas extends React.Component {
           </DropdownMenu>
         </Flex>
       );
-      title = <Title>{ atlas.name }</Title>;
-      titleText = atlas.name;
+      title = <Title>{ collection.name }</Title>;
+      titleText = collection.name;
     }
 
     return (
@@ -77,15 +77,15 @@ class Atlas extends React.Component {
           ) : (
             <div className={ styles.container }>
               <div className={ styles.atlasDetails }>
-                <h2>{ atlas.name }</h2>
+                <h2>{ collection.name }</h2>
                 <blockquote>
-                  { atlas.description }
+                  { collection.description }
                 </blockquote>
               </div>
 
               <Divider />
 
-              <DocumentList documents={ atlas.recentDocuments } preview={ true } />
+              <DocumentList documents={ collection.recentDocuments } preview />
             </div>
           ) }
         </CenteredContent>

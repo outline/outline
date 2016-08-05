@@ -103,7 +103,7 @@ class DocumentScene extends React.Component {
 
   onDelete = () => {
     let msg;
-    if (this.store.document.atlas.type === 'atlas') {
+    if (this.store.document.collection.type === 'atlas') {
       msg = 'Are you sure you want to delete this document and all it\'s child documents (if any)?';
     } else {
       msg = 'Are you sure you want to delete this document?';
@@ -141,8 +141,8 @@ class DocumentScene extends React.Component {
     } = this.props.ui;
 
     const doc = this.store.document;
-    const allowDelete = doc && doc.atlas.type === 'atlas' &&
-      doc.id !== doc.atlas.navigationTree.id;
+    const allowDelete = doc && doc.collection.type === 'atlas' &&
+      doc.id !== doc.collection.navigationTree.id;
     let title;
     let titleText;
     let actions;
@@ -150,7 +150,8 @@ class DocumentScene extends React.Component {
       actions = (
         <div className={ styles.actions }>
           <DropdownMenu label={ <MoreIcon /> }>
-            { this.store.isAtlas && <MenuItem onClick={ this.onCreate }>New document</MenuItem> }
+            { this.store.isCollection &&
+              <MenuItem onClick={ this.onCreate }>New document</MenuItem> }
             <MenuItem onClick={ this.onEdit }>Edit</MenuItem>
             <MenuItem onClick={ this.onExport }>Export</MenuItem>
             { allowDelete && <MenuItem onClick={ this.onDelete }>Delete</MenuItem> }
@@ -159,11 +160,11 @@ class DocumentScene extends React.Component {
       );
       title = (
         <span>
-          <Link to={ `/atlas/${doc.atlas.id}` }>{ doc.atlas.name }</Link>
+          <Link to={ `/collections/${doc.collection.id}` }>{ doc.collection.name }</Link>
           { ` / ${doc.title}` }
         </span>
       );
-      titleText = `${doc.atlas.name} - ${doc.title}`;
+      titleText = `${doc.collection.name} - ${doc.title}`;
     }
 
     return (
@@ -179,13 +180,13 @@ class DocumentScene extends React.Component {
           </CenteredContent>
         ) : (
           <Flex flex>
-            { this.store.isAtlas && (
+            { this.store.isCollection && (
               <Flex>
                 { sidebar && (
                   <div className={ cx(styles.sidebar) }>
                     <Tree
                       paddingLeft={ 10 }
-                      tree={ toJS(this.store.atlasTree) }
+                      tree={ toJS(this.store.collectionTree) }
                       onChange={ this.store.updateNavigationTree }
                       onCollapse={ this.store.onNodeCollapse }
                       isNodeCollapsed={ this.isNodeCollapsed }

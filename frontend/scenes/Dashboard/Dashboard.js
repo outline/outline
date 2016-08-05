@@ -24,7 +24,7 @@ class Dashboard extends React.Component {
   }
 
   componentDidMount = () => {
-    store.fetchAtlases(this.props.user.team.id);
+    store.fetchCollections(this.props.user.team.id);
   }
 
   onClickNewAtlas = () => {
@@ -53,8 +53,8 @@ class Dashboard extends React.Component {
             <Flex direction="column" flex>
               { store.isFetching ? (
                 <AtlasPreviewLoading />
-              ) : store.atlases && store.atlases.map((atlas) => {
-                return (<AtlasPreview key={ atlas.id } data={ atlas } />);
+              ) : store.collections && store.collections.map((collection) => {
+                return (<AtlasPreview key={ collection.id } data={ collection } />);
               }) }
             </Flex>
           </CenteredContent>

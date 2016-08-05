@@ -4,12 +4,12 @@ import _orderBy from 'lodash.orderby';
 
 import auth from './authentication';
 import pagination from './middlewares/pagination';
-import { presentAtlas } from '../presenters';
+import { presentCollection } from '../presenters';
 import { Atlas } from '../models';
 
 const router = new Router();
 
-router.post('atlases.create', auth(), async (ctx) => {
+router.post('collections.create', auth(), async (ctx) => {
   const {
     name,
     description,
@@ -28,11 +28,11 @@ router.post('atlases.create', auth(), async (ctx) => {
   });
 
   ctx.body = {
-    data: await presentAtlas(atlas, true),
+    data: await presentCollection(atlas, true),
   };
 });
 
-router.post('atlases.info', auth(), async (ctx) => {
+router.post('collections.info', auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
@@ -47,14 +47,14 @@ router.post('atlases.info', auth(), async (ctx) => {
   if (!atlas) throw httpErrors.NotFound();
 
   ctx.body = {
-    data: await presentAtlas(atlas, true),
+    data: await presentCollection(atlas, true),
   };
 });
 
 
-router.post('atlases.list', auth(), pagination(), async (ctx) => {
+router.post('collections.list', auth(), pagination(), async (ctx) => {
   const user = ctx.state.user;
-  const atlases = await Atlas.findAll({
+  const collections = await Atlas.findAll({
     where: {
       teamId: user.teamId,
     },
@@ -67,8 +67,8 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
 
   // Atlases
   let data = [];
-  await Promise.all(atlases.map(async (atlas) => {
-    return data.push(await presentAtlas(atlas, true));
+  await Promise.all(collections.map(async (atlas) => {
+    return data.push(await presentCollection(atlas, true));
   }));
 
   data = _orderBy(data, ['updatedAt'], ['desc']);
@@ -79,7 +79,7 @@ router.post('atlases.list', auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post('atlases.updateNavigationTree', auth(), async (ctx) => {
+router.post('collections.updateNavigationTree', auth(), async (ctx) => {
   const { id, tree } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
@@ -96,7 +96,7 @@ router.post('atlases.updateNavigationTree', auth(), async (ctx) => {
   await atlas.updateNavigationTree(tree);
 
   ctx.body = {
-    data: await presentAtlas(atlas, true),
+    data: await presentCollection(atlas, true),
   };
 });
 

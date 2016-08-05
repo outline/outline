@@ -26,7 +26,7 @@ class AtlasPreview extends React.Component {
               <DocumentLink document={ document } key={ document.id } />)
           })
         : (
-          <div className={ styles.description }>No documents. Why not <Link to={ `/atlas/${data.id}/new` }>create one</Link>?</div>
+          <div className={ styles.description }>No documents. Why not <Link to={ `/collections/${data.id}/new` }>create one</Link>?</div>
         ) }
       </div>
     );

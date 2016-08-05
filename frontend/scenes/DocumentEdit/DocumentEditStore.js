@@ -21,7 +21,7 @@ const parseHeader = (text) => {
 
 class DocumentEditStore {
   @observable documentId = null;
-  @observable atlasId = null;
+  @observable collectionId = null;
   @observable parentDocument;
   @observable title;
   @observable text;
@@ -63,7 +63,7 @@ class DocumentEditStore {
     try {
       const data = await client.post('/documents.create', {
         parentDocument: this.parentDocument && this.parentDocument.id,
-        atlas: this.atlasId || this.parentDocument.atlas.id,
+        collection: this.collectionId || this.parentDocument.collection.id,
         title: this.title,
         text: this.text,
       }, { cache: true });

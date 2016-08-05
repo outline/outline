@@ -13,11 +13,11 @@ class FullscreenField extends React.Component {
       <div className={ styles.container }>
         <CenteredContent>
           <div className={ styles.content }>
-            <h2>Create a new atlas</h2>
-            <p>Atlases are collections where you, your teams or friends can share and collect information.</p>
+            <h2>Create a new collection</h2>
+            <p>Collections are spaces where you, your teams or friends can share and collect information.</p>
 
             <div className={ styles.field }>
-              <div className={ styles.label }>Atlas name</div>
+              <div className={ styles.label }>Collection name</div>
               <input type="text" placeholder="Meeting notes" />
             </div>
 
@@ -27,7 +27,7 @@ class FullscreenField extends React.Component {
             </div>
 
             <div className={ styles.field }>
-              <button className={ styles.button }>Create atlas</button>
+              <button className={ styles.button }>Create collection</button>
             </div>
           </div>
         </CenteredContent>

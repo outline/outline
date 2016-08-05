@@ -2,7 +2,7 @@ import _orderBy from 'lodash.orderby';
 import { Document, Atlas } from './models';
 
 export function presentUser(user) {
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (resolve, _reject) => {
     const data = {
       id: user.id,
       name: user.name,
@@ -14,7 +14,7 @@ export function presentUser(user) {
 }
 
 export function presentTeam(team) {
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (resolve, _reject) => {
     resolve({
       id: team.id,
       name: team.name,
@@ -22,42 +22,7 @@ export function presentTeam(team) {
   });
 }
 
-export function presentAtlas(atlas, includeRecentDocuments=false) {
-  return new Promise(async (resolve, reject) => {
-    const data = {
-      id: atlas.id,
-      name: atlas.name,
-      description: atlas.description,
-      type: atlas.type,
-    }
-
-    if (atlas.type === 'atlas') {
-      data.navigationTree = await atlas.getStructure();
-    }
-
-    if (includeRecentDocuments) {
-      const documents = await Document.findAll({
-        where: {
-          atlasId: atlas.id,
-        },
-        limit: 10,
-        order: [
-          ['updatedAt', 'DESC'],
-        ],
-      });
-
-      let recentDocuments = [];
-      await Promise.all(documents.map(async (document) => {
-        recentDocuments.push(await presentDocument(document, true));
-      }))
-      data.recentDocuments = _orderBy(recentDocuments, ['updatedAt'], ['desc']);
-    }
-
-    resolve(data);
-  });
-}
-
-export async function presentDocument(document, includeAtlas=false) {
+export async function presentDocument(document, includeCollection = false) {
   const data = {
     id: document.id,
     url: document.buildUrl(),
@@ -66,22 +31,56 @@ export async function presentDocument(document, includeAtlas=false) {
     text: document.text,
     html: document.html,
     preview: document.preview,
-    private: document.private,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
-    atlas: document.atlasId,
+    collection: document.atlasId,
     team: document.teamId,
-  }
+  };
 
-  if (includeAtlas) {
-    const atlas = await Atlas.findOne({ where: {
+  if (includeCollection) {
+    const collection = await Atlas.findOne({ where: {
       id: document.atlasId,
-    }});
-    data.atlas = await presentAtlas(atlas, false);
+    } });
+    data.collection = await presentCollection(collection, false);
   }
 
   const user = await document.getUser();
   data.user = await presentUser(user);
 
   return data;
+}
+
+export function presentCollection(collection, includeRecentDocuments=false) {
+  return new Promise(async (resolve, _reject) => {
+    const data = {
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      type: collection.type,
+    };
+
+    if (collection.type === 'atlas') {
+      data.navigationTree = await collection.getStructure();
+    }
+
+    if (includeRecentDocuments) {
+      const documents = await Document.findAll({
+        where: {
+          atlasId: collection.id,
+        },
+        limit: 10,
+        order: [
+          ['updatedAt', 'DESC'],
+        ],
+      });
+
+      const recentDocuments = [];
+      await Promise.all(documents.map(async (document) => {
+        recentDocuments.push(await presentDocument(document, true));
+      }));
+      data.recentDocuments = _orderBy(recentDocuments, ['updatedAt'], ['desc']);
+    }
+
+    resolve(data);
+  });
 }

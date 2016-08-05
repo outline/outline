@@ -82,19 +82,19 @@ router.post('documents.search', auth(), async (ctx) => {
 
 router.post('documents.create', auth(), async (ctx) => {
   const {
-    atlas,
+    collection,
     title,
     text,
     parentDocument,
   } = ctx.body;
-  ctx.assertPresent(atlas, 'atlas is required');
+  ctx.assertPresent(collection, 'collection is required');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
 
   const user = ctx.state.user;
   const ownerAtlas = await Atlas.findOne({
     where: {
-      id: atlas,
+      id: collection,
       teamId: user.teamId,
     },
   });
@@ -161,9 +161,9 @@ router.post('documents.update', auth(), async (ctx) => {
   await document.createRevision();
 
   // Update
-  const atlas = await Atlas.findById(document.atlasId);
-  if (atlas.type === 'atlas') {
-    await atlas.updateNavigationTree();
+  const collection = await Atlas.findById(document.atlasId);
+  if (collection.type === 'atlas') {
+    await collection.updateNavigationTree();
   }
 
   ctx.body = {
@@ -184,11 +184,11 @@ router.post('documents.delete', auth(), async (ctx) => {
       teamId: user.teamId,
     },
   });
-  const atlas = await Atlas.findById(document.atlasId);
+  const collection = await Atlas.findById(document.atlasId);
 
   if (!document) throw httpErrors.BadRequest();
 
-  if (atlas.type === 'atlas') {
+  if (collection.type === 'atlas') {
     // Don't allow deletion of root docs
     if (!document.parentDocumentId) {
       throw httpErrors.BadRequest('Unable to delete atlas\'s root document');
@@ -196,8 +196,8 @@ router.post('documents.delete', auth(), async (ctx) => {
 
     // Delete all chilren
     try {
-      await atlas.deleteDocument(document);
-      await atlas.save();
+      await collection.deleteDocument(document);
+      await collection.save();
     } catch (e) {
       throw httpErrors.BadRequest('Error while deleting');
     }

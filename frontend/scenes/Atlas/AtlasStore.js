@@ -2,20 +2,20 @@ import { observable, action } from 'mobx';
 import { client } from 'utils/ApiClient';
 
 const store = new class AtlasStore {
-  @observable atlas;
+  @observable collection;
 
   @observable isFetching = true;
 
   /* Actions */
 
-  @action fetchAtlas = async (id, successCallback) => {
+  @action fetchCollection = async (id, successCallback) => {
     this.isFetching = true;
-    this.atlas = null;
+    this.collection = null;
 
     try {
-      const res = await client.get('/atlases.info', { id: id });
+      const res = await client.get('/collections.info', { id });
       const { data } = res;
-      this.atlas = data;
+      this.collection = data;
       successCallback(data);
     } catch (e) {
       console.error("Something went wrong");

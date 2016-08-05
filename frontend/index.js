@@ -50,9 +50,9 @@ render((
           <IndexRoute component={ Home } />
 
           <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
-          <Route path="/atlas/:id" component={ Atlas } onEnter={ requireAuth } />
+          <Route path="/collections/:id" component={ Atlas } onEnter={ requireAuth } />
           <Route
-            path="/atlas/:id/new"
+            path="/collections/:id/new"
             component={ DocumentEdit }
             onEnter={ requireAuth }
             newDocument

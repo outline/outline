@@ -20,14 +20,14 @@ class DocumentSceneStore {
 
   /* Computed */
 
-  @computed get isAtlas() {
+  @computed get isCollection() {
     return this.document &&
-      this.document.atlas.type === 'atlas';
+      this.document.collection.type === 'atlas';
   }
 
-  @computed get atlasTree() {
-    if (!this.document || this.document.atlas.type !== 'atlas') return;
-    const tree = this.document.atlas.navigationTree;
+  @computed get collectionTree() {
+    if (!this.document || this.document.collection.type !== 'atlas') return;
+    const tree = this.document.collection.navigationTree;
 
     const collapseNodes = (node) => {
       if (this.collapsedNodes.includes(node.id)) {
@@ -74,7 +74,7 @@ class DocumentSceneStore {
 
     try {
       await client.post('/documents.delete', { id: this.document.id });
-      browserHistory.push(`/atlas/${this.document.atlas.id}`);
+      browserHistory.push(`/collections/${this.document.collection.id}`);
     } catch (e) {
       console.error("Something went wrong");
     }
@@ -83,20 +83,20 @@ class DocumentSceneStore {
 
   @action updateNavigationTree = async (tree) => {
     // Only update when tree changes
-    if (_isEqual(toJS(tree), toJS(this.document.atlas.navigationTree))) {
+    if (_isEqual(toJS(tree), toJS(this.document.collection.navigationTree))) {
       return true;
     }
 
     this.updatingStructure = true;
 
     try {
-      const res = await client.post('/atlases.updateNavigationTree', {
-        id: this.document.atlas.id,
+      const res = await client.post('/collections.updateNavigationTree', {
+        id: this.document.collection.id,
         tree,
       });
       runInAction('updateNavigationTree', () => {
         const { data } = res;
-        this.document.atlas = data;
+        this.document.collection = data;
       });
     } catch (e) {
       console.error("Something went wrong");

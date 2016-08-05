@@ -47,7 +47,7 @@ class DocumentEdit extends Component {
 
   componentDidMount = () => {
     if (this.props.route.newDocument) {
-      this.store.atlasId = this.props.params.id;
+      this.store.collectionId = this.props.params.id;
       this.store.newDocument = true;
     } else if (this.props.route.newChildDocument) {
       this.store.documentId = this.props.params.id;
