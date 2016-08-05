@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
-import { toJS } from 'mobx';
 import { Link, browserHistory } from 'react-router';
 import { observer } from 'mobx-react';
+import { toJS } from 'mobx';
 import keydown from 'react-keydown';
 import _ from 'lodash';
 
@@ -14,14 +14,12 @@ import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import Document from 'components/Document';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
-import Flex from 'components/Flex';
-import Tree from 'components/Tree';
+import { Flex } from 'reflexbox';
+import Sidebar from './components/Sidebar';
 
 import styles from './DocumentScene.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
-
-import treeStyles from 'components/Tree/Tree.scss';
+// import classNames from 'classnames/bind';
+// const cx = classNames.bind(styles);
 
 @keydown(['cmd+/', 'ctrl+/', 'c', 'e'])
 @observer(['ui', 'cache'])
@@ -59,7 +57,7 @@ class DocumentScene extends React.Component {
     const key = nextProps.keydown.event;
     if (key) {
       if (key.key === '/' && (key.metaKey || key.ctrl.Key)) {
-        this.toggleSidebar();
+        this.props.ui.toggleSidebar();
       }
 
       if (key.key === 'c') {
@@ -123,18 +121,6 @@ class DocumentScene extends React.Component {
     a.click();
   }
 
-  toggleSidebar = () => {
-    this.props.ui.toggleSidebar();
-  }
-
-  renderNode = (node) => {
-    return (
-      <span className={ treeStyles.nodeLabel } onClick={ this.onClickNode.bind(null, node) }>
-        { node.module.name }
-      </span>
-    );
-  }
-
   render() {
     const {
       sidebar,
@@ -179,33 +165,15 @@ class DocumentScene extends React.Component {
             <AtlasPreviewLoading />
           </CenteredContent>
         ) : (
-          <Flex flex>
+          <Flex auto>
             { this.store.isCollection && (
-              <Flex>
-                { sidebar && (
-                  <div className={ cx(styles.sidebar) }>
-                    <Tree
-                      paddingLeft={ 10 }
-                      tree={ toJS(this.store.collectionTree) }
-                      onChange={ this.store.updateNavigationTree }
-                      onCollapse={ this.store.onNodeCollapse }
-                      isNodeCollapsed={ this.isNodeCollapsed }
-                      renderNode={ this.renderNode }
-                    />
-                  </div>
-                ) }
-                <div
-                  onClick={ this.toggleSidebar }
-                  className={ styles.sidebarToggle }
-                  title="Toggle sidebar (Cmd+/)"
-                >
-                  <img
-                    src={ require("assets/icons/menu.svg") }
-                    className={ styles.menuIcon }
-                    alt="Menu"
-                  />
-                </div>
-              </Flex>
+              <Sidebar
+                open={ sidebar }
+                onToggle={ this.props.ui.toggleSidebar }
+                navigationTree={ toJS(this.store.collectionTree) }
+                onNavigationUpdate={ this.store.updateNavigationTree }
+                onNodeCollapse={ this.store.onNodeCollapse }
+              />
             ) }
             <Flex flex justify="center" className={ styles.content }>
               <CenteredContent>
