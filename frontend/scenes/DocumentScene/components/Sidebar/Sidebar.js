@@ -1,8 +1,10 @@
 import React, { PropTypes } from 'react';
 import { observer } from 'mobx-react';
+import { Link } from 'react-router';
 
 import { Flex } from 'reflexbox';
 import Tree from 'components/Tree';
+import Separator from './components/Separator';
 
 import styles from './Sidebar.scss';
 import classNames from 'classnames/bind';
@@ -36,6 +38,8 @@ class Sidebar extends React.Component {
   }
 
   render() {
+    console.log(this.props.navigationTree);
+
     return (
       <Flex>
         { this.props.open && (
@@ -50,11 +54,18 @@ class Sidebar extends React.Component {
               />
             </Flex>
             <Flex auto className={ styles.actions }>
+              <Link
+                to={ `/documents/${this.props.navigationTree.id}/new` }
+                className={ cx(styles.action) }
+              >
+                Add document
+              </Link>
+              <Separator/>
               <a
                 href
                 onClick={ this.toggleEdit }
                 className={ cx(styles.action, { active: this.store.isEditing }) }
-              >Edit</a>
+              >Organize</a>
             </Flex>
           </Flex>
         ) }
