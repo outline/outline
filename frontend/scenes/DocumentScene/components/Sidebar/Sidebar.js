@@ -58,7 +58,7 @@ class Sidebar extends React.Component {
               >
                 Add document
               </Link>
-              <Separator/>
+              <Separator />
               <a
                 href
                 onClick={ this.toggleEdit }
