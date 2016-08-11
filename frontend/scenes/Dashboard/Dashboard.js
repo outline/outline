@@ -50,7 +50,7 @@ class Dashboard extends React.Component {
           actions={ actions }
         >
           <CenteredContent>
-            <Flex direction="column" flex>
+            <Flex column auto>
               { store.isFetching ? (
                 <AtlasPreviewLoading />
               ) : store.collections && store.collections.map((collection) => {

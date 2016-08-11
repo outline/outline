@@ -19,7 +19,7 @@ class AtlasPreview extends React.Component {
 
     return (
       <div className={ styles.container }>
-        <h2><Link to={ `/atlas/${data.id}` } className={ styles.atlasLink }>{ data.name }</Link></h2>
+        <h2><Link to={ `/collections/${data.id}` } className={ styles.atlasLink }>{ data.name }</Link></h2>
         { data.recentDocuments.length > 0 ?
           data.recentDocuments.map(document => {
             return (
