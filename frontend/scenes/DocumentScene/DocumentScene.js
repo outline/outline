@@ -175,7 +175,7 @@ class DocumentScene extends React.Component {
                 onNodeCollapse={ this.store.onNodeCollapse }
               />
             ) }
-            <Flex flex justify="center" className={ styles.content }>
+            <Flex auto justify="center" className={ styles.content }>
               <CenteredContent>
                 { this.store.updatingContent ? (
                   <AtlasPreviewLoading />

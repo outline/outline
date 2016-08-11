@@ -10,8 +10,8 @@ module.exports = React.createClass({
   propTypes: {
     tree: React.PropTypes.object.isRequired,
     paddingLeft: React.PropTypes.number,
-    renderNode: React.PropTypes.func.isRequired,
     onCollapse: React.PropTypes.func,
+    allowUpdates: React.PropTypes.bool,
   },
 
   getDefaultProps() {
@@ -32,7 +32,6 @@ module.exports = React.createClass({
   init(props) {
     var tree = new Tree(props.tree);
     tree.isNodeCollapsed = props.isNodeCollapsed;
-    tree.renderNode = props.renderNode;
     tree.changeNodeCollapsed = props.changeNodeCollapsed;
     tree.updateNodesPosition();
 
@@ -61,11 +60,12 @@ module.exports = React.createClass({
       };
 
       return (
-        <div className={ styles.draggable } style={draggingStyles}>
+        <div className={ styles.draggable } style={ draggingStyles }>
           <Node
-            tree={tree}
-            index={draggingIndex}
-            paddingLeft={this.props.paddingLeft}
+            tree={ tree }
+            index={ draggingIndex }
+            paddingLeft={ this.props.paddingLeft }
+            allowUpdates={ this.props.allowUpdates }
           />
         </div>
       );
@@ -81,16 +81,17 @@ module.exports = React.createClass({
 
     return (
       <div className={ styles.tree }>
-        {draggingDom}
+        { draggingDom }
         <Node
-          rootNode={ true }
-          tree={tree}
-          index={tree.getIndex(1)}
-          key={1}
-          paddingLeft={this.props.paddingLeft}
-          onDragStart={this.dragStart}
-          onCollapse={this.toggleCollapse}
-          dragging={dragging && dragging.id}
+          rootNode
+          tree={ tree }
+          index={ tree.getIndex(1) }
+          key={ 1 }
+          paddingLeft={ this.props.paddingLeft }
+          allowUpdates={ this.props.allowUpdates }
+          onDragStart={ this.dragStart }
+          onCollapse={ this.toggleCollapse }
+          dragging={ dragging && dragging.id }
         />
       </div>
     );

@@ -7,9 +7,14 @@
 }
 
 .tree {
-  position: relative;
-  overflow: hidden;
   @include no-select;
+  padding: 20px 20px 20px 5px;
+  overflow: scroll;
+  position: absolute;
+  top: 0;
+  bottom: 40px;
+  right: 0;
+  left: 0;
 }
 
 .draggable {
@@ -70,6 +75,10 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+
+    &.isModifying {
+      cursor: move;
+    }
 
     &.isActive {
       background-color: #31363F;

@@ -22,7 +22,6 @@ class Layout extends React.Component {
     actions: React.PropTypes.node,
     title: React.PropTypes.node,
     titleText: React.PropTypes.node,
-    fixed: React.PropTypes.bool,
     loading: React.PropTypes.bool,
     user: React.PropTypes.object.isRequired,
     search: React.PropTypes.bool,
@@ -59,7 +58,7 @@ class Layout extends React.Component {
           <LoadingIndicator />
         ) : null }
 
-        <div className={ cx(styles.header, { fixed: this.props.fixed }) }>
+        <div className={ cx(styles.header) }>
           <div className={ styles.headerLeft }>
             <Link to="/" className={ styles.team }>{ user.team.name }</Link>
             <span className={ styles.title }>
@@ -93,7 +92,9 @@ class Layout extends React.Component {
           </Flex>
         </div>
 
-        <div className={ cx(styles.content, { fixed: this.props.fixed }) }>
+        <div
+          className={ cx(styles.content) }
+        >
           { this.props.children }
         </div>
       </div>

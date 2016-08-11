@@ -1,7 +1,8 @@
-.sidebar {
-  width: 250px;
-  padding: 20px 20px 20px 5px;
+@import '~styles/constants.scss';
 
+.sidebar {
+  position: relative;
+  width: 250px;
   border-right: 1px solid #eee;
 }
 
@@ -25,4 +26,31 @@
   margin-top: 18px;
   height: 28px;
   opacity: 0.15;
+}
+
+.content {
+  padding: 20px 20px 20px 5px;
+}
+
+.tree {
+
+}
+
+.actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  padding: 10px 20px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.action {
+  color: $darkGray;
+
+  &.active {
+    color: $textColor;
+  }
 }

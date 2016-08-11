@@ -8,10 +8,14 @@ import styles from './Sidebar.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-import treeStyles from 'components/Tree/Tree.scss';
+import SidebarStore from './SidebarStore';
+
+// import treeStyles from 'components/Tree/Tree.scss';
 
 @observer
 class Sidebar extends React.Component {
+  static store;
+
   static propTypes = {
     open: PropTypes.bool,
     onToggle: PropTypes.func.isRequired,
@@ -20,27 +24,39 @@ class Sidebar extends React.Component {
     onNodeCollapse: PropTypes.func.isRequired,
   }
 
-  renderNode = (node) => {
-    return (
-      <span className={ treeStyles.nodeLabel } onClick={ this.onClickNode.bind(null, node) }>
-        { node.module.name }
-      </span>
-    );
+  constructor(props) {
+    super(props);
+
+    this.store = new SidebarStore();
+  }
+
+  toggleEdit = (e) => {
+    e.preventDefault();
+    this.store.toggleEdit();
   }
 
   render() {
     return (
       <Flex>
         { this.props.open && (
-          <div className={ cx(styles.sidebar) }>
-            <Tree
-              paddingLeft={ 10 }
-              tree={ this.props.navigationTree }
-              onChange={ this.props.onNavigationUpdate }
-              onCollapse={ this.props.onNodeCollapse }
-              renderNode={ this.renderNode }
-            />
-          </div>
+          <Flex column className={ cx(styles.sidebar) }>
+            <Flex auto className={ cx(styles.content) }>
+              <Tree
+                paddingLeft={ 10 }
+                tree={ this.props.navigationTree }
+                allowUpdates={ this.store.isEditing }
+                onChange={ this.props.onNavigationUpdate }
+                onCollapse={ this.props.onNodeCollapse }
+              />
+            </Flex>
+            <Flex auto className={ styles.actions }>
+              <a
+                href
+                onClick={ this.toggleEdit }
+                className={ cx(styles.action, { active: this.store.isEditing }) }
+              >Edit</a>
+            </Flex>
+          </Flex>
         ) }
         <div
           onClick={ this.props.onToggle }

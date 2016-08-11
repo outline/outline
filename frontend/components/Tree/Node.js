@@ -1,14 +1,14 @@
-var React = require('react');
+import React from 'react';
 import history from 'utils/History';
 
 import styles from './Tree.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-var Node = React.createClass({
-  displayName: 'UITreeNode',
+class Node extends React.Component {
+  displayName: 'UITreeNode'
 
-  renderCollapse() {
+  renderCollapse = () => {
     var index = this.props.index;
 
     if(index.children && index.children.length) {
@@ -26,9 +26,9 @@ var Node = React.createClass({
     }
 
     return null;
-  },
+  }
 
-  renderChildren() {
+  renderChildren = () => {
     var index = this.props.index;
     var tree = this.props.tree;
     var dragging = this.props.dragging;
@@ -51,6 +51,7 @@ var Node = React.createClass({
                 index={childIndex}
                 key={childIndex.id}
                 dragging={dragging}
+                allowUpdates={ this.props.allowUpdates }
                 paddingLeft={this.props.paddingLeft}
                 onCollapse={this.props.onCollapse}
                 onDragStart={this.props.onDragStart}
@@ -62,14 +63,25 @@ var Node = React.createClass({
     }
 
     return null;
-  },
+  }
+
+  isModifying = () => {
+    return this.props.allowUpdates && !this.props.rootNode;
+  }
+
+  onClick = () => {
+    const index = this.props.index;
+    const node = index.node;
+
+    if (!this.isModifying()) history.push(node.url);
+  }
 
   render() {
-    var tree = this.props.tree;
-    var index = this.props.index;
-    var dragging = this.props.dragging;
-    var node = index.node;
-    var style = {};
+    const tree = this.props.tree;
+    const index = this.props.index;
+    const dragging = this.props.dragging;
+    const node = index.node;
+    const style = {};
 
     return (
       <div className={cx(styles.node, {
@@ -79,12 +91,15 @@ var Node = React.createClass({
         <div
           className={ styles.inner }
           ref="inner"
-          onMouseDown={this.props.rootNode ? (e) => e.stopPropagation() : this.handleMouseDown}
+          onMouseDown={this.props.rootNode || !this.props.allowUpdates ? (e) => e.stopPropagation() : this.handleMouseDown}
         >
-          {!this.props.rootNode && this.renderCollapse()}
+          { !this.props.rootNode && this.renderCollapse() }
           <span
-            className={ cx(styles.nodeLabel, { rootLabel: this.props.rootNode }) }
-            onClick={() => { history.push(node.url) }}
+            className={ cx(styles.nodeLabel, {
+              rootLabel: this.props.rootNode,
+              isModifying: this.isModifying(),
+            }) }
+            onClick={ this.onClick }
           >
             { node.title }
           </span>
@@ -92,15 +107,15 @@ var Node = React.createClass({
         {this.renderChildren()}
       </div>
     );
-  },
+  }
 
-  handleCollapse(e) {
+  handleCollapse = (e) => {
     e.stopPropagation();
     var nodeId = this.props.index.id;
     if(this.props.onCollapse) this.props.onCollapse(nodeId);
-  },
+  }
 
-  handleMouseDown(e) {
+  handleMouseDown = (e) => {
     var nodeId = this.props.index.id;
     var dom = this.refs.inner;
 
@@ -108,6 +123,6 @@ var Node = React.createClass({
       this.props.onDragStart(nodeId, dom, e);
     }
   }
-});
+};
 
 module.exports = Node;
