@@ -5,34 +5,37 @@ import styles from './Title.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-const Title = (props) => {
-  let title;
-  if (props.truncate) {
-    title = _truncate(props.children, props.truncate);
-  } else {
-    title = props.children;
+class Title extends React.Component {
+  static propTypes = {
+    children: React.PropTypes.string,
+    truncate: React.PropTypes.number,
+    placeholder: React.PropTypes.string,
   }
 
-  let usePlaceholder;
-  if (props.children === null && props.placeholder) {
-    title = props.placeholder;
-    usePlaceholder = true;
-  }
+  render() {
+    let title;
+    if (this.props.truncate) {
+      title = _truncate(this.props.children, this.props.truncate);
+    } else {
+      title = this.props.children;
+    }
 
-  return(
-    <span
-      title={ props.children }
-      className={ cx(styles.title, { untitled: usePlaceholder })}
-    >
-      { title }
-    </span>
-  );
+    let usePlaceholder;
+    if (this.props.children === null && this.props.placeholder) {
+      title = this.props.placeholder;
+      usePlaceholder = true;
+    }
+
+    return(
+      <span
+        title={ this.props.children }
+        className={ cx(styles.title, { untitled: usePlaceholder })}
+      >
+        { title || this.props.placeholder }
+      </span>
+    );
+
+  }
 };
-
-Title.propTypes = {
-  children: React.PropTypes.string,
-  truncate: React.PropTypes.number,
-  placeholder: React.PropTypes.string,
-}
 
 export default Title;
