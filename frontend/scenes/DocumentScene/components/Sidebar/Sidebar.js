@@ -38,8 +38,6 @@ class Sidebar extends React.Component {
   }
 
   render() {
-    console.log(this.props.navigationTree);
-
     return (
       <Flex>
         { this.props.open && (
