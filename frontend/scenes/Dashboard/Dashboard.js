@@ -8,7 +8,7 @@ import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
-import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
+// import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 
 // import styles from './Dashboard.scss';
 
@@ -23,21 +23,19 @@ class Dashboard extends React.Component {
   }
 
   render() {
-    const actions = (
-      <Flex>
-        <DropdownMenu label={ <MoreIcon /> } >
-          <MenuItem onClick={ this.onClickNewAtlas }>
-            Add collection
-          </MenuItem>
-        </DropdownMenu>
-      </Flex>
-    );
+    // const actions = (
+    //   <Flex>
+    //     <DropdownMenu label={ <MoreIcon /> } >
+    //       <MenuItem onClick={ this.onClickNewAtlas }>
+    //         Add collection
+    //       </MenuItem>
+    //     </DropdownMenu>
+    //   </Flex>
+    // );
 
     return (
       <Flex auto>
-        <Layout
-          actions={ actions }
-        >
+        <Layout>
           <CenteredContent>
             <Flex column auto>
               { store.isFetching ? (
