@@ -9,7 +9,6 @@ import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
-import FullscreenField from 'components/FullscreenField';
 
 // import styles from './Dashboard.scss';
 
@@ -19,18 +18,8 @@ class Dashboard extends React.Component {
     user: React.PropTypes.object.isRequired,
   }
 
-  state = {
-    newAtlasVisible: false,
-  }
-
   componentDidMount = () => {
     store.fetchCollections(this.props.user.team.id);
-  }
-
-  onClickNewAtlas = () => {
-    this.setState({
-      newAtlasVisible: true,
-    });
   }
 
   render() {
@@ -38,7 +27,7 @@ class Dashboard extends React.Component {
       <Flex>
         <DropdownMenu label={ <MoreIcon /> } >
           <MenuItem onClick={ this.onClickNewAtlas }>
-            New Atlas
+            Add collection
           </MenuItem>
         </DropdownMenu>
       </Flex>
@@ -59,8 +48,6 @@ class Dashboard extends React.Component {
             </Flex>
           </CenteredContent>
         </Layout>
-
-        { this.state.newAtlasVisible && <FullscreenField /> }
       </Flex>
     );
   }

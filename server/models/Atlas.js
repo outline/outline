@@ -154,21 +154,19 @@ const Atlas = sequelize.define('atlas', {
     },
     async deleteDocument(document) {
       const deleteNodeAndDocument = async (node, documentId, shouldDelete = false) => {
-        if (document.id === node.id) {
-          shouldDelete = true;
-        }
+        // Delete node if id matches
+        if (document.id === node.id) shouldDelete = true;
+
         const newChildren = [];
-        node.children.map(async childNode => {
+        node.children.forEach(async childNode => {
           const child = await deleteNodeAndDocument(childNode, documentId, shouldDelete);
-          if (child) {
-            newChildren.push(child);
-          }
+          if (child) newChildren.push(child);
         });
         node.children = newChildren;
 
         if (shouldDelete) {
-          const document = await Document.findById(node.id);
-          await document.destroy();
+          const doc = await Document.findById(node.id);
+          await doc.destroy();
         }
 
         return shouldDelete ? null : node;
