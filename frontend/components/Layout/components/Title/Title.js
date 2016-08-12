@@ -26,16 +26,15 @@ class Title extends React.Component {
       usePlaceholder = true;
     }
 
-    return(
+    return (
       <span
         title={ this.props.children }
-        className={ cx(styles.title, { untitled: usePlaceholder })}
+        className={ cx(styles.title, { untitled: usePlaceholder }) }
       >
         { title || this.props.placeholder }
       </span>
     );
-
   }
-};
+}
 
 export default Title;
