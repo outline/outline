@@ -20,6 +20,18 @@ const generateSlug = (title, urlId) => {
   return `${slugifiedTitle}-${urlId}`;
 };
 
+const createRevision = async (doc) => {
+  // Create revision of the current (latest)
+  await Revision.create({
+    title: doc.title,
+    text: doc.text,
+    html: doc.html,
+    preview: doc.preview,
+    userId: doc.lastModifiedById,
+    documentId: doc.id,
+  });
+};
+
 const documentBeforeSave = (doc) => {
   doc.html = convertToMarkdown(doc.text);
   doc.preview = truncateMarkdown(doc.text, 160);
@@ -52,6 +64,8 @@ const Document = sequelize.define('document', {
     },
     beforeCreate: documentBeforeSave,
     beforeUpdate: documentBeforeSave,
+    afterCreate: async (doc) => await createRevision(doc),
+    afterUpdate: async (doc) => await createRevision(doc),
   },
   instanceMethods: {
     buildUrl() {
@@ -60,17 +74,6 @@ const Document = sequelize.define('document', {
     },
     getUrl() {
       return `/documents/${this.id}`;
-    },
-    async createRevision() {
-      // Create revision of the current (latest)
-      await Revision.create({
-        title: this.title,
-        text: this.text,
-        html: this.html,
-        preview: this.preview,
-        userId: this.lastModifiedById,
-        documentId: this.id,
-      });
     },
   },
 });

@@ -5,7 +5,7 @@ import {
 } from '../sequelize';
 
 import auth from './authentication';
-import pagination from './middlewares/pagination';
+// import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
 import { Document, Atlas } from '../models';
 
@@ -13,7 +13,7 @@ const router = new Router();
 
 // FIXME: This really needs specs :/
 router.post('documents.info', auth({ require: false }), async (ctx) => {
-  let { id } = ctx.body;
+  const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
   const document = await Document.findOne({
@@ -62,13 +62,13 @@ router.post('documents.search', auth(), async (ctx) => {
     sql,
     {
       replacements: {
-        query: query,
+        query,
       },
       model: Document,
     }
   );
 
-  let data = [];
+  const data = [];
   await Promise.all(documents.map(async (document) => {
     data.push(await presentDocument(document));
   }));
@@ -92,40 +92,39 @@ router.post('documents.create', auth(), async (ctx) => {
   ctx.assertPresent(text, 'text is required');
 
   const user = ctx.state.user;
-  const ownerAtlas = await Atlas.findOne({
+  const ownerCollection = await Atlas.findOne({
     where: {
       id: collection,
       teamId: user.teamId,
     },
   });
 
-  if (!ownerAtlas) throw httpErrors.BadRequest();
+  if (!ownerCollection) throw httpErrors.BadRequest();
 
   let parentDocumentObj = {};
-  if (parentDocument && ownerAtlas.type === 'atlas') {
+  if (parentDocument && ownerCollection.type === 'atlas') {
     parentDocumentObj = await Document.findOne({
       where: {
         id: parentDocument,
-        atlasId: ownerAtlas.id,
+        atlasId: ownerCollection.id,
       },
     });
   }
 
   const document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
-    atlasId: ownerAtlas.id,
+    atlasId: ownerCollection.id,
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,
     title,
     text,
   });
-  await document.createRevision();
 
   // TODO: Move to afterSave hook if possible with imports
-  if (parentDocument && ownerAtlas.type === 'atlas') {
-    ownerAtlas.addNodeToNavigationTree(document);
-    await ownerAtlas.save();
+  if (parentDocument && ownerCollection.type === 'atlas') {
+    ownerCollection.addNodeToNavigationTree(document);
+    await ownerCollection.save();
   }
 
   ctx.body = {
@@ -158,7 +157,6 @@ router.post('documents.update', auth(), async (ctx) => {
   document.text = text;
   document.lastModifiedById = user.id;
   await document.save();
-  await document.createRevision();
 
   // Update
   const collection = await Atlas.findById(document.atlasId);
