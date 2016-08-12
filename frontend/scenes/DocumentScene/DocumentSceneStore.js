@@ -1,6 +1,4 @@
-import _isEqual from 'lodash/isEqual';
-import _indexOf from 'lodash/indexOf';
-import _without from 'lodash/without';
+import _ from 'lodash';
 import { observable, action, computed, runInAction, toJS, autorunAsync } from 'mobx';
 import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
@@ -35,7 +33,7 @@ class DocumentSceneStore {
       }
       node.children = node.children.map(childNode => {
         return collapseNodes(childNode);
-      })
+      });
 
       return node;
     };
@@ -83,7 +81,7 @@ class DocumentSceneStore {
 
   @action updateNavigationTree = async (tree) => {
     // Only update when tree changes
-    if (_isEqual(toJS(tree), toJS(this.document.collection.navigationTree))) {
+    if (_.isEqual(toJS(tree), toJS(this.document.collection.navigationTree))) {
       return true;
     }
 
@@ -105,8 +103,8 @@ class DocumentSceneStore {
   }
 
   @action onNodeCollapse = (nodeId, collapsed) => {
-    if (_indexOf(this.collapsedNodes, nodeId) >= 0) {
-      this.collapsedNodes = _without(this.collapsedNodes, nodeId);
+    if (_.indexOf(this.collapsedNodes, nodeId) >= 0) {
+      this.collapsedNodes = _.without(this.collapsedNodes, nodeId);
     } else {
       this.collapsedNodes.push(nodeId);
     }

@@ -2,7 +2,7 @@ import {
   DataTypes,
   sequelize,
 } from '../sequelize';
-import _isEqual from 'lodash/isEqual';
+import _ from 'lodash';
 import Document from './Document';
 
 const allowedAtlasTypes = [['atlas', 'journal']];
@@ -121,7 +121,7 @@ const Atlas = sequelize.define('atlas', {
       });
       const documentIds = documents.map(doc => doc.id);
 
-      if (!_isEqual(nodeIds.sort(), documentIds.sort())) {
+      if (!_.isEqual(nodeIds.sort(), documentIds.sort())) {
         throw new Error('Invalid navigation tree');
       }
 

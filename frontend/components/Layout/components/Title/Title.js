@@ -1,5 +1,5 @@
 import React from 'react';
-import _truncate from 'lodash/truncate';
+import _ from 'lodash';
 
 import styles from './Title.scss';
 import classNames from 'classnames/bind';
@@ -15,7 +15,7 @@ class Title extends React.Component {
   render() {
     let title;
     if (this.props.truncate) {
-      title = _truncate(this.props.children, this.props.truncate);
+      title = _.truncate(this.props.children, this.props.truncate);
     } else {
       title = this.props.children;
     }

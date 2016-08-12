@@ -1,6 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import _debounce from 'lodash/debounce';
+import _ from 'lodash';
 
 import { Flex } from 'reflexbox';
 import Layout from 'components/Layout';
@@ -22,7 +22,7 @@ class Search extends React.Component {
   }
 
   render() {
-    const search = _debounce((searchTerm) => {
+    const search = _.debounce((searchTerm) => {
       this.store.search(searchTerm);
     }, 250);
 
