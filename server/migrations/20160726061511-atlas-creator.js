@@ -13,6 +13,6 @@ module.exports = {
   },
 
   down: function (queryInterface, Sequelize) {
-    queryInterface.removeColumn('documents', 'creatorId');
+    queryInterface.removeColumn('atlases', 'creatorId');
   }
 };

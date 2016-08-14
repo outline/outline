@@ -18,26 +18,28 @@ const Atlas = sequelize.define('atlas', {
   navigationTree: DataTypes.JSONB,
 }, {
   tableName: 'atlases',
+  paranoid: true,
   hooks: {
-    afterCreate: async (atlas) => {
-      if (atlas.type !== 'atlas') return;
+    afterCreate: async (collection) => {
+      if (collection.type !== 'atlas') return;
 
       await Document.create({
         parentDocumentId: null,
-        atlasId: atlas.id,
-        teamId: atlas.teamId,
-        userId: atlas.creatorId,
-        lastModifiedById: atlas.creatorId,
+        atlasId: collection.id,
+        teamId: collection.teamId,
+        userId: collection.creatorId,
+        lastModifiedById: collection.creatorId,
         title: 'Introduction',
         text: '# Introduction',
       });
+      await collection.buildStructure();
+      await collection.save();
     },
   },
   instanceMethods: {
-    async getStructure() {
-      if (this.navigationTree) {
-        return this.navigationTree;
-      }
+    async buildStructure() {
+      console.log('start');
+      if (this.navigationTree) return this.navigationTree;
 
       const getNodeForDocument = async (document) => {
         const children = await Document.findAll({ where: {
@@ -47,7 +49,7 @@ const Atlas = sequelize.define('atlas', {
 
         const childNodes = [];
         await Promise.all(children.map(async (child) => {
-          childNodes.push(await getNodeForDocument(child));
+          return childNodes.push(await getNodeForDocument(child));
         }));
 
         return {
@@ -65,11 +67,8 @@ const Atlas = sequelize.define('atlas', {
         },
       });
 
-      if (rootDocument) {
-        return await getNodeForDocument(rootDocument);
-      } else {
-        return true; // TODO should create a root doc
-      }
+      this.navigationTree = await getNodeForDocument(rootDocument);
+      return this.navigationTree;
     },
     async updateNavigationTree(tree = this.navigationTree) {
       const nodeIds = [];

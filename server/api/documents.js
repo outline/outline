@@ -52,7 +52,8 @@ router.post('documents.search', auth(), async (ctx) => {
   const sql = `
   SELECT * FROM documents
   WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
-    "teamId" = '${user.teamId}'::uuid
+    "teamId" = '${user.teamId}'::uuid AND
+    "deletedAt" IS NULL
   ORDER BY ts_rank(documents."searchVector", plainto_tsquery('english', :query))
   DESC;
   `;
@@ -199,12 +200,13 @@ router.post('documents.delete', auth(), async (ctx) => {
     } catch (e) {
       throw httpErrors.BadRequest('Error while deleting');
     }
-  } else {
-    try {
-      await document.destroy();
-    } catch (e) {
-      throw httpErrors.BadRequest('Error while deleting');
-    }
+  }
+
+  // Delete the actual document
+  try {
+    await document.destroy();
+  } catch (e) {
+    throw httpErrors.BadRequest('Error while deleting document');
   }
 
   ctx.body = {

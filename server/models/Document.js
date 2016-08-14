@@ -58,6 +58,7 @@ const Document = sequelize.define('document', {
     },
   },
 }, {
+  paranoid: true,
   hooks: {
     beforeValidate: (doc) => {
       doc.urlId = randomstring.generate(15);

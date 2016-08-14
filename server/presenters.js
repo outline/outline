@@ -59,9 +59,7 @@ export function presentCollection(collection, includeRecentDocuments=false) {
       type: collection.type,
     };
 
-    if (collection.type === 'atlas') {
-      data.navigationTree = await collection.getStructure();
-    }
+    if (collection.type === 'atlas') data.navigationTree = collection.navigationTree;
 
     if (includeRecentDocuments) {
       const documents = await Document.findAll({
