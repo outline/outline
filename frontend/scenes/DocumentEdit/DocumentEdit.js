@@ -122,7 +122,7 @@ class DocumentEdit extends Component {
     let title = (
       <Title
         truncate={ 60 }
-        placeholder={ "Untitle document" }
+        placeholder={ !this.store.isFetching && 'Untitled document' }
       >
         { this.store.title }
       </Title>
