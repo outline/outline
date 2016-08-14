@@ -27,11 +27,14 @@ class Title extends React.Component {
     }
 
     return (
-      <span
-        title={ this.props.children }
-        className={ cx(styles.title, { untitled: usePlaceholder }) }
-      >
-        { title || this.props.placeholder }
+      <span>
+        { title && (<span>&nbsp;/&nbsp;</span>) }
+        <span
+          title={ this.props.children }
+          className={ cx(styles.title, { untitled: usePlaceholder }) }
+        >
+          { title }
+        </span>
       </span>
     );
   }

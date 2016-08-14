@@ -62,7 +62,7 @@ class Layout extends React.Component {
           <div className={ styles.headerLeft }>
             <Link to="/" className={ styles.team }>{ user.team.name }</Link>
             <span className={ styles.title }>
-              { this.props.title && (<span>&nbsp;/&nbsp;</span>) }{ this.props.title }
+              { this.props.title }
             </span>
           </div>
           <Flex className={ styles.headerRight }>

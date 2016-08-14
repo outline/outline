@@ -146,6 +146,7 @@ class DocumentScene extends React.Component {
       );
       title = (
         <span>
+          &nbsp;/&nbsp;
           <Link to={ `/collections/${doc.collection.id}` }>{ doc.collection.name }</Link>
           { ` / ${doc.title}` }
         </span>
