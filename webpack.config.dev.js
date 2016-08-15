@@ -8,6 +8,7 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
   devtool: 'eval',
   entry: [
+    'babel-polyfill',
     'babel-regenerator-runtime',
     'webpack-hot-middleware/client',
     './frontend/index',
