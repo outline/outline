@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 
 import PublishingInfo from 'components/PublishingInfo';
@@ -50,10 +51,11 @@ class Document extends React.Component {
     return (
       <div className={ styles.container }>
         <PublishingInfo
-          name={ this.props.document.createdBy.name }
-          avatarUrl={ this.props.document.createdBy.avatarUrl }
           createdAt={ this.props.document.createdAt }
+          createdBy={ this.props.document.createdBy }
           updatedAt={ this.props.document.updatedAt }
+          updatedBy={ this.props.document.updatedBy }
+          collaborators={ toJS(this.props.document.collaborators) }
         />
         <DocumentHtml html={ this.props.document.html } />
       </div>
