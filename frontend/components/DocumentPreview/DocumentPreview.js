@@ -24,7 +24,7 @@ class Document extends React.Component {
         />
 
         <Link
-          to={ `/documents/${this.props.document.id}` }
+          to={ this.props.document.url }
           className={ styles.title }
         >
           <h2>{ this.props.document.title }</h2>
@@ -34,7 +34,7 @@ class Document extends React.Component {
 
         <div>
           <Link
-            to={ `/documents/${this.props.document.id}` }
+            to={ this.props.document.url }
             className={ styles.continueLink }
           >
             Continue reading...

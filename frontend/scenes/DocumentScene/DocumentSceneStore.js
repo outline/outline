@@ -72,7 +72,7 @@ class DocumentSceneStore {
 
     try {
       await client.post('/documents.delete', { id: this.document.id });
-      browserHistory.push(`/collections/${this.document.collection.id}`);
+      browserHistory.push(this.document.collection.url);
     } catch (e) {
       console.error("Something went wrong");
     }

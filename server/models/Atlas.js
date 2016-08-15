@@ -1,3 +1,5 @@
+import slug from 'slug';
+import randomstring from 'randomstring';
 import {
   DataTypes,
   sequelize,
@@ -5,10 +7,13 @@ import {
 import _ from 'lodash';
 import Document from './Document';
 
+slug.defaults.mode = 'rfc3986';
+
 const allowedAtlasTypes = [['atlas', 'journal']];
 
 const Atlas = sequelize.define('atlas', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  urlId: { type: DataTypes.STRING, unique: true },
   name: DataTypes.STRING,
   description: DataTypes.STRING,
   type: { type: DataTypes.STRING, validate: { isIn: allowedAtlasTypes } },
@@ -20,6 +25,9 @@ const Atlas = sequelize.define('atlas', {
   tableName: 'atlases',
   paranoid: true,
   hooks: {
+    beforeValidate: (collection) => {
+      collection.urlId = collection.urlId || randomstring.generate(10);
+    },
     afterCreate: async (collection) => {
       if (collection.type !== 'atlas') return;
 
@@ -38,8 +46,12 @@ const Atlas = sequelize.define('atlas', {
     },
   },
   instanceMethods: {
+    getUrl() {
+      // const slugifiedName = slug(this.name);
+      // return `/${slugifiedName}-c${this.urlId}`;
+      return `/collections/${this.id}`;
+    },
     async buildStructure() {
-      console.log('start');
       if (this.navigationTree) return this.navigationTree;
 
       const getNodeForDocument = async (document) => {

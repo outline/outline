@@ -57,10 +57,10 @@ render((
             onEnter={ requireAuth }
             newDocument
           />
-          <Route path="/documents/:id" component={ DocumentScene } onEnter={ requireAuth } />
-          <Route path="/documents/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
+          <Route path="/d/:id" component={ DocumentScene } onEnter={ requireAuth } />
+          <Route path="/d/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
           <Route
-            path="/documents/:id/new"
+            path="/d/:id/new"
             component={ DocumentEdit }
             onEnter={ requireAuth }
             newChildDocument

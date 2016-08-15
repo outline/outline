@@ -90,12 +90,12 @@ class DocumentScene extends React.Component {
   }
 
   onEdit = () => {
-    const url = `/documents/${this.store.document.id}/edit`;
+    const url = `${this.store.document.url}/edit`;
     browserHistory.push(url);
   }
 
   onCreate = () => {
-    const url = `/documents/${this.store.document.id}/new`;
+    const url = `${this.store.document.url}/new`;
     browserHistory.push(url);
   }
 
@@ -147,7 +147,7 @@ class DocumentScene extends React.Component {
       title = (
         <span>
           &nbsp;/&nbsp;
-          <Link to={ `/collections/${doc.collection.id}` }>{ doc.collection.name }</Link>
+          <Link to={ doc.collection.url }>{ doc.collection.name }</Link>
           { ` / ${doc.title}` }
         </span>
       );

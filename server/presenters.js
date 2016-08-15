@@ -37,7 +37,7 @@ export async function presentDocument(ctx, document, options) {
 
   const data = {
     id: document.id,
-    url: document.buildUrl(),
+    url: document.getUrl(),
     private: document.private,
     title: document.title,
     text: document.text,
@@ -96,6 +96,7 @@ export function presentCollection(ctx, collection, includeRecentDocuments=false)
   return new Promise(async (resolve, _reject) => {
     const data = {
       id: collection.id,
+      url: collection.getUrl(),
       name: collection.name,
       description: collection.description,
       type: collection.type,

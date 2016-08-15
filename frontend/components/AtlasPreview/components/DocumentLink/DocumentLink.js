@@ -8,7 +8,7 @@ import styles from './DocumentLink.scss';
 
 const DocumentLink = observer((props) => {
   return (
-    <Link to={ `/documents/${props.document.id}` } className={ styles.link }>
+    <Link to={ props.document.url } className={ styles.link }>
       <h3 className={ styles.title }>{ props.document.title }</h3>
       <span className={ styles.timestamp }>{ moment(props.document.updatedAt).fromNow() }</span>
     </Link>

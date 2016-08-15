@@ -41,7 +41,7 @@ class Atlas extends React.Component {
 
   onCreate = (event) => {
     if (event) event.preventDefault();
-    browserHistory.push(`/collections/${store.collection.id}/new`);
+    browserHistory.push(`${store.collection.url}/new`);
   }
 
   render() {

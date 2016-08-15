@@ -5,8 +5,8 @@ import Link from 'react-router/lib/Link';
 import DocumentLink from './components/DocumentLink';
 
 import styles from './AtlasPreview.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
+// import classNames from 'classnames/bind';
+// const cx = classNames.bind(styles);
 
 @observer
 class AtlasPreview extends React.Component {
@@ -19,18 +19,21 @@ class AtlasPreview extends React.Component {
 
     return (
       <div className={ styles.container }>
-        <h2><Link to={ `/collections/${data.id}` } className={ styles.atlasLink }>{ data.name }</Link></h2>
+        <h2><Link to={ data.url } className={ styles.atlasLink }>{ data.name }</Link></h2>
         { data.recentDocuments.length > 0 ?
           data.recentDocuments.map(document => {
             return (
-              <DocumentLink document={ document } key={ document.id } />)
+              <DocumentLink document={ document } key={ document.id } />
+            );
           })
         : (
-          <div className={ styles.description }>No documents. Why not <Link to={ `/collections/${data.id}/new` }>create one</Link>?</div>
+          <div className={ styles.description }>
+            No documents. Why not <Link to={ `${data.url}/new` }>create one</Link>?
+          </div>
         ) }
       </div>
     );
   }
-};
+}
 
 export default AtlasPreview;

@@ -4,6 +4,8 @@ import {
   sequelize,
 } from '../sequelize';
 
+const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{15})$/;
+
 import auth from './authentication';
 // import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
@@ -11,16 +13,29 @@ import { Document, Atlas } from '../models';
 
 const router = new Router();
 
+const getDocumentForId = async (id) => {
+  let document;
+  if (id.match(URL_REGEX)) {
+    document = await Document.findOne({
+      where: {
+        urlId: id.match(URL_REGEX)[1],
+      },
+    });
+  } else {
+    document = await Document.findOne({
+      where: {
+        id,
+      },
+    });
+  }
+  return document;
+};
+
 // FIXME: This really needs specs :/
-router.post('documents.info', auth({ require: false }), async (ctx) => {
+router.post('documents.info', auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-
-  const document = await Document.findOne({
-    where: {
-      id,
-    },
-  });
+  const document = await getDocumentForId(id);
 
   if (!document) throw httpErrors.NotFound();
 
@@ -156,14 +171,9 @@ router.post('documents.update', auth(), async (ctx) => {
   ctx.assertPresent(text, 'text is required');
 
   const user = ctx.state.user;
-  const document = await Document.findOne({
-    where: {
-      id,
-      teamId: user.teamId,
-    },
-  });
+  const document = await getDocumentForId(id);
 
-  if (!document) throw httpErrors.BadRequest();
+  if (!document || document.teamId !== user.teamId) throw httpErrors.BadRequest();
 
   // Update document
   document.title = title;
@@ -192,15 +202,10 @@ router.post('documents.delete', auth(), async (ctx) => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findOne({
-    where: {
-      id,
-      teamId: user.teamId,
-    },
-  });
+  const document = await getDocumentForId(id);
   const collection = await Atlas.findById(document.atlasId);
 
-  if (!document) throw httpErrors.BadRequest();
+  if (!document || document.teamId !== user.teamId) throw httpErrors.BadRequest();
 
   if (collection.type === 'atlas') {
     // Don't allow deletion of root docs

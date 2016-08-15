@@ -67,10 +67,10 @@ class DocumentEditStore {
         title: this.title,
         text: this.text,
       }, { cache: true });
-      const { id } = data.data;
+      const { url } = data.data;
 
       this.hasPendingChanges = false;
-      browserHistory.push(`/documents/${id}`);
+      browserHistory.push(url);
     } catch (e) {
       console.error("Something went wrong");
     }
@@ -83,14 +83,15 @@ class DocumentEditStore {
     this.isSaving = true;
 
     try {
-      await client.post('/documents.update', {
+      const data = await client.post('/documents.update', {
         id: this.documentId,
         title: this.title,
         text: this.text,
       }, { cache: true });
+      const { url } = data.data;
 
       this.hasPendingChanges = false;
-      browserHistory.push(`/documents/${this.documentId}`);
+      browserHistory.push(url);
     } catch (e) {
       console.error("Something went wrong");
     }

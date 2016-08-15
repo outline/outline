@@ -16,11 +16,6 @@ import Revision from './Revision';
 
 slug.defaults.mode = 'rfc3986';
 
-const generateSlug = (title, urlId) => {
-  const slugifiedTitle = slug(title);
-  return `${slugifiedTitle}-${urlId}`;
-};
-
 const createRevision = async (doc) => {
   // Create revision of the current (latest)
   await Revision.create({
@@ -80,7 +75,7 @@ const Document = sequelize.define('document', {
   paranoid: true,
   hooks: {
     beforeValidate: (doc) => {
-      doc.urlId = randomstring.generate(15);
+      doc.urlId = doc.urlId || randomstring.generate(10);
     },
     beforeCreate: documentBeforeSave,
     beforeUpdate: documentBeforeSave,
@@ -88,12 +83,9 @@ const Document = sequelize.define('document', {
     afterUpdate: async (doc) => await createRevision(doc),
   },
   instanceMethods: {
-    buildUrl() {
-      const slugifiedTitle = slug(this.title);
-      return `${slugifiedTitle}-${this.urlId}`;
-    },
     getUrl() {
-      return `/documents/${this.id}`;
+      const slugifiedTitle = slug(this.title);
+      return `/d/${slugifiedTitle}-${this.urlId}`;
     },
   },
 });
