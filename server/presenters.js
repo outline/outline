@@ -27,7 +27,12 @@ export function presentTeam(ctx, team) {
   });
 }
 
-export async function presentDocument(ctx, document, includeCollection = false) {
+export async function presentDocument(ctx, document, options) {
+  options = {
+    includeCollection: false,
+    includeCollaborators: true,
+    ...options,
+  };
   ctx.cache.set(document.id, document);
 
   const data = {
@@ -46,14 +51,28 @@ export async function presentDocument(ctx, document, includeCollection = false) 
     collaborators: [],
   };
 
-  if (includeCollection) {
-    const collection = await Atlas.findOne({ where: {
-      id: document.atlasId,
-    } });
+  if (options.includeCollection) {
     data.collection = await ctx.cache.get(
-      collection.id,
-      async () => await presentCollection(ctx, collection, false)
+      document.atlasId,
+      async () => {
+        const collection = await Atlas.findOne({ where: {
+          id: document.atlasId,
+        } });
+        return await presentCollection(ctx, collection);
+      }
     );
+  }
+
+  if (options.includeCollaborators) {
+    // This could be further optimized by using ctx.cache
+    data.collaborators = await User.findAll({
+      where: {
+        id: {
+          $in: document.collaboratorIds || [],
+        },
+      },
+    })
+    .map(user => presentUser(ctx, user));
   }
 
   const createdBy = await ctx.cache.get(
@@ -63,10 +82,10 @@ export async function presentDocument(ctx, document, includeCollection = false) 
   data.createdBy = await presentUser(ctx, createdBy);
 
   const updatedBy = await ctx.cache.get(
-    document.createdById,
-    async () => await User.findById(document.updatedById)
+    document.lastModifiedById,
+    async () => await User.findById(document.lastModifiedById)
   );
-  data.createdBy = await presentUser(ctx, updatedBy);
+  data.updatedBy = await presentUser(ctx, updatedBy);
 
   return data;
 }
@@ -97,7 +116,9 @@ export function presentCollection(ctx, collection, includeRecentDocuments=false)
 
       const recentDocuments = [];
       await Promise.all(documents.map(async (document) => {
-        recentDocuments.push(await presentDocument(ctx, document, true));
+        recentDocuments.push(await presentDocument(ctx, document, {
+          includeCollaborators: true,
+        }));
       }));
       data.recentDocuments = _orderBy(recentDocuments, ['updatedAt'], ['desc']);
     }

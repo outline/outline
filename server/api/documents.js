@@ -34,11 +34,16 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
     }
 
     ctx.body = {
-      data: await presentDocument(ctx, document, true),
+      data: await presentDocument(ctx, document, {
+        includeCollection: true,
+        includeCollaborators: true,
+      }),
     };
   } else {
     ctx.body = {
-      data: await presentDocument(ctx, document),
+      data: await presentDocument(ctx, document, {
+        includeCollaborators: true,
+      }),
     };
   }
 });
@@ -71,7 +76,10 @@ router.post('documents.search', auth(), async (ctx) => {
 
   const data = [];
   await Promise.all(documents.map(async (document) => {
-    data.push(await presentDocument(document));
+    data.push(await presentDocument(ctx, document, {
+      includeCollection: true,
+      includeCollaborators: true,
+    }));
   }));
 
   ctx.body = {
@@ -130,7 +138,10 @@ router.post('documents.create', auth(), async (ctx) => {
   }
 
   ctx.body = {
-    data: await presentDocument(document, true),
+    data: await presentDocument(ctx, document, {
+      includeCollection: true,
+      includeCollaborators: true,
+    }),
   };
 });
 
@@ -167,7 +178,10 @@ router.post('documents.update', auth(), async (ctx) => {
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, document, true),
+    data: await presentDocument(ctx, document, {
+      includeCollection: true,
+      includeCollaborators: true,
+    }),
   };
 });
 
