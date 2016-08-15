@@ -36,7 +36,7 @@ class PublishingInfo extends React.Component {
           { this.props.createdBy.name } published { moment(this.props.createdAt).fromNow() }
           { this.props.createdAt !== this.props.updatedAt ? (
             <span>
-              &nbsp;and
+              &nbsp;and&nbsp;
               { this.props.createdBy.id !== this.props.updatedBy.id &&
                 ` ${this.props.updatedBy.name} ` }
               modified { moment(this.props.updatedAt).fromNow() }
