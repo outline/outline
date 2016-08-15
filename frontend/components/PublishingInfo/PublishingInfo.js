@@ -8,7 +8,7 @@ import styles from './PublishingInfo.scss';
 
 class PublishingInfo extends React.Component {
   static propTypes = {
-    collaborators: PropTypes.object.isRequired,
+    collaborators: PropTypes.array.isRequired,
     createdAt: PropTypes.string.isRequired,
     createdBy: PropTypes.object.isRequired,
     updatedAt: PropTypes.string.isRequired,
@@ -21,6 +21,7 @@ class PublishingInfo extends React.Component {
         <Flex className={ styles.avatarLine }>
           { this.props.collaborators.reverse().map(user => (
             <Avatar
+              key={ `avatar-${user.id}` }
               src={ user.avatarUrl }
               size={ 26 }
               style={{
