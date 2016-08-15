@@ -10,7 +10,7 @@ export default function auth({ require = true } = {}) {
     const authorizationHeader = ctx.request.get('authorization');
     if (authorizationHeader) {
       const parts = authorizationHeader.split(' ');
-      if (parts.length == 2) {
+      if (parts.length === 2) {
         const scheme = parts[0];
         const credentials = parts[1];
 
@@ -35,7 +35,7 @@ export default function auth({ require = true } = {}) {
       let payload;
       try {
         payload = JWT.decode(token);
-      } catch(_e) {
+      } catch (e) {
         throw httpErrors.Unauthorized('Unable to decode JWT token');
       }
       const user = await User.findOne({
@@ -44,19 +44,20 @@ export default function auth({ require = true } = {}) {
 
       try {
         JWT.verify(token, user.jwtSecret);
-      } catch(e) {
+      } catch (e) {
         throw httpErrors.Unauthorized('Invalid token');
       }
 
       ctx.state.token = token;
       ctx.state.user = user;
+      ctx.cache[user.id] = user;
     }
 
     return next();
   };
-};
+}
 
 // Export JWT methods as a convenience
-export const sign   = JWT.sign;
+export const sign = JWT.sign;
 export const verify = JWT.verify;
 export const decode = JWT.decode;

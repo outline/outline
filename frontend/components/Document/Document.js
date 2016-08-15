@@ -50,8 +50,8 @@ class Document extends React.Component {
     return (
       <div className={ styles.container }>
         <PublishingInfo
-          name={ this.props.document.user.name }
-          avatarUrl={ this.props.document.user.avatarUrl }
+          name={ this.props.document.createdBy.name }
+          avatarUrl={ this.props.document.createdBy.avatarUrl }
           createdAt={ this.props.document.createdAt }
           updatedAt={ this.props.document.updatedAt }
         />

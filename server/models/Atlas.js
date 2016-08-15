@@ -29,6 +29,7 @@ const Atlas = sequelize.define('atlas', {
         teamId: collection.teamId,
         userId: collection.creatorId,
         lastModifiedById: collection.creatorId,
+        createdById: collection.creatorId,
         title: 'Introduction',
         text: '# Introduction',
       });

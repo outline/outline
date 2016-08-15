@@ -1,7 +1,10 @@
+import Sequelize from 'sequelize';
 import _orderBy from 'lodash.orderby';
-import { Document, Atlas } from './models';
+import { Document, Atlas, User, Revision } from './models';
 
-export function presentUser(user) {
+export function presentUser(ctx, user) {
+  ctx.cache.set(user.id, user);
+
   return new Promise(async (resolve, _reject) => {
     const data = {
       id: user.id,
@@ -13,7 +16,9 @@ export function presentUser(user) {
   });
 }
 
-export function presentTeam(team) {
+export function presentTeam(ctx, team) {
+  ctx.cache.set(team.id, team);
+
   return new Promise(async (resolve, _reject) => {
     resolve({
       id: team.id,
@@ -22,7 +27,9 @@ export function presentTeam(team) {
   });
 }
 
-export async function presentDocument(document, includeCollection = false) {
+export async function presentDocument(ctx, document, includeCollection = false) {
+  ctx.cache.set(document.id, document);
+
   const data = {
     id: document.id,
     url: document.buildUrl(),
@@ -32,25 +39,41 @@ export async function presentDocument(document, includeCollection = false) {
     html: document.html,
     preview: document.preview,
     createdAt: document.createdAt,
+    createdBy: undefined,
     updatedAt: document.updatedAt,
-    collection: document.atlasId,
+    updatedBy: undefined,
     team: document.teamId,
+    collaborators: [],
   };
 
   if (includeCollection) {
     const collection = await Atlas.findOne({ where: {
       id: document.atlasId,
     } });
-    data.collection = await presentCollection(collection, false);
+    data.collection = await ctx.cache.get(
+      collection.id,
+      async () => await presentCollection(ctx, collection, false)
+    );
   }
 
-  const user = await document.getUser();
-  data.user = await presentUser(user);
+  const createdBy = await ctx.cache.get(
+    document.createdById,
+    async () => await User.findById(document.createdById)
+  );
+  data.createdBy = await presentUser(ctx, createdBy);
+
+  const updatedBy = await ctx.cache.get(
+    document.createdById,
+    async () => await User.findById(document.updatedById)
+  );
+  data.createdBy = await presentUser(ctx, updatedBy);
 
   return data;
 }
 
-export function presentCollection(collection, includeRecentDocuments=false) {
+export function presentCollection(ctx, collection, includeRecentDocuments=false) {
+  ctx.cache.set(collection.id, collection);
+
   return new Promise(async (resolve, _reject) => {
     const data = {
       id: collection.id,
@@ -74,7 +97,7 @@ export function presentCollection(collection, includeRecentDocuments=false) {
 
       const recentDocuments = [];
       await Promise.all(documents.map(async (document) => {
-        recentDocuments.push(await presentDocument(document, true));
+        recentDocuments.push(await presentDocument(ctx, document, true));
       }));
       data.recentDocuments = _orderBy(recentDocuments, ['updatedAt'], ['desc']);
     }

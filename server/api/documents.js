@@ -34,11 +34,11 @@ router.post('documents.info', auth({ require: false }), async (ctx) => {
     }
 
     ctx.body = {
-      data: await presentDocument(document, true),
+      data: await presentDocument(ctx, document, true),
     };
   } else {
     ctx.body = {
-      data: await presentDocument(document),
+      data: await presentDocument(ctx, document),
     };
   }
 });
@@ -118,6 +118,7 @@ router.post('documents.create', auth(), async (ctx) => {
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,
+    createdById: user.id,
     title,
     text,
   });
@@ -166,7 +167,7 @@ router.post('documents.update', auth(), async (ctx) => {
   }
 
   ctx.body = {
-    data: await presentDocument(document, true),
+    data: await presentDocument(ctx, document, true),
   };
 });
 

@@ -1,4 +1,5 @@
 import slug from 'slug';
+import _ from 'lodash';
 import randomstring from 'randomstring';
 import {
   DataTypes,
@@ -32,10 +33,20 @@ const createRevision = async (doc) => {
   });
 };
 
-const documentBeforeSave = (doc) => {
+const documentBeforeSave = async (doc) => {
   doc.html = convertToMarkdown(doc.text);
   doc.preview = truncateMarkdown(doc.text, 160);
+
   doc.revisionCount = doc.revisionCount + 1;
+
+  // Collaborators
+  const ids = await Revision.findAll({
+    attributes: [[DataTypes.literal('DISTINCT "userId"'), 'userId']],
+  }).map(rev => rev.userId);
+  // We'll add the current user as revision hasn't been generated yet
+  ids.push(doc.lastModifiedById);
+  doc.collaboratorIds = _.uniq(ids);
+
   return doc;
 };
 
@@ -50,13 +61,21 @@ const Document = sequelize.define('document', {
   revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
 
   parentDocumentId: DataTypes.UUID,
-  lastModifiedById: {
-    type: 'UUID',
+  createdById: {
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'users',
     },
   },
+  lastModifiedById: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'users',
+    },
+  },
+  collaboratorIds: DataTypes.ARRAY(DataTypes.UUID),
 }, {
   paranoid: true,
   hooks: {

@@ -11,7 +11,7 @@ import { presentUser } from '../presenters';
 const router = new Router();
 
 router.post('user.info', auth(), async (ctx) => {
-  ctx.body = { data: await presentUser(ctx.state.user) };
+  ctx.body = { data: await presentUser(ctx, ctx.state.user) };
 });
 
 router.post('user.s3Upload', auth(), async (ctx) => {

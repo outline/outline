@@ -28,7 +28,7 @@ router.post('collections.create', auth(), async (ctx) => {
   });
 
   ctx.body = {
-    data: await presentCollection(atlas, true),
+    data: await presentCollection(ctx, atlas, true),
   };
 });
 
@@ -47,7 +47,7 @@ router.post('collections.info', auth(), async (ctx) => {
   if (!atlas) throw httpErrors.NotFound();
 
   ctx.body = {
-    data: await presentCollection(atlas, true),
+    data: await presentCollection(ctx, atlas, true),
   };
 });
 
@@ -68,7 +68,7 @@ router.post('collections.list', auth(), pagination(), async (ctx) => {
   // Atlases
   let data = [];
   await Promise.all(collections.map(async (atlas) => {
-    return data.push(await presentCollection(atlas, true));
+    return data.push(await presentCollection(ctx, atlas, true));
   }));
 
   data = _orderBy(data, ['updatedAt'], ['desc']);
@@ -96,7 +96,7 @@ router.post('collections.updateNavigationTree', auth(), async (ctx) => {
   await atlas.updateNavigationTree(tree);
 
   ctx.body = {
-    data: await presentCollection(atlas, true),
+    data: await presentCollection(ctx, atlas, true),
   };
 });
 

@@ -72,10 +72,10 @@ router.post('auth.slack', async (ctx) => {
   }
 
   ctx.body = { data: {
-    user: await presentUser(user),
-    team: await presentTeam(team),
+    user: await presentUser(ctx, user),
+    team: await presentTeam(ctx, team),
     accessToken: user.getJwtToken(),
-  }};
+  } };
 });
 
 export default router;
