@@ -35,7 +35,6 @@ class ApiClient {
     const headers = new Headers({
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'User-Agent': this.userAgent,
     });
     if (stores.user.authenticated) {
       headers.set('Authorization', `Bearer ${stores.user.token}`);
