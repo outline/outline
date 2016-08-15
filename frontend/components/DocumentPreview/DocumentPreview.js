@@ -1,5 +1,5 @@
 import React from 'react';
-import marked from 'marked';
+import { toJS } from 'mobx';
 
 import { Link } from 'react-router';
 
@@ -16,9 +16,11 @@ class Document extends React.Component {
     return (
       <div className={ styles.container }>
         <PublishingInfo
-          avatarUrl={ this.props.document.user.avatarUrl }
-          name={ this.props.document.user.name }
-          createdAt={ document.createdAt }
+          createdAt={ this.props.document.createdAt }
+          createdBy={ this.props.document.createdBy }
+          updatedAt={ this.props.document.updatedAt }
+          updatedBy={ this.props.document.updatedBy }
+          collaborators={ toJS(this.props.document.collaborators) }
         />
 
         <Link
@@ -41,6 +43,6 @@ class Document extends React.Component {
       </div>
     );
   }
-};
+}
 
 export default Document;
