@@ -29,7 +29,7 @@ export function presentTeam(ctx, team) {
 
 export async function presentDocument(ctx, document, options) {
   options = {
-    includeCollection: false,
+    includeCollection: true,
     includeCollaborators: true,
     ...options,
   };
