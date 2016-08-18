@@ -4,7 +4,7 @@ import {
   sequelize,
 } from '../sequelize';
 
-const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{15})$/;
+const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
 import auth from './authentication';
 // import pagination from './middlewares/pagination';
@@ -22,11 +22,16 @@ const getDocumentForId = async (id) => {
       },
     });
   } else {
-    document = await Document.findOne({
-      where: {
-        id,
-      },
-    });
+    try {
+      document = await Document.findOne({
+        where: {
+          id,
+        },
+      });
+    } catch (e) {
+      // Invalid UUID
+      throw httpErrors.NotFound();
+    }
   }
   return document;
 };

@@ -142,7 +142,7 @@ const Atlas = sequelize.define('atlas', {
 
       return newTree;
     },
-    async addNodeToNavigationTree(document) {
+    addNodeToNavigationTree(document) {
       const newNode = {
         id: document.id,
         title: document.title,
@@ -163,6 +163,7 @@ const Atlas = sequelize.define('atlas', {
       };
 
       this.navigationTree = insertNode(this.navigationTree);
+      return this.navigationTree;
     },
     async deleteDocument(document) {
       const deleteNodeAndDocument = async (node, documentId, shouldDelete = false) => {

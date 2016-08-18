@@ -35,9 +35,16 @@ const documentBeforeSave = async (doc) => {
   doc.revisionCount = doc.revisionCount + 1;
 
   // Collaborators
-  const ids = await Revision.findAll({
-    attributes: [[DataTypes.literal('DISTINCT "userId"'), 'userId']],
-  }).map(rev => rev.userId);
+  let ids = [];
+  // Only get previous user IDs if the document already exists
+  if (doc.id) {
+    ids = await Revision.findAll({
+      attributes: [[DataTypes.literal('DISTINCT "userId"'), 'userId']],
+      where: {
+        documentId: doc.id,
+      },
+    }).map(rev => rev.userId);
+  }
   // We'll add the current user as revision hasn't been generated yet
   ids.push(doc.lastModifiedById);
   doc.collaboratorIds = _.uniq(ids);
