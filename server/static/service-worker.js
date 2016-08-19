@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
   Copyright 2014 Google Inc. All Rights Reserved.
 
@@ -52,6 +54,7 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
 
   // Assets
   global.toolbox.router.get(/\/static\//, global.toolbox.cacheFirst);
+  global.toolbox.router.get('/(.*)', global.toolbox.fastest, {origin: 'https://secure.gravatar.com'});
 
   // API GET calls
   global.toolbox.router.default = global.toolbox.networkFirst;

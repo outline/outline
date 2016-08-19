@@ -19,14 +19,14 @@ const router = new Router();
 //   }
 // });
 
-if (process.env.NODE_ENV === 'production') {
-  router.get('/service-worker.js', async (ctx) => {
-    ctx.set('Content-Type', 'application/javascript');
-    ctx.set('Cache-Control', `max-age=${30}`);
-    const stats = await sendfile(ctx, path.join(__dirname, './static/service-worker.js'));
-    if (!ctx.status) ctx.throw(httpErrors.NotFound());
-  });
+router.get('/service-worker.js', async (ctx) => {
+  ctx.set('Content-Type', 'application/javascript');
+  if (process.env.NODE_ENV === 'production') ctx.set('Cache-Control', `max-age=${30}`);
+  await sendfile(ctx, path.join(__dirname, './static/service-worker.js'));
+  if (!ctx.status) ctx.throw(httpErrors.NotFound());
+});
 
+if (process.env.NODE_ENV === 'production') {
   router.get('/static/*', async (ctx) => {
     ctx.set({
       'Cache-Control': `max-age=${356*24*60*60}`,
