@@ -53,8 +53,16 @@ Cache.prototype.addAll||(Cache.prototype.addAll=function(t){function e(t){this.n
   'use strict';
 
   // Assets
-  global.toolbox.router.get(/\/static\//, global.toolbox.cacheFirst);
+  global.toolbox.router.get(/\/static\//, global.toolbox.cacheFirst, { cache: { name: 'static' } });
   global.toolbox.router.get('/(.*)', global.toolbox.fastest, {origin: 'https://secure.gravatar.com'});
+
+  // API
+  global.toolbox.router.get(/\/api\//, global.toolbox.networkFirst, {
+  	cache: {
+  		name: 'api',
+  		maxEntries: 100
+  	}
+  });
 
   // API GET calls
   global.toolbox.router.default = global.toolbox.networkFirst;
