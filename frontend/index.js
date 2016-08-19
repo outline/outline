@@ -6,6 +6,7 @@ import Route from 'react-router/lib/Route';
 import IndexRoute from 'react-router/lib/IndexRoute';
 import Redirect from 'react-router/lib/Redirect';
 import History from 'utils/History';
+import { Offline } from 'components/Offline';
 
 import stores from 'stores';
 
@@ -45,35 +46,37 @@ function requireAuth(nextState, replace) {
 render((
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>
     <Provider { ...stores }>
-      <Router history={ History }>
-        <Route path="/" component={ Application }>
-          <IndexRoute component={ Home } />
+      <Offline>
+        <Router history={ History }>
+          <Route path="/" component={ Application }>
+            <IndexRoute component={ Home } />
 
-          <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
-          <Route path="/collections/:id" component={ Atlas } onEnter={ requireAuth } />
-          <Route
-            path="/collections/:id/new"
-            component={ DocumentEdit }
-            onEnter={ requireAuth }
-            newDocument
-          />
-          <Route path="/d/:id" component={ DocumentScene } onEnter={ requireAuth } />
-          <Route path="/d/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
-          <Route
-            path="/d/:id/new"
-            component={ DocumentEdit }
-            onEnter={ requireAuth }
-            newChildDocument
-          />
+            <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
+            <Route path="/collections/:id" component={ Atlas } onEnter={ requireAuth } />
+            <Route
+              path="/collections/:id/new"
+              component={ DocumentEdit }
+              onEnter={ requireAuth }
+              newDocument
+            />
+            <Route path="/d/:id" component={ DocumentScene } onEnter={ requireAuth } />
+            <Route path="/d/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
+            <Route
+              path="/d/:id/new"
+              component={ DocumentEdit }
+              onEnter={ requireAuth }
+              newChildDocument
+            />
 
-          <Route path="/search" component={ Search } onEnter={ requireAuth } />
+            <Route path="/search" component={ Search } onEnter={ requireAuth } />
 
-          <Route path="/auth/slack" component={ SlackAuth } />
+            <Route path="/auth/slack" component={ SlackAuth } />
 
-          <Route path="/404" component={ Error404 } />
-          <Redirect from="*" to="/404" />
-        </Route>
-      </Router>
+            <Route path="/404" component={ Error404 } />
+            <Redirect from="*" to="/404" />
+          </Route>
+        </Router>
+      </Offline>
     </Provider>
     { __DEV__ && <DevTools position={{ bottom: 0, right: 0 }} /> }
   </div>

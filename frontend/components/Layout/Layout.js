@@ -2,6 +2,7 @@ import React from 'react';
 import { browserHistory, Link } from 'react-router';
 import Helmet from 'react-helmet';
 import { observer } from 'mobx-react';
+import { injectOffline } from 'components/Offline';
 import keydown from 'react-keydown';
 import _ from 'lodash';
 
@@ -16,6 +17,7 @@ import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
 @observer(['user'])
+@injectOffline
 class Layout extends React.Component {
   static propTypes = {
     children: React.PropTypes.node,
@@ -25,6 +27,7 @@ class Layout extends React.Component {
     loading: React.PropTypes.bool,
     user: React.PropTypes.object.isRequired,
     search: React.PropTypes.bool,
+    offline: React.PropTypes.bool,
   }
 
   static defaultProps = {
@@ -54,9 +57,15 @@ class Layout extends React.Component {
               : 'Atlas' }
         />
 
-        { this.props.loading ? (
+        { this.props.loading && (
           <LoadingIndicator />
-        ) : null }
+        ) }
+
+        { this.props.offline && (
+          <Alert offline>
+            It looks like you're offline. Reconnect to restore access to all of your documents 📚
+          </Alert>
+        ) }
 
         <div className={ cx(styles.header) }>
           <div className={ styles.headerLeft }>
