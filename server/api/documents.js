@@ -3,6 +3,7 @@ import httpErrors from 'http-errors';
 import {
   sequelize,
 } from '../sequelize';
+import { lock } from '../redis';
 
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
@@ -109,7 +110,7 @@ router.post('documents.search', auth(), async (ctx) => {
 });
 
 
-router.post('documents.create', auth(), async (ctx) => {
+router.post('documents.create', auth(), async (ctx, done) => {
   const {
     collection,
     title,
@@ -130,39 +131,49 @@ router.post('documents.create', auth(), async (ctx) => {
 
   if (!ownerCollection) throw httpErrors.BadRequest();
 
-  let parentDocumentObj = {};
-  if (parentDocument && ownerCollection.type === 'atlas') {
-    parentDocumentObj = await Document.findOne({
-      where: {
-        id: parentDocument,
+  await lock(ownerCollection.id, 10000, async (done) => {
+    return new Promise(async resolve => {
+      console.info(`Execute: ${title}`)
+      let parentDocumentObj = {};
+      if (parentDocument && ownerCollection.type === 'atlas') {
+        parentDocumentObj = await Document.findOne({
+          where: {
+            id: parentDocument,
+            atlasId: ownerCollection.id,
+          },
+        });
+      }
+
+      const document = await Document.create({
+        parentDocumentId: parentDocumentObj.id,
         atlasId: ownerCollection.id,
-      },
+        teamId: user.teamId,
+        userId: user.id,
+        lastModifiedById: user.id,
+        createdById: user.id,
+        title,
+        text,
+      });
+
+      // TODO: Move to afterSave hook if possible with imports
+      if (parentDocument && ownerCollection.type === 'atlas') {
+        await ownerCollection.reload();
+        ownerCollection.addNodeToNavigationTree(document);
+        await ownerCollection.save();
+      }
+
+      console.info(`Finish: ${title}`)
+
+      ctx.body = {
+        data: await presentDocument(ctx, document, {
+          includeCollection: true,
+          includeCollaborators: true,
+        }),
+      };
+
+      done(resolve);
     });
-  }
-
-  const document = await Document.create({
-    parentDocumentId: parentDocumentObj.id,
-    atlasId: ownerCollection.id,
-    teamId: user.teamId,
-    userId: user.id,
-    lastModifiedById: user.id,
-    createdById: user.id,
-    title,
-    text,
   });
-
-  // TODO: Move to afterSave hook if possible with imports
-  if (parentDocument && ownerCollection.type === 'atlas') {
-    ownerCollection.addNodeToNavigationTree(document);
-    await ownerCollection.save();
-  }
-
-  ctx.body = {
-    data: await presentDocument(ctx, document, {
-      includeCollection: true,
-      includeCollaborators: true,
-    }),
-  };
 });
 
 router.post('documents.update', auth(), async (ctx) => {
