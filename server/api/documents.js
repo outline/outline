@@ -4,6 +4,7 @@ import {
   sequelize,
 } from '../sequelize';
 import { lock } from '../redis';
+import isUUID from 'validator/lib/isUUID';
 
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
@@ -15,26 +16,28 @@ import { Document, Atlas } from '../models';
 const router = new Router();
 
 const getDocumentForId = async (id) => {
-  let document;
-  if (id.match(URL_REGEX)) {
-    document = await Document.findOne({
-      where: {
-        urlId: id.match(URL_REGEX)[1],
-      },
-    });
-  } else {
-    try {
+  try {
+    let document;
+    if (isUUID(id)) {
       document = await Document.findOne({
         where: {
           id,
         },
       });
-    } catch (e) {
-      // Invalid UUID
+    } else if (id.match(URL_REGEX)) {
+      document = await Document.findOne({
+        where: {
+          urlId: id.match(URL_REGEX)[1],
+        },
+      });
+    } else {
       throw httpErrors.NotFound();
     }
+    return document;
+  } catch (e) {
+    // Invalid UUID
+    throw httpErrors.NotFound();
   }
-  return document;
 };
 
 // FIXME: This really needs specs :/
@@ -110,7 +113,7 @@ router.post('documents.search', auth(), async (ctx) => {
 });
 
 
-router.post('documents.create', auth(), async (ctx, done) => {
+router.post('documents.create', auth(), async (ctx) => {
   const {
     collection,
     title,
@@ -131,49 +134,48 @@ router.post('documents.create', auth(), async (ctx, done) => {
 
   if (!ownerCollection) throw httpErrors.BadRequest();
 
-  await lock(ownerCollection.id, 10000, async (done) => {
-    return new Promise(async resolve => {
-      console.info(`Execute: ${title}`)
-      let parentDocumentObj = {};
-      if (parentDocument && ownerCollection.type === 'atlas') {
-        parentDocumentObj = await Document.findOne({
-          where: {
-            id: parentDocument,
-            atlasId: ownerCollection.id,
-          },
+  const document = await (() => {
+    return new Promise(resolve => {
+      lock(ownerCollection.id, 10000, async (done) => {
+        let parentDocumentObj = {};
+        if (parentDocument && ownerCollection.type === 'atlas') {
+          parentDocumentObj = await Document.findOne({
+            where: {
+              id: parentDocument,
+              atlasId: ownerCollection.id,
+            },
+          });
+        }
+
+        const document = await Document.create({
+          parentDocumentId: parentDocumentObj.id,
+          atlasId: ownerCollection.id,
+          teamId: user.teamId,
+          userId: user.id,
+          lastModifiedById: user.id,
+          createdById: user.id,
+          title,
+          text,
         });
-      }
 
-      const document = await Document.create({
-        parentDocumentId: parentDocumentObj.id,
-        atlasId: ownerCollection.id,
-        teamId: user.teamId,
-        userId: user.id,
-        lastModifiedById: user.id,
-        createdById: user.id,
-        title,
-        text,
+        // TODO: Move to afterSave hook if possible with imports
+        if (parentDocument && ownerCollection.type === 'atlas') {
+          await ownerCollection.reload();
+          ownerCollection.addNodeToNavigationTree(document);
+          await ownerCollection.save();
+        }
+
+        done(resolve(document));
       });
-
-      // TODO: Move to afterSave hook if possible with imports
-      if (parentDocument && ownerCollection.type === 'atlas') {
-        await ownerCollection.reload();
-        ownerCollection.addNodeToNavigationTree(document);
-        await ownerCollection.save();
-      }
-
-      console.info(`Finish: ${title}`)
-
-      ctx.body = {
-        data: await presentDocument(ctx, document, {
-          includeCollection: true,
-          includeCollaborators: true,
-        }),
-      };
-
-      done(resolve);
     });
-  });
+  })();
+
+  ctx.body = {
+    data: await presentDocument(ctx, document, {
+      includeCollection: true,
+      includeCollaborators: true,
+    }),
+  };
 });
 
 router.post('documents.update', auth(), async (ctx) => {
@@ -198,6 +200,7 @@ router.post('documents.update', auth(), async (ctx) => {
   await document.save();
 
   // Update
+  // TODO: Add locking
   const collection = await Atlas.findById(document.atlasId);
   if (collection.type === 'atlas') {
     await collection.updateNavigationTree();
@@ -223,6 +226,7 @@ router.post('documents.delete', auth(), async (ctx) => {
 
   if (!document || document.teamId !== user.teamId) throw httpErrors.BadRequest();
 
+  // TODO: Add locking
   if (collection.type === 'atlas') {
     // Don't allow deletion of root docs
     if (!document.parentDocumentId) {
