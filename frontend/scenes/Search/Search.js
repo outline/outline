@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 import _ from 'lodash';
 
 import { Flex } from 'reflexbox';
-import Layout from 'components/Layout';
+import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SearchField from './components/SearchField';
 import DocumentPreview from 'components/DocumentPreview';
@@ -25,10 +25,15 @@ class Search extends React.Component {
     const search = _.debounce((searchTerm) => {
       this.store.search(searchTerm);
     }, 250);
+    const title = (
+      <Title>
+        Search
+      </Title>
+    );
 
     return (
       <Layout
-        title="Search"
+        title={ title }
         titleText="Search"
         search={ false }
         loading={ this.store.isFetching }
