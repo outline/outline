@@ -14,6 +14,9 @@
     "heroku-postbuild": "npm run build && npm run sequelize db:migrate",
     "sequelize": "./node_modules/.bin/sequelize"
   },
+  "engines": {
+    "node": "6.x"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/jorilallo/atlas.git"
