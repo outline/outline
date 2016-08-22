@@ -53,7 +53,7 @@ class Sidebar extends React.Component {
             </Flex>
             <Flex auto className={ styles.actions }>
               <Link
-                to={ this.props.navigationTree.url }
+                to={ `${this.props.navigationTree.url}/new` }
                 className={ cx(styles.action) }
               >
                 Add document
