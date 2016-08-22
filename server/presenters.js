@@ -100,6 +100,8 @@ export function presentCollection(ctx, collection, includeRecentDocuments=false)
       name: collection.name,
       description: collection.description,
       type: collection.type,
+      createdAt: collection.createdAt,
+      updatedAt: collection.updatedAt,
     };
 
     if (collection.type === 'atlas') data.navigationTree = collection.navigationTree;

@@ -1,6 +1,6 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
-import _orderBy from 'lodash.orderby';
+import _ from 'lodash';
 
 import auth from './authentication';
 import pagination from './middlewares/pagination';
@@ -71,7 +71,7 @@ router.post('collections.list', auth(), pagination(), async (ctx) => {
     return data.push(await presentCollection(ctx, atlas, true));
   }));
 
-  data = _orderBy(data, ['updatedAt'], ['desc']);
+  data = _.orderBy(data, ['updatedAt'], ['desc']);
 
   ctx.body = {
     pagination: ctx.state.pagination,
