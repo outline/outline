@@ -108,13 +108,9 @@ Document.searchForUser = async (user, query, options = {}) => {
   WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
     "teamId" = '${user.teamId}'::uuid AND
     "deletedAt" IS NULL
-  ORDER BY ts_rank(documents."searchVector", plainto_tsquery('english', :query))
-  LIMIT :limit
-  OFFSET :offset
-  DESC;
+  ORDER BY ts_rank(documents."searchVector", plainto_tsquery('english', :query)) DESC
+  LIMIT :limit OFFSET :offset;
   `;
-
-  console.log(sql);
 
   const documents = await sequelize
   .query(
