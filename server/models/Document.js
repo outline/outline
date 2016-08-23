@@ -114,6 +114,8 @@ Document.searchForUser = async (user, query, options = {}) => {
   DESC;
   `;
 
+  console.log(sql);
+
   const documents = await sequelize
   .query(
     sql,
