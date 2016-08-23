@@ -78,25 +78,7 @@ router.post('documents.search', auth(), async (ctx) => {
 
   const user = await ctx.state.user;
 
-  const sql = `
-  SELECT * FROM documents
-  WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
-    "teamId" = '${user.teamId}'::uuid AND
-    "deletedAt" IS NULL
-  ORDER BY ts_rank(documents."searchVector", plainto_tsquery('english', :query))
-  DESC;
-  `;
-
-  const documents = await sequelize
-  .query(
-    sql,
-    {
-      replacements: {
-        query,
-      },
-      model: Document,
-    }
-  );
+  const documents = await Document.searchForUser(user, query);
 
   const data = [];
   await Promise.all(documents.map(async (document) => {

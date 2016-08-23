@@ -15,7 +15,7 @@ router.post('auth.slack', async (ctx) => {
   const body = {
     client_id: process.env.SLACK_KEY,
     client_secret: process.env.SLACK_SECRET,
-    redirect_uri: process.env.SLACK_REDIRECT_URI,
+    redirect_uri: `${process.env.URL}/auth/slack/`,
     code,
   };
 
@@ -77,5 +77,30 @@ router.post('auth.slack', async (ctx) => {
     accessToken: user.getJwtToken(),
   } };
 });
+
+router.post('auth.slackCommands', async (ctx) => {
+  const { code } = ctx.body;
+  ctx.assertPresent(code, 'code is required');
+
+  const body = {
+    client_id: process.env.SLACK_KEY,
+    client_secret: process.env.SLACK_SECRET,
+    redirect_uri: `${process.env.URL}/auth/slack/commands`,
+    code,
+  };
+
+  let data;
+  try {
+    const response = await fetch(`https://slack.com/api/oauth.access?${querystring.stringify(body)}`);
+    data = await response.json();
+  } catch (e) {
+    throw httpErrors.BadRequest();
+  }
+
+  if (!data.ok) throw httpErrors.BadRequest(data.error);
+
+  ctx.body = { success: true };
+});
+
 
 export default router;

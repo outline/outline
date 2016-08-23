@@ -71,6 +71,7 @@ render((
             <Route path="/search" component={ Search } onEnter={ requireAuth } />
 
             <Route path="/auth/slack" component={ SlackAuth } />
+            <Route path="/auth/slack/commands" component={ SlackAuth } apiPath="/auth.slackCommands" />
 
             <Route path="/404" component={ Error404 } />
             <Redirect from="*" to="/404" />

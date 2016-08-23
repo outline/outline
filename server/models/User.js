@@ -24,7 +24,7 @@ const User = sequelize.define('user', {
     },
     async getTeam() {
       return this.team;
-    }
+    },
   },
   indexes: [
     {

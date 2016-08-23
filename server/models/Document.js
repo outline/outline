@@ -99,4 +99,35 @@ const Document = sequelize.define('document', {
 
 Document.belongsTo(User);
 
+Document.searchForUser = async (user, query, options = {}) => {
+  const limit = options.limit || 15;
+  const offset = options.offset || 0;
+
+  const sql = `
+  SELECT * FROM documents
+  WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
+    "teamId" = '${user.teamId}'::uuid AND
+    "deletedAt" IS NULL
+  ORDER BY ts_rank(documents."searchVector", plainto_tsquery('english', :query))
+  LIMIT :limit
+  OFFSET :offset
+  DESC;
+  `;
+
+  const documents = await sequelize
+  .query(
+    sql,
+    {
+      replacements: {
+        query,
+        limit,
+        offset,
+      },
+      model: Document,
+    }
+  );
+
+  return documents;
+}
+
 export default Document;

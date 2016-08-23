@@ -8,6 +8,7 @@ class SlackAuthLink extends React.Component {
   static propTypes = {
     scopes: React.PropTypes.arrayOf(React.PropTypes.string),
     user: React.PropTypes.object.isRequired,
+    redirectUri: React.PropTypes.string,
   }
 
   static defaultProps = {
@@ -24,7 +25,7 @@ class SlackAuthLink extends React.Component {
     const params = {
       client_id: SLACK_KEY,
       scope: this.props.scopes.join(' '),
-      redirect_uri: SLACK_REDIRECT_URI,
+      redirect_uri: this.props.redirectUri || SLACK_REDIRECT_URI,
       state: this.props.user.getOauthState(),
     };
 
