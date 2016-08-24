@@ -8,7 +8,6 @@ import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
-import SlackAuthLink from 'components/SlackAuthLink';
 
 @observer(['user'])
 class Dashboard extends React.Component {
@@ -32,7 +31,6 @@ class Dashboard extends React.Component {
                 return (<AtlasPreview key={ collection.id } data={ collection } />);
               }) }
             </Flex>
-            <SlackAuthLink scopes={ ["commands"] } redirectUri={ `${URL}/auth/slack/commands` } />
           </CenteredContent>
         </Layout>
       </Flex>

@@ -96,6 +96,7 @@ class Layout extends React.Component {
                 src={ user.user.avatarUrl }
               /> }
             >
+              <MenuItem to="/settings">Settings</MenuItem>
               <MenuItem onClick={ user.logout }>Logout</MenuItem>
             </DropdownMenu>
           </Flex>

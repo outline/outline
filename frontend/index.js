@@ -24,6 +24,7 @@ import Atlas from 'scenes/Atlas';
 import DocumentScene from 'scenes/DocumentScene';
 import DocumentEdit from 'scenes/DocumentEdit';
 import Search from 'scenes/Search';
+import Settings from 'scenes/Settings';
 import SlackAuth from 'scenes/SlackAuth';
 import Error404 from 'scenes/Error404';
 
@@ -69,9 +70,14 @@ render((
             />
 
             <Route path="/search" component={ Search } onEnter={ requireAuth } />
+            <Route path="/settings" component={ Settings } onEnter={ requireAuth } />
 
             <Route path="/auth/slack" component={ SlackAuth } />
-            <Route path="/auth/slack/commands" component={ SlackAuth } apiPath="/auth.slackCommands" />
+            <Route
+              path="/auth/slack/commands"
+              component={ SlackAuth }
+              apiPath="/auth.slackCommands"
+            />
 
             <Route path="/404" component={ Error404 } />
             <Redirect from="*" to="/404" />

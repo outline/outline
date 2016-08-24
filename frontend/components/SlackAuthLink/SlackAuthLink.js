@@ -1,11 +1,10 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 
-import styles from './SlackAuthLink.scss';
-
 @observer(['user'])
 class SlackAuthLink extends React.Component {
   static propTypes = {
+    children: React.PropTypes.node.isRequired,
     scopes: React.PropTypes.arrayOf(React.PropTypes.string),
     user: React.PropTypes.object.isRequired,
     redirectUri: React.PropTypes.string,
@@ -38,7 +37,7 @@ class SlackAuthLink extends React.Component {
 
   render() {
     return (
-      <a href={ this.slackUrl() } className={ styles.link }>Authorize /w Slack</a>
+      <a href={ this.slackUrl() }>{ this.props.children }</a>
     );
   }
 }

@@ -1,17 +1,30 @@
 import React from 'react';
+import { browserHistory } from 'react-router';
+
 import styles from './DropdownMenu.scss';
 
-const MenuItem = (props) => {
-  return (
-    <div
-      className={ styles.menuItem }
-      onClick={ props.onClick}
-    >{ props.children }</div>
-  );
-};
+class MenuItem extends React.Component {
+  onClick = () => {
+    if (this.props.to) {
+      browserHistory.push(this.props.to);
+    } else {
+      this.props.onClick();
+    }
+  }
+
+  render() {
+    return (
+      <div
+        className={ styles.menuItem }
+        onClick={ this.onClick }
+      >{ this.props.children }</div>
+    );
+  }
+}
 
 MenuItem.propTypes = {
   onClick: React.PropTypes.func,
+  to: React.PropTypes.string,
   children: React.PropTypes.node.isRequired,
 };
 
