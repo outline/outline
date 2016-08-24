@@ -59,6 +59,7 @@ class DocumentSceneStore {
       const { data } = res;
       runInAction('fetchDocument', () => {
         this.document = data;
+        browserHistory.replace(data.url);
       });
     } catch (e) {
       console.error("Something went wrong");
