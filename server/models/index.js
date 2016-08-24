@@ -3,6 +3,7 @@ import Team from './Team';
 import Atlas from './Atlas';
 import Document from './Document';
 import Revision from './Revision';
+import ApiKey from './ApiKey';
 
 export {
   User,
@@ -10,4 +11,5 @@ export {
   Atlas,
   Document,
   Revision,
+  ApiKey,
 };

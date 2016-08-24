@@ -129,3 +129,11 @@ export function presentCollection(ctx, collection, includeRecentDocuments=false)
     resolve(data);
   });
 }
+
+export function presentApiKey(ctx, key) {
+  return {
+    id: key.id,
+    name: key.name,
+    secret: key.secret,
+  };
+}
