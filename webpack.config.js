@@ -1,6 +1,5 @@
 var path = require('path');
 var webpack = require('webpack');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 // Load .env
 require('dotenv').config();
@@ -27,10 +26,6 @@ module.exports = {
         include: path.join(__dirname, 'frontend')
       },
       { test: /\.json$/, loader: 'json-loader' },
-      {
-        test: /\.s?css$/,
-        loader: ExtractTextPlugin.extract('style-loader', 'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!sass?sourceMap')
-      },
       { test: /\.(png|jpg|svg)$/, loader: 'url-loader' }, // inline base64 URLs for <=8k images, direct URLs for the rest
       {
         test: /\.woff$/,
@@ -57,4 +52,7 @@ module.exports = {
     }),
     new webpack.ContextReplacementPlugin(/moment[\\\/]locale$/, /^\.\/(en)$/)
   ],
+  stats: {
+    assets: false,
+  },
 };

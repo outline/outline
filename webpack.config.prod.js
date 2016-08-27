@@ -19,7 +19,10 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
     publicPath: '/static/',
   },
 });
-
+productionWebpackConfig.module.loaders.push({
+  test: /\.s?css$/,
+  loader: ExtractTextPlugin.extract('style-loader', 'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!sass?sourceMap')
+});
 productionWebpackConfig.plugins.push(new HtmlWebpackPlugin({
   template: 'server/static/index.html'
 }));

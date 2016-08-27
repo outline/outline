@@ -22,7 +22,7 @@ if (process.env.NODE_ENV === 'development') {
 
   app.use(convert(devMiddleware(compile, {
     // display no info to console (only warnings and errors)
-    noInfo: false,
+    noInfo: true,
 
     // display nothing to the console
     quiet: false,
