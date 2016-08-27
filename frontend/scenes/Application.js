@@ -8,7 +8,7 @@ class Application extends React.Component {
     rebass: React.PropTypes.object,
   }
 
-  propTypes = {
+  static propTypes = {
     children: React.PropTypes.node.isRequired,
   }
 
