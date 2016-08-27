@@ -48,12 +48,15 @@ class DocumentScene extends React.Component {
     didScroll: false,
   }
 
-  componentDidMount = () => {
+  componentDidMount = async () => {
     const { id } = this.props.routeParams;
-    this.store.fetchDocument(id);
+    await this.store.fetchDocument(id, {
+      replaceUrl: !this.props.location.hash,
+    });
+    this.scrollTohash();
   }
 
-  componentWillReceiveProps = (nextProps) => {
+  componentWillReceiveProps = async (nextProps) => {
     const key = nextProps.keydown.event;
     if (key) {
       if (key.key === '/' && (key.metaKey || key.ctrl.Key)) {
@@ -73,20 +76,13 @@ class DocumentScene extends React.Component {
     const oldId = this.props.params.id;
     const newId = nextProps.params.id;
     if (oldId !== newId) {
-      this.store.fetchDocument(newId, true);
+      await this.store.fetchDocument(newId, {
+        softLoad: true,
+        replaceUrl: !this.props.location.hash,
+      });
     }
 
-    // Scroll to anchor after loading, and only once
-    const { hash } = this.props.location;
-
-    if (nextProps.doc && hash && !this.state.didScroll) {
-      const name = hash.split('#')[1];
-      setTimeout(() => {
-        this.setState({ didScroll: true });
-        const element = window.document.getElementsByName(name)[0];
-        if (element) element.scrollIntoView();
-      }, 0);
-    }
+    this.scrollTohash();
   }
 
   onEdit = () => {
@@ -119,6 +115,18 @@ class DocumentScene extends React.Component {
     a.download = `${doc.title}.md`;
     a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(doc.text)}`;
     a.click();
+  }
+
+  scrollTohash = () => {
+    // Scroll to anchor after loading, and only once
+    const { hash } = this.props.location;
+
+    if (hash && !this.state.didScroll) {
+      const name = hash.slice(1);
+      this.setState({ didScroll: true });
+      const element = window.document.getElementsByName(name)[0];
+      if (element) element.scrollIntoView();
+    }
   }
 
   render() {

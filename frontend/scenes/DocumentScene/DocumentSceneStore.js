@@ -43,7 +43,12 @@ class DocumentSceneStore {
 
   /* Actions */
 
-  @action fetchDocument = async (id, softLoad = false) => {
+  @action fetchDocument = async (id, options = {}) => {
+    options = {
+      softLoad: false,
+      replaceUrl: true,
+      ...options,
+    };
     let cacheHit = false;
     runInAction('retrieve document from cache', () => {
       const cachedValue = this.cache.fetchFromCache(id);
@@ -51,15 +56,15 @@ class DocumentSceneStore {
       if (cacheHit) this.document = cachedValue;
     });
 
-    this.isFetching = !softLoad;
-    this.updatingContent = softLoad && !cacheHit;
+    this.isFetching = !options.softLoad;
+    this.updatingContent = options.softLoad && !cacheHit;
 
     try {
       const res = await client.get('/documents.info', { id }, { cache: true });
       const { data } = res;
       runInAction('fetchDocument', () => {
         this.document = data;
-        browserHistory.replace(data.url);
+        if (options.replaceUrl) browserHistory.replace(data.url);
       });
     } catch (e) {
       console.error("Something went wrong");
