@@ -6,6 +6,7 @@ import { Input, ButtonOutline, InlineForm } from 'rebass';
 import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
+import ApiKeyRow from './components/ApiKeyRow';
 
 import styles from './Settings.scss';
 
@@ -65,13 +66,12 @@ class Settings extends React.Component {
             { this.store.apiKeys && (
               <table className={ styles.apiKeyTable }>
                 { this.store.apiKeys.map(key => (
-                  <tr>
-                    <td>{ key.name }</td>
-                    <td><code>{ key.secret }</code></td>
-                    {/* <td>
-                      <span className={ styles.deleteAction }>Delete</span>
-                    </td> */}
-                  </tr>
+                  <ApiKeyRow
+                    id={ key.id }
+                    name={ key.name }
+                    secret={ key.secret }
+                    onDelete={ this.store.deleteApiKey }
+                  />
                 )) }
               </table>
             ) }

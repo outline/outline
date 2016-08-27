@@ -93,6 +93,9 @@ hr {
   border-bottom-style: solid;
   border-bottom-color: #ccc;
 }
+*[role=button] {
+  cursor: pointer;
+}
 
 :global {
   .hljs {

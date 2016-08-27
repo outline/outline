@@ -50,4 +50,27 @@ router.post('apiKeys.list', auth(), pagination(), async (ctx) => {
   };
 });
 
+router.post('apiKeys.delete', auth(), async (ctx) => {
+  const {
+    id,
+  } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const user = ctx.state.user;
+  const key = await ApiKey.findById(id);
+
+  if (!key || key.userId !== user.id) throw httpErrors.BadRequest();
+
+  // Delete the actual document
+  try {
+    await key.destroy();
+  } catch (e) {
+    throw httpErrors.BadRequest('Error while deleting key');
+  }
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 export default router;

@@ -232,7 +232,7 @@ router.post('documents.delete', auth(), async (ctx) => {
   }
 
   ctx.body = {
-    ok: true,
+    success: true,
   };
 });
 

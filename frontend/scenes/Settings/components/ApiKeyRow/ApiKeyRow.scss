@@ -1,0 +1,10 @@
+@import '~styles/constants.scss';
+
+.deleteAction {
+  font-size: 14px;
+  color: $textColor;
+}
+
+.disabled {
+  opacity: 0.5;
+}

@@ -40,6 +40,22 @@ class SearchStore {
     this.isFetching = false;
   }
 
+  @action deleteApiKey = async (id) => {
+    this.isFetching = true;
+
+    try {
+      await client.post('/apiKeys.delete', {
+        id,
+      });
+      runInAction('deleteApiKey', () => {
+        this.fetchApiKeys();
+      });
+    } catch (e) {
+      console.error("Something went wrong");
+    }
+    this.isFetching = false;
+  }
+
   @action setKeyName = (value) => {
     this.keyName = value.target.value;
   }
