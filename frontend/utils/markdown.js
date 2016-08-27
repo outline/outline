@@ -3,6 +3,7 @@ import marked from 'marked';
 import sanitizedRenderer from 'marked-sanitized';
 import highlight from 'highlight.js';
 import emojify from './emojify';
+import toc from './toc';
 import _ from 'lodash';
 
 slug.defaults.mode = 'rfc3986';
@@ -24,8 +25,16 @@ renderer.heading = (text, level) => {
   `;
 };
 
-// TODO: This is syncronous and can be costly
 const convertToMarkdown = (text) => {
+  // Add TOC
+  text = toc.insert(text, {
+    slugify: (heading) => {
+      // FIXME: E.g. `&` gets messed up
+      const headingSlug = _.escape(slug(heading));
+      return headingSlug;
+    },
+  });
+
   return marked.parse(emojify(text), {
     renderer,
     gfm: true,
