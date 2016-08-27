@@ -11,7 +11,7 @@ import documents from './documents';
 import hooks from './hooks';
 import apiKeys from './apiKeys';
 
-import validation from './validation';
+import validation from './middlewares/validation';
 import methodOverride from '../middlewares/methodOverride';
 import cache from '../middlewares/cache';
 

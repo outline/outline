@@ -2,7 +2,7 @@ import Router from 'koa-router';
 import httpErrors from 'http-errors';
 import _ from 'lodash';
 
-import auth from './authentication';
+import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection } from '../presenters';
 import { Atlas } from '../models';

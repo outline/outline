@@ -1,8 +1,7 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
-import _ from 'lodash';
 
-import auth from './authentication';
+import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentApiKey } from '../presenters';
 import { ApiKey } from '../models';

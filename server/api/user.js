@@ -5,7 +5,7 @@ import {
   makePolicy,
   signPolicy,
 } from '../utils/s3';
-import auth from './authentication';
+import auth from './middlewares/authentication';
 import { presentUser } from '../presenters';
 
 const router = new Router();

@@ -1,7 +1,7 @@
 import httpErrors from 'http-errors';
 import JWT from 'jsonwebtoken';
 
-import { User } from '../models';
+import { User } from '../../models';
 
 export default function auth({ require = true } = {}) {
   return async function authMiddleware(ctx, next) {
@@ -19,7 +19,8 @@ export default function auth({ require = true } = {}) {
         }
       } else {
         if (require) {
-          throw httpErrors.Unauthorized('Bad Authorization header format. Format is "Authorization: Bearer <token>"\n');
+          throw httpErrors.Unauthorized(`Bad Authorization header format. \
+            Format is "Authorization: Bearer <token>"\n`);
         }
       }
     } else if (ctx.request.query.token) {

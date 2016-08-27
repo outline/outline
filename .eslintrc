@@ -9,6 +9,8 @@
     }}], // Spaces inside curlies, except prop={{}}
     "react/prefer-stateless-function": 0, // Don't prefer stateless components
     "no-else-return": 0,
+    "new-cap": 0,
+    "no-param-reassign": 0,
   },
   "settings" : {
     "import/resolver": {

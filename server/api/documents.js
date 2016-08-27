@@ -8,7 +8,7 @@ import isUUID from 'validator/lib/isUUID';
 
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
-import auth from './authentication';
+import auth from './middlewares/authentication';
 // import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
 import { Document, Atlas } from '../models';
