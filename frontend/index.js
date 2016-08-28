@@ -29,6 +29,7 @@ import SlackAuth from 'scenes/SlackAuth';
 import Error404 from 'scenes/Error404';
 
 window.stores = stores;
+import ErrorAuth from 'scenes/ErrorAuth';
 
 let DevTools;
 if (__DEV__) {
@@ -78,6 +79,7 @@ render((
               component={ SlackAuth }
               apiPath="/auth.slackCommands"
             />
+            <Route path="/auth/error" component={ ErrorAuth } />
 
             <Route path="/404" component={ Error404 } />
             <Redirect from="*" to="/404" />

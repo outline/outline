@@ -12,7 +12,17 @@ class SlackAuth extends React.Component {
   }
 
   componentDidMount = async () => {
-    const { code, state } = this.props.location.query;
+    const { error, code, state } = this.props.location.query;
+
+    if (error) {
+      if (error === 'access_denied') {
+        // User selected "Deny" access on Slack OAuth
+        browserHistory.push('/');
+      } else {
+        browserHistory.push('/auth/error');
+      }
+      return;
+    }
 
     if (this.props.route.apiPath) {
       try {
