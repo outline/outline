@@ -75,30 +75,34 @@ class Layout extends React.Component {
             </span>
           </div>
           <Flex className={ styles.headerRight }>
-            <Flex align="center" className={ styles.actions }>
-              { this.props.actions }
-            </Flex>
-            { this.props.search && (
+            { user.user && (
               <Flex>
-                <div
-                  onClick={ this.search }
-                  className={ styles.search }
-                  title="Search (/)"
+                <Flex align="center" className={ styles.actions }>
+                  { this.props.actions }
+                </Flex>
+                { this.props.search && (
+                  <Flex>
+                    <div
+                      onClick={ this.search }
+                      className={ styles.search }
+                      title="Search (/)"
+                    >
+                      <img src={ require('assets/icons/search.svg') } alt="Search" />
+                    </div>
+                  </Flex>
+                ) }
+                <DropdownMenu
+                  label={ <Avatar
+                    circle
+                    size={ 24 }
+                    src={ user.user.avatarUrl }
+                  /> }
                 >
-                  <img src={ require('assets/icons/search.svg') } alt="Search" />
-                </div>
+                  <MenuItem to="/settings">Settings</MenuItem>
+                  <MenuItem onClick={ user.logout }>Logout</MenuItem>
+                </DropdownMenu>
               </Flex>
             ) }
-            <DropdownMenu
-              label={ <Avatar
-                circle
-                size={ 24 }
-                src={ user.user.avatarUrl }
-              /> }
-            >
-              <MenuItem to="/settings">Settings</MenuItem>
-              <MenuItem onClick={ user.logout }>Logout</MenuItem>
-            </DropdownMenu>
           </Flex>
         </div>
 
