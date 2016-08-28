@@ -27,8 +27,6 @@ import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import SlackAuth from 'scenes/SlackAuth';
 import Error404 from 'scenes/Error404';
-
-window.stores = stores;
 import ErrorAuth from 'scenes/ErrorAuth';
 
 let DevTools;
