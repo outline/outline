@@ -21,14 +21,11 @@ class MarkdownEditor extends React.Component {
     onChange: React.PropTypes.func.isRequired,
     replaceText: React.PropTypes.func.isRequired,
     onSave: React.PropTypes.func.isRequired,
+    onCancel: React.PropTypes.func.isRequired,
 
     // This is actually not used but it triggers
     // re-render to help with CodeMirror focus issues
     preview: React.PropTypes.bool,
-  }
-
-  getEditorInstance = () => {
-    return this.refs.editor.getCodeMirror();
   }
 
   onChange = (newText) => {
@@ -64,7 +61,7 @@ class MarkdownEditor extends React.Component {
     .then(response => {
       const data = response.data;
       // Upload using FormData API
-      let formData = new FormData();
+      const formData = new FormData();
 
       for (let key in data.form) {
         formData.append(key, data.form[key]);
@@ -78,12 +75,12 @@ class MarkdownEditor extends React.Component {
 
       fetch(data.upload_url, {
         method: 'post',
-        body: formData
+        body: formData,
       })
       .then(s3Response => {
         this.props.replaceText({
           original: pendingUploadTag,
-          new: `![${file.name}](${data.asset.url})`
+          new: `![${file.name}](${data.asset.url})`,
         });
         editor.setCursor(newCursorPositionLine, 0);
       })
@@ -109,6 +106,10 @@ class MarkdownEditor extends React.Component {
     cm.focus();
   }
 
+  getEditorInstance = () => {
+    return this.refs.editor.getCodeMirror();
+  }
+
   render = () => {
     const options = {
       readOnly: false,
@@ -122,33 +123,33 @@ class MarkdownEditor extends React.Component {
       extraKeys: {
         Enter: 'newlineAndIndentContinueMarkdownList',
 
-        "Ctrl-Enter": this.props.onSave,
-        "Cmd-Enter": this.props.onSave,
+        'Ctrl-Enter': this.props.onSave,
+        'Cmd-Enter': this.props.onSave,
 
-        "Cmd-Esc": this.props.onCancel,
-        "Ctrl-Esc": this.props.onCancel,
+        'Cmd-Esc': this.props.onCancel,
+        'Ctrl-Esc': this.props.onCancel,
 
-        // "Cmd-Shift-p": this.props.togglePreview,
-        // "Ctrl-Shift-p": this.props.togglePreview,
+        // 'Cmd-Shift-p': this.props.togglePreview,
+        // 'Ctrl-Shift-p': this.props.togglePreview,
       },
-      placeholder: "# Start with a title...",
+      placeholder: '# Start with a title...',
     };
 
     return (
       <Dropzone
-        onDropAccepted={this.onDropAccepted}
-        disableClick={true}
-        multiple={false}
-        accept={'image/*'}
-        className={styles.container}
+        onDropAccepted={ this.onDropAccepted }
+        disableClick
+        multiple={ false }
+        accept="image/*"
+        className={ styles.container }
       >
         <ClickablePadding onClick={ this.onPaddingTopClick } />
         <Codemirror
-          value={this.props.text}
-          onChange={this.onChange}
-          options={options}
+          value={ this.props.text }
+          onChange={ this.onChange }
+          options={ options }
           ref="editor"
-          className={styles.codeMirrorContainer}
+          className={ styles.codeMirrorContainer }
         />
         <ClickablePadding onClick={ this.onPaddingBottomClick } />
       </Dropzone>
