@@ -120,6 +120,7 @@ class MarkdownEditor extends React.Component {
       viewportMargin: Infinity,
       scrollbarStyle: 'null',
       theme: 'atlas',
+      autofocus: true,
       extraKeys: {
         Enter: 'newlineAndIndentContinueMarkdownList',
 
