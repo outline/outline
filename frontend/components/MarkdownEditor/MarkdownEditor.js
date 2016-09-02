@@ -45,10 +45,10 @@ class MarkdownEditor extends React.Component {
     // Lets set up the upload text
     const pendingUploadTag = `![${file.name}](Uploading...)`;
     if (insertOnNewLine) {
-      editor.replaceSelection('\n' + pendingUploadTag + '\n');
+      editor.replaceSelection(`\n${pendingUploadTag}\n`);
       newCursorPositionLine = cursorPosition.line + 3;
     } else {
-      editor.replaceSelection(pendingUploadTag + '\n');
+      editor.replaceSelection(`${pendingUploadTag}\n`);
       newCursorPositionLine = cursorPosition.line + 2;
     }
     editor.setCursor(newCursorPositionLine, 0);
@@ -63,7 +63,7 @@ class MarkdownEditor extends React.Component {
       // Upload using FormData API
       const formData = new FormData();
 
-      for (let key in data.form) {
+      for (const key in data.form) {
         formData.append(key, data.form[key]);
       }
 
