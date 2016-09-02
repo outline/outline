@@ -77,14 +77,14 @@ class MarkdownEditor extends React.Component {
         method: 'post',
         body: formData,
       })
-      .then(s3Response => {
+      .then(_s3Response => {
         this.props.replaceText({
           original: pendingUploadTag,
           new: `![${file.name}](${data.asset.url})`,
         });
         editor.setCursor(newCursorPositionLine, 0);
       })
-      .catch(err => {
+      .catch(_err => {
         this.props.replaceText({
           original: pendingUploadTag,
           new: '',

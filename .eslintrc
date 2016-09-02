@@ -11,6 +11,9 @@
     "no-else-return": 0,
     "new-cap": 0,
     "no-param-reassign": 0,
+    no-unused-vars: ["error", {
+      "argsIgnorePattern": "^_",
+    }],
   },
   "settings" : {
     "import/resolver": {
