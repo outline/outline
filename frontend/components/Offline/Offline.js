@@ -10,7 +10,7 @@ class Offline extends React.Component {
   };
 
   state = {
-    offline: false,
+    offline: !navigator.onLine,
   }
 
   getChildContext() {
