@@ -86,12 +86,13 @@ blockquote {
   margin-left: 0;
 }
 hr {
+  width: 75%;
   margin-top: 1.5em;
   margin-bottom: 1.5em;
   border: 0;
   border-bottom-width: 1px;
   border-bottom-style: solid;
-  border-bottom-color: #ccc;
+  border-bottom-color: #eee;
 }
 *[role=button] {
   cursor: pointer;
