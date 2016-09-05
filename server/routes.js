@@ -26,6 +26,8 @@ router.get('/service-worker.js', async (ctx) => {
   if (!ctx.status) ctx.throw(httpErrors.NotFound());
 });
 
+router.get('/_health', ctx => (ctx.body = 'OK'));
+
 if (process.env.NODE_ENV === 'production') {
   router.get('/static/*', async (ctx) => {
     ctx.set({
