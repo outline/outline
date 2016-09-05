@@ -119,6 +119,7 @@ router.post('documents.create', auth(), async (ctx) => {
   const document = await (() => {
     return new Promise(resolve => {
       lock(ownerCollection.id, 10000, async (done) => {
+        // FIXME: should we validate the existance of parentDocument?
         let parentDocumentObj = {};
         if (parentDocument && ownerCollection.type === 'atlas') {
           parentDocumentObj = await Document.findOne({
