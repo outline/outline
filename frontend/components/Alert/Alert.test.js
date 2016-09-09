@@ -1,0 +1,29 @@
+/* eslint-disable */
+import React from 'react';
+import { snap } from 'utils/testUtils';
+
+import Alert from '.';
+
+test('renders default as info', () => {
+  snap(<Alert>default</Alert>);
+});
+
+test('renders success', () => {
+  snap(<Alert success>success</Alert>);
+});
+
+test('renders info', () => {
+  snap(<Alert info>info</Alert>);
+});
+
+test('renders warning', () => {
+  snap(<Alert warning>warning</Alert>);
+});
+
+test('renders danger', () => {
+  snap(<Alert danger>danger</Alert>);
+});
+
+test('renders offline', () => {
+  snap(<Alert offline>offline</Alert>);
+});

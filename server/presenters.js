@@ -1,5 +1,5 @@
 import Sequelize from 'sequelize';
-import _orderBy from 'lodash.orderby';
+import _ from 'lodash';
 import { Document, Atlas, User, Revision } from './models';
 
 export function presentUser(ctx, user) {
@@ -123,7 +123,7 @@ export function presentCollection(ctx, collection, includeRecentDocuments=false)
           includeCollaborators: true,
         }));
       }));
-      data.recentDocuments = _orderBy(recentDocuments, ['updatedAt'], ['desc']);
+      data.recentDocuments = _.orderBy(recentDocuments, ['updatedAt'], ['desc']);
     }
 
     resolve(data);

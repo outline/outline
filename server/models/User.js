@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import {
   DataTypes,
   sequelize,
-  encryptedFields
+  encryptedFields,
 } from '../sequelize';
 
 import JWT from 'jsonwebtoken';

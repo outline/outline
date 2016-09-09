@@ -10,8 +10,6 @@ export default function auth({ require = true } = {}) {
   return async function authMiddleware(ctx, next) {
     let token;
 
-    console.log(ctx.body);
-
     const authorizationHeader = ctx.request.get('authorization');
     if (authorizationHeader) {
       const parts = authorizationHeader.split(' ');

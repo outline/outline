@@ -1,0 +1,10 @@
+{
+  "verbose": true,
+  "testPathDirs": [
+    "<rootDir>/server"
+  ],
+  "setupFiles": [
+    "<rootDir>/__mocks__/console.js",
+    "./server/test/helper.js"
+  ]
+}
