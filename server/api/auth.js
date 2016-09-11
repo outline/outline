@@ -64,11 +64,11 @@ router.post('auth.slack', async (ctx) => {
   if (!allowedSlackIds.includes(data.team.id)) throw httpErrors.BadRequest('Invalid Slack team');
 
   // User
-  let user = await User.findOne({ where: { slackId: data.user.id }});
+  let user = await User.findOne({ where: { slackId: data.user.id } });
 
   // Team
   let team = await Team.findOne({ where: { slackId: data.team.id } });
-  let teamExisted = !!team;
+  const teamExisted = !!team;
   if (!team) {
     team = await Team.create({
       name: data.team.name,
