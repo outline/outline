@@ -126,6 +126,6 @@ Document.searchForUser = async (user, query, options = {}) => {
   );
 
   return documents;
-}
+};
 
 export default Document;
