@@ -14,6 +14,7 @@ import apiKeys from './apiKeys';
 import validation from './middlewares/validation';
 import methodOverride from '../middlewares/methodOverride';
 import cache from '../middlewares/cache';
+import apiWrapper from './middlewares/apiWrapper';
 
 const api = new Koa();
 const router = new Router();
@@ -39,7 +40,10 @@ api.use(async (ctx, next) => {
       ctx.app.emit('error', err, ctx);
     }
 
-    ctx.body = { message };
+    ctx.body = {
+      success: false,
+      error: message,
+    };
   }
 });
 
@@ -47,6 +51,7 @@ api.use(bodyParser());
 api.use(methodOverride());
 api.use(cache());
 api.use(validation());
+api.use(apiWrapper());
 
 router.use('/', auth.routes());
 router.use('/', user.routes());
@@ -58,10 +63,5 @@ router.use('/', apiKeys.routes());
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.
 api.use(router.routes());
-
-// API 404 handler
-api.use(async () => {
-  throw httpErrors.NotFound();
-});
 
 export default api;
