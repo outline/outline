@@ -8,6 +8,36 @@ import { User, Team } from '../models';
 
 const router = new Router();
 
+router.post('auth.signup', async (ctx) => {
+  const { username, name, email, password } = ctx.request.body;
+
+  ctx.assertPresent(username, 'name is required');
+  ctx.assertPresent(name, 'name is required');
+  ctx.assertPresent(email, 'email is required');
+  ctx.assertEmail(email, 'email is invalid');
+  ctx.assertPresent(password, 'password is required');
+
+  if (await User.findOne({ where: { email } })) {
+    throw httpErrors.BadRequest('User already exists with this email');
+  }
+
+  if (await User.findOne({ where: { username } })) {
+    throw httpErrors.BadRequest('User already exists with this username');
+  }
+
+  const user = await User.create({
+    username,
+    name,
+    email,
+    password,
+  });
+
+  ctx.body = { data: {
+    user: await presentUser(ctx, user),
+    accessToken: user.getJwtToken(),
+  } };
+});
+
 router.post('auth.slack', async (ctx) => {
   const { code } = ctx.body;
   ctx.assertPresent(code, 'code is required');

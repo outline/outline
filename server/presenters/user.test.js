@@ -17,3 +17,17 @@ it('presents a user', async () => {
 
   expect(user).toMatchSnapshot();
 });
+
+it('presents a user without slack data', async () => {
+  const user = await presentUser(
+    ctx,
+    {
+      id: '123',
+      name: 'Test User',
+      username: 'testuser',
+      slackData: null,
+    },
+  );
+
+  expect(user).toMatchSnapshot();
+});

@@ -9,12 +9,12 @@ import JWT from 'jsonwebtoken';
 
 const User = sequelize.define('user', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  email: DataTypes.STRING,
-  username: DataTypes.STRING,
+  email: { type: DataTypes.STRING, unique: true },
+  username: { type: DataTypes.STRING, unique: true },
   name: DataTypes.STRING,
   isAdmin: DataTypes.BOOLEAN,
   slackAccessToken: encryptedFields.vault('slackAccessToken'),
-  slackId: { type: DataTypes.STRING, unique: true },
+  slackId: { type: DataTypes.STRING, allowNull: true },
   slackData: DataTypes.JSONB,
   jwtSecret: encryptedFields.vault('jwtSecret'),
 }, {

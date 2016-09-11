@@ -1,0 +1,27 @@
+exports[`test should require params 1`] = `
+Object {
+  "error": "name is required",
+  "ok": false
+}
+`;
+
+exports[`test should require unique email 1`] = `
+Object {
+  "error": "User already exists with this email",
+  "ok": false
+}
+`;
+
+exports[`test should require unique username 1`] = `
+Object {
+  "error": "User already exists with this username",
+  "ok": false
+}
+`;
+
+exports[`test should require valid email 1`] = `
+Object {
+  "error": "email is invalid",
+  "ok": false
+}
+`;
