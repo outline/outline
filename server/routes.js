@@ -9,16 +9,6 @@ import subdomainRedirect from './middlewares/subdomainRedirect';
 const koa = new Koa();
 const router = new Router();
 
-// // error handler
-// koa.use(async (ctx, next) => {
-//   try {
-//     await next();
-//   } catch (err) {
-//     ctx.status = err.status || 500;
-//     ctx.body = err.message;
-//   }
-// });
-
 router.get('/service-worker.js', async (ctx) => {
   ctx.set('Content-Type', 'application/javascript');
   if (process.env.NODE_ENV === 'production') ctx.set('Cache-Control', `max-age=${30}`);

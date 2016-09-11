@@ -1,20 +1,11 @@
-import Sequelize from 'sequelize';
 import _ from 'lodash';
-import { Document, Atlas, User, Revision } from './models';
+import { Document, Atlas, User } from './models';
 
-export function presentUser(ctx, user) {
-  ctx.cache.set(user.id, user);
+import presentUser from './presenters/user';
 
-  return new Promise(async (resolve, _reject) => {
-    const data = {
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      avatarUrl: user.slackData.image_192,
-    };
-    resolve(data);
-  });
-}
+export {
+  presentUser,
+};
 
 export function presentTeam(ctx, team) {
   ctx.cache.set(team.id, team);

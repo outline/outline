@@ -13,12 +13,14 @@ const app = new Koa();
 app.use(compress());
 
 if (process.env.NODE_ENV === 'development') {
-  const convert = require('koa-convert')
+  /* eslint-disable global-require */
+  const convert = require('koa-convert');
   const webpack = require('webpack');
   const devMiddleware = require('koa-webpack-dev-middleware');
   const hotMiddleware = require('koa-webpack-hot-middleware');
   const config = require('../webpack.config.dev');
   const compile = webpack(config);
+  /* eslint-enable global-require */
 
   app.use(convert(devMiddleware(compile, {
     // display no info to console (only warnings and errors)
@@ -43,13 +45,13 @@ if (process.env.NODE_ENV === 'development') {
 
     // options for formating the statistics
     stats: {
-      colors: true
-    }
+      colors: true,
+    },
   })));
   app.use(convert(hotMiddleware(compile, {
-    log: console.log,
+    log: console.log, // eslint-disable-line
     path: '/__webpack_hmr',
-    heartbeat: 10 * 1000
+    heartbeat: 10 * 1000,
   })));
   app.use(logger());
 }
