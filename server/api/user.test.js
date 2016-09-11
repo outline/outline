@@ -8,11 +8,11 @@ import { flushdb, seed, sequelize } from '../test/support';
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
-beforeEach(seed);
 afterAll(() => server.close());
 afterAll(() => sequelize.close());
 
 it('should return known user', async () => {
+  await seed();
   const user = await User.findOne({
     where: {
       email: 'user1@example.com',
@@ -29,6 +29,7 @@ it('should return known user', async () => {
 });
 
 it('should require authentication', async () => {
+  await seed();
   const res = await server.post('/api/user.info');
   const body = await res.json();
 

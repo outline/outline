@@ -27,8 +27,15 @@
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },
-    "moduleFileExtensions": ["js", "jsx", "json"],
-    "moduleDirectories": ["node_modules", "server"],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "server"
+    ],
     "modulePaths": [
       "frontend"
     ],
@@ -133,7 +140,7 @@
     "slug": "0.9.1",
     "string-hash": "^1.1.0",
     "style-loader": "0.13.0",
-    "truncate-html": "0.0.6",
+    "truncate-html": "https://github.com/jorilallo/truncate-html/tarball/master",
     "url-loader": "0.5.7",
     "uuid": "2.0.2",
     "validator": "5.2.0",
