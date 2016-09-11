@@ -1,7 +1,6 @@
 {
   "name": "BeautifulAtlas",
-  "version": "0.0.1",
-  "description": "For writing",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
@@ -13,7 +12,36 @@
     "lint": "eslint frontend",
     "deploy": "git push heroku master",
     "heroku-postbuild": "npm run build && npm run sequelize db:migrate",
-    "sequelize": "./node_modules/.bin/sequelize"
+    "sequelize": "./node_modules/.bin/sequelize",
+    "test": "npm run test:frontend && npm run test:server",
+    "test:frontend": "jest",
+    "test:watch": "jest --watch",
+    "test:server": "jest --config=server/.jest-config --runInBand"
+  },
+  "jest": {
+    "verbose": false,
+    "testPathDirs": [
+      "frontend"
+    ],
+    "moduleNameMapper": {
+      "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
+      "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
+    },
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "server"
+    ],
+    "modulePaths": [
+      "frontend"
+    ],
+    "setupFiles": [
+      "<rootDir>/__mocks__/window.js"
+    ]
   },
   "engines": {
     "node": "6.x"
@@ -22,12 +50,6 @@
     "type": "git",
     "url": "git+ssh://git@github.com/jorilallo/atlas.git"
   },
-  "author": "Jori Lallo",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jorilallo/atlas/issues"
-  },
-  "homepage": "https://github.com/jorilallo/atlas#readme",
   "dependencies": {
     "babel-core": "6.13.2",
     "babel-eslint": "6.1.2",
@@ -99,10 +121,10 @@
     "query-string": "^4.2.2",
     "querystring": "0.2.0",
     "randomstring": "1.1.5",
-    "react": "15.1.0",
-    "react-codemirror": "0.2.5",
+    "react": "15.3.1",
+    "react-codemirror": "0.2.6",
     "react-dom": "15.1.0",
-    "react-dropzone": "3.3.2",
+    "react-dropzone": "3.6.0",
     "react-helmet": "3.1.0",
     "react-keydown": "^1.6.1",
     "react-router": "2.5.1",
@@ -118,18 +140,23 @@
     "slug": "0.9.1",
     "string-hash": "^1.1.0",
     "style-loader": "0.13.0",
-    "truncate-html": "0.0.6",
+    "truncate-html": "https://github.com/jorilallo/truncate-html/tarball/master",
     "url-loader": "0.5.7",
     "uuid": "2.0.2",
     "validator": "5.2.0",
     "webpack": "1.13.2"
   },
   "devDependencies": {
+    "babel-jest": "^15.0.0",
+    "fetch-test-server": "^1.1.0",
     "fsevents": "1.0.14",
+    "identity-obj-proxy": "^3.0.0",
     "ignore-loader": "0.1.1",
+    "jest-cli": "^15.1.1",
     "koa-webpack-dev-middleware": "1.2.0",
     "koa-webpack-hot-middleware": "1.0.3",
     "node-dev": "3.1.0",
-    "nodemon": "1.9.1"
+    "nodemon": "1.9.1",
+    "react-test-renderer": "^15.3.1"
   }
 }

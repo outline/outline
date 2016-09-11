@@ -1,0 +1,1 @@
+window.matchMedia = (data) => data;
