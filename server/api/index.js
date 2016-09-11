@@ -1,5 +1,4 @@
 import bodyParser from 'koa-bodyparser';
-import httpErrors from 'http-errors';
 import Koa from 'koa';
 import Router from 'koa-router';
 import Sequelize from 'sequelize';
@@ -41,7 +40,7 @@ api.use(async (ctx, next) => {
     }
 
     ctx.body = {
-      success: false,
+      ok: false,
       error: message,
     };
   }

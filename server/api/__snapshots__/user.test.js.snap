@@ -1,7 +1,7 @@
 exports[`test should require authentication 1`] = `
 Object {
   "error": "Authentication required",
-  "success": false
+  "ok": false
 }
 `;
 
@@ -13,6 +13,6 @@ Object {
     "name": "User 1",
     "username": "user1"
   },
-  "success": true
+  "ok": true
 }
 `;
