@@ -7,8 +7,8 @@ import { flushdb, seed, sequelize } from '../test/support';
 
 const server = new TestServer(app.callback());
 
+beforeEach(flushdb);
 beforeEach(seed);
-afterEach(flushdb);
 afterAll(() => server.close());
 afterAll(() => sequelize.close());
 
