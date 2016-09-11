@@ -1,8 +1,5 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
-import {
-  sequelize,
-} from '../sequelize';
 import { lock } from '../redis';
 import isUUID from 'validator/lib/isUUID';
 
@@ -130,7 +127,7 @@ router.post('documents.create', auth(), async (ctx) => {
           });
         }
 
-        const document = await Document.create({
+        const newDocument = await Document.create({
           parentDocumentId: parentDocumentObj.id,
           atlasId: ownerCollection.id,
           teamId: user.teamId,
@@ -144,11 +141,11 @@ router.post('documents.create', auth(), async (ctx) => {
         // TODO: Move to afterSave hook if possible with imports
         if (parentDocument && ownerCollection.type === 'atlas') {
           await ownerCollection.reload();
-          ownerCollection.addNodeToNavigationTree(document);
+          ownerCollection.addNodeToNavigationTree(newDocument);
           await ownerCollection.save();
         }
 
-        done(resolve(document));
+        done(resolve(newDocument));
       });
     });
   })();
