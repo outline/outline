@@ -38,6 +38,30 @@ router.post('auth.signup', async (ctx) => {
   } };
 });
 
+router.post('auth.login', async (ctx) => {
+  const { username, email, password } = ctx.request.body;
+
+  ctx.assertPresent(password, 'password is required');
+
+  let user;
+  if (username) {
+    user = await User.findOne({ where: { username } });
+  } else if (email) {
+    user = await User.findOne({ where: { email } });
+  } else {
+    throw httpErrors.BadRequest('username or email is required');
+  }
+
+  if (!await user.verifyPassword(password)) {
+    throw httpErrors.BadRequest('Invalid password');
+  }
+
+  ctx.body = { data: {
+    user: await presentUser(ctx, user),
+    accessToken: user.getJwtToken(),
+  } };
+});
+
 router.post('auth.slack', async (ctx) => {
   const { code } = ctx.body;
   ctx.assertPresent(code, 'code is required');

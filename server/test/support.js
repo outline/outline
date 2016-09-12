@@ -16,6 +16,7 @@ const seed = async () => {
     email: 'user1@example.com',
     username: 'user1',
     name: 'User 1',
+    password: 'test123!',
     slackId: '123',
     slackData: {
       image_192: 'http://example.com/avatar.png',
