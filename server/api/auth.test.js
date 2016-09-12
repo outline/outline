@@ -86,7 +86,7 @@ describe('#auth.signup', async () => {
   });
 });
 
-describe('#login', () => {
+describe('#auth.login', () => {
   test('should login with email', async () => {
     await seed();
     const res = await server.post('/api/auth.login', {

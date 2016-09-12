@@ -11,28 +11,30 @@ beforeEach(flushdb);
 afterAll(() => server.close());
 afterAll(() => sequelize.close());
 
-it('should return known user', async () => {
-  await seed();
-  const user = await User.findOne({
-    where: {
-      email: 'user1@example.com',
-    },
+describe('#user.info', async () => {
+  it('should return known user', async () => {
+    await seed();
+    const user = await User.findOne({
+      where: {
+        email: 'user1@example.com',
+      },
+    });
+
+    const res = await server.post('/api/user.info', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
   });
 
-  const res = await server.post('/api/user.info', {
-    body: { token: user.getJwtToken() },
+  it('should require authentication', async () => {
+    await seed();
+    const res = await server.post('/api/user.info');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
   });
-  const body = await res.json();
-
-  expect(res.status).toEqual(200);
-  expect(body).toMatchSnapshot();
-});
-
-it('should require authentication', async () => {
-  await seed();
-  const res = await server.post('/api/user.info');
-  const body = await res.json();
-
-  expect(res.status).toEqual(401);
-  expect(body).toMatchSnapshot();
 });
