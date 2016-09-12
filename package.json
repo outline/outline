@@ -62,6 +62,7 @@
     "babel-preset-react-hmre": "1.1.1",
     "babel-preset-stage-0": "6.5.0",
     "babel-regenerator-runtime": "6.5.0",
+    "bcrypt": "^0.8.7",
     "bugsnag": "^1.7.0",
     "classnames": "2.2.3",
     "codemirror": "5.16.0",

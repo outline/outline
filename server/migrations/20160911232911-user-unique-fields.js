@@ -1,5 +1,3 @@
-'use strict';
-
 module.exports = {
   up: function (queryInterface, Sequelize) {
     queryInterface.changeColumn(
@@ -42,5 +40,5 @@ module.exports = {
         allowNull: true,
       }
     );
-  }
+  },
 };
