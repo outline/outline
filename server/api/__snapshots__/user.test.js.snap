@@ -1,11 +1,11 @@
-exports[`test should require authentication 1`] = `
+exports[`#user.info should require authentication 1`] = `
 Object {
   "error": "Authentication required",
   "ok": false
 }
 `;
 
-exports[`test should return known user 1`] = `
+exports[`#user.info should return known user 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",

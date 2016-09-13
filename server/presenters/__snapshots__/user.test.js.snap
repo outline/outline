@@ -6,3 +6,12 @@ Object {
   "username": "testuser"
 }
 `;
+
+exports[`test presents a user without slack data 1`] = `
+Object {
+  "avatarUrl": null,
+  "id": "123",
+  "name": "Test User",
+  "username": "testuser"
+}
+`;

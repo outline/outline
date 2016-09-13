@@ -1,4 +1,4 @@
-const path = require('path');
+import path from 'path';
 import httpErrors from 'http-errors';
 import Koa from 'koa';
 import Router from 'koa-router';
@@ -21,21 +21,21 @@ router.get('/_health', ctx => (ctx.body = 'OK'));
 if (process.env.NODE_ENV === 'production') {
   router.get('/static/*', async (ctx) => {
     ctx.set({
-      'Cache-Control': `max-age=${356*24*60*60}`,
+      'Cache-Control': `max-age=${356 * 24 * 60 * 60}`,
     });
 
-    const stats = await sendfile(ctx, path.join(__dirname, '../dist/', ctx.path.substring(8)));
+    await sendfile(ctx, path.join(__dirname, '../dist/', ctx.path.substring(8)));
   });
 
   router.get('*', async (ctx) => {
-    const stats = await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
+    await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
     if (!ctx.status) ctx.throw(httpErrors.NotFound());
   });
 
   koa.use(subdomainRedirect());
 } else {
   router.get('*', async (ctx) => {
-    const stats = await sendfile(ctx, path.join(__dirname, './static/dev.html'));
+    await sendfile(ctx, path.join(__dirname, './static/dev.html'));
     if (!ctx.status) ctx.throw(httpErrors.NotFound());
   });
 }

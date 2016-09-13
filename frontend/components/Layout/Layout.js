@@ -36,13 +36,13 @@ class Layout extends React.Component {
 
   @keydown(['/', 't'])
   search() {
-    // if (!this.props.search) return;
+    if (!this.props.user) return;
     _.defer(() => browserHistory.push('/search'));
   }
 
   @keydown(['d'])
   dashboard() {
-    // if (!this.props.search) return;
+    if (!this.props.user) return;
     _.defer(() => browserHistory.push('/'));
   }
 
@@ -75,34 +75,36 @@ class Layout extends React.Component {
             </span>
           </div>
           <Flex className={ styles.headerRight }>
-            { user.user && (
-              <Flex>
-                <Flex align="center" className={ styles.actions }>
-                  { this.props.actions }
-                </Flex>
-                { this.props.search && (
-                  <Flex>
-                    <div
-                      onClick={ this.search }
-                      className={ styles.search }
-                      title="Search (/)"
-                    >
-                      <img src={ require('assets/icons/search.svg') } alt="Search" />
-                    </div>
-                  </Flex>
-                ) }
-                <DropdownMenu
-                  label={ <Avatar
-                    circle
-                    size={ 24 }
-                    src={ user.user.avatarUrl }
-                  /> }
-                >
-                  <MenuItem to="/settings">Settings</MenuItem>
-                  <MenuItem onClick={ user.logout }>Logout</MenuItem>
-                </DropdownMenu>
+            <Flex>
+              <Flex align="center" className={ styles.actions }>
+                { this.props.actions }
               </Flex>
-            ) }
+              { user.user && (
+                <Flex>
+                  { this.props.search && (
+                    <Flex>
+                      <div
+                        onClick={ this.search }
+                        className={ styles.search }
+                        title="Search (/)"
+                      >
+                        <img src={ require('assets/icons/search.svg') } alt="Search" />
+                      </div>
+                    </Flex>
+                  ) }
+                  <DropdownMenu
+                    label={ <Avatar
+                      circle
+                      size={ 24 }
+                      src={ user.user.avatarUrl }
+                    /> }
+                  >
+                    <MenuItem to="/settings">Settings</MenuItem>
+                    <MenuItem onClick={ user.logout }>Logout</MenuItem>
+                  </DropdownMenu>
+                </Flex>
+              ) }
+            </Flex>
           </Flex>
         </div>
 

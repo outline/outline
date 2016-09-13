@@ -1,0 +1,66 @@
+exports[`#auth.login should login with email 1`] = `
+Object {
+  "avatarUrl": "http://example.com/avatar.png",
+  "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
+  "name": "User 1",
+  "username": "user1"
+}
+`;
+
+exports[`#auth.login should login with username 1`] = `
+Object {
+  "avatarUrl": "http://example.com/avatar.png",
+  "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
+  "name": "User 1",
+  "username": "user1"
+}
+`;
+
+exports[`#auth.login should require either username or email 1`] = `
+Object {
+  "error": "username or email is required",
+  "ok": false
+}
+`;
+
+exports[`#auth.login should require password 1`] = `
+Object {
+  "error": "password is required",
+  "ok": false
+}
+`;
+
+exports[`#auth.login should validate password 1`] = `
+Object {
+  "error": "Invalid password",
+  "ok": false
+}
+`;
+
+exports[`#auth.signup should require params 1`] = `
+Object {
+  "error": "name is required",
+  "ok": false
+}
+`;
+
+exports[`#auth.signup should require unique email 1`] = `
+Object {
+  "error": "User already exists with this email",
+  "ok": false
+}
+`;
+
+exports[`#auth.signup should require unique username 1`] = `
+Object {
+  "error": "User already exists with this username",
+  "ok": false
+}
+`;
+
+exports[`#auth.signup should require valid email 1`] = `
+Object {
+  "error": "email is invalid",
+  "ok": false
+}
+`;

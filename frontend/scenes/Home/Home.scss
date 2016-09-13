@@ -1,17 +1,9 @@
-.container {
-  display: flex;
-  flex: 1;
-  justify-content: space-around;
+.title {
+  font-size: 36px;
+  margin-bottom: 24px;
 }
 
-.content {
-  margin: 40px;
-  max-width: 640px;
-}
-
-.intro {
-  font-family: "Atlas Typewriter", Monaco, monospace;
-  font-size: 1.4em;
-  line-height: 1.6em;
-  margin-bottom: 40px;
+.copy {
+  font-size: 20px;
+  margin-bottom: 36px;
 }

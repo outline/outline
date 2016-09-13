@@ -9,7 +9,7 @@ import User from './User';
 const Team = sequelize.define('team', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   name: DataTypes.STRING,
-  slackId: { type: DataTypes.STRING, unique: true },
+  slackId: { type: DataTypes.STRING, allowNull: true },
   slackData: DataTypes.JSONB,
 }, {
   instanceMethods: {

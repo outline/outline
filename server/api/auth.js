@@ -8,6 +8,60 @@ import { User, Team } from '../models';
 
 const router = new Router();
 
+router.post('auth.signup', async (ctx) => {
+  const { username, name, email, password } = ctx.request.body;
+
+  ctx.assertPresent(username, 'name is required');
+  ctx.assertPresent(name, 'name is required');
+  ctx.assertPresent(email, 'email is required');
+  ctx.assertEmail(email, 'email is invalid');
+  ctx.assertPresent(password, 'password is required');
+
+  if (await User.findOne({ where: { email } })) {
+    throw httpErrors.BadRequest('User already exists with this email');
+  }
+
+  if (await User.findOne({ where: { username } })) {
+    throw httpErrors.BadRequest('User already exists with this username');
+  }
+
+  const user = await User.create({
+    username,
+    name,
+    email,
+    password,
+  });
+
+  ctx.body = { data: {
+    user: await presentUser(ctx, user),
+    accessToken: user.getJwtToken(),
+  } };
+});
+
+router.post('auth.login', async (ctx) => {
+  const { username, email, password } = ctx.request.body;
+
+  ctx.assertPresent(password, 'password is required');
+
+  let user;
+  if (username) {
+    user = await User.findOne({ where: { username } });
+  } else if (email) {
+    user = await User.findOne({ where: { email } });
+  } else {
+    throw httpErrors.BadRequest('username or email is required');
+  }
+
+  if (!await user.verifyPassword(password)) {
+    throw httpErrors.BadRequest('Invalid password');
+  }
+
+  ctx.body = { data: {
+    user: await presentUser(ctx, user),
+    accessToken: user.getJwtToken(),
+  } };
+});
+
 router.post('auth.slack', async (ctx) => {
   const { code } = ctx.body;
   ctx.assertPresent(code, 'code is required');
@@ -34,11 +88,11 @@ router.post('auth.slack', async (ctx) => {
   if (!allowedSlackIds.includes(data.team.id)) throw httpErrors.BadRequest('Invalid Slack team');
 
   // User
-  let user = await User.findOne({ where: { slackId: data.user.id }});
+  let user = await User.findOne({ where: { slackId: data.user.id } });
 
   // Team
   let team = await Team.findOne({ where: { slackId: data.team.id } });
-  let teamExisted = !!team;
+  const teamExisted = !!team;
   if (!team) {
     team = await Team.create({
       name: data.team.name,
