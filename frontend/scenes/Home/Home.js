@@ -27,9 +27,8 @@ export default class Home extends React.Component {
         <Layout>
           <CenteredContent>
             <div className={ styles.intro }>
-              <h1>Atlas</h1>
-              <p>Simple, fast, markdown.</p>
-              <p>We're building a modern wiki for engineering teams.</p>
+              <h1 className={ styles.title }>Simple, fast, markdown.</h1>
+              <p className={ styles.copy }>We're building a modern wiki for engineering teams.</p>
             </div>
             <div className={ styles.action }>
               <SlackAuthLink>
