@@ -79,18 +79,17 @@ class DocumentEdit extends Component {
 
     if (key) {
       // Cmd + Enter
-      if(key.key === 'Enter' && (key.metaKey || key.ctrl.Key)) {
+      if (key.key === 'Enter' && (key.metaKey || key.ctrl.Key)) {
         this.onSave();
       }
 
       // Cmd + Esc
-      if(key.key === 'Escape' && (key.metaKey || key.ctrl.Key)) {
+      if (key.key === 'Escape' && (key.metaKey || key.ctrl.Key)) {
         this.onCancel();
       }
 
       // Cmd + m
-      console.log(key)
-      if(key.key === 'P' && key.shiftKey && (key.metaKey || key.ctrl.Key)) {
+      if (key.key === 'P' && key.shiftKey && (key.metaKey || key.ctrl.Key)) {
         this.store.togglePreview();
       }
     }

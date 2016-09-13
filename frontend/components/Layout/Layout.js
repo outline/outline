@@ -36,13 +36,13 @@ class Layout extends React.Component {
 
   @keydown(['/', 't'])
   search() {
-    if (!this.props.user) return;
+    // if (!this.props.user) return;
     _.defer(() => browserHistory.push('/search'));
   }
 
   @keydown(['d'])
   dashboard() {
-    if (!this.props.user) return;
+    // if (!this.props.user) return;
     _.defer(() => browserHistory.push('/'));
   }
 
