@@ -12,8 +12,6 @@ const cx = classNames.bind(styles);
 
 import SidebarStore from './SidebarStore';
 
-// import treeStyles from 'components/Tree/Tree.scss';
-
 @observer
 class Sidebar extends React.Component {
   static store;
@@ -69,7 +67,7 @@ class Sidebar extends React.Component {
         ) }
         <div
           onClick={ this.props.onToggle }
-          className={ styles.sidebarToggle }
+          className={ cx(styles.sidebarToggle, { active: this.store.isEditing }) }
           title="Toggle sidebar (Cmd+/)"
         >
           <img
