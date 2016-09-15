@@ -1,10 +1,12 @@
 # Atlas API
 
+_Our API is currently in beta and we might make minor adjustments._
+
 ## Making requests
 
-Atlas' API follows JSON RPC style convention where each API endpoint is a method on `https://www.beautifulatlas.com/api/<METHOD>`. Each request needs to be made using HTTPS.
+Atlas' API follows JSON RPC style conventions where each API endpoint is a method on `https://www.beautifulatlas.com/api/<METHOD>`. Each request needs to be made using HTTPS and both `GET` and `POST` (recommended) methods are supported.
 
-Each method can be called with either `GET` or `POST` (recommended). For `GET` requests query string parameters are expected (e.g. `/api/document.info?id=...&token=...`). When making `POST` requests, request parameters are parsed depending on `Content-Type` header. To make a call using JSON payload, one must pass `Content-Type: application/json` header:
+For `GET` requests query string parameters are expected (e.g. `/api/document.info?id=...&token=...`). When making `POST` requests, request parameters are parsed depending on `Content-Type` header. To make a call using JSON payload, one must pass `Content-Type: application/json` header:
 
 ```shell
 curl 'https://www.beautifulatlas.com/api/documents.info?id=atlas-api-NTpezNwhUP'\
@@ -27,12 +29,110 @@ All successful API requests will be returned with `200` status code and `ok: tru
 
 ```json
 {
-	"ok": false,
-    "error: "Not Found"
+  "ok": false,
+  "error: "Not Found"
 }
 ```
 
 ## Methods
+
+### `user.info` - Get current user
+
+This method returns the information for currently logged in user.
+
+#### Arguments
+
+`https://www.beautifulatlas.com/api/user.info`
+
+Parameter | Description
+------------ | -------------
+`token` | Authentication token
+
+---
+
+### `user.s3Upload` - Gets S3 upload credentials
+
+You can upload small files and images as part of your documents. All files are stored using Amazon S3. Instead of uploading files to Atlas, you need to upload them directly to S3 with special credentials which can be obtained through this endpoint.
+
+#### Arguments
+
+`https://www.beautifulatlas.com/api/user.s3Upload`
+
+Parameter | Description
+------------ | -------------
+`token` | Authentication token
+`filename` | Filename of the uploaded file
+`kind` | Mimetype of the document
+`size` | Filesize of the document
+
+---
+
+### `collections.list` - List your document collections
+
+List all your document collections.
+
+#### Arguments
+
+`https://www.beautifulatlas.com/api/collections.list`
+
+Parameter | Description
+------------ | -------------
+`token` | Authentication token
+`offset` | Pagination offset
+`limit` | Pagination limit
+
+---
+
+### `collections.info` - Get a document collection
+
+Returns detailed information on a document collection.
+
+#### Arguments
+
+`https://www.beautifulatlas.com/api/collections.info`
+
+Parameter | Description
+------------ | -------------
+`token` | Authentication token
+`id` | Collection id
+
+---
+
+### `collections.create` - Create a document collection
+
+Creates a new document collection. Atlas supports two types of collections:
+
+- `atlas` - Structured collection with a navigation tree
+- `journal` - Chronological collection of documents
+
+#### Arguments
+
+`https://www.beautifulatlas.com/api/collections.create`
+
+Parameter | Description
+------------ | -------------
+`token` | Authentication token
+`name` | Collection name
+`type` | Collection type. Allowed values: `atlas`, `journal`
+`description` | _(Optional)_ Short description for the collection
+
+---
+
+### `collections.updateNavigationTree` - Organize navigation tree
+
+Collection navigation can be re-organized by sending a modified version of the navigation tree. This method is available for collections with type `atlas`.
+
+#### Arguments
+
+`https://www.beautifulatlas.com/api/collections.updateNavigationTree`
+
+Parameter | Description
+------------ | -------------
+`token` | Authentication token
+`id` | Collection id
+`tree` | Modified navigation tree
+
+---
 
 ### `documents.info` - Get a document
 
@@ -79,39 +179,21 @@ Parameter | Description
 ------------ | -------------
 `token` | Authentication token
 `collection` | `id` of the collection to which the document is created
-`parentDocument` | `id` of the parent document within the collection
 `title` | Title for the document
 `text` | Content of the document in Markdown
+`parentDocument` | _(Optional)_ `id` of the parent document within the collection
 
 ---
 
-### `user.info` - Get current user
+### `documents.delete` - Delete a document
 
-This method returns the information for currently logged in user.
+Delete a document and all of its child documents if any.
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/user.info`
+`https://www.beautifulatlas.com/api/documents.delete`
 
 Parameter | Description
 ------------ | -------------
 `token` | Authentication token
-
----
-
-### `user.s3Upload` - Gets S3 upload credentials
-
-You can upload small files and images as part of your documents. All files are stored using Amazon S3. Instead of uploading files to Atlas, you need to upload them directly to S3 with special credentials which can be obtained through this endpoint.
-
-_TODO: Add more about restrictions and flow_
-
-#### Arguments
-
-`https://www.beautifulatlas.com/api/user.s3Upload`
-
-Parameter | Description
------------- | -------------
-`token` | Authentication token
-`filename` | Filename of the uploaded file
-`kind` | Mimetype of the document
-`size` | Filesize of the document
+`id` | Document id or URI identifier
