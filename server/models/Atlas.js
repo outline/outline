@@ -39,7 +39,7 @@ const Atlas = sequelize.define('atlas', {
         lastModifiedById: collection.creatorId,
         createdById: collection.creatorId,
         title: 'Introduction',
-        text: '# Introduction',
+        text: '# Introduction\n\nLets get started...',
       });
       await collection.buildStructure();
       await collection.save();
