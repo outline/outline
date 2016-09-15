@@ -12,7 +12,7 @@
   font-style: normal;
 }
 
-@font-face {
+/*@font-face {
   font-family: 'Atlas Grotesk';
   src: url('../fonts/atlas/AtlasGrotesk-Light-Web.woff') format('woff');
   font-weight: lighter;
@@ -24,7 +24,7 @@
   src: url('../fonts/atlas/AtlasGrotesk-LightItalic-Web.woff') format('woff');
   font-weight: lighter;
   font-style: italic;
-}
+}*/
 
 @font-face {
   font-family: 'Atlas Grotesk';
