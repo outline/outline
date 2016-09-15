@@ -69,7 +69,7 @@ class Layout extends React.Component {
 
         <div className={ cx(styles.header) }>
           <div className={ styles.headerLeft }>
-            <Link to="/" className={ styles.team }>{ user.team.name }</Link>
+            <Link to="/" className={ styles.team }>Atlas</Link>
             <span className={ styles.title }>
               { this.props.title }
             </span>
