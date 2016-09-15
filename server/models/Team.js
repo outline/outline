@@ -17,17 +17,17 @@ const Team = sequelize.define('team', {
       const atlas = await Atlas.create({
         name: this.name,
         description: 'Your first Atlas',
-        type: 'journal',
+        type: 'atlas',
         teamId: this.id,
         creatorId: userId,
       });
       return atlas;
-    }
+    },
   },
   indexes: [
     {
       unique: true,
-      fields: ['slackId']
+      fields: ['slackId'],
     },
   ],
 });
