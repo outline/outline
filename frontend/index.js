@@ -26,8 +26,11 @@ import DocumentEdit from 'scenes/DocumentEdit';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import SlackAuth from 'scenes/SlackAuth';
+import Flatpage from 'scenes/Flatpage';
 import Error404 from 'scenes/Error404';
 import ErrorAuth from 'scenes/ErrorAuth';
+
+import flatpages from 'static/flatpages';
 
 let DevTools;
 if (__DEV__) {
@@ -78,6 +81,21 @@ render((
               apiPath="/auth.slackCommands"
             />
             <Route path="/auth/error" component={ ErrorAuth } />
+
+            <Flatpage
+              path="/keyboard-shortcuts"
+              component={ Flatpage }
+              title="Keyboard shortcuts"
+              content={ flatpages.keyboard }
+            />
+
+            <Flatpage
+              path="/developers"
+              component={ Flatpage }
+              title="API"
+              content={ flatpages.api }
+            />
+
 
             <Route path="/404" component={ Error404 } />
             <Redirect from="*" to="/404" />

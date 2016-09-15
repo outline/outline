@@ -100,6 +100,8 @@ class Layout extends React.Component {
                     /> }
                   >
                     <MenuItem to="/settings">Settings</MenuItem>
+                    <MenuItem to="/keyboard-shortcuts">Keyboard shortcuts</MenuItem>
+                    <MenuItem to="/developers">API</MenuItem>
                     <MenuItem onClick={ user.logout }>Logout</MenuItem>
                   </DropdownMenu>
                 </Flex>
