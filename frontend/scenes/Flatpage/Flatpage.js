@@ -10,7 +10,7 @@ import { convertToMarkdown } from 'utils/markdown';
 @observer
 class Flatpage extends React.Component {
   static propTypes = {
-    route: PropTypes.object.isRequired,
+    route: PropTypes.object,
   }
 
   render() {
