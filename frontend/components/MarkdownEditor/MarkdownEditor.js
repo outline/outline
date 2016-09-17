@@ -73,7 +73,7 @@ class MarkdownEditor extends React.Component {
         formData.append('file', file);
       }
 
-      fetch(data.upload_url, {
+      fetch(data.uploadUrl, {
         method: 'post',
         body: formData,
       })

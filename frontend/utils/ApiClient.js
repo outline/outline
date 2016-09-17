@@ -64,22 +64,14 @@ class ApiClient {
 
         // Handle 401, log out user
         if (response.status === 401) {
-          stores.user.logout();
+          return stores.user.logout();
         }
 
         // Handle failed responses
-        let error;
-        try {
-          // Expect API to return JSON
-          error = JSON.parse(response);
-        } catch (e) {
-          // Expect call to fail without JSON response
-          error = { error: response.statusText };
-        }
-
+        const error = {};
         error.statusCode = response.status;
         error.response = response;
-        return reject(error);
+        throw error;
       })
       .then((response) => {
         return response.json();
@@ -91,8 +83,12 @@ class ApiClient {
         }
         resolve(json);
       })
-      .catch(() => {
-        reject({ error: 'Unknown error' });
+      .catch(error => {
+        error.response.json()
+        .then(json => {
+          error.data = json;
+          reject(error);
+        });
       });
     });
   }

@@ -1,7 +1,9 @@
 exports[`#user.info should require authentication 1`] = `
 Object {
-  "error": "Authentication required",
-  "ok": false
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401
 }
 `;
 
@@ -13,6 +15,7 @@ Object {
     "name": "User 1",
     "username": "user1"
   },
-  "ok": true
+  "ok": true,
+  "status": 200
 }
 `;

@@ -1,5 +1,6 @@
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
+import Sequelize from 'sequelize';
+import apiError, { httpErrors } from '../errors';
 import fetch from 'isomorphic-fetch';
 import querystring from 'querystring';
 
@@ -18,11 +19,11 @@ router.post('auth.signup', async (ctx) => {
   ctx.assertPresent(password, 'password is required');
 
   if (await User.findOne({ where: { email } })) {
-    throw httpErrors.BadRequest('User already exists with this email');
+    throw apiError(400, 'user_exists_with_email', 'User already exists with this email');
   }
 
   if (await User.findOne({ where: { username } })) {
-    throw httpErrors.BadRequest('User already exists with this username');
+    throw apiError(400, 'user_exists_with_username', 'User already exists with this username');
   }
 
   const user = await User.create({
@@ -39,21 +40,31 @@ router.post('auth.signup', async (ctx) => {
 });
 
 router.post('auth.login', async (ctx) => {
-  const { username, email, password } = ctx.request.body;
+  const { username, password } = ctx.request.body;
 
+  ctx.assertPresent(username, 'username/email is required');
   ctx.assertPresent(password, 'password is required');
 
   let user;
   if (username) {
-    user = await User.findOne({ where: { username } });
-  } else if (email) {
-    user = await User.findOne({ where: { email } });
+    user = await User.findOne({ where: Sequelize.or(
+      { email: username },
+      { username },
+    ) });
   } else {
-    throw httpErrors.BadRequest('username or email is required');
+    throw apiError(400, 'invalid_credentials', 'username or email is invalid');
+  }
+
+  if (!user) {
+    throw apiError(400, 'username or email is invalid');
+  }
+
+  if (!user.passwordDigest) {
+    throw apiError(400, 'no_password', 'No password set');
   }
 
   if (!await user.verifyPassword(password)) {
-    throw httpErrors.BadRequest('Invalid password');
+    throw apiError(400, 'invalid_password', 'Invalid password');
   }
 
   ctx.body = { data: {
@@ -152,8 +163,6 @@ router.post('auth.slackCommands', async (ctx) => {
   }
 
   if (!data.ok) throw httpErrors.BadRequest(data.error);
-
-  ctx.body = { success: true };
 });
 
 

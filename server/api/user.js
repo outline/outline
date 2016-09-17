@@ -25,7 +25,7 @@ router.post('user.s3Upload', auth(), async (ctx) => {
   const policy = makePolicy();
 
   ctx.body = { data: {
-    max_upload_size: process.env.AWS_S3_UPLOAD_MAX_SIZE,
+    maxUploadSize: process.env.AWS_S3_UPLOAD_MAX_SIZE,
     upload_url: process.env.AWS_S3_UPLOAD_BUCKET_URL,
     form: {
       AWSAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -37,7 +37,7 @@ router.post('user.s3Upload', auth(), async (ctx) => {
       policy,
     },
     asset: {
-      content_type: kind,
+      contentType: kind,
       url: `${process.env.AWS_S3_UPLOAD_BUCKET_URL}${s3Key}/${filename}`,
       name: filename,
       size,

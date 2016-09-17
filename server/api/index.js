@@ -2,6 +2,7 @@ import bodyParser from 'koa-bodyparser';
 import Koa from 'koa';
 import Router from 'koa-router';
 import Sequelize from 'sequelize';
+import _ from 'lodash';
 
 import auth from './auth';
 import user from './user';
@@ -41,7 +42,9 @@ api.use(async (ctx, next) => {
 
     ctx.body = {
       ok: false,
-      error: message,
+      error: _.snakeCase(err.id || err.message),
+      status: err.status,
+      message,
     };
   }
 });

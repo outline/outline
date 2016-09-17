@@ -18,49 +18,63 @@ Object {
 
 exports[`#auth.login should require either username or email 1`] = `
 Object {
-  "error": "username or email is required",
-  "ok": false
+  "error": "validation_error",
+  "message": "username/email is required",
+  "ok": false,
+  "status": 400
 }
 `;
 
 exports[`#auth.login should require password 1`] = `
 Object {
-  "error": "password is required",
-  "ok": false
+  "error": "validation_error",
+  "message": "username/email is required",
+  "ok": false,
+  "status": 400
 }
 `;
 
 exports[`#auth.login should validate password 1`] = `
 Object {
-  "error": "Invalid password",
-  "ok": false
+  "error": "validation_error",
+  "message": "username/email is required",
+  "ok": false,
+  "status": 400
 }
 `;
 
 exports[`#auth.signup should require params 1`] = `
 Object {
-  "error": "name is required",
-  "ok": false
+  "error": "validation_error",
+  "message": "name is required",
+  "ok": false,
+  "status": 400
 }
 `;
 
 exports[`#auth.signup should require unique email 1`] = `
 Object {
-  "error": "User already exists with this email",
-  "ok": false
+  "error": "user_exists_with_email",
+  "message": "User already exists with this email",
+  "ok": false,
+  "status": 400
 }
 `;
 
 exports[`#auth.signup should require unique username 1`] = `
 Object {
-  "error": "User already exists with this username",
-  "ok": false
+  "error": "user_exists_with_username",
+  "message": "User already exists with this username",
+  "ok": false,
+  "status": 400
 }
 `;
 
 exports[`#auth.signup should require valid email 1`] = `
 Object {
-  "error": "email is invalid",
-  "ok": false
+  "error": "validation_error",
+  "message": "email is invalid",
+  "ok": false,
+  "status": 400
 }
 `;

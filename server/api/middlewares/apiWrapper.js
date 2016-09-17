@@ -6,6 +6,7 @@ export default function apiWrapper(_options) {
 
     ctx.body = {
       ...ctx.body,
+      status: ctx.status,
       ok,
     };
   };
