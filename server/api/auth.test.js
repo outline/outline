@@ -91,7 +91,7 @@ describe('#auth.login', () => {
     await seed();
     const res = await server.post('/api/auth.login', {
       body: {
-        email: 'user1@example.com',
+        username: 'user1@example.com',
         password: 'test123!',
       },
     });
