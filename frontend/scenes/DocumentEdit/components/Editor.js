@@ -25,6 +25,7 @@ const Editor = observer((props) => {
           onSave={ props.onSave }
           onCancel={ props.onCancel }
           togglePreview={ props.togglePreview }
+          toggleUploadingIndicator={ store.toggleUploadingIndicator }
         />
       </EditorPane>
       { store.preview ? (

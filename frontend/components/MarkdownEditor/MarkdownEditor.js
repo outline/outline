@@ -26,6 +26,7 @@ class MarkdownEditor extends React.Component {
     // This is actually not used but it triggers
     // re-render to help with CodeMirror focus issues
     preview: React.PropTypes.bool,
+    toggleUploadingIndicator: React.PropTypes.func,
   }
 
   onChange = (newText) => {
@@ -41,6 +42,8 @@ class MarkdownEditor extends React.Component {
     const cursorPosition = editor.getCursor();
     const insertOnNewLine = cursorPosition.ch !== 0;
     let newCursorPositionLine;
+
+    this.props.toggleUploadingIndicator();
 
     // Lets set up the upload text
     const pendingUploadTag = `![${file.name}](Uploading...)`;
@@ -78,6 +81,7 @@ class MarkdownEditor extends React.Component {
         body: formData,
       })
       .then(_s3Response => {
+        this.props.toggleUploadingIndicator();
         this.props.replaceText({
           original: pendingUploadTag,
           new: `![${file.name}](${data.asset.url})`,
@@ -85,12 +89,16 @@ class MarkdownEditor extends React.Component {
         editor.setCursor(newCursorPositionLine, 0);
       })
       .catch(_err => {
+        this.props.toggleUploadingIndicator();
         this.props.replaceText({
           original: pendingUploadTag,
           new: '',
         });
         editor.setCursor(newCursorPositionLine, 0);
       });
+    })
+    .catch(_err => {
+      this.props.toggleUploadingIndicator();
     });
   }
 

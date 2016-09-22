@@ -32,6 +32,7 @@ class DocumentEditStore {
   @observable preview;
   @observable isFetching;
   @observable isSaving;
+  @observable isUploading;
 
   /* Actions */
 
@@ -120,6 +121,10 @@ class DocumentEditStore {
   @action reset = () => {
     this.title = 'Lets start with a title';
     this.text = '# Lets start with a title\n\nAnd continue from there...';
+  }
+
+  @action toggleUploadingIndicator = () => {
+    this.isUploading = !this.isUploading;
   }
 
   // Generic

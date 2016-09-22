@@ -34,15 +34,15 @@ class DocumentEdit extends Component {
     params: React.PropTypes.object,
   }
 
-  state = {
-    scrollTop: 0,
-  }
-
   constructor(props) {
     super(props);
     this.store = new DocumentEditStore(
       JSON.parse(localStorage[DOCUMENT_EDIT_SETTINGS] || '{}')
     );
+  }
+
+  state = {
+    scrollTop: 0,
   }
 
   componentDidMount = () => {
@@ -70,7 +70,7 @@ class DocumentEdit extends Component {
       if (this.store.hasPendingChanges) {
         return confirm(DISREGARD_CHANGES);
       }
-      return;
+      return null;
     });
   }
 
@@ -154,7 +154,7 @@ class DocumentEdit extends Component {
         title={ title }
         titleText={ titleText }
         fixed
-        loading={ this.store.isSaving }
+        loading={ this.store.isSaving || this.store.isUploading }
         search={ false }
       >
         { (this.store.isFetching || !('Editor' in this.state)) ? (
