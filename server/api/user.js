@@ -26,7 +26,7 @@ router.post('user.s3Upload', auth(), async (ctx) => {
 
   ctx.body = { data: {
     maxUploadSize: process.env.AWS_S3_UPLOAD_MAX_SIZE,
-    upload_url: process.env.AWS_S3_UPLOAD_BUCKET_URL,
+    uploadUrl: process.env.AWS_S3_UPLOAD_BUCKET_URL,
     form: {
       AWSAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
       'Cache-Control': 'max-age=31557600',
