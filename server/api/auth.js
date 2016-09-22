@@ -84,8 +84,10 @@ router.post('auth.slack', async (ctx) => {
   if (!data.ok) throw httpErrors.BadRequest(data.error);
 
   // Temp to block
-  const allowedSlackIds = process.env.ALLOWED_SLACK_IDS.split(',');
-  if (!allowedSlackIds.includes(data.team.id)) throw httpErrors.BadRequest('Invalid Slack team');
+  const allowedSlackDomains = process.env.ALLOWED_SLACK_DOMAINS.split(',');
+  if (!allowedSlackDomains.includes(data.team.domain)) {
+    throw httpErrors.BadRequest('Invalid Slack team');
+  }
 
   // User
   let user = await User.findOne({ where: { slackId: data.user.id } });
