@@ -97,7 +97,7 @@ router.post('auth.slack', async (ctx) => {
   // Temp to block
   const allowedSlackDomains = process.env.ALLOWED_SLACK_DOMAINS.split(',');
   if (!allowedSlackDomains.includes(data.team.domain)) {
-    throw httpErrors.BadRequest('Invalid Slack team');
+    throw apiError(400, 'invalid_slack_team', 'Atlas is currently in private beta');
   }
 
   // User
