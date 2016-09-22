@@ -150,6 +150,7 @@
   },
   "devDependencies": {
     "babel-jest": "^15.0.0",
+    "enzyme": "^2.4.1",
     "fetch-test-server": "^1.1.0",
     "fsevents": "1.0.14",
     "identity-obj-proxy": "^3.0.0",
@@ -159,6 +160,7 @@
     "koa-webpack-hot-middleware": "1.0.3",
     "node-dev": "3.1.0",
     "nodemon": "1.9.1",
+    "react-addons-test-utils": "^15.3.1",
     "react-test-renderer": "^15.3.1"
   }
 }
