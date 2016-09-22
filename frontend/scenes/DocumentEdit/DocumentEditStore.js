@@ -65,7 +65,7 @@ class DocumentEditStore {
       const data = await client.post('/documents.create', {
         parentDocument: this.parentDocument && this.parentDocument.id,
         collection: this.collectionId || this.parentDocument.collection.id,
-        title: this.title,
+        title: this.title || 'Untitled document',
         text: this.text,
       }, { cache: true });
       const { url } = data.data;
@@ -73,7 +73,7 @@ class DocumentEditStore {
       this.hasPendingChanges = false;
       browserHistory.push(url);
     } catch (e) {
-      console.error("Something went wrong");
+      console.error('Something went wrong');
     }
     this.isSaving = false;
   }
@@ -86,7 +86,7 @@ class DocumentEditStore {
     try {
       const data = await client.post('/documents.update', {
         id: this.documentId,
-        title: this.title,
+        title: this.title || 'Untitled document',
         text: this.text,
       }, { cache: true });
       const { url } = data.data;
@@ -94,7 +94,7 @@ class DocumentEditStore {
       this.hasPendingChanges = false;
       browserHistory.push(url);
     } catch (e) {
-      console.error("Something went wrong");
+      console.error('Something went wrong');
     }
     this.isSaving = false;
   }
@@ -149,5 +149,5 @@ class DocumentEditStore {
 
 export default DocumentEditStore;
 export {
-  DOCUMENT_EDIT_SETTINGS
+  DOCUMENT_EDIT_SETTINGS,
 };
