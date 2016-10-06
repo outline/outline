@@ -50,6 +50,8 @@ export default function auth({ require = true } = {}) {
           throw httpErrors.Unauthorized('Invalid api key');
         }
 
+        if (!apiKey) throw httpErrors.Unauthorized('Invalid token');
+
         user = await User.findOne({
           where: { id: apiKey.userId },
         });
