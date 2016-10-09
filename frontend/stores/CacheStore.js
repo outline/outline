@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { action, toJS } from 'mobx';
 
 const CACHE_STORE = 'CACHE_STORE';

@@ -1,6 +1,5 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 import store from './DashboardStore';
 
@@ -26,21 +25,13 @@ class Dashboard extends React.Component {
         <Layout>
           <CenteredContent>
             <Flex column auto>
-              <ReactCSSTransitionGroup
-                transitionName="fadeIn"
-                transitionAppear
-                transitionAppearTimeout={ 0 }
-                transitionEnterTimeout={ 0 }
-                transitionLeaveTimeout={ 0 }
-              >
-                { store.isFetching ? (
-                  <AtlasPreviewLoading />
-                ) : (
-                  store.collections && store.collections.map((collection) => {
-                    return (<AtlasPreview key={ collection.id } data={ collection } />);
-                  })
-                ) }
-              </ReactCSSTransitionGroup>
+              { store.isFetching ? (
+                <AtlasPreviewLoading />
+              ) : (
+                store.collections && store.collections.map((collection) => {
+                  return (<AtlasPreview key={ collection.id } data={ collection } />);
+                })
+              ) }
             </Flex>
           </CenteredContent>
         </Layout>
