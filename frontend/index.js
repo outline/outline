@@ -13,6 +13,7 @@ import stores from 'stores';
 import 'normalize.css/normalize.css';
 import 'styles/base.scss';
 import 'styles/fonts.css';
+import 'styles/transitions.scss';
 import 'styles/hljs-github-gist.scss';
 import 'styles/codemirror.scss';
 

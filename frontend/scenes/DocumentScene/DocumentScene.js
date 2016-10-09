@@ -186,11 +186,7 @@ class DocumentScene extends React.Component {
             ) }
             <Flex auto justify="center" className={ styles.content }>
               <CenteredContent>
-                { this.store.updatingContent ? (
-                  <AtlasPreviewLoading />
-                ) : (
-                  <Document document={ doc } />
-                ) }
+                <Document document={ doc } />
               </CenteredContent>
             </Flex>
           </Flex>

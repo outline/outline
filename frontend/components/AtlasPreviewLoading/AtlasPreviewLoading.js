@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 import styles from './AtlasPreviewLoading.scss';
 import classNames from 'classnames/bind';
@@ -6,13 +7,39 @@ const cx = classNames.bind(styles);
 
 import { randomInteger } from 'utils/random';
 
-export default (props) => {
+const randomValues = Array.from(new Array(5), () => `${randomInteger(85, 100)}%`);
+
+export default (_props) => {
   return (
-    <div className={ cx(styles.container, styles.animated) }>
-      <div className={ cx(styles.mask, styles.header) } style={{ width: `${randomInteger(65,80)}%` }}>&nbsp;</div>
-      <div className={ cx(styles.mask, styles.bodyText) } style={{ width: `${randomInteger(85,100)}%` }}>&nbsp;</div>
-      <div className={ cx(styles.mask, styles.bodyText) } style={{ width: `${randomInteger(85,100)}%` }}>&nbsp;</div>
-      <div className={ cx(styles.mask, styles.bodyText) } style={{ width: `${randomInteger(85,100)}%` }}>&nbsp;</div>
-    </div>
+    <ReactCSSTransitionGroup
+      transitionName="fadeIn"
+      transitionAppear
+      transitionEnter
+      transitionLeave
+      transitionAppearTimeout={ 0 }
+      transitionEnterTimeout={ 0 }
+      transitionLeaveTimeout={ 0 }
+    >
+      <div>
+        <div className={ cx(styles.container, styles.animated) }>
+          <div
+            className={ cx(styles.mask, styles.header) }
+            style={{ width: randomValues[0] }}
+          >&nbsp;</div>
+          <div
+            className={ cx(styles.mask, styles.bodyText) }
+            style={{ width: randomValues[1] }}
+          >&nbsp;</div>
+          <div
+            className={ cx(styles.mask, styles.bodyText) }
+            style={{ width: randomValues[2] }}
+          >&nbsp;</div>
+          <div
+            className={ cx(styles.mask, styles.bodyText) }
+            style={{ width: randomValues[3] }}
+          >&nbsp;</div>
+        </div>
+      </div>
+    </ReactCSSTransitionGroup>
   );
 };
