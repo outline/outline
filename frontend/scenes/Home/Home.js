@@ -22,14 +22,18 @@ export default class Home extends React.Component {
   }
 
   render() {
+    const showLandingPageCopy = DEPLOYMENT === 'hosted';
+
     return (
       <Flex auto>
         <Layout>
           <CenteredContent>
-            <div className={ styles.intro }>
-              <h1 className={ styles.title }>Simple, fast, markdown.</h1>
-              <p className={ styles.copy }>We're building a modern wiki for engineering teams.</p>
-            </div>
+            { showLandingPageCopy && (
+              <div className={ styles.intro }>
+                <h1 className={ styles.title }>Simple, fast, markdown.</h1>
+                <p className={ styles.copy }>We're building a modern wiki for engineering teams.</p>
+              </div>
+            ) }
             <div className={ styles.action }>
               <SlackAuthLink>
                 <img
