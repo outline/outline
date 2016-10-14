@@ -21,6 +21,7 @@ html, body, .viewport {
 
 body {
   font-family: 'Atlas Grotesk', -apple-system, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 15px;
   line-height: 1.5;
   margin: 0;
   color: $textColor;
@@ -51,12 +52,12 @@ h4, h5, h6 {
   margin-top: 1em;
   margin-bottom: .5em;
 }
-h1 { font-size: 2rem }
-h2 { font-size: 1.5rem }
-h3 { font-size: 1.25rem }
-h4 { font-size: 1rem }
-h5 { font-size: .875rem }
-h6 { font-size: .75rem }
+h1 { font-size: 2em }
+h2 { font-size: 1.5em }
+h3 { font-size: 1.25em }
+h4 { font-size: 1em }
+h5 { font-size: .875em }
+h6 { font-size: .75em }
 p, dl, ol, ul, pre, blockquote {
   margin-top: 1em;
   margin-bottom: 1em;
@@ -81,7 +82,7 @@ pre {
   overflow: scroll;
 }
 blockquote {
-  font-size: 1.25rem;
+  font-size: 1.25em;
   font-style: italic;
   margin-left: 0;
 }
@@ -100,7 +101,7 @@ hr {
 :global {
   .hljs {
     border: 1px solid rgba(0,0,0,.0625);
-    padding: 1rem;
-    border-radius: 0.25rem;
+    padding: 1em;
+    border-radius: 0.25em;
   }
 }
