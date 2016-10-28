@@ -42,7 +42,7 @@ class UserStore {
     return this.oauthState;
   }
 
-  @action authWithSlack = async (code, state) => {
+  @action authWithSlack = async (code, state, redirectTo) => {
     if (state !== this.oauthState) {
       browserHistory.push('/auth-error');
       return;
@@ -50,7 +50,7 @@ class UserStore {
 
     let res;
     try {
-      res = await client.post('/auth.slack', { code: code });
+      res = await client.post('/auth.slack', { code });
     } catch (e) {
       browserHistory.push('/auth-error');
       return;
@@ -59,7 +59,7 @@ class UserStore {
     this.user = res.data.user;
     this.team = res.data.team;
     this.token = res.data.accessToken;
-    browserHistory.replace('/dashboard');
+    browserHistory.replace(redirectTo || '/');
   }
 
   constructor() {
@@ -70,7 +70,7 @@ class UserStore {
     this.token = data.token;
     this.oauthState = data.oauthState;
   }
-};
+}
 
 export default UserStore;
 export {

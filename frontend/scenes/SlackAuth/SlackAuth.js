@@ -12,7 +12,11 @@ class SlackAuth extends React.Component {
   }
 
   componentDidMount = async () => {
-    const { error, code, state } = this.props.location.query;
+    const {
+      error,
+      code,
+      state,
+    } = this.props.location.query;
 
     if (error) {
       if (error === 'access_denied') {
@@ -34,7 +38,10 @@ class SlackAuth extends React.Component {
       }
     } else {
       // Regular Slack authentication
-      this.props.user.authWithSlack(code, state);
+      const redirectTo = sessionStorage.getItem('redirectTo');
+      sessionStorage.removeItem('redirectTo');
+
+      this.props.user.authWithSlack(code, state, redirectTo);
     }
   }
 

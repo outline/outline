@@ -1,11 +1,12 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import { browserHistory } from 'react-router'
+import { browserHistory } from 'react-router';
 
 import { Flex } from 'reflexbox';
 import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
+import Alert from 'components/Alert';
 
 import styles from './Home.scss';
 
@@ -13,6 +14,7 @@ import styles from './Home.scss';
 export default class Home extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,
+    location: React.PropTypes.object.isRequired,
   }
 
   componentDidMount = () => {
@@ -21,12 +23,27 @@ export default class Home extends React.Component {
     }
   }
 
+  get notifications() {
+    const notifications = [];
+    const { state } = this.props.location;
+
+    if (state && state.nextPathname) {
+      sessionStorage.removeItem('redirectTo');
+      sessionStorage.setItem('redirectTo', state.nextPathname);
+      notifications.push(<Alert key="login" info>Please login to continue</Alert>);
+    }
+
+    return notifications;
+  }
+
   render() {
     const showLandingPageCopy = DEPLOYMENT === 'hosted';
 
     return (
       <Flex auto>
-        <Layout>
+        <Layout
+          notifications={ this.notifications }
+        >
           <CenteredContent>
             { showLandingPageCopy && (
               <div className={ styles.intro }>

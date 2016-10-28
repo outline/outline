@@ -28,6 +28,7 @@ class Layout extends React.Component {
     user: React.PropTypes.object.isRequired,
     search: React.PropTypes.bool,
     offline: React.PropTypes.bool,
+    notifications: React.PropTypes.node,
   }
 
   static defaultProps = {
@@ -66,6 +67,8 @@ class Layout extends React.Component {
             It looks like you're offline. Reconnect to restore access to all of your documents 📚
           </Alert>
         ) }
+
+        { this.props.notifications }
 
         <div className={ cx(styles.header) }>
           <div className={ styles.headerLeft }>
