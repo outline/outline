@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build:webpack": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --progress",
+    "build:webpack": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js",
     "build:analyze": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "node index.js",

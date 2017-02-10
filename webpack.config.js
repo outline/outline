@@ -1,8 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 
-// Load .env
-require('dotenv').config();
+require('dotenv').config({ silent: true });
 
 const definePlugin = new webpack.DefinePlugin({
   __DEV__: JSON.stringify(JSON.parse(process.env.NODE_ENV !== 'production')),
