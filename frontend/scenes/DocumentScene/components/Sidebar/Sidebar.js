@@ -60,7 +60,7 @@ class Sidebar extends React.Component {
                 onClick={ this.toggleEdit }
                 className={ cx(styles.action, { active: this.store.isEditing }) }
               >
-                { !this.store.isEditing ? 'Organize documents' : 'Save' }
+                { !this.store.isEditing ? 'Organize documents' : 'Done' }
               </span>
             </Flex>
           </Flex>

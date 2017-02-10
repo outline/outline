@@ -29,8 +29,6 @@ class DocumentSceneStore {
 
     const collapseNodes = (node) => {
       if (this.openNodes.includes(node.id)) {
-        node.collapsed = false;
-      } else {
         node.collapsed = true;
       }
       node.children = node.children.map(childNode => {
