@@ -13,7 +13,7 @@ class Error404 extends React.Component {
         <CenteredContent>
           <h1>Not Found</h1>
 
-          <p>We're unable to find the page you're trying to find the page you're accessing.</p>
+          <p>We're unable to find the page you're accessing.</p>
 
           <p>Maybe you want to try <Link to="/search">search</Link> instead?</p>
         </CenteredContent>

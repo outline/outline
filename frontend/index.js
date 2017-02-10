@@ -4,7 +4,6 @@ import { Provider } from 'mobx-react';
 import Router from 'react-router/lib/Router';
 import Route from 'react-router/lib/Route';
 import IndexRoute from 'react-router/lib/IndexRoute';
-import Redirect from 'react-router/lib/Redirect';
 import History from 'utils/History';
 import { Offline } from 'components/Offline';
 
@@ -28,8 +27,8 @@ import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import SlackAuth from 'scenes/SlackAuth';
 import Flatpage from 'scenes/Flatpage';
-import Error404 from 'scenes/Error404';
 import ErrorAuth from 'scenes/ErrorAuth';
+import Error404 from 'scenes/Error404';
 
 import flatpages from 'static/flatpages';
 
@@ -99,7 +98,7 @@ render((
 
 
             <Route path="/404" component={ Error404 } />
-            <Redirect from="*" to="/404" />
+            <Route path="*" component={ Search } sceneType="notFound" />
           </Route>
         </Router>
       </Offline>

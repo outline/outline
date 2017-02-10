@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import { observer } from 'mobx-react';
 import _ from 'lodash';
 
@@ -14,11 +14,28 @@ import SearchStore from './SearchStore';
 
 @observer
 class Search extends React.Component {
-  static store;
+  static propTypes = {
+    route: PropTypes.object.isRequired,
+    routeParams: PropTypes.object.isRequired,
+  }
 
   constructor(props) {
     super(props);
     this.store = new SearchStore();
+  }
+
+  componentDidMount = () => {
+    const { splat } = this.props.routeParams;
+    if (this.viewNotFound) {
+      let searchTerm = _.last(splat.split('/'));
+      searchTerm = searchTerm.split(/[\s-]+/gi).join(' ');
+      this.store.search(searchTerm);
+    }
+  }
+
+  get viewNotFound() {
+    const { sceneType } = this.props.route;
+    return sceneType === 'notFound';
   }
 
   render() {
@@ -39,6 +56,14 @@ class Search extends React.Component {
         loading={ this.store.isFetching }
       >
         <CenteredContent>
+          { this.viewNotFound && (
+            <div>
+              <h1>Not Found</h1>
+              <p>We're unable to find the page you're accessing.</p>
+              <hr />
+            </div>
+          ) }
+
           <Flex column auto>
             <Flex auto>
               <img

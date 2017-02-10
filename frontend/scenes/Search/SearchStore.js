@@ -1,6 +1,5 @@
 import { observable, action, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
-import { browserHistory } from 'react-router';
 
 class SearchStore {
   @observable documents;
@@ -33,7 +32,6 @@ class SearchStore {
 
     this.isFetching = false;
   }
-
-};
+}
 
 export default SearchStore;
