@@ -26,8 +26,6 @@ Are you sure you want to disgard them?`;
 @withRouter
 @observer
 class DocumentEdit extends Component {
-  static store;
-
   static propTypes = {
     route: React.PropTypes.object.isRequired,
     router: React.PropTypes.object.isRequired,

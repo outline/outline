@@ -1,7 +1,8 @@
 import React from 'react';
 import { observer } from 'mobx-react';
+import { withRouter } from 'react-router';
 
-import store from './DashboardStore';
+import DashboardStore from './DashboardStore';
 
 import { Flex } from 'reflexbox';
 import Layout from 'components/Layout';
@@ -9,14 +10,21 @@ import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
+@withRouter
 @observer(['user'])
 class Dashboard extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,
+    router: React.PropTypes.object.isRequired,
   }
 
-  componentDidMount = () => {
-    store.fetchCollections(this.props.user.team.id);
+  constructor(props) {
+    super(props);
+
+    this.store = new DashboardStore({
+      team: props.user.team,
+      router: props.router,
+    });
   }
 
   render() {
@@ -25,10 +33,10 @@ class Dashboard extends React.Component {
         <Layout>
           <CenteredContent>
             <Flex column auto>
-              { store.isFetching ? (
+              { this.store.isFetching ? (
                 <AtlasPreviewLoading />
               ) : (
-                store.collections && store.collections.map((collection) => {
+                this.store.collections && this.store.collections.map((collection) => {
                   return (<AtlasPreview key={ collection.id } data={ collection } />);
                 })
               ) }
