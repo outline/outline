@@ -8,7 +8,7 @@
     "build:analyze": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "node index.js",
-    "start:dev": "cross-env NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --watch server index.js",
+    "dev": "cross-env NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --watch server index.js",
     "lint": "eslint frontend",
     "deploy": "git push heroku master",
     "heroku-postbuild": "npm run build && npm run sequelize db:migrate",
