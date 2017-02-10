@@ -126,6 +126,7 @@ class DocumentEdit extends Component {
     );
 
     let titleText = this.store.title;
+    let isNew = this.props.route.newDocument || this.props.route.newChildDocument;
 
     const actions = (
       <Flex>
@@ -133,6 +134,7 @@ class DocumentEdit extends Component {
           <SaveAction
             onClick={ this.onSave }
             disabled={ this.store.isSaving }
+            isNew={ isNew }
           />
         </HeaderAction>
         <DropdownMenu label={ <MoreIcon /> }>

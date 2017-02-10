@@ -6,6 +6,7 @@ class SaveAction extends React.Component {
   static propTypes = {
     onClick: React.PropTypes.func.isRequired,
     disabled: React.PropTypes.bool,
+    isNew: React.PropTypes.bool,
   }
 
   onClick = (event) => {
@@ -16,14 +17,18 @@ class SaveAction extends React.Component {
   }
 
   render() {
+    const { disabled, isNew } = this.props;
+
     return (
       <div>
         <a
           href
           onClick={ this.onClick }
-          style={ { opacity: this.props.disabled ? 0.5 : 1 } }
+          style={{ opacity: disabled ? 0.5 : 1 }}
           title="Save changes (Cmd+Enter)"
-        >Save</a>
+        >
+          { isNew ? 'Publish' : 'Save' }
+        </a>
       </div>
     );
   }
