@@ -88,9 +88,12 @@ class DocumentScene extends React.Component {
     browserHistory.push(url);
   }
 
-  onCreate = () => {
-    const url = `${this.store.document.url}/new`;
-    browserHistory.push(url);
+  onCreateDocument = () => {
+    browserHistory.push(`${this.store.collectionTree.url}/new`);
+  }
+
+  onCreateChild = () => {
+    browserHistory.push(`${this.store.document.url}/new`);
   }
 
   onDelete = () => {
@@ -142,8 +145,12 @@ class DocumentScene extends React.Component {
       actions = (
         <div className={ styles.actions }>
           <DropdownMenu label={ <MoreIcon /> }>
-            { this.store.isCollection &&
-              <MenuItem onClick={ this.onCreate }>New document</MenuItem> }
+            { this.store.isCollection && (
+              <div className={ styles.menuGroup }>
+                <MenuItem onClick={ this.onCreateDocument }>New document</MenuItem>
+                <MenuItem onClick={ this.onCreateChild }>New child</MenuItem>
+              </div>
+            ) }
             <MenuItem onClick={ this.onEdit }>Edit</MenuItem>
             <MenuItem onClick={ this.onExport }>Export</MenuItem>
             { allowDelete && <MenuItem onClick={ this.onDelete }>Delete</MenuItem> }

@@ -50,18 +50,18 @@ class Sidebar extends React.Component {
               />
             </Flex>
             <Flex auto className={ styles.actions }>
-              <Link
-                to={ `${this.props.navigationTree.url}/new` }
-                className={ cx(styles.action) }
-              >
-                Add document
-              </Link>
-              <Separator />
-              <a
-                href
+              { this.store.isEditing && (
+                <span className={ styles.action }>
+                  Drag & drop to organize <Separator />&nbsp;
+                </span>
+              ) }
+              <span
+                role="button"
                 onClick={ this.toggleEdit }
                 className={ cx(styles.action, { active: this.store.isEditing }) }
-              >Organize</a>
+              >
+                { !this.store.isEditing ? 'Organize documents' : 'Save' }
+              </span>
             </Flex>
           </Flex>
         ) }
