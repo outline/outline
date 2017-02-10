@@ -9,7 +9,7 @@ class DocumentSceneStore {
   static cache;
 
   @observable document;
-  @observable collapsedNodes = [];
+  @observable openNodes = [];
 
   @observable isFetching = true;
   @observable updatingContent = false;
@@ -28,7 +28,9 @@ class DocumentSceneStore {
     const tree = this.document.collection.navigationTree;
 
     const collapseNodes = (node) => {
-      if (this.collapsedNodes.includes(node.id)) {
+      if (this.openNodes.includes(node.id)) {
+        node.collapsed = false;
+      } else {
         node.collapsed = true;
       }
       node.children = node.children.map(childNode => {
@@ -67,7 +69,7 @@ class DocumentSceneStore {
         if (options.replaceUrl) browserHistory.replace(data.url);
       });
     } catch (e) {
-      console.error("Something went wrong");
+      console.error('Something went wrong');
     }
     this.isFetching = false;
     this.updatingContent = false;
@@ -80,7 +82,7 @@ class DocumentSceneStore {
       await client.post('/documents.delete', { id: this.document.id });
       browserHistory.push(this.document.collection.url);
     } catch (e) {
-      console.error("Something went wrong");
+      console.error('Something went wrong');
     }
     this.isFetching = false;
   }
@@ -103,16 +105,16 @@ class DocumentSceneStore {
         this.document.collection = data;
       });
     } catch (e) {
-      console.error("Something went wrong");
+      console.error('Something went wrong');
     }
     this.updatingStructure = false;
   }
 
-  @action onNodeCollapse = (nodeId, collapsed) => {
-    if (_.indexOf(this.collapsedNodes, nodeId) >= 0) {
-      this.collapsedNodes = _.without(this.collapsedNodes, nodeId);
+  @action onNodeCollapse = (nodeId) => {
+    if (_.indexOf(this.openNodes, nodeId) >= 0) {
+      this.openNodes = _.without(this.openNodes, nodeId);
     } else {
-      this.collapsedNodes.push(nodeId);
+      this.openNodes.push(nodeId);
     }
   }
 
@@ -120,13 +122,13 @@ class DocumentSceneStore {
 
   persistSettings = () => {
     localStorage[DOCUMENT_PREFERENCES] = JSON.stringify({
-      collapsedNodes: toJS(this.collapsedNodes),
+      openNodes: toJS(this.openNodes),
     });
   }
 
   constructor(settings, options) {
     // Rehydrate settings
-    this.collapsedNodes = settings.collapsedNodes || [];
+    this.openNodes = settings.openNodes || [];
     this.cache = options.cache;
 
     // Persist settings to localStorage

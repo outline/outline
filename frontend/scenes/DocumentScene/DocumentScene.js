@@ -32,8 +32,6 @@ class DocumentScene extends React.Component {
     location: PropTypes.object.isRequired,
   }
 
-  static store;
-
   constructor(props) {
     super(props);
     this.store = new DocumentSceneStore(
