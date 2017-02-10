@@ -15,7 +15,6 @@
     "sequelize": "./node_modules/.bin/sequelize",
     "test": "npm run test:frontend && npm run test:server",
     "test:frontend": "jest",
-    "test:watch": "jest --watch",
     "test:server": "jest --config=server/.jest-config --runInBand"
   },
   "jest": {
