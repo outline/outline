@@ -9,7 +9,7 @@ class DocumentSceneStore {
   static cache;
 
   @observable document;
-  @observable openNodes = [];
+  @observable collapsedNodes = [];
 
   @observable isFetching = true;
   @observable updatingContent = false;
@@ -28,9 +28,7 @@ class DocumentSceneStore {
     const tree = this.document.collection.navigationTree;
 
     const collapseNodes = (node) => {
-      if (this.openNodes.includes(node.id)) {
-        node.collapsed = true;
-      }
+      node.collapsed = this.collapsedNodes.includes(node.id);
       node.children = node.children.map(childNode => {
         return collapseNodes(childNode);
       });
@@ -109,10 +107,10 @@ class DocumentSceneStore {
   }
 
   @action onNodeCollapse = (nodeId) => {
-    if (_.indexOf(this.openNodes, nodeId) >= 0) {
-      this.openNodes = _.without(this.openNodes, nodeId);
+    if (_.indexOf(this.collapsedNodes, nodeId) >= 0) {
+      this.collapsedNodes = _.without(this.collapsedNodes, nodeId);
     } else {
-      this.openNodes.push(nodeId);
+      this.collapsedNodes.push(nodeId);
     }
   }
 
@@ -120,13 +118,13 @@ class DocumentSceneStore {
 
   persistSettings = () => {
     localStorage[DOCUMENT_PREFERENCES] = JSON.stringify({
-      openNodes: toJS(this.openNodes),
+      collapsedNodes: toJS(this.collapsedNodes),
     });
   }
 
   constructor(settings, options) {
     // Rehydrate settings
-    this.openNodes = settings.openNodes || [];
+    this.collapsedNodes = settings.collapsedNodes || [];
     this.cache = options.cache;
 
     // Persist settings to localStorage
