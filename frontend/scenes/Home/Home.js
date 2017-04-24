@@ -52,7 +52,7 @@ export default class Home extends React.Component {
               </div>
             ) }
             <div className={ styles.action }>
-              <SlackAuthLink>
+              <SlackAuthLink redirectUri={ `${URL}/auth/slack` }>
                 <img
                   alt="Sign in with Slack"
                   height="40"
