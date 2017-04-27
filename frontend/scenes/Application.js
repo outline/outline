@@ -2,15 +2,14 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import Helmet from 'react-helmet';
 
-@observer
-class Application extends React.Component {
+@observer class Application extends React.Component {
   static childContextTypes = {
     rebass: React.PropTypes.object,
-  }
+  };
 
   static propTypes = {
     children: React.PropTypes.node.isRequired,
-  }
+  };
 
   getChildContext() {
     return {
@@ -25,13 +24,7 @@ class Application extends React.Component {
 
         // fontSizes: [64, 48, 28, 20, 18, 16, 14],
         bold: 500,
-        scale: [
-          0,
-          8,
-          18,
-          36,
-          72,
-        ],
+        scale: [0, 8, 18, 36, 72],
         Input: {
           // borderBottom: '1px solid #eee',
         },
@@ -43,9 +36,7 @@ class Application extends React.Component {
         ButtonOutline: {
           color: '#000',
         },
-        InlineForm: {
-
-        },
+        InlineForm: {},
       },
     };
   }
@@ -55,14 +46,14 @@ class Application extends React.Component {
       <div style={{ width: '100%', height: '100%', display: 'flex', flex: 1 }}>
         <Helmet
           title="Atlas"
-          meta={ [
+          meta={[
             {
               name: 'viewport',
               content: 'width=device-width, initial-scale=1.0',
             },
-          ] }
+          ]}
         />
-        { this.props.children }
+        {this.props.children}
       </div>
     );
   }

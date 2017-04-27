@@ -2,7 +2,7 @@ import emojiMapping from './emoji-mapping.json';
 
 const EMOJI_REGEX = /:([A-Za-z0-9_\-\+]+?):/gm;
 
-const emojify = (text='') => {
+const emojify = (text = '') => {
   const emojis = text.match(EMOJI_REGEX) || [];
   let emojifiedText = text;
 

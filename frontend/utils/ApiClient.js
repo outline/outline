@@ -7,7 +7,7 @@ import constants from '../constants';
 const isIterable = object =>
   object != null && typeof object[Symbol.iterator] === 'function';
 
-const cacheResponse = (data) => {
+const cacheResponse = data => {
   if (isIterable(data)) {
     stores.cache.cacheList(data);
   } else {
@@ -51,59 +51,58 @@ class ApiClient {
     // Handle request promises and return a new promise
     return new Promise((resolve, reject) => {
       request
-      .then((response) => {
-        // Handle successful responses
-        if (response.status >= 200 && response.status < 300) {
-          return response;
-        }
+        .then(response => {
+          // Handle successful responses
+          if (response.status >= 200 && response.status < 300) {
+            return response;
+          }
 
-        // Handle 404
-        if (response.status === 404) {
-          return browserHistory.push('/404');
-        }
+          // Handle 404
+          if (response.status === 404) {
+            return browserHistory.push('/404');
+          }
 
-        // Handle 401, log out user
-        if (response.status === 401) {
-          return stores.user.logout();
-        }
+          // Handle 401, log out user
+          if (response.status === 401) {
+            return stores.user.logout();
+          }
 
-        // Handle failed responses
-        const error = {};
-        error.statusCode = response.status;
-        error.response = response;
-        throw error;
-      })
-      .then((response) => {
-        return response.json();
-      })
-      .then((json) => {
-        // Cache responses
-        if (options.cache) {
-          cacheResponse(json.data);
-        }
-        resolve(json);
-      })
-      .catch(error => {
-        error.response.json()
+          // Handle failed responses
+          const error = {};
+          error.statusCode = response.status;
+          error.response = response;
+          throw error;
+        })
+        .then(response => {
+          return response.json();
+        })
         .then(json => {
-          error.data = json;
-          reject(error);
+          // Cache responses
+          if (options.cache) {
+            cacheResponse(json.data);
+          }
+          resolve(json);
+        })
+        .catch(error => {
+          error.response.json().then(json => {
+            error.data = json;
+            reject(error);
+          });
         });
-      });
     });
-  }
+  };
 
   get = (path, data, options) => {
     return this.fetch(path, 'GET', data, options);
-  }
+  };
 
   post = (path, data, options) => {
     return this.fetch(path, 'POST', data, options);
-  }
+  };
 
   // Helpers
 
-  constructQueryString = (data) => {
+  constructQueryString = data => {
     return _.map(data, (v, k) => {
       return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
     }).join('&');

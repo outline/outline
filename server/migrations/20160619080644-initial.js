@@ -1,12 +1,12 @@
 'use strict';
 
 module.exports = {
-  up: function (queryInterface, Sequelize) {
+  up: function(queryInterface, Sequelize) {
     queryInterface.createTable('teams', {
       id: {
         type: 'UUID',
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
       },
       name: {
         type: 'CHARACTER VARYING',
@@ -15,7 +15,7 @@ module.exports = {
       slackId: {
         type: 'CHARACTER VARYING',
         allowNull: true,
-        unique: true
+        unique: true,
       },
       slackData: {
         type: 'JSONB',
@@ -28,14 +28,14 @@ module.exports = {
       updatedAt: {
         type: 'TIMESTAMP WITH TIME ZONE',
         allowNull: false,
-      }
+      },
     });
 
     queryInterface.createTable('atlases', {
       id: {
         type: 'UUID',
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
       },
       name: {
         type: 'CHARACTER VARYING',
@@ -68,14 +68,14 @@ module.exports = {
         //   model: "teams",
         //   key: "id",
         // }
-      }
+      },
     });
 
     queryInterface.createTable('users', {
       id: {
         type: 'UUID',
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
       },
       email: {
         type: 'CHARACTER VARYING',
@@ -96,7 +96,8 @@ module.exports = {
       },
       slackAccessToken: {
         type: 'bytea',
-        allowNull: true, },
+        allowNull: true,
+      },
       slackId: {
         type: 'CHARACTER VARYING',
         unique: true,
@@ -125,46 +126,48 @@ module.exports = {
         //   model: "teams",
         //   key: "id",
         // }
-      }
+      },
     });
 
     queryInterface.createTable('documents', {
-      id:
-       { type: 'UUID',
-         allowNull: false,
-         primaryKey: true },
-      urlId:
-       { type: 'CHARACTER VARYING',
-         allowNull: false,
-         unique: true, },
-      private:
-       { type: 'BOOLEAN',
-         allowNull: false,
-         defaultValue: true,
-          },
-      title:
-       { type: 'CHARACTER VARYING',
-         allowNull: false,
+      id: {
+        type: 'UUID',
+        allowNull: false,
+        primaryKey: true,
       },
-      text:
-       { type: 'TEXT',
-         allowNull: true,
+      urlId: {
+        type: 'CHARACTER VARYING',
+        allowNull: false,
+        unique: true,
       },
-      html:
-       { type: 'TEXT',
-         allowNull: true,
+      private: {
+        type: 'BOOLEAN',
+        allowNull: false,
+        defaultValue: true,
       },
-      preview:
-       { type: 'TEXT',
-         allowNull: true,
+      title: {
+        type: 'CHARACTER VARYING',
+        allowNull: false,
       },
-      createdAt:
-       { type: 'TIMESTAMP WITH TIME ZONE',
-         allowNull: false,
+      text: {
+        type: 'TEXT',
+        allowNull: true,
       },
-      updatedAt:
-       { type: 'TIMESTAMP WITH TIME ZONE',
-         allowNull: false,
+      html: {
+        type: 'TEXT',
+        allowNull: true,
+      },
+      preview: {
+        type: 'TEXT',
+        allowNull: true,
+      },
+      createdAt: {
+        type: 'TIMESTAMP WITH TIME ZONE',
+        allowNull: false,
+      },
+      updatedAt: {
+        type: 'TIMESTAMP WITH TIME ZONE',
+        allowNull: false,
       },
       userId: {
         type: 'UUID',
@@ -189,11 +192,11 @@ module.exports = {
         //   model: "teams",
         //   key: "id",
         // }
-      }
+      },
     });
   },
 
-  down: function (queryInterface, Sequelize) {
+  down: function(queryInterface, Sequelize) {
     queryInterface.dropAllTables();
-  }
+  },
 };

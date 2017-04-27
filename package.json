@@ -10,12 +10,20 @@
     "start": "node index.js",
     "dev": "cross-env NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --watch server index.js",
     "lint": "eslint frontend",
+    "prettier": "prettier --single-quote --trailing-comma es5 --write frontend/**/*.js server/**/*.js",
     "deploy": "git push heroku master",
     "heroku-postbuild": "npm run build && npm run sequelize db:migrate",
     "sequelize": "./node_modules/.bin/sequelize",
     "test": "npm run test:frontend && npm run test:server",
     "test:frontend": "jest",
-    "test:server": "jest --config=server/.jest-config --runInBand"
+    "test:server": "jest --config=server/.jest-config --runInBand",
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.js": [
+      "yarn prettier",
+      "git add"
+    ]
   },
   "jest": {
     "verbose": false,
@@ -150,14 +158,18 @@
   "devDependencies": {
     "babel-jest": "^15.0.0",
     "enzyme": "^2.4.1",
+    "eslint-config-prettier": "^1.7.0",
+    "eslint-plugin-prettier": "^2.0.1",
     "fetch-test-server": "^1.1.0",
     "identity-obj-proxy": "^3.0.0",
     "ignore-loader": "0.1.1",
     "jest-cli": "^15.1.1",
     "koa-webpack-dev-middleware": "1.2.0",
     "koa-webpack-hot-middleware": "1.0.3",
+    "lint-staged": "^3.4.0",
     "node-dev": "3.1.0",
     "nodemon": "1.9.1",
+    "prettier": "^1.2.2",
     "react-addons-test-utils": "^15.3.1",
     "react-test-renderer": "^15.3.1"
   }

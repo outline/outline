@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  up: function (queryInterface, Sequelize) {
+  up: function(queryInterface, Sequelize) {
     const searchDocument = `
 ALTER TABLE documents ADD COLUMN "searchVector" tsvector;
 CREATE INDEX documents_tsv_idx ON documents USING gin("searchVector");
@@ -40,7 +40,7 @@ ON atlases FOR EACH ROW EXECUTE PROCEDURE atlases_search_trigger();
     queryInterface.sequelize.query(searchAtlas);
   },
 
-  down: function (queryInterface, Sequelize) {
+  down: function(queryInterface, Sequelize) {
     // TODO?
-  }
+  },
 };

@@ -1,5 +1,9 @@
 {
-  "extends": "airbnb",
+  "extends": [
+    "airbnb",
+    "prettier",
+    "prettier/react"
+  ],
   "parser": "babel-eslint",
   "rules": {
     "arrow-body-style":[0, "as-needed"], // fix `this` shortcut on ES6 classes

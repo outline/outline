@@ -40,7 +40,7 @@ class UserStore {
     const state = Math.random().toString(36).substring(7);
     this.oauthState = state;
     return this.oauthState;
-  }
+  };
 
   @action authWithSlack = async (code, state, redirectTo) => {
     if (state !== this.oauthState) {
@@ -60,7 +60,7 @@ class UserStore {
     this.team = res.data.team;
     this.token = res.data.accessToken;
     browserHistory.replace(redirectTo || '/');
-  }
+  };
 
   constructor() {
     // Rehydrate
@@ -73,6 +73,4 @@ class UserStore {
 }
 
 export default UserStore;
-export {
-  USER_STORE,
-};
+export { USER_STORE };

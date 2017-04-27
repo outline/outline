@@ -8,7 +8,7 @@ export default function cache() {
 
     ctx.cache.set = async (id, value) => {
       ctx.cache[id] = value;
-    }
+    };
 
     ctx.cache.get = async (id, def) => {
       if (ctx.cache[id]) {

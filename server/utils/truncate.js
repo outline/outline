@@ -5,7 +5,7 @@ truncate.defaultOptions = {
   stripTags: false,
   ellipsis: '...',
   decodeEntities: false,
-  excludes: ['h1', 'pre', ],
+  excludes: ['h1', 'pre'],
 };
 
 const truncateMarkdown = (text, length) => {
@@ -13,6 +13,4 @@ const truncateMarkdown = (text, length) => {
   return truncate(html, length);
 };
 
-export {
-  truncateMarkdown,
-};
+export { truncateMarkdown };

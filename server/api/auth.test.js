@@ -37,7 +37,6 @@ describe('#auth.signup', async () => {
     expect(body).toMatchSnapshot();
   });
 
-
   it('should require valid email', async () => {
     const res = await server.post('/api/auth.signup', {
       body: {

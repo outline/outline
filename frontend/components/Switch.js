@@ -8,10 +8,7 @@ import { actionColor } from 'styles/constants.scss';
  * Binary toggle switch component
  */
 
-const Switch = observer(({
-  checked,
-  ...props
-}) => {
+const Switch = observer(({ checked, ...props }) => {
   const scale = '18';
   const colors = {
     success: actionColor,
@@ -19,9 +16,8 @@ const Switch = observer(({
   };
   const borderColor = actionColor;
 
-
-  const color = checked ? colors.success : borderColor
-  const transform = checked ? `translateX(${scale * 0.5}px)` : 'translateX(0)'
+  const color = checked ? colors.success : borderColor;
+  const transform = checked ? `translateX(${scale * 0.5}px)` : 'translateX(0)';
 
   const sx = {
     root: {
@@ -32,7 +28,7 @@ const Switch = observer(({
       backgroundColor: checked ? 'currentcolor' : null,
       borderRadius: 99999,
       boxShadow: 'inset 0 0 0 2px',
-      cursor: 'pointer'
+      cursor: 'pointer',
     },
     dot: {
       width: scale,
@@ -44,29 +40,30 @@ const Switch = observer(({
       boxShadow: 'inset 0 0 0 2px',
       borderRadius: 99999,
       color,
-      backgroundColor: colors.white
-    }
-  }
+      backgroundColor: colors.white,
+    },
+  };
 
   return (
     <Base
       {...props}
-      className='Switch'
-      role='checkbox'
+      className="Switch"
+      role="checkbox"
       aria-checked={checked}
-      baseStyle={sx.root}>
+      baseStyle={sx.root}
+    >
       <div style={sx.dot} />
     </Base>
-  )
+  );
 });
 
 Switch.propTypes = {
   /** Sets the Switch to an active style */
-  checked: React.PropTypes.bool
-}
+  checked: React.PropTypes.bool,
+};
 
 Switch.contextTypes = {
-  rebass: React.PropTypes.object
-}
+  rebass: React.PropTypes.object,
+};
 
 export default Switch;

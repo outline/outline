@@ -8,10 +8,8 @@ import { ApiKey } from '../models';
 
 const router = new Router();
 
-router.post('apiKeys.create', auth(), async (ctx) => {
-  const {
-    name,
-  } = ctx.body;
+router.post('apiKeys.create', auth(), async ctx => {
+  const { name } = ctx.body;
   ctx.assertPresent(name, 'name is required');
 
   const user = ctx.state.user;
@@ -26,15 +24,13 @@ router.post('apiKeys.create', auth(), async (ctx) => {
   };
 });
 
-router.post('apiKeys.list', auth(), pagination(), async (ctx) => {
+router.post('apiKeys.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
   const keys = await ApiKey.findAll({
     where: {
       userId: user.id,
     },
-    order: [
-      ['createdAt', 'DESC'],
-    ],
+    order: [['createdAt', 'DESC']],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
@@ -49,10 +45,8 @@ router.post('apiKeys.list', auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post('apiKeys.delete', auth(), async (ctx) => {
-  const {
-    id,
-  } = ctx.body;
+router.post('apiKeys.delete', auth(), async ctx => {
+  const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;

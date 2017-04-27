@@ -21,13 +21,13 @@ class CacheStore {
     _.defer(() => localStorage.setItem(CACHE_STORE, this.asJson));
   };
 
-  @action cacheList = (data) => {
-    data.forEach((item) => this.cacheWithId(item.id, item));
+  @action cacheList = data => {
+    data.forEach(item => this.cacheWithId(item.id, item));
   };
 
-  @action fetchFromCache = (id) => {
+  @action fetchFromCache = id => {
     return this.cache[id];
-  }
+  };
 
   constructor() {
     // Rehydrate
@@ -37,6 +37,4 @@ class CacheStore {
 }
 
 export default CacheStore;
-export {
-  CACHE_STORE,
-};
+export { CACHE_STORE };

@@ -27,6 +27,4 @@ class UiStore {
 }
 
 export default UiStore;
-export {
-  UI_STORE,
-};
+export { UI_STORE };
