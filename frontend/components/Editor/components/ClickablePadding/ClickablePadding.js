@@ -9,7 +9,7 @@ const ClickablePadding = (props) => {
       onClick={ props.onClick }
     >&nbsp;</div>
   )
-};
+}
 
 ClickablePadding.propTypes = {
   onClick: React.PropTypes.func,

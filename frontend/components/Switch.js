@@ -46,13 +46,13 @@ const Switch = observer(({ checked, ...props }) => {
 
   return (
     <Base
-      {...props}
+      { ...props }
       className="Switch"
       role="checkbox"
-      aria-checked={checked}
-      baseStyle={sx.root}
+      aria-checked={ checked }
+      baseStyle={ sx.root }
     >
-      <div style={sx.dot} />
+      <div style={ sx.dot } />
     </Base>
   );
 });

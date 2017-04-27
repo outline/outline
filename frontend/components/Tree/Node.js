@@ -16,9 +16,9 @@ class Node extends React.Component {
 
       return (
         <span
-          className={cx(styles.collapse, collapsed ? styles.caretRight : styles.caretDown)}
-          onMouseDown={function(e) {e.stopPropagation()}}
-          onClick={this.handleCollapse}
+          className={ cx(styles.collapse, collapsed ? styles.caretRight : styles.caretDown) }
+          onMouseDown={ function(e) {e.stopPropagation()} }
+          onClick={ this.handleCollapse }
         >
           <img src={ require("./assets/chevron.svg") } />
         </span>
@@ -42,22 +42,22 @@ class Node extends React.Component {
       }
 
       return (
-        <div className={ styles.children } style={childrenStyles}>
-          {index.children.map((child) => {
+        <div className={ styles.children } style={ childrenStyles }>
+          { index.children.map((child) => {
             var childIndex = tree.getIndex(child);
             return (
               <Node
-                tree={tree}
-                index={childIndex}
-                key={childIndex.id}
-                dragging={dragging}
+                tree={ tree }
+                index={ childIndex }
+                key={ childIndex.id }
+                dragging={ dragging }
                 allowUpdates={ this.props.allowUpdates }
-                paddingLeft={this.props.paddingLeft}
-                onCollapse={this.props.onCollapse}
-                onDragStart={this.props.onDragStart}
+                paddingLeft={ this.props.paddingLeft }
+                onCollapse={ this.props.onCollapse }
+                onDragStart={ this.props.onDragStart }
               />
             );
-          })}
+          }) }
         </div>
       );
     }
@@ -84,14 +84,14 @@ class Node extends React.Component {
     const style = {};
 
     return (
-      <div className={cx(styles.node, {
+      <div className={ cx(styles.node, {
         placeholder: index.id === dragging,
         rootNode: this.props.rootNode,
-      })} style={style}>
+      }) } style={ style }>
         <div
           className={ styles.inner }
           ref="inner"
-          onMouseDown={this.props.rootNode || !this.props.allowUpdates ? (e) => e.stopPropagation() : this.handleMouseDown}
+          onMouseDown={ this.props.rootNode || !this.props.allowUpdates ? (e) => e.stopPropagation() : this.handleMouseDown }
         >
           { !this.props.rootNode && this.renderCollapse() }
           <span
@@ -104,7 +104,7 @@ class Node extends React.Component {
             { node.title }
           </span>
         </div>
-        {this.renderChildren()}
+        { this.renderChildren() }
       </div>
     );
   }

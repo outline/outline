@@ -36,7 +36,7 @@ module.exports = React.createClass({
     tree.updateNodesPosition();
 
     return {
-      tree: tree,
+      tree,
       dragging: {
         id: null,
         x: null,
@@ -99,7 +99,7 @@ module.exports = React.createClass({
 
   dragStart(id, dom, e) {
     this.dragging = {
-      id: id,
+      id,
       w: dom.offsetWidth,
       h: dom.offsetHeight,
       x: dom.offsetLeft,
@@ -195,8 +195,8 @@ module.exports = React.createClass({
     }
 
     this.setState({
-      tree: tree,
-      dragging: dragging
+      tree,
+      dragging
     });
   },
 
@@ -229,7 +229,7 @@ module.exports = React.createClass({
     tree.updateNodesPosition();
 
     this.setState({
-      tree: tree
+      tree
     });
 
     if(this.props.onCollapse) this.props.onCollapse(node.id, node.collapsed);

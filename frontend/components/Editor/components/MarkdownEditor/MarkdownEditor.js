@@ -11,51 +11,23 @@ const Markdown = new MarkdownSerializer();
  */
 const schema = {
   nodes: {
-    'block-quote': props => <blockquote>{ props.children }</blockquote>,
-    'bulleted-list': props => <ul>{ props.children }</ul>,
-    'heading1': props => <h1>{ props.children }</h1>,
-    'heading1': props => <h1>{ props.children }</h1>,
-    'heading2': props => <h2>{ props.children }</h2>,
-    'heading3': props => <h3>{ props.children }</h3>,
-    'heading4': props => <h4>{ props.children }</h4>,
-    'heading5': props => <h5>{ props.children }</h5>,
-    'heading6': props => <h6>{ props.children }</h6>,
-    'list-item': props => <li>{ props.children }</li>,
+    'block-quote': attrs => <blockquote>{ attrs.children }</blockquote>,
+    'bulleted-list': attrs => <ul>{ attrs.children }</ul>,
+    'heading1': attrs => <h1>{ attrs.children }</h1>,
+    'heading2': attrs => <h2>{ attrs.children }</h2>,
+    'heading3': attrs => <h3>{ attrs.children }</h3>,
+    'heading4': attrs => <h4>{ attrs.children }</h4>,
+    'heading5': attrs => <h5>{ attrs.children }</h5>,
+    'heading6': attrs => <h6>{ attrs.children }</h6>,
+    'list-item': attrs => <li>{ attrs.children }</li>,
   }
 }
 
 export default class MarkdownEditor extends Component {
-  /**
-   * Get the block type for a series of auto-markdown shortcut `chars`.
-   *
-   * @param {String} chars
-   * @return {String} block
-   */
-  getType = (chars) => {
-    switch (chars) {
-      case '*':
-      case '-':
-      case '+': return 'list-item'
-      case '>': return 'block-quote'
-      case '#': return 'heading1'
-      case '##': return 'heading2'
-      case '###': return 'heading3'
-      case '####': return 'heading4'
-      case '#####': return 'heading5'
-      case '######': return 'heading6'
-      default: return null
-    }
-  }
-
   constructor(props) {
     super(props);
 
-    const state = Markdown.deserialize(props.text, { terse: true });
-    console.log(props.text, JSON.stringify(state));
-
-    this.state = {
-      state
-    }
+    this.state = { state: Markdown.deserialize(props.text) }
   }
 
   onChange = (state) => {
@@ -79,6 +51,7 @@ export default class MarkdownEditor extends Component {
       case 'space': return this.onSpace(e, state)
       case 'backspace': return this.onBackspace(e, state)
       case 'enter': return this.onEnter(e, state)
+      default: return null;
     }
   }
 
@@ -175,16 +148,37 @@ export default class MarkdownEditor extends Component {
       .apply();
   }
 
+  /**
+   * Get the block type for a series of auto-markdown shortcut `chars`.
+   *
+   * @param {String} chars
+   * @return {String} block
+   */
+  getType = (chars) => {
+    switch (chars) {
+      case '*':
+      case '-':
+      case '+': return 'list-item'
+      case '>': return 'block-quote'
+      case '#': return 'heading1'
+      case '##': return 'heading2'
+      case '###': return 'heading3'
+      case '####': return 'heading4'
+      case '#####': return 'heading5'
+      case '######': return 'heading6'
+      default: return null
+    }
+  }
+
   render = () => {
     return (
-      <div className="editor">
-        <Editor
-          schema={ schema }
-          state={ this.state.state }
-          onChange={ this.onChange }
-          onKeyDown={ this.onKeyDown }
-        />
-      </div>
+      <Editor
+        schema={ schema }
+        state={ this.state.state }
+        onChange={ this.onChange }
+        onDocumentChange={ this.onDocumentChange }
+        onKeyDown={ this.onKeyDown }
+      />
     )
   }
 }

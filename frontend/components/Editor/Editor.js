@@ -21,7 +21,7 @@ class Editor extends Component {
     this.props.onChange(text);
   }
 
-  onDropAccepted = (files) => {
+  onDropAccepted = async (files) => {
     const file = files[0];
     const editor = this.getEditorInstance();
 
@@ -42,50 +42,46 @@ class Editor extends Component {
     }
     editor.setCursor(newCursorPositionLine, 0);
 
-    client.post('/user.s3Upload', {
-      kind: file.type,
-      size: file.size,
-      filename: file.name,
-    })
-    .then(response => {
+    try {
+      const response = await client.post('/user.s3Upload', {
+        kind: file.type,
+        size: file.size,
+        filename: file.name,
+      })
+
       const data = response.data;
-      // Upload using FormData API
       const formData = new FormData();
 
       for (const key in data.form) {
         formData.append(key, data.form[key]);
       }
 
-      if (file.blob) {
-        formData.append('file', file.file);
-      } else {
-        formData.append('file', file);
-      }
+      formData.append('file', file.blob ? file.file : file);
 
-      fetch(data.uploadUrl, {
-        method: 'post',
-        body: formData,
-      })
-      .then(_s3Response => {
+      try {
+        await fetch(data.uploadUrl, {
+          method: 'post',
+          body: formData,
+        });
+
         this.props.toggleUploadingIndicator();
         this.props.replaceText({
           original: pendingUploadTag,
           new: `![${file.name}](${data.asset.url})`,
         });
         editor.setCursor(newCursorPositionLine, 0);
-      })
-      .catch(_err => {
+
+      } catch (err) {
         this.props.toggleUploadingIndicator();
         this.props.replaceText({
           original: pendingUploadTag,
           new: '',
         });
         editor.setCursor(newCursorPositionLine, 0);
-      });
-    })
-    .catch(_err => {
+      }
+    } catch (err) {
       this.props.toggleUploadingIndicator();
-    });
+    }
   }
 
   onPaddingTopClick = () => {
@@ -100,6 +96,10 @@ class Editor extends Component {
     cm.focus();
   }
 
+  getEditorInstance = () => {
+
+  }
+
   render = () => {
     return (
       <Dropzone
@@ -111,6 +111,7 @@ class Editor extends Component {
       >
         <ClickablePadding onClick={ this.onPaddingTopClick } />
         <MarkdownEditor
+          ref={ ref => this.editor = ref }
           placeholder="# Start with a title…"
           text={ this.props.text }
           onDocumentChange={ this.onDocumentChange }

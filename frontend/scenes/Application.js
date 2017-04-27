@@ -46,14 +46,14 @@ import Helmet from 'react-helmet';
       <div style={{ width: '100%', height: '100%', display: 'flex', flex: 1 }}>
         <Helmet
           title="Atlas"
-          meta={[
+          meta={ [
             {
               name: 'viewport',
               content: 'width=device-width, initial-scale=1.0',
             },
-          ]}
+          ] }
         />
-        {this.props.children}
+        { this.props.children }
       </div>
     );
   }
