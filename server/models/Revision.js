@@ -1,10 +1,11 @@
-import {
-  DataTypes,
-  sequelize,
-} from '../sequelize';
+import { DataTypes, sequelize } from '../sequelize';
 
 const Revision = sequelize.define('revision', {
-  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
   title: DataTypes.STRING,
   text: DataTypes.TEXT,
   html: DataTypes.TEXT,
@@ -15,7 +16,7 @@ const Revision = sequelize.define('revision', {
     allowNull: false,
     references: {
       model: 'users',
-    }
+    },
   },
 
   documentId: {
@@ -24,7 +25,7 @@ const Revision = sequelize.define('revision', {
     references: {
       model: 'documents',
       onDelete: 'CASCADE',
-    }
+    },
   },
 });
 

@@ -3,8 +3,9 @@ import { sequelize } from '../sequelize';
 
 export function flushdb() {
   const sql = sequelize.getQueryInterface();
-  const tables = Object.keys(sequelize.models).map((model) =>
-      sql.quoteTable(sequelize.models[model].getTableName()));
+  const tables = Object.keys(sequelize.models).map(model =>
+    sql.quoteTable(sequelize.models[model].getTableName())
+  );
   const query = `TRUNCATE ${tables.join(', ')} CASCADE`;
 
   return sequelize.query(query);
@@ -24,7 +25,4 @@ const seed = async () => {
   });
 };
 
-export {
-  seed,
-  sequelize,
-};
+export { seed, sequelize };

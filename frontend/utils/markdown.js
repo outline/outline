@@ -12,7 +12,9 @@ const Renderer = sanitizedRenderer(marked.Renderer);
 const renderer = new Renderer();
 renderer.code = (code, language) => {
   const validLang = !!(language && highlight.getLanguage(language));
-  const highlighted = validLang ? highlight.highlight(language, code).value : _.escape(code);
+  const highlighted = validLang
+    ? highlight.highlight(language, code).value
+    : _.escape(code);
   return `<pre><code class="hljs ${_.escape(language)}">${highlighted}</code></pre>`;
 };
 renderer.heading = (text, level) => {
@@ -25,10 +27,10 @@ renderer.heading = (text, level) => {
   `;
 };
 
-const convertToMarkdown = (text) => {
+const convertToMarkdown = text => {
   // Add TOC
   text = toc.insert(text || '', {
-    slugify: (heading) => {
+    slugify: heading => {
       // FIXME: E.g. `&` gets messed up
       const headingSlug = _.escape(slug(heading));
       return headingSlug;
@@ -46,6 +48,4 @@ const convertToMarkdown = (text) => {
   });
 };
 
-export {
-  convertToMarkdown,
-};
+export { convertToMarkdown };

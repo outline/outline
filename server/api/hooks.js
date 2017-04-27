@@ -4,17 +4,14 @@ import { Document, User } from '../models';
 
 const router = new Router();
 
-router.post('hooks.slack', async (ctx) => {
-  const {
-    token,
-    user_id,
-    text,
-  } = ctx.body;
+router.post('hooks.slack', async ctx => {
+  const { token, user_id, text } = ctx.body;
   ctx.assertPresent(token, 'token is required');
   ctx.assertPresent(user_id, 'user_id is required');
   ctx.assertPresent(text, 'text is required');
 
-  if (token !== process.env.SLACK_VERIFICATION_TOKEN) throw httpErrors.BadRequest('Invalid token');
+  if (token !== process.env.SLACK_VERIFICATION_TOKEN)
+    throw httpErrors.BadRequest('Invalid token');
 
   const user = await User.find({
     where: {
@@ -31,7 +28,9 @@ router.post('hooks.slack', async (ctx) => {
   const results = [];
   let number = 1;
   for (const document of documents) {
-    results.push(`${number}. <${process.env.URL}${document.getUrl()}|${document.title}>`);
+    results.push(
+      `${number}. <${process.env.URL}${document.getUrl()}|${document.title}>`
+    );
     number += 1;
   }
 

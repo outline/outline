@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  up: function (queryInterface, Sequelize) {
+  up: function(queryInterface, Sequelize) {
     queryInterface.addIndex('documents', ['urlId']);
     queryInterface.addIndex('documents', ['id', 'atlasId']);
     queryInterface.addIndex('documents', ['id', 'teamId']);
@@ -14,7 +14,7 @@ module.exports = {
     queryInterface.addIndex('users', ['slackId']);
   },
 
-  down: function (queryInterface, Sequelize) {
+  down: function(queryInterface, Sequelize) {
     queryInterface.removeIndex('documents', ['urlId']);
     queryInterface.removeIndex('documents', ['id', 'atlasId']);
     queryInterface.removeIndex('documents', ['id', 'teamId']);
@@ -25,5 +25,5 @@ module.exports = {
     queryInterface.removeIndex('teams', ['slackId']);
 
     queryInterface.removeIndex('users', ['slackId']);
-  }
+  },
 };

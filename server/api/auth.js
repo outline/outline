@@ -9,7 +9,7 @@ import { User, Team } from '../models';
 
 const router = new Router();
 
-router.post('auth.signup', async (ctx) => {
+router.post('auth.signup', async ctx => {
   const { username, name, email, password } = ctx.request.body;
 
   ctx.assertPresent(username, 'name is required');
@@ -19,11 +19,19 @@ router.post('auth.signup', async (ctx) => {
   ctx.assertPresent(password, 'password is required');
 
   if (await User.findOne({ where: { email } })) {
-    throw apiError(400, 'user_exists_with_email', 'User already exists with this email');
+    throw apiError(
+      400,
+      'user_exists_with_email',
+      'User already exists with this email'
+    );
   }
 
   if (await User.findOne({ where: { username } })) {
-    throw apiError(400, 'user_exists_with_username', 'User already exists with this username');
+    throw apiError(
+      400,
+      'user_exists_with_username',
+      'User already exists with this username'
+    );
   }
 
   const user = await User.create({
@@ -33,13 +41,15 @@ router.post('auth.signup', async (ctx) => {
     password,
   });
 
-  ctx.body = { data: {
-    user: await presentUser(ctx, user),
-    accessToken: user.getJwtToken(),
-  } };
+  ctx.body = {
+    data: {
+      user: await presentUser(ctx, user),
+      accessToken: user.getJwtToken(),
+    },
+  };
 });
 
-router.post('auth.login', async (ctx) => {
+router.post('auth.login', async ctx => {
   const { username, password } = ctx.request.body;
 
   ctx.assertPresent(username, 'username/email is required');
@@ -47,10 +57,9 @@ router.post('auth.login', async (ctx) => {
 
   let user;
   if (username) {
-    user = await User.findOne({ where: Sequelize.or(
-      { email: username },
-      { username },
-    ) });
+    user = await User.findOne({
+      where: Sequelize.or({ email: username }, { username }),
+    });
   } else {
     throw apiError(400, 'invalid_credentials', 'username or email is invalid');
   }
@@ -67,13 +76,15 @@ router.post('auth.login', async (ctx) => {
     throw apiError(400, 'invalid_password', 'Invalid password');
   }
 
-  ctx.body = { data: {
-    user: await presentUser(ctx, user),
-    accessToken: user.getJwtToken(),
-  } };
+  ctx.body = {
+    data: {
+      user: await presentUser(ctx, user),
+      accessToken: user.getJwtToken(),
+    },
+  };
 });
 
-router.post('auth.slack', async (ctx) => {
+router.post('auth.slack', async ctx => {
   const { code } = ctx.body;
   ctx.assertPresent(code, 'code is required');
 
@@ -86,7 +97,9 @@ router.post('auth.slack', async (ctx) => {
 
   let data;
   try {
-    const response = await fetch(`https://slack.com/api/oauth.access?${querystring.stringify(body)}`);
+    const response = await fetch(
+      `https://slack.com/api/oauth.access?${querystring.stringify(body)}`
+    );
     data = await response.json();
   } catch (e) {
     throw httpErrors.BadRequest();
@@ -97,7 +110,11 @@ router.post('auth.slack', async (ctx) => {
   // Temp to block
   const allowedSlackDomains = process.env.ALLOWED_SLACK_DOMAINS.split(',');
   if (!allowedSlackDomains.includes(data.team.domain)) {
-    throw apiError(400, 'invalid_slack_team', 'Atlas is currently in private beta');
+    throw apiError(
+      400,
+      'invalid_slack_team',
+      'Atlas is currently in private beta'
+    );
   }
 
   // User
@@ -138,14 +155,16 @@ router.post('auth.slack', async (ctx) => {
     await team.createFirstAtlas(user.id);
   }
 
-  ctx.body = { data: {
-    user: await presentUser(ctx, user),
-    team: await presentTeam(ctx, team),
-    accessToken: user.getJwtToken(),
-  } };
+  ctx.body = {
+    data: {
+      user: await presentUser(ctx, user),
+      team: await presentTeam(ctx, team),
+      accessToken: user.getJwtToken(),
+    },
+  };
 });
 
-router.post('auth.slackCommands', async (ctx) => {
+router.post('auth.slackCommands', async ctx => {
   const { code } = ctx.body;
   ctx.assertPresent(code, 'code is required');
 
@@ -158,7 +177,9 @@ router.post('auth.slackCommands', async (ctx) => {
 
   let data;
   try {
-    const response = await fetch(`https://slack.com/api/oauth.access?${querystring.stringify(body)}`);
+    const response = await fetch(
+      `https://slack.com/api/oauth.access?${querystring.stringify(body)}`
+    );
     data = await response.json();
   } catch (e) {
     throw httpErrors.BadRequest();
@@ -166,6 +187,5 @@ router.post('auth.slackCommands', async (ctx) => {
 
   if (!data.ok) throw httpErrors.BadRequest(data.error);
 });
-
 
 export default router;

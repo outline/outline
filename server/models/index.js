@@ -5,11 +5,4 @@ import Document from './Document';
 import Revision from './Revision';
 import ApiKey from './ApiKey';
 
-export {
-  User,
-  Team,
-  Atlas,
-  Document,
-  Revision,
-  ApiKey,
-};
+export { User, Team, Atlas, Document, Revision, ApiKey };
