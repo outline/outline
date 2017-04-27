@@ -1,5 +1,5 @@
 import React from 'react';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { browserHistory } from 'react-router';
 
 import { Flex } from 'reflexbox';
@@ -10,18 +10,19 @@ import Alert from 'components/Alert';
 
 import styles from './Home.scss';
 
-@observer(['user'])
+@inject('user')
+@observer
 export default class Home extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,
     location: React.PropTypes.object.isRequired,
-  }
+  };
 
   componentDidMount = () => {
     if (this.props.user.authenticated) {
       browserHistory.replace('/dashboard');
     }
-  }
+  };
 
   get notifications() {
     const notifications = [];
@@ -30,7 +31,9 @@ export default class Home extends React.Component {
     if (state && state.nextPathname) {
       sessionStorage.removeItem('redirectTo');
       sessionStorage.setItem('redirectTo', state.nextPathname);
-      notifications.push(<Alert key="login" info>Please login to continue</Alert>);
+      notifications.push(
+        <Alert key="login" info>Please login to continue</Alert>
+      );
     }
 
     return notifications;
@@ -41,18 +44,17 @@ export default class Home extends React.Component {
 
     return (
       <Flex auto>
-        <Layout
-          notifications={ this.notifications }
-        >
+        <Layout notifications={this.notifications}>
           <CenteredContent>
-            { showLandingPageCopy && (
-              <div className={ styles.intro }>
-                <h1 className={ styles.title }>Simple, fast, markdown.</h1>
-                <p className={ styles.copy }>We're building a modern wiki for engineering teams.</p>
-              </div>
-            ) }
-            <div className={ styles.action }>
-              <SlackAuthLink redirectUri={ `${URL}/auth/slack` }>
+            {showLandingPageCopy &&
+              <div className={styles.intro}>
+                <h1 className={styles.title}>Simple, fast, markdown.</h1>
+                <p className={styles.copy}>
+                  We're building a modern wiki for engineering teams.
+                </p>
+              </div>}
+            <div className={styles.action}>
+              <SlackAuthLink redirectUri={`${URL}/auth/slack`}>
                 <img
                   alt="Sign in with Slack"
                   height="40"

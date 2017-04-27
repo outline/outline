@@ -1,5 +1,5 @@
 import React from 'react';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router';
 
 import DashboardStore from './DashboardStore';
@@ -11,12 +11,13 @@ import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
 @withRouter
-@observer(['user'])
+@inject('user')
+@observer
 class Dashboard extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,
     router: React.PropTypes.object.isRequired,
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -33,13 +34,14 @@ class Dashboard extends React.Component {
         <Layout>
           <CenteredContent>
             <Flex column auto>
-              { this.store.isFetching ? (
-                <AtlasPreviewLoading />
-              ) : (
-                this.store.collections && this.store.collections.map((collection) => {
-                  return (<AtlasPreview key={ collection.id } data={ collection } />);
-                })
-              ) }
+              {this.store.isFetching
+                ? <AtlasPreviewLoading />
+                : this.store.collections &&
+                    this.store.collections.map(collection => {
+                      return (
+                        <AtlasPreview key={collection.id} data={collection} />
+                      );
+                    })}
             </Flex>
           </CenteredContent>
         </Layout>

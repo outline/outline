@@ -1,22 +1,19 @@
 import React from 'react';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { browserHistory } from 'react-router';
 import { client } from 'utils/ApiClient';
 
-@observer(['user'])
+@inject('user')
+@observer
 class SlackAuth extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,
     location: React.PropTypes.object.isRequired,
     route: React.PropTypes.object.isRequired,
-  }
+  };
 
   componentDidMount = async () => {
-    const {
-      error,
-      code,
-      state,
-    } = this.props.location.query;
+    const { error, code, state } = this.props.location.query;
 
     if (error) {
       if (error === 'access_denied') {
@@ -43,12 +40,10 @@ class SlackAuth extends React.Component {
 
       this.props.user.authWithSlack(code, state, redirectTo);
     }
-  }
+  };
 
   render() {
-    return (
-      <div></div>
-    );
+    return <div />;
   }
 }
 
