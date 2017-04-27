@@ -80,7 +80,7 @@ router.post('auth.slack', async (ctx) => {
   const body = {
     client_id: process.env.SLACK_KEY,
     client_secret: process.env.SLACK_SECRET,
-    redirect_uri: `${process.env.URL}/auth/slack/`,
+    redirect_uri: `${process.env.URL}/auth/slack`,
     code,
   };
 
