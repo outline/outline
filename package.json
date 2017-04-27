@@ -146,6 +146,8 @@
     "sequelize": "3.24.1",
     "sequelize-cli": "2.4.0",
     "sequelize-encrypted": "0.1.0",
+    "slate": "^0.19.20",
+    "slate-markdown-serializer": "^0.1.5",
     "slug": "0.9.1",
     "string-hash": "^1.1.0",
     "style-loader": "0.13.0",

@@ -2,13 +2,13 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import { convertToMarkdown } from 'utils/markdown';
 
-import MarkdownEditor from 'components/MarkdownEditor';
+import Editor from 'components/Editor';
 import Preview from './Preview';
 import EditorPane from './EditorPane';
 
 import styles from '../DocumentEdit.scss';
 
-const Editor = observer((props) => {
+const DocumentEdit = observer((props) => {
   const store = props.store;
 
   return (
@@ -17,7 +17,7 @@ const Editor = observer((props) => {
         fullWidth={ !store.preview }
         onScroll={ props.onScroll }
       >
-        <MarkdownEditor
+        <Editor
           onChange={ store.updateText }
           text={ store.text }
           replaceText={ store.replaceText }
@@ -39,4 +39,4 @@ const Editor = observer((props) => {
   );
 });
 
-export default Editor;
+export default DocumentEdit;
