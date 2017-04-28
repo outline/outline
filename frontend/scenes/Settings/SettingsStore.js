@@ -17,10 +17,10 @@ class SearchStore {
         this.apiKeys = data;
       });
     } catch (e) {
-      console.error("Something went wrong");
+      console.error('Something went wrong');
     }
     this.isFetching = false;
-  }
+  };
 
   @action createApiKey = async () => {
     this.isFetching = true;
@@ -35,12 +35,12 @@ class SearchStore {
         this.keyName = '';
       });
     } catch (e) {
-      console.error("Something went wrong");
+      console.error('Something went wrong');
     }
     this.isFetching = false;
-  }
+  };
 
-  @action deleteApiKey = async (id) => {
+  @action deleteApiKey = async id => {
     this.isFetching = true;
 
     try {
@@ -51,14 +51,14 @@ class SearchStore {
         this.fetchApiKeys();
       });
     } catch (e) {
-      console.error("Something went wrong");
+      console.error('Something went wrong');
     }
     this.isFetching = false;
-  }
+  };
 
-  @action setKeyName = (value) => {
+  @action setKeyName = value => {
     this.keyName = value.target.value;
-  }
+  };
 
   constructor() {
     this.fetchApiKeys();

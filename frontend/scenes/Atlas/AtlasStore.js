@@ -18,10 +18,10 @@ const store = new class AtlasStore {
       this.collection = data;
       successCallback(data);
     } catch (e) {
-      console.error("Something went wrong");
+      console.error('Something went wrong');
     }
     this.isFetching = false;
-  }
+  };
 }();
 
 export default store;

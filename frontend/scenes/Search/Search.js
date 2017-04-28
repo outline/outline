@@ -12,12 +12,11 @@ import styles from './Search.scss';
 
 import SearchStore from './SearchStore';
 
-@observer
-class Search extends React.Component {
+@observer class Search extends React.Component {
   static propTypes = {
     route: PropTypes.object.isRequired,
     routeParams: PropTypes.object.isRequired,
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -31,7 +30,7 @@ class Search extends React.Component {
       searchTerm = searchTerm.split(/[\s-]+/gi).join(' ');
       this.store.search(searchTerm);
     }
-  }
+  };
 
   get viewNotFound() {
     const { sceneType } = this.props.route;
@@ -39,7 +38,7 @@ class Search extends React.Component {
   }
 
   render() {
-    const search = _.debounce((searchTerm) => {
+    const search = _.debounce(searchTerm => {
       this.store.search(searchTerm);
     }, 250);
     const title = (
@@ -50,35 +49,37 @@ class Search extends React.Component {
 
     return (
       <Layout
-        title={ title }
+        title={title}
         titleText="Search"
-        search={ false }
-        loading={ this.store.isFetching }
+        search={false}
+        loading={this.store.isFetching}
       >
         <CenteredContent>
-          { this.viewNotFound && (
+          {this.viewNotFound &&
             <div>
               <h1>Not Found</h1>
               <p>We're unable to find the page you're accessing.</p>
               <hr />
-            </div>
-          ) }
+            </div>}
 
           <Flex column auto>
             <Flex auto>
               <img
-                src={ require('assets/icons/search.svg') }
-                className={ styles.icon }
+                src={require('assets/icons/search.svg')}
+                className={styles.icon}
                 alt="Search"
               />
               <SearchField
-                searchTerm={ this.store.searchTerm }
-                onChange={ search }
+                searchTerm={this.store.searchTerm}
+                onChange={search}
               />
             </Flex>
-            { this.store.documents && this.store.documents.map((document) => {
-              return (<DocumentPreview key={ document.id } document={ document } />);
-            }) }
+            {this.store.documents &&
+              this.store.documents.map(document => {
+                return (
+                  <DocumentPreview key={document.id} document={document} />
+                );
+              })}
           </Flex>
         </CenteredContent>
       </Layout>

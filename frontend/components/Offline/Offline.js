@@ -11,7 +11,7 @@ class Offline extends React.Component {
 
   state = {
     offline: !navigator.onLine,
-  }
+  };
 
   getChildContext() {
     return {
@@ -22,7 +22,7 @@ class Offline extends React.Component {
   componentDidMount = () => {
     window.addEventListener('offline', this.handleConnectionState);
     window.addEventListener('online', this.handleConnectionState);
-  }
+  };
 
   componentWillUnmount = () => {
     window.removeEventListener('offline', this.handleConnectionState);
@@ -33,7 +33,7 @@ class Offline extends React.Component {
     this.setState({
       offline: !navigator.onLine,
     });
-  }
+  };
 
   render() {
     return React.Children.only(this.props.children);

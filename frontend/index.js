@@ -46,63 +46,83 @@ function requireAuth(nextState, replace) {
   }
 }
 
-render((
+render(
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>
-    <Provider { ...stores }>
+    <Provider {...stores}>
       <Offline>
-        <Router history={ History }>
-          <Route path="/" component={ Application }>
-            <IndexRoute component={ Home } />
+        <Router history={History}>
+          <Route path="/" component={Application}>
+            <IndexRoute component={Home} />
 
-            <Route path="/dashboard" component={ Dashboard } onEnter={ requireAuth } />
-            <Route path="/collections/:id" component={ Atlas } onEnter={ requireAuth } />
+            <Route
+              path="/dashboard"
+              component={Dashboard}
+              onEnter={requireAuth}
+            />
+            <Route
+              path="/collections/:id"
+              component={Atlas}
+              onEnter={requireAuth}
+            />
             <Route
               path="/collections/:id/new"
-              component={ DocumentEdit }
-              onEnter={ requireAuth }
+              component={DocumentEdit}
+              onEnter={requireAuth}
               newDocument
             />
-            <Route path="/d/:id" component={ DocumentScene } onEnter={ requireAuth } />
-            <Route path="/d/:id/edit" component={ DocumentEdit } onEnter={ requireAuth } />
+            <Route
+              path="/d/:id"
+              component={DocumentScene}
+              onEnter={requireAuth}
+            />
+            <Route
+              path="/d/:id/edit"
+              component={DocumentEdit}
+              onEnter={requireAuth}
+            />
             <Route
               path="/d/:id/new"
-              component={ DocumentEdit }
-              onEnter={ requireAuth }
+              component={DocumentEdit}
+              onEnter={requireAuth}
               newChildDocument
             />
 
-            <Route path="/search" component={ Search } onEnter={ requireAuth } />
-            <Route path="/settings" component={ Settings } onEnter={ requireAuth } />
+            <Route path="/search" component={Search} onEnter={requireAuth} />
+            <Route
+              path="/settings"
+              component={Settings}
+              onEnter={requireAuth}
+            />
 
-            <Route path="/auth/slack" component={ SlackAuth } />
+            <Route path="/auth/slack" component={SlackAuth} />
             <Route
               path="/auth/slack/commands"
-              component={ SlackAuth }
+              component={SlackAuth}
               apiPath="/auth.slackCommands"
             />
-            <Route path="/auth/error" component={ ErrorAuth } />
+            <Route path="/auth/error" component={ErrorAuth} />
 
             <Flatpage
               path="/keyboard-shortcuts"
-              component={ Flatpage }
+              component={Flatpage}
               title="Keyboard shortcuts"
-              content={ flatpages.keyboard }
+              content={flatpages.keyboard}
             />
 
             <Flatpage
               path="/developers"
-              component={ Flatpage }
+              component={Flatpage}
               title="API"
-              content={ flatpages.api }
+              content={flatpages.api}
             />
 
-
-            <Route path="/404" component={ Error404 } />
-            <Route path="*" component={ Search } sceneType="notFound" />
+            <Route path="/404" component={Error404} />
+            <Route path="*" component={Search} sceneType="notFound" />
           </Route>
         </Router>
       </Offline>
     </Provider>
-    { __DEV__ && <DevTools position={{ bottom: 0, right: 0 }} /> }
-  </div>
-), document.getElementById('root'));
+    {__DEV__ && <DevTools position={{ bottom: 0, right: 0 }} />}
+  </div>,
+  document.getElementById('root')
+);

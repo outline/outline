@@ -7,23 +7,22 @@ import DocumentHtml from './components/DocumentHtml';
 
 import styles from './Document.scss';
 
-@observer
-class Document extends React.Component {
+@observer class Document extends React.Component {
   static propTypes = {
     document: PropTypes.object.isRequired,
-  }
+  };
 
   render() {
     return (
-      <div className={ styles.container }>
+      <div className={styles.container}>
         <PublishingInfo
-          createdAt={ this.props.document.createdAt }
-          createdBy={ this.props.document.createdBy }
-          updatedAt={ this.props.document.updatedAt }
-          updatedBy={ this.props.document.updatedBy }
-          collaborators={ toJS(this.props.document.collaborators) }
+          createdAt={this.props.document.createdAt}
+          createdBy={this.props.document.createdBy}
+          updatedAt={this.props.document.updatedAt}
+          updatedBy={this.props.document.updatedBy}
+          collaborators={toJS(this.props.document.collaborators)}
         />
-        <DocumentHtml html={ this.props.document.html } />
+        <DocumentHtml html={this.props.document.html} />
       </div>
     );
   }

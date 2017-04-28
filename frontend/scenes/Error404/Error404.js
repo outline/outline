@@ -7,9 +7,7 @@ import CenteredContent from 'components/CenteredContent';
 class Error404 extends React.Component {
   render() {
     return (
-      <Layout
-        titleText="Not Found"
-      >
+      <Layout titleText="Not Found">
         <CenteredContent>
           <h1>Not Found</h1>
 

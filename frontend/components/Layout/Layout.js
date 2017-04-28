@@ -1,23 +1,25 @@
 import React from 'react';
 import { browserHistory, Link } from 'react-router';
 import Helmet from 'react-helmet';
-import { observer } from 'mobx-react';
-import { injectOffline } from 'components/Offline';
-import keydown from 'react-keydown';
-import searchIcon from 'assets/icons/search.svg';
-import _ from 'lodash';
-
-import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import { observer, inject } from 'mobx-react';
 import { Flex } from 'reflexbox';
+import { Avatar } from 'rebass';
+import keydown from 'react-keydown';
+import _ from 'lodash';
+import searchIcon from 'assets/icons/search.svg';
+import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import { injectOffline } from 'components/Offline';
+
 import LoadingIndicator from 'components/LoadingIndicator';
 import Alert from 'components/Alert';
-import { Avatar } from 'rebass';
 
 import styles from './Layout.scss';
 import classNames from 'classnames/bind';
+
 const cx = classNames.bind(styles);
 
-@observer(['user'])
+@inject('user')
+@observer
 @injectOffline
 class Layout extends React.Component {
   static propTypes = {
@@ -30,11 +32,11 @@ class Layout extends React.Component {
     search: React.PropTypes.bool,
     offline: React.PropTypes.bool,
     notifications: React.PropTypes.node,
-  }
+  };
 
   static defaultProps = {
     search: true,
-  }
+  };
 
   @keydown(['/', 't'])
   search() {
@@ -52,72 +54,65 @@ class Layout extends React.Component {
     const user = this.props.user;
 
     return (
-      <div className={ styles.container }>
+      <div className={styles.container}>
         <Helmet
-          title={ this.props.titleText
-              ? `${this.props.titleText} - Atlas`
-              : 'Atlas' }
+          title={
+            this.props.titleText ? `${this.props.titleText} - Atlas` : 'Atlas'
+          }
         />
 
-        { this.props.loading && (
-          <LoadingIndicator />
-        ) }
+        {this.props.loading && <LoadingIndicator />}
 
-        { this.props.offline && (
+        {this.props.offline &&
           <Alert offline>
             It looks like you're offline. Reconnect to restore access to all of your documents 📚
-          </Alert>
-        ) }
+          </Alert>}
 
-        { this.props.notifications }
+        {this.props.notifications}
 
-        <div className={ cx(styles.header) }>
-          <div className={ styles.headerLeft }>
-            <Link to="/" className={ styles.team }>Atlas</Link>
-            <span className={ styles.title }>
-              { this.props.title }
+        <div className={cx(styles.header)}>
+          <div className={styles.headerLeft}>
+            <Link to="/" className={styles.team}>Atlas</Link>
+            <span className={styles.title}>
+              {this.props.title}
             </span>
           </div>
-          <Flex className={ styles.headerRight }>
+          <Flex className={styles.headerRight}>
             <Flex>
-              <Flex align="center" className={ styles.actions }>
-                { this.props.actions }
+              <Flex align="center" className={styles.actions}>
+                {this.props.actions}
               </Flex>
-              { user.user && (
+              {user.user &&
                 <Flex>
-                  { this.props.search && (
+                  {this.props.search &&
                     <Flex>
                       <div
-                        onClick={ this.search }
-                        className={ styles.search }
+                        onClick={this.search}
+                        className={styles.search}
                         title="Search (/)"
                       >
-                        <img src={ searchIcon } alt="Search" />
+                        <img src={searchIcon} alt="Search" />
                       </div>
-                    </Flex>
-                  ) }
+                    </Flex>}
                   <DropdownMenu
-                    label={ <Avatar
-                      circle
-                      size={ 24 }
-                      src={ user.user.avatarUrl }
-                    /> }
+                    label={
+                      <Avatar circle size={24} src={user.user.avatarUrl} />
+                    }
                   >
                     <MenuItem to="/settings">Settings</MenuItem>
-                    <MenuItem to="/keyboard-shortcuts">Keyboard shortcuts</MenuItem>
+                    <MenuItem to="/keyboard-shortcuts">
+                      Keyboard shortcuts
+                    </MenuItem>
                     <MenuItem to="/developers">API</MenuItem>
-                    <MenuItem onClick={ user.logout }>Logout</MenuItem>
+                    <MenuItem onClick={user.logout}>Logout</MenuItem>
                   </DropdownMenu>
-                </Flex>
-              ) }
+                </Flex>}
             </Flex>
           </Flex>
         </div>
 
-        <div
-          className={ cx(styles.content) }
-        >
-          { this.props.children }
+        <div className={cx(styles.content)}>
+          {this.props.children}
         </div>
       </div>
     );

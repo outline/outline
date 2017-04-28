@@ -10,7 +10,7 @@ class Title extends React.Component {
     children: React.PropTypes.string,
     truncate: React.PropTypes.number,
     placeholder: React.PropTypes.string,
-  }
+  };
 
   render() {
     let title;
@@ -28,12 +28,12 @@ class Title extends React.Component {
 
     return (
       <span>
-        { title && (<span>&nbsp;/&nbsp;</span>) }
+        {title && <span>&nbsp;/&nbsp;</span>}
         <span
-          title={ this.props.children }
-          className={ cx(styles.title, { untitled: usePlaceholder }) }
+          title={this.props.children}
+          className={cx(styles.title, { untitled: usePlaceholder })}
         >
-          { title }
+          {title}
         </span>
       </span>
     );

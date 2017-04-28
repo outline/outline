@@ -10,37 +10,34 @@ class ApiKeyRow extends React.Component {
     name: PropTypes.string.isRequired,
     secret: PropTypes.string.isRequired,
     onDelete: PropTypes.func.isRequired,
-  }
+  };
 
   state = {
     disabled: false,
-  }
+  };
 
   onClick = () => {
     this.props.onDelete(this.props.id);
     this.setState({ disabled: true });
-  }
+  };
 
   render() {
-    const {
-      name,
-      secret,
-    } = this.props;
+    const { name, secret } = this.props;
 
-    const {
-      disabled,
-    } = this.state;
+    const { disabled } = this.state;
 
     return (
       <tr>
-        <td>{ name }</td>
-        <td><code>{ secret }</code></td>
+        <td>{name}</td>
+        <td><code>{secret}</code></td>
         <td>
           <span
             role="button"
-            onClick={ this.onClick }
-            className={ cx(styles.deleteAction, { disabled }) }
-          >Delete</span>
+            onClick={this.onClick}
+            className={cx(styles.deleteAction, { disabled })}
+          >
+            Delete
+          </span>
         </td>
       </tr>
     );

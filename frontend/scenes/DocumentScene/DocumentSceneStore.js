@@ -1,5 +1,12 @@
 import _ from 'lodash';
-import { observable, action, computed, runInAction, toJS, autorunAsync } from 'mobx';
+import {
+  observable,
+  action,
+  computed,
+  runInAction,
+  toJS,
+  autorunAsync,
+} from 'mobx';
 import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
 
@@ -19,15 +26,14 @@ class DocumentSceneStore {
   /* Computed */
 
   @computed get isCollection() {
-    return this.document &&
-      this.document.collection.type === 'atlas';
+    return this.document && this.document.collection.type === 'atlas';
   }
 
   @computed get collectionTree() {
     if (!this.document || this.document.collection.type !== 'atlas') return;
     const tree = this.document.collection.navigationTree;
 
-    const collapseNodes = (node) => {
+    const collapseNodes = node => {
       node.collapsed = this.collapsedNodes.includes(node.id);
       node.children = node.children.map(childNode => {
         return collapseNodes(childNode);
@@ -69,7 +75,7 @@ class DocumentSceneStore {
     }
     this.isFetching = false;
     this.updatingContent = false;
-  }
+  };
 
   @action deleteDocument = async () => {
     this.isFetching = true;
@@ -81,9 +87,9 @@ class DocumentSceneStore {
       console.error('Something went wrong');
     }
     this.isFetching = false;
-  }
+  };
 
-  @action updateNavigationTree = async (tree) => {
+  @action updateNavigationTree = async tree => {
     // Only update when tree changes
     if (_.isEqual(toJS(tree), toJS(this.document.collection.navigationTree))) {
       return true;
@@ -104,15 +110,15 @@ class DocumentSceneStore {
       console.error('Something went wrong');
     }
     this.updatingStructure = false;
-  }
+  };
 
-  @action onNodeCollapse = (nodeId) => {
+  @action onNodeCollapse = nodeId => {
     if (_.indexOf(this.collapsedNodes, nodeId) >= 0) {
       this.collapsedNodes = _.without(this.collapsedNodes, nodeId);
     } else {
       this.collapsedNodes.push(nodeId);
     }
-  }
+  };
 
   // General
 
@@ -120,7 +126,7 @@ class DocumentSceneStore {
     localStorage[DOCUMENT_PREFERENCES] = JSON.stringify({
       collapsedNodes: toJS(this.collapsedNodes),
     });
-  }
+  };
 
   constructor(settings, options) {
     // Rehydrate settings
@@ -136,6 +142,4 @@ class DocumentSceneStore {
 }
 
 export default DocumentSceneStore;
-export {
-  DOCUMENT_PREFERENCES,
-};
+export { DOCUMENT_PREFERENCES };
