@@ -15,7 +15,7 @@ import Helmet from 'react-helmet';
     return {
       rebass: {
         colors: {
-          primary: '#171B35',
+          primary: '#171B35'
         },
         // color: '#eee',
         // backgroundColor: '#fff',
@@ -34,7 +34,7 @@ import Helmet from 'react-helmet';
           // border: '1px solid #ccc',
         },
         ButtonOutline: {
-          color: '#000',
+          color: '#000'
         },
         InlineForm: {},
       },
@@ -46,12 +46,12 @@ import Helmet from 'react-helmet';
       <div style={{ width: '100%', height: '100%', display: 'flex', flex: 1 }}>
         <Helmet
           title="Atlas"
-          meta={[
+          meta={ [
             {
               name: 'viewport',
-              content: 'width=device-width, initial-scale=1.0',
+              content: 'width=device-width, initial-scale=1.0'
             },
-          ]}
+          ] }
         />
         {this.props.children}
       </div>

@@ -52,10 +52,9 @@ class Layout extends React.Component {
     const user = this.props.user;
 
     return (
-      <div className={styles.container}>
+      <div className={ styles.container }>
         <Helmet
-          title={
-            this.props.titleText ? `${this.props.titleText} - Atlas` : 'Atlas'
+          title={ this.props.titleText ? `${this.props.titleText} - Atlas` : 'Atlas'
           }
         />
 
@@ -68,16 +67,16 @@ class Layout extends React.Component {
 
         {this.props.notifications}
 
-        <div className={cx(styles.header)}>
-          <div className={styles.headerLeft}>
-            <Link to="/" className={styles.team}>Atlas</Link>
-            <span className={styles.title}>
+        <div className={ cx(styles.header) }>
+          <div className={ styles.headerLeft }>
+            <Link to="/" className={ styles.team }>Atlas</Link>
+            <span className={ styles.title }>
               {this.props.title}
             </span>
           </div>
-          <Flex className={styles.headerRight}>
+          <Flex className={ styles.headerRight }>
             <Flex>
-              <Flex align="center" className={styles.actions}>
+              <Flex align="center" className={ styles.actions }>
                 {this.props.actions}
               </Flex>
               {user.user &&
@@ -85,34 +84,32 @@ class Layout extends React.Component {
                   {this.props.search &&
                     <Flex>
                       <div
-                        onClick={this.search}
-                        className={styles.search}
+                        onClick={ this.search }
+                        className={ styles.search }
                         title="Search (/)"
                       >
                         <img
-                          src={require('assets/icons/search.svg')}
+                          src={ require('assets/icons/search.svg') }
                           alt="Search"
                         />
                       </div>
                     </Flex>}
                   <DropdownMenu
-                    label={
-                      <Avatar circle size={24} src={user.user.avatarUrl} />
-                    }
+                    label={ <Avatar circle size={ 24 } src={ user.user.avatarUrl } /> }
                   >
                     <MenuItem to="/settings">Settings</MenuItem>
                     <MenuItem to="/keyboard-shortcuts">
                       Keyboard shortcuts
                     </MenuItem>
                     <MenuItem to="/developers">API</MenuItem>
-                    <MenuItem onClick={user.logout}>Logout</MenuItem>
+                    <MenuItem onClick={ user.logout }>Logout</MenuItem>
                   </DropdownMenu>
                 </Flex>}
             </Flex>
           </Flex>
         </div>
 
-        <div className={cx(styles.content)}>
+        <div className={ cx(styles.content) }>
           {this.props.children}
         </div>
       </div>

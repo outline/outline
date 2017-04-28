@@ -14,8 +14,7 @@ import './codemirror.scss';
 
 import { client } from 'utils/ApiClient';
 
-@observer
-class MarkdownEditor extends React.Component {
+@observer class MarkdownEditor extends React.Component {
   static propTypes = {
     text: React.PropTypes.string,
     onChange: React.PropTypes.func.isRequired,
@@ -27,13 +26,13 @@ class MarkdownEditor extends React.Component {
     // re-render to help with CodeMirror focus issues
     preview: React.PropTypes.bool,
     toggleUploadingIndicator: React.PropTypes.func,
-  }
+  };
 
   onChange = (newText) => {
     if (newText !== this.props.text) {
       this.props.onChange(newText);
     }
-  }
+  };
 
   onDropAccepted = (files) => {
     const file = files[0];
@@ -56,67 +55,68 @@ class MarkdownEditor extends React.Component {
     }
     editor.setCursor(newCursorPositionLine, 0);
 
-    client.post('/user.s3Upload', {
-      kind: file.type,
-      size: file.size,
-      filename: file.name,
-    })
-    .then(response => {
-      const data = response.data;
-      // Upload using FormData API
-      const formData = new FormData();
-
-      for (const key in data.form) {
-        formData.append(key, data.form[key]);
-      }
-
-      if (file.blob) {
-        formData.append('file', file.file);
-      } else {
-        formData.append('file', file);
-      }
-
-      fetch(data.uploadUrl, {
-        method: 'post',
-        body: formData,
+    client
+      .post('/user.s3Upload', {
+        kind: file.type,
+        size: file.size,
+        filename: file.name,
       })
-      .then(_s3Response => {
-        this.props.toggleUploadingIndicator();
-        this.props.replaceText({
-          original: pendingUploadTag,
-          new: `![${file.name}](${data.asset.url})`,
-        });
-        editor.setCursor(newCursorPositionLine, 0);
+      .then((response) => {
+        const data = response.data;
+        // Upload using FormData API
+        const formData = new FormData();
+
+        for (const key in data.form) {
+          formData.append(key, data.form[key]);
+        }
+
+        if (file.blob) {
+          formData.append('file', file.file);
+        } else {
+          formData.append('file', file);
+        }
+
+        fetch(data.uploadUrl, {
+          method: 'post',
+          body: formData,
+        })
+          .then((_s3Response) => {
+            this.props.toggleUploadingIndicator();
+            this.props.replaceText({
+              original: pendingUploadTag,
+              new: `![${file.name}](${data.asset.url})`,
+            });
+            editor.setCursor(newCursorPositionLine, 0);
+          })
+          .catch((_err) => {
+            this.props.toggleUploadingIndicator();
+            this.props.replaceText({
+              original: pendingUploadTag,
+              new: ''
+            });
+            editor.setCursor(newCursorPositionLine, 0);
+          });
       })
-      .catch(_err => {
+      .catch((_err) => {
         this.props.toggleUploadingIndicator();
-        this.props.replaceText({
-          original: pendingUploadTag,
-          new: '',
-        });
-        editor.setCursor(newCursorPositionLine, 0);
       });
-    })
-    .catch(_err => {
-      this.props.toggleUploadingIndicator();
-    });
-  }
+  };
 
   onPaddingTopClick = () => {
     const cm = this.getEditorInstance();
     cm.setCursor(0, 0);
     cm.focus();
-  }
+  };
 
   onPaddingBottomClick = () => {
     const cm = this.getEditorInstance();
     cm.setCursor(cm.lineCount(), 0);
     cm.focus();
-  }
+  };
 
   getEditorInstance = () => {
     return this.refs.editor.getCodeMirror();
-  }
+  };
 
   render = () => {
     const options = {
@@ -141,7 +141,7 @@ class MarkdownEditor extends React.Component {
         // 'Cmd-Shift-p': this.props.togglePreview,
         // 'Ctrl-Shift-p': this.props.togglePreview,
       },
-      placeholder: '# Start with a title...',
+      placeholder: '# Start with a title...'
     };
 
     return (
@@ -163,7 +163,7 @@ class MarkdownEditor extends React.Component {
         <ClickablePadding onClick={ this.onPaddingBottomClick } />
       </Dropzone>
     );
-  }
+  };
 }
 
 export default MarkdownEditor;

@@ -10,13 +10,13 @@ const CenteredContent = (props) => {
 
   return (
     <div className={ styles.content } style={ style }>
-      { props.children }
+      {props.children}
     </div>
   );
 };
 
 CenteredContent.defaultProps = {
-  maxWidth: '740px',
+  maxWidth: '740px'
 };
 
 CenteredContent.propTypes = {

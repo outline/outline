@@ -11,7 +11,7 @@ const injectOffline = (WrappedComponent) => {
         offline: this.context.offline,
       };
 
-      return (<WrappedComponent { ...this.props } { ...newProps } />);
+      return <WrappedComponent { ...this.props } { ...newProps } />;
     }
   };
 };

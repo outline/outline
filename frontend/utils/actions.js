@@ -1,6 +1,6 @@
 export default (type, ...argNames) => {
   return function(...args) {
-    let action = { type };
+    const action = { type };
     argNames.forEach((arg, index) => {
       action[argNames[index]] = args[index];
     });

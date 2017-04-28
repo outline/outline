@@ -12,8 +12,7 @@ const cx = classNames.bind(styles);
 
 import SidebarStore from './SidebarStore';
 
-@observer
-class Sidebar extends React.Component {
+@observer class Sidebar extends React.Component {
   static store;
 
   static propTypes = {
@@ -22,7 +21,7 @@ class Sidebar extends React.Component {
     navigationTree: PropTypes.object.isRequired,
     onNavigationUpdate: PropTypes.func.isRequired,
     onNodeCollapse: PropTypes.func.isRequired,
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -33,12 +32,12 @@ class Sidebar extends React.Component {
   toggleEdit = (e) => {
     e.preventDefault();
     this.store.toggleEdit();
-  }
+  };
 
   render() {
     return (
       <Flex>
-        { this.props.open && (
+        {this.props.open &&
           <Flex column className={ cx(styles.sidebar) }>
             <Flex auto className={ cx(styles.content) }>
               <Tree
@@ -50,28 +49,26 @@ class Sidebar extends React.Component {
               />
             </Flex>
             <Flex auto className={ styles.actions }>
-              { this.store.isEditing && (
+              {this.store.isEditing &&
                 <span className={ styles.action }>
                   Drag & drop to organize <Separator />&nbsp;
-                </span>
-              ) }
+                </span>}
               <span
                 role="button"
                 onClick={ this.toggleEdit }
                 className={ cx(styles.action, { active: this.store.isEditing }) }
               >
-                { !this.store.isEditing ? 'Organize documents' : 'Done' }
+                {!this.store.isEditing ? 'Organize documents' : 'Done'}
               </span>
             </Flex>
-          </Flex>
-        ) }
+          </Flex>}
         <div
           onClick={ this.props.onToggle }
           className={ cx(styles.sidebarToggle, { active: this.store.isEditing }) }
           title="Toggle sidebar (Cmd+/)"
         >
           <img
-            src={ require("assets/icons/menu.svg") }
+            src={ require('assets/icons/menu.svg') }
             className={ styles.menuIcon }
             alt="Menu"
           />

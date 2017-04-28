@@ -6,7 +6,7 @@ class Separator extends React.Component {
   render() {
     return (
       <span className={ styles.separator }>
-        &middot;
+        ·
       </span>
     );
   }

@@ -32,7 +32,7 @@ export default class Home extends React.Component {
       sessionStorage.removeItem('redirectTo');
       sessionStorage.setItem('redirectTo', state.nextPathname);
       notifications.push(
-        <Alert key="login" info>Please login to continue</Alert>
+        <Alert key="login" info>Please login to continue</Alert>,
       );
     }
 
@@ -44,17 +44,17 @@ export default class Home extends React.Component {
 
     return (
       <Flex auto>
-        <Layout notifications={this.notifications}>
+        <Layout notifications={ this.notifications }>
           <CenteredContent>
             {showLandingPageCopy &&
-              <div className={styles.intro}>
-                <h1 className={styles.title}>Simple, fast, markdown.</h1>
-                <p className={styles.copy}>
+              <div className={ styles.intro }>
+                <h1 className={ styles.title }>Simple, fast, markdown.</h1>
+                <p className={ styles.copy }>
                   We're building a modern wiki for engineering teams.
                 </p>
               </div>}
-            <div className={styles.action}>
-              <SlackAuthLink redirectUri={`${URL}/auth/slack`}>
+            <div className={ styles.action }>
+              <SlackAuthLink redirectUri={ `${URL}/auth/slack` }>
                 <img
                   alt="Sign in with Slack"
                   height="40"

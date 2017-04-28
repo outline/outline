@@ -4,10 +4,9 @@ import styles from './HeaderAction.scss';
 
 const HeaderAction = (props) => {
   return (
-    <div
-      onClick={ props.onClick }
-      className={ styles.container }
-    >{ props.children }</div>
+    <div onClick={ props.onClick } className={ styles.container }>
+      {props.children}
+    </div>
   );
 };
 

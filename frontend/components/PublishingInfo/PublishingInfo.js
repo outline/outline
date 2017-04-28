@@ -19,29 +19,33 @@ class PublishingInfo extends React.Component {
     return (
       <Flex align="center" className={ styles.user }>
         <Flex className={ styles.avatarLine }>
-          { this.props.collaborators.reverse().map(user => (
+          {this.props.collaborators.reverse().map(user => (
             <Avatar
               key={ `avatar-${user.id}` }
               src={ user.avatarUrl }
               size={ 26 }
               style={{
                 marginRight: '-12px',
-                border: '2px solid #FFFFFF',
+                border: '2px solid #FFFFFF'
               }}
               title={ user.name }
             />
-          )) }
+          ))}
         </Flex>
         <span className={ styles.userName }>
-          { this.props.createdBy.name } published { moment(this.props.createdAt).fromNow() }
-          { this.props.createdAt !== this.props.updatedAt ? (
-            <span>
-              &nbsp;and&nbsp;
-              { this.props.createdBy.id !== this.props.updatedBy.id &&
-                ` ${this.props.updatedBy.name} ` }
-              modified { moment(this.props.updatedAt).fromNow() }
+          {this.props.createdBy.name}
+          {' '}
+          published
+          {' '}
+          {moment(this.props.createdAt).fromNow()}
+          {this.props.createdAt !== this.props.updatedAt
+            ? <span>
+                &nbsp;and&nbsp;
+                {this.props.createdBy.id !== this.props.updatedBy.id &&
+                  ` ${this.props.updatedBy.name} `}
+                modified {moment(this.props.updatedAt).fromNow()}
             </span>
-          ) : null }
+            : null}
         </span>
       </Flex>
     );

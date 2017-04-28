@@ -16,7 +16,7 @@ class SlackAuthLink extends React.Component {
       'identity.email',
       'identity.basic',
       'identity.avatar',
-      'identity.team',
+      'identity.team'
     ],
   };
 
@@ -30,7 +30,7 @@ class SlackAuthLink extends React.Component {
     };
 
     const urlParams = Object.keys(params)
-      .map(key => {
+      .map((key) => {
         return `${key}=${encodeURIComponent(params[key])}`;
       })
       .join('&');
@@ -39,7 +39,7 @@ class SlackAuthLink extends React.Component {
   };
 
   render() {
-    return <a href={this.slackUrl()}>{this.props.children}</a>;
+    return <a href={ this.slackUrl() }>{this.props.children}</a>;
   }
 }
 

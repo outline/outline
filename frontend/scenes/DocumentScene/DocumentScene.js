@@ -37,7 +37,7 @@ class DocumentScene extends React.Component {
       JSON.parse(localStorage[DOCUMENT_PREFERENCES] || '{}'),
       {
         cache: this.props.cache,
-      }
+      },
     );
   }
 
@@ -53,7 +53,7 @@ class DocumentScene extends React.Component {
     this.scrollTohash();
   };
 
-  componentWillReceiveProps = async nextProps => {
+  componentWillReceiveProps = async (nextProps) => {
     const key = nextProps.keydown.event;
     if (key) {
       if (key.key === '/' && (key.metaKey || key.ctrl.Key)) {
@@ -143,25 +143,25 @@ class DocumentScene extends React.Component {
     let actions;
     if (doc) {
       actions = (
-        <div className={styles.actions}>
-          <DropdownMenu label={<MoreIcon />}>
+        <div className={ styles.actions }>
+          <DropdownMenu label={ <MoreIcon /> }>
             {this.store.isCollection &&
-              <div className={styles.menuGroup}>
-                <MenuItem onClick={this.onCreateDocument}>
+              <div className={ styles.menuGroup }>
+                <MenuItem onClick={ this.onCreateDocument }>
                   New document
                 </MenuItem>
-                <MenuItem onClick={this.onCreateChild}>New child</MenuItem>
+                <MenuItem onClick={ this.onCreateChild }>New child</MenuItem>
               </div>}
-            <MenuItem onClick={this.onEdit}>Edit</MenuItem>
-            <MenuItem onClick={this.onExport}>Export</MenuItem>
-            {allowDelete && <MenuItem onClick={this.onDelete}>Delete</MenuItem>}
+            <MenuItem onClick={ this.onEdit }>Edit</MenuItem>
+            <MenuItem onClick={ this.onExport }>Export</MenuItem>
+            {allowDelete && <MenuItem onClick={ this.onDelete }>Delete</MenuItem>}
           </DropdownMenu>
         </div>
       );
       title = (
         <span>
           &nbsp;/&nbsp;
-          <Link to={doc.collection.url}>{doc.collection.name}</Link>
+          <Link to={ doc.collection.url }>{doc.collection.name}</Link>
           {` / ${doc.title}`}
         </span>
       );
@@ -170,30 +170,30 @@ class DocumentScene extends React.Component {
 
     return (
       <Layout
-        title={title}
-        titleText={titleText}
-        actions={doc && actions}
-        loading={this.store.updatingStructure}
+        title={ title }
+        titleText={ titleText }
+        actions={ doc && actions }
+        loading={ this.store.updatingStructure }
       >
         {this.store.isFetching
           ? <CenteredContent>
-              <AtlasPreviewLoading />
-            </CenteredContent>
+            <AtlasPreviewLoading />
+          </CenteredContent>
           : <Flex auto>
-              {this.store.isCollection &&
+            {this.store.isCollection &&
                 <Sidebar
-                  open={sidebar}
-                  onToggle={this.props.ui.toggleSidebar}
-                  navigationTree={toJS(this.store.collectionTree)}
-                  onNavigationUpdate={this.store.updateNavigationTree}
-                  onNodeCollapse={this.store.onNodeCollapse}
+                  open={ sidebar }
+                  onToggle={ this.props.ui.toggleSidebar }
+                  navigationTree={ toJS(this.store.collectionTree) }
+                  onNavigationUpdate={ this.store.updateNavigationTree }
+                  onNodeCollapse={ this.store.onNodeCollapse }
                 />}
-              <Flex auto justify="center" className={styles.content}>
+            <Flex auto justify="center" className={ styles.content }>
                 <CenteredContent>
-                  <Document document={doc} />
+                  <Document document={ doc } />
                 </CenteredContent>
               </Flex>
-            </Flex>}
+          </Flex>}
       </Layout>
     );
   }

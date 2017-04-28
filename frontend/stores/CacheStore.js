@@ -21,11 +21,11 @@ class CacheStore {
     _.defer(() => localStorage.setItem(CACHE_STORE, this.asJson));
   };
 
-  @action cacheList = data => {
+  @action cacheList = (data) => {
     data.forEach(item => this.cacheWithId(item.id, item));
   };
 
-  @action fetchFromCache = id => {
+  @action fetchFromCache = (id) => {
     return this.cache[id];
   };
 

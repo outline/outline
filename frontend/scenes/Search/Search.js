@@ -12,12 +12,11 @@ import styles from './Search.scss';
 
 import SearchStore from './SearchStore';
 
-@observer
-class Search extends React.Component {
+@observer class Search extends React.Component {
   static propTypes = {
     route: PropTypes.object.isRequired,
     routeParams: PropTypes.object.isRequired,
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -31,7 +30,7 @@ class Search extends React.Component {
       searchTerm = searchTerm.split(/[\s-]+/gi).join(' ');
       this.store.search(searchTerm);
     }
-  }
+  };
 
   get viewNotFound() {
     const { sceneType } = this.props.route;
@@ -56,13 +55,12 @@ class Search extends React.Component {
         loading={ this.store.isFetching }
       >
         <CenteredContent>
-          { this.viewNotFound && (
+          {this.viewNotFound &&
             <div>
               <h1>Not Found</h1>
               <p>We're unable to find the page you're accessing.</p>
               <hr />
-            </div>
-          ) }
+            </div>}
 
           <Flex column auto>
             <Flex auto>
@@ -76,9 +74,12 @@ class Search extends React.Component {
                 onChange={ search }
               />
             </Flex>
-            { this.store.documents && this.store.documents.map((document) => {
-              return (<DocumentPreview key={ document.id } document={ document } />);
-            }) }
+            {this.store.documents &&
+              this.store.documents.map((document) => {
+                return (
+                  <DocumentPreview key={ document.id } document={ document } />
+                );
+              })}
           </Flex>
         </CenteredContent>
       </Layout>

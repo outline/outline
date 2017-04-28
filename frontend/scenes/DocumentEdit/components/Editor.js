@@ -13,10 +13,7 @@ const Editor = observer((props) => {
 
   return (
     <div className={ styles.container }>
-      <EditorPane
-        fullWidth={ !store.preview }
-        onScroll={ props.onScroll }
-      >
+      <EditorPane fullWidth={ !store.preview } onScroll={ props.onScroll }>
         <MarkdownEditor
           onChange={ store.updateText }
           text={ store.text }
@@ -28,13 +25,11 @@ const Editor = observer((props) => {
           toggleUploadingIndicator={ store.toggleUploadingIndicator }
         />
       </EditorPane>
-      { store.preview ? (
-        <EditorPane
-          scrollTop={ props.scrollTop }
-        >
+      {store.preview
+        ? <EditorPane scrollTop={ props.scrollTop }>
           <Preview html={ convertToMarkdown(store.text) } />
         </EditorPane>
-      ) : null }
+        : null}
     </div>
   );
 });

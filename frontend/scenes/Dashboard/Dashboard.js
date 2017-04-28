@@ -37,9 +37,9 @@ class Dashboard extends React.Component {
               {this.store.isFetching
                 ? <AtlasPreviewLoading />
                 : this.store.collections &&
-                    this.store.collections.map(collection => {
+                    this.store.collections.map((collection) => {
                       return (
-                        <AtlasPreview key={collection.id} data={collection} />
+                        <AtlasPreview key={ collection.id } data={ collection } />
                       );
                     })}
             </Flex>

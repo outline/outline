@@ -10,22 +10,21 @@ class EditorPane extends React.Component {
     onScroll: React.PropTypes.func.isRequired,
     scrollTop: React.PropTypes.number,
     fullWidth: React.PropTypes.bool,
-  }
+  };
 
   componentWillReceiveProps = (nextProps) => {
-
     if (nextProps.scrollTop) {
-      this.scrollToPosition(nextProps.scrollTop)
+      this.scrollToPosition(nextProps.scrollTop);
     }
-  }
+  };
 
   componentDidMount = () => {
     this.refs.pane.addEventListener('scroll', this.handleScroll);
-  }
+  };
 
   componentWillUnmount = () => {
     this.refs.pane.removeEventListener('scroll', this.handleScroll);
-  }
+  };
 
   handleScroll = (e) => {
     setTimeout(() => {
@@ -33,7 +32,7 @@ class EditorPane extends React.Component {
       const contentEl = this.refs.content;
       this.props.onScroll(element.scrollTop / contentEl.offsetHeight);
     }, 50);
-  }
+  };
 
   scrollToPosition = (percentage) => {
     const contentEl = this.refs.content;
@@ -43,7 +42,7 @@ class EditorPane extends React.Component {
     if (percentage > 0.99) percentage = 100;
 
     this.refs.pane.scrollTop = percentage * contentEl.offsetHeight;
-  }
+  };
 
   render() {
     return (
@@ -52,11 +51,11 @@ class EditorPane extends React.Component {
         ref="pane"
       >
         <div ref="content" className={ styles.paneContent }>
-          { this.props.children }
+          {this.props.children}
         </div>
       </div>
     );
   }
-};
+}
 
 export default EditorPane;

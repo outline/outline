@@ -10,14 +10,13 @@ class MenuItem extends React.Component {
     } else {
       this.props.onClick();
     }
-  }
+  };
 
   render() {
     return (
-      <div
-        className={ styles.menuItem }
-        onClick={ this.onClick }
-      >{ this.props.children }</div>
+      <div className={ styles.menuItem } onClick={ this.onClick }>
+        {this.props.children}
+      </div>
     );
   }
 }
@@ -34,23 +33,23 @@ class DropdownMenu extends React.Component {
   static propTypes = {
     label: React.PropTypes.node.isRequired,
     children: React.PropTypes.node.isRequired,
-  }
+  };
 
   state = {
     menuVisible: false,
-  }
+  };
 
   onMouseEnter = () => {
     this.setState({ menuVisible: true });
-  }
+  };
 
   onMouseLeave = () => {
     this.setState({ menuVisible: false });
-  }
+  };
 
   onClick = () => {
     this.setState({ menuVisible: !this.state.menuVisible });
-  }
+  };
 
   render() {
     return (
@@ -60,20 +59,18 @@ class DropdownMenu extends React.Component {
         onMouseLeave={ this.onMouseLeave }
       >
         <div className={ styles.label } onClick={ this.onClick }>
-          { this.props.label }
+          {this.props.label}
         </div>
 
-        { this.state.menuVisible ? (
-          <div className={ styles.menu }>
-            { this.props.children }
+        {this.state.menuVisible
+          ? <div className={ styles.menu }>
+            {this.props.children}
           </div>
-        ) : null }
+          : null}
       </div>
     );
   }
-};
+}
 
 export default DropdownMenu;
-export {
-  MenuItem,
-}
+export { MenuItem };

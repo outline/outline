@@ -3,9 +3,7 @@ import { observer } from 'mobx-react';
 import { browserHistory, withRouter } from 'react-router';
 import keydown from 'react-keydown';
 
-import DocumentEditStore, {
-  DOCUMENT_EDIT_SETTINGS,
-} from './DocumentEditStore';
+import DocumentEditStore, { DOCUMENT_EDIT_SETTINGS } from './DocumentEditStore';
 
 import Switch from 'components/Switch';
 import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
@@ -20,9 +18,13 @@ const DISREGARD_CHANGES = `You have unsaved changes.
 Are you sure you want to disgard them?`;
 
 @keydown([
-  'cmd+enter', 'ctrl+enter',
-  'cmd+esc', 'ctrl+esc',
-  'cmd+shift+p', 'ctrl+shift+p'])
+  'cmd+enter',
+  'ctrl+enter',
+  'cmd+esc',
+  'ctrl+esc',
+  'cmd+shift+p',
+  'ctrl+shift+p'
+])
 @withRouter
 @observer
 class DocumentEdit extends Component {
@@ -30,18 +32,18 @@ class DocumentEdit extends Component {
     route: React.PropTypes.object.isRequired,
     router: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
-  }
+  };
 
   constructor(props) {
     super(props);
     this.store = new DocumentEditStore(
-      JSON.parse(localStorage[DOCUMENT_EDIT_SETTINGS] || '{}')
+      JSON.parse(localStorage[DOCUMENT_EDIT_SETTINGS] || '{}'),
     );
   }
 
   state = {
     scrollTop: 0,
-  }
+  };
 
   componentDidMount = () => {
     if (this.props.route.newDocument) {
@@ -58,8 +60,7 @@ class DocumentEdit extends Component {
     }
 
     // Load editor async
-    EditorLoader()
-    .then(({ Editor }) => {
+    EditorLoader().then(({ Editor }) => {
       this.setState({ Editor });
     });
 
@@ -70,7 +71,7 @@ class DocumentEdit extends Component {
       }
       return null;
     });
-  }
+  };
 
   componentWillReceiveProps = (nextProps) => {
     const key = nextProps.keydown.event;
@@ -91,7 +92,7 @@ class DocumentEdit extends Component {
         this.store.togglePreview();
       }
     }
-  }
+  };
 
   onSave = () => {
     // if (this.props.title.length === 0) {
@@ -103,30 +104,31 @@ class DocumentEdit extends Component {
     } else {
       this.store.updateDocument();
     }
-  }
+  };
 
   onCancel = () => {
     browserHistory.goBack();
-  }
+  };
 
   onScroll = (scrollTop) => {
     this.setState({
       scrollTop,
     });
-  }
+  };
 
   render() {
-    let title = (
+    const title = (
       <Title
         truncate={ 60 }
-        placeholder={ !this.store.isFetching && 'Untitled document' }
+        placeholder={ !this.store.isFetching && 'Untitled document'}
       >
-        { this.store.title }
+        {this.store.title}
       </Title>
     );
 
-    let titleText = this.store.title;
-    let isNew = this.props.route.newDocument || this.props.route.newChildDocument;
+    const titleText = this.store.title;
+    const isNew =
+      this.props.route.newDocument || this.props.route.newChildDocument;
 
     const actions = (
       <Flex>
@@ -157,20 +159,18 @@ class DocumentEdit extends Component {
         loading={ this.store.isSaving || this.store.isUploading }
         search={ false }
       >
-        { (this.store.isFetching || !('Editor' in this.state)) ? (
-          <CenteredContent>
+        {this.store.isFetching || !('Editor' in this.state)
+          ? <CenteredContent>
             <AtlasPreviewLoading />
           </CenteredContent>
-        ) : (
-          <this.state.Editor
+          : <this.state.Editor
             store={ this.store }
             scrollTop={ this.state.scrollTop }
             onScroll={ this.onScroll }
             onSave={ this.onSave }
             onCancel={ this.onCancel }
             togglePreview={ this.togglePreview }
-          />
-        ) }
+          />}
       </Layout>
     );
   }

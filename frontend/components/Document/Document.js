@@ -7,11 +7,10 @@ import DocumentHtml from './components/DocumentHtml';
 
 import styles from './Document.scss';
 
-@observer
-class Document extends React.Component {
+@observer class Document extends React.Component {
   static propTypes = {
     document: PropTypes.object.isRequired,
-  }
+  };
 
   render() {
     return (

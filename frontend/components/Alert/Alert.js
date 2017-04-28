@@ -14,7 +14,7 @@ class Alert extends React.Component {
     success: PropTypes.bool,
     info: PropTypes.bool,
     offline: PropTypes.bool,
-  }
+  };
 
   render() {
     let alertType;
@@ -25,8 +25,12 @@ class Alert extends React.Component {
     if (!alertType) alertType = 'info'; // default
 
     return (
-      <Flex align="center" justify="center" className={ cx(styles.container, styles[alertType]) }>
-        { this.props.children }
+      <Flex
+        align="center"
+        justify="center"
+        className={ cx(styles.container, styles[alertType]) }
+      >
+        {this.props.children}
       </Flex>
     );
   }

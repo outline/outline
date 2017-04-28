@@ -1,8 +1,9 @@
 {
   "extends": [
-    "airbnb",
-    "prettier",
-    "prettier/react"
+    "airbnb"
+  ],
+  "plugins": [
+    "prettier"
   ],
   "parser": "babel-eslint",
   "rules": {
@@ -18,6 +19,7 @@
     no-unused-vars: ["error", {
       "argsIgnorePattern": "^_",
     }],
+    "prettier/prettier": "error"
   },
   "settings" : {
     "import/resolver": {
