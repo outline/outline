@@ -7,7 +7,7 @@ import constants from '../constants';
 const isIterable = object =>
   object != null && typeof object[Symbol.iterator] === 'function';
 
-const cacheResponse = (data) => {
+const cacheResponse = data => {
   if (isIterable(data)) {
     stores.cache.cacheList(data);
   } else {
@@ -34,7 +34,7 @@ class ApiClient {
     // Construct headers
     const headers = new Headers({
       Accept: 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     });
     if (stores.user.authenticated) {
       headers.set('Authorization', `Bearer ${stores.user.token}`);
@@ -45,13 +45,13 @@ class ApiClient {
       method,
       body,
       headers,
-      redirect: 'follow'
+      redirect: 'follow',
     });
 
     // Handle request promises and return a new promise
     return new Promise((resolve, reject) => {
       request
-        .then((response) => {
+        .then(response => {
           // Handle successful responses
           if (response.status >= 200 && response.status < 300) {
             return response;
@@ -73,18 +73,18 @@ class ApiClient {
           error.response = response;
           throw error;
         })
-        .then((response) => {
+        .then(response => {
           return response.json();
         })
-        .then((json) => {
+        .then(json => {
           // Cache responses
           if (options.cache) {
             cacheResponse(json.data);
           }
           resolve(json);
         })
-        .catch((error) => {
-          error.response.json().then((json) => {
+        .catch(error => {
+          error.response.json().then(json => {
             error.data = json;
             reject(error);
           });
@@ -102,7 +102,7 @@ class ApiClient {
 
   // Helpers
 
-  constructQueryString = (data) => {
+  constructQueryString = data => {
     return _.map(data, (v, k) => {
       return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
     }).join('&');

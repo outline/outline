@@ -1,11 +1,11 @@
-import React from "react";
-import ReactCSSTransitionGroup from "react-addons-css-transition-group";
+import React from 'react';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
-import styles from "./AtlasPreviewLoading.scss";
-import classNames from "classnames/bind";
+import styles from './AtlasPreviewLoading.scss';
+import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-import { randomInteger } from "utils/random";
+import { randomInteger } from 'utils/random';
 
 const randomValues = Array.from(
   new Array(5),

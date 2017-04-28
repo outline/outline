@@ -17,18 +17,18 @@ import styles from './AtlasPreview.scss';
     const data = this.props.data;
 
     return (
-      <div className={ styles.container }>
+      <div className={styles.container}>
         <h2>
-          <Link to={ data.url } className={ styles.atlasLink }>{data.name}</Link>
+          <Link to={data.url} className={styles.atlasLink}>{data.name}</Link>
         </h2>
         {data.recentDocuments.length > 0
-          ? data.recentDocuments.map((document) => {
-            return <DocumentLink document={ document } key={ document.id } />;
-          })
-          : <div className={ styles.description }>
+          ? data.recentDocuments.map(document => {
+              return <DocumentLink document={document} key={document.id} />;
+            })
+          : <div className={styles.description}>
               No documents. Why not
               {' '}
-            <Link to={ `${data.url}/new` }>create one</Link>
+              <Link to={`${data.url}/new`}>create one</Link>
               ?
             </div>}
       </div>

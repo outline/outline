@@ -19,7 +19,7 @@ import styles from './DocumentHtml.scss';
 
   setExternalLinks = () => {
     const links = ReactDOM.findDOMNode(this).querySelectorAll('a');
-    links.forEach((link) => {
+    links.forEach(link => {
       if (link.hostname !== window.location.hostname) {
         link.target = '_blank'; // eslint-disable-line no-param-reassign
       }
@@ -29,7 +29,7 @@ import styles from './DocumentHtml.scss';
   render() {
     return (
       <div
-        className={ styles.document }
+        className={styles.document}
         dangerouslySetInnerHTML={{ __html: this.props.html }}
       />
     );

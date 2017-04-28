@@ -27,10 +27,10 @@ renderer.heading = (text, level) => {
   `;
 };
 
-const convertToMarkdown = (text) => {
+const convertToMarkdown = text => {
   // Add TOC
   text = toc.insert(text || '', {
-    slugify: (heading) => {
+    slugify: heading => {
       // FIXME: E.g. `&` gets messed up
       const headingSlug = _.escape(slug(heading));
       return headingSlug;

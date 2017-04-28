@@ -14,16 +14,16 @@ class Document extends React.Component {
 
   render() {
     return (
-      <div className={ styles.container }>
+      <div className={styles.container}>
         <PublishingInfo
-          createdAt={ this.props.document.createdAt }
-          createdBy={ this.props.document.createdBy }
-          updatedAt={ this.props.document.updatedAt }
-          updatedBy={ this.props.document.updatedBy }
-          collaborators={ toJS(this.props.document.collaborators) }
+          createdAt={this.props.document.createdAt}
+          createdBy={this.props.document.createdBy}
+          updatedAt={this.props.document.updatedAt}
+          updatedBy={this.props.document.updatedBy}
+          collaborators={toJS(this.props.document.collaborators)}
         />
 
-        <Link to={ this.props.document.url } className={ styles.title }>
+        <Link to={this.props.document.url} className={styles.title}>
           <h2>{this.props.document.title}</h2>
         </Link>
 
@@ -32,7 +32,7 @@ class Document extends React.Component {
         />
 
         <div>
-          <Link to={ this.props.document.url } className={ styles.continueLink }>
+          <Link to={this.props.document.url} className={styles.continueLink}>
             Continue reading...
           </Link>
         </div>

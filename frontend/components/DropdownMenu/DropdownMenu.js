@@ -14,7 +14,7 @@ class MenuItem extends React.Component {
 
   render() {
     return (
-      <div className={ styles.menuItem } onClick={ this.onClick }>
+      <div className={styles.menuItem} onClick={this.onClick}>
         {this.props.children}
       </div>
     );
@@ -54,18 +54,18 @@ class DropdownMenu extends React.Component {
   render() {
     return (
       <div
-        className={ styles.menuContainer }
-        onMouseEnter={ this.onMouseEnter }
-        onMouseLeave={ this.onMouseLeave }
+        className={styles.menuContainer}
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
       >
-        <div className={ styles.label } onClick={ this.onClick }>
+        <div className={styles.label} onClick={this.onClick}>
           {this.props.label}
         </div>
 
         {this.state.menuVisible
-          ? <div className={ styles.menu }>
-            {this.props.children}
-          </div>
+          ? <div className={styles.menu}>
+              {this.props.children}
+            </div>
           : null}
       </div>
     );

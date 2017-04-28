@@ -28,13 +28,13 @@ import { client } from 'utils/ApiClient';
     toggleUploadingIndicator: React.PropTypes.func,
   };
 
-  onChange = (newText) => {
+  onChange = newText => {
     if (newText !== this.props.text) {
       this.props.onChange(newText);
     }
   };
 
-  onDropAccepted = (files) => {
+  onDropAccepted = files => {
     const file = files[0];
     const editor = this.getEditorInstance();
 
@@ -61,7 +61,7 @@ import { client } from 'utils/ApiClient';
         size: file.size,
         filename: file.name,
       })
-      .then((response) => {
+      .then(response => {
         const data = response.data;
         // Upload using FormData API
         const formData = new FormData();
@@ -80,7 +80,7 @@ import { client } from 'utils/ApiClient';
           method: 'post',
           body: formData,
         })
-          .then((_s3Response) => {
+          .then(_s3Response => {
             this.props.toggleUploadingIndicator();
             this.props.replaceText({
               original: pendingUploadTag,
@@ -88,16 +88,16 @@ import { client } from 'utils/ApiClient';
             });
             editor.setCursor(newCursorPositionLine, 0);
           })
-          .catch((_err) => {
+          .catch(_err => {
             this.props.toggleUploadingIndicator();
             this.props.replaceText({
               original: pendingUploadTag,
-              new: ''
+              new: '',
             });
             editor.setCursor(newCursorPositionLine, 0);
           });
       })
-      .catch((_err) => {
+      .catch(_err => {
         this.props.toggleUploadingIndicator();
       });
   };
@@ -141,26 +141,26 @@ import { client } from 'utils/ApiClient';
         // 'Cmd-Shift-p': this.props.togglePreview,
         // 'Ctrl-Shift-p': this.props.togglePreview,
       },
-      placeholder: '# Start with a title...'
+      placeholder: '# Start with a title...',
     };
 
     return (
       <Dropzone
-        onDropAccepted={ this.onDropAccepted }
+        onDropAccepted={this.onDropAccepted}
         disableClick
-        multiple={ false }
+        multiple={false}
         accept="image/*"
-        className={ styles.container }
+        className={styles.container}
       >
-        <ClickablePadding onClick={ this.onPaddingTopClick } />
+        <ClickablePadding onClick={this.onPaddingTopClick} />
         <Codemirror
-          value={ this.props.text }
-          onChange={ this.onChange }
-          options={ options }
+          value={this.props.text}
+          onChange={this.onChange}
+          options={options}
           ref="editor"
-          className={ styles.codeMirrorContainer }
+          className={styles.codeMirrorContainer}
         />
-        <ClickablePadding onClick={ this.onPaddingBottomClick } />
+        <ClickablePadding onClick={this.onPaddingBottomClick} />
       </Dropzone>
     );
   };

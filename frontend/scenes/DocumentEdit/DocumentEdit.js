@@ -23,7 +23,7 @@ Are you sure you want to disgard them?`;
   'cmd+esc',
   'ctrl+esc',
   'cmd+shift+p',
-  'ctrl+shift+p'
+  'ctrl+shift+p',
 ])
 @withRouter
 @observer
@@ -37,7 +37,7 @@ class DocumentEdit extends Component {
   constructor(props) {
     super(props);
     this.store = new DocumentEditStore(
-      JSON.parse(localStorage[DOCUMENT_EDIT_SETTINGS] || '{}'),
+      JSON.parse(localStorage[DOCUMENT_EDIT_SETTINGS] || '{}')
     );
   }
 
@@ -73,7 +73,7 @@ class DocumentEdit extends Component {
     });
   };
 
-  componentWillReceiveProps = (nextProps) => {
+  componentWillReceiveProps = nextProps => {
     const key = nextProps.keydown.event;
 
     if (key) {
@@ -110,7 +110,7 @@ class DocumentEdit extends Component {
     browserHistory.goBack();
   };
 
-  onScroll = (scrollTop) => {
+  onScroll = scrollTop => {
     this.setState({
       scrollTop,
     });
@@ -119,8 +119,8 @@ class DocumentEdit extends Component {
   render() {
     const title = (
       <Title
-        truncate={ 60 }
-        placeholder={ !this.store.isFetching && 'Untitled document'}
+        truncate={60}
+        placeholder={!this.store.isFetching && 'Untitled document'}
       >
         {this.store.title}
       </Title>
@@ -134,16 +134,16 @@ class DocumentEdit extends Component {
       <Flex>
         <HeaderAction>
           <SaveAction
-            onClick={ this.onSave }
-            disabled={ this.store.isSaving }
-            isNew={ isNew }
+            onClick={this.onSave}
+            disabled={this.store.isSaving}
+            isNew={isNew}
           />
         </HeaderAction>
-        <DropdownMenu label={ <MoreIcon /> }>
-          <MenuItem onClick={ this.store.togglePreview }>
-            Preview <Switch checked={ this.store.preview } />
+        <DropdownMenu label={<MoreIcon />}>
+          <MenuItem onClick={this.store.togglePreview}>
+            Preview <Switch checked={this.store.preview} />
           </MenuItem>
-          <MenuItem onClick={ this.onCancel }>
+          <MenuItem onClick={this.onCancel}>
             Cancel
           </MenuItem>
         </DropdownMenu>
@@ -152,25 +152,25 @@ class DocumentEdit extends Component {
 
     return (
       <Layout
-        actions={ actions }
-        title={ title }
-        titleText={ titleText }
+        actions={actions}
+        title={title}
+        titleText={titleText}
         fixed
-        loading={ this.store.isSaving || this.store.isUploading }
-        search={ false }
+        loading={this.store.isSaving || this.store.isUploading}
+        search={false}
       >
         {this.store.isFetching || !('Editor' in this.state)
           ? <CenteredContent>
-            <AtlasPreviewLoading />
-          </CenteredContent>
+              <AtlasPreviewLoading />
+            </CenteredContent>
           : <this.state.Editor
-            store={ this.store }
-            scrollTop={ this.state.scrollTop }
-            onScroll={ this.onScroll }
-            onSave={ this.onSave }
-            onCancel={ this.onCancel }
-            togglePreview={ this.togglePreview }
-          />}
+              store={this.store}
+              scrollTop={this.state.scrollTop}
+              onScroll={this.onScroll}
+              onSave={this.onSave}
+              onCancel={this.onCancel}
+              togglePreview={this.togglePreview}
+            />}
       </Layout>
     );
   }

@@ -3,9 +3,9 @@ import { Frame } from 'react-keyframes';
 
 const frames = [];
 const p = node => frames.push(node);
-const E = (props) => {
+const E = props => {
   return (
-    <Frame duration={ props.duration || 300 } component="div">
+    <Frame duration={props.duration || 300} component="div">
       {props.children}
     </Frame>
   );
@@ -36,7 +36,7 @@ p(
     {line9}
     {line10}
     {line11}
-  </E>,
+  </E>
 );
 
 // Hmms leaving this here for now, would be nice to something

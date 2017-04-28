@@ -2,9 +2,9 @@ import React from 'react';
 
 import styles from './HeaderAction.scss';
 
-const HeaderAction = (props) => {
+const HeaderAction = props => {
   return (
-    <div onClick={ props.onClick } className={ styles.container }>
+    <div onClick={props.onClick} className={styles.container}>
       {props.children}
     </div>
   );

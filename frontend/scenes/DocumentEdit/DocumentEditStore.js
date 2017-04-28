@@ -5,7 +5,7 @@ import emojify from 'utils/emojify';
 
 const DOCUMENT_EDIT_SETTINGS = 'DOCUMENT_EDIT_SETTINGS';
 
-const parseHeader = (text) => {
+const parseHeader = text => {
   const firstLine = text.split(/\r?\n/)[0];
   if (firstLine) {
     const match = firstLine.match(/^#+ +(.*)$/);
@@ -45,7 +45,7 @@ class DocumentEditStore {
         {
           id: this.documentId,
         },
-        { cache: true },
+        { cache: true }
       );
       if (this.newChildDocument) {
         this.parentDocument = data.data;
@@ -74,7 +74,7 @@ class DocumentEditStore {
           title: this.title || 'Untitled document',
           text: this.text,
         },
-        { cache: true },
+        { cache: true }
       );
       const { url } = data.data;
 
@@ -99,7 +99,7 @@ class DocumentEditStore {
           title: this.title || 'Untitled document',
           text: this.text,
         },
-        { cache: true },
+        { cache: true }
       );
       const { url } = data.data;
 
@@ -111,17 +111,17 @@ class DocumentEditStore {
     this.isSaving = false;
   };
 
-  @action updateText = (text) => {
+  @action updateText = text => {
     this.text = text;
     this.title = parseHeader(text);
     this.hasPendingChanges = true;
   };
 
-  @action updateTitle = (title) => {
+  @action updateTitle = title => {
     this.title = title;
   };
 
-  @action replaceText = (args) => {
+  @action replaceText = args => {
     this.text = this.text.replace(args.original, args.new);
     this.hasPendingChanges = true;
   };

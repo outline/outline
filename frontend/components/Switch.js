@@ -12,7 +12,7 @@ const Switch = observer(({ checked, ...props }) => {
   const scale = '18';
   const colors = {
     success: actionColor,
-    white: '#fff'
+    white: '#fff',
   };
   const borderColor = actionColor;
 
@@ -28,7 +28,7 @@ const Switch = observer(({ checked, ...props }) => {
       backgroundColor: checked ? 'currentcolor' : null,
       borderRadius: 99999,
       boxShadow: 'inset 0 0 0 2px',
-      cursor: 'pointer'
+      cursor: 'pointer',
     },
     dot: {
       width: scale,
@@ -46,13 +46,13 @@ const Switch = observer(({ checked, ...props }) => {
 
   return (
     <Base
-      { ...props }
+      {...props}
       className="Switch"
       role="checkbox"
-      aria-checked={ checked }
-      baseStyle={ sx.root }
+      aria-checked={checked}
+      baseStyle={sx.root}
     >
-      <div style={ sx.dot } />
+      <div style={sx.dot} />
     </Base>
   );
 });

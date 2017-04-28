@@ -33,8 +33,8 @@ class ApiKeyRow extends React.Component {
         <td>
           <span
             role="button"
-            onClick={ this.onClick }
-            className={ cx(styles.deleteAction, { disabled }) }
+            onClick={this.onClick}
+            className={cx(styles.deleteAction, { disabled })}
           >
             Delete
           </span>

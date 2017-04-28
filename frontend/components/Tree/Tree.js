@@ -1,7 +1,7 @@
 const Tree = require('js-tree');
 const proto = Tree.prototype;
 
-proto.updateNodesPosition = function () {
+proto.updateNodesPosition = function() {
   let top = 1;
   let left = 1;
   const root = this.getIndex(1);
@@ -16,7 +16,7 @@ proto.updateNodesPosition = function () {
 
   function walk(children, parent, left, collapsed) {
     let height = 1;
-    children.forEach((id) => {
+    children.forEach(id => {
       const node = self.getIndex(id);
       if (collapsed) {
         node.top = null;
@@ -31,7 +31,7 @@ proto.updateNodesPosition = function () {
           node.children,
           node,
           left + 1,
-          collapsed || node.node.collapsed,
+          collapsed || node.node.collapsed
         );
       } else {
         node.height = 1;
@@ -45,7 +45,7 @@ proto.updateNodesPosition = function () {
   }
 };
 
-proto.move = function (fromId, toId, placement) {
+proto.move = function(fromId, toId, placement) {
   if (fromId === toId || toId === 1) return;
 
   const obj = this.remove(fromId);
@@ -61,7 +61,7 @@ proto.move = function (fromId, toId, placement) {
   return index;
 };
 
-proto.getNodeByTop = function (top) {
+proto.getNodeByTop = function(top) {
   const indexes = this.indexes;
   for (const id in indexes) {
     if (indexes.hasOwnProperty(id)) {

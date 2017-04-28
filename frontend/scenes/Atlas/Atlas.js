@@ -26,7 +26,7 @@ class Atlas extends React.Component {
 
   componentDidMount = () => {
     const { id } = this.props.params;
-    store.fetchCollection(id, (data) => {
+    store.fetchCollection(id, data => {
       // Forward directly to root document
       if (data.type === 'atlas') {
         browserHistory.replace(data.navigationTree.url);
@@ -34,7 +34,7 @@ class Atlas extends React.Component {
     });
   };
 
-  componentWillReceiveProps = (nextProps) => {
+  componentWillReceiveProps = nextProps => {
     const key = nextProps.keydown.event;
     if (key) {
       if (key.key === 'c') {
@@ -43,7 +43,7 @@ class Atlas extends React.Component {
     }
   };
 
-  onCreate = (event) => {
+  onCreate = event => {
     if (event) event.preventDefault();
     browserHistory.push(`${store.collection.url}/new`);
   };
@@ -58,8 +58,8 @@ class Atlas extends React.Component {
     if (collection) {
       actions = (
         <Flex>
-          <DropdownMenu label={ <MoreIcon /> }>
-            <MenuItem onClick={ this.onCreate }>
+          <DropdownMenu label={<MoreIcon />}>
+            <MenuItem onClick={this.onCreate}>
               New document
             </MenuItem>
           </DropdownMenu>
@@ -70,32 +70,32 @@ class Atlas extends React.Component {
     }
 
     return (
-      <Layout actions={ actions } title={ title } titleText={ titleText }>
+      <Layout actions={actions} title={title} titleText={titleText}>
         <CenteredContent>
           <ReactCSSTransitionGroup
             transitionName="fadeIn"
             transitionAppear
-            transitionAppearTimeout={ 0 }
-            transitionEnterTimeout={ 0 }
-            transitionLeaveTimeout={ 0 }
+            transitionAppearTimeout={0}
+            transitionEnterTimeout={0}
+            transitionLeaveTimeout={0}
           >
             {store.isFetching
               ? <AtlasPreviewLoading />
-              : <div className={ styles.container }>
-                <div className={ styles.atlasDetails }>
+              : <div className={styles.container}>
+                  <div className={styles.atlasDetails}>
                     <h2>{collection.name}</h2>
                     <blockquote>
                       {collection.description}
                     </blockquote>
                   </div>
 
-                <Divider />
+                  <Divider />
 
-                <DocumentList
-                    documents={ collection.recentDocuments }
+                  <DocumentList
+                    documents={collection.recentDocuments}
                     preview
                   />
-              </div>}
+                </div>}
           </ReactCSSTransitionGroup>
         </CenteredContent>
       </Layout>

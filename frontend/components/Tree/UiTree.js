@@ -60,12 +60,12 @@ module.exports = React.createClass({
       };
 
       return (
-        <div className={ styles.draggable } style={ draggingStyles }>
+        <div className={styles.draggable} style={draggingStyles}>
           <Node
-            tree={ tree }
-            index={ draggingIndex }
-            paddingLeft={ this.props.paddingLeft }
-            allowUpdates={ this.props.allowUpdates }
+            tree={tree}
+            index={draggingIndex}
+            paddingLeft={this.props.paddingLeft}
+            allowUpdates={this.props.allowUpdates}
           />
         </div>
       );
@@ -80,18 +80,18 @@ module.exports = React.createClass({
     const draggingDom = this.getDraggingDom();
 
     return (
-      <div className={ styles.tree }>
+      <div className={styles.tree}>
         {draggingDom}
         <Node
           rootNode
-          tree={ tree }
-          index={ tree.getIndex(1) }
-          key={ 1 }
-          paddingLeft={ this.props.paddingLeft }
-          allowUpdates={ this.props.allowUpdates }
-          onDragStart={ this.dragStart }
-          onCollapse={ this.toggleCollapse }
-          dragging={ dragging && dragging.id }
+          tree={tree}
+          index={tree.getIndex(1)}
+          key={1}
+          paddingLeft={this.props.paddingLeft}
+          allowUpdates={this.props.allowUpdates}
+          onDragStart={this.dragStart}
+          onCollapse={this.toggleCollapse}
+          dragging={dragging && dragging.id}
         />
       </div>
     );

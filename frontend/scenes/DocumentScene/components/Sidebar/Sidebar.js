@@ -29,7 +29,7 @@ import SidebarStore from './SidebarStore';
     this.store = new SidebarStore();
   }
 
-  toggleEdit = (e) => {
+  toggleEdit = e => {
     e.preventDefault();
     this.store.toggleEdit();
   };
@@ -38,38 +38,38 @@ import SidebarStore from './SidebarStore';
     return (
       <Flex>
         {this.props.open &&
-          <Flex column className={ cx(styles.sidebar) }>
-            <Flex auto className={ cx(styles.content) }>
+          <Flex column className={cx(styles.sidebar)}>
+            <Flex auto className={cx(styles.content)}>
               <Tree
-                paddingLeft={ 10 }
-                tree={ this.props.navigationTree }
-                allowUpdates={ this.store.isEditing }
-                onChange={ this.props.onNavigationUpdate }
-                onCollapse={ this.props.onNodeCollapse }
+                paddingLeft={10}
+                tree={this.props.navigationTree}
+                allowUpdates={this.store.isEditing}
+                onChange={this.props.onNavigationUpdate}
+                onCollapse={this.props.onNodeCollapse}
               />
             </Flex>
-            <Flex auto className={ styles.actions }>
+            <Flex auto className={styles.actions}>
               {this.store.isEditing &&
-                <span className={ styles.action }>
+                <span className={styles.action}>
                   Drag & drop to organize <Separator />&nbsp;
                 </span>}
               <span
                 role="button"
-                onClick={ this.toggleEdit }
-                className={ cx(styles.action, { active: this.store.isEditing }) }
+                onClick={this.toggleEdit}
+                className={cx(styles.action, { active: this.store.isEditing })}
               >
                 {!this.store.isEditing ? 'Organize documents' : 'Done'}
               </span>
             </Flex>
           </Flex>}
         <div
-          onClick={ this.props.onToggle }
-          className={ cx(styles.sidebarToggle, { active: this.store.isEditing }) }
+          onClick={this.props.onToggle}
+          className={cx(styles.sidebarToggle, { active: this.store.isEditing })}
           title="Toggle sidebar (Cmd+/)"
         >
           <img
-            src={ require('assets/icons/menu.svg') }
-            className={ styles.menuIcon }
+            src={require('assets/icons/menu.svg')}
+            className={styles.menuIcon}
             alt="Menu"
           />
         </div>

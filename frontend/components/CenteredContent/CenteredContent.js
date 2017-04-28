@@ -2,21 +2,21 @@ import React from 'react';
 
 import styles from './CenteredContent.scss';
 
-const CenteredContent = (props) => {
+const CenteredContent = props => {
   const style = {
     maxWidth: props.maxWidth,
     ...props.style,
   };
 
   return (
-    <div className={ styles.content } style={ style }>
+    <div className={styles.content} style={style}>
       {props.children}
     </div>
   );
 };
 
 CenteredContent.defaultProps = {
-  maxWidth: '740px'
+  maxWidth: '740px',
 };
 
 CenteredContent.propTypes = {

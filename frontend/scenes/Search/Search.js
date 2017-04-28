@@ -38,7 +38,7 @@ import SearchStore from './SearchStore';
   }
 
   render() {
-    const search = _.debounce((searchTerm) => {
+    const search = _.debounce(searchTerm => {
       this.store.search(searchTerm);
     }, 250);
     const title = (
@@ -49,10 +49,10 @@ import SearchStore from './SearchStore';
 
     return (
       <Layout
-        title={ title }
+        title={title}
         titleText="Search"
-        search={ false }
-        loading={ this.store.isFetching }
+        search={false}
+        loading={this.store.isFetching}
       >
         <CenteredContent>
           {this.viewNotFound &&
@@ -65,19 +65,19 @@ import SearchStore from './SearchStore';
           <Flex column auto>
             <Flex auto>
               <img
-                src={ require('assets/icons/search.svg') }
-                className={ styles.icon }
+                src={require('assets/icons/search.svg')}
+                className={styles.icon}
                 alt="Search"
               />
               <SearchField
-                searchTerm={ this.store.searchTerm }
-                onChange={ search }
+                searchTerm={this.store.searchTerm}
+                onChange={search}
               />
             </Flex>
             {this.store.documents &&
-              this.store.documents.map((document) => {
+              this.store.documents.map(document => {
                 return (
-                  <DocumentPreview key={ document.id } document={ document } />
+                  <DocumentPreview key={document.id} document={document} />
                 );
               })}
           </Flex>

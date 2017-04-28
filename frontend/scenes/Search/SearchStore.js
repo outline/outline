@@ -11,7 +11,7 @@ class SearchStore {
 
   /* Actions */
 
-  @action search = async (query) => {
+  @action search = async query => {
     this.searchTerm = query;
     this.isFetching = true;
 

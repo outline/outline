@@ -33,9 +33,9 @@ class DocumentSceneStore {
     if (!this.document || this.document.collection.type !== 'atlas') return;
     const tree = this.document.collection.navigationTree;
 
-    const collapseNodes = (node) => {
+    const collapseNodes = node => {
       node.collapsed = this.collapsedNodes.includes(node.id);
-      node.children = node.children.map((childNode) => {
+      node.children = node.children.map(childNode => {
         return collapseNodes(childNode);
       });
 
@@ -89,7 +89,7 @@ class DocumentSceneStore {
     this.isFetching = false;
   };
 
-  @action updateNavigationTree = async (tree) => {
+  @action updateNavigationTree = async tree => {
     // Only update when tree changes
     if (_.isEqual(toJS(tree), toJS(this.document.collection.navigationTree))) {
       return true;
@@ -112,7 +112,7 @@ class DocumentSceneStore {
     this.updatingStructure = false;
   };
 
-  @action onNodeCollapse = (nodeId) => {
+  @action onNodeCollapse = nodeId => {
     if (_.indexOf(this.collapsedNodes, nodeId) >= 0) {
       this.collapsedNodes = _.without(this.collapsedNodes, nodeId);
     } else {

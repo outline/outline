@@ -12,7 +12,7 @@ class EditorPane extends React.Component {
     fullWidth: React.PropTypes.bool,
   };
 
-  componentWillReceiveProps = (nextProps) => {
+  componentWillReceiveProps = nextProps => {
     if (nextProps.scrollTop) {
       this.scrollToPosition(nextProps.scrollTop);
     }
@@ -26,7 +26,7 @@ class EditorPane extends React.Component {
     this.refs.pane.removeEventListener('scroll', this.handleScroll);
   };
 
-  handleScroll = (e) => {
+  handleScroll = e => {
     setTimeout(() => {
       const element = this.refs.pane;
       const contentEl = this.refs.content;
@@ -34,7 +34,7 @@ class EditorPane extends React.Component {
     }, 50);
   };
 
-  scrollToPosition = (percentage) => {
+  scrollToPosition = percentage => {
     const contentEl = this.refs.content;
 
     // Push to edges
@@ -47,10 +47,10 @@ class EditorPane extends React.Component {
   render() {
     return (
       <div
-        className={ cx(styles.editorPane, { fullWidth: this.props.fullWidth }) }
+        className={cx(styles.editorPane, { fullWidth: this.props.fullWidth })}
         ref="pane"
       >
-        <div ref="content" className={ styles.paneContent }>
+        <div ref="content" className={styles.paneContent}>
           {this.props.children}
         </div>
       </div>

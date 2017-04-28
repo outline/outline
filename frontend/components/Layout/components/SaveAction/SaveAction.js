@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
     isNew: React.PropTypes.bool,
   };
 
-  onClick = (event) => {
+  onClick = event => {
     if (this.props.disabled) return;
 
     event.preventDefault();
@@ -22,7 +22,7 @@ import { observer } from 'mobx-react';
       <div>
         <a
           href
-          onClick={ this.onClick }
+          onClick={this.onClick}
           style={{ opacity: disabled ? 0.5 : 1 }}
           title="Save changes (Cmd+Enter)"
         >

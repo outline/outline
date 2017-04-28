@@ -27,7 +27,7 @@ class SearchStore {
 
     try {
       const res = await client.post('/apiKeys.create', {
-        name: `${this.keyName}` || 'Untitled key'
+        name: `${this.keyName}` || 'Untitled key',
       });
       const { data } = res;
       runInAction('createApiKey', () => {
@@ -40,7 +40,7 @@ class SearchStore {
     this.isFetching = false;
   };
 
-  @action deleteApiKey = async (id) => {
+  @action deleteApiKey = async id => {
     this.isFetching = true;
 
     try {
@@ -56,7 +56,7 @@ class SearchStore {
     this.isFetching = false;
   };
 
-  @action setKeyName = (value) => {
+  @action setKeyName = value => {
     this.keyName = value.target.value;
   };
 
