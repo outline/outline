@@ -1,6 +1,6 @@
 import React from 'react';
 
-const injectOffline = (WrappedComponent) => {
+const injectOffline = WrappedComponent => {
   return class OfflineWrapper extends React.Component {
     static contextTypes = {
       offline: React.PropTypes.bool,
@@ -11,7 +11,7 @@ const injectOffline = (WrappedComponent) => {
         offline: this.context.offline,
       };
 
-      return (<WrappedComponent { ...this.props } { ...newProps } />);
+      return <WrappedComponent {...this.props} {...newProps} />;
     }
   };
 };

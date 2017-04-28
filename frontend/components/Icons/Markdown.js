@@ -5,10 +5,10 @@ export default ({ style = {}, className }) => {
     <span className={className}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width={ style.width || 208 }
-        height={ style.height || 128 }
+        width={style.width || 208}
+        height={style.height || 128}
         viewBox="0 0 208 128"
-        color={ style.color }
+        color={style.color}
       >
         <rect
           width="198"

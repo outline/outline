@@ -22,7 +22,7 @@ import styles from './Atlas.scss';
 class Atlas extends React.Component {
   static propTypes = {
     params: PropTypes.object.isRequired,
-  }
+  };
 
   componentDidMount = () => {
     const { id } = this.props.params;
@@ -32,21 +32,21 @@ class Atlas extends React.Component {
         browserHistory.replace(data.navigationTree.url);
       }
     });
-  }
+  };
 
-  componentWillReceiveProps = (nextProps) => {
+  componentWillReceiveProps = nextProps => {
     const key = nextProps.keydown.event;
     if (key) {
       if (key.key === 'c') {
         _.defer(this.onCreate);
       }
     }
-  }
+  };
 
-  onCreate = (event) => {
+  onCreate = event => {
     if (event) event.preventDefault();
     browserHistory.push(`${store.collection.url}/new`);
-  }
+  };
 
   render() {
     const collection = store.collection;
@@ -58,47 +58,44 @@ class Atlas extends React.Component {
     if (collection) {
       actions = (
         <Flex>
-          <DropdownMenu label={ <MoreIcon /> } >
-            <MenuItem onClick={ this.onCreate }>
+          <DropdownMenu label={<MoreIcon />}>
+            <MenuItem onClick={this.onCreate}>
               New document
             </MenuItem>
           </DropdownMenu>
         </Flex>
       );
-      title = <Title>{ collection.name }</Title>;
+      title = <Title>{collection.name}</Title>;
       titleText = collection.name;
     }
 
     return (
-      <Layout
-        actions={ actions }
-        title={ title }
-        titleText={ titleText }
-      >
+      <Layout actions={actions} title={title} titleText={titleText}>
         <CenteredContent>
           <ReactCSSTransitionGroup
             transitionName="fadeIn"
             transitionAppear
-            transitionAppearTimeout={ 0 }
-            transitionEnterTimeout={ 0 }
-            transitionLeaveTimeout={ 0 }
+            transitionAppearTimeout={0}
+            transitionEnterTimeout={0}
+            transitionLeaveTimeout={0}
           >
-            { store.isFetching ? (
-              <AtlasPreviewLoading />
-            ) : (
-              <div className={ styles.container }>
-                <div className={ styles.atlasDetails }>
-                  <h2>{ collection.name }</h2>
-                  <blockquote>
-                    { collection.description }
-                  </blockquote>
-                </div>
+            {store.isFetching
+              ? <AtlasPreviewLoading />
+              : <div className={styles.container}>
+                  <div className={styles.atlasDetails}>
+                    <h2>{collection.name}</h2>
+                    <blockquote>
+                      {collection.description}
+                    </blockquote>
+                  </div>
 
-                <Divider />
+                  <Divider />
 
-                <DocumentList documents={ collection.recentDocuments } preview />
-              </div>
-            ) }
+                  <DocumentList
+                    documents={collection.recentDocuments}
+                    preview
+                  />
+                </div>}
           </ReactCSSTransitionGroup>
         </CenteredContent>
       </Layout>

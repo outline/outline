@@ -1,9 +1,8 @@
 import React, { PropTypes } from 'react';
-
 import { Flex } from 'reflexbox';
-
-import styles from './Alert.scss';
 import classNames from 'classnames/bind';
+import styles from './Alert.scss';
+
 const cx = classNames.bind(styles);
 
 class Alert extends React.Component {
@@ -12,9 +11,8 @@ class Alert extends React.Component {
     danger: PropTypes.bool,
     warning: PropTypes.bool,
     success: PropTypes.bool,
-    info: PropTypes.bool,
     offline: PropTypes.bool,
-  }
+  };
 
   render() {
     let alertType;
@@ -25,8 +23,12 @@ class Alert extends React.Component {
     if (!alertType) alertType = 'info'; // default
 
     return (
-      <Flex align="center" justify="center" className={ cx(styles.container, styles[alertType]) }>
-        { this.props.children }
+      <Flex
+        align="center"
+        justify="center"
+        className={cx(styles.container, styles[alertType])}
+      >
+        {this.props.children}
       </Flex>
     );
   }

@@ -6,10 +6,10 @@ import styles from './Preview.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-const Preview = (props) => {
+const Preview = props => {
   return (
-    <div className={ cx(styles.container) }>
-      <DocumentHtml html={ props.html } />
+    <div className={cx(styles.container)}>
+      <DocumentHtml html={props.html} />
     </div>
   );
 };

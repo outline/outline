@@ -11,7 +11,7 @@ class SearchStore {
 
   /* Actions */
 
-  @action search = async (query) => {
+  @action search = async query => {
     this.searchTerm = query;
     this.isFetching = true;
 
@@ -24,14 +24,14 @@ class SearchStore {
           this.pagination = pagination;
         });
       } catch (e) {
-        console.error("Something went wrong");
+        console.error('Something went wrong');
       }
     } else {
       this.documents = null;
     }
 
     this.isFetching = false;
-  }
+  };
 }
 
 export default SearchStore;

@@ -18,7 +18,7 @@ class DashboardStore {
       runInAction('fetchCollections', () => {
         this.collections = data;
         this.pagination = pagination;
-        data.forEach((collection) => cacheResponse(collection.recentDocuments));
+        data.forEach(collection => cacheResponse(collection.recentDocuments));
       });
 
       // If only one collection, visit it automatically
@@ -29,7 +29,7 @@ class DashboardStore {
       console.error('Something went wrong');
     }
     this.isFetching = false;
-  }
+  };
 
   constructor(options) {
     this.team = options.team;

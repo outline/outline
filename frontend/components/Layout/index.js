@@ -5,8 +5,4 @@ import SaveAction from './components/SaveAction';
 
 export default Layout;
 
-export {
-  Title,
-  HeaderAction,
-  SaveAction,
-};
+export { Title, HeaderAction, SaveAction };

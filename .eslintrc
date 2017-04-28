@@ -1,23 +1,16 @@
 {
-  "extends": [
-    "airbnb",
-    "prettier",
-    "prettier/react"
-  ],
   "parser": "babel-eslint",
+  "extends": ["react-app", "plugin:import/errors", "plugin:import/warnings"],
+  "plugins": [
+    "prettier"
+  ],
   "rules": {
-    "arrow-body-style":[0, "as-needed"], // fix `this` shortcut on ES6 classes
-    "react/jsx-no-bind": 0, // Makes difficult to pass args to prop functions
-    "react/jsx-curly-spacing": [2, "always", {"spacing": {
-      "objectLiterals": "never"
-    }}], // Spaces inside curlies, except prop={{}}
-    "react/prefer-stateless-function": 0, // Don't prefer stateless components
-    "no-else-return": 0,
-    "new-cap": 0,
-    "no-param-reassign": 0,
-    no-unused-vars: ["error", {
-      "argsIgnorePattern": "^_",
-    }],
+    "import/order": "warn",
+    // Prettier automatically uses the least amount of parens possible, so this
+    // does more harm than good.
+    "no-mixed-operators": "off",
+    // Enforce that code is formatted with prettier.
+    "prettier/prettier":  ["error", {"trailingComma": "es5", "singleQuote": true}]
   },
   "settings" : {
     "import/resolver": {
@@ -34,7 +27,6 @@
     SLACK_KEY: true,
     SLACK_REDIRECT_URI: true,
     DEPLOYMENT: true,
-
     afterAll: true
   },
 }

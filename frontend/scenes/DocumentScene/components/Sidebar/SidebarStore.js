@@ -7,7 +7,7 @@ class SidebarStore {
 
   @action toggleEdit = () => {
     this.isEditing = !this.isEditing;
-  }
+  };
 }
 
 export default SidebarStore;

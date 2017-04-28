@@ -12,8 +12,7 @@ import styles from './Settings.scss';
 
 import SettingsStore from './SettingsStore';
 
-@observer
-class Settings extends React.Component {
+@observer class Settings extends React.Component {
   static store;
 
   constructor(props) {
@@ -21,10 +20,10 @@ class Settings extends React.Component {
     this.store = new SettingsStore();
   }
 
-  onKeyCreate = (e) => {
+  onKeyCreate = e => {
     e.preventDefault();
     this.store.createApiKey();
-  }
+  };
 
   render() {
     const title = (
@@ -37,48 +36,52 @@ class Settings extends React.Component {
 
     return (
       <Layout
-        title={ title }
+        title={title}
         titleText="Settings"
-        search={ false }
-        loading={ this.store.isFetching }
+        search={false}
+        loading={this.store.isFetching}
       >
         <CenteredContent>
-          { showSlackSettings && (
-            <div className={ styles.section }>
-              <h2 className={ styles.sectionHeader }>Slack</h2>
+          {showSlackSettings &&
+            <div className={styles.section}>
+              <h2 className={styles.sectionHeader}>Slack</h2>
               <p>
                 Connect Atlas to your Slack to instantly search for your documents
                 using <code>/atlas</code> command.
               </p>
 
               <SlackAuthLink
-                scopes={ ['commands'] }
-                redirectUri={ `${URL}/auth/slack/commands` }
+                scopes={['commands']}
+                redirectUri={`${URL}/auth/slack/commands`}
               >
-                <img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" />
+                <img
+                  alt="Add to Slack"
+                  height="40"
+                  width="139"
+                  src="https://platform.slack-edge.com/img/add_to_slack.png"
+                  srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
+                />
               </SlackAuthLink>
-            </div>
-          ) }
+            </div>}
 
-          <div className={ styles.section }>
-            <h2 className={ styles.sectionHeader }>API access</h2>
+          <div className={styles.section}>
+            <h2 className={styles.sectionHeader}>API access</h2>
             <p>
               Create API tokens to hack on your Atlas.
               Learn more in <a href>API documentation</a>.
             </p>
 
-            { this.store.apiKeys && (
-              <table className={ styles.apiKeyTable }>
-                { this.store.apiKeys.map(key => (
+            {this.store.apiKeys &&
+              <table className={styles.apiKeyTable}>
+                {this.store.apiKeys.map(key => (
                   <ApiKeyRow
-                    id={ key.id }
-                    name={ key.name }
-                    secret={ key.secret }
-                    onDelete={ this.store.deleteApiKey }
+                    id={key.id}
+                    name={key.name}
+                    secret={key.secret}
+                    onDelete={this.store.deleteApiKey}
                   />
-                )) }
-              </table>
-            ) }
+                ))}
+              </table>}
 
             <div>
               <InlineForm
@@ -86,11 +89,11 @@ class Settings extends React.Component {
                 buttonLabel="Create token"
                 label="InlineForm"
                 name="inline_form"
-                value={ this.store.keyName }
-                onChange={ this.store.setKeyName }
-                onClick={ this.onKeyCreate }
+                value={this.store.keyName}
+                onChange={this.store.setKeyName}
+                onClick={this.onKeyCreate}
                 style={{ width: '100%' }}
-                disabled={ this.store.isFetching }
+                disabled={this.store.isFetching}
               />
             </div>
 

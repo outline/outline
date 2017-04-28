@@ -31,7 +31,6 @@ class SlackAuth extends React.Component {
         browserHistory.replace('/dashboard');
       } catch (e) {
         browserHistory.push('/auth-error');
-        return;
       }
     } else {
       // Regular Slack authentication

@@ -1,5 +1,5 @@
 {
-  "name": "BeautifulAtlas",
+  "name": "Atlas",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,6 @@
     "start": "node index.js",
     "dev": "cross-env NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --watch server index.js",
     "lint": "eslint frontend",
-    "prettier": "prettier --single-quote --trailing-comma es5 --write frontend/**/*.js server/**/*.js",
     "deploy": "git push heroku master",
     "heroku-postbuild": "npm run build && npm run sequelize db:migrate",
     "sequelize": "./node_modules/.bin/sequelize",
@@ -21,7 +20,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "yarn prettier",
+      "eslint --fix",
       "git add"
     ]
   },
@@ -51,7 +50,7 @@
     ]
   },
   "engines": {
-    "node": "6.x"
+    "node": ">= 7.6"
   },
   "repository": {
     "type": "git",
@@ -79,10 +78,12 @@
     "dotenv": "^4.0.0",
     "emoji-name-map": "1.1.2",
     "eslint": "^3.19.0",
-    "eslint-config-airbnb": "^14.1.0",
+    "eslint-config-react-app": "^0.6.2",
     "eslint-import-resolver-webpack": "^0.3.1",
+    "eslint-plugin-flowtype": "^2.32.1",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-prettier": "^2.0.1",
     "eslint-plugin-react": "^6.10.3",
     "exports-loader": "0.6.3",
     "extract-text-webpack-plugin": "1.0.1",
@@ -155,8 +156,6 @@
   "devDependencies": {
     "babel-jest": "^15.0.0",
     "enzyme": "^2.4.1",
-    "eslint-config-prettier": "^1.7.0",
-    "eslint-plugin-prettier": "^2.0.1",
     "fetch-test-server": "^1.1.0",
     "identity-obj-proxy": "^3.0.0",
     "ignore-loader": "0.1.1",

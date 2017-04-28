@@ -5,7 +5,7 @@ import emojify from 'utils/emojify';
 
 const DOCUMENT_EDIT_SETTINGS = 'DOCUMENT_EDIT_SETTINGS';
 
-const parseHeader = (text) => {
+const parseHeader = text => {
   const firstLine = text.split(/\r?\n/)[0];
   if (firstLine) {
     const match = firstLine.match(/^#+ +(.*)$/);
@@ -40,9 +40,13 @@ class DocumentEditStore {
     this.isFetching = true;
 
     try {
-      const data = await client.get('/documents.info', {
-        id: this.documentId,
-      }, { cache: true });
+      const data = await client.get(
+        '/documents.info',
+        {
+          id: this.documentId,
+        },
+        { cache: true }
+      );
       if (this.newChildDocument) {
         this.parentDocument = data.data;
       } else {
@@ -54,7 +58,7 @@ class DocumentEditStore {
       console.error('Something went wrong');
     }
     this.isFetching = false;
-  }
+  };
 
   @action saveDocument = async () => {
     if (this.isSaving) return;
@@ -62,12 +66,16 @@ class DocumentEditStore {
     this.isSaving = true;
 
     try {
-      const data = await client.post('/documents.create', {
-        parentDocument: this.parentDocument && this.parentDocument.id,
-        collection: this.collectionId || this.parentDocument.collection.id,
-        title: this.title || 'Untitled document',
-        text: this.text,
-      }, { cache: true });
+      const data = await client.post(
+        '/documents.create',
+        {
+          parentDocument: this.parentDocument && this.parentDocument.id,
+          collection: this.collectionId || this.parentDocument.collection.id,
+          title: this.title || 'Untitled document',
+          text: this.text,
+        },
+        { cache: true }
+      );
       const { url } = data.data;
 
       this.hasPendingChanges = false;
@@ -76,7 +84,7 @@ class DocumentEditStore {
       console.error('Something went wrong');
     }
     this.isSaving = false;
-  }
+  };
 
   @action updateDocument = async () => {
     if (this.isSaving) return;
@@ -84,11 +92,15 @@ class DocumentEditStore {
     this.isSaving = true;
 
     try {
-      const data = await client.post('/documents.update', {
-        id: this.documentId,
-        title: this.title || 'Untitled document',
-        text: this.text,
-      }, { cache: true });
+      const data = await client.post(
+        '/documents.update',
+        {
+          id: this.documentId,
+          title: this.title || 'Untitled document',
+          text: this.text,
+        },
+        { cache: true }
+      );
       const { url } = data.data;
 
       this.hasPendingChanges = false;
@@ -97,35 +109,35 @@ class DocumentEditStore {
       console.error('Something went wrong');
     }
     this.isSaving = false;
-  }
+  };
 
-  @action updateText = (text) => {
+  @action updateText = text => {
     this.text = text;
     this.title = parseHeader(text);
     this.hasPendingChanges = true;
-  }
+  };
 
-  @action updateTitle = (title) => {
+  @action updateTitle = title => {
     this.title = title;
-  }
+  };
 
-  @action replaceText = (args) => {
+  @action replaceText = args => {
     this.text = this.text.replace(args.original, args.new);
     this.hasPendingChanges = true;
-  }
+  };
 
   @action togglePreview = () => {
     this.preview = !this.preview;
-  }
+  };
 
   @action reset = () => {
     this.title = 'Lets start with a title';
     this.text = '# Lets start with a title\n\nAnd continue from there...';
-  }
+  };
 
   @action toggleUploadingIndicator = () => {
     this.isUploading = !this.isUploading;
-  }
+  };
 
   // Generic
 
@@ -133,7 +145,7 @@ class DocumentEditStore {
     localStorage[DOCUMENT_EDIT_SETTINGS] = JSON.stringify({
       preview: toJS(this.preview),
     });
-  }
+  };
 
   constructor(settings) {
     // Rehydrate settings
@@ -148,6 +160,4 @@ class DocumentEditStore {
 }
 
 export default DocumentEditStore;
-export {
-  DOCUMENT_EDIT_SETTINGS,
-};
+export { DOCUMENT_EDIT_SETTINGS };

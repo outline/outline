@@ -2,15 +2,15 @@ import React from 'react';
 
 import styles from './CenteredContent.scss';
 
-const CenteredContent = (props) => {
+const CenteredContent = props => {
   const style = {
     maxWidth: props.maxWidth,
     ...props.style,
   };
 
   return (
-    <div className={ styles.content } style={ style }>
-      { props.children }
+    <div className={styles.content} style={style}>
+      {props.children}
     </div>
   );
 };
