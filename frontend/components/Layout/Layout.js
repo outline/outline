@@ -4,6 +4,7 @@ import Helmet from 'react-helmet';
 import { observer } from 'mobx-react';
 import { injectOffline } from 'components/Offline';
 import keydown from 'react-keydown';
+import searchIcon from 'assets/icons/search.svg';
 import _ from 'lodash';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
@@ -91,7 +92,7 @@ class Layout extends React.Component {
                         className={ styles.search }
                         title="Search (/)"
                       >
-                        <img src={ require('assets/icons/search.svg') } alt="Search" />
+                        <img src={ searchIcon } alt="Search" />
                       </div>
                     </Flex>
                   ) }
