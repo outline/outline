@@ -1,8 +1,7 @@
 import _ from 'lodash';
 import { browserHistory } from 'react-router';
-import stores from 'stores';
-
 import constants from '../constants';
+import stores from 'stores';
 
 const isIterable = object =>
   object != null && typeof object[Symbol.iterator] === 'function';
