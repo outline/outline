@@ -31,6 +31,13 @@
     margin: .1em;
     padding-left: 1em;
   }
+
+  code,
+  pre {
+    background: #efefef;
+    border-radius: 3px;
+    border: 1px solid #dedede;
+  }
 }
 
 .title {

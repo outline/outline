@@ -1,6 +1,7 @@
 import DropOrPasteImages from 'slate-drop-or-paste-images';
 import PasteLinkify from 'slate-paste-linkify';
 import EditList from 'slate-edit-list';
+import MarkdownShortcuts from './plugins/MarkdownShortcuts';
 
 const plugins = [
   PasteLinkify({
@@ -22,6 +23,7 @@ const plugins = [
     typeOL: 'ordered-list',
     typeItem: 'list-item',
   }),
+  MarkdownShortcuts(),
 ];
 
 export default plugins;

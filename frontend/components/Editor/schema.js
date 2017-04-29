@@ -12,6 +12,9 @@ const schema = {
   },
 
   nodes: {
+    'code-block': props => (
+      <pre {...props.attributes}><code>{props.children}</code></pre>
+    ),
     'block-quote': props => <blockquote>{props.children}</blockquote>,
     'bulleted-list': props => <ul>{props.children}</ul>,
     'ordered-list': props => <ol>{props.children}</ol>,

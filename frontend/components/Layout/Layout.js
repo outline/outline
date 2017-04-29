@@ -38,13 +38,13 @@ class Layout extends React.Component {
     search: true,
   };
 
-  @keydown(['/', 't'])
+  // @keydown(['/', 't'])
   search() {
     // if (!this.props.user) return;
     _.defer(() => browserHistory.push('/search'));
   }
 
-  @keydown(['d'])
+  // @keydown(['d'])
   dashboard() {
     // if (!this.props.user) return;
     _.defer(() => browserHistory.push('/'));
