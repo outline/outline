@@ -35,17 +35,37 @@ export default function MarkdownShortcuts() {
       const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
       const type = this.getType(chars);
 
-      if (!type) return;
-      if (type === 'list-item' && startBlock.type === 'list-item') return;
-      e.preventDefault();
+      if (type) {
+        if (type === 'list-item' && startBlock.type === 'list-item') return;
+        e.preventDefault();
 
-      const transform = state.transform().setBlock(type);
+        const transform = state.transform().setBlock(type);
 
-      if (type === 'list-item') transform.wrapBlock('bulleted-list');
+        if (type === 'list-item') transform.wrapBlock('bulleted-list');
 
-      state = transform.extendToStartOf(startBlock).delete().apply();
+        state = transform.extendToStartOf(startBlock).delete().apply();
+        return state;
+      }
 
-      return state;
+      // find all inline code characters "`"
+      let codeTags = [];
+      for (let i = 0; i < startBlock.text.length; i++) {
+        if (startBlock.text[i] === '`') codeTags.push(i);
+      }
+
+      // if we have multiple tags then mark the text between as inline code
+      if (codeTags.length > 1) {
+        const transform = state.transform();
+        const firstText = startBlock.getFirstText();
+        const firstCodeTagIndex = codeTags[0];
+        const lastCodeTagIndex = codeTags[codeTags.length - 1];
+        transform.removeTextByKey(firstText.key, lastCodeTagIndex, 1);
+        transform.removeTextByKey(firstText.key, firstCodeTagIndex, 1);
+        transform.moveOffsetsTo(firstCodeTagIndex, lastCodeTagIndex - 1);
+        transform.addMark('code');
+        state = transform.collapseToEnd().removeMark('code').apply();
+        return state;
+      }
     },
 
     /**
