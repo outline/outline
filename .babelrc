@@ -1,8 +1,12 @@
 {
-  "presets": ["react", "es2015", "stage-0"],
+  "presets": ["react", "env"],
   "plugins": [
     "lodash",
-    "transform-decorators-legacy"
+    "transform-decorators-legacy",
+    "transform-es2015-destructuring",
+    "transform-object-rest-spread",
+    "transform-regenerator",
+    "transform-class-properties"
   ],
   "env": {
     "development": {
