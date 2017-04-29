@@ -147,6 +147,7 @@
     "slug": "0.9.1",
     "string-hash": "^1.1.0",
     "style-loader": "0.13.0",
+    "styled-components": "^1.4.5",
     "truncate-html": "https://github.com/jorilallo/truncate-html/tarball/master",
     "url-loader": "0.5.7",
     "uuid": "2.0.2",
