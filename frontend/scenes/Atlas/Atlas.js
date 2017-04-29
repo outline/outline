@@ -17,9 +17,8 @@ import { Flex } from 'reflexbox';
 
 import styles from './Atlas.scss';
 
-@keydown(['c'])
-@observer
-class Atlas extends React.Component {
+//@keydown(['c'])
+@observer class Atlas extends React.Component {
   static propTypes = {
     params: PropTypes.object.isRequired,
   };

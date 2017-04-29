@@ -1,0 +1,33 @@
+.menu {
+  padding: 8px 7px 6px;
+  position: absolute;
+  z-index: 1;
+  top: -10000px;
+  left: -10000px;
+  margin-top: -6px;
+  opacity: 0;
+  background-color: #222;
+  border-radius: 4px;
+  transition: opacity .75s;
+}
+
+.menu > * {
+  display: inline-block;
+}
+
+.menu > * + * {
+  margin-left: 15px;
+}
+
+.button {
+  color: #aaa;
+  cursor: pointer;
+}
+
+.button[data-active="true"] {
+  color: black;
+}
+
+.menu .button[data-active="true"] {
+  color: #fff;
+}

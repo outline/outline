@@ -2,8 +2,10 @@ import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import ClickablePadding from './components/ClickablePadding';
+import Toolbar from './components/Toolbar';
 import schema from './schema';
 import Markdown from './serializer';
+import plugins from './plugins';
 import styles from './Editor.scss';
 
 @observer
@@ -123,7 +125,6 @@ export default class SlateEditor extends Component {
     if (endOffset !== startBlock.length) return;
 
     if (
-      startBlock.type !== 'title' &&
       startBlock.type !== 'heading1' &&
       startBlock.type !== 'heading2' &&
       startBlock.type !== 'heading3' &&
@@ -191,11 +192,13 @@ export default class SlateEditor extends Component {
     return (
       <span className={styles.container}>
         <ClickablePadding onClick={this.focusAtStart} />
+        <Toolbar state={this.state.state} onChange={this.onChange} />
         <Editor
           ref={ref => (this.editor = ref)}
           placeholder="Start with a title…"
           className={styles.editor}
           schema={schema}
+          plugins={plugins}
           state={this.state.state}
           onChange={this.onChange}
           onDocumentChange={this.onDocumentChange}
