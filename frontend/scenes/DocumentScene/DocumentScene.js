@@ -20,12 +20,11 @@ import styles from './DocumentScene.scss';
 // const cx = classNames.bind(styles);
 
 @keydown(['cmd+/', 'ctrl+/', 'c', 'e'])
-@inject('ui', 'cache')
+@inject('ui')
 @observer
 class DocumentScene extends React.Component {
   static propTypes = {
     ui: PropTypes.object.isRequired,
-    cache: PropTypes.object.isRequired,
     routeParams: PropTypes.object,
     params: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired,
@@ -34,10 +33,7 @@ class DocumentScene extends React.Component {
   constructor(props) {
     super(props);
     this.store = new DocumentSceneStore(
-      JSON.parse(localStorage[DOCUMENT_PREFERENCES] || '{}'),
-      {
-        cache: this.props.cache,
-      }
+      JSON.parse(localStorage[DOCUMENT_PREFERENCES] || '{}')
     );
   }
 

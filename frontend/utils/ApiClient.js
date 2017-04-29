@@ -3,17 +3,6 @@ import { browserHistory } from 'react-router';
 import constants from '../constants';
 import stores from 'stores';
 
-const isIterable = object =>
-  object != null && typeof object[Symbol.iterator] === 'function';
-
-const cacheResponse = data => {
-  if (isIterable(data)) {
-    stores.cache.cacheList(data);
-  } else {
-    stores.cache.cacheWithId(data.id, data);
-  }
-};
-
 class ApiClient {
   constructor(options = {}) {
     this.baseUrl = options.baseUrl || constants.API_BASE_URL;
@@ -76,10 +65,6 @@ class ApiClient {
           return response.json();
         })
         .then(json => {
-          // Cache responses
-          if (options.cache) {
-            cacheResponse(json.data);
-          }
           resolve(json);
         })
         .catch(error => {
@@ -112,4 +97,4 @@ export default ApiClient;
 
 // In case you don't want to always initiate, just import with `import { client } ...`
 const client = new ApiClient();
-export { client, cacheResponse };
+export { client };

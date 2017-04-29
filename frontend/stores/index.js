@@ -1,12 +1,10 @@
 import UserStore, { USER_STORE } from './UserStore';
 import UiStore, { UI_STORE } from './UiStore';
-import CacheStore from './CacheStore';
 import { autorunAsync } from 'mobx';
 
 const stores = {
   user: new UserStore(),
   ui: new UiStore(),
-  cache: new CacheStore(),
 };
 
 // Persist stores to localStorage

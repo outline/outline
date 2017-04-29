@@ -23,7 +23,3 @@ test('renders warning', () => {
 test('renders danger', () => {
   snap(<Alert danger>danger</Alert>);
 });
-
-test('renders offline', () => {
-  snap(<Alert offline>offline</Alert>);
-});
