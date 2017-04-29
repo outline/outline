@@ -8,6 +8,10 @@ import User from './User';
 import Revision from './Revision';
 
 slug.defaults.mode = 'rfc3986';
+const slugify = text =>
+  slug(text, {
+    remove: /[.]/g,
+  });
 
 const createRevision = async doc => {
   // Create revision of the current (latest)
@@ -25,7 +29,7 @@ const documentBeforeSave = async doc => {
   doc.html = convertToMarkdown(doc.text);
   doc.preview = truncateMarkdown(doc.text, 160);
 
-  doc.revisionCount = doc.revisionCount + 1;
+  doc.revisionCount += 1;
 
   // Collaborators
   let ids = [];
@@ -91,7 +95,7 @@ const Document = sequelize.define(
     },
     instanceMethods: {
       getUrl() {
-        const slugifiedTitle = slug(this.title);
+        const slugifiedTitle = slugify(this.title);
         return `/d/${slugifiedTitle}-${this.urlId}`;
       },
     },
