@@ -150,6 +150,7 @@
     "slate-edit-list": "^0.6.4",
     "slate-markdown-serializer": "^0.1.5",
     "slate-paste-linkify": "^0.2.1",
+    "slate-trailing-block": "^0.2.4",
     "slug": "0.9.1",
     "string-hash": "^1.1.0",
     "style-loader": "0.13.0",

@@ -7642,6 +7642,10 @@ slate-paste-linkify@^0.2.1:
     is-url "^1.2.2"
     to-pascal-case "^1.0.0"
 
+slate-trailing-block@^0.2.4:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/slate-trailing-block/-/slate-trailing-block-0.2.4.tgz#6ce9525fa15f9f098d810d9312a4267799cd0e12"
+
 slate@^0.19.20:
   version "0.19.20"
   resolved "https://registry.yarnpkg.com/slate/-/slate-0.19.20.tgz#3d3a7f772b9fe12f8b2de6d646a44e5ab635f5d5"
