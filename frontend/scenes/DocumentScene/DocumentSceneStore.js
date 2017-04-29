@@ -13,8 +13,6 @@ import { browserHistory } from 'react-router';
 const DOCUMENT_PREFERENCES = 'DOCUMENT_PREFERENCES';
 
 class DocumentSceneStore {
-  static cache;
-
   @observable document;
   @observable collapsedNodes = [];
 
@@ -53,18 +51,12 @@ class DocumentSceneStore {
       replaceUrl: true,
       ...options,
     };
-    let cacheHit = false;
-    runInAction('retrieve document from cache', () => {
-      const cachedValue = this.cache.fetchFromCache(id);
-      cacheHit = !!cachedValue;
-      if (cacheHit) this.document = cachedValue;
-    });
 
     this.isFetching = !options.softLoad;
-    this.updatingContent = options.softLoad && !cacheHit;
+    this.updatingContent = true;
 
     try {
-      const res = await client.get('/documents.info', { id }, { cache: true });
+      const res = await client.get('/documents.info', { id });
       const { data } = res;
       runInAction('fetchDocument', () => {
         this.document = data;
@@ -131,7 +123,6 @@ class DocumentSceneStore {
   constructor(settings, options) {
     // Rehydrate settings
     this.collapsedNodes = settings.collapsedNodes || [];
-    this.cache = options.cache;
 
     // Persist settings to localStorage
     // TODO: This could be done more selectively
