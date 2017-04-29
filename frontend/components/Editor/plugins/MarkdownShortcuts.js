@@ -69,28 +69,55 @@ export default function MarkdownShortcuts() {
     },
 
     /**
-     * On backspace, if at the start of a non-paragraph, convert it back into a
-     * paragraph node.
-     *
      * @param {Event} e
      * @param {State} state
      * @return {State or Null} state
      */
     onBackspace(e, state) {
       if (state.isExpanded) return;
-      if (state.startOffset !== 0) return;
-      const { startBlock } = state;
+      const { startBlock, selection, startOffset } = state;
 
-      if (startBlock.type === 'paragraph') return;
-      e.preventDefault();
+      // If at the start of a non-paragraph, convert it back into a paragraph
+      if (startOffset === 0) {
+        if (startBlock.type === 'paragraph') return;
+        e.preventDefault();
 
-      const transform = state.transform().setBlock('paragraph');
+        const transform = state.transform().setBlock('paragraph');
 
-      if (startBlock.type === 'list-item')
-        transform.unwrapBlock('bulleted-list');
+        if (startBlock.type === 'list-item')
+          transform.unwrapBlock('bulleted-list');
 
-      state = transform.apply();
-      return state;
+        state = transform.apply();
+        return state;
+      }
+
+      // If at the end of a code mark hitting backspace should remove the mark
+      if (selection.isCollapsed) {
+        const marksAtCursor = startBlock.getMarksAtRange(selection);
+        const codeMarksAtCursor = marksAtCursor.filter(
+          mark => mark.type === 'code'
+        );
+
+        if (codeMarksAtCursor.size > 0) {
+          e.preventDefault();
+
+          const textNode = startBlock.getTextAtOffset(startOffset);
+          const charsInCodeBlock = textNode.characters
+            .takeUntil((v, k) => k === startOffset)
+            .reverse()
+            .takeUntil((v, k) => !v.marks.some(mark => mark.type === 'code'));
+
+          const transform = state.transform();
+          transform.removeMarkByKey(
+            textNode.key,
+            state.startOffset - charsInCodeBlock.size,
+            state.startOffset,
+            'code'
+          );
+          state = transform.apply();
+          return state;
+        }
+      }
     },
 
     /**
