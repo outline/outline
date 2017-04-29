@@ -11,7 +11,6 @@ class Alert extends React.Component {
     danger: PropTypes.bool,
     warning: PropTypes.bool,
     success: PropTypes.bool,
-    offline: PropTypes.bool,
   };
 
   render() {
@@ -19,7 +18,6 @@ class Alert extends React.Component {
     if (this.props.danger) alertType = 'danger';
     if (this.props.warning) alertType = 'warning';
     if (this.props.success) alertType = 'success';
-    if (this.props.offline) alertType = 'offline';
     if (!alertType) alertType = 'info'; // default
 
     return (
