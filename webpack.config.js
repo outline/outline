@@ -5,7 +5,9 @@ require('dotenv').config({ silent: true });
 
 const definePlugin = new webpack.DefinePlugin({
   __DEV__: JSON.stringify(JSON.parse(process.env.NODE_ENV !== 'production')),
-  __PRERELEASE__: JSON.stringify(JSON.parse(process.env.BUILD_PRERELEASE || 'false')),
+  __PRERELEASE__: JSON.stringify(
+    JSON.parse(process.env.BUILD_PRERELEASE || 'false')
+  ),
   SLACK_REDIRECT_URI: JSON.stringify(process.env.SLACK_REDIRECT_URI),
   SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
   URL: JSON.stringify(process.env.URL),
