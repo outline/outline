@@ -8,7 +8,7 @@
   opacity: 0;
   background-color: #222;
   border-radius: 4px;
-  transition: opacity .75s;
+  transition: opacity 250ms ease-in-out;
 }
 
 .menu > * {

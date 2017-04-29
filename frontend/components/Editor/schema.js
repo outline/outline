@@ -14,6 +14,7 @@ const schema = {
   nodes: {
     'block-quote': props => <blockquote>{props.children}</blockquote>,
     'bulleted-list': props => <ul>{props.children}</ul>,
+    'ordered-list': props => <ol>{props.children}</ol>,
     image: Image,
     link: Link,
     heading1: Title,

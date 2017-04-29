@@ -7627,6 +7627,10 @@ slate-drop-or-paste-images@^0.5.0:
     is-url "^1.2.2"
     mime-types "^2.1.11"
 
+slate-edit-list@^0.6.4:
+  version "0.6.4"
+  resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.6.4.tgz#bd84ecfbdbb66cc943213be3089a33cd06b6935e"
+
 slate-markdown-serializer@^0.1.5:
   version "0.1.5"
   resolved "https://registry.yarnpkg.com/slate-markdown-serializer/-/slate-markdown-serializer-0.1.5.tgz#ff6862a6d7078f2b82853e2b38a7335814bc7a49"
