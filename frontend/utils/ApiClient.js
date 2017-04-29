@@ -1,12 +1,11 @@
 import _ from 'lodash';
 import { browserHistory } from 'react-router';
-import constants from '../constants';
 import stores from 'stores';
 
 class ApiClient {
   constructor(options = {}) {
-    this.baseUrl = options.baseUrl || constants.API_BASE_URL;
-    this.userAgent = options.userAgent || constants.API_USER_AGENT;
+    this.baseUrl = options.baseUrl || '/api';
+    this.userAgent = 'AtlasFrontend';
   }
 
   fetch = (path, method, data, options = {}) => {
