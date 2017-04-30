@@ -76,6 +76,7 @@ export default class Toolbar extends React.Component {
         <div className={styles.menu}>
           {this.renderMarkButton('bold', 'B')}
           {this.renderMarkButton('italic', 'I')}
+          {this.renderMarkButton('strikethrough', 'S')}
           {this.renderMarkButton('underlined', 'U')}
           {this.renderMarkButton('code', 'C')}
         </div>

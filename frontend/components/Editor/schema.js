@@ -9,6 +9,7 @@ const schema = {
     code: props => <code>{props.children}</code>,
     italic: props => <em>{props.children}</em>,
     underlined: props => <u>{props.children}</u>,
+    strikethrough: props => <del>{props.children}</del>,
   },
 
   nodes: {

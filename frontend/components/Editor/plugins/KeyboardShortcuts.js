@@ -19,6 +19,8 @@ export default function KeyboardShortcuts() {
           return this.toggleMark(state, 'italic');
         case 'u':
           return this.toggleMark(state, 'underlined');
+        case 'd':
+          return this.toggleMark(state, 'strikethrough');
         default:
           return null;
       }
