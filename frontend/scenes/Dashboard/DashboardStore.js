@@ -1,5 +1,5 @@
 import { observable, action, runInAction } from 'mobx';
-import { client, cacheResponse } from 'utils/ApiClient';
+import { client } from 'utils/ApiClient';
 
 class DashboardStore {
   @observable collections;
@@ -18,7 +18,6 @@ class DashboardStore {
       runInAction('fetchCollections', () => {
         this.collections = data;
         this.pagination = pagination;
-        data.forEach(collection => cacheResponse(collection.recentDocuments));
       });
 
       // If only one collection, visit it automatically

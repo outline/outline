@@ -1,14 +1,16 @@
+// @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
+import type { User } from '../../../types';
 
 @inject('user')
 @observer
 class SlackAuthLink extends React.Component {
-  static propTypes = {
-    children: React.PropTypes.node.isRequired,
-    scopes: React.PropTypes.arrayOf(React.PropTypes.string),
-    user: React.PropTypes.object.isRequired,
-    redirectUri: React.PropTypes.string,
+  props: {
+    children: any,
+    scopes: Array<string>,
+    user: User,
+    redirectUri: string,
   };
 
   static defaultProps = {

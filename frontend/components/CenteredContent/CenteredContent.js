@@ -1,8 +1,13 @@
+// @flow
 import React from 'react';
-
 import styles from './CenteredContent.scss';
 
-const CenteredContent = props => {
+type Props = {
+  children: any,
+  style: Object,
+};
+
+const CenteredContent = (props: Props) => {
   const style = {
     maxWidth: props.maxWidth,
     ...props.style,
@@ -17,11 +22,6 @@ const CenteredContent = props => {
 
 CenteredContent.defaultProps = {
   maxWidth: '740px',
-};
-
-CenteredContent.propTypes = {
-  children: React.PropTypes.node.isRequired,
-  style: React.PropTypes.object,
 };
 
 export default CenteredContent;

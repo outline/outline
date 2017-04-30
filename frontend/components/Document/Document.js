@@ -1,15 +1,15 @@
-import React, { PropTypes } from 'react';
+// @flow
+import React from 'react';
 import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
-
-import PublishingInfo from 'components/PublishingInfo';
+import type { Document as DocumentType } from '../../../types';
+import PublishingInfo from '../PublishingInfo';
+import styles from './Document.scss';
 import DocumentHtml from './components/DocumentHtml';
 
-import styles from './Document.scss';
-
 @observer class Document extends React.Component {
-  static propTypes = {
-    document: PropTypes.object.isRequired,
+  props: {
+    document: DocumentType,
   };
 
   render() {

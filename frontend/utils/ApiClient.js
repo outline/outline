@@ -2,23 +2,10 @@ import _ from 'lodash';
 import { browserHistory } from 'react-router';
 import stores from 'stores';
 
-import constants from '../constants';
-
-const isIterable = object =>
-  object != null && typeof object[Symbol.iterator] === 'function';
-
-const cacheResponse = data => {
-  if (isIterable(data)) {
-    stores.cache.cacheList(data);
-  } else {
-    stores.cache.cacheWithId(data.id, data);
-  }
-};
-
 class ApiClient {
   constructor(options = {}) {
-    this.baseUrl = options.baseUrl || constants.API_BASE_URL;
-    this.userAgent = options.userAgent || constants.API_USER_AGENT;
+    this.baseUrl = options.baseUrl || '/api';
+    this.userAgent = 'AtlasFrontend';
   }
 
   fetch = (path, method, data, options = {}) => {
@@ -77,10 +64,6 @@ class ApiClient {
           return response.json();
         })
         .then(json => {
-          // Cache responses
-          if (options.cache) {
-            cacheResponse(json.data);
-          }
           resolve(json);
         })
         .catch(error => {
@@ -113,4 +96,4 @@ export default ApiClient;
 
 // In case you don't want to always initiate, just import with `import { client } ...`
 const client = new ApiClient();
-export { client, cacheResponse };
+export { client };

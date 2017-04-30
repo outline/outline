@@ -6,21 +6,16 @@ import { Flex } from 'reflexbox';
 import { Avatar } from 'rebass';
 import keydown from 'react-keydown';
 import _ from 'lodash';
+import classNames from 'classnames/bind';
+import styles from './Layout.scss';
 import searchIcon from 'assets/icons/search.svg';
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
-import { injectOffline } from 'components/Offline';
-
 import LoadingIndicator from 'components/LoadingIndicator';
-import Alert from 'components/Alert';
-
-import styles from './Layout.scss';
-import classNames from 'classnames/bind';
 
 const cx = classNames.bind(styles);
 
 @inject('user')
 @observer
-@injectOffline
 class Layout extends React.Component {
   static propTypes = {
     children: React.PropTypes.node,
@@ -30,7 +25,6 @@ class Layout extends React.Component {
     loading: React.PropTypes.bool,
     user: React.PropTypes.object.isRequired,
     search: React.PropTypes.bool,
-    offline: React.PropTypes.bool,
     notifications: React.PropTypes.node,
   };
 
@@ -62,11 +56,6 @@ class Layout extends React.Component {
         />
 
         {this.props.loading && <LoadingIndicator />}
-
-        {this.props.offline &&
-          <Alert offline>
-            It looks like you're offline. Reconnect to restore access to all of your documents 📚
-          </Alert>}
 
         {this.props.notifications}
 
