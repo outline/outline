@@ -11,6 +11,10 @@
   transition: opacity 250ms ease-in-out;
 }
 
+.active {
+  opacity: 1;
+}
+
 .menu > * {
   display: inline-block;
 }

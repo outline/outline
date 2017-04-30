@@ -1,7 +1,6 @@
 import React from 'react';
-
-import styles from '../DocumentEdit.scss';
 import classNames from 'classnames/bind';
+import styles from '../DocumentEdit.scss';
 const cx = classNames.bind(styles);
 
 class EditorPane extends React.Component {
@@ -19,38 +18,46 @@ class EditorPane extends React.Component {
   };
 
   componentDidMount = () => {
-    this.refs.pane.addEventListener('scroll', this.handleScroll);
+    this.pane.addEventListener('scroll', this.handleScroll);
   };
 
   componentWillUnmount = () => {
-    this.refs.pane.removeEventListener('scroll', this.handleScroll);
+    this.pane.removeEventListener('scroll', this.handleScroll);
   };
 
   handleScroll = e => {
     setTimeout(() => {
-      const element = this.refs.pane;
-      const contentEl = this.refs.content;
+      const element = this.pane;
+      const contentEl = this.content;
       this.props.onScroll(element.scrollTop / contentEl.offsetHeight);
     }, 50);
   };
 
   scrollToPosition = percentage => {
-    const contentEl = this.refs.content;
+    const contentEl = this.content;
 
     // Push to edges
     if (percentage < 0.02) percentage = 0;
     if (percentage > 0.99) percentage = 100;
 
-    this.refs.pane.scrollTop = percentage * contentEl.offsetHeight;
+    this.pane.scrollTop = percentage * contentEl.offsetHeight;
+  };
+
+  setPaneRef = ref => {
+    this.pane = ref;
+  };
+
+  setContentRef = ref => {
+    this.content = ref;
   };
 
   render() {
     return (
       <div
         className={cx(styles.editorPane, { fullWidth: this.props.fullWidth })}
-        ref="pane"
+        ref={this.setPaneRef}
       >
-        <div ref="content" className={styles.paneContent}>
+        <div ref={this.setContentRef} className={styles.paneContent}>
           {this.props.children}
         </div>
       </div>

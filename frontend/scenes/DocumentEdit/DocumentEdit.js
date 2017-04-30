@@ -1,30 +1,19 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { browserHistory, withRouter } from 'react-router';
-import keydown from 'react-keydown';
+import { Flex } from 'reflexbox';
 
 import DocumentEditStore, { DOCUMENT_EDIT_SETTINGS } from './DocumentEditStore';
-
+import EditorLoader from './components/EditorLoader';
 import Switch from 'components/Switch';
 import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
-import { Flex } from 'reflexbox';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 
-import EditorLoader from './components/EditorLoader';
+const DISCARD_CHANGES = `You have unsaved changes.
+Are you sure you want to discard them?`;
 
-const DISREGARD_CHANGES = `You have unsaved changes.
-Are you sure you want to disgard them?`;
-
-@keydown([
-  'cmd+enter',
-  'ctrl+enter',
-  'cmd+esc',
-  'ctrl+esc',
-  'cmd+shift+p',
-  'ctrl+shift+p',
-])
 @withRouter
 @observer
 class DocumentEdit extends Component {
@@ -67,38 +56,13 @@ class DocumentEdit extends Component {
     // Set onLeave hook
     this.props.router.setRouteLeaveHook(this.props.route, () => {
       if (this.store.hasPendingChanges) {
-        return confirm(DISREGARD_CHANGES);
+        return confirm(DISCARD_CHANGES);
       }
       return null;
     });
   };
 
-  componentWillReceiveProps = nextProps => {
-    const key = nextProps.keydown.event;
-
-    if (key) {
-      // Cmd + Enter
-      if (key.key === 'Enter' && (key.metaKey || key.ctrl.Key)) {
-        this.onSave();
-      }
-
-      // Cmd + Esc
-      if (key.key === 'Escape' && (key.metaKey || key.ctrl.Key)) {
-        this.onCancel();
-      }
-
-      // Cmd + m
-      if (key.key === 'P' && key.shiftKey && (key.metaKey || key.ctrl.Key)) {
-        this.store.togglePreview();
-      }
-    }
-  };
-
   onSave = () => {
-    // if (this.props.title.length === 0) {
-    //   alert("Please add a title before saving (hint: Write a markdown header)");
-    //   return
-    // }
     if (this.store.newDocument || this.store.newChildDocument) {
       this.store.saveDocument();
     } else {
@@ -120,7 +84,7 @@ class DocumentEdit extends Component {
     const title = (
       <Title
         truncate={60}
-        placeholder={!this.store.isFetching && 'Untitled document'}
+        placeholder={this.store.isFetching ? 'Untitled document' : ''}
       >
         {this.store.title}
       </Title>

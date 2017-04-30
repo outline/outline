@@ -13,10 +13,8 @@ export default class SlateEditor extends Component {
   static propTypes = {
     text: React.PropTypes.string,
     onChange: React.PropTypes.func.isRequired,
-    replaceText: React.PropTypes.func.isRequired,
     onSave: React.PropTypes.func.isRequired,
     onCancel: React.PropTypes.func.isRequired,
-    toggleUploadingIndicator: React.PropTypes.func,
   };
 
   constructor(props) {
@@ -68,6 +66,7 @@ export default class SlateEditor extends Component {
           onChange={this.onChange}
           onDocumentChange={this.onDocumentChange}
           onKeyDown={this.onKeyDown}
+          onSave={this.props.onSave}
         />
         <ClickablePadding onClick={this.focusAtEnd} grow />
       </span>
