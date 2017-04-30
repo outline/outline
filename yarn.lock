@@ -7615,6 +7615,12 @@ slash@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/slash/-/slash-1.0.0.tgz#c41f2f6c39fc16d1cd17ad4b5d896114ae470d55"
 
+slate-collapse-on-escape@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/slate-collapse-on-escape/-/slate-collapse-on-escape-0.2.1.tgz#988f474439f0a21f94cc0016da52ea3c1a061100"
+  dependencies:
+    to-pascal-case "^1.0.0"
+
 slate-drop-or-paste-images@^0.5.0:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/slate-drop-or-paste-images/-/slate-drop-or-paste-images-0.5.0.tgz#c90367f9612f75abae0d1d6b8b2008108da02598"
