@@ -10,11 +10,8 @@ export default function KeyboardShortcuts() {
      */
     onKeyDown(e, data, state) {
       if (!data.isMeta) return null;
-      e.preventDefault();
 
       switch (data.key) {
-        case 'enter':
-          return state.editor.props.onSave();
         case 'b':
           return this.toggleMark(state, 'bold');
         case 'i':

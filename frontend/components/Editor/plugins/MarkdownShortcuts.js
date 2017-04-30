@@ -47,6 +47,13 @@ export default function MarkdownShortcuts() {
         return state;
       }
 
+      // const inlineMarks = {
+      //   code: '`',
+      //   bold: '**',
+      //   italic: '_',
+      //   strikethrough: '~~'
+      // }
+
       // find all inline code characters "`"
       let codeTags = [];
       for (let i = 0; i < startBlock.text.length; i++) {

@@ -56,26 +56,63 @@ export default class Toolbar extends React.Component {
     );
   };
 
+  focusLinkEditor = () => {
+    console.log('focusLinkEditor');
+    this.setState({ linkEditorFocused: true });
+  };
+
+  blurLinkEditor = () => {
+    console.log('blurLinkEditor');
+    this.setState({ linkEditorFocused: false });
+  };
+
+  updateLink = ev => {
+    const transform = this.props.state.transform();
+    const data = { href: ev.target.value };
+    transform.unwrapInline('link');
+    const state = transform.wrapInline({ type: 'link', data }).apply();
+    this.props.onChange(state);
+  };
+
+  renderLinkEditor = link => {
+    return (
+      <input
+        defaultValue={link.data.get('href')}
+        onMouseDown={this.focusLinkEditor}
+        onBlur={this.blurLinkEditor}
+        onChange={this.updateLink}
+      />
+    );
+  };
+
   update = () => {
     const { state } = this.props;
     if (state.isBlurred || state.isCollapsed) {
-      if (this.state.active)
-        this.setState({ active: false, top: '', left: '' });
+      if (this.state.active && !this.state.linkEditorFocused)
+        this.setState({ active: false, link: false, top: '', left: '' });
       return;
     }
 
     if (!this.state.active) {
+      const data = {
+        active: true,
+      };
+      const linksInSelection = state.startBlock
+        .getInlinesAtRange(state.selection)
+        .filter(node => node.type === 'link');
+      if (linksInSelection.size) {
+        const firstLink = linksInSelection.first();
+        console.log('selected a link', firstLink.toJS());
+        data.link = firstLink;
+      }
+
       const selection = window.getSelection();
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      const top = `${rect.top + window.scrollY - this.menu.offsetHeight}px`;
-      const left = `${rect.left + window.scrollX - this.menu.offsetWidth / 2 + rect.width / 2}px`;
+      data.top = `${rect.top + window.scrollY - this.menu.offsetHeight}px`;
+      data.left = `${rect.left + window.scrollX - this.menu.offsetWidth / 2 + rect.width / 2}px`;
 
-      this.setState({
-        active: true,
-        top,
-        left,
-      });
+      this.setState(data);
     }
   };
 
@@ -84,6 +121,7 @@ export default class Toolbar extends React.Component {
   };
 
   render() {
+    const link = this.state.link;
     const classes = classnames(styles.menu, {
       [styles.active]: this.state.active,
     });
@@ -96,6 +134,7 @@ export default class Toolbar extends React.Component {
     return (
       <Portal isOpened>
         <div className={classes} style={style} ref={this.setRef}>
+          {link && this.renderLinkEditor(link)}
           {this.renderMarkButton('bold', 'B')}
           {this.renderMarkButton('italic', 'I')}
           {this.renderMarkButton('strikethrough', 'S')}

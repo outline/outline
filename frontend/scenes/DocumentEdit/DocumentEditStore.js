@@ -1,6 +1,6 @@
 import { observable, action, toJS, autorun } from 'mobx';
-import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
+import { client } from 'utils/ApiClient';
 import emojify from 'utils/emojify';
 
 const DOCUMENT_EDIT_SETTINGS = 'DOCUMENT_EDIT_SETTINGS';

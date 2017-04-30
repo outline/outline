@@ -35,6 +35,18 @@ export default class SlateEditor extends Component {
     this.props.onChange(Markdown.serialize(state));
   };
 
+  onKeyDown = (ev, data) => {
+    if (!data.isMeta) return;
+
+    switch (data.key) {
+      case 'enter':
+        return this.props.onSave();
+      case 'escape':
+        return this.props.onCancel();
+      default:
+    }
+  };
+
   focusAtStart = () => {
     const state = this.editor.getState();
     const transform = state.transform();
