@@ -20,16 +20,20 @@
   color: #aaa;
   cursor: pointer;
   margin-left: 15px;
-}
+  border: none;
+  background: none;
+  transition: color 100ms ease-in-out;
+  padding: 0;
 
-.button:first-child {
-  margin-left: 0;
-}
+  &:first-child {
+    margin-left: 0;
+  }
 
-.button[data-active="true"] {
-  color: black;
-}
+  &:hover {
+    color: #fff;
+  }
 
-.menu .button[data-active="true"] {
-  color: #fff;
+  &[data-active="true"] {
+    color: #fff;
+  }
 }

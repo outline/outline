@@ -21,11 +21,11 @@ export default class FormattingToolbar extends Component {
   /**
    * When a mark button is clicked, toggle the current mark.
    *
-   * @param {Event} e
+   * @param {Event} ev
    * @param {String} type
    */
-  onClickMark = (e, type) => {
-    e.preventDefault();
+  onClickMark = (ev, type) => {
+    ev.preventDefault();
     let { state } = this.props;
 
     state = state.transform().toggleMark(type).apply();
@@ -48,6 +48,11 @@ export default class FormattingToolbar extends Component {
     );
   };
 
+  /**
+   * Convert the current selection into an empty link
+   *
+   * @param {Event} ev
+   */
   makeLink = ev => {
     ev.preventDefault();
     ev.stopPropagation();
