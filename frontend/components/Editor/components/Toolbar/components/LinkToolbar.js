@@ -10,13 +10,20 @@ export default class LinkToolbar extends Component {
     onBlur: Function,
     onFocus: Function,
     onChange: Function,
-    onCancel: Function,
   };
 
+  componentDidMount() {
+    this.input.focus();
+  }
+
   onKeyDown = ev => {
-    if (ev.which === 13) {
-      ev.preventDefault();
-      this.save(ev.target.value);
+    switch (ev.which) {
+      case 13: // enter
+        ev.preventDefault();
+        return this.save(ev.target.value);
+      case 26: // escape
+        return this.input.blur();
+      default:
     }
   };
 
@@ -40,12 +47,14 @@ export default class LinkToolbar extends Component {
   };
 
   render() {
+    const href = this.props.link.data.get('href');
     return (
       <span>
         <input
           ref={ref => (this.input = ref)}
-          defaultValue={this.props.link.data.get('href')}
+          defaultValue={href}
           onMouseDown={this.props.onFocus}
+          onFocus={this.props.onFocus}
           onBlur={this.props.onBlur}
           onKeyDown={this.onKeyDown}
         />

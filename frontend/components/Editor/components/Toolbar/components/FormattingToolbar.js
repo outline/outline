@@ -38,14 +38,23 @@ export default class FormattingToolbar extends Component {
     const onMouseDown = e => this.onClickMark(e, type);
 
     return (
-      <span
+      <button
         className={styles.button}
         onMouseDown={onMouseDown}
         data-active={isActive}
       >
         {icon}
-      </span>
+      </button>
     );
+  };
+
+  makeLink = ev => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    const transform = this.props.state.transform();
+    const data = { href: '' };
+    const state = transform.wrapInline({ type: 'link', data }).apply();
+    this.props.onChange(state);
   };
 
   render() {
@@ -56,6 +65,9 @@ export default class FormattingToolbar extends Component {
         {this.renderMarkButton('strikethrough', 'S')}
         {this.renderMarkButton('underlined', 'U')}
         {this.renderMarkButton('code', 'C')}
+        <button className={styles.button} onMouseDown={this.makeLink}>
+          Link
+        </button>
       </span>
     );
   }
