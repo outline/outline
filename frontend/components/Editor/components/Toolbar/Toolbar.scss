@@ -15,17 +15,15 @@
   opacity: 1;
 }
 
-.menu > * {
+.button {
   display: inline-block;
-}
-
-.menu > * + * {
+  color: #aaa;
+  cursor: pointer;
   margin-left: 15px;
 }
 
-.button {
-  color: #aaa;
-  cursor: pointer;
+.button:first-child {
+  margin-left: 0;
 }
 
 .button[data-active="true"] {

@@ -1,6 +1,8 @@
 import React from 'react';
 import Portal from 'react-portal';
 import classnames from 'classnames';
+import FormattingToolbar from './components/FormattingToolbar';
+import LinkToolbar from './components/LinkToolbar';
 import styles from './Toolbar.scss';
 
 export default class Toolbar extends React.Component {
@@ -16,79 +18,18 @@ export default class Toolbar extends React.Component {
     this.update();
   };
 
-  /**
-   * Check if the current selection has a mark with `type` in it.
-   *
-   * @param {String} type
-   * @return {Boolean}
-   */
-  hasMark = type => {
-    return this.props.state.marks.some(mark => mark.type === type);
+  handleFocus = () => {
+    this.setState({ focused: true });
   };
 
-  /**
-   * When a mark button is clicked, toggle the current mark.
-   *
-   * @param {Event} e
-   * @param {String} type
-   */
-  onClickMark = (e, type) => {
-    e.preventDefault();
-    let { state } = this.props;
-
-    state = state.transform().toggleMark(type).apply();
-
-    this.props.onChange(state);
-  };
-
-  renderMarkButton = (type, icon) => {
-    const isActive = this.hasMark(type);
-    const onMouseDown = e => this.onClickMark(e, type);
-
-    return (
-      <span
-        className={styles.button}
-        onMouseDown={onMouseDown}
-        data-active={isActive}
-      >
-        {icon}
-      </span>
-    );
-  };
-
-  focusLinkEditor = () => {
-    console.log('focusLinkEditor');
-    this.setState({ linkEditorFocused: true });
-  };
-
-  blurLinkEditor = () => {
-    console.log('blurLinkEditor');
-    this.setState({ linkEditorFocused: false });
-  };
-
-  updateLink = ev => {
-    const transform = this.props.state.transform();
-    const data = { href: ev.target.value };
-    transform.unwrapInline('link');
-    const state = transform.wrapInline({ type: 'link', data }).apply();
-    this.props.onChange(state);
-  };
-
-  renderLinkEditor = link => {
-    return (
-      <input
-        defaultValue={link.data.get('href')}
-        onMouseDown={this.focusLinkEditor}
-        onBlur={this.blurLinkEditor}
-        onChange={this.updateLink}
-      />
-    );
+  handleBlur = () => {
+    this.setState({ focused: false });
   };
 
   update = () => {
     const { state } = this.props;
     if (state.isBlurred || state.isCollapsed) {
-      if (this.state.active && !this.state.linkEditorFocused)
+      if (this.state.active && !this.state.focused)
         this.setState({ active: false, link: false, top: '', left: '' });
       return;
     }
@@ -97,12 +38,11 @@ export default class Toolbar extends React.Component {
       const data = {
         active: true,
       };
-      const linksInSelection = state.startBlock
+      const selectedLinks = state.startBlock
         .getInlinesAtRange(state.selection)
         .filter(node => node.type === 'link');
-      if (linksInSelection.size) {
-        const firstLink = linksInSelection.first();
-        console.log('selected a link', firstLink.toJS());
+      if (selectedLinks.size) {
+        const firstLink = selectedLinks.first();
         data.link = firstLink;
       }
 
@@ -134,12 +74,14 @@ export default class Toolbar extends React.Component {
     return (
       <Portal isOpened>
         <div className={classes} style={style} ref={this.setRef}>
-          {link && this.renderLinkEditor(link)}
-          {this.renderMarkButton('bold', 'B')}
-          {this.renderMarkButton('italic', 'I')}
-          {this.renderMarkButton('strikethrough', 'S')}
-          {this.renderMarkButton('underlined', 'U')}
-          {this.renderMarkButton('code', 'C')}
+          {link &&
+            <LinkToolbar
+              {...this.props}
+              link={link}
+              onFocus={this.handleFocus}
+              onBlur={this.handleBlur}
+            />}
+          {!link && <FormattingToolbar {...this.props} />}
         </div>
       </Portal>
     );
