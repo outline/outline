@@ -29,6 +29,7 @@ const schema = {
   },
 
   rules: [
+    // ensure first node is a heading
     {
       match: node => {
         return node.kind === 'document';
@@ -39,6 +40,37 @@ const schema = {
       },
       normalize: (transform, document, firstNode) => {
         transform.setBlock({ type: 'heading1' });
+      },
+    },
+
+    // remove any marks in first heading
+    {
+      match: node => {
+        return node.type === 'heading1';
+      },
+      validate: heading => {
+        const hasMarks = heading.getMarks().isEmpty();
+        const hasInlines = heading.getInlines().isEmpty();
+
+        return !(hasMarks && hasInlines);
+      },
+      normalize: (transform, heading) => {
+        transform.unwrapInlineByKey(heading.key);
+
+        heading.getMarks().forEach(mark => {
+          heading.nodes.forEach(textNode => {
+            if (textNode.kind === 'text') {
+              transform.removeMarkByKey(
+                textNode.key,
+                0,
+                textNode.text.length,
+                mark
+              );
+            }
+          });
+        });
+
+        return transform;
       },
     },
   ],

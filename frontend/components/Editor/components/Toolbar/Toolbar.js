@@ -37,6 +37,20 @@ export default class Toolbar extends Component {
     this.setState({ focused: false });
   };
 
+  get linkInSelection() {
+    const { state } = this.props;
+
+    if (state.selection.focusOffset) {
+      const selectedLinks = state.startBlock
+        .getInlinesAtRange(state.selection)
+        .filter(node => node.type === 'link');
+      if (selectedLinks.size) {
+        return selectedLinks.first();
+      }
+    }
+    return null;
+  }
+
   update = () => {
     const { state } = this.props;
 
@@ -46,18 +60,15 @@ export default class Toolbar extends Component {
       return;
     }
 
+    // don't display toolbar for document title
+    const firstNode = state.document.nodes.first();
+    if (firstNode === state.startBlock) return;
+
     const data = {
       ...this.state,
       active: true,
-      link: null,
+      link: this.linkInSelection,
     };
-    const selectedLinks = state.startBlock
-      .getInlinesAtRange(state.selection)
-      .filter(node => node.type === 'link');
-    if (selectedLinks.size) {
-      const firstLink = selectedLinks.first();
-      data.link = firstLink;
-    }
 
     const padding = 16;
     const selection = window.getSelection();
