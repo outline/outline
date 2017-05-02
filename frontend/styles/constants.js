@@ -1,11 +1,19 @@
 // @flow
 
 export const color = {
-  text: '#171B35',
-  highlight: '#3AA3E3',
+  black: '#000000',
+  white: '#FFFFFF',
 
-  gray: '#ccc',
-  lightGray: '#eee',
+  text: '#171B35',
+  highlight: '#03A9F4',
+
+  gray: '#cccccc',
+  lightGray: '#f5f5f5',
+
+  danger: '#f04124',
+  warning: '#f08a24',
+  success: '#43AC6A',
+  info: '#a0d3e8',
 };
 
 export const fontSize = {
@@ -17,5 +25,7 @@ export const fontSize = {
 };
 
 export default {
+  headerHeight: '70px',
+
   borderRadius: '4px',
 };

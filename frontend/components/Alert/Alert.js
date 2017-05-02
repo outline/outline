@@ -1,18 +1,18 @@
 // @flow
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { Flex } from 'reflexbox';
-import classNames from 'classnames/bind';
-import styles from './Alert.scss';
+import styled from 'styled-components';
+import constants, { color } from 'styles/constants';
 
-const cx = classNames.bind(styles);
+type Props = {
+  children?: React.Element<any>,
+  danger?: boolean,
+  warning?: boolean,
+  success?: boolean,
+};
 
 class Alert extends React.Component {
-  static propTypes = {
-    children: PropTypes.node.isRequired,
-    danger: PropTypes.bool,
-    warning: PropTypes.bool,
-    success: PropTypes.bool,
-  };
+  props: Props;
 
   render() {
     let alertType;
@@ -22,15 +22,19 @@ class Alert extends React.Component {
     if (!alertType) alertType = 'info'; // default
 
     return (
-      <Flex
-        align="center"
-        justify="center"
-        className={cx(styles.container, styles[alertType])}
-      >
+      <Container align="center" justify="center" type={alertType}>
         {this.props.children}
-      </Flex>
+      </Container>
     );
   }
 }
+
+const Container = styled(Flex)`
+  height: ${constants.headerHeight};
+  color: ${color.white};
+  font-size: 14px;
+  line-height: 1;
+  background-color: ${({ type }) => color[type]};
+`;
 
 export default Alert;

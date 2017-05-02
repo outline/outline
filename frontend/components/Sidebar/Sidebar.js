@@ -66,17 +66,6 @@ type Props = {
               </span>
             </Flex>
           </Flex>}
-        <div
-          onClick={this.props.onToggle}
-          className={cx(styles.sidebarToggle, { active: this.store.isEditing })}
-          title="Toggle sidebar (Cmd+/)"
-        >
-          <img
-            src={require('assets/icons/menu.svg')}
-            className={styles.menuIcon}
-            alt="Menu"
-          />
-        </div>
       </Flex>
     );
   }

@@ -28,7 +28,6 @@ class Title extends React.Component {
 
     return (
       <span>
-        {title && <span>&nbsp;/&nbsp;</span>}
         <TitleText title={this.props.content} untitled={usePlaceholder}>
           {title}
         </TitleText>
