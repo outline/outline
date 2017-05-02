@@ -41,8 +41,6 @@ class DashboardStore {
 
   constructor(options: Options) {
     this.team = options.team;
-    this.router = options.router;
-    this.fetchCollections();
   }
 }
 

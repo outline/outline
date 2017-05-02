@@ -1,57 +1,50 @@
 // @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import { withRouter } from 'react-router';
 import { Flex } from 'reflexbox';
-
-import DashboardStore from './DashboardStore';
 
 import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
+import DashboardStore from 'stores/DashboardStore';
 
 type Props = {
-  user: Object,
-  router: Object,
+  user: UserStore,
 };
 
-@withRouter
-@inject('user')
-@observer
-class Dashboard extends React.Component {
+@observer class Dashboard extends React.Component {
   props: Props;
   store: DashboardStore;
 
-  constructor(props: Props) {
-    super(props);
+  componentDidMount() {
+    this.props.dashboard.fetchCollections();
+  }
 
-    this.store = new DashboardStore({
-      team: props.user.team,
-      router: props.router,
-    });
+  renderCollections() {
+    const { collections } = this.props.dashboard;
+    return (
+      collections &&
+      collections.map(collection => (
+        <AtlasPreview key={collection.id} data={collection} />
+      ))
+    );
   }
 
   render() {
+    const { isFetching } = this.props.dashboard;
+
     return (
-      <Flex auto>
-        <Layout>
-          <CenteredContent>
-            <Flex column auto>
-              {this.store.isFetching
-                ? <AtlasPreviewLoading />
-                : this.store.collections &&
-                    this.store.collections.map(collection => {
-                      return (
-                        <AtlasPreview key={collection.id} data={collection} />
-                      );
-                    })}
-            </Flex>
-          </CenteredContent>
-        </Layout>
-      </Flex>
+      <Layout>
+        <CenteredContent>
+          <Flex column auto>
+            {isFetching ? <AtlasPreviewLoading /> : this.renderCollections()}
+          </Flex>
+        </CenteredContent>
+      </Layout>
     );
   }
 }
 
-export default Dashboard;
+export { Dashboard };
+export default inject('user', 'dashboard')(Dashboard);
