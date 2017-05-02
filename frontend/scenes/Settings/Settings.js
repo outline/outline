@@ -15,8 +15,8 @@ import SettingsStore from './SettingsStore';
 @observer class Settings extends React.Component {
   store = SettingsStore;
 
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
     this.store = new SettingsStore();
   }
 
@@ -99,41 +99,64 @@ import SettingsStore from './SettingsStore';
   }
 }
 
-const InlineForm = ({
-  placeholder,
-  buttonLabel,
-  name,
-  value,
-  onChange,
-  onSubmit,
-  disabled,
-}: {
-  placeholder: string,
-  buttonLabel: string,
-  name: string,
-  value: string,
-  onChange: Function,
-  onSubmit: Function,
-  disabled?: boolean,
-}) => {
-  const handleSubmit = event => {
-    event.preventDefault();
-    onSubmit();
+class InlineForm extends React.Component {
+  props: {
+    placeholder: string,
+    buttonLabel: string,
+    name: string,
+    value: string,
+    onChange: Function,
+    onSubmit: Function,
+    disabled?: boolean,
   };
-  return (
-    <form onSubmit={handleSubmit}>
-      <Flex auto>
-        <TextInput
-          type="text"
-          placeholder={placeholder}
-          value={value || ''}
-          onChange={onChange}
-        />
-        <Button type="submit" value={buttonLabel} />
-      </Flex>
-    </form>
-  );
-};
+  validationTimeout: number;
+
+  state = {
+    validationError: false,
+  };
+
+  componentWillUnmount() {
+    clearTimeout(this.validationTimeout);
+  }
+
+  handleSubmit = event => {
+    event.preventDefault();
+    if (this.props.value) {
+      this.props.onSubmit();
+    } else {
+      this.setState({
+        validationError: true,
+      });
+      this.validationTimeout = setTimeout(
+        () =>
+          this.setState({
+            validationError: false,
+          }),
+        2500
+      );
+    }
+  };
+
+  render() {
+    const { placeholder, value, onChange, buttonLabel } = this.props;
+    const { validationError } = this.state;
+
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <Flex auto>
+          <TextInput
+            type="text"
+            placeholder={validationError ? 'Please add a label' : placeholder}
+            value={value || ''}
+            onChange={onChange}
+            validationError={validationError}
+          />
+          <Button type="submit" value={buttonLabel} />
+        </Flex>
+      </form>
+    );
+  }
+}
 
 const TextInput = styled.input`
   display:flex;
@@ -143,10 +166,10 @@ const TextInput = styled.input`
   padding-left:8px;
   padding-right:8px;
   color:inherit;
-  background-color:rgba(255, 255, 255, .25);
+  background-color: rgba(255, 255, 255, .25);
   border-width:1px;
   border-style:solid;
-  border-color:rgba(0, 0, 0, .25);
+  border-color: ${props => (props.validationError ? 'red' : 'rgba(0, 0, 0, .25)')};
   border-radius:2px 0 0 2px;
 `;
 
