@@ -1,6 +1,12 @@
 // @flow
 import React, { Component } from 'react';
 import styles from '../Toolbar.scss';
+import BoldIcon from 'components/Icon/BoldIcon';
+import CodeIcon from 'components/Icon/CodeIcon';
+import ItalicIcon from 'components/Icon/ItalicIcon';
+import LinkIcon from 'components/Icon/LinkIcon';
+import StrikethroughIcon from 'components/Icon/StrikethroughIcon';
+import UnderlinedIcon from 'components/Icon/UnderlinedIcon';
 
 export default class FormattingToolbar extends Component {
   props: {
@@ -33,7 +39,7 @@ export default class FormattingToolbar extends Component {
     this.props.onChange(state);
   };
 
-  renderMarkButton = (type, icon) => {
+  renderMarkButton = (type, IconClass) => {
     const isActive = this.hasMark(type);
     const onMouseDown = e => this.onClickMark(e, type);
 
@@ -43,7 +49,7 @@ export default class FormattingToolbar extends Component {
         onMouseDown={onMouseDown}
         data-active={isActive}
       >
-        {icon}
+        <IconClass light />
       </button>
     );
   };
@@ -65,13 +71,13 @@ export default class FormattingToolbar extends Component {
   render() {
     return (
       <span>
-        {this.renderMarkButton('bold', 'B')}
-        {this.renderMarkButton('italic', 'I')}
-        {this.renderMarkButton('strikethrough', 'S')}
-        {this.renderMarkButton('underlined', 'U')}
-        {this.renderMarkButton('code', 'C')}
+        {this.renderMarkButton('bold', BoldIcon)}
+        {this.renderMarkButton('italic', ItalicIcon)}
+        {this.renderMarkButton('strikethrough', StrikethroughIcon)}
+        {this.renderMarkButton('underlined', UnderlinedIcon)}
+        {this.renderMarkButton('code', CodeIcon)}
         <button className={styles.button} onMouseDown={this.makeLink}>
-          Link
+          <LinkIcon light />
         </button>
       </span>
     );

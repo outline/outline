@@ -70,16 +70,16 @@ export default class Toolbar extends Component {
       link: this.linkInSelection,
     };
 
-    const padding = 16;
-    const selection = window.getSelection();
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    const left =
-      rect.left + window.scrollX - this.menu.offsetWidth / 2 + rect.width / 2;
-    data.top = `${rect.top + window.scrollY - this.menu.offsetHeight}px`;
-    data.left = `${Math.max(padding, left)}px`;
-
     if (!isEqual(data, this.state)) {
+      const padding = 16;
+      const selection = window.getSelection();
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      const left =
+        rect.left + window.scrollX - this.menu.offsetWidth / 2 + rect.width / 2;
+      data.top = `${rect.top + window.scrollY - this.menu.offsetHeight}px`;
+      data.left = `${Math.max(padding, left)}px`;
+
       this.setState(data);
     }
   };

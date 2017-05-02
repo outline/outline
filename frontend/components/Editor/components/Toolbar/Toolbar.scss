@@ -1,39 +1,42 @@
 .menu {
-  padding: 8px 16px 6px;
+  padding: 8px 16px;
   position: absolute;
   z-index: 1;
   top: -10000px;
   left: -10000px;
-  margin-top: -6px;
   opacity: 0;
   background-color: #222;
   border-radius: 4px;
-  transition: opacity 250ms ease-in-out;
+  transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
+  line-height: 0;
 }
 
 .active {
+  transform: translateY(-6px);
   opacity: 1;
 }
 
 .button {
   display: inline-block;
-  color: #aaa;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
   margin-left: 15px;
   border: none;
   background: none;
-  transition: color 100ms ease-in-out;
+  transition: opacity 100ms ease-in-out;
   padding: 0;
+  opacity: .7;
 
   &:first-child {
     margin-left: 0;
   }
 
   &:hover {
-    color: #fff;
+    opacity: 1;
   }
 
   &[data-active="true"] {
-    color: #fff;
+    opacity: 1;
   }
 }
