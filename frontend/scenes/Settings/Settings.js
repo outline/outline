@@ -109,10 +109,15 @@ class InlineForm extends React.Component {
     onSubmit: Function,
     disabled?: boolean,
   };
+  validationTimeout: number;
 
   state = {
     validationError: false,
   };
+
+  componentWillUnmount() {
+    clearTimeout(this.validationTimeout);
+  }
 
   handleSubmit = event => {
     event.preventDefault();
@@ -122,7 +127,7 @@ class InlineForm extends React.Component {
       this.setState({
         validationError: true,
       });
-      setTimeout(
+      this.validationTimeout = setTimeout(
         () =>
           this.setState({
             validationError: false,
