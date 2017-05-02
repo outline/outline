@@ -38,7 +38,7 @@ class UserStore {
     cb();
   };
 
-  @action getOauthState = () => {
+  @action getOauthState = (): string => {
     const state = Math.random().toString(36).substring(7);
     this.oauthState = state;
     return this.oauthState;
