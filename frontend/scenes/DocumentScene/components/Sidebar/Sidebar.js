@@ -13,8 +13,6 @@ const cx = classNames.bind(styles);
 import SidebarStore from './SidebarStore';
 
 @observer class Sidebar extends React.Component {
-  static store;
-
   static propTypes = {
     open: PropTypes.bool,
     onToggle: PropTypes.func.isRequired,

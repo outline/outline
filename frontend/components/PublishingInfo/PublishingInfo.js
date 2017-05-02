@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import moment from 'moment';
+import styled from 'styled-components';
 
-import { Avatar } from 'rebass';
 import { Flex } from 'reflexbox';
 
 import styles from './PublishingInfo.scss';
@@ -19,18 +19,15 @@ class PublishingInfo extends React.Component {
     return (
       <Flex align="center" className={styles.user}>
         <Flex className={styles.avatarLine}>
-          {this.props.collaborators.reverse().map(user => (
-            <Avatar
-              key={`avatar-${user.id}`}
-              src={user.avatarUrl}
-              size={26}
-              style={{
-                marginRight: '-12px',
-                border: '2px solid #FFFFFF',
-              }}
-              title={user.name}
-            />
-          ))}
+          {this.props.collaborators
+            .reverse()
+            .map(user => (
+              <Avatar
+                key={`avatar-${user.id}`}
+                src={user.avatarUrl}
+                title={user.name}
+              />
+            ))}
         </Flex>
         <span className={styles.userName}>
           {this.props.createdBy.name}
@@ -51,5 +48,14 @@ class PublishingInfo extends React.Component {
     );
   }
 }
+
+const Avatar = styled.img`
+  width: 26px;
+  height: 26px;
+  marginRight: '-12px',
+
+  border-radius: 50%;
+  border: '2px solid #FFFFFF';
+`;
 
 export default PublishingInfo;

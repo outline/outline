@@ -5,7 +5,6 @@ import keydown from 'react-keydown';
 
 import DocumentEditStore, { DOCUMENT_EDIT_SETTINGS } from './DocumentEditStore';
 
-import Switch from 'components/Switch';
 import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
 import { Flex } from 'reflexbox';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -141,7 +140,7 @@ class DocumentEdit extends Component {
         </HeaderAction>
         <DropdownMenu label={<MoreIcon />}>
           <MenuItem onClick={this.store.togglePreview}>
-            Preview <Switch checked={this.store.preview} />
+            Toggle Preview
           </MenuItem>
           <MenuItem onClick={this.onCancel}>
             Cancel

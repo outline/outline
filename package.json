@@ -138,7 +138,6 @@
     "react-helmet": "3.1.0",
     "react-keydown": "^1.6.1",
     "react-router": "2.8.0",
-    "rebass": "^0.3.4",
     "redis": "^2.6.2",
     "redis-lock": "^0.1.0",
     "reflexbox": "^2.2.3",
