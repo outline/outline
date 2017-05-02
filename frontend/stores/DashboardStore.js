@@ -15,7 +15,8 @@ class DashboardStore {
   @observable collections: Array<Collection>;
   @observable pagination: Pagination;
 
-  @observable isFetching: boolean = true;
+  @observable isFetching: boolean = false;
+  @observable isLoaded: boolean = false;
 
   /* Actions */
 
@@ -36,7 +37,9 @@ class DashboardStore {
     } catch (e) {
       console.error('Something went wrong');
     }
+
     this.isFetching = false;
+    this.isLoaded = true;
   };
 
   constructor(options: Options) {

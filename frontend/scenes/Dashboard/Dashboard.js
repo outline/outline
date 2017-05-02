@@ -32,13 +32,13 @@ type Props = {
   }
 
   render() {
-    const { isFetching } = this.props.dashboard;
+    const { isLoaded } = this.props.dashboard;
 
     return (
       <Layout>
         <CenteredContent>
           <Flex column auto>
-            {isFetching ? <AtlasPreviewLoading /> : this.renderCollections()}
+            {!isLoaded ? <AtlasPreviewLoading /> : this.renderCollections()}
           </Flex>
         </CenteredContent>
       </Layout>
