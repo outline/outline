@@ -1,3 +1,4 @@
+// @flow
 export type User = {
   avatarUrl: string,
   id: string,
@@ -7,10 +8,10 @@ export type User = {
 
 export type Collection = {
   createdAt: string,
-  description: string,
+  description: ?string,
   id: string,
   name: string,
-  type: string,
+  type: 'atlas' | 'journal',
   updatedAt: string,
   url: string,
 };
@@ -29,4 +30,10 @@ export type Document = {
   updatedAt: string,
   updatedBy: string,
   url: string,
+};
+
+export type Pagination = {
+  limit: number,
+  nextPath: string,
+  offset: number,
 };

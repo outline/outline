@@ -2,7 +2,7 @@
 import React from 'react';
 import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
-import type { Document as DocumentType } from '../../../types';
+import type { Document as DocumentType } from 'types';
 import PublishingInfo from '../PublishingInfo';
 import styles from './Document.scss';
 import DocumentHtml from './components/DocumentHtml';

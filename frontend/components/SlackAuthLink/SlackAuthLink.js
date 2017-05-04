@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import type { User } from '../../../types';
+import type { User } from 'types';
 
 @inject('user')
 @observer

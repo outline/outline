@@ -1,11 +1,20 @@
+// @flow
 import { observable, action, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
+import type { Pagination, Collection } from 'types';
+
+type Options = {
+  team: Object,
+  router: Object,
+};
 
 class DashboardStore {
-  @observable collections;
-  @observable pagination;
+  team: Object;
+  router: Object;
+  @observable collections: Array<Collection>;
+  @observable pagination: Pagination;
 
-  @observable isFetching = true;
+  @observable isFetching: boolean = true;
 
   /* Actions */
 
@@ -19,18 +28,13 @@ class DashboardStore {
         this.collections = data;
         this.pagination = pagination;
       });
-
-      // If only one collection, visit it automatically
-      if (this.collections.length === 1) {
-        this.router.push(this.collections[0].url);
-      }
     } catch (e) {
       console.error('Something went wrong');
     }
     this.isFetching = false;
   };
 
-  constructor(options) {
+  constructor(options: Options) {
     this.team = options.team;
     this.router = options.router;
     this.fetchCollections();
