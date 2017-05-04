@@ -29,9 +29,6 @@ export default class SlateEditor extends Component {
 
   onChange = state => {
     this.setState({ state });
-  };
-
-  onDocumentChange = (document, state) => {
     this.props.onChange(Markdown.serialize(state));
   };
 

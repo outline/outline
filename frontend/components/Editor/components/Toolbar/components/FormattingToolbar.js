@@ -73,7 +73,7 @@ export default class FormattingToolbar extends Component {
       <span>
         {this.renderMarkButton('bold', BoldIcon)}
         {this.renderMarkButton('italic', ItalicIcon)}
-        {this.renderMarkButton('strikethrough', StrikethroughIcon)}
+        {this.renderMarkButton('deleted', StrikethroughIcon)}
         {this.renderMarkButton('underlined', UnderlinedIcon)}
         {this.renderMarkButton('code', CodeIcon)}
         <button className={styles.button} onMouseDown={this.makeLink}>

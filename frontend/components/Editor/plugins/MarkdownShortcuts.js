@@ -51,7 +51,7 @@ export default function MarkdownShortcuts() {
       //   code: '`',
       //   bold: '**',
       //   italic: '_',
-      //   strikethrough: '~~'
+      //   deleted: '~~'
       // }
 
       // find all inline code characters "`"

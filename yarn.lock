@@ -6079,9 +6079,9 @@ nopt@~1.0.10:
   dependencies:
     abbrev "1"
 
-normalize-git-url@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/normalize-git-url/-/normalize-git-url-1.0.1.tgz#1b561345d66e3a3bc5513a5ace85f155ca42613e"
+normalize-git-url@3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/normalize-git-url/-/normalize-git-url-3.0.2.tgz#8e5f14be0bdaedb73e07200310aa416c27350fc4"
 
 normalize-package-data@^2.3.2, normalize-package-data@^2.3.4:
   version "2.3.5"
@@ -6900,7 +6900,7 @@ promise@7.x, promise@^7.0.3, promise@^7.1.1:
   dependencies:
     asap "~2.0.3"
 
-prop-types@^15.5.8:
+prop-types@^15.5.4, prop-types@^15.5.8:
   version "15.5.8"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.5.8.tgz#6b7b2e141083be38c8595aa51fc55775c7199394"
   dependencies:
@@ -7585,12 +7585,12 @@ safe-buffer@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.0.1.tgz#d263ca54696cd8a306b5ca6551e92de57918fbe7"
 
-safestart@0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/safestart/-/safestart-0.8.0.tgz#f6716cb863afa54db7fb2169c29ce85e30b5654d"
+safestart@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/safestart/-/safestart-1.1.0.tgz#a72880d28460c8b8211ccee83a7e0d542628b5dd"
   dependencies:
-    normalize-git-url "1.0.1"
-    semver "4.2.0"
+    normalize-git-url "3.0.2"
+    semver "5.3.0"
 
 sane@~1.4.1:
   version "1.4.1"
@@ -7641,13 +7641,9 @@ semver-diff@^2.0.0:
   dependencies:
     semver "^5.0.3"
 
-"semver@2 || 3 || 4 || 5", "semver@2.x || 3.x || 4 || 5", semver@^5.0.1, semver@^5.0.3, semver@^5.1.0, semver@~5.3.0:
+"semver@2 || 3 || 4 || 5", "semver@2.x || 3.x || 4 || 5", semver@5.3.0, semver@^5.0.1, semver@^5.0.3, semver@^5.1.0, semver@~5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.3.0.tgz#9b2ce5d3de02d17c6012ad326aa6b4d0cf54f94f"
-
-semver@4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-4.2.0.tgz#a571fd4adbe974fe32bd9cb4c5e249606f498423"
 
 semver@4.3.2, semver@^4.1.0:
   version "4.3.2"
@@ -7840,9 +7836,9 @@ slate-edit-list@^0.6.4:
   version "0.6.4"
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.6.4.tgz#bd84ecfbdbb66cc943213be3089a33cd06b6935e"
 
-slate-markdown-serializer@^0.1.5:
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/slate-markdown-serializer/-/slate-markdown-serializer-0.1.5.tgz#ff6862a6d7078f2b82853e2b38a7335814bc7a49"
+slate-markdown-serializer@tommoor/slate-markdown-serializer:
+  version "0.2.0"
+  resolved "https://codeload.github.com/tommoor/slate-markdown-serializer/tar.gz/fd7ba5b6b7bf7700d3a58e8e5f5b0c01ae1edae6"
 
 slate-paste-linkify@^0.2.1:
   version "0.2.1"

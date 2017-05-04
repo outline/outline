@@ -19,7 +19,7 @@ export default function KeyboardShortcuts() {
         case 'u':
           return this.toggleMark(state, 'underlined');
         case 'd':
-          return this.toggleMark(state, 'strikethrough');
+          return this.toggleMark(state, 'deleted');
         default:
           return null;
       }
