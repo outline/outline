@@ -1,6 +1,10 @@
 {
   "parser": "babel-eslint",
-  "extends": ["react-app", "plugin:import/errors", "plugin:import/warnings"],
+  "extends": [
+    "react-app",
+    "plugin:import/errors",
+    "plugin:import/warnings"
+  ],
   "plugins": [
     "prettier"
   ],
@@ -10,23 +14,25 @@
     // does more harm than good.
     "no-mixed-operators": "off",
     // Enforce that code is formatted with prettier.
-    "prettier/prettier":  ["error", {"trailingComma": "es5", "singleQuote": true}]
-  },
-  "settings" : {
-    "import/resolver": {
-      "webpack": {
-        "config": "webpack.config.js"
+    "prettier/prettier": [
+      "error",
+      {
+        "trailingComma": "es5",
+        "singleQuote": true
       }
-    }
+    ]
+  },
+  "settings": {
+    "import/resolver": "webpack"
   },
   "env": {
-    "jest": true,
+    "jest": true
   },
   "globals": {
-    __DEV__: true,
-    SLACK_KEY: true,
-    SLACK_REDIRECT_URI: true,
-    DEPLOYMENT: true,
-    afterAll: true
-  },
+    "__DEV__": true,
+    "SLACK_KEY": true,
+    "SLACK_REDIRECT_URI": true,
+    "DEPLOYMENT": true,
+    "afterAll": true
+  }
 }

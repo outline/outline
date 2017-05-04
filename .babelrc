@@ -1,5 +1,8 @@
 {
-  "presets": ["react", "env"],
+  "presets": [
+    "react",
+    "env"
+  ],
   "plugins": [
     "lodash",
     "transform-decorators-legacy",
@@ -10,7 +13,9 @@
   ],
   "env": {
     "development": {
-      "presets": ["react-hmre"]
+      "presets": [
+        "react-hmre"
+      ]
     }
   }
 }
