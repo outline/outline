@@ -3,14 +3,14 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { Flex } from 'reflexbox';
+
+import ApiKeyRow from './components/ApiKeyRow';
+import styles from './Settings.scss';
+import SettingsStore from './SettingsStore';
+
 import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
-import ApiKeyRow from './components/ApiKeyRow';
-
-import styles from './Settings.scss';
-
-import SettingsStore from './SettingsStore';
 
 @observer class Settings extends React.Component {
   store = SettingsStore;

@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import type { Document } from '../../../types';
+import type { Document } from 'types';
 import DocumentPreview from 'components/DocumentPreview';
 import Divider from 'components/Divider';
 
