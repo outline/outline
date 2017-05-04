@@ -2,10 +2,10 @@
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { Pagination, Collection } from 'types';
+import type { Pagination, Collection, Team } from 'types';
 
 type Options = {
-  team: Object,
+  team: Team,
 };
 
 class DashboardStore {
