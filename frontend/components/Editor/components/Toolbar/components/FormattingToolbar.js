@@ -59,7 +59,7 @@ export default class FormattingToolbar extends Component {
    *
    * @param {Event} ev
    */
-  makeLink = ev => {
+  onCreateLink = ev => {
     ev.preventDefault();
     ev.stopPropagation();
     const transform = this.props.state.transform();
@@ -76,7 +76,7 @@ export default class FormattingToolbar extends Component {
         {this.renderMarkButton('deleted', StrikethroughIcon)}
         {this.renderMarkButton('underlined', UnderlinedIcon)}
         {this.renderMarkButton('code', CodeIcon)}
-        <button className={styles.button} onMouseDown={this.makeLink}>
+        <button className={styles.button} onMouseDown={this.onCreateLink}>
           <LinkIcon light />
         </button>
       </span>

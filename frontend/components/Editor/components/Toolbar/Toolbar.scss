@@ -9,6 +9,7 @@
   border-radius: 4px;
   transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
   line-height: 0;
+  height: 40px;
 }
 
 .active {
@@ -16,12 +17,28 @@
   opacity: 1;
 }
 
+.linkEditor {
+  display: flex;
+  margin-left: -8px;
+  margin-right: -8px;
+
+  input {
+    background: rgba(255,255,255,.1);
+    border-radius: 2px;
+    padding: 5px 8px;
+    border: 0;
+    margin: 0;
+    outline: none;
+    color: #fff;
+  }
+}
+
 .button {
   display: inline-block;
   width: 24px;
   height: 24px;
   cursor: pointer;
-  margin-left: 15px;
+  margin-left: 10px;
   border: none;
   background: none;
   transition: opacity 100ms ease-in-out;

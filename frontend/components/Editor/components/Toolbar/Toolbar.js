@@ -40,15 +40,16 @@ export default class Toolbar extends Component {
   get linkInSelection() {
     const { state } = this.props;
 
-    if (state.selection.focusOffset) {
+    try {
       const selectedLinks = state.startBlock
         .getInlinesAtRange(state.selection)
         .filter(node => node.type === 'link');
       if (selectedLinks.size) {
         return selectedLinks.first();
       }
+    } catch (err) {
+      //
     }
-    return null;
   }
 
   update = () => {
@@ -109,7 +110,11 @@ export default class Toolbar extends Component {
               onFocus={this.handleFocus}
               onBlur={this.handleBlur}
             />}
-          {!link && <FormattingToolbar {...this.props} />}
+          {!link &&
+            <FormattingToolbar
+              {...this.props}
+              onCreateLink={this.handleCreateLink}
+            />}
         </div>
       </Portal>
     );

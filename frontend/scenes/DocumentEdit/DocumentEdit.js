@@ -62,7 +62,7 @@ class DocumentEdit extends Component {
     });
   };
 
-  onSave = options => {
+  onSave = (options = {}) => {
     if (this.store.newDocument || this.store.newChildDocument) {
       this.store.saveDocument(options);
     } else {

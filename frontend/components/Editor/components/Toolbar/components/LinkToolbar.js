@@ -1,6 +1,8 @@
 // @flow
 import React, { Component } from 'react';
 import keydown from 'react-keydown';
+import styles from '../Toolbar.scss';
+import CloseIcon from 'components/Icon/CloseIcon';
 
 @keydown
 export default class LinkToolbar extends Component {
@@ -49,16 +51,19 @@ export default class LinkToolbar extends Component {
   render() {
     const href = this.props.link.data.get('href');
     return (
-      <span>
+      <span className={styles.linkEditor}>
         <input
           ref={ref => (this.input = ref)}
           defaultValue={href}
+          placeholder="http://"
           onMouseDown={this.props.onFocus}
           onFocus={this.props.onFocus}
           onBlur={this.props.onBlur}
           onKeyDown={this.onKeyDown}
         />
-        <button onMouseDown={this.removeLink}>x</button>
+        <button className={styles.button} onMouseDown={this.removeLink}>
+          <CloseIcon light />
+        </button>
       </span>
     );
   }
