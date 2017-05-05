@@ -36,6 +36,9 @@ export default class SlateEditor extends Component {
     if (!data.isMeta) return;
 
     switch (data.key) {
+      case 's':
+        ev.preventDefault();
+        return this.props.onSave({ redirect: false });
       case 'enter':
         return this.props.onSave();
       case 'escape':

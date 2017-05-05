@@ -60,7 +60,7 @@ class DocumentEditStore {
     this.isFetching = false;
   };
 
-  @action saveDocument = async () => {
+  @action saveDocument = async ({ redirect = true }) => {
     if (this.isSaving) return;
 
     this.isSaving = true;
@@ -79,14 +79,14 @@ class DocumentEditStore {
       const { url } = data.data;
 
       this.hasPendingChanges = false;
-      browserHistory.push(url);
+      if (redirect) browserHistory.push(url);
     } catch (e) {
       console.error('Something went wrong');
     }
     this.isSaving = false;
   };
 
-  @action updateDocument = async () => {
+  @action updateDocument = async ({ redirect = true }) => {
     if (this.isSaving) return;
 
     this.isSaving = true;
@@ -104,7 +104,7 @@ class DocumentEditStore {
       const { url } = data.data;
 
       this.hasPendingChanges = false;
-      browserHistory.push(url);
+      if (redirect) browserHistory.push(url);
     } catch (e) {
       console.error('Something went wrong');
     }
