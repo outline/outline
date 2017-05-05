@@ -16,6 +16,7 @@ const schema = {
   nodes: {
     paragraph: props => <p>{props.children}</p>,
     'block-quote': props => <blockquote>{props.children}</blockquote>,
+    'horizontal-rule': props => <hr />,
     'bulleted-list': props => <ul>{props.children}</ul>,
     'ordered-list': props => <ol>{props.children}</ol>,
     image: Image,

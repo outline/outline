@@ -10,6 +10,8 @@ export default function MarkdownShortcuts() {
      */
     onKeyDown(e, data, state) {
       switch (data.key) {
+        case '-':
+          return this.onDash(e, state);
         case 'space':
           return this.onSpace(e, state);
         case 'backspace':
@@ -47,13 +49,6 @@ export default function MarkdownShortcuts() {
         return state;
       }
 
-      // const inlineMarks = {
-      //   code: '`',
-      //   bold: '**',
-      //   italic: '_',
-      //   deleted: '~~'
-      // }
-
       // find all inline code characters "`"
       let codeTags = [];
       for (let i = 0; i < startBlock.text.length; i++) {
@@ -71,6 +66,34 @@ export default function MarkdownShortcuts() {
         transform.moveOffsetsTo(firstCodeTagIndex, lastCodeTagIndex - 1);
         transform.addMark('code');
         state = transform.collapseToEnd().removeMark('code').apply();
+        return state;
+      }
+    },
+
+    /**
+     * @param {Event} e
+     * @param {State} state
+     * @return {State or Null} state
+     */
+    onDash(e, state) {
+      if (state.isExpanded) return;
+      const { startBlock, startOffset } = state;
+      const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
+
+      if (chars === '--') {
+        e.preventDefault();
+        const transform = state
+          .transform()
+          .extendToStartOf(startBlock)
+          .delete()
+          .setBlock({
+            type: 'horizontal-rule',
+            isVoid: true,
+          });
+        state = transform
+          .collapseToStartOfNextBlock()
+          .insertBlock('paragraph')
+          .apply();
         return state;
       }
     },
