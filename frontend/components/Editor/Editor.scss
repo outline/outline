@@ -24,6 +24,22 @@
   h5,
   h6 {
     font-weight: 500;
+
+    .anchor {
+      visibility: hidden;
+      color: #dedede;
+      padding-left: .25em;
+    }
+
+    &:hover {
+      .anchor {
+        visibility: visible;
+
+        &:hover {
+          color: #cdcdcd;
+        }
+      }
+    }
   }
 
   ul,
@@ -46,6 +62,23 @@
   blockquote {
     border-left: 3px solid #efefef;
     padding-left: 10px;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  tr {
+    border-bottom: 1px solid #eee;
+  }
+
+  th {
+    font-weight: bold;
+  }
+
+  th,
+  td {
+    padding: 5px 20px 5px 0;
   }
 }
 

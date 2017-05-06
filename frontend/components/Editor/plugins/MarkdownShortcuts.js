@@ -43,7 +43,13 @@ export default function MarkdownShortcuts() {
 
         const transform = state.transform().setBlock(type);
 
-        if (type === 'list-item') transform.wrapBlock('bulleted-list');
+        if (type === 'list-item') {
+          if (chars === '1.') {
+            transform.wrapBlock('ordered-list');
+          } else {
+            transform.wrapBlock('bulleted-list');
+          }
+        }
 
         state = transform.extendToStartOf(startBlock).delete().apply();
         return state;
@@ -193,6 +199,7 @@ export default function MarkdownShortcuts() {
         case '*':
         case '-':
         case '+':
+        case '1.':
           return 'list-item';
         case '>':
           return 'block-quote';

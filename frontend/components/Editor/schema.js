@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from './components/Image';
 import Link from './components/Link';
-import Title from './components/Title';
+import Heading from './components/Heading';
 
 const schema = {
   marks: {
@@ -19,14 +19,18 @@ const schema = {
     'horizontal-rule': props => <hr />,
     'bulleted-list': props => <ul>{props.children}</ul>,
     'ordered-list': props => <ol>{props.children}</ol>,
+    table: props => <table>{props.children}</table>,
+    'table-row': props => <tr>{props.children}</tr>,
+    'table-head': props => <th>{props.children}</th>,
+    'table-cell': props => <td>{props.children}</td>,
     image: Image,
     link: Link,
-    heading1: Title,
-    heading2: props => <h2>{props.children}</h2>,
-    heading3: props => <h3>{props.children}</h3>,
-    heading4: props => <h4>{props.children}</h4>,
-    heading5: props => <h5>{props.children}</h5>,
-    heading6: props => <h6>{props.children}</h6>,
+    heading1: props => <Heading placeholder {...props} />,
+    heading2: props => <Heading component="h2" {...props} />,
+    heading3: props => <Heading component="h3" {...props} />,
+    heading4: props => <Heading component="h4" {...props} />,
+    heading5: props => <Heading component="h5" {...props} />,
+    heading6: props => <Heading component="h6" {...props} />,
     'list-item': props => <li>{props.children}</li>,
   },
 

@@ -3,10 +3,11 @@ import React, { Component } from 'react';
 import styles from '../Toolbar.scss';
 import BoldIcon from 'components/Icon/BoldIcon';
 import CodeIcon from 'components/Icon/CodeIcon';
-import ItalicIcon from 'components/Icon/ItalicIcon';
+import Heading1Icon from 'components/Icon/Heading1Icon';
+import Heading2Icon from 'components/Icon/Heading2Icon';
 import LinkIcon from 'components/Icon/LinkIcon';
 import StrikethroughIcon from 'components/Icon/StrikethroughIcon';
-import UnderlinedIcon from 'components/Icon/UnderlinedIcon';
+import BulletedListIcon from 'components/Icon/BulletedListIcon';
 
 export default class FormattingToolbar extends Component {
   props: {
@@ -24,6 +25,10 @@ export default class FormattingToolbar extends Component {
     return this.props.state.marks.some(mark => mark.type === type);
   };
 
+  isBlock = type => {
+    return this.props.state.startBlock.type === type;
+  };
+
   /**
    * When a mark button is clicked, toggle the current mark.
    *
@@ -35,13 +40,36 @@ export default class FormattingToolbar extends Component {
     let { state } = this.props;
 
     state = state.transform().toggleMark(type).apply();
+    this.props.onChange(state);
+  };
 
+  onClickBlock = (ev, type) => {
+    ev.preventDefault();
+    let { state } = this.props;
+
+    state = state.transform().setBlock(type).apply();
     this.props.onChange(state);
   };
 
   renderMarkButton = (type, IconClass) => {
     const isActive = this.hasMark(type);
-    const onMouseDown = e => this.onClickMark(e, type);
+    const onMouseDown = ev => this.onClickMark(ev, type);
+
+    return (
+      <button
+        className={styles.button}
+        onMouseDown={onMouseDown}
+        data-active={isActive}
+      >
+        <IconClass light />
+      </button>
+    );
+  };
+
+  renderBlockButton = (type, IconClass) => {
+    const isActive = this.isBlock(type);
+    const onMouseDown = ev =>
+      this.onClickBlock(ev, isActive ? 'paragraph' : type);
 
     return (
       <button
@@ -72,9 +100,10 @@ export default class FormattingToolbar extends Component {
     return (
       <span>
         {this.renderMarkButton('bold', BoldIcon)}
-        {this.renderMarkButton('italic', ItalicIcon)}
         {this.renderMarkButton('deleted', StrikethroughIcon)}
-        {this.renderMarkButton('underlined', UnderlinedIcon)}
+        {this.renderBlockButton('heading1', Heading1Icon)}
+        {this.renderBlockButton('heading2', Heading2Icon)}
+        {this.renderBlockButton('bulleted-list', BulletedListIcon)}
         {this.renderMarkButton('code', CodeIcon)}
         <button className={styles.button} onMouseDown={this.onCreateLink}>
           <LinkIcon light />
