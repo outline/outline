@@ -1,9 +1,16 @@
+// @flow
 import React from 'react';
 
-export default function Link(props) {
+type Props = {
+  children: any,
+  attributes: Object,
+  node: Object,
+};
+
+export default function Link({ attributes, node, children }: Props) {
   return (
-    <a {...props.attributes} href={props.node.data.get('href')}>
-      {props.children}
+    <a {...attributes} href={node.data.get('href')}>
+      {children}
     </a>
   );
 }
