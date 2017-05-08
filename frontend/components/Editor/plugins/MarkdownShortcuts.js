@@ -1,3 +1,13 @@
+const inlineShortcuts = [
+  { mark: 'bold', shortcut: '**' },
+  { mark: 'italic', shortcut: '*' },
+  { mark: 'italic', shortcut: '_' },
+  { mark: 'code', shortcut: '`' },
+  { mark: 'added', shortcut: '__' },
+  { mark: 'added', shortcut: '++' },
+  { mark: 'deleted', shortcut: '~~' },
+];
+
 export default function MarkdownShortcuts() {
   return {
     /**
@@ -55,24 +65,40 @@ export default function MarkdownShortcuts() {
         return state;
       }
 
-      // find all inline code characters "`"
-      let codeTags = [];
-      for (let i = 0; i < startBlock.text.length; i++) {
-        if (startBlock.text[i] === '`') codeTags.push(i);
-      }
+      for (const key of inlineShortcuts) {
+        // find all inline characters
+        let { mark, shortcut } = key;
+        let inlineTags = [];
 
-      // if we have multiple tags then mark the text between as inline code
-      if (codeTags.length > 1) {
-        const transform = state.transform();
-        const firstText = startBlock.getFirstText();
-        const firstCodeTagIndex = codeTags[0];
-        const lastCodeTagIndex = codeTags[codeTags.length - 1];
-        transform.removeTextByKey(firstText.key, lastCodeTagIndex, 1);
-        transform.removeTextByKey(firstText.key, firstCodeTagIndex, 1);
-        transform.moveOffsetsTo(firstCodeTagIndex, lastCodeTagIndex - 1);
-        transform.addMark('code');
-        state = transform.collapseToEnd().removeMark('code').apply();
-        return state;
+        for (let i = 0; i < startBlock.text.length; i++) {
+          if (startBlock.text.slice(i, i + shortcut.length) === shortcut)
+            inlineTags.push(i);
+        }
+
+        // if we have multiple tags then mark the text between as inline code
+        if (inlineTags.length > 1) {
+          const transform = state.transform();
+          const firstText = startBlock.getFirstText();
+          const firstCodeTagIndex = inlineTags[0];
+          const lastCodeTagIndex = inlineTags[inlineTags.length - 1];
+          transform.removeTextByKey(
+            firstText.key,
+            lastCodeTagIndex,
+            shortcut.length
+          );
+          transform.removeTextByKey(
+            firstText.key,
+            firstCodeTagIndex,
+            shortcut.length
+          );
+          transform.moveOffsetsTo(
+            firstCodeTagIndex,
+            lastCodeTagIndex - shortcut.length
+          );
+          transform.addMark(mark);
+          state = transform.collapseToEnd().removeMark(mark).apply();
+          return state;
+        }
       }
     },
 
