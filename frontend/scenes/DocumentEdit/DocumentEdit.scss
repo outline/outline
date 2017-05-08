@@ -3,6 +3,7 @@
 .container {
   display: flex;
   position: fixed;
+  justify-content: center;
   top: $headerHeight;
   bottom: 0;
   left: 0;
@@ -10,7 +11,8 @@
 }
 
 .editorPane {
-  flex: 0 0 50%;
+  max-width: 60em;
+  width: 100%;
   justify-content: center;
   overflow: scroll;
 }
