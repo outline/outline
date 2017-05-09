@@ -1,3 +1,4 @@
+// @flow
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
@@ -8,16 +9,28 @@ import Markdown from './serializer';
 import plugins from './plugins';
 import styles from './Editor.scss';
 
+type Props = {
+  text: string,
+  onChange: Function,
+  onSave: Function,
+  onCancel: Function,
+};
+
+type KeyData = {
+  isMeta: boolean,
+  key: string,
+};
+
 @observer
 export default class SlateEditor extends Component {
-  static propTypes = {
-    text: React.PropTypes.string,
-    onChange: React.PropTypes.func.isRequired,
-    onSave: React.PropTypes.func.isRequired,
-    onCancel: React.PropTypes.func.isRequired,
+  props: Props;
+  editor: Object;
+
+  state: {
+    state: Object,
   };
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
 
     if (props.text) {
@@ -27,12 +40,12 @@ export default class SlateEditor extends Component {
     }
   }
 
-  onChange = state => {
+  onChange = (state: Object) => {
     this.setState({ state });
     this.props.onChange(Markdown.serialize(state));
   };
 
-  onKeyDown = (ev, data) => {
+  onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData) => {
     if (!data.isMeta) return;
 
     switch (data.key) {
@@ -76,7 +89,6 @@ export default class SlateEditor extends Component {
           plugins={plugins}
           state={this.state.state}
           onChange={this.onChange}
-          onDocumentChange={this.onDocumentChange}
           onKeyDown={this.onKeyDown}
           onSave={this.props.onSave}
         />

@@ -5,12 +5,13 @@ import slug from 'slug';
 import styles from '../Editor.scss';
 
 type Props = {
-  children: any,
-  placeholder: boolean,
+  children: React$Element<any>,
+  placeholder?: boolean,
   parent: Object,
   node: Object,
   editor: Object,
   readOnly: boolean,
+  component?: string,
 };
 
 export default function Heading({

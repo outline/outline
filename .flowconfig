@@ -1,5 +1,4 @@
 [ignore]
-<PROJECT_ROOT>/node_modules/.*
 
 [libs]
 
@@ -8,5 +7,6 @@ esproposal.decorators=ignore
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
 unsafe.enable_getters_and_setters=true
-module.name_mapper='^\(.*\)\.s?css$' -> 'empty/object'
+module.name_mapper.extension='scss' -> 'empty/object'
+module.file_ext=.js
 module.file_ext=.scss

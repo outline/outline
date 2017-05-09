@@ -13,12 +13,21 @@ export default class Toolbar extends Component {
     onChange: Function,
   };
 
+  menu: HTMLElement;
   state: {
     active: boolean,
+    focused: boolean,
+    link: React$Element<any>,
+    top: string,
+    left: string,
   };
 
   state = {
     active: false,
+    focused: false,
+    link: null,
+    top: '',
+    left: '',
   };
 
   componentDidMount = () => {
@@ -37,7 +46,7 @@ export default class Toolbar extends Component {
     this.setState({ focused: false });
   };
 
-  get linkInSelection() {
+  get linkInSelection(): any {
     const { state } = this.props;
 
     try {
@@ -85,7 +94,7 @@ export default class Toolbar extends Component {
     }
   };
 
-  setRef = ref => {
+  setRef = (ref: HTMLElement) => {
     this.menu = ref;
   };
 
@@ -110,11 +119,7 @@ export default class Toolbar extends Component {
               onFocus={this.handleFocus}
               onBlur={this.handleBlur}
             />}
-          {!link &&
-            <FormattingToolbar
-              {...this.props}
-              onCreateLink={this.handleCreateLink}
-            />}
+          {!link && <FormattingToolbar {...this.props} />}
         </div>
       </Portal>
     );

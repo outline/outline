@@ -2,7 +2,7 @@
 import React from 'react';
 
 type Props = {
-  children: any,
+  children: React$Element<any>,
   attributes: Object,
   node: Object,
 };

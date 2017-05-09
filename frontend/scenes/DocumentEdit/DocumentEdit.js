@@ -5,11 +5,9 @@ import { Flex } from 'reflexbox';
 
 import DocumentEditStore, { DOCUMENT_EDIT_SETTINGS } from './DocumentEditStore';
 import EditorLoader from './components/EditorLoader';
-import Switch from 'components/Switch';
 import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
-import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 
 const DISCARD_CHANGES = `You have unsaved changes.
 Are you sure you want to discard them?`;
@@ -103,14 +101,6 @@ class DocumentEdit extends Component {
             isNew={isNew}
           />
         </HeaderAction>
-        <DropdownMenu label={<MoreIcon />}>
-          <MenuItem onClick={this.store.togglePreview}>
-            Preview <Switch checked={this.store.preview} />
-          </MenuItem>
-          <MenuItem onClick={this.onCancel}>
-            Cancel
-          </MenuItem>
-        </DropdownMenu>
       </Flex>
     );
 
@@ -133,7 +123,6 @@ class DocumentEdit extends Component {
               onScroll={this.onScroll}
               onSave={this.onSave}
               onCancel={this.onCancel}
-              togglePreview={this.togglePreview}
             />}
       </Layout>
     );

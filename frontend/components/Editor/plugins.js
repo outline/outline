@@ -1,3 +1,4 @@
+// @flow
 import DropOrPasteImages from 'slate-drop-or-paste-images';
 import PasteLinkify from 'slate-paste-linkify';
 import EditList from 'slate-edit-list';
