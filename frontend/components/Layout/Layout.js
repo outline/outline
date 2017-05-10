@@ -5,11 +5,11 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import _ from 'lodash';
+import { Flex } from 'reflexbox';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
-import { Flex } from 'reflexbox';
+
 import LoadingIndicator from 'components/LoadingIndicator';
-import Alert from 'components/Alert';
 
 import styles from './Layout.scss';
 import classNames from 'classnames/bind';

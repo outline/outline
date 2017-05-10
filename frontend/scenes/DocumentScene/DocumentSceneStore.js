@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { browserHistory } from 'react-router';
 import {
   observable,
   action,
@@ -8,7 +9,6 @@ import {
   autorunAsync,
 } from 'mobx';
 import { client } from 'utils/ApiClient';
-import { browserHistory } from 'react-router';
 
 const DOCUMENT_PREFERENCES = 'DOCUMENT_PREFERENCES';
 

@@ -1,6 +1,5 @@
 import React, { PropTypes } from 'react';
 import { observer } from 'mobx-react';
-import { Link } from 'react-router';
 
 import { Flex } from 'reflexbox';
 import Tree from 'components/Tree';

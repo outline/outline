@@ -1,16 +1,15 @@
 import React, { PropTypes } from 'react';
 import { observer } from 'mobx-react';
 import _ from 'lodash';
-
 import { Flex } from 'reflexbox';
+
+import SearchField from './components/SearchField';
+import styles from './Search.scss';
+import SearchStore from './SearchStore';
+
 import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
-import SearchField from './components/SearchField';
 import DocumentPreview from 'components/DocumentPreview';
-
-import styles from './Search.scss';
-
-import SearchStore from './SearchStore';
 
 @observer class Search extends React.Component {
   static propTypes = {
