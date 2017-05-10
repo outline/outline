@@ -22,37 +22,45 @@ if (process.env.NODE_ENV === 'development') {
   const compile = webpack(config);
   /* eslint-enable global-require */
 
-  app.use(convert(devMiddleware(compile, {
-    // display no info to console (only warnings and errors)
-    noInfo: true,
+  app.use(
+    convert(
+      devMiddleware(compile, {
+        // display no info to console (only warnings and errors)
+        noInfo: true,
 
-    // display nothing to the console
-    quiet: false,
+        // display nothing to the console
+        quiet: false,
 
-    // switch into lazy mode
-    // that means no watching, but recompilation on every request
-    lazy: false,
+        // switch into lazy mode
+        // that means no watching, but recompilation on every request
+        lazy: false,
 
-    // // watch options (only lazy: false)
-    // watchOptions: {
-    //   aggregateTimeout: 300,
-    //   poll: true
-    // },
+        // // watch options (only lazy: false)
+        // watchOptions: {
+        //   aggregateTimeout: 300,
+        //   poll: true
+        // },
 
-    // public path to bind the middleware to
-    // use the same as in webpack
-    publicPath: config.output.publicPath,
+        // public path to bind the middleware to
+        // use the same as in webpack
+        publicPath: config.output.publicPath,
 
-    // options for formating the statistics
-    stats: {
-      colors: true,
-    },
-  })));
-  app.use(convert(hotMiddleware(compile, {
-    log: console.log, // eslint-disable-line
-    path: '/__webpack_hmr',
-    heartbeat: 10 * 1000,
-  })));
+        // options for formating the statistics
+        stats: {
+          colors: true,
+        },
+      })
+    )
+  );
+  app.use(
+    convert(
+      hotMiddleware(compile, {
+        log: console.log, // eslint-disable-line
+        path: '/__webpack_hmr',
+        heartbeat: 10 * 1000,
+      })
+    )
+  );
   app.use(logger());
 }
 
@@ -63,11 +71,13 @@ if (process.env.NODE_ENV === 'production') {
 app.use(mount('/api', api));
 app.use(mount(routes));
 
-app.use(helmet.csp({
-  directives: {
-    defaultSrc: ['\'self\''],
-    styleSrc: ['\'self\'', '\'unsafe-inline\''],
-  },
-}));
+app.use(
+  helmet.csp({
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  })
+);
 
 export default app;

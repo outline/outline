@@ -27,6 +27,7 @@ import SlackAuthLink from 'components/SlackAuthLink';
       </Title>
     );
 
+    // $FlowIssue global variable
     const showSlackSettings = DEPLOYMENT === 'hosted';
 
     return (
@@ -47,7 +48,8 @@ import SlackAuthLink from 'components/SlackAuthLink';
 
               <SlackAuthLink
                 scopes={['commands']}
-                redirectUri={`${URL}/auth/slack/commands`}
+                redirectUri={// $FlowIssue URL is a global variable
+                `${URL}/auth/slack/commands`}
               >
                 <img
                   alt="Add to Slack"

@@ -10,8 +10,7 @@
 'use strict';
 
 var _ = require('lodash');
-var utils = module.exports = {};
-
+var utils = (module.exports = {});
 
 utils.arrayify = function(arr) {
   return !Array.isArray(arr) ? [arr] : arr;
@@ -25,9 +24,9 @@ utils.isDest = function(dest) {
   return !dest || dest === 'undefined' || typeof dest === 'object';
 };
 
-utils.isMatch = function (keys, str) {
+utils.isMatch = function(keys, str) {
   keys = utils.arrayify(keys);
-  keys = (keys.length > 0) ? keys.join('|') : '.*';
+  keys = keys.length > 0 ? keys.join('|') : '.*';
 
   // Escape certain characters, like '[', '('
   var k = utils.escapeRegex(String(keys));
@@ -57,18 +56,27 @@ utils.slugify = function(str) {
   return str;
 };
 
-
 /**
  * Strip certain words from headings. These can be
  * overridden. Might seem strange but it makes
  * sense in context.
  */
 
-var omit = ['grunt', 'helper', 'handlebars-helper', 'mixin', 'filter', 'assemble-contrib', 'assemble'];
+var omit = [
+  'grunt',
+  'helper',
+  'handlebars-helper',
+  'mixin',
+  'filter',
+  'assemble-contrib',
+  'assemble',
+];
 
-utils.strip = function (name, options) {
+utils.strip = function(name, options) {
   var opts = _.extend({}, options);
-  if(opts.omit === false) {omit = [];}
+  if (opts.omit === false) {
+    omit = [];
+  }
   var exclusions = _.union(omit, utils.arrayify(opts.strip || []));
   var re = new RegExp('^(?:' + exclusions.join('|') + ')[-_]?', 'g');
   return name.replace(re, '');

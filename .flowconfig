@@ -1,5 +1,7 @@
 [ignore]
-<PROJECT_ROOT>/node_modules/.*
+.*/node_modules/styled-components/.*
+.*/node_modules/react-side-effect/.*
+.*/node_modules/fbjs/.*
 
 [libs]
 
@@ -10,6 +12,7 @@ module.system.node.resolve_dirname=node_modules
 module.system.node.resolve_dirname=frontend
 
 module.name_mapper='^\(.*\)\.s?css$' -> 'empty/object'
+module.file_ext=.js
 module.file_ext=.scss
 
 esproposal.decorators=ignore

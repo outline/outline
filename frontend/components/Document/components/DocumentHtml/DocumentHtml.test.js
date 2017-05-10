@@ -11,10 +11,6 @@ const testHtml = `
 `;
 
 test('renders', () => {
-  const wrapper = shallow(
-    <DocumentHtml
-      html={ testHtml }
-    />
-  );
+  const wrapper = shallow(<DocumentHtml html={testHtml} />);
   expect(wrapper.find('.document').length).toBe(1);
 });

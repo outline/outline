@@ -3,9 +3,7 @@ import { Document, Atlas, User } from './models';
 
 import presentUser from './presenters/user';
 
-export {
-  presentUser,
-};
+export { presentUser };
 
 export function presentTeam(ctx, team) {
   ctx.cache.set(team.id, team);
@@ -43,15 +41,14 @@ export async function presentDocument(ctx, document, options) {
   };
 
   if (options.includeCollection) {
-    data.collection = await ctx.cache.get(
-      document.atlasId,
-      async () => {
-        const collection = await Atlas.findOne({ where: {
+    data.collection = await ctx.cache.get(document.atlasId, async () => {
+      const collection = await Atlas.findOne({
+        where: {
           id: document.atlasId,
-        } });
-        return await presentCollection(ctx, collection);
-      }
-    );
+        },
+      });
+      return await presentCollection(ctx, collection);
+    });
   }
 
   if (options.includeCollaborators) {
@@ -62,8 +59,7 @@ export async function presentDocument(ctx, document, options) {
           $in: document.collaboratorIds || [],
         },
       },
-    })
-    .map(user => presentUser(ctx, user));
+    }).map(user => presentUser(ctx, user));
   }
 
   const createdBy = await ctx.cache.get(
@@ -81,7 +77,11 @@ export async function presentDocument(ctx, document, options) {
   return data;
 }
 
-export function presentCollection(ctx, collection, includeRecentDocuments=false) {
+export function presentCollection(
+  ctx,
+  collection,
+  includeRecentDocuments = false
+) {
   ctx.cache.set(collection.id, collection);
 
   return new Promise(async (resolve, _reject) => {
@@ -95,7 +95,8 @@ export function presentCollection(ctx, collection, includeRecentDocuments=false)
       updatedAt: collection.updatedAt,
     };
 
-    if (collection.type === 'atlas') data.navigationTree = collection.navigationTree;
+    if (collection.type === 'atlas')
+      data.navigationTree = collection.navigationTree;
 
     if (includeRecentDocuments) {
       const documents = await Document.findAll({
@@ -103,18 +104,24 @@ export function presentCollection(ctx, collection, includeRecentDocuments=false)
           atlasId: collection.id,
         },
         limit: 10,
-        order: [
-          ['updatedAt', 'DESC'],
-        ],
+        order: [['updatedAt', 'DESC']],
       });
 
       const recentDocuments = [];
-      await Promise.all(documents.map(async (document) => {
-        recentDocuments.push(await presentDocument(ctx, document, {
-          includeCollaborators: true,
-        }));
-      }));
-      data.recentDocuments = _.orderBy(recentDocuments, ['updatedAt'], ['desc']);
+      await Promise.all(
+        documents.map(async document => {
+          recentDocuments.push(
+            await presentDocument(ctx, document, {
+              includeCollaborators: true,
+            })
+          );
+        })
+      );
+      data.recentDocuments = _.orderBy(
+        recentDocuments,
+        ['updatedAt'],
+        ['desc']
+      );
     }
 
     resolve(data);

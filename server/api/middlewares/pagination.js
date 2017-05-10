@@ -18,7 +18,9 @@ export default function pagination(options) {
     offset = isNaN(offset) ? 0 : offset;
 
     if (limit > opts.maxLimit) {
-      throw httpErrors.BadRequest(`Pagination limit is too large (max ${opts.maxLimit})`);
+      throw httpErrors.BadRequest(
+        `Pagination limit is too large (max ${opts.maxLimit})`
+      );
     }
 
     ctx.state.pagination = {
@@ -28,8 +30,9 @@ export default function pagination(options) {
 
     query.limit = ctx.state.pagination.limit;
     query.offset = ctx.state.pagination.offset + query.limit;
-    ctx.state.pagination.nextPath = '/api' + ctx.request.path + '?' + querystring.stringify(query);
+    ctx.state.pagination.nextPath =
+      '/api' + ctx.request.path + '?' + querystring.stringify(query);
 
     return next();
-  }
-};
+  };
+}
