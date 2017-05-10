@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import type { User } from 'types';
+import UserStore from 'stores/UserStore';
 
 @inject('user')
 @observer
@@ -9,7 +9,7 @@ class SlackAuthLink extends React.Component {
   props: {
     children: any,
     scopes: Array<string>,
-    user: User,
+    user: UserStore,
     redirectUri: string,
   };
 
@@ -25,8 +25,10 @@ class SlackAuthLink extends React.Component {
   slackUrl = () => {
     const baseUrl = 'https://slack.com/oauth/authorize';
     const params = {
+      // $FlowIssue global variable
       client_id: SLACK_KEY,
       scope: this.props.scopes.join(' '),
+      // $FlowIssue global variable
       redirect_uri: this.props.redirectUri || SLACK_REDIRECT_URI,
       state: this.props.user.getOauthState(),
     };

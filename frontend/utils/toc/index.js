@@ -24,7 +24,8 @@ module.exports = toc;
  * a table of contents.
  */
 
-var defaultTemplate = '<%= depth %><%= bullet %>[<%= heading %>](#<%= url %>)\n';
+var defaultTemplate =
+  '<%= depth %><%= bullet %>[<%= heading %>](#<%= url %>)\n';
 
 /**
  * Create the table of contents object that
@@ -36,81 +37,83 @@ var defaultTemplate = '<%= depth %><%= bullet %>[<%= heading %>](#<%= url %>)\n'
  */
 
 function generate(str, options) {
-  var opts = _.extend({
-    firsth1: false,
-    blacklist: true,
-    omit: [],
-    maxDepth: 3,
-    slugify: function(text) {
-      return text; // Override this!
-    }
-  }, options);
+  var opts = _.extend(
+    {
+      firsth1: false,
+      blacklist: true,
+      omit: [],
+      maxDepth: 3,
+      slugify: function(text) {
+        return text; // Override this!
+      },
+    },
+    options
+  );
 
   var toc = '';
   var tokens = marked.lexer(str);
   var tocArray = [];
 
   // Remove the very first h1, true by default
-  if(opts.firsth1 === false) {
+  if (opts.firsth1 === false) {
     tokens.shift();
   }
 
   // Do any h1's still exist?
-  var h1 = _.some(tokens, {depth: 1});
+  var h1 = _.some(tokens, { depth: 1 });
 
-  tokens.filter(function (token) {
-    // Filter out everything but headings
-    if (token.type !== 'heading' || token.type === 'code') {
-      return false;
-    }
+  tokens
+    .filter(function(token) {
+      // Filter out everything but headings
+      if (token.type !== 'heading' || token.type === 'code') {
+        return false;
+      }
 
-    // Since we removed the first h1, we'll check to see if other h1's
-    // exist. If none exist, then we unindent the rest of the TOC
-    if(!h1) {
-      token.depth = token.depth - 1;
-    }
+      // Since we removed the first h1, we'll check to see if other h1's
+      // exist. If none exist, then we unindent the rest of the TOC
+      if (!h1) {
+        token.depth = token.depth - 1;
+      }
 
-    // Store original text and create an id for linking
-    token.heading = opts.strip ? utils.strip(token.text, opts) : token.text;
+      // Store original text and create an id for linking
+      token.heading = opts.strip ? utils.strip(token.text, opts) : token.text;
 
-    // Create a "slugified" id for linking
-    token.id = opts.slugify(token.text);
+      // Create a "slugified" id for linking
+      token.id = opts.slugify(token.text);
 
-    // Omit headings with these strings
-    var omissions = ['Table of Contents', 'TOC', 'TABLE OF CONTENTS'];
-    var omit = _.union([], opts.omit, omissions);
+      // Omit headings with these strings
+      var omissions = ['Table of Contents', 'TOC', 'TABLE OF CONTENTS'];
+      var omit = _.union([], opts.omit, omissions);
 
-    if (utils.isMatch(omit, token.heading)) {
-      return;
-    }
+      if (utils.isMatch(omit, token.heading)) {
+        return;
+      }
 
-    return true;
-  }).forEach(function (h) {
+      return true;
+    })
+    .forEach(function(h) {
+      if (h.depth > opts.maxDepth) {
+        return;
+      }
 
-    if(h.depth > opts.maxDepth) {
-      return;
-    }
+      var bullet = Array.isArray(opts.bullet)
+        ? opts.bullet[(h.depth - 1) % opts.bullet.length]
+        : opts.bullet;
 
-    var bullet = Array.isArray(opts.bullet)
-      ? opts.bullet[(h.depth - 1) % opts.bullet.length]
-      : opts.bullet;
+      var data = _.extend({}, opts.data, {
+        depth: new Array((h.depth - 1) * 2 + 1).join(' '),
+        bullet: bullet ? bullet : '* ',
+        heading: h.heading,
+        url: h.id,
+      });
 
-    var data = _.extend({}, opts.data, {
-      depth  : new Array((h.depth - 1) * 2 + 1).join(' '),
-      bullet : bullet ? bullet : '* ',
-      heading: h.heading,
-      url    : h.id
+      tocArray.push(data);
+      toc += _.template(opts.template || defaultTemplate)(data);
     });
-
-    tocArray.push(data);
-    toc += _.template(opts.template || defaultTemplate)(data);
-  });
 
   return {
     data: tocArray,
-    toc: opts.strip
-      ? utils.strip(toc, opts)
-      : toc
+    toc: opts.strip ? utils.strip(toc, opts) : toc,
   };
 }
 
@@ -128,17 +131,15 @@ toc.raw = function(str, options) {
 
 toc.insert = function(content, options) {
   var start = '<!-- toc -->';
-  var stop  = '<!-- tocstop -->';
+  var stop = '<!-- tocstop -->';
   var re = /<!-- toc -->([\s\S]+?)<!-- tocstop -->/;
 
   // remove the existing TOC
   content = content.replace(re, start);
 
   // generate new TOC
-  var newtoc = '\n\n'
-    + start + '\n\n'
-    + toc(content, options) + '\n'
-    + stop + '\n';
+  var newtoc =
+    '\n\n' + start + '\n\n' + toc(content, options) + '\n' + stop + '\n';
 
   // If front-matter existed, put it back
   return content.replace(start, newtoc);

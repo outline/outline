@@ -5,6 +5,4 @@ const apiError = (code, id, message) => {
 };
 
 export default apiError;
-export {
-  httpErrors,
-};
+export { httpErrors };

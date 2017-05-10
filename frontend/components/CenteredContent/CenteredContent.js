@@ -5,6 +5,7 @@ import styles from './CenteredContent.scss';
 type Props = {
   children: any,
   style: Object,
+  maxWidth: string,
 };
 
 const CenteredContent = (props: Props) => {

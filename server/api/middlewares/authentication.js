@@ -1,10 +1,7 @@
 import httpErrors from 'http-errors';
 import JWT from 'jsonwebtoken';
 
-import {
-  User,
-  ApiKey,
-} from '../../models';
+import { User, ApiKey } from '../../models';
 
 export default function auth({ require = true } = {}) {
   return async function authMiddleware(ctx, next) {
@@ -22,8 +19,10 @@ export default function auth({ require = true } = {}) {
         }
       } else {
         if (require) {
-          throw httpErrors.Unauthorized(`Bad Authorization header format. \
-            Format is "Authorization: Bearer <token>"\n`);
+          throw httpErrors.Unauthorized(
+            `Bad Authorization header format. \
+            Format is "Authorization: Bearer <token>"\n`
+          );
         }
       }
     } else if (ctx.body.token) {
@@ -43,9 +42,11 @@ export default function auth({ require = true } = {}) {
         // API key
         let apiKey;
         try {
-          apiKey = await ApiKey.findOne({ where: {
-            secret: token,
-          } });
+          apiKey = await ApiKey.findOne({
+            where: {
+              secret: token,
+            },
+          });
         } catch (e) {
           throw httpErrors.Unauthorized('Invalid api key');
         }
