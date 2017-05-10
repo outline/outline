@@ -1,6 +1,6 @@
+import { autorunAsync } from 'mobx';
 import UserStore, { USER_STORE } from './UserStore';
 import UiStore, { UI_STORE } from './UiStore';
-import { autorunAsync } from 'mobx';
 
 const stores = {
   user: new UserStore(),

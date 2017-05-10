@@ -2,9 +2,9 @@ import slug from 'slug';
 import marked from 'marked';
 import sanitizedRenderer from 'marked-sanitized';
 import highlight from 'highlight.js';
+import _ from 'lodash';
 import emojify from './emojify';
 import toc from './toc';
-import _ from 'lodash';
 
 slug.defaults.mode = 'rfc3986';
 
