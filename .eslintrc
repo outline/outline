@@ -11,7 +11,8 @@
     "flowtype",
   ],
   "rules": {
-    "import/order": "warn",
+    // // Bring back after we remove CSS Modules 100%
+    // "import/order": "warn",
     // Prettier automatically uses the least amount of parens possible, so this
     // does more harm than good.
     "no-mixed-operators": "off",
