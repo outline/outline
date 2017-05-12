@@ -101,6 +101,7 @@
     "html-webpack-plugin": "2.17.0",
     "http-errors": "1.4.0",
     "imports-loader": "0.6.5",
+    "invariant": "^2.2.2",
     "isomorphic-fetch": "2.2.1",
     "js-tree": "1.1.0",
     "json-loader": "0.5.4",

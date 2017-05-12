@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import { observer } from 'mobx-react';
 import Codemirror from 'react-codemirror';
@@ -28,13 +29,13 @@ import { client } from 'utils/ApiClient';
     toggleUploadingIndicator: React.PropTypes.func,
   };
 
-  onChange = newText => {
+  onChange = (newText: string) => {
     if (newText !== this.props.text) {
       this.props.onChange(newText);
     }
   };
 
-  onDropAccepted = files => {
+  onDropAccepted = (files: Object[]) => {
     const file = files[0];
     const editor = this.getEditorInstance();
 
@@ -62,6 +63,7 @@ import { client } from 'utils/ApiClient';
         filename: file.name,
       })
       .then(response => {
+        // $FlowFixMe need to augment ApiClient
         const data = response.data;
         // Upload using FormData API
         const formData = new FormData();
@@ -77,7 +79,7 @@ import { client } from 'utils/ApiClient';
         }
 
         fetch(data.uploadUrl, {
-          method: 'post',
+          method: 'POST',
           body: formData,
         })
           .then(_s3Response => {

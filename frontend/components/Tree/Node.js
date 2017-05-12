@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from 'react';
 import history from 'utils/History';
 
@@ -25,7 +26,7 @@ class Node extends React.Component {
           }}
           onClick={this.handleCollapse}
         >
-          <img src={require('./assets/chevron.svg')} />
+          <img alt="Expand" src={require('./assets/chevron.svg')} />
         </span>
       );
     }
@@ -82,7 +83,6 @@ class Node extends React.Component {
   };
 
   render() {
-    const tree = this.props.tree;
     const index = this.props.index;
     const dragging = this.props.dragging;
     const node = index.node;

@@ -1,19 +1,36 @@
+// @flow
 import _ from 'lodash';
 import { browserHistory } from 'react-router';
 import stores from 'stores';
 
+type Options = {
+  baseUrl?: string,
+};
+
 class ApiClient {
-  constructor(options = {}) {
+  baseUrl: string;
+  userAgent: string;
+
+  constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || '/api';
     this.userAgent = 'AtlasFrontend';
   }
 
-  fetch = (path, method, data, options = {}) => {
+  fetch = (
+    path: string,
+    method: string,
+    data: ?Object,
+    options: Object = {}
+  ) => {
     let body;
     let modifiedPath;
 
     if (method === 'GET') {
-      modifiedPath = `${path}?${this.constructQueryString(data)}`;
+      if (data) {
+        modifiedPath = `${path}?${data && this.constructQueryString(data)}`;
+      } else {
+        modifiedPath = path;
+      }
     } else if (method === 'POST' || method === 'PUT') {
       body = JSON.stringify(data);
     }
@@ -24,10 +41,12 @@ class ApiClient {
       'Content-Type': 'application/json',
     });
     if (stores.user.authenticated) {
+      // $FlowFixMe this is not great, need to refactor
       headers.set('Authorization', `Bearer ${stores.user.token}`);
     }
 
     // Construct request
+    // $FlowFixMe don't care much about this right now
     const request = fetch(this.baseUrl + (modifiedPath || path), {
       method,
       body,
@@ -61,7 +80,7 @@ class ApiClient {
           throw error;
         })
         .then(response => {
-          return response.json();
+          return response && response.json();
         })
         .then(json => {
           resolve(json);
@@ -75,17 +94,17 @@ class ApiClient {
     });
   };
 
-  get = (path, data, options) => {
+  get = (path: string, data?: Object, options?: Object) => {
     return this.fetch(path, 'GET', data, options);
   };
 
-  post = (path, data, options) => {
+  post = (path: string, data?: Object, options?: Object) => {
     return this.fetch(path, 'POST', data, options);
   };
 
   // Helpers
 
-  constructQueryString = data => {
+  constructQueryString = (data: Object) => {
     return _.map(data, (v, k) => {
       return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
     }).join('&');

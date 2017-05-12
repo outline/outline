@@ -1,23 +1,23 @@
+// @flow
 import React from 'react';
 import _ from 'lodash';
+import styled from 'styled-components';
 
-import styles from './Title.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
+type Props = {
+  content: string,
+  truncate?: number,
+  placeholder?: ?string,
+};
 
 class Title extends React.Component {
-  static propTypes = {
-    children: React.PropTypes.string,
-    truncate: React.PropTypes.number,
-    placeholder: React.PropTypes.string,
-  };
+  props: Props;
 
   render() {
     let title;
     if (this.props.truncate) {
-      title = _.truncate(this.props.children, this.props.truncate);
+      title = _.truncate(this.props.content, this.props.truncate);
     } else {
-      title = this.props.children;
+      title = this.props.content;
     }
 
     let usePlaceholder;
@@ -29,15 +29,16 @@ class Title extends React.Component {
     return (
       <span>
         {title && <span>&nbsp;/&nbsp;</span>}
-        <span
-          title={this.props.children}
-          className={cx(styles.title, { untitled: usePlaceholder })}
-        >
+        <TitleText title={this.props.content} untitled={usePlaceholder}>
           {title}
-        </span>
+        </TitleText>
       </span>
     );
   }
 }
+
+const TitleText = styled.span`
+  opacity: ${props => (props.untitled ? 0.5 : 1)};
+`;
 
 export default Title;

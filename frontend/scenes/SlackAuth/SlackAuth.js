@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { browserHistory } from 'react-router';
@@ -12,6 +13,7 @@ class SlackAuth extends React.Component {
     route: React.PropTypes.object.isRequired,
   };
 
+  // $FlowIssue wtf
   componentDidMount = async () => {
     const { error, code, state } = this.props.location.query;
 
@@ -22,6 +24,7 @@ class SlackAuth extends React.Component {
       } else {
         browserHistory.push('/auth/error');
       }
+      // $FlowIssue wtf
       return;
     }
 

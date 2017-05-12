@@ -1,3 +1,4 @@
+// @flow
 /* eslint-disable */
 
 /**
@@ -121,7 +122,7 @@ function generate(str, options) {
  * toc
  */
 
-function toc(str, options) {
+function toc(str: string, options: Object) {
   return generate(str, options).toc;
 }
 

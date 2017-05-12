@@ -1,7 +1,11 @@
+[include]
+.*/frontend/.*
+
 [ignore]
 .*/node_modules/styled-components/.*
 .*/node_modules/react-side-effect/.*
 .*/node_modules/fbjs/.*
+.*/node_modules/config-chain/.*
 
 [libs]
 
@@ -12,8 +16,11 @@ module.system.node.resolve_dirname=node_modules
 module.system.node.resolve_dirname=frontend
 
 module.name_mapper='^\(.*\)\.s?css$' -> 'empty/object'
+module.name_mapper='^\(.*\)\.md$' -> 'empty/object'
 module.file_ext=.js
 module.file_ext=.scss
+module.file_ext=.md
+module.file_ext=.json
 
 esproposal.decorators=ignore
 esproposal.class_static_fields=enable

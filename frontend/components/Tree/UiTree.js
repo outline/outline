@@ -1,10 +1,11 @@
+/* eslint-disable */
 const React = require('react');
 const Tree = require('./Tree');
 const Node = require('./Node');
 
 import styles from './Tree.scss';
 
-module.exports = React.createClass({
+export default React.createClass({
   displayName: 'UITree',
 
   propTypes: {
@@ -175,14 +176,14 @@ module.exports = React.createClass({
     } else if (diffY > dragging.h) {
       // down
       if (index.next) {
-        var below = tree.getIndex(index.next);
+        let below = tree.getIndex(index.next);
         if (below.children && below.children.length && !below.node.collapsed) {
           newIndex = tree.move(index.id, index.next, 'prepend');
         } else {
           newIndex = tree.move(index.id, index.next, 'after');
         }
       } else {
-        var below = tree.getNodeByTop(index.top + index.height);
+        let below = tree.getNodeByTop(index.top + index.height);
         if (below && below.parent !== index.id) {
           if (below.children && below.children.length) {
             newIndex = tree.move(index.id, below.id, 'prepend');

@@ -1,11 +1,11 @@
+// @flow
 import React from 'react';
 import { toJS } from 'mobx';
-
 import { Link } from 'react-router';
 
-import PublishingInfo from 'components/PublishingInfo';
-
 import styles from './DocumentPreview.scss';
+
+import PublishingInfo from 'components/PublishingInfo';
 
 class Document extends React.Component {
   static propTypes = {

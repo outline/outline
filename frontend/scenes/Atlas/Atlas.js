@@ -1,10 +1,12 @@
-import React, { PropTypes } from 'react';
+// @flow
+import React from 'react';
 import { observer } from 'mobx-react';
 import { browserHistory } from 'react-router';
 import keydown from 'react-keydown';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import _ from 'lodash';
 
+// TODO move here argh
 import store from './AtlasStore';
 
 import Layout, { Title } from 'components/Layout';
@@ -17,12 +19,15 @@ import { Flex } from 'reflexbox';
 
 import styles from './Atlas.scss';
 
+type Props = {
+  params: Object,
+  keydown: Object,
+};
+
 @keydown(['c'])
 @observer
 class Atlas extends React.Component {
-  static propTypes = {
-    params: PropTypes.object.isRequired,
-  };
+  props: Props;
 
   componentDidMount = () => {
     const { id } = this.props.params;
@@ -34,7 +39,7 @@ class Atlas extends React.Component {
     });
   };
 
-  componentWillReceiveProps = nextProps => {
+  componentWillReceiveProps = (nextProps: Props) => {
     const key = nextProps.keydown.event;
     if (key) {
       if (key.key === 'c') {
@@ -43,9 +48,9 @@ class Atlas extends React.Component {
     }
   };
 
-  onCreate = event => {
+  onCreate = (event: Event) => {
     if (event) event.preventDefault();
-    browserHistory.push(`${store.collection.url}/new`);
+    store.collection && browserHistory.push(`${store.collection.url}/new`);
   };
 
   render() {
@@ -65,7 +70,7 @@ class Atlas extends React.Component {
           </DropdownMenu>
         </Flex>
       );
-      title = <Title>{collection.name}</Title>;
+      title = <Title content={collection.name} />;
       titleText = collection.name;
     }
 
@@ -81,21 +86,22 @@ class Atlas extends React.Component {
           >
             {store.isFetching
               ? <AtlasPreviewLoading />
-              : <div className={styles.container}>
-                  <div className={styles.atlasDetails}>
-                    <h2>{collection.name}</h2>
-                    <blockquote>
-                      {collection.description}
-                    </blockquote>
-                  </div>
+              : collection &&
+                  <div className={styles.container}>
+                    <div className={styles.atlasDetails}>
+                      <h2>{collection.name}</h2>
+                      <blockquote>
+                        {collection.description}
+                      </blockquote>
+                    </div>
 
-                  <Divider />
+                    <Divider />
 
-                  <DocumentList
-                    documents={collection.recentDocuments}
-                    preview
-                  />
-                </div>}
+                    <DocumentList
+                      documents={collection.recentDocuments}
+                      preview
+                    />
+                  </div>}
           </ReactCSSTransitionGroup>
         </CenteredContent>
       </Layout>

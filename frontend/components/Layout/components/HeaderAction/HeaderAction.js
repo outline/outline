@@ -1,17 +1,16 @@
+// @flow
 import React from 'react';
 
 import styles from './HeaderAction.scss';
 
-const HeaderAction = props => {
+type Props = { onClick?: ?Function, children?: ?React.Element<any> };
+
+const HeaderAction = (props: Props) => {
   return (
     <div onClick={props.onClick} className={styles.container}>
       {props.children}
     </div>
   );
-};
-
-HeaderAction.propTypes = {
-  onClick: React.PropTypes.func,
 };
 
 export default HeaderAction;

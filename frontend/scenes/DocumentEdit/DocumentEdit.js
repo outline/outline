@@ -1,20 +1,28 @@
+// @flow
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { browserHistory, withRouter } from 'react-router';
 import keydown from 'react-keydown';
+import { Flex } from 'reflexbox';
 
 import DocumentEditStore, { DOCUMENT_EDIT_SETTINGS } from './DocumentEditStore';
+import EditorLoader from './components/EditorLoader';
 
 import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
-import { Flex } from 'reflexbox';
+
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 
-import EditorLoader from './components/EditorLoader';
-
 const DISREGARD_CHANGES = `You have unsaved changes.
 Are you sure you want to disgard them?`;
+
+type Props = {
+  route: Object,
+  router: Object,
+  params: Object,
+  keydown: Object,
+};
 
 @keydown([
   'cmd+enter',
@@ -27,13 +35,10 @@ Are you sure you want to disgard them?`;
 @withRouter
 @observer
 class DocumentEdit extends Component {
-  static propTypes = {
-    route: React.PropTypes.object.isRequired,
-    router: React.PropTypes.object.isRequired,
-    params: React.PropTypes.object,
-  };
+  store: DocumentEditStore;
+  props: Props;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.store = new DocumentEditStore(
       JSON.parse(localStorage[DOCUMENT_EDIT_SETTINGS] || '{}')
@@ -60,6 +65,7 @@ class DocumentEdit extends Component {
 
     // Load editor async
     EditorLoader().then(({ Editor }) => {
+      // $FlowIssue we can remove after moving to new editor
       this.setState({ Editor });
     });
 
@@ -72,7 +78,7 @@ class DocumentEdit extends Component {
     });
   };
 
-  componentWillReceiveProps = nextProps => {
+  componentWillReceiveProps = (nextProps: Props) => {
     const key = nextProps.keydown.event;
 
     if (key) {
@@ -109,7 +115,7 @@ class DocumentEdit extends Component {
     browserHistory.goBack();
   };
 
-  onScroll = scrollTop => {
+  onScroll = (scrollTop: number) => {
     this.setState({
       scrollTop,
     });
@@ -119,10 +125,9 @@ class DocumentEdit extends Component {
     const title = (
       <Title
         truncate={60}
-        placeholder={!this.store.isFetching && 'Untitled document'}
-      >
-        {this.store.title}
-      </Title>
+        placeholder={!this.store.isFetching ? 'Untitled document' : null}
+        content={this.store.title}
+      />
     );
 
     const titleText = this.store.title;

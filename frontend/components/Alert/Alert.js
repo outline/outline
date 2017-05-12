@@ -1,3 +1,4 @@
+// @flow
 import React, { PropTypes } from 'react';
 import { Flex } from 'reflexbox';
 import classNames from 'classnames/bind';

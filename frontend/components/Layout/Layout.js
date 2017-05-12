@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import { browserHistory, Link } from 'react-router';
 import Helmet from 'react-helmet';
@@ -5,29 +6,30 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import _ from 'lodash';
+import { Flex } from 'reflexbox';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
-import { Flex } from 'reflexbox';
+
 import LoadingIndicator from 'components/LoadingIndicator';
-import Alert from 'components/Alert';
+import UserStore from 'stores/UserStore';
 
 import styles from './Layout.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-@inject('user')
-@observer
-class Layout extends React.Component {
-  static propTypes = {
-    children: React.PropTypes.node,
-    actions: React.PropTypes.node,
-    title: React.PropTypes.node,
-    titleText: React.PropTypes.node,
-    loading: React.PropTypes.bool,
-    user: React.PropTypes.object.isRequired,
-    search: React.PropTypes.bool,
-    notifications: React.PropTypes.node,
-  };
+type Props = {
+  children?: ?React.Element<any>,
+  actions?: ?React.Element<any>,
+  title?: ?React.Element<any>,
+  titleText?: string,
+  loading?: boolean,
+  user: UserStore,
+  search: ?boolean,
+  notifications?: React.Element<any>,
+};
+
+@observer class Layout extends React.Component {
+  props: Props;
 
   static defaultProps = {
     search: true,
@@ -114,4 +116,4 @@ const Avatar = styled.img`
   border-radius: 50%;
 `;
 
-export default Layout;
+export default inject('user')(Layout);

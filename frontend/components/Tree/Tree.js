@@ -1,3 +1,4 @@
+/* eslint-disable */
 const Tree = require('js-tree');
 const proto = Tree.prototype;
 

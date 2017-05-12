@@ -1,5 +1,6 @@
 // @flow
 import { observable, action, runInAction } from 'mobx';
+import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import type { Pagination, Collection } from 'types';
 
@@ -23,6 +24,10 @@ class DashboardStore {
 
     try {
       const res = await client.post('/collections.list', { id: this.team.id });
+      invariant(
+        res && res.data && res.pagination,
+        'API response should be available'
+      );
       const { data, pagination } = res;
       runInAction('fetchCollections', () => {
         this.collections = data;

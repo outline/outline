@@ -1,3 +1,4 @@
+// @flow
 import React, { PropTypes } from 'react';
 import moment from 'moment';
 import styled from 'styled-components';

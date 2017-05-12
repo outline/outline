@@ -1,1 +1,1 @@
-yarn flow
+yarn lint:flow
