@@ -8,7 +8,7 @@
   ],
   "plugins": [
     "prettier",
-    "flowtype",
+    "flowtype"
   ],
   "rules": {
     // // Bring back after we remove CSS Modules 100%
