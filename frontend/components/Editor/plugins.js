@@ -32,8 +32,7 @@ const plugins = [
     },
   }),
   EditList({
-    typeUL: 'bulleted-list',
-    typeOL: 'ordered-list',
+    types: ['ordered-list', 'bulleted-list', 'todo-list'],
     typeItem: 'list-item',
   }),
   CollapseOnEscape({ toEdge: 'end' }),

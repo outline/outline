@@ -42,7 +42,9 @@ export default class SlateEditor extends Component {
 
   onChange = (state: Object) => {
     this.setState({ state });
-    this.props.onChange(Markdown.serialize(state));
+    const md = Markdown.serialize(state);
+    console.log(md);
+    this.props.onChange(md);
   };
 
   onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData) => {

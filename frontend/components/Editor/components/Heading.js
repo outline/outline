@@ -2,14 +2,15 @@
 import React from 'react';
 import escape from 'lodash/escape';
 import slug from 'slug';
+import type { Node, Editor } from '../types';
 import styles from '../Editor.scss';
 
 type Props = {
   children: React$Element<any>,
   placeholder?: boolean,
-  parent: Object,
-  node: Object,
-  editor: Object,
+  parent: Node,
+  node: Node,
+  editor: Editor,
   readOnly: boolean,
   component?: string,
 };

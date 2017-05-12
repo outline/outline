@@ -44,12 +44,33 @@
 
   ul,
   ol {
-    margin: .1em;
+    margin: 1em .1em;
     padding-left: 1em;
+
+    ul,
+    ol {
+      margin: .1em;
+    }
   }
 
   li p {
+    display: inline;
     margin: 0;
+  }
+
+  .todoList {
+    list-style: none;
+    padding-left: 0;
+
+    .todoList {
+      padding-left: 1em;
+    }
+  }
+
+  .todo {
+    span:last-child:focus {
+      outline: none;
+    }
   }
 
   code,

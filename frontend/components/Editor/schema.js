@@ -2,15 +2,10 @@
 import React from 'react';
 import Image from './components/Image';
 import Link from './components/Link';
+import ListItem from './components/ListItem';
 import Heading from './components/Heading';
-
-type Props = {
-  node: Object,
-  parent: Object,
-  editor: Object,
-  readOnly: boolean,
-  children: React$Element<any>,
-};
+import type { Props, Node, Transform } from './types';
+import styles from './Editor.scss';
 
 const schema = {
   marks: {
@@ -28,48 +23,51 @@ const schema = {
     'horizontal-rule': (props: Props) => <hr />,
     'bulleted-list': (props: Props) => <ul>{props.children}</ul>,
     'ordered-list': (props: Props) => <ol>{props.children}</ol>,
+    'todo-list': (props: Props) => (
+      <ul className={styles.todoList}>{props.children}</ul>
+    ),
     table: (props: Props) => <table>{props.children}</table>,
     'table-row': (props: Props) => <tr>{props.children}</tr>,
     'table-head': (props: Props) => <th>{props.children}</th>,
     'table-cell': (props: Props) => <td>{props.children}</td>,
     image: Image,
     link: Link,
+    'list-item': ListItem,
     heading1: (props: Props) => <Heading placeholder {...props} />,
     heading2: (props: Props) => <Heading component="h2" {...props} />,
     heading3: (props: Props) => <Heading component="h3" {...props} />,
     heading4: (props: Props) => <Heading component="h4" {...props} />,
     heading5: (props: Props) => <Heading component="h5" {...props} />,
     heading6: (props: Props) => <Heading component="h6" {...props} />,
-    'list-item': (props: Props) => <li>{props.children}</li>,
   },
 
   rules: [
     // ensure first node is a heading
     {
-      match: node => {
+      match: (node: Node) => {
         return node.kind === 'document';
       },
-      validate: document => {
+      validate: (document: Node) => {
         const firstNode = document.nodes.first();
         return firstNode && firstNode.type === 'heading1' ? null : firstNode;
       },
-      normalize: (transform, document, firstNode) => {
+      normalize: (transform: Transform, document: Node, firstNode: Node) => {
         transform.setBlock({ type: 'heading1' });
       },
     },
 
     // remove any marks in first heading
     {
-      match: node => {
-        return node.type === 'heading1';
+      match: (node: Node) => {
+        return node.kind === 'heading1';
       },
-      validate: heading => {
+      validate: (heading: Node) => {
         const hasMarks = heading.getMarks().isEmpty();
         const hasInlines = heading.getInlines().isEmpty();
 
         return !(hasMarks && hasInlines);
       },
-      normalize: (transform, heading) => {
+      normalize: (transform: Transform, heading: Node) => {
         transform.unwrapInlineByKey(heading.key);
 
         heading.getMarks().forEach(mark => {

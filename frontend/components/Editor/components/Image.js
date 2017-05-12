@@ -1,10 +1,6 @@
 // @flow
 import React from 'react';
-
-type Props = {
-  attributes: Object,
-  node: Object,
-};
+import type { Props } from '../types';
 
 export default function Image({ attributes, node }: Props) {
   return (
