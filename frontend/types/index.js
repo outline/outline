@@ -12,11 +12,6 @@ export type User = {
   team: Team,
 };
 
-export type Team = {
-  id: string,
-  name: string,
-};
-
 export type NavigationNode = {
   id: string,
   title: string,

@@ -15,8 +15,8 @@ import SlackAuthLink from 'components/SlackAuthLink';
 @observer class Settings extends React.Component {
   store: SettingsStore;
 
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
     this.store = new SettingsStore();
   }
 

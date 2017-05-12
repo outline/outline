@@ -7,15 +7,12 @@ import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import _ from 'lodash';
 import { Flex } from 'reflexbox';
+import { color, fontSize } from 'styles/constants';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 
 import LoadingIndicator from 'components/LoadingIndicator';
 import UserStore from 'stores/UserStore';
-
-import styles from './Layout.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
 
 type Props = {
   children?: ?React.Element<any>,
@@ -51,7 +48,7 @@ type Props = {
     const user = this.props.user;
 
     return (
-      <div className={styles.container}>
+      <Container column auto>
         <Helmet
           title={
             this.props.titleText ? `${this.props.titleText} - Atlas` : 'Atlas'
@@ -68,53 +65,122 @@ type Props = {
 
         {this.props.notifications}
 
-        <div className={cx(styles.header)}>
-          <div className={styles.headerLeft}>
-            <Link to="/" className={styles.team}>Atlas</Link>
-            <span className={styles.title}>
+        <Header justify="space-between" align="center">
+          <HeaderLeft align="center">
+            <LogoLink to="/">Atlas</LogoLink>
+            <Title>
               {this.props.title}
-            </span>
-          </div>
-          <Flex className={styles.headerRight}>
+            </Title>
+          </HeaderLeft>
+          <Flex>
             <Flex>
-              <Flex align="center" className={styles.actions}>
-                {this.props.actions}
-              </Flex>
-              {user.user &&
-                <Flex>
-                  {this.props.search &&
-                    <Flex>
-                      <div
-                        onClick={this.search}
-                        className={styles.search}
-                        title="Search (/)"
-                      >
-                        <img
-                          src={require('assets/icons/search.svg')}
-                          alt="Search"
-                        />
-                      </div>
-                    </Flex>}
-                  <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
-                    <MenuItem to="/settings">Settings</MenuItem>
-                    <MenuItem to="/keyboard-shortcuts">
-                      Keyboard shortcuts
-                    </MenuItem>
-                    <MenuItem to="/developers">API</MenuItem>
-                    <MenuItem onClick={user.logout}>Logout</MenuItem>
-                  </DropdownMenu>
-                </Flex>}
+              {this.props.actions}
             </Flex>
+            {user.user &&
+              <Flex>
+                {this.props.search &&
+                  <Flex>
+                    <Search onClick={this.search} title="Search (/)">
+                      <img
+                        src={require('assets/icons/search.svg')}
+                        alt="Search"
+                      />
+                    </Search>
+                  </Flex>}
+                <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
+                  <MenuItem to="/settings">Settings</MenuItem>
+                  <MenuItem to="/keyboard-shortcuts">
+                    Keyboard shortcuts
+                  </MenuItem>
+                  <MenuItem to="/developers">API</MenuItem>
+                  <MenuItem onClick={user.logout}>Logout</MenuItem>
+                </DropdownMenu>
+              </Flex>}
           </Flex>
-        </div>
+        </Header>
 
-        <div className={cx(styles.content)}>
+        <Content justify="center" auto>
           {this.props.children}
-        </div>
-      </div>
+        </Content>
+      </Container>
     );
   }
 }
+
+const LogoLink = styled(Link)`
+  font-family: 'Atlas Grotesk';
+  font-weight: bold
+  color: ${color.text};
+  text-decoration: none;
+  font-size: ${fontSize.medium};
+`;
+
+const Title = styled.span`
+  color: ${color.gray};
+
+  a {
+    color: ${color.gray};
+  }
+
+  a:hover {
+    color: ${color.text};
+  }
+`;
+
+const Container = styled(Flex)`
+  width: 100%;
+  height: 100%;
+`;
+
+const Header = styled(Flex)`
+  padding: 0 20px;
+
+  z-index: 1;
+  background: #fff;
+  height: $headerHeight;
+  // border-bottom: 1px solid #eee;
+  box-shadow: 0 0 20px rgba(223, 228, 233, 0.32);
+
+  font-size: 14px;
+  line-height: 1;
+`;
+
+const HeaderLeft = styled(Flex)`
+  .team {
+    font-family: 'Atlas Grotesk';
+    font-weight: bold;
+    color: $textColor;
+    text-decoration: none;
+    font-size: 16px;
+  }
+
+  .title {
+    color: #ccc;
+
+    a {
+      color: #ccc;
+    }
+
+    a:hover {
+      color: $textColor;
+    }
+  }
+`;
+
+const Search = styled(Flex)`
+  margin: 0 5px;
+  padding: 15px 5px 0 5px;
+  cursor: pointer;
+
+  img {
+    height: 20px;
+  }
+`;
+
+const Content = styled(Flex)`
+  height: 100%;
+  overflow: scroll;
+`;
 
 const Avatar = styled.img`
   width: 24px;
