@@ -6,7 +6,6 @@ import type { Pagination, Document } from 'types';
 
 class SearchStore {
   @observable documents: ?(Document[]);
-  @observable pagination: Pagination;
   @observable searchTerm: ?string = null;
 
   @observable isFetching = false;
@@ -20,11 +19,10 @@ class SearchStore {
     if (query) {
       try {
         const res = await client.get('/documents.search', { query });
-        invariant(res && res.data && res.pagination, 'API response');
-        const { data, pagination } = res;
+        invariant(res && res.data, 'res or res.data missing');
+        const { data } = res;
         runInAction('search document', () => {
           this.documents = data;
-          this.pagination = pagination;
         });
       } catch (e) {
         console.error('Something went wrong');
