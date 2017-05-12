@@ -3,16 +3,34 @@
   "extends": [
     "react-app",
     "plugin:import/errors",
-    "plugin:import/warnings"
+    "plugin:import/warnings",
+    "plugin:flowtype/recommended"
   ],
   "plugins": [
-    "prettier"
+    "prettier",
+    "flowtype",
   ],
   "rules": {
     "import/order": "warn",
     // Prettier automatically uses the least amount of parens possible, so this
     // does more harm than good.
     "no-mixed-operators": "off",
+    // Flow
+    "flowtype/require-valid-file-annotation": [
+      2,
+      "always",
+      {
+        "annotationStyle": "line"
+      }
+    ],
+    "flowtype/space-after-type-colon": [
+      2,
+      "always"
+    ],
+    "flowtype/space-before-type-colon": [
+      2,
+      "never"
+    ],
     // Enforce that code is formatted with prettier.
     "prettier/prettier": [
       "error",
@@ -23,7 +41,10 @@
     ]
   },
   "settings": {
-    "import/resolver": "webpack"
+    "import/resolver": "webpack",
+    "flowtype": {
+      "onlyFilesWithFlowAnnotation": false
+    }
   },
   "env": {
     "jest": true
@@ -33,6 +54,7 @@
     "SLACK_KEY": true,
     "SLACK_REDIRECT_URI": true,
     "DEPLOYMENT": true,
+    "BASE_URL": true,
     "afterAll": true
   }
 }

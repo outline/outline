@@ -3,15 +3,15 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import UserStore from 'stores/UserStore';
 
-@inject('user')
-@observer
-class SlackAuthLink extends React.Component {
-  props: {
-    children: any,
-    scopes: Array<string>,
-    user: UserStore,
-    redirectUri: string,
-  };
+type Props = {
+  children: React.Element<any>,
+  scopes?: Array<string>,
+  user: UserStore,
+  redirectUri: string,
+};
+
+@observer class SlackAuthLink extends React.Component {
+  props: Props;
 
   static defaultProps = {
     scopes: [
@@ -25,10 +25,8 @@ class SlackAuthLink extends React.Component {
   slackUrl = () => {
     const baseUrl = 'https://slack.com/oauth/authorize';
     const params = {
-      // $FlowIssue global variable
       client_id: SLACK_KEY,
-      scope: this.props.scopes.join(' '),
-      // $FlowIssue global variable
+      scope: this.props.scopes ? this.props.scopes.join(' ') : '',
       redirect_uri: this.props.redirectUri || SLACK_REDIRECT_URI,
       state: this.props.user.getOauthState(),
     };
@@ -47,4 +45,4 @@ class SlackAuthLink extends React.Component {
   }
 }
 
-export default SlackAuthLink;
+export default inject('user')(SlackAuthLink);

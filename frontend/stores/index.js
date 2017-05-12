@@ -1,3 +1,4 @@
+// @flow
 import { autorunAsync } from 'mobx';
 import UserStore, { USER_STORE } from './UserStore';
 import UiStore, { UI_STORE } from './UiStore';

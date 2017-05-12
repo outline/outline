@@ -1,3 +1,4 @@
+// @flow
 import slug from 'slug';
 import marked from 'marked';
 import sanitizedRenderer from 'marked-sanitized';
@@ -27,7 +28,7 @@ renderer.heading = (text, level) => {
   `;
 };
 
-const convertToMarkdown = text => {
+const convertToMarkdown = (text: string) => {
   // Add TOC
   text = toc.insert(text || '', {
     slugify: heading => {

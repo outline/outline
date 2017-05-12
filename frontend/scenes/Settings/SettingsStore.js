@@ -1,18 +1,23 @@
+// @flow
 import { observable, action, runInAction } from 'mobx';
+import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
+import type { ApiKey } from 'types';
 
 class SearchStore {
-  @observable apiKeys = [];
-  @observable keyName;
+  @observable apiKeys: ApiKey[] = [];
+  @observable keyName: ?string;
 
-  @observable isFetching;
+  @observable isFetching: boolean = false;
 
   @action fetchApiKeys = async () => {
     this.isFetching = true;
 
     try {
       const res = await client.post('/apiKeys.list');
+      invariant(res && res.data, 'Data shoule be available');
       const { data } = res;
+
       runInAction('fetchApiKeys', () => {
         this.apiKeys = data;
       });
@@ -27,8 +32,9 @@ class SearchStore {
 
     try {
       const res = await client.post('/apiKeys.create', {
-        name: `${this.keyName}` || 'Untitled key',
+        name: this.keyName ? this.keyName : 'Untitled key',
       });
+      invariant(res && res.data, 'Data shoule be available');
       const { data } = res;
       runInAction('createApiKey', () => {
         this.apiKeys.push(data);
@@ -40,7 +46,7 @@ class SearchStore {
     this.isFetching = false;
   };
 
-  @action deleteApiKey = async id => {
+  @action deleteApiKey = async (id: string) => {
     this.isFetching = true;
 
     try {
@@ -56,7 +62,7 @@ class SearchStore {
     this.isFetching = false;
   };
 
-  @action setKeyName = value => {
+  @action setKeyName = (value: SyntheticInputEvent) => {
     this.keyName = value.target.value;
   };
 

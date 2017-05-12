@@ -1,3 +1,4 @@
+/* eslint-disable */
 const React = require('react');
 const Tree = require('./Tree');
 const Node = require('./Node');

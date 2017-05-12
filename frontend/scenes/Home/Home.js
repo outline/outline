@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { browserHistory } from 'react-router';
@@ -24,7 +25,7 @@ export default class Home extends React.Component {
     }
   };
 
-  get notifications() {
+  get notifications(): React.Element<any>[] {
     const notifications = [];
     const { state } = this.props.location;
 
@@ -54,7 +55,7 @@ export default class Home extends React.Component {
                 </p>
               </div>}
             <div className={styles.action}>
-              <SlackAuthLink redirectUri={`${URL}/auth/slack`}>
+              <SlackAuthLink redirectUri={`${BASE_URL}/auth/slack`}>
                 <img
                   alt="Sign in with Slack"
                   height="40"

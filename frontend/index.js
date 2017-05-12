@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
@@ -115,7 +116,7 @@ render(
         </Route>
       </Router>
     </Provider>
-    {__DEV__ && <DevTools position={{ bottom: 0, right: 0 }} />}
+    {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}
   </div>,
   document.getElementById('root')
 );

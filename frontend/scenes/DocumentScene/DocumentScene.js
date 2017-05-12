@@ -1,4 +1,6 @@
+// @flow
 import React, { PropTypes } from 'react';
+import invariant from 'invariant';
 import { Link, browserHistory } from 'react-router';
 import { observer, inject } from 'mobx-react';
 import { toJS } from 'mobx';
@@ -6,6 +8,7 @@ import keydown from 'react-keydown';
 import _ from 'lodash';
 
 import DocumentSceneStore, { DOCUMENT_PREFERENCES } from './DocumentSceneStore';
+import UiStore from 'stores/UiStore';
 
 import Layout from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -16,13 +19,20 @@ import { Flex } from 'reflexbox';
 import Sidebar from './components/Sidebar';
 
 import styles from './DocumentScene.scss';
-// import classNames from 'classnames/bind';
-// const cx = classNames.bind(styles);
+
+type Props = {
+  ui: UiStore,
+  routeParams: Object,
+  params: Object,
+  location: Object,
+  keydown: Object,
+};
 
 @keydown(['cmd+/', 'ctrl+/', 'c', 'e'])
 @inject('ui')
 @observer
 class DocumentScene extends React.Component {
+  store: DocumentSceneStore;
   static propTypes = {
     ui: PropTypes.object.isRequired,
     routeParams: PropTypes.object,
@@ -30,7 +40,7 @@ class DocumentScene extends React.Component {
     location: PropTypes.object.isRequired,
   };
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.store = new DocumentSceneStore(
       JSON.parse(localStorage[DOCUMENT_PREFERENCES] || '{}')
@@ -41,15 +51,16 @@ class DocumentScene extends React.Component {
     didScroll: false,
   };
 
-  componentDidMount = async () => {
+  componentDidMount = () => {
     const { id } = this.props.routeParams;
-    await this.store.fetchDocument(id, {
-      replaceUrl: !this.props.location.hash,
-    });
-    this.scrollTohash();
+    this.store
+      .fetchDocument(id, {
+        replaceUrl: !this.props.location.hash,
+      })
+      .then(() => this.scrollTohash());
   };
 
-  componentWillReceiveProps = async nextProps => {
+  componentWillReceiveProps = (nextProps: Props) => {
     const key = nextProps.keydown.event;
     if (key) {
       if (key.key === '/' && (key.metaKey || key.ctrl.Key)) {
@@ -57,7 +68,7 @@ class DocumentScene extends React.Component {
       }
 
       if (key.key === 'c') {
-        _.defer(this.onCreate);
+        _.defer(this.onCreateDocument);
       }
 
       if (key.key === 'e') {
@@ -69,31 +80,38 @@ class DocumentScene extends React.Component {
     const oldId = this.props.params.id;
     const newId = nextProps.params.id;
     if (oldId !== newId) {
-      await this.store.fetchDocument(newId, {
-        softLoad: true,
-        replaceUrl: !this.props.location.hash,
-      });
+      this.store
+        .fetchDocument(newId, {
+          softLoad: true,
+          replaceUrl: !this.props.location.hash,
+        })
+        .then(() => this.scrollTohash());
     }
-
-    this.scrollTohash();
   };
 
   onEdit = () => {
+    invariant(this.store.document, 'Document is not available');
     const url = `${this.store.document.url}/edit`;
     browserHistory.push(url);
   };
 
   onCreateDocument = () => {
+    invariant(this.store.collectionTree, 'collectionTree is not available');
     browserHistory.push(`${this.store.collectionTree.url}/new`);
   };
 
   onCreateChild = () => {
+    invariant(this.store.document, 'Document is not available');
     browserHistory.push(`${this.store.document.url}/new`);
   };
 
   onDelete = () => {
     let msg;
-    if (this.store.document.collection.type === 'atlas') {
+    if (
+      this.store.document &&
+      this.store.document.collection &&
+      this.store.document.collection.type === 'atlas'
+    ) {
       msg =
         "Are you sure you want to delete this document and all it's child documents (if any)?";
     } else {
@@ -107,11 +125,13 @@ class DocumentScene extends React.Component {
 
   onExport = () => {
     const doc = this.store.document;
-    const a = document.createElement('a');
-    a.textContent = 'download';
-    a.download = `${doc.title}.md`;
-    a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(doc.text)}`;
-    a.click();
+    if (doc) {
+      const a = document.createElement('a');
+      a.textContent = 'download';
+      a.download = `${doc.title}.md`;
+      a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(doc.text)}`;
+      a.click();
+    }
   };
 
   scrollTohash = () => {
@@ -130,6 +150,7 @@ class DocumentScene extends React.Component {
     const { sidebar } = this.props.ui;
 
     const doc = this.store.document;
+    if (!doc) return;
     const allowDelete =
       doc &&
       doc.collection.type === 'atlas' &&

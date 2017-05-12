@@ -4,9 +4,9 @@ import _ from 'lodash';
 import styled from 'styled-components';
 
 type Props = {
-  children: string,
+  content: string,
   truncate?: number,
-  placeholder: string,
+  placeholder?: ?string,
 };
 
 class Title extends React.Component {
@@ -15,9 +15,9 @@ class Title extends React.Component {
   render() {
     let title;
     if (this.props.truncate) {
-      title = _.truncate(this.props.children, this.props.truncate);
+      title = _.truncate(this.props.content, this.props.truncate);
     } else {
-      title = this.props.children;
+      title = this.props.content;
     }
 
     let usePlaceholder;
@@ -29,7 +29,7 @@ class Title extends React.Component {
     return (
       <span>
         {title && <span>&nbsp;/&nbsp;</span>}
-        <TitleText title={this.props.children} untitled={usePlaceholder}>
+        <TitleText title={this.props.content} untitled={usePlaceholder}>
           {title}
         </TitleText>
       </span>

@@ -1,3 +1,4 @@
+// @flow
 import React from 'react';
 import { toJS } from 'mobx';
 import { Link } from 'react-router';

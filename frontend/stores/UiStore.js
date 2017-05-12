@@ -1,13 +1,14 @@
+// @flow
 import { observable, action, computed } from 'mobx';
 
 const UI_STORE = 'UI_STORE';
 
 class UiStore {
-  @observable sidebar;
+  @observable sidebar: boolean = false;
 
   /* Computed */
 
-  @computed get asJson() {
+  @computed get asJson(): string {
     return JSON.stringify({
       sidebar: this.sidebar,
     });
@@ -15,7 +16,7 @@ class UiStore {
 
   /* Actions */
 
-  @action toggleSidebar = () => {
+  @action toggleSidebar = (): void => {
     this.sidebar = !this.sidebar;
   };
 

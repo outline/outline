@@ -1,3 +1,4 @@
+/* eslint-disable */
 const path = require('path');
 const webpack = require('webpack');
 
@@ -10,7 +11,7 @@ const definePlugin = new webpack.DefinePlugin({
   ),
   SLACK_REDIRECT_URI: JSON.stringify(process.env.SLACK_REDIRECT_URI),
   SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
-  URL: JSON.stringify(process.env.URL),
+  BASE_URL: JSON.stringify(process.env.URL),
   DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT || 'hosted'),
 });
 
@@ -34,7 +35,7 @@ module.exports = {
         test: /\.woff$/,
         loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]',
       },
-      { test: /\.markdown/, loader: 'raw-loader' },
+      { test: /\.md/, loader: 'raw-loader' },
 
       // Excludes
       {

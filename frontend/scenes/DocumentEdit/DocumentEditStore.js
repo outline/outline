@@ -1,7 +1,10 @@
+// @flow
 import { observable, action, toJS, autorun } from 'mobx';
-import { client } from 'utils/ApiClient';
 import { browserHistory } from 'react-router';
+import invariant from 'invariant';
+import { client } from 'utils/ApiClient';
 import emojify from 'utils/emojify';
+import type { Document } from 'types';
 
 const DOCUMENT_EDIT_SETTINGS = 'DOCUMENT_EDIT_SETTINGS';
 
@@ -22,17 +25,17 @@ const parseHeader = text => {
 class DocumentEditStore {
   @observable documentId = null;
   @observable collectionId = null;
-  @observable parentDocument;
-  @observable title;
-  @observable text;
+  @observable parentDocument: ?Document;
+  @observable title: string;
+  @observable text: string;
   @observable hasPendingChanges = false;
-  @observable newDocument;
-  @observable newChildDocument;
+  @observable newDocument: ?boolean;
+  @observable newChildDocument: ?boolean;
 
-  @observable preview;
-  @observable isFetching;
-  @observable isSaving;
-  @observable isUploading;
+  @observable preview: ?boolean = false;
+  @observable isFetching: boolean = false;
+  @observable isSaving: boolean = false;
+  @observable isUploading: boolean = false;
 
   /* Actions */
 
@@ -40,17 +43,18 @@ class DocumentEditStore {
     this.isFetching = true;
 
     try {
-      const data = await client.get(
+      const res = await client.get(
         '/documents.info',
         {
           id: this.documentId,
         },
         { cache: true }
       );
+      invariant(res && res.data, 'Data shoule be available');
       if (this.newChildDocument) {
-        this.parentDocument = data.data;
+        this.parentDocument = res.data;
       } else {
-        const { title, text } = data.data;
+        const { title, text } = res.data;
         this.title = title;
         this.text = text;
       }
@@ -66,17 +70,19 @@ class DocumentEditStore {
     this.isSaving = true;
 
     try {
-      const data = await client.post(
+      const res = await client.post(
         '/documents.create',
         {
           parentDocument: this.parentDocument && this.parentDocument.id,
+          // $FlowFixMe this logic will probably get rewritten soon anyway
           collection: this.collectionId || this.parentDocument.collection.id,
           title: this.title || 'Untitled document',
           text: this.text,
         },
         { cache: true }
       );
-      const { url } = data.data;
+      invariant(res && res.data, 'Data shoule be available');
+      const { url } = res.data;
 
       this.hasPendingChanges = false;
       browserHistory.push(url);
@@ -92,7 +98,7 @@ class DocumentEditStore {
     this.isSaving = true;
 
     try {
-      const data = await client.post(
+      const res = await client.post(
         '/documents.update',
         {
           id: this.documentId,
@@ -101,7 +107,8 @@ class DocumentEditStore {
         },
         { cache: true }
       );
-      const { url } = data.data;
+      invariant(res && res.data, 'Data shoule be available');
+      const { url } = res.data;
 
       this.hasPendingChanges = false;
       browserHistory.push(url);
@@ -111,17 +118,17 @@ class DocumentEditStore {
     this.isSaving = false;
   };
 
-  @action updateText = text => {
+  @action updateText = (text: string) => {
     this.text = text;
     this.title = parseHeader(text);
     this.hasPendingChanges = true;
   };
 
-  @action updateTitle = title => {
+  @action updateTitle = (title: string) => {
     this.title = title;
   };
 
-  @action replaceText = args => {
+  @action replaceText = (args: { original: string, new: string }) => {
     this.text = this.text.replace(args.original, args.new);
     this.hasPendingChanges = true;
   };
@@ -147,7 +154,7 @@ class DocumentEditStore {
     });
   };
 
-  constructor(settings) {
+  constructor(settings: { preview: ?boolean }) {
     // Rehydrate settings
     this.preview = settings.preview;
 

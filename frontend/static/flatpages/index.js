@@ -1,5 +1,6 @@
-import api from './api.markdown';
-import keyboard from './keyboard.markdown';
+// @flow
+import api from './api.md';
+import keyboard from './keyboard.md';
 
 export default {
   api,

@@ -1,3 +1,4 @@
+// @flow
 import React, { PropTypes } from 'react';
 import { observer } from 'mobx-react';
 
@@ -8,8 +9,8 @@ import styles from './SearchField.scss';
     onChange: PropTypes.func,
   };
 
-  onChange = event => {
-    this.props.onChange(event.currentTarget.value);
+  onChange = (event: SyntheticEvent) => {
+    event.currentTarget.value && this.props.onChange(event.currentTarget.value);
   };
 
   render() {

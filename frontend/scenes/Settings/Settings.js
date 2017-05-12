@@ -13,7 +13,7 @@ import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
 
 @observer class Settings extends React.Component {
-  store = SettingsStore;
+  store: SettingsStore;
 
   constructor() {
     super();
@@ -21,13 +21,7 @@ import SlackAuthLink from 'components/SlackAuthLink';
   }
 
   render() {
-    const title = (
-      <Title>
-        Settings
-      </Title>
-    );
-
-    // $FlowIssue global variable
+    const title = <Title content="Settings" />;
     const showSlackSettings = DEPLOYMENT === 'hosted';
 
     return (
@@ -48,8 +42,7 @@ import SlackAuthLink from 'components/SlackAuthLink';
 
               <SlackAuthLink
                 scopes={['commands']}
-                redirectUri={// $FlowIssue URL is a global variable
-                `${URL}/auth/slack/commands`}
+                redirectUri={`${BASE_URL}/auth/slack/commands`}
               >
                 <img
                   alt="Add to Slack"
@@ -71,15 +64,16 @@ import SlackAuthLink from 'components/SlackAuthLink';
             {this.store.apiKeys &&
               <table className={styles.apiKeyTable}>
                 <tbody>
-                  {this.store.apiKeys.map(key => (
-                    <ApiKeyRow
-                      id={key.id}
-                      key={key.id}
-                      name={key.name}
-                      secret={key.secret}
-                      onDelete={this.store.deleteApiKey}
-                    />
-                  ))}
+                  {this.store.apiKeys &&
+                    this.store.apiKeys.map(key => (
+                      <ApiKeyRow
+                        id={key.id}
+                        key={key.id}
+                        name={key.name}
+                        secret={key.secret}
+                        onDelete={this.store.deleteApiKey}
+                      />
+                    ))}
                 </tbody>
               </table>}
 
@@ -106,10 +100,10 @@ class InlineForm extends React.Component {
     placeholder: string,
     buttonLabel: string,
     name: string,
-    value: string,
+    value: ?string,
     onChange: Function,
     onSubmit: Function,
-    disabled?: boolean,
+    disabled?: ?boolean,
   };
   validationTimeout: number;
 

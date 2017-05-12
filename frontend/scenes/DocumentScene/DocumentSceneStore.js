@@ -1,5 +1,7 @@
+// @flow
 import _ from 'lodash';
 import { browserHistory } from 'react-router';
+import invariant from 'invariant';
 import {
   observable,
   action,
@@ -9,26 +11,36 @@ import {
   autorunAsync,
 } from 'mobx';
 import { client } from 'utils/ApiClient';
+import type { Document as DocumentType, Collection } from 'types';
 
 const DOCUMENT_PREFERENCES = 'DOCUMENT_PREFERENCES';
 
-class DocumentSceneStore {
-  @observable document;
-  @observable collapsedNodes = [];
+type Document = {
+  collection: Collection,
+} & DocumentType;
 
-  @observable isFetching = true;
-  @observable updatingContent = false;
-  @observable updatingStructure = false;
-  @observable isDeleting;
+class DocumentSceneStore {
+  @observable document: ?Document;
+  @observable collapsedNodes: string[] = [];
+
+  @observable isFetching: boolean = true;
+  @observable updatingContent: boolean = false;
+  @observable updatingStructure: boolean = false;
+  @observable isDeleting: boolean = false;
 
   /* Computed */
 
-  @computed get isCollection() {
-    return this.document && this.document.collection.type === 'atlas';
+  @computed get isCollection(): boolean {
+    return !!this.document && this.document.collection.type === 'atlas';
   }
 
-  @computed get collectionTree() {
-    if (!this.document || this.document.collection.type !== 'atlas') return;
+  @computed get collectionTree(): ?Object {
+    if (
+      !this.document ||
+      this.document.collection ||
+      this.document.collection.type !== 'atlas'
+    )
+      return;
     const tree = this.document.collection.navigationTree;
 
     const collapseNodes = node => {
@@ -45,7 +57,10 @@ class DocumentSceneStore {
 
   /* Actions */
 
-  @action fetchDocument = async (id, options = {}) => {
+  @action fetchDocument = async (
+    id: string,
+    options: { softLoad?: boolean, replaceUrl?: boolean } = {}
+  ) => {
     options = {
       softLoad: false,
       replaceUrl: true,
@@ -57,6 +72,7 @@ class DocumentSceneStore {
 
     try {
       const res = await client.get('/documents.info', { id });
+      invariant(res && res.data, 'data should be available');
       const { data } = res;
       runInAction('fetchDocument', () => {
         this.document = data;
@@ -70,10 +86,12 @@ class DocumentSceneStore {
   };
 
   @action deleteDocument = async () => {
+    if (!this.document) return;
     this.isFetching = true;
 
     try {
       await client.post('/documents.delete', { id: this.document.id });
+      // $FlowFixMe don't be stupid
       browserHistory.push(this.document.collection.url);
     } catch (e) {
       console.error('Something went wrong');
@@ -81,8 +99,9 @@ class DocumentSceneStore {
     this.isFetching = false;
   };
 
-  @action updateNavigationTree = async tree => {
+  @action updateNavigationTree = async (tree: Object) => {
     // Only update when tree changes
+    // $FlowFixMe don't be stupid
     if (_.isEqual(toJS(tree), toJS(this.document.collection.navigationTree))) {
       return true;
     }
@@ -91,11 +110,14 @@ class DocumentSceneStore {
 
     try {
       const res = await client.post('/collections.updateNavigationTree', {
+        // $FlowFixMe don't be stupid
         id: this.document.collection.id,
         tree,
       });
+      invariant(res && res.data, 'data should be available');
       runInAction('updateNavigationTree', () => {
         const { data } = res;
+        // $FlowFixMe don't be stupid
         this.document.collection = data;
       });
     } catch (e) {
@@ -104,7 +126,7 @@ class DocumentSceneStore {
     this.updatingStructure = false;
   };
 
-  @action onNodeCollapse = nodeId => {
+  @action onNodeCollapse = (nodeId: string) => {
     if (_.indexOf(this.collapsedNodes, nodeId) >= 0) {
       this.collapsedNodes = _.without(this.collapsedNodes, nodeId);
     } else {
@@ -120,7 +142,7 @@ class DocumentSceneStore {
     });
   };
 
-  constructor(settings, options) {
+  constructor(settings: { collapsedNodes: string[] }) {
     // Rehydrate settings
     this.collapsedNodes = settings.collapsedNodes || [];
 
