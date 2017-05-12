@@ -36,23 +36,22 @@ class DocumentSceneStore {
 
   @computed get collectionTree(): ?Object {
     if (
-      !this.document ||
-      this.document.collection ||
-      this.document.collection.type !== 'atlas'
-    )
-      return;
-    const tree = this.document.collection.navigationTree;
+      this.document &&
+      this.document.collection &&
+      this.document.collection.type === 'atlas'
+    ) {
+      const tree = this.document.collection.navigationTree;
+      const collapseNodes = node => {
+        node.collapsed = this.collapsedNodes.includes(node.id);
+        node.children = node.children.map(childNode => {
+          return collapseNodes(childNode);
+        });
 
-    const collapseNodes = node => {
-      node.collapsed = this.collapsedNodes.includes(node.id);
-      node.children = node.children.map(childNode => {
-        return collapseNodes(childNode);
-      });
+        return node;
+      };
 
-      return node;
-    };
-
-    return collapseNodes(toJS(tree));
+      return collapseNodes(toJS(tree));
+    }
   }
 
   /* Actions */

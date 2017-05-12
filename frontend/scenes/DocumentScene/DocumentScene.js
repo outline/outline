@@ -150,7 +150,9 @@ class DocumentScene extends React.Component {
     const { sidebar } = this.props.ui;
 
     const doc = this.store.document;
-    if (!doc) return;
+
+    // FIXME: feels ghetto
+    if (!doc) return <div />;
     const allowDelete =
       doc &&
       doc.collection.type === 'atlas' &&
