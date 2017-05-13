@@ -147,30 +147,6 @@ class DocumentScene extends React.Component {
     }
   };
 
-  renderLayoutTitle() {
-    const { document, pathToDocument } = this.store;
-    if (document && document.collection) {
-      const titleSections = pathToDocument
-        ? pathToDocument.map(node => (
-            <Link key={node.id} to={node.url}>{node.title}</Link>
-          ))
-        : [];
-      titleSections.unshift(
-        <Link key={document.collection.id} to={document.collection.url}>
-          {document.collection.name}
-        </Link>
-      );
-
-      return (
-        <span>
-          &nbsp;/&nbsp;
-          {titleSections.reduce((prev, curr) => [prev, ' / ', curr])}
-          {` / ${document.title}`}
-        </span>
-      );
-    }
-  }
-
   render() {
     const { sidebar } = this.props.ui;
 
