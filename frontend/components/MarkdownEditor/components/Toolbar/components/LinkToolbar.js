@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import type { State } from '../../../types';
 import keydown from 'react-keydown';
 import styles from '../Toolbar.scss';
 import CloseIcon from 'components/Icon/CloseIcon';
@@ -8,7 +9,7 @@ import CloseIcon from 'components/Icon/CloseIcon';
 export default class LinkToolbar extends Component {
   input: HTMLElement;
   props: {
-    state: Object,
+    state: State,
     link: Object,
     onBlur: Function,
     onFocus: Function,

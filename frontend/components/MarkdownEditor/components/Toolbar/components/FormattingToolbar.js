@@ -1,6 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import styles from '../Toolbar.scss';
+import type { State } from '../../../types';
 import BoldIcon from 'components/Icon/BoldIcon';
 import CodeIcon from 'components/Icon/CodeIcon';
 import Heading1Icon from 'components/Icon/Heading1Icon';
@@ -11,7 +12,7 @@ import BulletedListIcon from 'components/Icon/BulletedListIcon';
 
 export default class FormattingToolbar extends Component {
   props: {
-    state: Object,
+    state: State,
     onChange: Function,
   };
 

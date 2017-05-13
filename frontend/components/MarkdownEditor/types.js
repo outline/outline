@@ -73,7 +73,12 @@ export type Node = {
   getBlocks: Function,
   getParent: Function,
   getInlines: Function,
+  getInlinesAtRange: Function,
   setBlock: Function,
+};
+
+export type Block = Node & {
+  type: string,
 };
 
 export type Document = Node;
@@ -90,9 +95,16 @@ export type Props = {
 export type State = {
   document: Document,
   selection: Selection,
+  startBlock: Block,
+  endBlock: Block,
+  startText: Node,
+  endText: Node,
   marks: Set<*>,
-  blocks: List<Node>,
+  blocks: List<Block>,
   fragment: Document,
   lines: List<Node>,
   tests: List<Node>,
+  startBlock: Block,
+  transform: Function,
+  isBlurred: Function,
 };

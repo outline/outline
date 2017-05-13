@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
-import type { Document, State } from './types';
+import type { Document, State, Editor as EditorType } from './types';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
 import schema from './schema';
@@ -25,10 +25,10 @@ type KeyData = {
 @observer
 export default class MarkdownEditor extends Component {
   props: Props;
-  editor: Object;
+  editor: EditorType;
 
   state: {
-    state: Object,
+    state: State,
   };
 
   constructor(props: Props) {

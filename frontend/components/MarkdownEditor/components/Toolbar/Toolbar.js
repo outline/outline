@@ -3,13 +3,14 @@ import React, { Component } from 'react';
 import Portal from 'react-portal';
 import classnames from 'classnames';
 import isEqual from 'lodash/isEqual';
+import type { State } from '../../types';
 import FormattingToolbar from './components/FormattingToolbar';
 import LinkToolbar from './components/LinkToolbar';
 import styles from './Toolbar.scss';
 
 export default class Toolbar extends Component {
   props: {
-    state: Object,
+    state: State,
     onChange: Function,
   };
 
