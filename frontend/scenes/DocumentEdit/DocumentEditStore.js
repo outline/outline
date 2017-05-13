@@ -1,6 +1,7 @@
 // @flow
-import { observable, action, toJS, autorun } from 'mobx';
+import { observable, action } from 'mobx';
 import { browserHistory } from 'react-router';
+import get from 'lodash/get';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import emojify from 'utils/emojify';
@@ -34,10 +35,8 @@ class DocumentEditStore {
   @observable newDocument: ?boolean;
   @observable newChildDocument: ?boolean;
 
-  @observable preview: ?boolean = false;
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
-  @observable isUploading: boolean = false;
 
   /* Actions */
 
@@ -75,7 +74,7 @@ class DocumentEditStore {
       const res = await client.post(
         '/documents.create',
         {
-          parentDocument: this.parentDocument && this.parentDocument.id,
+          parentDocument: get(this.parentDocument, 'id'),
           // $FlowFixMe this logic will probably get rewritten soon anyway
           collection: this.collectionId || this.parentDocument.collection.id,
           title: this.title || 'Untitled document',
@@ -129,43 +128,6 @@ class DocumentEditStore {
   @action updateTitle = (title: string) => {
     this.title = title;
   };
-
-  @action replaceText = (args: { original: string, new: string }) => {
-    this.text = this.text.replace(args.original, args.new);
-    this.hasPendingChanges = true;
-  };
-
-  @action togglePreview = () => {
-    this.preview = !this.preview;
-  };
-
-  @action reset = () => {
-    this.title = 'Lets start with a title';
-    this.text = '# Lets start with a title\n\nAnd continue from there...';
-  };
-
-  @action toggleUploadingIndicator = () => {
-    this.isUploading = !this.isUploading;
-  };
-
-  // Generic
-
-  persistSettings = () => {
-    localStorage[DOCUMENT_EDIT_SETTINGS] = JSON.stringify({
-      preview: toJS(this.preview),
-    });
-  };
-
-  constructor(settings: { preview: ?boolean }) {
-    // Rehydrate settings
-    this.preview = settings.preview;
-
-    // Persist settings to localStorage
-    // TODO: This could be done more selectively
-    autorun(() => {
-      this.persistSettings();
-    });
-  }
 }
 
 export default DocumentEditStore;

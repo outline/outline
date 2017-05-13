@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
 import classNames from 'classnames/bind';
 import styles from '../DocumentEdit.scss';
 const cx = classNames.bind(styles);
@@ -11,7 +11,7 @@ type Props = {
   fullWidth?: ?boolean,
 };
 
-class EditorPane extends React.Component {
+class EditorPane extends Component {
   props: Props;
   pane: HTMLElement;
   content: HTMLElement;
@@ -32,21 +32,17 @@ class EditorPane extends React.Component {
 
   handleScroll = (e: Event) => {
     setTimeout(() => {
-      const element = this.pane;
-      const contentEl = this.content;
       this.props.onScroll &&
-        this.props.onScroll(element.scrollTop / contentEl.offsetHeight);
+        this.props.onScroll(this.pane.scrollTop / this.content.offsetHeight);
     }, 50);
   };
 
   scrollToPosition = (percentage: number) => {
-    const contentEl = this.content;
-
     // Push to edges
     if (percentage < 0.02) percentage = 0;
     if (percentage > 0.99) percentage = 100;
 
-    this.pane.scrollTop = percentage * contentEl.offsetHeight;
+    this.pane.scrollTop = percentage * this.content.offsetHeight;
   };
 
   setPaneRef = (ref: HTMLElement) => {

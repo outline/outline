@@ -5,13 +5,15 @@ import { browserHistory, withRouter } from 'react-router';
 import { Flex } from 'reflexbox';
 
 import DocumentEditStore, { DOCUMENT_EDIT_SETTINGS } from './DocumentEditStore';
-import EditorLoader from './components/EditorLoader';
+import Editor from './components/Editor';
 import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
-const DISCARD_CHANGES = `You have unsaved changes.
-Are you sure you want to discard them?`;
+const DISCARD_CHANGES = `
+You have unsaved changes.
+Are you sure you want to discard them?
+`;
 
 type Props = {
   route: Object,
@@ -50,12 +52,6 @@ class DocumentEdit extends Component {
       this.store.newDocument = false;
       this.store.fetchDocument();
     }
-
-    // Load editor async
-    EditorLoader().then(({ Editor }) => {
-      // $FlowIssue we can remove after moving to new editor
-      this.setState({ Editor });
-    });
 
     // Set onLeave hook
     this.props.router.setRouteLeaveHook(this.props.route, () => {
@@ -115,20 +111,21 @@ class DocumentEdit extends Component {
         title={title}
         titleText={titleText}
         fixed
-        loading={this.store.isSaving || this.store.isUploading}
+        loading={this.store.isSaving}
         search={false}
       >
-        {this.store.isFetching || !('Editor' in this.state)
-          ? <CenteredContent>
-              <AtlasPreviewLoading />
-            </CenteredContent>
-          : <this.state.Editor
-              store={this.store}
-              scrollTop={this.state.scrollTop}
-              onScroll={this.onScroll}
-              onSave={this.onSave}
-              onCancel={this.onCancel}
-            />}
+        {this.store.isFetching &&
+          <CenteredContent>
+            <AtlasPreviewLoading />
+          </CenteredContent>}
+        {!this.store.isFetching &&
+          <Editor
+            store={this.store}
+            scrollTop={this.state.scrollTop}
+            onScroll={this.onScroll}
+            onSave={this.onSave}
+            onCancel={this.onCancel}
+          />}
       </Layout>
     );
   }

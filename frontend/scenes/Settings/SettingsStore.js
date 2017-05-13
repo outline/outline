@@ -15,7 +15,7 @@ class SearchStore {
 
     try {
       const res = await client.post('/apiKeys.list');
-      invariant(res && res.data, 'Data shoule be available');
+      invariant(res && res.data, 'Data should be available');
       const { data } = res;
 
       runInAction('fetchApiKeys', () => {
@@ -34,7 +34,7 @@ class SearchStore {
       const res = await client.post('/apiKeys.create', {
         name: this.keyName ? this.keyName : 'Untitled key',
       });
-      invariant(res && res.data, 'Data shoule be available');
+      invariant(res && res.data, 'Data should be available');
       const { data } = res;
       runInAction('createApiKey', () => {
         this.apiKeys.push(data);
