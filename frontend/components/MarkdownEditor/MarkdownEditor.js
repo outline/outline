@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
+import type { Document, State } from './types';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
 import schema from './schema';
@@ -22,7 +23,7 @@ type KeyData = {
 };
 
 @observer
-export default class SlateEditor extends Component {
+export default class MarkdownEditor extends Component {
   props: Props;
   editor: Object;
 
@@ -40,11 +41,12 @@ export default class SlateEditor extends Component {
     }
   }
 
-  onChange = (state: Object) => {
+  onChange = (state: State) => {
     this.setState({ state });
-    const md = Markdown.serialize(state);
-    console.log(md);
-    this.props.onChange(md);
+  };
+
+  onDocumentChange = (document: Document, state: State) => {
+    this.props.onChange(Markdown.serialize(state));
   };
 
   onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData) => {
@@ -91,6 +93,7 @@ export default class SlateEditor extends Component {
           plugins={plugins}
           state={this.state.state}
           onChange={this.onChange}
+          onDocumentChange={this.onDocumentChange}
           onKeyDown={this.onKeyDown}
           onSave={this.props.onSave}
         />

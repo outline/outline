@@ -9,8 +9,6 @@ import type { Document } from 'types';
 
 type SaveProps = { redirect?: boolean };
 
-const DOCUMENT_EDIT_SETTINGS = 'DOCUMENT_EDIT_SETTINGS';
-
 const parseHeader = text => {
   const firstLine = text.split(/\r?\n/)[0];
   if (firstLine) {
@@ -122,6 +120,8 @@ class DocumentEditStore {
   @action updateText = (text: string) => {
     this.text = text;
     this.title = parseHeader(text);
+
+    console.log('updateText', text);
     this.hasPendingChanges = true;
   };
 
@@ -131,4 +131,3 @@ class DocumentEditStore {
 }
 
 export default DocumentEditStore;
-export { DOCUMENT_EDIT_SETTINGS };

@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import { browserHistory, withRouter } from 'react-router';
 import { Flex } from 'reflexbox';
 
-import DocumentEditStore, { DOCUMENT_EDIT_SETTINGS } from './DocumentEditStore';
+import DocumentEditStore from './DocumentEditStore';
 import Editor from './components/Editor';
 import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -28,16 +28,14 @@ class DocumentEdit extends Component {
   store: DocumentEditStore;
   props: Props;
 
-  constructor(props: Props) {
-    super(props);
-    this.store = new DocumentEditStore(
-      JSON.parse(localStorage[DOCUMENT_EDIT_SETTINGS] || '{}')
-    );
-  }
-
   state = {
     scrollTop: 0,
   };
+
+  constructor(props: Props) {
+    super(props);
+    this.store = new DocumentEditStore({});
+  }
 
   componentDidMount = () => {
     if (this.props.route.newDocument) {
@@ -53,11 +51,12 @@ class DocumentEdit extends Component {
       this.store.fetchDocument();
     }
 
-    // Set onLeave hook
-    this.props.router.setRouteLeaveHook(this.props.route, () => {
+    // Prevent user from accidentally leaving with unsaved changes
+    const remove = this.props.router.setRouteLeaveHook(this.props.route, () => {
       if (this.store.hasPendingChanges) {
         return confirm(DISCARD_CHANGES);
       }
+      remove();
       return null;
     });
   };
@@ -75,9 +74,7 @@ class DocumentEdit extends Component {
   };
 
   onScroll = (scrollTop: number) => {
-    this.setState({
-      scrollTop,
-    });
+    this.setState({ scrollTop });
   };
 
   render() {

@@ -1,5 +1,5 @@
 // @flow
-import { List, Map } from 'immutable';
+import { List, Set, Map } from 'immutable';
 
 export type NodeTransform = {
   addMarkByKey: Function,
@@ -76,6 +76,8 @@ export type Node = {
   setBlock: Function,
 };
 
+export type Document = Node;
+
 export type Props = {
   node: Node,
   parent?: Node,
@@ -83,4 +85,14 @@ export type Props = {
   editor: Editor,
   readOnly?: boolean,
   children?: React$Element<any>,
+};
+
+export type State = {
+  document: Document,
+  selection: Selection,
+  marks: Set<*>,
+  blocks: List<Node>,
+  fragment: Document,
+  lines: List<Node>,
+  tests: List<Node>,
 };
