@@ -11,7 +11,11 @@ import {
   autorunAsync,
 } from 'mobx';
 import { client } from 'utils/ApiClient';
-import type { Document as DocumentType, Collection } from 'types';
+import type {
+  Document as DocumentType,
+  Collection,
+  NavigationNode,
+} from 'types';
 
 const DOCUMENT_PREFERENCES = 'DOCUMENT_PREFERENCES';
 
@@ -51,6 +55,27 @@ class DocumentSceneStore {
       };
 
       return collapseNodes(toJS(tree));
+    }
+  }
+
+  @computed get pathToDocument(): ?Array<NavigationNode> {
+    let path;
+    const traveler = (node, previousPath) => {
+      if (this.document && node.id === this.document.id) {
+        path = previousPath;
+        return;
+      } else {
+        node.children.forEach(childNode => {
+          const newPath = [...previousPath, node];
+          return traveler(childNode, newPath);
+        });
+      }
+    };
+
+    if (this.document && this.collectionTree) {
+      traveler(this.collectionTree, []);
+      invariant(path, 'Path is not available for collection, abort');
+      return path.splice(1);
     }
   }
 

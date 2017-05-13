@@ -11,13 +11,21 @@ export type Team = {
   name: string,
 };
 
+export type NavigationNode = {
+  id: string,
+  title: string,
+  url: string,
+  collapsed: boolean,
+  children: Array<NavigationNode>,
+};
+
 export type Collection = {
   createdAt: string,
   description: ?string,
   id: string,
   name: string,
   type: 'atlas' | 'journal',
-  navigationTree: Object, // TODO
+  navigationTree: NavigationNode,
   updatedAt: string,
   url: string,
 };
