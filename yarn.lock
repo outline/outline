@@ -7043,15 +7043,11 @@ react-addons-test-utils@^15.3.1:
   version "15.3.2"
   resolved "https://registry.yarnpkg.com/react-addons-test-utils/-/react-addons-test-utils-15.3.2.tgz#c09a44f583425a4a9c1b38444d7a6c3e6f0f41f6"
 
-react-addons-text-content@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/react-addons-text-content/-/react-addons-text-content-0.0.4.tgz#d2e259fdc951d1d8906c08902002108dce8792e5"
-
 react-deep-force-update@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/react-deep-force-update/-/react-deep-force-update-1.0.1.tgz#f911b5be1d2a6fe387507dd6e9a767aa2924b4c7"
 
-react-dom@15.3.2, "react-dom@>= 0.14.0", "react-dom@^0.14.0 || ^15.0.0":
+react-dom@15.3.2, "react-dom@^0.14.0 || ^15.0.0":
   version "15.3.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.3.2.tgz#c46b0aa5380d7b838e7a59c4a7beff2ed315531f"
 
@@ -7071,12 +7067,9 @@ react-helmet@3.1.0:
     shallowequal "0.2.2"
     warning "2.1.0"
 
-react-keydown@^1.6.1:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/react-keydown/-/react-keydown-1.6.2.tgz#a90b7fd2492f926e43500415ecc2fd091aaf2b76"
-  dependencies:
-    react ">= 0.14.0"
-    react-dom ">= 0.14.0"
+react-keydown@^1.7.3:
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/react-keydown/-/react-keydown-1.7.3.tgz#51262d5e6e5ce5909e0279783e607bd5a6cc480c"
 
 react-portal@^3.0.0, react-portal@^3.1.0:
   version "3.1.0"
@@ -7122,7 +7115,7 @@ react-transform-hmr@^1.0.3:
     global "^4.3.0"
     react-proxy "^1.1.7"
 
-react@15.3.2, "react@>= 0.14.0":
+react@15.3.2:
   version "15.3.2"
   resolved "https://registry.yarnpkg.com/react/-/react-15.3.2.tgz#a7bccd2fee8af126b0317e222c28d1d54528d09e"
   dependencies:
@@ -7820,9 +7813,9 @@ slate-drop-or-paste-images@^0.5.0:
     is-url "^1.2.2"
     mime-types "^2.1.11"
 
-slate-edit-list@^0.6.4:
-  version "0.6.4"
-  resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.6.4.tgz#bd84ecfbdbb66cc943213be3089a33cd06b6935e"
+slate-edit-list@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.7.0.tgz#dd7eb44085f54e7b6709f82c1713be9b0c14ea56"
 
 slate-markdown-serializer@tommoor/slate-markdown-serializer:
   version "0.3.0"

@@ -136,7 +136,7 @@
     "react-dom": "15.3.2",
     "react-dropzone": "3.6.0",
     "react-helmet": "3.1.0",
-    "react-keydown": "^1.6.1",
+    "react-keydown": "^1.7.3",
     "react-portal": "^3.1.0",
     "react-router": "2.8.0",
     "rebass": "^0.3.4",
