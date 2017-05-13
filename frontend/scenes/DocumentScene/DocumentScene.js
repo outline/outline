@@ -17,6 +17,7 @@ import Document from 'components/Document';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 import { Flex } from 'reflexbox';
 import Sidebar from './components/Sidebar';
+import Breadcrumbs from './components/Breadcrumbs';
 
 import styles from './DocumentScene.scss';
 
@@ -202,7 +203,7 @@ class DocumentScene extends React.Component {
         </div>
       );
 
-      title = this.renderLayoutTitle();
+      title = <Breadcrumbs store={this.store} />;
       titleText = `${doc.collection.name} - ${doc.title}`;
     }
 
