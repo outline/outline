@@ -7752,8 +7752,8 @@ slate-edit-list@^0.7.0:
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.7.0.tgz#dd7eb44085f54e7b6709f82c1713be9b0c14ea56"
 
 slate-markdown-serializer@tommoor/slate-markdown-serializer:
-  version "0.3.0"
-  resolved "https://codeload.github.com/tommoor/slate-markdown-serializer/tar.gz/d5c0793d8984065a6a53f34268fe104bbda277ee"
+  version "0.4.0"
+  resolved "https://codeload.github.com/tommoor/slate-markdown-serializer/tar.gz/02096d839dfaa149f2a7f330e15d92ff0454cbb4"
 
 slate-paste-linkify@^0.2.1:
   version "0.2.1"
