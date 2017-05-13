@@ -1,11 +1,23 @@
+// @flow
 import { client } from './ApiClient';
+import invariant from 'invariant';
 
-export default async function uploadFile(file) {
+type File = {
+  blob: boolean,
+  type: string,
+  size: number,
+  name: string,
+  file: string,
+};
+
+export default async function uploadFile(file: File) {
   const response = await client.post('/user.s3Upload', {
     kind: file.type,
     size: file.size,
     filename: file.name,
   });
+
+  invariant(response, 'Response should be available');
 
   const data = response.data;
   const asset = data.asset;
@@ -18,13 +30,15 @@ export default async function uploadFile(file) {
   if (file.blob) {
     formData.append('file', file.file);
   } else {
+    // $FlowFixMe
     formData.append('file', file);
   }
 
-  await fetch(data.uploadUrl, {
+  const options: Object = {
     method: 'post',
     body: formData,
-  });
+  };
+  await fetch(data.uploadUrl, options);
 
   return asset;
 }

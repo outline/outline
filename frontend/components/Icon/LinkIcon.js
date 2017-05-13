@@ -1,8 +1,9 @@
 // @flow
 import React from 'react';
 import Icon from './Icon';
+import type { Props } from './Icon';
 
-export default function LinkIcon(props) {
+export default function LinkIcon(props: Props) {
   return (
     <Icon {...props}>
       <svg

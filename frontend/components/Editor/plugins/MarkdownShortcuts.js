@@ -1,3 +1,4 @@
+// @flow
 const inlineShortcuts = [
   { mark: 'bold', shortcut: '**' },
   { mark: 'italic', shortcut: '*' },
@@ -12,22 +13,17 @@ export default function MarkdownShortcuts() {
   return {
     /**
      * On key down, check for our specific key shortcuts.
-     *
-     * @param {Event} e
-     * @param {Data} data
-     * @param {State} state
-     * @return {State or Null} state
      */
-    onKeyDown(e, data, state) {
+    onKeyDown(ev: SyntheticEvent, data: Object, state: Object) {
       switch (data.key) {
         case '-':
-          return this.onDash(e, state);
+          return this.onDash(ev, state);
         case 'space':
-          return this.onSpace(e, state);
+          return this.onSpace(ev, state);
         case 'backspace':
-          return this.onBackspace(e, state);
+          return this.onBackspace(ev, state);
         case 'enter':
-          return this.onEnter(e, state);
+          return this.onEnter(ev, state);
         default:
           return null;
       }
@@ -36,12 +32,8 @@ export default function MarkdownShortcuts() {
     /**
      * On space, if it was after an auto-markdown shortcut, convert the current
      * node into the shortcut's corresponding type.
-     *
-     * @param {Event} e
-     * @param {State} state
-     * @return {State or Null} state
      */
-    onSpace(e, state) {
+    onSpace(ev: SyntheticEvent, state: Object) {
       if (state.isExpanded) return;
       const { startBlock, startOffset } = state;
       const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
@@ -49,7 +41,7 @@ export default function MarkdownShortcuts() {
 
       if (type) {
         if (type === 'list-item' && startBlock.type === 'list-item') return;
-        e.preventDefault();
+        ev.preventDefault();
 
         const transform = state.transform().setBlock(type);
 
@@ -102,18 +94,13 @@ export default function MarkdownShortcuts() {
       }
     },
 
-    /**
-     * @param {Event} e
-     * @param {State} state
-     * @return {State or Null} state
-     */
-    onDash(e, state) {
+    onDash(ev: SyntheticEvent, state: Object) {
       if (state.isExpanded) return;
       const { startBlock, startOffset } = state;
       const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
 
       if (chars === '--') {
-        e.preventDefault();
+        ev.preventDefault();
         const transform = state
           .transform()
           .extendToStartOf(startBlock)
@@ -130,19 +117,14 @@ export default function MarkdownShortcuts() {
       }
     },
 
-    /**
-     * @param {Event} e
-     * @param {State} state
-     * @return {State or Null} state
-     */
-    onBackspace(e, state) {
+    onBackspace(ev: SyntheticEvent, state: Object) {
       if (state.isExpanded) return;
       const { startBlock, selection, startOffset } = state;
 
       // If at the start of a non-paragraph, convert it back into a paragraph
       if (startOffset === 0) {
         if (startBlock.type === 'paragraph') return;
-        e.preventDefault();
+        ev.preventDefault();
 
         const transform = state.transform().setBlock('paragraph');
 
@@ -161,7 +143,7 @@ export default function MarkdownShortcuts() {
         );
 
         if (codeMarksAtCursor.size > 0) {
-          e.preventDefault();
+          ev.preventDefault();
 
           const textNode = startBlock.getTextAtOffset(startOffset);
           const charsInCodeBlock = textNode.characters
@@ -185,12 +167,8 @@ export default function MarkdownShortcuts() {
     /**
      * On return, if at the end of a node type that should not be extended,
      * create a new paragraph below it.
-     *
-     * @param {Event} e
-     * @param {State} state
-     * @return {State or Null} state
      */
-    onEnter(ev, state) {
+    onEnter(ev: SyntheticEvent, state: Object) {
       if (state.isExpanded) return;
       const { startBlock, startOffset, endOffset } = state;
       if (startOffset === 0 && startBlock.length === 0)
@@ -216,11 +194,8 @@ export default function MarkdownShortcuts() {
 
     /**
      * Get the block type for a series of auto-markdown shortcut `chars`.
-     *
-     * @param {String} chars
-     * @return {String} block
      */
-    getType(chars) {
+    getType(chars: string) {
       switch (chars) {
         case '*':
         case '-':

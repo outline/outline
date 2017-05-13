@@ -1,24 +1,27 @@
-import React, { PropTypes } from 'react';
+// @flow
+import React from 'react';
 import { observer } from 'mobx-react';
 import _ from 'lodash';
-
 import { Flex } from 'reflexbox';
-import Layout, { Title } from 'components/Layout';
-import CenteredContent from 'components/CenteredContent';
+
 import SearchField from './components/SearchField';
-import DocumentPreview from 'components/DocumentPreview';
-
 import styles from './Search.scss';
-
 import SearchStore from './SearchStore';
 
-@observer class Search extends React.Component {
-  static propTypes = {
-    route: PropTypes.object.isRequired,
-    routeParams: PropTypes.object.isRequired,
-  };
+import Layout, { Title } from 'components/Layout';
+import CenteredContent from 'components/CenteredContent';
+import DocumentPreview from 'components/DocumentPreview';
 
-  constructor(props) {
+type Props = {
+  route: Object,
+  routeParams: Object,
+};
+
+@observer class Search extends React.Component {
+  props: Props;
+  store: SearchStore;
+
+  constructor(props: Props) {
     super(props);
     this.store = new SearchStore();
   }
@@ -32,7 +35,7 @@ import SearchStore from './SearchStore';
     }
   };
 
-  get viewNotFound() {
+  get viewNotFound(): boolean {
     const { sceneType } = this.props.route;
     return sceneType === 'notFound';
   }
@@ -41,11 +44,7 @@ import SearchStore from './SearchStore';
     const search = _.debounce(searchTerm => {
       this.store.search(searchTerm);
     }, 250);
-    const title = (
-      <Title>
-        Search
-      </Title>
-    );
+    const title = <Title content="Search" />;
 
     return (
       <Layout

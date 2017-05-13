@@ -1,4 +1,5 @@
-import { List } from 'immutable';
+// @flow
+import { List, Map } from 'immutable';
 
 export type NodeTransform = {
   addMarkByKey: Function,
@@ -43,6 +44,7 @@ export type StateTransform = {
 export type Transform = NodeTransform & StateTransform;
 
 export type Editor = {
+  props: Object,
   className: string,
   onChange: Function,
   onDocumentChange: Function,
@@ -51,6 +53,13 @@ export type Editor = {
   readOnly: boolean,
   state: Object,
   style: Object,
+  placeholder?: string,
+  placeholderClassName?: string,
+  placeholderStyle?: string,
+  blur: Function,
+  focus: Function,
+  getSchema: Function,
+  getState: Function,
 };
 
 export type Node = {
@@ -58,6 +67,7 @@ export type Node = {
   kind: string,
   length: number,
   text: string,
+  data: Map<string, any>,
   nodes: List<Node>,
   getMarks: Function,
   getBlocks: Function,
@@ -68,8 +78,9 @@ export type Node = {
 
 export type Props = {
   node: Node,
-  parent: Node,
+  parent?: Node,
+  attributes?: Object,
   editor: Editor,
-  readOnly: boolean,
-  children: React$Element<any>,
+  readOnly?: boolean,
+  children?: React$Element<any>,
 };

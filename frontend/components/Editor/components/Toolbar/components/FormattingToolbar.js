@@ -21,11 +21,11 @@ export default class FormattingToolbar extends Component {
    * @param {String} type
    * @return {Boolean}
    */
-  hasMark = type => {
+  hasMark = (type: string) => {
     return this.props.state.marks.some(mark => mark.type === type);
   };
 
-  isBlock = type => {
+  isBlock = (type: string) => {
     return this.props.state.startBlock.type === type;
   };
 
@@ -35,7 +35,7 @@ export default class FormattingToolbar extends Component {
    * @param {Event} ev
    * @param {String} type
    */
-  onClickMark = (ev, type) => {
+  onClickMark = (ev: SyntheticEvent, type: string) => {
     ev.preventDefault();
     let { state } = this.props;
 
@@ -43,7 +43,7 @@ export default class FormattingToolbar extends Component {
     this.props.onChange(state);
   };
 
-  onClickBlock = (ev, type) => {
+  onClickBlock = (ev: SyntheticEvent, type: string) => {
     ev.preventDefault();
     let { state } = this.props;
 
@@ -51,7 +51,7 @@ export default class FormattingToolbar extends Component {
     this.props.onChange(state);
   };
 
-  renderMarkButton = (type, IconClass) => {
+  renderMarkButton = (type: string, IconClass: Function) => {
     const isActive = this.hasMark(type);
     const onMouseDown = ev => this.onClickMark(ev, type);
 
@@ -66,7 +66,7 @@ export default class FormattingToolbar extends Component {
     );
   };
 
-  renderBlockButton = (type, IconClass) => {
+  renderBlockButton = (type: string, IconClass: Function) => {
     const isActive = this.isBlock(type);
     const onMouseDown = ev =>
       this.onClickBlock(ev, isActive ? 'paragraph' : type);
@@ -87,9 +87,10 @@ export default class FormattingToolbar extends Component {
    *
    * @param {Event} ev
    */
-  onCreateLink = ev => {
+  onCreateLink = (ev: SyntheticEvent) => {
     ev.preventDefault();
     ev.stopPropagation();
+
     const transform = this.props.state.transform();
     const data = { href: '' };
     const state = transform.wrapInline({ type: 'link', data }).apply();

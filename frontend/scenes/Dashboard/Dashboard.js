@@ -1,25 +1,29 @@
+// @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router';
+import { Flex } from 'reflexbox';
 
 import DashboardStore from './DashboardStore';
 
-import { Flex } from 'reflexbox';
 import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
+type Props = {
+  user: Object,
+  router: Object,
+};
+
 @withRouter
 @inject('user')
 @observer
 class Dashboard extends React.Component {
-  static propTypes = {
-    user: React.PropTypes.object.isRequired,
-    router: React.PropTypes.object.isRequired,
-  };
+  props: Props;
+  store: DashboardStore;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
 
     this.store = new DashboardStore({

@@ -4,7 +4,7 @@ import type { Props } from '../types';
 import styles from '../Editor.scss';
 
 export default class TodoItem extends Component {
-  props: Props;
+  props: Props & { checked: boolean };
 
   handleChange = (ev: SyntheticInputEvent) => {
     const checked = ev.target.checked;

@@ -1,8 +1,9 @@
 // @flow
 import React from 'react';
 import Icon from './Icon';
+import type { Props } from './Icon';
 
-export default function BulletedListIcon(props) {
+export default function BulletedListIcon(props: Props) {
   return (
     <Icon {...props}>
       <svg

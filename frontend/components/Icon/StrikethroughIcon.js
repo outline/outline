@@ -1,8 +1,9 @@
 // @flow
 import React from 'react';
 import Icon from './Icon';
+import type { Props } from './Icon';
 
-export default function StrikethroughIcon(props) {
+export default function StrikethroughIcon(props: Props) {
   return (
     <Icon {...props}>
       <svg

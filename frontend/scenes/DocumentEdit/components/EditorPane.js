@@ -1,17 +1,22 @@
+// @flow
 import React from 'react';
 import classNames from 'classnames/bind';
 import styles from '../DocumentEdit.scss';
 const cx = classNames.bind(styles);
 
-class EditorPane extends React.Component {
-  static propTypes = {
-    children: React.PropTypes.node.isRequired,
-    onScroll: React.PropTypes.func.isRequired,
-    scrollTop: React.PropTypes.number,
-    fullWidth: React.PropTypes.bool,
-  };
+type Props = {
+  children?: ?React.Element<any>,
+  onScroll?: Function,
+  scrollTop?: ?number,
+  fullWidth?: ?boolean,
+};
 
-  componentWillReceiveProps = nextProps => {
+class EditorPane extends React.Component {
+  props: Props;
+  pane: HTMLElement;
+  content: HTMLElement;
+
+  componentWillReceiveProps = (nextProps: Props) => {
     if (nextProps.scrollTop) {
       this.scrollToPosition(nextProps.scrollTop);
     }
@@ -25,15 +30,16 @@ class EditorPane extends React.Component {
     this.pane.removeEventListener('scroll', this.handleScroll);
   };
 
-  handleScroll = e => {
+  handleScroll = (e: Event) => {
     setTimeout(() => {
       const element = this.pane;
       const contentEl = this.content;
-      this.props.onScroll(element.scrollTop / contentEl.offsetHeight);
+      this.props.onScroll &&
+        this.props.onScroll(element.scrollTop / contentEl.offsetHeight);
     }, 50);
   };
 
-  scrollToPosition = percentage => {
+  scrollToPosition = (percentage: number) => {
     const contentEl = this.content;
 
     // Push to edges
@@ -43,11 +49,11 @@ class EditorPane extends React.Component {
     this.pane.scrollTop = percentage * contentEl.offsetHeight;
   };
 
-  setPaneRef = ref => {
+  setPaneRef = (ref: HTMLElement) => {
     this.pane = ref;
   };
 
-  setContentRef = ref => {
+  setContentRef = (ref: HTMLElement) => {
     this.content = ref;
   };
 

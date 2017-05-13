@@ -1,32 +1,34 @@
+// @flow
 import React from 'react';
 import { browserHistory, Link } from 'react-router';
 import Helmet from 'react-helmet';
+import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
-import { Flex } from 'reflexbox';
-import { Avatar } from 'rebass';
+import defer from 'lodash/defer';
 import keydown from 'react-keydown';
-import _ from 'lodash';
 import classNames from 'classnames/bind';
-import styles from './Layout.scss';
 import searchIcon from 'assets/icons/search.svg';
+import { Flex } from 'reflexbox';
+import styles from './Layout.scss';
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import LoadingIndicator from 'components/LoadingIndicator';
+import UserStore from 'stores/UserStore';
 
 const cx = classNames.bind(styles);
 
-@inject('user')
-@observer
-class Layout extends React.Component {
-  static propTypes = {
-    children: React.PropTypes.node,
-    actions: React.PropTypes.node,
-    title: React.PropTypes.node,
-    titleText: React.PropTypes.node,
-    loading: React.PropTypes.bool,
-    user: React.PropTypes.object.isRequired,
-    search: React.PropTypes.bool,
-    notifications: React.PropTypes.node,
-  };
+type Props = {
+  children?: ?React.Element<any>,
+  actions?: ?React.Element<any>,
+  title?: ?React.Element<any>,
+  titleText?: string,
+  loading?: boolean,
+  user: UserStore,
+  search: ?boolean,
+  notifications?: React.Element<any>,
+};
+
+@observer class Layout extends React.Component {
+  props: Props;
 
   static defaultProps = {
     search: true,
@@ -35,13 +37,13 @@ class Layout extends React.Component {
   @keydown(['/', 't'])
   search() {
     // if (!this.props.user) return;
-    _.defer(() => browserHistory.push('/search'));
+    defer(() => browserHistory.push('/search'));
   }
 
   @keydown(['d'])
   dashboard() {
     // if (!this.props.user) return;
-    _.defer(() => browserHistory.push('/'));
+    defer(() => browserHistory.push('/'));
   }
 
   render() {
@@ -83,11 +85,7 @@ class Layout extends React.Component {
                         <img src={searchIcon} alt="Search" />
                       </div>
                     </Flex>}
-                  <DropdownMenu
-                    label={
-                      <Avatar circle size={24} src={user.user.avatarUrl} />
-                    }
-                  >
+                  <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
                     <MenuItem to="/settings">Settings</MenuItem>
                     <MenuItem to="/keyboard-shortcuts">
                       Keyboard shortcuts
@@ -108,4 +106,10 @@ class Layout extends React.Component {
   }
 }
 
-export default Layout;
+const Avatar = styled.img`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+`;
+
+export default inject('user')(Layout);

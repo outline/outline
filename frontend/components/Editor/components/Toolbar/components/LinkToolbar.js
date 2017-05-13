@@ -6,6 +6,7 @@ import CloseIcon from 'components/Icon/CloseIcon';
 
 @keydown
 export default class LinkToolbar extends Component {
+  input: HTMLElement;
   props: {
     state: Object,
     link: Object,
@@ -18,8 +19,8 @@ export default class LinkToolbar extends Component {
     this.input.focus();
   }
 
-  onKeyDown = ev => {
-    switch (ev.which) {
+  onKeyDown = (ev: SyntheticKeyboardEvent & SyntheticInputEvent) => {
+    switch (ev.keyCode) {
       case 13: // enter
         ev.preventDefault();
         return this.save(ev.target.value);
@@ -33,7 +34,7 @@ export default class LinkToolbar extends Component {
     this.save('');
   };
 
-  save = href => {
+  save = (href: string) => {
     href = href.trim();
     const transform = this.props.state.transform();
     transform.unwrapInline('link');

@@ -1,3 +1,4 @@
+// @flow
 import React, { PropTypes } from 'react';
 
 import styles from './ApiKeyRow.scss';

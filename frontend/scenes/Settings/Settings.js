@@ -1,37 +1,27 @@
+// @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-
+import styled from 'styled-components';
 import { Flex } from 'reflexbox';
-import { Input, ButtonOutline, InlineForm } from 'rebass';
+
+import ApiKeyRow from './components/ApiKeyRow';
+import styles from './Settings.scss';
+import SettingsStore from './SettingsStore';
+
 import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
-import ApiKeyRow from './components/ApiKeyRow';
-
-import styles from './Settings.scss';
-
-import SettingsStore from './SettingsStore';
 
 @observer class Settings extends React.Component {
-  static store;
+  store: SettingsStore;
 
-  constructor(props) {
-    super(props);
+  constructor() {
+    super();
     this.store = new SettingsStore();
   }
 
-  onKeyCreate = e => {
-    e.preventDefault();
-    this.store.createApiKey();
-  };
-
   render() {
-    const title = (
-      <Title>
-        Settings
-      </Title>
-    );
-
+    const title = <Title content="Settings" />;
     const showSlackSettings = DEPLOYMENT === 'hosted';
 
     return (
@@ -52,7 +42,7 @@ import SettingsStore from './SettingsStore';
 
               <SlackAuthLink
                 scopes={['commands']}
-                redirectUri={`${URL}/auth/slack/commands`}
+                redirectUri={`${BASE_URL}/auth/slack/commands`}
               >
                 <img
                   alt="Add to Slack"
@@ -73,35 +63,131 @@ import SettingsStore from './SettingsStore';
 
             {this.store.apiKeys &&
               <table className={styles.apiKeyTable}>
-                {this.store.apiKeys.map(key => (
-                  <ApiKeyRow
-                    id={key.id}
-                    name={key.name}
-                    secret={key.secret}
-                    onDelete={this.store.deleteApiKey}
-                  />
-                ))}
+                <tbody>
+                  {this.store.apiKeys &&
+                    this.store.apiKeys.map(key => (
+                      <ApiKeyRow
+                        id={key.id}
+                        key={key.id}
+                        name={key.name}
+                        secret={key.secret}
+                        onDelete={this.store.deleteApiKey}
+                      />
+                    ))}
+                </tbody>
               </table>}
 
             <div>
               <InlineForm
                 placeholder="Token name"
                 buttonLabel="Create token"
-                label="InlineForm"
                 name="inline_form"
                 value={this.store.keyName}
                 onChange={this.store.setKeyName}
-                onClick={this.onKeyCreate}
-                style={{ width: '100%' }}
+                onSubmit={this.store.createApiKey}
                 disabled={this.store.isFetching}
               />
             </div>
-
           </div>
         </CenteredContent>
       </Layout>
     );
   }
 }
+
+class InlineForm extends React.Component {
+  props: {
+    placeholder: string,
+    buttonLabel: string,
+    name: string,
+    value: ?string,
+    onChange: Function,
+    onSubmit: Function,
+    disabled?: ?boolean,
+  };
+  validationTimeout: number;
+
+  state = {
+    validationError: false,
+  };
+
+  componentWillUnmount() {
+    clearTimeout(this.validationTimeout);
+  }
+
+  handleSubmit = event => {
+    event.preventDefault();
+    if (this.props.value) {
+      this.props.onSubmit();
+    } else {
+      this.setState({
+        validationError: true,
+      });
+      this.validationTimeout = setTimeout(
+        () =>
+          this.setState({
+            validationError: false,
+          }),
+        2500
+      );
+    }
+  };
+
+  render() {
+    const { placeholder, value, onChange, buttonLabel } = this.props;
+    const { validationError } = this.state;
+
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <Flex auto>
+          <TextInput
+            type="text"
+            placeholder={validationError ? 'Please add a label' : placeholder}
+            value={value || ''}
+            onChange={onChange}
+            validationError={validationError}
+          />
+          <Button type="submit" value={buttonLabel} />
+        </Flex>
+      </form>
+    );
+  }
+}
+
+const TextInput = styled.input`
+  display:flex;
+  flex: 1;
+  height:32px;
+  margin:0;
+  padding-left:8px;
+  padding-right:8px;
+  color:inherit;
+  background-color: rgba(255, 255, 255, .25);
+  border-width:1px;
+  border-style:solid;
+  border-color: ${props => (props.validationError ? 'red' : 'rgba(0, 0, 0, .25)')};
+  border-radius:2px 0 0 2px;
+`;
+
+const Button = styled.input`
+  box-shadow:inset 0 0 0 1px;
+  font-family:inherit;
+  font-size:14px;
+  line-height:16px;
+  min-height:32px;
+  text-decoration:none;
+  display:inline-block;
+  margin:0;
+  padding-top:8px;
+  padding-bottom:8px;
+  padding-left:16px;
+  padding-right:16px;
+  cursor:pointer;
+  border:0;
+  color:black;
+  background-color:transparent;
+  border-radius:0 2px 2px 0;
+  margin-left:-1px;
+`;
 
 export default Settings;

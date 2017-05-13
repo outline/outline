@@ -1,8 +1,9 @@
 // @flow
 import React from 'react';
 import Icon from './Icon';
+import type { Props } from './Icon';
 
-export default function OrderedListIcon(props) {
+export default function OrderedListIcon(props: Props) {
   return (
     <Icon {...props}>
       <svg

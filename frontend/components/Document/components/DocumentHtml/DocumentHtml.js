@@ -1,3 +1,4 @@
+// @flow
 import React, { PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
@@ -18,9 +19,11 @@ import styles from './DocumentHtml.scss';
   };
 
   setExternalLinks = () => {
+    // $FlowFixMe
     const links = ReactDOM.findDOMNode(this).querySelectorAll('a');
     links.forEach(link => {
       if (link.hostname !== window.location.hostname) {
+        // $FlowFixMe
         link.target = '_blank'; // eslint-disable-line no-param-reassign
       }
     });

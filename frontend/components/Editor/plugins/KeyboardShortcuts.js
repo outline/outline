@@ -1,3 +1,5 @@
+// @flow
+
 export default function KeyboardShortcuts() {
   return {
     /**
@@ -8,7 +10,7 @@ export default function KeyboardShortcuts() {
      * @param {State} state
      * @return {State or Null} state
      */
-    onKeyDown(e, data, state) {
+    onKeyDown(ev: SyntheticEvent, data: Object, state: Object) {
       if (!data.isMeta) return null;
 
       switch (data.key) {
@@ -25,7 +27,7 @@ export default function KeyboardShortcuts() {
       }
     },
 
-    toggleMark(state, type) {
+    toggleMark(state: Object, type: string) {
       // don't allow formatting of document title
       const firstNode = state.document.nodes.first();
       if (firstNode === state.startBlock) return;

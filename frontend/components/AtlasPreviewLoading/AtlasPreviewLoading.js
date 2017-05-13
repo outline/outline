@@ -1,9 +1,8 @@
+// @flow
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
-
-import styles from './AtlasPreviewLoading.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
+import styled, { keyframes } from 'styled-components';
+import { Flex } from 'reflexbox';
 
 import { randomInteger } from 'utils/random';
 
@@ -12,7 +11,7 @@ const randomValues = Array.from(
   () => `${randomInteger(85, 100)}%`
 );
 
-export default _props => {
+export default () => {
   return (
     <ReactCSSTransitionGroup
       transitionName="fadeIn"
@@ -23,26 +22,25 @@ export default _props => {
       transitionEnterTimeout={0}
       transitionLeaveTimeout={0}
     >
-      <div>
-        <div className={cx(styles.container, styles.animated)}>
-          <div
-            className={cx(styles.mask, styles.header)}
-            style={{ width: randomValues[0] }}
-          />
-          <div
-            className={cx(styles.mask, styles.bodyText)}
-            style={{ width: randomValues[1] }}
-          />
-          <div
-            className={cx(styles.mask, styles.bodyText)}
-            style={{ width: randomValues[2] }}
-          />
-          <div
-            className={cx(styles.mask, styles.bodyText)}
-            style={{ width: randomValues[3] }}
-          />
-        </div>
-      </div>
+      <Flex column auto>
+        <Mask style={{ width: randomValues[0] }} header />
+        <Mask style={{ width: randomValues[1] }} />
+        <Mask style={{ width: randomValues[2] }} />
+        <Mask style={{ width: randomValues[3] }} />
+      </Flex>
     </ReactCSSTransitionGroup>
   );
 };
+
+const pulsate = keyframes`
+  0%   { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+`;
+
+const Mask = styled(Flex)`
+  height: ${props => (props.header ? 28 : 18)}px;
+  margin-bottom: ${props => (props.header ? 32 : 14)}px;
+  background-color: #ddd;
+  animation: ${pulsate} 1.3s infinite;
+`;

@@ -1,8 +1,9 @@
 // @flow
 import React from 'react';
 import Icon from './Icon';
+import type { Props } from './Icon';
 
-export default function ItalicIcon(props) {
+export default function ItalicIcon(props: Props) {
   return (
     <Icon {...props}>
       <svg

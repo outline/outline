@@ -1,3 +1,4 @@
+// @flow
 import { observable, action } from 'mobx';
 
 class SidebarStore {

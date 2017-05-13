@@ -1,14 +1,17 @@
+// @flow
 import React from 'react';
 import { observer } from 'mobx-react';
 
-@observer class SaveAction extends React.Component {
-  static propTypes = {
-    onClick: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool,
-    isNew: React.PropTypes.bool,
-  };
+type Props = {
+  onClick: Function,
+  disabled?: boolean,
+  isNew?: boolean,
+};
 
-  onClick = event => {
+@observer class SaveAction extends React.Component {
+  props: Props;
+
+  onClick = (event: MouseEvent) => {
     if (this.props.disabled) return;
 
     event.preventDefault();

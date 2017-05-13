@@ -1,3 +1,4 @@
+// @flow
 import React, { PropTypes } from 'react';
 import { observer } from 'mobx-react';
 
@@ -16,7 +17,11 @@ import { convertToMarkdown } from 'utils/markdown';
     const { title, content } = this.props.route;
 
     return (
-      <Layout title={<Title>{title}</Title>} titleText={title} search={false}>
+      <Layout
+        title={<Title content={title} />}
+        titleText={title}
+        search={false}
+      >
         <CenteredContent>
           <DocumentHtml html={convertToMarkdown(content)} />
         </CenteredContent>

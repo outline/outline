@@ -1,3 +1,4 @@
+// @flow
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { browserHistory, withRouter } from 'react-router';
@@ -12,16 +13,20 @@ import CenteredContent from 'components/CenteredContent';
 const DISCARD_CHANGES = `You have unsaved changes.
 Are you sure you want to discard them?`;
 
+type Props = {
+  route: Object,
+  router: Object,
+  params: Object,
+  keydown: Object,
+};
+
 @withRouter
 @observer
 class DocumentEdit extends Component {
-  static propTypes = {
-    route: React.PropTypes.object.isRequired,
-    router: React.PropTypes.object.isRequired,
-    params: React.PropTypes.object,
-  };
+  store: DocumentEditStore;
+  props: Props;
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.store = new DocumentEditStore(
       JSON.parse(localStorage[DOCUMENT_EDIT_SETTINGS] || '{}')
@@ -48,6 +53,7 @@ class DocumentEdit extends Component {
 
     // Load editor async
     EditorLoader().then(({ Editor }) => {
+      // $FlowIssue we can remove after moving to new editor
       this.setState({ Editor });
     });
 
@@ -60,7 +66,7 @@ class DocumentEdit extends Component {
     });
   };
 
-  onSave = (options = {}) => {
+  onSave = (options: { redirect?: boolean } = {}) => {
     if (this.store.newDocument || this.store.newChildDocument) {
       this.store.saveDocument(options);
     } else {
@@ -72,7 +78,7 @@ class DocumentEdit extends Component {
     browserHistory.goBack();
   };
 
-  onScroll = scrollTop => {
+  onScroll = (scrollTop: number) => {
     this.setState({
       scrollTop,
     });
@@ -82,10 +88,9 @@ class DocumentEdit extends Component {
     const title = (
       <Title
         truncate={60}
-        placeholder={this.store.isFetching ? 'Untitled document' : ''}
-      >
-        {this.store.title}
-      </Title>
+        placeholder={!this.store.isFetching ? 'Untitled document' : null}
+        content={this.store.title}
+      />
     );
 
     const titleText = this.store.title;

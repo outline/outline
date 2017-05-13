@@ -1,6 +1,6 @@
-import React, { PropTypes } from 'react';
+// @flow
+import React from 'react';
 import { observer } from 'mobx-react';
-import { Link } from 'react-router';
 
 import { Flex } from 'reflexbox';
 import Tree from 'components/Tree';
@@ -12,24 +12,25 @@ const cx = classNames.bind(styles);
 
 import SidebarStore from './SidebarStore';
 
+type Props = {
+  open?: boolean,
+  onToggle: Function,
+  navigationTree: Object,
+  onNavigationUpdate: Function,
+  onNodeCollapse: Function,
+};
+
 @observer class Sidebar extends React.Component {
-  static store;
+  props: Props;
+  store: SidebarStore;
 
-  static propTypes = {
-    open: PropTypes.bool,
-    onToggle: PropTypes.func.isRequired,
-    navigationTree: PropTypes.object.isRequired,
-    onNavigationUpdate: PropTypes.func.isRequired,
-    onNodeCollapse: PropTypes.func.isRequired,
-  };
-
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
 
     this.store = new SidebarStore();
   }
 
-  toggleEdit = e => {
+  toggleEdit = (e: MouseEvent) => {
     e.preventDefault();
     this.store.toggleEdit();
   };
