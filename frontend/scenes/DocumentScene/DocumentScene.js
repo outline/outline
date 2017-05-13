@@ -150,10 +150,14 @@ class DocumentScene extends React.Component {
     const { document, pathToDocument } = this.store;
     if (document && document.collection) {
       const titleSections = pathToDocument
-        ? pathToDocument.map(node => <Link to={node.url}>{node.title}</Link>)
+        ? pathToDocument.map(node => (
+            <Link key={node.id} to={node.url}>{node.title}</Link>
+          ))
         : [];
       titleSections.unshift(
-        <Link to={document.collection.url}>{document.collection.name}</Link>
+        <Link key={document.collection.id} to={document.collection.url}>
+          {document.collection.name}
+        </Link>
       );
 
       return (
