@@ -20,6 +20,7 @@ type Props = {
   actions?: ?React.Element<any>,
   title?: ?React.Element<any>,
   titleText?: string,
+  showMenu: ?boolean,
   loading?: boolean,
   user: UserStore,
   ui: UiStore,
@@ -69,14 +70,15 @@ type Props = {
 
         <Header justify="space-between" align="center">
           <HeaderLeft align="center">
-            <MenuContainer>
-              <MenuIcon
-                src={require('assets/icons/menu.svg')}
-                alt="Menu"
-                title="Toggle menu (Cmd+/)"
-                onClick={this.props.ui.toggleSidebar}
-              />
-            </MenuContainer>
+            {this.props.showMenu &&
+              <MenuContainer>
+                <MenuIcon
+                  src={require('assets/icons/menu.svg')}
+                  alt="Menu"
+                  title="Toggle menu (Cmd+/)"
+                  onClick={this.props.ui.toggleSidebar}
+                />
+              </MenuContainer>}
             <LogoLink to="/">Atlas</LogoLink>
             <Title>
               {this.props.title}

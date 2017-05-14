@@ -189,6 +189,7 @@ class DocumentScene extends React.Component {
         titleText={titleText}
         actions={doc && actions}
         loading={this.store.updatingStructure}
+        showMenu={this.props.route.showMenu}
       >
         {this.store.isFetching
           ? <CenteredContent>
