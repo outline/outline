@@ -1,7 +1,6 @@
 // @flow
 import React from 'react';
-import classnames from 'classnames';
-import styles from './Icon.scss';
+import styled from 'styled-components';
 
 export type Props = {
   className?: string,
@@ -12,19 +11,16 @@ type BaseProps = {
   children?: React$Element<any>,
 };
 
-export default function Icon({
-  className,
-  children,
-  light,
-  ...rest
-}: Props & BaseProps) {
-  const classes = classnames(className, styles.icon, {
-    [styles.light]: light,
-  });
-
+export default function Icon({ children, ...rest }: Props & BaseProps) {
   return (
-    <span {...rest} className={classes}>
+    <Wrapper {...rest}>
       {children}
-    </span>
+    </Wrapper>
   );
 }
+
+const Wrapper = styled.span`
+  svg {
+    fill: ${props => (props.light ? '#fff' : '#000')};
+  }
+`;
