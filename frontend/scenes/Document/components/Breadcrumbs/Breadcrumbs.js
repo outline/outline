@@ -1,16 +1,14 @@
 // @flow
 import React from 'react';
-import styled from 'styled-components';
 import { Link } from 'react-router';
 import type { Document, NavigationNode } from 'types';
-import DocumentSceneStore from '../../DocumentSceneStore';
 
 type Props = {
-  store: DocumentSceneStore,
+  document: Document,
+  pathToDocument: Array<NavigationNode>,
 };
 
-const Breadcrumbs = ({ store }: Props) => {
-  const { document, pathToDocument } = store;
+const Breadcrumbs = ({ document, pathToDocument }: Props) => {
   if (document && document.collection) {
     const titleSections = pathToDocument
       ? pathToDocument.map(node => (
@@ -31,6 +29,7 @@ const Breadcrumbs = ({ store }: Props) => {
       </span>
     );
   }
+  return null;
 };
 
 export default Breadcrumbs;

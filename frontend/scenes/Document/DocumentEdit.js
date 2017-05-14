@@ -1,12 +1,14 @@
 // @flow
 import React, { Component } from 'react';
+import get from 'lodash/get';
 import { observer } from 'mobx-react';
 import { browserHistory, withRouter } from 'react-router';
 import { Flex } from 'reflexbox';
 
 import DocumentEditStore from './DocumentEditStore';
+import Breadcrumbs from './components/Breadcrumbs';
 import Editor from './components/Editor';
-import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
+import Layout, { HeaderAction, SaveAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
@@ -65,7 +67,7 @@ class DocumentEdit extends Component {
   };
 
   onEdit = () => {
-    const url = `${this.store.url}/edit`;
+    const url = `${this.store.document.url}/edit`;
     browserHistory.push(url);
   };
 
@@ -87,17 +89,15 @@ class DocumentEdit extends Component {
 
   render() {
     const { route } = this.props;
-    const title = (
-      <Title
-        truncate={60}
-        placeholder={!this.store.isFetching ? 'Untitled document' : null}
-        content={this.store.title}
-      />
-    );
-
-    const titleText = this.store.title;
     const isNew = route.newDocument || route.newChildDocument;
     const isEditing = route.editDocument;
+    const title = (
+      <Breadcrumbs
+        document={this.store.document}
+        pathToDocument={this.store.pathToDocument}
+      />
+    );
+    const titleText = `${get(this.store, 'document.collection.name')} - ${get(this.store, 'document.title')}`;
 
     const actions = (
       <Flex>
@@ -118,17 +118,18 @@ class DocumentEdit extends Component {
         actions={actions}
         title={title}
         titleText={titleText}
-        fixed
         loading={this.store.isSaving}
         search={false}
+        fixed
       >
         {this.store.isFetching &&
           <CenteredContent>
             <AtlasPreviewLoading />
           </CenteredContent>}
-        {!this.store.isFetching &&
+        {this.store.document &&
           <Editor
-            store={this.store}
+            text={this.store.document.text}
+            onChange={this.store.updateText}
             scrollTop={this.state.scrollTop}
             onScroll={this.onScroll}
             onSave={this.onSave}

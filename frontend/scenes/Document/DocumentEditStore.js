@@ -1,11 +1,11 @@
 // @flow
-import { observable, action } from 'mobx';
+import { observable, action, computed, toJS } from 'mobx';
 import { browserHistory } from 'react-router';
 import get from 'lodash/get';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import emojify from 'utils/emojify';
-import type { Document } from 'types';
+import type { Document, NavigationNode } from 'types';
 
 type SaveProps = { redirect?: boolean };
 
@@ -24,12 +24,11 @@ const parseHeader = text => {
 };
 
 class DocumentEditStore {
+  @observable collapsedNodes: string[] = [];
   @observable documentId = null;
   @observable collectionId = null;
-  @observable parentDocument: ?Document;
-  @observable title: string;
-  @observable text: string;
-  @observable url: string;
+  @observable document: Document;
+  @observable parentDocument: Document;
   @observable hasPendingChanges = false;
   @observable newDocument: ?boolean;
   @observable newChildDocument: ?boolean;
@@ -37,6 +36,53 @@ class DocumentEditStore {
   @observable isEditing: boolean = false;
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
+
+  /* Computed */
+
+  @computed get isCollection(): boolean {
+    return !!this.document && this.document.collection.type === 'atlas';
+  }
+
+  @computed get collectionTree(): ?Object {
+    if (
+      this.document &&
+      this.document.collection &&
+      this.document.collection.type === 'atlas'
+    ) {
+      const tree = this.document.collection.navigationTree;
+      const collapseNodes = node => {
+        node.collapsed = this.collapsedNodes.includes(node.id);
+        node.children = node.children.map(childNode => {
+          return collapseNodes(childNode);
+        });
+
+        return node;
+      };
+
+      return collapseNodes(toJS(tree));
+    }
+  }
+
+  @computed get pathToDocument(): ?Array<NavigationNode> {
+    let path;
+    const traveler = (node, previousPath) => {
+      if (this.document && node.id === this.document.id) {
+        path = previousPath;
+        return;
+      } else {
+        node.children.forEach(childNode => {
+          const newPath = [...previousPath, node];
+          return traveler(childNode, newPath);
+        });
+      }
+    };
+
+    if (this.document && this.collectionTree) {
+      traveler(this.collectionTree, []);
+      invariant(path, 'Path is not available for collection, abort');
+      return path.splice(1);
+    }
+  }
 
   /* Actions */
 
@@ -55,10 +101,7 @@ class DocumentEditStore {
       if (this.newChildDocument) {
         this.parentDocument = res.data;
       } else {
-        const { title, text, url } = res.data;
-        this.title = title;
-        this.text = text;
-        this.url = url;
+        this.document = res.data;
       }
     } catch (e) {
       console.error('Something went wrong');
@@ -76,10 +119,13 @@ class DocumentEditStore {
         '/documents.create',
         {
           parentDocument: get(this.parentDocument, 'id'),
-          // $FlowFixMe this logic will probably get rewritten soon anyway
-          collection: this.collectionId || this.parentDocument.collection.id,
-          title: this.title || 'Untitled document',
-          text: this.text,
+          collection: get(
+            this.parentDocument,
+            'collection.id',
+            this.collectionId
+          ),
+          title: get(this.document, 'title', 'Untitled document'),
+          text: get(this.document, 'text'),
         },
         { cache: true }
       );
@@ -104,8 +150,8 @@ class DocumentEditStore {
         '/documents.update',
         {
           id: this.documentId,
-          title: this.title || 'Untitled document',
-          text: this.text,
+          title: get(this.document, 'title', 'Untitled document'),
+          text: get(this.document, 'text'),
         },
         { cache: true }
       );
@@ -133,15 +179,11 @@ class DocumentEditStore {
   };
 
   @action updateText = (text: string) => {
-    this.text = text;
-    this.title = parseHeader(text);
+    if (!this.document) return;
 
-    console.log('updateText', text);
+    this.document.text = text;
+    this.document.title = parseHeader(text);
     this.hasPendingChanges = true;
-  };
-
-  @action updateTitle = (title: string) => {
-    this.title = title;
   };
 }
 

@@ -11,7 +11,7 @@
 }
 
 .editorPane {
-  max-width: 60em;
+  display: flex;
   width: 100%;
   justify-content: center;
   overflow: scroll;
@@ -21,6 +21,7 @@
   flex: 1;
   justify-content: center;
   height: 100%;
+  max-width: 60em;
 }
 
 .fullWidth {
@@ -29,11 +30,5 @@
 
   .paneContent {
     display: flex;
-  }
-}
-
-:global {
-  ::-webkit-scrollbar {
-    display: none;
   }
 }

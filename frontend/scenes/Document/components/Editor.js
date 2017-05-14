@@ -6,14 +6,12 @@ import EditorPane from './EditorPane';
 import MarkdownEditor from 'components/MarkdownEditor';
 
 const Editor = observer(props => {
-  const store = props.store;
-
   return (
     <div className={styles.container}>
       <EditorPane onScroll={props.onScroll}>
         <MarkdownEditor
-          onChange={store.updateText}
-          text={store.text}
+          onChange={props.onChange}
+          text={props.text}
           onSave={props.onSave}
           onCancel={props.onCancel}
           readOnly={props.readOnly}
