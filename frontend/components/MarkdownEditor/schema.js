@@ -1,5 +1,6 @@
 // @flow
 import React from 'react';
+import Code from './components/Code';
 import Image from './components/Image';
 import Link from './components/Link';
 import ListItem from './components/ListItem';
@@ -30,6 +31,7 @@ const schema = {
     'table-row': (props: Props) => <tr>{props.children}</tr>,
     'table-head': (props: Props) => <th>{props.children}</th>,
     'table-cell': (props: Props) => <td>{props.children}</td>,
+    code: Code,
     image: Image,
     link: Link,
     'list-item': ListItem,

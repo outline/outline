@@ -1,10 +1,10 @@
 // @flow
 const inlineShortcuts = [
   { mark: 'bold', shortcut: '**' },
+  { mark: 'bold', shortcut: '__' },
   { mark: 'italic', shortcut: '*' },
   { mark: 'italic', shortcut: '_' },
   { mark: 'code', shortcut: '`' },
-  { mark: 'added', shortcut: '__' },
   { mark: 'added', shortcut: '++' },
   { mark: 'deleted', shortcut: '~~' },
 ];
@@ -18,6 +18,8 @@ export default function MarkdownShortcuts() {
       switch (data.key) {
         case '-':
           return this.onDash(ev, state);
+        case '`':
+          return this.onBacktick(ev, state);
         case 'space':
           return this.onSpace(ev, state);
         case 'backspace':
@@ -114,6 +116,24 @@ export default function MarkdownShortcuts() {
           .insertBlock('paragraph')
           .apply();
         return state;
+      }
+    },
+
+    onBacktick(ev: SyntheticEvent, state: Object) {
+      if (state.isExpanded) return;
+      const { startBlock, startOffset } = state;
+      const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
+
+      if (chars === '``') {
+        ev.preventDefault();
+        return state
+          .transform()
+          .extendToStartOf(startBlock)
+          .delete()
+          .setBlock({
+            type: 'code',
+          })
+          .apply();
       }
     },
 

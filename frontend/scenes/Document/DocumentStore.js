@@ -173,7 +173,7 @@ class DocumentStore {
 
     try {
       await client.post('/documents.delete', { id: this.documentId });
-      browserHistory.push(this.collectionId);
+      browserHistory.push(this.document.collection.id);
     } catch (e) {
       console.error('Something went wrong');
     }
