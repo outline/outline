@@ -10,7 +10,7 @@ import EditorLoader from './components/EditorLoader';
 
 import Layout, { Title, HeaderAction, SaveAction } from 'components/Layout';
 
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+import ContentLoading from 'components/ContentLoading';
 import CenteredContent from 'components/CenteredContent';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 
@@ -165,7 +165,7 @@ class DocumentEdit extends Component {
       >
         {this.store.isFetching || !('Editor' in this.state)
           ? <CenteredContent>
-              <AtlasPreviewLoading />
+              <ContentLoading />
             </CenteredContent>
           : <this.state.Editor
               store={this.store}

@@ -10,7 +10,7 @@ import _ from 'lodash';
 import store from './AtlasStore';
 
 import Layout, { Title } from 'components/Layout';
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+import ContentLoading from 'components/ContentLoading';
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import Divider from 'components/Divider';
@@ -85,7 +85,7 @@ class Atlas extends React.Component {
             transitionLeaveTimeout={0}
           >
             {store.isFetching
-              ? <AtlasPreviewLoading />
+              ? <ContentLoading />
               : collection &&
                   <div className={styles.container}>
                     <div className={styles.atlasDetails}>

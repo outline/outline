@@ -5,7 +5,7 @@ import { Flex } from 'reflexbox';
 
 import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+import ContentLoading from 'components/ContentLoading';
 import CenteredContent from 'components/CenteredContent';
 import DashboardStore from 'stores/DashboardStore';
 
@@ -43,7 +43,7 @@ type Props = {
       <Layout>
         <CenteredContent>
           <Flex column auto>
-            {!isLoaded ? <AtlasPreviewLoading /> : this.renderCollections()}
+            {!isLoaded ? <ContentLoading /> : this.renderCollections()}
           </Flex>
         </CenteredContent>
       </Layout>

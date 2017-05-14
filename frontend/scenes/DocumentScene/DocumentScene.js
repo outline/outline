@@ -11,7 +11,7 @@ import DocumentSceneStore, { DOCUMENT_PREFERENCES } from './DocumentSceneStore';
 import UiStore from 'stores/UiStore';
 
 import Layout from 'components/Layout';
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+import ContentLoading from 'components/ContentLoading';
 import CenteredContent from 'components/CenteredContent';
 import Document from 'components/Document';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
@@ -193,7 +193,7 @@ class DocumentScene extends React.Component {
       >
         {this.store.isFetching
           ? <CenteredContent>
-              <AtlasPreviewLoading />
+              <ContentLoading />
             </CenteredContent>
           : <Flex auto>
               {this.store.isCollection &&
