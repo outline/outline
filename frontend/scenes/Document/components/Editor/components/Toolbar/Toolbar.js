@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import Portal from 'react-portal';
 import classnames from 'classnames';
-import isEqual from 'lodash/isEqual';
+import _ from 'lodash';
 import type { State } from '../../types';
 import FormattingToolbar from './components/FormattingToolbar';
 import LinkToolbar from './components/LinkToolbar';
@@ -75,13 +75,16 @@ export default class Toolbar extends Component {
     const firstNode = state.document.nodes.first();
     if (firstNode === state.startBlock) return;
 
+    // don't display toolbar for code blocks
+    if (state.startBlock.type === 'code') return;
+
     const data = {
       ...this.state,
       active: true,
       link: this.linkInSelection,
     };
 
-    if (!isEqual(data, this.state)) {
+    if (!_.isEqual(data, this.state)) {
       const padding = 16;
       const selection = window.getSelection();
       const range = selection.getRangeAt(0);

@@ -6,7 +6,7 @@ import CollapseOnEscape from 'slate-collapse-on-escape';
 import TrailingBlock from 'slate-trailing-block';
 import EditCode from 'slate-edit-code';
 import Prism from 'slate-prism';
-import uploadFile from '../../utils/uploadFile';
+import uploadFile from 'utils/uploadFile';
 import KeyboardShortcuts from './plugins/KeyboardShortcuts';
 import MarkdownShortcuts from './plugins/MarkdownShortcuts';
 

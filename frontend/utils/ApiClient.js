@@ -1,5 +1,5 @@
 // @flow
-import map from 'lodash/map';
+import _ from 'lodash';
 import { browserHistory } from 'react-router';
 import stores from 'stores';
 
@@ -104,7 +104,7 @@ class ApiClient {
 
   // Helpers
   constructQueryString = (data: Object) => {
-    return map(data, (v, k) => {
+    return _.map(data, (v, k) => {
       return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
     }).join('&');
   };

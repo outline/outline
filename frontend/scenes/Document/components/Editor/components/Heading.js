@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import escape from 'lodash/escape';
+import _ from 'lodash';
 import slug from 'slug';
 import type { Node, Editor } from '../types';
 import styles from '../Editor.scss';
@@ -26,7 +26,7 @@ export default function Heading({
 }: Props) {
   const firstHeading = parent.nodes.first() === node;
   const showPlaceholder = placeholder && firstHeading && !node.text;
-  const slugish = readOnly && escape(`${component}-${slug(node.text)}`);
+  const slugish = readOnly && _.escape(`${component}-${slug(node.text)}`);
   const Component = component;
 
   return (

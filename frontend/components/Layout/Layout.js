@@ -4,7 +4,7 @@ import { browserHistory, Link } from 'react-router';
 import Helmet from 'react-helmet';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
-import defer from 'lodash/defer';
+import _ from 'lodash';
 import keydown from 'react-keydown';
 import classNames from 'classnames/bind';
 import searchIcon from 'assets/icons/search.svg';
@@ -37,13 +37,13 @@ type Props = {
   @keydown(['/', 't'])
   search() {
     // if (!this.props.user) return;
-    defer(() => browserHistory.push('/search'));
+    _.defer(() => browserHistory.push('/search'));
   }
 
   @keydown(['d'])
   dashboard() {
     // if (!this.props.user) return;
-    defer(() => browserHistory.push('/'));
+    _.defer(() => browserHistory.push('/'));
   }
 
   render() {

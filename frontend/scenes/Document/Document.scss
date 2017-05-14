@@ -9,17 +9,3 @@
   left: 0;
   right: 0;
 }
-
-.editorPane {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  overflow: scroll;
-}
-
-.paneContent {
-  flex: 1;
-  justify-content: center;
-  height: 100%;
-  max-width: 60em;
-}

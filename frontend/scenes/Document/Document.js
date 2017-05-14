@@ -31,10 +31,6 @@ class Document extends Component {
   store: DocumentStore;
   props: Props;
 
-  state = {
-    scrollTop: 0,
-  };
-
   constructor(props: Props) {
     super(props);
     this.store = new DocumentStore({});
@@ -84,10 +80,6 @@ class Document extends Component {
     browserHistory.goBack();
   };
 
-  onScroll = (scrollTop: number) => {
-    this.setState({ scrollTop });
-  };
-
   render() {
     const { route } = this.props;
     const isNew = route.newDocument || route.newChildDocument;
@@ -103,13 +95,13 @@ class Document extends Component {
     const actions = (
       <Flex>
         <HeaderAction>
-          {!isEditing && <a onClick={this.onEdit}>Edit</a>}
-          {isEditing &&
-            <SaveAction
-              onClick={this.onSave}
-              disabled={this.store.isSaving}
-              isNew={isNew}
-            />}
+          {isEditing
+            ? <SaveAction
+                onClick={this.onSave}
+                disabled={this.store.isSaving}
+                isNew={isNew}
+              />
+            : <a onClick={this.onEdit}>Edit</a>}
         </HeaderAction>
         <Menu
           store={this.store}
@@ -136,8 +128,6 @@ class Document extends Component {
           <Editor
             text={this.store.document.text}
             onChange={this.store.updateText}
-            scrollTop={this.state.scrollTop}
-            onScroll={this.onScroll}
             onSave={this.onSave}
             onCancel={this.onCancel}
             readOnly={!this.props.route.editDocument}
