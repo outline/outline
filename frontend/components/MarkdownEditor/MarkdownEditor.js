@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
+import classnames from 'classnames/bind';
 import type { Document, State, Editor as EditorType } from './types';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
@@ -9,6 +10,8 @@ import schema from './schema';
 import Markdown from './serializer';
 import plugins from './plugins';
 import styles from './Editor.scss';
+
+const cx = classnames.bind(styles);
 
 type Props = {
   text: string,
@@ -89,7 +92,7 @@ export default class MarkdownEditor extends Component {
         <Editor
           ref={ref => (this.editor = ref)}
           placeholder="Start with a title…"
-          className={styles.editor}
+          className={cx(styles.editor, { readOnly: this.props.readOnly })}
           schema={schema}
           plugins={plugins}
           state={this.state.state}

@@ -19,13 +19,18 @@ export default class TodoItem extends Component {
   };
 
   render() {
-    const { children, checked } = this.props;
+    const { children, checked, readOnly } = this.props;
 
     return (
       <li contentEditable={false} className={styles.todo}>
-        <input type="checkbox" checked={checked} onChange={this.handleChange} />
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={this.handleChange}
+          disabled={readOnly}
+        />
         {' '}
-        <span contentEditable={true} suppressContentEditableWarning>
+        <span contentEditable={!readOnly} suppressContentEditableWarning>
           {children}
         </span>
       </li>
