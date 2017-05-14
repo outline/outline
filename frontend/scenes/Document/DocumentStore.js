@@ -23,7 +23,7 @@ const parseHeader = text => {
   return '';
 };
 
-class DocumentEditStore {
+class DocumentStore {
   @observable collapsedNodes: string[] = [];
   @observable documentId = null;
   @observable collectionId = null;
@@ -63,7 +63,7 @@ class DocumentEditStore {
     }
   }
 
-  @computed get pathToDocument(): ?Array<NavigationNode> {
+  @computed get pathToDocument(): Array<NavigationNode> {
     let path;
     const traveler = (node, previousPath) => {
       if (this.document && node.id === this.document.id) {
@@ -82,6 +82,8 @@ class DocumentEditStore {
       invariant(path, 'Path is not available for collection, abort');
       return path.splice(1);
     }
+
+    return [];
   }
 
   /* Actions */
@@ -187,4 +189,4 @@ class DocumentEditStore {
   };
 }
 
-export default DocumentEditStore;
+export default DocumentStore;

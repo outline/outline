@@ -5,9 +5,10 @@ import { observer } from 'mobx-react';
 import { browserHistory, withRouter } from 'react-router';
 import { Flex } from 'reflexbox';
 
-import DocumentEditStore from './DocumentEditStore';
+import DocumentStore from './DocumentStore';
 import Breadcrumbs from './components/Breadcrumbs';
 import Editor from './components/Editor';
+import Menu from './components/Menu';
 import Layout, { HeaderAction, SaveAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
@@ -26,8 +27,8 @@ type Props = {
 
 @withRouter
 @observer
-class DocumentEdit extends Component {
-  store: DocumentEditStore;
+class Document extends Component {
+  store: DocumentStore;
   props: Props;
 
   state = {
@@ -36,7 +37,7 @@ class DocumentEdit extends Component {
 
   constructor(props: Props) {
     super(props);
-    this.store = new DocumentEditStore({});
+    this.store = new DocumentStore({});
   }
 
   componentDidMount = () => {
@@ -110,6 +111,11 @@ class DocumentEdit extends Component {
               isNew={isNew}
             />}
         </HeaderAction>
+        <Menu
+          store={this.store}
+          document={this.store.document}
+          collectionTree={this.store.collectionTree}
+        />
       </Flex>
     );
 
@@ -141,4 +147,4 @@ class DocumentEdit extends Component {
   }
 }
 
-export default DocumentEdit;
+export default Document;

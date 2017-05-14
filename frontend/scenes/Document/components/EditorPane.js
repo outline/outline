@@ -1,16 +1,14 @@
 // @flow
 import React, { Component } from 'react';
-import classNames from 'classnames/bind';
-import styles from '../DocumentEdit.scss';
-const cx = classNames.bind(styles);
+import styles from '../Document.scss';
 
 type Props = {
   children?: ?React.Element<any>,
   onScroll?: Function,
   scrollTop?: ?number,
-  fullWidth?: ?boolean,
 };
 
+// TODO: this component seems unneeded now - can be combined with Editor
 class EditorPane extends Component {
   props: Props;
   pane: HTMLElement;
@@ -55,10 +53,7 @@ class EditorPane extends Component {
 
   render() {
     return (
-      <div
-        className={cx(styles.editorPane, { fullWidth: this.props.fullWidth })}
-        ref={this.setPaneRef}
-      >
+      <div className={styles.editorPane} ref={this.setPaneRef}>
         <div ref={this.setContentRef} className={styles.paneContent}>
           {this.props.children}
         </div>

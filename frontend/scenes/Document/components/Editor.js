@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-import styles from '../DocumentEdit.scss';
+import styles from '../Document.scss';
 import EditorPane from './EditorPane';
 import MarkdownEditor from 'components/MarkdownEditor';
 
