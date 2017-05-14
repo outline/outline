@@ -15,6 +15,7 @@ type Props = {
   onChange: Function,
   onSave: Function,
   onCancel: Function,
+  readOnly: boolean,
 };
 
 type KeyData = {
@@ -96,6 +97,7 @@ export default class MarkdownEditor extends Component {
           onDocumentChange={this.onDocumentChange}
           onKeyDown={this.onKeyDown}
           onSave={this.props.onSave}
+          readOnly={this.props.readOnly}
         />
         <ClickablePadding onClick={this.focusAtEnd} grow />
       </span>

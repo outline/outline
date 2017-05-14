@@ -16,6 +16,7 @@ const Editor = observer(props => {
           text={store.text}
           onSave={props.onSave}
           onCancel={props.onCancel}
+          readOnly={props.readOnly}
         />
       </EditorPane>
     </div>

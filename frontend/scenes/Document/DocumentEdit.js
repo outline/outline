@@ -41,6 +41,9 @@ class DocumentEdit extends Component {
     if (this.props.route.newDocument) {
       this.store.collectionId = this.props.params.id;
       this.store.newDocument = true;
+    } else if (this.props.route.editDocument) {
+      this.store.documentId = this.props.params.id;
+      this.store.fetchDocument();
     } else if (this.props.route.newChildDocument) {
       this.store.documentId = this.props.params.id;
       this.store.newChildDocument = true;
@@ -61,6 +64,11 @@ class DocumentEdit extends Component {
     });
   };
 
+  onEdit = () => {
+    const url = `${this.store.url}/edit`;
+    browserHistory.push(url);
+  };
+
   onSave = (options: { redirect?: boolean } = {}) => {
     if (this.store.newDocument || this.store.newChildDocument) {
       this.store.saveDocument(options);
@@ -78,6 +86,7 @@ class DocumentEdit extends Component {
   };
 
   render() {
+    const { route } = this.props;
     const title = (
       <Title
         truncate={60}
@@ -87,17 +96,19 @@ class DocumentEdit extends Component {
     );
 
     const titleText = this.store.title;
-    const isNew =
-      this.props.route.newDocument || this.props.route.newChildDocument;
+    const isNew = route.newDocument || route.newChildDocument;
+    const isEditing = route.editDocument;
 
     const actions = (
       <Flex>
         <HeaderAction>
-          <SaveAction
-            onClick={this.onSave}
-            disabled={this.store.isSaving}
-            isNew={isNew}
-          />
+          {!isEditing && <a onClick={this.onEdit}>Edit</a>}
+          {isEditing &&
+            <SaveAction
+              onClick={this.onSave}
+              disabled={this.store.isSaving}
+              isNew={isNew}
+            />}
         </HeaderAction>
       </Flex>
     );
@@ -122,6 +133,7 @@ class DocumentEdit extends Component {
             onScroll={this.onScroll}
             onSave={this.onSave}
             onCancel={this.onCancel}
+            readOnly={!this.props.route.editDocument}
           />}
       </Layout>
     );

@@ -29,10 +29,12 @@ class DocumentEditStore {
   @observable parentDocument: ?Document;
   @observable title: string;
   @observable text: string;
+  @observable url: string;
   @observable hasPendingChanges = false;
   @observable newDocument: ?boolean;
   @observable newChildDocument: ?boolean;
 
+  @observable isEditing: boolean = false;
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
 
@@ -53,9 +55,10 @@ class DocumentEditStore {
       if (this.newChildDocument) {
         this.parentDocument = res.data;
       } else {
-        const { title, text } = res.data;
+        const { title, text, url } = res.data;
         this.title = title;
         this.text = text;
+        this.url = url;
       }
     } catch (e) {
       console.error('Something went wrong');

@@ -5,7 +5,7 @@ import { Link, browserHistory } from 'react-router';
 import { observer, inject } from 'mobx-react';
 import { toJS } from 'mobx';
 import keydown from 'react-keydown';
-import _ from 'lodash';
+import defer from 'lodash/defer';
 
 import DocumentSceneStore, { DOCUMENT_PREFERENCES } from './DocumentSceneStore';
 import UiStore from 'stores/UiStore';
@@ -68,11 +68,11 @@ class DocumentScene extends React.Component {
       }
 
       if (key.key === 'c') {
-        _.defer(this.onCreateDocument);
+        defer(this.onCreateDocument);
       }
 
       if (key.key === 'e') {
-        _.defer(this.onEdit);
+        defer(this.onEdit);
       }
     }
 

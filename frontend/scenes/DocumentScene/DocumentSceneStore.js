@@ -1,5 +1,7 @@
 // @flow
-import _ from 'lodash';
+import isEqual from 'lodash/isEqual';
+import indexOf from 'lodash/indexOf';
+import without from 'lodash/without';
 import { browserHistory } from 'react-router';
 import invariant from 'invariant';
 import {
@@ -101,7 +103,7 @@ class DocumentSceneStore {
   @action updateNavigationTree = async (tree: Object) => {
     // Only update when tree changes
     // $FlowFixMe don't be stupid
-    if (_.isEqual(toJS(tree), toJS(this.document.collection.navigationTree))) {
+    if (isEqual(toJS(tree), toJS(this.document.collection.navigationTree))) {
       return true;
     }
 
@@ -126,8 +128,8 @@ class DocumentSceneStore {
   };
 
   @action onNodeCollapse = (nodeId: string) => {
-    if (_.indexOf(this.collapsedNodes, nodeId) >= 0) {
-      this.collapsedNodes = _.without(this.collapsedNodes, nodeId);
+    if (indexOf(this.collapsedNodes, nodeId) >= 0) {
+      this.collapsedNodes = without(this.collapsedNodes, nodeId);
     } else {
       this.collapsedNodes.push(nodeId);
     }
