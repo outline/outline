@@ -1,8 +1,6 @@
 // @flow
 import React from 'react';
-import styled from 'styled-components';
 import { Link } from 'react-router';
-import type { Document, NavigationNode } from 'types';
 import DocumentSceneStore from '../../DocumentSceneStore';
 
 type Props = {
@@ -25,7 +23,6 @@ const Breadcrumbs = ({ store }: Props) => {
 
     return (
       <span>
-        &nbsp;/&nbsp;
         {titleSections.reduce((prev, curr) => [prev, ' / ', curr])}
         {` / ${document.title}`}
       </span>

@@ -55,11 +55,13 @@ render(
             path="/dashboard"
             component={Dashboard}
             onEnter={requireAuth}
+            showMenu
           />
           <Route
             path="/collections/:id"
             component={Atlas}
             onEnter={requireAuth}
+            showMenu
           />
           <Route
             path="/collections/:id/new"
@@ -71,6 +73,7 @@ render(
             path="/d/:id"
             component={DocumentScene}
             onEnter={requireAuth}
+            showMenu
           />
           <Route
             path="/d/:id/edit"

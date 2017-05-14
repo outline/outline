@@ -8,7 +8,7 @@ import ApiKeyRow from './components/ApiKeyRow';
 import styles from './Settings.scss';
 import SettingsStore from './SettingsStore';
 
-import Layout, { Title } from 'components/Layout';
+import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
 
@@ -21,12 +21,10 @@ import SlackAuthLink from 'components/SlackAuthLink';
   }
 
   render() {
-    const title = <Title content="Settings" />;
     const showSlackSettings = DEPLOYMENT === 'hosted';
 
     return (
       <Layout
-        title={title}
         titleText="Settings"
         search={false}
         loading={this.store.isFetching}

@@ -2,7 +2,7 @@
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { Pagination, Document } from 'types';
+import type { Document } from 'types';
 
 class SearchStore {
   @observable documents: ?(Document[]);

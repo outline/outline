@@ -1,46 +1,32 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Atlas</title>
-    <style>
-      body, html {
-        margin: 0;
-        padding: 0;
-      }
 
-      #root {
-        flex: 1;
-        height: 100%;
-      }
+<head>
+  <title>Atlas</title>
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+    }
 
-      .container {
-        display: flex;
-        flex;
-      }
+    #root {
+      flex: 1;
+      height: 100%;
+    }
 
-      .header {
-        display: flex;
-        flex: 1;
-        height: 42px;
-        border-bottom: 1px solid #eee;
-      }
-    </style>
-  </head>
-  <body style='display: flex; width: 100%; height: 100%;'>
-    <div id="root">
-      <div class="container">
-        <div class="header"></div>
-      </div>
+    .container {
+      display: flex;
+      flex;
+    }
+  </style>
+</head>
+
+<body style='display: flex; width: 100%; height: 100%;'>
+  <div id="root">
+    <div class="container">
     </div>
-    <script type="text/javascript">
-      // if ('serviceWorker' in navigator) {
-      //   navigator.serviceWorker.register('/service-worker.js')
-      //   .then(function(reg) {
-      //     console.log('SW registration succeeded');
-      //   }).catch(function(error) {
-      //     console.log('SW registration failed: ' + error);
-      //   });
-      // };
-    </script>
-  </body>
+  </div>
+</body>
+
 </html>

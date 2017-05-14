@@ -4,7 +4,7 @@ import { observable, action, computed } from 'mobx';
 const UI_STORE = 'UI_STORE';
 
 class UiStore {
-  @observable sidebar: boolean = false;
+  @observable sidebar: boolean;
 
   /* Computed */
 
@@ -22,7 +22,9 @@ class UiStore {
 
   constructor() {
     // Rehydrate
-    const data = JSON.parse(localStorage.getItem(UI_STORE) || '{}');
+    const data = JSON.parse(
+      localStorage.getItem(UI_STORE) || '{"sidebar": true}'
+    );
     this.sidebar = data.sidebar;
   }
 }

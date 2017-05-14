@@ -33,13 +33,13 @@ class UserStore {
 
   /* Actions */
 
-  @action logout = () => {
+  @action logout = (): void => {
     this.user = null;
     this.token = null;
     browserHistory.push('/');
   };
 
-  @action getOauthState = () => {
+  @action getOauthState = (): string => {
     const state = Math.random().toString(36).substring(7);
     this.oauthState = state;
     return this.oauthState;
@@ -49,7 +49,7 @@ class UserStore {
     code: string,
     state: string,
     redirectTo: ?string
-  ) => {
+  ): Promise<any> => {
     if (state !== this.oauthState) {
       browserHistory.push('/auth-error');
       return;

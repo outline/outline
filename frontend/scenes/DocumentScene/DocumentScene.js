@@ -1,7 +1,7 @@
 // @flow
 import React, { PropTypes } from 'react';
 import invariant from 'invariant';
-import { Link, browserHistory } from 'react-router';
+import { browserHistory } from 'react-router';
 import { observer, inject } from 'mobx-react';
 import { toJS } from 'mobx';
 import keydown from 'react-keydown';
@@ -11,7 +11,7 @@ import DocumentSceneStore, { DOCUMENT_PREFERENCES } from './DocumentSceneStore';
 import UiStore from 'stores/UiStore';
 
 import Layout from 'components/Layout';
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+import ContentLoading from 'components/ContentLoading';
 import CenteredContent from 'components/CenteredContent';
 import Document from 'components/Document';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
@@ -189,10 +189,11 @@ class DocumentScene extends React.Component {
         titleText={titleText}
         actions={doc && actions}
         loading={this.store.updatingStructure}
+        showMenu={this.props.route.showMenu}
       >
         {this.store.isFetching
           ? <CenteredContent>
-              <AtlasPreviewLoading />
+              <ContentLoading />
             </CenteredContent>
           : <Flex auto>
               {this.store.isCollection &&

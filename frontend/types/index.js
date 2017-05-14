@@ -1,14 +1,15 @@
 // @flow
+export type Team = {
+  id: string,
+  name: string,
+};
+
 export type User = {
   avatarUrl: string,
   id: string,
   name: string,
   username: string,
-};
-
-export type Team = {
-  id: string,
-  name: string,
+  team: Team,
 };
 
 export type NavigationNode = {
