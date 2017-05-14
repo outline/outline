@@ -2,20 +2,14 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { Flex } from 'reflexbox';
-import styled from 'styled-components';
 
-import Heading from 'components/Heading';
 import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DashboardStore from 'stores/DashboardStore';
-import { fontSize, color } from 'styles/constants';
-
-import UserStore from 'stores/UserStore';
 
 type Props = {
-  user: UserStore,
   dashboard: DashboardStore,
 };
 
@@ -57,5 +51,4 @@ type Props = {
   }
 }
 
-export { Dashboard };
-export default inject('user', 'dashboard')(Dashboard);
+export default inject('dashboard')(Dashboard);

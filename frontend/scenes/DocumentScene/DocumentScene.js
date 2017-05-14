@@ -1,7 +1,7 @@
 // @flow
 import React, { PropTypes } from 'react';
 import invariant from 'invariant';
-import { Link, browserHistory } from 'react-router';
+import { browserHistory } from 'react-router';
 import { observer, inject } from 'mobx-react';
 import { toJS } from 'mobx';
 import keydown from 'react-keydown';
