@@ -15,8 +15,6 @@ import 'styles/fonts.css';
 import 'styles/transitions.scss';
 import 'styles/hljs-github-gist.scss';
 
-import Application from 'scenes/Application';
-
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
 import Atlas from 'scenes/Atlas';
@@ -48,7 +46,7 @@ render(
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>
     <Provider {...stores}>
       <Router history={History}>
-        <Route path="/" component={Application}>
+        <Route path="/">
           <IndexRoute component={Home} />
 
           <Route
