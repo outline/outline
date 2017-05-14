@@ -25,7 +25,6 @@ const Breadcrumbs = ({ store }: Props) => {
 
     return (
       <span>
-        &nbsp;/&nbsp;
         {titleSections.reduce((prev, curr) => [prev, ' / ', curr])}
         {` / ${document.title}`}
       </span>

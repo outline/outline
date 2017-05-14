@@ -28,33 +28,10 @@ type Props = {
   }
 
   renderCollections() {
-    const {
-      collections,
-      filterOptions,
-      selectedFilter,
-      filter,
-    } = this.props.dashboard;
+    const { collections } = this.props.dashboard;
 
     return (
       <Flex column>
-        <Flex justify="space-between" align="flex-end">
-          <Heading level={2}>Dashboard</Heading>
-          <Filter>
-            {filterOptions.map(option => {
-              const selectFilterOption = () => filter(option.name);
-              return (
-                <Option
-                  onClick={selectFilterOption}
-                  key={option.name}
-                  selected={option.selected}
-                  role="button"
-                >
-                  {option.name}
-                </Option>
-              );
-            })}
-          </Filter>
-        </Flex>
         <Flex column>
           {collections &&
             collections.map(collection => (
@@ -79,17 +56,6 @@ type Props = {
     );
   }
 }
-
-const Filter = styled(Flex)`
-  font-size: ${fontSize.small};
-  color: ${color.text};
-`;
-
-const Option = styled.div`
-  margin-left: 12px;
-  color: ${color.text};
-  opacity: ${props => (props.selected ? 1 : 0.25)};
-`;
 
 export { Dashboard };
 export default inject('user', 'dashboard')(Dashboard);

@@ -8,7 +8,7 @@ import SearchField from './components/SearchField';
 import styles from './Search.scss';
 import SearchStore from './SearchStore';
 
-import Layout, { Title } from 'components/Layout';
+import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import DocumentPreview from 'components/DocumentPreview';
 
@@ -44,15 +44,9 @@ type Props = {
     const search = _.debounce(searchTerm => {
       this.store.search(searchTerm);
     }, 250);
-    const title = <Title content="Search" />;
 
     return (
-      <Layout
-        title={title}
-        titleText="Search"
-        search={false}
-        loading={this.store.isFetching}
-      >
+      <Layout titleText="Search" search={false} loading={this.store.isFetching}>
         <CenteredContent>
           {this.viewNotFound &&
             <div>

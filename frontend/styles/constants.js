@@ -7,8 +7,8 @@ export const color = {
   text: '#171B35',
   highlight: '#3AA3E3',
 
-  gray: '#ccc',
-  lightGray: '#eee',
+  gray: '#cccccc',
+  lightGray: '#f5f5f5',
 
   danger: '#f04124',
   warning: '#f08a24',
@@ -25,7 +25,7 @@ export const fontSize = {
 };
 
 export default {
-  headerHeight: '42px',
+  headerHeight: '48px',
 
   borderRadius: '4px',
 };

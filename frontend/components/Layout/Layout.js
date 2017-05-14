@@ -7,12 +7,13 @@ import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import _ from 'lodash';
 import { Flex } from 'reflexbox';
-import { color, fontSize } from 'styles/constants';
+import constants, { color, fontSize } from 'styles/constants';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 
 import LoadingIndicator from 'components/LoadingIndicator';
 import UserStore from 'stores/UserStore';
+import UiStore from 'stores/UiStore';
 
 type Props = {
   children?: ?React.Element<any>,
@@ -21,6 +22,7 @@ type Props = {
   titleText?: string,
   loading?: boolean,
   user: UserStore,
+  ui: UiStore,
   search: ?boolean,
   notifications?: React.Element<any>,
 };
@@ -67,6 +69,14 @@ type Props = {
 
         <Header justify="space-between" align="center">
           <HeaderLeft align="center">
+            <MenuContainer>
+              <MenuIcon
+                src={require('assets/icons/menu.svg')}
+                alt="Menu"
+                title="Toggle menu (Cmd+/)"
+                onClick={this.props.ui.toggleSidebar}
+              />
+            </MenuContainer>
             <LogoLink to="/">Atlas</LogoLink>
             <Title>
               {this.props.title}
@@ -107,6 +117,16 @@ type Props = {
   }
 }
 
+const MenuContainer = styled(Flex)`
+  margin: 2px 12px 0 -4px;
+`;
+
+const MenuIcon = styled.img`
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+`;
+
 const LogoLink = styled(Link)`
   font-family: 'Atlas Grotesk';
   font-weight: bold
@@ -116,6 +136,7 @@ const LogoLink = styled(Link)`
 `;
 
 const Title = styled.span`
+  padding-left: 20px;
   color: ${color.gray};
 
   a {
@@ -137,9 +158,7 @@ const Header = styled(Flex)`
 
   z-index: 1;
   background: #fff;
-  height: $headerHeight;
-  // border-bottom: 1px solid #eee;
-  box-shadow: 0 0 20px rgba(223, 228, 233, 0.32);
+  height: ${constants.headerHeight};
 
   font-size: 14px;
   line-height: 1;
@@ -188,4 +207,4 @@ const Avatar = styled.img`
   border-radius: 50%;
 `;
 
-export default inject('user')(Layout);
+export default inject('user', 'ui')(Layout);
