@@ -53,15 +53,19 @@ export default class MarkdownEditor extends Component {
     this.props.onChange(Markdown.serialize(state));
   };
 
-  onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData) => {
+  onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData, state: State) => {
     if (!data.isMeta) return;
 
     switch (data.key) {
       case 's':
         ev.preventDefault();
+        ev.stopPropagation();
         return this.props.onSave({ redirect: false });
       case 'enter':
-        return this.props.onSave();
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.props.onSave();
+        return state;
       case 'escape':
         return this.props.onCancel();
       default:
