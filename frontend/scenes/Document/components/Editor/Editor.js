@@ -8,7 +8,7 @@ import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
 import schema from './schema';
 import Markdown from './serializer';
-import plugins from './plugins';
+import createPlugins from './plugins';
 import styles from './Editor.scss';
 
 const cx = classnames.bind(styles);
@@ -18,6 +18,8 @@ type Props = {
   onChange: Function,
   onSave: Function,
   onCancel: Function,
+  onImageUploadStart: Function,
+  onImageUploadStop: Function,
   readOnly: boolean,
 };
 
@@ -30,6 +32,7 @@ type KeyData = {
 export default class MarkdownEditor extends Component {
   props: Props;
   editor: EditorType;
+  plugins: Array<Object>;
 
   state: {
     state: State,
@@ -37,6 +40,11 @@ export default class MarkdownEditor extends Component {
 
   constructor(props: Props) {
     super(props);
+
+    this.plugins = createPlugins({
+      onImageUploadStart: props.onImageUploadStart,
+      onImageUploadStop: props.onImageUploadStop,
+    });
 
     if (props.text) {
       this.state = { state: Markdown.deserialize(props.text) };
@@ -98,7 +106,7 @@ export default class MarkdownEditor extends Component {
           placeholder="Start with a title…"
           className={cx(styles.editor, { readOnly: this.props.readOnly })}
           schema={schema}
-          plugins={plugins}
+          plugins={this.plugins}
           state={this.state.state}
           onChange={this.onChange}
           onDocumentChange={this.onDocumentChange}

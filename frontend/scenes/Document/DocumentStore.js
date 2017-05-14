@@ -36,6 +36,7 @@ class DocumentStore {
   @observable isEditing: boolean = false;
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
+  @observable isUploading: boolean = false;
 
   /* Computed */
 
@@ -186,6 +187,10 @@ class DocumentStore {
     this.document.text = text;
     this.document.title = parseHeader(text);
     this.hasPendingChanges = true;
+  };
+
+  @action updateUploading = (uploading: boolean) => {
+    this.isUploading = uploading;
   };
 }
 

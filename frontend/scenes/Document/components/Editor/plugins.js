@@ -12,48 +12,56 @@ import MarkdownShortcuts from './plugins/MarkdownShortcuts';
 
 const onlyInCode = node => node.type === 'code';
 
-const plugins = [
-  PasteLinkify({
-    type: 'link',
-    collapseTo: 'end',
-  }),
-  DropOrPasteImages({
-    extensions: ['png', 'jpg', 'gif'],
-    applyTransform: async (transform, file) => {
-      try {
-        const asset = await uploadFile(file);
-        const alt = file.name;
-        const src = asset.url;
+const createPlugins = ({
+  onImageUploadStart,
+  onImageUploadStop,
+}: { onImageUploadStart: Function, onImageUploadStop: Function }) => {
+  return [
+    PasteLinkify({
+      type: 'link',
+      collapseTo: 'end',
+    }),
+    DropOrPasteImages({
+      extensions: ['png', 'jpg', 'gif'],
+      applyTransform: async (transform, file) => {
+        try {
+          onImageUploadStart();
+          const asset = await uploadFile(file);
+          const alt = file.name;
+          const src = asset.url;
 
-        return transform.insertBlock({
-          type: 'image',
-          isVoid: true,
-          data: { src, alt },
-        });
-      } catch (err) {
-        // TODO: Show a failure alert
-      }
-    },
-  }),
-  EditList({
-    types: ['ordered-list', 'bulleted-list', 'todo-list'],
-    typeItem: 'list-item',
-  }),
-  EditCode({
-    onlyIn: onlyInCode,
-    containerType: 'code',
-    lineType: 'code-line',
-    exitBlocktype: 'paragraph',
-    selectAll: true,
-  }),
-  Prism({
-    onlyIn: onlyInCode,
-    getSyntax: node => 'javascript',
-  }),
-  CollapseOnEscape({ toEdge: 'end' }),
-  TrailingBlock({ type: 'paragraph' }),
-  KeyboardShortcuts(),
-  MarkdownShortcuts(),
-];
+          return transform.insertBlock({
+            type: 'image',
+            isVoid: true,
+            data: { src, alt },
+          });
+        } catch (err) {
+          // TODO: Show a failure alert
+        } finally {
+          onImageUploadStop();
+        }
+      },
+    }),
+    EditList({
+      types: ['ordered-list', 'bulleted-list', 'todo-list'],
+      typeItem: 'list-item',
+    }),
+    EditCode({
+      onlyIn: onlyInCode,
+      containerType: 'code',
+      lineType: 'code-line',
+      exitBlocktype: 'paragraph',
+      selectAll: true,
+    }),
+    Prism({
+      onlyIn: onlyInCode,
+      getSyntax: node => 'javascript',
+    }),
+    CollapseOnEscape({ toEdge: 'end' }),
+    TrailingBlock({ type: 'paragraph' }),
+    KeyboardShortcuts(),
+    MarkdownShortcuts(),
+  ];
+};
 
-export default plugins;
+export default createPlugins;

@@ -76,6 +76,14 @@ class Document extends Component {
     }
   };
 
+  onImageUploadStart = () => {
+    this.store.updateUploading(true);
+  };
+
+  onImageUploadStop = () => {
+    this.store.updateUploading(false);
+  };
+
   onCancel = () => {
     browserHistory.goBack();
   };
@@ -116,7 +124,7 @@ class Document extends Component {
         actions={actions}
         title={title}
         titleText={titleText}
-        loading={this.store.isSaving}
+        loading={this.store.isSaving || this.store.isUploading}
         search={false}
         fixed
       >
@@ -127,6 +135,8 @@ class Document extends Component {
         {this.store.document &&
           <Editor
             text={this.store.document.text}
+            onImageUploadStart={this.onImageUploadStart}
+            onImageUploadStop={this.onImageUploadStop}
             onChange={this.store.updateText}
             onSave={this.onSave}
             onCancel={this.onCancel}
