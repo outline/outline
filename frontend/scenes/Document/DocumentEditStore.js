@@ -120,6 +120,18 @@ class DocumentEditStore {
     this.isSaving = false;
   };
 
+  @action deleteDocument = async () => {
+    this.isFetching = true;
+
+    try {
+      await client.post('/documents.delete', { id: this.documentId });
+      browserHistory.push(this.collectionId);
+    } catch (e) {
+      console.error('Something went wrong');
+    }
+    this.isFetching = false;
+  };
+
   @action updateText = (text: string) => {
     this.text = text;
     this.title = parseHeader(text);
