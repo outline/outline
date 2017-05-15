@@ -4241,6 +4241,10 @@ is-utf8@^0.2.0:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/is-utf8/-/is-utf8-0.2.1.tgz#4b0da1442104d1b336340e80797e865cf39f7d72"
 
+is-window@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/is-window/-/is-window-1.0.2.tgz#2c896ca53db97de45d3c33133a65d8c9f563480d"
+
 is-windows@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/is-windows/-/is-windows-0.1.1.tgz#be310715431cfabccc54ab3951210fa0b6d01abe"
@@ -7039,7 +7043,7 @@ react-keydown@^1.7.3:
   version "1.7.3"
   resolved "https://registry.yarnpkg.com/react-keydown/-/react-keydown-1.7.3.tgz#51262d5e6e5ce5909e0279783e607bd5a6cc480c"
 
-react-portal@^3.0.0, react-portal@^3.1.0:
+react-portal@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/react-portal/-/react-portal-3.1.0.tgz#865c44fb72a1da106c649206936559ce891ee899"
   dependencies:
@@ -7797,8 +7801,8 @@ slate-edit-list@^0.7.0:
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.7.0.tgz#dd7eb44085f54e7b6709f82c1713be9b0c14ea56"
 
 slate-markdown-serializer@tommoor/slate-markdown-serializer:
-  version "0.4.0"
-  resolved "https://codeload.github.com/tommoor/slate-markdown-serializer/tar.gz/02096d839dfaa149f2a7f330e15d92ff0454cbb4"
+  version "0.4.1"
+  resolved "https://codeload.github.com/tommoor/slate-markdown-serializer/tar.gz/614598153c0bfdc2426946b2b193bfcb2b3f1ed8"
 
 slate-paste-linkify@^0.2.1:
   version "0.2.1"
@@ -7817,9 +7821,9 @@ slate-trailing-block@^0.2.4:
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/slate-trailing-block/-/slate-trailing-block-0.2.4.tgz#6ce9525fa15f9f098d810d9312a4267799cd0e12"
 
-slate@^0.19.20:
-  version "0.19.20"
-  resolved "https://registry.yarnpkg.com/slate/-/slate-0.19.20.tgz#3d3a7f772b9fe12f8b2de6d646a44e5ab635f5d5"
+slate@^0.19.30:
+  version "0.19.30"
+  resolved "https://registry.yarnpkg.com/slate/-/slate-0.19.30.tgz#6c28a7ef53fd48d445c13c6037d39b96efacc22a"
   dependencies:
     cheerio "^0.22.0"
     debug "^2.3.2"
@@ -7830,8 +7834,10 @@ slate@^0.19.20:
     immutable "^3.8.1"
     is-empty "^1.0.0"
     is-in-browser "^1.1.3"
+    is-window "^1.0.2"
     keycode "^2.1.2"
-    react-portal "^3.0.0"
+    prop-types "^15.5.8"
+    react-portal "^3.1.0"
     selection-is-backward "^1.0.0"
     type-of "^2.0.1"
 
