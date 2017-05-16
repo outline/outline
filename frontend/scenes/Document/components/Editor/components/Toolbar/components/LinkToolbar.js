@@ -12,13 +12,8 @@ export default class LinkToolbar extends Component {
     state: State,
     link: Object,
     onBlur: Function,
-    onFocus: Function,
     onChange: Function,
   };
-
-  componentDidMount() {
-    this.input.focus();
-  }
 
   onKeyDown = (ev: SyntheticKeyboardEvent & SyntheticInputEvent) => {
     switch (ev.keyCode) {
@@ -58,10 +53,9 @@ export default class LinkToolbar extends Component {
           ref={ref => (this.input = ref)}
           defaultValue={href}
           placeholder="http://"
-          onMouseDown={this.props.onFocus}
-          onFocus={this.props.onFocus}
           onBlur={this.props.onBlur}
           onKeyDown={this.onKeyDown}
+          autoFocus
         />
         <button className={styles.button} onMouseDown={this.removeLink}>
           <CloseIcon light />

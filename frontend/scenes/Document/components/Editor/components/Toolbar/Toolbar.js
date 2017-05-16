@@ -64,10 +64,12 @@ export default class Toolbar extends Component {
 
   update = () => {
     const { state } = this.props;
+    const link = this.linkInSelection;
 
-    if (state.isBlurred || state.isCollapsed) {
-      if (this.state.active && !this.state.focused)
+    if (state.isBlurred || (state.isCollapsed && !link)) {
+      if (this.state.active && !this.state.focused) {
         this.setState({ active: false, link: null, top: '', left: '' });
+      }
       return;
     }
 
@@ -81,7 +83,8 @@ export default class Toolbar extends Component {
     const data = {
       ...this.state,
       active: true,
-      link: this.linkInSelection,
+      link,
+      focused: !!link,
     };
 
     if (!_.isEqual(data, this.state)) {
@@ -89,11 +92,16 @@ export default class Toolbar extends Component {
       const selection = window.getSelection();
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
+
+      if (rect.top === 0 && rect.left === 0) {
+        this.setState(data);
+        return;
+      }
+
       const left =
         rect.left + window.scrollX - this.menu.offsetWidth / 2 + rect.width / 2;
-      data.top = `${rect.top + window.scrollY - this.menu.offsetHeight}px`;
-      data.left = `${Math.max(padding, left)}px`;
-
+      data.top = `${Math.round(rect.top + window.scrollY - this.menu.offsetHeight)}px`;
+      data.left = `${Math.round(Math.max(padding, left))}px`;
       this.setState(data);
     }
   };
@@ -120,10 +128,13 @@ export default class Toolbar extends Component {
             <LinkToolbar
               {...this.props}
               link={link}
-              onFocus={this.handleFocus}
               onBlur={this.handleBlur}
             />}
-          {!link && <FormattingToolbar {...this.props} />}
+          {!link &&
+            <FormattingToolbar
+              onCreateLink={this.handleFocus}
+              {...this.props}
+            />}
         </div>
       </Portal>
     );

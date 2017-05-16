@@ -14,6 +14,7 @@ export default class FormattingToolbar extends Component {
   props: {
     state: State,
     onChange: Function,
+    onCreateLink: Function,
   };
 
   /**
@@ -52,6 +53,16 @@ export default class FormattingToolbar extends Component {
     this.props.onChange(state);
   };
 
+  onCreateLink = (ev: SyntheticEvent) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    let { state } = this.props;
+    const data = { href: '' };
+    state = state.transform().wrapInline({ type: 'link', data }).apply();
+    this.props.onChange(state);
+    this.props.onCreateLink();
+  };
+
   renderMarkButton = (type: string, IconClass: Function) => {
     const isActive = this.hasMark(type);
     const onMouseDown = ev => this.onClickMark(ev, type);
@@ -81,21 +92,6 @@ export default class FormattingToolbar extends Component {
         <IconClass light />
       </button>
     );
-  };
-
-  /**
-   * Convert the current selection into an empty link
-   *
-   * @param {Event} ev
-   */
-  onCreateLink = (ev: SyntheticEvent) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-
-    const transform = this.props.state.transform();
-    const data = { href: '' };
-    const state = transform.wrapInline({ type: 'link', data }).apply();
-    this.props.onChange(state);
   };
 
   render() {

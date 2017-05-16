@@ -10,6 +10,7 @@
   transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
   line-height: 0;
   height: 40px;
+  min-width: 260px;
 }
 
 .active {
@@ -30,11 +31,13 @@
     margin: 0;
     outline: none;
     color: #fff;
+    flex-grow: 1;
   }
 }
 
 .button {
   display: inline-block;
+  flex: 0;
   width: 24px;
   height: 24px;
   cursor: pointer;
