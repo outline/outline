@@ -1,6 +1,5 @@
 // @flow
 import _ from 'lodash';
-import { browserHistory } from 'react-router';
 import stores from 'stores';
 
 type Options = {
@@ -63,15 +62,15 @@ class ApiClient {
             return response;
           }
 
-          // Handle 404
-          if (response.status === 404) {
-            return browserHistory.push('/404');
-          }
+          // // Handle 404
+          // if (response.status === 404) {
+          //   // return browserHistory.push('/404');
+          // }
 
-          // Handle 401, log out user
-          if (response.status === 401) {
-            return stores.user.logout();
-          }
+          // // Handle 401, log out user
+          // if (response.status === 401) {
+          //   return stores.user.logout();
+          // }
 
           // Handle failed responses
           const error = {};

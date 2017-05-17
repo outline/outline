@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
+import { withRouter } from 'react-router-dom';
 
 import { Flex } from 'reflexbox';
 import Tree from 'components/Tree';
@@ -18,6 +19,7 @@ type Props = {
   navigationTree: Object,
   onNavigationUpdate: Function,
   onNodeCollapse: Function,
+  history: Object,
 };
 
 @observer class Sidebar extends React.Component {
@@ -47,6 +49,7 @@ type Props = {
                 allowUpdates={this.store.isEditing}
                 onChange={this.props.onNavigationUpdate}
                 onCollapse={this.props.onNodeCollapse}
+                history={this.props.history}
               />
             </Flex>
             <Flex auto className={styles.actions}>
@@ -79,4 +82,4 @@ type Props = {
   }
 }
 
-export default Sidebar;
+export default withRouter(Sidebar);

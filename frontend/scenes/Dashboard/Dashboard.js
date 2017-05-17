@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import { withRouter } from 'react-router';
+import { withRouter } from 'react-router-dom';
 import { Flex } from 'reflexbox';
 
 import DashboardStore from './DashboardStore';

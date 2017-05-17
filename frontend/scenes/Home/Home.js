@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import { browserHistory } from 'react-router';
+import { Redirect } from 'react-router';
 
 import { Flex } from 'reflexbox';
 import Layout from 'components/Layout';
@@ -17,12 +17,6 @@ export default class Home extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired,
     location: React.PropTypes.object.isRequired,
-  };
-
-  componentDidMount = () => {
-    if (this.props.user.authenticated) {
-      browserHistory.replace('/dashboard');
-    }
   };
 
   get notifications(): React.Element<any>[] {
@@ -46,6 +40,8 @@ export default class Home extends React.Component {
     return (
       <Flex auto>
         <Layout notifications={this.notifications}>
+          {this.props.user.authenticated && <Redirect to="/dashboard" />}
+
           <CenteredContent>
             {showLandingPageCopy &&
               <div className={styles.intro}>

@@ -1,5 +1,5 @@
 // @flow
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react';
 
 import Layout, { Title } from 'components/Layout';
@@ -8,13 +8,16 @@ import { DocumentHtml } from 'components/Document';
 
 import { convertToMarkdown } from 'utils/markdown';
 
+type Props = {
+  title: string,
+  content: string,
+};
+
 @observer class Flatpage extends React.Component {
-  static propTypes = {
-    route: PropTypes.object,
-  };
+  props: Props;
 
   render() {
-    const { title, content } = this.props.route;
+    const { title, content } = this.props;
 
     return (
       <Layout

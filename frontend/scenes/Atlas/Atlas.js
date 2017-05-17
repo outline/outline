@@ -1,7 +1,6 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-import { browserHistory } from 'react-router';
 import keydown from 'react-keydown';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import _ from 'lodash';
@@ -21,6 +20,8 @@ import styles from './Atlas.scss';
 
 type Props = {
   params: Object,
+  history: Object,
+  match: Object,
   keydown: Object,
 };
 
@@ -30,11 +31,11 @@ class Atlas extends React.Component {
   props: Props;
 
   componentDidMount = () => {
-    const { id } = this.props.params;
+    const { id } = this.props.match.params;
     store.fetchCollection(id, data => {
       // Forward directly to root document
       if (data.type === 'atlas') {
-        browserHistory.replace(data.navigationTree.url);
+        this.props.history.replace(data.navigationTree.url);
       }
     });
   };
@@ -50,7 +51,7 @@ class Atlas extends React.Component {
 
   onCreate = (event: Event) => {
     if (event) event.preventDefault();
-    store.collection && browserHistory.push(`${store.collection.url}/new`);
+    store.collection && this.props.history.push(`${store.collection.url}/new`);
   };
 
   render() {

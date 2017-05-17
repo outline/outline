@@ -13,6 +13,7 @@ export default React.createClass({
     paddingLeft: React.PropTypes.number,
     onCollapse: React.PropTypes.func,
     allowUpdates: React.PropTypes.bool,
+    history: React.PropTypes.object,
   },
 
   getDefaultProps() {
@@ -93,6 +94,7 @@ export default React.createClass({
           onDragStart={this.dragStart}
           onCollapse={this.toggleCollapse}
           dragging={dragging && dragging.id}
+          history={this.props.history}
         />
       </div>
     );

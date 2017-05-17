@@ -1,51 +1,65 @@
 // @flow
 import React from 'react';
+import { Redirect } from 'react-router';
+import queryString from 'query-string';
 import { observer, inject } from 'mobx-react';
-import { browserHistory } from 'react-router';
 import { client } from 'utils/ApiClient';
+
+import UserStore from 'stores/UserStore';
+
+type Props = {
+  user: UserStore,
+  location: Object,
+};
 
 @inject('user')
 @observer
 class SlackAuth extends React.Component {
-  static propTypes = {
-    user: React.PropTypes.object.isRequired,
-    location: React.PropTypes.object.isRequired,
-    route: React.PropTypes.object.isRequired,
-  };
+  props: Props;
 
-  // $FlowIssue wtf
+  state: { redirectTo: string };
+
+  // $FlowFixMe not sure why this breaks
   componentDidMount = async () => {
-    const { error, code, state } = this.props.location.query;
+    const { error, code, state } = queryString.parse(
+      this.props.location.search
+    );
 
     if (error) {
       if (error === 'access_denied') {
         // User selected "Deny" access on Slack OAuth
-        browserHistory.push('/');
+        this.setState({ redirectTo: '/dashboard' });
       } else {
-        browserHistory.push('/auth/error');
-      }
-      // $FlowIssue wtf
-      return;
-    }
-
-    if (this.props.route.apiPath) {
-      try {
-        await client.post(this.props.route.apiPath, { code });
-        browserHistory.replace('/dashboard');
-      } catch (e) {
-        browserHistory.push('/auth-error');
+        this.setState({ redirectTo: '/auth/error' });
       }
     } else {
-      // Regular Slack authentication
-      const redirectTo = sessionStorage.getItem('redirectTo');
-      sessionStorage.removeItem('redirectTo');
+      if (this.props.location.pathname === '/auth/slack/commands') {
+        // User adding webhook integrations
+        try {
+          await client.post('/auth.slackCommands', { code });
+          this.setState({ redirectTo: '/dashboard' });
+        } catch (e) {
+          this.setState({ redirectTo: '/auth/error' });
+        }
+      } else {
+        // Regular Slack authentication
+        const redirectTo = sessionStorage.getItem('redirectTo');
+        sessionStorage.removeItem('redirectTo');
 
-      this.props.user.authWithSlack(code, state, redirectTo);
+        const { success } = await this.props.user.authWithSlack(code, state);
+        success
+          ? this.setState({ redirectTo: redirectTo || '/dashboard' })
+          : this.setState({ redirectTo: '/auth/error' });
+      }
     }
   };
 
   render() {
-    return <div />;
+    return (
+      <div>
+        {this.state.redirectTo && <Redirect to={this.state.redirectTo} />}
+      </div>
+    );
   }
 }
 
