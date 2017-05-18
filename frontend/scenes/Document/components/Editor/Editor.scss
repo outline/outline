@@ -1,0 +1,143 @@
+.container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+
+  font-weight: 400;
+  font-size: 1em;
+  line-height: 1.5em;
+
+  padding: 0 3em;
+  max-width: 50em;
+}
+
+.editor {
+  background: #fff;
+  color: #1b2631;
+  height: auto;
+  width: 100%;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 500;
+
+    .anchor {
+      visibility: hidden;
+      color: #dedede;
+      padding-left: .25em;
+    }
+
+    &:hover {
+      .anchor {
+        visibility: visible;
+
+        &:hover {
+          color: #cdcdcd;
+        }
+      }
+    }
+  }
+
+  ul,
+  ol {
+    margin: 1em .1em;
+    padding-left: 1em;
+
+    ul,
+    ol {
+      margin: .1em;
+    }
+  }
+
+  li p {
+    display: inline;
+    margin: 0;
+  }
+
+  .todoList {
+    list-style: none;
+    padding-left: 0;
+
+    .todoList {
+      padding-left: 1em;
+    }
+  }
+
+  .todo {
+    span:last-child:focus {
+      outline: none;
+    }
+  }
+
+  code,
+  pre {
+    background: #efefef;
+    border-radius: 3px;
+    border: 1px solid #dedede;
+  }
+
+  pre {
+    padding: 0 .5em;
+
+    code {
+      background: none;
+      border: 0;
+      padding: 0;
+      border-radius: 0;
+    }
+  }
+
+  blockquote {
+    border-left: 3px solid #efefef;
+    padding-left: 10px;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  tr {
+    border-bottom: 1px solid #eee;
+  }
+
+  th {
+    font-weight: bold;
+  }
+
+  th,
+  td {
+    padding: 5px 20px 5px 0;
+  }
+}
+
+.readOnly {
+  cursor: default;
+}
+
+.title {
+  position: relative;
+}
+
+.placeholder {
+  position: absolute;
+  top: 0;
+  pointer-events: none;
+  color: #ddd;
+}
+
+@media all and (max-width: 2000px) and (min-width: 960px) {
+  .container {
+    // margin-top: 48px;
+    font-size: 1.1em;
+  }
+}
+
+@media all and (max-width: 960px) {
+  .container {
+    font-size: 0.9em;
+  }
+}

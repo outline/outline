@@ -1,0 +1,11 @@
+@import '~styles/constants.scss';
+
+.container {
+  display: flex;
+  position: fixed;
+  justify-content: center;
+  top: $headerHeight;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}

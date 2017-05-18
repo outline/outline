@@ -1,7 +1,6 @@
 /* eslint-disable */
 import React from 'react';
 import history from 'utils/History';
-
 import styles from './Tree.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);

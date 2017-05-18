@@ -4,17 +4,16 @@ import { browserHistory, Link } from 'react-router';
 import Helmet from 'react-helmet';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
-import keydown from 'react-keydown';
 import _ from 'lodash';
+import keydown from 'react-keydown';
+import classNames from 'classnames/bind';
+import searchIcon from 'assets/icons/search.svg';
 import { Flex } from 'reflexbox';
-
+import styles from './Layout.scss';
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
-
 import LoadingIndicator from 'components/LoadingIndicator';
 import UserStore from 'stores/UserStore';
 
-import styles from './Layout.scss';
-import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
 type Props = {
@@ -89,10 +88,7 @@ type Props = {
                         className={styles.search}
                         title="Search (/)"
                       >
-                        <img
-                          src={require('assets/icons/search.svg')}
-                          alt="Search"
-                        />
+                        <img src={searchIcon} alt="Search" />
                       </div>
                     </Flex>}
                   <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>

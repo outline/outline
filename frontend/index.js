@@ -13,14 +13,13 @@ import 'normalize.css/normalize.css';
 import 'styles/base.scss';
 import 'styles/fonts.css';
 import 'styles/transitions.scss';
+import 'styles/prism-tomorrow.scss';
 import 'styles/hljs-github-gist.scss';
-import 'styles/codemirror.scss';
 
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
 import Atlas from 'scenes/Atlas';
-import DocumentScene from 'scenes/DocumentScene';
-import DocumentEdit from 'scenes/DocumentEdit';
+import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import SlackAuth from 'scenes/SlackAuth';
@@ -63,23 +62,20 @@ render(
           />
           <Route
             path="/collections/:id/new"
-            component={DocumentEdit}
+            component={Document}
             onEnter={requireAuth}
             newDocument
           />
-          <Route
-            path="/d/:id"
-            component={DocumentScene}
-            onEnter={requireAuth}
-          />
+          <Route path="/d/:id" component={Document} onEnter={requireAuth} />
           <Route
             path="/d/:id/edit"
-            component={DocumentEdit}
+            component={Document}
             onEnter={requireAuth}
+            editDocument
           />
           <Route
             path="/d/:id/new"
-            component={DocumentEdit}
+            component={Document}
             onEnter={requireAuth}
             newChildDocument
           />

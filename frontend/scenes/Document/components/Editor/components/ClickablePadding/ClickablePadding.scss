@@ -1,0 +1,14 @@
+.container {
+  padding-top: 50px;
+  cursor: text;
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+@media all and (max-width: 960px) {
+  .container {
+    padding-top: 50px;
+  }
+}
