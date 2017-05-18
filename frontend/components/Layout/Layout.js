@@ -6,7 +6,6 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
 import keydown from 'react-keydown';
-import classNames from 'classnames/bind';
 import searchIcon from 'assets/icons/search.svg';
 import { Flex } from 'reflexbox';
 import constants, { color, fontSize } from 'styles/constants';
@@ -93,7 +92,7 @@ type Props = {
           </HeaderLeft>
           <Flex>
             <Flex>
-              <Flex align="center" className={styles.actions}>
+              <Flex align="center">
                 {this.props.actions}
               </Flex>
               {user.user &&
@@ -101,9 +100,9 @@ type Props = {
                   {this.props.search &&
                     <Flex>
                       <Link to="/search">
-                        <div className={styles.search} title="Search (/)">
+                        <Search title="Search (/)">
                           <img src={searchIcon} alt="Search" />
-                        </div>
+                        </Search>
                       </Link>
                     </Flex>}
                   <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
@@ -121,34 +120,12 @@ type Props = {
                     <MenuItem onClick={handleLogout}>Logout</MenuItem>
                   </DropdownMenu>
                 </Flex>}
-
-              {this.props.actions}
             </Flex>
-            {user.user &&
-              <Flex>
-                {this.props.search &&
-                  <Flex>
-                    <Search onClick={this.search} title="Search (/)">
-                      <img
-                        src={require('assets/icons/search.svg')}
-                        alt="Search"
-                      />
-                    </Search>
-                  </Flex>}
-                <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
-                  <MenuItem to="/settings">Settings</MenuItem>
-                  <MenuItem to="/keyboard-shortcuts">
-                    Keyboard shortcuts
-                  </MenuItem>
-                  <MenuItem to="/developers">API</MenuItem>
-                  <MenuItem onClick={user.logout}>Logout</MenuItem>
-                </DropdownMenu>
-              </Flex>}
           </Flex>
         </Header>
 
         <ContentWrapper auto>
-          <LayoutSidebar />
+          {this.props.showMenu && <LayoutSidebar />}
           <Content justify="center" auto>
             {this.props.children}
           </Content>
@@ -256,4 +233,4 @@ const MenuLink = styled(Link)`
   color: ${color.text};
 `;
 
-export default withRouter(inject('user')(Layout));
+export default withRouter(inject('user', 'ui')(Layout));

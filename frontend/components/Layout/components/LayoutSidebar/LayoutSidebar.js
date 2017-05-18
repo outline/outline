@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import { Link } from 'react-router';
+import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import { Flex } from 'reflexbox';
 import { color } from 'styles/constants';
@@ -30,19 +30,21 @@ type Props = {
       <Container column visible={ui.sidebarVisible}>
         <Panel primary visible={ui.sidebarPanel === 'main'}>
           <Section>
-            <NavLink>Search</NavLink>
+            <StyledLink to="/search">Search</StyledLink>
           </Section>
           <Section>
-            <NavLink>Dashboard</NavLink>
-            <NavLink>Favorites</NavLink>
+            <StyledLink to="/dashboard">Dashboard</StyledLink>
+            <StyledLink to="/favorites">Favorites</StyledLink>
           </Section>
           <Section>
-            <NavLink active>Engineering</NavLink>
+            <StyledLink to="/favorites" active>Engineering</StyledLink>
           </Section>
         </Panel>
         <Panel secondary visible={ui.sidebarPanel === 'secondary'}>
           <Section>
-            <NavLink active><StyledBackIcon /> Engineering </NavLink>
+            <StyledLink to="/favorites" active>
+              <StyledBackIcon /> Engineering{' '}
+            </StyledLink>
           </Section>
         </Panel>
       </Container>
@@ -68,7 +70,7 @@ const Section = styled(Flex)`
   flex-direction: column;
 `;
 
-const NavLink = styled(Link)`
+const StyledLink = styled(NavLink)`
   margin-bottom: 10px;
 
   color: ${({ active }) => (active ? color.text : 'rgba(12,12,12,0.6)')};

@@ -6,17 +6,16 @@ import { withRouter } from 'react-router';
 import { Flex } from 'reflexbox';
 
 import DocumentStore from './DocumentStore';
-import Breadcrumbs from './components/Breadcrumbs';
 import Editor from './components/Editor';
 import Menu from './components/Menu';
 import Layout, { HeaderAction, SaveAction } from 'components/Layout';
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+import ContentLoading from 'components/ContentLoading';
 import CenteredContent from 'components/CenteredContent';
 
-const DISCARD_CHANGES = `
-You have unsaved changes.
-Are you sure you want to discard them?
-`;
+// const DISCARD_CHANGES = `
+// You have unsaved changes.
+// Are you sure you want to discard them?
+// `;
 
 type Props = {
   match: Object,
@@ -27,9 +26,7 @@ type Props = {
   editDocument?: boolean,
 };
 
-@withRouter
-@observer
-class Document extends Component {
+@observer class Document extends Component {
   store: DocumentStore;
   props: Props;
 
@@ -93,12 +90,6 @@ class Document extends Component {
   render() {
     const isNew = this.props.newDocument || this.props.newChildDocument;
     const isEditing = this.props.editDocument;
-    const title = (
-      <Breadcrumbs
-        document={this.store.document}
-        pathToDocument={this.store.pathToDocument}
-      />
-    );
 
     const titleText =
       this.store.document &&
@@ -126,15 +117,15 @@ class Document extends Component {
     return (
       <Layout
         actions={actions}
-        title={title}
         titleText={titleText}
         loading={this.store.isSaving || this.store.isUploading}
         search={false}
+        showMenu
         fixed
       >
         {this.store.isFetching &&
           <CenteredContent>
-            <AtlasPreviewLoading />
+            <ContentLoading />
           </CenteredContent>}
         {this.store.document &&
           <Editor
@@ -151,4 +142,4 @@ class Document extends Component {
   }
 }
 
-export default Document;
+export default withRouter(Document);
