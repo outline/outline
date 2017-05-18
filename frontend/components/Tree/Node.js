@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from 'react';
-import history from 'utils/History';
+
 import styles from './Tree.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
@@ -60,6 +60,7 @@ class Node extends React.Component {
                 paddingLeft={this.props.paddingLeft}
                 onCollapse={this.props.onCollapse}
                 onDragStart={this.props.onDragStart}
+                history={this.props.history}
               />
             );
           })}
@@ -77,8 +78,7 @@ class Node extends React.Component {
   onClick = () => {
     const index = this.props.index;
     const node = index.node;
-
-    if (!this.isModifying()) history.push(node.url);
+    if (!this.isModifying()) this.props.history.push(node.url);
   };
 
   render() {

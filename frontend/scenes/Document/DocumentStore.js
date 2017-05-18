@@ -1,6 +1,5 @@
 // @flow
 import { observable, action, computed, toJS } from 'mobx';
-import { browserHistory } from 'react-router';
 import get from 'lodash/get';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
@@ -23,6 +22,10 @@ const parseHeader = text => {
   return '';
 };
 
+type Options = {
+  history: Object,
+};
+
 class DocumentStore {
   @observable collapsedNodes: string[] = [];
   @observable documentId = null;
@@ -37,6 +40,8 @@ class DocumentStore {
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
   @observable isUploading: boolean = false;
+
+  history: Object;
 
   /* Computed */
 
@@ -136,7 +141,7 @@ class DocumentStore {
       const { url } = res.data;
 
       this.hasPendingChanges = false;
-      if (redirect) browserHistory.push(url);
+      if (redirect) this.history.push(url);
     } catch (e) {
       console.error('Something went wrong');
     }
@@ -162,7 +167,7 @@ class DocumentStore {
       const { url } = res.data;
 
       this.hasPendingChanges = false;
-      if (redirect) browserHistory.push(url);
+      if (redirect) this.history.push(url);
     } catch (e) {
       console.error('Something went wrong');
     }
@@ -174,7 +179,7 @@ class DocumentStore {
 
     try {
       await client.post('/documents.delete', { id: this.documentId });
-      browserHistory.push(this.document.collection.id);
+      this.history.push(this.document.collection.url);
     } catch (e) {
       console.error('Something went wrong');
     }
@@ -192,6 +197,10 @@ class DocumentStore {
   @action updateUploading = (uploading: boolean) => {
     this.isUploading = uploading;
   };
+
+  constructor(options: Options) {
+    this.history = options.history;
+  }
 }
 
 export default DocumentStore;

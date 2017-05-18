@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-import Link from 'react-router/lib/Link';
+import { Link } from 'react-router-dom';
 
 import DocumentLink from './components/DocumentLink';
 

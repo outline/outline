@@ -2,10 +2,13 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
-import Router from 'react-router/lib/Router';
-import Route from 'react-router/lib/Route';
-import IndexRoute from 'react-router/lib/IndexRoute';
-import History from 'utils/History';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Redirect,
+} from 'react-router-dom';
+import { Flex } from 'reflexbox';
 
 import stores from 'stores';
 
@@ -34,80 +37,66 @@ if (__DEV__) {
   DevTools = require('mobx-react-devtools').default; // eslint-disable-line global-require
 }
 
-function requireAuth(nextState, replace) {
-  if (!stores.user.authenticated) {
-    replace({
-      pathname: '/',
-      state: { nextPathname: nextState.location.pathname },
-    });
+type AuthProps = {
+  children?: React.Element<any>,
+};
+
+const Auth = ({ children }: AuthProps) => {
+  if (stores.user.authenticated) {
+    return <Flex auto>{children}</Flex>;
+  } else {
+    return <Redirect to="/" />;
   }
-}
+};
+
+const notFoundSearch = () => <Search notFound />;
+const KeyboardShortcuts = () => (
+  <Flatpage title="Keyboard shortcuts" content={flatpages.keyboard} />
+);
+const Api = () => <Flatpage title="API" content={flatpages.api} />;
+const DocumentEdit = () => <Document editDocument />;
+const DocumentNew = () => <Document newDocument />;
+const DocumentNewChild = () => <Document newChildDocument />;
 
 render(
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>
     <Provider {...stores}>
-      <Router history={History}>
-        <Route path="/">
-          <IndexRoute component={Home} />
+      <Router>
+        <Switch>
+          <Route exact path="/" component={Home} />
 
-          <Route
-            path="/dashboard"
-            component={Dashboard}
-            onEnter={requireAuth}
-          />
-          <Route
-            path="/collections/:id"
-            component={Atlas}
-            onEnter={requireAuth}
-          />
-          <Route
-            path="/collections/:id/new"
-            component={Document}
-            onEnter={requireAuth}
-            newDocument
-          />
-          <Route path="/d/:id" component={Document} onEnter={requireAuth} />
-          <Route
-            path="/d/:id/edit"
-            component={Document}
-            onEnter={requireAuth}
-            editDocument
-          />
-          <Route
-            path="/d/:id/new"
-            component={Document}
-            onEnter={requireAuth}
-            newChildDocument
-          />
+          <Auth>
+            <Switch>
+              <Route exact path="/dashboard" component={Dashboard} />
+              <Route exact path="/collections/:id" component={Atlas} />
+              <Route exact path="/d/:id" component={Document} />
+              <Route exact path="/d/:id/edit" component={DocumentEdit} />
+              <Route
+                exact
+                path="/collections/:id/new"
+                component={DocumentNew}
+              />
+              <Route exact path="/d/:id/new" component={DocumentNewChild} />
 
-          <Route path="/search" component={Search} onEnter={requireAuth} />
-          <Route path="/settings" component={Settings} onEnter={requireAuth} />
+              <Route exact path="/search" component={Search} />
+              <Route exact path="/settings" component={Settings} />
 
-          <Route path="/auth/slack" component={SlackAuth} />
-          <Route
-            path="/auth/slack/commands"
-            component={SlackAuth}
-            apiPath="/auth.slackCommands"
-          />
-          <Route path="/auth/error" component={ErrorAuth} />
+              <Route exact path="/auth/slack" component={SlackAuth} />
+              <Route exact path="/auth/slack/commands" component={SlackAuth} />
+              <Route exact path="/auth/error" component={ErrorAuth} />
 
-          <Flatpage
-            path="/keyboard-shortcuts"
-            component={Flatpage}
-            title="Keyboard shortcuts"
-            content={flatpages.keyboard}
-          />
+              <Route
+                exact
+                path="/keyboard-shortcuts"
+                component={KeyboardShortcuts}
+              />
+              <Route exact path="/developers" component={Api} />
 
-          <Flatpage
-            path="/developers"
-            component={Flatpage}
-            title="API"
-            content={flatpages.api}
-          />
-
-          <Route path="/404" component={Error404} />
-          <Route path="*" component={Search} sceneType="notFound" />
-        </Route>
+              <Route path="/404" component={Error404} />
+              <Route component={notFoundSearch} />
+            </Switch>
+          </Auth>
+        </Switch>
       </Router>
     </Provider>
     {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}

@@ -2,13 +2,14 @@
 import React, { Component } from 'react';
 import invariant from 'invariant';
 import get from 'lodash/get';
-import { browserHistory } from 'react-router';
+import { withRouter } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import type { Document as DocumentType } from 'types';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 import DocumentStore from '../DocumentStore';
 
 type Props = {
+  history: Object,
   document: DocumentType,
   collectionTree: ?Object,
   store: DocumentStore,
@@ -19,12 +20,12 @@ type Props = {
 
   onCreateDocument = () => {
     invariant(this.props.collectionTree, 'collectionTree is not available');
-    browserHistory.push(`${this.props.collectionTree.url}/new`);
+    this.props.history.push(`${this.props.collectionTree.url}/new`);
   };
 
   onCreateChild = () => {
     invariant(this.props.document, 'Document is not available');
-    browserHistory.push(`${this.props.document.url}/new`);
+    this.props.history.push(`${this.props.document.url}/new`);
   };
 
   onDelete = () => {
@@ -75,4 +76,4 @@ type Props = {
   }
 }
 
-export default Menu;
+export default withRouter(Menu);

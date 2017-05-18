@@ -13,8 +13,7 @@ import CenteredContent from 'components/CenteredContent';
 import DocumentPreview from 'components/DocumentPreview';
 
 type Props = {
-  route: Object,
-  routeParams: Object,
+  notFound: ?boolean,
 };
 
 @observer class Search extends React.Component {
@@ -24,20 +23,6 @@ type Props = {
   constructor(props: Props) {
     super(props);
     this.store = new SearchStore();
-  }
-
-  componentDidMount = () => {
-    const { splat } = this.props.routeParams;
-    if (this.viewNotFound) {
-      let searchTerm = _.last(splat.split('/'));
-      searchTerm = searchTerm.split(/[\s-]+/gi).join(' ');
-      this.store.search(searchTerm);
-    }
-  };
-
-  get viewNotFound(): boolean {
-    const { sceneType } = this.props.route;
-    return sceneType === 'notFound';
   }
 
   render() {
@@ -54,7 +39,7 @@ type Props = {
         loading={this.store.isFetching}
       >
         <CenteredContent>
-          {this.viewNotFound &&
+          {this.props.notFound &&
             <div>
               <h1>Not Found</h1>
               <p>We're unable to find the page you're accessing.</p>

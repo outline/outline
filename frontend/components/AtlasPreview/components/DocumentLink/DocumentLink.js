@@ -3,7 +3,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 
 import moment from 'moment';
-import Link from 'react-router/lib/Link';
+import { Link } from 'react-router-dom';
 
 import styles from './DocumentLink.scss';
 

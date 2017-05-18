@@ -1,7 +1,6 @@
 // @flow
 import { observable, action, computed } from 'mobx';
 import invariant from 'invariant';
-import { browserHistory } from 'react-router';
 import { client } from 'utils/ApiClient';
 import type { User, Team } from 'types';
 
@@ -33,10 +32,10 @@ class UserStore {
 
   /* Actions */
 
-  @action logout = () => {
+  @action logout = (cb: Function) => {
     this.user = null;
     this.token = null;
-    browserHistory.push('/');
+    cb();
   };
 
   @action getOauthState = () => {
@@ -45,22 +44,20 @@ class UserStore {
     return this.oauthState;
   };
 
-  @action authWithSlack = async (
-    code: string,
-    state: string,
-    redirectTo: ?string
-  ) => {
+  @action authWithSlack = async (code: string, state: string) => {
     if (state !== this.oauthState) {
-      browserHistory.push('/auth-error');
-      return;
+      return {
+        success: false,
+      };
     }
 
     let res;
     try {
       res = await client.post('/auth.slack', { code });
     } catch (e) {
-      browserHistory.push('/auth-error');
-      return;
+      return {
+        success: false,
+      };
     }
 
     invariant(
@@ -70,7 +67,10 @@ class UserStore {
     this.user = res.data.user;
     this.team = res.data.team;
     this.token = res.data.accessToken;
-    browserHistory.replace(redirectTo || '/');
+
+    return {
+      success: true,
+    };
   };
 
   constructor() {

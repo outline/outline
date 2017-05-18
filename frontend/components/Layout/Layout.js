@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import { browserHistory, Link } from 'react-router';
+import { Link, withRouter } from 'react-router-dom';
 import Helmet from 'react-helmet';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
@@ -9,7 +9,9 @@ import keydown from 'react-keydown';
 import classNames from 'classnames/bind';
 import searchIcon from 'assets/icons/search.svg';
 import { Flex } from 'reflexbox';
+import { textColor } from 'styles/constants.scss';
 import styles from './Layout.scss';
+
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import LoadingIndicator from 'components/LoadingIndicator';
 import UserStore from 'stores/UserStore';
@@ -17,6 +19,7 @@ import UserStore from 'stores/UserStore';
 const cx = classNames.bind(styles);
 
 type Props = {
+  history: Object,
   children?: ?React.Element<any>,
   actions?: ?React.Element<any>,
   title?: ?React.Element<any>,
@@ -36,18 +39,22 @@ type Props = {
 
   @keydown(['/', 't'])
   search() {
-    // if (!this.props.user) return;
-    _.defer(() => browserHistory.push('/search'));
+    if (!this.props.user) return;
+    _.defer(() => this.props.history.push('/search'));
   }
 
   @keydown(['d'])
   dashboard() {
-    // if (!this.props.user) return;
-    _.defer(() => browserHistory.push('/'));
+    if (!this.props.user) return;
+    _.defer(() => this.props.history.push('/'));
   }
 
   render() {
     const user = this.props.user;
+
+    const handleLogout = () => {
+      user.logout(() => this.props.history.push('/'));
+    };
 
     return (
       <div className={styles.container}>
@@ -83,21 +90,28 @@ type Props = {
                 <Flex>
                   {this.props.search &&
                     <Flex>
-                      <div
-                        onClick={this.search}
-                        className={styles.search}
-                        title="Search (/)"
-                      >
-                        <img src={searchIcon} alt="Search" />
-                      </div>
+                      <Link to="/search">
+                        <div className={styles.search} title="Search (/)">
+                          <img
+                            src={searchIcon}
+                            alt="Search"
+                          />
+                        </div>
+                      </Link>
                     </Flex>}
                   <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
-                    <MenuItem to="/settings">Settings</MenuItem>
-                    <MenuItem to="/keyboard-shortcuts">
-                      Keyboard shortcuts
-                    </MenuItem>
-                    <MenuItem to="/developers">API</MenuItem>
-                    <MenuItem onClick={user.logout}>Logout</MenuItem>
+                    <MenuLink to="/settings">
+                      <MenuItem>Settings</MenuItem>
+                    </MenuLink>
+                    <MenuLink to="/keyboard-shortcuts">
+                      <MenuItem>
+                        Keyboard shortcuts
+                      </MenuItem>
+                    </MenuLink>
+                    <MenuLink to="/developers">
+                      <MenuItem>API</MenuItem>
+                    </MenuLink>
+                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
                   </DropdownMenu>
                 </Flex>}
             </Flex>
@@ -118,4 +132,8 @@ const Avatar = styled.img`
   border-radius: 50%;
 `;
 
-export default inject('user')(Layout);
+const MenuLink = styled(Link)`
+  color: ${textColor};
+`;
+
+export default withRouter(inject('user')(Layout));

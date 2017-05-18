@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { toJS } from 'mobx';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import styles from './DocumentPreview.scss';
 
