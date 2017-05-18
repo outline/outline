@@ -11,7 +11,6 @@ import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import Divider from 'components/Divider';
-import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 import { Flex } from 'reflexbox';
 
 import styles from './Collection.scss';
@@ -69,11 +68,9 @@ class Collection extends React.Component {
     if (collection) {
       actions = (
         <Flex>
-          <DropdownMenu label={<MoreIcon />}>
-            <MenuItem onClick={this.onCreate}>
-              New document
-            </MenuItem>
-          </DropdownMenu>
+          <a onClick={this.onCreate}>
+            New document
+          </a>
         </Flex>
       );
       title = <Title content={collection.name} />;
