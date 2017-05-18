@@ -13,10 +13,10 @@ import Layout, { HeaderAction, SaveAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
-const DISCARD_CHANGES = `
-You have unsaved changes.
-Are you sure you want to discard them?
-`;
+// const DISCARD_CHANGES = `
+// You have unsaved changes.
+// Are you sure you want to discard them?
+// `;
 
 type Props = {
   match: Object,
@@ -27,9 +27,7 @@ type Props = {
   editDocument?: boolean,
 };
 
-@withRouter
-@observer
-class Document extends Component {
+@observer class Document extends Component {
   store: DocumentStore;
   props: Props;
 
@@ -151,4 +149,4 @@ class Document extends Component {
   }
 }
 
-export default Document;
+export default withRouter(Document);

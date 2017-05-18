@@ -21,7 +21,7 @@ import 'styles/hljs-github-gist.scss';
 
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
-import Atlas from 'scenes/Atlas';
+import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
@@ -68,7 +68,7 @@ render(
           <Auth>
             <Switch>
               <Route exact path="/dashboard" component={Dashboard} />
-              <Route exact path="/collections/:id" component={Atlas} />
+              <Route exact path="/collections/:id" component={Collection} />
               <Route exact path="/d/:id" component={Document} />
               <Route exact path="/d/:id/edit" component={DocumentEdit} />
               <Route

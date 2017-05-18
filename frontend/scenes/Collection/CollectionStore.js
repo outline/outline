@@ -4,9 +4,8 @@ import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import type { Collection } from 'types';
 
-const store = new class AtlasStore {
+class CollectionStore {
   @observable collection: ?(Collection & { recentDocuments?: Object[] });
-
   @observable isFetching = true;
 
   /* Computed */
@@ -32,6 +31,6 @@ const store = new class AtlasStore {
     }
     this.isFetching = false;
   };
-}();
+}
 
-export default store;
+export default CollectionStore;
