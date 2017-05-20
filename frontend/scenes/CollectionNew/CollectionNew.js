@@ -2,6 +2,8 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import Layout from 'components/Layout';
+import Button from 'components/Button';
+import Input from 'components/Input';
 import CenteredContent from 'components/CenteredContent';
 import CollectionNewStore from './CollectionNewStore';
 
@@ -26,18 +28,31 @@ type Props = {
     this.store.updateName(ev.target.value);
   };
 
+  handleDescriptionChange = (ev: SyntheticInputEvent) => {
+    this.store.updateDescription(ev.target.value);
+  };
+
   render() {
     return (
       <Layout titleText="New Collection" loading={this.store.isSaving}>
         <CenteredContent>
           <form onSubmit={this.handleSubmit}>
             <h2>New Collection</h2>
-            <input
+            <Input
               type="text"
               placeholder="Name"
               onChange={this.handleNameChange}
+              value={this.store.name}
             />
-            <button type="submit">Save</button>
+            <Input
+              type="textarea"
+              placeholder="Description (optional)"
+              onChange={this.handleDescriptionChange}
+              value={this.store.description}
+            />
+            <Button type="submit" disabled={this.store.isSaving}>
+              {this.store.isSaving ? 'Creating…' : 'Create'}
+            </Button>
           </form>
         </CenteredContent>
       </Layout>
