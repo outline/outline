@@ -3,10 +3,10 @@ import React, { Component } from 'react';
 import get from 'lodash/get';
 import { observer } from 'mobx-react';
 import { withRouter } from 'react-router';
-import { Flex } from 'reflexbox';
 
 import DocumentStore from './DocumentStore';
 import Breadcrumbs from './components/Breadcrumbs';
+import Button from 'components/Button';
 import Editor from 'components/Editor';
 import Menu from './components/Menu';
 import Layout, { HeaderAction, SaveAction } from 'components/Layout';
@@ -23,8 +23,7 @@ type Props = {
   history: Object,
   keydown: Object,
   editDocument?: boolean,
-  newChildDocument?: boolean,
-  editDocument?: boolean,
+  newDocument?: boolean,
 };
 
 @observer class Document extends Component {
@@ -42,10 +41,6 @@ type Props = {
       this.store.newDocument = true;
     } else if (this.props.editDocument) {
       this.store.documentId = this.props.match.params.id;
-      this.store.fetchDocument();
-    } else if (this.props.newChildDocument) {
-      this.store.documentId = this.props.match.params.id;
-      this.store.newChildDocument = true;
       this.store.fetchDocument();
     } else {
       this.store.documentId = this.props.match.params.id;
@@ -69,7 +64,7 @@ type Props = {
   };
 
   onSave = (options: { redirect?: boolean } = {}) => {
-    if (this.store.newDocument || this.store.newChildDocument) {
+    if (this.store.newDocument) {
       this.store.saveDocument(options);
     } else {
       this.store.updateDocument(options);
@@ -88,9 +83,16 @@ type Props = {
     this.props.history.goBack();
   };
 
+  onCreateDocument = () => {
+    this.props.history.push(
+      `${get(this.store, 'document.collection.url')}/new`
+    );
+  };
+
   render() {
-    const isNew = this.props.newDocument || this.props.newChildDocument;
-    const isEditing = this.props.editDocument;
+    const isNew = this.props.newDocument;
+    const isEditing = isNew || this.props.editDocument;
+
     const title = (
       <Breadcrumbs
         document={this.store.document}
@@ -103,22 +105,21 @@ type Props = {
       `${get(this.store, 'document.collection.name')} - ${get(this.store, 'document.title')}`;
 
     const actions = (
-      <Flex>
-        <HeaderAction>
-          {isEditing
-            ? <SaveAction
-                onClick={this.onSave}
-                disabled={this.store.isSaving}
-                isNew={!!isNew}
-              />
-            : <a onClick={this.onEdit}>Edit</a>}
-        </HeaderAction>
+      <HeaderAction>
+        {!isNew && <Button onClick={this.onCreateDocument}>New Doc</Button>}
+        {isEditing
+          ? <SaveAction
+              onClick={this.onSave}
+              disabled={this.store.isSaving}
+              isNew={!!isNew}
+            />
+          : <Button onClick={this.onEdit}>Edit Doc</Button>}
         <Menu
           store={this.store}
           document={this.store.document}
           collectionTree={this.store.collectionTree}
         />
-      </Flex>
+      </HeaderAction>
     );
 
     return (
@@ -134,15 +135,15 @@ type Props = {
           <CenteredContent>
             <AtlasPreviewLoading />
           </CenteredContent>}
-        {this.store.document &&
+        {!this.store.isFetching &&
           <Editor
-            text={this.store.document.text}
+            text={get(this.store, 'document.text', '')}
             onImageUploadStart={this.onImageUploadStart}
             onImageUploadStop={this.onImageUploadStop}
             onChange={this.store.updateText}
             onSave={this.onSave}
             onCancel={this.onCancel}
-            readOnly={!this.props.editDocument}
+            readOnly={!isEditing}
           />}
       </Layout>
     );

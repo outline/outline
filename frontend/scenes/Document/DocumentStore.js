@@ -75,12 +75,14 @@ class DocumentStore {
       if (this.document && node.id === this.document.id) {
         path = previousPath;
         return;
-      } else {
+      } else if (node.children.length) {
         node.children.forEach(childNode => {
           const newPath = [...previousPath, node];
           return traveler(childNode, newPath);
         });
       }
+      path = previousPath;
+      return;
     };
 
     if (this.document && this.collectionTree) {
@@ -187,7 +189,9 @@ class DocumentStore {
   };
 
   @action updateText = (text: string) => {
-    if (!this.document) return;
+    if (!this.document) {
+      this.document = {};
+    }
 
     this.document.text = text;
     this.document.title = parseHeader(text);

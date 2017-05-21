@@ -8,6 +8,7 @@ import { newCollectionUrl } from 'utils/routeHelpers';
 import DashboardStore from './DashboardStore';
 import UserStore from 'stores/UserStore';
 
+import Button from 'components/Button';
 import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
@@ -41,9 +42,9 @@ class Dashboard extends React.Component {
   render() {
     const actions = (
       <Flex>
-        <a onClick={this.handleCreateCollection}>
+        <Button onClick={this.handleCreateCollection}>
           New Collection
-        </a>
+        </Button>
       </Flex>
     );
 

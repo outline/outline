@@ -1,9 +1,9 @@
 // @flow
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
-import Layout from 'components/Layout';
 import Button from 'components/Button';
 import Input from 'components/Input';
+import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import CollectionNewStore from './CollectionNewStore';
 
@@ -38,11 +38,13 @@ type Props = {
         <CenteredContent>
           <form onSubmit={this.handleSubmit}>
             <h2>New Collection</h2>
+            {this.store.error && <span>{this.store.error.message}</span>}
             <Input
               type="text"
               placeholder="Name"
               onChange={this.handleNameChange}
               value={this.store.name}
+              autoFocus
             />
             <Input
               type="textarea"

@@ -9,6 +9,7 @@ type Options = {
 
 class CollectionNewStore {
   @observable name: string;
+  @observable error: Object;
   @observable description: string;
   @observable isSaving: boolean = false;
 
@@ -25,8 +26,9 @@ class CollectionNewStore {
       invariant(res && res.data, 'Data should be available');
       const { url } = res.data;
       this.history.push(url);
-    } catch (e) {
+    } catch (err) {
       console.error('Something went wrong');
+      this.error = err.data;
     }
     this.isSaving = false;
   };

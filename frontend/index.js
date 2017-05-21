@@ -57,7 +57,6 @@ const KeyboardShortcuts = () => (
 const Api = () => <Flatpage title="API" content={flatpages.api} />;
 const DocumentEdit = () => <Document editDocument />;
 const DocumentNew = () => <Document newDocument />;
-const DocumentNewChild = () => <Document newChildDocument />;
 
 render(
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>
@@ -78,8 +77,6 @@ render(
                 path="/collections/:id/new"
                 component={DocumentNew}
               />
-              <Route exact path="/d/:id/new" component={DocumentNewChild} />
-
               <Route exact path="/search" component={Search} />
               <Route exact path="/settings" component={Settings} />
 

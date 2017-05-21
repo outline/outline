@@ -53,6 +53,12 @@ export default class MarkdownEditor extends Component {
     }
   }
 
+  componentDidMount() {
+    if (!this.props.text) {
+      this.focusAtStart();
+    }
+  }
+
   onChange = (state: State) => {
     this.setState({ state });
   };

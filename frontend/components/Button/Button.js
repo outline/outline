@@ -1,7 +1,6 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { size } from 'styles/constants';
 
 const RealButton = styled.button`
   display: inline-block;
@@ -32,18 +31,18 @@ const Label = styled.span`
 
 const Inner = styled.span`
   display: flex;
-  line-height: 33px;
+  line-height: 28px;
   justify-content: center;
 `;
 
 export type Props = {
-  type: string,
+  type?: string,
   value?: string,
   className?: string,
   children?: React$Element<any>,
 };
 
-export default function Button({ type, children, ...rest }: Props) {
+export default function Button({ type = 'text', children, ...rest }: Props) {
   const hasText = children !== undefined;
 
   return (
