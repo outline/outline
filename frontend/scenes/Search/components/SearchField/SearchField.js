@@ -9,7 +9,7 @@ import styles from './SearchField.scss';
     onChange: PropTypes.func,
   };
 
-  onChange = (event: SyntheticEvent) => {
+  handleChange = (event: SyntheticEvent) => {
     event.currentTarget.value && this.props.onChange(event.currentTarget.value);
   };
 
@@ -17,7 +17,8 @@ import styles from './SearchField.scss';
     return (
       <div className={styles.container}>
         <input
-          onChange={this.onChange}
+          {...this.props}
+          onChange={this.handleChange}
           className={styles.field}
           placeholder="Search"
           autoFocus

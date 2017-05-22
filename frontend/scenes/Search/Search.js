@@ -3,6 +3,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import _ from 'lodash';
 import { Flex } from 'reflexbox';
+import { withRouter } from 'react-router';
 
 import SearchField from './components/SearchField';
 import styles from './Search.scss';
@@ -13,6 +14,7 @@ import CenteredContent from 'components/CenteredContent';
 import DocumentPreview from 'components/DocumentPreview';
 
 type Props = {
+  history: Object,
   notFound: ?boolean,
 };
 
@@ -24,6 +26,13 @@ type Props = {
     super(props);
     this.store = new SearchStore();
   }
+
+  handleKeyDown = ev => {
+    if (ev.which === 27) {
+      ev.preventDefault();
+      this.props.history.goBack();
+    }
+  };
 
   render() {
     const search = _.debounce(searchTerm => {
@@ -55,6 +64,7 @@ type Props = {
               />
               <SearchField
                 searchTerm={this.store.searchTerm}
+                onKeyDown={this.handleKeyDown}
                 onChange={search}
               />
             </Flex>
@@ -71,4 +81,4 @@ type Props = {
   }
 }
 
-export default Search;
+export default withRouter(Search);
