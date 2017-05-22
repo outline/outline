@@ -79,6 +79,7 @@ render(
               <Route exact path="/d/:id/new" component={DocumentNewChild} />
 
               <Route exact path="/search" component={Search} />
+              <Route exact path="/search/:query" component={Search} />
               <Route exact path="/settings" component={Settings} />
 
               <Route exact path="/auth/slack" component={SlackAuth} />

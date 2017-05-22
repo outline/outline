@@ -5,7 +5,7 @@ import { client } from 'utils/ApiClient';
 import type { Document } from 'types';
 
 class SearchStore {
-  @observable documents: ?(Document[]);
+  @observable documents: Array<Document> = [];
   @observable searchTerm: ?string = null;
 
   @observable isFetching = false;
@@ -28,7 +28,7 @@ class SearchStore {
         console.error('Something went wrong');
       }
     } else {
-      this.documents = null;
+      this.documents = [];
     }
 
     this.isFetching = false;

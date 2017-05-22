@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import _ from 'lodash';
 import { Flex } from 'reflexbox';
 import { withRouter } from 'react-router';
+import { searchUrl } from 'utils/routeHelpers';
 
 import SearchField from './components/SearchField';
 import styles from './Search.scss';
@@ -15,6 +16,7 @@ import DocumentPreview from 'components/DocumentPreview';
 
 type Props = {
   history: Object,
+  match: Object,
   notFound: ?boolean,
 };
 
@@ -25,6 +27,13 @@ type Props = {
   constructor(props: Props) {
     super(props);
     this.store = new SearchStore();
+    this.updateSearchResults();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.match.params.query !== this.props.match.params.query) {
+      this.updateSearchResults();
+    }
   }
 
   handleKeyDown = ev => {
@@ -34,10 +43,15 @@ type Props = {
     }
   };
 
+  updateSearchResults = _.debounce(() => {
+    this.store.search(this.props.match.params.query);
+  }, 250);
+
+  updateQuery = query => {
+    this.props.history.replace(searchUrl(query));
+  };
+
   render() {
-    const search = _.debounce(searchTerm => {
-      this.store.search(searchTerm);
-    }, 250);
     const title = <Title content="Search" />;
 
     return (
@@ -65,15 +79,12 @@ type Props = {
               <SearchField
                 searchTerm={this.store.searchTerm}
                 onKeyDown={this.handleKeyDown}
-                onChange={search}
+                onChange={this.updateQuery}
               />
             </Flex>
-            {this.store.documents &&
-              this.store.documents.map(document => {
-                return (
-                  <DocumentPreview key={document.id} document={document} />
-                );
-              })}
+            {this.store.documents.map(document => (
+              <DocumentPreview key={document.id} document={document} />
+            ))}
           </Flex>
         </CenteredContent>
       </Layout>

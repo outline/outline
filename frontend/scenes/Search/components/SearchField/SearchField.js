@@ -1,12 +1,10 @@
 // @flow
-import React, { PropTypes } from 'react';
-import { observer } from 'mobx-react';
-
+import React, { Component } from 'react';
 import styles from './SearchField.scss';
 
-@observer class SearchField extends React.Component {
-  static propTypes = {
-    onChange: PropTypes.func,
+class SearchField extends Component {
+  props: {
+    onChange: Function,
   };
 
   handleChange = (event: SyntheticEvent) => {
