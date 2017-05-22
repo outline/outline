@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import get from 'lodash/get';
 import { observer } from 'mobx-react';
-import { withRouter } from 'react-router';
+import { withRouter, Prompt } from 'react-router';
 import { Flex } from 'reflexbox';
 
 import DocumentStore from './DocumentStore';
@@ -27,9 +27,7 @@ type Props = {
   editDocument?: boolean,
 };
 
-@withRouter
-@observer
-class Document extends Component {
+@observer class Document extends Component {
   store: DocumentStore;
   props: Props;
 
@@ -54,15 +52,6 @@ class Document extends Component {
       this.store.newDocument = false;
       this.store.fetchDocument();
     }
-
-    // // Prevent user from accidentally leaving with unsaved changes
-    // const remove = this.props.router.setRouteLeaveHook(this.props.route, () => {
-    //   if (this.store.hasPendingChanges) {
-    //     return confirm(DISCARD_CHANGES);
-    //   }
-    //   remove();
-    //   return null;
-    // });
   };
 
   onEdit = () => {
@@ -132,6 +121,7 @@ class Document extends Component {
         search={false}
         fixed
       >
+        <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
         {this.store.isFetching &&
           <CenteredContent>
             <AtlasPreviewLoading />
@@ -151,4 +141,4 @@ class Document extends Component {
   }
 }
 
-export default Document;
+export default withRouter(Document);
