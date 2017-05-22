@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
+import { color } from 'styles/constants';
 
 type Props = {
   onClick?: Function,
@@ -9,27 +10,16 @@ type Props = {
 
 const Label = styled.div`
   margin: 0;
-  padding: 5px 10px;
-  height: 32px;
+  padding: 8px 12px;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  border-left: 2px solid transparent;
-
-  span {
-    margin-top: 2px;
-  }
-
-  a {
-    color: $textColor;
-    text-decoration: none;
-    width: 100%;
-  }
+  color: ${color.slateDark};
 
   &:hover {
-    border-left: 2px solid green;
+    color: ${color.black};
   }
 `;
 

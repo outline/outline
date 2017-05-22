@@ -7,6 +7,7 @@ import { withRouter } from 'react-router';
 import DocumentStore from './DocumentStore';
 import Breadcrumbs from './components/Breadcrumbs';
 import Button from 'components/Button';
+import NudeButton from 'components/Button/Nude';
 import Editor from 'components/Editor';
 import Menu from './components/Menu';
 import Layout, { HeaderAction, SaveAction } from 'components/Layout';
@@ -106,7 +107,8 @@ type Props = {
 
     const actions = (
       <HeaderAction>
-        {!isEditing && <Button onClick={this.onCreateDocument}>New Doc</Button>}
+        {!isEditing &&
+          <NudeButton onClick={this.onCreateDocument}>New Doc</NudeButton>}
         {isEditing
           ? <SaveAction
               onClick={this.onSave}

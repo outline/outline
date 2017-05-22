@@ -26,3 +26,21 @@ export const fontWeight = {
   bold: 700,
   heavy: 800,
 };
+
+export const color = {
+  /* Brand */
+  primary: '#73DF7B',
+
+  /* Dark Grays */
+  slate: '#9BA6B2',
+  slateLight: '#DAE1E9',
+  slateDark: '#4E5C6E',
+
+  /* Light Grays */
+  smoke: '#F4F7FA',
+  smokeLight: '#F9FBFC',
+
+  /* Misc */
+  white: '#FFFFFF',
+  black: '#000000',
+};

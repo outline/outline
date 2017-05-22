@@ -8,12 +8,11 @@ import { newCollectionUrl } from 'utils/routeHelpers';
 import DashboardStore from './DashboardStore';
 import UserStore from 'stores/UserStore';
 
-import Button from 'components/Button';
-import Layout from 'components/Layout';
+import NudeButton from 'components/Button/Nude';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
-import { HeaderAction } from 'components/Layout';
+import Layout, { HeaderAction } from 'components/Layout';
 
 type Props = {
   history: Object,
@@ -43,9 +42,9 @@ class Dashboard extends React.Component {
   render() {
     const actions = (
       <HeaderAction>
-        <Button onClick={this.handleCreateCollection}>
+        <NudeButton onClick={this.handleCreateCollection}>
           New Collection
-        </Button>
+        </NudeButton>
       </HeaderAction>
     );
 

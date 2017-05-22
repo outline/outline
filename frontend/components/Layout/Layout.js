@@ -14,6 +14,7 @@ import { textColor } from 'styles/constants.scss';
 import styles from './Layout.scss';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import Avatar from 'components/Avatar';
 import LoadingIndicator from 'components/LoadingIndicator';
 import UserStore from 'stores/UserStore';
 
@@ -123,12 +124,6 @@ type Props = {
     );
   }
 }
-
-const Avatar = styled.img`
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-`;
 
 const MenuLink = styled(Link)`
   color: ${textColor};

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { size } from 'styles/constants';
+import { size, color } from 'styles/constants';
 import { darken } from 'polished';
 
 const RealButton = styled.button`
@@ -9,8 +9,8 @@ const RealButton = styled.button`
   margin: 0 0 ${size.large};
   padding: 0;
   border: 0;
-  background: #73DF7B;
-  color: #FFF;
+  background: ${color.primary};
+  color: ${color.white};
   border-radius: 4px;
   min-width: 32px;
   min-height: 32px;
@@ -23,7 +23,7 @@ const RealButton = styled.button`
     border: 0;
   }
   &:hover {
-    background: ${darken(0.05, '#73DF7B')};
+    background: ${darken(0.05, color.primary)};
   }
 `;
 
