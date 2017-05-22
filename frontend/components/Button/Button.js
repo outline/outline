@@ -1,13 +1,15 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
+import { size } from 'styles/constants';
+import { darken } from 'polished';
 
 const RealButton = styled.button`
   display: inline-block;
-  margin: 0;
+  margin: 0 0 ${size.large};
   padding: 0;
   border: 0;
-  background: #13CF9F;
+  background: #73DF7B;
   color: #FFF;
   border-radius: 4px;
   min-width: 32px;
@@ -19,6 +21,9 @@ const RealButton = styled.button`
   &::-moz-focus-inner {
     padding: 0;
     border: 0;
+  }
+  &:hover {
+    background: ${darken(0.05, '#73DF7B')};
   }
 `;
 
@@ -38,16 +43,24 @@ const Inner = styled.span`
 export type Props = {
   type?: string,
   value?: string,
+  icon?: React$Element<any>,
   className?: string,
   children?: React$Element<any>,
 };
 
-export default function Button({ type = 'text', children, ...rest }: Props) {
+export default function Button({
+  type = 'text',
+  icon,
+  children,
+  ...rest
+}: Props) {
   const hasText = children !== undefined;
+  const hasIcon = icon !== undefined;
 
   return (
     <RealButton {...rest}>
       <Inner>
+        {hasIcon && icon}
         {hasText && <Label>{children}</Label>}
       </Inner>
     </RealButton>

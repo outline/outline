@@ -106,7 +106,7 @@ type Props = {
 
     const actions = (
       <HeaderAction>
-        {!isNew && <Button onClick={this.onCreateDocument}>New Doc</Button>}
+        {!isEditing && <Button onClick={this.onCreateDocument}>New Doc</Button>}
         {isEditing
           ? <SaveAction
               onClick={this.onSave}

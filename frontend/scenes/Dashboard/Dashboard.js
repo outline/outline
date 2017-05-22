@@ -13,6 +13,7 @@ import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
+import { HeaderAction } from 'components/Layout';
 
 type Props = {
   history: Object,
@@ -41,11 +42,11 @@ class Dashboard extends React.Component {
 
   render() {
     const actions = (
-      <Flex>
+      <HeaderAction>
         <Button onClick={this.handleCreateCollection}>
           New Collection
         </Button>
-      </Flex>
+      </HeaderAction>
     );
 
     return (

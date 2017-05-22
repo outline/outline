@@ -1,25 +1,36 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
+import onClickOutside from 'react-onclickoutside';
+import styled from 'styled-components';
+import MenuItem from './components/MenuItem';
 
-import styles from './DropdownMenu.scss';
+const Label = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
 
-const MenuItem = ({
-  onClick,
-  children,
-}: {
-  onClick?: Function,
-  children?: React.Element<any>,
-}) => {
-  return (
-    <div className={styles.menuItem} onClick={onClick}>
-      {children}
-    </div>
-  );
-};
+  min-height: 43px;
+  margin: 0 5px;
+  color: green;
+`;
 
-//
+const Container = styled.div`
+  position: relative;
+`;
 
-class DropdownMenu extends React.Component {
+const Menu = styled.div`
+  position: absolute;
+  top: $headerHeight;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  border-radius: 4px;
+  min-width: 160px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25), 0 0 1px rgba(0,0,0,.35);
+`;
+
+@onClickOutside class DropdownMenu extends Component {
   static propTypes = {
     label: React.PropTypes.node.isRequired,
     children: React.PropTypes.node.isRequired,
@@ -29,11 +40,7 @@ class DropdownMenu extends React.Component {
     menuVisible: false,
   };
 
-  onMouseEnter = () => {
-    this.setState({ menuVisible: true });
-  };
-
-  onMouseLeave = () => {
+  handleClickOutside = () => {
     this.setState({ menuVisible: false });
   };
 
@@ -43,21 +50,17 @@ class DropdownMenu extends React.Component {
 
   render() {
     return (
-      <div
-        className={styles.menuContainer}
-        onMouseEnter={this.onMouseEnter}
-        onMouseLeave={this.onMouseLeave}
-      >
-        <div className={styles.label} onClick={this.onClick}>
+      <Container>
+        <Label onClick={this.onClick}>
           {this.props.label}
-        </div>
+        </Label>
 
         {this.state.menuVisible
-          ? <div className={styles.menu}>
+          ? <Menu>
               {this.props.children}
-            </div>
+            </Menu>
           : null}
-      </div>
+      </Container>
     );
   }
 }
