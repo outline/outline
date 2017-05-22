@@ -2,10 +2,18 @@
 import { autorunAsync } from 'mobx';
 import UserStore, { USER_STORE } from './UserStore';
 import UiStore, { UI_STORE } from './UiStore';
+import DashboardStore from './DashboardStore';
+
+const user = new UserStore();
+const ui = new UiStore();
+const dashboard = new DashboardStore({
+  team: user.team,
+});
 
 const stores = {
-  user: new UserStore(),
-  ui: new UiStore(),
+  user,
+  ui,
+  dashboard,
 };
 
 // Persist stores to localStorage

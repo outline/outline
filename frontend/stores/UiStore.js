@@ -3,27 +3,36 @@ import { observable, action, computed } from 'mobx';
 
 const UI_STORE = 'UI_STORE';
 
+type SidebarPanels = 'main' | 'secondary';
+
 class UiStore {
-  @observable sidebar: boolean = false;
+  @observable sidebarVisible: boolean;
+  @observable sidebarPanel: SidebarPanels = 'secondary';
 
   /* Computed */
 
   @computed get asJson(): string {
     return JSON.stringify({
-      sidebar: this.sidebar,
+      sidebarVisible: this.sidebarVisible,
     });
   }
 
   /* Actions */
 
   @action toggleSidebar = (): void => {
-    this.sidebar = !this.sidebar;
+    this.sidebarVisible = !this.sidebarVisible;
+  };
+
+  @action changeSidebarPanel = (panel: SidebarPanels): void => {
+    this.sidebarPanel = panel;
   };
 
   constructor() {
     // Rehydrate
-    const data = JSON.parse(localStorage.getItem(UI_STORE) || '{}');
-    this.sidebar = data.sidebar;
+    const data = JSON.parse(
+      localStorage.getItem(UI_STORE) || '{"sidebarVisible": true}'
+    );
+    this.sidebarVisible = data.sidebarVisible;
   }
 }
 

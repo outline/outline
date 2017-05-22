@@ -65,6 +65,12 @@ render(
         <Switch>
           <Route exact path="/" component={Home} />
 
+          <Route exact path="/auth/slack" component={SlackAuth} />
+          <Route exact path="/auth/slack/commands" component={SlackAuth} />
+          <Route exact path="/auth/error" component={ErrorAuth} />
+
+          <Route exact path="/developers" component={Api} />
+
           <Auth>
             <Switch>
               <Route exact path="/dashboard" component={Dashboard} />
@@ -81,16 +87,11 @@ render(
               <Route exact path="/search" component={Search} />
               <Route exact path="/settings" component={Settings} />
 
-              <Route exact path="/auth/slack" component={SlackAuth} />
-              <Route exact path="/auth/slack/commands" component={SlackAuth} />
-              <Route exact path="/auth/error" component={ErrorAuth} />
-
               <Route
                 exact
                 path="/keyboard-shortcuts"
                 component={KeyboardShortcuts}
               />
-              <Route exact path="/developers" component={Api} />
 
               <Route path="/404" component={Error404} />
               <Route component={notFoundSearch} />

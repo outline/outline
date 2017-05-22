@@ -6,17 +6,16 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
 import keydown from 'react-keydown';
-import classNames from 'classnames/bind';
 import searchIcon from 'assets/icons/search.svg';
 import { Flex } from 'reflexbox';
-import { textColor } from 'styles/constants.scss';
-import styles from './Layout.scss';
+import constants, { color, fontSize } from 'styles/constants';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
-import LoadingIndicator from 'components/LoadingIndicator';
-import UserStore from 'stores/UserStore';
 
-const cx = classNames.bind(styles);
+import LayoutSidebar from './components/LayoutSidebar';
+import LayoutLoading from './components/LayoutLoading';
+import UserStore from 'stores/UserStore';
+import UiStore from 'stores/UiStore';
 
 type Props = {
   history: Object,
@@ -24,8 +23,10 @@ type Props = {
   actions?: ?React.Element<any>,
   title?: ?React.Element<any>,
   titleText?: string,
+  showMenu: ?boolean,
   loading?: boolean,
   user: UserStore,
+  ui: UiStore,
   search: ?boolean,
   notifications?: React.Element<any>,
 };
@@ -57,7 +58,7 @@ type Props = {
     };
 
     return (
-      <div className={styles.container}>
+      <Container column auto>
         <Helmet
           title={
             this.props.titleText ? `${this.props.titleText} - Atlas` : 'Atlas'
@@ -70,20 +71,28 @@ type Props = {
           ]}
         />
 
-        {this.props.loading && <LoadingIndicator />}
-
+        {this.props.loading && <LayoutLoading />}
         {this.props.notifications}
 
-        <div className={cx(styles.header)}>
-          <div className={styles.headerLeft}>
-            <Link to="/" className={styles.team}>Atlas</Link>
-            <span className={styles.title}>
+        <Header justify="space-between" align="center">
+          <HeaderLeft align="center">
+            {this.props.showMenu &&
+              <MenuContainer>
+                <MenuIcon
+                  src={require('assets/icons/menu.svg')}
+                  alt="Menu"
+                  title="Toggle menu (Cmd+/)"
+                  onClick={this.props.ui.toggleSidebar}
+                />
+              </MenuContainer>}
+            <LogoLink to="/">Atlas</LogoLink>
+            <Title>
               {this.props.title}
-            </span>
-          </div>
-          <Flex className={styles.headerRight}>
+            </Title>
+          </HeaderLeft>
+          <Flex>
             <Flex>
-              <Flex align="center" className={styles.actions}>
+              <Flex align="center">
                 {this.props.actions}
               </Flex>
               {user.user &&
@@ -91,12 +100,9 @@ type Props = {
                   {this.props.search &&
                     <Flex>
                       <Link to="/search">
-                        <div className={styles.search} title="Search (/)">
-                          <img
-                            src={searchIcon}
-                            alt="Search"
-                          />
-                        </div>
+                        <Search title="Search (/)">
+                          <img src={searchIcon} alt="Search" />
+                        </Search>
                       </Link>
                     </Flex>}
                   <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
@@ -116,15 +122,106 @@ type Props = {
                 </Flex>}
             </Flex>
           </Flex>
-        </div>
+        </Header>
 
-        <div className={cx(styles.content)}>
-          {this.props.children}
-        </div>
-      </div>
+        <ContentWrapper auto>
+          {this.props.showMenu && <LayoutSidebar />}
+          <Content justify="center" auto>
+            {this.props.children}
+          </Content>
+        </ContentWrapper>
+      </Container>
     );
   }
 }
+
+const MenuContainer = styled(Flex)`
+  margin: 2px 12px 0 -4px;
+`;
+
+const MenuIcon = styled.img`
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+`;
+
+const LogoLink = styled(Link)`
+  font-family: 'Atlas Grotesk';
+  font-weight: bold
+  color: ${color.text};
+  text-decoration: none;
+  font-size: ${fontSize.medium};
+`;
+
+const Title = styled.span`
+  padding-left: 20px;
+  color: ${color.gray};
+
+  a {
+    color: ${color.gray};
+  }
+
+  a:hover {
+    color: ${color.text};
+  }
+`;
+
+const Container = styled(Flex)`
+  width: 100%;
+  height: 100%;
+`;
+
+const Header = styled(Flex)`
+  padding: 0 25px;
+
+  z-index: 1;
+  background: ${color.white};
+  height: ${constants.headerHeight};
+
+  font-size: 14px;
+  line-height: 1;
+`;
+
+const HeaderLeft = styled(Flex)`
+  .team {
+    font-family: 'Atlas Grotesk';
+    font-weight: bold;
+    color: $textColor;
+    text-decoration: none;
+    font-size: 16px;
+  }
+
+  .title {
+    color: #ccc;
+
+    a {
+      color: #ccc;
+    }
+
+    a:hover {
+      color: $textColor;
+    }
+  }
+`;
+
+const Search = styled(Flex)`
+  margin: 0 5px;
+  padding: 15px 5px 0 5px;
+  cursor: pointer;
+
+  img {
+    height: 20px;
+  }
+`;
+
+const ContentWrapper = styled(Flex)`
+  height: 100%;
+`;
+
+const Content = styled(Flex)`
+  height: 100%;
+  overflow: scroll;
+`;
 
 const Avatar = styled.img`
   width: 24px;
@@ -133,7 +230,7 @@ const Avatar = styled.img`
 `;
 
 const MenuLink = styled(Link)`
-  color: ${textColor};
+  color: ${color.text};
 `;
 
-export default withRouter(inject('user')(Layout));
+export default withRouter(inject('user', 'ui')(Layout));

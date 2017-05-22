@@ -11,6 +11,7 @@
     "flowtype"
   ],
   "rules": {
+    "no-unused-vars": 2,
     // // Bring back after we remove CSS Modules 100%
     // "import/order": "warn",
     // Prettier automatically uses the least amount of parens possible, so this

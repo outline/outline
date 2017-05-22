@@ -1,25 +1,28 @@
 // @flow
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
+import _ from 'lodash';
+
 import { client } from 'utils/ApiClient';
-import type { Pagination, Collection } from 'types';
+import type { Pagination, Collection, Team } from 'types';
 
 type Options = {
-  team: Object,
-  router: Object,
+  team: ?Team,
 };
 
 class DashboardStore {
-  team: Object;
+  team: ?Team;
   router: Object;
-  @observable collections: Array<Collection>;
+  @observable collections: Array<Collection> = observable.array([]);
   @observable pagination: Pagination;
 
-  @observable isFetching: boolean = true;
+  @observable isFetching: boolean = false;
+  @observable isLoaded: boolean = false;
 
   /* Actions */
 
   @action fetchCollections = async () => {
+    invariant(this.team && this.team.id, 'Team must be available');
     this.isFetching = true;
 
     try {
@@ -30,19 +33,20 @@ class DashboardStore {
       );
       const { data, pagination } = res;
       runInAction('fetchCollections', () => {
-        this.collections = data;
+        // $FlowIssue observable array
+        this.collections.replace(data);
         this.pagination = pagination;
       });
     } catch (e) {
       console.error('Something went wrong');
     }
+
     this.isFetching = false;
+    this.isLoaded = true;
   };
 
   constructor(options: Options) {
     this.team = options.team;
-    this.router = options.router;
-    this.fetchCollections();
   }
 }
 
