@@ -3,20 +3,23 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Flex } from 'reflexbox';
+import { newCollectionUrl } from 'utils/routeHelpers';
 
 import DashboardStore from './DashboardStore';
+import UserStore from 'stores/UserStore';
 
-import Layout from 'components/Layout';
+import NudeButton from 'components/Button/Nude';
 import AtlasPreview from 'components/AtlasPreview';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
+import Layout, { HeaderAction } from 'components/Layout';
 
 type Props = {
-  user: Object,
+  history: Object,
+  user: UserStore,
   router: Object,
 };
 
-@withRouter
 @inject('user')
 @observer
 class Dashboard extends React.Component {
@@ -32,10 +35,22 @@ class Dashboard extends React.Component {
     });
   }
 
+  handleCreateCollection = (ev: SyntheticEvent) => {
+    this.props.history.push(newCollectionUrl());
+  };
+
   render() {
+    const actions = (
+      <HeaderAction>
+        <NudeButton onClick={this.handleCreateCollection}>
+          New Collection
+        </NudeButton>
+      </HeaderAction>
+    );
+
     return (
       <Flex auto>
-        <Layout>
+        <Layout actions={actions}>
           <CenteredContent>
             <Flex column auto>
               {this.store.isFetching
@@ -54,4 +69,4 @@ class Dashboard extends React.Component {
   }
 }
 
-export default Dashboard;
+export default withRouter(Dashboard);

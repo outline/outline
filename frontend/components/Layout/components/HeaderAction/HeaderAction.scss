@@ -2,11 +2,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
   min-height: 43px;
   padding: 0 0.5rem;
 
-  a {
-    color: #171B35;
+  button {
+    margin: 0 4px;
   }
 }

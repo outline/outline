@@ -1,13 +1,14 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-import styled from 'styled-components';
 import { Flex } from 'reflexbox';
 
 import ApiKeyRow from './components/ApiKeyRow';
 import styles from './Settings.scss';
 import SettingsStore from './SettingsStore';
 
+import Button from 'components/Button';
+import Input from 'components/Input';
 import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
@@ -140,54 +141,19 @@ class InlineForm extends React.Component {
     return (
       <form onSubmit={this.handleSubmit}>
         <Flex auto>
-          <TextInput
+          <Input
             type="text"
             placeholder={validationError ? 'Please add a label' : placeholder}
             value={value || ''}
             onChange={onChange}
-            validationError={validationError}
+            hasError={!!validationError}
+            required
           />
-          <Button type="submit" value={buttonLabel} />
+          <Button type="submit">{buttonLabel}</Button>
         </Flex>
       </form>
     );
   }
 }
-
-const TextInput = styled.input`
-  display:flex;
-  flex: 1;
-  height:32px;
-  margin:0;
-  padding-left:8px;
-  padding-right:8px;
-  color:inherit;
-  background-color: rgba(255, 255, 255, .25);
-  border-width:1px;
-  border-style:solid;
-  border-color: ${props => (props.validationError ? 'red' : 'rgba(0, 0, 0, .25)')};
-  border-radius:2px 0 0 2px;
-`;
-
-const Button = styled.input`
-  box-shadow:inset 0 0 0 1px;
-  font-family:inherit;
-  font-size:14px;
-  line-height:16px;
-  min-height:32px;
-  text-decoration:none;
-  display:inline-block;
-  margin:0;
-  padding-top:8px;
-  padding-bottom:8px;
-  padding-left:16px;
-  padding-right:16px;
-  cursor:pointer;
-  border:0;
-  color:black;
-  background-color:transparent;
-  border-radius:0 2px 2px 0;
-  margin-left:-1px;
-`;
 
 export default Settings;

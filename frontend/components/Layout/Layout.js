@@ -9,10 +9,12 @@ import keydown from 'react-keydown';
 import classNames from 'classnames/bind';
 import searchIcon from 'assets/icons/search.svg';
 import { Flex } from 'reflexbox';
+import { homeUrl } from 'utils/routeHelpers';
 import { textColor } from 'styles/constants.scss';
 import styles from './Layout.scss';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import Avatar from 'components/Avatar';
 import LoadingIndicator from 'components/LoadingIndicator';
 import UserStore from 'stores/UserStore';
 
@@ -76,7 +78,7 @@ type Props = {
 
         <div className={cx(styles.header)}>
           <div className={styles.headerLeft}>
-            <Link to="/" className={styles.team}>Atlas</Link>
+            <Link to={homeUrl()} className={styles.team}>Atlas</Link>
             <span className={styles.title}>
               {this.props.title}
             </span>
@@ -92,10 +94,7 @@ type Props = {
                     <Flex>
                       <Link to="/search">
                         <div className={styles.search} title="Search (/)">
-                          <img
-                            src={searchIcon}
-                            alt="Search"
-                          />
+                          <img src={searchIcon} alt="Search" />
                         </div>
                       </Link>
                     </Flex>}
@@ -125,12 +124,6 @@ type Props = {
     );
   }
 }
-
-const Avatar = styled.img`
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-`;
 
 const MenuLink = styled(Link)`
   color: ${textColor};

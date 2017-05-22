@@ -8,7 +8,7 @@ const USER_STORE = 'USER_STORE';
 
 class UserStore {
   @observable user: ?User;
-  @observable team: ?Team;
+  @observable team: Team;
 
   @observable token: ?string;
   @observable oauthState: string;

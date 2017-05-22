@@ -1,11 +1,11 @@
 // @flow
 import React, { Component } from 'react';
-import invariant from 'invariant';
 import get from 'lodash/get';
 import { withRouter } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import type { Document as DocumentType } from 'types';
-import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
+import MoreIcon from 'components/Icon/MoreIcon';
+import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import DocumentStore from '../DocumentStore';
 
 type Props = {
@@ -17,16 +17,6 @@ type Props = {
 
 @observer class Menu extends Component {
   props: Props;
-
-  onCreateDocument = () => {
-    invariant(this.props.collectionTree, 'collectionTree is not available');
-    this.props.history.push(`${this.props.collectionTree.url}/new`);
-  };
-
-  onCreateChild = () => {
-    invariant(this.props.document, 'Document is not available');
-    this.props.history.push(`${this.props.document.url}/new`);
-  };
 
   onDelete = () => {
     let msg;
@@ -62,13 +52,6 @@ type Props = {
 
     return (
       <DropdownMenu label={<MoreIcon />}>
-        {collection &&
-          <div>
-            <MenuItem onClick={this.onCreateDocument}>
-              New document
-            </MenuItem>
-            <MenuItem onClick={this.onCreateChild}>New child</MenuItem>
-          </div>}
         <MenuItem onClick={this.onExport}>Export</MenuItem>
         {allowDelete && <MenuItem onClick={this.onDelete}>Delete</MenuItem>}
       </DropdownMenu>

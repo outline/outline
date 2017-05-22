@@ -4,19 +4,16 @@ import { observer } from 'mobx-react';
 import keydown from 'react-keydown';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import _ from 'lodash';
-
-// TODO move here argh
-import store from './AtlasStore';
+import CollectionStore from './CollectionStore';
 
 import Layout, { Title } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import Divider from 'components/Divider';
-import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
 import { Flex } from 'reflexbox';
 
-import styles from './Atlas.scss';
+import styles from './Collection.scss';
 
 type Props = {
   params: Object,
@@ -27,12 +24,18 @@ type Props = {
 
 @keydown(['c'])
 @observer
-class Atlas extends React.Component {
+class Collection extends React.Component {
   props: Props;
+  store: CollectionStore;
+
+  constructor(props: Props) {
+    super(props);
+    this.store = new CollectionStore();
+  }
 
   componentDidMount = () => {
     const { id } = this.props.match.params;
-    store.fetchCollection(id, data => {
+    this.store.fetchCollection(id, data => {
       // Forward directly to root document
       if (data.type === 'atlas') {
         this.props.history.replace(data.navigationTree.url);
@@ -51,11 +54,12 @@ class Atlas extends React.Component {
 
   onCreate = (event: Event) => {
     if (event) event.preventDefault();
-    store.collection && this.props.history.push(`${store.collection.url}/new`);
+    this.store.collection &&
+      this.props.history.push(`${this.store.collection.url}/new`);
   };
 
   render() {
-    const collection = store.collection;
+    const collection = this.store.collection;
 
     let actions;
     let title;
@@ -64,11 +68,9 @@ class Atlas extends React.Component {
     if (collection) {
       actions = (
         <Flex>
-          <DropdownMenu label={<MoreIcon />}>
-            <MenuItem onClick={this.onCreate}>
-              New document
-            </MenuItem>
-          </DropdownMenu>
+          <a onClick={this.onCreate}>
+            New document
+          </a>
         </Flex>
       );
       title = <Title content={collection.name} />;
@@ -85,7 +87,7 @@ class Atlas extends React.Component {
             transitionEnterTimeout={0}
             transitionLeaveTimeout={0}
           >
-            {store.isFetching
+            {this.store.isFetching
               ? <AtlasPreviewLoading />
               : collection &&
                   <div className={styles.container}>
@@ -109,4 +111,4 @@ class Atlas extends React.Component {
     );
   }
 }
-export default Atlas;
+export default Collection;

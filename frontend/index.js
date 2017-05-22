@@ -21,7 +21,8 @@ import 'styles/hljs-github-gist.scss';
 
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
-import Atlas from 'scenes/Atlas';
+import Collection from 'scenes/Collection';
+import CollectionNew from 'scenes/CollectionNew';
 import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
@@ -56,7 +57,6 @@ const KeyboardShortcuts = () => (
 const Api = () => <Flatpage title="API" content={flatpages.api} />;
 const DocumentEdit = () => <Document editDocument />;
 const DocumentNew = () => <Document newDocument />;
-const DocumentNewChild = () => <Document newChildDocument />;
 
 render(
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>
@@ -68,7 +68,8 @@ render(
           <Auth>
             <Switch>
               <Route exact path="/dashboard" component={Dashboard} />
-              <Route exact path="/collections/:id" component={Atlas} />
+              <Route exact path="/collections/new" component={CollectionNew} />
+              <Route exact path="/collections/:id" component={Collection} />
               <Route exact path="/d/:id" component={Document} />
               <Route exact path="/d/:id/edit" component={DocumentEdit} />
               <Route
@@ -76,8 +77,6 @@ render(
                 path="/collections/:id/new"
                 component={DocumentNew}
               />
-              <Route exact path="/d/:id/new" component={DocumentNewChild} />
-
               <Route exact path="/search" component={Search} />
               <Route exact path="/settings" component={Settings} />
 
