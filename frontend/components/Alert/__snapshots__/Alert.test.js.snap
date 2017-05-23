@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders danger 1`] = `
+<Flex
+  align="center"
+  className="container danger"
+  justify="center"
+>
+  danger
+</Flex>
+`;
+
+exports[`renders default as info 1`] = `
+<Flex
+  align="center"
+  className="container info"
+  justify="center"
+>
+  default
+</Flex>
+`;
+
+exports[`renders info 1`] = `
+<Flex
+  align="center"
+  className="container info"
+  justify="center"
+>
+  info
+</Flex>
+`;
+
+exports[`renders success 1`] = `
+<Flex
+  align="center"
+  className="container success"
+  justify="center"
+>
+  success
+</Flex>
+`;
+
+exports[`renders warning 1`] = `
+<Flex
+  align="center"
+  className="container warning"
+  justify="center"
+>
+  warning
+</Flex>
+`;

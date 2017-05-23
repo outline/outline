@@ -1,7 +1,5 @@
 /* eslint-disable */
 import React from 'react';
-import { snap } from 'utils/testUtils';
-
 import Alert from '.';
 
 test('renders default as info', () => {
