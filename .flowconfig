@@ -6,6 +6,7 @@
 .*/node_modules/react-side-effect/.*
 .*/node_modules/fbjs/.*
 .*/node_modules/config-chain/.*
+*.test.js
 
 [libs]
 
