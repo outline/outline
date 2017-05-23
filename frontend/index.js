@@ -11,6 +11,7 @@ import {
 import { Flex } from 'reflexbox';
 
 import stores from 'stores';
+import { loadCollections } from 'stores/CollectionsStore';
 
 import 'normalize.css/normalize.css';
 import 'styles/base.scss';
@@ -18,6 +19,8 @@ import 'styles/fonts.css';
 import 'styles/transitions.scss';
 import 'styles/prism-tomorrow.scss';
 import 'styles/hljs-github-gist.scss';
+
+import Layout from 'components/Layout';
 
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
@@ -72,30 +75,34 @@ render(
           <Route exact path="/developers" component={Api} />
 
           <Auth>
-            <Switch>
-              <Route exact path="/dashboard" component={Dashboard} />
-              <Route exact path="/collections/:id" component={Atlas} />
-              <Route exact path="/d/:id" component={Document} />
-              <Route exact path="/d/:id/edit" component={DocumentEdit} />
-              <Route
-                exact
-                path="/collections/:id/new"
-                component={DocumentNew}
-              />
-              <Route exact path="/d/:id/new" component={DocumentNewChild} />
+            <Provider collections={loadCollections(stores, stores.user)}>
+              <Layout>
+                <Switch>
+                  <Route exact path="/dashboard" component={Dashboard} />
+                  <Route exact path="/collections/:id" component={Atlas} />
+                  <Route exact path="/d/:id" component={Document} />
+                  <Route exact path="/d/:id/edit" component={DocumentEdit} />
+                  <Route
+                    exact
+                    path="/collections/:id/new"
+                    component={DocumentNew}
+                  />
+                  <Route exact path="/d/:id/new" component={DocumentNewChild} />
 
-              <Route exact path="/search" component={Search} />
-              <Route exact path="/settings" component={Settings} />
+                  <Route exact path="/search" component={Search} />
+                  <Route exact path="/settings" component={Settings} />
 
-              <Route
-                exact
-                path="/keyboard-shortcuts"
-                component={KeyboardShortcuts}
-              />
+                  <Route
+                    exact
+                    path="/keyboard-shortcuts"
+                    component={KeyboardShortcuts}
+                  />
 
-              <Route path="/404" component={Error404} />
-              <Route component={notFoundSearch} />
-            </Switch>
+                  <Route path="/404" component={Error404} />
+                  <Route component={notFoundSearch} />
+                </Switch>
+              </Layout>
+            </Provider>
           </Auth>
         </Switch>
       </Router>

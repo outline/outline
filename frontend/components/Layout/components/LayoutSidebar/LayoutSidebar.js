@@ -1,67 +1,125 @@
 // @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import { Flex } from 'reflexbox';
 import { color } from 'styles/constants';
 
 import UiStore from 'stores/UiStore';
+import CollectionsStore from 'stores/CollectionsStore';
 
 type Props = {
   ui: UiStore,
+  collections: CollectionsStore,
 };
 
 @observer class LayoutSidebar extends React.Component {
   props: Props;
 
-  componentDidMount() {
-    setInterval(() => {
-      this.props.ui.changeSidebarPanel(
-        this.props.ui.sidebarPanel === 'main' ? 'secondary' : 'main'
-      );
-    }, 5000);
+  get activeStyle() {
+    return {
+      color: color.text,
+    };
+  }
+
+  handleCollectionSelect = event => {
+    this.props.collections.setActiveCollection(event.target.id);
+  };
+
+  handleBackLink = () => {
+    this.props.ui.changeSidebarPanel('main');
+  };
+
+  renderCollectionSidebar() {
+    const { collections } = this.props;
+    const collection = collections.activeCollection;
+    const rootDocument = collection.navigationTree;
+
+    return (
+      <div>
+        <Section>
+          <CollectionHeading onClick={this.handleBackLink}>
+            <StyledBackIcon /> {collection.name}
+          </CollectionHeading>
+
+          <StyledLink
+            key={rootDocument.id}
+            to={rootDocument.url}
+            activeStyle={this.activeStyle}
+          >
+            {rootDocument.title}
+          </StyledLink>
+          {collection.navigationTree.children.map(document => (
+            <StyledLink
+              key={document.id}
+              to={document.url}
+              activeStyle={this.activeStyle}
+            >
+              {document.title}
+            </StyledLink>
+          ))}
+        </Section>
+      </div>
+    );
   }
 
   render() {
-    const { ui } = this.props;
+    const { ui, collections } = this.props;
 
     return (
       <Container column visible={ui.sidebarVisible}>
-        <Panel primary visible={ui.sidebarPanel === 'main'}>
-          <Section>
-            <StyledLink to="/search">Search</StyledLink>
-          </Section>
-          <Section>
-            <StyledLink to="/dashboard">Dashboard</StyledLink>
-            <StyledLink to="/favorites">Favorites</StyledLink>
-          </Section>
-          <Section>
-            <StyledLink to="/favorites" active>Engineering</StyledLink>
-          </Section>
-        </Panel>
-        <Panel secondary visible={ui.sidebarPanel === 'secondary'}>
-          <Section>
-            <StyledLink to="/favorites" active>
-              <StyledBackIcon /> Engineering{' '}
-            </StyledLink>
-          </Section>
-        </Panel>
+        <Section>
+          <StyledLink to="/search" activeStyle={this.activeStyle}>
+            Search
+          </StyledLink>
+          <StyledLink to="/dashboard" activeStyle={this.activeStyle}>
+            Dashboard
+          </StyledLink>
+        </Section>
+
+        <PanelContainer>
+          <Panel primary visible={ui.sidebarPanel === 'main'}>
+            <Section>
+              {collections.isLoaded &&
+                collections.data.map(collection => (
+                  <StyledLink
+                    key={collection.id}
+                    to={collection.url}
+                    activeStyle={this.activeStyle}
+                  >
+                    <span
+                      onClick={this.handleCollectionSelect}
+                      id={collection.id}
+                    >
+                      {collection.name}
+                    </span>
+                  </StyledLink>
+                ))}
+            </Section>
+          </Panel>
+          <Panel collection visible={ui.sidebarPanel === 'collection'}>
+            {collections.activeCollection && this.renderCollectionSidebar()}
+          </Panel>
+        </PanelContainer>
       </Container>
     );
   }
 }
 
 const Container = styled(Flex)`
-  position: relative;
   width: 200px;
   margin-left: ${({ visible }) => (visible ? '0' : '-200px')};
-  padding: 40px 0;
+  padding: 0px 0;
   opacity: ${({ visible }) => (visible ? '1' : '0')};
 
   transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
   transform: translateZ(0);
   transition: all 0.25s
+`;
+
+const PanelContainer = styled(Flex)`
+  position: relative;
 `;
 
 const Section = styled(Flex)`
@@ -76,6 +134,13 @@ const StyledLink = styled(NavLink)`
   color: ${({ active }) => (active ? color.text : 'rgba(12,12,12,0.6)')};
 `;
 
+const CollectionHeading = styled.span`
+  margin-bottom: 10px;
+
+  color: rgba(12,12,12,0.6);
+  cursor: pointer;
+`;
+
 // Panels
 
 type PanelProps = {
@@ -87,13 +152,13 @@ type PanelProps = {
 
 const Panel = observer(({ children, ...props }: PanelProps) => {
   return (
-    <PanelContainer {...props}>
+    <PanelContent {...props}>
       {children}
-    </PanelContainer>
+    </PanelContent>
   );
 });
 
-const PanelContainer = styled(Flex)`
+const PanelContent = styled(Flex)`
   position: absolute;
   top: 0;
   left: 0;
@@ -111,10 +176,10 @@ const PanelContainer = styled(Flex)`
     margin-left: -50px;
   `}
 
-  ${props => props.secondary && props.visible && `
+  ${props => props.collection && props.visible && `
     margin-left: 0px;
   `}
-  ${props => props.secondary && !props.visible && `
+  ${props => props.collection && !props.visible && `
     margin-left: 50px;
   `}
 
@@ -171,4 +236,4 @@ const StyledBackIcon = styled(BackIcon)`
   }
 `;
 
-export default inject('ui')(LayoutSidebar);
+export default inject('ui', 'collections')(withRouter(LayoutSidebar));

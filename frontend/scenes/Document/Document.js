@@ -1,14 +1,14 @@
 // @flow
 import React, { Component } from 'react';
 import get from 'lodash/get';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router';
 import { Flex } from 'reflexbox';
 
 import DocumentStore from './DocumentStore';
 import Editor from './components/Editor';
 import Menu from './components/Menu';
-import Layout, { HeaderAction, SaveAction } from 'components/Layout';
+import { HeaderAction, SaveAction } from 'components/Layout';
 import ContentLoading from 'components/ContentLoading';
 import CenteredContent from 'components/CenteredContent';
 
@@ -24,6 +24,7 @@ type Props = {
   editDocument?: boolean,
   newChildDocument?: boolean,
   editDocument?: boolean,
+  // ui: UiStore,
 };
 
 @observer class Document extends Component {
@@ -36,6 +37,16 @@ type Props = {
   }
 
   componentDidMount = () => {
+    this.loadDocument();
+  };
+
+  componentWillReceiveProps = newProps => {
+    if (this.props.match.url !== newProps.match.url) this.loadDocument();
+  };
+
+  loadDocument() {
+    this.props.ui.changeSidebarPanel('collection');
+
     if (this.props.newDocument) {
       this.store.collectionId = this.props.match.params.id;
       this.store.newDocument = true;
@@ -51,16 +62,7 @@ type Props = {
       this.store.newDocument = false;
       this.store.fetchDocument();
     }
-
-    // // Prevent user from accidentally leaving with unsaved changes
-    // const remove = this.props.router.setRouteLeaveHook(this.props.route, () => {
-    //   if (this.store.hasPendingChanges) {
-    //     return confirm(DISCARD_CHANGES);
-    //   }
-    //   remove();
-    //   return null;
-    // });
-  };
+  }
 
   onEdit = () => {
     const url = `${this.store.document.url}/edit`;
@@ -115,7 +117,7 @@ type Props = {
     );
 
     return (
-      <Layout
+      <div
         actions={actions}
         titleText={titleText}
         loading={this.store.isSaving || this.store.isUploading}
@@ -137,9 +139,9 @@ type Props = {
             onCancel={this.onCancel}
             readOnly={!this.props.editDocument}
           />}
-      </Layout>
+      </div>
     );
   }
 }
 
-export default withRouter(Document);
+export default withRouter(inject('ui', 'collections')(Document));

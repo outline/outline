@@ -3,52 +3,44 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { Flex } from 'reflexbox';
 
-import Layout from 'components/Layout';
 import AtlasPreview from 'components/AtlasPreview';
 import ContentLoading from 'components/ContentLoading';
 import CenteredContent from 'components/CenteredContent';
-import DashboardStore from 'stores/DashboardStore';
+
+import CollectionsStore from 'stores/CollectionsStore';
 
 type Props = {
-  dashboard: DashboardStore,
+  collections: CollectionsStore,
 };
 
 @observer class Dashboard extends React.Component {
   props: Props;
-  store: DashboardStore;
-
-  componentDidMount() {
-    this.props.dashboard.fetchCollections();
-  }
 
   renderCollections() {
-    const { collections } = this.props.dashboard;
+    const { collections } = this.props;
 
     return (
       <Flex column>
         <Flex column>
-          {collections &&
-            collections.map(collection => (
-              <AtlasPreview key={collection.id} data={collection} />
-            ))}
+          {collections.data.map(collection => {
+            return <AtlasPreview key={collection.id} data={collection} />;
+          })}
         </Flex>
       </Flex>
     );
   }
 
   render() {
-    const { isLoaded } = this.props.dashboard;
+    const { isLoaded } = this.props.collections;
 
     return (
-      <Layout>
-        <CenteredContent>
-          <Flex column auto>
-            {!isLoaded ? <ContentLoading /> : this.renderCollections()}
-          </Flex>
-        </CenteredContent>
-      </Layout>
+      <CenteredContent>
+        <Flex column auto>
+          {!isLoaded ? <ContentLoading /> : this.renderCollections()}
+        </Flex>
+      </CenteredContent>
     );
   }
 }
 
-export default inject('dashboard')(Dashboard);
+export default inject('collections')(Dashboard);

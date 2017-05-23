@@ -76,15 +76,14 @@ type Props = {
 
         <Header justify="space-between" align="center">
           <HeaderLeft align="center">
-            {this.props.showMenu &&
-              <MenuContainer>
-                <MenuIcon
-                  src={require('assets/icons/menu.svg')}
-                  alt="Menu"
-                  title="Toggle menu (Cmd+/)"
-                  onClick={this.props.ui.toggleSidebar}
-                />
-              </MenuContainer>}
+            <MenuContainer>
+              <MenuIcon
+                src={require('assets/icons/menu.svg')}
+                alt="Menu"
+                title="Toggle menu (Cmd+/)"
+                onClick={this.props.ui.toggleSidebar}
+              />
+            </MenuContainer>
             <LogoLink to="/">Atlas</LogoLink>
             <Title>
               {this.props.title}
@@ -125,7 +124,7 @@ type Props = {
         </Header>
 
         <ContentWrapper auto>
-          {this.props.showMenu && <LayoutSidebar />}
+          <LayoutSidebar />
           <Content justify="center" auto>
             {this.props.children}
           </Content>

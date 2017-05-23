@@ -8,7 +8,7 @@ import _ from 'lodash';
 // TODO move here argh
 import store from './AtlasStore';
 
-import Layout, { Title } from 'components/Layout';
+import { Title } from 'components/Layout';
 import ContentLoading from 'components/ContentLoading';
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
@@ -71,41 +71,39 @@ class Atlas extends React.Component {
           </DropdownMenu>
         </Flex>
       );
-      title = <Title content={collection.name} />;
-      titleText = collection.name;
+      // title = <Title content={collection.name} />;
+      // titleText = collection.name;
     }
 
     return (
-      <Layout actions={actions} title={title} titleText={titleText}>
-        <CenteredContent>
-          <ReactCSSTransitionGroup
-            transitionName="fadeIn"
-            transitionAppear
-            transitionAppearTimeout={0}
-            transitionEnterTimeout={0}
-            transitionLeaveTimeout={0}
-          >
-            {store.isFetching
-              ? <ContentLoading />
-              : collection &&
-                  <div className={styles.container}>
-                    <div className={styles.atlasDetails}>
-                      <h2>{collection.name}</h2>
-                      <blockquote>
-                        {collection.description}
-                      </blockquote>
-                    </div>
+      <CenteredContent>
+        <ReactCSSTransitionGroup
+          transitionName="fadeIn"
+          transitionAppear
+          transitionAppearTimeout={0}
+          transitionEnterTimeout={0}
+          transitionLeaveTimeout={0}
+        >
+          {store.isFetching
+            ? <ContentLoading />
+            : collection &&
+                <div className={styles.container}>
+                  <div className={styles.atlasDetails}>
+                    <h2>{collection.name}</h2>
+                    <blockquote>
+                      {collection.description}
+                    </blockquote>
+                  </div>
 
-                    <Divider />
+                  <Divider />
 
-                    <DocumentList
-                      documents={collection.recentDocuments}
-                      preview
-                    />
-                  </div>}
-          </ReactCSSTransitionGroup>
-        </CenteredContent>
-      </Layout>
+                  <DocumentList
+                    documents={collection.recentDocuments}
+                    preview
+                  />
+                </div>}
+        </ReactCSSTransitionGroup>
+      </CenteredContent>
     );
   }
 }

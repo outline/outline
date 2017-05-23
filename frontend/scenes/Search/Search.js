@@ -31,36 +31,29 @@ type Props = {
     }, 250);
 
     return (
-      <Layout titleText="Search" search={false} loading={this.store.isFetching}>
-        <CenteredContent>
-          {this.props.notFound &&
-            <div>
-              <h1>Not Found</h1>
-              <p>We're unable to find the page you're accessing.</p>
-              <hr />
-            </div>}
+      <CenteredContent>
+        {this.props.notFound &&
+          <div>
+            <h1>Not Found</h1>
+            <p>We're unable to find the page you're accessing.</p>
+            <hr />
+          </div>}
 
-          <Flex column auto>
-            <Flex auto>
-              <img
-                src={require('assets/icons/search.svg')}
-                className={styles.icon}
-                alt="Search"
-              />
-              <SearchField
-                searchTerm={this.store.searchTerm}
-                onChange={search}
-              />
-            </Flex>
-            {this.store.documents &&
-              this.store.documents.map(document => {
-                return (
-                  <DocumentPreview key={document.id} document={document} />
-                );
-              })}
+        <Flex column auto>
+          <Flex auto>
+            <img
+              src={require('assets/icons/search.svg')}
+              className={styles.icon}
+              alt="Search"
+            />
+            <SearchField searchTerm={this.store.searchTerm} onChange={search} />
           </Flex>
-        </CenteredContent>
-      </Layout>
+          {this.store.documents &&
+            this.store.documents.map(document => {
+              return <DocumentPreview key={document.id} document={document} />;
+            })}
+        </Flex>
+      </CenteredContent>
     );
   }
 }

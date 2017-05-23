@@ -3,11 +3,11 @@ import { observable, action, computed } from 'mobx';
 
 const UI_STORE = 'UI_STORE';
 
-type SidebarPanels = 'main' | 'secondary';
+type SidebarPanels = 'main' | 'collection';
 
 class UiStore {
   @observable sidebarVisible: boolean;
-  @observable sidebarPanel: SidebarPanels = 'secondary';
+  @observable sidebarPanel: SidebarPanels = 'main';
 
   /* Computed */
 
