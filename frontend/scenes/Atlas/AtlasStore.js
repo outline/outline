@@ -2,7 +2,7 @@
 import { observable, action, computed } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { Collection } from 'types';
+import Collection from 'models/Collection';
 
 const store = new class AtlasStore {
   @observable collection: ?(Collection & { recentDocuments?: Object[] });
@@ -25,7 +25,7 @@ const store = new class AtlasStore {
       const res = await client.get('/collections.info', { id });
       invariant(res && res.data, 'Data should be available');
       const { data } = res;
-      this.collection = data;
+      this.collection = new Collection(data);
       successCallback(data);
     } catch (e) {
       console.error('Something went wrong');
