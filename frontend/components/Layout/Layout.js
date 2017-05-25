@@ -92,10 +92,7 @@ type Props = {
                     <Flex>
                       <Link to="/search">
                         <div className={styles.search} title="Search (/)">
-                          <img
-                            src={searchIcon}
-                            alt="Search"
-                          />
+                          <img src={searchIcon} alt="Search" />
                         </div>
                       </Link>
                     </Flex>}

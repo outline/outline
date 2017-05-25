@@ -98,7 +98,7 @@ export default class MarkdownEditor extends Component {
 
   render = () => {
     return (
-      <span className={styles.container}>
+      <span>
         <ClickablePadding onClick={this.focusAtStart} />
         <Toolbar state={this.state.state} onChange={this.onChange} />
         <Editor
