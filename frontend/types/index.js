@@ -19,20 +19,9 @@ export type NavigationNode = {
   children: Array<NavigationNode>,
 };
 
-export type Collection = {
-  createdAt: string,
-  description: ?string,
-  id: string,
-  name: string,
-  type: 'atlas' | 'journal',
-  navigationTree: NavigationNode,
-  updatedAt: string,
-  url: string,
-};
-
 export type Document = {
   collaborators: Array<User>,
-  collection: Collection,
+  collection: Object,
   createdAt: string,
   createdBy: string,
   html: string,

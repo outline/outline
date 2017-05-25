@@ -28,7 +28,7 @@
   },
   "jest": {
     "verbose": false,
-    "testPathDirs": [
+    "roots": [
       "frontend"
     ],
     "moduleNameMapper": {
@@ -48,6 +48,7 @@
       "frontend"
     ],
     "setupFiles": [
+      "<rootDir>/frontend/utils/setupJest.js",
       "<rootDir>/__mocks__/window.js"
     ]
   },
@@ -171,13 +172,14 @@
     "webpack": "1.13.2"
   },
   "devDependencies": {
-    "babel-jest": "^15.0.0",
-    "enzyme": "^2.4.1",
+    "babel-jest": "^20.0.0",
+    "enzyme": "2.8.2",
+    "enzyme-to-json": "^1.5.1",
     "fetch-test-server": "^1.1.0",
     "flow-bin": "^0.45.0",
     "identity-obj-proxy": "^3.0.0",
     "ignore-loader": "0.1.1",
-    "jest-cli": "^15.1.1",
+    "jest-cli": "^20.0.0",
     "koa-webpack-dev-middleware": "1.4.5",
     "koa-webpack-hot-middleware": "1.0.3",
     "lint-staged": "^3.4.0",
