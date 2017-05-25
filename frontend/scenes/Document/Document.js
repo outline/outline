@@ -38,9 +38,7 @@ type Props = {
   match: Object,
   history: Object,
   keydown: Object,
-  editDocument?: boolean,
   newChildDocument?: boolean,
-  editDocument?: boolean,
 };
 
 @observer class Document extends Component {
@@ -56,7 +54,7 @@ type Props = {
     if (this.props.newDocument) {
       this.store.collectionId = this.props.match.params.id;
       this.store.newDocument = true;
-    } else if (this.props.editDocument) {
+    } else if (this.props.match.params.edit) {
       this.store.documentId = this.props.match.params.id;
       this.store.fetchDocument();
     } else if (this.props.newChildDocument) {
@@ -97,7 +95,7 @@ type Props = {
 
   render() {
     const isNew = this.props.newDocument || this.props.newChildDocument;
-    const isEditing = this.props.editDocument;
+    const isEditing = this.props.match.params.edit;
     const title = (
       <Breadcrumbs
         document={this.store.document}
@@ -144,7 +142,7 @@ type Props = {
           </CenteredContent>}
         {this.store.document &&
           <Container>
-            {!this.props.editDocument &&
+            {!isEditing &&
               <Meta>
                 <PublishingInfo
                   collaborators={this.store.document.collaborators}
@@ -161,7 +159,7 @@ type Props = {
               onChange={this.store.updateText}
               onSave={this.onSave}
               onCancel={this.onCancel}
-              readOnly={!this.props.editDocument}
+              readOnly={!isEditing}
             />
           </Container>}
       </Layout>
