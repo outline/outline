@@ -2,43 +2,41 @@
 import React from 'react';
 import { toJS } from 'mobx';
 import { Link } from 'react-router-dom';
-
-import styles from './DocumentPreview.scss';
-
+import type { Document } from 'types';
+import styled from 'styled-components';
 import PublishingInfo from 'components/PublishingInfo';
+import Markdown from 'components/Markdown';
 
-class Document extends React.Component {
-  static propTypes = {
-    document: React.PropTypes.object.isRequired,
-  };
+type Props = {
+  document: Document,
+};
 
-  render() {
-    return (
-      <div className={styles.container}>
-        <PublishingInfo
-          createdAt={this.props.document.createdAt}
-          createdBy={this.props.document.createdBy}
-          updatedAt={this.props.document.updatedAt}
-          updatedBy={this.props.document.updatedBy}
-          collaborators={toJS(this.props.document.collaborators)}
-        />
+const Container = styled.div`
+  width: 100%;
+  padding: 20px 0;
+`;
 
-        <Link to={this.props.document.url} className={styles.title}>
-          <h2>{this.props.document.title}</h2>
+const DocumentPreview = ({ document }: Props) => {
+  return (
+    <Container>
+      <PublishingInfo
+        createdAt={document.createdAt}
+        createdBy={document.createdBy}
+        updatedAt={document.updatedAt}
+        updatedBy={document.updatedBy}
+        collaborators={toJS(document.collaborators)}
+      />
+      <Link to={document.url}>
+        <h2>{document.title}</h2>
+      </Link>
+      <Markdown text={document.text.substring(0, 300)} />
+      <div>
+        <Link to={document.url}>
+          Continue reading…
         </Link>
-
-        <div
-          dangerouslySetInnerHTML={{ __html: this.props.document.preview }}
-        />
-
-        <div>
-          <Link to={this.props.document.url} className={styles.continueLink}>
-            Continue reading...
-          </Link>
-        </div>
       </div>
-    );
-  }
-}
+    </Container>
+  );
+};
 
-export default Document;
+export default DocumentPreview;

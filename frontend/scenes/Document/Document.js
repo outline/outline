@@ -7,8 +7,8 @@ import { Flex } from 'reflexbox';
 
 import DocumentStore from './DocumentStore';
 import Breadcrumbs from './components/Breadcrumbs';
-import Editor from './components/Editor';
 import Menu from './components/Menu';
+import Editor from 'components/Editor';
 import Layout, { HeaderAction, SaveAction } from 'components/Layout';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
