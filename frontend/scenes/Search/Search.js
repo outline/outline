@@ -52,6 +52,7 @@ type Props = {
   };
 
   render() {
+    const query = this.props.match.params.query;
     const title = <Title content="Search" />;
 
     return (
@@ -80,6 +81,7 @@ type Props = {
                 searchTerm={this.store.searchTerm}
                 onKeyDown={this.handleKeyDown}
                 onChange={this.updateQuery}
+                value={query}
               />
             </Flex>
             {this.store.documents.map(document => (
