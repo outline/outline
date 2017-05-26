@@ -5,8 +5,8 @@ import { Link } from 'react-router-dom';
 import type { Document } from 'types';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
-import PublishingInfo from 'components/PublishingInfo';
 import Markdown from 'components/Markdown';
+import PublishingInfo from 'components/PublishingInfo';
 
 type Props = {
   document: Document,
@@ -32,7 +32,7 @@ const DocumentLink = styled(Link)`
   }
 `;
 
-const StyledMarkdown = styled(Markdown)`
+const TruncatedMarkdown = styled(Markdown)`
   pointer-events: none;
 `;
 
@@ -47,7 +47,7 @@ const DocumentPreview = ({ document }: Props) => {
           updatedBy={document.updatedBy}
           collaborators={toJS(document.collaborators)}
         />
-        <StyledMarkdown text={document.text} limit={150} />
+        <TruncatedMarkdown text={document.text} limit={150} />
       </DocumentLink>
     </Container>
   );

@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import React from 'react';
 import { State, Document, Editor } from 'slate';
 import MarkdownSerializer from '../Editor/serializer';
 import type { State as StateType } from '../Editor/types';
@@ -12,14 +12,15 @@ type Props = {
   limit: number,
 };
 
-function filterDocument({ document, characterLimit, nodeLimit }) {
+function filterDocumentState({ state, characterLimit, nodeLimit }) {
+  const { document } = state;
   if (document.text.length <= characterLimit) {
-    return document;
+    return state;
   }
 
   let totalCharacters = 0;
   let totalNodes = 0;
-  const newNodes = document.nodes.filter(childNode => {
+  const nodes = document.nodes.filter(childNode => {
     if (childNode.text.length + totalCharacters <= characterLimit) {
       totalCharacters += childNode.text.length;
 
@@ -30,9 +31,11 @@ function filterDocument({ document, characterLimit, nodeLimit }) {
     return false;
   });
 
-  return Document.create({
-    ...document,
-    nodes: newNodes,
+  return State.create({
+    document: Document.create({
+      ...document,
+      nodes: nodes,
+    }),
   });
 }
 
@@ -46,19 +49,18 @@ class Markdown extends React.Component {
   constructor(props: Props) {
     super(props);
     const state = MarkdownSerializer.deserialize(props.text);
+    const options = {
+      state,
+      characterLimit: props.limit,
+      nodeLimit: 5,
+    };
 
     this.state = {
-      state: State.create({
-        document: filterDocument({
-          document: state.document,
-          characterLimit: props.limit,
-          nodeLimit: 5,
-        }),
-      }),
+      state: filterDocumentState(options),
     };
   }
 
-  render = () => {
+  render() {
     return (
       <span className={this.props.className}>
         <Editor
@@ -69,7 +71,7 @@ class Markdown extends React.Component {
         />
       </span>
     );
-  };
+  }
 }
 
 export default Markdown;
