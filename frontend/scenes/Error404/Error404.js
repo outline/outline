@@ -4,11 +4,13 @@ import { Link } from 'react-router-dom';
 
 import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
+import PageTitle from 'components/PageTitle';
 
 class Error404 extends React.Component {
   render() {
     return (
-      <Layout titleText="Not Found">
+      <Layout>
+        <PageTitle title="Not found" />
         <CenteredContent>
           <h1>Not Found</h1>
 

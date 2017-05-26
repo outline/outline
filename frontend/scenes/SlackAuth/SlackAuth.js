@@ -17,7 +17,8 @@ type Props = {
 class SlackAuth extends React.Component {
   props: Props;
 
-  state: { redirectTo: string };
+  state: { redirectTo?: string };
+  state = {};
 
   // $FlowFixMe not sure why this breaks
   componentDidMount = async () => {

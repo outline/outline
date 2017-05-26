@@ -1,5 +1,5 @@
 // @flow
-import { extendObservable, action, computed, runInAction } from 'mobx';
+import { extendObservable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import _ from 'lodash';
 
