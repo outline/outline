@@ -4,6 +4,7 @@ import { toJS } from 'mobx';
 import { Link } from 'react-router-dom';
 import type { Document } from 'types';
 import styled from 'styled-components';
+import { color } from 'styles/constants';
 import PublishingInfo from 'components/PublishingInfo';
 import Markdown from 'components/Markdown';
 
@@ -16,25 +17,38 @@ const Container = styled.div`
   padding: 20px 0;
 `;
 
+const DocumentLink = styled(Link)`
+  display: block;
+  margin: -16px;
+  padding: 16px;
+  border-radius: 8px;
+
+  h1 {
+    margin-top: 0;
+  }
+
+  &:hover {
+    background: ${color.smokeLight};
+  }
+`;
+
+const StyledMarkdown = styled(Markdown)`
+  pointer-events: none;
+`;
+
 const DocumentPreview = ({ document }: Props) => {
   return (
     <Container>
-      <PublishingInfo
-        createdAt={document.createdAt}
-        createdBy={document.createdBy}
-        updatedAt={document.updatedAt}
-        updatedBy={document.updatedBy}
-        collaborators={toJS(document.collaborators)}
-      />
-      <Link to={document.url}>
-        <h2>{document.title}</h2>
-      </Link>
-      <Markdown text={document.text.substring(0, 300)} />
-      <div>
-        <Link to={document.url}>
-          Continue reading…
-        </Link>
-      </div>
+      <DocumentLink to={document.url}>
+        <PublishingInfo
+          createdAt={document.createdAt}
+          createdBy={document.createdBy}
+          updatedAt={document.updatedAt}
+          updatedBy={document.updatedBy}
+          collaborators={toJS(document.collaborators)}
+        />
+        <StyledMarkdown text={document.text} limit={150} />
+      </DocumentLink>
     </Container>
   );
 };

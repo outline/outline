@@ -1,35 +1,75 @@
 // @flow
 import React, { Component } from 'react';
-import { Editor } from 'slate';
+import { State, Document, Editor } from 'slate';
 import MarkdownSerializer from '../Editor/serializer';
-import type { State } from '../Editor/types';
+import type { State as StateType } from '../Editor/types';
 import schema from '../Editor/schema';
 import styles from '../Editor/Editor.scss';
 
 type Props = {
   text: string,
+  className: string,
+  limit: number,
 };
 
-export default class MarkdownEditor extends Component {
+function filterDocument({ document, characterLimit, nodeLimit }) {
+  if (document.text.length <= characterLimit) {
+    return document;
+  }
+
+  let totalCharacters = 0;
+  let totalNodes = 0;
+  const newNodes = document.nodes.filter(childNode => {
+    if (childNode.text.length + totalCharacters <= characterLimit) {
+      totalCharacters += childNode.text.length;
+
+      if (totalNodes++ <= nodeLimit) {
+        return true;
+      }
+    }
+    return false;
+  });
+
+  return Document.create({
+    ...document,
+    nodes: newNodes,
+  });
+}
+
+class Markdown extends React.Component {
   props: Props;
 
   state: {
-    state: State,
+    state: StateType,
   };
 
   constructor(props: Props) {
     super(props);
-    this.state = { state: MarkdownSerializer.deserialize(props.text) };
+    const state = MarkdownSerializer.deserialize(props.text);
+
+    this.state = {
+      state: State.create({
+        document: filterDocument({
+          document: state.document,
+          characterLimit: props.limit,
+          nodeLimit: 5,
+        }),
+      }),
+    };
   }
 
   render = () => {
     return (
-      <Editor
-        className={styles.editor}
-        schema={schema}
-        state={this.state.state}
-        readOnly
-      />
+      <span className={this.props.className}>
+        <Editor
+          className={styles.editor}
+          schema={schema}
+          state={this.state.state}
+          readOnly
+        />
+      </span>
     );
   };
 }
+
+export default Markdown;
