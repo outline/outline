@@ -1,6 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import get from 'lodash/get';
+import styled from 'styled-components';
 import { observer } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import { Flex } from 'reflexbox';
@@ -10,6 +11,7 @@ import Breadcrumbs from './components/Breadcrumbs';
 import Menu from './components/Menu';
 import Editor from 'components/Editor';
 import Layout, { HeaderAction, SaveAction } from 'components/Layout';
+import PublishingInfo from 'components/PublishingInfo';
 import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
@@ -18,13 +20,25 @@ You have unsaved changes.
 Are you sure you want to discard them?
 `;
 
+const Container = styled.div`
+  position: relative;
+  font-weight: 400;
+  font-size: 1em;
+  line-height: 1.5em;
+  padding: 0 3em;
+  width: 50em;
+`;
+
+const Meta = styled.div`
+  position: absolute;
+  top: 12px;
+`;
+
 type Props = {
   match: Object,
   history: Object,
   keydown: Object,
-  editDocument?: boolean,
   newChildDocument?: boolean,
-  editDocument?: boolean,
 };
 
 @observer class Document extends Component {
@@ -40,7 +54,7 @@ type Props = {
     if (this.props.newDocument) {
       this.store.collectionId = this.props.match.params.id;
       this.store.newDocument = true;
-    } else if (this.props.editDocument) {
+    } else if (this.props.match.params.edit) {
       this.store.documentId = this.props.match.params.id;
       this.store.fetchDocument();
     } else if (this.props.newChildDocument) {
@@ -81,7 +95,7 @@ type Props = {
 
   render() {
     const isNew = this.props.newDocument || this.props.newChildDocument;
-    const isEditing = this.props.editDocument;
+    const isEditing = this.props.match.params.edit;
     const title = (
       <Breadcrumbs
         document={this.store.document}
@@ -127,15 +141,27 @@ type Props = {
             <AtlasPreviewLoading />
           </CenteredContent>}
         {this.store.document &&
-          <Editor
-            text={this.store.document.text}
-            onImageUploadStart={this.onImageUploadStart}
-            onImageUploadStop={this.onImageUploadStop}
-            onChange={this.store.updateText}
-            onSave={this.onSave}
-            onCancel={this.onCancel}
-            readOnly={!this.props.editDocument}
-          />}
+          <Container>
+            {!isEditing &&
+              <Meta>
+                <PublishingInfo
+                  collaborators={this.store.document.collaborators}
+                  createdAt={this.store.document.createdAt}
+                  createdBy={this.store.document.createdBy}
+                  updatedAt={this.store.document.updatedAt}
+                  updatedBy={this.store.document.updatedBy}
+                />
+              </Meta>}
+            <Editor
+              text={this.store.document.text}
+              onImageUploadStart={this.onImageUploadStart}
+              onImageUploadStop={this.onImageUploadStop}
+              onChange={this.store.updateText}
+              onSave={this.onSave}
+              onCancel={this.onCancel}
+              readOnly={!isEditing}
+            />
+          </Container>}
       </Layout>
     );
   }

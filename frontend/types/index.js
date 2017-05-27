@@ -23,7 +23,7 @@ export type Document = {
   collaborators: Array<User>,
   collection: Object,
   createdAt: string,
-  createdBy: string,
+  createdBy: User,
   html: string,
   id: string,
   private: boolean,
@@ -31,7 +31,7 @@ export type Document = {
   text: string,
   title: string,
   updatedAt: string,
-  updatedBy: string,
+  updatedBy: User,
   url: string,
 };
 

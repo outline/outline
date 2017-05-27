@@ -54,7 +54,6 @@ const KeyboardShortcuts = () => (
   <Flatpage title="Keyboard shortcuts" content={flatpages.keyboard} />
 );
 const Api = () => <Flatpage title="API" content={flatpages.api} />;
-const DocumentEdit = () => <Document editDocument />;
 const DocumentNew = () => <Document newDocument />;
 const DocumentNewChild = () => <Document newChildDocument />;
 
@@ -70,7 +69,7 @@ render(
               <Route exact path="/dashboard" component={Dashboard} />
               <Route exact path="/collections/:id" component={Atlas} />
               <Route exact path="/d/:id" component={Document} />
-              <Route exact path="/d/:id/edit" component={DocumentEdit} />
+              <Route exact path="/d/:id/:edit" component={Document} />
               <Route
                 exact
                 path="/collections/:id/new"
