@@ -1,15 +1,15 @@
-const presentUser = (ctx, user) => {
+// @flow
+import User from '../models/User';
+
+async function presentUser(ctx: Object, user: User) {
   ctx.cache.set(user.id, user);
 
-  return new Promise(async (resolve, _reject) => {
-    const data = {
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      avatarUrl: user.slackData ? user.slackData.image_192 : null,
-    };
-    resolve(data);
-  });
-};
+  return {
+    id: user.id,
+    username: user.username,
+    name: user.name,
+    avatarUrl: user.slackData ? user.slackData.image_192 : null,
+  };
+}
 
 export default presentUser;
