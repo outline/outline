@@ -1,36 +1,47 @@
 // @flow
-import React, { PropTypes } from 'react';
+import React, { Component } from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
-
+import type { User } from 'types';
 import { Flex } from 'reflexbox';
 
-import styles from './PublishingInfo.scss';
+const Container = styled(Flex)`
+  margin-bottom: 30px;
+  color: #ccc;
+  font-size: 13px;
+`;
 
-class PublishingInfo extends React.Component {
-  static propTypes = {
-    collaborators: PropTypes.array.isRequired,
-    createdAt: PropTypes.string.isRequired,
-    createdBy: PropTypes.object.isRequired,
-    updatedAt: PropTypes.string.isRequired,
-    updatedBy: PropTypes.object.isRequired,
+const Avatars = styled(Flex)`
+  flex-direction: row-reverse;
+  margin-right: 10px;
+`;
+
+const Avatar = styled.img`
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+`;
+
+class PublishingInfo extends Component {
+  props: {
+    collaborators: Array<User>,
+    createdAt: string,
+    createdBy: User,
+    updatedAt: string,
+    updatedBy: User,
   };
 
   render() {
     return (
-      <Flex align="center" className={styles.user}>
-        <Flex className={styles.avatarLine}>
-          {this.props.collaborators
-            .reverse()
-            .map(user => (
-              <Avatar
-                key={`avatar-${user.id}`}
-                src={user.avatarUrl}
-                title={user.name}
-              />
-            ))}
-        </Flex>
-        <span className={styles.userName}>
+      <Container align="center">
+        <Avatars>
+          {this.props.collaborators.map(user => (
+            <Avatar key={user.id} src={user.avatarUrl} title={user.name} />
+          ))}
+        </Avatars>
+        <span>
           {this.props.createdBy.name}
           {' '}
           published
@@ -45,18 +56,9 @@ class PublishingInfo extends React.Component {
               </span>
             : null}
         </span>
-      </Flex>
+      </Container>
     );
   }
 }
-
-const Avatar = styled.img`
-  width: 26px;
-  height: 26px;
-  marginRight: '-12px',
-
-  border-radius: 50%;
-  border: '2px solid #FFFFFF';
-`;
 
 export default PublishingInfo;

@@ -26,7 +26,7 @@ const Container = styled.div`
   font-size: 1em;
   line-height: 1.5em;
   padding: 0 3em;
-  max-width: 50em;
+  width: 50em;
 `;
 
 const Meta = styled.div`
