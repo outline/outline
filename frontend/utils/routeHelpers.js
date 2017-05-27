@@ -9,5 +9,6 @@ export function newCollectionUrl() {
 }
 
 export function searchUrl(query: string) {
-  return `/search/${query}`;
+  if (query) return `/search/${query}`;
+  return `/search`;
 }

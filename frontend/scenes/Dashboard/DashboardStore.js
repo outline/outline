@@ -2,7 +2,8 @@
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { Pagination, Collection } from 'types';
+import type { Pagination } from 'types';
+import Collection from 'models/Collection';
 
 type Options = {
   team: Object,
@@ -30,7 +31,7 @@ class DashboardStore {
       );
       const { data, pagination } = res;
       runInAction('fetchCollections', () => {
-        this.collections = data;
+        this.collections = data.map(collection => new Collection(collection));
         this.pagination = pagination;
       });
     } catch (e) {

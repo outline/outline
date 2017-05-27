@@ -7,8 +7,8 @@ class SearchField extends Component {
     onChange: Function,
   };
 
-  handleChange = (event: SyntheticEvent) => {
-    event.currentTarget.value && this.props.onChange(event.currentTarget.value);
+  handleChange = (ev: SyntheticEvent) => {
+    this.props.onChange(ev.currentTarget.value ? ev.currentTarget.value : '');
   };
 
   render() {

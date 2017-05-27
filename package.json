@@ -28,7 +28,7 @@
   },
   "jest": {
     "verbose": false,
-    "testPathDirs": [
+    "roots": [
       "frontend"
     ],
     "moduleNameMapper": {
@@ -48,6 +48,7 @@
       "frontend"
     ],
     "setupFiles": [
+      "<rootDir>/frontend/utils/setupJest.js",
       "<rootDir>/__mocks__/window.js"
     ]
   },
@@ -163,7 +164,7 @@
     "slug": "0.9.1",
     "string-hash": "^1.1.0",
     "style-loader": "0.13.0",
-    "styled-components": "^1.4.5",
+    "styled-components": "^2.0.0",
     "truncate-html": "https://github.com/jorilallo/truncate-html/tarball/master",
     "url-loader": "0.5.7",
     "uuid": "2.0.2",
@@ -171,17 +172,17 @@
     "webpack": "1.13.2"
   },
   "devDependencies": {
-    "babel-jest": "^15.0.0",
-    "enzyme": "^2.4.1",
+    "babel-jest": "^20.0.0",
+    "enzyme": "2.8.2",
+    "enzyme-to-json": "^1.5.1",
     "fetch-test-server": "^1.1.0",
     "flow-bin": "^0.45.0",
     "identity-obj-proxy": "^3.0.0",
     "ignore-loader": "0.1.1",
-    "jest-cli": "^15.1.1",
+    "jest-cli": "^20.0.0",
     "koa-webpack-dev-middleware": "1.4.5",
     "koa-webpack-hot-middleware": "1.0.3",
     "lint-staged": "^3.4.0",
-    "node-dev": "3.1.0",
     "nodemon": "1.11.0",
     "prettier": "1.3.1",
     "react-addons-test-utils": "^15.3.1",

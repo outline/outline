@@ -15,7 +15,10 @@ const onlyInCode = node => node.type === 'code';
 const createPlugins = ({
   onImageUploadStart,
   onImageUploadStop,
-}: { onImageUploadStart: Function, onImageUploadStop: Function }) => {
+}: {
+  onImageUploadStart: Function,
+  onImageUploadStop: Function,
+}) => {
   return [
     PasteLinkify({
       type: 'link',
