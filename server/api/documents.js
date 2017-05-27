@@ -8,7 +8,7 @@ const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 import auth from './middlewares/authentication';
 // import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
-import { Document, Atlas } from '../models';
+import { Document, Collection } from '../models';
 
 const router = new Router();
 
@@ -102,7 +102,7 @@ router.post('documents.create', auth(), async ctx => {
   ctx.assertPresent(text, 'text is required');
 
   const user = ctx.state.user;
-  const ownerCollection = await Atlas.findOne({
+  const ownerCollection = await Collection.findOne({
     where: {
       id: collection,
       teamId: user.teamId,
@@ -176,7 +176,7 @@ router.post('documents.update', auth(), async ctx => {
 
   // Update
   // TODO: Add locking
-  const collection = await Atlas.findById(document.atlasId);
+  const collection = await Collection.findById(document.atlasId);
   if (collection.type === 'atlas') {
     await collection.updateNavigationTree();
   }
@@ -195,7 +195,7 @@ router.post('documents.delete', auth(), async ctx => {
 
   const user = ctx.state.user;
   const document = await getDocumentForId(id);
-  const collection = await Atlas.findById(document.atlasId);
+  const collection = await Collection.findById(document.atlasId);
 
   if (!document || document.teamId !== user.teamId)
     throw httpErrors.BadRequest();

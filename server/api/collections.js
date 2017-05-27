@@ -5,7 +5,7 @@ import _ from 'lodash';
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection } from '../presenters';
-import { Atlas } from '../models';
+import { Collection } from '../models';
 
 const router = new Router();
 
@@ -15,7 +15,7 @@ router.post('collections.create', auth(), async ctx => {
 
   const user = ctx.state.user;
 
-  const atlas = await Atlas.create({
+  const atlas = await Collection.create({
     name,
     description,
     type: type || 'atlas',
@@ -33,7 +33,7 @@ router.post('collections.info', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const atlas = await Atlas.findOne({
+  const atlas = await Collection.findOne({
     where: {
       id,
       teamId: user.teamId,
@@ -49,7 +49,7 @@ router.post('collections.info', auth(), async ctx => {
 
 router.post('collections.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
-  const collections = await Atlas.findAll({
+  const collections = await Collection.findAll({
     where: {
       teamId: user.teamId,
     },
@@ -58,7 +58,7 @@ router.post('collections.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  // Atlases
+  // Collectiones
   let data = [];
   await Promise.all(
     collections.map(async atlas => {
@@ -79,7 +79,7 @@ router.post('collections.updateNavigationTree', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const atlas = await Atlas.findOne({
+  const atlas = await Collection.findOne({
     where: {
       id,
       teamId: user.teamId,

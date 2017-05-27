@@ -6,9 +6,9 @@ import Document from './Document';
 
 slug.defaults.mode = 'rfc3986';
 
-const allowedAtlasTypes = [['atlas', 'journal']];
+const allowedCollectionTypes = [['atlas', 'journal']];
 
-const Atlas = sequelize.define(
+const Collection = sequelize.define(
   'atlas',
   {
     id: {
@@ -19,7 +19,10 @@ const Atlas = sequelize.define(
     urlId: { type: DataTypes.STRING, unique: true },
     name: DataTypes.STRING,
     description: DataTypes.STRING,
-    type: { type: DataTypes.STRING, validate: { isIn: allowedAtlasTypes } },
+    type: {
+      type: DataTypes.STRING,
+      validate: { isIn: allowedCollectionTypes },
+    },
     creatorId: DataTypes.UUID,
 
     /* type: atlas */
@@ -210,6 +213,6 @@ const Atlas = sequelize.define(
   }
 );
 
-Atlas.hasMany(Document, { as: 'documents', foreignKey: 'atlasId' });
+Collection.hasMany(Document, { as: 'documents', foreignKey: 'atlasId' });
 
-export default Atlas;
+export default Collection;

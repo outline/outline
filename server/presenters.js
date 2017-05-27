@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Document, Atlas, User } from './models';
+import { Document, Collection, User } from './models';
 
 import presentUser from './presenters/user';
 
@@ -40,7 +40,7 @@ export async function presentDocument(ctx, document, options) {
 
   if (options.includeCollection) {
     data.collection = await ctx.cache.get(document.atlasId, async () => {
-      const collection = await Atlas.findOne({
+      const collection = await Collection.findOne({
         where: {
           id: document.atlasId,
         },

@@ -152,7 +152,7 @@ router.post('auth.slack', async ctx => {
   }
 
   if (!teamExisted) {
-    await team.createFirstAtlas(user.id);
+    await team.createFirstCollection(user.id);
   }
 
   ctx.body = {
