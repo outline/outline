@@ -5,9 +5,9 @@ import _ from 'lodash';
 import { Flex } from 'reflexbox';
 import { withRouter } from 'react-router';
 import { searchUrl } from 'utils/routeHelpers';
+import styled from 'styled-components';
 
 import SearchField from './components/SearchField';
-import styles from './Search.scss';
 import SearchStore from './SearchStore';
 
 import Layout, { Title } from 'components/Layout';
@@ -19,6 +19,18 @@ type Props = {
   match: Object,
   notFound: ?boolean,
 };
+
+const Container = styled(CenteredContent)`
+  position: relative;
+  min-height: 100%;
+`;
+
+const ResultsWrapper = styled(Flex)`
+  position: absolute;
+  transition: all 200ms ease-in-out;
+  top: ${props => (props.pinToTop ? '0%' : '50%')};
+  margin-top: ${props => (props.pinToTop ? '40px' : '-50px')};
+`;
 
 @observer class Search extends React.Component {
   props: Props;
@@ -54,6 +66,7 @@ type Props = {
   render() {
     const query = this.props.match.params.query;
     const title = <Title content="Search" />;
+    const hasResults = this.store.documents.length > 0;
 
     return (
       <Layout
@@ -62,33 +75,25 @@ type Props = {
         search={false}
         loading={this.store.isFetching}
       >
-        <CenteredContent>
+        <Container>
           {this.props.notFound &&
             <div>
               <h1>Not Found</h1>
               <p>We're unable to find the page you're accessing.</p>
               <hr />
             </div>}
-
-          <Flex column auto>
-            <Flex auto>
-              <img
-                src={require('assets/icons/search.svg')}
-                className={styles.icon}
-                alt="Search"
-              />
-              <SearchField
-                searchTerm={this.store.searchTerm}
-                onKeyDown={this.handleKeyDown}
-                onChange={this.updateQuery}
-                value={query}
-              />
-            </Flex>
+          <ResultsWrapper pinToTop={hasResults} column auto>
+            <SearchField
+              searchTerm={this.store.searchTerm}
+              onKeyDown={this.handleKeyDown}
+              onChange={this.updateQuery}
+              value={query || ''}
+            />
             {this.store.documents.map(document => (
               <DocumentPreview key={document.id} document={document} />
             ))}
-          </Flex>
-        </CenteredContent>
+          </ResultsWrapper>
+        </Container>
       </Layout>
     );
   }
