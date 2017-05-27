@@ -5,11 +5,11 @@ import { Link } from 'react-router-dom';
 
 import DocumentLink from './components/DocumentLink';
 
-import styles from './AtlasPreview.scss';
+import styles from './Collection.scss';
 // import classNames from 'classnames/bind';
 // const cx = classNames.bind(styles);
 
-@observer class AtlasPreview extends React.Component {
+@observer class Collection extends React.Component {
   static propTypes = {
     data: React.PropTypes.object.isRequired,
   };
@@ -37,4 +37,4 @@ import styles from './AtlasPreview.scss';
   }
 }
 
-export default AtlasPreview;
+export default Collection;

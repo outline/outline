@@ -7,8 +7,8 @@ import { Flex } from 'reflexbox';
 import DashboardStore from './DashboardStore';
 
 import Layout from 'components/Layout';
-import AtlasPreview from 'components/AtlasPreview';
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+import Collection from 'components/Collection';
+import PreviewLoading from 'components/PreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
 type Props = {
@@ -34,22 +34,18 @@ class Dashboard extends React.Component {
 
   render() {
     return (
-      <Flex auto>
-        <Layout>
-          <CenteredContent>
-            <Flex column auto>
-              {this.store.isFetching
-                ? <AtlasPreviewLoading />
-                : this.store.collections &&
-                    this.store.collections.map(collection => {
-                      return (
-                        <AtlasPreview key={collection.id} data={collection} />
-                      );
-                    })}
-            </Flex>
-          </CenteredContent>
-        </Layout>
-      </Flex>
+      <Layout>
+        <CenteredContent>
+          <Flex column auto>
+            {this.store.isFetching
+              ? <PreviewLoading />
+              : this.store.collections &&
+                  this.store.collections.map(collection => (
+                    <Collection key={collection.id} data={collection} />
+                  ))}
+          </Flex>
+        </CenteredContent>
+      </Layout>
     );
   }
 }

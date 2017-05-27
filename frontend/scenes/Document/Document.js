@@ -12,7 +12,7 @@ import Menu from './components/Menu';
 import Editor from 'components/Editor';
 import Layout, { HeaderAction, SaveAction } from 'components/Layout';
 import PublishingInfo from 'components/PublishingInfo';
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+import PreviewLoading from 'components/PreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 
 const DISCARD_CHANGES = `
@@ -138,7 +138,7 @@ type Props = {
         <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
         {this.store.isFetching &&
           <CenteredContent>
-            <AtlasPreviewLoading />
+            <PreviewLoading />
           </CenteredContent>}
         {this.store.document &&
           <Container>
