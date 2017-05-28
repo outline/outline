@@ -1,11 +1,13 @@
 // @flow
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
 import _ from 'lodash';
 import { Flex } from 'reflexbox';
 import { withRouter } from 'react-router';
 import { searchUrl } from 'utils/routeHelpers';
 import styled from 'styled-components';
+import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import SearchField from './components/SearchField';
 import SearchStore from './SearchStore';
@@ -22,17 +24,18 @@ type Props = {
 
 const Container = styled(CenteredContent)`
   position: relative;
-  min-height: 100%;
 `;
 
 const ResultsWrapper = styled(Flex)`
   position: absolute;
   transition: all 200ms ease-in-out;
   top: ${props => (props.pinToTop ? '0%' : '50%')};
-  margin-top: ${props => (props.pinToTop ? '40px' : '-50px')};
+  margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
+  width: 100%;
 `;
 
 @observer class Search extends React.Component {
+  firstDocument: HTMLElement;
   props: Props;
   store: SearchStore;
 
@@ -49,9 +52,18 @@ const ResultsWrapper = styled(Flex)`
   }
 
   handleKeyDown = ev => {
+    // ESC
     if (ev.which === 27) {
       ev.preventDefault();
       this.props.history.goBack();
+    }
+    // Down
+    if (ev.which === 40) {
+      ev.preventDefault();
+      if (this.firstDocument) {
+        const element = ReactDOM.findDOMNode(this.firstDocument);
+        if (element && element.focus) element.focus();
+      }
     }
   };
 
@@ -61,6 +73,10 @@ const ResultsWrapper = styled(Flex)`
 
   updateQuery = query => {
     this.props.history.replace(searchUrl(query));
+  };
+
+  setFirstDocumentRef = ref => {
+    this.firstDocument = ref;
   };
 
   render() {
@@ -75,7 +91,7 @@ const ResultsWrapper = styled(Flex)`
         search={false}
         loading={this.store.isFetching}
       >
-        <Container>
+        <Container auto>
           {this.props.notFound &&
             <div>
               <h1>Not Found</h1>
@@ -89,9 +105,18 @@ const ResultsWrapper = styled(Flex)`
               onChange={this.updateQuery}
               value={query || ''}
             />
-            {this.store.documents.map(document => (
-              <DocumentPreview key={document.id} document={document} />
-            ))}
+            <ArrowKeyNavigation
+              mode={ArrowKeyNavigation.mode.VERTICAL}
+              defaultActiveChildIndex={0}
+            >
+              {this.store.documents.map((document, index) => (
+                <DocumentPreview
+                  innerRef={ref => index === 0 && this.setFirstDocumentRef(ref)}
+                  key={document.id}
+                  document={document}
+                />
+              ))}
+            </ArrowKeyNavigation>
           </ResultsWrapper>
         </Container>
       </Layout>
