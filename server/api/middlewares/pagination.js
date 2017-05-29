@@ -1,19 +1,17 @@
 import httpErrors from 'http-errors';
-var querystring = require('querystring');
+import querystring from 'querystring';
 
 export default function pagination(options) {
   return async function paginationMiddleware(ctx, next) {
     const opts = {
-      ...{
-        defaultLimit: 15,
-        maxLimit: 100,
-      },
+      defaultLimit: 15,
+      maxLimit: 100,
       ...options,
     };
 
     let query = ctx.request.query;
-    let limit = parseInt(query.limit);
-    let offset = parseInt(query.offset);
+    let limit = parseInt(query.limit, 10);
+    let offset = parseInt(query.offset, 10);
     limit = isNaN(limit) ? opts.defaultLimit : limit;
     offset = isNaN(offset) ? 0 : offset;
 
@@ -30,8 +28,7 @@ export default function pagination(options) {
 
     query.limit = ctx.state.pagination.limit;
     query.offset = ctx.state.pagination.offset + query.limit;
-    ctx.state.pagination.nextPath =
-      '/api' + ctx.request.path + '?' + querystring.stringify(query);
+    ctx.state.pagination.nextPath = `/api${ctx.request.path}?${querystring.stringify(query)}`;
 
     return next();
   };

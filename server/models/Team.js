@@ -1,5 +1,5 @@
 import { DataTypes, sequelize } from '../sequelize';
-import Atlas from './Atlas';
+import Collection from './Collection';
 import Document from './Document';
 import User from './User';
 
@@ -17,10 +17,10 @@ const Team = sequelize.define(
   },
   {
     instanceMethods: {
-      async createFirstAtlas(userId) {
-        const atlas = await Atlas.create({
+      async createFirstCollection(userId) {
+        const atlas = await Collection.create({
           name: this.name,
-          description: 'Your first Atlas',
+          description: 'Your first Collection',
           type: 'atlas',
           teamId: this.id,
           creatorId: userId,
@@ -37,7 +37,7 @@ const Team = sequelize.define(
   }
 );
 
-Team.hasMany(Atlas, { as: 'atlases' });
+Team.hasMany(Collection, { as: 'atlases' });
 Team.hasMany(Document, { as: 'documents' });
 Team.hasMany(User, { as: 'users' });
 

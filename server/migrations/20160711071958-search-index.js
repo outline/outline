@@ -19,7 +19,7 @@ CREATE TRIGGER documents_tsvectorupdate BEFORE INSERT OR UPDATE
 ON documents FOR EACH ROW EXECUTE PROCEDURE documents_search_trigger();
     `;
 
-    const searchAtlas = `
+    const searchCollection = `
 ALTER TABLE atlases ADD COLUMN "searchVector" tsvector;
 CREATE INDEX atlases_tsv_idx ON atlases USING gin("searchVector");
 
@@ -37,7 +37,7 @@ ON atlases FOR EACH ROW EXECUTE PROCEDURE atlases_search_trigger();
     `;
 
     queryInterface.sequelize.query(searchDocument);
-    queryInterface.sequelize.query(searchAtlas);
+    queryInterface.sequelize.query(searchCollection);
   },
 
   down: function(queryInterface, Sequelize) {
