@@ -41,8 +41,7 @@
       "json"
     ],
     "moduleDirectories": [
-      "node_modules",
-      "server"
+      "node_modules"
     ],
     "modulePaths": [
       "frontend"

@@ -2,12 +2,9 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
-
-import DocumentLink from './components/DocumentLink';
+import moment from 'moment';
 
 import styles from './Collection.scss';
-// import classNames from 'classnames/bind';
-// const cx = classNames.bind(styles);
 
 @observer class Collection extends React.Component {
   static propTypes = {
@@ -24,7 +21,18 @@ import styles from './Collection.scss';
         </h2>
         {data.recentDocuments.length > 0
           ? data.recentDocuments.map(document => {
-              return <DocumentLink document={document} key={document.id} />;
+              return (
+                <Link
+                  key={document.id}
+                  to={document.url}
+                  className={styles.link}
+                >
+                  <h3 className={styles.title}>{document.title}</h3>
+                  <span className={styles.timestamp}>
+                    {moment(document.updatedAt).fromNow()}
+                  </span>
+                </Link>
+              );
             })
           : <div className={styles.description}>
               No documents. Why not

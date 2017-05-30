@@ -1,5 +1,5 @@
 // @flow
-import { observable, action, computed } from 'mobx';
+import { observable, action, computed, autorunAsync } from 'mobx';
 
 const UI_STORE = 'UI_STORE';
 
@@ -24,8 +24,11 @@ class UiStore {
     // Rehydrate
     const data = JSON.parse(localStorage.getItem(UI_STORE) || '{}');
     this.sidebar = data.sidebar;
+
+    autorunAsync(() => {
+      localStorage.setItem(UI_STORE, this.asJson);
+    });
   }
 }
 
 export default UiStore;
-export { UI_STORE };

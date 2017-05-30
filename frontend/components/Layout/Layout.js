@@ -6,26 +6,23 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
 import keydown from 'react-keydown';
-import classNames from 'classnames/bind';
 import searchIcon from 'assets/icons/search.svg';
 import { Flex } from 'reflexbox';
-import { textColor } from 'styles/constants.scss';
-import styles from './Layout.scss';
+import { textColor, headerHeight } from 'styles/constants.scss';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import LoadingIndicator from 'components/LoadingIndicator';
 import UserStore from 'stores/UserStore';
-
-const cx = classNames.bind(styles);
+import AuthStore from 'stores/AuthStore';
 
 type Props = {
   history: Object,
   children?: ?React.Element<any>,
   actions?: ?React.Element<any>,
   title?: ?React.Element<any>,
-  titleText?: string,
   loading?: boolean,
   user: UserStore,
+  auth: AuthStore,
   search: ?boolean,
   notifications?: React.Element<any>,
 };
@@ -39,29 +36,27 @@ type Props = {
 
   @keydown(['/', 't'])
   search() {
-    if (!this.props.user) return;
-    _.defer(() => this.props.history.push('/search'));
+    if (this.props.auth.isAuthenticated)
+      _.defer(() => this.props.history.push('/search'));
   }
 
   @keydown(['d'])
   dashboard() {
-    if (!this.props.user) return;
-    _.defer(() => this.props.history.push('/'));
+    if (this.props.auth.isAuthenticated)
+      _.defer(() => this.props.history.push('/'));
   }
 
-  render() {
-    const user = this.props.user;
+  handleLogout = () => {
+    this.props.auth.logout(() => this.props.history.push('/'));
+  };
 
-    const handleLogout = () => {
-      user.logout(() => this.props.history.push('/'));
-    };
+  render() {
+    const { auth, user } = this.props;
 
     return (
-      <div className={styles.container}>
+      <Container column auto>
         <Helmet
-          title={
-            this.props.titleText ? `${this.props.titleText} - Atlas` : 'Atlas'
-          }
+          title="Atlas"
           meta={[
             {
               name: 'viewport',
@@ -74,26 +69,27 @@ type Props = {
 
         {this.props.notifications}
 
-        <div className={cx(styles.header)}>
-          <div className={styles.headerLeft}>
-            <Link to="/" className={styles.team}>Atlas</Link>
-            <span className={styles.title}>
+        <Header>
+          <Flex align="center">
+            <LogoLink to="/">Atlas</LogoLink>
+            <Title>
               {this.props.title}
-            </span>
-          </div>
-          <Flex className={styles.headerRight}>
+            </Title>
+          </Flex>
+          <Flex>
             <Flex>
-              <Flex align="center" className={styles.actions}>
+              <Flex align="center">
                 {this.props.actions}
               </Flex>
-              {user.user &&
+              {auth.authenticated &&
+                user &&
                 <Flex>
                   {this.props.search &&
                     <Flex>
                       <Link to="/search">
-                        <div className={styles.search} title="Search (/)">
-                          <img src={searchIcon} alt="Search" />
-                        </div>
+                        <Search title="Search (/)">
+                          <SearchIcon src={searchIcon} alt="Search" />
+                        </Search>
                       </Link>
                     </Flex>}
                   <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
@@ -108,20 +104,71 @@ type Props = {
                     <MenuLink to="/developers">
                       <MenuItem>API</MenuItem>
                     </MenuLink>
-                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                    <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
                   </DropdownMenu>
                 </Flex>}
             </Flex>
           </Flex>
-        </div>
+        </Header>
 
-        <div className={cx(styles.content)}>
+        <Content auto justify="center">
           {this.props.children}
-        </div>
-      </div>
+        </Content>
+      </Container>
     );
   }
 }
+
+const Container = styled(Flex)`
+  width: 100%;
+  height: 100%;
+`;
+
+const Header = styled(Flex)`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 20px;
+
+  z-index: 1;
+  background: #fff;
+  height: ${headerHeight};
+  border-bottom: 1px solid #eee;
+
+  font-size: 14px;
+  line-height: 1;
+`;
+
+const LogoLink = styled(Link)`
+  font-family: 'Atlas Grotesk';
+  font-weight: bold;
+  color: ${textColor};
+  text-decoration: none;
+  font-size: 16px;
+`;
+
+const Title = styled.span`
+  color: #ccc;
+
+  a {
+    color: #ccc;
+  }
+
+  a:hover {
+    color: ${textColor};
+  }
+`;
+
+const Search = styled(Flex)`
+  margin: 0 5px;
+  padding: 15px 5px 0 5px;
+  cursor: pointer;
+`;
+
+const SearchIcon = styled.img`
+  height: 20px;
+`;
 
 const Avatar = styled.img`
   width: 24px;
@@ -133,4 +180,9 @@ const MenuLink = styled(Link)`
   color: ${textColor};
 `;
 
-export default withRouter(inject('user')(Layout));
+const Content = styled(Flex)`
+  height: 100%;
+  overflow: scroll;
+`;
+
+export default withRouter(inject('user', 'auth')(Layout));

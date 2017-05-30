@@ -11,6 +11,7 @@ import {
 import { Flex } from 'reflexbox';
 
 import stores from 'stores';
+import CollectionsStore from 'stores/CollectionsStore';
 
 import 'normalize.css/normalize.css';
 import 'styles/base.scss';
@@ -21,7 +22,7 @@ import 'styles/hljs-github-gist.scss';
 
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
-import Atlas from 'scenes/Atlas';
+import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
@@ -37,13 +38,37 @@ if (__DEV__) {
   DevTools = require('mobx-react-devtools').default; // eslint-disable-line global-require
 }
 
+let authenticatedStores;
+
 type AuthProps = {
   children?: React.Element<any>,
 };
 
 const Auth = ({ children }: AuthProps) => {
-  if (stores.user.authenticated) {
-    return <Flex auto>{children}</Flex>;
+  if (stores.auth.authenticated && stores.auth.team) {
+    // Only initialize stores once. Kept in global scope
+    // because otherwise they will get overriden on route
+    // change
+    if (!authenticatedStores) {
+      // Stores for authenticated user
+      const user = stores.auth.getUserStore();
+      authenticatedStores = {
+        user,
+        collections: new CollectionsStore({
+          teamId: user.team.id,
+        }),
+      };
+
+      authenticatedStores.collections.fetch();
+    }
+
+    return (
+      <Flex auto>
+        <Provider {...authenticatedStores}>
+          {children}
+        </Provider>
+      </Flex>
+    );
   } else {
     return <Redirect to="/" />;
   }
@@ -64,10 +89,14 @@ render(
         <Switch>
           <Route exact path="/" component={Home} />
 
+          <Route exact path="/auth/slack" component={SlackAuth} />
+          <Route exact path="/auth/slack/commands" component={SlackAuth} />
+          <Route exact path="/auth/error" component={ErrorAuth} />
+
           <Auth>
             <Switch>
               <Route exact path="/dashboard" component={Dashboard} />
-              <Route exact path="/collections/:id" component={Atlas} />
+              <Route exact path="/collections/:id" component={Collection} />
               <Route exact path="/d/:id" component={Document} />
               <Route exact path="/d/:id/:edit" component={Document} />
               <Route
@@ -80,10 +109,6 @@ render(
               <Route exact path="/search" component={Search} />
               <Route exact path="/search/:query" component={Search} />
               <Route exact path="/settings" component={Settings} />
-
-              <Route exact path="/auth/slack" component={SlackAuth} />
-              <Route exact path="/auth/slack/commands" component={SlackAuth} />
-              <Route exact path="/auth/error" component={ErrorAuth} />
 
               <Route
                 exact

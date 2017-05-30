@@ -13,6 +13,7 @@ import SearchStore from './SearchStore';
 import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import DocumentPreview from 'components/DocumentPreview';
+import PageTitle from 'components/PageTitle';
 
 type Props = {
   history: Object,
@@ -56,12 +57,8 @@ type Props = {
     const title = <Title content="Search" />;
 
     return (
-      <Layout
-        title={title}
-        titleText="Search"
-        search={false}
-        loading={this.store.isFetching}
-      >
+      <Layout title={title} search={false} loading={this.store.isFetching}>
+        <PageTitle title="Search" />
         <CenteredContent>
           {this.props.notFound &&
             <div>
