@@ -30,15 +30,7 @@ class CollectionsStore {
       invariant(res && res.data, 'Collection list not available');
       const { data } = res;
       runInAction('CollectionsStore#fetch', () => {
-        this.data.replace(
-          data.map(
-            collection =>
-              new Collection({
-                ...collection,
-                errors: this.errors,
-              })
-          )
-        );
+        this.data.replace(data.map(collection => new Collection(collection)));
         this.isLoaded = true;
       });
     } catch (e) {
