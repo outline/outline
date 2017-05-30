@@ -9,7 +9,7 @@ import CollectionsStore from 'stores/CollectionsStore';
 
 import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
-import AtlasPreviewLoading from 'components/AtlasPreviewLoading';
+import PreviewLoading from 'components/PreviewLoading';
 
 type Props = {
   collections: CollectionsStore,
@@ -56,7 +56,7 @@ type State = {
         {this.state.redirectUrl && <Redirect to={this.state.redirectUrl} />}
 
         <CenteredContent>
-          <AtlasPreviewLoading />
+          <PreviewLoading />
         </CenteredContent>
       </Layout>
     );
