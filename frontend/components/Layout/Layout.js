@@ -13,6 +13,7 @@ import { textColor, headerHeight } from 'styles/constants.scss';
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import LoadingIndicator from 'components/LoadingIndicator';
 import UserStore from 'stores/UserStore';
+import AuthStore from 'stores/AuthStore';
 
 type Props = {
   history: Object,
@@ -21,6 +22,7 @@ type Props = {
   title?: ?React.Element<any>,
   loading?: boolean,
   user: UserStore,
+  auth: AuthStore,
   search: ?boolean,
   notifications?: React.Element<any>,
 };
@@ -34,22 +36,22 @@ type Props = {
 
   @keydown(['/', 't'])
   search() {
-    if (!this.props.user) return;
-    _.defer(() => this.props.history.push('/search'));
+    if (this.props.auth.isAuthenticated)
+      _.defer(() => this.props.history.push('/search'));
   }
 
   @keydown(['d'])
   dashboard() {
-    if (!this.props.user) return;
-    _.defer(() => this.props.history.push('/'));
+    if (this.props.auth.isAuthenticated)
+      _.defer(() => this.props.history.push('/'));
   }
 
-  render() {
-    const user = this.props.user;
+  handleLogout = () => {
+    this.props.auth.logout(() => this.props.history.push('/'));
+  };
 
-    const handleLogout = () => {
-      user.logout(() => this.props.history.push('/'));
-    };
+  render() {
+    const { auth, user } = this.props;
 
     return (
       <Container column auto>
@@ -79,7 +81,8 @@ type Props = {
               <Flex align="center">
                 {this.props.actions}
               </Flex>
-              {user.user &&
+              {auth.authenticated &&
+                user &&
                 <Flex>
                   {this.props.search &&
                     <Flex>
@@ -101,7 +104,7 @@ type Props = {
                     <MenuLink to="/developers">
                       <MenuItem>API</MenuItem>
                     </MenuLink>
-                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                    <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
                   </DropdownMenu>
                 </Flex>}
             </Flex>
@@ -182,4 +185,4 @@ const Content = styled(Flex)`
   overflow: scroll;
 `;
 
-export default withRouter(inject('user')(Layout));
+export default withRouter(inject('user', 'auth')(Layout));

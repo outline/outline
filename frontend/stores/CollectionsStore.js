@@ -2,6 +2,7 @@
 import { observable, action, runInAction, ObservableArray } from 'mobx';
 import ApiClient, { client } from 'utils/ApiClient';
 import _ from 'lodash';
+import invariant from 'invariant';
 
 import stores from 'stores';
 import Collection from 'models/Collection';
@@ -26,6 +27,7 @@ class CollectionsStore {
       const res = await this.client.post('/collections.list', {
         id: this.teamId,
       });
+      invariant(res && res.data, 'Collection list not available');
       const { data } = res;
       runInAction('CollectionsStore#fetch', () => {
         this.data.replace(
