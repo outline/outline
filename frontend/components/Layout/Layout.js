@@ -153,7 +153,7 @@ const Title = styled.span`
   }
 
   a:hover {
-    color: $textColor;
+    color: ${textColor};
   }
 `;
 
