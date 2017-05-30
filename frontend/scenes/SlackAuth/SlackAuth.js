@@ -20,8 +20,8 @@ class SlackAuth extends React.Component {
   state: { redirectTo?: string };
   state = {};
 
-  // $FlowFixMe not sure why this breaks
-  componentDidMount = async () => {
+  // $FlowIssue Flow doesn't like async lifecycle components https://github.com/facebook/flow/issues/1803
+  async componentDidMount(): void {
     const { error, code, state } = queryString.parse(
       this.props.location.search
     );
@@ -53,7 +53,7 @@ class SlackAuth extends React.Component {
           : this.setState({ redirectTo: '/auth/error' });
       }
     }
-  };
+  }
 
   render() {
     return (
