@@ -1087,6 +1087,21 @@ boom@2.x.x:
   dependencies:
     hoek "2.x.x"
 
+boundless-arrow-key-navigation@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/boundless-arrow-key-navigation/-/boundless-arrow-key-navigation-1.0.4.tgz#180c4253ad25e54f7cce648efe63d4538e437ae8"
+  dependencies:
+    boundless-utils-omit-keys "^1.0.4"
+    boundless-utils-uuid "^1.0.4"
+
+boundless-utils-omit-keys@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/boundless-utils-omit-keys/-/boundless-utils-omit-keys-1.0.4.tgz#95b9bb03e0a80ff26d8a3c95c1ed5e95daf8465b"
+
+boundless-utils-uuid@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/boundless-utils-uuid/-/boundless-utils-uuid-1.0.4.tgz#d125a0d45cf79fac84e517ea549765a4bbe1ebb6"
+
 bowser@^1.0.0:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/bowser/-/bowser-1.6.1.tgz#9157e9498f456e937173a2918f3b2161e5353eb3"
@@ -8222,13 +8237,7 @@ supports-color@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-2.0.0.tgz#535d045ce6b6363fa40117084629995e9df324c7"
 
-supports-color@^3.1.0, supports-color@^3.1.2:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-3.1.2.tgz#72a262894d9d408b956ca05ff37b2ed8a6e2a2d5"
-  dependencies:
-    has-flag "^1.0.0"
-
-supports-color@^3.2.3:
+supports-color@^3.1.0, supports-color@^3.1.2, supports-color@^3.2.3:
   version "3.2.3"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-3.2.3.tgz#65ac0504b3954171d8a64946b2ae3cbb8a5f54f6"
   dependencies:

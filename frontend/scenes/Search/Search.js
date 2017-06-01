@@ -1,13 +1,15 @@
 // @flow
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
 import _ from 'lodash';
 import { Flex } from 'reflexbox';
 import { withRouter } from 'react-router';
 import { searchUrl } from 'utils/routeHelpers';
+import styled from 'styled-components';
+import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import SearchField from './components/SearchField';
-import styles from './Search.scss';
 import SearchStore from './SearchStore';
 
 import Layout, { Title } from 'components/Layout';
@@ -21,7 +23,20 @@ type Props = {
   notFound: ?boolean,
 };
 
+const Container = styled(CenteredContent)`
+  position: relative;
+`;
+
+const ResultsWrapper = styled(Flex)`
+  position: absolute;
+  transition: all 200ms ease-in-out;
+  top: ${props => (props.pinToTop ? '0%' : '50%')};
+  margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
+  width: 100%;
+`;
+
 @observer class Search extends React.Component {
+  firstDocument: HTMLElement;
   props: Props;
   store: SearchStore;
 
@@ -38,9 +53,19 @@ type Props = {
   }
 
   handleKeyDown = ev => {
+    // ESC
     if (ev.which === 27) {
       ev.preventDefault();
       this.props.history.goBack();
+    }
+    // Down
+    if (ev.which === 40) {
+      ev.preventDefault();
+      if (this.firstDocument) {
+        const element = ReactDOM.findDOMNode(this.firstDocument);
+        // $FlowFixMe
+        if (element && element.focus) element.focus();
+      }
     }
   };
 
@@ -52,40 +77,46 @@ type Props = {
     this.props.history.replace(searchUrl(query));
   };
 
+  setFirstDocumentRef = ref => {
+    this.firstDocument = ref;
+  };
+
   render() {
     const query = this.props.match.params.query;
     const title = <Title content="Search" />;
+    const hasResults = this.store.documents.length > 0;
 
     return (
       <Layout title={title} search={false} loading={this.store.isFetching}>
         <PageTitle title="Search" />
-        <CenteredContent>
+        <Container auto>
           {this.props.notFound &&
             <div>
               <h1>Not Found</h1>
               <p>We're unable to find the page you're accessing.</p>
               <hr />
             </div>}
-
-          <Flex column auto>
-            <Flex auto>
-              <img
-                src={require('assets/icons/search.svg')}
-                className={styles.icon}
-                alt="Search"
-              />
-              <SearchField
-                searchTerm={this.store.searchTerm}
-                onKeyDown={this.handleKeyDown}
-                onChange={this.updateQuery}
-                value={query}
-              />
-            </Flex>
-            {this.store.documents.map(document => (
-              <DocumentPreview key={document.id} document={document} />
-            ))}
-          </Flex>
-        </CenteredContent>
+          <ResultsWrapper pinToTop={hasResults} column auto>
+            <SearchField
+              searchTerm={this.store.searchTerm}
+              onKeyDown={this.handleKeyDown}
+              onChange={this.updateQuery}
+              value={query || ''}
+            />
+            <ArrowKeyNavigation
+              mode={ArrowKeyNavigation.mode.VERTICAL}
+              defaultActiveChildIndex={0}
+            >
+              {this.store.documents.map((document, index) => (
+                <DocumentPreview
+                  innerRef={ref => index === 0 && this.setFirstDocumentRef(ref)}
+                  key={document.id}
+                  document={document}
+                />
+              ))}
+            </ArrowKeyNavigation>
+          </ResultsWrapper>
+        </Container>
       </Layout>
     );
   }

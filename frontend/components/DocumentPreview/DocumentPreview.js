@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
 import { toJS } from 'mobx';
 import { Link } from 'react-router-dom';
 import type { Document } from 'types';
@@ -10,25 +10,33 @@ import PublishingInfo from 'components/PublishingInfo';
 
 type Props = {
   document: Document,
+  innerRef?: Function,
 };
-
-const Container = styled.div`
-  width: 100%;
-  padding: 20px 0;
-`;
 
 const DocumentLink = styled(Link)`
   display: block;
-  margin: -16px;
+  margin: 16px -16px;
   padding: 16px;
   border-radius: 8px;
+  border: 2px solid transparent;
+  max-height: 50vh;
+  overflow: hidden;
+  width: 100%;
+
+  &:hover,
+  &:active,
+  &:focus {
+    background: ${color.smokeLight};
+    border: 2px solid ${color.smoke};
+    outline: none;
+  }
+
+  &:focus {
+    border: 2px solid ${color.slateDark};
+  }
 
   h1 {
     margin-top: 0;
-  }
-
-  &:hover {
-    background: ${color.smokeLight};
   }
 `;
 
@@ -37,10 +45,14 @@ const TruncatedMarkdown = styled(Markdown)`
   pointer-events: none;
 `;
 
-const DocumentPreview = ({ document }: Props) => {
-  return (
-    <Container>
-      <DocumentLink to={document.url}>
+class DocumentPreview extends Component {
+  props: Props;
+
+  render() {
+    const { document, innerRef, ...rest } = this.props;
+
+    return (
+      <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
         <PublishingInfo
           createdAt={document.createdAt}
           createdBy={document.createdBy}
@@ -50,8 +62,8 @@ const DocumentPreview = ({ document }: Props) => {
         />
         <TruncatedMarkdown text={document.text} limit={150} />
       </DocumentLink>
-    </Container>
-  );
-};
+    );
+  }
+}
 
 export default DocumentPreview;

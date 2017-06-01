@@ -75,6 +75,7 @@
     "babel-preset-react-hmre": "1.1.1",
     "babel-regenerator-runtime": "6.5.0",
     "bcrypt": "^0.8.7",
+    "boundless-arrow-key-navigation": "^1.0.4",
     "bugsnag": "^1.7.0",
     "classnames": "2.2.3",
     "cross-env": "1.0.7",

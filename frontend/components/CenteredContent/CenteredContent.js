@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import styles from './CenteredContent.scss';
+import styled from 'styled-components';
 
 type Props = {
   children?: React.Element<any>,
@@ -8,21 +8,27 @@ type Props = {
   maxWidth?: string,
 };
 
-const CenteredContent = (props: Props) => {
-  const style = {
-    maxWidth: props.maxWidth,
-    ...props.style,
+const Container = styled.div`
+  width: 100%;
+  margin: 40px 20px;
+`;
+
+const CenteredContent = ({
+  children,
+  maxWidth = '740px',
+  style,
+  ...rest
+}: Props) => {
+  const styles = {
+    maxWidth,
+    ...style,
   };
 
   return (
-    <div className={styles.content} style={style}>
-      {props.children}
-    </div>
+    <Container style={styles} {...rest}>
+      {children}
+    </Container>
   );
-};
-
-CenteredContent.defaultProps = {
-  maxWidth: '740px',
 };
 
 export default CenteredContent;
