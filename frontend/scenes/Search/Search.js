@@ -15,6 +15,7 @@ import SearchStore from './SearchStore';
 import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import DocumentPreview from 'components/DocumentPreview';
+import PageTitle from 'components/PageTitle';
 
 type Props = {
   history: Object,
@@ -62,6 +63,7 @@ const ResultsWrapper = styled(Flex)`
       ev.preventDefault();
       if (this.firstDocument) {
         const element = ReactDOM.findDOMNode(this.firstDocument);
+        // $FlowFixMe
         if (element && element.focus) element.focus();
       }
     }
@@ -85,12 +87,8 @@ const ResultsWrapper = styled(Flex)`
     const hasResults = this.store.documents.length > 0;
 
     return (
-      <Layout
-        title={title}
-        titleText="Search"
-        search={false}
-        loading={this.store.isFetching}
-      >
+      <Layout title={title} search={false} loading={this.store.isFetching}>
+        <PageTitle title="Search" />
         <Container auto>
           {this.props.notFound &&
             <div>

@@ -11,6 +11,7 @@ import SettingsStore from './SettingsStore';
 import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
+import PageTitle from 'components/PageTitle';
 
 @observer class Settings extends React.Component {
   store: SettingsStore;
@@ -25,12 +26,8 @@ import SlackAuthLink from 'components/SlackAuthLink';
     const showSlackSettings = DEPLOYMENT === 'hosted';
 
     return (
-      <Layout
-        title={title}
-        titleText="Settings"
-        search={false}
-        loading={this.store.isFetching}
-      >
+      <Layout title={title} search={false} loading={this.store.isFetching}>
+        <PageTitle title="Settings" />
         <CenteredContent>
           {showSlackSettings &&
             <div className={styles.section}>

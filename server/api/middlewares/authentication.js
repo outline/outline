@@ -48,7 +48,7 @@ export default function auth({ require = true } = {}) {
             },
           });
         } catch (e) {
-          throw httpErrors.Unauthorized('Invalid api key');
+          throw httpErrors.Unauthorized('Invalid API key');
         }
 
         if (!apiKey) throw httpErrors.Unauthorized('Invalid token');

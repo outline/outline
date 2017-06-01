@@ -2,22 +2,23 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { Redirect } from 'react-router';
-
 import { Flex } from 'reflexbox';
+import styled from 'styled-components';
+
+import AuthStore from 'stores/AuthStore';
+
 import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
 import Alert from 'components/Alert';
 
-import styles from './Home.scss';
+type Props = {
+  auth: AuthStore,
+  location: Object,
+};
 
-@inject('user')
-@observer
-export default class Home extends React.Component {
-  static propTypes = {
-    user: React.PropTypes.object.isRequired,
-    location: React.PropTypes.object.isRequired,
-  };
+@observer class Home extends React.Component {
+  props: Props;
 
   get notifications(): React.Element<any>[] {
     const notifications = [];
@@ -40,17 +41,17 @@ export default class Home extends React.Component {
     return (
       <Flex auto>
         <Layout notifications={this.notifications}>
-          {this.props.user.authenticated && <Redirect to="/dashboard" />}
+          {this.props.auth.authenticated && <Redirect to="/dashboard" />}
 
           <CenteredContent>
             {showLandingPageCopy &&
-              <div className={styles.intro}>
-                <h1 className={styles.title}>Simple, fast, markdown.</h1>
-                <p className={styles.copy}>
+              <div>
+                <Title>Simple, fast, markdown.</Title>
+                <Copy>
                   We're building a modern wiki for engineering teams.
-                </p>
+                </Copy>
               </div>}
-            <div className={styles.action}>
+            <div>
               <SlackAuthLink redirectUri={`${BASE_URL}/auth/slack`}>
                 <img
                   alt="Sign in with Slack"
@@ -67,3 +68,15 @@ export default class Home extends React.Component {
     );
   }
 }
+
+const Title = styled.h1`
+  font-size: 36px;
+  margin-bottom: 24px;
+}`;
+
+const Copy = styled.p`
+  font-size: 20px;
+  margin-bottom: 36px;
+}`;
+
+export default inject('auth')(Home);

@@ -5,22 +5,24 @@ import queryString from 'query-string';
 import { observer, inject } from 'mobx-react';
 import { client } from 'utils/ApiClient';
 
-import UserStore from 'stores/UserStore';
+import AuthStore from 'stores/AuthStore';
 
 type Props = {
-  user: UserStore,
+  auth: AuthStore,
   location: Object,
 };
 
-@inject('user')
-@observer
-class SlackAuth extends React.Component {
+type State = {
+  redirectTo: string,
+};
+
+@observer class SlackAuth extends React.Component {
   props: Props;
+  state: State;
+  state = {};
 
-  state: { redirectTo: string };
-
-  // $FlowFixMe not sure why this breaks
-  componentDidMount = async () => {
+  // $FlowIssue Flow doesn't like async lifecycle components https://github.com/facebook/flow/issues/1803
+  async componentDidMount(): void {
     const { error, code, state } = queryString.parse(
       this.props.location.search
     );
@@ -46,13 +48,13 @@ class SlackAuth extends React.Component {
         const redirectTo = sessionStorage.getItem('redirectTo');
         sessionStorage.removeItem('redirectTo');
 
-        const { success } = await this.props.user.authWithSlack(code, state);
+        const { success } = await this.props.auth.authWithSlack(code, state);
         success
           ? this.setState({ redirectTo: redirectTo || '/dashboard' })
           : this.setState({ redirectTo: '/auth/error' });
       }
     }
-  };
+  }
 
   render() {
     return (
@@ -63,4 +65,4 @@ class SlackAuth extends React.Component {
   }
 }
 
-export default SlackAuth;
+export default inject('auth')(SlackAuth);

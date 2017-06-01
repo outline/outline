@@ -1,5 +1,6 @@
 // @flow
 import _ from 'lodash';
+import invariant from 'invariant';
 import stores from 'stores';
 
 type Options = {
@@ -39,9 +40,9 @@ class ApiClient {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     });
-    if (stores.user.authenticated) {
-      // $FlowFixMe this is not great, need to refactor
-      headers.set('Authorization', `Bearer ${stores.user.token}`);
+    if (stores.auth.authenticated) {
+      invariant(stores.auth.token, 'JWT token not set properly');
+      headers.set('Authorization', `Bearer ${stores.auth.token}`);
     }
 
     // Construct request
@@ -62,15 +63,10 @@ class ApiClient {
             return response;
           }
 
-          // // Handle 404
-          // if (response.status === 404) {
-          //   // return browserHistory.push('/404');
-          // }
-
-          // // Handle 401, log out user
-          // if (response.status === 401) {
-          //   return stores.user.logout();
-          // }
+          // Handle 401, log out user
+          if (response.status === 401) {
+            return stores.auth.logout(() => (window.location = '/'));
+          }
 
           // Handle failed responses
           const error = {};
@@ -112,5 +108,4 @@ class ApiClient {
 export default ApiClient;
 
 // In case you don't want to always initiate, just import with `import { client } ...`
-const client = new ApiClient();
-export { client };
+export const client = new ApiClient();

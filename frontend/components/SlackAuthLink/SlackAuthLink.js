@@ -1,12 +1,12 @@
 // @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import UserStore from 'stores/UserStore';
+import AuthStore from 'stores/AuthStore';
 
 type Props = {
   children: React.Element<any>,
   scopes?: Array<string>,
-  user: UserStore,
+  auth: AuthStore,
   redirectUri: string,
 };
 
@@ -28,7 +28,7 @@ type Props = {
       client_id: SLACK_KEY,
       scope: this.props.scopes ? this.props.scopes.join(' ') : '',
       redirect_uri: this.props.redirectUri || SLACK_REDIRECT_URI,
-      state: this.props.user.getOauthState(),
+      state: this.props.auth.getOauthState(),
     };
 
     const urlParams = Object.keys(params)
@@ -45,4 +45,4 @@ type Props = {
   }
 }
 
-export default inject('user')(SlackAuthLink);
+export default inject('auth')(SlackAuthLink);

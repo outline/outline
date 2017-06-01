@@ -40,6 +40,7 @@ const DocumentLink = styled(Link)`
   }
 `;
 
+// $FlowIssue
 const TruncatedMarkdown = styled(Markdown)`
   pointer-events: none;
 `;
