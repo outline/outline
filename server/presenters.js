@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import { Document, Collection, User } from './models';
-
 import presentUser from './presenters/user';
+import presentView from './presenters/view';
 
-export { presentUser };
+export { presentUser, presentView };
 
 export async function presentTeam(ctx, team) {
   ctx.cache.set(team.id, team);

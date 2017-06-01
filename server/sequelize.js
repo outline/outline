@@ -1,3 +1,4 @@
+// @flow
 import Sequelize from 'sequelize';
 import EncryptedField from 'sequelize-encrypted';
 import debug from 'debug';

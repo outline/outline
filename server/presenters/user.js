@@ -1,7 +1,7 @@
 // @flow
 import User from '../models/User';
 
-async function presentUser(ctx: Object, user: User) {
+function present(ctx: Object, user: User) {
   ctx.cache.set(user.id, user);
 
   return {
@@ -12,4 +12,4 @@ async function presentUser(ctx: Object, user: User) {
   };
 }
 
-export default presentUser;
+export default present;

@@ -67,6 +67,8 @@ type Props = {
       this.store.newDocument = false;
       this.store.fetchDocument();
     }
+
+    this.store.viewDocument();
   };
 
   onEdit = () => {

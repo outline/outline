@@ -94,6 +94,12 @@ class DocumentStore {
 
   /* Actions */
 
+  @action viewDocument = async () => {
+    await client.get('/documents.view', {
+      id: this.documentId,
+    });
+  };
+
   @action fetchDocument = async () => {
     this.isFetching = true;
 

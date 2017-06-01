@@ -6,8 +6,7 @@ import isUUID from 'validator/lib/isUUID';
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
 import auth from './middlewares/authentication';
-// import pagination from './middlewares/pagination';
-import { presentDocument } from '../presenters';
+import { presentDocument, presentView } from '../presenters';
 import { Document, Collection } from '../models';
 
 const router = new Router();
@@ -53,20 +52,14 @@ router.post('documents.info', auth(), async ctx => {
     if (document.teamId !== user.teamId) {
       throw httpErrors.NotFound();
     }
-
-    ctx.body = {
-      data: await presentDocument(ctx, document, {
-        includeCollection: true,
-        includeCollaborators: true,
-      }),
-    };
-  } else {
-    ctx.body = {
-      data: await presentDocument(ctx, document, {
-        includeCollaborators: true,
-      }),
-    };
   }
+
+  ctx.body = {
+    data: await presentDocument(ctx, document, {
+      includeCollection: document.private,
+      includeCollaborators: true,
+    }),
+  };
 });
 
 router.post('documents.search', auth(), async ctx => {
@@ -186,6 +179,22 @@ router.post('documents.update', auth(), async ctx => {
       includeCollection: true,
       includeCollaborators: true,
     }),
+  };
+});
+
+router.post('documents.view', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const user = ctx.state.user;
+  const document = await getDocumentForId(id);
+
+  if (!document || document.teamId !== user.teamId)
+    throw httpErrors.BadRequest();
+
+  const response = await document.view(user.id);
+  ctx.body = {
+    data: presentView(ctx, response),
   };
 });
 

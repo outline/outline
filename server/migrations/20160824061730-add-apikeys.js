@@ -1,5 +1,3 @@
-'use strict';
-
 module.exports = {
   up: function(queryInterface, Sequelize) {
     queryInterface.createTable('apiKeys', {
@@ -41,6 +39,6 @@ module.exports = {
   },
 
   down: function(queryInterface, Sequelize) {
-    queryInterface.createTable('apiKeys');
+    queryInterface.dropTable('apiKeys');
   },
 };
