@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Document, Collection, User } from './models';
+import { Document, Collection, User, View } from './models';
 import presentUser from './presenters/user';
 import presentView from './presenters/view';
 
@@ -18,6 +18,7 @@ export async function presentDocument(ctx, document, options) {
   options = {
     includeCollection: true,
     includeCollaborators: true,
+    includeViews: true,
     ...options,
   };
   ctx.cache.set(document.id, document);
@@ -37,6 +38,12 @@ export async function presentDocument(ctx, document, options) {
     team: document.teamId,
     collaborators: [],
   };
+
+  if (options.includeViews) {
+    data.views = await View.sum('count', {
+      where: { documentId: document.id },
+    });
+  }
 
   if (options.includeCollection) {
     data.collection = await ctx.cache.get(document.atlasId, async () => {
