@@ -1,3 +1,4 @@
+// @flow
 import slug from 'slug';
 import _ from 'lodash';
 import randomstring from 'randomstring';
@@ -29,7 +30,7 @@ const createUrlId = doc => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
 };
 
-const documentBeforeSave = async doc => {
+const beforeSave = async doc => {
   doc.html = convertToMarkdown(doc.text);
   doc.preview = truncateMarkdown(doc.text, 160);
   doc.revisionCount += 1;
@@ -88,8 +89,8 @@ const Document = sequelize.define(
     paranoid: true,
     hooks: {
       beforeValidate: createUrlId,
-      beforeCreate: documentBeforeSave,
-      beforeUpdate: documentBeforeSave,
+      beforeCreate: beforeSave,
+      beforeUpdate: beforeSave,
       afterCreate: createRevision,
       afterUpdate: createRevision,
     },

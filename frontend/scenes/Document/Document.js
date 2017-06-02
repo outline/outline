@@ -31,6 +31,7 @@ const Container = styled.div`
 `;
 
 const Meta = styled.div`
+  width: 100%;
   position: absolute;
   top: 12px;
 `;
@@ -146,6 +147,7 @@ type Props = {
             {!isEditing &&
               <Meta>
                 <PublishingInfo
+                  views={this.store.document.views}
                   collaborators={this.store.document.collaborators}
                   createdAt={this.store.document.createdAt}
                   createdBy={this.store.document.createdBy}

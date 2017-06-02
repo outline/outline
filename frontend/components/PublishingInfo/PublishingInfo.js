@@ -7,6 +7,7 @@ import { Flex } from 'reflexbox';
 
 const Container = styled(Flex)`
   margin-bottom: 30px;
+  justify-content: space-between;
   color: #ccc;
   font-size: 13px;
 `;
@@ -31,31 +32,44 @@ class PublishingInfo extends Component {
     createdBy: User,
     updatedAt: string,
     updatedBy: User,
+    views?: number,
   };
 
   render() {
     return (
       <Container align="center">
-        <Avatars>
-          {this.props.collaborators.map(user => (
-            <Avatar key={user.id} src={user.avatarUrl} title={user.name} />
-          ))}
-        </Avatars>
-        <span>
-          {this.props.createdBy.name}
-          {' '}
-          published
-          {' '}
-          {moment(this.props.createdAt).fromNow()}
-          {this.props.createdAt !== this.props.updatedAt
-            ? <span>
-                &nbsp;and&nbsp;
-                {this.props.createdBy.id !== this.props.updatedBy.id &&
-                  ` ${this.props.updatedBy.name} `}
-                modified {moment(this.props.updatedAt).fromNow()}
-              </span>
-            : null}
-        </span>
+        <Flex align="center">
+          <Avatars>
+            {this.props.collaborators.map(user => (
+              <Avatar key={user.id} src={user.avatarUrl} title={user.name} />
+            ))}
+          </Avatars>
+          <span>
+            {this.props.createdBy.name}
+            {' '}
+            published
+            {' '}
+            {moment(this.props.createdAt).fromNow()}
+            {this.props.createdAt !== this.props.updatedAt
+              ? <span>
+                  &nbsp;and&nbsp;
+                  {this.props.createdBy.id !== this.props.updatedBy.id &&
+                    ` ${this.props.updatedBy.name} `}
+                  modified
+                  {' '}
+                  {moment(this.props.updatedAt).fromNow()}
+                </span>
+              : null}
+          </span>
+        </Flex>
+        {this.props.views &&
+          <span>
+            Viewed
+            {' '}
+            {this.props.views}
+            {' '}
+            {this.props.views === 1 ? 'time' : 'times'}
+          </span>}
       </Container>
     );
   }
