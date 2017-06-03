@@ -1,3 +1,4 @@
+// @flow
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
@@ -9,7 +10,7 @@ slug.defaults.mode = 'rfc3986';
 const allowedCollectionTypes = [['atlas', 'journal']];
 
 const Collection = sequelize.define(
-  'atlas',
+  'collection',
   {
     id: {
       type: DataTypes.UUID,
@@ -26,10 +27,11 @@ const Collection = sequelize.define(
     creatorId: DataTypes.UUID,
 
     /* type: atlas */
-    navigationTree: DataTypes.JSONB,
+    navigationTree: DataTypes.JSONB, // legacy
+    documents: DataTypes.ARRAY(DataTypes.JSONB),
   },
   {
-    tableName: 'atlases',
+    tableName: 'collections',
     paranoid: true,
     hooks: {
       beforeValidate: collection => {
