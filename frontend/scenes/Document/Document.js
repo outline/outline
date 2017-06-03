@@ -12,6 +12,7 @@ import Menu from './components/Menu';
 import Editor from 'components/Editor';
 import Layout, { HeaderAction, SaveAction } from 'components/Layout';
 import PublishingInfo from 'components/PublishingInfo';
+import DocumentViews from 'components/DocumentViews';
 import PreviewLoading from 'components/PreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
@@ -30,7 +31,9 @@ const Container = styled.div`
   width: 50em;
 `;
 
-const Meta = styled.div`
+const Meta = styled(Flex)`
+  justify-content: space-between;
+  align-items: flex-start;
   width: 100%;
   position: absolute;
   top: 12px;
@@ -147,13 +150,13 @@ type Props = {
             {!isEditing &&
               <Meta>
                 <PublishingInfo
-                  views={this.store.document.views}
                   collaborators={this.store.document.collaborators}
                   createdAt={this.store.document.createdAt}
                   createdBy={this.store.document.createdBy}
                   updatedAt={this.store.document.updatedAt}
                   updatedBy={this.store.document.updatedBy}
                 />
+                <DocumentViews count={this.store.document.views} />
               </Meta>}
             <Editor
               text={this.store.document.text}

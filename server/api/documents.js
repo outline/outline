@@ -1,46 +1,18 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
 import { lock } from '../redis';
-import isUUID from 'validator/lib/isUUID';
-
-const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
 import auth from './middlewares/authentication';
-import { presentDocument, presentView } from '../presenters';
+import { presentDocument } from '../presenters';
 import { Document, Collection } from '../models';
 
 const router = new Router();
-
-const getDocumentForId = async id => {
-  try {
-    let document;
-    if (isUUID(id)) {
-      document = await Document.findOne({
-        where: {
-          id,
-        },
-      });
-    } else if (id.match(URL_REGEX)) {
-      document = await Document.findOne({
-        where: {
-          urlId: id.match(URL_REGEX)[1],
-        },
-      });
-    } else {
-      throw httpErrors.NotFound();
-    }
-    return document;
-  } catch (e) {
-    // Invalid UUID
-    throw httpErrors.NotFound();
-  }
-};
 
 // FIXME: This really needs specs :/
 router.post('documents.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const document = await getDocumentForId(id);
+  const document = await Document.findById(id);
 
   if (!document) throw httpErrors.NotFound();
 
@@ -156,7 +128,7 @@ router.post('documents.update', auth(), async ctx => {
   ctx.assertPresent(text, 'text is required');
 
   const user = ctx.state.user;
-  const document = await getDocumentForId(id);
+  const document = await Document.findById(id);
 
   if (!document || document.teamId !== user.teamId)
     throw httpErrors.BadRequest();
@@ -182,28 +154,12 @@ router.post('documents.update', auth(), async ctx => {
   };
 });
 
-router.post('documents.view', auth(), async ctx => {
-  const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
-
-  const user = ctx.state.user;
-  const document = await getDocumentForId(id);
-
-  if (!document || document.teamId !== user.teamId)
-    throw httpErrors.BadRequest();
-
-  const response = await document.view(user.id);
-  ctx.body = {
-    data: presentView(ctx, response),
-  };
-});
-
 router.post('documents.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await getDocumentForId(id);
+  const document = await Document.findById(id);
   const collection = await Collection.findById(document.atlasId);
 
   if (!document || document.teamId !== user.teamId)

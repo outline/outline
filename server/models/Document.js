@@ -2,11 +2,14 @@
 import slug from 'slug';
 import _ from 'lodash';
 import randomstring from 'randomstring';
+
+import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
 import { convertToMarkdown } from '../../frontend/utils/markdown';
 import { truncateMarkdown } from '../utils/truncate';
 import Revision from './Revision';
-import View from './View';
+
+const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
 slug.defaults.mode = 'rfc3986';
 const slugify = text =>
@@ -99,20 +102,23 @@ const Document = sequelize.define(
         const slugifiedTitle = slugify(this.title);
         return `/d/${slugifiedTitle}-${this.urlId}`;
       },
-      async view(userId) {
-        const [model, created] = await View.findOrCreate({
-          where: { documentId: this.id, userId },
-        });
-        if (!created) {
-          model.count += 1;
-          model.save();
-        }
-        return model;
-      },
     },
     classMethods: {
       associate: models => {
         Document.belongsTo(models.User);
+      },
+      findById: async id => {
+        if (isUUID(id)) {
+          return Document.findOne({
+            where: { id },
+          });
+        } else if (id.match(URL_REGEX)) {
+          return Document.findOne({
+            where: {
+              urlId: id.match(URL_REGEX)[1],
+            },
+          });
+        }
       },
       searchForUser: (user, query, options = {}) => {
         const limit = options.limit || 15;

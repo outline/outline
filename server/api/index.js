@@ -8,6 +8,7 @@ import auth from './auth';
 import user from './user';
 import collections from './collections';
 import documents from './documents';
+import views from './views';
 import hooks from './hooks';
 import apiKeys from './apiKeys';
 
@@ -59,6 +60,7 @@ router.use('/', auth.routes());
 router.use('/', user.routes());
 router.use('/', collections.routes());
 router.use('/', documents.routes());
+router.use('/', views.routes());
 router.use('/', hooks.routes());
 router.use('/', apiKeys.routes());
 

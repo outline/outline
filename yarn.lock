@@ -1094,9 +1094,38 @@ boundless-arrow-key-navigation@^1.0.4:
     boundless-utils-omit-keys "^1.0.4"
     boundless-utils-uuid "^1.0.4"
 
+boundless-dialog@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/boundless-dialog/-/boundless-dialog-1.0.4.tgz#630717ba82f5dd1f7b9a07e6aeedbe511630d42a"
+  dependencies:
+    boundless-portal "^1.0.4"
+    boundless-utils-omit-keys "^1.0.4"
+    classnames "^2.1.5"
+
+boundless-popover@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/boundless-popover/-/boundless-popover-1.0.4.tgz#20d0d36ffbb20247425ac4271e521c43f7beb90e"
+  dependencies:
+    boundless-dialog "^1.0.4"
+    boundless-portal "^1.0.4"
+    boundless-utils-omit-keys "^1.0.4"
+    boundless-utils-transform-property "^1.0.4"
+    classnames "^2.1.5"
+
+boundless-portal@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/boundless-portal/-/boundless-portal-1.0.4.tgz#d2bec81a20d3c47428f3da8d0d19c8e778f72768"
+  dependencies:
+    boundless-utils-omit-keys "^1.0.4"
+    boundless-utils-uuid "^1.0.4"
+
 boundless-utils-omit-keys@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/boundless-utils-omit-keys/-/boundless-utils-omit-keys-1.0.4.tgz#95b9bb03e0a80ff26d8a3c95c1ed5e95daf8465b"
+
+boundless-utils-transform-property@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/boundless-utils-transform-property/-/boundless-utils-transform-property-1.0.4.tgz#048dad7bfd95eda9fb4cd744f3a7a936a2b705bc"
 
 boundless-utils-uuid@^1.0.4:
   version "1.0.4"
@@ -1451,7 +1480,7 @@ clap@^1.0.9:
   dependencies:
     chalk "^1.1.3"
 
-classnames@2.2.3:
+classnames@2.2.3, classnames@^2.1.5:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.3.tgz#551b774b6762a0c0a997187f7ba4f1d603961ac5"
 

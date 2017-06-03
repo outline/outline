@@ -20,6 +20,14 @@ const View = sequelize.define(
         View.belongsTo(models.Document);
         View.belongsTo(models.User);
       },
+      increment: async where => {
+        const [model, created] = await View.findOrCreate({ where });
+        if (!created) {
+          model.count += 1;
+          model.save();
+        }
+        return model;
+      },
     },
   }
 );
