@@ -156,7 +156,10 @@ type Props = {
                   updatedAt={this.store.document.updatedAt}
                   updatedBy={this.store.document.updatedBy}
                 />
-                <DocumentViews count={this.store.document.views} />
+                <DocumentViews
+                  count={this.store.document.views}
+                  documentId={this.store.document.id}
+                />
               </Meta>}
             <Editor
               text={this.store.document.text}

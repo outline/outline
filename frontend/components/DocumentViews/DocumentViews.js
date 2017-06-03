@@ -2,12 +2,20 @@
 import React, { Component } from 'react';
 import Popover from 'boundless-popover';
 import styled from 'styled-components';
+import DocumentViewers from './components/DocumentViewers';
 import { Flex } from 'reflexbox';
 
 const Container = styled(Flex)`
-  color: #ccc;
   font-size: 13px;
   user-select: none;
+
+  a {
+    color: #ccc;
+
+    &:hover {
+      color: #aaa;
+    }
+  }
 `;
 
 const StyledPopover = styled(Popover)`
@@ -23,23 +31,33 @@ const StyledPopover = styled(Popover)`
   > svg {
     height: 16px;
     width: 16px;
+    position: absolute;
+
+    polygon:first-child {
+      fill: rgba(0,0,0,.075);
+    }
+    polygon {
+      fill: #FFF;
+    }
   }
 
   > div {
     outline: none;
     background: #FFF;
-    box-shadow: 0 2px 3px rgba(0,0,0,.1);
-    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 8px 16px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.1);
+    border-radius: 4px;
     line-height: 1.5;
-    padding: 1.5rem;
-    min-width: 300px;
-    min-height: 300px;
+    padding: 16px;
+    margin-top: 14px;
+    min-width: 200px;
+    min-height: 150px;
   }
 `;
 
 class DocumentViews extends Component {
   anchor: HTMLElement;
   props: {
+    documentId: string,
     count: number,
   };
   state: {
@@ -78,7 +96,7 @@ class DocumentViews extends Component {
             closeOnOutsideFocus
             closeOnEscKey
           >
-            TEST
+            <DocumentViewers documentId={this.props.documentId} />
           </StyledPopover>}
       </Container>
     );
