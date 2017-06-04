@@ -1,3 +1,4 @@
+// @flow
 import slug from 'slug';
 import _ from 'lodash';
 import randomstring from 'randomstring';
@@ -97,6 +98,13 @@ const Document = sequelize.define(
       getUrl() {
         const slugifiedTitle = slugify(this.title);
         return `/d/${slugifiedTitle}-${this.urlId}`;
+      },
+      toJSON() {
+        return {
+          id: this.id,
+          title: this.title,
+          url: this.getUrl(),
+        };
       },
     },
   }

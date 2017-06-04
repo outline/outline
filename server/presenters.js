@@ -92,8 +92,10 @@ export async function presentCollection(
     updatedAt: collection.updatedAt,
   };
 
-  if (collection.type === 'atlas')
+  if (collection.type === 'atlas') {
     data.navigationTree = collection.navigationTree;
+    data.documents = await collection.getDocumentsStructure();
+  }
 
   if (includeRecentDocuments) {
     const documents = await Document.findAll({

@@ -1,3 +1,4 @@
+// @flow
 import apiError from '../../errors';
 import validator from 'validator';
 
@@ -9,14 +10,20 @@ export default function validation() {
       }
     };
 
-    ctx.assertEmail = function assertEmail(value, message) {
+    ctx.assertEmail = (value, message) => {
       if (!validator.isEmail(value)) {
         throw apiError(400, 'validation_error', message);
       }
     };
 
-    ctx.assertUuid = function assertUuid(value, message) {
+    ctx.assertUuid = (value, message) => {
       if (!validator.isUUID(value)) {
+        throw apiError(400, 'validation_error', message);
+      }
+    };
+
+    ctx.assertPositiveInteger = (value, message) => {
+      if (!validator.isInt(value, { min: 0 })) {
         throw apiError(400, 'validation_error', message);
       }
     };
