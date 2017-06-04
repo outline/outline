@@ -36,7 +36,6 @@ class DocumentStore {
   @observable newDocument: ?boolean;
   @observable newChildDocument: ?boolean;
   @observable views: number;
-  @observable starred: boolean;
 
   @observable isEditing: boolean = false;
   @observable isFetching: boolean = false;
@@ -100,14 +99,14 @@ class DocumentStore {
     await client.post('/documents.star', {
       id: this.documentId,
     });
-    this.starred = true;
+    this.document.starred = true;
   };
 
   @action unstarDocument = async () => {
     await client.post('/documents.unstar', {
       id: this.documentId,
     });
-    this.starred = false;
+    this.document.starred = false;
   };
 
   @action viewDocument = async () => {

@@ -1,4 +1,4 @@
-import { Collection, User, View } from '../models';
+import { Collection, Star, User, View } from '../models';
 import presentUser from './user';
 import presentCollection from './collection';
 
@@ -11,6 +11,7 @@ async function present(ctx, document, options) {
   };
   ctx.cache.set(document.id, document);
 
+  const userId = ctx.state.user.id;
   const data = {
     id: document.id,
     url: document.getUrl(),
@@ -26,6 +27,10 @@ async function present(ctx, document, options) {
     team: document.teamId,
     collaborators: [],
   };
+
+  data.starred = !!await Star.findOne({
+    where: { documentId: document.id, userId },
+  });
 
   if (options.includeViews) {
     data.views = await View.sum('count', {

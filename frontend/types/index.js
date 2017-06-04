@@ -27,6 +27,7 @@ export type Document = {
   html: string,
   id: string,
   private: boolean,
+  starred: boolean,
   team: string,
   text: string,
   title: string,

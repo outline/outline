@@ -161,9 +161,9 @@ type Props = {
                   documentId={this.store.document.id}
                 />
               </Meta>}
-            {!this.store.starred &&
+            {!this.store.document.starred &&
               <a onClick={this.store.starDocument}>Star</a>}
-            {this.store.starred &&
+            {this.store.document.starred &&
               <a onClick={this.store.unstarDocument}>Unstar</a>}
             <Editor
               text={this.store.document.text}
