@@ -1,8 +1,10 @@
 // @flow
 import React, { Component } from 'react';
-import Popover from 'boundless-popover';
+import { observer } from 'mobx-react';
+import Popover from 'components/Popover';
 import styled from 'styled-components';
 import DocumentViewers from './components/DocumentViewers';
+import DocumentViewersStore from './DocumentViewersStore';
 import { Flex } from 'reflexbox';
 
 const Container = styled(Flex)`
@@ -18,52 +20,24 @@ const Container = styled(Flex)`
   }
 `;
 
-const StyledPopover = styled(Popover)`
-  display: flex;
-  flex-direction: column;
+type Props = {
+  documentId: string,
+  count: number,
+};
 
-  line-height: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 9999;
-
-  > svg {
-    height: 16px;
-    width: 16px;
-    position: absolute;
-
-    polygon:first-child {
-      fill: rgba(0,0,0,.075);
-    }
-    polygon {
-      fill: #FFF;
-    }
-  }
-
-  > div {
-    outline: none;
-    background: #FFF;
-    box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 8px 16px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.1);
-    border-radius: 4px;
-    line-height: 1.5;
-    padding: 16px;
-    margin-top: 14px;
-    min-width: 200px;
-    min-height: 150px;
-  }
-`;
-
-class DocumentViews extends Component {
+@observer class DocumentViews extends Component {
   anchor: HTMLElement;
-  props: {
-    documentId: string,
-    count: number,
-  };
+  store: DocumentViewersStore;
+  props: Props;
   state: {
     opened: boolean,
   };
   state = {};
+
+  constructor(props: Props) {
+    super(props);
+    this.store = new DocumentViewersStore(props.documentId);
+  }
 
   openPopover = () => {
     this.setState({ opened: true });
@@ -88,16 +62,12 @@ class DocumentViews extends Component {
           {this.props.count === 1 ? 'time' : 'times'}
         </a>
         {this.state.opened &&
-          <StyledPopover
-            anchor={this.anchor}
-            preset={Popover.preset.S}
-            onClose={this.closePopover}
-            closeOnOutsideScroll
-            closeOnOutsideFocus
-            closeOnEscKey
-          >
-            <DocumentViewers documentId={this.props.documentId} />
-          </StyledPopover>}
+          <Popover anchor={this.anchor} onClose={this.closePopover}>
+            <DocumentViewers
+              onMount={this.store.fetchViewers}
+              viewers={this.store.viewers}
+            />
+          </Popover>}
       </Container>
     );
   }

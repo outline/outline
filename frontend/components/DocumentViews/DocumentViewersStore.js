@@ -14,7 +14,7 @@ class DocumentViewersStore {
   @observable viewers: Array<View>;
   @observable isFetching: boolean;
 
-  @action fetchViews = async () => {
+  @action fetchViewers = async () => {
     this.isFetching = true;
 
     try {
