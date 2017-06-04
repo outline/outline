@@ -4,7 +4,7 @@ import { lock } from '../redis';
 
 import auth from './middlewares/authentication';
 import { presentDocument } from '../presenters';
-import { Document, Collection } from '../models';
+import { Document, Collection, Star } from '../models';
 
 const router = new Router();
 
@@ -58,6 +58,34 @@ router.post('documents.search', auth(), async ctx => {
     pagination: ctx.state.pagination,
     data,
   };
+});
+
+router.post('documents.star', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+  const document = await Document.findById(id);
+
+  if (!document || document.teamId !== user.teamId)
+    throw httpErrors.BadRequest();
+
+  await Star.findOrCreate({
+    where: { documentId: document.id, userId: user.id },
+  });
+});
+
+router.post('documents.unstar', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+  const document = await Document.findById(id);
+
+  if (!document || document.teamId !== user.teamId)
+    throw httpErrors.BadRequest();
+
+  await Star.destroy({
+    where: { documentId: document.id, userId: user.id },
+  });
 });
 
 router.post('documents.create', auth(), async ctx => {
@@ -172,7 +200,7 @@ router.post('documents.delete', auth(), async ctx => {
       throw httpErrors.BadRequest("Unable to delete atlas's root document");
     }
 
-    // Delete all chilren
+    // Delete all children
     try {
       await collection.deleteDocument(document);
       await collection.save();
