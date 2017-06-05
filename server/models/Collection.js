@@ -116,15 +116,9 @@ const Collection = sequelize.define(
 
         const updateChildren = (children, document) => {
           const id = document.id;
-          console.log(id);
+
           if (_.find(children, { id })) {
-            console.log(1);
             children = children.map(childDocument => {
-              console.log(
-                childDocument.id,
-                childDocument.title,
-                childDocument.id === id
-              );
               if (childDocument.id === id) {
                 childDocument = {
                   ...document.toJSON(),
@@ -134,7 +128,6 @@ const Collection = sequelize.define(
               return childDocument;
             });
           } else {
-            console.log(2);
             children = children.map(childDocument => {
               return updateChildren(childDocument.children, id);
             });
@@ -146,7 +139,8 @@ const Collection = sequelize.define(
           this.documentStructure,
           document
         );
-        this.save();
+
+        await this.save();
         return this;
       },
 
