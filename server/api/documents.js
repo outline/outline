@@ -136,20 +136,15 @@ router.post('documents.create', auth(), async ctx => {
     text,
   });
 
-  // TODO: Move to afterSave hook if possible with imports
-  if (parentDocument && ownerCollection.type === 'atlas') {
-    ownerCollection.addDocument(
-      newDocument,
-      newDocument.parentDocumentId,
-      index || -1
-    );
-    await ownerCollection.save();
+  if (ownerCollection.type === 'atlas') {
+    await ownerCollection.addDocumentToStructure(newDocument, index);
   }
 
   ctx.body = {
     data: await presentDocument(ctx, newDocument, {
       includeCollection: true,
       includeCollaborators: true,
+      collection: ownerCollection,
     }),
   };
 });
@@ -197,14 +192,15 @@ router.post('documents.delete', auth(), async ctx => {
 
   if (collection.type === 'atlas') {
     // Don't allow deletion of root docs
-    if (!document.parentDocumentId) {
-      throw httpErrors.BadRequest("Unable to delete atlas's root document");
+    if (collection.documentStructure.length === 1) {
+      throw httpErrors.BadRequest(
+        "Unable to delete collection's only document"
+      );
     }
 
     // Delete all chilren
     try {
       await collection.deleteDocument(document);
-      await collection.save();
     } catch (e) {
       throw httpErrors.BadRequest('Error while deleting');
     }

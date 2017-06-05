@@ -39,16 +39,16 @@ export async function presentDocument(ctx, document, options) {
   };
 
   if (options.includeCollection) {
-    data.collection =
-      options.collection ||
-      (await ctx.cache.get(document.atlasId, async () => {
-        const collection = await Collection.findOne({
+    data.collection = await ctx.cache.get(document.atlasId, async () => {
+      const collection =
+        options.collection ||
+        (await Collection.findOne({
           where: {
             id: document.atlasId,
           },
-        });
-        return await presentCollection(ctx, collection);
-      }));
+        }));
+      return await presentCollection(ctx, collection);
+    });
   }
 
   if (options.includeCollaborators) {

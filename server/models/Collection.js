@@ -83,16 +83,22 @@ const Collection = sequelize.define(
         return this.documentStructure;
       },
 
-      async addDocument(document, parentDocumentId, index = -1) {
+      async addDocumentToStructure(document, index) {
         if (!this.documentStructure) return;
 
-        if (!parentDocumentId) {
-          this.documentStructure.splice(index, 0, document.toJSON());
+        if (!document.parentDocumentId) {
+          this.documentStructure.splice(
+            index || this.documentStructure.length,
+            0,
+            document.toJSON()
+          );
+          // Sequelize doesn't seem to set the value with splice on JSONB field
+          this.documentStructure = this.documentStructure;
         } else {
           this.documentStructure = this.documentStructure.map(childDocument => {
-            if (parentDocumentId === childDocument.id) {
-              childDocument.children = childDocument.children.splice(
-                index,
+            if (document.parentDocumentId === childDocument.id) {
+              childDocument.children.splice(
+                index || childDocument.children.length,
                 0,
                 document.toJSON()
               );
@@ -101,11 +107,12 @@ const Collection = sequelize.define(
           });
         }
 
+        await this.save();
         return this;
       },
 
       async updateDocument(document) {
-        // if (!this.documentStructure) return;
+        if (!this.documentStructure) return;
 
         const updateChildren = (children, document) => {
           const id = document.id;
@@ -151,7 +158,10 @@ const Collection = sequelize.define(
             _.remove(children, { id });
           } else {
             children = children.map(childDocument => {
-              return deleteFromChildren(childDocument.children, id);
+              return {
+                ...childDocument,
+                children: deleteFromChildren(childDocument.children, id),
+              };
             });
           }
           return children;
@@ -161,6 +171,8 @@ const Collection = sequelize.define(
           this.documentStructure,
           document.id
         );
+
+        await this.save();
         return this;
       },
     },
