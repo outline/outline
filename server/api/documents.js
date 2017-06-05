@@ -157,18 +157,16 @@ router.post('documents.create', auth(), async ctx => {
 router.post('documents.update', auth(), async ctx => {
   const { id, title, text } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  ctx.assertPresent(title, 'title is required');
-  ctx.assertPresent(text, 'text is required');
+  ctx.assertPresent(title || text, 'title or text is required');
 
   const user = ctx.state.user;
   const document = await getDocumentForId(id);
 
-  if (!document || document.teamId !== user.teamId)
-    throw httpErrors.BadRequest();
+  if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
 
   // Update document
-  document.title = title;
-  document.text = text;
+  if (title) document.title = title;
+  if (text) document.text = text;
   document.lastModifiedById = user.id;
   await document.save();
 
@@ -181,6 +179,7 @@ router.post('documents.update', auth(), async ctx => {
     data: await presentDocument(ctx, document, {
       includeCollection: true,
       includeCollaborators: true,
+      collection: collection,
     }),
   };
 });

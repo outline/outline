@@ -50,12 +50,7 @@ const Collection = sequelize.define(
           title: 'Introduction',
           text: '# Introduction\n\nLets get started...',
         });
-        collection.documentStructure = [
-          {
-            ...document.toJSON(),
-            children: [],
-          },
-        ];
+        collection.documentStructure = [document.toJSON()];
         await collection.save();
       },
     },
@@ -88,56 +83,86 @@ const Collection = sequelize.define(
         return this.documentStructure;
       },
 
-      async addDocument(document, parentDocumentId, index) {
+      async addDocument(document, parentDocumentId, index = -1) {
+        if (!this.documentStructure) return;
+
         if (!parentDocumentId) {
           this.documentStructure.splice(index, 0, document.toJSON());
         } else {
-          this.documentStructure = this.documentStructure.forEach(doc => {
-            if (parentDocumentId === document) {
-              return doc.children.splice(index, 0, document.toJSON());
+          this.documentStructure = this.documentStructure.map(childDocument => {
+            if (parentDocumentId === childDocument.id) {
+              childDocument.children = childDocument.children.splice(
+                index,
+                0,
+                document.toJSON()
+              );
             }
+            return childDocument;
           });
         }
 
-        return this.documentStructure;
+        return this;
       },
 
       async updateDocument(document) {
-        // Update document info in this.documents
+        // if (!this.documentStructure) return;
+
+        const updateChildren = (children, document) => {
+          const id = document.id;
+          console.log(id);
+          if (_.find(children, { id })) {
+            console.log(1);
+            children = children.map(childDocument => {
+              console.log(
+                childDocument.id,
+                childDocument.title,
+                childDocument.id === id
+              );
+              if (childDocument.id === id) {
+                childDocument = {
+                  ...document.toJSON(),
+                  children: childDocument.children,
+                };
+              }
+              return childDocument;
+            });
+          } else {
+            console.log(2);
+            children = children.map(childDocument => {
+              return updateChildren(childDocument.children, id);
+            });
+          }
+          return children;
+        };
+
+        this.documentStructure = updateChildren(
+          this.documentStructure,
+          document
+        );
+        this.save();
+        return this;
       },
-      // async deleteDocument(document) {
-      //   const deleteNodeAndDocument = async (
-      //     node,
-      //     documentId,
-      //     shouldDelete = false
-      //   ) => {
-      //     // Delete node if id matches
-      //     if (document.id === node.id) shouldDelete = true;
 
-      //     const newChildren = [];
-      //     node.children.forEach(async childNode => {
-      //       const child = await deleteNodeAndDocument(
-      //         childNode,
-      //         documentId,
-      //         shouldDelete
-      //       );
-      //       if (child) newChildren.push(child);
-      //     });
-      //     node.children = newChildren;
+      async deleteDocument(document) {
+        if (!this.documentStructure) return;
 
-      //     if (shouldDelete) {
-      //       const doc = await Document.findById(node.id);
-      //       await doc.destroy();
-      //     }
+        const deleteFromChildren = (children, id) => {
+          if (_.find(children, { id })) {
+            _.remove(children, { id });
+          } else {
+            children = children.map(childDocument => {
+              return deleteFromChildren(childDocument.children, id);
+            });
+          }
+          return children;
+        };
 
-      //     return shouldDelete ? null : node;
-      //   };
-
-      //   this.navigationTree = await deleteNodeAndDocument(
-      //     this.navigationTree,
-      //     document.id
-      //   );
-      // },
+        this.documentStructure = deleteFromChildren(
+          this.documentStructure,
+          document.id
+        );
+        return this;
+      },
     },
   }
 );

@@ -39,14 +39,16 @@ export async function presentDocument(ctx, document, options) {
   };
 
   if (options.includeCollection) {
-    data.collection = await ctx.cache.get(document.atlasId, async () => {
-      const collection = await Collection.findOne({
-        where: {
-          id: document.atlasId,
-        },
-      });
-      return await presentCollection(ctx, collection);
-    });
+    data.collection =
+      options.collection ||
+      (await ctx.cache.get(document.atlasId, async () => {
+        const collection = await Collection.findOne({
+          where: {
+            id: document.atlasId,
+          },
+        });
+        return await presentCollection(ctx, collection);
+      }));
   }
 
   if (options.includeCollaborators) {
@@ -93,7 +95,6 @@ export async function presentCollection(
   };
 
   if (collection.type === 'atlas') {
-    data.navigationTree = collection.navigationTree;
     data.documents = await collection.getDocumentsStructure();
   }
 
