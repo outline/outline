@@ -40,7 +40,7 @@ type State = {
           throw new Error('TODO code up non-atlas collections');
 
         this.setState({
-          redirectUrl: collection.navigationTree.url,
+          redirectUrl: collection.documents[0].url,
         });
       })
       .catch(() => {

@@ -55,24 +55,31 @@ type Props = {
 
   render() {
     const document = get(this.props, 'document');
-    const collection = get(document, 'collection.type') === 'atlas';
-    const allowDelete =
-      collection &&
-      document.id !== get(document, 'collection.navigationTree.id');
+    if (document) {
+      const collection = document.collection;
+      debugger;
+      const allowDelete =
+        collection &&
+        collection.type === 'atlas' &&
+        collection.documents &&
+        collection.documents.length > 1;
 
-    return (
-      <DropdownMenu label={<MoreIcon />}>
-        {collection &&
-          <div>
-            <MenuItem onClick={this.onCreateDocument}>
-              New document
-            </MenuItem>
-            <MenuItem onClick={this.onCreateChild}>New child</MenuItem>
-          </div>}
-        <MenuItem onClick={this.onExport}>Export</MenuItem>
-        {allowDelete && <MenuItem onClick={this.onDelete}>Delete</MenuItem>}
-      </DropdownMenu>
-    );
+      return (
+        <DropdownMenu label={<MoreIcon />}>
+          {collection &&
+            <div>
+              <MenuItem onClick={this.onCreateDocument}>
+                New document
+              </MenuItem>
+              <MenuItem onClick={this.onCreateChild}>New child</MenuItem>
+            </div>}
+          <MenuItem onClick={this.onExport}>Export</MenuItem>
+          {allowDelete && <MenuItem onClick={this.onDelete}>Delete</MenuItem>}
+        </DropdownMenu>
+      );
+    } else {
+      return <div />;
+    }
   }
 }
 

@@ -14,7 +14,7 @@ class Collection {
   id: string;
   name: string;
   type: 'atlas' | 'journal';
-  navigationTree: NavigationNode;
+  documents: Array<NavigationNode>;
   updatedAt: string;
   url: string;
 
