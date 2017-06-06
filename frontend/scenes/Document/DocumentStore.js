@@ -77,23 +77,23 @@ class DocumentStore {
   @action fetchDocument = async () => {
     this.isFetching = true;
 
-    // try {
-    const res = await client.get(
-      '/documents.info',
-      {
-        id: this.documentId,
-      },
-      { cache: true }
-    );
-    invariant(res && res.data, 'Data should be available');
-    if (this.newChildDocument) {
-      this.parentDocument = res.data;
-    } else {
-      this.document = res.data;
+    try {
+      const res = await client.get(
+        '/documents.info',
+        {
+          id: this.documentId,
+        },
+        { cache: true }
+      );
+      invariant(res && res.data, 'Data should be available');
+      if (this.newChildDocument) {
+        this.parentDocument = res.data;
+      } else {
+        this.document = res.data;
+      }
+    } catch (e) {
+      console.error('Something went wrong');
     }
-    // } catch (e) {
-    //   console.error('Something went wrong');
-    // }
     this.isFetching = false;
   };
 
