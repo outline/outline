@@ -179,6 +179,49 @@ router.post('documents.update', auth(), async ctx => {
   };
 });
 
+router.post('documents.move', auth(), async ctx => {
+  const { id, parentDocument, index } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  if (parentDocument)
+    ctx.assertUuid(parentDocument, 'parentDocument must be an uuid');
+  if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
+
+  const user = ctx.state.user;
+  const document = await getDocumentForId(id);
+
+  if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
+
+  // Set parent document
+  if (parentDocument) {
+    const parent = await getDocumentForId(parentDocument);
+    if (parent.atlasId !== document.atlasId)
+      throw httpErrors.BadRequest(
+        'Invalid parentDocument (must be same collection)'
+      );
+  }
+
+  if (parentDocument === id)
+    throw httpErrors.BadRequest('Infinite loop detected and prevented!');
+
+  // If no parent document is provided, set it as null (move to root level)
+  document.parentDocumentId = parentDocument;
+  await document.save();
+
+  const collection = await Collection.findById(document.atlasId);
+  if (collection.type === 'atlas') {
+    await collection.deleteDocument(document);
+    await collection.addDocumentToStructure(document, index);
+  }
+
+  ctx.body = {
+    data: await presentDocument(ctx, document, {
+      includeCollection: true,
+      includeCollaborators: true,
+      collection: collection,
+    }),
+  };
+});
+
 router.post('documents.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
