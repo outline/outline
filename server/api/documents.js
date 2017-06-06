@@ -114,7 +114,6 @@ router.post('documents.create', auth(), async ctx => {
 
   if (!ownerCollection) throw httpErrors.BadRequest();
 
-  // FIXME: should we validate the existance of parentDocument?
   let parentDocumentObj = {};
   if (parentDocument && ownerCollection.type === 'atlas') {
     parentDocumentObj = await Document.findOne({
