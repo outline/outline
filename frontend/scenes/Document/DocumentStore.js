@@ -35,7 +35,6 @@ class DocumentStore {
   @observable hasPendingChanges = false;
   @observable newDocument: ?boolean;
   @observable newChildDocument: ?boolean;
-  @observable views: number;
 
   @observable isEditing: boolean = false;
   @observable isFetching: boolean = false;

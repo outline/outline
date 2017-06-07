@@ -28,6 +28,7 @@ export type Document = {
   id: string,
   private: boolean,
   starred: boolean,
+  views: number,
   team: string,
   text: string,
   title: string,

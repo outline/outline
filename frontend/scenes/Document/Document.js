@@ -161,10 +161,6 @@ type Props = {
                   documentId={this.store.document.id}
                 />
               </Meta>}
-            {!this.store.document.starred &&
-              <a onClick={this.store.starDocument}>Star</a>}
-            {this.store.document.starred &&
-              <a onClick={this.store.unstarDocument}>Unstar</a>}
             <Editor
               text={this.store.document.text}
               onImageUploadStart={this.onImageUploadStart}
@@ -172,6 +168,9 @@ type Props = {
               onChange={this.store.updateText}
               onSave={this.onSave}
               onCancel={this.onCancel}
+              onStar={this.store.starDocument}
+              onUnstar={this.store.unstarDocument}
+              starred={this.store.document.starred}
               readOnly={!isEditing}
             />
           </Container>}
