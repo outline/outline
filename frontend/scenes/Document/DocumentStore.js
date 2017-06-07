@@ -95,17 +95,27 @@ class DocumentStore {
   /* Actions */
 
   @action starDocument = async () => {
-    await client.post('/documents.star', {
-      id: this.documentId,
-    });
     this.document.starred = true;
+    try {
+      await client.post('/documents.unstar', {
+        id: this.documentId,
+      });
+    } catch (e) {
+      this.document.starred = false;
+      console.error('Something went wrong');
+    }
   };
 
   @action unstarDocument = async () => {
-    await client.post('/documents.unstar', {
-      id: this.documentId,
-    });
     this.document.starred = false;
+    try {
+      await client.post('/documents.unstar', {
+        id: this.documentId,
+      });
+    } catch (e) {
+      this.document.starred = true;
+      console.error('Something went wrong');
+    }
   };
 
   @action viewDocument = async () => {
