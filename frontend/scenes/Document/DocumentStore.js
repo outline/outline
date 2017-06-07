@@ -58,7 +58,7 @@ class DocumentStore {
           path = previousPath;
           return;
         } else {
-          return traveler(childNode, newPath);
+          return traveler(childNode.chilren, newPath);
         }
       });
     };
