@@ -40,12 +40,14 @@ export async function presentDocument(ctx, document, options) {
 
   if (options.includeCollection) {
     data.collection = await ctx.cache.get(document.atlasId, async () => {
-      const collection = await Collection.findOne({
-        where: {
-          id: document.atlasId,
-        },
-      });
-      return await presentCollection(ctx, collection);
+      const collection =
+        options.collection ||
+        (await Collection.findOne({
+          where: {
+            id: document.atlasId,
+          },
+        }));
+      return presentCollection(ctx, collection);
     });
   }
 
@@ -92,8 +94,9 @@ export async function presentCollection(
     updatedAt: collection.updatedAt,
   };
 
-  if (collection.type === 'atlas')
-    data.navigationTree = collection.navigationTree;
+  if (collection.type === 'atlas') {
+    data.documents = await collection.getDocumentsStructure();
+  }
 
   if (includeRecentDocuments) {
     const documents = await Document.findAll({

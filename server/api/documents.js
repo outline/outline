@@ -1,12 +1,11 @@
+// @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
-import { lock } from '../redis';
 import isUUID from 'validator/lib/isUUID';
 
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
 import auth from './middlewares/authentication';
-// import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
 import { Document, Collection } from '../models';
 
@@ -96,10 +95,14 @@ router.post('documents.search', auth(), async ctx => {
 });
 
 router.post('documents.create', auth(), async ctx => {
-  const { collection, title, text, parentDocument } = ctx.body;
+  const { collection, title, text, parentDocument, index } = ctx.body;
   ctx.assertPresent(collection, 'collection is required');
+  ctx.assertUuid(collection, 'collection must be an uuid');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
+  if (parentDocument)
+    ctx.assertUuid(parentDocument, 'parentDocument must be an uuid');
+  if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
   const user = ctx.state.user;
   const ownerCollection = await Collection.findOne({
@@ -111,47 +114,36 @@ router.post('documents.create', auth(), async ctx => {
 
   if (!ownerCollection) throw httpErrors.BadRequest();
 
-  const document = await (() => {
-    return new Promise(resolve => {
-      lock(ownerCollection.id, 10000, async done => {
-        // FIXME: should we validate the existance of parentDocument?
-        let parentDocumentObj = {};
-        if (parentDocument && ownerCollection.type === 'atlas') {
-          parentDocumentObj = await Document.findOne({
-            where: {
-              id: parentDocument,
-              atlasId: ownerCollection.id,
-            },
-          });
-        }
-
-        const newDocument = await Document.create({
-          parentDocumentId: parentDocumentObj.id,
-          atlasId: ownerCollection.id,
-          teamId: user.teamId,
-          userId: user.id,
-          lastModifiedById: user.id,
-          createdById: user.id,
-          title,
-          text,
-        });
-
-        // TODO: Move to afterSave hook if possible with imports
-        if (parentDocument && ownerCollection.type === 'atlas') {
-          await ownerCollection.reload();
-          ownerCollection.addNodeToNavigationTree(newDocument);
-          await ownerCollection.save();
-        }
-
-        done(resolve(newDocument));
-      });
+  let parentDocumentObj = {};
+  if (parentDocument && ownerCollection.type === 'atlas') {
+    parentDocumentObj = await Document.findOne({
+      where: {
+        id: parentDocument,
+        atlasId: ownerCollection.id,
+      },
     });
-  })();
+  }
+
+  const newDocument = await Document.create({
+    parentDocumentId: parentDocumentObj.id,
+    atlasId: ownerCollection.id,
+    teamId: user.teamId,
+    userId: user.id,
+    lastModifiedById: user.id,
+    createdById: user.id,
+    title,
+    text,
+  });
+
+  if (ownerCollection.type === 'atlas') {
+    await ownerCollection.addDocumentToStructure(newDocument, index);
+  }
 
   ctx.body = {
-    data: await presentDocument(ctx, document, {
+    data: await presentDocument(ctx, newDocument, {
       includeCollection: true,
       includeCollaborators: true,
+      collection: ownerCollection,
     }),
   };
 });
@@ -159,32 +151,72 @@ router.post('documents.create', auth(), async ctx => {
 router.post('documents.update', auth(), async ctx => {
   const { id, title, text } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  ctx.assertPresent(title, 'title is required');
-  ctx.assertPresent(text, 'text is required');
+  ctx.assertPresent(title || text, 'title or text is required');
 
   const user = ctx.state.user;
   const document = await getDocumentForId(id);
 
-  if (!document || document.teamId !== user.teamId)
-    throw httpErrors.BadRequest();
+  if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
 
   // Update document
-  document.title = title;
-  document.text = text;
+  if (title) document.title = title;
+  if (text) document.text = text;
   document.lastModifiedById = user.id;
   await document.save();
 
-  // Update
-  // TODO: Add locking
   const collection = await Collection.findById(document.atlasId);
   if (collection.type === 'atlas') {
-    await collection.updateNavigationTree();
+    await collection.updateDocument(document);
   }
 
   ctx.body = {
     data: await presentDocument(ctx, document, {
       includeCollection: true,
       includeCollaborators: true,
+      collection: collection,
+    }),
+  };
+});
+
+router.post('documents.move', auth(), async ctx => {
+  const { id, parentDocument, index } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  if (parentDocument)
+    ctx.assertUuid(parentDocument, 'parentDocument must be an uuid');
+  if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
+
+  const user = ctx.state.user;
+  const document = await getDocumentForId(id);
+
+  if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
+
+  // Set parent document
+  if (parentDocument) {
+    const parent = await getDocumentForId(parentDocument);
+    if (parent.atlasId !== document.atlasId)
+      throw httpErrors.BadRequest(
+        'Invalid parentDocument (must be same collection)'
+      );
+  }
+
+  if (parentDocument === id)
+    throw httpErrors.BadRequest('Infinite loop detected and prevented!');
+
+  // If no parent document is provided, set it as null (move to root level)
+  document.parentDocumentId = parentDocument;
+  await document.save();
+
+  const collection = await Collection.findById(document.atlasId);
+  if (collection.type === 'atlas') {
+    await collection.deleteDocument(document);
+    await collection.addDocumentToStructure(document, index);
+  }
+
+  ctx.body = {
+    data: await presentDocument(ctx, document, {
+      includeCollection: true,
+      includeCollaborators: true,
+      collection: collection,
     }),
   };
 });
@@ -200,17 +232,17 @@ router.post('documents.delete', auth(), async ctx => {
   if (!document || document.teamId !== user.teamId)
     throw httpErrors.BadRequest();
 
-  // TODO: Add locking
   if (collection.type === 'atlas') {
     // Don't allow deletion of root docs
-    if (!document.parentDocumentId) {
-      throw httpErrors.BadRequest("Unable to delete atlas's root document");
+    if (collection.documentStructure.length === 1) {
+      throw httpErrors.BadRequest(
+        "Unable to delete collection's only document"
+      );
     }
 
     // Delete all chilren
     try {
       await collection.deleteDocument(document);
-      await collection.save();
     } catch (e) {
       throw httpErrors.BadRequest('Error while deleting');
     }

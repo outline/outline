@@ -1,5 +1,5 @@
 // @flow
-import { observable, action, computed, toJS } from 'mobx';
+import { observable, action, computed } from 'mobx';
 import get from 'lodash/get';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
@@ -49,42 +49,22 @@ class DocumentStore {
     return !!this.document && this.document.collection.type === 'atlas';
   }
 
-  @computed get collectionTree(): ?Object {
-    if (
-      this.document &&
-      this.document.collection &&
-      this.document.collection.type === 'atlas'
-    ) {
-      const tree = this.document.collection.navigationTree;
-      const collapseNodes = node => {
-        node.collapsed = this.collapsedNodes.includes(node.id);
-        node.children = node.children.map(childNode => {
-          return collapseNodes(childNode);
-        });
-
-        return node;
-      };
-
-      return collapseNodes(toJS(tree));
-    }
-  }
-
   @computed get pathToDocument(): Array<NavigationNode> {
     let path;
-    const traveler = (node, previousPath) => {
-      if (this.document && node.id === this.document.id) {
-        path = previousPath;
-        return;
-      } else {
-        node.children.forEach(childNode => {
-          const newPath = [...previousPath, node];
+    const traveler = (nodes, previousPath) => {
+      nodes.forEach(childNode => {
+        const newPath = [...previousPath, childNode];
+        if (childNode.id === this.document.id) {
+          path = previousPath;
+          return;
+        } else {
           return traveler(childNode, newPath);
-        });
-      }
+        }
+      });
     };
 
-    if (this.document && this.collectionTree) {
-      traveler(this.collectionTree, []);
+    if (this.document && this.document.collection.documents) {
+      traveler(this.document.collection.documents, []);
       invariant(path, 'Path is not available for collection, abort');
       return path.splice(1);
     }

@@ -15,7 +15,6 @@ export type NavigationNode = {
   id: string,
   title: string,
   url: string,
-  collapsed: boolean,
   children: Array<NavigationNode>,
 };
 

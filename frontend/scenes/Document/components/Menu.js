@@ -11,7 +11,6 @@ import DocumentStore from '../DocumentStore';
 type Props = {
   history: Object,
   document: DocumentType,
-  collectionTree: ?Object,
   store: DocumentStore,
 };
 
@@ -19,8 +18,9 @@ type Props = {
   props: Props;
 
   onCreateDocument = () => {
-    invariant(this.props.collectionTree, 'collectionTree is not available');
-    this.props.history.push(`${this.props.collectionTree.url}/new`);
+    // Disabled until created a better API
+    // invariant(this.props.collectionTree, 'collectionTree is not available');
+    // this.props.history.push(`${this.props.collectionTree.url}/new`);
   };
 
   onCreateChild = () => {
@@ -55,24 +55,29 @@ type Props = {
 
   render() {
     const document = get(this.props, 'document');
-    const collection = get(document, 'collection.type') === 'atlas';
-    const allowDelete =
-      collection &&
-      document.id !== get(document, 'collection.navigationTree.id');
+    if (document) {
+      const collection = document.collection;
+      const allowDelete =
+        collection &&
+        collection.type === 'atlas' &&
+        collection.documents &&
+        collection.documents.length > 1;
 
-    return (
-      <DropdownMenu label={<MoreIcon />}>
-        {collection &&
-          <div>
-            <MenuItem onClick={this.onCreateDocument}>
-              New document
-            </MenuItem>
-            <MenuItem onClick={this.onCreateChild}>New child</MenuItem>
-          </div>}
-        <MenuItem onClick={this.onExport}>Export</MenuItem>
-        {allowDelete && <MenuItem onClick={this.onDelete}>Delete</MenuItem>}
-      </DropdownMenu>
-    );
+      return (
+        <DropdownMenu label={<MoreIcon />}>
+          {collection &&
+            <div>
+              <MenuItem onClick={this.onCreateDocument}>
+                New document
+              </MenuItem>
+              <MenuItem onClick={this.onCreateChild}>New child</MenuItem>
+            </div>}
+          <MenuItem onClick={this.onExport}>Export</MenuItem>
+          {allowDelete && <MenuItem onClick={this.onDelete}>Delete</MenuItem>}
+        </DropdownMenu>
+      );
+    }
+    return null;
   }
 }
 
