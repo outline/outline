@@ -117,11 +117,7 @@ type Props = {
               />
             : <a onClick={this.onEdit}>Edit</a>}
         </HeaderAction>
-        <Menu
-          store={this.store}
-          document={this.store.document}
-          collectionTree={this.store.collectionTree}
-        />
+        <Menu store={this.store} document={this.store.document} />
       </Flex>
     );
 

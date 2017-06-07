@@ -47,7 +47,7 @@ export async function presentDocument(ctx, document, options) {
             id: document.atlasId,
           },
         }));
-      return await presentCollection(ctx, collection);
+      return presentCollection(ctx, collection);
     });
   }
 

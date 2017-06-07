@@ -11,7 +11,6 @@ import DocumentStore from '../DocumentStore';
 type Props = {
   history: Object,
   document: DocumentType,
-  collectionTree: ?Object,
   store: DocumentStore,
 };
 
@@ -19,8 +18,9 @@ type Props = {
   props: Props;
 
   onCreateDocument = () => {
-    invariant(this.props.collectionTree, 'collectionTree is not available');
-    this.props.history.push(`${this.props.collectionTree.url}/new`);
+    // Disabled until created a better API
+    // invariant(this.props.collectionTree, 'collectionTree is not available');
+    // this.props.history.push(`${this.props.collectionTree.url}/new`);
   };
 
   onCreateChild = () => {
@@ -57,7 +57,6 @@ type Props = {
     const document = get(this.props, 'document');
     if (document) {
       const collection = document.collection;
-      debugger;
       const allowDelete =
         collection &&
         collection.type === 'atlas' &&
@@ -77,9 +76,8 @@ type Props = {
           {allowDelete && <MenuItem onClick={this.onDelete}>Delete</MenuItem>}
         </DropdownMenu>
       );
-    } else {
-      return <div />;
     }
+    return null;
   }
 }
 
