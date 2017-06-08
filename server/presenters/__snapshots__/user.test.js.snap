@@ -1,17 +1,19 @@
-exports[`test presents a user 1`] = `
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`presents a user 1`] = `
 Object {
   "avatarUrl": "http://example.com/avatar.png",
   "id": "123",
   "name": "Test User",
-  "username": "testuser"
+  "username": "testuser",
 }
 `;
 
-exports[`test presents a user without slack data 1`] = `
+exports[`presents a user without slack data 1`] = `
 Object {
   "avatarUrl": null,
   "id": "123",
   "name": "Test User",
-  "username": "testuser"
+  "username": "testuser",
 }
 `;
