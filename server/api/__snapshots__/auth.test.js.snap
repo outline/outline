@@ -1,9 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
 exports[`#auth.login should login with email 1`] = `
 Object {
   "avatarUrl": "http://example.com/avatar.png",
   "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
   "name": "User 1",
-  "username": "user1"
+  "username": "user1",
 }
 `;
 
@@ -12,7 +14,7 @@ Object {
   "avatarUrl": "http://example.com/avatar.png",
   "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
   "name": "User 1",
-  "username": "user1"
+  "username": "user1",
 }
 `;
 
@@ -21,7 +23,7 @@ Object {
   "error": "validation_error",
   "message": "username/email is required",
   "ok": false,
-  "status": 400
+  "status": 400,
 }
 `;
 
@@ -30,7 +32,7 @@ Object {
   "error": "validation_error",
   "message": "username/email is required",
   "ok": false,
-  "status": 400
+  "status": 400,
 }
 `;
 
@@ -39,7 +41,7 @@ Object {
   "error": "validation_error",
   "message": "username/email is required",
   "ok": false,
-  "status": 400
+  "status": 400,
 }
 `;
 
@@ -48,7 +50,7 @@ Object {
   "error": "validation_error",
   "message": "name is required",
   "ok": false,
-  "status": 400
+  "status": 400,
 }
 `;
 
@@ -57,7 +59,7 @@ Object {
   "error": "user_exists_with_email",
   "message": "User already exists with this email",
   "ok": false,
-  "status": 400
+  "status": 400,
 }
 `;
 
@@ -66,7 +68,7 @@ Object {
   "error": "user_exists_with_username",
   "message": "User already exists with this username",
   "ok": false,
-  "status": 400
+  "status": 400,
 }
 `;
 
@@ -75,6 +77,6 @@ Object {
   "error": "validation_error",
   "message": "email is invalid",
   "ok": false,
-  "status": 400
+  "status": 400,
 }
 `;

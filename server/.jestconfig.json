@@ -1,6 +1,7 @@
 {
   "verbose": true,
-  "testPathDirs": [
+  "rootDir": "..",
+  "roots": [
     "<rootDir>/server"
   ],
   "setupFiles": [
