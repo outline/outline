@@ -3,7 +3,6 @@ import { User } from '.';
 import { flushdb, sequelize } from '../test/support';
 
 beforeEach(flushdb);
-afterAll(() => sequelize.close());
 
 it('should set JWT secret and password digest', async () => {
   const user = User.build({

@@ -1,8 +1,8 @@
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
-import _ from 'lodash';
 import Document from './Document';
+import _ from 'lodash';
 
 slug.defaults.mode = 'rfc3986';
 
@@ -50,6 +50,14 @@ const Collection = sequelize.define(
         });
         await collection.buildStructure();
         await collection.save();
+      },
+    },
+    classMethods: {
+      associate: models => {
+        Collection.hasMany(models.Document, {
+          as: 'documents',
+          foreignKey: 'atlasId',
+        });
       },
     },
     instanceMethods: {
@@ -212,7 +220,5 @@ const Collection = sequelize.define(
     },
   }
 );
-
-Collection.hasMany(Document, { as: 'documents', foreignKey: 'atlasId' });
 
 export default Collection;

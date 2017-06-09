@@ -1,36 +1,27 @@
 import TestServer from 'fetch-test-server';
-
 import app from '..';
-import { User } from '../models';
-
-import { flushdb, seed, sequelize } from '../test/support';
+import { flushdb, seed } from '../test/support';
 
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
 afterAll(() => server.close());
 
-describe('#user.info', async () => {
-  it('should return known user', async () => {
-    await seed();
-    const user = await User.findOne({
-      where: {
-        email: 'user1@example.com',
-      },
-    });
-
-    const res = await server.post('/api/user.info', {
+describe('#documents.list', async () => {
+  it('should return documents', async () => {
+    const { user } = await seed();
+    const res = await server.post('/api/documents.list', {
       body: { token: user.getJwtToken() },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
+    expect(body.data.length).toEqual(1);
   });
 
   it('should require authentication', async () => {
     await seed();
-    const res = await server.post('/api/user.info');
+    const res = await server.post('/api/documents.list');
     const body = await res.json();
 
     expect(res.status).toEqual(401);

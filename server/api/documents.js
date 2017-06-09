@@ -1,14 +1,34 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
+import _ from 'lodash';
 import { lock } from '../redis';
 
 import auth from './middlewares/authentication';
+import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
 import { Document, Collection } from '../models';
 
 const router = new Router();
 
-// FIXME: This really needs specs :/
+router.post('documents.list', auth(), pagination(), async ctx => {
+  const user = ctx.state.user;
+  const documents = await Document.findAll({
+    where: { teamId: user.teamId },
+    order: [['updatedAt', 'DESC']],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(documents.map(doc => presentDocument(ctx, doc)));
+
+  data = _.orderBy(data, ['updatedAt'], ['desc']);
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
 router.post('documents.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
