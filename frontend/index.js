@@ -98,6 +98,7 @@ render(
               <Route exact path="/dashboard" component={Dashboard} />
               <Route exact path="/collections/:id" component={Collection} />
               <Route exact path="/d/:id" component={Document} />
+
               <Route exact path="/d/:id/:edit" component={Document} />
               <Route
                 exact

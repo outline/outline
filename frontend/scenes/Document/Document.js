@@ -21,20 +21,6 @@ You have unsaved changes.
 Are you sure you want to discard them?
 `;
 
-const Container = styled.div`
-  position: relative;
-  font-weight: 400;
-  font-size: 1em;
-  line-height: 1.5em;
-  padding: 0 3em;
-  width: 50em;
-`;
-
-const Meta = styled.div`
-  position: absolute;
-  top: 12px;
-`;
-
 type Props = {
   match: Object,
   history: Object,
@@ -129,37 +115,52 @@ type Props = {
         search={false}
         fixed
       >
-        <PageTitle title={titleText} />
-        <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
-        {this.store.isFetching &&
-          <CenteredContent>
-            <PreviewLoading />
-          </CenteredContent>}
-        {this.store.document &&
-          <Container>
-            {!isEditing &&
-              <Meta>
+        <PagePadding>
+          <PageTitle title={titleText} />
+          <Prompt
+            when={this.store.hasPendingChanges}
+            message={DISCARD_CHANGES}
+          />
+          {this.store.isFetching &&
+            <CenteredContent>
+              <PreviewLoading />
+            </CenteredContent>}
+          {this.store.document &&
+            <Container>
+              {!isEditing &&
                 <PublishingInfo
                   collaborators={this.store.document.collaborators}
                   createdAt={this.store.document.createdAt}
                   createdBy={this.store.document.createdBy}
                   updatedAt={this.store.document.updatedAt}
                   updatedBy={this.store.document.updatedBy}
-                />
-              </Meta>}
-            <Editor
-              text={this.store.document.text}
-              onImageUploadStart={this.onImageUploadStart}
-              onImageUploadStop={this.onImageUploadStop}
-              onChange={this.store.updateText}
-              onSave={this.onSave}
-              onCancel={this.onCancel}
-              readOnly={!isEditing}
-            />
-          </Container>}
+                />}
+              <Editor
+                text={this.store.document.text}
+                onImageUploadStart={this.onImageUploadStart}
+                onImageUploadStop={this.onImageUploadStop}
+                onChange={this.store.updateText}
+                onSave={this.onSave}
+                onCancel={this.onCancel}
+                readOnly={!isEditing}
+              />
+            </Container>}
+        </PagePadding>
       </Layout>
     );
   }
 }
+
+const PagePadding = styled(Flex)`
+  margin: 80px; 0
+`;
+
+const Container = styled.div`
+  font-weight: 400;
+  font-size: 1em;
+  line-height: 1.5em;
+  padding: 0 3em;
+  width: 50em;
+`;
 
 export default withRouter(Document);

@@ -72,9 +72,6 @@ type Props = {
         <Header>
           <Flex align="center">
             <LogoLink to="/">Atlas</LogoLink>
-            <Title>
-              {this.props.title}
-            </Title>
           </Flex>
           <Flex>
             <Flex>
@@ -120,21 +117,23 @@ type Props = {
 }
 
 const Container = styled(Flex)`
+  position: relative;
   width: 100%;
   height: 100%;
 `;
 
 const Header = styled(Flex)`
-  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   justify-content: space-between;
   align-items: center;
 
   padding: 0 20px;
 
   z-index: 1;
-  background: #fff;
   height: ${headerHeight};
-  border-bottom: 1px solid #eee;
 
   font-size: 14px;
   line-height: 1;
@@ -146,18 +145,6 @@ const LogoLink = styled(Link)`
   color: ${textColor};
   text-decoration: none;
   font-size: 16px;
-`;
-
-const Title = styled.span`
-  color: #ccc;
-
-  a {
-    color: #ccc;
-  }
-
-  a:hover {
-    color: ${textColor};
-  }
 `;
 
 const Search = styled(Flex)`

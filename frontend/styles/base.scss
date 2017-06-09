@@ -20,7 +20,7 @@ html, body, .viewport {
 }
 
 body {
-  font-family: 'Atlas Grotesk', -apple-system, 'Helvetica Neue', Helvetica, sans-serif;
+  font-family: -apple-system, 'Helvetica Neue', Helvetica, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   margin: 0;
@@ -47,7 +47,7 @@ a {
 }
 h1, h2, h3,
 h4, h5, h6 {
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: .5em;

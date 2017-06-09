@@ -99,7 +99,8 @@ export default class MarkdownEditor extends Component {
   render = () => {
     return (
       <span>
-        <ClickablePadding onClick={this.focusAtStart} />
+        {!this.props.readOnly &&
+          <ClickablePadding onClick={this.focusAtStart} />}
         <Toolbar state={this.state.state} onChange={this.onChange} />
         <Editor
           ref={ref => (this.editor = ref)}
@@ -114,7 +115,8 @@ export default class MarkdownEditor extends Component {
           onSave={this.props.onSave}
           readOnly={this.props.readOnly}
         />
-        <ClickablePadding onClick={this.focusAtEnd} grow />
+        {!this.props.readOnly &&
+          <ClickablePadding onClick={this.focusAtEnd} grow />}
       </span>
     );
   };
