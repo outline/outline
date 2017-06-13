@@ -11,10 +11,8 @@ import { Document, Collection, Star, View } from '../models';
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
-  let { sort, direction } = ctx.body;
-
+  let { sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
-  if (sort !== 'createdAt') sort = 'updatedAt';
 
   const user = ctx.state.user;
   const documents = await Document.findAll({
@@ -33,13 +31,39 @@ router.post('documents.list', auth(), pagination(), async ctx => {
 });
 
 router.post('documents.viewed', auth(), pagination(), async ctx => {
-  const { limit = 10 } = ctx.body;
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
   const user = ctx.state.user;
   const views = await View.findAll({
     where: { userId: user.id },
-    order: [['updatedAt', 'DESC']],
+    order: [[sort, direction]],
     include: [{ model: Document }],
-    limit,
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(
+    views.map(view => presentDocument(ctx, view.document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
+router.post('documents.starred', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const views = await Star.findAll({
+    where: { userId: user.id },
+    order: [[sort, direction]],
+    include: [{ model: Document }],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
   });
 
   let data = await Promise.all(
