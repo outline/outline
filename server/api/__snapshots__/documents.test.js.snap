@@ -9,75 +9,11 @@ Object {
 }
 `;
 
-exports[`#documents.list should return documents 1`] = `
+exports[`#documents.viewed should require authentication 1`] = `
 Object {
-  "data": Array [
-    Object {
-      "collaborators": Array [
-        Object {
-          "avatarUrl": "http://example.com/avatar.png",
-          "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
-          "name": "User 1",
-          "username": "user1",
-        },
-      ],
-      "collection": Object {
-        "createdAt": "2017-06-09T06:27:25.252Z",
-        "email": "user1@example.com",
-        "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
-        "isAdmin": false,
-        "jwtSecret": "f80f37b162ac5d3d052bb704aa52b39ff5e653a23ff99163c92c755aa041ee0596ac4251428c3d3c8710e5cb1f79410648f61acd2a38d07284866e10899dd74d",
-        "name": "User 1",
-        "passwordDigest": "$2a$04$FoAZbSWKIFS9uu6X7zotGeixQCpqgUs.ubZGg1tdBR.AhI.71zdP.",
-        "slackAccessToken": Object {},
-        "slackData": Object {
-          "id": "U2399UF2P",
-          "image_192": "http://example.com/avatar.png",
-        },
-        "slackId": "U2399UF2P",
-        "teamId": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
-        "updatedAt": "2017-06-09T06:27:25.252Z",
-        "username": "user1",
-      },
-      "createdAt": "2017-06-09T06:27:25.297Z",
-      "createdBy": Object {
-        "avatarUrl": "http://example.com/avatar.png",
-        "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
-        "name": "User 1",
-        "username": "user1",
-      },
-      "html": "
-    <h1>
-      Introduction
-      <a name=\\"introduction\\" class=\\"anchor\\" href=\\"#introduction\\">#</a>
-    </h1>
-  <p>Lets get started…</p>
-",
-      "id": "8280d38a-f7f3-43f2-b2af-42971cb1dcba",
-      "preview": "  <p>Lets get started…</p> ",
-      "private": true,
-      "team": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
-      "text": "# Introduction
-
-Lets get started...",
-      "title": "Introduction",
-      "updatedAt": "2017-06-09T06:27:25.297Z",
-      "updatedBy": Object {
-        "avatarUrl": "http://example.com/avatar.png",
-        "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
-        "name": "User 1",
-        "username": "user1",
-      },
-      "url": "/d/introduction-MEuBI1HwKH",
-      "views": null,
-    },
-  ],
-  "ok": true,
-  "pagination": Object {
-    "limit": 15,
-    "nextPath": "/api/documents.list?limit=15&offset=15",
-    "offset": 0,
-  },
-  "status": 200,
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
 }
 `;

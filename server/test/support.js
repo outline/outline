@@ -1,5 +1,5 @@
 // @flow
-import { User, Collection, Team } from '../models';
+import { User, Document, Collection, Team } from '../models';
 import { sequelize } from '../sequelize';
 
 export function flushdb() {
@@ -45,9 +45,21 @@ const seed = async () => {
     type: 'atlas',
   });
 
+  const document = await Document.create({
+    parentDocumentId: null,
+    atlasId: collection.id,
+    teamId: collection.teamId,
+    userId: collection.creatorId,
+    lastModifiedById: collection.creatorId,
+    createdById: collection.creatorId,
+    title: 'Introduction',
+    text: '# Introduction\n\nLets get started...',
+  });
+
   return {
     user,
     collection,
+    document,
     team,
   };
 };
