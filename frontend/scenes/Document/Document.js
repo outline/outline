@@ -168,6 +168,9 @@ type Props = {
               onChange={this.store.updateText}
               onSave={this.onSave}
               onCancel={this.onCancel}
+              onStar={this.store.starDocument}
+              onUnstar={this.store.unstarDocument}
+              starred={this.store.document.starred}
               readOnly={!isEditing}
             />
           </Container>}

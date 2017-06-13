@@ -35,7 +35,6 @@ class DocumentStore {
   @observable hasPendingChanges = false;
   @observable newDocument: ?boolean;
   @observable newChildDocument: ?boolean;
-  @observable views: number;
 
   @observable isEditing: boolean = false;
   @observable isFetching: boolean = false;
@@ -94,6 +93,30 @@ class DocumentStore {
   }
 
   /* Actions */
+
+  @action starDocument = async () => {
+    this.document.starred = true;
+    try {
+      await client.post('/documents.unstar', {
+        id: this.documentId,
+      });
+    } catch (e) {
+      this.document.starred = false;
+      console.error('Something went wrong');
+    }
+  };
+
+  @action unstarDocument = async () => {
+    this.document.starred = false;
+    try {
+      await client.post('/documents.unstar', {
+        id: this.documentId,
+      });
+    } catch (e) {
+      this.document.starred = true;
+      console.error('Something went wrong');
+    }
+  };
 
   @action viewDocument = async () => {
     await client.post('/views.create', {
