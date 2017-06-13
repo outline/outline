@@ -4,6 +4,10 @@ export function homeUrl(): string {
   return '/dashboard';
 }
 
+export function starredUrl(): string {
+  return '/starred';
+}
+
 export function newCollectionUrl(): string {
   return '/collections/new';
 }
