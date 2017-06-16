@@ -38,8 +38,7 @@ class CollectionsStore {
     }
   };
 
-  @action getById = async (id: string): Promise<Collection> => {
-    if (!this.isLoaded) await this.fetch();
+  getById = (id: string): Collection => {
     return _.find(this.data, { id });
   };
 

@@ -2,9 +2,11 @@
 import React, { Component } from 'react';
 import get from 'lodash/get';
 import styled from 'styled-components';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import { Flex } from 'reflexbox';
+
+import UiStore from 'stores/UiStore';
 
 import DocumentStore from './DocumentStore';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -26,6 +28,7 @@ type Props = {
   history: Object,
   keydown: Object,
   newChildDocument?: boolean,
+  ui: UiStore,
 };
 
 @observer class Document extends Component {
@@ -34,10 +37,13 @@ type Props = {
 
   constructor(props: Props) {
     super(props);
-    this.store = new DocumentStore({ history: this.props.history });
+    this.store = new DocumentStore({
+      history: this.props.history,
+      ui: props.ui,
+    });
   }
 
-  componentDidMount = () => {
+  componentDidMount() {
     if (this.props.newDocument) {
       this.store.collectionId = this.props.match.params.id;
       this.store.newDocument = true;
@@ -53,7 +59,11 @@ type Props = {
       this.store.newDocument = false;
       this.store.fetchDocument();
     }
-  };
+  }
+
+  componentWillUnmout() {
+    this.props.ui.clearActiveCollection();
+  }
 
   onEdit = () => {
     const url = `${this.store.document.url}/edit`;
@@ -163,4 +173,4 @@ const Container = styled.div`
   width: 50em;
 `;
 
-export default withRouter(Document);
+export default withRouter(inject('ui')(Document));

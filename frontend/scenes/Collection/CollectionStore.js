@@ -1,37 +1,30 @@
 // @flow
-import { observable, action, computed } from 'mobx';
+import { observable, action } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import Collection from 'models/Collection';
+import { notFoundUrl } from 'utils/routeHelpers';
 
-const store = new class AtlasStore {
-  @observable collection: ?(Collection & { recentDocuments?: Object[] });
-
+class CollectionStore {
+  @observable redirectUrl: ?string;
   @observable isFetching = true;
-
-  /* Computed */
-
-  @computed get isLoaded(): boolean {
-    return !this.isFetching && !!this.collection;
-  }
 
   /* Actions */
 
-  @action fetchCollection = async (id: string, successCallback: Function) => {
+  @action fetchCollection = async (id: string) => {
     this.isFetching = true;
-    this.collection = null;
 
     try {
       const res = await client.get('/collections.info', { id });
       invariant(res && res.data, 'Data should be available');
       const { data } = res;
-      this.collection = new Collection(data);
-      successCallback(data);
+
+      if (data.type === 'atlas') this.redirectUrl = data.documents[0].url;
+      else throw new Error('TODO code up non-atlas collections');
     } catch (e) {
-      console.error('Something went wrong');
+      this.redirectUrl = notFoundUrl();
     }
     this.isFetching = false;
   };
-}();
+}
 
-export default store;
+export default CollectionStore;
