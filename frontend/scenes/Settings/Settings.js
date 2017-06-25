@@ -8,7 +8,6 @@ import ApiKeyRow from './components/ApiKeyRow';
 import styles from './Settings.scss';
 import SettingsStore from './SettingsStore';
 
-import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
 import PageTitle from 'components/PageTitle';
@@ -22,72 +21,69 @@ import PageTitle from 'components/PageTitle';
   }
 
   render() {
-    const title = <Title content="Settings" />;
     const showSlackSettings = DEPLOYMENT === 'hosted';
 
     return (
-      <Layout title={title} search={false} loading={this.store.isFetching}>
+      <CenteredContent>
         <PageTitle title="Settings" />
-        <CenteredContent>
-          {showSlackSettings &&
-            <div className={styles.section}>
-              <h2 className={styles.sectionHeader}>Slack</h2>
-              <p>
-                Connect Atlas to your Slack to instantly search for your documents
-                using <code>/atlas</code> command.
-              </p>
-
-              <SlackAuthLink
-                scopes={['commands']}
-                redirectUri={`${BASE_URL}/auth/slack/commands`}
-              >
-                <img
-                  alt="Add to Slack"
-                  height="40"
-                  width="139"
-                  src="https://platform.slack-edge.com/img/add_to_slack.png"
-                  srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
-                />
-              </SlackAuthLink>
-            </div>}
-
+        {showSlackSettings &&
           <div className={styles.section}>
-            <h2 className={styles.sectionHeader}>API access</h2>
+            <h2 className={styles.sectionHeader}>Slack</h2>
             <p>
-              Create API tokens to hack on your Atlas.
-              Learn more in <a href>API documentation</a>.
+              Connect Atlas to your Slack to instantly search for your documents
+              using <code>/atlas</code> command.
             </p>
 
-            {this.store.apiKeys &&
-              <table className={styles.apiKeyTable}>
-                <tbody>
-                  {this.store.apiKeys &&
-                    this.store.apiKeys.map(key => (
-                      <ApiKeyRow
-                        id={key.id}
-                        key={key.id}
-                        name={key.name}
-                        secret={key.secret}
-                        onDelete={this.store.deleteApiKey}
-                      />
-                    ))}
-                </tbody>
-              </table>}
-
-            <div>
-              <InlineForm
-                placeholder="Token name"
-                buttonLabel="Create token"
-                name="inline_form"
-                value={this.store.keyName}
-                onChange={this.store.setKeyName}
-                onSubmit={this.store.createApiKey}
-                disabled={this.store.isFetching}
+            <SlackAuthLink
+              scopes={['commands']}
+              redirectUri={`${BASE_URL}/auth/slack/commands`}
+            >
+              <img
+                alt="Add to Slack"
+                height="40"
+                width="139"
+                src="https://platform.slack-edge.com/img/add_to_slack.png"
+                srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
               />
-            </div>
+            </SlackAuthLink>
+          </div>}
+
+        <div className={styles.section}>
+          <h2 className={styles.sectionHeader}>API access</h2>
+          <p>
+            Create API tokens to hack on your Atlas.
+            Learn more in <a href>API documentation</a>.
+          </p>
+
+          {this.store.apiKeys &&
+            <table className={styles.apiKeyTable}>
+              <tbody>
+                {this.store.apiKeys &&
+                  this.store.apiKeys.map(key => (
+                    <ApiKeyRow
+                      id={key.id}
+                      key={key.id}
+                      name={key.name}
+                      secret={key.secret}
+                      onDelete={this.store.deleteApiKey}
+                    />
+                  ))}
+              </tbody>
+            </table>}
+
+          <div>
+            <InlineForm
+              placeholder="Token name"
+              buttonLabel="Create token"
+              name="inline_form"
+              value={this.store.keyName}
+              onChange={this.store.setKeyName}
+              onSubmit={this.store.createApiKey}
+              disabled={this.store.isFetching}
+            />
           </div>
-        </CenteredContent>
-      </Layout>
+        </div>
+      </CenteredContent>
     );
   }
 }

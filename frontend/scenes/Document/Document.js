@@ -9,10 +9,9 @@ import { Flex } from 'reflexbox';
 import UiStore from 'stores/UiStore';
 
 import DocumentStore from './DocumentStore';
-import Breadcrumbs from './components/Breadcrumbs';
-import Menu from './components/Menu';
+// import Menu from './components/Menu';
 import Editor from 'components/Editor';
-import Layout, { HeaderAction, SaveAction } from 'components/Layout';
+// import { HeaderAction, SaveAction } from 'components/Layout';
 import PublishingInfo from 'components/PublishingInfo';
 import PreviewLoading from 'components/PreviewLoading';
 import CenteredContent from 'components/CenteredContent';
@@ -47,9 +46,11 @@ type Props = {
     if (this.props.newDocument) {
       this.store.collectionId = this.props.match.params.id;
       this.store.newDocument = true;
+      this.props.ui.enableEditMode();
     } else if (this.props.match.params.edit) {
       this.store.documentId = this.props.match.params.id;
       this.store.fetchDocument();
+      this.props.ui.enableEditMode();
     } else if (this.props.newChildDocument) {
       this.store.documentId = this.props.match.params.id;
       this.store.newChildDocument = true;
@@ -76,6 +77,7 @@ type Props = {
     } else {
       this.store.updateDocument(options);
     }
+    this.props.ui.disableEditMode();
   };
 
   onImageUploadStart = () => {
@@ -91,18 +93,18 @@ type Props = {
   };
 
   render() {
-    const isNew = this.props.newDocument || this.props.newChildDocument;
+    // const isNew = this.props.newDocument || this.props.newChildDocument;
     const isEditing = this.props.match.params.edit;
-    const title = (
+    /*const title = (
       <Breadcrumbs
         document={this.store.document}
         pathToDocument={this.store.pathToDocument}
       />
-    );
+    );*/
 
     const titleText = this.store.document && get(this.store, 'document.title');
 
-    const actions = (
+    /*const actions = (
       <Flex>
         <HeaderAction>
           {isEditing
@@ -115,48 +117,43 @@ type Props = {
         </HeaderAction>
         <Menu store={this.store} document={this.store.document} />
       </Flex>
-    );
+    );*/
+
+    // actions={actions}
+    // title={title}
+    // loading={this.store.isSaving || this.store.isUploading}
+    // search={false}
+    // fixed
 
     return (
-      <Layout
-        actions={actions}
-        title={title}
-        loading={this.store.isSaving || this.store.isUploading}
-        search={false}
-        fixed
-      >
-        <PagePadding>
-          <PageTitle title={titleText} />
-          <Prompt
-            when={this.store.hasPendingChanges}
-            message={DISCARD_CHANGES}
-          />
-          {this.store.isFetching &&
-            <CenteredContent>
-              <PreviewLoading />
-            </CenteredContent>}
-          {this.store.document &&
-            <Container>
-              {!isEditing &&
-                <PublishingInfo
-                  collaborators={this.store.document.collaborators}
-                  createdAt={this.store.document.createdAt}
-                  createdBy={this.store.document.createdBy}
-                  updatedAt={this.store.document.updatedAt}
-                  updatedBy={this.store.document.updatedBy}
-                />}
-              <Editor
-                text={this.store.document.text}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onChange={this.store.updateText}
-                onSave={this.onSave}
-                onCancel={this.onCancel}
-                readOnly={!isEditing}
-              />
-            </Container>}
-        </PagePadding>
-      </Layout>
+      <PagePadding>
+        <PageTitle title={titleText} />
+        <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
+        {this.store.isFetching &&
+          <CenteredContent>
+            <PreviewLoading />
+          </CenteredContent>}
+        {this.store.document &&
+          <Container>
+            {!isEditing &&
+              <PublishingInfo
+                collaborators={this.store.document.collaborators}
+                createdAt={this.store.document.createdAt}
+                createdBy={this.store.document.createdBy}
+                updatedAt={this.store.document.updatedAt}
+                updatedBy={this.store.document.updatedBy}
+              />}
+            <Editor
+              text={this.store.document.text}
+              onImageUploadStart={this.onImageUploadStart}
+              onImageUploadStop={this.onImageUploadStop}
+              onChange={this.store.updateText}
+              onSave={this.onSave}
+              onCancel={this.onCancel}
+              readOnly={!isEditing}
+            />
+          </Container>}
+      </PagePadding>
     );
   }
 }

@@ -3,6 +3,7 @@ import { observable, action } from 'mobx';
 
 class UiStore {
   @observable activeCollection: ?string;
+  @observable editMode: boolean = false;
 
   /* Actions */
 
@@ -13,6 +14,14 @@ class UiStore {
   @action clearActiveCollection = (): void => {
     this.activeCollection = null;
   };
+
+  @action enableEditMode() {
+    this.editMode = true;
+  }
+
+  @action disableEditMode() {
+    this.editMode = false;
+  }
 }
 
 export default UiStore;

@@ -154,8 +154,12 @@ const MenuLink = styled(Link)`
 `;
 
 const Content = styled(Flex)`
-  height: 100%;
   overflow: scroll;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 250px;
 `;
 
 const Sidebar = styled(Flex)`

@@ -7,7 +7,6 @@ import _ from 'lodash';
 import CollectionsStore from 'stores/CollectionsStore';
 import CollectionStore from './CollectionStore';
 
-import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import PreviewLoading from 'components/PreviewLoading';
 
@@ -31,15 +30,11 @@ type Props = {
   };
 
   render() {
-    return (
-      <Layout>
-        {this.store.redirectUrl
-          ? <Redirect to={this.store.redirectUrl} />
-          : <CenteredContent>
-              <PreviewLoading />
-            </CenteredContent>}
-      </Layout>
-    );
+    return this.store.redirectUrl
+      ? <Redirect to={this.store.redirectUrl} />
+      : <CenteredContent>
+          <PreviewLoading />
+        </CenteredContent>;
   }
 }
 export default inject('collections')(Collection);

@@ -7,7 +7,6 @@ import styled from 'styled-components';
 
 import AuthStore from 'stores/AuthStore';
 
-import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import SlackAuthLink from 'components/SlackAuthLink';
 import Alert from 'components/Alert';
@@ -40,30 +39,28 @@ type Props = {
 
     return (
       <Flex auto>
-        <Layout notifications={this.notifications}>
-          {this.props.auth.authenticated && <Redirect to="/dashboard" />}
+        {this.props.auth.authenticated && <Redirect to="/dashboard" />}
 
-          <CenteredContent>
-            {showLandingPageCopy &&
-              <div>
-                <Title>Simple, fast, markdown.</Title>
-                <Copy>
-                  We're building a modern wiki for engineering teams.
-                </Copy>
-              </div>}
+        <CenteredContent>
+          {showLandingPageCopy &&
             <div>
-              <SlackAuthLink redirectUri={`${BASE_URL}/auth/slack`}>
-                <img
-                  alt="Sign in with Slack"
-                  height="40"
-                  width="172"
-                  src="https://platform.slack-edge.com/img/sign_in_with_slack.png"
-                  srcSet="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x"
-                />
-              </SlackAuthLink>
-            </div>
-          </CenteredContent>
-        </Layout>
+              <Title>Simple, fast, markdown.</Title>
+              <Copy>
+                We're building a modern wiki for engineering teams.
+              </Copy>
+            </div>}
+          <div>
+            <SlackAuthLink redirectUri={`${BASE_URL}/auth/slack`}>
+              <img
+                alt="Sign in with Slack"
+                height="40"
+                width="172"
+                src="https://platform.slack-edge.com/img/sign_in_with_slack.png"
+                srcSet="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x"
+              />
+            </SlackAuthLink>
+          </div>
+        </CenteredContent>
       </Flex>
     );
   }
