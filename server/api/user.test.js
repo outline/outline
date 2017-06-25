@@ -9,7 +9,6 @@ const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
 afterAll(() => server.close());
-afterAll(() => sequelize.close());
 
 describe('#user.info', async () => {
   it('should return known user', async () => {

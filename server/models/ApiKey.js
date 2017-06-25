@@ -1,8 +1,8 @@
 import { DataTypes, sequelize } from '../sequelize';
 import randomstring from 'randomstring';
 
-const Team = sequelize.define(
-  'team',
+const ApiKey = sequelize.define(
+  'apiKeys',
   {
     id: {
       type: DataTypes.UUID,
@@ -30,4 +30,4 @@ const Team = sequelize.define(
   }
 );
 
-export default Team;
+export default ApiKey;

@@ -97,7 +97,7 @@ class DocumentStore {
   @action starDocument = async () => {
     this.document.starred = true;
     try {
-      await client.post('/documents.unstar', {
+      await client.post('/documents.star', {
         id: this.documentId,
       });
     } catch (e) {

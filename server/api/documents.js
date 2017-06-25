@@ -1,14 +1,81 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
+import _ from 'lodash';
 import { lock } from '../redis';
 
 import auth from './middlewares/authentication';
+import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
-import { Document, Collection, Star } from '../models';
+import { Document, Collection, Star, View } from '../models';
 
 const router = new Router();
 
-// FIXME: This really needs specs :/
+router.post('documents.list', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const documents = await Document.findAll({
+    where: { teamId: user.teamId },
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(documents.map(doc => presentDocument(ctx, doc)));
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
+router.post('documents.viewed', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const views = await View.findAll({
+    where: { userId: user.id },
+    order: [[sort, direction]],
+    include: [{ model: Document }],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(
+    views.map(view => presentDocument(ctx, view.document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
+router.post('documents.starred', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const views = await Star.findAll({
+    where: { userId: user.id },
+    order: [[sort, direction]],
+    include: [{ model: Document }],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(
+    views.map(view => presentDocument(ctx, view.document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
 router.post('documents.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
