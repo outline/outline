@@ -6,23 +6,31 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
 import keydown from 'react-keydown';
-import searchIcon from 'assets/icons/search.svg';
 import { Flex } from 'reflexbox';
-import { textColor, headerHeight } from 'styles/constants.scss';
+import { textColor } from 'styles/constants.scss';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import LoadingIndicator from 'components/LoadingIndicator';
+
+import SidebarCollection from './components/SidebarCollection';
+import SidebarCollectionList from './components/SidebarCollectionList';
+import SidebarLink from './components/SidebarLink';
+
 import UserStore from 'stores/UserStore';
 import AuthStore from 'stores/AuthStore';
+import UiStore from 'stores/UiStore';
+import CollectionsStore from 'stores/CollectionsStore';
 
 type Props = {
   history: Object,
+  collections: CollectionsStore,
   children?: ?React.Element<any>,
   actions?: ?React.Element<any>,
   title?: ?React.Element<any>,
   loading?: boolean,
   user: UserStore,
   auth: AuthStore,
+  ui: UiStore,
   search: ?boolean,
   notifications?: React.Element<any>,
 };
@@ -36,13 +44,13 @@ type Props = {
 
   @keydown(['/', 't'])
   search() {
-    if (this.props.auth.isAuthenticated)
+    if (this.props.auth.authenticated)
       _.defer(() => this.props.history.push('/search'));
   }
 
   @keydown(['d'])
   dashboard() {
-    if (this.props.auth.isAuthenticated)
+    if (this.props.auth.authenticated)
       _.defer(() => this.props.history.push('/'));
   }
 
@@ -51,7 +59,7 @@ type Props = {
   };
 
   render() {
-    const { auth, user } = this.props;
+    const { user, auth, ui, collections } = this.props;
 
     return (
       <Container column auto>
@@ -69,105 +77,70 @@ type Props = {
 
         {this.props.notifications}
 
-        <Header>
-          <Flex align="center">
-            <LogoLink to="/">Atlas</LogoLink>
-            <Title>
-              {this.props.title}
-            </Title>
-          </Flex>
-          <Flex>
-            <Flex>
-              <Flex align="center">
-                {this.props.actions}
-              </Flex>
-              {auth.authenticated &&
-                user &&
-                <Flex>
-                  {this.props.search &&
-                    <Flex>
-                      <Link to="/search">
-                        <Search title="Search (/)">
-                          <SearchIcon src={searchIcon} alt="Search" />
-                        </Search>
-                      </Link>
-                    </Flex>}
-                  <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
-                    <MenuLink to="/settings">
-                      <MenuItem>Settings</MenuItem>
-                    </MenuLink>
-                    <MenuLink to="/keyboard-shortcuts">
-                      <MenuItem>
-                        Keyboard shortcuts
-                      </MenuItem>
-                    </MenuLink>
-                    <MenuLink to="/developers">
-                      <MenuItem>API</MenuItem>
-                    </MenuLink>
-                    <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
-                  </DropdownMenu>
-                </Flex>}
-            </Flex>
-          </Flex>
-        </Header>
+        <Flex auto>
+          {auth.authenticated &&
+            user &&
+            <Sidebar column editMode={ui.editMode}>
+              <Header justify="space-between">
+                <Flex align="center">
+                  <LogoLink to="/">Atlas</LogoLink>
+                </Flex>
+                <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
+                  <MenuLink to="/settings">
+                    <MenuItem>Settings</MenuItem>
+                  </MenuLink>
+                  <MenuLink to="/keyboard-shortcuts">
+                    <MenuItem>
+                      Keyboard shortcuts
+                    </MenuItem>
+                  </MenuLink>
+                  <MenuLink to="/developers">
+                    <MenuItem>API</MenuItem>
+                  </MenuLink>
+                  <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
+                </DropdownMenu>
+              </Header>
 
-        <Content auto justify="center">
-          {this.props.children}
-        </Content>
+              <Flex column>
+                <LinkSection>
+                  <SidebarLink to="/search">Search</SidebarLink>
+                </LinkSection>
+                <LinkSection>
+                  <SidebarLink to="/dashboard">Dashboard</SidebarLink>
+                  <SidebarLink to="/starred">Starred</SidebarLink>
+                </LinkSection>
+                <LinkSection>
+                  {ui.activeCollection
+                    ? <SidebarCollection
+                        collection={collections.getById(ui.activeCollection)}
+                      />
+                    : <SidebarCollectionList />}
+                </LinkSection>
+              </Flex>
+            </Sidebar>}
+
+          <Content auto justify="center" editMode={ui.editMode}>
+            {this.props.children}
+          </Content>
+        </Flex>
       </Container>
     );
   }
 }
 
 const Container = styled(Flex)`
+  position: relative;
   width: 100%;
   height: 100%;
 `;
 
-const Header = styled(Flex)`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  padding: 0 20px;
-
-  z-index: 1;
-  background: #fff;
-  height: ${headerHeight};
-  border-bottom: 1px solid #eee;
-
-  font-size: 14px;
-  line-height: 1;
-`;
-
 const LogoLink = styled(Link)`
+  margin-top: 5px;
   font-family: 'Atlas Grotesk';
   font-weight: bold;
   color: ${textColor};
   text-decoration: none;
   font-size: 16px;
-`;
-
-const Title = styled.span`
-  color: #ccc;
-
-  a {
-    color: #ccc;
-  }
-
-  a:hover {
-    color: ${textColor};
-  }
-`;
-
-const Search = styled(Flex)`
-  margin: 0 5px;
-  padding: 15px 5px 0 5px;
-  cursor: pointer;
-`;
-
-const SearchIcon = styled.img`
-  height: 20px;
 `;
 
 const Avatar = styled.img`
@@ -181,8 +154,31 @@ const MenuLink = styled(Link)`
 `;
 
 const Content = styled(Flex)`
-  height: 100%;
   overflow: scroll;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: ${props => (props.editMode ? 0 : '250px')};
+  transition: left 200ms ease-in-out;
 `;
 
-export default withRouter(inject('user', 'auth')(Layout));
+const Sidebar = styled(Flex)`
+  width: 250px;
+  margin-left: ${props => (props.editMode ? '-250px' : 0)};
+  padding: 10px 20px;
+  background: rgba(250, 251, 252, 0.71);
+  border-right: 1px solid #eceff3;
+  transition: margin-left 200ms ease-in-out;
+`;
+
+const Header = styled(Flex)`
+  margin-bottom: 20px;
+`;
+
+const LinkSection = styled(Flex)`
+  margin-bottom: 20px;
+  flex-direction: column;
+`;
+
+export default withRouter(inject('user', 'auth', 'ui', 'collections')(Layout));

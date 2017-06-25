@@ -102,6 +102,16 @@ const Document = sequelize.define(
         const slugifiedTitle = slugify(this.title);
         return `/d/${slugifiedTitle}-${this.urlId}`;
       },
+      toJSON() {
+        // Warning: only use for new documents as order of children is
+        // handled in the collection's documentStructure
+        return {
+          id: this.id,
+          title: this.title,
+          url: this.getUrl(),
+          children: [],
+        };
+      },
     },
     classMethods: {
       associate: models => {

@@ -6,7 +6,6 @@ import type { User } from 'types';
 import { Flex } from 'reflexbox';
 
 const Container = styled(Flex)`
-  margin-bottom: 30px;
   justify-content: space-between;
   color: #ccc;
   font-size: 13px;

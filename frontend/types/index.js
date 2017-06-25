@@ -15,7 +15,6 @@ export type NavigationNode = {
   id: string,
   title: string,
   url: string,
-  collapsed: boolean,
   children: Array<NavigationNode>,
 };
 
@@ -33,6 +32,7 @@ export type Document = {
   updatedAt: string,
   updatedBy: User,
   url: string,
+  views: number,
 };
 
 export type Pagination = {

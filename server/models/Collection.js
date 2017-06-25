@@ -1,3 +1,4 @@
+// @flow
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
@@ -9,7 +10,7 @@ slug.defaults.mode = 'rfc3986';
 const allowedCollectionTypes = [['atlas', 'journal']];
 
 const Collection = sequelize.define(
-  'atlas',
+  'collection',
   {
     id: {
       type: DataTypes.UUID,
@@ -26,10 +27,11 @@ const Collection = sequelize.define(
     creatorId: DataTypes.UUID,
 
     /* type: atlas */
-    navigationTree: DataTypes.JSONB,
+    navigationTree: DataTypes.JSONB, // legacy
+    documentStructure: DataTypes.JSONB,
   },
   {
-    tableName: 'atlases',
+    tableName: 'collections',
     paranoid: true,
     hooks: {
       beforeValidate: collection => {
@@ -38,7 +40,7 @@ const Collection = sequelize.define(
       afterCreate: async collection => {
         if (collection.type !== 'atlas') return;
 
-        await Document.create({
+        const document = await Document.create({
           parentDocumentId: null,
           atlasId: collection.id,
           teamId: collection.teamId,
@@ -48,7 +50,7 @@ const Collection = sequelize.define(
           title: 'Introduction',
           text: '# Introduction\n\nLets get started...',
         });
-        await collection.buildStructure();
+        collection.documentStructure = [document.toJSON()];
         await collection.save();
       },
     },
@@ -58,156 +60,114 @@ const Collection = sequelize.define(
         // return `/${slugifiedName}-c${this.urlId}`;
         return `/collections/${this.id}`;
       },
-      async buildStructure() {
-        if (this.navigationTree) return this.navigationTree;
 
-        const getNodeForDocument = async document => {
-          const children = await Document.findAll({
-            where: {
-              parentDocumentId: document.id,
-              atlasId: this.id,
-            },
+      async getDocumentsStructure() {
+        // Lazy fill this.documentStructure
+        if (!this.documentStructure) {
+          this.documentStructure = this.navigationTree.children;
+
+          // Remove parent references from all root documents
+          await this.navigationTree.children.forEach(async ({ id }) => {
+            const document = await Document.findById(id);
+            document.parentDocumentId = null;
+            await document.save();
           });
 
-          const childNodes = [];
-          await Promise.all(
-            children.map(async child => {
-              return childNodes.push(await getNodeForDocument(child));
-            })
-          );
+          // Remove root document
+          const rootDocument = await Document.findById(this.navigationTree.id);
+          await rootDocument.destroy();
 
-          return {
-            title: document.title,
-            id: document.id,
-            url: document.getUrl(),
-            children: childNodes,
-          };
-        };
-
-        const rootDocument = await Document.findOne({
-          where: {
-            parentDocumentId: null,
-            atlasId: this.id,
-          },
-        });
-
-        this.navigationTree = await getNodeForDocument(rootDocument);
-        return this.navigationTree;
-      },
-      async updateNavigationTree(tree = this.navigationTree) {
-        const nodeIds = [];
-        nodeIds.push(tree.id);
-
-        const rootDocument = await Document.findOne({
-          where: {
-            id: tree.id,
-            atlasId: this.id,
-          },
-        });
-        if (!rootDocument) throw new Error();
-
-        const newTree = {
-          id: tree.id,
-          title: rootDocument.title,
-          url: rootDocument.getUrl(),
-          children: [],
-        };
-
-        const getIdsForChildren = async children => {
-          const childNodes = [];
-          for (const child of children) {
-            const childDocument = await Document.findOne({
-              where: {
-                id: child.id,
-                atlasId: this.id,
-              },
-            });
-            if (childDocument) {
-              childNodes.push({
-                id: childDocument.id,
-                title: childDocument.title,
-                url: childDocument.getUrl(),
-                children: await getIdsForChildren(child.children),
-              });
-              nodeIds.push(child.id);
-            }
-          }
-          return childNodes;
-        };
-        newTree.children = await getIdsForChildren(tree.children);
-
-        const documents = await Document.findAll({
-          attributes: ['id'],
-          where: {
-            atlasId: this.id,
-          },
-        });
-        const documentIds = documents.map(doc => doc.id);
-
-        if (!_.isEqual(nodeIds.sort(), documentIds.sort())) {
-          throw new Error('Invalid navigation tree');
+          await this.save();
         }
 
-        this.navigationTree = newTree;
-        await this.save();
-
-        return newTree;
+        return this.documentStructure;
       },
-      async addNodeToNavigationTree(document) {
-        const newNode = {
-          id: document.id,
-          title: document.title,
-          url: document.getUrl(),
-          children: [],
-        };
 
-        const insertNode = node => {
-          if (document.parentDocumentId === node.id) {
-            node.children.push(newNode);
+      async addDocumentToStructure(document, index) {
+        if (!this.documentStructure) return;
+
+        if (!document.parentDocumentId) {
+          this.documentStructure.splice(
+            index || this.documentStructure.length,
+            0,
+            document.toJSON()
+          );
+          // Sequelize doesn't seem to set the value with splice on JSONB field
+          this.documentStructure = this.documentStructure;
+        } else {
+          this.documentStructure = this.documentStructure.map(childDocument => {
+            if (document.parentDocumentId === childDocument.id) {
+              childDocument.children.splice(
+                index || childDocument.children.length,
+                0,
+                document.toJSON()
+              );
+            }
+            return childDocument;
+          });
+        }
+
+        await this.save();
+        return this;
+      },
+
+      async updateDocument(document) {
+        if (!this.documentStructure) return;
+
+        const updateChildren = (children, document) => {
+          const id = document.id;
+
+          if (_.find(children, { id })) {
+            children = children.map(childDocument => {
+              if (childDocument.id === id) {
+                childDocument = {
+                  ...document.toJSON(),
+                  children: childDocument.children,
+                };
+              }
+              return childDocument;
+            });
           } else {
-            node.children = node.children.map(childNode => {
-              return insertNode(childNode);
+            children = children.map(childDocument => {
+              return updateChildren(childDocument.children, id);
             });
           }
-
-          return node;
+          return children;
         };
 
-        this.navigationTree = insertNode(this.navigationTree);
-        return this.navigationTree;
+        this.documentStructure = updateChildren(
+          this.documentStructure,
+          document
+        );
+
+        await this.save();
+        return this;
       },
+
       async deleteDocument(document) {
-        const deleteNodeAndDocument = async (
-          node,
-          documentId,
-          shouldDelete = false
-        ) => {
-          // Delete node if id matches
-          if (document.id === node.id) shouldDelete = true;
+        if (!this.documentStructure) return;
 
-          const newChildren = [];
-          node.children.forEach(async childNode => {
-            const child = await deleteNodeAndDocument(
-              childNode,
-              documentId,
-              shouldDelete
-            );
-            if (child) newChildren.push(child);
-          });
-          node.children = newChildren;
-
-          if (shouldDelete) {
-            const doc = await Document.findById(node.id);
-            await doc.destroy();
+        const deleteFromChildren = (children, id) => {
+          if (_.find(children, { id })) {
+            _.remove(children, { id });
+          } else {
+            children = children.map(childDocument => {
+              return {
+                ...childDocument,
+                children: deleteFromChildren(childDocument.children, id),
+              };
+            });
           }
-
-          return shouldDelete ? null : node;
+          return children;
         };
 
-        this.navigationTree = await deleteNodeAndDocument(
-          this.navigationTree,
+        this.documentStructure = deleteFromChildren(
+          this.documentStructure,
           document.id
         );
+
+        await this.save();
+        return this;
       },
     },
   }

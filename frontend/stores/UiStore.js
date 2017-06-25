@@ -1,33 +1,26 @@
 // @flow
-import { observable, action, computed, autorunAsync } from 'mobx';
-
-const UI_STORE = 'UI_STORE';
+import { observable, action } from 'mobx';
 
 class UiStore {
-  @observable sidebar: boolean = false;
-
-  /* Computed */
-
-  @computed get asJson(): string {
-    return JSON.stringify({
-      sidebar: this.sidebar,
-    });
-  }
+  @observable activeCollection: ?string;
+  @observable editMode: boolean = false;
 
   /* Actions */
 
-  @action toggleSidebar = (): void => {
-    this.sidebar = !this.sidebar;
+  @action setActiveCollection = (id: string): void => {
+    this.activeCollection = id;
   };
 
-  constructor() {
-    // Rehydrate
-    const data = JSON.parse(localStorage.getItem(UI_STORE) || '{}');
-    this.sidebar = data.sidebar;
+  @action clearActiveCollection = (): void => {
+    this.activeCollection = null;
+  };
 
-    autorunAsync(() => {
-      localStorage.setItem(UI_STORE, this.asJson);
-    });
+  @action enableEditMode() {
+    this.editMode = true;
+  }
+
+  @action disableEditMode() {
+    this.editMode = false;
   }
 }
 

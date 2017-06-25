@@ -74,25 +74,4 @@ router.post('collections.list', auth(), pagination(), async ctx => {
   };
 });
 
-router.post('collections.updateNavigationTree', auth(), async ctx => {
-  const { id, tree } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
-
-  const user = ctx.state.user;
-  const atlas = await Collection.findOne({
-    where: {
-      id,
-      teamId: user.teamId,
-    },
-  });
-
-  if (!atlas) throw httpErrors.NotFound();
-
-  await atlas.updateNavigationTree(tree);
-
-  ctx.body = {
-    data: await presentCollection(ctx, atlas, true),
-  };
-});
-
 export default router;
