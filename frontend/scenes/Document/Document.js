@@ -44,18 +44,27 @@ type Props = {
   }
 
   componentDidMount() {
-    if (this.props.newDocument) {
-      this.store.collectionId = this.props.match.params.id;
+    this.loadDocument(this.props);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.match.params.id !== this.props.match.params.id)
+      this.loadDocument(nextProps);
+  }
+
+  loadDocument(props) {
+    if (props.newDocument) {
+      this.store.collectionId = props.match.params.id;
       this.store.newDocument = true;
-    } else if (this.props.match.params.edit) {
-      this.store.documentId = this.props.match.params.id;
+    } else if (props.match.params.edit) {
+      this.store.documentId = props.match.params.id;
       this.store.fetchDocument();
-    } else if (this.props.newChildDocument) {
-      this.store.documentId = this.props.match.params.id;
+    } else if (props.newChildDocument) {
+      this.store.documentId = props.match.params.id;
       this.store.newChildDocument = true;
       this.store.fetchDocument();
     } else {
-      this.store.documentId = this.props.match.params.id;
+      this.store.documentId = props.match.params.id;
       this.store.newDocument = false;
       this.store.fetchDocument();
     }
