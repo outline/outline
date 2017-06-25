@@ -73,7 +73,7 @@ type Props = {
   }
 
   componentWillUnmount() {
-    this.props.ui.clearActiveCollection();
+    this.props.ui.clearActiveDocument();
   }
 
   onEdit = () => {

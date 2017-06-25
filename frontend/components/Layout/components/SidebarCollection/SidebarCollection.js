@@ -9,24 +9,40 @@ import SidebarLink from '../SidebarLink';
 import Collection from 'models/Collection';
 
 type Props = {
-  collection: Collection,
+  collection: ?Collection,
+  document: ?Document,
 };
 
-const SidebarCollection = ({ collection }: Props) => {
-  if (collection) {
-    return (
-      <Flex column>
-        <Header>{collection.name}</Header>
-        {collection.documents.map(document => (
-          <SidebarLink key={document.id} to={document.url}>
-            {document.title}
-          </SidebarLink>
-        ))}
+class SidebarCollection extends React.Component {
+  props: Props;
+
+  renderDocuments(documentList) {
+    return documentList.map(document => (
+      <Flex column key={document.id}>
+        <SidebarLink key={document.id} to={document.url}>
+          {document.title}
+        </SidebarLink>
+        <Children>
+          {document.children && this.renderDocuments(document.children)}
+        </Children>
       </Flex>
-    );
+    ));
   }
-  return null;
-};
+
+  render() {
+    const { collection } = this.props;
+
+    if (collection) {
+      return (
+        <Flex column>
+          <Header>{collection.name}</Header>
+          {this.renderDocuments(collection.documents)}
+        </Flex>
+      );
+    }
+    return null;
+  }
+}
 
 const Header = styled(Flex)`
   font-size: 11px;
@@ -34,6 +50,10 @@ const Header = styled(Flex)`
   text-transform: uppercase;
   color: #9FA6AB;
   letter-spacing: 0.04em;
+`;
+
+const Children = styled(Flex)`
+  margin-left: 20px;
 `;
 
 export default observer(SidebarCollection);

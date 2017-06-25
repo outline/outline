@@ -119,7 +119,7 @@ class DocumentStore {
         this.parentDocument = res.data;
       } else {
         this.document = res.data;
-        this.ui.setActiveCollection(this.document.collection.id);
+        this.ui.setActiveDocument(res.data);
       }
     } catch (e) {
       console.error('Something went wrong');
