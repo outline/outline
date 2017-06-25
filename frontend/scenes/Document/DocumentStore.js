@@ -5,6 +5,7 @@ import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import emojify from 'utils/emojify';
 import type { Document, NavigationNode } from 'types';
+import UiStore from 'stores/UiStore';
 
 type SaveProps = { redirect?: boolean };
 
@@ -24,6 +25,7 @@ const parseHeader = text => {
 
 type Options = {
   history: Object,
+  ui: UiStore,
 };
 
 class DocumentStore {
@@ -42,6 +44,7 @@ class DocumentStore {
   @observable isUploading: boolean = false;
 
   history: Object;
+  ui: UiStore;
 
   /* Computed */
 
@@ -108,18 +111,15 @@ class DocumentStore {
     this.isFetching = true;
 
     try {
-      const res = await client.get(
-        '/documents.info',
-        {
-          id: this.documentId,
-        },
-        { cache: true }
-      );
+      const res = await client.get('/documents.info', {
+        id: this.documentId,
+      });
       invariant(res && res.data, 'Data should be available');
       if (this.newChildDocument) {
         this.parentDocument = res.data;
       } else {
         this.document = res.data;
+        this.ui.setActiveCollection(this.document.collection.id);
       }
     } catch (e) {
       console.error('Something went wrong');
@@ -133,20 +133,16 @@ class DocumentStore {
     this.isSaving = true;
 
     try {
-      const res = await client.post(
-        '/documents.create',
-        {
-          parentDocument: get(this.parentDocument, 'id'),
-          collection: get(
-            this.parentDocument,
-            'collection.id',
-            this.collectionId
-          ),
-          title: get(this.document, 'title', 'Untitled document'),
-          text: get(this.document, 'text'),
-        },
-        { cache: true }
-      );
+      const res = await client.post('/documents.create', {
+        parentDocument: get(this.parentDocument, 'id'),
+        collection: get(
+          this.parentDocument,
+          'collection.id',
+          this.collectionId
+        ),
+        title: get(this.document, 'title', 'Untitled document'),
+        text: get(this.document, 'text'),
+      });
       invariant(res && res.data, 'Data should be available');
       const { url } = res.data;
 
@@ -164,15 +160,11 @@ class DocumentStore {
     this.isSaving = true;
 
     try {
-      const res = await client.post(
-        '/documents.update',
-        {
-          id: this.documentId,
-          title: get(this.document, 'title', 'Untitled document'),
-          text: get(this.document, 'text'),
-        },
-        { cache: true }
-      );
+      const res = await client.post('/documents.update', {
+        id: this.documentId,
+        title: get(this.document, 'title', 'Untitled document'),
+        text: get(this.document, 'text'),
+      });
       invariant(res && res.data, 'Data should be available');
       const { url } = res.data;
 
@@ -210,6 +202,7 @@ class DocumentStore {
 
   constructor(options: Options) {
     this.history = options.history;
+    this.ui = options.ui;
   }
 }
 
