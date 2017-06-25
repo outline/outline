@@ -26,8 +26,6 @@ const Container = styled(CenteredContent)`
   }
 
   render() {
-    // const isEmpty = this.store.documents.length === 0;
-
     return (
       <Layout loading={this.store.isFetching}>
         <PageTitle title="Starred" />
