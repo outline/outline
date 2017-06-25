@@ -31,6 +31,8 @@ import Flatpage from 'scenes/Flatpage';
 import ErrorAuth from 'scenes/ErrorAuth';
 import Error404 from 'scenes/Error404';
 
+import Layout from 'components/Layout';
+
 import flatpages from 'static/flatpages';
 
 let DevTools;
@@ -94,32 +96,35 @@ render(
           <Route exact path="/auth/error" component={ErrorAuth} />
 
           <Auth>
-            <Switch>
-              <Route exact path="/dashboard" component={Dashboard} />
-              <Route exact path="/collections/:id" component={Collection} />
-              <Route exact path="/d/:id" component={Document} />
-              <Route exact path="/d/:id/:edit" component={Document} />
-              <Route
-                exact
-                path="/collections/:id/new"
-                component={DocumentNew}
-              />
-              <Route exact path="/d/:id/new" component={DocumentNewChild} />
+            <Layout>
+              <Switch>
+                <Route exact path="/dashboard" component={Dashboard} />
+                <Route exact path="/collections/:id" component={Collection} />
+                <Route exact path="/d/:id" component={Document} />
 
-              <Route exact path="/search" component={Search} />
-              <Route exact path="/search/:query" component={Search} />
-              <Route exact path="/settings" component={Settings} />
+                <Route exact path="/d/:id/:edit" component={Document} />
+                <Route
+                  exact
+                  path="/collections/:id/new"
+                  component={DocumentNew}
+                />
+                <Route exact path="/d/:id/new" component={DocumentNewChild} />
 
-              <Route
-                exact
-                path="/keyboard-shortcuts"
-                component={KeyboardShortcuts}
-              />
-              <Route exact path="/developers" component={Api} />
+                <Route exact path="/search" component={Search} />
+                <Route exact path="/search/:query" component={Search} />
+                <Route exact path="/settings" component={Settings} />
 
-              <Route path="/404" component={Error404} />
-              <Route component={notFoundSearch} />
-            </Switch>
+                <Route
+                  exact
+                  path="/keyboard-shortcuts"
+                  component={KeyboardShortcuts}
+                />
+                <Route exact path="/developers" component={Api} />
+
+                <Route path="/404" component={Error404} />
+                <Route component={notFoundSearch} />
+              </Switch>
+            </Layout>
           </Auth>
         </Switch>
       </Router>

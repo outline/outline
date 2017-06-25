@@ -2,15 +2,16 @@
 import React, { Component } from 'react';
 import get from 'lodash/get';
 import styled from 'styled-components';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import { Flex } from 'reflexbox';
 
+import UiStore from 'stores/UiStore';
+
 import DocumentStore from './DocumentStore';
-import Breadcrumbs from './components/Breadcrumbs';
 import Menu from './components/Menu';
 import Editor from 'components/Editor';
-import Layout, { HeaderAction, SaveAction } from 'components/Layout';
+import { HeaderAction, SaveAction } from 'components/Layout';
 import PublishingInfo from 'components/PublishingInfo';
 import PreviewLoading from 'components/PreviewLoading';
 import CenteredContent from 'components/CenteredContent';
@@ -21,25 +22,12 @@ You have unsaved changes.
 Are you sure you want to discard them?
 `;
 
-const Container = styled.div`
-  position: relative;
-  font-weight: 400;
-  font-size: 1em;
-  line-height: 1.5em;
-  padding: 0 3em;
-  width: 50em;
-`;
-
-const Meta = styled.div`
-  position: absolute;
-  top: 12px;
-`;
-
 type Props = {
   match: Object,
   history: Object,
   keydown: Object,
   newChildDocument?: boolean,
+  ui: UiStore,
 };
 
 @observer class Document extends Component {
@@ -48,10 +36,13 @@ type Props = {
 
   constructor(props: Props) {
     super(props);
-    this.store = new DocumentStore({ history: this.props.history });
+    this.store = new DocumentStore({
+      history: this.props.history,
+      ui: props.ui,
+    });
   }
 
-  componentDidMount = () => {
+  componentDidMount() {
     if (this.props.newDocument) {
       this.store.collectionId = this.props.match.params.id;
       this.store.newDocument = true;
@@ -67,19 +58,25 @@ type Props = {
       this.store.newDocument = false;
       this.store.fetchDocument();
     }
-  };
+  }
+
+  componentWillUnmout() {
+    this.props.ui.clearActiveCollection();
+  }
 
   onEdit = () => {
     const url = `${this.store.document.url}/edit`;
     this.props.history.push(url);
+    this.props.ui.enableEditMode();
   };
 
-  onSave = (options: { redirect?: boolean } = {}) => {
+  onSave = async (options: { redirect?: boolean } = {}) => {
     if (this.store.newDocument || this.store.newChildDocument) {
-      this.store.saveDocument(options);
+      await this.store.saveDocument(options);
     } else {
-      this.store.updateDocument(options);
+      await this.store.updateDocument(options);
     }
+    this.props.ui.disableEditMode();
   };
 
   onImageUploadStart = () => {
@@ -97,12 +94,12 @@ type Props = {
   render() {
     const isNew = this.props.newDocument || this.props.newChildDocument;
     const isEditing = this.props.match.params.edit;
-    const title = (
+    /*const title = (
       <Breadcrumbs
         document={this.store.document}
         pathToDocument={this.store.pathToDocument}
       />
-    );
+    );*/
 
     const titleText = this.store.document && get(this.store, 'document.title');
 
@@ -117,49 +114,71 @@ type Props = {
               />
             : <a onClick={this.onEdit}>Edit</a>}
         </HeaderAction>
-        <Menu store={this.store} document={this.store.document} />
+        {!isEditing &&
+          <Menu store={this.store} document={this.store.document} />}
       </Flex>
     );
 
     return (
-      <Layout
-        actions={actions}
-        title={title}
-        loading={this.store.isSaving || this.store.isUploading}
-        search={false}
-        fixed
-      >
-        <PageTitle title={titleText} />
-        <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
-        {this.store.isFetching &&
-          <CenteredContent>
-            <PreviewLoading />
-          </CenteredContent>}
-        {this.store.document &&
-          <Container>
-            {!isEditing &&
-              <Meta>
+      <Container>
+        <Actions>{actions}</Actions>
+        <PagePadding auto justify="center">
+          <PageTitle title={titleText} />
+          <Prompt
+            when={this.store.hasPendingChanges}
+            message={DISCARD_CHANGES}
+          />
+          {this.store.isFetching &&
+            <CenteredContent>
+              <PreviewLoading />
+            </CenteredContent>}
+          {this.store.document &&
+            <DocumentContainer>
+              {!isEditing &&
                 <PublishingInfo
                   collaborators={this.store.document.collaborators}
                   createdAt={this.store.document.createdAt}
                   createdBy={this.store.document.createdBy}
                   updatedAt={this.store.document.updatedAt}
                   updatedBy={this.store.document.updatedBy}
-                />
-              </Meta>}
-            <Editor
-              text={this.store.document.text}
-              onImageUploadStart={this.onImageUploadStart}
-              onImageUploadStop={this.onImageUploadStop}
-              onChange={this.store.updateText}
-              onSave={this.onSave}
-              onCancel={this.onCancel}
-              readOnly={!isEditing}
-            />
-          </Container>}
-      </Layout>
+                />}
+              <Editor
+                text={this.store.document.text}
+                onImageUploadStart={this.onImageUploadStart}
+                onImageUploadStop={this.onImageUploadStop}
+                onChange={this.store.updateText}
+                onSave={this.onSave}
+                onCancel={this.onCancel}
+                readOnly={!isEditing}
+              />
+            </DocumentContainer>}
+        </PagePadding>
+      </Container>
     );
   }
 }
 
-export default withRouter(Document);
+const Container = styled(Flex)`
+  position: relative;
+  width: 100%;
+`;
+
+const PagePadding = styled(Flex)`
+  padding: 80px 20px;
+`;
+
+const Actions = styled(Flex)`
+  position: absolute;
+  top: 0;
+  right: 20px;
+`;
+
+const DocumentContainer = styled.div`
+  font-weight: 400;
+  font-size: 1em;
+  line-height: 1.5em;
+  padding: 0 3em;
+  width: 50em;
+`;
+
+export default withRouter(inject('ui')(Document));

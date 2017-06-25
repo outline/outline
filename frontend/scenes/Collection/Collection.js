@@ -3,11 +3,10 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { Redirect } from 'react-router';
 import _ from 'lodash';
-import { notFoundUrl } from 'utils/routeHelpers';
 
 import CollectionsStore from 'stores/CollectionsStore';
+import CollectionStore from './CollectionStore';
 
-import Layout from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import PreviewLoading from 'components/PreviewLoading';
 
@@ -16,50 +15,26 @@ type Props = {
   match: Object,
 };
 
-type State = {
-  redirectUrl: ?string,
-};
-
 @observer class Collection extends React.Component {
   props: Props;
-  state: State;
+  store: CollectionStore;
 
   constructor(props) {
     super(props);
-    this.state = {
-      redirectUrl: null,
-    };
+    this.store = new CollectionStore();
   }
 
   componentDidMount = () => {
     const { id } = this.props.match.params;
-    this.props.collections
-      .getById(id)
-      .then(collection => {
-        if (collection.type !== 'atlas')
-          throw new Error('TODO code up non-atlas collections');
-
-        this.setState({
-          redirectUrl: collection.documents[0].url,
-        });
-      })
-      .catch(() => {
-        this.setState({
-          redirectUrl: notFoundUrl(),
-        });
-      });
+    this.store.fetchCollection(id);
   };
 
   render() {
-    return (
-      <Layout>
-        {this.state.redirectUrl && <Redirect to={this.state.redirectUrl} />}
-
-        <CenteredContent>
+    return this.store.redirectUrl
+      ? <Redirect to={this.store.redirectUrl} />
+      : <CenteredContent>
           <PreviewLoading />
-        </CenteredContent>
-      </Layout>
-    );
+        </CenteredContent>;
   }
 }
 export default inject('collections')(Collection);

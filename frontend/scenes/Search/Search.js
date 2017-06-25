@@ -12,7 +12,6 @@ import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import SearchField from './components/SearchField';
 import SearchStore from './SearchStore';
 
-import Layout, { Title } from 'components/Layout';
 import CenteredContent from 'components/CenteredContent';
 import DocumentPreview from 'components/DocumentPreview';
 import PageTitle from 'components/PageTitle';
@@ -83,41 +82,38 @@ const ResultsWrapper = styled(Flex)`
 
   render() {
     const query = this.props.match.params.query;
-    const title = <Title content="Search" />;
     const hasResults = this.store.documents.length > 0;
 
     return (
-      <Layout title={title} search={false} loading={this.store.isFetching}>
+      <Container auto>
         <PageTitle title="Search" />
-        <Container auto>
-          {this.props.notFound &&
-            <div>
-              <h1>Not Found</h1>
-              <p>We're unable to find the page you're accessing.</p>
-              <hr />
-            </div>}
-          <ResultsWrapper pinToTop={hasResults} column auto>
-            <SearchField
-              searchTerm={this.store.searchTerm}
-              onKeyDown={this.handleKeyDown}
-              onChange={this.updateQuery}
-              value={query || ''}
-            />
-            <ArrowKeyNavigation
-              mode={ArrowKeyNavigation.mode.VERTICAL}
-              defaultActiveChildIndex={0}
-            >
-              {this.store.documents.map((document, index) => (
-                <DocumentPreview
-                  innerRef={ref => index === 0 && this.setFirstDocumentRef(ref)}
-                  key={document.id}
-                  document={document}
-                />
-              ))}
-            </ArrowKeyNavigation>
-          </ResultsWrapper>
-        </Container>
-      </Layout>
+        {this.props.notFound &&
+          <div>
+            <h1>Not Found</h1>
+            <p>We're unable to find the page you're accessing.</p>
+            <hr />
+          </div>}
+        <ResultsWrapper pinToTop={hasResults} column auto>
+          <SearchField
+            searchTerm={this.store.searchTerm}
+            onKeyDown={this.handleKeyDown}
+            onChange={this.updateQuery}
+            value={query || ''}
+          />
+          <ArrowKeyNavigation
+            mode={ArrowKeyNavigation.mode.VERTICAL}
+            defaultActiveChildIndex={0}
+          >
+            {this.store.documents.map((document, index) => (
+              <DocumentPreview
+                innerRef={ref => index === 0 && this.setFirstDocumentRef(ref)}
+                key={document.id}
+                document={document}
+              />
+            ))}
+          </ArrowKeyNavigation>
+        </ResultsWrapper>
+      </Container>
     );
   }
 }
