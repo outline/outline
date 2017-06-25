@@ -80,7 +80,7 @@ type Props = {
         <Flex auto>
           {auth.authenticated &&
             user &&
-            <Sidebar column>
+            <Sidebar column editMode={ui.editMode}>
               <Header justify="space-between">
                 <Flex align="center">
                   <LogoLink to="/">Atlas</LogoLink>
@@ -119,7 +119,7 @@ type Props = {
               </Flex>
             </Sidebar>}
 
-          <Content auto justify="center">
+          <Content auto justify="center" editMode={ui.editMode}>
             {this.props.children}
           </Content>
         </Flex>
@@ -159,14 +159,17 @@ const Content = styled(Flex)`
   top: 0;
   bottom: 0;
   right: 0;
-  left: 250px;
+  left: ${props => (props.editMode ? 0 : '250px')};
+  transition: left 200ms ease-in-out;
 `;
 
 const Sidebar = styled(Flex)`
   width: 250px;
+  margin-left: ${props => (props.editMode ? '-250px' : 0)};
   padding: 10px 20px;
   background: rgba(250, 251, 252, 0.71);
   border-right: 1px solid #eceff3;
+  transition: margin-left 200ms ease-in-out;
 `;
 
 const Header = styled(Flex)`
