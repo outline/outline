@@ -117,13 +117,10 @@ type Props = {
     );
 
     return (
-      <Container flex column>
+      <Container column auto>
+        {titleText && <PageTitle title={titleText} />}
+        <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
         <PagePadding auto justify="center">
-          <PageTitle title={titleText} />
-          <Prompt
-            when={this.store.hasPendingChanges}
-            message={DISCARD_CHANGES}
-          />
           {this.store.isFetching &&
             <CenteredContent>
               <PreviewLoading />
