@@ -130,25 +130,30 @@ type Props = {
         {titleText && <PageTitle title={titleText} />}
         <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
         <PagePadding auto justify="center">
-          {this.store.isFetching &&
-            <CenteredContent>
-              <PreviewLoading />
-            </CenteredContent>}
-          {this.store.document &&
-            <DocumentContainer>
-              <Editor
-                text={this.store.document.text}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onChange={this.store.updateText}
-                onSave={this.onSave}
-                onCancel={this.onCancel}
-                onStar={this.store.starDocument}
-                onUnstar={this.store.unstarDocument}
-                starred={this.store.document.starred}
-                readOnly={!isEditing}
-              />
-            </DocumentContainer>}
+          {this.store.isFetching
+            ? <CenteredContent>
+                <PreviewLoading />
+              </CenteredContent>
+            : this.store.document &&
+                <DocumentContainer>
+                  {!isEditing &&
+                    <PublishingInfo
+                      collaborators={this.store.document.collaborators}
+                      createdAt={this.store.document.createdAt}
+                      createdBy={this.store.document.createdBy}
+                      updatedAt={this.store.document.updatedAt}
+                      updatedBy={this.store.document.updatedBy}
+                    />}
+                  <Editor
+                    text={this.store.document.text}
+                    onImageUploadStart={this.onImageUploadStart}
+                    onImageUploadStop={this.onImageUploadStop}
+                    onChange={this.store.updateText}
+                    onSave={this.onSave}
+                    onCancel={this.onCancel}
+                    readOnly={!isEditing}
+                  />
+                </DocumentContainer>}
         </PagePadding>
         {this.store.document &&
           <Meta align="center" readOnly={!isEditing}>
