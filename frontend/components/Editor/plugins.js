@@ -12,15 +12,12 @@ import MarkdownShortcuts from './plugins/MarkdownShortcuts';
 
 const onlyInCode = node => node.type === 'code';
 
-type CreatePluginsOptions = {
+type Options = {
   onImageUploadStart: Function,
   onImageUploadStop: Function,
 };
 
-const createPlugins = ({
-  onImageUploadStart,
-  onImageUploadStop,
-}: CreatePluginsOptions) => {
+const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
   return [
     PasteLinkify({
       type: 'link',

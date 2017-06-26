@@ -13,6 +13,7 @@ import Menu from './components/Menu';
 import Editor from 'components/Editor';
 import { HeaderAction, SaveAction } from 'components/Layout';
 import PublishingInfo from 'components/PublishingInfo';
+import DocumentViews from 'components/DocumentViews';
 import PreviewLoading from 'components/PreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
@@ -58,9 +59,11 @@ type Props = {
       this.store.newDocument = false;
       this.store.fetchDocument();
     }
+
+    this.store.viewDocument();
   }
 
-  componentWillUnmout() {
+  componentWillUnmount() {
     this.props.ui.clearActiveCollection();
   }
 
@@ -94,17 +97,10 @@ type Props = {
   render() {
     const isNew = this.props.newDocument || this.props.newChildDocument;
     const isEditing = this.props.match.params.edit;
-    /*const title = (
-      <Breadcrumbs
-        document={this.store.document}
-        pathToDocument={this.store.pathToDocument}
-      />
-    );*/
-
     const titleText = this.store.document && get(this.store, 'document.title');
 
     const actions = (
-      <Flex>
+      <Flex align="center">
         <HeaderAction>
           {isEditing
             ? <SaveAction
@@ -114,14 +110,14 @@ type Props = {
               />
             : <a onClick={this.onEdit}>Edit</a>}
         </HeaderAction>
+
         {!isEditing &&
           <Menu store={this.store} document={this.store.document} />}
       </Flex>
     );
 
     return (
-      <Container>
-        <Actions>{actions}</Actions>
+      <Container flex column>
         <PagePadding auto justify="center">
           <PageTitle title={titleText} />
           <Prompt
@@ -134,14 +130,6 @@ type Props = {
             </CenteredContent>}
           {this.store.document &&
             <DocumentContainer>
-              {!isEditing &&
-                <PublishingInfo
-                  collaborators={this.store.document.collaborators}
-                  createdAt={this.store.document.createdAt}
-                  createdBy={this.store.document.createdBy}
-                  updatedAt={this.store.document.updatedAt}
-                  updatedBy={this.store.document.updatedBy}
-                />}
               <Editor
                 text={this.store.document.text}
                 onImageUploadStart={this.onImageUploadStart}
@@ -149,14 +137,43 @@ type Props = {
                 onChange={this.store.updateText}
                 onSave={this.onSave}
                 onCancel={this.onCancel}
+                onStar={this.store.starDocument}
+                onUnstar={this.store.unstarDocument}
+                starred={this.store.document.starred}
                 readOnly={!isEditing}
               />
             </DocumentContainer>}
         </PagePadding>
+        {this.store.document &&
+          <Meta align="center" readOnly={!isEditing}>
+            {!isEditing &&
+              <PublishingInfo
+                collaborators={this.store.document.collaborators}
+                createdAt={this.store.document.createdAt}
+                createdBy={this.store.document.createdBy}
+                updatedAt={this.store.document.updatedAt}
+                updatedBy={this.store.document.updatedBy}
+              />}
+            {!isEditing &&
+              <DocumentViews
+                count={this.store.document.views}
+                documentId={this.store.document.id}
+              />}
+            {actions}
+          </Meta>}
       </Container>
     );
   }
 }
+
+const Meta = styled(Flex)`
+  justify-content: ${props => (props.readOnly ? 'space-between' : 'flex-end')};
+  align-items: flex-start;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  padding: 10px 20px;
+`;
 
 const Container = styled(Flex)`
   position: relative;
@@ -165,12 +182,7 @@ const Container = styled(Flex)`
 
 const PagePadding = styled(Flex)`
   padding: 80px 20px;
-`;
-
-const Actions = styled(Flex)`
-  position: absolute;
-  top: 0;
-  right: 20px;
+  position: relative;
 `;
 
 const DocumentContainer = styled.div`

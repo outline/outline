@@ -1,46 +1,84 @@
 // @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
-import isUUID from 'validator/lib/isUUID';
-
-const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
 import auth from './middlewares/authentication';
+import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
-import { Document, Collection } from '../models';
+import { Document, Collection, Star, View } from '../models';
 
 const router = new Router();
 
-const getDocumentForId = async id => {
-  try {
-    let document;
-    if (isUUID(id)) {
-      document = await Document.findOne({
-        where: {
-          id,
-        },
-      });
-    } else if (id.match(URL_REGEX)) {
-      document = await Document.findOne({
-        where: {
-          urlId: id.match(URL_REGEX)[1],
-        },
-      });
-    } else {
-      throw httpErrors.NotFound();
-    }
-    return document;
-  } catch (e) {
-    // Invalid UUID
-    throw httpErrors.NotFound();
-  }
-};
+router.post('documents.list', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
 
-// FIXME: This really needs specs :/
+  const user = ctx.state.user;
+  const documents = await Document.findAll({
+    where: { teamId: user.teamId },
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(documents.map(doc => presentDocument(ctx, doc)));
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
+router.post('documents.viewed', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const views = await View.findAll({
+    where: { userId: user.id },
+    order: [[sort, direction]],
+    include: [{ model: Document }],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(
+    views.map(view => presentDocument(ctx, view.document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
+router.post('documents.starred', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const views = await Star.findAll({
+    where: { userId: user.id },
+    order: [[sort, direction]],
+    include: [{ model: Document }],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(
+    views.map(view => presentDocument(ctx, view.document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
 router.post('documents.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const document = await getDocumentForId(id);
+  const document = await Document.findById(id);
 
   if (!document) throw httpErrors.NotFound();
 
@@ -52,20 +90,14 @@ router.post('documents.info', auth(), async ctx => {
     if (document.teamId !== user.teamId) {
       throw httpErrors.NotFound();
     }
-
-    ctx.body = {
-      data: await presentDocument(ctx, document, {
-        includeCollection: true,
-        includeCollaborators: true,
-      }),
-    };
-  } else {
-    ctx.body = {
-      data: await presentDocument(ctx, document, {
-        includeCollaborators: true,
-      }),
-    };
   }
+
+  ctx.body = {
+    data: await presentDocument(ctx, document, {
+      includeCollection: document.private,
+      includeCollaborators: true,
+    }),
+  };
 });
 
 router.post('documents.search', auth(), async ctx => {
@@ -92,6 +124,34 @@ router.post('documents.search', auth(), async ctx => {
     pagination: ctx.state.pagination,
     data,
   };
+});
+
+router.post('documents.star', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+  const document = await Document.findById(id);
+
+  if (!document || document.teamId !== user.teamId)
+    throw httpErrors.BadRequest();
+
+  await Star.findOrCreate({
+    where: { documentId: document.id, userId: user.id },
+  });
+});
+
+router.post('documents.unstar', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+  const document = await Document.findById(id);
+
+  if (!document || document.teamId !== user.teamId)
+    throw httpErrors.BadRequest();
+
+  await Star.destroy({
+    where: { documentId: document.id, userId: user.id },
+  });
 });
 
 router.post('documents.create', auth(), async ctx => {
@@ -154,7 +214,7 @@ router.post('documents.update', auth(), async ctx => {
   ctx.assertPresent(title || text, 'title or text is required');
 
   const user = ctx.state.user;
-  const document = await getDocumentForId(id);
+  const document = await Document.findById(id);
 
   if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
 
@@ -186,13 +246,13 @@ router.post('documents.move', auth(), async ctx => {
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
   const user = ctx.state.user;
-  const document = await getDocumentForId(id);
+  const document = await Document.findById(id);
 
   if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
 
   // Set parent document
   if (parentDocument) {
-    const parent = await getDocumentForId(parentDocument);
+    const parent = await Document.findById(parentDocument);
     if (parent.atlasId !== document.atlasId)
       throw httpErrors.BadRequest(
         'Invalid parentDocument (must be same collection)'
@@ -226,7 +286,7 @@ router.post('documents.delete', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await getDocumentForId(id);
+  const document = await Document.findById(id);
   const collection = await Collection.findById(document.atlasId);
 
   if (!document || document.teamId !== user.teamId)
@@ -240,7 +300,7 @@ router.post('documents.delete', auth(), async ctx => {
       );
     }
 
-    // Delete all chilren
+    // Delete all children
     try {
       await collection.deleteDocument(document);
     } catch (e) {

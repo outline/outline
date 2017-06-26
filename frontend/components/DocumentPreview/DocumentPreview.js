@@ -20,8 +20,8 @@ const DocumentLink = styled(Link)`
   border-radius: 8px;
   border: 2px solid transparent;
   max-height: 50vh;
+  min-width: 100%;
   overflow: hidden;
-  width: 100%;
 
   &:hover,
   &:active,

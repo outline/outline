@@ -2,11 +2,14 @@
 import slug from 'slug';
 import _ from 'lodash';
 import randomstring from 'randomstring';
+
+import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
 import { convertToMarkdown } from '../../frontend/utils/markdown';
 import { truncateMarkdown } from '../utils/truncate';
-import User from './User';
 import Revision from './Revision';
+
+const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
 slug.defaults.mode = 'rfc3986';
 const slugify = text =>
@@ -14,9 +17,9 @@ const slugify = text =>
     remove: /[.]/g,
   });
 
-const createRevision = async doc => {
+const createRevision = doc => {
   // Create revision of the current (latest)
-  await Revision.create({
+  return Revision.create({
     title: doc.title,
     text: doc.text,
     html: doc.html,
@@ -26,10 +29,13 @@ const createRevision = async doc => {
   });
 };
 
-const documentBeforeSave = async doc => {
+const createUrlId = doc => {
+  return (doc.urlId = doc.urlId || randomstring.generate(10));
+};
+
+const beforeSave = async doc => {
   doc.html = convertToMarkdown(doc.text);
   doc.preview = truncateMarkdown(doc.text, 160);
-
   doc.revisionCount += 1;
 
   // Collaborators
@@ -65,7 +71,6 @@ const Document = sequelize.define(
     html: DataTypes.TEXT,
     preview: DataTypes.TEXT,
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
-
     parentDocumentId: DataTypes.UUID,
     createdById: {
       type: DataTypes.UUID,
@@ -86,13 +91,11 @@ const Document = sequelize.define(
   {
     paranoid: true,
     hooks: {
-      beforeValidate: doc => {
-        doc.urlId = doc.urlId || randomstring.generate(10);
-      },
-      beforeCreate: documentBeforeSave,
-      beforeUpdate: documentBeforeSave,
-      afterCreate: async doc => await createRevision(doc),
-      afterUpdate: async doc => await createRevision(doc),
+      beforeValidate: createUrlId,
+      beforeCreate: beforeSave,
+      beforeUpdate: beforeSave,
+      afterCreate: createRevision,
+      afterUpdate: createRevision,
     },
     instanceMethods: {
       getUrl() {
@@ -110,34 +113,47 @@ const Document = sequelize.define(
         };
       },
     },
+    classMethods: {
+      associate: models => {
+        Document.belongsTo(models.User);
+      },
+      findById: async id => {
+        if (isUUID(id)) {
+          return Document.findOne({
+            where: { id },
+          });
+        } else if (id.match(URL_REGEX)) {
+          return Document.findOne({
+            where: {
+              urlId: id.match(URL_REGEX)[1],
+            },
+          });
+        }
+      },
+      searchForUser: (user, query, options = {}) => {
+        const limit = options.limit || 15;
+        const offset = options.offset || 0;
+
+        const sql = `
+        SELECT * FROM documents
+        WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
+          "teamId" = '${user.teamId}'::uuid AND
+          "deletedAt" IS NULL
+        ORDER BY ts_rank(documents."searchVector", plainto_tsquery('english', :query)) DESC
+        LIMIT :limit OFFSET :offset;
+        `;
+
+        return sequelize.query(sql, {
+          replacements: {
+            query,
+            limit,
+            offset,
+          },
+          model: Document,
+        });
+      },
+    },
   }
 );
-
-Document.belongsTo(User);
-
-Document.searchForUser = async (user, query, options = {}) => {
-  const limit = options.limit || 15;
-  const offset = options.offset || 0;
-
-  const sql = `
-  SELECT * FROM documents
-  WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
-    "teamId" = '${user.teamId}'::uuid AND
-    "deletedAt" IS NULL
-  ORDER BY ts_rank(documents."searchVector", plainto_tsquery('english', :query)) DESC
-  LIMIT :limit OFFSET :offset;
-  `;
-
-  const documents = await sequelize.query(sql, {
-    replacements: {
-      query,
-      limit,
-      offset,
-    },
-    model: Document,
-  });
-
-  return documents;
-};
 
 export default Document;

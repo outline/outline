@@ -1,27 +1,17 @@
-import _ from 'lodash';
-import { Document, Collection, User } from './models';
+import { Collection, Star, User, View } from '../models';
+import presentUser from './user';
+import presentCollection from './collection';
 
-import presentUser from './presenters/user';
-
-export { presentUser };
-
-export async function presentTeam(ctx, team) {
-  ctx.cache.set(team.id, team);
-
-  return {
-    id: team.id,
-    name: team.name,
-  };
-}
-
-export async function presentDocument(ctx, document, options) {
+async function present(ctx, document, options) {
   options = {
     includeCollection: true,
     includeCollaborators: true,
+    includeViews: true,
     ...options,
   };
   ctx.cache.set(document.id, document);
 
+  const userId = ctx.state.user.id;
   const data = {
     id: document.id,
     url: document.getUrl(),
@@ -37,6 +27,16 @@ export async function presentDocument(ctx, document, options) {
     team: document.teamId,
     collaborators: [],
   };
+
+  data.starred = !!await Star.findOne({
+    where: { documentId: document.id, userId },
+  });
+
+  if (options.includeViews) {
+    data.views = await View.sum('count', {
+      where: { documentId: document.id },
+    });
+  }
 
   if (options.includeCollection) {
     data.collection = await ctx.cache.get(document.atlasId, async () => {
@@ -77,56 +77,4 @@ export async function presentDocument(ctx, document, options) {
   return data;
 }
 
-export async function presentCollection(
-  ctx,
-  collection,
-  includeRecentDocuments = false
-) {
-  ctx.cache.set(collection.id, collection);
-
-  const data = {
-    id: collection.id,
-    url: collection.getUrl(),
-    name: collection.name,
-    description: collection.description,
-    type: collection.type,
-    createdAt: collection.createdAt,
-    updatedAt: collection.updatedAt,
-  };
-
-  if (collection.type === 'atlas') {
-    data.documents = await collection.getDocumentsStructure();
-  }
-
-  if (includeRecentDocuments) {
-    const documents = await Document.findAll({
-      where: {
-        atlasId: collection.id,
-      },
-      limit: 10,
-      order: [['updatedAt', 'DESC']],
-    });
-
-    const recentDocuments = [];
-    await Promise.all(
-      documents.map(async document => {
-        recentDocuments.push(
-          await presentDocument(ctx, document, {
-            includeCollaborators: true,
-          })
-        );
-      })
-    );
-    data.recentDocuments = _.orderBy(recentDocuments, ['updatedAt'], ['desc']);
-  }
-
-  return data;
-}
-
-export function presentApiKey(ctx, key) {
-  return {
-    id: key.id,
-    name: key.name,
-    secret: key.secret,
-  };
-}
+export default present;

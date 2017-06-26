@@ -6,7 +6,7 @@ import type { User } from 'types';
 import { Flex } from 'reflexbox';
 
 const Container = styled(Flex)`
-  margin-bottom: 30px;
+  justify-content: space-between;
   color: #ccc;
   font-size: 13px;
 `;
@@ -31,6 +31,7 @@ class PublishingInfo extends Component {
     createdBy: User,
     updatedAt: string,
     updatedBy: User,
+    views?: number,
   };
 
   render() {
@@ -52,7 +53,9 @@ class PublishingInfo extends Component {
                 &nbsp;and&nbsp;
                 {this.props.createdBy.id !== this.props.updatedBy.id &&
                   ` ${this.props.updatedBy.name} `}
-                modified {moment(this.props.updatedAt).fromNow()}
+                modified
+                {' '}
+                {moment(this.props.updatedAt).fromNow()}
               </span>
             : null}
         </span>

@@ -21,9 +21,7 @@ function runMigrations() {
       path: './server/migrations',
     },
   });
-  return umzug.up().then(() => {
-    return sequelize.close();
-  });
+  return umzug.up();
 }
 
 runMigrations();

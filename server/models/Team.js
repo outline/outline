@@ -1,7 +1,5 @@
 import { DataTypes, sequelize } from '../sequelize';
 import Collection from './Collection';
-import Document from './Document';
-import User from './User';
 
 const Team = sequelize.define(
   'team',
@@ -16,6 +14,13 @@ const Team = sequelize.define(
     slackData: DataTypes.JSONB,
   },
   {
+    classMethods: {
+      associate: models => {
+        Team.hasMany(models.Collection, { as: 'atlases' });
+        Team.hasMany(models.Document, { as: 'documents' });
+        Team.hasMany(models.User, { as: 'users' });
+      },
+    },
     instanceMethods: {
       async createFirstCollection(userId) {
         const atlas = await Collection.create({
@@ -36,9 +41,5 @@ const Team = sequelize.define(
     ],
   }
 );
-
-Team.hasMany(Collection, { as: 'atlases' });
-Team.hasMany(Document, { as: 'documents' });
-Team.hasMany(User, { as: 'users' });
 
 export default Team;
