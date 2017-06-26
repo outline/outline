@@ -145,6 +145,7 @@ type Props = {
                       updatedBy={this.store.document.updatedBy}
                     />}
                   <Editor
+                    key={this.store.document.id}
                     text={this.store.document.text}
                     onImageUploadStart={this.onImageUploadStart}
                     onImageUploadStop={this.onImageUploadStop}
