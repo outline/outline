@@ -134,6 +134,7 @@
     "normalizr": "2.0.1",
     "pg": "^6.1.5",
     "pg-hstore": "2.3.2",
+    "polished": "^1.2.1",
     "query-string": "^4.3.4",
     "randomstring": "1.1.5",
     "raw-loader": "^0.5.1",

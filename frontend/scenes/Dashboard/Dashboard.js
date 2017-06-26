@@ -4,10 +4,10 @@ import { observer, inject } from 'mobx-react';
 import { Flex } from 'reflexbox';
 
 import CollectionsStore from 'stores/CollectionsStore';
-
+import PageTitle from 'components/PageTitle';
 import Collection from 'components/Collection';
-import PreviewLoading from 'components/PreviewLoading';
 import CenteredContent from 'components/CenteredContent';
+import PreviewLoading from 'components/PreviewLoading';
 
 type Props = {
   collections: CollectionsStore,
@@ -21,6 +21,8 @@ type Props = {
 
     return (
       <CenteredContent>
+        <PageTitle title="Home" />
+        <h1>Home</h1>
         <Flex column auto>
           {!collections.isLoaded
             ? <PreviewLoading />
