@@ -4,7 +4,7 @@ import get from 'lodash/get';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import emojify from 'utils/emojify';
-import type { Document, NavigationNode } from 'types';
+import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 
 type SaveProps = { redirect?: boolean };
@@ -29,10 +29,10 @@ type Options = {
 };
 
 class DocumentStore {
+  document: Document;
   @observable collapsedNodes: string[] = [];
   @observable documentId = null;
   @observable collectionId = null;
-  @observable document: Document;
   @observable parentDocument: Document;
   @observable hasPendingChanges = false;
   @observable newDocument: ?boolean;
@@ -50,29 +50,6 @@ class DocumentStore {
 
   @computed get isCollection(): boolean {
     return !!this.document && this.document.collection.type === 'atlas';
-  }
-
-  @computed get pathToDocument(): Array<NavigationNode> {
-    let path;
-    const traveler = (nodes, previousPath) => {
-      nodes.forEach(childNode => {
-        const newPath = [...previousPath, childNode];
-        if (childNode.id === this.document.id) {
-          path = previousPath;
-          return;
-        } else {
-          return traveler(childNode.chilren, newPath);
-        }
-      });
-    };
-
-    if (this.document && this.document.collection.documents) {
-      traveler(this.document.collection.documents, []);
-      invariant(path, 'Path is not available for collection, abort');
-      return path.splice(1);
-    }
-
-    return [];
   }
 
   /* Actions */
@@ -118,8 +95,8 @@ class DocumentStore {
       if (this.newChildDocument) {
         this.parentDocument = res.data;
       } else {
-        this.document = res.data;
-        this.ui.setActiveDocument(res.data);
+        this.document = new Document(res.data);
+        this.ui.setActiveDocument(this.document);
       }
     } catch (e) {
       console.error('Something went wrong');

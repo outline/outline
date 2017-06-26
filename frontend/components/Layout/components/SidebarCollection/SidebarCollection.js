@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import SidebarLink from '../SidebarLink';
 
 import Collection from 'models/Collection';
+import Document from 'models/Document';
 
 type Props = {
   collection: ?Collection,
@@ -17,14 +18,18 @@ class SidebarCollection extends React.Component {
   props: Props;
 
   renderDocuments(documentList) {
-    return documentList.map(document => (
-      <Flex column key={document.id}>
-        <SidebarLink key={document.id} to={document.url}>
-          {document.title}
+    const { document } = this.props;
+
+    return documentList.map(doc => (
+      <Flex column key={doc.id}>
+        <SidebarLink key={doc.id} to={doc.url}>
+          {doc.title}
         </SidebarLink>
-        <Children>
-          {document.children && this.renderDocuments(document.children)}
-        </Children>
+        {}
+        {(document.pathToDocument.includes(doc.id) || document.id === doc.id) &&
+          <Children>
+            {doc.children && this.renderDocuments(doc.children)}
+          </Children>}
       </Flex>
     ));
   }
