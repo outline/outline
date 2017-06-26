@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import CenteredContent from 'components/CenteredContent';
-import Layout from 'components/Layout';
 import PageTitle from 'components/PageTitle';
 import DocumentList from 'components/DocumentList';
 import StarredStore from './StarredStore';
@@ -27,13 +26,11 @@ const Container = styled(CenteredContent)`
 
   render() {
     return (
-      <Layout loading={this.store.isFetching}>
+      <Container column auto>
         <PageTitle title="Starred" />
-        <Container column auto>
-          <h1>Starred</h1>
-          <DocumentList documents={this.store.documents} />
-        </Container>
-      </Layout>
+        <h1>Starred</h1>
+        <DocumentList documents={this.store.documents} />
+      </Container>
     );
   }
 }

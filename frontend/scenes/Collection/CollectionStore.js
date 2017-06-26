@@ -18,9 +18,10 @@ class CollectionStore {
       invariant(res && res.data, 'Data should be available');
       const { data } = res;
 
-      if (data.type === 'atlas') this.redirectUrl = data.documents[0].url;
+      if (data.type === 'atlas') this.redirectUrl = data.recentDocuments[0].url;
       else throw new Error('TODO code up non-atlas collections');
     } catch (e) {
+      console.log(e);
       this.redirectUrl = notFoundUrl();
     }
     this.isFetching = false;
