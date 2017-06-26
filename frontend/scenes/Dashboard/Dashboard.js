@@ -6,7 +6,8 @@ import styled from 'styled-components';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import CenteredContent from 'components/CenteredContent';
-import RecentDocumentsStore from './RecentDocumentsStore';
+import ViewedDocumentsStore from './ViewedDocumentsStore';
+import EditedDocumentsStore from './EditedDocumentsStore';
 
 const Subheading = styled.h3`
   font-size: 11px;
@@ -16,21 +17,25 @@ const Subheading = styled.h3`
   letter-spacing: 0.04em;
   border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
+  margin-top: 30px;
 `;
 
 type Props = {};
 
 @observer class Dashboard extends React.Component {
   props: Props;
-  store: RecentDocumentsStore;
+  viewedStore: ViewedDocumentsStore;
+  editedStore: EditedDocumentsStore;
 
   constructor(props: Props) {
     super(props);
-    this.store = new RecentDocumentsStore();
+    this.viewedStore = new ViewedDocumentsStore();
+    this.editedStore = new EditedDocumentsStore();
   }
 
   componentDidMount() {
-    this.store.fetchDocuments();
+    this.viewedStore.fetchDocuments();
+    this.editedStore.fetchDocuments();
   }
 
   render() {
@@ -39,8 +44,10 @@ type Props = {};
         <PageTitle title="Home" />
         <h1>Home</h1>
         <Subheading>Recently viewed</Subheading>
-        <DocumentList documents={this.store.documents} />
+        <DocumentList documents={this.viewedStore.documents} />
 
+        <Subheading>Recently edited</Subheading>
+        <DocumentList documents={this.editedStore.documents} />
       </CenteredContent>
     );
   }

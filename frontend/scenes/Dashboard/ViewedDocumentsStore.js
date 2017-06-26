@@ -4,7 +4,7 @@ import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import type { Document } from 'types';
 
-class RecentDocumentsStore {
+class ViewedDocumentsStore {
   @observable documents: Array<Document> = [];
   @observable isFetching = false;
 
@@ -26,4 +26,4 @@ class RecentDocumentsStore {
   };
 }
 
-export default RecentDocumentsStore;
+export default ViewedDocumentsStore;
