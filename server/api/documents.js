@@ -1,13 +1,80 @@
 // @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
+
 import auth from './middlewares/authentication';
+import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
-import { Document, Collection } from '../models';
+import { Document, Collection, Star, View } from '../models';
 
 const router = new Router();
 
-// FIXME: This really needs specs :/
+router.post('documents.list', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const documents = await Document.findAll({
+    where: { teamId: user.teamId },
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(documents.map(doc => presentDocument(ctx, doc)));
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
+router.post('documents.viewed', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const views = await View.findAll({
+    where: { userId: user.id },
+    order: [[sort, direction]],
+    include: [{ model: Document }],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(
+    views.map(view => presentDocument(ctx, view.document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
+router.post('documents.starred', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const views = await Star.findAll({
+    where: { userId: user.id },
+    order: [[sort, direction]],
+    include: [{ model: Document }],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  let data = await Promise.all(
+    views.map(view => presentDocument(ctx, view.document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
 router.post('documents.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
@@ -57,6 +124,34 @@ router.post('documents.search', auth(), async ctx => {
     pagination: ctx.state.pagination,
     data,
   };
+});
+
+router.post('documents.star', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+  const document = await Document.findById(id);
+
+  if (!document || document.teamId !== user.teamId)
+    throw httpErrors.BadRequest();
+
+  await Star.findOrCreate({
+    where: { documentId: document.id, userId: user.id },
+  });
+});
+
+router.post('documents.unstar', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+  const document = await Document.findById(id);
+
+  if (!document || document.teamId !== user.teamId)
+    throw httpErrors.BadRequest();
+
+  await Star.destroy({
+    where: { documentId: document.id, userId: user.id },
+  });
 });
 
 router.post('documents.create', auth(), async ctx => {
@@ -205,7 +300,7 @@ router.post('documents.delete', auth(), async ctx => {
       );
     }
 
-    // Delete all chilren
+    // Delete all children
     try {
       await collection.deleteDocument(document);
     } catch (e) {

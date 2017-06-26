@@ -1,5 +1,5 @@
 import compress from 'koa-compress';
-import helmet from 'koa-helmet';
+import { contentSecurityPolicy } from 'koa-helmet';
 import logger from 'koa-logger';
 import mount from 'koa-mount';
 import Koa from 'koa';
@@ -72,7 +72,7 @@ app.use(mount('/api', api));
 app.use(mount(routes));
 
 app.use(
-  helmet.csp({
+  contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],

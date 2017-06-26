@@ -1,9 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
 exports[`#user.info should require authentication 1`] = `
 Object {
   "error": "authentication_required",
   "message": "Authentication required",
   "ok": false,
-  "status": 401
+  "status": 401,
 }
 `;
 
@@ -13,9 +15,9 @@ Object {
     "avatarUrl": "http://example.com/avatar.png",
     "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
     "name": "User 1",
-    "username": "user1"
+    "username": "user1",
   },
   "ok": true,
-  "status": 200
+  "status": 200,
 }
 `;

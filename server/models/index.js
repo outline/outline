@@ -6,8 +6,18 @@ import Document from './Document';
 import Revision from './Revision';
 import ApiKey from './ApiKey';
 import View from './View';
+import Star from './Star';
 
-const models = { User, Team, Collection, Document, Revision, ApiKey, View };
+const models = {
+  User,
+  Team,
+  Collection,
+  Document,
+  Revision,
+  ApiKey,
+  View,
+  Star,
+};
 
 // based on https://github.com/sequelize/express-example/blob/master/models/index.js
 Object.keys(models).forEach(modelName => {
@@ -16,4 +26,4 @@ Object.keys(models).forEach(modelName => {
   }
 });
 
-export { User, Team, Collection, Document, Revision, ApiKey, View };
+export { User, Team, Collection, Document, Revision, ApiKey, View, Star };

@@ -1,13 +1,14 @@
 // @flow
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import classnames from 'classnames/bind';
 import type { Document, State, Editor as EditorType } from './types';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
-import schema from './schema';
 import Markdown from './serializer';
+import createSchema from './schema';
 import createPlugins from './plugins';
 import styles from './Editor.scss';
 
@@ -18,8 +19,11 @@ type Props = {
   onChange: Function,
   onSave: Function,
   onCancel: Function,
+  onStar: Function,
+  onUnstar: Function,
   onImageUploadStart: Function,
   onImageUploadStop: Function,
+  starred: boolean,
   readOnly: boolean,
 };
 
@@ -28,10 +32,10 @@ type KeyData = {
   key: string,
 };
 
-@observer
-export default class MarkdownEditor extends Component {
+@observer class MarkdownEditor extends Component {
   props: Props;
   editor: EditorType;
+  schema: Object;
   plugins: Array<Object>;
 
   state: {
@@ -41,6 +45,10 @@ export default class MarkdownEditor extends Component {
   constructor(props: Props) {
     super(props);
 
+    this.schema = createSchema({
+      onStar: props.onStar,
+      onUnstar: props.onUnstar,
+    });
     this.plugins = createPlugins({
       onImageUploadStart: props.onImageUploadStart,
       onImageUploadStop: props.onImageUploadStop,
@@ -51,6 +59,10 @@ export default class MarkdownEditor extends Component {
     } else {
       this.state = { state: Plain.deserialize('') };
     }
+  }
+
+  getChildContext() {
+    return { starred: this.props.starred };
   }
 
   onChange = (state: State) => {
@@ -103,10 +115,11 @@ export default class MarkdownEditor extends Component {
           <ClickablePadding onClick={this.focusAtStart} />}
         <Toolbar state={this.state.state} onChange={this.onChange} />
         <Editor
+          key={this.props.starred}
           ref={ref => (this.editor = ref)}
           placeholder="Start with a title…"
           className={cx(styles.editor, { readOnly: this.props.readOnly })}
-          schema={schema}
+          schema={this.schema}
           plugins={this.plugins}
           state={this.state.state}
           onChange={this.onChange}
@@ -121,3 +134,9 @@ export default class MarkdownEditor extends Component {
     );
   };
 }
+
+MarkdownEditor.childContextTypes = {
+  starred: PropTypes.bool,
+};
+
+export default MarkdownEditor;

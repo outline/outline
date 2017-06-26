@@ -26,6 +26,14 @@ const User = sequelize.define(
     jwtSecret: encryptedFields.vault('jwtSecret'),
   },
   {
+    classMethods: {
+      associate: models => {
+        User.hasMany(models.ApiKey, { as: 'apiKeys' });
+        User.hasMany(models.Collection, { as: 'collections' });
+        User.hasMany(models.Document, { as: 'documents' });
+        User.hasMany(models.View, { as: 'views' });
+      },
+    },
     instanceMethods: {
       getJwtToken() {
         return JWT.sign({ id: this.id }, this.jwtSecret);

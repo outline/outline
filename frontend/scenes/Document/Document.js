@@ -137,26 +137,30 @@ type Props = {
                 onChange={this.store.updateText}
                 onSave={this.onSave}
                 onCancel={this.onCancel}
+                onStar={this.store.starDocument}
+                onUnstar={this.store.unstarDocument}
+                starred={this.store.document.starred}
                 readOnly={!isEditing}
               />
             </DocumentContainer>}
         </PagePadding>
-        <Meta align="center" readOnly={!isEditing}>
-          {!isEditing &&
-            <PublishingInfo
-              collaborators={this.store.document.collaborators}
-              createdAt={this.store.document.createdAt}
-              createdBy={this.store.document.createdBy}
-              updatedAt={this.store.document.updatedAt}
-              updatedBy={this.store.document.updatedBy}
-            />}
-          {!isEditing &&
-            <DocumentViews
-              count={this.store.document.views}
-              documentId={this.store.document.id}
-            />}
-          {actions}
-        </Meta>
+        {this.store.document &&
+          <Meta align="center" readOnly={!isEditing}>
+            {!isEditing &&
+              <PublishingInfo
+                collaborators={this.store.document.collaborators}
+                createdAt={this.store.document.createdAt}
+                createdBy={this.store.document.createdBy}
+                updatedAt={this.store.document.updatedAt}
+                updatedBy={this.store.document.updatedBy}
+              />}
+            {!isEditing &&
+              <DocumentViews
+                count={this.store.document.views}
+                documentId={this.store.document.id}
+              />}
+            {actions}
+          </Meta>}
       </Container>
     );
   }

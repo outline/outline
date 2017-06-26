@@ -1,12 +1,11 @@
 import TestServer from 'fetch-test-server';
 import app from '..';
-import { flushdb, sequelize, seed } from '../test/support';
+import { flushdb, seed } from '../test/support';
 
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
 afterAll(() => server.close());
-afterAll(() => sequelize.close());
 
 describe('#auth.signup', async () => {
   it('should signup a new user', async () => {
