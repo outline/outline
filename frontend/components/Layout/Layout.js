@@ -106,7 +106,7 @@ type Props = {
                   <SidebarLink to="/search">Search</SidebarLink>
                 </LinkSection>
                 <LinkSection>
-                  <SidebarLink to="/dashboard">Dashboard</SidebarLink>
+                  <SidebarLink to="/dashboard">Home</SidebarLink>
                   <SidebarLink to="/starred">Starred</SidebarLink>
                 </LinkSection>
                 <LinkSection>

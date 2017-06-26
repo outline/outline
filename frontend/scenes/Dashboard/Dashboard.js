@@ -1,38 +1,49 @@
 // @flow
 import React from 'react';
-import { observer, inject } from 'mobx-react';
-import { Flex } from 'reflexbox';
+import { observer } from 'mobx-react';
+import styled from 'styled-components';
 
-import CollectionsStore from 'stores/CollectionsStore';
+import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
-import Collection from 'components/Collection';
 import CenteredContent from 'components/CenteredContent';
-import PreviewLoading from 'components/PreviewLoading';
+import RecentDocumentsStore from './RecentDocumentsStore';
 
-type Props = {
-  collections: CollectionsStore,
-};
+const Subheading = styled.h3`
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: #9FA6AB;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+`;
+
+type Props = {};
 
 @observer class Dashboard extends React.Component {
   props: Props;
+  store: RecentDocumentsStore;
+
+  constructor(props: Props) {
+    super(props);
+    this.store = new RecentDocumentsStore();
+  }
+
+  componentDidMount() {
+    this.store.fetchDocuments();
+  }
 
   render() {
-    const { collections } = this.props;
-
     return (
       <CenteredContent>
         <PageTitle title="Home" />
         <h1>Home</h1>
-        <Flex column auto>
-          {!collections.isLoaded
-            ? <PreviewLoading />
-            : collections.data.map(collection => (
-                <Collection key={collection.id} data={collection} />
-              ))}
-        </Flex>
+        <Subheading>Recently viewed</Subheading>
+        <DocumentList documents={this.store.documents} />
+
       </CenteredContent>
     );
   }
 }
 
-export default inject('collections')(Dashboard);
+export default Dashboard;

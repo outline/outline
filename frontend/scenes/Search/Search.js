@@ -109,6 +109,7 @@ const ResultsWrapper = styled(Flex)`
                 innerRef={ref => index === 0 && this.setFirstDocumentRef(ref)}
                 key={document.id}
                 document={document}
+                highlight={this.store.searchTerm}
               />
             ))}
           </ArrowKeyNavigation>
