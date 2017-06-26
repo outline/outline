@@ -20,18 +20,20 @@ class SidebarCollection extends React.Component {
   renderDocuments(documentList) {
     const { document } = this.props;
 
-    return documentList.map(doc => (
-      <Flex column key={doc.id}>
-        <SidebarLink key={doc.id} to={doc.url}>
-          {doc.title}
-        </SidebarLink>
-        {}
-        {(document.pathToDocument.includes(doc.id) || document.id === doc.id) &&
-          <Children>
-            {doc.children && this.renderDocuments(doc.children)}
-          </Children>}
-      </Flex>
-    ));
+    if (document) {
+      return documentList.map(doc => (
+        <Flex column key={doc.id}>
+          <SidebarLink key={doc.id} to={doc.url}>
+            {doc.title}
+          </SidebarLink>
+          {(document.pathToDocument.includes(doc.id) ||
+            document.id === doc.id) &&
+            <Children>
+              {doc.children && this.renderDocuments(doc.children)}
+            </Children>}
+        </Flex>
+      ));
+    }
   }
 
   render() {
