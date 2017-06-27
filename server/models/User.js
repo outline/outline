@@ -29,7 +29,6 @@ const User = sequelize.define(
     classMethods: {
       associate: models => {
         User.hasMany(models.ApiKey, { as: 'apiKeys' });
-        User.hasMany(models.Collection, { as: 'collections' });
         User.hasMany(models.Document, { as: 'documents' });
         User.hasMany(models.View, { as: 'views' });
       },
