@@ -137,14 +137,6 @@ type Props = {
               </CenteredContent>
             : this.store.document &&
                 <DocumentContainer>
-                  {!isEditing &&
-                    <PublishingInfo
-                      collaborators={this.store.document.collaborators}
-                      createdAt={this.store.document.createdAt}
-                      createdBy={this.store.document.createdBy}
-                      updatedAt={this.store.document.updatedAt}
-                      updatedBy={this.store.document.updatedBy}
-                    />}
                   <Editor
                     key={this.store.document.id}
                     text={this.store.document.text}

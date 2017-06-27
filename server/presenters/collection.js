@@ -16,7 +16,7 @@ async function present(ctx, collection, includeRecentDocuments = false) {
   };
 
   if (collection.type === 'atlas')
-    data.navigationTree = collection.navigationTree;
+    data.documents = await collection.getDocumentsStructure();
 
   if (includeRecentDocuments) {
     const documents = await Document.findAll({
