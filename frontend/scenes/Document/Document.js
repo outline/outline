@@ -129,6 +129,7 @@ type Props = {
       <Container column auto>
         {titleText && <PageTitle title={titleText} />}
         <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
+
         <PagePadding auto justify="center">
           {this.store.isFetching
             ? <CenteredContent>
@@ -152,6 +153,9 @@ type Props = {
                     onChange={this.store.updateText}
                     onSave={this.onSave}
                     onCancel={this.onCancel}
+                    onStar={this.store.starDocument}
+                    onUnstar={this.store.unstarDocument}
+                    starred={this.store.document.starred}
                     readOnly={!isEditing}
                   />
                 </DocumentContainer>}
