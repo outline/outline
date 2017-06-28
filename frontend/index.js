@@ -11,6 +11,7 @@ import {
 import { Flex } from 'reflexbox';
 
 import stores from 'stores';
+import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 
 import 'normalize.css/normalize.css';
@@ -57,12 +58,14 @@ const Auth = ({ children }: AuthProps) => {
       const user = stores.auth.getUserStore();
       authenticatedStores = {
         user,
+        documents: new DocumentsStore(),
         collections: new CollectionsStore({
           teamId: user.team.id,
         }),
       };
 
-      authenticatedStores.collections.fetch();
+      authenticatedStores.documents.fetchAll();
+      authenticatedStores.collections.fetchAll();
     }
 
     return (
@@ -135,3 +138,5 @@ render(
   </div>,
   document.getElementById('root')
 );
+
+window.authenticatedStores = authenticatedStores;

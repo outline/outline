@@ -8,10 +8,6 @@ import stores from 'stores';
 import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
 
-type Options = {
-  teamId: string,
-};
-
 class DocumentsStore {
   @observable data: Object = {};
   @observable isLoaded: boolean = false;
@@ -19,9 +15,9 @@ class DocumentsStore {
 
   /* Actions */
 
-  @action fetchAll = async (): Promise<*> => {
+  @action fetchAll = async (request?: string = 'list'): Promise<*> => {
     try {
-      const res = await client.post('/documents.list');
+      const res = await client.post(`/documents.${request}`);
       invariant(res && res.data, 'Document list not available');
       const { data } = res;
       runInAction('DocumentsStore#fetchAll', () => {
@@ -35,9 +31,20 @@ class DocumentsStore {
         };
         this.isLoaded = true;
       });
+      return data;
     } catch (e) {
       this.errors.add('Failed to load documents');
     }
+  };
+
+  @action fetchRecent = async (): Promise<*> => {
+    const data = await this.fetchAll('recent');
+    console.log(data);
+  };
+
+  @action fetchViewed = async (): Promise<*> => {
+    const data = await this.fetchAll('viewed');
+    console.log(data);
   };
 
   @action fetch = async (id: string): Promise<*> => {
@@ -46,7 +53,7 @@ class DocumentsStore {
       invariant(res && res.data, 'Document not available');
       const { data } = res;
       runInAction('DocumentsStore#fetch', () => {
-        this.update(new Document(data));
+        this.add(new Document(data));
         this.isLoaded = true;
       });
     } catch (e) {
@@ -62,20 +69,11 @@ class DocumentsStore {
     delete this.data[id];
   };
 
-  @action update = (document: Document): void => {
-    const existing = this.data[document.id];
-
-    this.data[document.id] = {
-      ...existing,
-      document,
-    };
-  };
-
   getById = (id: string): Document => {
     return _.find(this.data, { id });
   };
 
-  constructor(options: Options) {
+  constructor() {
     this.errors = stores.errors;
   }
 }
