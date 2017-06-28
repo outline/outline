@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
-import type { Document } from 'types';
+import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
 import PublishingInfo from 'components/PublishingInfo';

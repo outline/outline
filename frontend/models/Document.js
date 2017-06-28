@@ -2,7 +2,7 @@
 import { extendObservable, action, runInAction, computed } from 'mobx';
 import invariant from 'invariant';
 
-import ApiClient, { client } from 'utils/ApiClient';
+import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
 
@@ -25,8 +25,6 @@ class Document {
   updatedBy: User;
   url: string;
   views: number;
-
-  client: ApiClient;
   errors: ErrorsStore;
 
   /* Computed */
@@ -58,7 +56,7 @@ class Document {
 
   @action update = async () => {
     try {
-      const res = await this.client.post('/documents.info', { id: this.id });
+      const res = await client.post('/documents.info', { id: this.id });
       invariant(res && res.data, 'Document API response should be available');
       const { data } = res;
       runInAction('Document#update', () => {
@@ -75,7 +73,6 @@ class Document {
 
   constructor(document: Document) {
     this.updateData(document);
-    this.client = client;
     this.errors = stores.errors;
   }
 }

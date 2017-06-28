@@ -1,13 +1,12 @@
 // @flow
 import React from 'react';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 
+import DocumentsStore from 'stores/DocumentsStore';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import CenteredContent from 'components/CenteredContent';
-import ViewedDocumentsStore from './ViewedDocumentsStore';
-import EditedDocumentsStore from './EditedDocumentsStore';
 
 const Subheading = styled.h3`
   font-size: 11px;
@@ -20,22 +19,16 @@ const Subheading = styled.h3`
   margin-top: 30px;
 `;
 
-type Props = {};
+type Props = {
+  documents: DocumentsStore,
+};
 
 @observer class Dashboard extends React.Component {
   props: Props;
-  viewedStore: ViewedDocumentsStore;
-  editedStore: EditedDocumentsStore;
-
-  constructor(props: Props) {
-    super(props);
-    this.viewedStore = new ViewedDocumentsStore();
-    this.editedStore = new EditedDocumentsStore();
-  }
 
   componentDidMount() {
-    this.viewedStore.fetchDocuments();
-    this.editedStore.fetchDocuments();
+    this.props.documents.fetchAll();
+    this.props.documents.fetchRecentlyViewed();
   }
 
   render() {
@@ -44,13 +37,13 @@ type Props = {};
         <PageTitle title="Home" />
         <h1>Home</h1>
         <Subheading>Recently viewed</Subheading>
-        <DocumentList documents={this.viewedStore.documents} />
+        <DocumentList documents={this.props.documents.getRecentlyViewed()} />
 
         <Subheading>Recently edited</Subheading>
-        <DocumentList documents={this.editedStore.documents} />
+        <DocumentList documents={this.props.documents.data.values()} />
       </CenteredContent>
     );
   }
 }
 
-export default Dashboard;
+export default inject('documents')(Dashboard);
