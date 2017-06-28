@@ -3,7 +3,7 @@ import apiError from '../../errors';
 import validator from 'validator';
 
 export default function validation() {
-  return function validationMiddleware(ctx, next) {
+  return function validationMiddleware(ctx: Object, next: Function) {
     ctx.assertPresent = function assertPresent(value, message) {
       if (value === undefined || value === null || value === '') {
         throw apiError(400, 'validation_error', message);

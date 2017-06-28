@@ -17,12 +17,14 @@ class Document {
   html: string;
   id: string;
   private: boolean;
+  starred: boolean;
   team: string;
   text: string;
   title: string;
   updatedAt: string;
   updatedBy: User;
   url: string;
+  views: number;
 
   client: ApiClient;
   errors: ErrorsStore;
