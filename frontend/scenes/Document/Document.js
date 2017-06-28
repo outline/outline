@@ -44,18 +44,27 @@ type Props = {
   }
 
   componentDidMount() {
-    if (this.props.newDocument) {
-      this.store.collectionId = this.props.match.params.id;
+    this.loadDocument(this.props);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.match.params.id !== this.props.match.params.id)
+      this.loadDocument(nextProps);
+  }
+
+  loadDocument(props) {
+    if (props.newDocument) {
+      this.store.collectionId = props.match.params.id;
       this.store.newDocument = true;
-    } else if (this.props.match.params.edit) {
-      this.store.documentId = this.props.match.params.id;
+    } else if (props.match.params.edit) {
+      this.store.documentId = props.match.params.id;
       this.store.fetchDocument();
-    } else if (this.props.newChildDocument) {
-      this.store.documentId = this.props.match.params.id;
+    } else if (props.newChildDocument) {
+      this.store.documentId = props.match.params.id;
       this.store.newChildDocument = true;
       this.store.fetchDocument();
     } else {
-      this.store.documentId = this.props.match.params.id;
+      this.store.documentId = props.match.params.id;
       this.store.newDocument = false;
       this.store.fetchDocument();
     }
@@ -64,7 +73,7 @@ type Props = {
   }
 
   componentWillUnmount() {
-    this.props.ui.clearActiveCollection();
+    this.props.ui.clearActiveDocument();
   }
 
   onEdit = () => {
@@ -117,32 +126,31 @@ type Props = {
     );
 
     return (
-      <Container flex column>
+      <Container column auto>
+        {titleText && <PageTitle title={titleText} />}
+        <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
+
         <PagePadding auto justify="center">
-          <PageTitle title={titleText} />
-          <Prompt
-            when={this.store.hasPendingChanges}
-            message={DISCARD_CHANGES}
-          />
-          {this.store.isFetching &&
-            <CenteredContent>
-              <PreviewLoading />
-            </CenteredContent>}
-          {this.store.document &&
-            <DocumentContainer>
-              <Editor
-                text={this.store.document.text}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onChange={this.store.updateText}
-                onSave={this.onSave}
-                onCancel={this.onCancel}
-                onStar={this.store.starDocument}
-                onUnstar={this.store.unstarDocument}
-                starred={this.store.document.starred}
-                readOnly={!isEditing}
-              />
-            </DocumentContainer>}
+          {this.store.isFetching
+            ? <CenteredContent>
+                <PreviewLoading />
+              </CenteredContent>
+            : this.store.document &&
+                <DocumentContainer>
+                  <Editor
+                    key={this.store.document.id}
+                    text={this.store.document.text}
+                    onImageUploadStart={this.onImageUploadStart}
+                    onImageUploadStop={this.onImageUploadStop}
+                    onChange={this.store.updateText}
+                    onSave={this.onSave}
+                    onCancel={this.onCancel}
+                    onStar={this.store.starDocument}
+                    onUnstar={this.store.unstarDocument}
+                    starred={this.store.document.starred}
+                    readOnly={!isEditing}
+                  />
+                </DocumentContainer>}
         </PagePadding>
         {this.store.document &&
           <Meta align="center" readOnly={!isEditing}>
