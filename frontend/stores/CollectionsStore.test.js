@@ -27,7 +27,7 @@ describe('CollectionsStore', () => {
         })),
       };
 
-      await store.fetch();
+      await store.fetchAll();
 
       expect(store.client.post).toHaveBeenCalledWith('/collections.list', {
         id: 123,
@@ -44,7 +44,7 @@ describe('CollectionsStore', () => {
         add: jest.fn(),
       };
 
-      await store.fetch();
+      await store.fetchAll();
 
       expect(store.errors.add).toHaveBeenCalledWith(
         'Failed to load collections'

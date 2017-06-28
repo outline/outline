@@ -22,7 +22,7 @@ class CollectionsStore {
 
   /* Actions */
 
-  @action fetch = async (): Promise<*> => {
+  @action fetchAll = async (): Promise<*> => {
     try {
       const res = await this.client.post('/collections.list', {
         id: this.teamId,
