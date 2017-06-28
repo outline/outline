@@ -1,18 +1,26 @@
 // @flow
-import { observable, action } from 'mobx';
+import { observable, action, computed } from 'mobx';
+import type { Document } from 'types';
+import Collection from 'models/Collection';
 
 class UiStore {
-  @observable activeCollection: ?string;
+  @observable activeDocument: ?Document;
   @observable editMode: boolean = false;
+
+  /* Computed */
+
+  @computed get activeCollection(): ?Collection {
+    return this.activeDocument ? this.activeDocument.collection : undefined;
+  }
 
   /* Actions */
 
-  @action setActiveCollection = (id: string): void => {
-    this.activeCollection = id;
+  @action setActiveDocument = (document: Document): void => {
+    this.activeDocument = document;
   };
 
-  @action clearActiveCollection = (): void => {
-    this.activeCollection = null;
+  @action clearActiveDocument = (): void => {
+    this.activeDocument = undefined;
   };
 
   @action enableEditMode() {

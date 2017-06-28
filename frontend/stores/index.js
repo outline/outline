@@ -9,5 +9,6 @@ const stores = {
   ui: new UiStore(),
   errors: new ErrorsStore(),
 };
+window.stores = stores;
 
 export default stores;

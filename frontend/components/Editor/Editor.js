@@ -117,7 +117,7 @@ type KeyData = {
         <Editor
           key={this.props.starred}
           ref={ref => (this.editor = ref)}
-          placeholder="Start with a title…"
+          placeholder="Start with a title..."
           className={cx(styles.editor, { readOnly: this.props.readOnly })}
           schema={this.schema}
           plugins={this.plugins}

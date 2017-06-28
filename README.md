@@ -14,6 +14,12 @@
 Sequelize is used to create and run migrations, for example:
 
 ```
-yarn run sequelize -- migration:create
-yarn run sequelize -- db:migrate
+yarn run sequelize migration:create
+yarn run sequelize db:migrate
+```
+
+Or to run migrations on test database:
+
+```
+yarn run sequelize db:migrate -- --env test
 ```

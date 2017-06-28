@@ -59,7 +59,7 @@ type Props = {
   };
 
   render() {
-    const { user, auth, ui, collections } = this.props;
+    const { user, auth, ui } = this.props;
 
     return (
       <Container column auto>
@@ -112,7 +112,8 @@ type Props = {
                 <LinkSection>
                   {ui.activeCollection
                     ? <SidebarCollection
-                        collection={collections.getById(ui.activeCollection)}
+                        document={ui.activeDocument}
+                        collection={ui.activeCollection}
                       />
                     : <SidebarCollectionList />}
                 </LinkSection>
