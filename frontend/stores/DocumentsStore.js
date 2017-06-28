@@ -1,5 +1,5 @@
 // @flow
-import { observable, action, runInAction } from 'mobx';
+import { observable, action, map, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
@@ -9,26 +9,22 @@ import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
 
 class DocumentsStore {
-  @observable data: Object = {};
+  @observable recentlyViewedIds: Array<string> = [];
+  @observable data: Map<string, Document> = map([]);
   @observable isLoaded: boolean = false;
   errors: ErrorsStore;
 
   /* Actions */
 
-  @action fetchAll = async (request?: string = 'list'): Promise<*> => {
+  @action fetchAll = async (request: string = 'list'): Promise<*> => {
     try {
       const res = await client.post(`/documents.${request}`);
       invariant(res && res.data, 'Document list not available');
       const { data } = res;
       runInAction('DocumentsStore#fetchAll', () => {
-        const loaded = _.keyBy(
-          data.map(document => new Document(document)),
-          'id'
-        );
-        this.data = {
-          ...this.data,
-          ...loaded,
-        };
+        data.forEach(document => {
+          this.data.set(document.id, new Document(document));
+        });
         this.isLoaded = true;
       });
       return data;
@@ -37,14 +33,16 @@ class DocumentsStore {
     }
   };
 
-  @action fetchRecent = async (): Promise<*> => {
-    const data = await this.fetchAll('recent');
-    console.log(data);
+  @action fetchRecentlyEdited = async (): Promise<*> => {
+    await this.fetchAll('recent');
   };
 
-  @action fetchViewed = async (): Promise<*> => {
+  @action fetchRecentlyViewed = async (): Promise<*> => {
     const data = await this.fetchAll('viewed');
-    console.log(data);
+
+    runInAction('DocumentsStore#fetchRecentlyViewed', () => {
+      this.recentlyViewedIds = _.pick(data, 'id');
+    });
   };
 
   @action fetch = async (id: string): Promise<*> => {
@@ -53,7 +51,7 @@ class DocumentsStore {
       invariant(res && res.data, 'Document not available');
       const { data } = res;
       runInAction('DocumentsStore#fetch', () => {
-        this.add(new Document(data));
+        this.data.set(data.id, new Document(data));
         this.isLoaded = true;
       });
     } catch (e) {
@@ -62,15 +60,15 @@ class DocumentsStore {
   };
 
   @action add = (document: Document): void => {
-    this.data[document.id] = document;
+    this.data.set(document.id, document);
   };
 
   @action remove = (id: string): void => {
-    delete this.data[id];
+    this.data.delete(id);
   };
 
-  getById = (id: string): Document => {
-    return _.find(this.data, { id });
+  getById = (id: string): ?Document => {
+    return this.data.get(id);
   };
 
   constructor() {
