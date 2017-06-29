@@ -4,14 +4,12 @@ import invariant from 'invariant';
 import get from 'lodash/get';
 import { withRouter } from 'react-router-dom';
 import { observer } from 'mobx-react';
-import type { Document as DocumentType } from 'types';
+import Document from 'models/Document';
 import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
-import DocumentStore from '../DocumentStore';
 
 type Props = {
   history: Object,
-  document: DocumentType,
-  store: DocumentStore,
+  document: Document,
 };
 
 @observer class Menu extends Component {
@@ -38,7 +36,7 @@ type Props = {
     }
 
     if (confirm(msg)) {
-      this.props.store.deleteDocument();
+      this.props.document.delete();
     }
   };
 

@@ -75,7 +75,7 @@ type Props = {
     await this.document.save();
     this.props.ui.disableEditMode();
 
-    if (redirect) {
+    if (redirect && this.document) {
       this.props.history.push(this.document.url);
     }
   };
@@ -155,7 +155,7 @@ type Props = {
                   {isEditing
                     ? <SaveAction
                         onClick={this.onSave.bind(this, true)}
-                        disabled={this.document.isSaving}
+                        disabled={get(this.document, 'isSaving')}
                         isNew={!!isNew}
                       />
                     : <a onClick={this.onClickEdit}>Edit</a>}
