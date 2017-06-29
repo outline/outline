@@ -23,7 +23,7 @@ const seed = async () => {
   });
 
   const user = await User.create({
-    id: '86fde1d4-0050-428f-9f0b-0bf77f8bdf61',
+    id: '46fde1d4-0050-428f-9f0b-0bf77f4bdf61',
     email: 'user1@example.com',
     username: 'user1',
     name: 'User 1',
@@ -37,7 +37,7 @@ const seed = async () => {
   });
 
   let collection = await Collection.create({
-    id: '86fde1d4-0050-428f-9f0b-0bf77f8bdf61',
+    id: '26fde1d4-0050-428f-9f0b-0bf77f8bdf62',
     name: 'Collection',
     urlId: 'collection',
     teamId: team.id,

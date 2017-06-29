@@ -39,13 +39,16 @@ async function present(ctx, document, options) {
   }
 
   if (options.includeCollection) {
-    data.collection =
-      options.collection ||
-      (await Collection.findOne({
-        where: {
-          id: document.atlasId,
-        },
-      }));
+    data.collection = await ctx.cache.get(document.atlasId, async () => {
+      const collection =
+        options.collection ||
+        (await Collection.findOne({
+          where: {
+            id: document.atlasId,
+          },
+        }));
+      return presentCollection(ctx, collection);
+    });
   }
 
   if (options.includeCollaborators) {

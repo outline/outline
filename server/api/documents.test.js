@@ -174,9 +174,7 @@ describe('#documents.update', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Updated title');
     expect(body.data.text).toBe('Updated text');
-    expect(body.data.collection.documentStructure[1].title).toBe(
-      'Updated title'
-    );
+    expect(body.data.collection.documents[1].title).toBe('Updated title');
   });
 
   it('should update document details for children', async () => {
@@ -210,7 +208,7 @@ describe('#documents.update', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Updated title');
-    expect(body.data.collection.documentStructure[0].children[1].title).toBe(
+    expect(body.data.collection.documents[0].children[1].title).toBe(
       'Updated title'
     );
   });
