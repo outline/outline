@@ -50,7 +50,12 @@ type Props = {
 
   loadDocument = async props => {
     await this.props.documents.fetch(props.match.params.id);
-    if (this.document) this.document.view();
+    const document = this.document;
+
+    if (document) {
+      this.props.ui.setActiveDocument(document);
+      document.view();
+    }
 
     if (this.props.match.params.edit) {
       this.props.ui.enableEditMode();
@@ -71,12 +76,14 @@ type Props = {
   };
 
   onSave = async (redirect: boolean = false) => {
-    if (!this.document) return;
-    await this.document.save();
+    const document = this.document;
+
+    if (!document) return;
+    await document.save();
     this.props.ui.disableEditMode();
 
-    if (redirect && this.document) {
-      this.props.history.push(this.document.url);
+    if (redirect) {
+      this.props.history.push(document.url);
     }
   };
 
@@ -90,7 +97,7 @@ type Props = {
 
   onChange = text => {
     if (!this.document) return;
-    this.document.updateData({ text });
+    this.document.updateData({ text, hasPendingChanges: true });
   };
 
   onCancel = () => {

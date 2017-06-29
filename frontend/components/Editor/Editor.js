@@ -111,8 +111,6 @@ type KeyData = {
   render = () => {
     return (
       <span>
-        {!this.props.readOnly &&
-          <ClickablePadding onClick={this.focusAtStart} />}
         <Toolbar state={this.state.state} onChange={this.onChange} />
         <Editor
           key={this.props.starred}
