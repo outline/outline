@@ -81,6 +81,10 @@ class DocumentsStore {
     return this.data.get(id);
   };
 
+  getByUrl = (url: string): ?Document => {
+    return _.find(this.data.values(), { url });
+  };
+
   constructor() {
     this.errors = stores.errors;
   }
