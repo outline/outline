@@ -88,10 +88,10 @@ type Props = {
     // TODO: How to set loading bar on layout?
   }
 
-  onChange(text) {
+  onChange = text => {
     if (!this.document) return;
     this.document.updateData({ text });
-  }
+  };
 
   onCancel = () => {
     this.props.history.goBack();
@@ -102,10 +102,6 @@ type Props = {
     const isEditing = this.props.match.params.edit;
     const isFetching = !this.document && get(this.document, 'isFetching');
     const titleText = get(this.document, 'title', 'Loading');
-
-    console.log('isEditing', isEditing);
-    console.log('isFetching', isFetching);
-    console.log('document', this.document);
 
     return (
       <Container column auto>
