@@ -36,7 +36,7 @@ const seed = async () => {
     },
   });
 
-  const collection = await Collection.create({
+  let collection = await Collection.create({
     id: '86fde1d4-0050-428f-9f0b-0bf77f8bdf61',
     name: 'Collection',
     urlId: 'collection',
@@ -45,16 +45,17 @@ const seed = async () => {
     type: 'atlas',
   });
 
-  const document = await Document.create({
+  let document = await Document.create({
     parentDocumentId: null,
     atlasId: collection.id,
     teamId: collection.teamId,
     userId: collection.creatorId,
     lastModifiedById: collection.creatorId,
     createdById: collection.creatorId,
-    title: 'Introduction',
-    text: '# Introduction\n\nLets get started...',
+    title: 'Second document',
+    text: '# Much guidance',
   });
+  collection = await collection.addDocumentToStructure(document);
 
   return {
     user,

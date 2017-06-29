@@ -156,3 +156,62 @@ describe('#documents.unstar', async () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe('#documents.update', async () => {
+  it('should update document details in the root', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('Updated title');
+    expect(body.data.text).toBe('Updated text');
+    expect(body.data.collection.documentStructure[1].title).toBe(
+      'Updated title'
+    );
+  });
+
+  it('should update document details for children', async () => {
+    const { user, document, collection } = await seed();
+    collection.documentStructure = [
+      {
+        id: 'af1da94b-9591-4bab-897c-11774b804b77',
+        url: '/d/some-beef-RSZwQDsfpc',
+        title: 'some beef',
+        children: [
+          {
+            id: 'ab1da94b-9591-4bab-897c-11774b804b66',
+            url: '/d/another-doc-RSZwQDsfpc',
+            title: 'Another doc',
+            children: [],
+          },
+          { ...document.toJSON(), children: [] },
+        ],
+      },
+    ];
+    await collection.save();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('Updated title');
+    expect(body.data.collection.documentStructure[0].children[1].title).toBe(
+      'Updated title'
+    );
+  });
+});
