@@ -27,7 +27,6 @@ type Props = {
   children?: ?React.Element<any>,
   actions?: ?React.Element<any>,
   title?: ?React.Element<any>,
-  loading?: boolean,
   user: UserStore,
   auth: AuthStore,
   ui: UiStore,
@@ -73,7 +72,7 @@ type Props = {
           ]}
         />
 
-        {this.props.loading && <LoadingIndicator />}
+        {this.props.ui.progressBarVisible && <LoadingIndicator />}
 
         {this.props.notifications}
 

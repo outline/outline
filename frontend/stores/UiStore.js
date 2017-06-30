@@ -5,6 +5,7 @@ import Collection from 'models/Collection';
 
 class UiStore {
   @observable activeDocument: ?Document;
+  @observable progressBarVisible: boolean = true;
   @observable editMode: boolean = false;
 
   /* Computed */
@@ -29,6 +30,14 @@ class UiStore {
 
   @action disableEditMode() {
     this.editMode = false;
+  }
+
+  @action enableProgressBar() {
+    this.progressBarVisible = true;
+  }
+
+  @action disableProgressBar() {
+    this.progressBarVisible = false;
   }
 }
 

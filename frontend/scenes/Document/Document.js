@@ -79,7 +79,9 @@ type Props = {
     const document = this.document;
 
     if (!document) return;
+    this.props.ui.enableProgressBar();
     await document.save();
+    this.props.ui.disableProgressBar();
     this.props.ui.disableEditMode();
 
     if (redirect) {
@@ -88,11 +90,11 @@ type Props = {
   };
 
   onImageUploadStart() {
-    // TODO: How to set loading bar on layout?
+    this.props.ui.enableProgressBar();
   }
 
   onImageUploadStop() {
-    // TODO: How to set loading bar on layout?
+    this.props.ui.disableProgressBar();
   }
 
   onChange = text => {
