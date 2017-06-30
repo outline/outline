@@ -6,6 +6,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import { Flex } from 'reflexbox';
 
+import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
@@ -27,12 +28,16 @@ type Props = {
   history: Object,
   keydown: Object,
   documents: DocumentsStore,
-  newChildDocument?: boolean,
+  newDocument?: boolean,
   ui: UiStore,
 };
 
-@observer class Document extends Component {
+@observer class DocumentScene extends Component {
   props: Props;
+  state: {
+    newDocument: Document,
+  };
+  state = {};
 
   componentDidMount() {
     this.loadDocument(this.props);
@@ -49,15 +54,27 @@ type Props = {
   }
 
   loadDocument = async props => {
-    await this.props.documents.fetch(props.match.params.id);
-    const document = this.document;
+    const isEditing = props.match.params.edit || props.newDocument;
+    let document;
 
-    if (document) {
-      this.props.ui.setActiveDocument(document);
-      document.view();
+    if (props.newDocument) {
+      const newDocument = new Document({
+        collection: { id: this.props.match.params.id },
+      });
+      this.setState({ newDocument });
+    } else {
+      if (document) this.props.ui.setActiveDocument(document);
+
+      await this.props.documents.fetch(props.match.params.id);
+      document = this.document;
+
+      if (document) {
+        this.props.ui.setActiveDocument(document);
+        document.view();
+      }
     }
 
-    if (this.props.match.params.edit) {
+    if (isEditing) {
       this.props.ui.enableEditMode();
     } else {
       this.props.ui.disableEditMode();
@@ -65,6 +82,7 @@ type Props = {
   };
 
   get document() {
+    if (this.state.newDocument) return this.state.newDocument;
     return this.props.documents.getByUrl(`/d/${this.props.match.params.id}`);
   }
 
@@ -76,13 +94,13 @@ type Props = {
   };
 
   onSave = async (redirect: boolean = false) => {
-    const document = this.document;
+    let document = this.document;
 
     if (!document) return;
-    await document.save();
+    document = await document.save();
     this.props.ui.disableEditMode();
 
-    if (redirect) {
+    if (redirect || this.props.newDocument) {
       this.props.history.push(document.url);
     }
   };
@@ -105,8 +123,8 @@ type Props = {
   };
 
   render() {
-    const isNew = this.props.newDocument || this.props.newChildDocument;
-    const isEditing = this.props.match.params.edit;
+    const isNew = this.props.newDocument;
+    const isEditing = this.props.match.params.edit || isNew;
     const isFetching = !this.document && get(this.document, 'isFetching');
     const titleText = get(this.document, 'title', 'Loading');
 
@@ -199,4 +217,4 @@ const DocumentContainer = styled.div`
   width: 50em;
 `;
 
-export default withRouter(inject('ui', 'documents')(Document));
+export default withRouter(inject('ui', 'user', 'documents')(DocumentScene));
