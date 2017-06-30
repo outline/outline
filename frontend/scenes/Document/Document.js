@@ -7,8 +7,7 @@ import { withRouter, Prompt } from 'react-router';
 import { Flex } from 'reflexbox';
 
 import UiStore from 'stores/UiStore';
-
-import DocumentStore from './DocumentStore';
+import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
 import Editor from 'components/Editor';
 import { HeaderAction, SaveAction } from 'components/Layout';
@@ -27,76 +26,78 @@ type Props = {
   match: Object,
   history: Object,
   keydown: Object,
+  documents: DocumentsStore,
   newChildDocument?: boolean,
   ui: UiStore,
 };
 
 @observer class Document extends Component {
-  store: DocumentStore;
   props: Props;
-
-  constructor(props: Props) {
-    super(props);
-    this.store = new DocumentStore({
-      history: this.props.history,
-      ui: props.ui,
-    });
-  }
 
   componentDidMount() {
     this.loadDocument(this.props);
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.match.params.id !== this.props.match.params.id)
+    if (nextProps.match.params.id !== this.props.match.params.id) {
       this.loadDocument(nextProps);
-  }
-
-  loadDocument(props) {
-    if (props.newDocument) {
-      this.store.collectionId = props.match.params.id;
-      this.store.newDocument = true;
-    } else if (props.match.params.edit) {
-      this.store.documentId = props.match.params.id;
-      this.store.fetchDocument();
-    } else if (props.newChildDocument) {
-      this.store.documentId = props.match.params.id;
-      this.store.newChildDocument = true;
-      this.store.fetchDocument();
-    } else {
-      this.store.documentId = props.match.params.id;
-      this.store.newDocument = false;
-      this.store.fetchDocument();
     }
-
-    this.store.viewDocument();
   }
 
   componentWillUnmount() {
     this.props.ui.clearActiveDocument();
   }
 
-  onEdit = () => {
-    const url = `${this.store.document.url}/edit`;
+  loadDocument = async props => {
+    await this.props.documents.fetch(props.match.params.id);
+    const document = this.document;
+
+    if (document) {
+      this.props.ui.setActiveDocument(document);
+      document.view();
+    }
+
+    if (this.props.match.params.edit) {
+      this.props.ui.enableEditMode();
+    } else {
+      this.props.ui.disableEditMode();
+    }
+  };
+
+  get document() {
+    return this.props.documents.getByUrl(`/d/${this.props.match.params.id}`);
+  }
+
+  onClickEdit = () => {
+    if (!this.document) return;
+    const url = `${this.document.url}/edit`;
     this.props.history.push(url);
     this.props.ui.enableEditMode();
   };
 
-  onSave = async (options: { redirect?: boolean } = {}) => {
-    if (this.store.newDocument || this.store.newChildDocument) {
-      await this.store.saveDocument(options);
-    } else {
-      await this.store.updateDocument(options);
-    }
+  onSave = async (redirect: boolean = false) => {
+    const document = this.document;
+
+    if (!document) return;
+    await document.save();
     this.props.ui.disableEditMode();
+
+    if (redirect) {
+      this.props.history.push(document.url);
+    }
   };
 
-  onImageUploadStart = () => {
-    this.store.updateUploading(true);
-  };
+  onImageUploadStart() {
+    // TODO: How to set loading bar on layout?
+  }
 
-  onImageUploadStop = () => {
-    this.store.updateUploading(false);
+  onImageUploadStop() {
+    // TODO: How to set loading bar on layout?
+  }
+
+  onChange = text => {
+    if (!this.document) return;
+    this.document.updateData({ text, hasPendingChanges: true });
   };
 
   onCancel = () => {
@@ -106,69 +107,66 @@ type Props = {
   render() {
     const isNew = this.props.newDocument || this.props.newChildDocument;
     const isEditing = this.props.match.params.edit;
-    const titleText = this.store.document && get(this.store, 'document.title');
-
-    const actions = (
-      <Flex align="center">
-        <HeaderAction>
-          {isEditing
-            ? <SaveAction
-                onClick={this.onSave}
-                disabled={this.store.isSaving}
-                isNew={!!isNew}
-              />
-            : <a onClick={this.onEdit}>Edit</a>}
-        </HeaderAction>
-
-        {!isEditing &&
-          <Menu store={this.store} document={this.store.document} />}
-      </Flex>
-    );
+    const isFetching = !this.document && get(this.document, 'isFetching');
+    const titleText = get(this.document, 'title', 'Loading');
 
     return (
       <Container column auto>
         {titleText && <PageTitle title={titleText} />}
-        <Prompt when={this.store.hasPendingChanges} message={DISCARD_CHANGES} />
-
-        <PagePadding auto justify="center">
-          {this.store.isFetching
-            ? <CenteredContent>
-                <PreviewLoading />
-              </CenteredContent>
-            : this.store.document &&
-                <DocumentContainer>
-                  <Editor
-                    key={this.store.document.id}
-                    text={this.store.document.text}
-                    onImageUploadStart={this.onImageUploadStart}
-                    onImageUploadStop={this.onImageUploadStop}
-                    onChange={this.store.updateText}
-                    onSave={this.onSave}
-                    onCancel={this.onCancel}
-                    onStar={this.store.starDocument}
-                    onUnstar={this.store.unstarDocument}
-                    starred={this.store.document.starred}
-                    readOnly={!isEditing}
-                  />
-                </DocumentContainer>}
-        </PagePadding>
-        {this.store.document &&
-          <Meta align="center" readOnly={!isEditing}>
-            {!isEditing &&
-              <PublishingInfo
-                collaborators={this.store.document.collaborators}
-                createdAt={this.store.document.createdAt}
-                createdBy={this.store.document.createdBy}
-                updatedAt={this.store.document.updatedAt}
-                updatedBy={this.store.document.updatedBy}
-              />}
-            {!isEditing &&
-              <DocumentViews
-                count={this.store.document.views}
-                documentId={this.store.document.id}
-              />}
-            {actions}
-          </Meta>}
+        {isFetching &&
+          <CenteredContent>
+            <PreviewLoading />
+          </CenteredContent>}
+        {!isFetching &&
+          this.document &&
+          <PagePadding justify="center" auto>
+            <Prompt
+              when={this.document.hasPendingChanges}
+              message={DISCARD_CHANGES}
+            />
+            <DocumentContainer>
+              <Editor
+                key={this.document.id}
+                text={this.document.text}
+                onImageUploadStart={this.onImageUploadStart}
+                onImageUploadStop={this.onImageUploadStop}
+                onChange={this.onChange}
+                onSave={this.onSave}
+                onCancel={this.onCancel}
+                onStar={this.document.star}
+                onUnstar={this.document.unstar}
+                starred={this.document.starred}
+                readOnly={!isEditing}
+              />
+            </DocumentContainer>
+            <Meta align="center" readOnly={!isEditing}>
+              {!isEditing &&
+                <PublishingInfo
+                  collaborators={this.document.collaborators}
+                  createdAt={this.document.createdAt}
+                  createdBy={this.document.createdBy}
+                  updatedAt={this.document.updatedAt}
+                  updatedBy={this.document.updatedBy}
+                />}
+              {!isEditing &&
+                <DocumentViews
+                  count={this.document.views}
+                  documentId={this.document.id}
+                />}
+              <Flex align="center">
+                <HeaderAction>
+                  {isEditing
+                    ? <SaveAction
+                        onClick={this.onSave.bind(this, true)}
+                        disabled={get(this.document, 'isSaving')}
+                        isNew={!!isNew}
+                      />
+                    : <a onClick={this.onClickEdit}>Edit</a>}
+                </HeaderAction>
+                {!isEditing && <Menu document={this.document} />}
+              </Flex>
+            </Meta>
+          </PagePadding>}
       </Container>
     );
   }
@@ -201,4 +199,4 @@ const DocumentContainer = styled.div`
   width: 50em;
 `;
 
-export default withRouter(inject('ui')(Document));
+export default withRouter(inject('ui', 'documents')(Document));

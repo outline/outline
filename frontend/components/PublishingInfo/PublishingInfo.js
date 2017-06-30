@@ -7,7 +7,7 @@ import { Flex } from 'reflexbox';
 
 const Container = styled(Flex)`
   justify-content: space-between;
-  color: #ccc;
+  color: #bbb;
   font-size: 13px;
 `;
 
@@ -26,7 +26,7 @@ const Avatar = styled.img`
 
 class PublishingInfo extends Component {
   props: {
-    collaborators: Array<User>,
+    collaborators?: Array<User>,
     createdAt: string,
     createdBy: User,
     updatedAt: string,
@@ -35,13 +35,16 @@ class PublishingInfo extends Component {
   };
 
   render() {
+    const { collaborators } = this.props;
+
     return (
       <Container align="center">
-        <Avatars>
-          {this.props.collaborators.map(user => (
-            <Avatar key={user.id} src={user.avatarUrl} title={user.name} />
-          ))}
-        </Avatars>
+        {collaborators &&
+          <Avatars>
+            {collaborators.map(user => (
+              <Avatar key={user.id} src={user.avatarUrl} title={user.name} />
+            ))}
+          </Avatars>}
         <span>
           {this.props.createdBy.name}
           {' '}

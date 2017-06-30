@@ -1,6 +1,6 @@
 // @flow
 import { observable, action, computed } from 'mobx';
-import type { Document } from 'types';
+import Document from 'models/Document';
 import Collection from 'models/Collection';
 
 class UiStore {

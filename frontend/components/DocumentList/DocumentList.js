@@ -1,8 +1,7 @@
 // @flow
 import React from 'react';
-import type { Document } from 'types';
+import Document from 'models/Document';
 import DocumentPreview from 'components/DocumentPreview';
-import Divider from 'components/Divider';
 
 class DocumentList extends React.Component {
   props: {
@@ -14,10 +13,7 @@ class DocumentList extends React.Component {
       <div>
         {this.props.documents &&
           this.props.documents.map(document => (
-            <div>
-              <DocumentPreview document={document} />
-              <Divider />
-            </div>
+            <DocumentPreview key={document.id} document={document} />
           ))}
       </div>
     );

@@ -1,21 +1,20 @@
 // @flow
 import React, { Component } from 'react';
-import { toJS } from 'mobx';
 import { Link } from 'react-router-dom';
-import type { Document } from 'types';
+import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
-import Markdown from 'components/Markdown';
 import PublishingInfo from 'components/PublishingInfo';
 
 type Props = {
   document: Document,
+  highlight?: string,
   innerRef?: Function,
 };
 
 const DocumentLink = styled(Link)`
   display: block;
-  margin: 16px -16px;
+  margin: 0 -16px;
   padding: 16px;
   border-radius: 8px;
   border: 2px solid transparent;
@@ -35,14 +34,9 @@ const DocumentLink = styled(Link)`
     border: 2px solid ${color.slateDark};
   }
 
-  h1 {
+  h3 {
     margin-top: 0;
   }
-`;
-
-// $FlowIssue
-const TruncatedMarkdown = styled(Markdown)`
-  pointer-events: none;
 `;
 
 class DocumentPreview extends Component {
@@ -53,14 +47,13 @@ class DocumentPreview extends Component {
 
     return (
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
+        <h3>{document.title}</h3>
         <PublishingInfo
           createdAt={document.createdAt}
           createdBy={document.createdBy}
           updatedAt={document.updatedAt}
           updatedBy={document.updatedBy}
-          collaborators={toJS(document.collaborators)}
         />
-        <TruncatedMarkdown text={document.text} limit={150} />
       </DocumentLink>
     );
   }
