@@ -36,7 +36,7 @@ type Props = {
   props: Props;
 
   state = {
-    loading: false,
+    isLoading: false,
   };
 
   componentDidMount() {
@@ -84,9 +84,9 @@ type Props = {
     const document = this.document;
 
     if (!document) return;
-    this.setState({ loading: true });
+    this.setState({ isLoading: true });
     await document.save();
-    this.setState({ loading: false });
+    this.setState({ isLoading: false });
     this.props.ui.disableEditMode();
 
     if (redirect) {
@@ -95,11 +95,11 @@ type Props = {
   };
 
   onImageUploadStart() {
-    this.setState({ loading: true });
+    this.setState({ isLoading: true });
   }
 
   onImageUploadStop() {
-    this.setState({ loading: false });
+    this.setState({ isLoading: false });
   }
 
   onChange = text => {
@@ -120,7 +120,7 @@ type Props = {
     return (
       <Container column auto>
         {titleText && <PageTitle title={titleText} />}
-        {this.state.loading && <LoadingIndicator />}
+        {this.state.isLoading && <LoadingIndicator />}
         {isFetching &&
           <CenteredContent>
             <PreviewLoading />
