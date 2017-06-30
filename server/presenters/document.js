@@ -1,6 +1,7 @@
 import { Collection, Star, User, View } from '../models';
 import presentUser from './user';
 import presentCollection from './collection';
+import _ from 'lodash';
 
 async function present(ctx, document, options) {
   options = {
@@ -56,7 +57,7 @@ async function present(ctx, document, options) {
     data.collaborators = await User.findAll({
       where: {
         id: {
-          $in: document.collaboratorIds || [],
+          $in: _.takeRight(document.collaboratorIds, 7) || [],
         },
       },
     }).map(user => presentUser(ctx, user));
