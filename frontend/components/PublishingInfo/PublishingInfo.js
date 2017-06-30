@@ -35,7 +35,13 @@ class PublishingInfo extends Component {
   };
 
   render() {
-    const { collaborators } = this.props;
+    const {
+      collaborators,
+      createdAt,
+      updatedAt,
+      createdBy,
+      updatedBy,
+    } = this.props;
 
     return (
       <Container align="center">
@@ -45,23 +51,22 @@ class PublishingInfo extends Component {
               <Avatar key={user.id} src={user.avatarUrl} title={user.name} />
             ))}
           </Avatars>}
-        <span>
-          {this.props.createdBy.name}
-          {' '}
-          published
-          {' '}
-          {moment(this.props.createdAt).fromNow()}
-          {this.props.createdAt !== this.props.updatedAt
-            ? <span>
-                &nbsp;and&nbsp;
-                {this.props.createdBy.id !== this.props.updatedBy.id &&
-                  ` ${this.props.updatedBy.name} `}
-                modified
-                {' '}
-                {moment(this.props.updatedAt).fromNow()}
-              </span>
-            : null}
-        </span>
+
+        {createdAt == updatedAt
+          ? <span>
+              {createdBy.name}
+              {' '}
+              published
+              {' '}
+              {moment(createdAt).fromNow()}
+            </span>
+          : <span>
+              {updatedBy.name}
+              {' '}
+              modified
+              {' '}
+              {moment(updatedAt).fromNow()}
+            </span>}
       </Container>
     );
   }
