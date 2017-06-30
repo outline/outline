@@ -10,7 +10,7 @@ import { Flex } from 'reflexbox';
 import { textColor } from 'styles/constants.scss';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
-import LoadingIndicator from 'components/LoadingIndicator';
+import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 
 import SidebarCollection from './components/SidebarCollection';
 import SidebarCollectionList from './components/SidebarCollectionList';
@@ -27,7 +27,6 @@ type Props = {
   children?: ?React.Element<any>,
   actions?: ?React.Element<any>,
   title?: ?React.Element<any>,
-  loading?: boolean,
   user: UserStore,
   auth: AuthStore,
   ui: UiStore,
@@ -73,7 +72,7 @@ type Props = {
           ]}
         />
 
-        {this.props.loading && <LoadingIndicator />}
+        {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
 
         {this.props.notifications}
 

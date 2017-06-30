@@ -12,6 +12,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
 import Editor from 'components/Editor';
 import { HeaderAction, SaveAction } from 'components/Layout';
+import LoadingIndicator from 'components/LoadingIndicator';
 import PublishingInfo from 'components/PublishingInfo';
 import DocumentViews from 'components/DocumentViews';
 import PreviewLoading from 'components/PreviewLoading';
@@ -35,9 +36,12 @@ type Props = {
 @observer class DocumentScene extends Component {
   props: Props;
   state: {
-    newDocument: Document,
+    newDocument?: Document,
   };
-  state = {};
+  state = {
+    isLoading: false,
+    newDocument: undefined,
+  };
 
   componentDidMount() {
     this.loadDocument(this.props);
@@ -97,8 +101,9 @@ type Props = {
     let document = this.document;
 
     if (!document) return;
+    this.setState({ isLoading: true });
     document = await document.save();
-    this.props.ui.disableEditMode();
+    this.setState({ isLoading: false });
 
     if (redirect || this.props.newDocument) {
       this.props.history.push(document.url);
@@ -106,11 +111,11 @@ type Props = {
   };
 
   onImageUploadStart() {
-    // TODO: How to set loading bar on layout?
+    this.setState({ isLoading: true });
   }
 
   onImageUploadStop() {
-    // TODO: How to set loading bar on layout?
+    this.setState({ isLoading: false });
   }
 
   onChange = text => {
@@ -131,6 +136,7 @@ type Props = {
     return (
       <Container column auto>
         {titleText && <PageTitle title={titleText} />}
+        {this.state.isLoading && <LoadingIndicator />}
         {isFetching &&
           <CenteredContent>
             <PreviewLoading />

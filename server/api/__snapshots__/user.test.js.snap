@@ -13,7 +13,7 @@ exports[`#user.info should return known user 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
-    "id": "86fde1d4-0050-428f-9f0b-0bf77f8bdf61",
+    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "name": "User 1",
     "username": "user1",
   },

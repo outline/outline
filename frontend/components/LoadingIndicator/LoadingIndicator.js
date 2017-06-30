@@ -1,14 +1,19 @@
 // @flow
 import React from 'react';
+import { inject, observer } from 'mobx-react';
 
-import styles from './LoadingIndicator.scss';
+@observer class LoadingIndicator extends React.Component {
+  componentDidMount() {
+    this.props.ui.enableProgressBar();
+  }
 
-const LoadingIndicator = () => {
-  return (
-    <div className={styles.loading}>
-      <div className={styles.loader} />
-    </div>
-  );
-};
+  componentWillUnmount() {
+    this.props.ui.disableProgressBar();
+  }
 
-export default LoadingIndicator;
+  render() {
+    return null;
+  }
+}
+
+export default inject('ui')(LoadingIndicator);

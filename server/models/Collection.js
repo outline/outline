@@ -119,35 +119,25 @@ const Collection = sequelize.define(
         return this;
       },
 
-      async updateDocument(document) {
+      async updateDocument(updatedDocument) {
         if (!this.documentStructure) return;
+        const { id } = updatedDocument;
 
-        const updateChildren = (children, document) => {
-          const id = document.id;
-
-          if (_.find(children, { id })) {
-            children = children.map(childDocument => {
-              if (childDocument.id === id) {
-                childDocument = {
-                  ...document.toJSON(),
-                  children: childDocument.children,
-                };
-              }
-              return childDocument;
-            });
-          } else {
-            children = children.map(childDocument => {
-              return updateChildren(childDocument.children, id);
-            });
-          }
-          return children;
+        const updateChildren = documents => {
+          return documents.map(document => {
+            if (document.id === id) {
+              document = {
+                ...updatedDocument.toJSON(),
+                children: document.children,
+              };
+            } else {
+              document.children = updateChildren(document.children);
+            }
+            return document;
+          });
         };
 
-        this.documentStructure = updateChildren(
-          this.documentStructure,
-          document
-        );
-
+        this.documentStructure = updateChildren(this.documentStructure);
         await this.save();
         return this;
       },
