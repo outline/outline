@@ -1,5 +1,5 @@
 // @flow
-import { extendObservable, action, runInAction } from 'mobx';
+import { extendObservable, action, computed, runInAction } from 'mobx';
 import invariant from 'invariant';
 import _ from 'lodash';
 
@@ -20,6 +20,12 @@ class Collection {
 
   client: ApiClient;
   errors: ErrorsStore;
+
+  /* Computed */
+
+  @computed get entryUrl(): string {
+    return this.type === 'atlas' ? this.documents[0].url : this.url;
+  }
 
   /* Actions */
 

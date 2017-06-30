@@ -17,7 +17,7 @@ const SidebarCollectionList = observer(({ collections }: Props) => {
     <Flex column>
       <Header>Collections</Header>
       {collections.data.map(collection => (
-        <SidebarLink key={collection.id} to={collection.url}>
+        <SidebarLink key={collection.id} to={collection.entryUrl}>
           {collection.name}
         </SidebarLink>
       ))}
