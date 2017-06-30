@@ -84,9 +84,9 @@ type Props = {
     const document = this.document;
 
     if (!document) return;
-    this.props.ui.enableProgressBar();
+    this.setState({ loading: true });
     await document.save();
-    this.props.ui.disableProgressBar();
+    this.setState({ loading: false });
     this.props.ui.disableEditMode();
 
     if (redirect) {

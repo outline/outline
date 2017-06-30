@@ -10,6 +10,10 @@ import { inject, observer } from 'mobx-react';
   componentWillUnmount() {
     this.props.ui.disableProgressBar();
   }
+
+  render() {
+    return null;
+  }
 }
 
 export default inject('ui')(LoadingIndicator);
