@@ -11,6 +11,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
 import Editor from 'components/Editor';
 import { HeaderAction, SaveAction } from 'components/Layout';
+import LoadingIndicator from 'components/LoadingIndicator';
 import PublishingInfo from 'components/PublishingInfo';
 import DocumentViews from 'components/DocumentViews';
 import PreviewLoading from 'components/PreviewLoading';
@@ -33,6 +34,10 @@ type Props = {
 
 @observer class Document extends Component {
   props: Props;
+
+  state = {
+    isLoading: false,
+  };
 
   componentDidMount() {
     this.loadDocument(this.props);
@@ -79,7 +84,9 @@ type Props = {
     const document = this.document;
 
     if (!document) return;
+    this.setState({ isLoading: true });
     await document.save();
+    this.setState({ isLoading: false });
     this.props.ui.disableEditMode();
 
     if (redirect) {
@@ -88,11 +95,11 @@ type Props = {
   };
 
   onImageUploadStart() {
-    // TODO: How to set loading bar on layout?
+    this.setState({ isLoading: true });
   }
 
   onImageUploadStop() {
-    // TODO: How to set loading bar on layout?
+    this.setState({ isLoading: false });
   }
 
   onChange = text => {
@@ -113,6 +120,7 @@ type Props = {
     return (
       <Container column auto>
         {titleText && <PageTitle title={titleText} />}
+        {this.state.isLoading && <LoadingIndicator />}
         {isFetching &&
           <CenteredContent>
             <PreviewLoading />
