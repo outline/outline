@@ -5,7 +5,7 @@ import Collection from 'models/Collection';
 
 class UiStore {
   @observable activeDocument: ?Document;
-  @observable progressBarVisible: boolean = true;
+  @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
 
   /* Computed */

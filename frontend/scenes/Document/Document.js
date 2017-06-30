@@ -11,6 +11,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
 import Editor from 'components/Editor';
 import { HeaderAction, SaveAction } from 'components/Layout';
+import LoadingIndicator from 'components/LoadingIndicator';
 import PublishingInfo from 'components/PublishingInfo';
 import DocumentViews from 'components/DocumentViews';
 import PreviewLoading from 'components/PreviewLoading';
@@ -33,6 +34,10 @@ type Props = {
 
 @observer class Document extends Component {
   props: Props;
+
+  state = {
+    loading: false,
+  };
 
   componentDidMount() {
     this.loadDocument(this.props);
@@ -90,11 +95,11 @@ type Props = {
   };
 
   onImageUploadStart() {
-    this.props.ui.enableProgressBar();
+    this.setState({ loading: true });
   }
 
   onImageUploadStop() {
-    this.props.ui.disableProgressBar();
+    this.setState({ loading: false });
   }
 
   onChange = text => {
@@ -115,6 +120,7 @@ type Props = {
     return (
       <Container column auto>
         {titleText && <PageTitle title={titleText} />}
+        {this.state.loading && <LoadingIndicator />}
         {isFetching &&
           <CenteredContent>
             <PreviewLoading />
