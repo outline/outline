@@ -58,7 +58,6 @@ type Props = {
   }
 
   loadDocument = async props => {
-    const isEditing = props.match.params.edit || props.newDocument;
     let document;
 
     if (props.newDocument) {
@@ -77,12 +76,6 @@ type Props = {
         document.view();
       }
     }
-
-    if (isEditing) {
-      this.props.ui.enableEditMode();
-    } else {
-      this.props.ui.disableEditMode();
-    }
   };
 
   get document() {
@@ -94,7 +87,6 @@ type Props = {
     if (!this.document) return;
     const url = `${this.document.url}/edit`;
     this.props.history.push(url);
-    this.props.ui.enableEditMode();
   };
 
   onSave = async (redirect: boolean = false) => {

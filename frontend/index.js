@@ -34,6 +34,7 @@ import ErrorAuth from 'scenes/ErrorAuth';
 import Error404 from 'scenes/Error404';
 
 import Layout from 'components/Layout';
+import SidebarHidden from 'components/SidebarHidden';
 
 import flatpages from 'static/flatpages';
 
@@ -106,13 +107,21 @@ render(
                 <Route exact path="/collections/:id" component={Collection} />
                 <Route exact path="/d/:id" component={Document} />
 
-                <Route exact path="/d/:id/:edit" component={Document} />
-                <Route
-                  exact
-                  path="/collections/:id/new"
-                  component={DocumentNew}
-                />
-                <Route exact path="/d/:id/new" component={DocumentNewChild} />
+                <SidebarHidden>
+                  <Switch>
+                    <Route exact path="/d/:id/:edit" component={Document} />
+                    <Route
+                      exact
+                      path="/collections/:id/new"
+                      component={DocumentNew}
+                    />
+                    <Route
+                      exact
+                      path="/d/:id/new"
+                      component={DocumentNewChild}
+                    />
+                  </Switch>
+                </SidebarHidden>
 
                 <Route exact path="/search" component={Search} />
                 <Route exact path="/search/:query" component={Search} />
