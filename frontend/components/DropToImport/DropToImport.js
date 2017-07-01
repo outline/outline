@@ -6,8 +6,12 @@ import _ from 'lodash';
 import Dropzone from 'react-dropzone';
 import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
+import LoadingIndicator from 'components/LoadingIndicator';
 
 class DropToImport extends Component {
+  state: {
+    isImporting: boolean,
+  };
   props: {
     children?: React$Element<any>,
     collectionId: string,
@@ -17,8 +21,11 @@ class DropToImport extends Component {
     documents: DocumentsStore,
     history: Object,
   };
+  state = {
+    isImporting: false,
+  };
 
-  importFile = ({ file, documentId, collectionId, redirect }) => {
+  importFile = async ({ file, documentId, collectionId, redirect }) => {
     const reader = new FileReader();
 
     reader.onload = async ev => {
@@ -47,22 +54,30 @@ class DropToImport extends Component {
   };
 
   onDropAccepted = async (files = []) => {
-    let collectionId;
-    const documentId = this.props.documentId;
-    const redirect = files.length === 1;
+    this.setState({ isImporting: true });
 
-    if (documentId) {
-      const document = await this.props.documents.fetch(documentId);
-      invariant(document, 'Document not available');
+    try {
+      let collectionId;
+      const documentId = this.props.documentId;
+      const redirect = files.length === 1;
 
-      collectionId = document.collection.id;
-    } else {
-      collectionId = this.props.collectionId;
+      if (documentId) {
+        const document = await this.props.documents.fetch(documentId);
+        invariant(document, 'Document not available');
+
+        collectionId = document.collection.id;
+      } else {
+        collectionId = this.props.collectionId;
+      }
+
+      for (const file of files) {
+        await this.importFile({ file, documentId, collectionId, redirect });
+      }
+    } catch (err) {
+      // TODO: show error alert.
+    } finally {
+      this.setState({ isImporting: false });
     }
-
-    files.forEach(file =>
-      this.importFile({ file, documentId, collectionId, redirect })
-    );
   };
 
   render() {
@@ -84,7 +99,10 @@ class DropToImport extends Component {
         multiple
         {...props}
       >
-        {this.props.children}
+        <span>
+          {this.state.isImporting && <LoadingIndicator />}
+          {this.props.children}
+        </span>
       </Dropzone>
     );
   }

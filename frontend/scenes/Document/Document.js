@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import { Flex } from 'reflexbox';
+import { layout } from 'styles/constants';
 
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -186,7 +187,7 @@ const Meta = styled(Flex)`
   width: 100%;
   position: absolute;
   top: 0;
-  padding: 10px 20px;
+  padding: ${layout.padding};
 `;
 
 const Container = styled(Flex)`
