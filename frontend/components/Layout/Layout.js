@@ -11,6 +11,7 @@ import { textColor } from 'styles/constants.scss';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
+import Scrollable from 'components/Scrollable';
 
 import SidebarCollection from './components/SidebarCollection';
 import SidebarCollectionList from './components/SidebarCollectionList';
@@ -101,21 +102,23 @@ type Props = {
               </Header>
 
               <Flex column>
-                <LinkSection>
-                  <SidebarLink to="/search">Search</SidebarLink>
-                </LinkSection>
-                <LinkSection>
-                  <SidebarLink to="/dashboard">Home</SidebarLink>
-                  <SidebarLink to="/starred">Starred</SidebarLink>
-                </LinkSection>
-                <LinkSection>
-                  {ui.activeCollection
-                    ? <SidebarCollection
-                        document={ui.activeDocument}
-                        collection={ui.activeCollection}
-                      />
-                    : <SidebarCollectionList />}
-                </LinkSection>
+                <Scrollable>
+                  <LinkSection>
+                    <SidebarLink to="/search">Search</SidebarLink>
+                  </LinkSection>
+                  <LinkSection>
+                    <SidebarLink to="/dashboard">Home</SidebarLink>
+                    <SidebarLink to="/starred">Starred</SidebarLink>
+                  </LinkSection>
+                  <LinkSection>
+                    {ui.activeCollection
+                      ? <SidebarCollection
+                          document={ui.activeDocument}
+                          collection={ui.activeCollection}
+                        />
+                      : <SidebarCollectionList />}
+                  </LinkSection>
+                </Scrollable>
               </Flex>
             </Sidebar>}
 
@@ -135,7 +138,7 @@ const Container = styled(Flex)`
 `;
 
 const LogoLink = styled(Link)`
-  margin-top: 5px;
+  margin-top: 15px;
   font-family: 'Atlas Grotesk';
   font-weight: bold;
   color: ${textColor};
@@ -166,19 +169,19 @@ const Content = styled(Flex)`
 const Sidebar = styled(Flex)`
   width: 250px;
   margin-left: ${props => (props.editMode ? '-250px' : 0)};
-  padding: 10px 20px;
   background: rgba(250, 251, 252, 0.71);
   border-right: 1px solid #eceff3;
   transition: margin-left 200ms ease-in-out;
 `;
 
 const Header = styled(Flex)`
-  margin-bottom: 20px;
+  flex-shrink: 0;
+  padding: 10px 20px;
 `;
 
 const LinkSection = styled(Flex)`
-  margin-bottom: 20px;
   flex-direction: column;
+  padding: 10px 20px;
 `;
 
 export default withRouter(inject('user', 'auth', 'ui', 'collections')(Layout));
