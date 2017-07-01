@@ -20,7 +20,7 @@ class Document {
   errors: ErrorsStore;
 
   collaborators: Array<User>;
-  collection: Collection;
+  collection: $Shape<Collection>;
   createdAt: string;
   createdBy: User;
   html: string;
@@ -113,7 +113,7 @@ class Document {
   };
 
   @action save = async () => {
-    if (this.isSaving) return;
+    if (this.isSaving) return this;
     this.isSaving = true;
 
     try {
@@ -133,21 +133,26 @@ class Document {
       }
 
       invariant(res && res.data, 'Data should be available');
-      this.hasPendingChanges = false;
+      this.updateData({
+        ...res.data,
+        hasPendingChanges: false,
+      });
     } catch (e) {
       this.errors.add('Document failed saving');
     } finally {
       this.isSaving = false;
     }
+
+    return this;
   };
 
-  updateData(data: Object | Document) {
+  updateData(data: Object) {
     data.title = parseHeader(data.text);
     extendObservable(this, data);
   }
 
-  constructor(document: Document) {
-    this.updateData(document);
+  constructor(data: Object) {
+    this.updateData(data);
     this.errors = stores.errors;
   }
 }

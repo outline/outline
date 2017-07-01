@@ -2,7 +2,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { NavLink, withRouter } from 'react-router-dom';
-import { Flex } from 'reflexbox';
 import styled from 'styled-components';
 
 const activeStyle = {
@@ -16,20 +15,13 @@ const activeStyle = {
   }
 
   render() {
-    return (
-      <LinkContainer>
-        <NavLink exact {...this.props} activeStyle={activeStyle} />
-      </LinkContainer>
-    );
+    return <Link exact {...this.props} activeStyle={activeStyle} />;
   }
 }
 
-const LinkContainer = styled(Flex)`
+const Link = styled(NavLink)`
   padding: 5px 0;
-  
-  a {
-    color: #848484;
-  }
+  color: #848484;
 `;
 
 export default withRouter(SidebarLink);

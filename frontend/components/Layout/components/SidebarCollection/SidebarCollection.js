@@ -3,7 +3,6 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import { Flex } from 'reflexbox';
 import styled from 'styled-components';
-
 import SidebarLink from '../SidebarLink';
 
 import Collection from 'models/Collection';

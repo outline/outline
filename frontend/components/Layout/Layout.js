@@ -116,7 +116,7 @@ type Props = {
                           document={ui.activeDocument}
                           collection={ui.activeCollection}
                         />
-                      : <SidebarCollectionList />}
+                      : <SidebarCollectionList history={this.props.history} />}
                   </LinkSection>
                 </Scrollable>
               </Flex>
