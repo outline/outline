@@ -50,10 +50,14 @@ class DocumentsStore {
       const res = await client.post('/documents.info', { id });
       invariant(res && res.data, 'Document not available');
       const { data } = res;
+      const document = new Document(data);
+
       runInAction('DocumentsStore#fetch', () => {
-        this.data.set(data.id, new Document(data));
+        this.data.set(data.id, document);
         this.isLoaded = true;
       });
+
+      return document;
     } catch (e) {
       this.errors.add('Failed to load documents');
     }

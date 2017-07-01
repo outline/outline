@@ -3,7 +3,9 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import { Flex } from 'reflexbox';
 import styled from 'styled-components';
+import { layout } from 'styles/constants';
 import SidebarLink from '../SidebarLink';
+import DropToImport from 'components/DropToImport';
 
 import Collection from 'models/Collection';
 import Document from 'models/Document';
@@ -11,24 +13,39 @@ import Document from 'models/Document';
 type Props = {
   collection: ?Collection,
   document: ?Document,
+  history: Object,
+};
+
+const activeStyle = {
+  color: '#000',
+  background: '#E1E1E1',
 };
 
 class SidebarCollection extends React.Component {
   props: Props;
 
-  renderDocuments(documentList) {
-    const { document } = this.props;
+  renderDocuments(documentList, depth = 0) {
+    const { document, history } = this.props;
+    const canDropToImport = depth === 0;
 
     if (document) {
       return documentList.map(doc => (
         <Flex column key={doc.id}>
-          <SidebarLink key={doc.id} to={doc.url}>
-            {doc.title}
-          </SidebarLink>
+          {canDropToImport &&
+            <DropToImport
+              history={history}
+              documentId={doc.id}
+              activeStyle={activeStyle}
+            >
+              <SidebarLink to={doc.url}>{doc.title}</SidebarLink>
+            </DropToImport>}
+          {!canDropToImport &&
+            <SidebarLink to={doc.url}>{doc.title}</SidebarLink>}
+
           {(document.pathToDocument.includes(doc.id) ||
             document.id === doc.id) &&
-            <Children>
-              {doc.children && this.renderDocuments(doc.children)}
+            <Children column>
+              {doc.children && this.renderDocuments(doc.children, depth + 1)}
             </Children>}
         </Flex>
       ));
@@ -56,6 +73,7 @@ const Header = styled(Flex)`
   text-transform: uppercase;
   color: #9FA6AB;
   letter-spacing: 0.04em;
+  padding: 0 ${layout.hpadding};
 `;
 
 const Children = styled(Flex)`

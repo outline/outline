@@ -2,6 +2,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { NavLink, withRouter } from 'react-router-dom';
+import { layout } from 'styles/constants';
 import styled from 'styled-components';
 
 const activeStyle = {
@@ -20,7 +21,8 @@ const activeStyle = {
 }
 
 const Link = styled(NavLink)`
-  padding: 5px 0;
+  display: block;
+  padding: 5px ${layout.hpadding};
   color: #848484;
 `;
 
