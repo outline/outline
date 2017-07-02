@@ -1,6 +1,5 @@
 // @flow
 import React from 'react';
-import { observer } from 'mobx-react';
 import { Flex } from 'reflexbox';
 import styled from 'styled-components';
 import { layout } from 'styles/constants';
@@ -9,6 +8,7 @@ import DropToImport from 'components/DropToImport';
 
 import Collection from 'models/Collection';
 import Document from 'models/Document';
+import type { NavigationNode } from 'types';
 
 type Props = {
   collection: ?Collection,
@@ -24,7 +24,7 @@ const activeStyle = {
 class SidebarCollection extends React.Component {
   props: Props;
 
-  renderDocuments(documentList, depth = 0) {
+  renderDocuments(documentList: Array<NavigationNode>, depth = 0) {
     const { document, history } = this.props;
     const canDropToImport = depth === 0;
 
@@ -80,4 +80,4 @@ const Children = styled(Flex)`
   margin-left: 20px;
 `;
 
-export default observer(SidebarCollection);
+export default SidebarCollection;

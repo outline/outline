@@ -1,29 +1,28 @@
 // @flow
 import React from 'react';
-import { observer } from 'mobx-react';
-import { NavLink, withRouter } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { layout } from 'styles/constants';
+import { Flex } from 'reflexbox';
 import styled from 'styled-components';
 
 const activeStyle = {
   color: '#000000',
 };
 
-@observer class SidebarLink extends React.Component {
-  shouldComponentUpdate(nextProps) {
-    // Navlink is having issues updating, forcing update on URL changes
-    return this.props.match !== nextProps.match;
-  }
-
-  render() {
-    return <Link exact {...this.props} activeStyle={activeStyle} />;
-  }
+function SidebarLink(props: Object) {
+  return (
+    <LinkContainer>
+      <NavLink exact {...props} activeStyle={activeStyle} />
+    </LinkContainer>
+  );
 }
 
-const Link = styled(NavLink)`
-  display: block;
-  padding: 5px ${layout.hpadding};
-  color: #848484;
+const LinkContainer = styled(Flex)`
+  padding: 5px ${layout.padding};
+
+  a {
+    color: #848484;
+  }
 `;
 
-export default withRouter(SidebarLink);
+export default SidebarLink;

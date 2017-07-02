@@ -55,8 +55,13 @@ type Props = {
   }
 
   loadDocument = async props => {
+    let document = this.document;
+    if (document) {
+      this.props.ui.setActiveDocument(document);
+    }
+
     await this.props.documents.fetch(props.match.params.id);
-    const document = this.document;
+    document = this.document;
 
     if (document) {
       this.props.ui.setActiveDocument(document);
@@ -115,7 +120,7 @@ type Props = {
   render() {
     const isNew = this.props.newDocument || this.props.newChildDocument;
     const isEditing = this.props.match.params.edit;
-    const isFetching = !this.document && get(this.document, 'isFetching');
+    const isFetching = !this.document;
     const titleText = get(this.document, 'title', 'Loading');
 
     return (
