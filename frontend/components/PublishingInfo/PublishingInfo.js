@@ -52,7 +52,7 @@ class PublishingInfo extends Component {
             ))}
           </Avatars>}
 
-        {createdAt == updatedAt
+        {createdAt === updatedAt
           ? <span>
               {createdBy.name}
               {' '}

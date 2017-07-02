@@ -11,6 +11,7 @@
     "flowtype"
   ],
   "rules": {
+    "eqeqeq": 2,
     "no-unused-vars": 2,
     // // Bring back after we remove CSS Modules 100%
     // "import/order": "warn",
