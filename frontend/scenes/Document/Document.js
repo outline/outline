@@ -54,8 +54,13 @@ type Props = {
   }
 
   loadDocument = async props => {
+    let document = this.document;
+    if (document) {
+      this.props.ui.setActiveDocument(document);
+    }
+
     await this.props.documents.fetch(props.match.params.id);
-    const document = this.document;
+    document = this.document;
 
     if (document) {
       this.props.ui.setActiveDocument(document);

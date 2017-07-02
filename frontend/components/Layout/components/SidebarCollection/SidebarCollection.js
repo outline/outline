@@ -1,6 +1,5 @@
 // @flow
 import React from 'react';
-import { observer } from 'mobx-react';
 import { Flex } from 'reflexbox';
 import styled from 'styled-components';
 
@@ -8,6 +7,7 @@ import SidebarLink from '../SidebarLink';
 
 import Collection from 'models/Collection';
 import Document from 'models/Document';
+import type { NavigationNode } from 'types';
 
 type Props = {
   collection: ?Collection,
@@ -17,7 +17,7 @@ type Props = {
 class SidebarCollection extends React.Component {
   props: Props;
 
-  renderDocuments(documentList) {
+  renderDocuments(documentList: Array<NavigationNode>) {
     const { document } = this.props;
 
     if (document) {
@@ -63,4 +63,4 @@ const Children = styled(Flex)`
   margin-left: 20px;
 `;
 
-export default observer(SidebarCollection);
+export default SidebarCollection;
