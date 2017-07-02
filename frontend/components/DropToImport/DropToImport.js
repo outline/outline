@@ -57,17 +57,14 @@ class DropToImport extends Component {
     this.setState({ isImporting: true });
 
     try {
-      let collectionId;
+      let collectionId = this.props.collectionId;
       const documentId = this.props.documentId;
       const redirect = files.length === 1;
 
-      if (documentId) {
+      if (documentId && !collectionId) {
         const document = await this.props.documents.fetch(documentId);
         invariant(document, 'Document not available');
-
         collectionId = document.collection.id;
-      } else {
-        collectionId = this.props.collectionId;
       }
 
       for (const file of files) {
