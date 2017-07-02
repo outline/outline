@@ -28,10 +28,15 @@ const Container = styled(CenteredContent)`
 
 const ResultsWrapper = styled(Flex)`
   position: absolute;
-  transition: all 200ms ease-in-out;
+  transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
   top: ${props => (props.pinToTop ? '0%' : '50%')};
   margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
   width: 100%;
+`;
+
+const ResultList = styled(Flex)`
+  opacity: ${props => (props.visible ? '1' : '0')};
+  transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
 `;
 
 @observer class Search extends React.Component {
@@ -100,19 +105,21 @@ const ResultsWrapper = styled(Flex)`
             onChange={this.updateQuery}
             value={query || ''}
           />
-          <ArrowKeyNavigation
-            mode={ArrowKeyNavigation.mode.VERTICAL}
-            defaultActiveChildIndex={0}
-          >
-            {this.store.documents.map((document, index) => (
-              <DocumentPreview
-                innerRef={ref => index === 0 && this.setFirstDocumentRef(ref)}
-                key={document.id}
-                document={document}
-                highlight={this.store.searchTerm}
-              />
-            ))}
-          </ArrowKeyNavigation>
+          <ResultList visible={hasResults}>
+            <ArrowKeyNavigation
+              mode={ArrowKeyNavigation.mode.VERTICAL}
+              defaultActiveChildIndex={0}
+            >
+              {this.store.documents.map((document, index) => (
+                <DocumentPreview
+                  innerRef={ref => index === 0 && this.setFirstDocumentRef(ref)}
+                  key={document.id}
+                  document={document}
+                  highlight={this.store.searchTerm}
+                />
+              ))}
+            </ArrowKeyNavigation>
+          </ResultList>
         </ResultsWrapper>
       </Container>
     );
