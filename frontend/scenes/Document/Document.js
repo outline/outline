@@ -133,6 +133,15 @@ type Props = {
               message={DISCARD_CHANGES}
             />
             <DocumentContainer>
+              <InfoWrapper visible={!isEditing}>
+                <PublishingInfo
+                  collaborators={this.document.collaborators}
+                  createdAt={this.document.createdAt}
+                  createdBy={this.document.createdBy}
+                  updatedAt={this.document.updatedAt}
+                  updatedBy={this.document.updatedBy}
+                />
+              </InfoWrapper>
               <Editor
                 key={this.document.id}
                 text={this.document.text}
@@ -147,15 +156,7 @@ type Props = {
                 readOnly={!isEditing}
               />
             </DocumentContainer>
-            <Meta align="center" readOnly={!isEditing}>
-              {!isEditing &&
-                <PublishingInfo
-                  collaborators={this.document.collaborators}
-                  createdAt={this.document.createdAt}
-                  createdBy={this.document.createdBy}
-                  updatedAt={this.document.updatedAt}
-                  updatedBy={this.document.updatedBy}
-                />}
+            <Meta align="center" justify="flex-end" readOnly={!isEditing}>
               {!isEditing &&
                 <DocumentViews
                   count={this.document.views}
@@ -189,7 +190,12 @@ const Meta = styled(Flex)`
   padding: 10px 20px;
 `;
 
-const Container = styled(Flex)`
+const InfoWrapper = styled(Flex)`
+  opacity: ${({ visible }) => (visible ? '1' : '0')};
+  transition: all 100ms ease-in-out;
+`;
+
+const Container = styled.div`
   position: relative;
   width: 100%;
 `;

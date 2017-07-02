@@ -110,7 +110,7 @@ type KeyData = {
 
   render = () => {
     return (
-      <span>
+      <div>
         <Toolbar state={this.state.state} onChange={this.onChange} />
         <Editor
           key={this.props.starred}
@@ -128,7 +128,7 @@ type KeyData = {
         />
         {!this.props.readOnly &&
           <ClickablePadding onClick={this.focusAtEnd} grow />}
-      </span>
+      </div>
     );
   };
 }
