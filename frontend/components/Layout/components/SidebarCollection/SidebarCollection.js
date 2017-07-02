@@ -28,7 +28,7 @@ class SidebarCollection extends React.Component {
           </SidebarLink>
           {(document.pathToDocument.includes(doc.id) ||
             document.id === doc.id) &&
-            <Children>
+            <Children column>
               {doc.children && this.renderDocuments(doc.children)}
             </Children>}
         </Flex>

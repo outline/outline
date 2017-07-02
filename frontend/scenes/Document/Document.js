@@ -119,7 +119,7 @@ type Props = {
   render() {
     const isNew = this.props.newDocument || this.props.newChildDocument;
     const isEditing = this.props.match.params.edit;
-    const isFetching = !this.document && get(this.document, 'isFetching');
+    const isFetching = !this.document;
     const titleText = get(this.document, 'title', 'Loading');
 
     return (
