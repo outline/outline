@@ -13,7 +13,7 @@ import Editor from 'components/Editor';
 import { HeaderAction, SaveAction } from 'components/Layout';
 import LoadingIndicator from 'components/LoadingIndicator';
 import PublishingInfo from 'components/PublishingInfo';
-import DocumentViews from 'components/DocumentViews';
+import AuthorInfo from 'components/AuthorInfo';
 import PreviewLoading from 'components/PreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
@@ -142,26 +142,29 @@ type Props = {
                   updatedBy={this.document.updatedBy}
                 />
               </InfoWrapper>
-              <Editor
-                key={this.document.id}
-                text={this.document.text}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onChange={this.onChange}
-                onSave={this.onSave}
-                onCancel={this.onCancel}
-                onStar={this.document.star}
-                onUnstar={this.document.unstar}
-                starred={this.document.starred}
-                readOnly={!isEditing}
-              />
+              <Content>
+                <Editor
+                  key={this.document.id}
+                  text={this.document.text}
+                  onImageUploadStart={this.onImageUploadStart}
+                  onImageUploadStop={this.onImageUploadStop}
+                  onChange={this.onChange}
+                  onSave={this.onSave}
+                  onCancel={this.onCancel}
+                  onStar={this.document.star}
+                  onUnstar={this.document.unstar}
+                  starred={this.document.starred}
+                  readOnly={!isEditing}
+                />
+              </Content>
+              <InfoWrapper visible={!isEditing} bottom>
+                <AuthorInfo
+                  collaborators={this.document.collaborators}
+                  views={this.document.views}
+                />
+              </InfoWrapper>
             </DocumentContainer>
             <Meta align="center" justify="flex-end" readOnly={!isEditing}>
-              {!isEditing &&
-                <DocumentViews
-                  count={this.document.views}
-                  documentId={this.document.id}
-                />}
               <Flex align="center">
                 <HeaderAction>
                   {isEditing
@@ -188,6 +191,10 @@ const Meta = styled(Flex)`
   position: absolute;
   top: 0;
   padding: 10px 20px;
+`;
+
+const Content = styled(Flex)`
+  margin-bottom: 20px;
 `;
 
 const InfoWrapper = styled(Flex)`
