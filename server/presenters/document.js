@@ -1,9 +1,16 @@
-import { Collection, Star, User, View } from '../models';
+// @flow
+import { Collection, Star, User, View, Document } from '../models';
 import presentUser from './user';
 import presentCollection from './collection';
 import _ from 'lodash';
 
-async function present(ctx, document, options) {
+type Options = {
+  includeCollection?: boolean,
+  includeCollaborators?: boolean,
+  includeViews?: boolean,
+};
+
+async function present(ctx: Object, document: Document, options: Options) {
   options = {
     includeCollection: true,
     includeCollaborators: true,
@@ -13,7 +20,7 @@ async function present(ctx, document, options) {
   ctx.cache.set(document.id, document);
 
   const userId = ctx.state.user.id;
-  const data = {
+  let data = {
     id: document.id,
     url: document.getUrl(),
     private: document.private,
@@ -23,6 +30,7 @@ async function present(ctx, document, options) {
     preview: document.preview,
     createdAt: document.createdAt,
     createdBy: undefined,
+    starred: false,
     updatedAt: document.updatedAt,
     updatedBy: undefined,
     team: document.teamId,
@@ -34,12 +42,14 @@ async function present(ctx, document, options) {
   });
 
   if (options.includeViews) {
+    // $FlowIssue not found in object literal?
     data.views = await View.sum('count', {
       where: { documentId: document.id },
     });
   }
 
   if (options.includeCollection) {
+    // $FlowIssue not found in object literal?
     data.collection = await ctx.cache.get(document.atlasId, async () => {
       const collection =
         options.collection ||
@@ -54,13 +64,15 @@ async function present(ctx, document, options) {
 
   if (options.includeCollaborators) {
     // This could be further optimized by using ctx.cache
-    data.collaborators = await User.findAll({
+    data['collaborators'] = await User.findAll({
       where: {
         id: {
-          $in: _.takeRight(document.collaboratorIds, 7) || [],
+          $in: _.takeRight(document.collaboratorIds, 10) || [],
         },
       },
     }).map(user => presentUser(ctx, user));
+    // $FlowIssue not found in object literal?
+    data.collaboratorCount = document.collaboratorIds.length;
   }
 
   const createdBy = await ctx.cache.get(

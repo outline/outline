@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import styled from 'styled-components';
 import type { User } from 'types';
 import { Flex } from 'reflexbox';
+import _ from 'lodash';
 
 const Container = styled(Flex)`
   justify-content: space-between;
@@ -19,7 +20,7 @@ class AuthorInfo extends Component {
   render() {
     const { collaborators, views } = this.props;
 
-    const users = collaborators.map((user, index, arr) => (
+    const users = _.takeRight(collaborators, 5).map((user, index, arr) => (
       <span key={user.id}>
         {user.name} {arr.length > 1 && (index < arr.length - 1 ? ',' : 'and')}
       </span>
