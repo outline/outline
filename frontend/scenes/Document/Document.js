@@ -44,7 +44,10 @@ type Props = {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.match.params.id !== this.props.match.params.id) {
+    if (
+      nextProps.match.params.documentSlug !==
+      this.props.match.params.documentSlug
+    ) {
       this.loadDocument(nextProps);
     }
   }
@@ -59,7 +62,7 @@ type Props = {
       this.props.ui.setActiveDocument(document);
     }
 
-    await this.props.documents.fetch(props.match.params.id);
+    await this.props.documents.fetch(props.match.params.documentSlug);
     document = this.document;
 
     if (document) {
@@ -75,7 +78,9 @@ type Props = {
   };
 
   get document() {
-    return this.props.documents.getByUrl(`/d/${this.props.match.params.id}`);
+    return this.props.documents.getByUrl(
+      `/${this.props.match.params.documentSlug}`
+    );
   }
 
   onClickEdit = () => {
