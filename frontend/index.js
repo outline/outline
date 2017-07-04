@@ -88,7 +88,7 @@ const Api = () => <Flatpage title="API" content={flatpages.api} />;
 const DocumentNew = () => <Document newDocument />;
 const DocumentNewChild = () => <Document newChildDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
-  <Redirect to={`/${match.params.documentSlug}`} />
+  <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
 
 render(
@@ -116,13 +116,13 @@ render(
                   />
                   <Route
                     exact
-                    path="/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})"
+                    path="/doc/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})"
                     component={Document}
                   />
 
                   <Route
                     exact
-                    path="/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})/:edit"
+                    path="/doc/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})/:edit"
                     component={Document}
                   />
                   <Route

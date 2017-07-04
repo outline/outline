@@ -100,7 +100,7 @@ const Document = sequelize.define(
     instanceMethods: {
       getUrl() {
         const slugifiedTitle = slugify(this.title);
-        return `/${slugifiedTitle}-${this.urlId}`;
+        return `/doc/${slugifiedTitle}-${this.urlId}`;
       },
       toJSON() {
         // Warning: only use for new documents as order of children is
