@@ -1,8 +1,9 @@
-import { Collection, Star, User, View } from '../models';
+// @flow
+import { Star, User, Document, View } from '../models';
 import presentUser from './user';
 import presentCollection from './collection';
 
-async function present(ctx, document, options) {
+async function present(ctx: Object, document: Document, options: Object = {}) {
   options = {
     includeCollection: true,
     includeCollaborators: true,
@@ -10,8 +11,6 @@ async function present(ctx, document, options) {
     ...options,
   };
   ctx.cache.set(document.id, document);
-
-  const userId = ctx.state.user.id;
   const data = {
     id: document.id,
     url: document.getUrl(),
@@ -20,34 +19,20 @@ async function present(ctx, document, options) {
     text: document.text,
     html: document.html,
     preview: document.preview,
+    collection: presentCollection(ctx, document.collection),
     createdAt: document.createdAt,
-    createdBy: undefined,
+    createdBy: presentUser(ctx, document.createdBy),
     updatedAt: document.updatedAt,
-    updatedBy: undefined,
+    updatedBy: presentUser(ctx, document.updatedBy),
     team: document.teamId,
     collaborators: [],
+    starred: !!document.starred,
+    views: undefined,
   };
-
-  data.starred = !!await Star.findOne({
-    where: { documentId: document.id, userId },
-  });
 
   if (options.includeViews) {
     data.views = await View.sum('count', {
       where: { documentId: document.id },
-    });
-  }
-
-  if (options.includeCollection) {
-    data.collection = await ctx.cache.get(document.atlasId, async () => {
-      const collection =
-        options.collection ||
-        (await Collection.findOne({
-          where: {
-            id: document.atlasId,
-          },
-        }));
-      return presentCollection(ctx, collection);
     });
   }
 
@@ -61,18 +46,6 @@ async function present(ctx, document, options) {
       },
     }).map(user => presentUser(ctx, user));
   }
-
-  const createdBy = await ctx.cache.get(
-    document.createdById,
-    async () => await User.findById(document.createdById)
-  );
-  data.createdBy = await presentUser(ctx, createdBy);
-
-  const updatedBy = await ctx.cache.get(
-    document.lastModifiedById,
-    async () => await User.findById(document.lastModifiedById)
-  );
-  data.updatedBy = await presentUser(ctx, updatedBy);
 
   return data;
 }

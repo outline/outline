@@ -115,7 +115,31 @@ const Document = sequelize.define(
     },
     classMethods: {
       associate: models => {
-        Document.belongsTo(models.User);
+        Document.belongsTo(models.Collection, {
+          foreignKey: 'atlasId',
+        });
+        Document.belongsTo(models.User, {
+          as: 'createdBy',
+          foreignKey: 'createdById',
+        });
+        Document.belongsTo(models.User, {
+          as: 'updatedBy',
+          foreignKey: 'lastModifiedById',
+        });
+        Document.hasMany(models.Star, {
+          as: 'starred',
+        });
+        Document.addScope(
+          'defaultScope',
+          {
+            include: [
+              { model: models.Collection },
+              { model: models.User, as: 'createdBy' },
+              { model: models.User, as: 'updatedBy' },
+            ],
+          },
+          { override: true }
+        );
       },
       findById: async id => {
         if (isUUID(id)) {

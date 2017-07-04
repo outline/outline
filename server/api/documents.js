@@ -5,10 +5,9 @@ import httpErrors from 'http-errors';
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
-import { Document, Collection, Star, View } from '../models';
+import { User, Document, Collection, Star, View } from '../models';
 
 const router = new Router();
-
 router.post('documents.list', auth(), pagination(), async ctx => {
   let { sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
@@ -19,6 +18,7 @@ router.post('documents.list', auth(), pagination(), async ctx => {
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
+    include: [{ model: Star, as: 'starred', where: { userId: user.id } }],
   });
 
   let data = await Promise.all(documents.map(doc => presentDocument(ctx, doc)));
@@ -60,7 +60,12 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
   const views = await Star.findAll({
     where: { userId: user.id },
     order: [[sort, direction]],
-    include: [{ model: Document }],
+    include: [
+      {
+        model: Document,
+        include: [{ model: Star, as: 'starred', where: { userId: user.id } }],
+      },
+    ],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
