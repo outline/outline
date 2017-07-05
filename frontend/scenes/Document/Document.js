@@ -4,7 +4,7 @@ import get from 'lodash/get';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';

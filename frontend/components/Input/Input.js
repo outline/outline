@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import { size } from 'styles/constants';
 
 const RealTextarea = styled.textarea`

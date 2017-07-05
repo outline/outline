@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import styled from 'styled-components';
 
 const activeStyle = {

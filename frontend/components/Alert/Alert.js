@@ -1,6 +1,6 @@
 // @flow
 import React, { PropTypes } from 'react';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import classNames from 'classnames/bind';
 import styles from './Alert.scss';
 

@@ -8,7 +8,7 @@ import {
   Route,
   Redirect,
 } from 'react-router-dom';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 
 import stores from 'stores';
 import DocumentsStore from 'stores/DocumentsStore';

@@ -146,7 +146,6 @@
     "react-router-dom": "^4.1.1",
     "redis": "^2.6.2",
     "redis-lock": "^0.1.0",
-    "reflexbox": "^2.2.3",
     "rimraf": "^2.5.4",
     "safestart": "1.1.0",
     "sass-loader": "4.0.0",

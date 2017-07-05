@@ -2,7 +2,7 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import styled, { keyframes } from 'styled-components';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 
 import { randomInteger } from 'utils/random';
 
