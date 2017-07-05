@@ -79,7 +79,7 @@ type Props = {
 
   get document() {
     return this.props.documents.getByUrl(
-      `/${this.props.match.params.documentSlug}`
+      `/doc/${this.props.match.params.documentSlug}`
     );
   }
 
