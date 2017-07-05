@@ -16,9 +16,7 @@ type Props = {
   props: Props;
 
   onCreateDocument = () => {
-    // Disabled until created a better API
-    // invariant(this.props.collectionTree, 'collectionTree is not available');
-    // this.props.history.push(`${this.props.collectionTree.url}/new`);
+    this.props.history.push(`${this.props.document.collection.url}/new`);
   };
 
   onCreateChild = () => {
@@ -68,7 +66,6 @@ type Props = {
               <MenuItem onClick={this.onCreateDocument}>
                 New document
               </MenuItem>
-              <MenuItem onClick={this.onCreateChild}>New child</MenuItem>
             </div>}
           <MenuItem onClick={this.onExport}>Export</MenuItem>
           {allowDelete && <MenuItem onClick={this.onDelete}>Delete</MenuItem>}

@@ -45,23 +45,24 @@ class PublishingInfo extends Component {
               <Avatar key={user.id} src={user.avatarUrl} title={user.name} />
             ))}
           </Avatars>}
-        <span>
-          {this.props.createdBy.name}
-          {' '}
-          published
-          {' '}
-          {moment(this.props.createdAt).fromNow()}
-          {this.props.createdAt !== this.props.updatedAt
-            ? <span>
-                &nbsp;and&nbsp;
-                {this.props.createdBy.id !== this.props.updatedBy.id &&
-                  ` ${this.props.updatedBy.name} `}
-                modified
-                {' '}
-                {moment(this.props.updatedAt).fromNow()}
-              </span>
-            : null}
-        </span>
+        {this.props.createdBy &&
+          <span>
+            {this.props.createdBy.name}
+            {' '}
+            published
+            {' '}
+            {moment(this.props.createdAt).fromNow()}
+            {this.props.createdAt !== this.props.updatedAt
+              ? <span>
+                  &nbsp;and&nbsp;
+                  {this.props.createdBy.id !== this.props.updatedBy.id &&
+                    ` ${this.props.updatedBy.name} `}
+                  modified
+                  {' '}
+                  {moment(this.props.updatedAt).fromNow()}
+                </span>
+              : null}
+          </span>}
       </Container>
     );
   }

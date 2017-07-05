@@ -6,6 +6,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import { Flex } from 'reflexbox';
 
+import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
@@ -28,15 +29,18 @@ type Props = {
   history: Object,
   keydown: Object,
   documents: DocumentsStore,
-  newChildDocument?: boolean,
+  newDocument?: boolean,
   ui: UiStore,
 };
 
-@observer class Document extends Component {
+@observer class DocumentScene extends Component {
   props: Props;
-
+  state: {
+    newDocument?: Document,
+  };
   state = {
     isLoading: false,
+    newDocument: undefined,
   };
 
   componentDidMount() {
@@ -57,27 +61,29 @@ type Props = {
   }
 
   loadDocument = async props => {
-    let document = this.document;
-    if (document) {
-      this.props.ui.setActiveDocument(document);
-    }
-
-    await this.props.documents.fetch(props.match.params.documentSlug);
-    document = this.document;
-
-    if (document) {
-      this.props.ui.setActiveDocument(document);
-      document.view();
-    }
-
-    if (this.props.match.params.edit) {
-      this.props.ui.enableEditMode();
+    if (props.newDocument) {
+      const newDocument = new Document({
+        collection: { id: props.match.params.id },
+      });
+      this.setState({ newDocument });
     } else {
-      this.props.ui.disableEditMode();
+      let document = this.document;
+      if (document) {
+        this.props.ui.setActiveDocument(document);
+      }
+
+      await this.props.documents.fetch(props.match.params.documentSlug);
+      document = this.document;
+
+      if (document) {
+        this.props.ui.setActiveDocument(document);
+        document.view();
+      }
     }
   };
 
   get document() {
+    if (this.state.newDocument) return this.state.newDocument;
     return this.props.documents.getByUrl(
       `/doc/${this.props.match.params.documentSlug}`
     );
@@ -87,19 +93,17 @@ type Props = {
     if (!this.document) return;
     const url = `${this.document.url}/edit`;
     this.props.history.push(url);
-    this.props.ui.enableEditMode();
   };
 
   onSave = async (redirect: boolean = false) => {
-    const document = this.document;
+    let document = this.document;
 
     if (!document) return;
     this.setState({ isLoading: true });
-    await document.save();
+    document = await document.save();
     this.setState({ isLoading: false });
-    this.props.ui.disableEditMode();
 
-    if (redirect) {
+    if (redirect || this.props.newDocument) {
       this.props.history.push(document.url);
     }
   };
@@ -122,8 +126,8 @@ type Props = {
   };
 
   render() {
-    const isNew = this.props.newDocument || this.props.newChildDocument;
-    const isEditing = this.props.match.params.edit;
+    const isNew = this.props.newDocument;
+    const isEditing = this.props.match.params.edit || isNew;
     const isFetching = !this.document;
     const titleText = get(this.document, 'title', 'Loading');
 
@@ -217,4 +221,4 @@ const DocumentContainer = styled.div`
   width: 50em;
 `;
 
-export default withRouter(inject('ui', 'documents')(Document));
+export default withRouter(inject('ui', 'user', 'documents')(DocumentScene));

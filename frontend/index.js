@@ -35,6 +35,7 @@ import Error404 from 'scenes/Error404';
 
 import ScrollToTop from 'components/ScrollToTop';
 import Layout from 'components/Layout';
+import SidebarHidden from 'components/SidebarHidden';
 
 import flatpages from 'static/flatpages';
 
@@ -86,10 +87,11 @@ const KeyboardShortcuts = () => (
 );
 const Api = () => <Flatpage title="API" content={flatpages.api} />;
 const DocumentNew = () => <Document newDocument />;
-const DocumentNewChild = () => <Document newChildDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
+
+const matchDocumentSlug = ':documentSlug([0-9a-zA-Z-]*-[a-zA-z0-9]{10,15})';
 
 render(
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>
@@ -111,26 +113,28 @@ render(
                   <Route exact path="/collections/:id" component={Collection} />
                   <Route
                     exact
-                    path="/d/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})"
+                    path={`/d/${matchDocumentSlug}`}
                     component={RedirectDocument}
                   />
                   <Route
                     exact
-                    path="/doc/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})"
+                    path={`/doc/${matchDocumentSlug}`}
                     component={Document}
                   />
-
-                  <Route
-                    exact
-                    path="/doc/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})/:edit"
-                    component={Document}
-                  />
-                  <Route
-                    exact
-                    path="/collections/:id/new"
-                    component={DocumentNew}
-                  />
-                  <Route exact path="/d/:id/new" component={DocumentNewChild} />
+                  <SidebarHidden>
+                    <Switch>
+                      <Route
+                        exact
+                        path={`/doc/${matchDocumentSlug}/:edit`}
+                        component={Document}
+                      />
+                      <Route
+                        exact
+                        path="/collections/:id/new"
+                        component={DocumentNew}
+                      />
+                    </Switch>
+                  </SidebarHidden>
 
                   <Route exact path="/search" component={Search} />
                   <Route exact path="/search/:query" component={Search} />

@@ -9,7 +9,7 @@ import { convertToMarkdown } from '../../frontend/utils/markdown';
 import { truncateMarkdown } from '../utils/truncate';
 import Revision from './Revision';
 
-const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z]{10,15})$/;
+const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
 slug.defaults.mode = 'rfc3986';
 const slugify = text =>

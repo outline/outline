@@ -15,7 +15,7 @@ const parseHeader = text => {
 };
 
 class Document {
-  isSaving: boolean;
+  isSaving: boolean = false;
   hasPendingChanges: boolean = false;
   errors: ErrorsStore;
 
@@ -25,10 +25,10 @@ class Document {
   createdBy: User;
   html: string;
   id: string;
-  private: boolean;
-  starred: boolean;
   team: string;
-  text: string;
+  private: boolean = false;
+  starred: boolean = false;
+  text: string = '';
   title: string = 'Untitled document';
   updatedAt: string;
   updatedBy: User;
@@ -83,9 +83,9 @@ class Document {
   };
 
   @action view = async () => {
+    this.views++;
     try {
       await client.post('/views.create', { id: this.id });
-      this.views++;
     } catch (e) {
       this.errors.add('Document failed to record view');
     }
@@ -133,20 +133,25 @@ class Document {
       }
 
       invariant(res && res.data, 'Data should be available');
-      this.hasPendingChanges = false;
+      this.updateData({
+        ...res.data,
+        hasPendingChanges: false,
+      });
     } catch (e) {
       this.errors.add('Document failed saving');
     } finally {
       this.isSaving = false;
     }
+
+    return this;
   };
 
   updateData(data: Object | Document) {
-    data.title = parseHeader(data.text);
+    if (data.text) data.title = parseHeader(data.text);
     extendObservable(this, data);
   }
 
-  constructor(document: Document) {
+  constructor(document?: Object = {}) {
     this.updateData(document);
     this.errors = stores.errors;
   }
