@@ -87,6 +87,9 @@ const KeyboardShortcuts = () => (
 const Api = () => <Flatpage title="API" content={flatpages.api} />;
 const DocumentNew = () => <Document newDocument />;
 const DocumentNewChild = () => <Document newChildDocument />;
+const RedirectDocument = ({ match }: { match: Object }) => (
+  <Redirect to={`/doc/${match.params.documentSlug}`} />
+);
 
 render(
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>
@@ -106,9 +109,22 @@ render(
                   <Route exact path="/dashboard" component={Dashboard} />
                   <Route exact path="/starred" component={Starred} />
                   <Route exact path="/collections/:id" component={Collection} />
-                  <Route exact path="/d/:id" component={Document} />
+                  <Route
+                    exact
+                    path="/d/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})"
+                    component={RedirectDocument}
+                  />
+                  <Route
+                    exact
+                    path="/doc/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})"
+                    component={Document}
+                  />
 
-                  <Route exact path="/d/:id/:edit" component={Document} />
+                  <Route
+                    exact
+                    path="/doc/:documentSlug([0-9a-zA-Z-]*-[a-zA-z]{10,15})/:edit"
+                    component={Document}
+                  />
                   <Route
                     exact
                     path="/collections/:id/new"
