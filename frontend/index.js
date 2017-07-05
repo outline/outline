@@ -87,7 +87,6 @@ const KeyboardShortcuts = () => (
 );
 const Api = () => <Flatpage title="API" content={flatpages.api} />;
 const DocumentNew = () => <Document newDocument />;
-const DocumentNewChild = () => <Document newChildDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
@@ -126,18 +125,13 @@ render(
                     <Switch>
                       <Route
                         exact
-                        path={`/d/${matchDocumentSlug}/:edit`}
+                        path={`/doc/${matchDocumentSlug}/:edit`}
                         component={Document}
                       />
                       <Route
                         exact
                         path="/collections/:id/new"
                         component={DocumentNew}
-                      />
-                      <Route
-                        exact
-                        path="/d/:id/new"
-                        component={DocumentNewChild}
                       />
                     </Switch>
                   </SidebarHidden>
