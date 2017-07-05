@@ -48,7 +48,10 @@ type Props = {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.match.params.id !== this.props.match.params.id) {
+    if (
+      nextProps.match.params.documentSlug !==
+      this.props.match.params.documentSlug
+    ) {
       this.loadDocument(nextProps);
     }
   }
@@ -60,7 +63,7 @@ type Props = {
   loadDocument = async props => {
     if (props.newDocument) {
       const newDocument = new Document({
-        collection: { id: this.props.match.params.id },
+        collection: { id: props.match.params.id },
       });
       this.setState({ newDocument });
     } else {
@@ -69,7 +72,7 @@ type Props = {
         this.props.ui.setActiveDocument(document);
       }
 
-      await this.props.documents.fetch(props.match.params.id);
+      await this.props.documents.fetch(props.match.params.documentSlug);
       document = this.document;
 
       if (document) {
@@ -81,7 +84,9 @@ type Props = {
 
   get document() {
     if (this.state.newDocument) return this.state.newDocument;
-    return this.props.documents.getByUrl(`/d/${this.props.match.params.id}`);
+    return this.props.documents.getByUrl(
+      `/doc/${this.props.match.params.documentSlug}`
+    );
   }
 
   onClickEdit = () => {
