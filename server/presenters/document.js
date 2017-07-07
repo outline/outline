@@ -1,5 +1,5 @@
 // @flow
-import { Star, User, Document, View } from '../models';
+import { User, Document, View } from '../models';
 import presentUser from './user';
 import presentCollection from './collection';
 
@@ -19,7 +19,6 @@ async function present(ctx: Object, document: Document, options: Object = {}) {
     text: document.text,
     html: document.html,
     preview: document.preview,
-    collection: presentCollection(ctx, document.collection),
     createdAt: document.createdAt,
     createdBy: presentUser(ctx, document.createdBy),
     updatedAt: document.updatedAt,
@@ -27,8 +26,13 @@ async function present(ctx: Object, document: Document, options: Object = {}) {
     team: document.teamId,
     collaborators: [],
     starred: !!document.starred,
+    collection: undefined,
     views: undefined,
   };
+
+  if (options.includeCollection) {
+    data.collection = presentCollection(ctx, document.collection);
+  }
 
   if (options.includeViews) {
     data.views = await View.sum('count', {

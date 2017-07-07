@@ -5,7 +5,7 @@ import httpErrors from 'http-errors';
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument } from '../presenters';
-import { User, Document, Collection, Star, View } from '../models';
+import { Document, Collection, Star, View } from '../models';
 
 const router = new Router();
 router.post('documents.list', auth(), pagination(), async ctx => {
@@ -118,7 +118,6 @@ router.post('documents.search', auth(), async ctx => {
     documents.map(async document => {
       data.push(
         await presentDocument(ctx, document, {
-          includeCollection: true,
           includeCollaborators: true,
         })
       );
@@ -206,9 +205,7 @@ router.post('documents.create', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(ctx, newDocument, {
-      includeCollection: true,
       includeCollaborators: true,
-      collection: ownerCollection,
     }),
   };
 });
@@ -236,9 +233,7 @@ router.post('documents.update', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(ctx, document, {
-      includeCollection: true,
       includeCollaborators: true,
-      collection: collection,
     }),
   };
 });
@@ -279,7 +274,6 @@ router.post('documents.move', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(ctx, document, {
-      includeCollection: true,
       includeCollaborators: true,
       collection: collection,
     }),
