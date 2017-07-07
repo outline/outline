@@ -7,7 +7,7 @@ machine:
     ENVIRONMENT: test
     PATH: "${PATH}:${HOME}/${CIRCLE_PROJECT_REPONAME}/node_modules/.bin"
     SEQUELIZE_SECRET: F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B
-    DATABASE_URL: postgres://postgres@localhost:5432/atlas_test
+    DATABASE_URL_TEST: postgres://postgres@localhost:5432/atlas_test
 
 dependencies:
   override:
