@@ -36,13 +36,6 @@ module.exports = {
         loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]',
       },
       { test: /\.md/, loader: 'raw-loader' },
-
-      // Excludes
-      {
-        // slug
-        test: /unicode/,
-        loader: 'ignore-loader',
-      },
     ],
   },
   resolve: {
