@@ -16,6 +16,8 @@ dependencies:
     - ~/.cache/yarn
 
 test:
+  pre:
+    - node server/test/helper.js
   override:
     - yarn test
     - yarn lint
