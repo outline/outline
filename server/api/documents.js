@@ -8,7 +8,6 @@ import { presentDocument } from '../presenters';
 import { Document, Collection, Star, View } from '../models';
 
 const router = new Router();
-
 router.post('documents.list', auth(), pagination(), async ctx => {
   let { sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
@@ -19,9 +18,12 @@ router.post('documents.list', auth(), pagination(), async ctx => {
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
+    include: [{ model: Star, as: 'starred', where: { userId: user.id } }],
   });
 
-  let data = await Promise.all(documents.map(doc => presentDocument(ctx, doc)));
+  const data = await Promise.all(
+    documents.map(document => presentDocument(ctx, document))
+  );
 
   ctx.body = {
     pagination: ctx.state.pagination,
@@ -42,7 +44,7 @@ router.post('documents.viewed', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  let data = await Promise.all(
+  const data = await Promise.all(
     views.map(view => presentDocument(ctx, view.document))
   );
 
@@ -60,12 +62,17 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
   const views = await Star.findAll({
     where: { userId: user.id },
     order: [[sort, direction]],
-    include: [{ model: Document }],
+    include: [
+      {
+        model: Document,
+        include: [{ model: Star, as: 'starred', where: { userId: user.id } }],
+      },
+    ],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
 
-  let data = await Promise.all(
+  const data = await Promise.all(
     views.map(view => presentDocument(ctx, view.document))
   );
 
@@ -94,8 +101,7 @@ router.post('documents.info', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(ctx, document, {
-      includeCollection: document.private,
-      includeCollaborators: true,
+      includeViews: true,
     }),
   };
 });
@@ -108,16 +114,8 @@ router.post('documents.search', auth(), async ctx => {
 
   const documents = await Document.searchForUser(user, query);
 
-  const data = [];
-  await Promise.all(
-    documents.map(async document => {
-      data.push(
-        await presentDocument(ctx, document, {
-          includeCollection: true,
-          includeCollaborators: true,
-        })
-      );
-    })
+  const data = await Promise.all(
+    documents.map(async document => await presentDocument(ctx, document))
   );
 
   ctx.body = {
@@ -200,11 +198,7 @@ router.post('documents.create', auth(), async ctx => {
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, newDocument, {
-      includeCollection: true,
-      includeCollaborators: true,
-      collection: ownerCollection,
-    }),
+    data: await presentDocument(ctx, newDocument),
   };
 });
 
@@ -230,11 +224,7 @@ router.post('documents.update', auth(), async ctx => {
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, document, {
-      includeCollection: true,
-      includeCollaborators: true,
-      collection: collection,
-    }),
+    data: await presentDocument(ctx, document),
   };
 });
 
@@ -273,11 +263,7 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, document, {
-      includeCollection: true,
-      includeCollaborators: true,
-      collection: collection,
-    }),
+    data: await presentDocument(ctx, document),
   };
 });
 

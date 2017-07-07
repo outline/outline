@@ -1,13 +1,13 @@
 require('./init');
-var app = require('./server').default;
-var http = require('http');
+const app = require('./server').default;
+const http = require('http');
 
-var server = http.createServer(app.callback());
+const server = http.createServer(app.callback());
 server.listen(process.env.PORT || '3000');
-server.on('error', (err) => {
+server.on('error', err => {
   throw err;
 });
 server.on('listening', () => {
-  var address = server.address();
-  console.log('Listening on %s%s', address.address, address.port);
+  const address = server.address();
+  console.log(`Listening on http://localhost:${address.port}`);
 });

@@ -61,6 +61,12 @@ type KeyData = {
     }
   }
 
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.readOnly && !this.props.readOnly) {
+      this.focusAtEnd();
+    }
+  }
+
   getChildContext() {
     return { starred: this.props.starred };
   }

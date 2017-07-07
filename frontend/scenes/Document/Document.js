@@ -4,9 +4,10 @@ import get from 'lodash/get';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import { layout } from 'styles/constants';
 
+import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
@@ -30,16 +31,19 @@ type Props = {
   history: Object,
   keydown: Object,
   documents: DocumentsStore,
-  newChildDocument?: boolean,
+  newDocument?: boolean,
   ui: UiStore,
 };
 
-@observer class Document extends Component {
+@observer class DocumentScene extends Component {
   props: Props;
-
+  state: {
+    newDocument?: Document,
+  };
   state = {
     isDragging: false,
     isLoading: false,
+    newDocument: undefined,
   };
 
   componentDidMount() {
@@ -47,7 +51,10 @@ type Props = {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.match.params.id !== this.props.match.params.id) {
+    if (
+      nextProps.match.params.documentSlug !==
+      this.props.match.params.documentSlug
+    ) {
       this.loadDocument(nextProps);
     }
   }
@@ -57,47 +64,49 @@ type Props = {
   }
 
   loadDocument = async props => {
-    let document = this.document;
-    if (document) {
-      this.props.ui.setActiveDocument(document);
-    }
-
-    await this.props.documents.fetch(props.match.params.id);
-    document = this.document;
-
-    if (document) {
-      this.props.ui.setActiveDocument(document);
-      document.view();
-    }
-
-    if (this.props.match.params.edit) {
-      this.props.ui.enableEditMode();
+    if (props.newDocument) {
+      const newDocument = new Document({
+        collection: { id: props.match.params.id },
+      });
+      this.setState({ newDocument });
     } else {
-      this.props.ui.disableEditMode();
+      let document = this.document;
+      if (document) {
+        this.props.ui.setActiveDocument(document);
+      }
+
+      await this.props.documents.fetch(props.match.params.documentSlug);
+      document = this.document;
+
+      if (document) {
+        this.props.ui.setActiveDocument(document);
+        document.view();
+      }
     }
   };
 
   get document() {
-    return this.props.documents.getByUrl(`/d/${this.props.match.params.id}`);
+    if (this.state.newDocument) return this.state.newDocument;
+    return this.props.documents.getByUrl(
+      `/doc/${this.props.match.params.documentSlug}`
+    );
   }
 
   onClickEdit = () => {
     if (!this.document) return;
     const url = `${this.document.url}/edit`;
     this.props.history.push(url);
-    this.props.ui.enableEditMode();
   };
 
   onSave = async (redirect: boolean = false) => {
-    const document = this.document;
+    let document = this.document;
 
     if (!document) return;
     this.setState({ isLoading: true });
-    await document.save();
+    document = await document.save();
     this.setState({ isLoading: false });
-    this.props.ui.disableEditMode();
 
-    if (redirect) {
+    if (redirect || this.props.newDocument) {
       this.props.history.push(document.url);
     }
   };
@@ -128,8 +137,8 @@ type Props = {
   };
 
   render() {
-    const isNew = this.props.newDocument || this.props.newChildDocument;
-    const isEditing = this.props.match.params.edit;
+    const isNew = this.props.newDocument;
+    const isEditing = this.props.match.params.edit || isNew;
     const isFetching = !this.document;
     const titleText = get(this.document, 'title', 'Loading');
 
@@ -143,7 +152,7 @@ type Props = {
         {this.state.isLoading && <LoadingIndicator />}
         {isFetching &&
           <CenteredContent>
-            <PreviewLoading />
+            <LoadingState />
           </CenteredContent>}
         {!isFetching &&
           this.document &&
@@ -234,6 +243,10 @@ const Container = styled(Flex)`
   width: 100%;
 `;
 
+const LoadingState = styled(PreviewLoading)`
+  margin: 80px 20px;
+`;
+
 const PagePadding = styled(Flex)`
   padding: 80px 20px;
   position: relative;
@@ -247,4 +260,4 @@ const DocumentContainer = styled.div`
   width: 50em;
 `;
 
-export default withRouter(inject('ui', 'documents')(Document));
+export default withRouter(inject('ui', 'user', 'documents')(DocumentScene));

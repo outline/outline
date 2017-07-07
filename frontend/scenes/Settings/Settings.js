@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 
 import ApiKeyRow from './components/ApiKeyRow';
 import styles from './Settings.scss';
