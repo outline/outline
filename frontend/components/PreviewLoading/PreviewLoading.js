@@ -11,7 +11,7 @@ const randomValues = Array.from(
   () => `${randomInteger(85, 100)}%`
 );
 
-export default () => {
+export default (props: {}) => {
   return (
     <ReactCSSTransitionGroup
       transitionName="fadeIn"
@@ -22,7 +22,7 @@ export default () => {
       transitionEnterTimeout={0}
       transitionLeaveTimeout={0}
     >
-      <Flex column auto>
+      <Flex column auto {...props}>
         <Mask style={{ width: randomValues[0] }} header />
         <Mask style={{ width: randomValues[1] }} />
         <Mask style={{ width: randomValues[2] }} />
