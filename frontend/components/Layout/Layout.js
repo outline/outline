@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
 import keydown from 'react-keydown';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import { textColor } from 'styles/constants.scss';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';

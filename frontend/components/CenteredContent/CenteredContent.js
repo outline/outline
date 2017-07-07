@@ -4,8 +4,6 @@ import styled from 'styled-components';
 
 type Props = {
   children?: React.Element<any>,
-  style?: Object,
-  maxWidth?: string,
 };
 
 const Container = styled.div`
@@ -13,20 +11,17 @@ const Container = styled.div`
   margin: 40px 20px;
 `;
 
-const CenteredContent = ({
-  children,
-  maxWidth = '740px',
-  style,
-  ...rest
-}: Props) => {
-  const styles = {
-    maxWidth,
-    ...style,
-  };
+const Content = styled.div`
+  max-width: 740px;
+  margin: 0 auto;
+`;
 
+const CenteredContent = ({ children, ...rest }: Props) => {
   return (
-    <Container style={styles} {...rest}>
-      {children}
+    <Container {...rest}>
+      <Content>
+        {children}
+      </Content>
     </Container>
   );
 };

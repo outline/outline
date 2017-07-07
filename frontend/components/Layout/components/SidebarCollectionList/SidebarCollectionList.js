@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import styled from 'styled-components';
 
 import SidebarLink from '../SidebarLink';

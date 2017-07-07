@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import styled from 'styled-components';
 
 import SidebarLink from '../SidebarLink';

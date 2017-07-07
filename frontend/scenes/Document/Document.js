@@ -4,7 +4,7 @@ import get from 'lodash/get';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
@@ -137,7 +137,7 @@ type Props = {
         {this.state.isLoading && <LoadingIndicator />}
         {isFetching &&
           <CenteredContent>
-            <PreviewLoading />
+            <LoadingState />
           </CenteredContent>}
         {!isFetching &&
           this.document &&
@@ -206,6 +206,10 @@ const Meta = styled(Flex)`
 const Container = styled(Flex)`
   position: relative;
   width: 100%;
+`;
+
+const LoadingState = styled(PreviewLoading)`
+  margin: 80px 20px;
 `;
 
 const PagePadding = styled(Flex)`
