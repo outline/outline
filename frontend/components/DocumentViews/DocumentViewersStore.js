@@ -18,7 +18,7 @@ class DocumentViewersStore {
     this.isFetching = true;
 
     try {
-      const res = await client.get(
+      const res = await client.post(
         '/views.list',
         {
           id: this.documentId,

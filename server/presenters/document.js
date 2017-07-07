@@ -5,9 +5,8 @@ import presentCollection from './collection';
 
 async function present(ctx: Object, document: Document, options: Object = {}) {
   options = {
-    includeCollection: true,
     includeCollaborators: true,
-    includeViews: true,
+    includeViews: false,
     ...options,
   };
   ctx.cache.set(document.id, document);
@@ -30,8 +29,8 @@ async function present(ctx: Object, document: Document, options: Object = {}) {
     views: undefined,
   };
 
-  if (options.includeCollection) {
-    data.collection = presentCollection(ctx, document.collection);
+  if (document.private) {
+    data.collection = await presentCollection(ctx, document.collection);
   }
 
   if (options.includeViews) {

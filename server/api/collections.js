@@ -24,7 +24,7 @@ router.post('collections.create', auth(), async ctx => {
   });
 
   ctx.body = {
-    data: await presentCollection(ctx, atlas, true),
+    data: await presentCollection(ctx, atlas),
   };
 });
 
@@ -33,7 +33,7 @@ router.post('collections.info', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const atlas = await Collection.findOne({
+  const atlas = await Collection.scope('withRecentDocuments').findOne({
     where: {
       id,
       teamId: user.teamId,
@@ -43,13 +43,13 @@ router.post('collections.info', auth(), async ctx => {
   if (!atlas) throw httpErrors.NotFound();
 
   ctx.body = {
-    data: await presentCollection(ctx, atlas, true),
+    data: await presentCollection(ctx, atlas),
   };
 });
 
 router.post('collections.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
-  const collections = await Collection.findAll({
+  const collections = await Collection.scope('withRecentDocuments').findAll({
     where: {
       teamId: user.teamId,
     },
@@ -58,15 +58,9 @@ router.post('collections.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  // Collectiones
-  let data = [];
-  await Promise.all(
-    collections.map(async atlas => {
-      return data.push(await presentCollection(ctx, atlas, true));
-    })
+  const data = await Promise.all(
+    collections.map(async atlas => await presentCollection(ctx, atlas))
   );
-
-  data = _.orderBy(data, ['updatedAt'], ['desc']);
 
   ctx.body = {
     pagination: ctx.state.pagination,

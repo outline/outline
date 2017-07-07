@@ -116,6 +116,7 @@ const Document = sequelize.define(
     classMethods: {
       associate: models => {
         Document.belongsTo(models.Collection, {
+          as: 'collection',
           foreignKey: 'atlasId',
         });
         Document.belongsTo(models.User, {
@@ -133,7 +134,7 @@ const Document = sequelize.define(
           'defaultScope',
           {
             include: [
-              { model: models.Collection },
+              { model: models.Collection, as: 'collection' },
               { model: models.User, as: 'createdBy' },
               { model: models.User, as: 'updatedBy' },
             ],
