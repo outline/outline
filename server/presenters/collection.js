@@ -1,8 +1,9 @@
+// @flow
 import _ from 'lodash';
-import { Document } from '../models';
+import { Collection } from '../models';
 import presentDocument from './document';
 
-async function present(ctx, collection, includeRecentDocuments = false) {
+async function present(ctx: Object, collection: Collection) {
   ctx.cache.set(collection.id, collection);
 
   const data = {
@@ -13,31 +14,21 @@ async function present(ctx, collection, includeRecentDocuments = false) {
     type: collection.type,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
+    recentDocuments: undefined,
+    documents: undefined,
   };
 
-  if (collection.type === 'atlas')
+  if (collection.type === 'atlas') {
     data.documents = await collection.getDocumentsStructure();
+  }
 
-  if (includeRecentDocuments) {
-    const documents = await Document.findAll({
-      where: {
-        atlasId: collection.id,
-      },
-      limit: 10,
-      order: [['updatedAt', 'DESC']],
-    });
-
-    const recentDocuments = [];
-    await Promise.all(
-      documents.map(async document => {
-        recentDocuments.push(
-          await presentDocument(ctx, document, {
-            includeCollaborators: true,
-          })
-        );
-      })
+  if (collection.documents) {
+    data.recentDocuments = await Promise.all(
+      collection.documents.map(
+        async document =>
+          await presentDocument(ctx, document, { includeCollaborators: true })
+      )
     );
-    data.recentDocuments = _.orderBy(recentDocuments, ['updatedAt'], ['desc']);
   }
 
   return data;
