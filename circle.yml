@@ -18,7 +18,7 @@ dependencies:
 
 test:
   pre:
-    - "sequelize db:migrate --url ${DATABASE_URL_TEST}"
+    - sequelize db:migrate --url postgres://ubuntu@localhost:5432/circle_test
   override:
     - yarn test
     - yarn lint
