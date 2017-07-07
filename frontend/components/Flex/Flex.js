@@ -39,26 +39,3 @@ const Container = styled.div`
 `;
 
 export default Flex;
-
-// flex: React.PropTypes.bool,
-//     wrap: React.PropTypes.bool,
-//     flexColumn: React.PropTypes.bool,
-//     column: React.PropTypes.bool,
-//     align: React.PropTypes.oneOf([
-//       'stretch',
-//       'center',
-//       'baseline',
-//       'flex-start',
-//       'flex-end'
-//     ]),
-//     justify: React.PropTypes.oneOf([
-//       'center',
-//       'space-around',
-//       'space-between',
-//       'flex-start',
-//       'flex-end'
-//     ]),
-//     flexAuto: React.PropTypes.bool,
-//     auto: React.PropTypes.bool,
-//     flexNone: React.PropTypes.bool,
-//     order: React.PropTypes.number,
