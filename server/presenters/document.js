@@ -1,4 +1,5 @@
 // @flow
+import _ from 'lodash';
 import { User, Document, View } from '../models';
 import presentUser from './user';
 import presentCollection from './collection';
@@ -43,9 +44,7 @@ async function present(ctx: Object, document: Document, options: Object = {}) {
     // This could be further optimized by using ctx.cache
     data.collaborators = await User.findAll({
       where: {
-        id: {
-          $in: document.collaboratorIds || [],
-        },
+        id: { $in: _.takeRight(document.collaboratorIds, 10) || [] },
       },
     }).map(user => presentUser(ctx, user));
   }
