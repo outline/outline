@@ -17,7 +17,7 @@ dependencies:
 
 test:
   pre:
-    - node server/test/helper.js
+    - "sequelize db:migrate --url ${DATABASE_URL_TEST}"
   override:
     - yarn test
     - yarn lint
