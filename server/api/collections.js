@@ -49,7 +49,7 @@ router.post('collections.info', auth(), async ctx => {
 
 router.post('collections.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
-  const collections = await Collection.scope('withRecentDocuments').findAll({
+  const collections = await Collection.findAll({
     where: {
       teamId: user.teamId,
     },
