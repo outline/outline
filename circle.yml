@@ -1,4 +1,6 @@
 machine:
+  node:
+    version: 7.6
   services:
     - redis
   environment:
