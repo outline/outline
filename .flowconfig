@@ -3,6 +3,7 @@
 
 [ignore]
 .*/node_modules/styled-components/.*
+.*/node_modules/polished/.*
 .*/node_modules/react-side-effect/.*
 .*/node_modules/fbjs/.*
 .*/node_modules/config-chain/.*
