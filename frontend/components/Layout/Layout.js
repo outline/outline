@@ -17,6 +17,7 @@ import Avatar from 'components/Avatar';
 import SidebarCollection from './components/SidebarCollection';
 import SidebarCollectionList from './components/SidebarCollectionList';
 import SidebarLink from './components/SidebarLink';
+import Modals from './components/Modals';
 
 import UserStore from 'stores/UserStore';
 import AuthStore from 'stores/AuthStore';
@@ -59,6 +60,10 @@ type Props = {
     this.props.auth.logout(() => this.props.history.push('/'));
   };
 
+  createNewCollection = () => {
+    this.props.ui.openModal('NewCollection');
+  };
+
   render() {
     const { user, auth, ui } = this.props;
 
@@ -72,6 +77,12 @@ type Props = {
               content: 'width=device-width, initial-scale=1.0',
             },
           ]}
+        />
+        <Modals
+          name={this.props.ui.modalName}
+          component={this.props.ui.modalComponent}
+          onRequestClose={this.props.ui.closeModal}
+          {...this.props.ui.modalProps}
         />
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
@@ -111,6 +122,9 @@ type Props = {
                     <SidebarLink to="/dashboard">Home</SidebarLink>
                     <SidebarLink to="/starred">Starred</SidebarLink>
                   </LinkSection>
+                  <a onClick={this.createNewCollection}>
+                    Create new collection
+                  </a>
                   <LinkSection>
                     {ui.activeCollection
                       ? <SidebarCollection
