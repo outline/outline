@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
 import _ from 'lodash';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import { withRouter } from 'react-router';
 import { searchUrl } from 'utils/routeHelpers';
 import styled from 'styled-components';

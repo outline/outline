@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
 import type { User } from 'types';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 
 const Container = styled(Flex)`
   justify-content: space-between;
@@ -51,7 +51,6 @@ class PublishingInfo extends Component {
               <Avatar key={user.id} src={user.avatarUrl} title={user.name} />
             ))}
           </Avatars>}
-
         {createdAt === updatedAt
           ? <span>
               {createdBy.name}

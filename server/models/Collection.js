@@ -60,6 +60,16 @@ const Collection = sequelize.define(
           as: 'documents',
           foreignKey: 'atlasId',
         });
+        Collection.addScope('withRecentDocuments', {
+          include: [
+            {
+              as: 'documents',
+              limit: 10,
+              model: models.Document,
+              order: [['updatedAt', 'DESC']],
+            },
+          ],
+        });
       },
     },
     instanceMethods: {

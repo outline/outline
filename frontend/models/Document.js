@@ -10,25 +10,25 @@ import type { User } from 'types';
 import Collection from './Collection';
 
 const parseHeader = text => {
-  const firstLine = text.split(/\r?\n/)[0];
+  const firstLine = text.trim().split(/\r?\n/)[0];
   return firstLine.replace(/^#/, '').trim();
 };
 
 class Document {
-  isSaving: boolean;
+  isSaving: boolean = false;
   hasPendingChanges: boolean = false;
   errors: ErrorsStore;
 
   collaborators: Array<User>;
-  collection: Collection;
+  collection: $Shape<Collection>;
   createdAt: string;
   createdBy: User;
   html: string;
   id: string;
-  private: boolean;
-  starred: boolean;
   team: string;
-  text: string;
+  private: boolean = false;
+  starred: boolean = false;
+  text: string = '';
   title: string = 'Untitled document';
   updatedAt: string;
   updatedBy: User;
@@ -83,9 +83,9 @@ class Document {
   };
 
   @action view = async () => {
+    this.views++;
     try {
       await client.post('/views.create', { id: this.id });
-      this.views++;
     } catch (e) {
       this.errors.add('Document failed to record view');
     }
@@ -113,7 +113,7 @@ class Document {
   };
 
   @action save = async () => {
-    if (this.isSaving) return;
+    if (this.isSaving) return this;
     this.isSaving = true;
 
     try {
@@ -125,28 +125,38 @@ class Document {
           text: this.text,
         });
       } else {
-        res = await client.post('/documents.create', {
+        const data = {
+          parentDocument: undefined,
           collection: this.collection.id,
           title: this.title,
           text: this.text,
-        });
+        };
+        if (this.parentDocument) {
+          data.parentDocument = this.parentDocument.id;
+        }
+        res = await client.post('/documents.create', data);
       }
 
       invariant(res && res.data, 'Data should be available');
-      this.hasPendingChanges = false;
+      this.updateData({
+        ...res.data,
+        hasPendingChanges: false,
+      });
     } catch (e) {
       this.errors.add('Document failed saving');
     } finally {
       this.isSaving = false;
     }
+
+    return this;
   };
 
   updateData(data: Object | Document) {
-    data.title = parseHeader(data.text);
+    if (data.text) data.title = parseHeader(data.text);
     extendObservable(this, data);
   }
 
-  constructor(document: Document) {
+  constructor(document?: Object = {}) {
     this.updateData(document);
     this.errors = stores.errors;
   }

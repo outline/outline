@@ -1,4 +1,4 @@
-require('localenv');
+require('dotenv').config({ silent: true });
 
 var path = require('path');
 

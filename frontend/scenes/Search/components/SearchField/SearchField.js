@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import styled from 'styled-components';
 import searchImg from 'assets/icons/search.svg';
 

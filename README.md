@@ -1,5 +1,7 @@
 # Atlas
 
+![](https://circleci.com/gh/jorilallo/atlas.svg?style=shield&circle-token=c0c4c2f39990e277385d5c1ae96169c409eb887a)
+
 ## Installation
 
  1. Install dependencies with `yarn`

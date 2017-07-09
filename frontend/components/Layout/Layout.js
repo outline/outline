@@ -6,11 +6,13 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
 import keydown from 'react-keydown';
-import { Flex } from 'reflexbox';
-import { textColor } from 'styles/constants.scss';
+import Flex from 'components/Flex';
+import { color, layout } from 'styles/constants';
 
 import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
+import Scrollable from 'components/Scrollable';
+import Avatar from 'components/Avatar';
 
 import SidebarCollection from './components/SidebarCollection';
 import SidebarCollectionList from './components/SidebarCollectionList';
@@ -101,21 +103,24 @@ type Props = {
               </Header>
 
               <Flex column>
-                <LinkSection>
-                  <SidebarLink to="/search">Search</SidebarLink>
-                </LinkSection>
-                <LinkSection>
-                  <SidebarLink to="/dashboard">Home</SidebarLink>
-                  <SidebarLink to="/starred">Starred</SidebarLink>
-                </LinkSection>
-                <LinkSection>
-                  {ui.activeCollection
-                    ? <SidebarCollection
-                        document={ui.activeDocument}
-                        collection={ui.activeCollection}
-                      />
-                    : <SidebarCollectionList />}
-                </LinkSection>
+                <Scrollable>
+                  <LinkSection>
+                    <SidebarLink to="/search">Search</SidebarLink>
+                  </LinkSection>
+                  <LinkSection>
+                    <SidebarLink to="/dashboard">Home</SidebarLink>
+                    <SidebarLink to="/starred">Starred</SidebarLink>
+                  </LinkSection>
+                  <LinkSection>
+                    {ui.activeCollection
+                      ? <SidebarCollection
+                          document={ui.activeDocument}
+                          collection={ui.activeCollection}
+                          history={this.props.history}
+                        />
+                      : <SidebarCollectionList history={this.props.history} />}
+                  </LinkSection>
+                </Scrollable>
               </Flex>
             </Sidebar>}
 
@@ -135,22 +140,16 @@ const Container = styled(Flex)`
 `;
 
 const LogoLink = styled(Link)`
-  margin-top: 5px;
+  margin-top: 15px;
   font-family: 'Atlas Grotesk';
   font-weight: bold;
-  color: ${textColor};
+  color: ${color.text};
   text-decoration: none;
   font-size: 16px;
 `;
 
-const Avatar = styled.img`
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-`;
-
 const MenuLink = styled(Link)`
-  color: ${textColor};
+  color: ${color.text};
 `;
 
 const Content = styled(Flex)`
@@ -159,26 +158,27 @@ const Content = styled(Flex)`
   top: 0;
   bottom: 0;
   right: 0;
-  left: ${props => (props.editMode ? 0 : '250px')};
+  left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
   transition: left 200ms ease-in-out;
 `;
 
 const Sidebar = styled(Flex)`
-  width: 250px;
-  margin-left: ${props => (props.editMode ? '-250px' : 0)};
-  padding: 10px 20px;
+  width: ${layout.sidebarWidth};
+  margin-left: ${props => (props.editMode ? `-${layout.sidebarWidth}` : 0)};
   background: rgba(250, 251, 252, 0.71);
   border-right: 1px solid #eceff3;
   transition: margin-left 200ms ease-in-out;
 `;
 
 const Header = styled(Flex)`
-  margin-bottom: 20px;
+  flex-shrink: 0;
+  padding: ${layout.padding};
+  padding-bottom: 10px;
 `;
 
 const LinkSection = styled(Flex)`
-  margin-bottom: 20px;
   flex-direction: column;
+  padding: 10px 0;
 `;
 
 export default withRouter(inject('user', 'auth', 'ui', 'collections')(Layout));

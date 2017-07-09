@@ -2,7 +2,7 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { Redirect } from 'react-router';
-import { Flex } from 'reflexbox';
+import Flex from 'components/Flex';
 import styled from 'styled-components';
 
 import AuthStore from 'stores/AuthStore';
