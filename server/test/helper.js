@@ -1,4 +1,5 @@
-require('dotenv').config({ silent: true });
+// @flow
+require('../../init');
 
 // test environment variables
 process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
