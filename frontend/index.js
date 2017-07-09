@@ -121,6 +121,21 @@ render(
                     path={`/doc/${matchDocumentSlug}`}
                     component={Document}
                   />
+
+                  <Route exact path="/search" component={Search} />
+                  <Route exact path="/search/:query" component={Search} />
+                  <Route exact path="/settings" component={Settings} />
+
+                  <Route
+                    exact
+                    path="/keyboard-shortcuts"
+                    component={KeyboardShortcuts}
+                  />
+                  <Route exact path="/developers" component={Api} />
+
+                  <Route path="/404" component={Error404} />
+
+                  {/* This is a bit busted, break any view after it */}
                   <SidebarHidden>
                     <Switch>
                       <Route
@@ -136,18 +151,6 @@ render(
                     </Switch>
                   </SidebarHidden>
 
-                  <Route exact path="/search" component={Search} />
-                  <Route exact path="/search/:query" component={Search} />
-                  <Route exact path="/settings" component={Settings} />
-
-                  <Route
-                    exact
-                    path="/keyboard-shortcuts"
-                    component={KeyboardShortcuts}
-                  />
-                  <Route exact path="/developers" component={Api} />
-
-                  <Route path="/404" component={Error404} />
                   <Route component={notFoundSearch} />
                 </Switch>
               </Layout>
