@@ -22,6 +22,11 @@ const Avatar = styled.img`
   flex-shrink: 0;
   border-radius: 50%;
   border: 2px solid #FFFFFF;
+  margin-right: -13px;
+
+  &:first-child {
+    margin-right: 0;
+  }
 `;
 
 class PublishingInfo extends Component {
