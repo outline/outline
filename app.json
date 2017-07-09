@@ -1,0 +1,64 @@
+{
+  "name": "atlas",
+  "scripts": {
+    "postdeploy": "yarn build && yarn sequelize:migrate"
+  },
+  "env": {
+    "ALLOWED_SLACK_DOMAINS": {
+      "required": true
+    },
+    "AWS_ACCESS_KEY_ID": {
+      "required": true
+    },
+    "AWS_S3_UPLOAD_BUCKET_NAME": {
+      "required": true
+    },
+    "AWS_S3_UPLOAD_BUCKET_URL": {
+      "required": true
+    },
+    "AWS_S3_UPLOAD_MAX_SIZE": {
+      "required": true
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+      "required": true
+    },
+    "BUGSNAG_KEY": {
+      "required": true
+    },
+    "NODE_MODULES_CACHE": {
+      "required": true
+    },
+    "REDIS_URL": {
+      "required": true
+    },
+    "SEQUELIZE_SECRET": {
+      "required": true
+    },
+    "SLACK_KEY": {
+      "required": true
+    },
+    "SLACK_REDIRECT_URI": {
+      "required": true
+    },
+    "SLACK_SECRET": {
+      "required": true
+    },
+    "SLACK_VERIFICATION_TOKEN": {
+      "required": true
+    },
+    "URL": {
+      "required": true
+    }
+  },
+  "formation": {
+  },
+  "addons": [
+    "heroku-postgresql",
+    "heroku-redis"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
