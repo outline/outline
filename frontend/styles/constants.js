@@ -1,5 +1,14 @@
 // @flow
 
+export const layout = {
+  padding: '1.5vw 1.875vw',
+  vpadding: '1.5vw',
+  hpadding: '1.875vw',
+  sidebarWidth: '22%',
+  sidebarMinWidth: '250px',
+  sidebarMaxWidth: '350px',
+};
+
 export const size = {
   tiny: '2px',
   small: '4px',
@@ -28,6 +37,8 @@ export const fontWeight = {
 };
 
 export const color = {
+  text: '#171B35',
+
   /* Brand */
   primary: '#73DF7B',
 

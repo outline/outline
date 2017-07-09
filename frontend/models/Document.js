@@ -10,7 +10,7 @@ import type { User } from 'types';
 import Collection from './Collection';
 
 const parseHeader = text => {
-  const firstLine = text.split(/\r?\n/)[0];
+  const firstLine = text.trim().split(/\r?\n/)[0];
   return firstLine.replace(/^#/, '').trim();
 };
 
@@ -20,7 +20,7 @@ class Document {
   errors: ErrorsStore;
 
   collaborators: Array<User>;
-  collection: Collection;
+  collection: $Shape<Collection>;
   createdAt: string;
   createdBy: User;
   html: string;
@@ -113,7 +113,7 @@ class Document {
   };
 
   @action save = async () => {
-    if (this.isSaving) return;
+    if (this.isSaving) return this;
     this.isSaving = true;
 
     try {
@@ -125,11 +125,16 @@ class Document {
           text: this.text,
         });
       } else {
-        res = await client.post('/documents.create', {
+        const data = {
+          parentDocument: undefined,
           collection: this.collection.id,
           title: this.title,
           text: this.text,
-        });
+        };
+        if (this.parentDocument) {
+          data.parentDocument = this.parentDocument.id;
+        }
+        res = await client.post('/documents.create', data);
       }
 
       invariant(res && res.data, 'Data should be available');

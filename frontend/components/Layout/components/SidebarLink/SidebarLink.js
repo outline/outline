@@ -1,7 +1,8 @@
 // @flow
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import Flex from 'components/Flex';
+import { layout, color } from 'styles/constants';
+import { darken } from 'polished';
 import styled from 'styled-components';
 
 const activeStyle = {
@@ -9,18 +10,16 @@ const activeStyle = {
 };
 
 function SidebarLink(props: Object) {
-  return (
-    <LinkContainer>
-      <NavLink exact {...props} activeStyle={activeStyle} />
-    </LinkContainer>
-  );
+  return <StyledNavLink exact {...props} activeStyle={activeStyle} />;
 }
 
-const LinkContainer = styled(Flex)`
-  padding: 5px 0;
+const StyledNavLink = styled(NavLink)`
+  display: block;
+  padding: 5px ${layout.hpadding};
+  color: ${color.slateDark};
 
-  a {
-    color: #848484;
+  &:hover {
+    color: ${darken(0.1, color.slateDark)};
   }
 `;
 
