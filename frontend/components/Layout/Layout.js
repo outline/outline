@@ -13,11 +13,12 @@ import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
 import Avatar from 'components/Avatar';
+import Modal from 'components/Modal';
+import CollectionNew from 'scenes/CollectionNew';
 
 import SidebarCollection from './components/SidebarCollection';
 import SidebarCollectionList from './components/SidebarCollectionList';
 import SidebarLink from './components/SidebarLink';
-import Modals from './components/Modals';
 
 import UserStore from 'stores/UserStore';
 import AuthStore from 'stores/AuthStore';
@@ -39,6 +40,8 @@ type Props = {
 
 @observer class Layout extends React.Component {
   props: Props;
+  state: { createCollectionModalOpen: boolean };
+  state = { createCollectionModalOpen: false };
 
   static defaultProps = {
     search: true,
@@ -60,8 +63,12 @@ type Props = {
     this.props.auth.logout(() => this.props.history.push('/'));
   };
 
-  createNewCollection = () => {
-    this.props.ui.openModal('NewCollection');
+  handleCreateCollection = () => {
+    this.setState({ createCollectionModalOpen: true });
+  };
+
+  handleCloseModal = () => {
+    this.setState({ createCollectionModalOpen: false });
   };
 
   render() {
@@ -77,12 +84,6 @@ type Props = {
               content: 'width=device-width, initial-scale=1.0',
             },
           ]}
-        />
-        <Modals
-          name={this.props.ui.modalName}
-          component={this.props.ui.modalComponent}
-          onRequestClose={this.props.ui.closeModal}
-          {...this.props.ui.modalProps}
         />
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
@@ -122,7 +123,7 @@ type Props = {
                     <SidebarLink to="/dashboard">Home</SidebarLink>
                     <SidebarLink to="/starred">Starred</SidebarLink>
                   </LinkSection>
-                  <a onClick={this.createNewCollection}>
+                  <a onClick={this.handleCreateCollection}>
                     Create new collection
                   </a>
                   <LinkSection>
@@ -142,6 +143,12 @@ type Props = {
             {this.props.children}
           </Content>
         </Flex>
+        <Modal
+          isOpen={this.state.createCollectionModalOpen}
+          onRequestClose={this.handleCloseModal}
+        >
+          <CollectionNew />
+        </Modal>
       </Container>
     );
   }

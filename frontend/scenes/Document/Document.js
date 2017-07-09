@@ -120,7 +120,7 @@ type Props = {
 
   onChange = text => {
     if (!this.document) return;
-    this.document.updateData({ text, hasPendingChanges: true });
+    this.document.updateData({ text });
   };
 
   onCancel = () => {
