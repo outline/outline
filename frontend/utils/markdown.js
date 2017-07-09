@@ -7,6 +7,7 @@ import _ from 'lodash';
 import emojify from './emojify';
 import toc from './toc';
 
+// $FlowIssue invalid flow-typed
 slug.defaults.mode = 'rfc3986';
 
 const Renderer = sanitizedRenderer(marked.Renderer);

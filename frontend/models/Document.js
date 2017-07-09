@@ -131,9 +131,9 @@ class Document {
           title: this.title,
           text: this.text,
         };
-        if (this.parentDocument) {
-          data.parentDocument = this.parentDocument.id;
-        }
+        // if (this.parentDocument) {
+        //   data.parentDocument = this.parentDocument.id;
+        // }
         res = await client.post('/documents.create', data);
       }
 

@@ -15,7 +15,7 @@ class Title extends React.Component {
   render() {
     let title;
     if (this.props.truncate) {
-      title = _.truncate(this.props.content, this.props.truncate);
+      title = _.truncate(this.props.content, { length: this.props.truncate });
     } else {
       title = this.props.content;
     }

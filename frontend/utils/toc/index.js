@@ -52,6 +52,7 @@ function generate(str, options) {
   );
 
   var toc = '';
+  // $FlowIssue invalid flow-typed
   var tokens = marked.lexer(str);
   var tocArray = [];
 

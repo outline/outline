@@ -20,7 +20,7 @@ import DocumentsStore from 'stores/DocumentsStore';
       <CenteredContent column auto>
         <PageTitle title="Starred" />
         <h1>Starred</h1>
-        <DocumentList documents={this.props.documents.getStarred()} />
+        <DocumentList documents={this.props.documents.starred} />
       </CenteredContent>
     );
   }

@@ -8,7 +8,7 @@ import PublishingInfo from 'components/PublishingInfo';
 
 type Props = {
   document: Document,
-  highlight?: string,
+  highlight?: ?string,
   innerRef?: Function,
 };
 

@@ -5,6 +5,7 @@ import { DataTypes, sequelize } from '../sequelize';
 import Document from './Document';
 import _ from 'lodash';
 
+// $FlowIssue invalid flow-typed
 slug.defaults.mode = 'rfc3986';
 
 const allowedCollectionTypes = [['atlas', 'journal']];

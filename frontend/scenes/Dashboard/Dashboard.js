@@ -37,10 +37,10 @@ type Props = {
         <PageTitle title="Home" />
         <h1>Home</h1>
         <Subheading>Recently viewed</Subheading>
-        <DocumentList documents={this.props.documents.getRecentlyViewed()} />
+        <DocumentList documents={this.props.documents.recentlyViewed} />
 
         <Subheading>Recently edited</Subheading>
-        <DocumentList documents={this.props.documents.data.values()} />
+        <DocumentList documents={this.props.documents.recentlyEdited} />
       </CenteredContent>
     );
   }

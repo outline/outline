@@ -38,7 +38,7 @@ class CollectionsStore {
     }
   };
 
-  getById = (id: string): Collection => {
+  getById = (id: string): ?Collection => {
     return _.find(this.data, { id });
   };
 

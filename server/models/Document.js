@@ -11,6 +11,7 @@ import Revision from './Revision';
 
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
+// $FlowIssue invalid flow-typed
 slug.defaults.mode = 'rfc3986';
 const slugify = text =>
   slug(text, {
