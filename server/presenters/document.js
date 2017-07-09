@@ -31,6 +31,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     team: document.teamId,
     collaborators: [],
     starred: !!document.starred,
+    collaboratorCount: undefined,
     collection: undefined,
     views: undefined,
   };
@@ -47,12 +48,12 @@ async function present(ctx: Object, document: Document, options: ?Options) {
 
   if (options.includeCollaborators) {
     // This could be further optimized by using ctx.cache
-    data['collaborators'] = await User.findAll({
+    data.collaborators = await User.findAll({
       where: {
         id: { $in: _.takeRight(document.collaboratorIds, 10) || [] },
       },
     }).map(user => presentUser(ctx, user));
-    // $FlowIssue not found in object literal?
+
     data.collaboratorCount = document.collaboratorIds.length;
   }
 
