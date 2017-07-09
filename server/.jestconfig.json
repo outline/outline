@@ -5,7 +5,8 @@
     "<rootDir>/server"
   ],
   "setupFiles": [
-    "<rootDir>/__mocks__/console.js"
+    "<rootDir>/__mocks__/console.js",
+    "./server/test/helper.js"
   ],
   "testEnvironment": "node"
 }
