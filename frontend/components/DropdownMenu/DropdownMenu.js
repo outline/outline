@@ -21,7 +21,7 @@ const DropdownMenuItem = ({ onClick, children }: MenuItemProps) => {
 
 type DropdownMenuProps = {
   label: React.Element<any>,
-  children: React.Element<any>,
+  children?: React.Element<any>,
 };
 
 @observer class DropdownMenu extends React.Component {
