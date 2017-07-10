@@ -208,9 +208,7 @@ router.post('documents.update', auth(), async ctx => {
   ctx.assertPresent(title || text, 'title or text is required');
 
   const user = ctx.state.user;
-  const document = await Document.findById(id, {
-    include: ['collection'],
-  });
+  const document = await Document.findById(id);
   const collection = document.collection;
 
   if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
