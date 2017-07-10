@@ -1,39 +1,43 @@
 // @flow
-import React, { Component } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import ReactModal from 'react-modal';
 import { modalFadeIn } from 'styles/animations';
 
-import CloseIcon from '../Icon/CloseIcon';
-import Flex from '../Flex';
+import CloseIcon from 'components/Icon/CloseIcon';
+import Flex from 'components/Flex';
 
-class Modal extends Component {
-  render() {
-    const {
-      children,
-      isOpen,
-      title = 'Untitled Modal',
-      onRequestClose,
-      ...rest
-    } = this.props;
-    if (!isOpen) return null;
+type Props = {
+  children?: React$Element<any>,
+  isOpen: boolean,
+  title?: string,
+  onRequestClose: () => void,
+};
 
-    return (
-      <StyledModal
-        contentLabel={title}
-        onRequestClose={onRequestClose}
-        isOpen={isOpen}
-        {...rest}
-      >
-        <Content column>
-          <h1>{title}</h1>
-          <Close onClick={onRequestClose}><CloseIcon /></Close>
-          {children}
-        </Content>
-      </StyledModal>
-    );
-  }
-}
+const Modal = ({
+  children,
+  isOpen,
+  title = 'Untitled Modal',
+  onRequestClose,
+  ...rest
+}: Props) => {
+  if (!isOpen) return null;
+
+  return (
+    <StyledModal
+      contentLabel={title}
+      onRequestClose={onRequestClose}
+      isOpen={isOpen}
+      {...rest}
+    >
+      <Content column>
+        {title && <h1>{title}</h1>}
+        <Close onClick={onRequestClose}><CloseIcon /></Close>
+        {children}
+      </Content>
+    </StyledModal>
+  );
+};
 
 const Content = styled(Flex)`
   width: 640px;
