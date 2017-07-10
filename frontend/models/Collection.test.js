@@ -1,10 +1,6 @@
 /* eslint-disable */
 import Collection from './Collection';
-
-jest.mock('utils/ApiClient', () => ({
-  client: { post: {} },
-}));
-jest.mock('stores', () => ({ errors: {} }));
+const { client } = require('utils/ApiClient');
 
 describe('Collection model', () => {
   test('should initialize with data', () => {
@@ -15,40 +11,34 @@ describe('Collection model', () => {
     expect(collection.name).toBe('Engineering');
   });
 
-  describe('#update', () => {
-    test('should update', async () => {
+  describe('#fetch', () => {
+    test('should update data', async () => {
+      client.post = jest.fn(() => ({
+        data: {
+          name: 'New collection',
+        },
+      }))
+
       const collection = new Collection({
         id: 123,
         name: 'Engineering',
       });
-      collection.client = {
-        post: jest.fn(() => ({
-          data: {
-            name: 'New collection',
-          },
-        })),
-      };
 
-      await collection.update();
-
-      expect(collection.client.post).toHaveBeenCalledWith('/collections.info', {
-        id: 123,
-      });
+      await collection.fetch();
       expect(collection.name).toBe('New collection');
     });
 
     test('should report errors', async () => {
+      client.post = jest.fn(() => Promise.reject())
+
       const collection = new Collection({
         id: 123,
       });
-      collection.client = {
-        post: jest.fn(() => Promise.reject),
-      };
       collection.errors = {
         add: jest.fn(),
       };
 
-      await collection.update();
+      await collection.fetch();
 
       expect(collection.errors.add).toHaveBeenCalledWith(
         'Collection failed loading'
