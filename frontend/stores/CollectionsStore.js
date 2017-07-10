@@ -42,6 +42,14 @@ class CollectionsStore {
     return _.find(this.data, { id });
   };
 
+  @action add = (collection: Collection): void => {
+    this.data.push(collection);
+  };
+
+  @action remove = (id: string): void => {
+    this.data.splice(this.data.indexOf(id), 1);
+  };
+
   constructor(options: Options) {
     this.client = client;
     this.errors = stores.errors;

@@ -40,7 +40,7 @@ export const color = {
   text: '#171B35',
 
   /* Brand */
-  primary: '#73DF7B',
+  primary: '#2B8FBF',
 
   /* Dark Grays */
   slate: '#9BA6B2',

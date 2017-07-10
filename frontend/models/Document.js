@@ -152,9 +152,9 @@ class Document {
     return this;
   };
 
-  updateData(data: Object = {}) {
+  updateData(data: Object = {}, dirty: boolean = false) {
     if (data.text) data.title = parseHeader(data.text);
-    data.hasPendingChanges = true;
+    if (dirty) data.hasPendingChanges = true;
     extendObservable(this, data);
   }
 

@@ -14,6 +14,7 @@ import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
 import Avatar from 'components/Avatar';
 import Modal from 'components/Modal';
+import AddIcon from 'components/Icon/AddIcon';
 import CollectionNew from 'scenes/CollectionNew';
 
 import SidebarCollection from './components/SidebarCollection';
@@ -72,7 +73,7 @@ type Props = {
   };
 
   render() {
-    const { user, auth, ui } = this.props;
+    const { user, auth, collections, history, ui } = this.props;
 
     return (
       <Container column auto>
@@ -123,10 +124,10 @@ type Props = {
                     <SidebarLink to="/dashboard">Home</SidebarLink>
                     <SidebarLink to="/starred">Starred</SidebarLink>
                   </LinkSection>
-                  <a onClick={this.handleCreateCollection}>
-                    Create new collection
-                  </a>
                   <LinkSection>
+                    <CreateCollection onClick={this.handleCreateCollection}>
+                      <AddIcon />
+                    </CreateCollection>
                     {ui.activeCollection
                       ? <SidebarCollection
                           document={ui.activeDocument}
@@ -146,13 +147,36 @@ type Props = {
         <Modal
           isOpen={this.state.createCollectionModalOpen}
           onRequestClose={this.handleCloseModal}
+          title="Create a collection"
         >
-          <CollectionNew />
+          <CollectionNew
+            collections={collections}
+            history={history}
+            onCollectionCreated={this.handleCloseModal}
+          />
         </Modal>
       </Container>
     );
   }
 }
+
+const CreateCollection = styled.a`
+  position: absolute;
+  top: 8px;
+  right: ${layout.hpadding};
+
+  svg {
+    opacity: .35;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    svg {
+      opacity: 1;
+    }
+  }
+`;
 
 const Container = styled(Flex)`
   position: relative;
@@ -200,6 +224,7 @@ const Header = styled(Flex)`
 const LinkSection = styled(Flex)`
   flex-direction: column;
   padding: 10px 0;
+  position: relative;
 `;
 
 export default withRouter(inject('user', 'auth', 'ui', 'collections')(Layout));
