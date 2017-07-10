@@ -70,11 +70,12 @@ class Collection {
       });
     } catch (e) {
       this.errors.add('Collection failed saving');
+      return false;
     } finally {
       this.isSaving = false;
     }
 
-    return this;
+    return true;
   };
 
   updateData(data: Object = {}) {

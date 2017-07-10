@@ -11,15 +11,18 @@ class Modal extends Component {
   render() {
     const {
       children,
+      isOpen,
       title = 'Untitled Modal',
       onRequestClose,
       ...rest
     } = this.props;
+    if (!isOpen) return null;
 
     return (
       <StyledModal
         contentLabel={title}
         onRequestClose={onRequestClose}
+        isOpen={isOpen}
         {...rest}
       >
         <Content column>

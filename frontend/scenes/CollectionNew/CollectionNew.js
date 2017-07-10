@@ -1,6 +1,5 @@
 // @flow
 import React, { Component } from 'react';
-import { observer } from 'mobx-react';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
@@ -8,32 +7,42 @@ import HelpText from 'components/HelpText';
 import Collection from 'models/Collection';
 import CollectionsStore from 'stores/CollectionsStore';
 
-@observer class CollectionNew extends Component {
-  props: {
-    history: Object,
-    collection: Collection,
-    collections: CollectionsStore,
-    onCollectionCreated: () => void,
-  };
-  state: { name: string, isSaving: boolean };
-  state = { name: '', isSaving: false };
+type Props = {
+  history: Object,
+  collections: CollectionsStore,
+  onCollectionCreated: () => void,
+};
 
-  static defaultProps = {
-    collection: new Collection(),
-  };
+class CollectionNew extends Component {
+  props: Props;
+  state: { collection: Collection, name: string, isSaving: boolean };
+
+  constructor(props: Props) {
+    super(props);
+
+    this.state = {
+      name: '',
+      isSaving: false,
+      collection: new Collection(),
+    };
+  }
 
   handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
     this.setState({ isSaving: true });
-    const { collection, collections } = this.props;
+    const { collection } = this.state;
+    const { collections } = this.props;
 
     collection.updateData(this.state);
-    await collection.save();
-    collections.add(collection);
+    const success = await collection.save();
+
+    if (success) {
+      collections.add(collection);
+      this.props.onCollectionCreated();
+      this.props.history.push(collection.url);
+    }
 
     this.setState({ isSaving: false });
-    this.props.onCollectionCreated();
-    this.props.history.push(collection.url);
   };
 
   handleNameChange = (ev: SyntheticInputEvent) => {
@@ -41,7 +50,7 @@ import CollectionsStore from 'stores/CollectionsStore';
   };
 
   render() {
-    const { collection } = this.props;
+    const { collection } = this.state;
 
     return (
       <form onSubmit={this.handleSubmit}>
