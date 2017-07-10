@@ -21,8 +21,9 @@ const Container = styled.div`
   z-index: 9999;
 
   background-color: #03A9F4;
-  width: 100%;
+  width: 0;
   animation: ${loadingFrame} 4s ease-in-out infinite;
+  animation-delay: 250ms;
 `;
 
 const Loader = styled.div`
