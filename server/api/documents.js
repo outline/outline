@@ -208,7 +208,10 @@ router.post('documents.update', auth(), async ctx => {
   ctx.assertPresent(title || text, 'title or text is required');
 
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findById(id, {
+    include: ['collection'],
+  });
+  const collection = document.collection;
 
   if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
 
@@ -216,16 +219,18 @@ router.post('documents.update', auth(), async ctx => {
   if (title) document.title = title;
   if (text) document.text = text;
   document.lastModifiedById = user.id;
-  await document.save();
 
-  const collection = await Collection.findById(document.atlasId);
-  if (collection.type === 'atlas') {
-    await collection.updateDocument(document);
-    document.collection = collection;
-  }
+  const [updatedDocument, updatedCollection] = await Promise.all([
+    document.save(),
+    collection.type === 'atlas'
+      ? await collection.updateDocument(document)
+      : Promise.resolve(),
+  ]);
+
+  updatedDocument.collection = updatedCollection;
 
   ctx.body = {
-    data: await presentDocument(ctx, document),
+    data: await presentDocument(ctx, updatedDocument),
   };
 });
 
