@@ -221,6 +221,7 @@ router.post('documents.update', auth(), async ctx => {
   const collection = await Collection.findById(document.atlasId);
   if (collection.type === 'atlas') {
     await collection.updateDocument(document);
+    document.collection = collection;
   }
 
   ctx.body = {

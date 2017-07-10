@@ -2,7 +2,7 @@
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { Document } from 'types';
+import Document from 'models/Document';
 
 class SearchStore {
   @observable documents: Array<Document> = [];
@@ -22,7 +22,7 @@ class SearchStore {
         invariant(res && res.data, 'res or res.data missing');
         const { data } = res;
         runInAction('search document', () => {
-          this.documents = data;
+          this.documents = data.map(documentData => new Document(documentData));
         });
       } catch (e) {
         console.error('Something went wrong');

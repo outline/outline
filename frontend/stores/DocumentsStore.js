@@ -1,5 +1,5 @@
 // @flow
-import { observable, action, ObservableMap, runInAction } from 'mobx';
+import { observable, action, computed, ObservableMap, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
@@ -13,6 +13,23 @@ class DocumentsStore {
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   errors: ErrorsStore;
+
+  /* Computed */
+
+  @computed get recentlyViewed(): Array<Document> {
+    return _.filter(this.data.values(), ({ id }) =>
+      this.recentlyViewedIds.includes(id)
+    );
+  }
+
+  @computed get recentlyEdited(): Array<Document> {
+    // $FlowIssue
+    return this.data.values();
+  }
+
+  @computed get starred(): Array<Document> {
+    return _.filter(this.data.values(), 'starred');
+  }
 
   /* Actions */
 
@@ -69,16 +86,6 @@ class DocumentsStore {
 
   @action remove = (id: string): void => {
     this.data.delete(id);
-  };
-
-  getStarred = () => {
-    return _.filter(this.data.values(), 'starred');
-  };
-
-  getRecentlyViewed = () => {
-    return _.filter(this.data.values(), ({ id }) =>
-      this.recentlyViewedIds.includes(id)
-    );
   };
 
   getById = (id: string): ?Document => {
