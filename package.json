@@ -179,7 +179,6 @@
     "flow-bin": "^0.49.1",
     "identity-obj-proxy": "^3.0.0",
     "jest-cli": "^20.0.0",
-    "jest-fetch-mock": "^1.2.0",
     "koa-webpack-dev-middleware": "1.4.5",
     "koa-webpack-hot-middleware": "1.0.3",
     "lint-staged": "^3.4.0",
