@@ -9,6 +9,5 @@ const snap = children => {
   expect(toJson(wrapper)).toMatchSnapshot();
 };
 
-global.fetch = require('jest-fetch-mock');
 global.localStorage = localStorage;
 global.snap = snap;

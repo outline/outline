@@ -25,6 +25,7 @@ describe('Collection model', () => {
       });
 
       await collection.fetch();
+      expect(client.post).toHaveBeenCalledWith('/collections.info', { id: 123 });
       expect(collection.name).toBe('New collection');
     });
 

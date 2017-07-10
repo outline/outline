@@ -4543,12 +4543,6 @@ jest-environment-node@^20.0.3:
     jest-mock "^20.0.3"
     jest-util "^20.0.3"
 
-jest-fetch-mock@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/jest-fetch-mock/-/jest-fetch-mock-1.2.0.tgz#15ac5c2d32d2c888bd3d132b682a4deb17f3ab35"
-  dependencies:
-    whatwg-fetch "1.0.0"
-
 jest-haste-map@^20.0.3:
   version "20.0.3"
   resolved "https://registry.yarnpkg.com/jest-haste-map/-/jest-haste-map-20.0.3.tgz#6377d537eaf34eb5f75121a691cae3fde82ba971"
