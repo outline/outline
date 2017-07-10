@@ -30,6 +30,7 @@ class Document {
   starred: boolean = false;
   text: string = '';
   title: string = 'Untitled document';
+  parentDocument: ?Document;
   updatedAt: string;
   updatedBy: User;
   url: string;
@@ -151,13 +152,14 @@ class Document {
     return this;
   };
 
-  updateData(data: Object | Document) {
+  updateData(data: Object = {}, dirty: boolean = false) {
     if (data.text) data.title = parseHeader(data.text);
+    if (dirty) data.hasPendingChanges = true;
     extendObservable(this, data);
   }
 
-  constructor(document?: Object = {}) {
-    this.updateData(document);
+  constructor(data?: Object = {}) {
+    this.updateData(data);
     this.errors = stores.errors;
   }
 }

@@ -1,7 +1,7 @@
 // @flow
 import { observable, action } from 'mobx';
 
-class UiStore {
+class ErrorsStore {
   @observable errors = observable.array([]);
 
   /* Actions */
@@ -15,4 +15,4 @@ class UiStore {
   };
 }
 
-export default UiStore;
+export default ErrorsStore;

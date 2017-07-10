@@ -3,12 +3,16 @@ import { extendObservable, action, computed, runInAction } from 'mobx';
 import invariant from 'invariant';
 import _ from 'lodash';
 
-import ApiClient, { client } from 'utils/ApiClient';
+import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
 import type { NavigationNode } from 'types';
 
 class Collection {
+  isSaving: boolean = false;
+  hasPendingChanges: boolean = false;
+  errors: ErrorsStore;
+
   createdAt: string;
   description: ?string;
   id: string;
@@ -18,9 +22,6 @@ class Collection {
   updatedAt: string;
   url: string;
 
-  client: ApiClient;
-  errors: ErrorsStore;
-
   /* Computed */
 
   @computed get entryUrl(): string {
@@ -29,26 +30,60 @@ class Collection {
 
   /* Actions */
 
-  @action update = async () => {
+  @action fetch = async () => {
     try {
-      const res = await this.client.post('/collections.info', { id: this.id });
+      const res = await client.post('/collections.info', { id: this.id });
       invariant(res && res.data, 'API response should be available');
       const { data } = res;
-      runInAction('Collection#update', () => {
+      runInAction('Collection#fetch', () => {
         this.updateData(data);
       });
     } catch (e) {
       this.errors.add('Collection failed loading');
     }
+
+    return this;
   };
 
-  updateData(data: Collection) {
+  @action save = async () => {
+    if (this.isSaving) return this;
+    this.isSaving = true;
+
+    try {
+      let res;
+      if (this.id) {
+        res = await client.post('/collections.update', {
+          id: this.id,
+          name: this.name,
+          description: this.description,
+        });
+      } else {
+        res = await client.post('/collections.create', {
+          name: this.name,
+          description: this.description,
+        });
+      }
+      invariant(res && res.data, 'Data should be available');
+      this.updateData({
+        ...res.data,
+        hasPendingChanges: false,
+      });
+    } catch (e) {
+      this.errors.add('Collection failed saving');
+      return false;
+    } finally {
+      this.isSaving = false;
+    }
+
+    return true;
+  };
+
+  updateData(data: Object = {}) {
     extendObservable(this, data);
   }
 
-  constructor(collection: Collection) {
+  constructor(collection: Object = {}) {
     this.updateData(collection);
-    this.client = client;
     this.errors = stores.errors;
   }
 }

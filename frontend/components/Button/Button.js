@@ -25,13 +25,17 @@ const RealButton = styled.button`
   &:hover {
     background: ${darken(0.05, color.primary)};
   }
+  &:disabled {
+    background: ${color.slateLight};
+  }
 `;
 
 const Label = styled.span`
-  padding: 2px 12px;
+  padding: 4px 16px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  font-weight: 500;
 `;
 
 const Inner = styled.span`
