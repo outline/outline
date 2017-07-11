@@ -171,13 +171,12 @@ type Props = {
           </CenteredContent>}
         {!isFetching &&
           this.document &&
-          <DropToImport
+          <StyledDropToImport
             documentId={this.document.id}
             history={this.props.history}
             onDragEnter={this.onStartDragging}
             onDragLeave={this.onStopDragging}
             onDrop={this.onStopDragging}
-            style={{ display: 'flex', flex: 1 }}
           >
             <Flex justify="center" auto>
               <Prompt
@@ -215,7 +214,7 @@ type Props = {
                 </Flex>
               </Meta>
             </Flex>
-          </DropToImport>}
+          </StyledDropToImport>}
       </Container>
     );
   }
@@ -261,6 +260,11 @@ const DocumentContainer = styled.div`
   line-height: 1.5em;
   padding: 0 3em;
   width: 50em;
+`;
+
+const StyledDropToImport = styled(DropToImport)`
+  display: flex;
+  flex: 1;
 `;
 
 export default withRouter(inject('ui', 'user', 'documents')(DocumentScene));
