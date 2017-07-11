@@ -49,6 +49,7 @@ module.exports = {
       fetch: 'imports?this=>global!exports?global.fetch!isomorphic-fetch',
     }),
     new webpack.ContextReplacementPlugin(/moment[\\\/]locale$/, /^\.\/(en)$/),
+    new webpack.IgnorePlugin(/unicode\/category\/So/),
   ],
   stats: {
     assets: false,
