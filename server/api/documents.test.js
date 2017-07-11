@@ -41,6 +41,28 @@ describe('#documents.list', async () => {
   });
 });
 
+describe('#documents.search', async () => {
+  it('should return results', async () => {
+    const { user } = await seed();
+    const res = await server.post('/api/documents.search', {
+      body: { token: user.getJwtToken(), query: 'much' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].text).toEqual('# Much guidance');
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.search');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+});
+
 describe('#documents.viewed', async () => {
   it('should return empty result if no views', async () => {
     const { user } = await seed();

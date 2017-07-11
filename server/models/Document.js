@@ -156,7 +156,7 @@ const Document = sequelize.define(
           });
         }
       },
-      searchForUser: (user, query, options = {}) => {
+      searchForUser: async (user, query, options = {}) => {
         const limit = options.limit || 15;
         const offset = options.offset || 0;
 
@@ -169,13 +169,18 @@ const Document = sequelize.define(
         LIMIT :limit OFFSET :offset;
         `;
 
-        return sequelize.query(sql, {
-          replacements: {
-            query,
-            limit,
-            offset,
-          },
-          model: Document,
+        const ids = await sequelize
+          .query(sql, {
+            replacements: {
+              query,
+              limit,
+              offset,
+            },
+            model: Document,
+          })
+          .map(document => document.id);
+        return Document.findAll({
+          where: { id: ids },
         });
       },
     },
