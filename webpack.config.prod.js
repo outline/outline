@@ -8,7 +8,7 @@ commonWebpackConfig = require('./webpack.config');
 
 productionWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
-  devtool: 'cheap-module-source-map',
+  devtool: 'source-map',
   entry: ['babel-polyfill', 'babel-regenerator-runtime', './frontend/index'],
   output: {
     path: path.join(__dirname, 'dist'),
