@@ -6,6 +6,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import Flex from 'components/Flex';
 import { layout } from 'styles/constants';
+import invariant from 'invariant';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
@@ -135,6 +136,21 @@ type Props = {
     this.setState({ isDragging: false });
   };
 
+  renderHeading(isEditing: boolean) {
+    invariant(this.document, 'document not available');
+    return (
+      <InfoWrapper visible={!isEditing}>
+        <PublishingInfo
+          collaborators={this.document.collaborators}
+          createdAt={this.document.createdAt}
+          createdBy={this.document.createdBy}
+          updatedAt={this.document.updatedAt}
+          updatedBy={this.document.updatedBy}
+        />
+      </InfoWrapper>
+    );
+  }
+
   render() {
     const isNew = this.props.newDocument;
     const isEditing = this.props.match.params.edit || isNew;
@@ -161,37 +177,28 @@ type Props = {
             onDragEnter={this.onStartDragging}
             onDragLeave={this.onStopDragging}
             onDrop={this.onStopDragging}
+            style={{ display: 'flex', flex: 1 }}
           >
-            <PagePadding justify="center" auto>
+            <Flex justify="center" auto>
               <Prompt
                 when={this.document.hasPendingChanges}
                 message={DISCARD_CHANGES}
               />
               <DocumentContainer>
-                <InfoWrapper visible={!isEditing}>
-                  <PublishingInfo
-                    collaborators={this.document.collaborators}
-                    createdAt={this.document.createdAt}
-                    createdBy={this.document.createdBy}
-                    updatedAt={this.document.updatedAt}
-                    updatedBy={this.document.updatedBy}
-                  />
-                </InfoWrapper>
-                <Content>
-                  <Editor
-                    key={this.document.id}
-                    text={this.document.text}
-                    onImageUploadStart={this.onImageUploadStart}
-                    onImageUploadStop={this.onImageUploadStop}
-                    onChange={this.onChange}
-                    onSave={this.onSave}
-                    onCancel={this.onCancel}
-                    onStar={this.document.star}
-                    onUnstar={this.document.unstar}
-                    starred={this.document.starred}
-                    readOnly={!isEditing}
-                  />
-                </Content>
+                <Editor
+                  key={this.document.id}
+                  text={this.document.text}
+                  onImageUploadStart={this.onImageUploadStart}
+                  onImageUploadStop={this.onImageUploadStop}
+                  onChange={this.onChange}
+                  onSave={this.onSave}
+                  onCancel={this.onCancel}
+                  onStar={this.document.star}
+                  onUnstar={this.document.unstar}
+                  starred={this.document.starred}
+                  heading={this.renderHeading(!!isEditing)}
+                  readOnly={!isEditing}
+                />
               </DocumentContainer>
               <Meta align="center" justify="flex-end" readOnly={!isEditing}>
                 <Flex align="center">
@@ -207,7 +214,7 @@ type Props = {
                   {!isEditing && <Menu document={this.document} />}
                 </Flex>
               </Meta>
-            </PagePadding>
+            </Flex>
           </DropToImport>}
       </Container>
     );
@@ -228,14 +235,10 @@ const DropHere = styled(Flex)`
 
 const Meta = styled(Flex)`
   align-items: flex-start;
-  width: 100%;
   position: absolute;
   top: 0;
+  right: 0;
   padding: ${layout.padding};
-`;
-
-const Content = styled(Flex)`
-  margin-bottom: 20px;
 `;
 
 const InfoWrapper = styled(Flex)`
@@ -243,18 +246,13 @@ const InfoWrapper = styled(Flex)`
   transition: all 100ms ease-in-out;
 `;
 
-const Container = styled.div`
+const Container = styled(Flex)`
   position: relative;
   width: 100%;
 `;
 
 const LoadingState = styled(PreviewLoading)`
   margin: 80px 20px;
-`;
-
-const PagePadding = styled(Flex)`
-  padding: 80px 20px;
-  position: relative;
 `;
 
 const DocumentContainer = styled.div`

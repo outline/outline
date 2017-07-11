@@ -5,11 +5,13 @@ import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import classnames from 'classnames/bind';
 import type { Document, State, Editor as EditorType } from './types';
+import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
 import Markdown from './serializer';
 import createSchema from './schema';
 import createPlugins from './plugins';
+import styled from 'styled-components';
 import styles from './Editor.scss';
 
 const cx = classnames.bind(styles);
@@ -25,6 +27,7 @@ type Props = {
   onImageUploadStop: Function,
   starred: boolean,
   readOnly: boolean,
+  heading?: ?React.Element<*>,
 };
 
 type KeyData = {
@@ -116,7 +119,13 @@ type KeyData = {
 
   render = () => {
     return (
-      <div>
+      <Container auto column>
+        <HeaderContainer
+          onClick={this.focusAtStart}
+          readOnly={this.props.readOnly}
+        >
+          {this.props.heading}
+        </HeaderContainer>
         <Toolbar state={this.state.state} onChange={this.onChange} />
         <Editor
           key={this.props.starred}
@@ -134,7 +143,7 @@ type KeyData = {
         />
         {!this.props.readOnly &&
           <ClickablePadding onClick={this.focusAtEnd} grow />}
-      </div>
+      </Container>
     );
   };
 }
@@ -142,5 +151,16 @@ type KeyData = {
 MarkdownEditor.childContextTypes = {
   starred: PropTypes.bool,
 };
+
+const Container = styled(Flex)`
+  height: 100%;
+`;
+
+const HeaderContainer = styled(Flex).attrs({
+  align: 'flex-end',
+})`
+  height: 100px;
+  ${({ readOnly }) => !readOnly && 'cursor: text;'}
+`;
 
 export default MarkdownEditor;

@@ -96,10 +96,8 @@ class DropToImport extends Component {
         multiple
         {...props}
       >
-        <span>
-          {this.state.isImporting && <LoadingIndicator />}
-          {this.props.children}
-        </span>
+        {this.state.isImporting && <LoadingIndicator />}
+        {this.props.children}
       </Dropzone>
     );
   }
