@@ -1,3 +1,4 @@
+// @flow
 import compress from 'koa-compress';
 import { contentSecurityPolicy } from 'koa-helmet';
 import logger from 'koa-logger';
@@ -66,6 +67,7 @@ if (process.env.NODE_ENV === 'development') {
 
 if (process.env.NODE_ENV === 'production') {
   bugsnag.register('ad7a85f99b1b9324a31e16732cdf3192');
+  app.on('error', bugsnag.koaHandler);
 }
 
 app.use(mount('/api', api));
