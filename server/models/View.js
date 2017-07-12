@@ -15,21 +15,22 @@ const View = sequelize.define(
     },
   },
   {
-    classMethods: {
-      associate: models => {
-        View.belongsTo(models.Document);
-        View.belongsTo(models.User);
-      },
-      increment: async where => {
-        const [model, created] = await View.findOrCreate({ where });
-        if (!created) {
-          model.count += 1;
-          model.save();
-        }
-        return model;
-      },
-    },
+    classMethods: {},
   }
 );
+
+View.associate = models => {
+  View.belongsTo(models.Document);
+  View.belongsTo(models.User);
+};
+
+View.increment = async where => {
+  const [model, created] = await View.findOrCreate({ where });
+  if (!created) {
+    model.count += 1;
+    model.save();
+  }
+  return model;
+};
 
 export default View;
