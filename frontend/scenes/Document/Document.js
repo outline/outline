@@ -37,6 +37,7 @@ type Props = {
 
 @observer class DocumentScene extends Component {
   props: Props;
+  savedTimeout: number;
   state: {
     newDocument?: Document,
   };
@@ -44,6 +45,7 @@ type Props = {
     isDragging: false,
     isLoading: false,
     newDocument: undefined,
+    showAsSaved: false,
   };
 
   componentDidMount() {
@@ -108,8 +110,18 @@ type Props = {
 
     if (redirect || this.props.newDocument) {
       this.props.history.push(document.url);
+    } else {
+      this.showAsSaved();
     }
   };
+
+  showAsSaved() {
+    this.setState({ showAsSaved: true });
+    this.savedTimeout = setTimeout(
+      () => this.setState({ showAsSaved: false }),
+      2000
+    );
+  }
 
   onImageUploadStart() {
     this.setState({ isLoading: true });
@@ -204,6 +216,7 @@ type Props = {
                   <HeaderAction>
                     {isEditing
                       ? <SaveAction
+                          showCheckmark={this.state.showAsSaved}
                           onClick={this.onSave.bind(this, true)}
                           disabled={get(this.document, 'isSaving')}
                           isNew={!!isNew}

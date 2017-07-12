@@ -89,11 +89,12 @@ type KeyData = {
       case 's':
         ev.preventDefault();
         ev.stopPropagation();
-        return this.props.onSave({ redirect: false });
+        this.props.onSave();
+        return state;
       case 'enter':
         ev.preventDefault();
         ev.stopPropagation();
-        this.props.onSave();
+        this.props.onSave({ redirect: false });
         return state;
       case 'escape':
         return this.props.onCancel();
