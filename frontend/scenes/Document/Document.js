@@ -62,6 +62,7 @@ type Props = {
   }
 
   componentWillUnmount() {
+    clearTimeout(this.savedTimeout);
     this.props.ui.clearActiveDocument();
   }
 
