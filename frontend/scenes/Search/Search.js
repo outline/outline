@@ -23,7 +23,9 @@ type Props = {
 };
 
 const Container = styled(CenteredContent)`
-  position: relative;
+  > div {
+    position: relative;
+  }
 `;
 
 const ResultsWrapper = styled(Flex)`
