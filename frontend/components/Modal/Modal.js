@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import ReactModal from 'react-modal';
-import { modalFadeIn } from 'styles/animations';
+import { fadeAndScaleIn } from 'styles/animations';
 
 import CloseIcon from 'components/Icon/CloseIcon';
 import Flex from 'components/Flex';
@@ -46,7 +46,7 @@ const Content = styled(Flex)`
 `;
 
 const StyledModal = styled(ReactModal)`
-  animation: ${modalFadeIn} 250ms ease;
+  animation: ${fadeAndScaleIn} 250ms ease;
 
   position: absolute;
   top: 0;
