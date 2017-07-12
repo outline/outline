@@ -1,5 +1,4 @@
 // @flow
-import DropdownMenu, { MenuItem } from './DropdownMenu';
+import { DropdownMenu, DropdownMenuItem } from './DropdownMenu';
 import MoreIcon from './components/MoreIcon';
-export default DropdownMenu;
-export { MenuItem, MoreIcon };
+export { DropdownMenu, DropdownMenuItem, MoreIcon };
