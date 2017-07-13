@@ -9,10 +9,10 @@ import { searchUrl } from 'utils/routeHelpers';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
+import CenteredContent from 'components/CenteredContent';
 import SearchField from './components/SearchField';
 import SearchStore from './SearchStore';
 
-import CenteredContent from 'components/CenteredContent';
 import DocumentPreview from 'components/DocumentPreview';
 import PageTitle from 'components/PageTitle';
 
@@ -23,7 +23,9 @@ type Props = {
 };
 
 const Container = styled(CenteredContent)`
-  position: relative;
+  > div {
+    position: relative;
+  }
 `;
 
 const ResultsWrapper = styled(Flex)`
@@ -37,6 +39,12 @@ const ResultsWrapper = styled(Flex)`
 const ResultList = styled(Flex)`
   opacity: ${props => (props.visible ? '1' : '0')};
   transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
+`;
+
+const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 `;
 
 @observer class Search extends React.Component {
@@ -106,7 +114,7 @@ const ResultList = styled(Flex)`
             value={query || ''}
           />
           <ResultList visible={hasResults}>
-            <ArrowKeyNavigation
+            <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
@@ -118,7 +126,7 @@ const ResultList = styled(Flex)`
                   highlight={this.store.searchTerm}
                 />
               ))}
-            </ArrowKeyNavigation>
+            </StyledArrowKeyNavigation>
           </ResultList>
         </ResultsWrapper>
       </Container>
