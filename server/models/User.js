@@ -1,3 +1,4 @@
+// @flow
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
@@ -14,50 +15,18 @@ const User = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    email: { type: DataTypes.STRING, unique: true },
-    username: { type: DataTypes.STRING, unique: true },
+    email: { type: DataTypes.STRING },
+    username: { type: DataTypes.STRING },
     name: DataTypes.STRING,
     password: DataTypes.VIRTUAL,
     passwordDigest: DataTypes.STRING,
     isAdmin: DataTypes.BOOLEAN,
     slackAccessToken: encryptedFields.vault('slackAccessToken'),
-    slackId: { type: DataTypes.STRING, allowNull: true },
+    slackId: { type: DataTypes.STRING, allowNull: true, unique: true },
     slackData: DataTypes.JSONB,
     jwtSecret: encryptedFields.vault('jwtSecret'),
   },
   {
-    classMethods: {
-      associate: models => {
-        User.hasMany(models.ApiKey, { as: 'apiKeys' });
-        User.hasMany(models.Document, { as: 'documents' });
-        User.hasMany(models.View, { as: 'views' });
-      },
-    },
-    instanceMethods: {
-      getJwtToken() {
-        return JWT.sign({ id: this.id }, this.jwtSecret);
-      },
-      async getTeam() {
-        return this.team;
-      },
-      verifyPassword(password) {
-        return new Promise((resolve, reject) => {
-          if (!this.passwordDigest) {
-            resolve(false);
-            return;
-          }
-
-          bcrypt.compare(password, this.passwordDigest, (err, ok) => {
-            if (err) {
-              reject(err);
-              return;
-            }
-
-            resolve(ok);
-          });
-        });
-      },
-    },
     indexes: [
       {
         fields: ['email'],
@@ -65,6 +34,38 @@ const User = sequelize.define(
     ],
   }
 );
+
+// Class methods
+User.associate = models => {
+  User.hasMany(models.ApiKey, { as: 'apiKeys' });
+  User.hasMany(models.Document, { as: 'documents' });
+  User.hasMany(models.View, { as: 'views' });
+};
+
+// Instance methods
+User.prototype.getJwtToken = function() {
+  return JWT.sign({ id: this.id }, this.jwtSecret);
+};
+User.prototype.getTeam = async function() {
+  return this.team;
+};
+User.prototype.verifyPassword = function(password) {
+  return new Promise((resolve, reject) => {
+    if (!this.passwordDigest) {
+      resolve(false);
+      return;
+    }
+
+    bcrypt.compare(password, this.passwordDigest, (err, ok) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      resolve(ok);
+    });
+  });
+};
 
 const setRandomJwtSecret = model => {
   model.jwtSecret = crypto.randomBytes(64).toString('hex');

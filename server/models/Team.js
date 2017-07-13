@@ -14,25 +14,6 @@ const Team = sequelize.define(
     slackData: DataTypes.JSONB,
   },
   {
-    classMethods: {
-      associate: models => {
-        Team.hasMany(models.Collection, { as: 'atlases' });
-        Team.hasMany(models.Document, { as: 'documents' });
-        Team.hasMany(models.User, { as: 'users' });
-      },
-    },
-    instanceMethods: {
-      async createFirstCollection(userId) {
-        const atlas = await Collection.create({
-          name: this.name,
-          description: 'Your first Collection',
-          type: 'atlas',
-          teamId: this.id,
-          creatorId: userId,
-        });
-        return atlas;
-      },
-    },
     indexes: [
       {
         unique: true,
@@ -41,5 +22,22 @@ const Team = sequelize.define(
     ],
   }
 );
+
+Team.associate = models => {
+  Team.hasMany(models.Collection, { as: 'atlases' });
+  Team.hasMany(models.Document, { as: 'documents' });
+  Team.hasMany(models.User, { as: 'users' });
+};
+
+Team.prototype.createFirstCollection = async function(userId) {
+  const atlas = await Collection.create({
+    name: this.name,
+    description: 'Your first Collection',
+    type: 'atlas',
+    teamId: this.id,
+    creatorId: userId,
+  });
+  return atlas;
+};
 
 export default Team;

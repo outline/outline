@@ -98,69 +98,59 @@ const Document = sequelize.define(
       afterCreate: createRevision,
       afterUpdate: createRevision,
     },
-    instanceMethods: {
-      getUrl() {
-        const slugifiedTitle = slugify(this.title);
-        return `/doc/${slugifiedTitle}-${this.urlId}`;
-      },
-      toJSON() {
-        // Warning: only use for new documents as order of children is
-        // handled in the collection's documentStructure
-        return {
-          id: this.id,
-          title: this.title,
-          url: this.getUrl(),
-          children: [],
-        };
-      },
-    },
-    classMethods: {
-      associate: models => {
-        Document.belongsTo(models.Collection, {
-          as: 'collection',
-          foreignKey: 'atlasId',
-        });
-        Document.belongsTo(models.User, {
-          as: 'createdBy',
-          foreignKey: 'createdById',
-        });
-        Document.belongsTo(models.User, {
-          as: 'updatedBy',
-          foreignKey: 'lastModifiedById',
-        });
-        Document.hasMany(models.Star, {
-          as: 'starred',
-        });
-        Document.addScope(
-          'defaultScope',
-          {
-            include: [
-              { model: models.Collection, as: 'collection' },
-              { model: models.User, as: 'createdBy' },
-              { model: models.User, as: 'updatedBy' },
-            ],
-          },
-          { override: true }
-        );
-      },
-      findById: async id => {
-        if (isUUID(id)) {
-          return Document.findOne({
-            where: { id },
-          });
-        } else if (id.match(URL_REGEX)) {
-          return Document.findOne({
-            where: {
-              urlId: id.match(URL_REGEX)[1],
-            },
-          });
-        }
-      },
-      searchForUser: async (user, query, options = {}) => {
-        const limit = options.limit || 15;
-        const offset = options.offset || 0;
+  }
+);
 
-        const sql = `
+// Class methods
+
+Document.associate = models => {
+  Document.belongsTo(models.Collection, {
+    as: 'collection',
+    foreignKey: 'atlasId',
+  });
+  Document.belongsTo(models.User, {
+    as: 'createdBy',
+    foreignKey: 'createdById',
+  });
+  Document.belongsTo(models.User, {
+    as: 'updatedBy',
+    foreignKey: 'lastModifiedById',
+  });
+  Document.hasMany(models.Star, {
+    as: 'starred',
+  });
+  Document.addScope(
+    'defaultScope',
+    {
+      include: [
+        { model: models.Collection, as: 'collection' },
+        { model: models.User, as: 'createdBy' },
+        { model: models.User, as: 'updatedBy' },
+      ],
+    },
+    { override: true }
+  );
+};
+
+Document.findById = async id => {
+  if (isUUID(id)) {
+    return Document.findOne({
+      where: { id },
+    });
+  } else if (id.match(URL_REGEX)) {
+    return Document.findOne({
+      where: {
+        urlId: id.match(URL_REGEX)[1],
+      },
+    });
+  }
+};
+
+Document.searchForUser = async (user, query, options = {}) => {
+  const limit = options.limit || 15;
+  const offset = options.offset || 0;
+
+  const sql = `
         SELECT * FROM documents
         WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
           "teamId" = '${user.teamId}'::uuid AND
@@ -169,22 +159,37 @@ const Document = sequelize.define(
         LIMIT :limit OFFSET :offset;
         `;
 
-        const ids = await sequelize
-          .query(sql, {
-            replacements: {
-              query,
-              limit,
-              offset,
-            },
-            model: Document,
-          })
-          .map(document => document.id);
-        return Document.findAll({
-          where: { id: ids },
-        });
+  const ids = await sequelize
+    .query(sql, {
+      replacements: {
+        query,
+        limit,
+        offset,
       },
-    },
-  }
-);
+      model: Document,
+    })
+    .map(document => document.id);
+  return Document.findAll({
+    where: { id: ids },
+  });
+};
+
+// Instance methods
+
+Document.prototype.getUrl = function() {
+  const slugifiedTitle = slugify(this.title);
+  return `/doc/${slugifiedTitle}-${this.urlId}`;
+};
+
+Document.prototype.toJSON = function() {
+  // Warning: only use for new documents as order of children is
+  // handled in the collection's documentStructure
+  return {
+    id: this.id,
+    title: this.title,
+    url: this.getUrl(),
+    children: [],
+  };
+};
 
 export default Document;

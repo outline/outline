@@ -55,131 +55,133 @@ const Collection = sequelize.define(
         await collection.save();
       },
     },
-    classMethods: {
-      associate: models => {
-        Collection.hasMany(models.Document, {
-          as: 'documents',
-          foreignKey: 'atlasId',
-        });
-        Collection.addScope('withRecentDocuments', {
-          include: [
-            {
-              as: 'documents',
-              limit: 10,
-              model: models.Document,
-              order: [['updatedAt', 'DESC']],
-            },
-          ],
-        });
-      },
-    },
-    instanceMethods: {
-      getUrl() {
-        // const slugifiedName = slug(this.name);
-        // return `/${slugifiedName}-c${this.urlId}`;
-        return `/collections/${this.id}`;
-      },
-
-      async getDocumentsStructure() {
-        // Lazy fill this.documentStructure
-        if (!this.documentStructure) {
-          this.documentStructure = this.navigationTree.children;
-
-          // Remove parent references from all root documents
-          await this.navigationTree.children.forEach(async ({ id }) => {
-            const document = await Document.findById(id);
-            document.parentDocumentId = null;
-            await document.save();
-          });
-
-          // Remove root document
-          const rootDocument = await Document.findById(this.navigationTree.id);
-          await rootDocument.destroy();
-
-          await this.save();
-        }
-
-        return this.documentStructure;
-      },
-
-      async addDocumentToStructure(document, index) {
-        if (!this.documentStructure) return;
-
-        if (!document.parentDocumentId) {
-          this.documentStructure.splice(
-            index || this.documentStructure.length,
-            0,
-            document.toJSON()
-          );
-          // Sequelize doesn't seem to set the value with splice on JSONB field
-          this.documentStructure = this.documentStructure;
-        } else {
-          this.documentStructure = this.documentStructure.map(childDocument => {
-            if (document.parentDocumentId === childDocument.id) {
-              childDocument.children.splice(
-                index || childDocument.children.length,
-                0,
-                document.toJSON()
-              );
-            }
-            return childDocument;
-          });
-        }
-
-        await this.save();
-        return this;
-      },
-
-      async updateDocument(updatedDocument) {
-        if (!this.documentStructure) return;
-        const { id } = updatedDocument;
-
-        const updateChildren = documents => {
-          return documents.map(document => {
-            if (document.id === id) {
-              document = {
-                ...updatedDocument.toJSON(),
-                children: document.children,
-              };
-            } else {
-              document.children = updateChildren(document.children);
-            }
-            return document;
-          });
-        };
-
-        this.documentStructure = updateChildren(this.documentStructure);
-        await this.save();
-        return this;
-      },
-
-      async deleteDocument(document) {
-        if (!this.documentStructure) return;
-
-        const deleteFromChildren = (children, id) => {
-          if (_.find(children, { id })) {
-            _.remove(children, { id });
-          } else {
-            children = children.map(childDocument => {
-              return {
-                ...childDocument,
-                children: deleteFromChildren(childDocument.children, id),
-              };
-            });
-          }
-          return children;
-        };
-
-        this.documentStructure = deleteFromChildren(
-          this.documentStructure,
-          document.id
-        );
-
-        await this.save();
-        return this;
-      },
-    },
   }
 );
+
+// Class methods
+
+Collection.associate = models => {
+  Collection.hasMany(models.Document, {
+    as: 'documents',
+    foreignKey: 'atlasId',
+  });
+  Collection.addScope('withRecentDocuments', {
+    include: [
+      {
+        as: 'documents',
+        limit: 10,
+        model: models.Document,
+        order: [['updatedAt', 'DESC']],
+      },
+    ],
+  });
+};
+
+// Instance methods
+
+Collection.prototype.getUrl = function() {
+  // const slugifiedName = slug(this.name);
+  // return `/${slugifiedName}-c${this.urlId}`;
+  return `/collections/${this.id}`;
+};
+
+Collection.prototype.getDocumentsStructure = async function() {
+  // Lazy fill this.documentStructure
+  if (!this.documentStructure) {
+    this.documentStructure = this.navigationTree.children;
+
+    // Remove parent references from all root documents
+    await this.navigationTree.children.forEach(async ({ id }) => {
+      const document = await Document.findById(id);
+      document.parentDocumentId = null;
+      await document.save();
+    });
+
+    // Remove root document
+    const rootDocument = await Document.findById(this.navigationTree.id);
+    await rootDocument.destroy();
+
+    await this.save();
+  }
+
+  return this.documentStructure;
+};
+
+Collection.prototype.addDocumentToStructure = async function(document, index) {
+  if (!this.documentStructure) return;
+
+  if (!document.parentDocumentId) {
+    this.documentStructure.splice(
+      index || this.documentStructure.length,
+      0,
+      document.toJSON()
+    );
+    // Sequelize doesn't seem to set the value with splice on JSONB field
+    this.documentStructure = this.documentStructure;
+  } else {
+    this.documentStructure = this.documentStructure.map(childDocument => {
+      if (document.parentDocumentId === childDocument.id) {
+        childDocument.children.splice(
+          index || childDocument.children.length,
+          0,
+          document.toJSON()
+        );
+      }
+      return childDocument;
+    });
+  }
+
+  await this.save();
+  return this;
+};
+
+Collection.prototype.updateDocument = async function(updatedDocument) {
+  if (!this.documentStructure) return;
+  const { id } = updatedDocument;
+
+  const updateChildren = documents => {
+    return documents.map(document => {
+      if (document.id === id) {
+        document = {
+          ...updatedDocument.toJSON(),
+          children: document.children,
+        };
+      } else {
+        document.children = updateChildren(document.children);
+      }
+      return document;
+    });
+  };
+
+  this.documentStructure = updateChildren(this.documentStructure);
+  await this.save();
+  return this;
+};
+
+Collection.prototype.deleteDocument = async function(document) {
+  if (!this.documentStructure) return;
+
+  const deleteFromChildren = (children, id) => {
+    if (_.find(children, { id })) {
+      _.remove(children, { id });
+    } else {
+      children = children.map(childDocument => {
+        return {
+          ...childDocument,
+          children: deleteFromChildren(childDocument.children, id),
+        };
+      });
+    }
+    return children;
+  };
+
+  this.documentStructure = deleteFromChildren(
+    this.documentStructure,
+    document.id
+  );
+
+  await this.save();
+  return this;
+};
 
 export default Collection;
