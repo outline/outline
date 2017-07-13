@@ -12,6 +12,7 @@ import { color, layout } from 'styles/constants';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
+import KeyboardShortcuts from 'components/KeyboardShortcuts';
 import Avatar from 'components/Avatar';
 import Modal from 'components/Modal';
 import AddIcon from 'components/Icon/AddIcon';
@@ -41,8 +42,8 @@ type Props = {
 
 @observer class Layout extends React.Component {
   props: Props;
-  state: { createCollectionModalOpen: boolean };
-  state = { createCollectionModalOpen: false };
+  state: { modal?: string };
+  state = { modal: undefined };
 
   static defaultProps = {
     search: true,
@@ -54,7 +55,7 @@ type Props = {
       _.defer(() => this.props.history.push('/search'));
   }
 
-  @keydown(['d'])
+  @keydown('d')
   dashboard() {
     if (this.props.auth.authenticated)
       _.defer(() => this.props.history.push('/'));
@@ -64,12 +65,17 @@ type Props = {
     this.props.auth.logout(() => this.props.history.push('/'));
   };
 
+  @keydown('shift+/')
+  handleOpenKeyboardShortcuts() {
+    this.setState({ modal: 'keyboard-shortcuts' });
+  }
+
   handleCreateCollection = () => {
-    this.setState({ createCollectionModalOpen: true });
+    this.setState({ modal: 'create-collection' });
   };
 
   handleCloseModal = () => {
-    this.setState({ createCollectionModalOpen: false });
+    this.setState({ modal: undefined });
   };
 
   render() {
@@ -103,11 +109,9 @@ type Props = {
                   <MenuLink to="/settings">
                     <DropdownMenuItem>Settings</DropdownMenuItem>
                   </MenuLink>
-                  <MenuLink to="/keyboard-shortcuts">
-                    <DropdownMenuItem>
-                      Keyboard shortcuts
-                    </DropdownMenuItem>
-                  </MenuLink>
+                  <MenuItem onClick={this.handleOpenKeyboardShortcuts}>
+                    Keyboard shortcuts
+                  </MenuItem>
                   <MenuLink to="/developers">
                     <DropdownMenuItem>API</DropdownMenuItem>
                   </MenuLink>
@@ -147,7 +151,7 @@ type Props = {
           </Content>
         </Flex>
         <Modal
-          isOpen={this.state.createCollectionModalOpen}
+          isOpen={this.state.modal === 'create-collection'}
           onRequestClose={this.handleCloseModal}
           title="Create a collection"
         >
@@ -156,6 +160,13 @@ type Props = {
             history={history}
             onCollectionCreated={this.handleCloseModal}
           />
+        </Modal>
+        <Modal
+          isOpen={this.state.modal === 'keyboard-shortcuts'}
+          onRequestClose={this.handleCloseModal}
+          title="Keyboard shortcuts"
+        >
+          <KeyboardShortcuts />
         </Modal>
       </Container>
     );

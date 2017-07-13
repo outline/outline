@@ -1,5 +1,3 @@
-# Keyboard shortcuts
-
 - `Cmd+/` - Toggle navigation tree
 - `Cmd+Enter` - Save document
 - `Cmd+Esc` - Cancel edit

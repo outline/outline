@@ -82,9 +82,6 @@ const Auth = ({ children }: AuthProps) => {
 };
 
 const notFoundSearch = () => <Search notFound />;
-const KeyboardShortcuts = () => (
-  <Flatpage title="Keyboard shortcuts" content={flatpages.keyboard} />
-);
 const Api = () => <Flatpage title="API" content={flatpages.api} />;
 const DocumentNew = () => <Document newDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
@@ -125,12 +122,6 @@ render(
                   <Route exact path="/search" component={Search} />
                   <Route exact path="/search/:query" component={Search} />
                   <Route exact path="/settings" component={Settings} />
-
-                  <Route
-                    exact
-                    path="/keyboard-shortcuts"
-                    component={KeyboardShortcuts}
-                  />
                   <Route exact path="/developers" component={Api} />
 
                   <Route path="/404" component={Error404} />

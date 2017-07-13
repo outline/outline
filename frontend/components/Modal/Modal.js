@@ -53,6 +53,7 @@ const StyledModal = styled(ReactModal)`
   left: 0;
   bottom: 0;
   right: 0;
+  z-index: 100;
   display: flex;
   justify-content: center;
   align-items: flex-start;
