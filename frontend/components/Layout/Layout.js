@@ -9,7 +9,7 @@ import keydown from 'react-keydown';
 import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
 
-import DropdownMenu, { MenuItem } from 'components/DropdownMenu';
+import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
 import KeyboardShortcuts from 'components/KeyboardShortcuts';
@@ -107,15 +107,17 @@ type Props = {
                 </Flex>
                 <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
                   <MenuLink to="/settings">
-                    <MenuItem>Settings</MenuItem>
+                    <DropdownMenuItem>Settings</DropdownMenuItem>
                   </MenuLink>
                   <MenuItem onClick={this.handleOpenKeyboardShortcuts}>
                     Keyboard shortcuts
                   </MenuItem>
                   <MenuLink to="/developers">
-                    <MenuItem>API</MenuItem>
+                    <DropdownMenuItem>API</DropdownMenuItem>
                   </MenuLink>
-                  <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
+                  <DropdownMenuItem onClick={this.handleLogout}>
+                    Logout
+                  </DropdownMenuItem>
                 </DropdownMenu>
               </Header>
 

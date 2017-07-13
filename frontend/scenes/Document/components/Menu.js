@@ -5,7 +5,11 @@ import get from 'lodash/get';
 import { withRouter } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import Document from 'models/Document';
-import DropdownMenu, { MenuItem, MoreIcon } from 'components/DropdownMenu';
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  MoreIcon,
+} from 'components/DropdownMenu';
 
 type Props = {
   history: Object,
@@ -63,12 +67,13 @@ type Props = {
         <DropdownMenu label={<MoreIcon />}>
           {collection &&
             <div>
-              <MenuItem onClick={this.onCreateDocument}>
+              <DropdownMenuItem onClick={this.onCreateDocument}>
                 New document
-              </MenuItem>
+              </DropdownMenuItem>
             </div>}
-          <MenuItem onClick={this.onExport}>Export</MenuItem>
-          {allowDelete && <MenuItem onClick={this.onDelete}>Delete</MenuItem>}
+          <DropdownMenuItem onClick={this.onExport}>Export</DropdownMenuItem>
+          {allowDelete &&
+            <DropdownMenuItem onClick={this.onDelete}>Delete</DropdownMenuItem>}
         </DropdownMenu>
       );
     }

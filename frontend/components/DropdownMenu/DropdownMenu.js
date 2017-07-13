@@ -1,66 +1,111 @@
 // @flow
 import React from 'react';
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
+import styled from 'styled-components';
+import Flex from 'components/Flex';
+import { color } from 'styles/constants';
 
-import styles from './DropdownMenu.scss';
-
-const MenuItem = ({
-  onClick,
-  children,
-}: {
+type MenuItemProps = {
   onClick?: Function,
   children?: React.Element<any>,
-}) => {
+};
+
+const DropdownMenuItem = ({ onClick, children }: MenuItemProps) => {
   return (
-    <div className={styles.menuItem} onClick={onClick}>
+    <MenuItem onClick={onClick}>
       {children}
-    </div>
+    </MenuItem>
   );
 };
 
-//
+type DropdownMenuProps = {
+  label: React.Element<any>,
+  children?: React.Element<any>,
+};
 
-class DropdownMenu extends React.Component {
-  static propTypes = {
-    label: React.PropTypes.node.isRequired,
-    children: React.PropTypes.node.isRequired,
-  };
+@observer class DropdownMenu extends React.Component {
+  props: DropdownMenuProps;
+  @observable menuOpen: boolean = false;
 
-  state = {
-    menuVisible: false,
-  };
-
-  onMouseEnter = () => {
-    this.setState({ menuVisible: true });
-  };
-
-  onMouseLeave = () => {
-    this.setState({ menuVisible: false });
-  };
-
-  onClick = () => {
-    this.setState({ menuVisible: !this.state.menuVisible });
+  handleClick = () => {
+    this.menuOpen = !this.menuOpen;
   };
 
   render() {
     return (
-      <div
-        className={styles.menuContainer}
-        onMouseEnter={this.onMouseEnter}
-        onMouseLeave={this.onMouseLeave}
-      >
-        <div className={styles.label} onClick={this.onClick}>
-          {this.props.label}
-        </div>
+      <MenuContainer onClick={this.handleClick}>
+        {this.menuOpen && <Backdrop />}
 
-        {this.state.menuVisible
-          ? <div className={styles.menu}>
-              {this.props.children}
-            </div>
-          : null}
-      </div>
+        <Label>
+          {this.props.label}
+        </Label>
+
+        {this.menuOpen &&
+          <Menu>
+            {this.props.children}
+          </Menu>}
+      </MenuContainer>
     );
   }
 }
 
-export default DropdownMenu;
-export { MenuItem };
+const Backdrop = styled.div`
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+`;
+
+const Label = styled(Flex).attrs({
+  justify: 'center',
+  align: 'center',
+})`
+  cursor: pointer;
+  z-index: 1000;
+
+  min-height: 43px;
+  margin: 0 5px;
+`;
+
+const MenuContainer = styled.div`
+  position: relative;
+`;
+
+const Menu = styled.div`
+  position: absolute;
+  right: 0;
+  z-index: 1000;
+  border: 1px solid #eee;
+  background-color: #fff;
+  min-width: 160px;
+`;
+
+const MenuItem = styled.div`
+  margin: 0;
+  padding: 5px 10px;
+  height: 32px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+
+  span {
+    margin-top: 2px;
+  }
+
+  a {
+    text-decoration: none;
+    width: 100%;
+  }
+
+  &:hover {
+    border-left: 2px solid ${color.primary};
+  }
+`;
+
+export { DropdownMenu, DropdownMenuItem };
