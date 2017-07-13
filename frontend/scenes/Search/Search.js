@@ -25,6 +25,7 @@ type Props = {
 const Container = styled(CenteredContent)`
   > div {
     position: relative;
+    height: 100%;
   }
 `;
 
