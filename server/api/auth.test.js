@@ -1,3 +1,4 @@
+/* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '..';
 import { flushdb, seed } from '../test/support';
@@ -7,7 +8,7 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(() => server.close());
 
-describe('#auth.signup', async () => {
+describe.skip('#auth.signup', async () => {
   it('should signup a new user', async () => {
     const res = await server.post('/api/auth.signup', {
       body: {
@@ -84,7 +85,7 @@ describe('#auth.signup', async () => {
   });
 });
 
-describe('#auth.login', () => {
+describe.skip('#auth.login', () => {
   test('should login with email', async () => {
     await seed();
     const res = await server.post('/api/auth.login', {
