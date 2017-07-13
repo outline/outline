@@ -4,6 +4,7 @@ import { Link, withRouter } from 'react-router-dom';
 import Helmet from 'react-helmet';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
+import { observable } from 'mobx';
 import _ from 'lodash';
 import keydown from 'react-keydown';
 import Flex from 'components/Flex';
@@ -42,12 +43,12 @@ type Props = {
 
 @observer class Layout extends React.Component {
   props: Props;
-  state: { modal?: string };
-  state = { modal: undefined };
 
   static defaultProps = {
     search: true,
   };
+
+  @observable modal = null;
 
   @keydown(['/', 't'])
   search() {
@@ -66,16 +67,16 @@ type Props = {
   };
 
   @keydown('shift+/')
-  handleOpenKeyboardShortcuts() {
-    this.setState({ modal: 'keyboard-shortcuts' });
-  }
+  handleOpenKeyboardShortcuts = () => {
+    this.modal = 'keyboard-shortcuts';
+  };
 
   handleCreateCollection = () => {
-    this.setState({ modal: 'create-collection' });
+    this.modal = 'create-collection';
   };
 
   handleCloseModal = () => {
-    this.setState({ modal: undefined });
+    this.modal = null;
   };
 
   render() {
@@ -109,9 +110,9 @@ type Props = {
                   <MenuLink to="/settings">
                     <DropdownMenuItem>Settings</DropdownMenuItem>
                   </MenuLink>
-                  <MenuItem onClick={this.handleOpenKeyboardShortcuts}>
+                  <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
                     Keyboard shortcuts
-                  </MenuItem>
+                  </DropdownMenuItem>
                   <MenuLink to="/developers">
                     <DropdownMenuItem>API</DropdownMenuItem>
                   </MenuLink>
@@ -151,7 +152,7 @@ type Props = {
           </Content>
         </Flex>
         <Modal
-          isOpen={this.state.modal === 'create-collection'}
+          isOpen={this.modal === 'create-collection'}
           onRequestClose={this.handleCloseModal}
           title="Create a collection"
         >
@@ -162,7 +163,7 @@ type Props = {
           />
         </Modal>
         <Modal
-          isOpen={this.state.modal === 'keyboard-shortcuts'}
+          isOpen={this.modal === 'keyboard-shortcuts'}
           onRequestClose={this.handleCloseModal}
           title="Keyboard shortcuts"
         >
