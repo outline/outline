@@ -6,6 +6,8 @@ import { Editor, Plain } from 'slate';
 import keydown from 'react-keydown';
 import classnames from 'classnames/bind';
 import type { Document, State, Editor as EditorType } from './types';
+import getDataTransferFiles from 'utils/getDataTransferFiles';
+import uploadFile from 'utils/uploadFile';
 import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
@@ -78,6 +80,39 @@ type Props = {
     this.props.onChange(Markdown.serialize(state));
   };
 
+  handleDrop = async (ev: SyntheticEvent) => {
+    // check if this event was already handled by the Editor
+    if (ev.isDefaultPrevented()) return;
+
+    // otherwise we'll handle this
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const files = getDataTransferFiles(ev);
+    for (const file of files) {
+      await this.insertFile(file);
+    }
+  };
+
+  insertFile = async (file: Object) => {
+    this.props.onImageUploadStart();
+    const asset = await uploadFile(file);
+    const state = this.editor.getState();
+    const transform = state.transform();
+    transform.collapseToEndOf(state.document);
+    transform.insertBlock({
+      type: 'image',
+      isVoid: true,
+      data: { src: asset.url, alt: file.name },
+    });
+    this.props.onImageUploadStop();
+    this.setState({ state: transform.apply() });
+  };
+
+  cancelEvent = (ev: SyntheticEvent) => {
+    ev.preventDefault();
+  };
+
   @keydown('meta+s')
   onSaveAndContinue(ev: SyntheticKeyboardEvent) {
     ev.preventDefault();
@@ -115,7 +150,14 @@ type Props = {
 
   render = () => {
     return (
-      <Container auto column>
+      <Flex
+        onDrop={this.handleDrop}
+        onDragOver={this.cancelEvent}
+        onDragEnter={this.cancelEvent}
+        auto
+        column
+        align="center"
+      >
         <HeaderContainer
           onClick={this.focusAtStart}
           readOnly={this.props.readOnly}
@@ -138,7 +180,7 @@ type Props = {
         />
         {!this.props.readOnly &&
           <ClickablePadding onClick={this.focusAtEnd} grow />}
-      </Container>
+      </Flex>
     );
   };
 }
@@ -146,10 +188,6 @@ type Props = {
 MarkdownEditor.childContextTypes = {
   starred: PropTypes.bool,
 };
-
-const Container = styled(Flex)`
-  height: 100%;
-`;
 
 const HeaderContainer = styled(Flex).attrs({
   align: 'flex-end',
