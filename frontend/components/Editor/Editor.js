@@ -154,32 +154,34 @@ type Props = {
         onDrop={this.handleDrop}
         onDragOver={this.cancelEvent}
         onDragEnter={this.cancelEvent}
+        align="flex-start"
+        justify="center"
         auto
-        column
-        align="center"
       >
-        <HeaderContainer
-          onClick={this.focusAtStart}
-          readOnly={this.props.readOnly}
-        >
-          {this.props.heading}
-        </HeaderContainer>
-        <Toolbar state={this.state.state} onChange={this.onChange} />
-        <Editor
-          key={this.props.starred}
-          ref={ref => (this.editor = ref)}
-          placeholder="Start with a title..."
-          className={cx(styles.editor, { readOnly: this.props.readOnly })}
-          schema={this.schema}
-          plugins={this.plugins}
-          state={this.state.state}
-          onChange={this.onChange}
-          onDocumentChange={this.onDocumentChange}
-          onSave={this.props.onSave}
-          readOnly={this.props.readOnly}
-        />
-        {!this.props.readOnly &&
-          <ClickablePadding onClick={this.focusAtEnd} grow />}
+        <MaxWidth column auto>
+          <HeaderContainer
+            onClick={this.focusAtStart}
+            readOnly={this.props.readOnly}
+          >
+            {this.props.heading}
+          </HeaderContainer>
+          <Toolbar state={this.state.state} onChange={this.onChange} />
+          <Editor
+            key={this.props.starred}
+            ref={ref => (this.editor = ref)}
+            placeholder="Start with a title..."
+            className={cx(styles.editor, { readOnly: this.props.readOnly })}
+            schema={this.schema}
+            plugins={this.plugins}
+            state={this.state.state}
+            onChange={this.onChange}
+            onDocumentChange={this.onDocumentChange}
+            onSave={this.props.onSave}
+            readOnly={this.props.readOnly}
+          />
+          {!this.props.readOnly &&
+            <ClickablePadding onClick={this.focusAtEnd} grow />}
+        </MaxWidth>
       </Flex>
     );
   };
@@ -188,6 +190,11 @@ type Props = {
 MarkdownEditor.childContextTypes = {
   starred: PropTypes.bool,
 };
+
+const MaxWidth = styled(Flex)`
+  max-width: 50em;
+  height: 100%;
+`;
 
 const HeaderContainer = styled(Flex).attrs({
   align: 'flex-end',
