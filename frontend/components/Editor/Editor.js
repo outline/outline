@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
+import keydown from 'react-keydown';
 import classnames from 'classnames/bind';
 import type { Document, State, Editor as EditorType } from './types';
 import Flex from 'components/Flex';
@@ -28,11 +29,6 @@ type Props = {
   starred: boolean,
   readOnly: boolean,
   heading?: ?React.Element<*>,
-};
-
-type KeyData = {
-  isMeta: boolean,
-  key: string,
 };
 
 @observer class MarkdownEditor extends Component {
@@ -82,25 +78,24 @@ type KeyData = {
     this.props.onChange(Markdown.serialize(state));
   };
 
-  onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData, state: State) => {
-    if (!data.isMeta) return;
+  @keydown('meta+s')
+  onSaveAndContinue(ev: SyntheticKeyboardEvent) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.props.onSave();
+  }
 
-    switch (data.key) {
-      case 's':
-        ev.preventDefault();
-        ev.stopPropagation();
-        this.props.onSave();
-        return state;
-      case 'enter':
-        ev.preventDefault();
-        ev.stopPropagation();
-        this.props.onSave({ redirect: false });
-        return state;
-      case 'escape':
-        return this.props.onCancel();
-      default:
-    }
-  };
+  @keydown('meta+enter')
+  onSave(ev: SyntheticKeyboardEvent) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.props.onSave({ redirect: false });
+  }
+
+  @keydown('esc')
+  onCancel() {
+    this.props.onCancel();
+  }
 
   focusAtStart = () => {
     const state = this.editor.getState();
@@ -138,7 +133,6 @@ type KeyData = {
           state={this.state.state}
           onChange={this.onChange}
           onDocumentChange={this.onDocumentChange}
-          onKeyDown={this.onKeyDown}
           onSave={this.props.onSave}
           readOnly={this.props.readOnly}
         />
