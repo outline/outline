@@ -124,13 +124,13 @@ type Props = {
     );
   }
 
-  onImageUploadStart() {
+  onImageUploadStart = () => {
     this.setState({ isLoading: true });
-  }
+  };
 
-  onImageUploadStop() {
+  onImageUploadStop = () => {
     this.setState({ isLoading: false });
-  }
+  };
 
   onChange = text => {
     if (!this.document) return;
@@ -168,7 +168,7 @@ type Props = {
 
   render() {
     const isNew = this.props.newDocument;
-    const isEditing = this.props.match.params.edit || isNew;
+    const isEditing = !!this.props.match.params.edit || isNew;
     const isFetching = !this.document;
     const titleText = get(this.document, 'title', 'Loading');
 
@@ -192,6 +192,7 @@ type Props = {
             onDragEnter={this.onStartDragging}
             onDragLeave={this.onStopDragging}
             onDrop={this.onStopDragging}
+            disabled={isEditing}
           >
             <Flex justify="center" auto>
               <Prompt
