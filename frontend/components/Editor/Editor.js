@@ -33,6 +33,11 @@ type Props = {
   heading?: ?React.Element<*>,
 };
 
+type KeyData = {
+  isMeta: boolean,
+  key: string,
+};
+
 @observer class MarkdownEditor extends Component {
   props: Props;
   editor: EditorType;
@@ -113,15 +118,16 @@ type Props = {
     ev.preventDefault();
   };
 
+  // Handling of keyboard shortcuts outside of editor focus
   @keydown('meta+s')
-  onSaveAndContinue(ev: SyntheticKeyboardEvent) {
+  onSave(ev: SyntheticKeyboardEvent) {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.onSave();
   }
 
   @keydown('meta+enter')
-  onSave(ev: SyntheticKeyboardEvent) {
+  onSaveAndExit(ev: SyntheticKeyboardEvent) {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.onSave({ redirect: false });
@@ -131,6 +137,24 @@ type Props = {
   onCancel() {
     this.props.onCancel();
   }
+
+  // Handling of keyboard shortcuts within editor focus
+  onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData, state: State) => {
+    if (!data.isMeta) return;
+
+    switch (data.key) {
+      case 's':
+        this.onSave(ev);
+        break;
+      case 'enter':
+        this.onSaveAndExit(ev);
+        break;
+      case 'escape':
+        this.onCancel();
+        break;
+      default:
+    }
+  };
 
   focusAtStart = () => {
     const state = this.editor.getState();
@@ -174,6 +198,7 @@ type Props = {
             schema={this.schema}
             plugins={this.plugins}
             state={this.state.state}
+            onKeyDown={this.onKeyDown}
             onChange={this.onChange}
             onDocumentChange={this.onDocumentChange}
             onSave={this.props.onSave}
