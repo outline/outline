@@ -269,10 +269,6 @@ const LoadingState = styled(PreviewLoading)`
   margin: 80px 20px;
 `;
 
-const DocumentContainer = styled.div`
-
-`;
-
 const StyledDropToImport = styled(DropToImport)`
   display: flex;
   flex: 1;
