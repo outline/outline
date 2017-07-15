@@ -33,13 +33,12 @@ type Props = {
   }
 
   render() {
-    const isEmpty = this.props.documents.recentlyViewed.length === 0;
-    const isFetching = this.props.documents.isFetching;
+    const { isLoaded, isFetching } = this.props.documents;
 
     return (
       <CenteredContent>
         <PageTitle title="Home" />
-        {isEmpty && isFetching && <LoadingIndicator />}
+        {!isLoaded && isFetching && <LoadingIndicator />}
         <h1>Home</h1>
         <Subheading>Recently viewed</Subheading>
         <DocumentList documents={this.props.documents.recentlyViewed} />
