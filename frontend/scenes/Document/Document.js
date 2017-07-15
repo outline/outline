@@ -124,13 +124,13 @@ type Props = {
     );
   }
 
-  onImageUploadStart() {
+  onImageUploadStart = () => {
     this.setState({ isLoading: true });
-  }
+  };
 
-  onImageUploadStop() {
+  onImageUploadStop = () => {
     this.setState({ isLoading: false });
-  }
+  };
 
   onChange = text => {
     if (!this.document) return;
@@ -168,7 +168,7 @@ type Props = {
 
   render() {
     const isNew = this.props.newDocument;
-    const isEditing = this.props.match.params.edit || isNew;
+    const isEditing = !!this.props.match.params.edit || isNew;
     const isFetching = !this.document;
     const titleText = get(this.document, 'title', 'Loading');
 
@@ -192,28 +192,27 @@ type Props = {
             onDragEnter={this.onStartDragging}
             onDragLeave={this.onStopDragging}
             onDrop={this.onStopDragging}
+            disabled={isEditing}
           >
             <Flex justify="center" auto>
               <Prompt
                 when={this.document.hasPendingChanges}
                 message={DISCARD_CHANGES}
               />
-              <DocumentContainer>
-                <Editor
-                  key={this.document.id}
-                  text={this.document.text}
-                  onImageUploadStart={this.onImageUploadStart}
-                  onImageUploadStop={this.onImageUploadStop}
-                  onChange={this.onChange}
-                  onSave={this.onSave}
-                  onCancel={this.onCancel}
-                  onStar={this.document.star}
-                  onUnstar={this.document.unstar}
-                  starred={this.document.starred}
-                  heading={this.renderHeading(!!isEditing)}
-                  readOnly={!isEditing}
-                />
-              </DocumentContainer>
+              <Editor
+                key={this.document.id}
+                text={this.document.text}
+                onImageUploadStart={this.onImageUploadStart}
+                onImageUploadStop={this.onImageUploadStop}
+                onChange={this.onChange}
+                onSave={this.onSave}
+                onCancel={this.onCancel}
+                onStar={this.document.star}
+                onUnstar={this.document.unstar}
+                starred={this.document.starred}
+                heading={this.renderHeading(!!isEditing)}
+                readOnly={!isEditing}
+              />
               <Meta align="center" justify="flex-end" readOnly={!isEditing}>
                 <Flex align="center">
                   <HeaderAction>
@@ -268,14 +267,6 @@ const Container = styled(Flex)`
 
 const LoadingState = styled(PreviewLoading)`
   margin: 80px 20px;
-`;
-
-const DocumentContainer = styled.div`
-  font-weight: 400;
-  font-size: 1em;
-  line-height: 1.5em;
-  padding: 0 3em;
-  width: 50em;
 `;
 
 const StyledDropToImport = styled(DropToImport)`

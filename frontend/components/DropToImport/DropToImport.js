@@ -19,6 +19,7 @@ class DropToImport extends Component {
     activeClassName?: string,
     rejectClassName?: string,
     documents: DocumentsStore,
+    disabled: boolean,
     history: Object,
   };
   state = {
@@ -83,8 +84,11 @@ class DropToImport extends Component {
       'history',
       'documentId',
       'collectionId',
-      'documents'
+      'documents',
+      'disabled'
     );
+
+    if (this.props.disabled) return this.props.children;
 
     return (
       <Dropzone
