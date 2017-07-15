@@ -119,6 +119,12 @@ Document.associate = models => {
   Document.hasMany(models.Star, {
     as: 'starred',
   });
+  Document.hasMany(models.View, {
+    as: 'views',
+  });
+  Document.addScope('withViews', userId => ({
+    include: [{ model: models.View, as: 'views', where: { userId } }],
+  }));
   Document.addScope(
     'defaultScope',
     {
@@ -169,7 +175,9 @@ Document.searchForUser = async (user, query, options = {}) => {
       model: Document,
     })
     .map(document => document.id);
-  return Document.findAll({
+
+  const withViewsScope = { method: ['withViews', user.id] };
+  return Document.scope('defaultScope', withViewsScope).findAll({
     where: { id: ids },
   });
 };

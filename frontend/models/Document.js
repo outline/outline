@@ -21,6 +21,9 @@ class Document {
 
   collaborators: Array<User>;
   collection: $Shape<Collection>;
+  firstViewedAt: ?string;
+  lastViewedAt: ?string;
+  modifiedSinceViewed: ?boolean;
   createdAt: string;
   createdBy: User;
   html: string;

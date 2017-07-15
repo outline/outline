@@ -100,9 +100,7 @@ router.post('documents.info', auth(), async ctx => {
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, document, {
-      includeViews: true,
-    }),
+    data: await presentDocument(ctx, document),
   };
 });
 

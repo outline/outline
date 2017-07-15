@@ -2,12 +2,13 @@
 import React, { Component } from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
+import { color } from 'styles/constants';
 import Collection from 'models/Collection';
 import type { User } from 'types';
 import Flex from 'components/Flex';
 
 const Container = styled(Flex)`
-  color: #bbb;
+  color: ${color.slate};
   font-size: 13px;
 `;
 
@@ -21,12 +22,17 @@ const Avatar = styled.img`
   height: 26px;
   flex-shrink: 0;
   border-radius: 50%;
-  border: 2px solid #FFFFFF;
+  border: 2px solid ${color.white};
   margin-right: -13px;
 
   &:first-child {
     margin-right: 0;
   }
+`;
+
+const Modified = styled.span`
+  color: ${props => (props.highlight ? color.slateDark : color.slate)};
+  font-weight: ${props => (props.highlight ? '600' : '400')};
 `;
 
 class PublishingInfo extends Component {
@@ -37,11 +43,13 @@ class PublishingInfo extends Component {
     createdBy: User,
     updatedAt: string,
     updatedBy: User,
+    modifiedSinceViewed?: boolean,
     views?: number,
   };
 
   render() {
     const {
+      modifiedSinceViewed,
       collaborators,
       collection,
       createdAt,
@@ -68,10 +76,12 @@ class PublishingInfo extends Component {
             </span>
           : <span>
               {updatedBy.name}
-              {' '}
-              modified
-              {' '}
-              {moment(updatedAt).fromNow()}
+              <Modified highlight={modifiedSinceViewed}>
+                {' '}
+                modified
+                {' '}
+                {moment(updatedAt).fromNow()}
+              </Modified>
             </span>}
         {collection && <span>&nbsp;in <strong>{collection.name}</strong></span>}
       </Container>

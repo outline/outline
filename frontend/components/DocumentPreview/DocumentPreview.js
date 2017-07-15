@@ -54,6 +54,7 @@ class DocumentPreview extends Component {
           createdBy={document.createdBy}
           updatedAt={document.updatedAt}
           updatedBy={document.updatedBy}
+          modifiedSinceViewed={document.modifiedSinceViewed}
           collection={showCollection ? document.collection : undefined}
         />
       </DocumentLink>
