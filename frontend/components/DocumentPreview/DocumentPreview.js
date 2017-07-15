@@ -9,6 +9,7 @@ import PublishingInfo from 'components/PublishingInfo';
 type Props = {
   document: Document,
   highlight?: ?string,
+  showCollection?: boolean,
   innerRef?: Function,
 };
 
@@ -43,7 +44,7 @@ class DocumentPreview extends Component {
   props: Props;
 
   render() {
-    const { document, innerRef, ...rest } = this.props;
+    const { document, showCollection, innerRef, ...rest } = this.props;
 
     return (
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
@@ -53,6 +54,7 @@ class DocumentPreview extends Component {
           createdBy={document.createdBy}
           updatedAt={document.updatedAt}
           updatedBy={document.updatedBy}
+          collection={showCollection ? document.collection : undefined}
         />
       </DocumentLink>
     );

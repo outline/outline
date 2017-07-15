@@ -2,11 +2,11 @@
 import React, { Component } from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
+import Collection from 'models/Collection';
 import type { User } from 'types';
 import Flex from 'components/Flex';
 
 const Container = styled(Flex)`
-  justify-content: space-between;
   color: #bbb;
   font-size: 13px;
 `;
@@ -32,6 +32,7 @@ const Avatar = styled.img`
 class PublishingInfo extends Component {
   props: {
     collaborators?: Array<User>,
+    collection?: Collection,
     createdAt: string,
     createdBy: User,
     updatedAt: string,
@@ -42,6 +43,7 @@ class PublishingInfo extends Component {
   render() {
     const {
       collaborators,
+      collection,
       createdAt,
       updatedAt,
       createdBy,
@@ -71,6 +73,7 @@ class PublishingInfo extends Component {
               {' '}
               {moment(updatedAt).fromNow()}
             </span>}
+        {collection && <span>&nbsp;in <strong>{collection.name}</strong></span>}
       </Container>
     );
   }

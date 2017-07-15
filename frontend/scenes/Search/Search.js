@@ -125,6 +125,7 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
                   key={document.id}
                   document={document}
                   highlight={this.store.searchTerm}
+                  showCollection
                 />
               ))}
             </StyledArrowKeyNavigation>

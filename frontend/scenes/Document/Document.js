@@ -151,6 +151,8 @@ type Props = {
 
   renderHeading(isEditing: boolean) {
     invariant(this.document, 'document not available');
+    if (this.props.newDocument) return;
+
     return (
       <InfoWrapper visible={!isEditing}>
         <PublishingInfo

@@ -193,12 +193,15 @@ router.post('documents.create', auth(), async ctx => {
     text,
   });
 
+  // reload to get all of the data needed to present (user, collection etc)
+  const document = await Document.findById(newDocument.id);
+
   if (ownerCollection.type === 'atlas') {
-    await ownerCollection.addDocumentToStructure(newDocument, index);
+    await ownerCollection.addDocumentToStructure(document, index);
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, newDocument),
+    data: await presentDocument(ctx, document),
   };
 });
 
