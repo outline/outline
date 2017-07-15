@@ -35,7 +35,7 @@ import Error404 from 'scenes/Error404';
 
 import ScrollToTop from 'components/ScrollToTop';
 import Layout from 'components/Layout';
-import SidebarHidden from 'components/SidebarHidden';
+import RouteSidebarHidden from 'components/RouteSidebarHidden';
 
 import flatpages from 'static/flatpages';
 
@@ -122,25 +122,21 @@ render(
                   <Route exact path="/search" component={Search} />
                   <Route exact path="/search/:query" component={Search} />
                   <Route exact path="/settings" component={Settings} />
-                  <Route exact path="/developers" component={Api} />
 
                   <Route path="/404" component={Error404} />
 
-                  {/* This is a bit busted, break any view after it */}
-                  <SidebarHidden>
-                    <Switch>
-                      <Route
-                        exact
-                        path={`/doc/${matchDocumentSlug}/:edit`}
-                        component={Document}
-                      />
-                      <Route
-                        exact
-                        path="/collections/:id/new"
-                        component={DocumentNew}
-                      />
-                    </Switch>
-                  </SidebarHidden>
+                  <RouteSidebarHidden
+                    exact
+                    path={`/doc/${matchDocumentSlug}/:edit`}
+                    component={Document}
+                  />
+                  <RouteSidebarHidden
+                    exact
+                    path="/collections/:id/new"
+                    component={DocumentNew}
+                  />
+
+                  <Route exact path="/developers" component={Api} />
 
                   <Route component={notFoundSearch} />
                 </Switch>
