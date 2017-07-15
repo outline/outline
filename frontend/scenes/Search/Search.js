@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import ReactDOM from 'react-dom';
+import keydown from 'react-keydown';
 import { observer } from 'mobx-react';
 import _ from 'lodash';
 import Flex from 'components/Flex';
@@ -65,12 +66,18 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
     }
   }
 
+  @keydown('esc')
+  goBack() {
+    this.props.history.goBack();
+  }
+
   handleKeyDown = ev => {
-    // ESC
+    // Escape
     if (ev.which === 27) {
       ev.preventDefault();
-      this.props.history.goBack();
+      this.goBack();
     }
+
     // Down
     if (ev.which === 40) {
       ev.preventDefault();
