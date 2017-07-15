@@ -18,7 +18,7 @@
     "sequelize:migrate": "sequelize db:migrate",
     "test": "npm run test:frontend && npm run test:server",
     "test:frontend": "jest",
-    "test:server": "jest --config=server/.jestconfig.json --runInBand",
+    "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "precommit": "lint-staged"
   },
   "lint-staged": {
@@ -48,7 +48,7 @@
       "frontend"
     ],
     "setupFiles": [
-      "<rootDir>/frontend/utils/setupJest.js",
+      "<rootDir>/setupJest.js",
       "<rootDir>/__mocks__/window.js"
     ]
   },

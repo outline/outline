@@ -4,8 +4,6 @@ beforeEach(flushdb);
 
 it('should set JWT secret and password digest', async () => {
   const { user } = await seed();
-  await user.save();
-
   expect(user.passwordDigest).toBeTruthy();
   expect(user.getJwtToken()).toBeTruthy();
 

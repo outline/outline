@@ -130,6 +130,11 @@ Document.associate = models => {
     },
     { override: true }
   );
+  Document.addScope('withStarred', userId => ({
+    include: [
+      { model: models.Star, as: 'starred', where: { userId }, required: false },
+    ],
+  }));
 };
 
 Document.findById = async id => {
