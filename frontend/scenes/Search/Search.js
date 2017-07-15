@@ -11,6 +11,7 @@ import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import CenteredContent from 'components/CenteredContent';
+import LoadingIndicator from 'components/LoadingIndicator';
 import SearchField from './components/SearchField';
 import SearchStore from './SearchStore';
 
@@ -101,13 +102,21 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
     this.firstDocument = ref;
   };
 
+  get title() {
+    const query = this.store.searchTerm;
+    const title = 'Search';
+    if (query) return `${query} - ${title}`;
+    return title;
+  }
+
   render() {
     const query = this.props.match.params.query;
     const hasResults = this.store.documents.length > 0;
 
     return (
       <Container auto>
-        <PageTitle title="Search" />
+        <PageTitle title={this.title} />
+        {this.store.isFetching && <LoadingIndicator />}
         {this.props.notFound &&
           <div>
             <h1>Not Found</h1>
