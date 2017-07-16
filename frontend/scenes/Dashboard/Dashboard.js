@@ -7,7 +7,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import CenteredContent from 'components/CenteredContent';
-import LoadingIndicator from 'components/LoadingIndicator';
+import LoadingListPlaceholder from 'components/LoadingListPlaceholder';
 
 const Subheading = styled.h3`
   font-size: 11px;
@@ -38,13 +38,14 @@ type Props = {
     return (
       <CenteredContent>
         <PageTitle title="Home" />
-        {!isLoaded && isFetching && <LoadingIndicator />}
         <h1>Home</h1>
         <Subheading>Recently viewed</Subheading>
+        {!isLoaded && isFetching && <LoadingListPlaceholder />}
         <DocumentList documents={this.props.documents.recentlyViewed} />
 
         <Subheading>Recently edited</Subheading>
         <DocumentList documents={this.props.documents.recentlyEdited} />
+        {!isLoaded && isFetching && <LoadingListPlaceholder />}
       </CenteredContent>
     );
   }

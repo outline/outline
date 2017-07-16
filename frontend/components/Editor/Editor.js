@@ -225,6 +225,7 @@ const HeaderContainer = styled(Flex).attrs({
   align: 'flex-end',
 })`
   height: 100px;
+  flex-shrink: 0;
   ${({ readOnly }) => !readOnly && 'cursor: text;'}
 `;
 

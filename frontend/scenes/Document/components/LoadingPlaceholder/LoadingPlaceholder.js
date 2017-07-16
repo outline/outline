@@ -13,7 +13,7 @@ const randomValues = Array.from(
   () => `${randomInteger(85, 100)}%`
 );
 
-export default (props: {}) => {
+export default (props: Object) => {
   return (
     <ReactCSSTransitionGroup
       transitionName="fadeIn"
