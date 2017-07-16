@@ -9,6 +9,7 @@ import _ from 'lodash';
 import keydown from 'react-keydown';
 import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
+import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
@@ -51,15 +52,21 @@ type Props = {
   @observable modal = null;
 
   @keydown(['/', 't'])
-  search() {
-    if (this.props.auth.authenticated)
-      _.defer(() => this.props.history.push('/search'));
+  goToSearch(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.props.history.push(searchUrl());
   }
 
   @keydown('d')
-  dashboard() {
-    if (this.props.auth.authenticated)
-      _.defer(() => this.props.history.push('/'));
+  goToDashboard() {
+    this.props.history.push(homeUrl());
+  }
+
+  @keydown('e')
+  goToEdit() {
+    if (!this.props.ui.activeDocument) return;
+    this.props.history.push(documentEditUrl(this.props.ui.activeDocument));
   }
 
   handleLogout = () => {
@@ -67,9 +74,9 @@ type Props = {
   };
 
   @keydown('shift+/')
-  handleOpenKeyboardShortcuts = () => {
+  handleOpenKeyboardShortcuts() {
     this.modal = 'keyboard-shortcuts';
-  };
+  }
 
   handleCreateCollection = () => {
     this.modal = 'create-collection';

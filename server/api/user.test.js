@@ -3,12 +3,12 @@ import TestServer from 'fetch-test-server';
 import app from '..';
 import { User } from '../models';
 
-import { flushdb, seed, sequelize } from '../test/support';
+import { flushdb, seed } from '../test/support';
 
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
-afterAll(() => server.close());
+afterAll(server.close);
 
 describe('#user.info', async () => {
   it('should return known user', async () => {
