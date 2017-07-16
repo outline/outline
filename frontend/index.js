@@ -27,7 +27,6 @@ import Starred from 'scenes/Starred';
 import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
 import Search from 'scenes/Search';
-import Settings from 'scenes/Settings';
 import SlackAuth from 'scenes/SlackAuth';
 import Flatpage from 'scenes/Flatpage';
 import ErrorAuth from 'scenes/ErrorAuth';
@@ -121,7 +120,7 @@ render(
 
                   <Route exact path="/search" component={Search} />
                   <Route exact path="/search/:query" component={Search} />
-                  <Route exact path="/settings" component={Settings} />
+                  <Route exact path="/developers" component={Api} />
 
                   <Route path="/404" component={Error404} />
 
@@ -135,9 +134,6 @@ render(
                     path="/collections/:id/new"
                     component={DocumentNew}
                   />
-
-                  <Route exact path="/developers" component={Api} />
-
                   <Route component={notFoundSearch} />
                 </Switch>
               </Layout>

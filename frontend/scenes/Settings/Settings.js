@@ -1,17 +1,17 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-import Flex from 'components/Flex';
-
+import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 import ApiKeyRow from './components/ApiKeyRow';
-import styles from './Settings.scss';
 import SettingsStore from './SettingsStore';
+import { color } from 'styles/constants';
 
+import Flex from 'components/Flex';
 import Button from 'components/Button';
 import Input from 'components/Input';
-import CenteredContent from 'components/CenteredContent';
+import HelpText from 'components/HelpText';
 import SlackAuthLink from 'components/SlackAuthLink';
-import PageTitle from 'components/PageTitle';
 
 @observer class Settings extends React.Component {
   store: SettingsStore;
@@ -25,15 +25,14 @@ import PageTitle from 'components/PageTitle';
     const showSlackSettings = DEPLOYMENT === 'hosted';
 
     return (
-      <CenteredContent>
-        <PageTitle title="Settings" />
+      <Flex column>
         {showSlackSettings &&
-          <div className={styles.section}>
-            <h2 className={styles.sectionHeader}>Slack</h2>
-            <p>
+          <Section>
+            <h2>Slack</h2>
+            <HelpText>
               Connect Atlas to your Slack to instantly search for your documents
               using <code>/atlas</code> command.
-            </p>
+            </HelpText>
 
             <SlackAuthLink
               scopes={['commands']}
@@ -47,17 +46,17 @@ import PageTitle from 'components/PageTitle';
                 srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
               />
             </SlackAuthLink>
-          </div>}
+          </Section>}
 
-        <div className={styles.section}>
-          <h2 className={styles.sectionHeader}>API access</h2>
-          <p>
+        <Section>
+          <h2>API access</h2>
+          <HelpText>
             Create API tokens to hack on your Atlas.
-            Learn more in <a href>API documentation</a>.
-          </p>
+            Learn more in <Link to="/developers">API documentation</Link>.
+          </HelpText>
 
           {this.store.apiKeys &&
-            <table className={styles.apiKeyTable}>
+            <Table>
               <tbody>
                 {this.store.apiKeys &&
                   this.store.apiKeys.map(key => (
@@ -70,21 +69,18 @@ import PageTitle from 'components/PageTitle';
                     />
                   ))}
               </tbody>
-            </table>}
-
-          <div>
-            <InlineForm
-              placeholder="Token name"
-              buttonLabel="Create token"
-              name="inline_form"
-              value={this.store.keyName}
-              onChange={this.store.setKeyName}
-              onSubmit={this.store.createApiKey}
-              disabled={this.store.isFetching}
-            />
-          </div>
-        </div>
-      </CenteredContent>
+            </Table>}
+          <InlineForm
+            placeholder="Token name"
+            buttonLabel="Create token"
+            name="inline_form"
+            value={this.store.keyName}
+            onChange={this.store.setKeyName}
+            onSubmit={this.store.createApiKey}
+            disabled={this.store.isFetching}
+          />
+        </Section>
+      </Flex>
     );
   }
 }
@@ -147,5 +143,19 @@ class InlineForm extends React.Component {
     );
   }
 }
+
+const Section = styled.div`
+  margin-bottom: 40px;
+`;
+
+const Table = styled.table`
+  margin-bottom: 20px;
+  width: 100%;
+
+  td {
+    margin-right: 20px;
+    color: ${color.slate};
+  }
+`;
 
 export default Settings;
