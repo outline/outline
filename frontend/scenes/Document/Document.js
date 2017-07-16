@@ -157,10 +157,7 @@ type Props = {
       <InfoWrapper visible={!isEditing}>
         <PublishingInfo
           collaborators={this.document.collaborators}
-          createdAt={this.document.createdAt}
-          createdBy={this.document.createdBy}
-          updatedAt={this.document.updatedAt}
-          updatedBy={this.document.updatedBy}
+          document={this.document}
         />
       </InfoWrapper>
     );
