@@ -12,7 +12,7 @@ function KeyboardShortcuts() {
   return (
     <Flex column>
       <HelpText>
-        Atlas is designed to be super fast and easy to use. 
+        Atlas is designed to be super fast and easy to use.
         All of your usual keyboard shortcuts work here.
       </HelpText>
       <HtmlContent dangerouslySetInnerHTML={{ __html: htmlContent }} />

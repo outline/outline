@@ -1,18 +1,16 @@
 // @flow
 import _ from 'lodash';
-import { User, Document, View } from '../models';
+import { User, Document } from '../models';
 import presentUser from './user';
 import presentCollection from './collection';
 
 type Options = {
   includeCollaborators?: boolean,
-  includeViews?: boolean,
 };
 
 async function present(ctx: Object, document: Document, options: ?Options) {
   options = {
     includeCollaborators: true,
-    includeViews: false,
     ...options,
   };
   ctx.cache.set(document.id, document);
@@ -28,6 +26,8 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     createdBy: presentUser(ctx, document.createdBy),
     updatedAt: document.updatedAt,
     updatedBy: presentUser(ctx, document.updatedBy),
+    firstViewedAt: undefined,
+    lastViewedAt: undefined,
     team: document.teamId,
     collaborators: [],
     starred: !!document.starred,
@@ -40,10 +40,10 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     data.collection = await presentCollection(ctx, document.collection);
   }
 
-  if (options.includeViews) {
-    data.views = await View.sum('count', {
-      where: { documentId: document.id },
-    });
+  if (document.views && document.views.length === 1) {
+    data.views = document.views[0].count;
+    data.firstViewedAt = document.views[0].createdAt;
+    data.lastViewedAt = document.views[0].updatedAt;
   }
 
   if (options.includeCollaborators) {

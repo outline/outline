@@ -1,18 +1,9 @@
-import { User } from '.';
-
-import { flushdb, sequelize } from '../test/support';
+import { flushdb, seed } from '../test/support';
 
 beforeEach(flushdb);
 
 it('should set JWT secret and password digest', async () => {
-  const user = User.build({
-    username: 'user',
-    name: 'User',
-    email: 'user1@example.com',
-    password: 'test123!',
-  });
-  await user.save();
-
+  const { user } = await seed();
   expect(user.passwordDigest).toBeTruthy();
   expect(user.getJwtToken()).toBeTruthy();
 

@@ -26,8 +26,8 @@ const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
     DropOrPasteImages({
       extensions: ['png', 'jpg', 'gif'],
       applyTransform: async (transform, file) => {
+        onImageUploadStart();
         try {
-          onImageUploadStart();
           const asset = await uploadFile(file);
           const alt = file.name;
           const src = asset.url;
@@ -39,6 +39,7 @@ const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
           });
         } catch (err) {
           // TODO: Show a failure alert
+          console.error(err);
         } finally {
           onImageUploadStop();
         }

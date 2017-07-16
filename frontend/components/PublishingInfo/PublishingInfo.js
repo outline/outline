@@ -2,12 +2,14 @@
 import React, { Component } from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
+import { color } from 'styles/constants';
+import Collection from 'models/Collection';
+import Document from 'models/Document';
 import type { User } from 'types';
 import Flex from 'components/Flex';
 
 const Container = styled(Flex)`
-  justify-content: space-between;
-  color: #bbb;
+  color: ${color.slate};
   font-size: 13px;
 `;
 
@@ -21,7 +23,7 @@ const Avatar = styled.img`
   height: 26px;
   flex-shrink: 0;
   border-radius: 50%;
-  border: 2px solid #FFFFFF;
+  border: 2px solid ${color.white};
   margin-right: -13px;
 
   &:first-child {
@@ -29,24 +31,28 @@ const Avatar = styled.img`
   }
 `;
 
+const Modified = styled.span`
+  color: ${props => (props.highlight ? color.slateDark : color.slate)};
+  font-weight: ${props => (props.highlight ? '600' : '400')};
+`;
+
 class PublishingInfo extends Component {
   props: {
     collaborators?: Array<User>,
-    createdAt: string,
-    createdBy: User,
-    updatedAt: string,
-    updatedBy: User,
+    collection?: Collection,
+    document: Document,
     views?: number,
   };
 
   render() {
+    const { collaborators, collection, document } = this.props;
     const {
-      collaborators,
+      modifiedSinceViewed,
       createdAt,
       updatedAt,
       createdBy,
       updatedBy,
-    } = this.props;
+    } = document;
 
     return (
       <Container align="center">
@@ -66,11 +72,14 @@ class PublishingInfo extends Component {
             </span>
           : <span>
               {updatedBy.name}
-              {' '}
-              modified
-              {' '}
-              {moment(updatedAt).fromNow()}
+              <Modified highlight={modifiedSinceViewed}>
+                {' '}
+                modified
+                {' '}
+                {moment(updatedAt).fromNow()}
+              </Modified>
             </span>}
+        {collection && <span>&nbsp;in <strong>{collection.name}</strong></span>}
       </Container>
     );
   }
