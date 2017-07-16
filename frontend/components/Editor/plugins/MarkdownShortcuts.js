@@ -20,6 +20,8 @@ export default function MarkdownShortcuts() {
           return this.onDash(ev, state);
         case '`':
           return this.onBacktick(ev, state);
+        case 'tab':
+          return this.onTab(ev, state);
         case 'space':
           return this.onSpace(ev, state);
         case 'backspace':
@@ -181,6 +183,17 @@ export default function MarkdownShortcuts() {
           state = transform.apply();
           return state;
         }
+      }
+    },
+
+    /**
+     * On tab, if at the end of the heading jump to the main body content
+     * as if it is another input field (act the same as enter).
+     */
+    onTab(ev: SyntheticEvent, state: Object) {
+      if (state.startBlock.type === 'heading1') {
+        ev.preventDefault();
+        return state.transform().splitBlock().setBlock('paragraph').apply();
       }
     },
 
