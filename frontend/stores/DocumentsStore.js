@@ -18,6 +18,10 @@ import CacheStore from 'stores/CacheStore';
 
 const DOCUMENTS_CACHE_KEY = 'DOCUMENTS_CACHE_KEY';
 
+type Options = {
+  cache: CacheStore,
+};
+
 class DocumentsStore {
   @observable recentlyViewedIds: Array<string> = [];
   @observable data: Map<string, Document> = new ObservableMap([]);
