@@ -12,7 +12,7 @@ import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
-import LoadingPlaceholder from './components/LoadingPlaceholder';
+import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import Editor from 'components/Editor';
 import DropToImport from 'components/DropToImport';
 import { HeaderAction, SaveAction } from 'components/Layout';
