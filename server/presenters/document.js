@@ -31,7 +31,6 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     team: document.teamId,
     collaborators: [],
     starred: !!document.starred,
-    modifiedSinceViewed: undefined,
     collaboratorCount: undefined,
     collection: undefined,
     views: undefined,
@@ -45,7 +44,6 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     data.views = document.views[0].count;
     data.firstViewedAt = document.views[0].createdAt;
     data.lastViewedAt = document.views[0].updatedAt;
-    data.modifiedSinceViewed = data.lastViewedAt < data.updatedAt;
   }
 
   if (options.includeCollaborators) {

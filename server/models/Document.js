@@ -122,9 +122,6 @@ Document.associate = models => {
   Document.hasMany(models.View, {
     as: 'views',
   });
-  Document.addScope('withViews', userId => ({
-    include: [{ model: models.View, as: 'views', where: { userId } }],
-  }));
   Document.addScope(
     'defaultScope',
     {
@@ -136,6 +133,11 @@ Document.associate = models => {
     },
     { override: true }
   );
+  Document.addScope('withViews', userId => ({
+    include: [
+      { model: models.View, as: 'views', where: { userId }, required: false },
+    ],
+  }));
   Document.addScope('withStarred', userId => ({
     include: [
       { model: models.Star, as: 'starred', where: { userId }, required: false },

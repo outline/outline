@@ -4,6 +4,7 @@ import moment from 'moment';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
 import Collection from 'models/Collection';
+import Document from 'models/Document';
 import type { User } from 'types';
 import Flex from 'components/Flex';
 
@@ -39,24 +40,19 @@ class PublishingInfo extends Component {
   props: {
     collaborators?: Array<User>,
     collection?: Collection,
-    createdAt: string,
-    createdBy: User,
-    updatedAt: string,
-    updatedBy: User,
-    modifiedSinceViewed?: boolean,
+    document: Document,
     views?: number,
   };
 
   render() {
+    const { collaborators, collection, document } = this.props;
     const {
       modifiedSinceViewed,
-      collaborators,
-      collection,
       createdAt,
       updatedAt,
       createdBy,
       updatedBy,
-    } = this.props;
+    } = document;
 
     return (
       <Container align="center">

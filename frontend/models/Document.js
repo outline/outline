@@ -41,6 +41,10 @@ class Document {
 
   /* Computed */
 
+  @computed get modifiedSinceViewed(): boolean {
+    return !!this.lastViewedAt && this.lastViewedAt < this.updatedAt;
+  }
+
   @computed get pathToDocument(): Array<string> {
     let path;
     const traveler = (nodes, previousPath) => {
