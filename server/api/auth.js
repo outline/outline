@@ -91,7 +91,7 @@ router.post('auth.slack', async ctx => {
   const body = {
     client_id: process.env.SLACK_KEY,
     client_secret: process.env.SLACK_SECRET,
-    redirect_uri: `${process.env.URL}/auth/slack`,
+    redirect_uri: `${process.env.URL || ''}/auth/slack`,
     code,
   };
 
@@ -108,7 +108,8 @@ router.post('auth.slack', async ctx => {
   if (!data.ok) throw httpErrors.BadRequest(data.error);
 
   // Temp to block
-  const allowedSlackDomains = process.env.ALLOWED_SLACK_DOMAINS.split(',');
+  const allowedSlackDomains = (process.env.ALLOWED_SLACK_DOMAINS || '')
+    .split(',');
   if (!allowedSlackDomains.includes(data.team.domain)) {
     throw apiError(
       400,
@@ -171,7 +172,7 @@ router.post('auth.slackCommands', async ctx => {
   const body = {
     client_id: process.env.SLACK_KEY,
     client_secret: process.env.SLACK_SECRET,
-    redirect_uri: `${process.env.URL}/auth/slack/commands`,
+    redirect_uri: `${process.env.URL || ''}/auth/slack/commands`,
     code,
   };
 

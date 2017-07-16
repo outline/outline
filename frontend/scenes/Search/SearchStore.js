@@ -7,7 +7,6 @@ import Document from 'models/Document';
 class SearchStore {
   @observable documents: Array<Document> = [];
   @observable searchTerm: ?string = null;
-
   @observable isFetching = false;
 
   /* Actions */

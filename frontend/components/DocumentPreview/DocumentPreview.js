@@ -50,10 +50,7 @@ class DocumentPreview extends Component {
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
         <h3>{document.title}</h3>
         <PublishingInfo
-          createdAt={document.createdAt}
-          createdBy={document.createdBy}
-          updatedAt={document.updatedAt}
-          updatedBy={document.updatedBy}
+          document={document}
           collection={showCollection ? document.collection : undefined}
         />
       </DocumentLink>

@@ -13,12 +13,13 @@ router.post('documents.list', auth(), pagination(), async ctx => {
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
-  const documents = await Document.findAll({
+  const userId = user.id;
+  const starredScope = { method: ['withStarred', userId] };
+  const documents = await Document.scope('defaultScope', starredScope).findAll({
     where: { teamId: user.teamId },
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
-    include: [{ model: Star, as: 'starred', where: { userId: user.id } }],
   });
 
   const data = await Promise.all(
@@ -100,9 +101,7 @@ router.post('documents.info', auth(), async ctx => {
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, document, {
-      includeViews: true,
-    }),
+    data: await presentDocument(ctx, document),
   };
 });
 

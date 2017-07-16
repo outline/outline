@@ -45,10 +45,10 @@ const seed = async () => {
     type: 'atlas',
   });
 
-  let document = await Document.create({
+  const document = await Document.create({
     parentDocumentId: null,
     atlasId: collection.id,
-    teamId: collection.teamId,
+    teamId: team.id,
     userId: collection.creatorId,
     lastModifiedById: collection.creatorId,
     createdById: collection.creatorId,

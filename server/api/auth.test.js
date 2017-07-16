@@ -6,7 +6,7 @@ import { flushdb, seed } from '../test/support';
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
-afterAll(() => server.close());
+afterAll(server.close);
 
 describe.skip('#auth.signup', async () => {
   it('should signup a new user', async () => {

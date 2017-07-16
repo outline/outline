@@ -21,6 +21,9 @@ class Document {
 
   collaborators: Array<User>;
   collection: $Shape<Collection>;
+  firstViewedAt: ?string;
+  lastViewedAt: ?string;
+  modifiedSinceViewed: ?boolean;
   createdAt: string;
   createdBy: User;
   html: string;
@@ -37,6 +40,10 @@ class Document {
   views: number;
 
   /* Computed */
+
+  @computed get modifiedSinceViewed(): boolean {
+    return !!this.lastViewedAt && this.lastViewedAt < this.updatedAt;
+  }
 
   @computed get pathToDocument(): Array<string> {
     let path;
