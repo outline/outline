@@ -30,6 +30,18 @@
     }
   }
 
+  h1:first-of-type {
+    .placeholder {
+      visibility: visible;
+    }
+  }
+
+  p:first-of-type {
+    .placeholder {
+      visibility: visible;
+    }
+  }
+
   ul,
   ol {
     margin: 1em .1em;
@@ -39,6 +51,10 @@
     ol {
       margin: .1em;
     }
+  }
+
+  p {
+    position: relative;
   }
 
   li p {
@@ -113,8 +129,10 @@
 .placeholder {
   position: absolute;
   top: 0;
+  visibility: hidden;
   pointer-events: none;
-  color: #ddd;
+  user-select: none;
+  color: #B1BECC;
 }
 
 @media all and (max-width: 2000px) and (min-width: 960px) {

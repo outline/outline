@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { Document } from 'slate';
 import _ from 'lodash';
 import slug from 'slug';
 import StarIcon from 'components/Icon/StarIcon';
@@ -41,8 +42,8 @@ const StyledStar = styled(StarIcon)`
   }
 `;
 
-function Heading(
-  {
+function Heading(props: Props, { starred }: Context) {
+  const {
     parent,
     placeholder,
     node,
@@ -52,10 +53,9 @@ function Heading(
     readOnly,
     children,
     component = 'h1',
-  }: Props,
-  { starred }: Context
-) {
-  const firstHeading = parent.nodes.first() === node;
+  } = props;
+  const parentIsDocument = parent instanceof Document;
+  const firstHeading = parentIsDocument && parent.nodes.first() === node;
   const showPlaceholder = placeholder && firstHeading && !node.text;
   const slugish = _.escape(`${component}-${slug(node.text)}`);
   const showStar = readOnly && !!onStar;
@@ -66,7 +66,7 @@ function Heading(
     <Component className={styles.title}>
       {children}
       {showPlaceholder &&
-        <span className={styles.placeholder}>
+        <span className={styles.placeholder} contentEditable={false}>
           {editor.props.placeholder}
         </span>}
       {showHash &&
