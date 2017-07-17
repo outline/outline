@@ -14,11 +14,12 @@ import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
-import KeyboardShortcuts from 'components/KeyboardShortcuts';
 import Avatar from 'components/Avatar';
 import Modal from 'components/Modal';
 import AddIcon from 'components/Icon/AddIcon';
 import CollectionNew from 'scenes/CollectionNew';
+import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
+import Settings from 'scenes/Settings';
 
 import SidebarCollection from './components/SidebarCollection';
 import SidebarCollectionList from './components/SidebarCollectionList';
@@ -78,6 +79,10 @@ type Props = {
     this.modal = 'keyboard-shortcuts';
   }
 
+  handleOpenSettings = () => {
+    this.modal = 'settings';
+  };
+
   handleCreateCollection = () => {
     this.modal = 'create-collection';
   };
@@ -114,9 +119,9 @@ type Props = {
                   <LogoLink to="/">Atlas</LogoLink>
                 </Flex>
                 <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
-                  <MenuLink to="/settings">
-                    <DropdownMenuItem>Settings</DropdownMenuItem>
-                  </MenuLink>
+                  <DropdownMenuItem onClick={this.handleOpenSettings}>
+                    Settings
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
                     Keyboard shortcuts
                   </DropdownMenuItem>
@@ -175,6 +180,13 @@ type Props = {
           title="Keyboard shortcuts"
         >
           <KeyboardShortcuts />
+        </Modal>
+        <Modal
+          isOpen={this.modal === 'settings'}
+          onRequestClose={this.handleCloseModal}
+          title="Settings"
+        >
+          <Settings />
         </Modal>
       </Container>
     );

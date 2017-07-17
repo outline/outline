@@ -204,8 +204,10 @@ type KeyData = {
             onSave={this.props.onSave}
             readOnly={this.props.readOnly}
           />
-          {!this.props.readOnly &&
-            <ClickablePadding onClick={this.focusAtEnd} grow />}
+          <ClickablePadding
+            onClick={!this.props.readOnly ? this.focusAtEnd : undefined}
+            grow
+          />
         </MaxWidth>
       </Flex>
     );
@@ -225,6 +227,7 @@ const HeaderContainer = styled(Flex).attrs({
   align: 'flex-end',
 })`
   height: 100px;
+  flex-shrink: 0;
   ${({ readOnly }) => !readOnly && 'cursor: text;'}
 `;
 
