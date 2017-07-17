@@ -167,7 +167,7 @@ type Props = {
     const isNew = this.props.newDocument;
     const isEditing = !!this.props.match.params.edit || isNew;
     const isFetching = !this.document;
-    const titleText = get(this.document, 'title', 'Loading');
+    const titleText = get(this.document, 'title', '');
     const document = this.document;
 
     return (

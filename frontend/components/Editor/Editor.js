@@ -67,6 +67,16 @@ type KeyData = {
     }
   }
 
+  componentDidMount() {
+    if (!this.props.readOnly) {
+      if (this.props.text) {
+        this.focusAtEnd();
+      } else {
+        this.focusAtStart();
+      }
+    }
+  }
+
   componentDidUpdate(prevProps: Props) {
     if (prevProps.readOnly && !this.props.readOnly) {
       this.focusAtEnd();
