@@ -131,6 +131,8 @@ type KeyData = {
   // Handling of keyboard shortcuts outside of editor focus
   @keydown('meta+s')
   onSave(ev: SyntheticKeyboardEvent) {
+    if (this.props.readOnly) return;
+
     ev.preventDefault();
     ev.stopPropagation();
     this.props.onSave();
@@ -138,6 +140,8 @@ type KeyData = {
 
   @keydown('meta+enter')
   onSaveAndExit(ev: SyntheticKeyboardEvent) {
+    if (this.props.readOnly) return;
+
     ev.preventDefault();
     ev.stopPropagation();
     this.props.onSave({ redirect: false });
@@ -145,6 +149,7 @@ type KeyData = {
 
   @keydown('esc')
   onCancel() {
+    if (this.props.readOnly) return;
     this.props.onCancel();
   }
 
