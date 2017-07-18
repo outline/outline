@@ -32,20 +32,23 @@ type Props = {
     this.props.documents.fetchRecentlyViewed();
   }
 
-  render() {
+  get showPlaceholder() {
     const { isLoaded, isFetching } = this.props.documents;
+    return !isLoaded && isFetching;
+  }
 
+  render() {
     return (
       <CenteredContent>
         <PageTitle title="Home" />
         <h1>Home</h1>
         <Subheading>Recently viewed</Subheading>
-        {!isLoaded && isFetching && <ListPlaceholder />}
+        {this.showPlaceholder && <ListPlaceholder />}
         <DocumentList documents={this.props.documents.recentlyViewed} />
 
         <Subheading>Recently edited</Subheading>
         <DocumentList documents={this.props.documents.recentlyEdited} />
-        {!isLoaded && isFetching && <ListPlaceholder />}
+        {this.showPlaceholder && <ListPlaceholder />}
       </CenteredContent>
     );
   }
