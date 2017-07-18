@@ -5,6 +5,7 @@ import Image from './components/Image';
 import Link from './components/Link';
 import ListItem from './components/ListItem';
 import Heading from './components/Heading';
+import Paragraph from './components/Paragraph';
 import type { Props, Node, Transform } from './types';
 import styles from './Editor.scss';
 
@@ -25,7 +26,7 @@ const createSchema = ({ onStar, onUnstar }: Options) => {
     },
 
     nodes: {
-      paragraph: (props: Props) => <p>{props.children}</p>,
+      paragraph: (props: Props) => <Paragraph {...props} />,
       'block-quote': (props: Props) => (
         <blockquote>{props.children}</blockquote>
       ),
