@@ -26,7 +26,9 @@ class Collection {
   /* Computed */
 
   @computed get entryUrl(): string {
-    return this.type === 'atlas' ? this.documents[0].url : this.url;
+    return this.type === 'atlas' && this.documents.length > 0
+      ? this.documents[0].url
+      : this.url;
   }
 
   /* Actions */

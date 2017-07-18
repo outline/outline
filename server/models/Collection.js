@@ -39,19 +39,29 @@ const Collection = sequelize.define(
         collection.urlId = collection.urlId || randomstring.generate(10);
       },
       afterCreate: async collection => {
+        const team = await collection.getTeam();
+        const collections = await team.getCollections();
+
+        // Don't auto-create for journal types, yet
         if (collection.type !== 'atlas') return;
 
-        const document = await Document.create({
-          parentDocumentId: null,
-          atlasId: collection.id,
-          teamId: collection.teamId,
-          userId: collection.creatorId,
-          lastModifiedById: collection.creatorId,
-          createdById: collection.creatorId,
-          title: 'Introduction',
-          text: '# Introduction\n\nLets get started...',
-        });
-        collection.documentStructure = [document.toJSON()];
+        if (collections.length === 0) {
+          // Create intro document if first collection for team
+          const document = await Document.create({
+            parentDocumentId: null,
+            atlasId: collection.id,
+            teamId: collection.teamId,
+            userId: collection.creatorId,
+            lastModifiedById: collection.creatorId,
+            createdById: collection.creatorId,
+            title: 'Introduction',
+            text: '# Introduction\n\nLets get started...',
+          });
+          collection.documentStructure = [document.toJSON()];
+        } else {
+          // Let user create first document
+          collection.documentStructure = [];
+        }
         await collection.save();
       },
     },
@@ -64,6 +74,9 @@ Collection.associate = models => {
   Collection.hasMany(models.Document, {
     as: 'documents',
     foreignKey: 'atlasId',
+  });
+  Collection.belongsTo(models.Team, {
+    as: 'team',
   });
   Collection.addScope('withRecentDocuments', {
     include: [
