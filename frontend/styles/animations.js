@@ -12,3 +12,9 @@ export const fadeAndScaleIn = keyframes`
     transform: scale(1);
   }
 `;
+
+export const pulsate = keyframes`
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+`;

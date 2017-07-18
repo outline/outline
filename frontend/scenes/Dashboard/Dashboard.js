@@ -7,6 +7,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import CenteredContent from 'components/CenteredContent';
+import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 const Subheading = styled.h3`
   font-size: 11px;
@@ -31,16 +32,23 @@ type Props = {
     this.props.documents.fetchRecentlyViewed();
   }
 
+  get showPlaceholder() {
+    const { isLoaded, isFetching } = this.props.documents;
+    return !isLoaded && isFetching;
+  }
+
   render() {
     return (
       <CenteredContent>
         <PageTitle title="Home" />
         <h1>Home</h1>
         <Subheading>Recently viewed</Subheading>
+        {this.showPlaceholder && <ListPlaceholder />}
         <DocumentList documents={this.props.documents.recentlyViewed} />
 
         <Subheading>Recently edited</Subheading>
         <DocumentList documents={this.props.documents.recentlyEdited} />
+        {this.showPlaceholder && <ListPlaceholder />}
       </CenteredContent>
     );
   }

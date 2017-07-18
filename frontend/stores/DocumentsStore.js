@@ -12,6 +12,7 @@ class DocumentsStore {
   @observable recentlyViewedIds: Array<string> = [];
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
+  @observable isFetching: boolean = false;
   errors: ErrorsStore;
 
   /* Computed */
@@ -34,6 +35,8 @@ class DocumentsStore {
   /* Actions */
 
   @action fetchAll = async (request: string = 'list'): Promise<*> => {
+    this.isFetching = true;
+
     try {
       const res = await client.post(`/documents.${request}`);
       invariant(res && res.data, 'Document list not available');
@@ -47,6 +50,8 @@ class DocumentsStore {
       return data;
     } catch (e) {
       this.errors.add('Failed to load documents');
+    } finally {
+      this.isFetching = false;
     }
   };
 
@@ -63,6 +68,8 @@ class DocumentsStore {
   };
 
   @action fetch = async (id: string): Promise<*> => {
+    this.isFetching = true;
+
     try {
       const res = await client.post('/documents.info', { id });
       invariant(res && res.data, 'Document not available');
@@ -77,6 +84,8 @@ class DocumentsStore {
       return document;
     } catch (e) {
       this.errors.add('Failed to load documents');
+    } finally {
+      this.isFetching = false;
     }
   };
 
