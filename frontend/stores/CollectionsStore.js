@@ -1,5 +1,11 @@
 // @flow
-import { observable, action, runInAction, ObservableArray } from 'mobx';
+import {
+  observable,
+  action,
+  runInAction,
+  ObservableArray,
+  autorunAsync,
+} from 'mobx';
 import ApiClient, { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
@@ -7,9 +13,13 @@ import invariant from 'invariant';
 import stores from 'stores';
 import Collection from 'models/Collection';
 import ErrorsStore from 'stores/ErrorsStore';
+import CacheStore from 'stores/CacheStore';
+
+const COLLECTION_CACHE_KEY = 'COLLECTION_CACHE_KEY';
 
 type Options = {
   teamId: string,
+  cache: CacheStore,
 };
 
 class CollectionsStore {
@@ -19,6 +29,7 @@ class CollectionsStore {
   client: ApiClient;
   teamId: string;
   errors: ErrorsStore;
+  cache: CacheStore;
 
   /* Actions */
 
@@ -54,6 +65,22 @@ class CollectionsStore {
     this.client = client;
     this.errors = stores.errors;
     this.teamId = options.teamId;
+    this.cache = options.cache;
+
+    this.cache.getItem(COLLECTION_CACHE_KEY).then(data => {
+      if (data) {
+        this.data.replace(data.map(collection => new Collection(collection)));
+        this.isLoaded = true;
+      }
+    });
+
+    autorunAsync('CollectionsStore.persists', () => {
+      if (this.data.length > 0)
+        this.cache.setItem(
+          COLLECTION_CACHE_KEY,
+          this.data.map(collection => collection.data)
+        );
+    });
   }
 }
 

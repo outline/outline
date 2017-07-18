@@ -39,6 +39,8 @@ class Document {
   url: string;
   views: number;
 
+  data: Object;
+
   /* Computed */
 
   @computed get modifiedSinceViewed(): boolean {
@@ -148,8 +150,8 @@ class Document {
       invariant(res && res.data, 'Data should be available');
       this.updateData({
         ...res.data,
-        hasPendingChanges: false,
       });
+      this.hasPendingChanges = false;
     } catch (e) {
       this.errors.add('Document failed saving');
     } finally {
@@ -161,7 +163,8 @@ class Document {
 
   updateData(data: Object = {}, dirty: boolean = false) {
     if (data.text) data.title = parseHeader(data.text);
-    if (dirty) data.hasPendingChanges = true;
+    if (dirty) this.hasPendingChanges = true;
+    this.data = data;
     extendObservable(this, data);
   }
 

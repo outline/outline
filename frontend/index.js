@@ -13,6 +13,7 @@ import Flex from 'components/Flex';
 import stores from 'stores';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
+import CacheStore from 'stores/CacheStore';
 
 import 'normalize.css/normalize.css';
 import 'styles/base.scss';
@@ -57,11 +58,15 @@ const Auth = ({ children }: AuthProps) => {
     if (!authenticatedStores) {
       // Stores for authenticated user
       const user = stores.auth.getUserStore();
+      const cache = new CacheStore(user.user.id);
       authenticatedStores = {
         user,
-        documents: new DocumentsStore(),
+        documents: new DocumentsStore({
+          cache,
+        }),
         collections: new CollectionsStore({
           teamId: user.team.id,
+          cache,
         }),
       };
 

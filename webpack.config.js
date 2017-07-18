@@ -37,6 +37,8 @@ module.exports = {
       },
       { test: /\.md/, loader: 'raw-loader' },
     ],
+    // Silence warning https://github.com/localForage/localForage/issues/599
+    noParse: [new RegExp('node_modules/localforage/dist/localforage.js')],
   },
   resolve: {
     root: path.join(__dirname, 'frontend'),
