@@ -22,19 +22,35 @@
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.js": ["eslint --fix", "git add"]
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "jest": {
     "verbose": false,
-    "roots": ["frontend"],
+    "roots": [
+      "frontend"
+    ],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },
-    "moduleFileExtensions": ["js", "jsx", "json"],
-    "moduleDirectories": ["node_modules"],
-    "modulePaths": ["frontend"],
-    "setupFiles": ["<rootDir>/setupJest.js", "<rootDir>/__mocks__/window.js"]
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "modulePaths": [
+      "frontend"
+    ],
+    "setupFiles": [
+      "<rootDir>/setupJest.js",
+      "<rootDir>/__mocks__/window.js"
+    ]
   },
   "engines": {
     "node": ">= 7.6"
@@ -65,6 +81,7 @@
     "boundless-popover": "^1.0.4",
     "bugsnag": "^1.7.0",
     "classnames": "2.2.3",
+    "copy-to-clipboard": "^3.0.6",
     "css-loader": "0.23.1",
     "debug": "2.2.0",
     "dotenv": "^4.0.0",
