@@ -27,7 +27,7 @@ class DocumentsStore {
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
-  
+
   errors: ErrorsStore;
   cache: CacheStore;
 
