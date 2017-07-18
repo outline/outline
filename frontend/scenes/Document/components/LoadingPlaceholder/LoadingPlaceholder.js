@@ -1,7 +1,9 @@
 // @flow
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
+import { pulsate } from 'styles/animations';
+import { color } from 'styles/constants';
 import Flex from 'components/Flex';
 
 import { randomInteger } from 'utils/random';
@@ -11,7 +13,7 @@ const randomValues = Array.from(
   () => `${randomInteger(85, 100)}%`
 );
 
-export default (props: {}) => {
+export default (props: Object) => {
   return (
     <ReactCSSTransitionGroup
       transitionName="fadeIn"
@@ -32,15 +34,9 @@ export default (props: {}) => {
   );
 };
 
-const pulsate = keyframes`
-  0%   { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-`;
-
 const Mask = styled(Flex)`
   height: ${props => (props.header ? 28 : 18)}px;
   margin-bottom: ${props => (props.header ? 32 : 14)}px;
-  background-color: #ddd;
+  background-color: ${color.smoke};
   animation: ${pulsate} 1.3s infinite;
 `;

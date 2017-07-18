@@ -50,6 +50,7 @@ export const color = {
   /* Light Grays */
   smoke: '#F4F7FA',
   smokeLight: '#F9FBFC',
+  smokeDark: '#E8EBED',
 
   /* Misc */
   white: '#FFFFFF',

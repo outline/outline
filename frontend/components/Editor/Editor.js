@@ -67,6 +67,16 @@ type KeyData = {
     }
   }
 
+  componentDidMount() {
+    if (!this.props.readOnly) {
+      if (this.props.text) {
+        this.focusAtEnd();
+      } else {
+        this.focusAtStart();
+      }
+    }
+  }
+
   componentDidUpdate(prevProps: Props) {
     if (prevProps.readOnly && !this.props.readOnly) {
       this.focusAtEnd();
@@ -121,6 +131,8 @@ type KeyData = {
   // Handling of keyboard shortcuts outside of editor focus
   @keydown('meta+s')
   onSave(ev: SyntheticKeyboardEvent) {
+    if (this.props.readOnly) return;
+
     ev.preventDefault();
     ev.stopPropagation();
     this.props.onSave();
@@ -128,6 +140,8 @@ type KeyData = {
 
   @keydown('meta+enter')
   onSaveAndExit(ev: SyntheticKeyboardEvent) {
+    if (this.props.readOnly) return;
+
     ev.preventDefault();
     ev.stopPropagation();
     this.props.onSave({ redirect: false });
@@ -135,6 +149,7 @@ type KeyData = {
 
   @keydown('esc')
   onCancel() {
+    if (this.props.readOnly) return;
     this.props.onCancel();
   }
 
@@ -193,7 +208,8 @@ type KeyData = {
           <Editor
             key={this.props.starred}
             ref={ref => (this.editor = ref)}
-            placeholder="Start with a title..."
+            placeholder="Start with a title…"
+            bodyPlaceholder="Insert witty platitude here"
             className={cx(styles.editor, { readOnly: this.props.readOnly })}
             schema={this.schema}
             plugins={this.plugins}

@@ -12,12 +12,12 @@ import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
+import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import Editor from 'components/Editor';
 import DropToImport from 'components/DropToImport';
 import { HeaderAction, SaveAction } from 'components/Layout';
 import LoadingIndicator from 'components/LoadingIndicator';
 import PublishingInfo from 'components/PublishingInfo';
-import PreviewLoading from 'components/PreviewLoading';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 
@@ -167,7 +167,7 @@ type Props = {
     const isNew = this.props.newDocument;
     const isEditing = !!this.props.match.params.edit || isNew;
     const isFetching = !this.document;
-    const titleText = get(this.document, 'title', 'Loading');
+    const titleText = get(this.document, 'title', '');
     const document = this.document;
 
     return (
@@ -263,8 +263,8 @@ const Container = styled(Flex)`
   width: 100%;
 `;
 
-const LoadingState = styled(PreviewLoading)`
-  margin: 80px 20px;
+const LoadingState = styled(LoadingPlaceholder)`
+  margin: 90px 0;
 `;
 
 const StyledDropToImport = styled(DropToImport)`

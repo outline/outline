@@ -8,7 +8,7 @@ import CollectionsStore from 'stores/CollectionsStore';
 import CollectionStore from './CollectionStore';
 
 import CenteredContent from 'components/CenteredContent';
-import PreviewLoading from 'components/PreviewLoading';
+import LoadingListPlaceholder from 'components/LoadingListPlaceholder';
 
 type Props = {
   collections: CollectionsStore,
@@ -33,7 +33,7 @@ type Props = {
     return this.store.redirectUrl
       ? <Redirect to={this.store.redirectUrl} />
       : <CenteredContent>
-          <PreviewLoading />
+          <LoadingListPlaceholder />
         </CenteredContent>;
   }
 }
