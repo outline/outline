@@ -10,8 +10,14 @@ describe('CollectionsStore', () => {
   let store;
 
   beforeEach(() => {
+    const cache = {
+      getItem: jest.fn(() => Promise.resolve()),
+      setItem: jest.fn(() => {}),
+    };
+
     store = new CollectionsStore({
       teamId: 123,
+      cache,
     });
   });
 

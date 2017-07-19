@@ -12,6 +12,7 @@ class Collection {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
   errors: ErrorsStore;
+  data: Object;
 
   createdAt: string;
   description: ?string;
@@ -64,10 +65,8 @@ class Collection {
         });
       }
       invariant(res && res.data, 'Data should be available');
-      this.updateData({
-        ...res.data,
-        hasPendingChanges: false,
-      });
+      this.updateData(res.data);
+      this.hasPendingChanges = false;
     } catch (e) {
       this.errors.add('Collection failed saving');
       return false;
@@ -79,6 +78,7 @@ class Collection {
   };
 
   updateData(data: Object = {}) {
+    this.data = data;
     extendObservable(this, data);
   }
 

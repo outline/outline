@@ -1,5 +1,12 @@
 // @flow
-import { observable, action, computed, ObservableMap, runInAction } from 'mobx';
+import {
+  observable,
+  action,
+  computed,
+  ObservableMap,
+  runInAction,
+  autorunAsync,
+} from 'mobx';
 import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
@@ -7,13 +14,22 @@ import invariant from 'invariant';
 import stores from 'stores';
 import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
+import CacheStore from 'stores/CacheStore';
+
+const DOCUMENTS_CACHE_KEY = 'DOCUMENTS_CACHE_KEY';
+
+type Options = {
+  cache: CacheStore,
+};
 
 class DocumentsStore {
   @observable recentlyViewedIds: Array<string> = [];
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
+
   errors: ErrorsStore;
+  cache: CacheStore;
 
   /* Computed */
 
@@ -105,8 +121,24 @@ class DocumentsStore {
     return _.find(this.data.values(), { url });
   };
 
-  constructor() {
+  constructor(options: Options) {
     this.errors = stores.errors;
+    this.cache = options.cache;
+
+    this.cache.getItem(DOCUMENTS_CACHE_KEY).then(data => {
+      if (data) {
+        data.forEach(document => this.add(new Document(document)));
+      }
+    });
+
+    autorunAsync('DocumentsStore.persists', () => {
+      if (this.data.size) {
+        this.cache.setItem(
+          DOCUMENTS_CACHE_KEY,
+          Array.from(this.data.values()).map(collection => collection.data)
+        );
+      }
+    });
   }
 }
 
