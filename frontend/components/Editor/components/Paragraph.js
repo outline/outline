@@ -10,12 +10,17 @@ export default function Link({
   node,
   parent,
   children,
+  readOnly,
 }: Props) {
   const parentIsDocument = parent instanceof Document;
   const firstParagraph = parent && parent.nodes.get(1) === node;
   const lastParagraph = parent && parent.nodes.last() === node;
   const showPlaceholder =
-    parentIsDocument && firstParagraph && lastParagraph && !node.text;
+    !readOnly &&
+    parentIsDocument &&
+    firstParagraph &&
+    lastParagraph &&
+    !node.text;
 
   return (
     <p>
