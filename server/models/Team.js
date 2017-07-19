@@ -1,3 +1,4 @@
+// @flow
 import { DataTypes, sequelize } from '../sequelize';
 import Collection from './Collection';
 
@@ -24,7 +25,7 @@ const Team = sequelize.define(
 );
 
 Team.associate = models => {
-  Team.hasMany(models.Collection, { as: 'atlases' });
+  Team.hasMany(models.Collection, { as: 'collections' });
   Team.hasMany(models.Document, { as: 'documents' });
   Team.hasMany(models.User, { as: 'users' });
 };
