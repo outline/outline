@@ -1,5 +1,6 @@
 // @flow
 import Document from 'models/Document';
+import Collection from 'models/Collection';
 
 export function homeUrl(): string {
   return '/dashboard';
@@ -19,6 +20,10 @@ export function documentUrl(doc: Document): string {
 
 export function documentEditUrl(doc: Document): string {
   return `${doc.url}/edit`;
+}
+
+export function newDocumentUrl(collection: Collection): string {
+  return `${collection.url}/new`;
 }
 
 export function searchUrl(query?: string): string {
