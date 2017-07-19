@@ -72,12 +72,13 @@ class Document {
     return [];
   }
 
-  @computed get allowSave(): boolean {
+  @computed get isEmpty(): boolean {
     // Check if the document title has been modified and user generated content exists
-    return (
-      this.text.replace(new RegExp(`^\#$`), '').trim().length > 0 &&
-      !this.isSaving
-    );
+    return this.text.replace(new RegExp(`^\#$`), '').trim().length === 0;
+  }
+
+  @computed get allowSave(): boolean {
+    return !this.isEmpty && !this.isSaving;
   }
 
   /* Actions */

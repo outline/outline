@@ -104,7 +104,7 @@ type Props = {
   };
 
   onSave = async (redirect: boolean = false) => {
-    if (!get(this.document, 'allowSave')) return;
+    if (this.document && !this.document.allowSave) return;
     let document = this.document;
 
     if (!document) return;
@@ -221,7 +221,7 @@ type Props = {
                       ? <SaveAction
                           showCheckmark={this.state.showAsSaved}
                           onClick={this.onSave.bind(this, true)}
-                          disabled={!get(this.document, 'allowSave')}
+                          disabled={!(this.document && this.document.allowSave)}
                           isNew={!!isNew}
                         />
                       : <a onClick={this.onClickEdit}>Edit</a>}
