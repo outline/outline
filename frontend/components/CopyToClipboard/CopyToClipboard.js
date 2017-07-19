@@ -7,7 +7,7 @@ class CopyToClipboard extends PureComponent {
     text: string,
     children?: any,
     onClick?: () => void,
-    onCopy: () => void,
+    onCopy: (string, boolean) => void,
   };
 
   onClick = (ev: SyntheticEvent) => {
