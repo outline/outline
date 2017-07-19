@@ -14,6 +14,8 @@ const parseHeader = text => {
   return firstLine.replace(/^#/, '').trim();
 };
 
+const DEFAULT_TITLE = 'Untitled document';
+
 class Document {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
@@ -32,7 +34,7 @@ class Document {
   private: boolean = false;
   starred: boolean = false;
   text: string = '';
-  title: string = 'Untitled document';
+  title: string = '';
   parentDocument: ?Document;
   updatedAt: string;
   updatedBy: User;
@@ -68,6 +70,14 @@ class Document {
     }
 
     return [];
+  }
+
+  @computed get allowSave(): boolean {
+    // Check if the document title has been modified and user generated content exists
+    return (
+      this.text.replace(new RegExp(`^\#$`), '').trim().length > 0 &&
+      !this.isSaving
+    );
   }
 
   /* Actions */
@@ -135,6 +145,14 @@ class Document {
           text: this.text,
         });
       } else {
+        if (!this.title) {
+          this.title = DEFAULT_TITLE;
+          this.text = this.text.replace(
+            new RegExp(`^\# `),
+            `# ${DEFAULT_TITLE}`
+          );
+        }
+
         const data = {
           parentDocument: undefined,
           collection: this.collection.id,
