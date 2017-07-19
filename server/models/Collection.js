@@ -45,7 +45,7 @@ const Collection = sequelize.define(
         // Don't auto-create for journal types, yet
         if (collection.type !== 'atlas') return;
 
-        if (collections.length === 0) {
+        if (collections.length < 2) {
           // Create intro document if first collection for team
           const document = await Document.create({
             parentDocumentId: null,
