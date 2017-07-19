@@ -58,6 +58,7 @@
     "SLACK_REDIRECT_URI": true,
     "DEPLOYMENT": true,
     "BASE_URL": true,
-    "afterAll": true
+    "afterAll": true,
+    "Bugsnag": true
   }
 }

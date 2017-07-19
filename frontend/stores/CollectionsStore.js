@@ -63,7 +63,8 @@ class CollectionsStore {
           this.add(collection);
         });
       } catch (e) {
-        // No-op
+        Bugsnag.notify(e);
+        this.errors.add('Something went wrong');
       }
     }
 
