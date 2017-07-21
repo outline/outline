@@ -36,7 +36,7 @@ type Props = {
     const { id } = this.props.match.params;
 
     // $FlowIssue not the correct type?
-    this.collection = await collections.getById(id);
+    this.collection = await collections.fetchById(id);
 
     if (!this.collection) this.redirectUrl = '/404';
 

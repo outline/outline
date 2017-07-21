@@ -28,6 +28,19 @@ router.post('collections.create', auth(), async ctx => {
   };
 });
 
+router.post('collections.update', auth(), async ctx => {
+  const { id, name } = ctx.body;
+  ctx.assertPresent(name, 'name is required');
+
+  const collection = await Collection.findById(id);
+  collection.name = name;
+  await collection.save();
+
+  ctx.body = {
+    data: await presentCollection(ctx, collection),
+  };
+});
+
 router.post('collections.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
