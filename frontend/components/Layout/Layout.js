@@ -17,6 +17,7 @@ import Scrollable from 'components/Scrollable';
 import Avatar from 'components/Avatar';
 import Modal from 'components/Modal';
 import AddIcon from 'components/Icon/AddIcon';
+import MoreIcon from 'components/Icon/MoreIcon';
 import CollectionNew from 'scenes/CollectionNew';
 import CollectionEdit from 'scenes/CollectionEdit';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
@@ -152,12 +153,12 @@ type Props = {
                   </LinkSection>
                   <LinkSection>
                     {collections.active
-                      ? <span onClick={this.handleEditCollection}>
-                          ...
-                        </span>
-                      : <CreateCollection onClick={this.handleCreateCollection}>
+                      ? <CollectionAction onClick={this.handleEditCollection}>
+                          <MoreIcon />
+                        </CollectionAction>
+                      : <CollectionAction onClick={this.handleCreateCollection}>
                           <AddIcon />
-                        </CreateCollection>}
+                        </CollectionAction>}
                     {collections.active
                       ? <SidebarCollection
                           document={documents.active}
@@ -214,7 +215,7 @@ type Props = {
   }
 }
 
-const CreateCollection = styled.a`
+const CollectionAction = styled.a`
   position: absolute;
   top: 8px;
   right: ${layout.hpadding};
