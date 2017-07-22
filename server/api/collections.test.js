@@ -1,3 +1,4 @@
+/* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '..';
 import { flushdb, seed } from '../test/support';
@@ -59,18 +60,6 @@ describe('#collections.create', async () => {
     expect(body).toMatchSnapshot();
   });
 
-  it('should update collection', async () => {
-    const { user, collection } = await seed();
-    const res = await server.post('/api/collections.update', {
-      body: { token: user.getJwtToken(), id: collection.id, name: 'Test' },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.id).toBe(collection.id);
-    expect(body.data.name).toBe('Test');
-  });
-
   it('should create collection', async () => {
     const { user } = await seed();
     const res = await server.post('/api/collections.create', {
@@ -81,5 +70,26 @@ describe('#collections.create', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toBeTruthy();
     expect(body.data.name).toBe('Test');
+  });
+});
+
+describe('#collections.delete', async () => {
+  it('should require authentication', async () => {
+    const res = await server.post('/api/collections.delete');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should delete collection', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/collections.delete', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toBe(true);
   });
 });

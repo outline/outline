@@ -66,9 +66,11 @@ class Collection {
           description: this.description,
         });
       }
-      invariant(res && res.data, 'Data should be available');
-      this.updateData(res.data);
-      this.hasPendingChanges = false;
+      runInAction('Collection#save', () => {
+        invariant(res && res.data, 'Data should be available');
+        this.updateData(res.data);
+        this.hasPendingChanges = false;
+      });
     } catch (e) {
       this.errors.add('Collection failed saving');
       return false;
@@ -77,6 +79,14 @@ class Collection {
     }
 
     return true;
+  };
+
+  @action delete = async () => {
+    try {
+      await client.post('/collections.delete', { id: this.id });
+    } catch (e) {
+      this.errors.add('Collection failed to delete');
+    }
   };
 
   updateData(data: Object = {}) {

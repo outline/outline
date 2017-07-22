@@ -194,6 +194,7 @@ type Props = {
           {collections.active &&
             <CollectionEdit
               collection={collections.active}
+              history={history}
               onSubmit={this.handleCloseModal}
             />}
         </Modal>

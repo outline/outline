@@ -6,10 +6,10 @@ import { darken } from 'polished';
 
 const RealButton = styled.button`
   display: inline-block;
-  margin: 0 0 ${size.large};
+  margin: 0 ${size.medium} ${size.large} 0;
   padding: 0;
   border: 0;
-  background: ${color.primary};
+  background: ${props => (props.neutral ? color.slate : props.danger ? color.danger : color.primary)};
   color: ${color.white};
   border-radius: 4px;
   min-width: 32px;
@@ -23,7 +23,7 @@ const RealButton = styled.button`
     border: 0;
   }
   &:hover {
-    background: ${darken(0.05, color.primary)};
+    background: ${props => darken(0.05, props.neutral ? color.slate : props.danger ? color.danger : color.primary)};
   }
   &:disabled {
     background: ${color.slateLight};

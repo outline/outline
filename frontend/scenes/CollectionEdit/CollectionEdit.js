@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import { homeUrl } from 'utils/routeHelpers';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import Flex from 'components/Flex';
@@ -9,6 +10,7 @@ import HelpText from 'components/HelpText';
 import Collection from 'models/Collection';
 
 type Props = {
+  history: Object,
   collection: Collection,
   onSubmit: () => void,
 };
@@ -16,6 +18,8 @@ type Props = {
 @observer class CollectionEdit extends Component {
   props: Props;
   @observable name: string;
+  @observable isConfirming: boolean;
+  @observable isDeleting: boolean;
   @observable isSaving: boolean;
 
   componentWillMount() {
@@ -40,6 +44,23 @@ type Props = {
     this.name = ev.target.value;
   };
 
+  confirmDelete = () => {
+    this.isConfirming = true;
+  };
+
+  cancelDelete = () => {
+    this.isConfirming = false;
+  };
+
+  confirmedDelete = async (ev: SyntheticEvent) => {
+    ev.preventDefault();
+    this.isDeleting = true;
+    await this.props.collection.delete();
+    this.isDeleting = false;
+    this.props.onSubmit();
+    this.props.history.push(homeUrl());
+  };
+
   render() {
     return (
       <Flex column>
@@ -62,6 +83,26 @@ type Props = {
           >
             {this.isSaving ? 'Saving…' : 'Save'}
           </Button>
+        </form>
+        <hr />
+        <form>
+          <HelpText>
+            Deleting a collection will also delete all of the documents within
+            it, so be careful with that.
+          </HelpText>
+          {!this.isConfirming &&
+            <Button type="submit" onClick={this.confirmDelete} neutral>
+              Delete…
+            </Button>}
+          {this.isConfirming &&
+            <span>
+              <Button type="submit" onClick={this.cancelDelete} neutral>
+                Cancel
+              </Button>
+              <Button type="submit" onClick={this.confirmedDelete} danger>
+                {this.isDeleting ? 'Deleting…' : 'Confirm Delete'}
+              </Button>
+            </span>}
         </form>
       </Flex>
     );

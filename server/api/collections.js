@@ -84,4 +84,25 @@ router.post('collections.list', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('collections.delete', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const user = ctx.state.user;
+  const collection = await Collection.findById(id);
+
+  if (!collection || collection.teamId !== user.teamId)
+    throw httpErrors.BadRequest();
+
+  try {
+    await collection.destroy();
+  } catch (e) {
+    throw httpErrors.BadRequest('Error while deleting collection');
+  }
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 export default router;

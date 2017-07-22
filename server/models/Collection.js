@@ -74,6 +74,7 @@ Collection.associate = models => {
   Collection.hasMany(models.Document, {
     as: 'documents',
     foreignKey: 'atlasId',
+    onDelete: 'cascade',
   });
   Collection.belongsTo(models.Team, {
     as: 'team',

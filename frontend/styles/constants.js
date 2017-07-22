@@ -41,6 +41,7 @@ export const color = {
 
   /* Brand */
   primary: '#2B8FBF',
+  danger: '#D0021B',
 
   /* Dark Grays */
   slate: '#9BA6B2',
