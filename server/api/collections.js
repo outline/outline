@@ -1,3 +1,4 @@
+// @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
 import _ from 'lodash';
@@ -15,7 +16,7 @@ router.post('collections.create', auth(), async ctx => {
 
   const user = ctx.state.user;
 
-  const atlas = await Collection.create({
+  const collection = await Collection.create({
     name,
     description,
     type: type || 'atlas',
@@ -24,7 +25,7 @@ router.post('collections.create', auth(), async ctx => {
   });
 
   ctx.body = {
-    data: await presentCollection(ctx, atlas),
+    data: await presentCollection(ctx, collection),
   };
 });
 
@@ -46,17 +47,17 @@ router.post('collections.info', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const atlas = await Collection.scope('withRecentDocuments').findOne({
+  const collection = await Collection.scope('withRecentDocuments').findOne({
     where: {
       id,
       teamId: user.teamId,
     },
   });
 
-  if (!atlas) throw httpErrors.NotFound();
+  if (!collection) throw httpErrors.NotFound();
 
   ctx.body = {
-    data: await presentCollection(ctx, atlas),
+    data: await presentCollection(ctx, collection),
   };
 });
 
@@ -72,7 +73,9 @@ router.post('collections.list', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    collections.map(async atlas => await presentCollection(ctx, atlas))
+    collections.map(
+      async collection => await presentCollection(ctx, collection)
+    )
   );
 
   ctx.body = {

@@ -45,8 +45,8 @@ type Props = {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            Collections are for grouping your Atlas. They work best when organized
-            around a topic or internal team — Product or Engineering for example.
+            You can edit a collection name at any time, but doing so might
+            confuse your team mates.
           </HelpText>
           <Input
             type="text"
