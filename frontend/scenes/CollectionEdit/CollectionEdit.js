@@ -26,7 +26,6 @@ type Props = {
     ev.preventDefault();
     this.isSaving = true;
 
-    console.log(this.props.collection);
     this.props.collection.updateData({ name: this.name });
     const success = await this.props.collection.save();
 

@@ -191,10 +191,11 @@ type Props = {
           onRequestClose={this.handleCloseModal}
           title="Edit collection"
         >
-          <CollectionEdit
-            collection={collections.active}
-            onSubmit={this.handleCloseModal}
-          />
+          {collections.active &&
+            <CollectionEdit
+              collection={collections.active}
+              onSubmit={this.handleCloseModal}
+            />}
         </Modal>
         <Modal
           isOpen={this.modal === 'keyboard-shortcuts'}
