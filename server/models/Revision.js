@@ -1,3 +1,4 @@
+// @flow
 import { DataTypes, sequelize } from '../sequelize';
 
 const Revision = sequelize.define('revision', {

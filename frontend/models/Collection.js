@@ -83,7 +83,10 @@ class Collection {
 
   @action delete = async () => {
     try {
-      await client.post('/collections.delete', { id: this.id });
+      const res = await client.post('/collections.delete', { id: this.id });
+      invariant(res && res.data, 'Data should be available');
+      const { data } = res;
+      return data.success;
     } catch (e) {
       this.errors.add('Collection failed to delete');
     }

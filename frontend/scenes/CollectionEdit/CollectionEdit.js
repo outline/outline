@@ -57,11 +57,15 @@ type Props = {
   confirmedDelete = async (ev: SyntheticEvent) => {
     ev.preventDefault();
     this.isDeleting = true;
-    await this.props.collection.delete();
-    this.props.collections.remove(this.props.collection.id);
-    this.props.history.push(homeUrl());
+    const success = await this.props.collection.delete();
+
+    if (success) {
+      this.props.collections.remove(this.props.collection.id);
+      this.props.history.push(homeUrl());
+      this.props.onSubmit();
+    }
+
     this.isDeleting = false;
-    this.props.onSubmit();
   };
 
   render() {

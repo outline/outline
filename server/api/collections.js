@@ -90,6 +90,9 @@ router.post('collections.delete', auth(), async ctx => {
 
   const user = ctx.state.user;
   const collection = await Collection.findById(id);
+  const total = await Collection.count();
+
+  if (total === 1) throw httpErrors.BadRequest('Cannot delete last collection');
 
   if (!collection || collection.teamId !== user.teamId)
     throw httpErrors.BadRequest();

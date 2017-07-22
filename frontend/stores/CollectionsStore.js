@@ -99,13 +99,13 @@ class CollectionsStore {
     this.teamId = options.teamId;
     this.cache = options.cache;
     this.ui = options.ui;
-
-    this.cache.getItem(COLLECTION_CACHE_KEY).then(data => {
-      if (data) {
-        this.data.replace(data.map(collection => new Collection(collection)));
-        this.isLoaded = true;
-      }
-    });
+    //
+    // this.cache.getItem(COLLECTION_CACHE_KEY).then(data => {
+    //   if (data) {
+    //     this.data.replace(data.map(collection => new Collection(collection)));
+    //     this.isLoaded = true;
+    //   }
+    // });
 
     autorunAsync('CollectionsStore.persists', () => {
       if (this.data.length > 0)
