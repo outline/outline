@@ -8,10 +8,12 @@ import Input from 'components/Input';
 import Flex from 'components/Flex';
 import HelpText from 'components/HelpText';
 import Collection from 'models/Collection';
+import CollectionsStore from 'stores/CollectionsStore';
 
 type Props = {
   history: Object,
   collection: Collection,
+  collections: CollectionsStore,
   onSubmit: () => void,
 };
 
@@ -56,9 +58,10 @@ type Props = {
     ev.preventDefault();
     this.isDeleting = true;
     await this.props.collection.delete();
+    this.props.collections.remove(this.props.collection.id);
+    this.props.history.push(homeUrl());
     this.isDeleting = false;
     this.props.onSubmit();
-    this.props.history.push(homeUrl());
   };
 
   render() {
