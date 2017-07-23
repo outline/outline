@@ -43,7 +43,14 @@ router.post('documents.viewed', auth(), pagination(), async ctx => {
     include: [
       {
         model: Document,
-        include: [{ model: Star, as: 'starred', where: { userId: user.id } }],
+        include: [
+          {
+            model: Star,
+            as: 'starred',
+            where: { userId: user.id },
+            required: false,
+          },
+        ],
       },
     ],
     offset: ctx.state.pagination.offset,
