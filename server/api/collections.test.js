@@ -2,7 +2,7 @@
 import TestServer from 'fetch-test-server';
 import app from '..';
 import { flushdb, seed } from '../test/support';
-
+import Collection from '../models/Collection';
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
@@ -82,8 +82,24 @@ describe('#collections.delete', async () => {
     expect(body).toMatchSnapshot();
   });
 
+  it('should not delete last collection', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/collections.delete', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it('should delete collection', async () => {
     const { user, collection } = await seed();
+    await Collection.create({
+      name: 'Blah',
+      urlId: 'blah',
+      teamId: user.teamId,
+      creatorId: user.id,
+      type: 'atlas',
+    });
+
     const res = await server.post('/api/collections.delete', {
       body: { token: user.getJwtToken(), id: collection.id },
     });
