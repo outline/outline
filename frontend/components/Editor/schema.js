@@ -9,12 +9,7 @@ import Paragraph from './components/Paragraph';
 import type { Props, Node, Transform } from './types';
 import styles from './Editor.scss';
 
-type Options = {
-  onStar: Function,
-  onUnstar: Function,
-};
-
-const createSchema = ({ onStar, onUnstar }: Options) => {
+const createSchema = () => {
   return {
     marks: {
       bold: (props: Props) => <strong>{props.children}</strong>,
@@ -44,9 +39,7 @@ const createSchema = ({ onStar, onUnstar }: Options) => {
       image: Image,
       link: Link,
       'list-item': ListItem,
-      heading1: (props: Props) => (
-        <Heading placeholder onStar={onStar} onUnstar={onUnstar} {...props} />
-      ),
+      heading1: (props: Props) => <Heading placeholder {...props} />,
       heading2: (props: Props) => <Heading component="h2" {...props} />,
       heading3: (props: Props) => <Heading component="h3" {...props} />,
       heading4: (props: Props) => <Heading component="h4" {...props} />,
