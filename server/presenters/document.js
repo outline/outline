@@ -36,7 +36,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     views: undefined,
   };
 
-  if (document.private) {
+  if (document.private && document.collection) {
     data.collection = await presentCollection(ctx, document.collection);
   }
 
