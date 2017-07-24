@@ -123,6 +123,44 @@ router.post('documents.search', auth(), async ctx => {
   };
 });
 
+router.post('documents.lock', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+
+  const docs = await Document.findAll({
+    where: {
+      id,
+      teamId: user.teamId,
+      lockedAt: { $eq: null },
+    },
+  });
+  console.log('id: ', id);
+  console.log('found unlocked doc: ', await presentDocument(ctx, docs[0]));
+
+  const result = await Document.update(
+    {
+      lockedAt: new Date(),
+      lockedBy: user.id,
+    },
+    {
+      where: {
+        id,
+        teamId: user.teamId,
+        lockedAt: { $eq: null },
+      },
+    }
+  );
+
+  console.log(result);
+  const updated = result[0] === 1;
+  if (!updated) throw httpErrors.BadRequest;
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 router.post('documents.star', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');

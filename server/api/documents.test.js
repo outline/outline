@@ -1,4 +1,5 @@
 import TestServer from 'fetch-test-server';
+import uuid from 'uuid';
 import app from '..';
 import { View, Star } from '../models';
 import { flushdb, seed } from '../test/support';
@@ -126,6 +127,45 @@ describe('#documents.starred', async () => {
 
   it('should require authentication', async () => {
     const res = await server.post('/api/documents.starred');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#documents.lock', async () => {
+  it('should lock unlocked document', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.lock', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it('should fail previously locked document', async () => {
+    const { user, document } = await seed();
+
+    console.log('locking doc', document.id);
+
+    await document.update({
+      lockedBy: uuid.v1(),
+      lockedAt: new Date().toString(),
+    });
+
+    console.log('locked doc', document.id);
+
+    const res = await server.post('/api/documents.lock', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(422);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.lock');
     const body = await res.json();
 
     expect(res.status).toEqual(401);

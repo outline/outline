@@ -26,6 +26,8 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     createdBy: presentUser(ctx, document.createdBy),
     updatedAt: document.updatedAt,
     updatedBy: presentUser(ctx, document.updatedBy),
+    lockedAt: document.lockedAt,
+    lockedBy: document.lockedBy && presentUser(ctx, document.lockedBy),
     firstViewedAt: undefined,
     lastViewedAt: undefined,
     team: document.teamId,
