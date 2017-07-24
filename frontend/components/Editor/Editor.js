@@ -160,13 +160,13 @@ type KeyData = {
     switch (data.key) {
       case 's':
         this.onSave(ev);
-        break;
+        return state;
       case 'enter':
         this.onSaveAndExit(ev);
-        break;
+        return state;
       case 'escape':
         this.onCancel();
-        break;
+        return state;
       default:
     }
   };
