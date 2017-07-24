@@ -74,7 +74,7 @@ class Document {
 
   @computed get isEmpty(): boolean {
     // Check if the document title has been modified and user generated content exists
-    return this.text.replace(new RegExp(`^\#$`), '').trim().length === 0;
+    return this.text.replace(new RegExp(`^#$`), '').trim().length === 0;
   }
 
   @computed get allowSave(): boolean {
@@ -149,7 +149,7 @@ class Document {
         if (!this.title) {
           this.title = DEFAULT_TITLE;
           this.text = this.text.replace(
-            new RegExp(`^\# `),
+            new RegExp(`^# `),
             `# ${DEFAULT_TITLE}`
           );
         }
