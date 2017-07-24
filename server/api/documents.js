@@ -40,7 +40,7 @@ router.post('documents.viewed', auth(), pagination(), async ctx => {
   const views = await View.findAll({
     where: { userId: user.id },
     order: [[sort, direction]],
-    include: [{ model: Document }],
+    include: [{ model: Document, required: true }],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
