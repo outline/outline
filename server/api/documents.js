@@ -128,16 +128,6 @@ router.post('documents.lock', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
   const user = await ctx.state.user;
 
-  const docs = await Document.findAll({
-    where: {
-      id,
-      teamId: user.teamId,
-      lockedAt: { $eq: null },
-    },
-  });
-  console.log('id: ', id);
-  console.log('found unlocked doc: ', await presentDocument(ctx, docs[0]));
-
   const result = await Document.update(
     {
       lockedAt: new Date(),
@@ -148,13 +138,42 @@ router.post('documents.lock', auth(), async ctx => {
         id,
         teamId: user.teamId,
         lockedAt: { $eq: null },
+        lockedBy: { $eq: null },
       },
     }
   );
 
-  console.log(result);
   const updated = result[0] === 1;
-  if (!updated) throw httpErrors.BadRequest;
+  if (!updated) throw httpErrors.BadRequest('Could not lock document');
+
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.post('documents.unlock', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+
+  const result = await Document.update(
+    {
+      lockedAt: null,
+      lockedBy: null,
+    },
+    {
+      where: {
+        id,
+        teamId: user.teamId,
+        lockedBy: {
+          $or: [{ $eq: null }, { $eq: user.id }],
+        },
+      },
+    }
+  );
+
+  const updated = result[0] === 1;
+  if (!updated) throw httpErrors.BadRequest('Could not unlock document');
 
   ctx.body = {
     success: true,

@@ -1,10 +1,10 @@
 module.exports = {
   up: function(queryInterface, Sequelize) {
     queryInterface.addColumn('documents', 'lockedAt', {
-      type: Sequelize.ARRAY(Sequelize.DATE),
+      type: Sequelize.DATE,
     });
     queryInterface.addColumn('documents', 'lockedBy', {
-      type: Sequelize.ARRAY(Sequelize.UUID),
+      type: Sequelize.UUID,
     });
   },
   down: function(queryInterface, Sequelize) {
