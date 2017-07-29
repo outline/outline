@@ -1,6 +1,7 @@
 // @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
+import moment from 'moment';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
@@ -271,6 +272,12 @@ router.post('documents.update', auth(), async ctx => {
   const collection = document.collection;
 
   if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
+  if (
+    document.lockedAt > moment().subtract(1, 'hour') &&
+    document.lockedBy !== user.id
+  ) {
+    throw httpErrors.BadRequest('Document is locked by another user');
+  }
 
   // Update document
   if (title) document.title = title;

@@ -1,5 +1,6 @@
 import TestServer from 'fetch-test-server';
 import uuid from 'uuid';
+import moment from 'moment';
 import app from '..';
 import { View, Star } from '../models';
 import { flushdb, seed } from '../test/support';
@@ -272,6 +273,46 @@ describe('#documents.update', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.lockedBy).toEqual(null);
     expect(body.data.lockedAt).toEqual(null);
+  });
+
+  it('should return bad request if locked by another user within hour', async () => {
+    const { user, document } = await seed();
+    await document.update({
+      lockedBy: uuid.v1(),
+      lockedAt: new Date().toString(),
+    });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it('should succeed if locked by another user outside hour', async () => {
+    const { user, document } = await seed();
+    await document.update({
+      lockedBy: uuid.v1(),
+      lockedAt: moment().subtract(2, 'hours').toISOString(),
+    });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('Updated title');
+    expect(body.data.text).toBe('Updated text');
   });
 
   it('should update document details in the root', async () => {
