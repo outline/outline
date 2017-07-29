@@ -251,6 +251,29 @@ describe('#documents.unstar', async () => {
 });
 
 describe('#documents.update', async () => {
+  it('should allow unlocking', async () => {
+    const { user, document } = await seed();
+    await document.update({
+      lockedBy: user.id,
+      lockedAt: new Date().toString(),
+    });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        unlock: true,
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.lockedBy).toEqual(null);
+    expect(body.data.lockedAt).toEqual(null);
+  });
+
   it('should update document details in the root', async () => {
     const { user, document } = await seed();
 

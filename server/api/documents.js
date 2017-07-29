@@ -262,7 +262,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text } = ctx.body;
+  const { id, title, text, unlock } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -275,6 +275,10 @@ router.post('documents.update', auth(), async ctx => {
   // Update document
   if (title) document.title = title;
   if (text) document.text = text;
+  if (unlock) {
+    document.lockedAt = null;
+    document.lockedBy = null;
+  }
   document.lastModifiedById = user.id;
 
   const [updatedDocument, updatedCollection] = await Promise.all([
