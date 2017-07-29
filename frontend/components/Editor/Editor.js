@@ -29,6 +29,7 @@ type Props = {
   onImageUploadStart: Function,
   onImageUploadStop: Function,
   starred: boolean,
+  emoji: string,
   readOnly: boolean,
   heading?: ?React.Element<*>,
 };
@@ -213,6 +214,7 @@ type KeyData = {
             className={cx(styles.editor, { readOnly: this.props.readOnly })}
             schema={this.schema}
             plugins={this.plugins}
+            emoji={this.props.emoji}
             state={this.state.state}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}

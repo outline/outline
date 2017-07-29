@@ -2499,6 +2499,10 @@ emoji-regex@^6.1.0:
   version "6.4.2"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-6.4.2.tgz#a30b6fee353d406d96cfb9fa765bdc82897eff6e"
 
+emoji-regex@^6.5.1:
+  version "6.5.1"
+  resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-6.5.1.tgz#9baea929b155565c11ea41c6626eaa65cef992c2"
+
 emojilib@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/emojilib/-/emojilib-2.0.2.tgz#df91c45ede69f2d0ffd3d80acf8c72771b2a5ea1"
