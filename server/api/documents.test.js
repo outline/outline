@@ -275,6 +275,20 @@ describe('#documents.update', async () => {
     expect(body.data.lockedAt).toEqual(null);
   });
 
+  it('should return bad request if revision does not match', async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        revision: document.revisionCount - 1,
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it('should return bad request if locked by another user within hour', async () => {
     const { user, document } = await seed();
     await document.update({

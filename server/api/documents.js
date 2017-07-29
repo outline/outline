@@ -263,7 +263,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, unlock } = ctx.body;
+  const { id, title, text, revision, unlock } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -272,6 +272,9 @@ router.post('documents.update', auth(), async ctx => {
   const collection = document.collection;
 
   if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
+  if (revision !== undefined && document.revisionCount !== revision) {
+    throw httpErrors.BadRequest('Revision does not match');
+  }
   if (
     document.lockedAt > moment().subtract(1, 'hour') &&
     document.lockedBy !== user.id

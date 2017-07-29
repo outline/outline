@@ -30,6 +30,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     lockedBy: document.lockedBy && presentUser(ctx, document.lockedBy),
     firstViewedAt: undefined,
     lastViewedAt: undefined,
+    revision: document.revisionCount,
     team: document.teamId,
     collaborators: [],
     starred: !!document.starred,

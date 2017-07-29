@@ -31,6 +31,7 @@ class Document {
   html: string;
   id: string;
   team: string;
+  revision: number;
   private: boolean = false;
   starred: boolean = false;
   text: string = '';
