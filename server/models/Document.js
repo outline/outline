@@ -2,6 +2,7 @@
 import slug from 'slug';
 import _ from 'lodash';
 import randomstring from 'randomstring';
+import emojiRegex from 'emoji-regex';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
@@ -34,6 +35,14 @@ const createUrlId = doc => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
 };
 
+const extractEmoji = doc => {
+  const regex = emojiRegex();
+  const match = regex.exec(doc.title);
+
+  if (match.length) return match[0];
+  return null;
+};
+
 const beforeSave = async doc => {
   doc.html = convertToMarkdown(doc.text);
   doc.preview = truncateMarkdown(doc.text, 160);
@@ -53,6 +62,7 @@ const beforeSave = async doc => {
   // We'll add the current user as revision hasn't been generated yet
   ids.push(doc.lastModifiedById);
   doc.collaboratorIds = _.uniq(ids);
+  doc.emoji = extractEmoji(doc);
 
   return doc;
 };
