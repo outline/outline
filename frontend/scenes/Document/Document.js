@@ -236,6 +236,9 @@ type Props = {
                       />
                     : <EditAction
                         onClick={this.onClickEdit}
+                        lockedByName={
+                          document.lockedBy ? document.lockedBy.name : ''
+                        }
                         disabled={this.isLocked}
                       />}
                   {!isEditing && <Menu document={document} />}
