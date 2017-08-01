@@ -1,16 +1,19 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { size, color } from 'styles/constants';
+import { color } from 'styles/constants';
 import { darken } from 'polished';
 
 const RealButton = styled.button`
   display: inline-block;
-  margin: 0 0 ${size.large};
+  margin: 0;
   padding: 0;
   border: 0;
-  background: ${color.primary};
-  color: ${color.white};
+  background: ${props => {
+                if (props.nude) return 'transparent';
+                return props.primary ? color.primary : color.slateLight;
+              }};
+  color: ${props => (props.primary ? color.white : color.slateDark)};
   border-radius: 4px;
   min-width: 32px;
   min-height: 32px;
@@ -23,7 +26,10 @@ const RealButton = styled.button`
     border: 0;
   }
   &:hover {
-    background: ${darken(0.05, color.primary)};
+    background: ${props => {
+                  if (props.nude) return color.slateLight;
+                  return darken(0.05, props.primary ? color.primary : color.slateLight);
+                }};
   }
   &:disabled {
     background: ${color.slateLight};
@@ -40,13 +46,15 @@ const Label = styled.span`
 
 const Inner = styled.span`
   display: flex;
-  line-height: 28px;
+  line-height: 24px;
   justify-content: center;
 `;
 
 export type Props = {
   type?: string,
   value?: string,
+  primary?: boolean,
+  nude?: boolean,
   icon?: React$Element<any>,
   className?: string,
   children?: React$Element<any>,

@@ -3,7 +3,6 @@ import React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
-import Flex from 'components/Flex';
 import { color } from 'styles/constants';
 
 type MenuItemProps = {
@@ -36,10 +35,7 @@ type DropdownMenuProps = {
     return (
       <MenuContainer onClick={this.handleClick}>
         {this.menuOpen && <Backdrop />}
-
-        <Label>
-          {this.props.label}
-        </Label>
+        {this.props.label}
 
         {this.menuOpen &&
           <Menu>
@@ -59,27 +55,18 @@ const Backdrop = styled.div`
   z-index: 999;
 `;
 
-const Label = styled(Flex).attrs({
-  justify: 'center',
-  align: 'center',
-})`
-  cursor: pointer;
-  z-index: 1000;
-
-  min-height: 43px;
-  margin: 0 5px;
-`;
-
 const MenuContainer = styled.div`
+  display: flex;
   position: relative;
 `;
 
 const Menu = styled.div`
   position: absolute;
   right: 0;
+  top: 100%;
   z-index: 1000;
   border: 1px solid #eee;
-  background-color: #fff;
+  background-color: ${color.white};
   min-width: 160px;
 `;
 

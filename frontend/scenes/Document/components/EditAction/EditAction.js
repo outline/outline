@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import styled from 'styled-components';
+import Button from 'components/Button';
 import Popover from 'components/Popover';
 
 type Props = {
@@ -34,19 +34,13 @@ class EditAction extends React.Component {
   };
 
   render() {
-    const { disabled, lockedByName } = this.props;
+    const { lockedByName } = this.props;
 
     return (
-      <span>
-        <Link
-          href
-          onClick={this.onClick}
-          style={{ opacity: disabled ? 0.5 : 1 }}
-          title="Edit (e)"
-          ref={this.setRef}
-        >
+      <span ref={this.setRef}>
+        <Button title="Edit (e)" onClick={this.onClick} nude>
           Edit
-        </Link>
+        </Button>
         {this.state.opened &&
           <Popover anchor={this.anchor} onClose={this.closePopover}>
             <strong>
@@ -60,10 +54,5 @@ class EditAction extends React.Component {
     );
   }
 }
-
-const Link = styled.a`
-  display: flex;
-  align-items: center;
-`;
 
 export default EditAction;

@@ -56,7 +56,7 @@ type Props = {
         {this.collection &&
           <Action>
             <Link to={newDocumentUrl(this.collection)}>
-              <Button>Create new document</Button>
+              <Button primary>Create new document</Button>
             </Link>
           </Action>}
       </NewDocumentContainer>

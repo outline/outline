@@ -61,7 +61,7 @@ type Props = {
           required
           autoFocus
         />
-        <Button type="submit" disabled={this.isSaving || !this.name}>
+        <Button type="submit" disabled={this.isSaving || !this.name} primary>
           {this.isSaving ? 'Creating…' : 'Create'}
         </Button>
       </form>

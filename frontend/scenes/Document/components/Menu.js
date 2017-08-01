@@ -5,11 +5,9 @@ import get from 'lodash/get';
 import { withRouter } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import Document from 'models/Document';
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-  MoreIcon,
-} from 'components/DropdownMenu';
+import Button from 'components/Button';
+import MoreIcon from 'components/Icon/MoreIcon';
+import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
   history: Object,
@@ -55,8 +53,10 @@ type Props = {
 
   render() {
     const document = get(this.props, 'document');
+
     if (document) {
       const collection = document.collection;
+      const label = <Button icon={<MoreIcon />} nude />;
       const allowDelete =
         collection &&
         collection.type === 'atlas' &&
@@ -64,7 +64,7 @@ type Props = {
         collection.documents.length > 1;
 
       return (
-        <DropdownMenu label={<MoreIcon />}>
+        <DropdownMenu label={label}>
           {collection &&
             <div>
               <DropdownMenuItem onClick={this.onCreateDocument}>
