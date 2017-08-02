@@ -46,8 +46,9 @@ const Dialog = styled.div`
   line-height: 1.5;
   padding: 16px;
   margin-top: 14px;
-  min-width: 200px;
+  min-width: 100px;
   min-height: 150px;
+  max-width: 300px;
 `;
 
 export const Preset = BoundlessPopover.preset;

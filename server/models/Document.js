@@ -73,6 +73,14 @@ const Document = sequelize.define(
     preview: DataTypes.TEXT,
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     parentDocumentId: DataTypes.UUID,
+    lockedAt: DataTypes.DATE,
+    lockedBy: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'users',
+      },
+    },
     createdById: {
       type: DataTypes.UUID,
       allowNull: false,

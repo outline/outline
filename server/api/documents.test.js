@@ -1,4 +1,6 @@
 import TestServer from 'fetch-test-server';
+import uuid from 'uuid';
+import moment from 'moment';
 import app from '..';
 import { View, Star } from '../models';
 import { flushdb, seed } from '../test/support';
@@ -133,6 +135,76 @@ describe('#documents.starred', async () => {
   });
 });
 
+describe('#documents.lock', async () => {
+  it('should lock unlocked document', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.lock', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it('should fail previously locked document', async () => {
+    const { user, document } = await seed();
+    await document.update({
+      lockedBy: uuid.v1(),
+      lockedAt: new Date().toString(),
+    });
+
+    const res = await server.post('/api/documents.lock', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.lock');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#documents.unlock', async () => {
+  it('should unlock document locked by user', async () => {
+    const { user, document } = await seed();
+    await document.update({
+      lockedBy: user.id,
+      lockedAt: new Date().toString(),
+    });
+
+    const res = await server.post('/api/documents.unlock', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it('should fail to unlock document locked by someone else', async () => {
+    const { user, document } = await seed();
+    await document.update({
+      lockedBy: uuid.v1(),
+      lockedAt: new Date().toString(),
+    });
+
+    const res = await server.post('/api/documents.unlock', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.unlock');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+});
+
 describe('#documents.star', async () => {
   it('should star the document', async () => {
     const { user, document } = await seed();
@@ -180,6 +252,83 @@ describe('#documents.unstar', async () => {
 });
 
 describe('#documents.update', async () => {
+  it('should allow unlocking', async () => {
+    const { user, document } = await seed();
+    await document.update({
+      lockedBy: user.id,
+      lockedAt: new Date().toString(),
+    });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        unlock: true,
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.lockedBy).toEqual(null);
+    expect(body.data.lockedAt).toEqual(null);
+  });
+
+  it('should return bad request if revision does not match', async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        revision: document.revisionCount - 1,
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it('should return bad request if locked by another user within hour', async () => {
+    const { user, document } = await seed();
+    await document.update({
+      lockedBy: uuid.v1(),
+      lockedAt: new Date().toString(),
+    });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it('should succeed if locked by another user outside hour', async () => {
+    const { user, document } = await seed();
+    await document.update({
+      lockedBy: uuid.v1(),
+      lockedAt: moment().subtract(2, 'hours').toISOString(),
+    });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('Updated title');
+    expect(body.data.text).toBe('Updated text');
+  });
+
   it('should update document details in the root', async () => {
     const { user, document } = await seed();
 

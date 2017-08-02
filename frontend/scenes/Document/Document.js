@@ -10,12 +10,14 @@ import invariant from 'invariant';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
+import UserStore from 'stores/UserStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
+import SaveAction from './components/SaveAction';
+import EditAction from './components/EditAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import Editor from 'components/Editor';
 import DropToImport from 'components/DropToImport';
-import { HeaderAction, SaveAction } from 'components/Layout';
 import LoadingIndicator from 'components/LoadingIndicator';
 import PublishingInfo from 'components/PublishingInfo';
 import CenteredContent from 'components/CenteredContent';
@@ -32,6 +34,7 @@ type Props = {
   keydown: Object,
   documents: DocumentsStore,
   newDocument?: boolean,
+  user: UserStore,
   ui: UiStore,
 };
 
@@ -90,6 +93,14 @@ type Props = {
     }
   };
 
+  get isLocked() {
+    const { user } = this.props.user;
+    const document = this.document;
+    return (
+      !!document && !!document.lockedBy && document.lockedBy.id !== user.id
+    );
+  }
+
   get document() {
     if (this.state.newDocument) return this.state.newDocument;
     return this.props.documents.getByUrl(
@@ -104,8 +115,8 @@ type Props = {
   };
 
   onSave = async (redirect: boolean = false) => {
-    if (this.document && !this.document.allowSave) return;
     let document = this.document;
+    if (document && !document.allowSave) return;
 
     if (!document) return;
     this.setState({ isLoading: true });
@@ -216,16 +227,20 @@ type Props = {
               />
               <Meta align="center" justify="flex-end" readOnly={!isEditing}>
                 <Flex align="center">
-                  <HeaderAction>
-                    {isEditing
-                      ? <SaveAction
-                          showCheckmark={this.state.showAsSaved}
-                          onClick={this.onSave.bind(this, true)}
-                          disabled={!(this.document && this.document.allowSave)}
-                          isNew={!!isNew}
-                        />
-                      : <a onClick={this.onClickEdit}>Edit</a>}
-                  </HeaderAction>
+                  {isEditing
+                    ? <SaveAction
+                        showCheckmark={this.state.showAsSaved}
+                        onClick={this.onSave.bind(this, true)}
+                        disabled={!document.allowSave}
+                        isNew={!!isNew}
+                      />
+                    : <EditAction
+                        onClick={this.onClickEdit}
+                        lockedByName={
+                          document.lockedBy ? document.lockedBy.name : ''
+                        }
+                        disabled={this.isLocked}
+                      />}
                   {!isEditing && <Menu document={document} />}
                 </Flex>
               </Meta>

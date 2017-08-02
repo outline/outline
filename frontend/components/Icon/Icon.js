@@ -20,6 +20,8 @@ export default function Icon({ children, ...rest }: Props & BaseProps) {
 }
 
 const Wrapper = styled.span`
+  display: inline-flex;
+
   svg {
     fill: ${props => (props.light ? '#fff' : '#000')};
   }

@@ -31,6 +31,7 @@ class Document {
   html: string;
   id: string;
   team: string;
+  revision: number;
   private: boolean = false;
   starred: boolean = false;
   text: string = '';
@@ -38,6 +39,8 @@ class Document {
   parentDocument: ?Document;
   updatedAt: string;
   updatedBy: User;
+  lockedAt: ?string;
+  lockedBy: ?User;
   url: string;
   views: number;
 
@@ -144,6 +147,7 @@ class Document {
           id: this.id,
           title: this.title,
           text: this.text,
+          revision: this.revision,
         });
       } else {
         if (!this.title) {

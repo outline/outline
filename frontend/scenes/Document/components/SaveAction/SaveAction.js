@@ -1,7 +1,9 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
+import Button from 'components/Button';
 import CheckIcon from 'components/Icon/CheckIcon';
+import { color } from 'styles/constants';
 import { fadeAndScaleIn } from 'styles/animations';
 
 type Props = {
@@ -25,32 +27,29 @@ class SaveAction extends React.Component {
     const { showCheckmark, disabled, isNew } = this.props;
 
     return (
-      <Link
-        href
+      <Button
         onClick={this.onClick}
-        style={{ opacity: disabled ? 0.5 : 1 }}
         title="Save changes (Cmd+Enter)"
+        disabled={disabled}
+        icon={showCheckmark ? <SavedIcon /> : undefined}
+        nude
       >
-        {showCheckmark && <SavedIcon />}
         {isNew ? 'Publish' : 'Save'}
-      </Link>
+      </Button>
     );
   }
 }
 
-const Link = styled.a`
+const SavedIcon = styled(CheckIcon)`
   display: flex;
   align-items: center;
-`;
-
-const SavedIcon = styled(CheckIcon)`
+  justify-content: center;
+  margin-left: 8px;
+  margin-right: -8px;
   animation: ${fadeAndScaleIn} 250ms ease;
-  display: inline-block;
-  margin-right: 4px;
-  width: 18px;
-  height: 18px;
 
   svg {
+    fill: ${color.slateDark};
     width: 18px;
     height: 18px;
   }

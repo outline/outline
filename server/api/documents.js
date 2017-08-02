@@ -1,6 +1,7 @@
 // @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
+import moment from 'moment';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
@@ -123,6 +124,63 @@ router.post('documents.search', auth(), async ctx => {
   };
 });
 
+router.post('documents.lock', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+
+  const result = await Document.update(
+    {
+      lockedAt: new Date(),
+      lockedBy: user.id,
+    },
+    {
+      where: {
+        id,
+        teamId: user.teamId,
+        lockedAt: { $eq: null },
+        lockedBy: { $eq: null },
+      },
+    }
+  );
+
+  const updated = result[0] === 1;
+  if (!updated) throw httpErrors.BadRequest('Could not lock document');
+
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.post('documents.unlock', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = await ctx.state.user;
+
+  const result = await Document.update(
+    {
+      lockedAt: null,
+      lockedBy: null,
+    },
+    {
+      where: {
+        id,
+        teamId: user.teamId,
+        lockedBy: {
+          $or: [{ $eq: null }, { $eq: user.id }],
+        },
+      },
+    }
+  );
+
+  const updated = result[0] === 1;
+  if (!updated) throw httpErrors.BadRequest('Could not unlock document');
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 router.post('documents.star', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
@@ -205,7 +263,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text } = ctx.body;
+  const { id, title, text, revision, unlock } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -214,10 +272,23 @@ router.post('documents.update', auth(), async ctx => {
   const collection = document.collection;
 
   if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
+  if (revision !== undefined && document.revisionCount !== revision) {
+    throw httpErrors.BadRequest('Revision does not match');
+  }
+  if (
+    document.lockedAt > moment().subtract(1, 'hour') &&
+    document.lockedBy !== user.id
+  ) {
+    throw httpErrors.BadRequest('Document is locked by another user');
+  }
 
   // Update document
   if (title) document.title = title;
   if (text) document.text = text;
+  if (unlock) {
+    document.lockedAt = null;
+    document.lockedBy = null;
+  }
   document.lastModifiedById = user.id;
 
   const [updatedDocument, updatedCollection] = await Promise.all([

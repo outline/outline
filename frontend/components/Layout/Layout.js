@@ -114,7 +114,7 @@ type Props = {
           {auth.authenticated &&
             user &&
             <Sidebar column editMode={ui.editMode}>
-              <Header justify="space-between">
+              <Header justify="space-between" align="center">
                 <Flex align="center">
                   <LogoLink to="/">Atlas</LogoLink>
                 </Flex>
@@ -218,7 +218,7 @@ const Container = styled(Flex)`
 `;
 
 const LogoLink = styled(Link)`
-  margin-top: 15px;
+  margin-top: 4px;
   font-family: 'Atlas Grotesk';
   font-weight: bold;
   color: ${color.text};
