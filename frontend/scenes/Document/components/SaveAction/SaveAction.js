@@ -31,7 +31,7 @@ class SaveAction extends React.Component {
         onClick={this.onClick}
         title="Save changes (Cmd+Enter)"
         disabled={disabled}
-        icon={showCheckmark && <SavedIcon />}
+        icon={showCheckmark ? <SavedIcon /> : undefined}
         nude
       >
         {isNew ? 'Publish' : 'Save'}
