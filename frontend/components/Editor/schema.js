@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import Code from './components/Code';
+import InlineCode from './components/InlineCode';
 import Image from './components/Image';
 import Link from './components/Link';
 import ListItem from './components/ListItem';
@@ -9,16 +10,11 @@ import Paragraph from './components/Paragraph';
 import type { Props, Node, Transform } from './types';
 import styles from './Editor.scss';
 
-type Options = {
-  onStar: Function,
-  onUnstar: Function,
-};
-
-const createSchema = ({ onStar, onUnstar }: Options) => {
+const createSchema = () => {
   return {
     marks: {
       bold: (props: Props) => <strong>{props.children}</strong>,
-      code: (props: Props) => <code>{props.children}</code>,
+      code: (props: Props) => <InlineCode>{props.children}</InlineCode>,
       italic: (props: Props) => <em>{props.children}</em>,
       underlined: (props: Props) => <u>{props.children}</u>,
       deleted: (props: Props) => <del>{props.children}</del>,
@@ -44,9 +40,7 @@ const createSchema = ({ onStar, onUnstar }: Options) => {
       image: Image,
       link: Link,
       'list-item': ListItem,
-      heading1: (props: Props) => (
-        <Heading placeholder onStar={onStar} onUnstar={onUnstar} {...props} />
-      ),
+      heading1: (props: Props) => <Heading placeholder {...props} />,
       heading2: (props: Props) => <Heading component="h2" {...props} />,
       heading3: (props: Props) => <Heading component="h3" {...props} />,
       heading4: (props: Props) => <Heading component="h4" {...props} />,

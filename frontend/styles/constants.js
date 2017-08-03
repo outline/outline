@@ -4,7 +4,7 @@ export const layout = {
   padding: '1.5vw 1.875vw',
   vpadding: '1.5vw',
   hpadding: '1.875vw',
-  sidebarWidth: '22%',
+  sidebarWidth: '280px',
   sidebarMinWidth: '250px',
   sidebarMaxWidth: '350px',
 };

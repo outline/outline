@@ -1,5 +1,7 @@
 [include]
 .*/frontend/.*
+.*/server/.*
+.*/shared/.*
 
 [ignore]
 .*/node_modules/styled-components/.*
