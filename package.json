@@ -81,6 +81,7 @@
     "boundless-popover": "^1.0.4",
     "bugsnag": "^1.7.0",
     "classnames": "2.2.3",
+    "copy-to-clipboard": "^3.0.6",
     "css-loader": "0.23.1",
     "debug": "2.2.0",
     "dotenv": "^4.0.0",

@@ -1874,6 +1874,12 @@ cookies@~0.7.0:
     depd "~1.1.0"
     keygrip "~1.0.1"
 
+copy-to-clipboard@^3.0.6:
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/copy-to-clipboard/-/copy-to-clipboard-3.0.6.tgz#13c09bfea0408a5dc5bb987fee3b3986518c9d69"
+  dependencies:
+    toggle-selection "^1.0.3"
+
 copy-to@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/copy-to/-/copy-to-2.0.1.tgz#2680fbb8068a48d08656b6098092bdafc906f4a5"
@@ -8568,6 +8574,10 @@ to-space-case@^1.0.0:
   resolved "https://registry.yarnpkg.com/to-space-case/-/to-space-case-1.0.0.tgz#b052daafb1b2b29dc770cea0163e5ec0ebc9fc17"
   dependencies:
     to-no-case "^1.0.0"
+
+toggle-selection@^1.0.3:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/toggle-selection/-/toggle-selection-1.0.5.tgz#726c703de607193a73c32c7df49cd24950fc574f"
 
 topo@1.x.x:
   version "1.1.0"

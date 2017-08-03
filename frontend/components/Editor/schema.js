@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import Code from './components/Code';
+import InlineCode from './components/InlineCode';
 import Image from './components/Image';
 import Link from './components/Link';
 import ListItem from './components/ListItem';
@@ -13,7 +14,7 @@ const createSchema = () => {
   return {
     marks: {
       bold: (props: Props) => <strong>{props.children}</strong>,
-      code: (props: Props) => <code>{props.children}</code>,
+      code: (props: Props) => <InlineCode>{props.children}</InlineCode>,
       italic: (props: Props) => <em>{props.children}</em>,
       underlined: (props: Props) => <u>{props.children}</u>,
       deleted: (props: Props) => <del>{props.children}</del>,
