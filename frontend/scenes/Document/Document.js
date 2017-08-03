@@ -209,9 +209,6 @@ type Props = {
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onCancel={this.onCancel}
-                onStar={document.star}
-                onUnstar={document.unstar}
-                starred={document.starred}
                 heading={this.renderHeading(!!isEditing)}
                 readOnly={!isEditing}
               />

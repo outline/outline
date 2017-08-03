@@ -1,6 +1,5 @@
 // @flow
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import keydown from 'react-keydown';
@@ -24,11 +23,8 @@ type Props = {
   onChange: Function,
   onSave: Function,
   onCancel: Function,
-  onStar: Function,
-  onUnstar: Function,
   onImageUploadStart: Function,
   onImageUploadStop: Function,
-  starred: boolean,
   emoji: string,
   readOnly: boolean,
   heading?: ?React.Element<*>,
@@ -52,10 +48,7 @@ type KeyData = {
   constructor(props: Props) {
     super(props);
 
-    this.schema = createSchema({
-      onStar: props.onStar,
-      onUnstar: props.onUnstar,
-    });
+    this.schema = createSchema();
     this.plugins = createPlugins({
       onImageUploadStart: props.onImageUploadStart,
       onImageUploadStop: props.onImageUploadStop,
@@ -82,10 +75,6 @@ type KeyData = {
     if (prevProps.readOnly && !this.props.readOnly) {
       this.focusAtEnd();
     }
-  }
-
-  getChildContext() {
-    return { starred: this.props.starred };
   }
 
   onChange = (state: State) => {
@@ -207,7 +196,6 @@ type KeyData = {
           </HeaderContainer>
           <Toolbar state={this.state.state} onChange={this.onChange} />
           <Editor
-            key={this.props.starred}
             ref={ref => (this.editor = ref)}
             placeholder="Start with a title…"
             bodyPlaceholder="Insert witty platitude here"
@@ -231,10 +219,6 @@ type KeyData = {
     );
   };
 }
-
-MarkdownEditor.childContextTypes = {
-  starred: PropTypes.bool,
-};
 
 const MaxWidth = styled(Flex)`
   max-width: 50em;

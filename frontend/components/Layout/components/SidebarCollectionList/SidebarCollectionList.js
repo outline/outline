@@ -26,6 +26,7 @@ const SidebarCollectionList = observer(({ history, collections }: Props) => {
       <Header>Collections</Header>
       {collections.data.map(collection => (
         <DropToImport
+          key={collection.id}
           history={history}
           collectionId={collection.id}
           activeStyle={activeStyle}
