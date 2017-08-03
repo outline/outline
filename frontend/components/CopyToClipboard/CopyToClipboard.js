@@ -5,7 +5,7 @@ import copy from 'copy-to-clipboard';
 class CopyToClipboard extends PureComponent {
   props: {
     text: string,
-    children?: any,
+    children?: React.Element<any>,
     onClick?: () => void,
     onCopy: (string, boolean) => void,
   };
@@ -14,7 +14,7 @@ class CopyToClipboard extends PureComponent {
     const { text, onCopy, children } = this.props;
     const elem = React.Children.only(children);
     const result = copy(text, {
-      debug: process.env.NODE_ENV === 'development',
+      debug: __DEV__,
     });
 
     if (onCopy) {
