@@ -3,12 +3,13 @@ import { extendObservable, action, computed, runInAction } from 'mobx';
 import invariant from 'invariant';
 import _ from 'lodash';
 
+import BaseModel from 'models/BaseModel';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
 import type { NavigationNode } from 'types';
 
-class Collection {
+class Collection extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
   errors: ErrorsStore;
@@ -85,8 +86,14 @@ class Collection {
   }
 
   constructor(collection: Object = {}) {
+    super();
+
     this.updateData(collection);
     this.errors = stores.errors;
+
+    this.on('document.delete', (data: { collectionId: string }) => {
+      if (data.collectionId === this.id) this.fetch();
+    });
   }
 }
 

@@ -1,5 +1,6 @@
 // @flow
 import React from 'react';
+import { observer } from 'mobx-react';
 import Flex from 'components/Flex';
 import styled from 'styled-components';
 import { layout } from 'styles/constants';
@@ -21,7 +22,7 @@ const activeStyle = {
   background: '#E1E1E1',
 };
 
-class SidebarCollection extends React.Component {
+@observer class SidebarCollection extends React.Component {
   props: Props;
 
   renderDocuments(documentList: Array<NavigationNode>, depth: number = 0) {
