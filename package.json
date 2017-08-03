@@ -22,19 +22,35 @@
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.js": ["eslint --fix", "git add"]
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "jest": {
     "verbose": false,
-    "roots": ["frontend"],
+    "roots": [
+      "frontend"
+    ],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },
-    "moduleFileExtensions": ["js", "jsx", "json"],
-    "moduleDirectories": ["node_modules"],
-    "modulePaths": ["frontend"],
-    "setupFiles": ["<rootDir>/setupJest.js", "<rootDir>/__mocks__/window.js"]
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "modulePaths": [
+      "frontend"
+    ],
+    "setupFiles": [
+      "<rootDir>/setupJest.js",
+      "<rootDir>/__mocks__/window.js"
+    ]
   },
   "engines": {
     "node": ">= 7.6"
@@ -69,6 +85,7 @@
     "debug": "2.2.0",
     "dotenv": "^4.0.0",
     "emoji-name-map": "1.1.2",
+    "emoji-regex": "^6.5.1",
     "eslint": "^3.19.0",
     "eslint-config-react-app": "^0.6.2",
     "eslint-import-resolver-webpack": "^0.3.1",

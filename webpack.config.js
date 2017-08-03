@@ -26,7 +26,10 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel',
-        include: path.join(__dirname, 'frontend'),
+        include: [
+          path.join(__dirname, 'frontend'),
+          path.join(__dirname, 'shared'),
+        ]
       },
       { test: /\.json$/, loader: 'json-loader' },
       // inline base64 URLs for <=8k images, direct URLs for the rest

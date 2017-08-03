@@ -25,6 +25,10 @@ type Context = {
   starred?: boolean,
 };
 
+const Wrapper = styled.div`
+  margin-left: ${props => (props.hasEmoji ? '-1.2em' : 0)}
+`;
+
 const StyledStar = styled(StarIcon)`
   top: 3px;
   position: relative;
@@ -61,10 +65,14 @@ function Heading(props: Props, { starred }: Context) {
   const showStar = readOnly && !!onStar;
   const showHash = readOnly && !!slugish && !showStar;
   const Component = component;
+  const emoji = editor.props.emoji || '';
+  const title = node.text.trim();
+  const startsWithEmojiAndSpace =
+    emoji && title.match(new RegExp(`^${emoji}\\s`));
 
   return (
     <Component className={styles.title}>
-      {children}
+      <Wrapper hasEmoji={startsWithEmojiAndSpace}>{children}</Wrapper>
       {showPlaceholder &&
         <span className={styles.placeholder} contentEditable={false}>
           {editor.props.placeholder}

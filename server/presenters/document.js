@@ -22,6 +22,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     text: document.text,
     html: document.html,
     preview: document.preview,
+    emoji: document.emoji,
     createdAt: document.createdAt,
     createdBy: presentUser(ctx, document.createdBy),
     updatedAt: document.updatedAt,

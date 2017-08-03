@@ -5,14 +5,10 @@ import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
+import parseTitle from '../../shared/parseTitle';
 
 import type { User } from 'types';
 import Collection from './Collection';
-
-const parseHeader = text => {
-  const firstLine = text.trim().split(/\r?\n/)[0];
-  return firstLine.replace(/^#/, '').trim();
-};
 
 const DEFAULT_TITLE = 'Untitled document';
 
@@ -31,6 +27,7 @@ class Document {
   html: string;
   id: string;
   team: string;
+  emoji: string;
   private: boolean = false;
   starred: boolean = false;
   text: string = '';
@@ -181,7 +178,11 @@ class Document {
   };
 
   updateData(data: Object = {}, dirty: boolean = false) {
-    if (data.text) data.title = parseHeader(data.text);
+    if (data.text) {
+      const { title, emoji } = parseTitle(data.text);
+      data.title = title;
+      data.emoji = emoji;
+    }
     if (dirty) this.hasPendingChanges = true;
     this.data = data;
     extendObservable(this, data);
