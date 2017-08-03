@@ -70,6 +70,8 @@ type Props = {
     if (props.newDocument) {
       const newDocument = new Document({
         collection: { id: props.match.params.id },
+        title: '',
+        text: '',
       });
       this.setState({ newDocument });
     } else {
@@ -102,6 +104,7 @@ type Props = {
   };
 
   onSave = async (redirect: boolean = false) => {
+    if (this.document && !this.document.allowSave) return;
     let document = this.document;
 
     if (!document) return;
@@ -200,14 +203,12 @@ type Props = {
               <Editor
                 key={document.id}
                 text={document.text}
+                emoji={document.emoji}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onCancel={this.onCancel}
-                onStar={document.star}
-                onUnstar={document.unstar}
-                starred={document.starred}
                 heading={this.renderHeading(!!isEditing)}
                 readOnly={!isEditing}
               />
@@ -218,7 +219,7 @@ type Props = {
                       ? <SaveAction
                           showCheckmark={this.state.showAsSaved}
                           onClick={this.onSave.bind(this, true)}
-                          disabled={get(this.document, 'isSaving')}
+                          disabled={!(this.document && this.document.allowSave)}
                           isNew={!!isNew}
                         />
                       : <a onClick={this.onClickEdit}>Edit</a>}

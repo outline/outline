@@ -86,6 +86,7 @@
     "debug": "2.2.0",
     "dotenv": "^4.0.0",
     "emoji-name-map": "1.1.2",
+    "emoji-regex": "^6.5.1",
     "eslint": "^3.19.0",
     "eslint-config-react-app": "^0.6.2",
     "eslint-import-resolver-webpack": "^0.3.1",

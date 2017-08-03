@@ -49,8 +49,26 @@ class CollectionsStore {
     }
   };
 
-  getById = (id: string): ?Collection => {
-    return _.find(this.data, { id });
+  @action getById = async (id: string): Promise<?Collection> => {
+    let collection = _.find(this.data, { id });
+    if (!collection) {
+      try {
+        const res = await this.client.post('/collections.info', {
+          id,
+        });
+        invariant(res && res.data, 'Collection not available');
+        const { data } = res;
+        runInAction('CollectionsStore#getById', () => {
+          collection = new Collection(data);
+          this.add(collection);
+        });
+      } catch (e) {
+        Bugsnag.notify(e);
+        this.errors.add('Something went wrong');
+      }
+    }
+
+    return collection;
   };
 
   @action add = (collection: Collection): void => {

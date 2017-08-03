@@ -2,11 +2,13 @@
 import slug from 'slug';
 import _ from 'lodash';
 import randomstring from 'randomstring';
+import emojiRegex from 'emoji-regex';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
 import { convertToMarkdown } from '../../frontend/utils/markdown';
 import { truncateMarkdown } from '../utils/truncate';
+import parseTitle from '../../shared/parseTitle';
 import Revision from './Revision';
 
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
@@ -35,6 +37,9 @@ const createUrlId = doc => {
 };
 
 const beforeSave = async doc => {
+  const { emoji } = parseTitle(doc.text);
+
+  doc.emoji = emoji;
   doc.html = convertToMarkdown(doc.text);
   doc.preview = truncateMarkdown(doc.text, 160);
   doc.revisionCount += 1;

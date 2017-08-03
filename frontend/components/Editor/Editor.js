@@ -1,6 +1,5 @@
 // @flow
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import keydown from 'react-keydown';
@@ -24,11 +23,9 @@ type Props = {
   onChange: Function,
   onSave: Function,
   onCancel: Function,
-  onStar: Function,
-  onUnstar: Function,
   onImageUploadStart: Function,
   onImageUploadStop: Function,
-  starred: boolean,
+  emoji: string,
   readOnly: boolean,
   heading?: ?React.Element<*>,
 };
@@ -51,10 +48,7 @@ type KeyData = {
   constructor(props: Props) {
     super(props);
 
-    this.schema = createSchema({
-      onStar: props.onStar,
-      onUnstar: props.onUnstar,
-    });
+    this.schema = createSchema();
     this.plugins = createPlugins({
       onImageUploadStart: props.onImageUploadStart,
       onImageUploadStop: props.onImageUploadStop,
@@ -81,10 +75,6 @@ type KeyData = {
     if (prevProps.readOnly && !this.props.readOnly) {
       this.focusAtEnd();
     }
-  }
-
-  getChildContext() {
-    return { starred: this.props.starred };
   }
 
   onChange = (state: State) => {
@@ -160,13 +150,13 @@ type KeyData = {
     switch (data.key) {
       case 's':
         this.onSave(ev);
-        break;
+        return state;
       case 'enter':
         this.onSaveAndExit(ev);
-        break;
+        return state;
       case 'escape':
         this.onCancel();
-        break;
+        return state;
       default:
     }
   };
@@ -206,13 +196,13 @@ type KeyData = {
           </HeaderContainer>
           <Toolbar state={this.state.state} onChange={this.onChange} />
           <Editor
-            key={this.props.starred}
             ref={ref => (this.editor = ref)}
             placeholder="Start with a title…"
             bodyPlaceholder="Insert witty platitude here"
             className={cx(styles.editor, { readOnly: this.props.readOnly })}
             schema={this.schema}
             plugins={this.plugins}
+            emoji={this.props.emoji}
             state={this.state.state}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
@@ -229,10 +219,6 @@ type KeyData = {
     );
   };
 }
-
-MarkdownEditor.childContextTypes = {
-  starred: PropTypes.bool,
-};
 
 const MaxWidth = styled(Flex)`
   max-width: 50em;
