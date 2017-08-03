@@ -203,6 +203,7 @@ type Props = {
               <Editor
                 key={document.id}
                 text={document.text}
+                emoji={document.emoji}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onChange={this.onChange}

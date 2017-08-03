@@ -25,6 +25,7 @@ type Props = {
   onCancel: Function,
   onImageUploadStart: Function,
   onImageUploadStop: Function,
+  emoji: string,
   readOnly: boolean,
   heading?: ?React.Element<*>,
 };
@@ -149,13 +150,13 @@ type KeyData = {
     switch (data.key) {
       case 's':
         this.onSave(ev);
-        break;
+        return state;
       case 'enter':
         this.onSaveAndExit(ev);
-        break;
+        return state;
       case 'escape':
         this.onCancel();
-        break;
+        return state;
       default:
     }
   };
@@ -201,6 +202,7 @@ type KeyData = {
             className={cx(styles.editor, { readOnly: this.props.readOnly })}
             schema={this.schema}
             plugins={this.plugins}
+            emoji={this.props.emoji}
             state={this.state.state}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}

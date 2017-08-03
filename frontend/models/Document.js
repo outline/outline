@@ -5,14 +5,10 @@ import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
+import parseTitle from '../../shared/parseTitle';
 
 import type { User } from 'types';
 import Collection from './Collection';
-
-const parseHeader = text => {
-  const firstLine = text.trim().split(/\r?\n/)[0];
-  return firstLine.replace(/^#/, '').trim();
-};
 
 const DEFAULT_TITLE = 'Untitled document';
 
@@ -31,6 +27,7 @@ class Document {
   html: string;
   id: string;
   team: string;
+  emoji: string;
   private: boolean = false;
   starred: boolean = false;
   text: string = '';
@@ -74,7 +71,7 @@ class Document {
 
   @computed get isEmpty(): boolean {
     // Check if the document title has been modified and user generated content exists
-    return this.text.replace(new RegExp(`^\#$`), '').trim().length === 0;
+    return this.text.replace(new RegExp(`^#$`), '').trim().length === 0;
   }
 
   @computed get allowSave(): boolean {
@@ -149,7 +146,7 @@ class Document {
         if (!this.title) {
           this.title = DEFAULT_TITLE;
           this.text = this.text.replace(
-            new RegExp(`^\# `),
+            new RegExp(`^# `),
             `# ${DEFAULT_TITLE}`
           );
         }
@@ -181,7 +178,11 @@ class Document {
   };
 
   updateData(data: Object = {}, dirty: boolean = false) {
-    if (data.text) data.title = parseHeader(data.text);
+    if (data.text) {
+      const { title, emoji } = parseTitle(data.text);
+      data.title = title;
+      data.emoji = emoji;
+    }
     if (dirty) this.hasPendingChanges = true;
     this.data = data;
     extendObservable(this, data);

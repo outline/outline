@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import { Document } from 'slate';
+import styled from 'styled-components';
 import _ from 'lodash';
 import slug from 'slug';
 import type { Node, Editor } from '../types';
@@ -15,6 +16,11 @@ type Props = {
   readOnly: boolean,
   component?: string,
 };
+
+const Wrapper = styled.div`
+  display: inline;
+  margin-left: ${props => (props.hasEmoji ? '-1.2em' : 0)}
+`;
 
 function Heading(props: Props) {
   const {
@@ -32,10 +38,14 @@ function Heading(props: Props) {
   const slugish = _.escape(`${component}-${slug(node.text)}`);
   const showHash = readOnly && !!slugish;
   const Component = component;
+  const emoji = editor.props.emoji || '';
+  const title = node.text.trim();
+  const startsWithEmojiAndSpace =
+    emoji && title.match(new RegExp(`^${emoji}\\s`));
 
   return (
     <Component className={styles.title}>
-      {children}
+      <Wrapper hasEmoji={startsWithEmojiAndSpace}>{children}</Wrapper>
       {showPlaceholder &&
         <span className={styles.placeholder} contentEditable={false}>
           {editor.props.placeholder}

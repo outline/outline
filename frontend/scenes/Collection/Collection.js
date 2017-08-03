@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import { newDocumentUrl } from 'utils/routeHelpers';
 
 import CollectionsStore from 'stores/CollectionsStore';
+import Collection from 'models/Collection';
 
 import CenteredContent from 'components/CenteredContent';
 import LoadingListPlaceholder from 'components/LoadingListPlaceholder';
@@ -21,7 +22,7 @@ type Props = {
   match: Object,
 };
 
-@observer class Collection extends React.Component {
+@observer class CollectionScene extends React.Component {
   props: Props;
   collection: ?Collection;
   @observable isFetching = true;
@@ -35,7 +36,6 @@ type Props = {
     const { collections } = this.props;
     const { id } = this.props.match.params;
 
-    // $FlowIssue not the correct type?
     this.collection = await collections.getById(id);
 
     if (!this.collection) this.redirectUrl = '/404';
@@ -53,14 +53,12 @@ type Props = {
         <HelpText>
           Publish your first document to start building your collection.
         </HelpText>
-        <Action>
-          <Link
-            to={// $FlowIssue stupid type
-            newDocumentUrl(this.collection)}
-          >
-            <Button>Create new document</Button>
-          </Link>
-        </Action>
+        {this.collection &&
+          <Action>
+            <Link to={newDocumentUrl(this.collection)}>
+              <Button>Create new document</Button>
+            </Link>
+          </Action>}
       </NewDocumentContainer>
     );
   }
@@ -85,4 +83,4 @@ const Action = styled(Flex)`
   margin: 20px 0;
 `;
 
-export default inject('collections')(Collection);
+export default inject('collections')(CollectionScene);
