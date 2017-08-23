@@ -2,24 +2,24 @@
 import React, { PureComponent } from 'react';
 import copy from 'copy-to-clipboard';
 
+type Props = {
+  text: string,
+  children?: React.Element<any>,
+  onClick?: () => void,
+  onCopy: () => void,
+};
+
 class CopyToClipboard extends PureComponent {
-  props: {
-    text: string,
-    children?: React.Element<any>,
-    onClick?: () => void,
-    onCopy: (string, boolean) => void,
-  };
+  props: Props;
 
   onClick = (ev: SyntheticEvent) => {
     const { text, onCopy, children } = this.props;
     const elem = React.Children.only(children);
-    const result = copy(text, {
+    copy(text, {
       debug: __DEV__,
     });
 
-    if (onCopy) {
-      onCopy(text, result);
-    }
+    if (onCopy) onCopy();
 
     if (elem && elem.props && typeof elem.props.onClick === 'function') {
       elem.props.onClick(ev);
