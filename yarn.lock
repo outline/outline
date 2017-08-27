@@ -4846,6 +4846,10 @@ json-loader@0.5.4:
   version "0.5.4"
   resolved "https://registry.yarnpkg.com/json-loader/-/json-loader-0.5.4.tgz#8baa1365a632f58a3c46d20175fc6002c96e37de"
 
+json-loader@^0.5.7:
+  version "0.5.7"
+  resolved "https://registry.yarnpkg.com/json-loader/-/json-loader-0.5.7.tgz#dca14a70235ff82f0ac9a3abeb60d337a365185d"
+
 json-schema@0.2.3:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/json-schema/-/json-schema-0.2.3.tgz#b480c892e59a2f05954ce727bd3f2a4e882f9e13"
@@ -8009,9 +8013,9 @@ slate-collapse-on-escape@^0.2.1:
   dependencies:
     to-pascal-case "^1.0.0"
 
-slate-drop-or-paste-images@tommoor/slate-drop-or-paste-images:
+slate-drop-or-paste-images@tommoor/slate-drop-or-paste-images#dev:
   version "0.5.0"
-  resolved "https://codeload.github.com/tommoor/slate-drop-or-paste-images/tar.gz/a3ebc74658941ec2c56d4b90493b8718b8a9fd4f"
+  resolved "https://codeload.github.com/tommoor/slate-drop-or-paste-images/tar.gz/935894631acb528b1eec6a8a1a78857da9d0d1da"
   dependencies:
     data-uri-to-blob "0.0.4"
     es6-promise "^4.0.5"
@@ -8019,6 +8023,7 @@ slate-drop-or-paste-images@tommoor/slate-drop-or-paste-images:
     is-data-uri "^0.1.0"
     is-image "^1.0.1"
     is-url "^1.2.2"
+    json-loader "^0.5.7"
     mime-types "^2.1.11"
 
 slate-edit-code@^0.10.2:

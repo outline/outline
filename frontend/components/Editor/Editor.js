@@ -6,13 +6,13 @@ import keydown from 'react-keydown';
 import classnames from 'classnames/bind';
 import type { Document, State, Editor as EditorType } from './types';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
-import uploadFile from 'utils/uploadFile';
 import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
 import Markdown from './serializer';
 import createSchema from './schema';
 import createPlugins from './plugins';
+import insertImage from './insertImage';
 import styled from 'styled-components';
 import styles from './Editor.scss';
 
@@ -95,23 +95,22 @@ type KeyData = {
 
     const files = getDataTransferFiles(ev);
     for (const file of files) {
-      await this.insertFile(file);
+      await this.insertImageFile(file);
     }
   };
 
-  insertFile = async (file: Object) => {
-    this.props.onImageUploadStart();
-    const asset = await uploadFile(file);
+  insertImageFile = async (file: window.File) => {
     const state = this.editor.getState();
-    const transform = state.transform();
-    transform.collapseToEndOf(state.document);
-    transform.insertBlock({
-      type: 'image',
-      isVoid: true,
-      data: { src: asset.url, alt: file.name },
-    });
-    this.props.onImageUploadStop();
-    this.setState({ state: transform.apply() });
+    let transform = state.transform();
+
+    transform = await insertImage(
+      transform,
+      file,
+      this.editor,
+      this.props.onImageUploadStart,
+      this.props.onImageUploadStop
+    );
+    this.editor.onChange(transform.apply());
   };
 
   cancelEvent = (ev: SyntheticEvent) => {

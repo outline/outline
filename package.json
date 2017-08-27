@@ -158,7 +158,7 @@
     "sequelize-encrypted": "0.1.0",
     "slate": "^0.19.30",
     "slate-collapse-on-escape": "^0.2.1",
-    "slate-drop-or-paste-images": "tommoor/slate-drop-or-paste-images",
+    "slate-drop-or-paste-images": "tommoor/slate-drop-or-paste-images#dev",
     "slate-edit-code": "^0.10.2",
     "slate-edit-list": "^0.7.0",
     "slate-markdown-serializer": "tommoor/slate-markdown-serializer",

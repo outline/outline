@@ -1,4 +1,5 @@
 // @flow
+import DropOrPasteImages from 'slate-drop-or-paste-images';
 import PasteLinkify from 'slate-paste-linkify';
 import EditList from 'slate-edit-list';
 import CollapseOnEscape from 'slate-collapse-on-escape';
@@ -7,7 +8,7 @@ import EditCode from 'slate-edit-code';
 import Prism from 'slate-prism';
 import KeyboardShortcuts from './plugins/KeyboardShortcuts';
 import MarkdownShortcuts from './plugins/MarkdownShortcuts';
-import ImageUploads from './plugins/ImageUploads';
+import insertImage from './insertImage';
 
 const onlyInCode = node => node.type === 'code';
 
@@ -16,13 +17,24 @@ type Options = {
   onImageUploadStop: Function,
 };
 
-const createPlugins = (options: Options) => {
+const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
   return [
     PasteLinkify({
       type: 'link',
       collapseTo: 'end',
     }),
-    ImageUploads(options),
+    DropOrPasteImages({
+      extensions: ['png', 'jpg', 'gif'],
+      applyTransform: (transform, editor, file) => {
+        return insertImage(
+          transform,
+          file,
+          editor,
+          onImageUploadStart,
+          onImageUploadStop
+        );
+      },
+    }),
     EditList({
       types: ['ordered-list', 'bulleted-list', 'todo-list'],
       typeItem: 'list-item',
