@@ -11,6 +11,7 @@ import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
 
+import BaseStore from 'stores/BaseStore';
 import stores from 'stores';
 import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
@@ -24,7 +25,7 @@ type Options = {
   ui: UiStore,
 };
 
-class DocumentsStore {
+class DocumentsStore extends BaseStore {
   @observable recentlyViewedIds: Array<string> = [];
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
@@ -131,6 +132,8 @@ class DocumentsStore {
   };
 
   constructor(options: Options) {
+    super();
+
     this.errors = stores.errors;
     this.cache = options.cache;
     this.ui = options.ui;
@@ -139,6 +142,10 @@ class DocumentsStore {
       if (data) {
         data.forEach(document => this.add(new Document(document)));
       }
+    });
+
+    this.on('documents.delete', (data: { id: string }) => {
+      this.remove(data.id);
     });
 
     autorunAsync('DocumentsStore.persists', () => {
