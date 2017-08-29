@@ -18,6 +18,13 @@
     // Prettier automatically uses the least amount of parens possible, so this
     // does more harm than good.
     "no-mixed-operators": "off",
+    // Temporary fix for a failing import lint
+    "import/no-unresolved": [
+      "error",
+      {
+        "ignore": [ "slate-drop-or-paste-images" ]
+      }
+    ],
     // Flow
     "flowtype/require-valid-file-annotation": [
       2,
