@@ -1,5 +1,6 @@
 // @flow
 import { List, Set, Map } from 'immutable';
+import { Selection } from 'slate';
 
 export type NodeTransform = {
   addMarkByKey: Function,
@@ -83,15 +84,6 @@ export type Block = Node & {
 
 export type Document = Node;
 
-export type Props = {
-  node: Node,
-  parent?: Node,
-  attributes?: Object,
-  editor: Editor,
-  readOnly?: boolean,
-  children?: React$Element<any>,
-};
-
 export type State = {
   document: Document,
   selection: Selection,
@@ -107,4 +99,14 @@ export type State = {
   startBlock: Block,
   transform: Function,
   isBlurred: Function,
+};
+
+export type Props = {
+  node: Node,
+  parent?: Node,
+  attributes?: Object,
+  state: State,
+  editor: Editor,
+  readOnly?: boolean,
+  children?: React$Element<any>,
 };
