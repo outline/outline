@@ -6,9 +6,9 @@ import CollapseOnEscape from 'slate-collapse-on-escape';
 import TrailingBlock from 'slate-trailing-block';
 import EditCode from 'slate-edit-code';
 import Prism from 'slate-prism';
-import uploadFile from 'utils/uploadFile';
 import KeyboardShortcuts from './plugins/KeyboardShortcuts';
 import MarkdownShortcuts from './plugins/MarkdownShortcuts';
+import insertImage from './insertImage';
 
 const onlyInCode = node => node.type === 'code';
 
@@ -25,24 +25,14 @@ const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
     }),
     DropOrPasteImages({
       extensions: ['png', 'jpg', 'gif'],
-      applyTransform: async (transform, file) => {
-        onImageUploadStart();
-        try {
-          const asset = await uploadFile(file);
-          const alt = file.name;
-          const src = asset.url;
-
-          return transform.insertBlock({
-            type: 'image',
-            isVoid: true,
-            data: { src, alt },
-          });
-        } catch (err) {
-          // TODO: Show a failure alert
-          console.error(err);
-        } finally {
-          onImageUploadStop();
-        }
+      applyTransform: (transform, editor, file) => {
+        return insertImage(
+          transform,
+          file,
+          editor,
+          onImageUploadStart,
+          onImageUploadStop
+        );
       },
     }),
     EditList({
