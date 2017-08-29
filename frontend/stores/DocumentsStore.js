@@ -16,11 +16,13 @@ import stores from 'stores';
 import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
 import CacheStore from 'stores/CacheStore';
+import UiStore from 'stores/UiStore';
 
 const DOCUMENTS_CACHE_KEY = 'DOCUMENTS_CACHE_KEY';
 
 type Options = {
   cache: CacheStore,
+  ui: UiStore,
 };
 
 class DocumentsStore extends BaseStore {
@@ -31,6 +33,7 @@ class DocumentsStore extends BaseStore {
 
   errors: ErrorsStore;
   cache: CacheStore;
+  ui: UiStore;
 
   /* Computed */
 
@@ -47,6 +50,12 @@ class DocumentsStore extends BaseStore {
 
   @computed get starred(): Array<Document> {
     return _.filter(this.data.values(), 'starred');
+  }
+
+  @computed get active(): ?Document {
+    return this.ui.activeDocumentId
+      ? this.getById(this.ui.activeDocumentId)
+      : undefined;
   }
 
   /* Actions */
@@ -127,6 +136,7 @@ class DocumentsStore extends BaseStore {
 
     this.errors = stores.errors;
     this.cache = options.cache;
+    this.ui = options.ui;
 
     this.cache.getItem(DOCUMENTS_CACHE_KEY).then(data => {
       if (data) {

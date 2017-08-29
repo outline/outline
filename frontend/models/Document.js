@@ -155,12 +155,11 @@ class Document extends BaseModel {
         // }
         res = await client.post('/documents.create', data);
       }
-
-      invariant(res && res.data, 'Data should be available');
-      this.updateData({
-        ...res.data,
+      runInAction('Document#save', () => {
+        invariant(res && res.data, 'Data should be available');
+        this.updateData(res.data);
+        this.hasPendingChanges = false;
       });
-      this.hasPendingChanges = false;
     } catch (e) {
       this.errors.add('Document failed saving');
     } finally {

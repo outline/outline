@@ -17,7 +17,9 @@ import Scrollable from 'components/Scrollable';
 import Avatar from 'components/Avatar';
 import Modal from 'components/Modal';
 import AddIcon from 'components/Icon/AddIcon';
+import MoreIcon from 'components/Icon/MoreIcon';
 import CollectionNew from 'scenes/CollectionNew';
+import CollectionEdit from 'scenes/CollectionEdit';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
 import Settings from 'scenes/Settings';
 
@@ -29,10 +31,12 @@ import UserStore from 'stores/UserStore';
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
 import CollectionsStore from 'stores/CollectionsStore';
+import DocumentsStore from 'stores/DocumentsStore';
 
 type Props = {
   history: Object,
   collections: CollectionsStore,
+  documents: DocumentsStore,
   children?: ?React.Element<any>,
   actions?: ?React.Element<any>,
   title?: ?React.Element<any>,
@@ -66,8 +70,8 @@ type Props = {
 
   @keydown('e')
   goToEdit() {
-    if (!this.props.ui.activeDocument) return;
-    this.props.history.push(documentEditUrl(this.props.ui.activeDocument));
+    if (!this.props.documents.active) return;
+    this.props.history.push(documentEditUrl(this.props.documents.active));
   }
 
   handleLogout = () => {
@@ -87,12 +91,16 @@ type Props = {
     this.modal = 'create-collection';
   };
 
+  handleEditCollection = () => {
+    this.modal = 'edit-collection';
+  };
+
   handleCloseModal = () => {
     this.modal = null;
   };
 
   render() {
-    const { user, auth, collections, history, ui } = this.props;
+    const { user, auth, documents, collections, history, ui } = this.props;
 
     return (
       <Container column auto>
@@ -144,13 +152,17 @@ type Props = {
                     <SidebarLink to="/starred">Starred</SidebarLink>
                   </LinkSection>
                   <LinkSection>
-                    <CreateCollection onClick={this.handleCreateCollection}>
-                      <AddIcon />
-                    </CreateCollection>
-                    {ui.activeCollection
+                    {collections.active
+                      ? <CollectionAction onClick={this.handleEditCollection}>
+                          <MoreIcon />
+                        </CollectionAction>
+                      : <CollectionAction onClick={this.handleCreateCollection}>
+                          <AddIcon />
+                        </CollectionAction>}
+                    {collections.active
                       ? <SidebarCollection
-                          document={ui.activeDocument}
-                          collection={ui.activeCollection}
+                          document={documents.active}
+                          collection={collections.active}
                           history={this.props.history}
                         />
                       : <SidebarCollectionList history={this.props.history} />}
@@ -171,8 +183,21 @@ type Props = {
           <CollectionNew
             collections={collections}
             history={history}
-            onCollectionCreated={this.handleCloseModal}
+            onSubmit={this.handleCloseModal}
           />
+        </Modal>
+        <Modal
+          isOpen={this.modal === 'edit-collection'}
+          onRequestClose={this.handleCloseModal}
+          title="Edit collection"
+        >
+          {collections.active &&
+            <CollectionEdit
+              collection={collections.active}
+              collections={collections}
+              history={history}
+              onSubmit={this.handleCloseModal}
+            />}
         </Modal>
         <Modal
           isOpen={this.modal === 'keyboard-shortcuts'}
@@ -193,7 +218,7 @@ type Props = {
   }
 }
 
-const CreateCollection = styled.a`
+const CollectionAction = styled.a`
   position: absolute;
   top: 8px;
   right: ${layout.hpadding};
@@ -260,4 +285,6 @@ const LinkSection = styled(Flex)`
   position: relative;
 `;
 
-export default withRouter(inject('user', 'auth', 'ui', 'collections')(Layout));
+export default withRouter(
+  inject('user', 'auth', 'ui', 'documents', 'collections')(Layout)
+);

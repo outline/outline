@@ -112,6 +112,7 @@ Document.associate = models => {
   Document.belongsTo(models.Collection, {
     as: 'collection',
     foreignKey: 'atlasId',
+    onDelete: 'cascade',
   });
   Document.belongsTo(models.User, {
     as: 'createdBy',
@@ -120,6 +121,10 @@ Document.associate = models => {
   Document.belongsTo(models.User, {
     as: 'updatedBy',
     foreignKey: 'lastModifiedById',
+  });
+  Document.hasMany(models.Revision, {
+    as: 'revisions',
+    onDelete: 'cascade',
   });
   Document.hasMany(models.Star, {
     as: 'starred',

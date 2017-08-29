@@ -67,9 +67,11 @@ class Collection extends BaseModel {
           description: this.description,
         });
       }
-      invariant(res && res.data, 'Data should be available');
-      this.updateData(res.data);
-      this.hasPendingChanges = false;
+      runInAction('Collection#save', () => {
+        invariant(res && res.data, 'Data should be available');
+        this.updateData(res.data);
+        this.hasPendingChanges = false;
+      });
     } catch (e) {
       this.errors.add('Collection failed saving');
       return false;
@@ -78,6 +80,17 @@ class Collection extends BaseModel {
     }
 
     return true;
+  };
+
+  @action delete = async () => {
+    try {
+      const res = await client.post('/collections.delete', { id: this.id });
+      invariant(res && res.data, 'Data should be available');
+      const { data } = res;
+      return data.success;
+    } catch (e) {
+      this.errors.add('Collection failed to delete');
+    }
   };
 
   updateData(data: Object = {}) {

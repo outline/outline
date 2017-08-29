@@ -1,27 +1,23 @@
 // @flow
-import { observable, action, computed } from 'mobx';
+import { observable, action } from 'mobx';
 import Document from 'models/Document';
-import Collection from 'models/Collection';
 
 class UiStore {
-  @observable activeDocument: ?Document;
+  @observable activeDocumentId: ?string;
+  @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
-
-  /* Computed */
-
-  @computed get activeCollection(): ?Collection {
-    return this.activeDocument ? this.activeDocument.collection : undefined;
-  }
 
   /* Actions */
 
   @action setActiveDocument = (document: Document): void => {
-    this.activeDocument = document;
+    this.activeDocumentId = document.id;
+    this.activeCollectionId = document.collection.id;
   };
 
   @action clearActiveDocument = (): void => {
-    this.activeDocument = undefined;
+    this.activeDocumentId = undefined;
+    this.activeCollectionId = undefined;
   };
 
   @action enableEditMode() {
