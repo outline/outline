@@ -91,7 +91,7 @@ class Collection extends BaseModel {
     this.updateData(collection);
     this.errors = stores.errors;
 
-    this.on('document.delete', (data: { collectionId: string }) => {
+    this.on('documents.delete', (data: { collectionId: string }) => {
       if (data.collectionId === this.id) this.fetch();
     });
   }

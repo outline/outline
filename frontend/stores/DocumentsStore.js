@@ -134,7 +134,7 @@ class DocumentsStore extends BaseStore {
       }
     });
 
-    this.on('document.delete', (data: { id: string }) => {
+    this.on('documents.delete', (data: { id: string }) => {
       this.remove(data.id);
     });
 

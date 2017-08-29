@@ -38,7 +38,7 @@ type Props = {
     }
 
     if (confirm(msg)) {
-      await this.props.document.delete();
+      await this.props.documents.delete();
       this.props.history.push(this.props.document.collection.url);
     }
   };

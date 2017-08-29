@@ -173,7 +173,7 @@ class Document extends BaseModel {
   @action delete = async () => {
     try {
       await client.post('/documents.delete', { id: this.id });
-      this.emit('document.delete', {
+      this.emit('documents.delete', {
         id: this.id,
         collectionId: this.collection.id,
       });
