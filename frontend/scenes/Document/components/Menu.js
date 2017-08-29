@@ -28,7 +28,7 @@ type Props = {
     this.props.history.push(`${this.props.document.url}/new`);
   };
 
-  onDelete = () => {
+  onDelete = async () => {
     let msg;
     if (get(this.props, 'document.collection.type') === 'atlas') {
       msg =
@@ -38,7 +38,8 @@ type Props = {
     }
 
     if (confirm(msg)) {
-      this.props.document.delete();
+      await this.props.document.delete();
+      this.props.history.push(this.props.document.collection.url);
     }
   };
 
