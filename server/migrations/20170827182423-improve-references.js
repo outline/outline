@@ -1,6 +1,5 @@
 module.exports = {
   up: async function(queryInterface, Sequelize) {
-    await queryInterface.removeIndex('documents', 'atlasId_foreign_idx');
     await queryInterface.changeColumn('documents', 'atlasId', {
       type: Sequelize.UUID,
       allowNull: true,
