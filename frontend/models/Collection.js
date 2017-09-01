@@ -3,12 +3,13 @@ import { extendObservable, action, computed, runInAction } from 'mobx';
 import invariant from 'invariant';
 import _ from 'lodash';
 
+import BaseModel from 'models/BaseModel';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
 import type { NavigationNode } from 'types';
 
-class Collection {
+class Collection extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
   errors: ErrorsStore;
@@ -66,9 +67,11 @@ class Collection {
           description: this.description,
         });
       }
-      invariant(res && res.data, 'Data should be available');
-      this.updateData(res.data);
-      this.hasPendingChanges = false;
+      runInAction('Collection#save', () => {
+        invariant(res && res.data, 'Data should be available');
+        this.updateData(res.data);
+        this.hasPendingChanges = false;
+      });
     } catch (e) {
       this.errors.add('Collection failed saving');
       return false;
@@ -79,14 +82,31 @@ class Collection {
     return true;
   };
 
+  @action delete = async () => {
+    try {
+      const res = await client.post('/collections.delete', { id: this.id });
+      invariant(res && res.data, 'Data should be available');
+      const { data } = res;
+      return data.success;
+    } catch (e) {
+      this.errors.add('Collection failed to delete');
+    }
+  };
+
   updateData(data: Object = {}) {
     this.data = data;
     extendObservable(this, data);
   }
 
   constructor(collection: Object = {}) {
+    super();
+
     this.updateData(collection);
     this.errors = stores.errors;
+
+    this.on('documents.delete', (data: { collectionId: string }) => {
+      if (data.collectionId === this.id) this.fetch();
+    });
   }
 }
 

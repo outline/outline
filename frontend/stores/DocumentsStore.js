@@ -11,18 +11,21 @@ import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
 
+import BaseStore from 'stores/BaseStore';
 import stores from 'stores';
 import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
 import CacheStore from 'stores/CacheStore';
+import UiStore from 'stores/UiStore';
 
 const DOCUMENTS_CACHE_KEY = 'DOCUMENTS_CACHE_KEY';
 
 type Options = {
   cache: CacheStore,
+  ui: UiStore,
 };
 
-class DocumentsStore {
+class DocumentsStore extends BaseStore {
   @observable recentlyViewedIds: Array<string> = [];
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
@@ -30,6 +33,7 @@ class DocumentsStore {
 
   errors: ErrorsStore;
   cache: CacheStore;
+  ui: UiStore;
 
   /* Computed */
 
@@ -46,6 +50,12 @@ class DocumentsStore {
 
   @computed get starred(): Array<Document> {
     return _.filter(this.data.values(), 'starred');
+  }
+
+  @computed get active(): ?Document {
+    return this.ui.activeDocumentId
+      ? this.getById(this.ui.activeDocumentId)
+      : undefined;
   }
 
   /* Actions */
@@ -122,13 +132,20 @@ class DocumentsStore {
   };
 
   constructor(options: Options) {
+    super();
+
     this.errors = stores.errors;
     this.cache = options.cache;
+    this.ui = options.ui;
 
     this.cache.getItem(DOCUMENTS_CACHE_KEY).then(data => {
       if (data) {
         data.forEach(document => this.add(new Document(document)));
       }
+    });
+
+    this.on('documents.delete', (data: { id: string }) => {
+      this.remove(data.id);
     });
 
     autorunAsync('DocumentsStore.persists', () => {

@@ -8,11 +8,12 @@ import ErrorsStore from 'stores/ErrorsStore';
 import parseTitle from '../../shared/parseTitle';
 
 import type { User } from 'types';
+import BaseModel from './BaseModel';
 import Collection from './Collection';
 
 const DEFAULT_TITLE = 'Untitled document';
 
-class Document {
+class Document extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
   errors: ErrorsStore;
@@ -109,14 +110,6 @@ class Document {
     }
   };
 
-  @action delete = async () => {
-    try {
-      await client.post('/documents.delete', { id: this.id });
-    } catch (e) {
-      this.errors.add('Document failed to delete');
-    }
-  };
-
   @action fetch = async () => {
     try {
       const res = await client.post('/documents.info', { id: this.id });
@@ -162,12 +155,11 @@ class Document {
         // }
         res = await client.post('/documents.create', data);
       }
-
-      invariant(res && res.data, 'Data should be available');
-      this.updateData({
-        ...res.data,
+      runInAction('Document#save', () => {
+        invariant(res && res.data, 'Data should be available');
+        this.updateData(res.data);
+        this.hasPendingChanges = false;
       });
-      this.hasPendingChanges = false;
     } catch (e) {
       this.errors.add('Document failed saving');
     } finally {
@@ -175,6 +167,19 @@ class Document {
     }
 
     return this;
+  };
+
+  @action delete = async () => {
+    try {
+      await client.post('/documents.delete', { id: this.id });
+      this.emit('documents.delete', {
+        id: this.id,
+        collectionId: this.collection.id,
+      });
+    } catch (e) {
+      this.errors.add('Error while deleting the document');
+    }
+    return;
   };
 
   updateData(data: Object = {}, dirty: boolean = false) {
@@ -189,6 +194,8 @@ class Document {
   }
 
   constructor(data?: Object = {}) {
+    super();
+
     this.updateData(data);
     this.errors = stores.errors;
   }

@@ -62,9 +62,11 @@ const Auth = ({ children }: AuthProps) => {
       authenticatedStores = {
         user,
         documents: new DocumentsStore({
+          ui: stores.ui,
           cache,
         }),
         collections: new CollectionsStore({
+          ui: stores.ui,
           teamId: user.team.id,
           cache,
         }),

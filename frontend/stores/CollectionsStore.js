@@ -1,6 +1,7 @@
 // @flow
 import {
   observable,
+  computed,
   action,
   runInAction,
   ObservableArray,
@@ -14,12 +15,14 @@ import stores from 'stores';
 import Collection from 'models/Collection';
 import ErrorsStore from 'stores/ErrorsStore';
 import CacheStore from 'stores/CacheStore';
+import UiStore from 'stores/UiStore';
 
 const COLLECTION_CACHE_KEY = 'COLLECTION_CACHE_KEY';
 
 type Options = {
   teamId: string,
   cache: CacheStore,
+  ui: UiStore,
 };
 
 class CollectionsStore {
@@ -30,6 +33,13 @@ class CollectionsStore {
   teamId: string;
   errors: ErrorsStore;
   cache: CacheStore;
+  ui: UiStore;
+
+  @computed get active(): ?Collection {
+    return this.ui.activeCollectionId
+      ? this.getById(this.ui.activeCollectionId)
+      : undefined;
+  }
 
   /* Actions */
 
@@ -49,8 +59,8 @@ class CollectionsStore {
     }
   };
 
-  @action getById = async (id: string): Promise<?Collection> => {
-    let collection = _.find(this.data, { id });
+  @action fetchById = async (id: string): Promise<?Collection> => {
+    let collection = this.getById(id);
     if (!collection) {
       try {
         const res = await this.client.post('/collections.info', {
@@ -79,18 +89,23 @@ class CollectionsStore {
     this.data.splice(this.data.indexOf(id), 1);
   };
 
+  getById = (id: string): ?Collection => {
+    return _.find(this.data, { id });
+  };
+
   constructor(options: Options) {
     this.client = client;
     this.errors = stores.errors;
     this.teamId = options.teamId;
     this.cache = options.cache;
-
-    this.cache.getItem(COLLECTION_CACHE_KEY).then(data => {
-      if (data) {
-        this.data.replace(data.map(collection => new Collection(collection)));
-        this.isLoaded = true;
-      }
-    });
+    this.ui = options.ui;
+    //
+    // this.cache.getItem(COLLECTION_CACHE_KEY).then(data => {
+    //   if (data) {
+    //     this.data.replace(data.map(collection => new Collection(collection)));
+    //     this.isLoaded = true;
+    //   }
+    // });
 
     autorunAsync('CollectionsStore.persists', () => {
       if (this.data.length > 0)

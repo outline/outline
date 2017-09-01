@@ -12,7 +12,7 @@ import CollectionsStore from 'stores/CollectionsStore';
 type Props = {
   history: Object,
   collections: CollectionsStore,
-  onCollectionCreated: () => void,
+  onSubmit: () => void,
 };
 
 @observer class CollectionNew extends Component {
@@ -34,7 +34,7 @@ type Props = {
 
     if (success) {
       this.props.collections.add(this.collection);
-      this.props.onCollectionCreated();
+      this.props.onSubmit();
       this.props.history.push(this.collection.url);
     }
 
