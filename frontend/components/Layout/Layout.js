@@ -79,9 +79,13 @@ type Props = {
   };
 
   @keydown('shift+/')
-  handleOpenKeyboardShortcuts() {
+  goToOpenKeyboardShortcuts() {
     this.modal = 'keyboard-shortcuts';
   }
+
+  handleOpenKeyboardShortcuts = () => {
+    this.goToOpenKeyboardShortcuts();
+  };
 
   handleOpenSettings = () => {
     this.modal = 'settings';
