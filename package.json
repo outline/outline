@@ -60,6 +60,7 @@
     "url": "git+ssh://git@github.com/jorilallo/atlas.git"
   },
   "dependencies": {
+    "@tommoor/slate-drop-or-paste-images": "0.5.1",
     "babel-core": "^6.24.1",
     "babel-eslint": "^7.2.3",
     "babel-loader": "6.2.5",
@@ -159,7 +160,6 @@
     "sequelize-encrypted": "0.1.0",
     "slate": "^0.21.4",
     "slate-collapse-on-escape": "^0.2.1",
-    "slate-drop-or-paste-images": "tommoor/slate-drop-or-paste-images#dev",
     "slate-edit-code": "^0.10.2",
     "slate-edit-list": "^0.7.0",
     "slate-markdown-serializer": "tommoor/slate-markdown-serializer",
