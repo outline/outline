@@ -27,7 +27,6 @@ import SidebarCollection from './components/SidebarCollection';
 import SidebarCollectionList from './components/SidebarCollectionList';
 import SidebarLink from './components/SidebarLink';
 
-import UserStore from 'stores/UserStore';
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
 import CollectionsStore from 'stores/CollectionsStore';
@@ -40,7 +39,6 @@ type Props = {
   children?: ?React.Element<any>,
   actions?: ?React.Element<any>,
   title?: ?React.Element<any>,
-  user: UserStore,
   auth: AuthStore,
   ui: UiStore,
   search: ?boolean,
@@ -108,7 +106,8 @@ type Props = {
   };
 
   render() {
-    const { user, auth, documents, collections, history, ui } = this.props;
+    const { auth, documents, collections, history, ui } = this.props;
+    const { user } = auth;
 
     return (
       <Container column auto>
@@ -134,7 +133,7 @@ type Props = {
                 <Flex align="center">
                   <LogoLink to="/">Atlas</LogoLink>
                 </Flex>
-                <DropdownMenu label={<Avatar src={user.user.avatarUrl} />}>
+                <DropdownMenu label={<Avatar src={user.avatarUrl} />}>
                   <DropdownMenuItem onClick={this.handleOpenSettings}>
                     Settings
                   </DropdownMenuItem>
