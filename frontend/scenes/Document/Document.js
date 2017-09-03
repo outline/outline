@@ -12,10 +12,11 @@ import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
+import SaveAction from './components/SaveAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import Editor from 'components/Editor';
 import DropToImport from 'components/DropToImport';
-import { HeaderAction, SaveAction } from 'components/Layout';
+import { HeaderAction } from 'components/Layout';
 import LoadingIndicator from 'components/LoadingIndicator';
 import PublishingInfo from 'components/PublishingInfo';
 import CenteredContent from 'components/CenteredContent';
@@ -44,6 +45,7 @@ type Props = {
   state = {
     isDragging: false,
     isLoading: false,
+    isSaving: false,
     newDocument: undefined,
     showAsSaved: false,
   };
@@ -108,7 +110,7 @@ type Props = {
     let document = this.document;
 
     if (!document) return;
-    this.setState({ isLoading: true });
+    this.setState({ isLoading: true, isSaving: true });
     document = await document.save();
     this.setState({ isLoading: false });
 
@@ -120,7 +122,7 @@ type Props = {
   };
 
   showAsSaved() {
-    this.setState({ showAsSaved: true });
+    this.setState({ showAsSaved: true, isSaving: false });
     this.savedTimeout = setTimeout(
       () => this.setState({ showAsSaved: false }),
       2000
@@ -217,13 +219,20 @@ type Props = {
                   <HeaderAction>
                     {isEditing
                       ? <SaveAction
-                          showCheckmark={this.state.showAsSaved}
+                          isSaving={this.state.isSaving}
                           onClick={this.onSave.bind(this, true)}
-                          disabled={!(this.document && this.document.allowSave)}
+                          disabled={
+                            !(this.document && this.document.allowSave) ||
+                              this.state.isSaving
+                          }
                           isNew={!!isNew}
                         />
                       : <a onClick={this.onClickEdit}>Edit</a>}
                   </HeaderAction>
+                  {isEditing &&
+                    <HeaderAction>
+                      <a onClick={this.onCancel}>Cancel</a>
+                    </HeaderAction>}
                   {!isEditing && <Menu document={document} />}
                 </Flex>
               </Meta>

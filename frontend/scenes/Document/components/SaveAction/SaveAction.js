@@ -1,28 +1,26 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import CheckIcon from 'components/Icon/CheckIcon';
-import { fadeAndScaleIn } from 'styles/animations';
 
 type Props = {
   onClick: Function,
-  showCheckmark: boolean,
   disabled?: boolean,
   isNew?: boolean,
+  isSaving?: boolean,
 };
 
 class SaveAction extends React.Component {
   props: Props;
 
-  onClick = (event: MouseEvent) => {
+  onClick = (ev: MouseEvent) => {
     if (this.props.disabled) return;
 
-    event.preventDefault();
+    ev.preventDefault();
     this.props.onClick();
   };
 
   render() {
-    const { showCheckmark, disabled, isNew } = this.props;
+    const { isSaving, isNew, disabled } = this.props;
 
     return (
       <Link
@@ -30,8 +28,9 @@ class SaveAction extends React.Component {
         title="Save changes (Cmd+Enter)"
         disabled={disabled}
       >
-        {showCheckmark && <SavedIcon />}
-        {isNew ? 'Publish' : 'Save'}
+        {isNew
+          ? isSaving ? 'Publishing…' : 'Publish'
+          : isSaving ? 'Saving…' : 'Save'}
       </Link>
     );
   }
@@ -43,19 +42,6 @@ const Link = styled.a`
   opacity: ${props => (props.disabled ? 0.5 : 1)};
   pointer-events: ${props => (props.disabled ? 'none' : 'auto')};
   cursor: ${props => (props.disabled ? 'default' : 'pointer')};
-`;
-
-const SavedIcon = styled(CheckIcon)`
-  animation: ${fadeAndScaleIn} 250ms ease;
-  display: inline-block;
-  margin-right: 4px;
-  width: 18px;
-  height: 18px;
-
-  svg {
-    width: 18px;
-    height: 18px;
-  }
 `;
 
 export default SaveAction;
