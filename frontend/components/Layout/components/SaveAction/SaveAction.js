@@ -26,10 +26,9 @@ class SaveAction extends React.Component {
 
     return (
       <Link
-        href
         onClick={this.onClick}
-        style={{ opacity: disabled ? 0.5 : 1 }}
         title="Save changes (Cmd+Enter)"
+        disabled={disabled}
       >
         {showCheckmark && <SavedIcon />}
         {isNew ? 'Publish' : 'Save'}
@@ -41,6 +40,9 @@ class SaveAction extends React.Component {
 const Link = styled.a`
   display: flex;
   align-items: center;
+  opacity: ${props => (props.disabled ? 0.5 : 1)};
+  pointer-events: ${props => (props.disabled ? 'none' : 'auto')};
+  cursor: ${props => (props.disabled ? 'default' : 'pointer')};
 `;
 
 const SavedIcon = styled(CheckIcon)`
