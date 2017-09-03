@@ -219,7 +219,7 @@ const MaxWidth = styled(Flex)`
 `;
 
 const Header = styled(Flex)`
-  height: 40px;
+  height: 60px;
   flex-shrink: 0;
   align-items: flex-end;
   ${({ readOnly }) => !readOnly && 'cursor: text;'}
