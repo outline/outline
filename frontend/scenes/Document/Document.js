@@ -198,7 +198,10 @@ type Props = {
               />
               <Meta align="center" justify="flex-end" readOnly={!isEditing}>
                 <Flex align="center">
-                  {document && !isNew && <Collaborators document={document} />}
+                  {document &&
+                    !isNew &&
+                    !isEditing &&
+                    <Collaborators document={document} />}
                   <HeaderAction>
                     {isEditing
                       ? <SaveAction

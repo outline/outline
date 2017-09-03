@@ -37,6 +37,7 @@ const Collaborators = function({ document }: { document: Document }) {
 const Avatars = styled(Flex)`
   flex-direction: row-reverse;
   margin-right: 10px;
+  height: 26px;
 `;
 
 const Avatar = styled.img`
