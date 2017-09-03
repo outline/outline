@@ -89,11 +89,11 @@ class ApiClient {
     });
   };
 
-  get = (path: string, data?: Object, options?: Object) => {
+  get = (path: string, data: ?Object, options?: Object) => {
     return this.fetch(path, 'GET', data, options);
   };
 
-  post = (path: string, data?: Object, options?: Object) => {
+  post = (path: string, data: ?Object, options?: Object) => {
     return this.fetch(path, 'POST', data, options);
   };
 
