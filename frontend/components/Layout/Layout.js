@@ -69,9 +69,13 @@ type Props = {
   }
 
   @keydown('e')
-  goToEdit() {
-    if (!this.props.documents.active) return;
-    this.props.history.push(documentEditUrl(this.props.documents.active));
+  goToEdit(ev) {
+    const activeDocument = this.props.documents.active;
+    if (!activeDocument) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.props.history.push(documentEditUrl(activeDocument));
   }
 
   handleLogout = () => {

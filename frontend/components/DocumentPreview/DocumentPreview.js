@@ -19,12 +19,8 @@ const StyledStar = styled(StarIcon)`
   top: 2px;
   position: relative;
   margin-left: 4px;
-  opacity: ${props => (props.solid ? 1 : 0.25)};
+  opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: opacity 100ms ease-in-out;
-
-  &:hover {
-    opacity: 1;
-  }
 
   svg {
     width: 1em;
@@ -48,6 +44,14 @@ const DocumentLink = styled(Link)`
     background: ${color.smokeLight};
     border: 2px solid ${color.smoke};
     outline: none;
+
+    ${StyledStar} {
+      opacity: .25;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
   }
 
   &:focus {
