@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import Flex from 'components/Flex';
-import { layout } from 'styles/constants';
+import { layout, color } from 'styles/constants';
 import invariant from 'invariant';
 
 import Document from 'models/Document';
@@ -15,7 +15,7 @@ import Menu from './components/Menu';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import Editor from 'components/Editor';
 import DropToImport from 'components/DropToImport';
-import { HeaderAction, SaveAction } from 'components/Layout';
+import { HeaderAction } from 'components/Layout';
 import LoadingIndicator from 'components/LoadingIndicator';
 import PublishingInfo from 'components/PublishingInfo';
 import CenteredContent from 'components/CenteredContent';
@@ -44,6 +44,7 @@ type Props = {
   state = {
     isDragging: false,
     isLoading: false,
+    isSaving: false,
     newDocument: undefined,
     showAsSaved: false,
   };
@@ -108,7 +109,10 @@ type Props = {
     let document = this.document;
 
     if (!document) return;
-    this.setState({ isLoading: true });
+    this.setState({
+      isSaving: true,
+      isLoading: true,
+    });
     document = await document.save();
     this.setState({ isLoading: false });
 
@@ -120,9 +124,15 @@ type Props = {
   };
 
   showAsSaved() {
-    this.setState({ showAsSaved: true });
+    this.setState({
+      isSaving: false,
+      showAsSaved: true,
+    });
     this.savedTimeout = setTimeout(
-      () => this.setState({ showAsSaved: false }),
+      () =>
+        this.setState({
+          showAsSaved: false,
+        }),
       2000
     );
   }
@@ -167,11 +177,22 @@ type Props = {
   }
 
   render() {
+    const { isSaving, showAsSaved } = this.state;
     const isNew = this.props.newDocument;
     const isEditing = !!this.props.match.params.edit || isNew;
     const isFetching = !this.document;
     const titleText = get(this.document, 'title', '');
     const document = this.document;
+
+    let saveLabel;
+    if (isNew) {
+      saveLabel = 'Publish';
+      if (isSaving) saveLabel = 'Publishing...';
+    } else {
+      saveLabel = 'Save';
+      if (isSaving) saveLabel = 'Saving...';
+      if (showAsSaved) saveLabel = 'Saved!';
+    }
 
     return (
       <Container column auto>
@@ -216,12 +237,20 @@ type Props = {
                 <Flex align="center">
                   <HeaderAction>
                     {isEditing
-                      ? <SaveAction
-                          showCheckmark={this.state.showAsSaved}
-                          onClick={this.onSave.bind(this, true)}
-                          disabled={!(this.document && this.document.allowSave)}
-                          isNew={!!isNew}
-                        />
+                      ? <Flex>
+                          <ActionLink
+                            onClick={this.onSave.bind(this, true)}
+                            disabled={
+                              !(this.document && this.document.allowSave)
+                            }
+                            primary
+                          >
+                            {saveLabel}
+                          </ActionLink>
+                          <ActionLink onClick={this.onCancel}>
+                            Cancel
+                          </ActionLink>
+                        </Flex>
                       : <a onClick={this.onClickEdit}>Edit</a>}
                   </HeaderAction>
                   {!isEditing && <Menu document={document} />}
@@ -271,6 +300,16 @@ const LoadingState = styled(LoadingPlaceholder)`
 const StyledDropToImport = styled(DropToImport)`
   display: flex;
   flex: 1;
+`;
+
+const ActionLink = styled(Flex)`
+  margin-right: 25px;
+  color: ${({ primary }) => (primary ? color.text : color.slateDark)};
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
+
+  &:last-child {
+    margin-right: none;
+  }
 `;
 
 export default withRouter(inject('ui', 'user', 'documents')(DocumentScene));
