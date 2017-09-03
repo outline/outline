@@ -28,8 +28,8 @@ type Props = {
   props: Props;
 
   componentDidMount() {
-    this.props.documents.fetchAll();
-    this.props.documents.fetchRecentlyViewed();
+    this.props.documents.fetchRecentlyModified({ limit: 5 });
+    this.props.documents.fetchRecentlyViewed({ limit: 5 });
   }
 
   get showPlaceholder() {
