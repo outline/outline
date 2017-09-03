@@ -5,30 +5,11 @@ import styled from 'styled-components';
 import { color } from 'styles/constants';
 import Collection from 'models/Collection';
 import Document from 'models/Document';
-import type { User } from 'types';
 import Flex from 'components/Flex';
 
 const Container = styled(Flex)`
   color: ${color.slate};
   font-size: 13px;
-`;
-
-const Avatars = styled(Flex)`
-  flex-direction: row-reverse;
-  margin-right: 10px;
-`;
-
-const Avatar = styled.img`
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  border: 2px solid ${color.white};
-  margin-right: -13px;
-
-  &:first-child {
-    margin-right: 0;
-  }
 `;
 
 const Modified = styled.span`
@@ -38,14 +19,13 @@ const Modified = styled.span`
 
 class PublishingInfo extends Component {
   props: {
-    collaborators?: Array<User>,
     collection?: Collection,
     document: Document,
     views?: number,
   };
 
   render() {
-    const { collaborators, collection, document } = this.props;
+    const { collection, document } = this.props;
     const {
       modifiedSinceViewed,
       createdAt,
@@ -56,12 +36,6 @@ class PublishingInfo extends Component {
 
     return (
       <Container align="center">
-        {collaborators &&
-          <Avatars>
-            {collaborators.map(user => (
-              <Avatar key={user.id} src={user.avatarUrl} title={user.name} />
-            ))}
-          </Avatars>}
         {createdAt === updatedAt
           ? <span>
               {createdBy.name}

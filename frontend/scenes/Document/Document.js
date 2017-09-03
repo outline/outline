@@ -6,7 +6,6 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import Flex from 'components/Flex';
 import { layout } from 'styles/constants';
-import invariant from 'invariant';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
@@ -17,7 +16,7 @@ import Editor from 'components/Editor';
 import DropToImport from 'components/DropToImport';
 import { HeaderAction, SaveAction } from 'components/Layout';
 import LoadingIndicator from 'components/LoadingIndicator';
-import PublishingInfo from 'components/PublishingInfo';
+import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 
@@ -152,20 +151,6 @@ type Props = {
     this.setState({ isDragging: false });
   };
 
-  renderHeading(isEditing: boolean) {
-    invariant(this.document, 'document not available');
-    if (this.props.newDocument) return;
-
-    return (
-      <InfoWrapper visible={!isEditing}>
-        <PublishingInfo
-          collaborators={this.document.collaborators}
-          document={this.document}
-        />
-      </InfoWrapper>
-    );
-  }
-
   render() {
     const isNew = this.props.newDocument;
     const isEditing = !!this.props.match.params.edit || isNew;
@@ -209,11 +194,11 @@ type Props = {
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onCancel={this.onCancel}
-                heading={this.renderHeading(!!isEditing)}
                 readOnly={!isEditing}
               />
               <Meta align="center" justify="flex-end" readOnly={!isEditing}>
                 <Flex align="center">
+                  {document && !isNew && <Collaborators document={document} />}
                   <HeaderAction>
                     {isEditing
                       ? <SaveAction
@@ -252,11 +237,6 @@ const Meta = styled(Flex)`
   top: 0;
   right: 0;
   padding: ${layout.padding};
-`;
-
-const InfoWrapper = styled(Flex)`
-  opacity: ${({ visible }) => (visible ? '1' : '0')};
-  transition: all 100ms ease-in-out;
 `;
 
 const Container = styled(Flex)`
