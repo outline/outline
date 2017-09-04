@@ -2,11 +2,11 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
+import { Star as StarIcon } from 'react-feather';
 import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
 import PublishingInfo from './components/PublishingInfo';
-import StarIcon from 'components/Icon/StarIcon';
 
 type Props = {
   document: Document,
@@ -21,11 +21,6 @@ const StyledStar = styled(StarIcon)`
   margin-left: 4px;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: opacity 100ms ease-in-out;
-
-  svg {
-    width: 1em;
-    height: 1em;
-  }
 `;
 
 const DocumentLink = styled(Link)`
@@ -87,8 +82,12 @@ const DocumentLink = styled(Link)`
         <h3>
           {document.title}
           {document.starred
-            ? <a onClick={this.unstar}><StyledStar solid /></a>
-            : <a onClick={this.star}><StyledStar /></a>}
+            ? <a onClick={this.unstar}>
+                <StyledStar color={color.slateDark} size="1em" solid />
+              </a>
+            : <a onClick={this.star}>
+                <StyledStar color={color.slateDark} size="1em" />
+              </a>}
         </h3>
         <PublishingInfo
           document={document}

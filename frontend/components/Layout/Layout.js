@@ -16,8 +16,13 @@ import Avatar from 'components/Avatar';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
 import Modal from 'components/Modal';
-import AddIcon from 'components/Icon/AddIcon';
-import MoreIcon from 'components/Icon/MoreIcon';
+import {
+  Home as HomeIcon,
+  Search as SearchIcon,
+  Star as StarIcon,
+  PlusCircle as AddIcon,
+  MoreHorizontal as MoreIcon,
+} from 'react-feather';
 import CollectionNew from 'scenes/CollectionNew';
 import CollectionEdit from 'scenes/CollectionEdit';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
@@ -156,17 +161,23 @@ type Props = {
               <Flex column>
                 <Scrollable>
                   <LinkSection>
-                    <SidebarLink to="/dashboard">Home</SidebarLink>
-                    <SidebarLink to="/search">Search</SidebarLink>
-                    <SidebarLink to="/starred">Starred</SidebarLink>
+                    <SidebarLink to="/dashboard">
+                      <HomeIcon size="1em" /> Home
+                    </SidebarLink>
+                    <SidebarLink to="/search">
+                      <SearchIcon size="1em" /> Search
+                    </SidebarLink>
+                    <SidebarLink to="/starred">
+                      <StarIcon size="1em" /> Starred
+                    </SidebarLink>
                   </LinkSection>
                   <LinkSection>
                     {collections.active
                       ? <CollectionAction onClick={this.handleEditCollection}>
-                          <MoreIcon />
+                          <MoreIcon size={16} />
                         </CollectionAction>
                       : <CollectionAction onClick={this.handleCreateCollection}>
-                          <AddIcon />
+                          <AddIcon size={16} />
                         </CollectionAction>}
                     {collections.active
                       ? <SidebarCollection
@@ -231,17 +242,11 @@ const CollectionAction = styled.a`
   position: absolute;
   top: -2px;
   right: ${layout.hpadding};
-
-  svg {
-    opacity: .35;
-    width: 16px;
-    height: 16px;
-  }
+  color: ${color.slate};
+  svg { opacity: .75; }
 
   &:hover {
-    svg {
-      opacity: 1;
-    }
+    svg { opacity: 1; }
   }
 `;
 
