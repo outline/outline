@@ -131,29 +131,33 @@ type Props = {
             user &&
             team &&
             <Sidebar column editMode={ui.editMode}>
-              <HeaderBlock user={user} team={team}>
-                <DropdownMenu label={<Avatar src={user.avatarUrl} />}>
-                  <DropdownMenuItem onClick={this.handleOpenSettings}>
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
-                    Keyboard shortcuts
-                  </DropdownMenuItem>
-                  <MenuLink to="/developers">
-                    <DropdownMenuItem>API</DropdownMenuItem>
-                  </MenuLink>
-                  <DropdownMenuItem onClick={this.handleLogout}>
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenu>
-              </HeaderBlock>
+              <DropdownMenu
+                style={{ marginRight: 10, marginTop: -10 }}
+                label={
+                  <HeaderBlock user={user} team={team}>
+                    <Avatar src={user.avatarUrl} />
+                  </HeaderBlock>
+                }
+              >
+                <DropdownMenuItem onClick={this.handleOpenSettings}>
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
+                  Keyboard shortcuts
+                </DropdownMenuItem>
+                <MenuLink to="/developers">
+                  <DropdownMenuItem>API</DropdownMenuItem>
+                </MenuLink>
+                <DropdownMenuItem onClick={this.handleLogout}>
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenu>
+
               <Flex column>
                 <Scrollable>
                   <LinkSection>
-                    <SidebarLink to="/search">Search</SidebarLink>
-                  </LinkSection>
-                  <LinkSection>
                     <SidebarLink to="/dashboard">Home</SidebarLink>
+                    <SidebarLink to="/search">Search</SidebarLink>
                     <SidebarLink to="/starred">Starred</SidebarLink>
                   </LinkSection>
                   <LinkSection>
@@ -225,7 +229,7 @@ type Props = {
 
 const CollectionAction = styled.a`
   position: absolute;
-  top: 8px;
+  top: -2px;
   right: ${layout.hpadding};
 
   svg {
@@ -264,14 +268,13 @@ const MenuLink = styled(Link)`
 const Sidebar = styled(Flex)`
   width: ${layout.sidebarWidth};
   margin-left: ${props => (props.editMode ? `-${layout.sidebarWidth}` : 0)};
-  background: rgba(250, 251, 252, 0.71);
-  border-right: 1px solid #eceff3;
+  background: ${color.smoke};
   transition: margin-left 200ms ease-in-out;
 `;
 
 const LinkSection = styled(Flex)`
   flex-direction: column;
-  padding: 10px 0;
+  margin: 24px 0;
   position: relative;
 `;
 

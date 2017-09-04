@@ -14,18 +14,21 @@ type Props = {
 
 function HeaderBlock({ user, team, children }: Props) {
   return (
-    <Header justify="space-between">
-      <Flex align="center">
+    <Header justify="space-between" align="center">
+      <Flex align="center" column>
         <LogoLink to="/">{team.name}</LogoLink>
-        <p>{user.username}</p>
+        <Name>{user.name}</Name>
       </Flex>
       {children}
     </Header>
   );
 }
 
+const Name = styled.div`
+  font-size: 13px;
+`;
+
 const LogoLink = styled(Link)`
-  margin-top: 15px;
   font-family: 'Atlas Grotesk';
   font-weight: bold;
   color: ${color.text};
@@ -36,7 +39,23 @@ const LogoLink = styled(Link)`
 const Header = styled(Flex)`
   flex-shrink: 0;
   padding: ${layout.padding};
-  padding-bottom: 10px;
+  position: relative;
+  cursor: pointer;
+  width: 100%;
+
+  &:hover {
+    background: rgba(0,0,0,.05);
+  }
+
+  &::after {
+    content: "";
+    left: ${layout.hpadding};
+    right: ${layout.hpadding};
+    background: rgba(0,0,0,.075);
+    height: 1px;
+    position: absolute;
+    bottom: 0;
+  }
 `;
 
 export default HeaderBlock;
