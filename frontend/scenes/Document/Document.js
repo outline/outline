@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import Flex from 'components/Flex';
-import { layout } from 'styles/constants';
+import { color, layout } from 'styles/constants';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
@@ -13,9 +13,10 @@ import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
 import SaveAction from './components/SaveAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
+import Button from 'components/Button';
 import Editor from 'components/Editor';
+import Icon from 'components/Icon';
 import DropToImport from 'components/DropToImport';
-import { HeaderAction } from 'components/Layout';
 import LoadingIndicator from 'components/LoadingIndicator';
 import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
@@ -215,13 +216,22 @@ type Props = {
                           }
                           isNew={!!isNew}
                         />
-                      : <a onClick={this.onClickEdit}>Edit</a>}
+                      : <a onClick={this.onClickEdit}>
+                          <Icon type="Edit2" /> Edit
+                        </a>}
                   </HeaderAction>
-                  {isEditing &&
-                    <HeaderAction>
-                      <a onClick={this.onCancel}>Cancel</a>
-                    </HeaderAction>}
-                  {!isEditing && <Menu document={document} />}
+                  <HeaderAction>
+                    {isEditing
+                      ? undefined
+                      : <a onClick={this.onClickEdit}>
+                          <Icon type="Plus" /> New
+                        </a>}
+                  </HeaderAction>
+                  <HeaderAction>
+                    {isEditing
+                      ? <a onClick={this.onCancel}>Cancel</a>
+                      : <Menu document={document} />}
+                  </HeaderAction>
                 </Flex>
               </Meta>
             </Flex>
@@ -230,6 +240,18 @@ type Props = {
     );
   }
 }
+
+const HeaderAction = styled(Flex)`
+  justify-content: center;
+  align-items: center;
+  min-height: 43px;
+  color: ${color.text};
+  padding: 0 0 0 16px;
+
+  a {
+    color: ${color.text};
+  }
+`;
 
 const DropHere = styled(Flex)`
   pointer-events: none;
