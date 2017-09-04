@@ -107,7 +107,7 @@ type Props = {
 
   render() {
     const { auth, documents, collections, history, ui } = this.props;
-    const { user } = auth;
+    const { user, team } = auth;
 
     return (
       <Container column auto>
@@ -128,10 +128,12 @@ type Props = {
         <Flex auto>
           {auth.authenticated &&
             user &&
+            team &&
             <Sidebar column editMode={ui.editMode}>
               <Header justify="space-between">
                 <Flex align="center">
-                  <LogoLink to="/">Atlas</LogoLink>
+                  <LogoLink to="/">{team.name}</LogoLink>
+                  {user.username}
                 </Flex>
                 <DropdownMenu label={<Avatar src={user.avatarUrl} />}>
                   <DropdownMenuItem onClick={this.handleOpenSettings}>
