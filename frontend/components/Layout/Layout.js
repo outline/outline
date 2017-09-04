@@ -10,11 +10,11 @@ import keydown from 'react-keydown';
 import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
 import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
-
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+
+import Avatar from 'components/Avatar';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
-import Avatar from 'components/Avatar';
 import Modal from 'components/Modal';
 import AddIcon from 'components/Icon/AddIcon';
 import MoreIcon from 'components/Icon/MoreIcon';
@@ -26,6 +26,7 @@ import Settings from 'scenes/Settings';
 import SidebarCollection from './components/SidebarCollection';
 import SidebarCollectionList from './components/SidebarCollectionList';
 import SidebarLink from './components/SidebarLink';
+import HeaderBlock from './components/HeaderBlock';
 
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
@@ -130,11 +131,7 @@ type Props = {
             user &&
             team &&
             <Sidebar column editMode={ui.editMode}>
-              <Header justify="space-between">
-                <Flex align="center">
-                  <LogoLink to="/">{team.name}</LogoLink>
-                  {user.username}
-                </Flex>
+              <HeaderBlock user={user} team={team}>
                 <DropdownMenu label={<Avatar src={user.avatarUrl} />}>
                   <DropdownMenuItem onClick={this.handleOpenSettings}>
                     Settings
@@ -149,8 +146,7 @@ type Props = {
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenu>
-              </Header>
-
+              </HeaderBlock>
               <Flex column>
                 <Scrollable>
                   <LinkSection>
@@ -251,19 +247,6 @@ const Container = styled(Flex)`
   height: 100%;
 `;
 
-const LogoLink = styled(Link)`
-  margin-top: 15px;
-  font-family: 'Atlas Grotesk';
-  font-weight: bold;
-  color: ${color.text};
-  text-decoration: none;
-  font-size: 16px;
-`;
-
-const MenuLink = styled(Link)`
-  color: ${color.text};
-`;
-
 const Content = styled(Flex)`
   overflow: scroll;
   position: absolute;
@@ -274,18 +257,16 @@ const Content = styled(Flex)`
   transition: left 200ms ease-in-out;
 `;
 
+const MenuLink = styled(Link)`
+  color: ${color.text};
+`;
+
 const Sidebar = styled(Flex)`
   width: ${layout.sidebarWidth};
   margin-left: ${props => (props.editMode ? `-${layout.sidebarWidth}` : 0)};
   background: rgba(250, 251, 252, 0.71);
   border-right: 1px solid #eceff3;
   transition: margin-left 200ms ease-in-out;
-`;
-
-const Header = styled(Flex)`
-  flex-shrink: 0;
-  padding: ${layout.padding};
-  padding-bottom: 10px;
 `;
 
 const LinkSection = styled(Flex)`
