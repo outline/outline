@@ -51,6 +51,10 @@ type Props = {
     }
   };
 
+  onMove = () => {
+    this.props.history.push(`${this.props.document.url}/move`);
+  };
+
   render() {
     const document = get(this.props, 'document');
     if (document) {
@@ -69,6 +73,7 @@ type Props = {
                 New document
               </DropdownMenuItem>
             </div>}
+          <DropdownMenuItem onClick={this.onMove}>Move</DropdownMenuItem>
           <DropdownMenuItem onClick={this.onExport}>Export</DropdownMenuItem>
           {allowDelete &&
             <DropdownMenuItem onClick={this.onDelete}>Delete</DropdownMenuItem>}

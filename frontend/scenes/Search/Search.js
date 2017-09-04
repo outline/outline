@@ -2,18 +2,23 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
-import { observer } from 'mobx-react';
+import { observable, action, runInAction } from 'mobx';
+import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
-import Flex from 'components/Flex';
+import invariant from 'invariant';
+import { client } from 'utils/ApiClient';
+import Document from 'models/Document';
+import DocumentsStore from 'stores/DocumentsStore';
+
 import { withRouter } from 'react-router';
 import { searchUrl } from 'utils/routeHelpers';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
+import Flex from 'components/Flex';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
 import SearchField from './components/SearchField';
-import SearchStore from './SearchStore';
 
 import DocumentPreview from 'components/DocumentPreview';
 import PageTitle from 'components/PageTitle';
@@ -21,6 +26,7 @@ import PageTitle from 'components/PageTitle';
 type Props = {
   history: Object,
   match: Object,
+  documents: DocumentsStore,
   notFound: ?boolean,
 };
 
@@ -55,9 +61,11 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   props: Props;
   store: SearchStore;
 
-  constructor(props: Props) {
-    super(props);
-    this.store = new SearchStore();
+  @observable resultIds: Array<string> = []; // Document IDs
+  @observable searchTerm: ?string = null;
+  @observable isFetching = false;
+
+  componentDidMount() {
     this.updateSearchResults();
   }
 
@@ -91,8 +99,34 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   };
 
   updateSearchResults = _.debounce(() => {
-    this.store.search(this.props.match.params.query);
+    this.search(this.props.match.params.query);
   }, 250);
+
+  @action search = async (query: string) => {
+    this.searchTerm = query;
+    this.isFetching = true;
+
+    if (query) {
+      try {
+        const res = await client.get('/documents.search', { query });
+        invariant(res && res.data, 'res or res.data missing');
+        const { data } = res;
+        runInAction('search document', () => {
+          // Fill documents store
+          data.forEach(documentData =>
+            this.props.documents.add(new Document(documentData))
+          );
+          this.resultIds = data.map(documentData => documentData.id);
+        });
+      } catch (e) {
+        console.error('Something went wrong');
+      }
+    } else {
+      this.resultIds = [];
+    }
+
+    this.isFetching = false;
+  };
 
   updateQuery = query => {
     this.props.history.replace(searchUrl(query));
@@ -103,20 +137,21 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   };
 
   get title() {
-    const query = this.store.searchTerm;
+    const query = this.searchTerm;
     const title = 'Search';
     if (query) return `${query} - ${title}`;
     return title;
   }
 
   render() {
+    const { documents } = this.props;
     const query = this.props.match.params.query;
-    const hasResults = this.store.documents.length > 0;
+    const hasResults = this.resultIds.length > 0;
 
     return (
       <Container auto>
         <PageTitle title={this.title} />
-        {this.store.isFetching && <LoadingIndicator />}
+        {this.isFetching && <LoadingIndicator />}
         {this.props.notFound &&
           <div>
             <h1>Not Found</h1>
@@ -125,7 +160,7 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
           </div>}
         <ResultsWrapper pinToTop={hasResults} column auto>
           <SearchField
-            searchTerm={this.store.searchTerm}
+            searchTerm={this.searchTerm}
             onKeyDown={this.handleKeyDown}
             onChange={this.updateQuery}
             value={query || ''}
@@ -135,15 +170,20 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
-              {this.store.documents.map((document, index) => (
-                <DocumentPreview
-                  innerRef={ref => index === 0 && this.setFirstDocumentRef(ref)}
-                  key={document.id}
-                  document={document}
-                  highlight={this.store.searchTerm}
-                  showCollection
-                />
-              ))}
+              {this.resultIds.map((documentId, index) => {
+                const document = documents.getById(documentId);
+                if (document)
+                  return (
+                    <DocumentPreview
+                      innerRef={ref =>
+                        index === 0 && this.setFirstDocumentRef(ref)}
+                      key={documentId}
+                      document={document}
+                      highlight={this.searchTerm}
+                      showCollection
+                    />
+                  );
+              })}
             </StyledArrowKeyNavigation>
           </ResultList>
         </ResultsWrapper>
@@ -152,4 +192,4 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   }
 }
 
-export default withRouter(Search);
+export default withRouter(inject('documents')(Search));

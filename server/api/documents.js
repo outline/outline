@@ -281,6 +281,8 @@ router.post('documents.move', auth(), async ctx => {
     await collection.deleteDocument(document);
     await collection.addDocumentToStructure(document, index);
   }
+  // Update collection
+  document.collection = collection;
 
   document.collection = collection;
 

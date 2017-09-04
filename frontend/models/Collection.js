@@ -115,6 +115,9 @@ class Collection extends BaseModel {
         if (data.id === this.id) this.fetch();
       }
     );
+    this.on('documents.move', (data: { collectionId: string }) => {
+      if (data.collectionId === this.id) this.fetch();
+    });
   }
 }
 
