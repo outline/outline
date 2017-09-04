@@ -27,7 +27,6 @@ type Props = {
   onImageUploadStop: Function,
   emoji: string,
   readOnly: boolean,
-  heading?: ?React.Element<*>,
 };
 
 type KeyData = {
@@ -187,12 +186,7 @@ type KeyData = {
         auto
       >
         <MaxWidth column auto>
-          <HeaderContainer
-            onClick={this.focusAtStart}
-            readOnly={this.props.readOnly}
-          >
-            {this.props.heading}
-          </HeaderContainer>
+          <Header onClick={this.focusAtStart} readOnly={this.props.readOnly} />
           <Toolbar state={this.state.state} onChange={this.onChange} />
           <Editor
             ref={ref => (this.editor = ref)}
@@ -224,11 +218,10 @@ const MaxWidth = styled(Flex)`
   height: 100%;
 `;
 
-const HeaderContainer = styled(Flex).attrs({
-  align: 'flex-end',
-})`
-  height: 100px;
+const Header = styled(Flex)`
+  height: 60px;
   flex-shrink: 0;
+  align-items: flex-end;
   ${({ readOnly }) => !readOnly && 'cursor: text;'}
 `;
 
