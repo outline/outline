@@ -252,13 +252,8 @@ const Container = styled(Flex)`
 `;
 
 const Content = styled(Flex)`
-  overflow: scroll;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
-  transition: left 200ms ease-in-out;
+  margin-left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
+  transition: margin-left 200ms ease-in-out;
 `;
 
 const MenuLink = styled(Link)`
@@ -266,10 +261,13 @@ const MenuLink = styled(Link)`
 `;
 
 const Sidebar = styled(Flex)`
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: ${props => (props.editMode ? `-${layout.sidebarWidth}` : 0)};
   width: ${layout.sidebarWidth};
-  margin-left: ${props => (props.editMode ? `-${layout.sidebarWidth}` : 0)};
   background: ${color.smoke};
-  transition: margin-left 200ms ease-in-out;
+  transition: left 200ms ease-in-out;
 `;
 
 const LinkSection = styled(Flex)`
