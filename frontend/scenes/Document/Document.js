@@ -4,13 +4,13 @@ import get from 'lodash/get';
 import styled from 'styled-components';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Prompt, Route } from 'react-router';
+import { withRouter, Prompt } from 'react-router';
+import keydown from 'react-keydown';
 import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
 import { collectionUrl, updateDocumentUrl } from 'utils/routeHelpers';
 
 import Document from 'models/Document';
-import Modal from 'components/Modal';
 import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -75,6 +75,12 @@ type Props = {
   componentWillUnmount() {
     clearTimeout(this.savedTimeout);
     this.props.ui.clearActiveDocument();
+  }
+
+  @keydown('m')
+  goToMove(event) {
+    event.preventDefault();
+    this.props.history.push(`${this.document.url}/move`);
   }
 
   loadDocument = async props => {
