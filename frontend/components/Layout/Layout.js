@@ -16,13 +16,7 @@ import Avatar from 'components/Avatar';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
 import Modal from 'components/Modal';
-import {
-  Home as HomeIcon,
-  Search as SearchIcon,
-  Star as StarIcon,
-  PlusCircle as AddIcon,
-  MoreHorizontal as MoreIcon,
-} from 'react-feather';
+import Icon from 'components/Icon';
 import CollectionNew from 'scenes/CollectionNew';
 import CollectionEdit from 'scenes/CollectionEdit';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
@@ -162,22 +156,22 @@ type Props = {
                 <Scrollable>
                   <LinkSection>
                     <SidebarLink to="/dashboard">
-                      <HomeIcon size="1em" /> Home
+                      <Icon type="Home" /> Home
                     </SidebarLink>
                     <SidebarLink to="/search">
-                      <SearchIcon size="1em" /> Search
+                      <Icon type="Search" /> Search
                     </SidebarLink>
                     <SidebarLink to="/starred">
-                      <StarIcon size="1em" /> Starred
+                      <Icon type="Star" /> Starred
                     </SidebarLink>
                   </LinkSection>
                   <LinkSection>
                     {collections.active
                       ? <CollectionAction onClick={this.handleEditCollection}>
-                          <MoreIcon size={16} />
+                          <Icon type="MoreHorizontal" />
                         </CollectionAction>
                       : <CollectionAction onClick={this.handleCreateCollection}>
-                          <AddIcon size={16} />
+                          <Icon type="PlusCircle" />
                         </CollectionAction>}
                     {collections.active
                       ? <SidebarCollection
@@ -240,7 +234,7 @@ type Props = {
 
 const CollectionAction = styled.a`
   position: absolute;
-  top: -2px;
+  top: -4px;
   right: ${layout.hpadding};
   color: ${color.slate};
   svg { opacity: .75; }

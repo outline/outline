@@ -2,10 +2,10 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
-import { Star as StarIcon } from 'react-feather';
 import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
+import Icon from 'components/Icon';
 import PublishingInfo from './components/PublishingInfo';
 
 type Props = {
@@ -15,9 +15,10 @@ type Props = {
   innerRef?: Function,
 };
 
-const StyledStar = styled(StarIcon)`
-  top: 2px;
-  position: relative;
+const StyledStar = styled(Icon).attrs({
+  type: 'Star',
+  color: color.text,
+})`
   margin-left: 4px;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: opacity 100ms ease-in-out;
@@ -41,7 +42,7 @@ const DocumentLink = styled(Link)`
     outline: none;
 
     ${StyledStar} {
-      opacity: .25;
+      opacity: .5;
 
       &:hover {
         opacity: 1;
@@ -83,10 +84,10 @@ const DocumentLink = styled(Link)`
           {document.title}
           {document.starred
             ? <a onClick={this.unstar}>
-                <StyledStar color={color.slateDark} size="1em" solid />
+                <StyledStar solid />
               </a>
             : <a onClick={this.star}>
-                <StyledStar color={color.slateDark} size="1em" />
+                <StyledStar />
               </a>}
         </h3>
         <PublishingInfo
