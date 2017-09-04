@@ -14,7 +14,7 @@ type Props = {
 function HeaderBlock({ user, team, children }: Props) {
   return (
     <Header justify="space-between" align="center">
-      <Flex align="center" column>
+      <Flex align="flex-start" column>
         <TeamName>{team.name}</TeamName>
         <UserName>{user.name}</UserName>
       </Flex>
