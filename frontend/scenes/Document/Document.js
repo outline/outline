@@ -216,21 +216,24 @@ type Props = {
                           }
                           isNew={!!isNew}
                         />
-                      : <a onClick={this.onClickEdit}>
-                          <Icon type="Edit2" /> Edit
-                        </a>}
-                  </HeaderAction>
-                  <HeaderAction>
-                    {isEditing
-                      ? undefined
-                      : <a onClick={this.onClickEdit}>
-                          <Icon type="Plus" /> New
-                        </a>}
+                      : <Button onClick={this.onClickEdit} light small>
+                          Edit
+                        </Button>}
                   </HeaderAction>
                   <HeaderAction>
                     {isEditing
                       ? <a onClick={this.onCancel}>Cancel</a>
-                      : <Menu document={document} />}
+                      : <Button
+                          icon={<Menu document={document} />}
+                          light
+                          small
+                        />}
+                  </HeaderAction>
+                  <HeaderAction>
+                    {!isEditing &&
+                      <Button onClick={this.onClickEdit} light small>
+                        New
+                      </Button>}
                   </HeaderAction>
                 </Flex>
               </Meta>
@@ -246,7 +249,7 @@ const HeaderAction = styled(Flex)`
   align-items: center;
   min-height: 43px;
   color: ${color.text};
-  padding: 0 0 0 16px;
+  padding: 0 0 0 10px;
 
   a {
     color: ${color.text};
