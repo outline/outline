@@ -204,8 +204,7 @@ type Props = {
               />
               <Meta align="center" justify="flex-end" readOnly={!isEditing}>
                 <Flex align="center">
-                  {document &&
-                    !isNew &&
+                  {!isNew &&
                     !isEditing &&
                     <Collaborators document={document} />}
                   <HeaderAction>

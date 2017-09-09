@@ -79,6 +79,16 @@ class Document extends BaseModel {
     return !this.isEmpty && !this.isSaving;
   }
 
+  @computed get allowDelete(): boolean {
+    const collection = this.collection;
+    return (
+      collection &&
+      collection.type === 'atlas' &&
+      collection.documents &&
+      collection.documents.length > 1
+    );
+  }
+
   /* Actions */
 
   @action star = async () => {
@@ -181,6 +191,14 @@ class Document extends BaseModel {
     }
     return;
   };
+
+  download() {
+    const a = window.document.createElement('a');
+    a.textContent = 'download';
+    a.download = `${this.title}.md`;
+    a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(this.text)}`;
+    a.click();
+  }
 
   updateData(data: Object = {}, dirty: boolean = false) {
     if (data.text) {

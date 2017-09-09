@@ -5,19 +5,7 @@ import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import Flex from 'components/Flex';
 import { color } from 'styles/constants';
-
-type MenuItemProps = {
-  onClick?: Function,
-  children?: React.Element<any>,
-};
-
-const DropdownMenuItem = ({ onClick, children }: MenuItemProps) => {
-  return (
-    <MenuItem onClick={onClick}>
-      {children}
-    </MenuItem>
-  );
-};
+import { fadeAndScaleIn } from 'styles/animations';
 
 type DropdownMenuProps = {
   label: React.Element<any>,
@@ -73,37 +61,18 @@ const MenuContainer = styled.div`
 `;
 
 const Menu = styled.div`
+  animation: ${fadeAndScaleIn} 250ms ease;
+  transform-origin: 75% 0;
+
   position: absolute;
   right: 0;
   z-index: 1000;
-  border: 1px solid #eee;
-  background-color: #fff;
+  border: ${color.slateLight};
+  background: ${color.white};
+  border-radius: 2px;
   min-width: 160px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 4px 8px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.08);
 `;
 
-const MenuItem = styled.div`
-  margin: 0;
-  padding: 5px 10px;
-  height: 32px;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  border-left: 2px solid transparent;
-
-  span {
-    margin-top: 2px;
-  }
-
-  a {
-    text-decoration: none;
-    width: 100%;
-  }
-
-  &:hover {
-    border-left: 2px solid ${color.primary};
-  }
-`;
-
-export { DropdownMenu, DropdownMenuItem };
+export default DropdownMenu;
