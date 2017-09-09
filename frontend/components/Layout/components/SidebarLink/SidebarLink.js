@@ -17,6 +17,7 @@ const StyledNavLink = styled(NavLink)`
   display: block;
   padding: 5px ${layout.hpadding};
   color: ${color.slateDark};
+  font-size: 15px;
 
   &:hover {
     color: ${darken(0.1, color.slateDark)};

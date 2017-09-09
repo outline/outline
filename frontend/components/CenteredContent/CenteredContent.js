@@ -8,11 +8,11 @@ type Props = {
 
 const Container = styled.div`
   width: 100%;
-  margin: 40px 20px;
+  margin: 60px 20px;
 `;
 
 const Content = styled.div`
-  max-width: 740px;
+  max-width: 50em;
   margin: 0 auto;
 `;
 

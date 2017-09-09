@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
-import PublishingInfo from 'components/PublishingInfo';
+import PublishingInfo from './components/PublishingInfo';
 import StarIcon from 'components/Icon/StarIcon';
 
 type Props = {

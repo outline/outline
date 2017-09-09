@@ -2,7 +2,6 @@
 import { observable, action, computed, autorunAsync } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import UserStore from 'stores/UserStore';
 import type { User, Team } from 'types';
 
 const AUTH_STORE = 'AUTH_STORE';
@@ -71,17 +70,6 @@ class AuthStore {
       success: true,
     };
   };
-
-  getUserStore(): UserStore {
-    invariant(
-      this.user && this.team,
-      'Tried to create a user store without data'
-    );
-    return new UserStore({
-      user: this.user,
-      team: this.team,
-    });
-  }
 
   constructor() {
     // Rehydrate
