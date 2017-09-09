@@ -18,8 +18,8 @@ type Props = {
 };
 
 const activeStyle = {
-  color: '#000',
-  background: '#E1E1E1',
+  color: color.black,
+  background: color.slateDark,
 };
 
 @observer class SidebarCollection extends React.Component {

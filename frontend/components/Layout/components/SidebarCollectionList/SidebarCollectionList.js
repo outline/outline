@@ -3,7 +3,7 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import Flex from 'components/Flex';
 import styled from 'styled-components';
-import { color, layout } from 'styles/constants';
+import { color, layout, fontWeight } from 'styles/constants';
 
 import SidebarLink from '../SidebarLink';
 import DropToImport from 'components/DropToImport';
@@ -16,8 +16,8 @@ type Props = {
 };
 
 const activeStyle = {
-  color: '#000',
-  background: '#E1E1E1',
+  color: color.black,
+  background: color.slateDark,
 };
 
 const SidebarCollectionList = observer(({ history, collections }: Props) => {
@@ -42,7 +42,7 @@ const SidebarCollectionList = observer(({ history, collections }: Props) => {
 
 const Header = styled(Flex)`
   font-size: 11px;
-  font-weight: 500;
+  font-weight: ${fontWeight.semiBold};
   text-transform: uppercase;
   color: ${color.slate};
   letter-spacing: 0.04em;

@@ -13,9 +13,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
 import SaveAction from './components/SaveAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
-import Button from 'components/Button';
 import Editor from 'components/Editor';
-import Icon from 'components/Icon';
 import DropToImport from 'components/DropToImport';
 import LoadingIndicator from 'components/LoadingIndicator';
 import Collaborators from 'components/Collaborators';
@@ -103,6 +101,11 @@ type Props = {
     if (!this.document) return;
     const url = `${this.document.url}/edit`;
     this.props.history.push(url);
+  };
+
+  onClickNew = () => {
+    if (!this.document) return;
+    this.props.history.push(`${this.document.collection.url}/new`);
   };
 
   onSave = async (redirect: boolean = false) => {
@@ -216,24 +219,21 @@ type Props = {
                           }
                           isNew={!!isNew}
                         />
-                      : <Button onClick={this.onClickEdit} light small>
+                      : <a onClick={this.onClickEdit}>
                           Edit
-                        </Button>}
+                        </a>}
                   </HeaderAction>
                   <HeaderAction>
                     {isEditing
                       ? <a onClick={this.onCancel}>Cancel</a>
-                      : <Button
-                          icon={<Menu document={document} />}
-                          light
-                          small
-                        />}
+                      : <Menu document={document} />}
                   </HeaderAction>
+                  {!isEditing && <Separator />}
                   <HeaderAction>
                     {!isEditing &&
-                      <Button onClick={this.onClickEdit} light small>
+                      <a onClick={this.onClickNew}>
                         New
-                      </Button>}
+                      </a>}
                   </HeaderAction>
                 </Flex>
               </Meta>
@@ -244,15 +244,29 @@ type Props = {
   }
 }
 
+const Separator = styled.div`
+  margin-left: 12px;
+  width: 1px;
+  height: 20px;
+  background: ${color.slateLight};
+`;
+
 const HeaderAction = styled(Flex)`
   justify-content: center;
   align-items: center;
   min-height: 43px;
   color: ${color.text};
-  padding: 0 0 0 10px;
+  padding: 0 0 0 14px;
 
-  a {
+  a,
+  svg {
     color: ${color.text};
+    opacity: .8;
+    transition: opacity 100ms ease-in-out;
+
+    &:hover {
+      opacity: 1;
+    }
   }
 `;
 
