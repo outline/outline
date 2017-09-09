@@ -10,8 +10,9 @@ export default function pagination(options) {
     };
 
     let query = ctx.request.query;
-    let limit = parseInt(query.limit, 10);
-    let offset = parseInt(query.offset, 10);
+    let body = ctx.request.body;
+    let limit = parseInt(query.limit || body.limit, 10);
+    let offset = parseInt(query.offset || body.offset, 10);
     limit = isNaN(limit) ? opts.defaultLimit : limit;
     offset = isNaN(offset) ? 0 : offset;
 
