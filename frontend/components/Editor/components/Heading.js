@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import _ from 'lodash';
 import slug from 'slug';
 import type { Node, Editor } from '../types';
-import styles from '../Editor.scss';
+import Placeholder from './Placeholder';
 
 type Props = {
   children: React$Element<any>,
@@ -20,6 +20,26 @@ type Props = {
 const Wrapper = styled.div`
   display: inline;
   margin-left: ${props => (props.hasEmoji ? '-1.2em' : 0)}
+`;
+
+const Anchor = styled.a`
+  visibility: hidden;
+  padding-left: .25em;
+  color: #dedede;
+
+  &:hover {
+    color: #cdcdcd;
+  }
+`;
+
+const titleStyles = component => styled(component)`
+  position: relative;
+
+  &:hover {
+    ${Anchor} {
+      visibility: visible;
+    }
+  }
 `;
 
 function Heading(props: Props) {
@@ -37,21 +57,20 @@ function Heading(props: Props) {
   const showPlaceholder = placeholder && firstHeading && !node.text;
   const slugish = _.escape(`${component}-${slug(node.text)}`);
   const showHash = readOnly && !!slugish;
-  const Component = component;
+  const Component = titleStyles(component);
   const emoji = editor.props.emoji || '';
   const title = node.text.trim();
   const startsWithEmojiAndSpace =
     emoji && title.match(new RegExp(`^${emoji}\\s`));
 
   return (
-    <Component className={styles.title}>
+    <Component>
       <Wrapper hasEmoji={startsWithEmojiAndSpace}>{children}</Wrapper>
       {showPlaceholder &&
-        <span className={styles.placeholder} contentEditable={false}>
+        <Placeholder contentEditable={false}>
           {editor.props.placeholder}
-        </span>}
-      {showHash &&
-        <a name={slugish} className={styles.anchor} href={`#${slugish}`}>#</a>}
+        </Placeholder>}
+      {showHash && <Anchor name={slugish} href={`#${slugish}`}>#</Anchor>}
     </Component>
   );
 }

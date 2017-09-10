@@ -15,10 +15,6 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   ],
 });
 
-developmentWebpackConfig.module.loaders.push({
-  test: /\.s?css$/,
-  loader: 'style-loader!css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!sass?sourceMap',
-});
 developmentWebpackConfig.plugins.push(
   new webpack.optimize.OccurenceOrderPlugin()
 );

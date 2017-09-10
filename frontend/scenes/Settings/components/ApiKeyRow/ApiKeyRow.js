@@ -1,48 +1,49 @@
 // @flow
-import React, { PropTypes } from 'react';
+import React from 'react';
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
+import styled from 'styled-components';
+import { color } from 'styles/constants';
 
-import styles from './ApiKeyRow.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
+type Props = {
+  id: string,
+  name: string,
+  secret: string,
+  onDelete: Function,
+};
 
-class ApiKeyRow extends React.Component {
-  static propTypes = {
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    secret: PropTypes.string.isRequired,
-    onDelete: PropTypes.func.isRequired,
-  };
-
-  state = {
-    disabled: false,
-  };
+@observer class ApiKeyRow extends React.Component {
+  props: Props;
+  @observable disabled: boolean;
 
   onClick = () => {
     this.props.onDelete(this.props.id);
-    this.setState({ disabled: true });
+    this.disabled = true;
   };
 
   render() {
     const { name, secret } = this.props;
-
-    const { disabled } = this.state;
+    const { disabled } = this;
 
     return (
       <tr>
         <td>{name}</td>
         <td><code>{secret}</code></td>
         <td>
-          <span
-            role="button"
-            onClick={this.onClick}
-            className={cx(styles.deleteAction, { disabled })}
-          >
-            Delete
-          </span>
+          <Action role="button" onClick={this.onClick} disabled={disabled}>
+            Action
+          </Action>
         </td>
       </tr>
     );
   }
 }
+
+const Action = styled.span`
+  font-size: 14px;
+  color: ${color.text};
+
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
+`;
 
 export default ApiKeyRow;

@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from 'react';
-import styles from '../Toolbar.scss';
 import type { State } from '../../../types';
+import ToolbarButton from './ToolbarButton';
 import BoldIcon from 'components/Icon/BoldIcon';
 import CodeIcon from 'components/Icon/CodeIcon';
 import Heading1Icon from 'components/Icon/Heading1Icon';
@@ -68,13 +68,9 @@ export default class FormattingToolbar extends Component {
     const onMouseDown = ev => this.onClickMark(ev, type);
 
     return (
-      <button
-        className={styles.button}
-        onMouseDown={onMouseDown}
-        data-active={isActive}
-      >
+      <ToolbarButton onMouseDown={onMouseDown} active={isActive}>
         <IconClass light />
-      </button>
+      </ToolbarButton>
     );
   };
 
@@ -84,13 +80,9 @@ export default class FormattingToolbar extends Component {
       this.onClickBlock(ev, isActive ? 'paragraph' : type);
 
     return (
-      <button
-        className={styles.button}
-        onMouseDown={onMouseDown}
-        data-active={isActive}
-      >
+      <ToolbarButton onMouseDown={onMouseDown} active={isActive}>
         <IconClass light />
-      </button>
+      </ToolbarButton>
     );
   };
 
@@ -103,9 +95,9 @@ export default class FormattingToolbar extends Component {
         {this.renderBlockButton('heading2', Heading2Icon)}
         {this.renderBlockButton('bulleted-list', BulletedListIcon)}
         {this.renderMarkButton('code', CodeIcon)}
-        <button className={styles.button} onMouseDown={this.onCreateLink}>
+        <ToolbarButton onMouseDown={this.onCreateLink}>
           <LinkIcon light />
-        </button>
+        </ToolbarButton>
       </span>
     );
   }

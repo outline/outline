@@ -2,7 +2,7 @@
 import React from 'react';
 import { Document } from 'slate';
 import type { Props } from '../types';
-import styles from '../Editor.scss';
+import Placeholder from './Placeholder';
 
 export default function Link({
   attributes,
@@ -26,9 +26,9 @@ export default function Link({
     <p>
       {children}
       {showPlaceholder &&
-        <span className={styles.placeholder} contentEditable={false}>
+        <Placeholder contentEditable={false}>
           {editor.props.bodyPlaceholder}
-        </span>}
+        </Placeholder>}
     </p>
   );
 }

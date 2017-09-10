@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import keydown from 'react-keydown';
-import classnames from 'classnames/bind';
 import type { Document, State, Editor as EditorType } from './types';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'components/Flex';
@@ -14,9 +13,6 @@ import createSchema from './schema';
 import createPlugins from './plugins';
 import insertImage from './insertImage';
 import styled from 'styled-components';
-import styles from './Editor.scss';
-
-const cx = classnames.bind(styles);
 
 type Props = {
   text: string,
@@ -188,11 +184,10 @@ type KeyData = {
         <MaxWidth column auto>
           <Header onClick={this.focusAtStart} readOnly={this.props.readOnly} />
           <Toolbar state={this.state.state} onChange={this.onChange} />
-          <Editor
+          <StyledEditor
             ref={ref => (this.editor = ref)}
             placeholder="Start with a title…"
             bodyPlaceholder="Insert witty platitude here"
-            className={cx(styles.editor, { readOnly: this.props.readOnly })}
             schema={this.schema}
             plugins={this.plugins}
             emoji={this.props.emoji}
@@ -223,6 +218,108 @@ const Header = styled(Flex)`
   flex-shrink: 0;
   align-items: flex-end;
   ${({ readOnly }) => !readOnly && 'cursor: text;'}
+`;
+
+const StyledEditor = styled(Editor)`
+  font-weight: 400;
+  font-size: 1em;
+  line-height: 1.7em;
+  width: 100%;
+  color: #1b2830;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 500;
+
+    .anchor {
+      visibility: hidden;
+      color: #dedede;
+      padding-left: 0.25em;
+    }
+
+    &:hover {
+      .anchor {
+        visibility: visible;
+
+        &:hover {
+          color: #cdcdcd;
+        }
+      }
+    }
+  }
+
+  h1:first-of-type {
+    .placeholder {
+      visibility: visible;
+    }
+  }
+
+  p:first-of-type {
+    .placeholder {
+      visibility: visible;
+    }
+  }
+
+  ul,
+  ol {
+    margin: 1em 0.1em;
+    padding-left: 1em;
+
+    ul,
+    ol {
+      margin: 0.1em;
+    }
+  }
+
+  p {
+    position: relative;
+  }
+
+  li p {
+    display: inline;
+    margin: 0;
+  }
+
+  .todoList {
+    list-style: none;
+    padding-left: 0;
+
+    .todoList {
+      padding-left: 1em;
+    }
+  }
+
+  .todo {
+    span:last-child:focus {
+      outline: none;
+    }
+  }
+
+  blockquote {
+    border-left: 3px solid #efefef;
+    padding-left: 10px;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  tr {
+    border-bottom: 1px solid #eee;
+  }
+
+  th {
+    font-weight: bold;
+  }
+
+  th,
+  td {
+    padding: 5px 20px 5px 0;
+  }
 `;
 
 export default MarkdownEditor;

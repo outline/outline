@@ -42,6 +42,10 @@ export const color = {
   /* Brand */
   primary: '#2B8FBF',
   danger: '#D0021B',
+  warning: '#f08a24' /* replace */,
+  success: '#43AC6A' /* replace */,
+  info: '#a0d3e8' /* replace */,
+  offline: '#000000',
 
   /* Dark Grays */
   slate: '#9BA6B2',
@@ -56,4 +60,6 @@ export const color = {
   /* Misc */
   white: '#FFFFFF',
   black: '#000000',
+
+  /* Alert colors */
 };

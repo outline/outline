@@ -29,7 +29,7 @@ module.exports = {
         include: [
           path.join(__dirname, 'frontend'),
           path.join(__dirname, 'shared'),
-        ]
+        ],
       },
       { test: /\.json$/, loader: 'json-loader' },
       // inline base64 URLs for <=8k images, direct URLs for the rest
@@ -37,6 +37,10 @@ module.exports = {
       {
         test: /\.woff$/,
         loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]',
+      },
+      {
+        test: /\.css$/,
+        loader: 'style-loader!css-loader?sourceMap',
       },
       { test: /\.md/, loader: 'raw-loader' },
     ],

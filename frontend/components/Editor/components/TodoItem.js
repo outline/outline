@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from 'react';
+import styled from 'styled-components';
 import type { Props } from '../types';
-import styles from '../Editor.scss';
 
 export default class TodoItem extends Component {
   props: Props & { checked: boolean };
@@ -22,7 +22,7 @@ export default class TodoItem extends Component {
     const { children, checked, readOnly } = this.props;
 
     return (
-      <li contentEditable={false} className={styles.todo}>
+      <StyledLi contentEditable={false}>
         <input
           type="checkbox"
           checked={checked}
@@ -33,7 +33,17 @@ export default class TodoItem extends Component {
         <span contentEditable={!readOnly} suppressContentEditableWarning>
           {children}
         </span>
-      </li>
+      </StyledLi>
     );
   }
 }
+
+const StyledLi = styled.li`
+  input {
+    margin-right: 0.25em;
+  }
+
+  &:last-child:focus {
+    outline: none;
+  }
+`;
