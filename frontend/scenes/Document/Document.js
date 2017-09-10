@@ -161,8 +161,7 @@ type Props = {
   };
 
   renderNotFound() {
-    const { match } = this.props;
-    return <Search match={match} notFound />;
+    return <Search notFound />;
   }
 
   render() {
