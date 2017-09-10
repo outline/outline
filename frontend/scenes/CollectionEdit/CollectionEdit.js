@@ -2,7 +2,6 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { homeUrl } from 'utils/routeHelpers';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import Flex from 'components/Flex';
@@ -20,8 +19,6 @@ type Props = {
 @observer class CollectionEdit extends Component {
   props: Props;
   @observable name: string;
-  @observable isConfirming: boolean;
-  @observable isDeleting: boolean;
   @observable isSaving: boolean;
 
   componentWillMount() {
@@ -46,34 +43,12 @@ type Props = {
     this.name = ev.target.value;
   };
 
-  confirmDelete = () => {
-    this.isConfirming = true;
-  };
-
-  cancelDelete = () => {
-    this.isConfirming = false;
-  };
-
-  confirmedDelete = async (ev: SyntheticEvent) => {
-    ev.preventDefault();
-    this.isDeleting = true;
-    const success = await this.props.collection.delete();
-
-    if (success) {
-      this.props.collections.remove(this.props.collection.id);
-      this.props.history.push(homeUrl());
-      this.props.onSubmit();
-    }
-
-    this.isDeleting = false;
-  };
-
   render() {
     return (
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            You can edit a collection name at any time, but doing so might
+            You can edit a collections name at any time, however doing so might
             confuse your team mates.
           </HelpText>
           <Input
@@ -90,26 +65,6 @@ type Props = {
           >
             {this.isSaving ? 'Saving…' : 'Save'}
           </Button>
-        </form>
-        <hr />
-        <form>
-          <HelpText>
-            Deleting a collection will also delete all of the documents within
-            it, so be careful with that.
-          </HelpText>
-          {!this.isConfirming &&
-            <Button type="submit" onClick={this.confirmDelete} neutral>
-              Delete…
-            </Button>}
-          {this.isConfirming &&
-            <span>
-              <Button type="submit" onClick={this.cancelDelete} neutral>
-                Cancel
-              </Button>
-              <Button type="submit" onClick={this.confirmedDelete} danger>
-                {this.isDeleting ? 'Deleting…' : 'Confirm Delete'}
-              </Button>
-            </span>}
         </form>
       </Flex>
     );

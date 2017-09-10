@@ -25,7 +25,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
   onDelete = () => {
     const { document } = this.props;
-    this.props.ui.setActiveModal('delete-document', { document });
+    this.props.ui.setActiveModal('document-delete', { document });
   };
 
   onExport = () => {

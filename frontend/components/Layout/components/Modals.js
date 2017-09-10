@@ -5,6 +5,8 @@ import Modal from 'components/Modal';
 import UiStore from 'stores/UiStore';
 import CollectionNew from 'scenes/CollectionNew';
 import CollectionEdit from 'scenes/CollectionEdit';
+import CollectionDelete from 'scenes/CollectionDelete';
+import DocumentDelete from 'scenes/DocumentDelete';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
 import Settings from 'scenes/Settings';
 
@@ -23,18 +25,32 @@ import Settings from 'scenes/Settings';
     return (
       <span>
         <Modal
-          isOpen={activeModalName === 'create-collection'}
+          isOpen={activeModalName === 'collection-new'}
           onRequestClose={this.handleClose}
           title="Create a collection"
         >
           <CollectionNew onSubmit={this.handleClose} {...activeModalProps} />
         </Modal>
         <Modal
-          isOpen={activeModalName === 'edit-collection'}
+          isOpen={activeModalName === 'collection-edit'}
           onRequestClose={this.handleClose}
           title="Edit collection"
         >
           <CollectionEdit onSubmit={this.handleClose} {...activeModalProps} />
+        </Modal>
+        <Modal
+          isOpen={activeModalName === 'collection-delete'}
+          onRequestClose={this.handleClose}
+          title="Delete collection"
+        >
+          <CollectionDelete onSubmit={this.handleClose} {...activeModalProps} />
+        </Modal>
+        <Modal
+          isOpen={activeModalName === 'document-delete'}
+          onRequestClose={this.handleClose}
+          title="Delete document"
+        >
+          <DocumentDelete onSubmit={this.handleClose} {...activeModalProps} />
         </Modal>
         <Modal
           isOpen={activeModalName === 'keyboard-shortcuts'}

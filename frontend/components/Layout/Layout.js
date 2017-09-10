@@ -75,11 +75,11 @@ type Props = {
   }
 
   handleCreateCollection = () => {
-    this.props.ui.setActiveModal('create-collection');
+    this.props.ui.setActiveModal('collection-new');
   };
 
   handleEditCollection = () => {
-    this.props.ui.setActiveModal('edit-collection');
+    this.props.ui.setActiveModal('collection-edit');
   };
 
   render() {

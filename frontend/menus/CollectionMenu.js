@@ -17,12 +17,12 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
   onEdit = () => {
     const { collection } = this.props;
-    this.props.ui.setActiveModal('edit-collection', { collection });
+    this.props.ui.setActiveModal('collection-edit', { collection });
   };
 
   onDelete = () => {
     const { collection } = this.props;
-    this.props.ui.setActiveModal('delete-collection', { collection });
+    this.props.ui.setActiveModal('collection-delete', { collection });
   };
 
   render() {
