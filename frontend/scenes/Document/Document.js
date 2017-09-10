@@ -91,6 +91,7 @@ type Props = {
         this.props.ui.setActiveDocument(document);
         document.view();
       } else {
+        // Render 404 with search
         this.setState({ notFound: true });
       }
     }
@@ -147,7 +148,8 @@ type Props = {
   };
 
   onCancel = () => {
-    this.props.history.goBack();
+    if (!this.document) return;
+    this.props.history.push(this.document.url);
   };
 
   onStartDragging = () => {
