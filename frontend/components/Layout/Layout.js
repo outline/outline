@@ -16,8 +16,7 @@ import Avatar from 'components/Avatar';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
 import Modal from 'components/Modal';
-import AddIcon from 'components/Icon/AddIcon';
-import MoreIcon from 'components/Icon/MoreIcon';
+import Icon from 'components/Icon';
 import CollectionNew from 'scenes/CollectionNew';
 import CollectionEdit from 'scenes/CollectionEdit';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
@@ -156,17 +155,23 @@ type Props = {
               <Flex column>
                 <Scrollable>
                   <LinkSection>
-                    <SidebarLink to="/dashboard">Home</SidebarLink>
-                    <SidebarLink to="/search">Search</SidebarLink>
-                    <SidebarLink to="/starred">Starred</SidebarLink>
+                    <SidebarLink to="/dashboard">
+                      <Icon type="Home" /> Home
+                    </SidebarLink>
+                    <SidebarLink to="/search">
+                      <Icon type="Search" /> Search
+                    </SidebarLink>
+                    <SidebarLink to="/starred">
+                      <Icon type="Star" /> Starred
+                    </SidebarLink>
                   </LinkSection>
                   <LinkSection>
                     {collections.active
                       ? <CollectionAction onClick={this.handleEditCollection}>
-                          <MoreIcon />
+                          <Icon type="MoreHorizontal" />
                         </CollectionAction>
                       : <CollectionAction onClick={this.handleCreateCollection}>
-                          <AddIcon />
+                          <Icon type="PlusCircle" />
                         </CollectionAction>}
                     {collections.active
                       ? <SidebarCollection
@@ -229,19 +234,13 @@ type Props = {
 
 const CollectionAction = styled.a`
   position: absolute;
-  top: -2px;
+  top: -4px;
   right: ${layout.hpadding};
-
-  svg {
-    opacity: .35;
-    width: 16px;
-    height: 16px;
-  }
+  color: ${color.slate};
+  svg { opacity: .75; }
 
   &:hover {
-    svg {
-      opacity: 1;
-    }
+    svg { opacity: 1; }
   }
 `;
 

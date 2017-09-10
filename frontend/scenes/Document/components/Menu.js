@@ -5,11 +5,8 @@ import get from 'lodash/get';
 import { withRouter } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import Document from 'models/Document';
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-  MoreIcon,
-} from 'components/DropdownMenu';
+import Icon from 'components/Icon';
+import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
   history: Object,
@@ -65,7 +62,7 @@ type Props = {
         collection.documents.length > 1;
 
       return (
-        <DropdownMenu label={<MoreIcon />}>
+        <DropdownMenu label={<Icon type="MoreHorizontal" />}>
           {collection &&
             <div>
               <DropdownMenuItem onClick={this.onCreateDocument}>

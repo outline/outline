@@ -1,8 +1,9 @@
 // @flow
 import React, { Component } from 'react';
+import Icon from 'components/Icon';
 import Flex from 'components/Flex';
+import { color } from 'styles/constants';
 import styled from 'styled-components';
-import searchImg from 'assets/icons/search.svg';
 
 const Field = styled.input`
   width: 100%;
@@ -12,17 +13,10 @@ const Field = styled.input`
   outline: none;
   border: 0;
 
-  ::-webkit-input-placeholder { color: #ccc; }
-  :-moz-placeholder { color: #ccc; }
-  ::-moz-placeholder { color: #ccc; }
-  :-ms-input-placeholder { color: #ccc; }
-`;
-
-const Icon = styled.img`
-  width: 38px;
-  margin-bottom: -5px;
-  margin-right: 10px;
-  opacity: 0.15;
+  ::-webkit-input-placeholder { color: ${color.slate}; }
+  :-moz-placeholder { color: ${color.slate}; }
+  ::-moz-placeholder { color: ${color.slate}; }
+  :-ms-input-placeholder { color: ${color.slate}; }
 `;
 
 class SearchField extends Component {
@@ -45,13 +39,18 @@ class SearchField extends Component {
 
   render() {
     return (
-      <Flex>
-        <Icon src={searchImg} alt="Search" onClick={this.focusInput} />
+      <Flex align="center">
+        <Icon
+          type="Search"
+          size={48}
+          color="#C9CFD6"
+          onClick={this.focusInput}
+        />
         <Field
           {...this.props}
           innerRef={this.setRef}
           onChange={this.handleChange}
-          placeholder="Search"
+          placeholder="Search…"
           autoFocus
         />
       </Flex>

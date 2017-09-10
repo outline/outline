@@ -64,9 +64,8 @@ const Label = styled(Flex).attrs({
   justify: 'center',
   align: 'center',
 })`
-  cursor: pointer;
   z-index: 1000;
-  min-height: 43px;
+  cursor: pointer;
 `;
 
 const MenuContainer = styled.div`

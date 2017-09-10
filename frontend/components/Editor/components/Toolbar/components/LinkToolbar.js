@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import type { State } from '../../../types';
 import keydown from 'react-keydown';
 import styles from '../Toolbar.scss';
-import CloseIcon from 'components/Icon/CloseIcon';
+import Icon from 'components/Icon';
 
 @keydown
 export default class LinkToolbar extends Component {
@@ -58,7 +58,7 @@ export default class LinkToolbar extends Component {
           autoFocus
         />
         <button className={styles.button} onMouseDown={this.removeLink}>
-          <CloseIcon light />
+          <Icon type="X" light />
         </button>
       </span>
     );

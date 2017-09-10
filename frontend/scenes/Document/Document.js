@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import Flex from 'components/Flex';
-import { layout } from 'styles/constants';
+import { color, layout } from 'styles/constants';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
@@ -15,7 +15,6 @@ import SaveAction from './components/SaveAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import Editor from 'components/Editor';
 import DropToImport from 'components/DropToImport';
-import { HeaderAction } from 'components/Layout';
 import LoadingIndicator from 'components/LoadingIndicator';
 import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
@@ -102,6 +101,11 @@ type Props = {
     if (!this.document) return;
     const url = `${this.document.url}/edit`;
     this.props.history.push(url);
+  };
+
+  onClickNew = () => {
+    if (!this.document) return;
+    this.props.history.push(`${this.document.collection.url}/new`);
   };
 
   onSave = async (redirect: boolean = false) => {
@@ -215,13 +219,22 @@ type Props = {
                           }
                           isNew={!!isNew}
                         />
-                      : <a onClick={this.onClickEdit}>Edit</a>}
+                      : <a onClick={this.onClickEdit}>
+                          Edit
+                        </a>}
                   </HeaderAction>
-                  {isEditing &&
-                    <HeaderAction>
-                      <a onClick={this.onCancel}>Cancel</a>
-                    </HeaderAction>}
-                  {!isEditing && <Menu document={document} />}
+                  <HeaderAction>
+                    {isEditing
+                      ? <a onClick={this.onCancel}>Cancel</a>
+                      : <Menu document={document} />}
+                  </HeaderAction>
+                  {!isEditing && <Separator />}
+                  <HeaderAction>
+                    {!isEditing &&
+                      <a onClick={this.onClickNew}>
+                        New
+                      </a>}
+                  </HeaderAction>
                 </Flex>
               </Meta>
             </Flex>
@@ -230,6 +243,32 @@ type Props = {
     );
   }
 }
+
+const Separator = styled.div`
+  margin-left: 12px;
+  width: 1px;
+  height: 20px;
+  background: ${color.slateLight};
+`;
+
+const HeaderAction = styled(Flex)`
+  justify-content: center;
+  align-items: center;
+  min-height: 43px;
+  color: ${color.text};
+  padding: 0 0 0 14px;
+
+  a,
+  svg {
+    color: ${color.text};
+    opacity: .8;
+    transition: opacity 100ms ease-in-out;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+`;
 
 const DropHere = styled(Flex)`
   pointer-events: none;
