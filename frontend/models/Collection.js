@@ -32,6 +32,10 @@ class Collection extends BaseModel {
       : this.url;
   }
 
+  @computed get allowDelete(): boolean {
+    return true;
+  }
+
   /* Actions */
 
   @action fetch = async () => {

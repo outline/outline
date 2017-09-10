@@ -1,19 +1,19 @@
 // @flow
 import React, { Component } from 'react';
-import get from 'lodash/get';
 import { withRouter } from 'react-router-dom';
-import { observer } from 'mobx-react';
+import { inject, observer } from 'mobx-react';
 import Document from 'models/Document';
+import UiStore from 'stores/UiStore';
 import Icon from 'components/Icon';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
-type Props = {
-  history: Object,
-  document: Document,
-};
-
-@observer class Menu extends Component {
-  props: Props;
+@observer class DocumentMenu extends Component {
+  props: {
+    ui: UiStore,
+    label?: React$Element<any>,
+    history: Object,
+    document: Document,
+  };
 
   onCreateDocument = () => {
     this.props.history.push(`${this.props.document.collection.url}/new`);
@@ -23,19 +23,9 @@ type Props = {
     this.props.history.push(`${this.props.document.url}/new`);
   };
 
-  onDelete = async () => {
-    let msg;
-    if (get(this.props, 'document.collection.type') === 'atlas') {
-      msg =
-        "Are you sure you want to delete this document and all it's child documents (if any)?";
-    } else {
-      msg = 'Are you sure you want to delete this document?';
-    }
-
-    if (confirm(msg)) {
-      await this.props.document.delete();
-      this.props.history.push(this.props.document.collection.url);
-    }
+  onDelete = () => {
+    const { document } = this.props;
+    this.props.ui.setActiveModal('delete-document', { document });
   };
 
   onExport = () => {
@@ -43,11 +33,11 @@ type Props = {
   };
 
   render() {
-    const collection = this.props.document.collection;
-    const allowDelete = this.props.document.allowDelete;
+    const { document, label } = this.props;
+    const { collection, allowDelete } = document;
 
     return (
-      <DropdownMenu label={<Icon type="MoreHorizontal" />} top right>
+      <DropdownMenu label={label || <Icon type="MoreHorizontal" />}>
         {collection &&
           <DropdownMenuItem onClick={this.onCreateDocument}>
             New document
@@ -60,4 +50,4 @@ type Props = {
   }
 }
 
-export default withRouter(Menu);
+export default withRouter(inject('ui')(DocumentMenu));

@@ -22,6 +22,7 @@ const MenuItem = styled.div`
   padding: 5px 10px;
   height: 32px;
 
+  color: ${color.slateDark};
   display: flex;
   justify-content: space-between;
   align-items: center;

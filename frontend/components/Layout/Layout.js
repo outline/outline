@@ -1,31 +1,26 @@
 // @flow
 import React from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import Helmet from 'react-helmet';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
-import { observable } from 'mobx';
-import _ from 'lodash';
 import keydown from 'react-keydown';
 import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
 import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 import Avatar from 'components/Avatar';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
-import Modal from 'components/Modal';
 import Icon from 'components/Icon';
-import CollectionNew from 'scenes/CollectionNew';
-import CollectionEdit from 'scenes/CollectionEdit';
-import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
-import Settings from 'scenes/Settings';
+import CollectionMenu from 'menus/CollectionMenu';
+import AccountMenu from 'menus/AccountMenu';
 
 import SidebarCollection from './components/SidebarCollection';
 import SidebarCollectionList from './components/SidebarCollectionList';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
+import Modals from './components/Modals';
 
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
@@ -52,8 +47,6 @@ type Props = {
     search: true,
   };
 
-  @observable modal = null;
-
   @keydown(['/', 't'])
   goToSearch(ev) {
     ev.preventDefault();
@@ -76,37 +69,21 @@ type Props = {
     this.props.history.push(documentEditUrl(activeDocument));
   }
 
-  handleLogout = () => {
-    this.props.auth.logout(() => this.props.history.push('/'));
-  };
-
   @keydown('shift+/')
   goToOpenKeyboardShortcuts() {
-    this.modal = 'keyboard-shortcuts';
+    this.props.ui.setActiveModal('keyboard-shortcuts');
   }
 
-  handleOpenKeyboardShortcuts = () => {
-    this.goToOpenKeyboardShortcuts();
-  };
-
-  handleOpenSettings = () => {
-    this.modal = 'settings';
-  };
-
   handleCreateCollection = () => {
-    this.modal = 'create-collection';
+    this.props.ui.setActiveModal('create-collection');
   };
 
   handleEditCollection = () => {
-    this.modal = 'edit-collection';
-  };
-
-  handleCloseModal = () => {
-    this.modal = null;
+    this.props.ui.setActiveModal('edit-collection');
   };
 
   render() {
-    const { auth, documents, collections, history, ui } = this.props;
+    const { auth, documents, collections, ui } = this.props;
     const { user, team } = auth;
 
     return (
@@ -130,27 +107,13 @@ type Props = {
             user &&
             team &&
             <Sidebar column editMode={ui.editMode}>
-              <DropdownMenu
-                style={{ marginRight: 10, marginTop: -10 }}
+              <AccountMenu
                 label={
                   <HeaderBlock user={user} team={team}>
                     <Avatar src={user.avatarUrl} />
                   </HeaderBlock>
                 }
-              >
-                <DropdownMenuItem onClick={this.handleOpenSettings}>
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
-                  Keyboard shortcuts
-                </DropdownMenuItem>
-                <MenuLink to="/developers">
-                  <DropdownMenuItem>API</DropdownMenuItem>
-                </MenuLink>
-                <DropdownMenuItem onClick={this.handleLogout}>
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenu>
+              />
 
               <Flex column>
                 <Scrollable>
@@ -167,8 +130,8 @@ type Props = {
                   </LinkSection>
                   <LinkSection>
                     {collections.active
-                      ? <CollectionAction onClick={this.handleEditCollection}>
-                          <Icon type="MoreHorizontal" />
+                      ? <CollectionAction>
+                          <CollectionMenu collection={collections.active} />
                         </CollectionAction>
                       : <CollectionAction onClick={this.handleCreateCollection}>
                           <Icon type="PlusCircle" />
@@ -189,44 +152,7 @@ type Props = {
             {this.props.children}
           </Content>
         </Flex>
-        <Modal
-          isOpen={this.modal === 'create-collection'}
-          onRequestClose={this.handleCloseModal}
-          title="Create a collection"
-        >
-          <CollectionNew
-            collections={collections}
-            history={history}
-            onSubmit={this.handleCloseModal}
-          />
-        </Modal>
-        <Modal
-          isOpen={this.modal === 'edit-collection'}
-          onRequestClose={this.handleCloseModal}
-          title="Edit collection"
-        >
-          {collections.active &&
-            <CollectionEdit
-              collection={collections.active}
-              collections={collections}
-              history={history}
-              onSubmit={this.handleCloseModal}
-            />}
-        </Modal>
-        <Modal
-          isOpen={this.modal === 'keyboard-shortcuts'}
-          onRequestClose={this.handleCloseModal}
-          title="Keyboard shortcuts"
-        >
-          <KeyboardShortcuts />
-        </Modal>
-        <Modal
-          isOpen={this.modal === 'settings'}
-          onRequestClose={this.handleCloseModal}
-          title="Settings"
-        >
-          <Settings />
-        </Modal>
+        <Modals ui={ui} />
       </Container>
     );
   }
@@ -253,10 +179,6 @@ const Container = styled(Flex)`
 const Content = styled(Flex)`
   margin-left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
   transition: margin-left 200ms ease-in-out;
-`;
-
-const MenuLink = styled(Link)`
-  color: ${color.text};
 `;
 
 const Sidebar = styled(Flex)`

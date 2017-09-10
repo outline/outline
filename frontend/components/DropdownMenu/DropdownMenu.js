@@ -2,6 +2,7 @@
 import React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import keydown from 'react-keydown';
 import styled from 'styled-components';
 import Flex from 'components/Flex';
 import { color } from 'styles/constants';
@@ -15,22 +16,30 @@ type DropdownMenuProps = {
 
 @observer class DropdownMenu extends React.Component {
   props: DropdownMenuProps;
-  @observable menuOpen: boolean = false;
+  @observable open: boolean = false;
 
   handleClick = () => {
-    this.menuOpen = !this.menuOpen;
+    this.open = !this.open;
+  };
+
+  @keydown('esc')
+  handleEscape() {
+    this.open = false;
+  }
+
+  handleClickOutside = (ev: SyntheticEvent) => {
+    ev.stopPropagation();
+    this.open = false;
   };
 
   render() {
     return (
       <MenuContainer onClick={this.handleClick}>
-        {this.menuOpen && <Backdrop />}
-
+        {this.open && <Backdrop onClick={this.handleClickOutside} />}
         <Label>
           {this.props.label}
         </Label>
-
-        {this.menuOpen &&
+        {this.open &&
           <Menu style={this.props.style}>
             {this.props.children}
           </Menu>}

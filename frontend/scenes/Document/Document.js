@@ -10,7 +10,7 @@ import { color, layout } from 'styles/constants';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
-import Menu from './components/Menu';
+import DocumentMenu from 'menus/DocumentMenu';
 import SaveAction from './components/SaveAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import Editor from 'components/Editor';
@@ -222,10 +222,12 @@ type Props = {
                           Edit
                         </a>}
                   </HeaderAction>
+                  {isEditing &&
+                    <HeaderAction>
+                      <a onClick={this.onCancel}>Cancel</a>
+                    </HeaderAction>}
                   <HeaderAction>
-                    {isEditing
-                      ? <a onClick={this.onCancel}>Cancel</a>
-                      : <Menu document={document} />}
+                    <DocumentMenu document={document} />
                   </HeaderAction>
                   {!isEditing && <Separator />}
                   <HeaderAction>
