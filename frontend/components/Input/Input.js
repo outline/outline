@@ -24,7 +24,7 @@ const RealInput = styled.input`
   background: none;
 
   &::placeholder {
-    color: ${color.slateLight};
+    color: ${color.slate};
   }
 `;
 

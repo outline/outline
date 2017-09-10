@@ -9,15 +9,13 @@ import _ from 'lodash';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import styled from 'styled-components';
-import { size, color } from 'styles/constants';
+import { size } from 'styles/constants';
 
 import Modal from 'components/Modal';
-import Button from 'components/Button';
 import Input from 'components/Input';
-import HelpText from 'components/HelpText';
 import Labeled from 'components/Labeled';
 import Flex from 'components/Flex';
-import ChevronIcon from 'components/Icon/ChevronIcon';
+import PathToDocument from './components/PathToDocument';
 
 import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -31,13 +29,16 @@ type Props = {
 
 @observer class DocumentMove extends Component {
   props: Props;
-  store: DocumentMoveStore;
   firstDocument: HTMLElement;
 
   @observable isSaving: boolean;
   @observable resultIds: Array<string> = []; // Document IDs
   @observable searchTerm: ?string = null;
   @observable isFetching = false;
+
+  componentDidMount() {
+    this.setDefaultResult();
+  }
 
   handleKeyDown = ev => {
     // Down
@@ -55,7 +56,7 @@ type Props = {
     this.props.history.push(this.props.document.url);
   };
 
-  handleFilter = (e: SyntheticEvent) => {
+  handleFilter = (e: SyntheticInputEvent) => {
     const value = e.target.value;
     this.searchTerm = value;
     this.updateSearchResults();
@@ -68,6 +69,12 @@ type Props = {
   setFirstDocumentRef = ref => {
     this.firstDocument = ref;
   };
+
+  @action setDefaultResult() {
+    this.resultIds = this.props.document.collection.documents.map(
+      doc => doc.id
+    );
+  }
 
   @action search = async () => {
     this.isFetching = true;
@@ -90,7 +97,7 @@ type Props = {
         console.error('Something went wrong');
       }
     } else {
-      this.resultIds = [];
+      this.setDefaultResult();
     }
 
     this.isFetching = false;
@@ -100,12 +107,7 @@ type Props = {
     const { document, documents } = this.props;
 
     return (
-      <Modal
-        isOpen
-        onRequestClose={this.handleClose}
-        title={`Move ${document.title}`}
-      >
-        <HelpText />
+      <Modal isOpen onRequestClose={this.handleClose} title="Move document">
         <Section>
           <Labeled label="Current location">
             <PathToDocument documentId={document.id} documents={documents} />
@@ -113,7 +115,7 @@ type Props = {
         </Section>
 
         <Section column>
-          <Labeled label="New location">
+          <Labeled label="Choose a new location">
             <Input
               type="text"
               placeholder="Filter by document name"
@@ -146,14 +148,6 @@ type Props = {
             </StyledArrowKeyNavigation>
           </Flex>
         </Section>
-
-        {false &&
-          <Button
-            type="submit"
-            disabled={this.isSaving || !this.store.hasSelected}
-          >
-            {this.isSaving ? 'Moving…' : 'Move'}
-          </Button>}
       </Modal>
     );
   }
@@ -167,86 +161,6 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   display: flex;
   flex-direction: column;
   flex: 1;
-`;
-
-type PathToDocumentProps = {
-  documentId: string,
-  onSuccess?: Function,
-  documents: DocumentsStore,
-  document?: Document,
-  ref?: Function,
-  selectable?: boolean,
-};
-
-class PathToDocument extends React.Component {
-  props: PathToDocumentProps;
-
-  get resultDocument(): ?Document {
-    return this.props.documents.getById(this.props.documentId);
-  }
-
-  handleSelect = async event => {
-    const { document } = this.props;
-    invariant(this.props.onSuccess, 'onSuccess unavailable');
-    event.preventDefault();
-    await document.move(this.resultDocument ? this.resultDocument.id : null);
-    this.props.onSuccess();
-  };
-
-  render() {
-    const { document, onSuccess, ref } = this.props;
-    const { collection } = document || this.resultDocument;
-    const Component = onSuccess ? ResultWrapperLink : ResultWrapper;
-
-    return (
-      <Component
-        innerRef={ref}
-        selectable
-        href={!!onSuccess}
-        onClick={onSuccess && this.handleSelect}
-      >
-        {collection.name}
-        {this.resultDocument &&
-          <Flex>
-            {' '}
-            <ChevronIcon />
-            {' '}
-            {this.resultDocument.pathToDocument
-              .map(doc => <span>{doc.title}</span>)
-              .reduce((prev, curr) => [prev, <ChevronIcon />, curr])}
-          </Flex>}
-        {document &&
-          <Flex>
-            {' '}
-            <ChevronIcon />
-            {' '}{document.title}
-          </Flex>}
-      </Component>
-    );
-  }
-}
-
-const ResultWrapper = styled.div`
-  display: flex;
-  margin-bottom: 10px;
-
-  color: ${color.text};
-  cursor: default;
-`;
-
-const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
-  padding-top: 3px;
-
-  &:hover,
-  &:active,
-  &:focus {
-    margin-left: -8px;
-    padding-left: 6px;
-    background: ${color.smokeLight};
-    border-left: 2px solid ${color.primary};
-    outline: none;
-    cursor: pointer;
-  }
 `;
 
 export default withRouter(inject('documents')(DocumentMove));
