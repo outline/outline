@@ -7,7 +7,7 @@ import { color } from 'styles/constants';
 
 type Props = {
   id: string,
-  name: string,
+  name: ?string,
   secret: string,
   onDelete: Function,
 };

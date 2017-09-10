@@ -32,6 +32,7 @@ const Anchor = styled.a`
   }
 `;
 
+// $FlowIssue I don't know
 const titleStyles = component => styled(component)`
   position: relative;
 
