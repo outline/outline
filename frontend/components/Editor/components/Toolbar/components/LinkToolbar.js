@@ -4,13 +4,8 @@ import styled from 'styled-components';
 import ToolbarButton from './ToolbarButton';
 import type { State } from '../../../types';
 import keydown from 'react-keydown';
-<<<<<<< HEAD
-import styles from '../Toolbar.scss';
 import Icon from 'components/Icon';
-=======
 import Flex from 'components/Flex';
-import CloseIcon from 'components/Icon/CloseIcon';
->>>>>>> Refactor CSS modules out
 
 @keydown
 export default class LinkToolbar extends Component {
