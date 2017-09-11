@@ -88,7 +88,7 @@ class DocumentsStore extends BaseStore {
   };
 
   @action fetchRecentlyModified = async (options: ?Object): Promise<*> => {
-    return this.fetchAll('list', options);
+    return await this.fetchAll('list', options);
   };
 
   @action fetchRecentlyViewed = async (options: ?Object): Promise<*> => {

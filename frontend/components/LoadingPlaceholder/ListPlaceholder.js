@@ -1,11 +1,16 @@
 // @flow
 import React from 'react';
+import _ from 'lodash';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import styled from 'styled-components';
 import Mask from './components/Mask';
 import Flex from 'components/Flex';
 
-export default (props: Object) => {
+type Props = {
+  count: number,
+};
+
+const ListPlaceHolder = ({ count }: Props) => {
   return (
     <ReactCSSTransitionGroup
       transitionName="fadeIn"
@@ -16,18 +21,22 @@ export default (props: Object) => {
       transitionEnter
       transitionLeave
     >
-      <Item column auto>
-        <Mask header />
-        <Mask />
-      </Item>
-      <Item column auto>
-        <Mask header />
-        <Mask />
-      </Item>
+      {_.times(count, () => (
+        <Item column auto>
+          <Mask header />
+          <Mask />
+        </Item>
+      ))}
     </ReactCSSTransitionGroup>
   );
+};
+
+ListPlaceHolder.defaultProps = {
+  count: 2,
 };
 
 const Item = styled(Flex)`
   padding: 18px 0;
 `;
+
+export default ListPlaceHolder;
