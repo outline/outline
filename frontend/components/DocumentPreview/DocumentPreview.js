@@ -15,7 +15,7 @@ type Props = {
   innerRef?: Function,
 };
 
-const StyledStar = styled(Icon).attrs({
+const StyledStar = styled(({ solid, ...props }) => <Icon {...props} />).attrs({
   type: 'Star',
   color: color.text,
 })`
