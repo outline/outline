@@ -19,6 +19,7 @@ import LoadingIndicator from 'components/LoadingIndicator';
 import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
+import Search from 'scenes/Search';
 
 const DISCARD_CHANGES = `
 You have unsaved changes.
@@ -46,6 +47,7 @@ type Props = {
     isSaving: false,
     newDocument: undefined,
     showAsSaved: false,
+    notFound: false,
   };
 
   componentDidMount() {
@@ -57,6 +59,7 @@ type Props = {
       nextProps.match.params.documentSlug !==
       this.props.match.params.documentSlug
     ) {
+      this.setState({ notFound: false });
       this.loadDocument(nextProps);
     }
   }
@@ -86,6 +89,9 @@ type Props = {
       if (document) {
         this.props.ui.setActiveDocument(document);
         document.view();
+      } else {
+        // Render 404 with search
+        this.setState({ notFound: true });
       }
     }
   };
@@ -146,7 +152,8 @@ type Props = {
   };
 
   onCancel = () => {
-    this.props.history.goBack();
+    if (!this.document) return;
+    this.props.history.push(this.document.url);
   };
 
   onStartDragging = () => {
@@ -157,12 +164,20 @@ type Props = {
     this.setState({ isDragging: false });
   };
 
+  renderNotFound() {
+    return <Search notFound />;
+  }
+
   render() {
     const isNew = this.props.newDocument;
     const isEditing = !!this.props.match.params.edit || isNew;
     const isFetching = !this.document;
     const titleText = get(this.document, 'title', '');
     const document = this.document;
+
+    if (this.state.notFound) {
+      return this.renderNotFound();
+    }
 
     return (
       <Container column auto>
