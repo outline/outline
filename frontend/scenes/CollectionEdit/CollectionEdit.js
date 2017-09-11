@@ -48,7 +48,7 @@ type Props = {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            You can edit a collections name at any time, however doing so might
+            You can edit a collection's name at any time, however doing so might
             confuse your team mates.
           </HelpText>
           <Input
