@@ -21,8 +21,8 @@ const ListPlaceHolder = ({ count }: Props) => {
       transitionEnter
       transitionLeave
     >
-      {_.times(count || 2, () => (
-        <Item column auto>
+      {_.times(count || 2, index => (
+        <Item key={index} column auto>
           <Mask header />
           <Mask />
         </Item>
