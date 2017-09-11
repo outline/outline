@@ -8,6 +8,7 @@ import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
+import Placeholder from './components/Placeholder';
 import Markdown from './serializer';
 import createSchema from './schema';
 import createPlugins from './plugins';
@@ -253,13 +254,13 @@ const StyledEditor = styled(Editor)`
   }
 
   h1:first-of-type {
-    .placeholder {
+    ${Placeholder} {
       visibility: visible;
     }
   }
 
   p:first-of-type {
-    .placeholder {
+    ${Placeholder} {
       visibility: visible;
     }
   }
