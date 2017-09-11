@@ -22,7 +22,7 @@ export default class LinkToolbar extends Component {
       case 13: // enter
         ev.preventDefault();
         return this.save(ev.target.value);
-      case 26: // escape
+      case 27: // escape
         return this.input.blur();
       default:
     }
@@ -52,7 +52,7 @@ export default class LinkToolbar extends Component {
     return (
       <LinkEditor>
         <Input
-          ref={ref => (this.input = ref)}
+          innerRef={ref => (this.input = ref)}
           defaultValue={href}
           placeholder="http://"
           onBlur={this.props.onBlur}
