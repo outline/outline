@@ -7,7 +7,7 @@ import Mask from './components/Mask';
 import Flex from 'components/Flex';
 
 type Props = {
-  count: number,
+  count?: number,
 };
 
 const ListPlaceHolder = ({ count }: Props) => {
@@ -21,7 +21,7 @@ const ListPlaceHolder = ({ count }: Props) => {
       transitionEnter
       transitionLeave
     >
-      {_.times(count, () => (
+      {_.times(count || 2, () => (
         <Item column auto>
           <Mask header />
           <Mask />
@@ -29,10 +29,6 @@ const ListPlaceHolder = ({ count }: Props) => {
       ))}
     </ReactCSSTransitionGroup>
   );
-};
-
-ListPlaceHolder.defaultProps = {
-  count: 2,
 };
 
 const Item = styled(Flex)`
