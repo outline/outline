@@ -186,7 +186,7 @@ type KeyData = {
           <Header onClick={this.focusAtStart} readOnly={this.props.readOnly} />
           <Toolbar state={this.state.state} onChange={this.onChange} />
           <StyledEditor
-            ref={ref => (this.editor = ref)}
+            innerRef={ref => (this.editor = ref)}
             placeholder="Start with a title…"
             bodyPlaceholder="Insert witty platitude here"
             schema={this.schema}
