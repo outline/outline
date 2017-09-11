@@ -51,23 +51,22 @@ type AuthProps = {
 };
 
 const Auth = ({ children }: AuthProps) => {
-  if (stores.auth.authenticated && stores.auth.team) {
+  if (stores.auth.authenticated && stores.auth.team && stores.auth.user) {
     // Only initialize stores once. Kept in global scope
     // because otherwise they will get overriden on route
     // change
     if (!authenticatedStores) {
       // Stores for authenticated user
-      const user = stores.auth.getUserStore();
-      const cache = new CacheStore(user.user.id);
+      const { user, team } = stores.auth;
+      const cache = new CacheStore(user.id);
       authenticatedStores = {
-        user,
         documents: new DocumentsStore({
           ui: stores.ui,
           cache,
         }),
         collections: new CollectionsStore({
           ui: stores.ui,
-          teamId: user.team.id,
+          teamId: team.id,
           cache,
         }),
       };

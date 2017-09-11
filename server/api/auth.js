@@ -1,11 +1,9 @@
 // @flow
 import Router from 'koa-router';
-import apiError, { httpErrors } from '../errors';
-import fetch from 'isomorphic-fetch';
-import querystring from 'querystring';
-
+import apiError from '../errors';
 import { presentUser, presentTeam } from '../presenters';
 import { User, Team } from '../models';
+import * as Slack from '../slack';
 
 const router = new Router();
 
@@ -88,24 +86,7 @@ router.post('auth.slack', async ctx => {
   const { code } = ctx.body;
   ctx.assertPresent(code, 'code is required');
 
-  const body = {
-    client_id: process.env.SLACK_KEY,
-    client_secret: process.env.SLACK_SECRET,
-    redirect_uri: `${process.env.URL || ''}/auth/slack`,
-    code,
-  };
-
-  let data;
-  try {
-    const response = await fetch(
-      `https://slack.com/api/oauth.access?${querystring.stringify(body)}`
-    );
-    data = await response.json();
-  } catch (e) {
-    throw httpErrors.BadRequest();
-  }
-
-  if (!data.ok) throw httpErrors.BadRequest(data.error);
+  const data = await Slack.oauthAccess(code);
 
   // Temp to block
   const allowedSlackDomains = (process.env.ALLOWED_SLACK_DOMAINS || '')
@@ -118,22 +99,20 @@ router.post('auth.slack', async ctx => {
     );
   }
 
-  // User
   let user = await User.findOne({ where: { slackId: data.user.id } });
-
-  // Team
   let team = await Team.findOne({ where: { slackId: data.team.id } });
   const teamExisted = !!team;
-  if (!team) {
+
+  if (team) {
+    team.name = data.team.name;
+    team.slackData = data.team;
+    await team.save();
+  } else {
     team = await Team.create({
       name: data.team.name,
       slackId: data.team.id,
       slackData: data.team,
     });
-  } else {
-    team.name = data.team.name;
-    team.slackData = data.team;
-    team = await team.save();
   }
 
   if (user) {
@@ -143,7 +122,6 @@ router.post('auth.slack', async ctx => {
   } else {
     user = await User.create({
       slackId: data.user.id,
-      username: data.user.name,
       name: data.user.name,
       email: data.user.email,
       teamId: team.id,
@@ -169,24 +147,7 @@ router.post('auth.slackCommands', async ctx => {
   const { code } = ctx.body;
   ctx.assertPresent(code, 'code is required');
 
-  const body = {
-    client_id: process.env.SLACK_KEY,
-    client_secret: process.env.SLACK_SECRET,
-    redirect_uri: `${process.env.URL || ''}/auth/slack/commands`,
-    code,
-  };
-
-  let data;
-  try {
-    const response = await fetch(
-      `https://slack.com/api/oauth.access?${querystring.stringify(body)}`
-    );
-    data = await response.json();
-  } catch (e) {
-    throw httpErrors.BadRequest();
-  }
-
-  if (!data.ok) throw httpErrors.BadRequest(data.error);
+  await Slack.oauthAccess(code, `${process.env.URL || ''}/auth/slack/commands`);
 });
 
 export default router;

@@ -1,25 +1,28 @@
 // @flow
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { layout, color } from 'styles/constants';
-import { darken } from 'polished';
+import { layout, color, fontWeight } from 'styles/constants';
 import styled from 'styled-components';
 
 const activeStyle = {
-  color: '#000000',
+  color: color.black,
+  fontWeight: fontWeight.semiBold,
 };
 
 function SidebarLink(props: Object) {
-  return <StyledNavLink exact {...props} activeStyle={activeStyle} />;
+  return <StyledNavLink exact activeStyle={activeStyle} {...props} />;
 }
 
 const StyledNavLink = styled(NavLink)`
   display: block;
-  padding: 5px ${layout.hpadding};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 5px ${layout.hpadding};
   color: ${color.slateDark};
+  font-size: 15px;
 
   &:hover {
-    color: ${darken(0.1, color.slateDark)};
+    color: ${color.text};
   }
 `;
 

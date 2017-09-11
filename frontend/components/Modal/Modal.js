@@ -2,9 +2,9 @@
 import React from 'react';
 import styled from 'styled-components';
 import ReactModal from 'react-modal';
+import { color } from 'styles/constants';
 import { fadeAndScaleIn } from 'styles/animations';
-
-import CloseIcon from 'components/Icon/CloseIcon';
+import Icon from 'components/Icon';
 import Flex from 'components/Flex';
 
 type Props = {
@@ -32,7 +32,7 @@ const Modal = ({
     >
       <Content column>
         {title && <h1>{title}</h1>}
-        <Close onClick={onRequestClose}><CloseIcon /></Close>
+        <Close onClick={onRequestClose}><Icon type="X" size={32} /></Close>
         {children}
       </Content>
     </StyledModal>
@@ -68,6 +68,7 @@ const Close = styled.a`
   top: 3rem;
   right: 3rem;
   opacity: .5;
+  color: ${color.text};
 
   &:hover {
     opacity: 1;

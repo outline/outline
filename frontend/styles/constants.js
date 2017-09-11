@@ -31,7 +31,7 @@ export const fontWeight = {
   light: 300,
   regular: 400,
   medium: 500,
-  demiBold: 600,
+  semiBold: 600,
   bold: 700,
   heavy: 800,
 };

@@ -22,6 +22,7 @@ const DropdownMenuItem = ({ onClick, children }: MenuItemProps) => {
 type DropdownMenuProps = {
   label: React.Element<any>,
   children?: React.Element<any>,
+  style?: Object,
 };
 
 @observer class DropdownMenu extends React.Component {
@@ -42,7 +43,7 @@ type DropdownMenuProps = {
         </Label>
 
         {this.menuOpen &&
-          <Menu>
+          <Menu style={this.props.style}>
             {this.props.children}
           </Menu>}
       </MenuContainer>
@@ -63,11 +64,8 @@ const Label = styled(Flex).attrs({
   justify: 'center',
   align: 'center',
 })`
-  cursor: pointer;
   z-index: 1000;
-
-  min-height: 43px;
-  margin: 0 5px;
+  cursor: pointer;
 `;
 
 const MenuContainer = styled.div`

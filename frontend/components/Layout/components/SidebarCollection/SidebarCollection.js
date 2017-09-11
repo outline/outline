@@ -3,7 +3,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import Flex from 'components/Flex';
 import styled from 'styled-components';
-import { layout } from 'styles/constants';
+import { color, layout } from 'styles/constants';
 import SidebarLink from '../SidebarLink';
 import DropToImport from 'components/DropToImport';
 
@@ -18,8 +18,8 @@ type Props = {
 };
 
 const activeStyle = {
-  color: '#000',
-  background: '#E1E1E1',
+  color: color.black,
+  background: color.slateDark,
 };
 
 @observer class SidebarCollection extends React.Component {
@@ -72,7 +72,7 @@ const Header = styled(Flex)`
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
-  color: #9FA6AB;
+  color: ${color.slate};
   letter-spacing: 0.04em;
   padding: 0 ${layout.hpadding};
 `;
