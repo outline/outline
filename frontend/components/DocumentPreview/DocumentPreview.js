@@ -19,6 +19,9 @@ const StyledStar = styled(({ solid, ...props }) => <Icon {...props} />).attrs({
   type: 'Star',
   color: color.text,
 })`
+  width: 16px;
+  height: 16px;
+  top: 1px;
   margin-left: 4px;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: opacity 100ms ease-in-out;
