@@ -92,12 +92,15 @@ const MenuItem = styled.div`
   cursor: pointer;
   border-left: 2px solid transparent;
 
+  color: ${color.text};
+
   span {
     margin-top: 2px;
   }
 
   a {
     text-decoration: none;
+    color: ${color.text};
     width: 100%;
   }
 

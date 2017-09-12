@@ -1,9 +1,11 @@
 // @flow
 import React from 'react';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 
 import DocumentsStore from 'stores/DocumentsStore';
+import Flex from 'components/Flex';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import CenteredContent from 'components/CenteredContent';
@@ -26,29 +28,33 @@ type Props = {
 
 @observer class Dashboard extends React.Component {
   props: Props;
+  @observable isLoaded = false;
 
   componentDidMount() {
-    this.props.documents.fetchRecentlyModified({ limit: 5 });
-    this.props.documents.fetchRecentlyViewed({ limit: 5 });
+    this.loadContent();
   }
 
-  get showPlaceholder() {
-    const { isLoaded, isFetching } = this.props.documents;
-    return !isLoaded && isFetching;
-  }
+  loadContent = async () => {
+    await Promise.all([
+      this.props.documents.fetchRecentlyModified({ limit: 5 }),
+      this.props.documents.fetchRecentlyViewed({ limit: 5 }),
+    ]);
+    this.isLoaded = true;
+  };
 
   render() {
     return (
       <CenteredContent>
         <PageTitle title="Home" />
         <h1>Home</h1>
-        <Subheading>Recently viewed</Subheading>
-        {this.showPlaceholder && <ListPlaceholder />}
-        <DocumentList documents={this.props.documents.recentlyViewed} />
-
-        <Subheading>Recently edited</Subheading>
-        <DocumentList documents={this.props.documents.recentlyEdited} />
-        {this.showPlaceholder && <ListPlaceholder />}
+        {this.isLoaded
+          ? <Flex column>
+              <Subheading>Recently viewed</Subheading>
+              <DocumentList documents={this.props.documents.recentlyViewed} />
+              <Subheading>Recently edited</Subheading>
+              <DocumentList documents={this.props.documents.recentlyEdited} />
+            </Flex>
+          : <ListPlaceholder count={5} />}
       </CenteredContent>
     );
   }
