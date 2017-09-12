@@ -211,6 +211,8 @@ router.post('documents.create', auth(), async ctx => {
     await ownerCollection.addDocumentToStructure(document, index);
   }
 
+  document.collection = ownerCollection;
+
   ctx.body = {
     data: await presentDocument(ctx, document),
   };
