@@ -282,6 +282,8 @@ router.post('documents.move', auth(), async ctx => {
     await collection.addDocumentToStructure(document, index);
   }
 
+  document.collection = collection;
+
   ctx.body = {
     data: await presentDocument(ctx, document),
   };
