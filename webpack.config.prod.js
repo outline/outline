@@ -2,7 +2,6 @@
 var path = require('path');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 commonWebpackConfig = require('./webpack.config');
 
@@ -16,20 +15,10 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
     publicPath: '/static/',
   },
 });
-productionWebpackConfig.module.loaders.push({
-  test: /\.s?css$/,
-  loader: ExtractTextPlugin.extract(
-    'style-loader',
-    'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!sass?sourceMap'
-  ),
-});
 productionWebpackConfig.plugins.push(
   new HtmlWebpackPlugin({
     template: 'server/static/index.html',
   })
-);
-productionWebpackConfig.plugins.push(
-  new ExtractTextPlugin('styles.[hash].css')
 );
 productionWebpackConfig.plugins.push(
   new webpack.optimize.OccurenceOrderPlugin()

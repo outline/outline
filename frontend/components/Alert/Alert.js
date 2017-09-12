@@ -1,36 +1,37 @@
 // @flow
-import React, { PropTypes } from 'react';
+import React from 'react';
+import { observer } from 'mobx-react';
 import Flex from 'components/Flex';
-import classNames from 'classnames/bind';
-import styles from './Alert.scss';
+import styled from 'styled-components';
+import { color } from 'styles/constants';
 
-const cx = classNames.bind(styles);
+type Props = {
+  children: React.Element<*>,
+  type?: 'info' | 'success' | 'warning' | 'danger' | 'offline',
+};
 
-class Alert extends React.Component {
-  static propTypes = {
-    children: PropTypes.node.isRequired,
-    danger: PropTypes.bool,
-    warning: PropTypes.bool,
-    success: PropTypes.bool,
+@observer class Alert extends React.Component {
+  props: Props;
+  defaultProps = {
+    type: 'info',
   };
 
   render() {
-    let alertType;
-    if (this.props.danger) alertType = 'danger';
-    if (this.props.warning) alertType = 'warning';
-    if (this.props.success) alertType = 'success';
-    if (!alertType) alertType = 'info'; // default
-
     return (
-      <Flex
-        align="center"
-        justify="center"
-        className={cx(styles.container, styles[alertType])}
-      >
+      <Container align="center" justify="center" type={this.props.type}>
         {this.props.children}
-      </Flex>
+      </Container>
     );
   }
 }
+
+const Container = styled(Flex)`
+  height: $headerHeight;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1;
+
+  background-color: ${({ type }) => color[type]};
+`;
 
 export default Alert;

@@ -1,5 +1,6 @@
 // @flow
 import React from 'react';
+import styled from 'styled-components';
 import Code from './components/Code';
 import InlineCode from './components/InlineCode';
 import Image from './components/Image';
@@ -8,7 +9,15 @@ import ListItem from './components/ListItem';
 import Heading from './components/Heading';
 import Paragraph from './components/Paragraph';
 import type { Props, Node, Transform } from './types';
-import styles from './Editor.scss';
+
+const TodoList = styled.ul`
+  list-style: none;
+  padding-left: 0;
+
+  ul {
+    padding-left: 1em;
+  }
+`;
 
 const createSchema = () => {
   return {
@@ -29,9 +38,7 @@ const createSchema = () => {
       'horizontal-rule': (props: Props) => <hr />,
       'bulleted-list': (props: Props) => <ul>{props.children}</ul>,
       'ordered-list': (props: Props) => <ol>{props.children}</ol>,
-      'todo-list': (props: Props) => (
-        <ul className={styles.todoList}>{props.children}</ul>
-      ),
+      'todo-list': (props: Props) => <TodoList>{props.children}</TodoList>,
       table: (props: Props) => <table>{props.children}</table>,
       'table-row': (props: Props) => <tr>{props.children}</tr>,
       'table-head': (props: Props) => <th>{props.children}</th>,
