@@ -6,6 +6,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
+import { collectionUrl } from 'utils/routeHelpers';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
@@ -152,8 +153,13 @@ type Props = {
   };
 
   onCancel = () => {
-    if (!this.document) return;
-    this.props.history.push(this.document.url);
+    let url;
+    if (this.document && this.document.url) {
+      url = this.document.url;
+    } else {
+      url = collectionUrl(this.props.match.params.id);
+    }
+    this.props.history.push(url);
   };
 
   onStartDragging = () => {

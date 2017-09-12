@@ -14,6 +14,10 @@ export function newCollectionUrl(): string {
   return '/collections/new';
 }
 
+export function collectionUrl(collectionId: string): string {
+  return `/collections/${collectionId}`;
+}
+
 export function documentUrl(doc: Document): string {
   return doc.url;
 }
