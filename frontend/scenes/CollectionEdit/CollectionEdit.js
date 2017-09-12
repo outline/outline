@@ -1,18 +1,17 @@
 // @flow
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import { observable } from 'mobx';
-import { observer } from 'mobx-react';
+import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import Flex from 'components/Flex';
 import HelpText from 'components/HelpText';
 import Collection from 'models/Collection';
-import CollectionsStore from 'stores/CollectionsStore';
 
 type Props = {
   history: Object,
   collection: Collection,
-  collections: CollectionsStore,
   onSubmit: () => void,
 };
 
@@ -71,4 +70,4 @@ type Props = {
   }
 }
 
-export default CollectionEdit;
+export default inject('collections')(withRouter(CollectionEdit));

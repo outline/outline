@@ -115,7 +115,7 @@ type Props = {
                 }
               />
 
-              <Flex column>
+              <Flex auto column>
                 <Scrollable>
                   <LinkSection>
                     <SidebarLink to="/dashboard">

@@ -1,7 +1,8 @@
 // @flow
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import { observable } from 'mobx';
-import { observer } from 'mobx-react';
+import { inject, observer } from 'mobx-react';
 import { homeUrl } from 'utils/routeHelpers';
 import Button from 'components/Button';
 import Flex from 'components/Flex';
@@ -57,4 +58,4 @@ type Props = {
   }
 }
 
-export default CollectionDelete;
+export default inject('collections')(withRouter(CollectionDelete));

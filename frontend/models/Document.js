@@ -186,10 +186,11 @@ class Document extends BaseModel {
         id: this.id,
         collectionId: this.collection.id,
       });
+      return true;
     } catch (e) {
       this.errors.add('Error while deleting the document');
     }
-    return;
+    return false;
   };
 
   download() {
