@@ -25,14 +25,19 @@ const Collaborators = function({ document }: { document: Document }) {
 
   return (
     <Avatars>
-      <Tooltip tooltip={tooltip} placement="bottom">
+      <StyledTooltip tooltip={tooltip} placement="bottom">
         {collaborators.map(user => (
           <Avatar key={user.id} src={user.avatarUrl} />
         ))}
-      </Tooltip>
+      </StyledTooltip>
     </Avatars>
   );
 };
+
+const StyledTooltip = styled(Tooltip)`
+  display: flex;
+  flex-direction: row-reverse;
+`;
 
 const Avatars = styled(Flex)`
   flex-direction: row-reverse;
@@ -45,7 +50,7 @@ const Avatar = styled.img`
   flex-shrink: 0;
   border-radius: 50%;
   border: 2px solid ${color.white};
-  margin-right: -13px;
+  margin-right: -10px;
 
   &:first-child {
     margin-right: 0;

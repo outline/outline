@@ -1,9 +1,11 @@
 // @flow
 import React, { Component } from 'react';
+import styled from 'styled-components';
+import ToolbarButton from './ToolbarButton';
 import type { State } from '../../../types';
 import keydown from 'react-keydown';
-import styles from '../Toolbar.scss';
 import Icon from 'components/Icon';
+import Flex from 'components/Flex';
 
 @keydown
 export default class LinkToolbar extends Component {
@@ -20,7 +22,7 @@ export default class LinkToolbar extends Component {
       case 13: // enter
         ev.preventDefault();
         return this.save(ev.target.value);
-      case 26: // escape
+      case 27: // escape
         return this.input.blur();
       default:
     }
@@ -48,19 +50,35 @@ export default class LinkToolbar extends Component {
   render() {
     const href = this.props.link.data.get('href');
     return (
-      <span className={styles.linkEditor}>
-        <input
-          ref={ref => (this.input = ref)}
+      <LinkEditor>
+        <Input
+          innerRef={ref => (this.input = ref)}
           defaultValue={href}
           placeholder="http://"
           onBlur={this.props.onBlur}
           onKeyDown={this.onKeyDown}
           autoFocus
         />
-        <button className={styles.button} onMouseDown={this.removeLink}>
+        <ToolbarButton onMouseDown={this.removeLink}>
           <Icon type="X" light />
-        </button>
-      </span>
+        </ToolbarButton>
+      </LinkEditor>
     );
   }
 }
+
+const LinkEditor = styled(Flex)`
+  margin-left: -8px;
+  margin-right: -8px;
+`;
+
+const Input = styled.input`
+  background: rgba(255,255,255,.1);
+  border-radius: 2px;
+  padding: 5px 8px;
+  border: 0;
+  margin: 0;
+  outline: none;
+  color: #fff;
+  flex-grow: 1;
+`;

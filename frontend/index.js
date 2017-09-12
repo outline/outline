@@ -16,11 +16,11 @@ import CollectionsStore from 'stores/CollectionsStore';
 import CacheStore from 'stores/CacheStore';
 
 import 'normalize.css/normalize.css';
-import 'styles/base.scss';
+import 'styles/base.css';
 import 'styles/fonts.css';
-import 'styles/transitions.scss';
-import 'styles/prism-tomorrow.scss';
-import 'styles/hljs-github-gist.scss';
+import 'styles/transitions.css';
+import 'styles/prism-tomorrow.css';
+import 'styles/hljs-github-gist.css';
 
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';

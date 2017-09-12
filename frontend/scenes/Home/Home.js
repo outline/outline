@@ -26,9 +26,7 @@ type Props = {
     if (state && state.nextPathname) {
       sessionStorage.removeItem('redirectTo');
       sessionStorage.setItem('redirectTo', state.nextPathname);
-      notifications.push(
-        <Alert key="login" info>Please login to continue</Alert>
-      );
+      notifications.push(<Alert key="login">Please login to continue</Alert>);
     }
 
     return notifications;

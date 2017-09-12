@@ -38,14 +38,17 @@ class DocumentsStore extends BaseStore {
   /* Computed */
 
   @computed get recentlyViewed(): Array<Document> {
-    return _.filter(this.data.values(), ({ id }) =>
-      this.recentlyViewedIds.includes(id)
+    return _.take(
+      _.filter(this.data.values(), ({ id }) =>
+        this.recentlyViewedIds.includes(id)
+      ),
+      5
     );
   }
 
   @computed get recentlyEdited(): Array<Document> {
     // $FlowIssue
-    return this.data.values();
+    return _.take(this.data.values(), 5);
   }
 
   @computed get starred(): Array<Document> {
@@ -60,11 +63,14 @@ class DocumentsStore extends BaseStore {
 
   /* Actions */
 
-  @action fetchAll = async (request: string = 'list'): Promise<*> => {
+  @action fetchAll = async (
+    request: string = 'list',
+    options: ?Object
+  ): Promise<*> => {
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/documents.${request}`);
+      const res = await client.post(`/documents.${request}`, options);
       invariant(res && res.data, 'Document list not available');
       const { data } = res;
       runInAction('DocumentsStore#fetchAll', () => {
@@ -81,12 +87,17 @@ class DocumentsStore extends BaseStore {
     }
   };
 
-  @action fetchRecentlyViewed = async (): Promise<*> => {
-    const data = await this.fetchAll('viewed');
+  @action fetchRecentlyModified = async (options: ?Object): Promise<*> => {
+    return await this.fetchAll('list', options);
+  };
+
+  @action fetchRecentlyViewed = async (options: ?Object): Promise<*> => {
+    const data = await this.fetchAll('viewed', options);
 
     runInAction('DocumentsStore#fetchRecentlyViewed', () => {
       this.recentlyViewedIds = _.map(data, 'id');
     });
+    return data;
   };
 
   @action fetchStarred = async (): Promise<*> => {

@@ -1,12 +1,11 @@
 // @flow
 import React, { Component } from 'react';
 import Portal from 'react-portal';
-import classnames from 'classnames';
+import styled from 'styled-components';
 import _ from 'lodash';
 import type { State } from '../../types';
 import FormattingToolbar from './components/FormattingToolbar';
 import LinkToolbar from './components/LinkToolbar';
-import styles from './Toolbar.scss';
 
 export default class Toolbar extends Component {
   props: {
@@ -112,9 +111,6 @@ export default class Toolbar extends Component {
 
   render() {
     const link = this.state.link;
-    const classes = classnames(styles.menu, {
-      [styles.active]: this.state.active,
-    });
 
     const style = {
       top: this.state.top,
@@ -123,7 +119,7 @@ export default class Toolbar extends Component {
 
     return (
       <Portal isOpened>
-        <div className={classes} style={style} ref={this.setRef}>
+        <Menu active={this.state.active} innerRef={this.setRef} style={style}>
           {link &&
             <LinkToolbar
               {...this.props}
@@ -135,8 +131,28 @@ export default class Toolbar extends Component {
               onCreateLink={this.handleFocus}
               {...this.props}
             />}
-        </div>
+        </Menu>
       </Portal>
     );
   }
 }
+
+const Menu = styled.div`
+  padding: 8px 16px;
+  position: absolute;
+  z-index: 1;
+  top: -10000px;
+  left: -10000px;
+  opacity: 0;
+  background-color: #222;
+  border-radius: 4px;
+  transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
+  line-height: 0;
+  height: 40px;
+  min-width: 260px;
+
+  ${({ active }) => active && `
+    transform: translateY(-6px);
+    opacity: 1;
+  `}
+`;
