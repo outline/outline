@@ -1,6 +1,7 @@
 /* eslint-disable */
 const path = require('path');
 const webpack = require('webpack');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 require('dotenv').config({ silent: true });
 
@@ -40,7 +41,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loader: 'style-loader!css-loader?sourceMap',
+        loader: ExtractTextPlugin.extract('style-loader', 'css-loader'),
       },
       { test: /\.md/, loader: 'raw-loader' },
     ],

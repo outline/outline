@@ -21,6 +21,9 @@ productionWebpackConfig.plugins.push(
   })
 );
 productionWebpackConfig.plugins.push(
+  new ExtractTextPlugin('styles.[hash].css')
+);
+productionWebpackConfig.plugins.push(
   new webpack.optimize.OccurenceOrderPlugin()
 );
 productionWebpackConfig.plugins.push(
