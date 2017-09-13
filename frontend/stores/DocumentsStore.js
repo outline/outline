@@ -138,8 +138,11 @@ class DocumentsStore extends BaseStore {
     return this.data.get(id);
   };
 
+  /**
+   * Match documents by the url ID as the title slug can change
+   */
   getByUrl = (url: string): ?Document => {
-    return _.find(this.data.values(), { url });
+    return _.find(this.data.values(), doc => url.endsWith(doc.urlId));
   };
 
   constructor(options: Options) {

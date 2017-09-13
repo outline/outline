@@ -90,6 +90,10 @@ type Props = {
       if (document) {
         this.props.ui.setActiveDocument(document);
         document.view();
+
+        // Update url to match the current one
+        const urlParts = this.props.match.url.split('/');
+        this.props.history.replace([document.url, urlParts.slice(3)].join('/'));
       } else {
         // Render 404 with search
         this.setState({ notFound: true });
