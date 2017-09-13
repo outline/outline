@@ -41,6 +41,7 @@ type Props = {
   props: Props;
   savedTimeout: number;
 
+  @observable editCache: ?string;
   @observable newDocument: ?Document;
   @observable isDragging = false;
   @observable isLoading = false;
@@ -86,6 +87,8 @@ type Props = {
 
       if (document) {
         this.props.ui.setActiveDocument(document);
+        // Cache data if user enters edit mode and cancels
+        this.editCache = document.text;
         document.view();
       } else {
         // Render 404 with search
@@ -104,6 +107,7 @@ type Props = {
   onClickEdit = () => {
     if (!this.document) return;
     const url = `${this.document.url}/edit`;
+    this.editCache = document.text;
     this.props.history.push(url);
   };
 
@@ -152,7 +156,7 @@ type Props = {
     let url;
     if (this.document && this.document.url) {
       url = this.document.url;
-      await this.document.fetch();
+      if (this.editCache) this.document.updateData({ text: this.editCache });
     } else {
       url = collectionUrl(this.props.match.params.id);
     }
