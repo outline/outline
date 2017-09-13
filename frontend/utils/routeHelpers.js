@@ -38,3 +38,13 @@ export function searchUrl(query?: string): string {
 export function notFoundUrl(): string {
   return '/404';
 }
+
+/**
+ * Replace full url's document part with the new one in case
+ * the document slug has been updated
+ */
+export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
+  // Update url to match the current one
+  const urlParts = oldUrl.split('/');
+  return [newUrl, urlParts.slice(3)].join('/');
+}

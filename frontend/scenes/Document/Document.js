@@ -6,7 +6,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
-import { collectionUrl } from 'utils/routeHelpers';
+import { collectionUrl, updateDocumentUrl } from 'utils/routeHelpers';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
@@ -92,8 +92,9 @@ type Props = {
         document.view();
 
         // Update url to match the current one
-        const urlParts = this.props.match.url.split('/');
-        this.props.history.replace([document.url, urlParts.slice(3)].join('/'));
+        this.props.history.replace(
+          updateDocumentUrl(this.props.match.url, document.url)
+        );
       } else {
         // Render 404 with search
         this.setState({ notFound: true });
