@@ -2,12 +2,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
-import { observable, action, runInAction } from 'mobx';
+import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
-import invariant from 'invariant';
-import { client } from 'utils/ApiClient';
-import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
 
 import { withRouter } from 'react-router';
@@ -59,7 +56,6 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 @observer class Search extends React.Component {
   firstDocument: HTMLElement;
   props: Props;
-  store: SearchStore;
 
   @observable resultIds: Array<string> = []; // Document IDs
   @observable searchTerm: ?string = null;
@@ -108,16 +104,7 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 
     if (query) {
       try {
-        const res = await client.get('/documents.search', { query });
-        invariant(res && res.data, 'res or res.data missing');
-        const { data } = res;
-        runInAction('search document', () => {
-          // Fill documents store
-          data.forEach(documentData =>
-            this.props.documents.add(new Document(documentData))
-          );
-          this.resultIds = data.map(documentData => documentData.id);
-        });
+        this.resultIds = await this.props.documents.search(query);
       } catch (e) {
         console.error('Something went wrong');
       }

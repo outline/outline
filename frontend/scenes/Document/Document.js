@@ -8,7 +8,12 @@ import { withRouter, Prompt } from 'react-router';
 import keydown from 'react-keydown';
 import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
-import { collectionUrl, updateDocumentUrl } from 'utils/routeHelpers';
+import {
+  collectionUrl,
+  updateDocumentUrl,
+  matchDocumentEdit,
+  matchDocumentMove,
+} from 'utils/routeHelpers';
 
 import Document from 'models/Document';
 import DocumentMove from './components/DocumentMove';
@@ -24,8 +29,6 @@ import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Search from 'scenes/Search';
-
-import { matchDocumentEdit, matchDocumentMove } from 'utils/routeHelpers';
 
 const DISCARD_CHANGES = `
 You have unsaved changes.
@@ -80,7 +83,7 @@ type Props = {
   @keydown('m')
   goToMove(event) {
     event.preventDefault();
-    this.props.history.push(`${this.document.url}/move`);
+    if (this.document) this.props.history.push(`${this.document.url}/move`);
   }
 
   loadDocument = async props => {

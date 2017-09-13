@@ -104,6 +104,14 @@ class DocumentsStore extends BaseStore {
     await this.fetchAll('starred');
   };
 
+  @action search = async (query: string): Promise<*> => {
+    const res = await client.get('/documents.search', { query });
+    invariant(res && res.data, 'res or res.data missing');
+    const { data } = res;
+    data.forEach(documentData => this.add(new Document(documentData)));
+    return data.map(documentData => documentData.id);
+  };
+
   @action fetch = async (id: string): Promise<*> => {
     this.isFetching = true;
 

@@ -1,13 +1,11 @@
 // @flow
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { observable, runInAction, action } from 'mobx';
+import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import _ from 'lodash';
-import invariant from 'invariant';
-import { client } from 'utils/ApiClient';
 import styled from 'styled-components';
 import { size } from 'styles/constants';
 
@@ -81,18 +79,7 @@ type Props = {
 
     if (this.searchTerm) {
       try {
-        const res = await client.get('/documents.search', {
-          query: this.searchTerm,
-        });
-        invariant(res && res.data, 'res or res.data missing');
-        const { data } = res;
-        runInAction('search document', () => {
-          // Fill documents store
-          data.forEach(documentData =>
-            this.props.documents.add(new Document(documentData))
-          );
-          this.resultIds = data.map(documentData => documentData.id);
-        });
+        this.resultIds = await this.props.documents.search(this.searchTerm);
       } catch (e) {
         console.error('Something went wrong');
       }

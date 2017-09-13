@@ -186,6 +186,7 @@ class Document extends BaseModel {
         id: this.id,
         parentDocument: parentDocumentId,
       });
+      invariant(res && res.data, 'Data not available');
       this.updateData(res.data);
       this.emit('documents.move', {
         id: this.id,

@@ -12,6 +12,30 @@ import ChevronIcon from 'components/Icon/ChevronIcon';
 import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
 
+const ResultWrapper = styled.div`
+display: flex;
+margin-bottom: 10px;
+
+color: ${color.text};
+cursor: default;
+`;
+
+const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
+padding-top: 3px;
+padding-left: 5px;
+
+&:hover,
+&:active,
+&:focus {
+  margin-left: 0px;
+  border-radius: 2px;
+  background: ${color.black};
+  color: ${color.smokeLight};
+  outline: none;
+  cursor: pointer;
+}
+`;
+
 type Props = {
   documentId?: string,
   onSuccess?: Function,
@@ -58,7 +82,7 @@ type Props = {
             <ChevronIcon />
             {' '}
             {this.resultDocument.pathToDocument
-              .map(doc => <span>{doc.title}</span>)
+              .map(doc => <span key={doc.id}>{doc.title}</span>)
               .reduce((prev, curr) => [prev, <ChevronIcon />, curr])}
           </Flex>}
         {document &&
@@ -71,29 +95,5 @@ type Props = {
     );
   }
 }
-
-const ResultWrapper = styled.div`
-  display: flex;
-  margin-bottom: 10px;
-
-  color: ${color.text};
-  cursor: default;
-`;
-
-const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
-  padding-top: 3px;
-  padding-left: 5px;
-
-  &:hover,
-  &:active,
-  &:focus {
-    margin-left: 0px;
-    border-radius: 2px;
-    background: ${color.black};
-    color: ${color.smokeLight};
-    outline: none;
-    cursor: pointer;
-  }
-`;
 
 export default PathToDocument;
