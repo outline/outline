@@ -107,7 +107,6 @@ type Props = {
   onClickEdit = () => {
     if (!this.document) return;
     const url = `${this.document.url}/edit`;
-    this.editCache = document.text;
     this.props.history.push(url);
   };
 
