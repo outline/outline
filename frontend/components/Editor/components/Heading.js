@@ -17,32 +17,6 @@ type Props = {
   component?: string,
 };
 
-const Wrapper = styled.div`
-  display: inline;
-  margin-left: ${props => (props.hasEmoji ? '-1.2em' : 0)}
-`;
-
-const Anchor = styled.a`
-  visibility: hidden;
-  padding-left: .25em;
-  color: #dedede;
-
-  &:hover {
-    color: #cdcdcd;
-  }
-`;
-
-// $FlowIssue I don't know
-const titleStyles = component => styled(component)`
-  position: relative;
-
-  &:hover {
-    ${Anchor} {
-      visibility: visible;
-    }
-  }
-`;
-
 function Heading(props: Props) {
   const {
     parent,
@@ -58,7 +32,7 @@ function Heading(props: Props) {
   const showPlaceholder = placeholder && firstHeading && !node.text;
   const slugish = _.escape(`${component}-${slug(node.text)}`);
   const showHash = readOnly && !!slugish;
-  const Component = titleStyles(component);
+  const Component = component;
   const emoji = editor.props.emoji || '';
   const title = node.text.trim();
   const startsWithEmojiAndSpace =
@@ -75,5 +49,33 @@ function Heading(props: Props) {
     </Component>
   );
 }
+
+const Wrapper = styled.div`
+  display: inline;
+  margin-left: ${props => (props.hasEmoji ? '-1.2em' : 0)}
+`;
+
+const Anchor = styled.a`
+  visibility: hidden;
+  padding-left: .25em;
+  color: #dedede;
+
+  &:hover {
+    color: #cdcdcd;
+  }
+`;
+
+export const Heading1 = styled(Heading)`
+  &:hover {
+    ${Anchor} {
+      visibility: visible;
+    }
+  }
+`;
+export const Heading2 = Heading1.withComponent('h2');
+export const Heading3 = Heading1.withComponent('h3');
+export const Heading4 = Heading1.withComponent('h4');
+export const Heading5 = Heading1.withComponent('h5');
+export const Heading6 = Heading1.withComponent('h6');
 
 export default Heading;

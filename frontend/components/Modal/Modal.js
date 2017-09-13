@@ -1,5 +1,6 @@
 // @flow
 import React from 'react';
+import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import ReactModal from 'react-modal';
 import { color } from 'styles/constants';
@@ -75,4 +76,4 @@ const Close = styled.a`
   }
 `;
 
-export default Modal;
+export default observer(Modal);

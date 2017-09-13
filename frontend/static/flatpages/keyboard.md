@@ -1,8 +1,9 @@
 - `Cmd+Enter` - Save and exit document editor
-- `Cmd+S` - Save document and continue editing
+- `Cmd+s` - Save document and continue editing
 - `Cmd+Esc` - Cancel edit
 - `/` or `t` - Jump to search
 - `d` - Jump to dashboard
 - `c` - Compose within a collection
 - `e` - Edit document
+- `m` - Move document
 - `?` - This guide

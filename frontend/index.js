@@ -39,6 +39,8 @@ import RouteSidebarHidden from 'components/RouteSidebarHidden';
 
 import flatpages from 'static/flatpages';
 
+import { matchDocumentSlug } from 'utils/routeHelpers';
+
 let DevTools;
 if (__DEV__) {
   DevTools = require('mobx-react-devtools').default; // eslint-disable-line global-require
@@ -93,8 +95,6 @@ const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
 
-const matchDocumentSlug = ':documentSlug([0-9a-zA-Z-]*-[a-zA-z0-9]{10,15})';
-
 render(
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>
     <Provider {...stores}>
@@ -123,6 +123,11 @@ render(
                     path={`/doc/${matchDocumentSlug}`}
                     component={Document}
                   />
+                  <Route
+                    exact
+                    path={`/doc/${matchDocumentSlug}/move`}
+                    component={Document}
+                  />
 
                   <Route exact path="/search" component={Search} />
                   <Route exact path="/search/:query" component={Search} />
@@ -132,7 +137,7 @@ render(
 
                   <RouteSidebarHidden
                     exact
-                    path={`/doc/${matchDocumentSlug}/:edit`}
+                    path={`/doc/${matchDocumentSlug}/edit`}
                     component={Document}
                   />
                   <RouteSidebarHidden

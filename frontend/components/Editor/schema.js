@@ -6,7 +6,14 @@ import InlineCode from './components/InlineCode';
 import Image from './components/Image';
 import Link from './components/Link';
 import ListItem from './components/ListItem';
-import Heading from './components/Heading';
+import {
+  Heading1,
+  Heading2,
+  Heading3,
+  Heading4,
+  Heading5,
+  Heading6,
+} from './components/Heading';
 import Paragraph from './components/Paragraph';
 import type { Props, Node, Transform } from './types';
 
@@ -47,12 +54,12 @@ const createSchema = () => {
       image: Image,
       link: Link,
       'list-item': ListItem,
-      heading1: (props: Props) => <Heading placeholder {...props} />,
-      heading2: (props: Props) => <Heading component="h2" {...props} />,
-      heading3: (props: Props) => <Heading component="h3" {...props} />,
-      heading4: (props: Props) => <Heading component="h4" {...props} />,
-      heading5: (props: Props) => <Heading component="h5" {...props} />,
-      heading6: (props: Props) => <Heading component="h6" {...props} />,
+      heading1: (props: Props) => <Heading1 placeholder {...props} />,
+      heading2: (props: Props) => <Heading2 {...props} />,
+      heading3: (props: Props) => <Heading3 {...props} />,
+      heading4: (props: Props) => <Heading4 {...props} />,
+      heading5: (props: Props) => <Heading5 {...props} />,
+      heading6: (props: Props) => <Heading6 {...props} />,
     },
 
     rules: [

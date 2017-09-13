@@ -211,6 +211,8 @@ router.post('documents.create', auth(), async ctx => {
     await ownerCollection.addDocumentToStructure(document, index);
   }
 
+  document.collection = ownerCollection;
+
   ctx.body = {
     data: await presentDocument(ctx, document),
   };
@@ -279,6 +281,10 @@ router.post('documents.move', auth(), async ctx => {
     await collection.deleteDocument(document);
     await collection.addDocumentToStructure(document, index);
   }
+  // Update collection
+  document.collection = collection;
+
+  document.collection = collection;
 
   ctx.body = {
     data: await presentDocument(ctx, document),

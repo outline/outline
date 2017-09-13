@@ -104,6 +104,14 @@ class DocumentsStore extends BaseStore {
     await this.fetchAll('starred');
   };
 
+  @action search = async (query: string): Promise<*> => {
+    const res = await client.get('/documents.search', { query });
+    invariant(res && res.data, 'res or res.data missing');
+    const { data } = res;
+    data.forEach(documentData => this.add(new Document(documentData)));
+    return data.map(documentData => documentData.id);
+  };
+
   @action fetch = async (id: string): Promise<*> => {
     this.isFetching = true;
 
@@ -138,8 +146,11 @@ class DocumentsStore extends BaseStore {
     return this.data.get(id);
   };
 
+  /**
+   * Match documents by the url ID as the title slug can change
+   */
   getByUrl = (url: string): ?Document => {
-    return _.find(this.data.values(), { url });
+    return _.find(this.data.values(), doc => url.endsWith(doc.urlId));
   };
 
   constructor(options: Options) {

@@ -47,11 +47,17 @@ class Document extends BaseModel {
     return !!this.lastViewedAt && this.lastViewedAt < this.updatedAt;
   }
 
-  @computed get pathToDocument(): Array<string> {
+  @computed get pathToDocument(): Array<{ id: string, title: string }> {
     let path;
     const traveler = (nodes, previousPath) => {
       nodes.forEach(childNode => {
-        const newPath = [...previousPath, childNode.id];
+        const newPath = [
+          ...previousPath,
+          {
+            id: childNode.id,
+            title: childNode.title,
+          },
+        ];
         if (childNode.id === this.id) {
           path = newPath;
           return;
@@ -160,6 +166,11 @@ class Document extends BaseModel {
         this.updateData(res.data);
         this.hasPendingChanges = false;
       });
+
+      this.emit('collections.update', {
+        id: this.collection.id,
+        collection: this.collection,
+      });
     } catch (e) {
       this.errors.add('Document failed saving');
     } finally {
@@ -167,6 +178,24 @@ class Document extends BaseModel {
     }
 
     return this;
+  };
+
+  @action move = async (parentDocumentId: ?string) => {
+    try {
+      const res = await client.post('/documents.move', {
+        id: this.id,
+        parentDocument: parentDocumentId,
+      });
+      invariant(res && res.data, 'Data not available');
+      this.updateData(res.data);
+      this.emit('documents.move', {
+        id: this.id,
+        collectionId: this.collection.id,
+      });
+    } catch (e) {
+      this.errors.add('Error while moving the document');
+    }
+    return;
   };
 
   @action delete = async () => {

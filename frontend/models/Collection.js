@@ -93,7 +93,7 @@ class Collection extends BaseModel {
     }
   };
 
-  updateData(data: Object = {}) {
+  @action updateData(data: Object = {}) {
     this.data = data;
     extendObservable(this, data);
   }
@@ -105,6 +105,17 @@ class Collection extends BaseModel {
     this.errors = stores.errors;
 
     this.on('documents.delete', (data: { collectionId: string }) => {
+      if (data.collectionId === this.id) this.fetch();
+    });
+    this.on(
+      'collections.update',
+      (data: { id: string, collection: Collection }) => {
+        // FIXME: calling this.updateData won't update the
+        // UI. Some mobx issue
+        if (data.id === this.id) this.fetch();
+      }
+    );
+    this.on('documents.move', (data: { collectionId: string }) => {
       if (data.collectionId === this.id) this.fetch();
     });
   }
