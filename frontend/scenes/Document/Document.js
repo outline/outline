@@ -152,7 +152,7 @@ type Props = {
     this.document.updateData({ text }, true);
   };
 
-  onCancel = async () => {
+  onCancel = () => {
     let url;
     if (this.document && this.document.url) {
       url = this.document.url;
