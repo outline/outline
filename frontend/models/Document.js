@@ -160,6 +160,11 @@ class Document extends BaseModel {
         this.updateData(res.data);
         this.hasPendingChanges = false;
       });
+
+      this.emit('collections.update', {
+        id: this.collection.id,
+        collection: this.collection,
+      });
     } catch (e) {
       this.errors.add('Document failed saving');
     } finally {
