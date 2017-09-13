@@ -63,12 +63,13 @@ type Props = {
 
       return (
         <DropdownMenu label={<Icon type="MoreHorizontal" />}>
-          {collection &&
-            <div>
-              <DropdownMenuItem onClick={this.onCreateDocument}>
-                New document
+          {document.starred
+            ? <DropdownMenuItem onClick={document.unstar}>
+                Unstar
               </DropdownMenuItem>
-            </div>}
+            : <DropdownMenuItem onClick={document.star}>
+                Star
+              </DropdownMenuItem>}
           <DropdownMenuItem onClick={this.onExport}>Export</DropdownMenuItem>
           {allowDelete &&
             <DropdownMenuItem onClick={this.onDelete}>Delete</DropdownMenuItem>}
