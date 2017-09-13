@@ -39,6 +39,12 @@ export function notFoundUrl(): string {
   return '/404';
 }
 
+export const matchDocumentSlug =
+  ':documentSlug([0-9a-zA-Z-]*-[a-zA-z0-9]{10,15})';
+
+export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
+export const matchDocumentMove = `/doc/${matchDocumentSlug}/move`;
+
 /**
  * Replace full url's document part with the new one in case
  * the document slug has been updated

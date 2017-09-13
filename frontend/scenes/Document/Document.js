@@ -2,13 +2,21 @@
 import React, { Component } from 'react';
 import get from 'lodash/get';
 import styled from 'styled-components';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
+import keydown from 'react-keydown';
 import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
-import { collectionUrl, updateDocumentUrl } from 'utils/routeHelpers';
+import {
+  collectionUrl,
+  updateDocumentUrl,
+  matchDocumentEdit,
+  matchDocumentMove,
+} from 'utils/routeHelpers';
 
 import Document from 'models/Document';
+import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import Menu from './components/Menu';
@@ -51,6 +59,8 @@ type Props = {
     notFound: false,
   };
 
+  @observable moveModalOpen: boolean = false;
+
   componentDidMount() {
     this.loadDocument(this.props);
   }
@@ -68,6 +78,12 @@ type Props = {
   componentWillUnmount() {
     clearTimeout(this.savedTimeout);
     this.props.ui.clearActiveDocument();
+  }
+
+  @keydown('m')
+  goToMove(event) {
+    event.preventDefault();
+    if (this.document) this.props.history.push(`${this.document.url}/move`);
   }
 
   loadDocument = async props => {
@@ -119,6 +135,9 @@ type Props = {
     if (!this.document) return;
     this.props.history.push(`${this.document.collection.url}/new`);
   };
+
+  handleCloseMoveModal = () => (this.moveModalOpen = false);
+  handleOpenMoveModal = () => (this.moveModalOpen = true);
 
   onSave = async (redirect: boolean = false) => {
     if (this.document && !this.document.allowSave) return;
@@ -181,7 +200,8 @@ type Props = {
 
   render() {
     const isNew = this.props.newDocument;
-    const isEditing = !!this.props.match.params.edit || isNew;
+    const isMoving = this.props.match.path === matchDocumentMove;
+    const isEditing = this.props.match.path === matchDocumentEdit || isNew;
     const isFetching = !this.document;
     const titleText = get(this.document, 'title', '');
     const document = this.document;
@@ -192,6 +212,8 @@ type Props = {
 
     return (
       <Container column auto>
+        {isMoving && document && <DocumentMove document={document} />}
+
         {this.state.isDragging &&
           <DropHere align="center" justify="center">
             Drop files here to import into Atlas.
