@@ -47,17 +47,14 @@ type Props = {
 @observer class DocumentScene extends Component {
   props: Props;
   savedTimeout: number;
-  state: {
-    newDocument?: Document,
-  };
-  state = {
-    isDragging: false,
-    isLoading: false,
-    isSaving: false,
-    newDocument: undefined,
-    showAsSaved: false,
-    notFound: false,
-  };
+
+  @observable editCache: ?string;
+  @observable newDocument: ?Document;
+  @observable isDragging = false;
+  @observable isLoading = false;
+  @observable isSaving = false;
+  @observable showAsSaved = false;
+  @observable notFound = false;
 
   @observable moveModalOpen: boolean = false;
 
@@ -70,7 +67,7 @@ type Props = {
       nextProps.match.params.documentSlug !==
       this.props.match.params.documentSlug
     ) {
-      this.setState({ notFound: false });
+      this.notFound = false;
       this.loadDocument(nextProps);
     }
   }
@@ -93,7 +90,7 @@ type Props = {
         title: '',
         text: '',
       });
-      this.setState({ newDocument });
+      this.newDocument = newDocument;
     } else {
       let document = this.document;
       if (document) {
@@ -105,6 +102,8 @@ type Props = {
 
       if (document) {
         this.props.ui.setActiveDocument(document);
+        // Cache data if user enters edit mode and cancels
+        this.editCache = document.text;
         document.view();
 
         // Update url to match the current one
@@ -113,13 +112,13 @@ type Props = {
         );
       } else {
         // Render 404 with search
-        this.setState({ notFound: true });
+        this.notFound = true;
       }
     }
   };
 
   get document() {
-    if (this.state.newDocument) return this.state.newDocument;
+    if (this.newDocument) return this.newDocument;
     return this.props.documents.getByUrl(
       `/doc/${this.props.match.params.documentSlug}`
     );
@@ -144,31 +143,30 @@ type Props = {
     let document = this.document;
 
     if (!document) return;
-    this.setState({ isLoading: true, isSaving: true });
+    this.isLoading = true;
+    this.isSaving = true;
     document = await document.save();
-    this.setState({ isLoading: false });
+    this.isLoading = false;
 
     if (redirect || this.props.newDocument) {
       this.props.history.push(document.url);
     } else {
-      this.showAsSaved();
+      this.toggleShowAsSaved();
     }
   };
 
-  showAsSaved() {
-    this.setState({ showAsSaved: true, isSaving: false });
-    this.savedTimeout = setTimeout(
-      () => this.setState({ showAsSaved: false }),
-      2000
-    );
+  toggleShowAsSaved() {
+    this.showAsSaved = true;
+    this.isSaving = false;
+    this.savedTimeout = setTimeout(() => (this.showAsSaved = false), 2000);
   }
 
   onImageUploadStart = () => {
-    this.setState({ isLoading: true });
+    this.isLoading = true;
   };
 
   onImageUploadStop = () => {
-    this.setState({ isLoading: false });
+    this.isLoading = false;
   };
 
   onChange = text => {
@@ -180,6 +178,7 @@ type Props = {
     let url;
     if (this.document && this.document.url) {
       url = this.document.url;
+      if (this.editCache) this.document.updateData({ text: this.editCache });
     } else {
       url = collectionUrl(this.props.match.params.id);
     }
@@ -187,11 +186,11 @@ type Props = {
   };
 
   onStartDragging = () => {
-    this.setState({ isDragging: true });
+    this.isDragging = true;
   };
 
   onStopDragging = () => {
-    this.setState({ isDragging: false });
+    this.isDragging = false;
   };
 
   renderNotFound() {
@@ -206,7 +205,7 @@ type Props = {
     const titleText = get(this.document, 'title', '');
     const document = this.document;
 
-    if (this.state.notFound) {
+    if (this.notFound) {
       return this.renderNotFound();
     }
 
@@ -214,12 +213,12 @@ type Props = {
       <Container column auto>
         {isMoving && document && <DocumentMove document={document} />}
 
-        {this.state.isDragging &&
+        {this.isDragging &&
           <DropHere align="center" justify="center">
             Drop files here to import into Atlas.
           </DropHere>}
         {titleText && <PageTitle title={titleText} />}
-        {this.state.isLoading && <LoadingIndicator />}
+        {this.isLoading && <LoadingIndicator />}
         {isFetching &&
           <CenteredContent>
             <LoadingState />
@@ -259,11 +258,11 @@ type Props = {
                   <HeaderAction>
                     {isEditing
                       ? <SaveAction
-                          isSaving={this.state.isSaving}
+                          isSaving={this.isSaving}
                           onClick={this.onSave.bind(this, true)}
                           disabled={
                             !(this.document && this.document.allowSave) ||
-                              this.state.isSaving
+                              this.isSaving
                           }
                           isNew={!!isNew}
                         />
