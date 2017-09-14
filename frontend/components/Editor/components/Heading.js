@@ -66,6 +66,8 @@ const Anchor = styled.a`
 `;
 
 export const Heading1 = styled(Heading)`
+  position: relative;
+
   &:hover {
     ${Anchor} {
       visibility: visible;
