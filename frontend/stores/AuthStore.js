@@ -30,10 +30,9 @@ class AuthStore {
 
   /* Actions */
 
-  @action logout = (cb: Function) => {
+  @action logout = () => {
     this.user = null;
     this.token = null;
-    cb();
   };
 
   @action getOauthState = () => {
