@@ -104,7 +104,7 @@ type Props = {
         this.props.ui.setActiveDocument(document);
         // Cache data if user enters edit mode and cancels
         this.editCache = document.text;
-        document.view();
+        if (!this.isEditing) document.view();
 
         // Update url to match the current one
         this.props.history.replace(
@@ -116,6 +116,12 @@ type Props = {
       }
     }
   };
+
+  get isEditing() {
+    return (
+      this.props.match.path === matchDocumentEdit || this.props.newDocument
+    );
+  }
 
   get document() {
     if (this.newDocument) return this.newDocument;
@@ -200,7 +206,6 @@ type Props = {
   render() {
     const isNew = this.props.newDocument;
     const isMoving = this.props.match.path === matchDocumentMove;
-    const isEditing = this.props.match.path === matchDocumentEdit || isNew;
     const isFetching = !this.document;
     const titleText = get(this.document, 'title', '');
     const document = this.document;
@@ -231,7 +236,7 @@ type Props = {
             onDragEnter={this.onStartDragging}
             onDragLeave={this.onStopDragging}
             onDrop={this.onStopDragging}
-            disabled={isEditing}
+            disabled={this.isEditing}
           >
             <Flex justify="center" auto>
               <Prompt
@@ -247,15 +252,19 @@ type Props = {
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onCancel={this.onCancel}
-                readOnly={!isEditing}
+                readOnly={!this.isEditing}
               />
-              <Meta align="center" justify="flex-end" readOnly={!isEditing}>
+              <Meta
+                align="center"
+                justify="flex-end"
+                readOnly={!this.isEditing}
+              >
                 <Flex align="center">
                   {!isNew &&
-                    !isEditing &&
+                    !this.isEditing &&
                     <Collaborators document={document} />}
                   <HeaderAction>
-                    {isEditing
+                    {this.isEditing
                       ? <SaveAction
                           isSaving={this.isSaving}
                           onClick={this.onSave.bind(this, true)}
@@ -269,16 +278,17 @@ type Props = {
                           Edit
                         </a>}
                   </HeaderAction>
-                  {isEditing &&
+                  {this.isEditing &&
                     <HeaderAction>
                       <a onClick={this.onCancel}>Cancel</a>
                     </HeaderAction>}
+                  {!this.isEditing &&
+                    <HeaderAction>
+                      <DocumentMenu document={document} />
+                    </HeaderAction>}
+                  {!this.isEditing && <Separator />}
                   <HeaderAction>
-                    <DocumentMenu document={document} />
-                  </HeaderAction>
-                  {!isEditing && <Separator />}
-                  <HeaderAction>
-                    {!isEditing &&
+                    {!this.isEditing &&
                       <a onClick={this.onClickNew}>
                         New
                       </a>}
