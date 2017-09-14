@@ -43,7 +43,7 @@ const activeStyle = {
           {!canDropToImport &&
             <SidebarLink to={doc.url}>{doc.title}</SidebarLink>}
 
-          {(document.pathToDocument.includes(doc.id) ||
+          {(document.pathToDocument.map(entry => entry.id).includes(doc.id) ||
             document.id === doc.id) &&
             <Children column>
               {doc.children && this.renderDocuments(doc.children, depth + 1)}
