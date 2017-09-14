@@ -65,7 +65,9 @@ class ApiClient {
 
           // Handle 401, log out user
           if (response.status === 401) {
-            return stores.auth.logout(() => (window.location = '/'));
+            stores.auth.logout();
+            window.location = '/';
+            return;
           }
 
           // Handle failed responses

@@ -1,2 +1,3 @@
 // @flow
-export { DropdownMenu, DropdownMenuItem } from './DropdownMenu';
+export { default as DropdownMenu } from './DropdownMenu';
+export { default as DropdownMenuItem } from './DropdownMenuItem';

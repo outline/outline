@@ -1,7 +1,8 @@
 // @flow
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import { observable } from 'mobx';
-import { observer } from 'mobx-react';
+import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
@@ -69,4 +70,4 @@ type Props = {
   }
 }
 
-export default CollectionNew;
+export default inject('collections')(withRouter(CollectionNew));

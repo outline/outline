@@ -2,22 +2,11 @@
 import React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import keydown from 'react-keydown';
 import styled from 'styled-components';
 import Flex from 'components/Flex';
 import { color } from 'styles/constants';
-
-type MenuItemProps = {
-  onClick?: Function,
-  children?: React.Element<any>,
-};
-
-const DropdownMenuItem = ({ onClick, children }: MenuItemProps) => {
-  return (
-    <MenuItem onClick={onClick}>
-      {children}
-    </MenuItem>
-  );
-};
+import { fadeAndScaleIn } from 'styles/animations';
 
 type DropdownMenuProps = {
   label: React.Element<any>,
@@ -27,22 +16,30 @@ type DropdownMenuProps = {
 
 @observer class DropdownMenu extends React.Component {
   props: DropdownMenuProps;
-  @observable menuOpen: boolean = false;
+  @observable open: boolean = false;
 
   handleClick = () => {
-    this.menuOpen = !this.menuOpen;
+    this.open = !this.open;
+  };
+
+  @keydown('esc')
+  handleEscape() {
+    this.open = false;
+  }
+
+  handleClickOutside = (ev: SyntheticEvent) => {
+    ev.stopPropagation();
+    this.open = false;
   };
 
   render() {
     return (
       <MenuContainer onClick={this.handleClick}>
-        {this.menuOpen && <Backdrop />}
-
+        {this.open && <Backdrop onClick={this.handleClickOutside} />}
         <Label>
           {this.props.label}
         </Label>
-
-        {this.menuOpen &&
+        {this.open &&
           <Menu style={this.props.style}>
             {this.props.children}
           </Menu>}
@@ -73,40 +70,18 @@ const MenuContainer = styled.div`
 `;
 
 const Menu = styled.div`
+  animation: ${fadeAndScaleIn} 250ms ease;
+  transform-origin: 75% 0;
+
   position: absolute;
   right: 0;
   z-index: 1000;
-  border: 1px solid #eee;
-  background-color: #fff;
+  border: ${color.slateLight};
+  background: ${color.white};
+  border-radius: 2px;
   min-width: 160px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 4px 8px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.08);
 `;
 
-const MenuItem = styled.div`
-  margin: 0;
-  padding: 5px 10px;
-  height: 32px;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  border-left: 2px solid transparent;
-
-  color: ${color.text};
-
-  span {
-    margin-top: 2px;
-  }
-
-  a {
-    text-decoration: none;
-    color: ${color.text};
-    width: 100%;
-  }
-
-  &:hover {
-    border-left: 2px solid ${color.primary};
-  }
-`;
-
-export { DropdownMenu, DropdownMenuItem };
+export default DropdownMenu;

@@ -32,6 +32,10 @@ class Collection extends BaseModel {
       : this.url;
   }
 
+  @computed get allowDelete(): boolean {
+    return true;
+  }
+
   /* Actions */
 
   @action fetch = async () => {
@@ -84,13 +88,15 @@ class Collection extends BaseModel {
 
   @action delete = async () => {
     try {
-      const res = await client.post('/collections.delete', { id: this.id });
-      invariant(res && res.data, 'Data should be available');
-      const { data } = res;
-      return data.success;
+      await client.post('/collections.delete', { id: this.id });
+      this.emit('collections.delete', {
+        id: this.id,
+      });
+      return true;
     } catch (e) {
       this.errors.add('Collection failed to delete');
     }
+    return false;
   };
 
   @action updateData(data: Object = {}) {
