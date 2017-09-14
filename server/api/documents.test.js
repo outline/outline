@@ -90,6 +90,20 @@ describe('#documents.viewed', async () => {
     expect(body.data[0].id).toEqual(document.id);
   });
 
+  it('should not return recently viewed but deleted documents', async () => {
+    const { user, document } = await seed();
+    await View.increment({ documentId: document.id, userId: user.id });
+    await document.destroy();
+
+    const res = await server.post('/api/documents.viewed', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it('should require authentication', async () => {
     const res = await server.post('/api/documents.viewed');
     const body = await res.json();

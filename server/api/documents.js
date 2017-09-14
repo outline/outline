@@ -43,6 +43,7 @@ router.post('documents.viewed', auth(), pagination(), async ctx => {
     include: [
       {
         model: Document,
+        required: true,
         include: [
           {
             model: Star,
