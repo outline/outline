@@ -49,7 +49,6 @@ type Props = {
   render() {
     return (
       <form onSubmit={this.handleSubmit}>
-        {this.collection.errors.errors.map(error => <span>{error}</span>)}
         <HelpText>
           Collections are for grouping your Atlas. They work best when organized
           around a topic or internal team — Product or Engineering for example.
