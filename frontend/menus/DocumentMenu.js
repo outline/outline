@@ -5,6 +5,7 @@ import { inject, observer } from 'mobx-react';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import Icon from 'components/Icon';
+import { documentMoveUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 @observer class DocumentMenu extends Component {
@@ -19,32 +20,45 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
     this.props.history.push(`${this.props.document.collection.url}/new`);
   };
 
-  onCreateChild = () => {
-    this.props.history.push(`${this.props.document.url}/new`);
-  };
-
-  onDelete = () => {
+  handleDelete = () => {
     const { document } = this.props;
     this.props.ui.setActiveModal('document-delete', { document });
   };
 
-  onExport = () => {
+  handleMove = () => {
+    this.props.history.push(documentMoveUrl(this.props.document));
+  };
+
+  handleStar = () => {
+    this.props.document.star();
+  };
+
+  handleUnstar = () => {
+    this.props.document.unstar();
+  };
+
+  handleExport = () => {
     this.props.document.download();
   };
 
   render() {
     const { document, label } = this.props;
-    const { collection, allowDelete } = document;
+    const { allowDelete } = document;
 
     return (
       <DropdownMenu label={label || <Icon type="MoreHorizontal" />}>
-        {collection &&
-          <DropdownMenuItem onClick={this.onCreateDocument}>
-            New document
-          </DropdownMenuItem>}
-        <DropdownMenuItem onClick={this.onExport}>Export</DropdownMenuItem>
+        {document.starred
+          ? <DropdownMenuItem onClick={this.handleUnstar}>
+              Unstar
+            </DropdownMenuItem>
+          : <DropdownMenuItem onClick={this.handleStar}>Star</DropdownMenuItem>}
+
+        <DropdownMenuItem onClick={this.handleMove}>Move</DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleExport}>Export</DropdownMenuItem>
         {allowDelete &&
-          <DropdownMenuItem onClick={this.onDelete}>Delete</DropdownMenuItem>}
+          <DropdownMenuItem onClick={this.handleDelete}>
+            Delete
+          </DropdownMenuItem>}
       </DropdownMenu>
     );
   }

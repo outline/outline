@@ -26,6 +26,20 @@ export function documentEditUrl(doc: Document): string {
   return `${doc.url}/edit`;
 }
 
+export function documentMoveUrl(doc: Document): string {
+  return `${doc.url}/move`;
+}
+
+/**
+ * Replace full url's document part with the new one in case
+ * the document slug has been updated
+ */
+export function documentUpdateUrl(oldUrl: string, newUrl: string): string {
+  // Update url to match the current one
+  const urlParts = oldUrl.split('/');
+  return [newUrl, urlParts.slice(3)].join('/');
+}
+
 export function newDocumentUrl(collection: Collection): string {
   return `${collection.url}/new`;
 }
@@ -44,13 +58,3 @@ export const matchDocumentSlug =
 
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
 export const matchDocumentMove = `/doc/${matchDocumentSlug}/move`;
-
-/**
- * Replace full url's document part with the new one in case
- * the document slug has been updated
- */
-export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
-  // Update url to match the current one
-  const urlParts = oldUrl.split('/');
-  return [newUrl, urlParts.slice(3)].join('/');
-}
