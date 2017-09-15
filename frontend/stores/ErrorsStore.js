@@ -6,8 +6,8 @@ class ErrorsStore {
 
   /* Actions */
 
-  @action add = (errorMessage: string): void => {
-    this.errors.push(errorMessage);
+  @action add = (message: string): void => {
+    this.errors.push(message);
   };
 
   @action remove = (index: number): void => {
