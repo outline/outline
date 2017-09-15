@@ -2,10 +2,8 @@
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
-import { darken } from 'polished';
-import { layout, color } from 'styles/constants';
-import { fadeAndScaleIn } from 'styles/animations';
-import Icon from 'components/Icon';
+import { layout } from 'styles/constants';
+import Toast from './components/Toast';
 
 @observer class Toasts extends Component {
   handleClose = index => {
@@ -17,11 +15,12 @@ import Icon from 'components/Icon';
 
     return (
       <List>
-        {errors.errors.map((error, index) => (
-          <Toast key={index} onClick={this.handleClose.bind(this, index)}>
-            <Icon type="AlertCircle" light />
-            <Message>{error}</Message>
-          </Toast>
+        {errors.data.map((error, index) => (
+          <Toast
+            key={index}
+            onRequestClose={this.handleClose.bind(this, index)}
+            message={error}
+          />
         ))}
       </List>
     );
@@ -35,27 +34,6 @@ const List = styled.ol`
   list-style: none;
   margin: 0;
   padding: 0;
-`;
-
-const Message = styled.div`
-  padding-left: 5px;
-`;
-
-const Toast = styled.li`
-  display: flex;
-  align-items: center;
-  animation: ${fadeAndScaleIn} 100ms ease;
-  margin: 8px 0;
-  padding: 8px;
-  color: ${color.white};
-  background: ${color.warning};
-  font-size: 15px;
-  border-radius: 5px;
-  cursor: default;
-
-  &:hover {
-    background: ${darken(0.05, color.warning)};
-  }
 `;
 
 export default inject('errors')(Toasts);
