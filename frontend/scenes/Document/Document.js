@@ -10,7 +10,8 @@ import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
 import {
   collectionUrl,
-  updateDocumentUrl,
+  documentUpdateUrl,
+  documentMoveUrl,
   matchDocumentEdit,
   matchDocumentMove,
 } from 'utils/routeHelpers';
@@ -78,9 +79,9 @@ type Props = {
   }
 
   @keydown('m')
-  goToMove(event) {
-    event.preventDefault();
-    if (this.document) this.props.history.push(`${this.document.url}/move`);
+  goToMove(ev) {
+    ev.preventDefault();
+    if (this.document) this.props.history.push(documentMoveUrl(this.document));
   }
 
   loadDocument = async props => {
@@ -108,7 +109,7 @@ type Props = {
 
         // Update url to match the current one
         this.props.history.replace(
-          updateDocumentUrl(this.props.match.url, document.url)
+          documentUpdateUrl(this.props.match.url, document.url)
         );
       } else {
         // Render 404 with search
