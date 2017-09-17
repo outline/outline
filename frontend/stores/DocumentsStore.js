@@ -47,8 +47,7 @@ class DocumentsStore extends BaseStore {
   }
 
   @computed get recentlyEdited(): Array<Document> {
-    // $FlowIssue
-    return _.take(this.data.values(), 5);
+    return _.take(_.orderBy(this.data.values(), 'updatedAt', 'desc'), 5);
   }
 
   @computed get starred(): Array<Document> {
