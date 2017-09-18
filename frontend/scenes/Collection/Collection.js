@@ -29,12 +29,17 @@ type Props = {
   @observable redirectUrl;
 
   componentDidMount = () => {
-    this.fetchDocument();
+    this.fetchDocument(this.props.match.params.id);
   };
 
-  fetchDocument = async () => {
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.match.params.id !== this.props.match.params.id) {
+      this.fetchDocument(nextProps.match.params.id);
+    }
+  }
+
+  fetchDocument = async (id: string) => {
     const { collections } = this.props;
-    const { id } = this.props.match.params;
 
     this.collection = await collections.getById(id);
 

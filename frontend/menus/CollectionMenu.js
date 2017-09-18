@@ -1,6 +1,5 @@
 // @flow
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
@@ -10,6 +9,8 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 @observer class CollectionMenu extends Component {
   props: {
     label?: React$Element<any>,
+    onShow?: Function,
+    onClose?: Function,
     history: Object,
     ui: UiStore,
     collection: Collection,
@@ -26,11 +27,15 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
   };
 
   render() {
-    const { collection, label } = this.props;
+    const { collection, label, onShow, onClose } = this.props;
     const { allowDelete } = collection;
 
     return (
-      <DropdownMenu label={label || <Icon type="MoreHorizontal" />}>
+      <DropdownMenu
+        label={label || <Icon type="MoreHorizontal" />}
+        onShow={onShow}
+        onClose={onClose}
+      >
         {collection &&
           <DropdownMenuItem onClick={this.onEdit}>Edit</DropdownMenuItem>}
         {allowDelete &&
@@ -40,4 +45,4 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
   }
 }
 
-export default withRouter(inject('ui')(CollectionMenu));
+export default inject('ui')(CollectionMenu);

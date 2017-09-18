@@ -9,21 +9,24 @@ const activeStyle = {
   fontWeight: fontWeight.semiBold,
 };
 
-function SidebarLink(props: Object) {
-  return <StyledNavLink exact activeStyle={activeStyle} {...props} />;
-}
-
-const StyledNavLink = styled(NavLink)`
+// $FlowFixMe :/
+const styleComponent = component => styled(component)`
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 5px ${layout.hpadding};
   color: ${color.slateDark};
   font-size: 15px;
+  cursor: pointer;
 
   &:hover {
     color: ${color.text};
   }
 `;
+
+function SidebarLink(props: Object) {
+  const Component = styleComponent(props.to ? NavLink : 'div');
+  return <Component exact activeStyle={activeStyle} {...props} />;
+}
 
 export default SidebarLink;
