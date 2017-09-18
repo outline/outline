@@ -80,8 +80,6 @@ const Label = styled(Flex).attrs({
   justify: 'center',
   align: 'center',
 })`
-  width: 22px;
-  height: 22px;
   z-index: 1000;
   cursor: pointer;
 `;

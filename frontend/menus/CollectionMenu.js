@@ -1,6 +1,8 @@
 // @flow
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
+import styled from 'styled-components';
+
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import Icon from 'components/Icon';
@@ -32,7 +34,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
     return (
       <DropdownMenu
-        label={label || <Icon type="MoreHorizontal" />}
+        label={label || <MoreIcon type="MoreHorizontal" />}
         onShow={onShow}
         onClose={onClose}
       >
@@ -44,5 +46,10 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
     );
   }
 }
+
+const MoreIcon = styled(Icon)`
+  width: 22px;
+  height: 22px;
+`;
 
 export default inject('ui')(CollectionMenu);
