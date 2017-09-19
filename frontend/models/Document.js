@@ -33,7 +33,7 @@ class Document extends BaseModel {
   starred: boolean = false;
   text: string = '';
   title: string = '';
-  parentDocument: ?Document;
+  parentDocument: ?string;
   updatedAt: string;
   updatedBy: User;
   url: string;
@@ -93,6 +93,12 @@ class Document extends BaseModel {
       collection.documents &&
       collection.documents.length > 1
     );
+  }
+
+  @computed get parentDocumentId(): ?string {
+    return this.pathToDocument.length > 1
+      ? this.pathToDocument[this.pathToDocument.length - 1].id
+      : null;
   }
 
   /* Actions */
@@ -166,9 +172,10 @@ class Document extends BaseModel {
           title: this.title,
           text: this.text,
         };
-        // if (this.parentDocument) {
-        //   data.parentDocument = this.parentDocument.id;
-        // }
+        if (this.parentDocument) {
+          data.parentDocument = this.parentDocument;
+        }
+        debugger;
         res = await client.post('/documents.create', data);
       }
       runInAction('Document#save', () => {
