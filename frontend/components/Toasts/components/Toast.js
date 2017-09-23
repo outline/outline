@@ -6,14 +6,16 @@ import { color } from 'styles/constants';
 import { fadeAndScaleIn } from 'styles/animations';
 import Icon from 'components/Icon';
 
+type Props = {
+  onRequestClose: () => void,
+  closeAfterMs: number,
+  message: string,
+  type: 'warning' | 'error' | 'info',
+};
+
 class Toast extends Component {
   timeout: number;
-  props: {
-    onRequestClose: () => void,
-    closeAfterMs: number,
-    message: string,
-    type: 'warning' | 'error' | 'info',
-  };
+  props: Props;
 
   static defaultProps = {
     closeAfterMs: 3000,
