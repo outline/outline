@@ -93,7 +93,7 @@ type Props = {
       });
       this.newDocument = newDocument;
     } else {
-      let document = this.document;
+      let document = this.getDocument(props.match.params.documentSlug);
       if (document) {
         this.props.ui.setActiveDocument(document);
       }
@@ -124,11 +124,15 @@ type Props = {
     );
   }
 
-  get document() {
+  getDocument(documentSlug: ?string) {
     if (this.newDocument) return this.newDocument;
     return this.props.documents.getByUrl(
-      `/doc/${this.props.match.params.documentSlug}`
+      `/doc/${documentSlug || this.props.match.params.documentSlug}`
     );
+  }
+
+  get document() {
+    return this.getDocument();
   }
 
   onClickEdit = () => {
