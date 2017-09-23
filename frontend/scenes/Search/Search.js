@@ -159,17 +159,17 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
             >
               {this.resultIds.map((documentId, index) => {
                 const document = documents.getById(documentId);
-                if (document)
-                  return (
-                    <DocumentPreview
-                      innerRef={ref =>
-                        index === 0 && this.setFirstDocumentRef(ref)}
-                      key={documentId}
-                      document={document}
-                      highlight={this.searchTerm}
-                      showCollection
-                    />
-                  );
+                if (!document) return null;
+                return (
+                  <DocumentPreview
+                    innerRef={ref =>
+                      index === 0 && this.setFirstDocumentRef(ref)}
+                    key={documentId}
+                    document={document}
+                    highlight={this.searchTerm}
+                    showCollection
+                  />
+                );
               })}
             </StyledArrowKeyNavigation>
           </ResultList>

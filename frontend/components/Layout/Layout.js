@@ -13,6 +13,7 @@ import Avatar from 'components/Avatar';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
 import Icon from 'components/Icon';
+import Toasts from 'components/Toasts';
 import CollectionMenu from 'menus/CollectionMenu';
 import AccountMenu from 'menus/AccountMenu';
 
@@ -153,6 +154,7 @@ type Props = {
           </Content>
         </Flex>
         <Modals ui={ui} />
+        <Toasts />
       </Container>
     );
   }

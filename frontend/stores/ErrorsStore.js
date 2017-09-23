@@ -2,16 +2,16 @@
 import { observable, action } from 'mobx';
 
 class ErrorsStore {
-  @observable errors = observable.array([]);
+  @observable data = observable.array([]);
 
   /* Actions */
 
-  @action add = (errorMessage: string): void => {
-    this.errors.push(errorMessage);
+  @action add = (message: string): void => {
+    this.data.push(message);
   };
 
   @action remove = (index: number): void => {
-    this.errors.splice(index, 1);
+    this.data.splice(index, 1);
   };
 }
 
