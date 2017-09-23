@@ -12,7 +12,7 @@ machine:
 
 dependencies:
   override:
-    - yarn
+    - yarn install --pure-lockfile
   cache_directories:
     - ~/.cache/yarn
 
