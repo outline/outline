@@ -15,6 +15,11 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
     collection: Collection,
   };
 
+  onNewDocument = () => {
+    const { collection, history } = this.props;
+    history.push(`${collection.url}/new`);
+  };
+
   onEdit = () => {
     const { collection } = this.props;
     this.props.ui.setActiveModal('collection-edit', { collection });
@@ -31,6 +36,10 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
     return (
       <DropdownMenu label={label || <Icon type="MoreHorizontal" />}>
+        {collection &&
+          <DropdownMenuItem onClick={this.onNewDocument}>
+            New document
+          </DropdownMenuItem>}
         {collection &&
           <DropdownMenuItem onClick={this.onEdit}>Edit</DropdownMenuItem>}
         {allowDelete &&

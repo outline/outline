@@ -39,6 +39,7 @@ Are you sure you want to discard them?
 type Props = {
   match: Object,
   history: Object,
+  location: Object,
   keydown: Object,
   documents: DocumentsStore,
   newDocument?: boolean,
@@ -88,6 +89,9 @@ type Props = {
     if (props.newDocument) {
       const newDocument = new Document({
         collection: { id: props.match.params.id },
+        parentDocument: new URLSearchParams(props.location.search).get(
+          'parentDocument'
+        ),
         title: '',
         text: '',
       });
@@ -143,7 +147,10 @@ type Props = {
 
   onClickNew = () => {
     if (!this.document) return;
-    this.props.history.push(`${this.document.collection.url}/new`);
+    let newUrl = `${this.document.collection.url}/new`;
+    if (this.document.parentDocumentId)
+      newUrl = `${newUrl}?parentDocument=${this.document.parentDocumentId}`;
+    this.props.history.push(newUrl);
   };
 
   handleCloseMoveModal = () => (this.moveModalOpen = false);

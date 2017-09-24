@@ -133,16 +133,23 @@ Collection.prototype.addDocumentToStructure = async function(document, index) {
     // Sequelize doesn't seem to set the value with splice on JSONB field
     this.documentStructure = this.documentStructure;
   } else {
-    this.documentStructure = this.documentStructure.map(childDocument => {
-      if (document.parentDocumentId === childDocument.id) {
-        childDocument.children.splice(
-          index || childDocument.children.length,
-          0,
-          document.toJSON()
-        );
-      }
-      return childDocument;
-    });
+    // Recursively place document
+    const placeDocument = documentList => {
+      return documentList.map(childDocument => {
+        if (document.parentDocumentId === childDocument.id) {
+          childDocument.children.splice(
+            index || childDocument.children.length,
+            0,
+            document.toJSON()
+          );
+        } else {
+          childDocument.children = placeDocument(childDocument.children);
+        }
+
+        return childDocument;
+      });
+    };
+    this.documentStructure = placeDocument(this.documentStructure);
   }
 
   await this.save();
