@@ -15,6 +15,7 @@ type Props = {
   editor: Editor,
   readOnly: boolean,
   component?: string,
+  ...rest,
 };
 
 function Heading(props: Props) {
@@ -39,7 +40,7 @@ function Heading(props: Props) {
     emoji && title.match(new RegExp(`^${emoji}\\s`));
 
   return (
-    <Component>
+    <Component {...rest}>
       <Wrapper hasEmoji={startsWithEmojiAndSpace}>{children}</Wrapper>
       {showPlaceholder &&
         <Placeholder contentEditable={false}>
