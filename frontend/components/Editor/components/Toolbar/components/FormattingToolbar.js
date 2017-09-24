@@ -6,6 +6,7 @@ import BoldIcon from 'components/Icon/BoldIcon';
 import CodeIcon from 'components/Icon/CodeIcon';
 import Heading1Icon from 'components/Icon/Heading1Icon';
 import Heading2Icon from 'components/Icon/Heading2Icon';
+import ItalicIcon from 'components/Icon/ItalicIcon';
 import LinkIcon from 'components/Icon/LinkIcon';
 import StrikethroughIcon from 'components/Icon/StrikethroughIcon';
 import BulletedListIcon from 'components/Icon/BulletedListIcon';
@@ -90,6 +91,7 @@ export default class FormattingToolbar extends Component {
     return (
       <span>
         {this.renderMarkButton('bold', BoldIcon)}
+        {this.renderMarkButton('italic', ItalicIcon)}
         {this.renderMarkButton('deleted', StrikethroughIcon)}
         {this.renderBlockButton('heading1', Heading1Icon)}
         {this.renderBlockButton('heading2', Heading2Icon)}

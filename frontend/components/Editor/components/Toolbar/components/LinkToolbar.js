@@ -78,7 +78,11 @@ class LinkToolbar extends Component {
 
   onBlur = () => {
     if (!this.resultIds.length) {
-      this.props.onBlur();
+      if (this.input.value) {
+        this.props.onBlur();
+      } else {
+        this.removeLink();
+      }
     }
   };
 
