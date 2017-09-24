@@ -44,8 +44,7 @@ type Props = {
       ev.preventDefault();
       if (this.firstDocument) {
         const element = ReactDOM.findDOMNode(this.firstDocument);
-        // $FlowFixMe
-        if (element && element.focus) element.focus();
+        if (element instanceof HTMLElement) element.focus();
       }
     }
   };
@@ -54,9 +53,8 @@ type Props = {
     this.props.history.push(this.props.document.url);
   };
 
-  handleFilter = (e: SyntheticInputEvent) => {
-    const value = e.target.value;
-    this.searchTerm = value;
+  handleFilter = (ev: SyntheticInputEvent) => {
+    this.searchTerm = ev.target.value;
     this.updateSearchResults();
   };
 
