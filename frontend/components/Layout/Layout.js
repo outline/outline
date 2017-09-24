@@ -14,11 +14,9 @@ import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
 import Icon from 'components/Icon';
 import Toasts from 'components/Toasts';
-import CollectionMenu from 'menus/CollectionMenu';
 import AccountMenu from 'menus/AccountMenu';
 
-import SidebarCollection from './components/SidebarCollection';
-import SidebarCollectionList from './components/SidebarCollectionList';
+import SidebarCollections from './components/SidebarCollections';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
 import Modals from './components/Modals';
@@ -84,7 +82,7 @@ type Props = {
   };
 
   render() {
-    const { auth, documents, collections, ui } = this.props;
+    const { auth, documents, ui } = this.props;
     const { user, team } = auth;
 
     return (
@@ -130,20 +128,11 @@ type Props = {
                     </SidebarLink>
                   </LinkSection>
                   <LinkSection>
-                    {collections.active
-                      ? <CollectionAction>
-                          <CollectionMenu collection={collections.active} />
-                        </CollectionAction>
-                      : <CollectionAction onClick={this.handleCreateCollection}>
-                          <Icon type="PlusCircle" />
-                        </CollectionAction>}
-                    {collections.active
-                      ? <SidebarCollection
-                          document={documents.active}
-                          collection={collections.active}
-                          history={this.props.history}
-                        />
-                      : <SidebarCollectionList history={this.props.history} />}
+                    <SidebarCollections
+                      history={this.props.history}
+                      activeDocument={documents.active}
+                      onCreateCollection={this.handleCreateCollection}
+                    />
                   </LinkSection>
                 </Scrollable>
               </Flex>
@@ -159,18 +148,6 @@ type Props = {
     );
   }
 }
-
-const CollectionAction = styled.a`
-  position: absolute;
-  top: -4px;
-  right: ${layout.hpadding};
-  color: ${color.slate};
-  svg { opacity: .75; }
-
-  &:hover {
-    svg { opacity: 1; }
-  }
-`;
 
 const Container = styled(Flex)`
   position: relative;

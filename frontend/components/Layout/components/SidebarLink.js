@@ -9,21 +9,26 @@ const activeStyle = {
   fontWeight: fontWeight.semiBold,
 };
 
-function SidebarLink(props: Object) {
-  return <StyledNavLink exact activeStyle={activeStyle} {...props} />;
-}
+// This is a hack for `styleComponent()` as NavLink fails to render without `to` prop
+const StyleableDiv = props => <div {...props} />;
 
-const StyledNavLink = styled(NavLink)`
+const styleComponent = component => styled(component)`
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 5px ${layout.hpadding};
   color: ${color.slateDark};
   font-size: 15px;
+  cursor: pointer;
 
   &:hover {
     color: ${color.text};
   }
 `;
+
+function SidebarLink(props: Object) {
+  const Component = styleComponent(props.to ? NavLink : StyleableDiv);
+  return <Component exact activeStyle={activeStyle} {...props} />;
+}
 
 export default SidebarLink;

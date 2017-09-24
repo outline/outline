@@ -1,7 +1,8 @@
 // @flow
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
+import styled from 'styled-components';
+
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import Icon from 'components/Icon';
@@ -10,6 +11,8 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 @observer class CollectionMenu extends Component {
   props: {
     label?: React$Element<any>,
+    onShow?: () => void,
+    onClose?: () => void,
     history: Object,
     ui: UiStore,
     collection: Collection,
@@ -31,11 +34,15 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
   };
 
   render() {
-    const { collection, label } = this.props;
+    const { collection, label, onShow, onClose } = this.props;
     const { allowDelete } = collection;
 
     return (
-      <DropdownMenu label={label || <Icon type="MoreHorizontal" />}>
+      <DropdownMenu
+        label={label || <MoreIcon type="MoreHorizontal" />}
+        onShow={onShow}
+        onClose={onClose}
+      >
         {collection &&
           <DropdownMenuItem onClick={this.onNewDocument}>
             New document
@@ -49,4 +56,8 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
   }
 }
 
-export default withRouter(inject('ui')(CollectionMenu));
+const MoreIcon = styled(Icon)`
+  width: 22px;
+`;
+
+export default inject('ui')(CollectionMenu);

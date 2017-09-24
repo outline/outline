@@ -1,61 +1,83 @@
 // @flow
 import React from 'react';
+import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import keydown from 'react-keydown';
 import styled from 'styled-components';
+import Portal from 'react-portal';
 import Flex from 'components/Flex';
 import { color } from 'styles/constants';
 import { fadeAndScaleIn } from 'styles/animations';
 
 type DropdownMenuProps = {
   label: React.Element<any>,
+  onShow?: Function,
+  onClose?: Function,
   children?: React.Element<any>,
   style?: Object,
 };
 
 @observer class DropdownMenu extends React.Component {
   props: DropdownMenuProps;
+  actionRef: Object;
   @observable open: boolean = false;
+  @observable top: number;
+  @observable left: number;
+  @observable right: number;
 
-  handleClick = () => {
-    this.open = !this.open;
+  handleClick = (ev: SyntheticEvent) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    const currentTarget = ev.currentTarget;
+    invariant(document.body, 'why you not here');
+
+    if (currentTarget instanceof HTMLDivElement) {
+      const bodyRect = document.body.getBoundingClientRect();
+      const targetRect = currentTarget.getBoundingClientRect();
+      this.open = true;
+      this.top = targetRect.bottom - bodyRect.top;
+      this.right = bodyRect.width - targetRect.left - targetRect.width;
+      if (this.props.onShow) this.props.onShow();
+    }
   };
 
-  @keydown('esc')
-  handleEscape() {
+  handleClose = (ev: SyntheticEvent) => {
     this.open = false;
-  }
-
-  handleClickOutside = (ev: SyntheticEvent) => {
-    ev.stopPropagation();
-    this.open = false;
+    if (this.props.onClose) this.props.onClose();
   };
 
   render() {
+    const openAction = (
+      <Label
+        onClick={this.handleClick}
+        innerRef={ref => (this.actionRef = ref)}
+      >
+        {this.props.label}
+      </Label>
+    );
+
     return (
-      <MenuContainer onClick={this.handleClick}>
-        {this.open && <Backdrop onClick={this.handleClickOutside} />}
-        <Label>
-          {this.props.label}
-        </Label>
-        {this.open &&
-          <Menu style={this.props.style}>
+      <div>
+        {openAction}
+        <Portal
+          closeOnEsc
+          closeOnOutsideClick
+          isOpened={this.open}
+          onClose={this.handleClose}
+        >
+          <Menu
+            style={this.props.style}
+            left={this.left}
+            top={this.top}
+            right={this.right}
+          >
             {this.props.children}
-          </Menu>}
-      </MenuContainer>
+          </Menu>
+        </Portal>
+      </div>
     );
   }
 }
-
-const Backdrop = styled.div`
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 999;
-`;
 
 const Label = styled(Flex).attrs({
   justify: 'center',
@@ -65,16 +87,13 @@ const Label = styled(Flex).attrs({
   cursor: pointer;
 `;
 
-const MenuContainer = styled.div`
-  position: relative;
-`;
-
 const Menu = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
   transform-origin: 75% 0;
 
   position: absolute;
-  right: 0;
+  right: ${({ right }) => right}px;
+  top: ${({ top }) => top}px;
   z-index: 1000;
   border: ${color.slateLight};
   background: ${color.white};
