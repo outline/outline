@@ -16,8 +16,11 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
     document: Document,
   };
 
-  onCreateDocument = () => {
-    this.props.history.push(`${this.props.document.collection.url}/new`);
+  handleNewChild = () => {
+    const { history, document } = this.props;
+    history.push(
+      `${document.collection.url}/new?parentDocument=${document.id}`
+    );
   };
 
   handleDelete = () => {
@@ -52,7 +55,12 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
               Unstar
             </DropdownMenuItem>
           : <DropdownMenuItem onClick={this.handleStar}>Star</DropdownMenuItem>}
-
+        <DropdownMenuItem
+          onClick={this.handleNewChild}
+          title="Create a new child document for the current document"
+        >
+          New child
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleMove}>Move</DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleExport}>Export</DropdownMenuItem>
         {allowDelete &&

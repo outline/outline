@@ -97,7 +97,7 @@ class Document extends BaseModel {
 
   @computed get parentDocumentId(): ?string {
     return this.pathToDocument.length > 1
-      ? this.pathToDocument[this.pathToDocument.length - 1].id
+      ? this.pathToDocument[this.pathToDocument.length - 2].id
       : null;
   }
 
@@ -175,7 +175,6 @@ class Document extends BaseModel {
         if (this.parentDocument) {
           data.parentDocument = this.parentDocument;
         }
-        debugger;
         res = await client.post('/documents.create', data);
       }
       runInAction('Document#save', () => {

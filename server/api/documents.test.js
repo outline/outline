@@ -3,6 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '..';
 import { View, Star } from '../models';
 import { flushdb, seed } from '../test/support';
+import Document from '../models/Document';
 
 const server = new TestServer(app.callback());
 
@@ -191,6 +192,49 @@ describe('#documents.unstar', async () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#documents.create', async () => {
+  it('should create as a new document', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title: 'new document',
+        text: 'hello',
+      },
+    });
+    const body = await res.json();
+    const newDocument = await Document.findOne({
+      where: {
+        id: body.data.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(newDocument.parentDocumentId).toBe(null);
+    expect(newDocument.collection.id).toBe(collection.id);
+  });
+
+  it('should create as a child', async () => {
+    const { user, document, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title: 'new document',
+        text: 'hello',
+        parentDocument: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('new document');
+    expect(body.data.collection.documents.length).toBe(2);
+    expect(body.data.collection.documents[1].children[0].id).toBe(body.data.id);
   });
 });
 
