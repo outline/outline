@@ -28,14 +28,17 @@ type DropdownMenuProps = {
   handleClick = (ev: SyntheticEvent) => {
     ev.preventDefault();
     ev.stopPropagation();
+    const currentTarget = ev.currentTarget;
     invariant(document.body, 'why you not here');
-    const bodyRect = document.body.getBoundingClientRect();
-    // $FlowIssue it's there
-    const targetRect = ev.currentTarget.getBoundingClientRect();
-    this.open = true;
-    this.top = targetRect.bottom - bodyRect.top;
-    this.right = bodyRect.width - targetRect.left - targetRect.width;
-    if (this.props.onShow) this.props.onShow();
+
+    if (currentTarget instanceof HTMLDivElement) {
+      const bodyRect = document.body.getBoundingClientRect();
+      const targetRect = currentTarget.getBoundingClientRect();
+      this.open = true;
+      this.top = targetRect.bottom - bodyRect.top;
+      this.right = bodyRect.width - targetRect.left - targetRect.width;
+      if (this.props.onShow) this.props.onShow();
+    }
   };
 
   handleClose = (ev: SyntheticEvent) => {

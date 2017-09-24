@@ -11,8 +11,8 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 @observer class CollectionMenu extends Component {
   props: {
     label?: React$Element<any>,
-    onShow?: Function,
-    onClose?: Function,
+    onShow?: () => void,
+    onClose?: () => void,
     history: Object,
     ui: UiStore,
     collection: Collection,
@@ -49,7 +49,6 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 const MoreIcon = styled(Icon)`
   width: 22px;
-  height: 22px;
 `;
 
 export default inject('ui')(CollectionMenu);

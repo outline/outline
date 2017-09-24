@@ -9,7 +9,9 @@ const activeStyle = {
   fontWeight: fontWeight.semiBold,
 };
 
-// $FlowFixMe :/
+// This is a hack for `styleComponent()` as NavLink fails to render without `to` prop
+const StyleableDiv = props => <div {...props} />;
+
 const styleComponent = component => styled(component)`
   display: block;
   overflow: hidden;
@@ -25,7 +27,7 @@ const styleComponent = component => styled(component)`
 `;
 
 function SidebarLink(props: Object) {
-  const Component = styleComponent(props.to ? NavLink : 'div');
+  const Component = styleComponent(props.to ? NavLink : StyleableDiv);
   return <Component exact activeStyle={activeStyle} {...props} />;
 }
 
