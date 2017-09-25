@@ -26,6 +26,7 @@ function Heading(props: Props) {
     readOnly,
     children,
     component = 'h1',
+    ...rest
   } = props;
   const parentIsDocument = parent instanceof Document;
   const firstHeading = parentIsDocument && parent.nodes.first() === node;
@@ -39,7 +40,7 @@ function Heading(props: Props) {
     emoji && title.match(new RegExp(`^${emoji}\\s`));
 
   return (
-    <Component>
+    <Component {...rest}>
       <Wrapper hasEmoji={startsWithEmojiAndSpace}>{children}</Wrapper>
       {showPlaceholder &&
         <Placeholder contentEditable={false}>

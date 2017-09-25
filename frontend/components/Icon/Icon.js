@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
+import { color } from 'styles/constants';
 import * as Icons from 'react-feather';
 
 export type Props = {
@@ -22,7 +23,7 @@ export default function Icon({
   if (type) {
     children = React.createElement(Icons[type], {
       size: '1em',
-      color: light ? '#FFFFFF' : undefined,
+      color: light ? color.white : undefined,
       ...rest,
     });
 
@@ -47,6 +48,6 @@ const FeatherWrapper = styled.span`
 
 const Wrapper = styled.span`
   svg {
-    fill: ${props => (props.light ? '#FFF' : '#000')}
+    fill: ${props => (props.light ? color.white : color.black)}
   }
 `;

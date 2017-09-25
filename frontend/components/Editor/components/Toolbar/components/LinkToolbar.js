@@ -1,9 +1,11 @@
 // @flow
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router';
 import styled from 'styled-components';
+import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import ToolbarButton from './ToolbarButton';
 import DocumentResult from './DocumentResult';
 import type { State } from '../../../types';
@@ -16,6 +18,8 @@ import Flex from 'components/Flex';
 @observer
 class LinkToolbar extends Component {
   input: HTMLElement;
+  firstDocument: HTMLElement;
+
   props: {
     state: State,
     link: Object,
@@ -49,7 +53,8 @@ class LinkToolbar extends Component {
     this.isFetching = false;
   };
 
-  selectDocument = document => {
+  selectDocument = (ev, document) => {
+    ev.preventDefault();
     this.save(`${BASE_URL}${document.url}`);
   };
 
@@ -60,6 +65,13 @@ class LinkToolbar extends Component {
         return this.save(ev.target.value);
       case 27: // escape
         return this.input.blur();
+      case 40: // down
+        ev.preventDefault();
+        if (this.firstDocument) {
+          const element = ReactDOM.findDOMNode(this.firstDocument);
+          if (element instanceof HTMLElement) element.focus();
+        }
+        break;
       default:
     }
   };
@@ -92,7 +104,6 @@ class LinkToolbar extends Component {
 
   openLink = () => {
     const href = this.props.link.data.get('href');
-    console.log(href);
     window.open(href, '_blank');
   };
 
@@ -109,6 +120,10 @@ class LinkToolbar extends Component {
     const state = transform.apply();
     this.props.onChange(state);
     this.props.onBlur();
+  };
+
+  setFirstDocumentRef = ref => {
+    this.firstDocument = ref;
   };
 
   render() {
@@ -139,26 +154,32 @@ class LinkToolbar extends Component {
         </LinkEditor>
         {hasResults &&
           <SearchResults>
-            {this.resultIds.map(id => {
-              const document = this.props.documents.getById(id);
-              if (!document) return null;
+            <ArrowKeyNavigation
+              mode={ArrowKeyNavigation.mode.VERTICAL}
+              defaultActiveChildIndex={0}
+            >
+              {this.resultIds.map((id, index) => {
+                const document = this.props.documents.getById(id);
+                if (!document) return null;
 
-              return (
-                <DocumentResult
-                  document={document}
-                  key={document.id}
-                  onClick={this.selectDocument.bind(this, document)}
-                />
-              );
-            })}
+                return (
+                  <DocumentResult
+                    innerRef={ref =>
+                      index === 0 && this.setFirstDocumentRef(ref)}
+                    document={document}
+                    key={document.id}
+                    onClick={ev => this.selectDocument(ev, document)}
+                  />
+                );
+              })}
+            </ArrowKeyNavigation>
           </SearchResults>}
       </span>
     );
   }
 }
 
-const SearchResults = styled.ul`
-  list-style: none;
+const SearchResults = styled.div`
   background: rgba(34, 34, 34, .95);
   position: absolute;
   top: 100%;
