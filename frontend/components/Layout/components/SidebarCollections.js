@@ -24,16 +24,11 @@ type Props = {
   ui: UiStore,
 };
 
-const activeStyle = {
-  color: color.black,
-  background: color.slateDark,
-};
-
 @observer class SidebarCollections extends React.PureComponent {
   props: Props;
 
   render() {
-    const { collections, activeDocument, ui } = this.props;
+    const { history, collections, activeDocument, ui } = this.props;
 
     return (
       <Flex column>
@@ -41,6 +36,7 @@ const activeStyle = {
         {collections.data.map(collection => (
           <CollectionLink
             key={collection.id}
+            history={history}
             collection={collection}
             activeDocument={activeDocument}
             ui={ui}
@@ -66,13 +62,14 @@ const activeStyle = {
   };
 
   render() {
-    const { collection, activeDocument, ui } = this.props;
+    const { history, collection, activeDocument, ui } = this.props;
+
     return (
       <DropToImport
         key={collection.id}
         history={history}
         collectionId={collection.id}
-        activeStyle={activeStyle}
+        activeClassName="activeDropZone"
         onMouseEnter={this.handleHover}
         onMouseLeave={this.handleBlur}
       >
@@ -83,6 +80,7 @@ const activeStyle = {
             {(this.isHovering || this.menuOpen) &&
               <CollectionAction>
                 <CollectionMenu
+                  history={history}
                   collection={collection}
                   onShow={() => (this.menuOpen = true)}
                   onClose={() => (this.menuOpen = false)}
@@ -93,6 +91,7 @@ const activeStyle = {
             collection.documents.map(document => (
               <DocumentLink
                 key={document.id}
+                history={history}
                 document={document}
                 activeDocument={activeDocument}
                 depth={0}
@@ -106,12 +105,13 @@ const activeStyle = {
 
 type DocumentLinkProps = {
   document: NavigationNode,
+  history: Object,
   activeDocument: ?Document,
   depth: number,
 };
 
 const DocumentLink = observer((props: DocumentLinkProps) => {
-  const { document, activeDocument, depth } = props;
+  const { history, document, activeDocument, depth } = props;
   const canDropToImport = depth === 0;
 
   return (
@@ -120,7 +120,7 @@ const DocumentLink = observer((props: DocumentLinkProps) => {
         <DropToImport
           history={history}
           documentId={document.id}
-          activeStyle={activeStyle}
+          activeClassName="activeDropZone"
         >
           <SidebarLink to={document.url}>{document.title}</SidebarLink>
         </DropToImport>}
@@ -137,6 +137,7 @@ const DocumentLink = observer((props: DocumentLinkProps) => {
             document.children.map(childDocument => (
               <DocumentLink
                 key={childDocument.id}
+                history={history}
                 document={childDocument}
                 depth={depth + 1}
               />
