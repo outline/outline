@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
+import { fontWeight, color } from 'styles/constants';
 import Document from 'models/Document';
 import Icon from 'components/Icon';
 
@@ -24,7 +25,7 @@ const ListItem = styled.a`
   align-items: center;
   height: 24px;
   padding: 4px 8px 4px 0;
-  color: #fff;
+  color: ${color.white};
   font-size: 15px;
 
   i {
@@ -34,7 +35,7 @@ const ListItem = styled.a`
   &:hover,
   &:focus,
   &:active {
-    font-weight: 500;
+    font-weight: ${fontWeight.medium};
     outline: none;
 
     i {
