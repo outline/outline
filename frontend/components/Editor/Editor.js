@@ -210,6 +210,7 @@ type KeyData = {
 }
 
 const MaxWidth = styled(Flex)`
+  padding: 0 60px;
   max-width: 50em;
   height: 100%;
 `;
