@@ -354,10 +354,13 @@ const DropHere = styled(Flex)`
 
 const Meta = styled(Flex)`
   align-items: flex-start;
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0;
-  padding: ${layout.padding};
+  padding: ${layout.vpadding} ${layout.hpadding} 8px 8px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(20px);
 `;
 
 const Container = styled(Flex)`

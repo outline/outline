@@ -4,7 +4,7 @@ import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import Flex from 'components/Flex';
 import styled from 'styled-components';
-import { color, layout, fontWeight } from 'styles/constants';
+import { color, fontWeight } from 'styles/constants';
 
 import SidebarLink from './SidebarLink';
 import DropToImport from 'components/DropToImport';
@@ -152,7 +152,7 @@ const Header = styled(Flex)`
   text-transform: uppercase;
   color: ${color.slate};
   letter-spacing: 0.04em;
-  padding: 0 ${layout.hpadding};
+  padding: 0 24px;
 `;
 
 const CollectionAction = styled.a`

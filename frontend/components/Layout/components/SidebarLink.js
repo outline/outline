@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { layout, color, fontWeight } from 'styles/constants';
+import { color, fontWeight } from 'styles/constants';
 import styled from 'styled-components';
 
 const activeStyle = {
@@ -16,7 +16,7 @@ const styleComponent = component => styled(component)`
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 5px ${layout.hpadding};
+  margin: 5px 24px;
   color: ${color.slateDark};
   font-size: 15px;
   cursor: pointer;
