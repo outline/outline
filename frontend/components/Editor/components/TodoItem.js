@@ -23,7 +23,7 @@ export default class TodoItem extends Component {
 
     return (
       <ListItem>
-        <Checkbox
+        <Input
           type="checkbox"
           checked={checked}
           onChange={this.handleChange}
@@ -40,7 +40,7 @@ const ListItem = styled.li`
   position: relative;
 `;
 
-const Checkbox = styled.input`
+const Input = styled.input`
   position: absolute;
   left: 0;
   top: 0.4em;

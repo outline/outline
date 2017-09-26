@@ -1,11 +1,11 @@
 // @flow
 import React from 'react';
-import styled from 'styled-components';
 import Code from './components/Code';
 import InlineCode from './components/InlineCode';
 import Image from './components/Image';
 import Link from './components/Link';
 import ListItem from './components/ListItem';
+import TodoList from './components/TodoList';
 import {
   Heading1,
   Heading2,
@@ -16,15 +16,6 @@ import {
 } from './components/Heading';
 import Paragraph from './components/Paragraph';
 import type { Props, Node, Transform } from './types';
-
-const TodoList = styled.ul`
-  list-style: none;
-  padding: 0 !important;
-
-  ul {
-    padding-left: 1em;
-  }
-`;
 
 const createSchema = () => {
   return {
@@ -63,7 +54,7 @@ const createSchema = () => {
     },
 
     rules: [
-      // ensure first node is a heading
+      // ensure first node is always a heading
       {
         match: (node: Node) => {
           return node.kind === 'document';
@@ -77,7 +68,7 @@ const createSchema = () => {
         },
       },
 
-      // remove any marks in first heading
+      // automatically removes any marks in first heading
       {
         match: (node: Node) => {
           return node.kind === 'heading1';
