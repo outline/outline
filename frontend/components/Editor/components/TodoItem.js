@@ -28,6 +28,7 @@ export default class TodoItem extends Component {
           checked={checked}
           onChange={this.handleChange}
           disabled={readOnly}
+          contentEditable={false}
         />
         {children}
       </ListItem>
