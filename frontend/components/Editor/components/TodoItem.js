@@ -22,28 +22,26 @@ export default class TodoItem extends Component {
     const { children, checked, readOnly } = this.props;
 
     return (
-      <StyledLi contentEditable={false}>
-        <input
+      <ListItem>
+        <Checkbox
           type="checkbox"
           checked={checked}
           onChange={this.handleChange}
           disabled={readOnly}
         />
-        {' '}
-        <span contentEditable={!readOnly} suppressContentEditableWarning>
-          {children}
-        </span>
-      </StyledLi>
+        {children}
+      </ListItem>
     );
   }
 }
 
-const StyledLi = styled.li`
-  input {
-    margin-right: 0.25em;
-  }
+const ListItem = styled.li`
+  padding-left: 1.4em;
+  position: relative;
+`;
 
-  &:last-child:focus {
-    outline: none;
-  }
+const Checkbox = styled.input`
+  position: absolute;
+  left: 0;
+  top: 0.4em;
 `;

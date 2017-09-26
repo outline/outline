@@ -19,7 +19,7 @@ import type { Props, Node, Transform } from './types';
 
 const TodoList = styled.ul`
   list-style: none;
-  padding-left: 0;
+  padding: 0 !important;
 
   ul {
     padding-left: 1em;
