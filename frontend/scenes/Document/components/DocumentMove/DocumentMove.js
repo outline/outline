@@ -90,6 +90,26 @@ type Props = {
 
   render() {
     const { document, documents } = this.props;
+    let resultSet;
+
+    resultSet = this.resultIds.filter(docId => {
+      const resultDoc = documents.getById(docId);
+
+      if (document && resultDoc) {
+        return (
+          // Exclude the document if it's on the path to a potential new path
+          !resultDoc.pathToDocument.map(doc => doc.id).includes(document.id) &&
+          // Exclude if the same path, e.g the last one before the current
+          _.last(resultDoc.pathToDocument).id !== document.parentDocumentId
+        );
+      }
+      return true;
+    });
+
+    // Prepend root if document does have a parent document
+    resultSet = document.parentDocumentId
+      ? _.concat(null, resultSet)
+      : this.resultIds;
 
     return (
       <Modal isOpen onRequestClose={this.handleClose} title="Move document">
@@ -115,18 +135,13 @@ type Props = {
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
-              <PathToDocument
-                document={document}
-                documents={documents}
-                ref={ref => this.setFirstDocumentRef(ref)}
-                onSuccess={this.handleClose}
-              />
-              {this.resultIds.map((documentId, index) => (
+              {resultSet.map((documentId, index) => (
                 <PathToDocument
-                  key={documentId}
+                  key={documentId || document.id}
                   documentId={documentId}
                   documents={documents}
                   document={document}
+                  ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
                   onSuccess={this.handleClose}
                 />
               ))}

@@ -5,7 +5,6 @@ import {
   action,
   runInAction,
   ObservableArray,
-  autorunAsync,
 } from 'mobx';
 import ApiClient, { client } from 'utils/ApiClient';
 import _ from 'lodash';
@@ -16,8 +15,6 @@ import Collection from 'models/Collection';
 import ErrorsStore from 'stores/ErrorsStore';
 import CacheStore from 'stores/CacheStore';
 import UiStore from 'stores/UiStore';
-
-const COLLECTION_CACHE_KEY = 'COLLECTION_CACHE_KEY';
 
 type Options = {
   teamId: string,
@@ -39,6 +36,30 @@ class CollectionsStore {
     return this.ui.activeCollectionId
       ? this.getById(this.ui.activeCollectionId)
       : undefined;
+  }
+
+  /**
+   * List of paths to each of the documents, where paths are composed of id and title/name pairs
+   */
+  @computed get pathsToDocuments(): ?[[{ id: string, title: string }]] {
+    let results = [];
+    const travelDocuments = (documentList, path) =>
+      documentList.forEach(document => {
+        const { id, title } = document;
+        const node = { id, title };
+        results.push(_.concat(path, node));
+        travelDocuments(document.children, _.concat(path, [node]));
+      });
+
+    if (this.isLoaded) {
+      this.data.forEach(collection => {
+        const { id, name } = collection;
+        const node = { id, title: name };
+        travelDocuments(collection.documents, [node]);
+      });
+    }
+
+    return results;
   }
 
   /* Actions */
@@ -99,21 +120,6 @@ class CollectionsStore {
     this.teamId = options.teamId;
     this.cache = options.cache;
     this.ui = options.ui;
-    //
-    // this.cache.getItem(COLLECTION_CACHE_KEY).then(data => {
-    //   if (data) {
-    //     this.data.replace(data.map(collection => new Collection(collection)));
-    //     this.isLoaded = true;
-    //   }
-    // });
-
-    autorunAsync('CollectionsStore.persists', () => {
-      if (this.data.length > 0)
-        this.cache.setItem(
-          COLLECTION_CACHE_KEY,
-          this.data.map(collection => collection.data)
-        );
-    });
   }
 }
 

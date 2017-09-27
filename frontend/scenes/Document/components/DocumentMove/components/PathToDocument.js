@@ -74,16 +74,17 @@ type Props = {
   };
 
   render() {
-    const { document, onSuccess, ref } = this.props;
+    const { document, documentId, onSuccess, ref } = this.props;
     // $FlowIssue we'll always have a document
-    const { collection } = document || this.resultDocument;
+    const { collection } = documentId ? this.resultDocument : document;
     const Component = onSuccess ? ResultWrapperLink : ResultWrapper;
 
+    // Exclude document when it's part of the path and not the preview
     return (
       <Component
         innerRef={ref}
         selectable
-        href={!!onSuccess}
+        href
         onClick={onSuccess && this.handleSelect}
       >
         {collection.name}
