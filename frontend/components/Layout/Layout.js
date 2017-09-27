@@ -173,6 +173,7 @@ const Sidebar = styled(Flex)`
 const LinkSection = styled(Flex)`
   flex-direction: column;
   margin: 24px 0;
+  padding: 0 ${layout.hpadding};
   position: relative;
 `;
 

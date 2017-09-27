@@ -87,16 +87,19 @@ type Props = {
                 />
               </CollectionAction>}
           </Flex>
+
           {collection.id === ui.activeCollectionId &&
-            collection.documents.map(document => (
-              <DocumentLink
-                key={document.id}
-                history={history}
-                document={document}
-                activeDocument={activeDocument}
-                depth={0}
-              />
-            ))}
+            <Children column>
+              {collection.documents.map(document => (
+                <DocumentLink
+                  key={document.id}
+                  history={history}
+                  document={document}
+                  activeDocument={activeDocument}
+                  depth={0}
+                />
+              ))}
+            </Children>}
         </SidebarLink>
       </DropToImport>
     );
@@ -111,27 +114,32 @@ type DocumentLinkProps = {
 };
 
 const DocumentLink = observer((props: DocumentLinkProps) => {
-  const { history, document, activeDocument, depth } = props;
-  const canDropToImport = depth === 0;
+  const { document, activeDocument, depth } = props;
+
+  const showChildren =
+    activeDocument &&
+    (activeDocument.pathToDocument
+      .map(entry => entry.id)
+      .includes(document.id) ||
+      activeDocument.id === document.id);
 
   return (
     <Flex column key={document.id}>
-      {canDropToImport &&
-        <DropToImport
-          history={history}
-          documentId={document.id}
-          activeClassName="activeDropZone"
+      <DropToImport
+        history={history}
+        documentId={document.id}
+        activeStyle="activeDropZone"
+      >
+        <SidebarLink
+          to={document.url}
+          hasChildren={document.children.length > 0}
+          expanded={showChildren}
         >
-          <SidebarLink to={document.url}>{document.title}</SidebarLink>
-        </DropToImport>}
-      {!canDropToImport &&
-        <SidebarLink to={document.url}>{document.title}</SidebarLink>}
+          {document.title}
+        </SidebarLink>
+      </DropToImport>
 
-      {activeDocument &&
-        (activeDocument.pathToDocument
-          .map(entry => entry.id)
-          .includes(document.id) ||
-          activeDocument.id === document.id) &&
+      {showChildren &&
         <Children column>
           {document.children &&
             document.children.map(childDocument => (
@@ -139,6 +147,7 @@ const DocumentLink = observer((props: DocumentLinkProps) => {
                 key={childDocument.id}
                 history={history}
                 document={childDocument}
+                activeDocument={activeDocument}
                 depth={depth + 1}
               />
             ))}
@@ -153,7 +162,6 @@ const Header = styled(Flex)`
   text-transform: uppercase;
   color: ${color.slate};
   letter-spacing: 0.04em;
-  padding: 0 24px;
 `;
 
 const CollectionAction = styled.a`
