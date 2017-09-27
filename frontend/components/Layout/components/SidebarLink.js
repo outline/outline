@@ -30,7 +30,7 @@ const styleComponent = component => styled(component)`
     color: ${color.text};
   }
 
-  &.active svg {
+  &.active ${StyledChevron} svg {
     fill: ${activeStyle.color};
   }
 `;
