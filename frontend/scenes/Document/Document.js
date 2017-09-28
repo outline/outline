@@ -10,7 +10,7 @@ import Flex from 'components/Flex';
 import { color, layout } from 'styles/constants';
 import {
   collectionUrl,
-  documentUpdateUrl,
+  updateDocumentUrl,
   documentMoveUrl,
   matchDocumentEdit,
   matchDocumentMove,
@@ -60,7 +60,7 @@ type Props = {
 
   @observable moveModalOpen: boolean = false;
 
-  componentDidMount() {
+  componentWillMount() {
     this.loadDocument(this.props);
   }
 
@@ -98,12 +98,15 @@ type Props = {
       this.newDocument = newDocument;
     } else {
       let document = this.getDocument(props.match.params.documentSlug);
-      if (document) {
-        this.props.ui.setActiveDocument(document);
-      }
 
-      await this.props.documents.fetch(props.match.params.documentSlug);
-      document = this.document;
+      if (document) {
+        this.props.documents.fetch(props.match.params.documentSlug);
+        this.props.ui.setActiveDocument(document);
+      } else {
+        document = await this.props.documents.fetch(
+          props.match.params.documentSlug
+        );
+      }
 
       if (document) {
         this.props.ui.setActiveDocument(document);
@@ -113,7 +116,7 @@ type Props = {
 
         // Update url to match the current one
         this.props.history.replace(
-          documentUpdateUrl(this.props.match.url, document.url)
+          updateDocumentUrl(props.match.url, document.url)
         );
       } else {
         // Render 404 with search
@@ -218,9 +221,9 @@ type Props = {
   render() {
     const isNew = this.props.newDocument;
     const isMoving = this.props.match.path === matchDocumentMove;
-    const isFetching = !this.document;
-    const titleText = get(this.document, 'title', '');
     const document = this.document;
+    const isFetching = !document;
+    const titleText = get(document, 'title', '');
 
     if (this.notFound) {
       return this.renderNotFound();
