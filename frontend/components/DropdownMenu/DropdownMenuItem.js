@@ -7,7 +7,7 @@ const DropdownMenuItem = ({
   onClick,
   children,
 }: {
-  onClick?: Function,
+  onClick?: () => void,
   children?: React.Element<any>,
 }) => {
   return (

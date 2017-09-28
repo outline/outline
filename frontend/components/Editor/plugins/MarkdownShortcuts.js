@@ -40,17 +40,24 @@ export default function MarkdownShortcuts() {
     onSpace(ev: SyntheticEvent, state: Object) {
       if (state.isExpanded) return;
       const { startBlock, startOffset } = state;
-      const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
+      const chars = startBlock.text.slice(0, startOffset).trim();
       const type = this.getType(chars);
 
       if (type) {
         if (type === 'list-item' && startBlock.type === 'list-item') return;
         ev.preventDefault();
 
-        const transform = state.transform().setBlock(type);
+        let checked;
+        if (chars === '[x]') checked = true;
+        if (chars === '[ ]') checked = false;
+        const transform = state
+          .transform()
+          .setBlock({ type, data: { checked } });
 
         if (type === 'list-item') {
-          if (chars === '1.') {
+          if (checked !== undefined) {
+            transform.wrapBlock('todo-list');
+          } else if (chars === '1.') {
             transform.wrapBlock('ordered-list');
           } else {
             transform.wrapBlock('bulleted-list');
@@ -234,6 +241,8 @@ export default function MarkdownShortcuts() {
         case '-':
         case '+':
         case '1.':
+        case '[ ]':
+        case '[x]':
           return 'list-item';
         case '>':
           return 'block-quote';

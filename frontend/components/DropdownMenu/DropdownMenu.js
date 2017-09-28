@@ -9,16 +9,16 @@ import Flex from 'components/Flex';
 import { color } from 'styles/constants';
 import { fadeAndScaleIn } from 'styles/animations';
 
-type DropdownMenuProps = {
+type Props = {
   label: React.Element<any>,
-  onShow?: Function,
-  onClose?: Function,
+  onShow?: () => void,
+  onClose?: () => void,
   children?: React.Element<any>,
   style?: Object,
 };
 
 @observer class DropdownMenu extends React.Component {
-  props: DropdownMenuProps;
+  props: Props;
   actionRef: Object;
   @observable open: boolean = false;
   @observable top: number;
@@ -47,18 +47,14 @@ type DropdownMenuProps = {
   };
 
   render() {
-    const openAction = (
-      <Label
-        onClick={this.handleClick}
-        innerRef={ref => (this.actionRef = ref)}
-      >
-        {this.props.label}
-      </Label>
-    );
-
     return (
       <div>
-        {openAction}
+        <Label
+          onClick={this.handleClick}
+          innerRef={ref => (this.actionRef = ref)}
+        >
+          {this.props.label}
+        </Label>
         <Portal
           closeOnEsc
           closeOnOutsideClick
@@ -66,6 +62,7 @@ type DropdownMenuProps = {
           onClose={this.handleClose}
         >
           <Menu
+            onClick={this.handleClose}
             style={this.props.style}
             left={this.left}
             top={this.top}

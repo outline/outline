@@ -129,3 +129,11 @@ hr {
   padding: 1em;
   border-radius: 0.25em;
 }
+
+.activeDropZone {
+  background: #4E5C6E;
+}
+
+.activeDropZone a {
+  color: #FFF !important;
+}

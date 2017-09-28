@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { color, layout } from 'styles/constants';
+import { color } from 'styles/constants';
 import type { User, Team } from 'types';
 import Flex from 'components/Flex';
 
@@ -37,7 +37,7 @@ const TeamName = styled.div`
 
 const Header = styled(Flex)`
   flex-shrink: 0;
-  padding: ${layout.padding};
+  padding: 16px 24px;
   position: relative;
   cursor: pointer;
   width: 100%;
@@ -49,8 +49,8 @@ const Header = styled(Flex)`
 
   &::after {
     content: "";
-    left: ${layout.hpadding};
-    right: ${layout.hpadding};
+    left: 24px;
+    right: 24px;
     background: rgba(0,0,0,.075);
     height: 1px;
     position: absolute;
