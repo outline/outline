@@ -53,39 +53,32 @@ type Props = {
 }
 
 @observer class CollectionLink extends React.Component {
-  @observable isHovering = false;
   @observable menuOpen = false;
-
-  handleHover = () => (this.isHovering = true);
-  handleBlur = () => {
-    if (!this.menuOpen) this.isHovering = false;
-  };
 
   render() {
     const { history, collection, activeDocument, ui } = this.props;
 
     return (
-      <DropToImport
+      <StyledDropToImport
         key={collection.id}
         history={history}
         collectionId={collection.id}
         activeClassName="activeDropZone"
-        onMouseEnter={this.handleHover}
-        onMouseLeave={this.handleBlur}
+        menuOpen={this.menuOpen}
       >
         <SidebarLink key={collection.id} to={collection.url}>
           <Flex justify="space-between">
             {collection.name}
 
-            {(this.isHovering || this.menuOpen) &&
-              <CollectionAction>
-                <CollectionMenu
-                  history={history}
-                  collection={collection}
-                  onShow={() => (this.menuOpen = true)}
-                  onClose={() => (this.menuOpen = false)}
-                />
-              </CollectionAction>}
+            <CollectionAction>
+              <CollectionMenu
+                history={history}
+                collection={collection}
+                onShow={() => (this.menuOpen = true)}
+                onClose={() => (this.menuOpen = false)}
+                open={this.menuOpen}
+              />
+            </CollectionAction>
           </Flex>
 
           {collection.id === ui.activeCollectionId &&
@@ -101,7 +94,7 @@ type Props = {
               ))}
             </Children>}
         </SidebarLink>
-      </DropToImport>
+      </StyledDropToImport>
     );
   }
 }
@@ -156,14 +149,6 @@ const DocumentLink = observer((props: DocumentLinkProps) => {
   );
 });
 
-const Header = styled(Flex)`
-  font-size: 11px;
-  font-weight: ${fontWeight.semiBold};
-  text-transform: uppercase;
-  color: ${color.slate};
-  letter-spacing: 0.04em;
-`;
-
 const CollectionAction = styled.a`
   color: ${color.slate};
   svg { opacity: .75; }
@@ -171,6 +156,26 @@ const CollectionAction = styled.a`
   &:hover {
     svg { opacity: 1; }
   }
+`;
+
+const StyledDropToImport = styled(DropToImport)`
+  ${CollectionAction} {
+    display: ${props => (props.menuOpen ? 'inline' : 'none')};
+  }
+
+  &:hover {
+    ${CollectionAction} {
+      display: inline;
+    }
+  }
+`;
+
+const Header = styled(Flex)`
+  font-size: 11px;
+  font-weight: ${fontWeight.semiBold};
+  text-transform: uppercase;
+  color: ${color.slate};
+  letter-spacing: 0.04em;
 `;
 
 const Children = styled(Flex)`
