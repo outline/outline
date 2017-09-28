@@ -161,6 +161,7 @@ type Props = {
 
   onSave = async (redirect: boolean = false) => {
     if (this.document && !this.document.allowSave) return;
+    this.editCache = null;
     let document = this.document;
 
     if (!document) return;
