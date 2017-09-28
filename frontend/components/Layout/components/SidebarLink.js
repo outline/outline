@@ -4,6 +4,9 @@ import { NavLink } from 'react-router-dom';
 import { color, fontWeight } from 'styles/constants';
 import styled from 'styled-components';
 
+import Flex from 'components/Flex';
+import ChevronIcon from 'components/Icon/ChevronIcon';
+
 const activeStyle = {
   color: color.black,
   fontWeight: fontWeight.semiBold,
@@ -14,9 +17,11 @@ const StyleableDiv = props => <div {...props} />;
 
 const styleComponent = component => styled(component)`
   display: block;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 5px 24px;
+  margin: 5px 0;
+  margin-left: ${({ hasChildren }) => (hasChildren ? '-20px;' : '0')};
   color: ${color.slateDark};
   font-size: 15px;
   cursor: pointer;
@@ -24,11 +29,37 @@ const styleComponent = component => styled(component)`
   &:hover {
     color: ${color.text};
   }
+
+  &.active ${StyledChevron} svg {
+    fill: ${activeStyle.color};
+  }
 `;
 
 function SidebarLink(props: Object) {
   const Component = styleComponent(props.to ? NavLink : StyleableDiv);
-  return <Component exact activeStyle={activeStyle} {...props} />;
+
+  return (
+    <Flex>
+      <Component exact activeStyle={activeStyle} {...props}>
+        {props.hasChildren && <StyledChevron expanded={props.expanded} />}
+        {props.children}
+      </Component>
+    </Flex>
+  );
 }
+
+const StyledChevron = styled(ChevronIcon)`
+  margin-right: -10px;
+
+  svg {
+    height: 18px;
+    margin-bottom: -4px;
+    margin-right: 6px;
+
+    fill: ${color.slateDark};
+
+    ${({ expanded }) => expanded && 'transform: rotate(90deg);'}
+  }
+`;
 
 export default SidebarLink;
