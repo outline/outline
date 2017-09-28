@@ -55,7 +55,7 @@ class LinkToolbar extends Component {
 
   selectDocument = (ev, document) => {
     ev.preventDefault();
-    this.save(`${BASE_URL}${document.url}`);
+    this.save(document.url);
   };
 
   onKeyDown = (ev: SyntheticKeyboardEvent & SyntheticInputEvent) => {

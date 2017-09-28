@@ -4,6 +4,8 @@ import { Link as InternalLink } from 'react-router-dom';
 import type { Props } from '../types';
 
 function getPathFromUrl(href: string) {
+  if (href[0] === '/') return href;
+
   try {
     const parsed = new URL(href);
     return parsed.pathname;
@@ -13,6 +15,8 @@ function getPathFromUrl(href: string) {
 }
 
 function isAtlasUrl(href: string) {
+  if (href[0] === '/') return true;
+
   try {
     const atlas = new URL(BASE_URL);
     const parsed = new URL(href);
