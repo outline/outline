@@ -34,10 +34,14 @@ export function documentMoveUrl(doc: Document): string {
  * Replace full url's document part with the new one in case
  * the document slug has been updated
  */
-export function documentUpdateUrl(oldUrl: string, newUrl: string): string {
+export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
   // Update url to match the current one
-  const urlParts = oldUrl.split('/');
-  return [newUrl, urlParts.slice(3)].join('/');
+  const urlParts = oldUrl.trim().split('/');
+  const actions = urlParts.slice(3);
+  if (actions[0]) {
+    return [newUrl, actions].join('/');
+  }
+  return newUrl;
 }
 
 export function newDocumentUrl(collection: Collection): string {
