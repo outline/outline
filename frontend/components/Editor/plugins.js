@@ -25,7 +25,7 @@ const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
     }),
     DropOrPasteImages({
       extensions: ['png', 'jpg', 'gif'],
-      applyTransform: (transform, editor, file) => {
+      applyTransform: (transform, file, editor) => {
         return insertImage(
           transform,
           file,
