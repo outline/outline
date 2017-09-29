@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { homeUrl } from 'utils/routeHelpers';
 import Button from 'components/Button';
 import Flex from 'components/Flex';
 import HelpText from 'components/HelpText';
@@ -24,11 +23,11 @@ type Props = {
   handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
     this.isDeleting = true;
+    const { collection } = this.props.document;
     const success = await this.props.document.delete();
 
     if (success) {
-      this.props.documents.remove(this.props.document.id);
-      this.props.history.push(homeUrl());
+      this.props.history.push(collection.url);
       this.props.onSubmit();
     }
 
