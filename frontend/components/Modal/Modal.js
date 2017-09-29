@@ -18,7 +18,7 @@ type Props = {
 const Modal = ({
   children,
   isOpen,
-  title = 'Untitled Modal',
+  title = 'Untitled',
   onRequestClose,
   ...rest
 }: Props) => {

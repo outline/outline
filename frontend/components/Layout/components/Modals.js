@@ -52,7 +52,7 @@ import Settings from 'scenes/Settings';
         <Modal name="keyboard-shortcuts" title="Keyboard shortcuts">
           <KeyboardShortcuts />
         </Modal>
-        <Modal name="markdown-shortcuts" title="Markdown shortcuts">
+        <Modal name="markdown-shortcuts" title="Markdown formatting">
           <MarkdownShortcuts />
         </Modal>
         <Modal name="settings" title="Settings">

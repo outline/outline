@@ -36,6 +36,9 @@ function KeyboardShortcuts() {
 
         <Keys><Key>?</Key></Keys>
         <Label>Open this guide</Label>
+
+        <Keys><Key>#</Key></Keys>
+        <Label>Open markdown guide</Label>
       </List>
     </Flex>
   );
