@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { color } from 'styles/constants';
+import Key from 'components/Key';
 import Flex from 'components/Flex';
 import HelpText from 'components/HelpText';
 
@@ -34,9 +34,6 @@ function KeyboardShortcuts() {
         <Keys><Key>d</Key></Keys>
         <Label>Jump to dashboard</Label>
 
-        <Keys><Key>d</Key></Keys>
-        <Label>Jump to dashboard</Label>
-
         <Keys><Key>?</Key></Keys>
         <Label>Open this guide</Label>
       </List>
@@ -63,20 +60,6 @@ const Label = styled.dd`
   width: 75%;
   padding: 0 0 4px;
   margin: 0
-`;
-
-const Key = styled.kbd`
-  display: inline-block;
-  padding: 4px 6px;
-  font: 11px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-  line-height: 10px;
-  color: ${color.text};
-  vertical-align: middle;
-  background-color: ${color.smokeLight};
-  border: solid 1px ${color.slateLight};
-  border-bottom-color: ${color.slate};
-  border-radius: 3px;
-  box-shadow: inset 0 -1px 0 ${color.slate};
 `;
 
 export default KeyboardShortcuts;
