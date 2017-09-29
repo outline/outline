@@ -12,6 +12,8 @@ import {
   collectionUrl,
   updateDocumentUrl,
   documentMoveUrl,
+  documentEditUrl,
+  documentNewUrl,
   matchDocumentEdit,
   matchDocumentMove,
 } from 'utils/routeHelpers';
@@ -57,7 +59,6 @@ type Props = {
   @observable isSaving = false;
   @observable showAsSaved = false;
   @observable notFound = false;
-
   @observable moveModalOpen: boolean = false;
 
   componentWillMount() {
@@ -144,16 +145,12 @@ type Props = {
 
   onClickEdit = () => {
     if (!this.document) return;
-    const url = `${this.document.url}/edit`;
-    this.props.history.push(url);
+    this.props.history.push(documentEditUrl(this.document));
   };
 
   onClickNew = () => {
     if (!this.document) return;
-    let newUrl = `${this.document.collection.url}/new`;
-    if (this.document.parentDocumentId)
-      newUrl = `${newUrl}?parentDocument=${this.document.parentDocumentId}`;
-    this.props.history.push(newUrl);
+    this.props.history.push(documentNewUrl(this.document));
   };
 
   handleCloseMoveModal = () => (this.moveModalOpen = false);

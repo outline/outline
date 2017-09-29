@@ -22,6 +22,14 @@ export function documentUrl(doc: Document): string {
   return doc.url;
 }
 
+export function documentNewUrl(doc: Document): string {
+  const newUrl = `${doc.collection.url}/new`;
+  if (doc.parentDocumentId) {
+    return `${newUrl}?parentDocument=${doc.parentDocumentId}`;
+  }
+  return newUrl;
+}
+
 export function documentEditUrl(doc: Document): string {
   return `${doc.url}/edit`;
 }
