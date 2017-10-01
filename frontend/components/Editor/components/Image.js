@@ -70,7 +70,8 @@ const Caption = styled.input`
   font-size: 13px;
   font-style: italic;
   color: ${color.slate};
-  margin: 2px auto;
+  padding: 2px 0;
+  line-height: 16px;
   text-align: center;
   width: 100%;
   outline: none;
