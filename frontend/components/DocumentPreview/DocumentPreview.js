@@ -24,9 +24,16 @@ const StyledStar = styled(({ solid, ...props }) => <Icon {...props} />).attrs({
   top: 1px;
   margin-left: 4px;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
-  transition: opacity 100ms ease-in-out;
+  transition: all 100ms ease-in-out;
 
   ${props => props.solid && 'polygon { fill: #000};'}
+
+  &:hover {
+    transform: scale(1.1);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
 `;
 
 const DocumentLink = styled(Link)`
