@@ -29,32 +29,32 @@ function KeyboardShortcuts() {
         <Keys><Key>d</Key></Keys>
         <Label>Jump to dashboard</Label>
 
-        <Keys><Key>?</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>/</Key></Keys>
         <Label>Open this guide</Label>
       </List>
 
       <h2>Editor</h2>
       <List>
-        <Keys><Key>Cmd</Key> + <Key>Enter</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>Enter</Key></Keys>
         <Label>Save and exit document edit mode</Label>
-        <Keys><Key>Cmd</Key> + <Key>S</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>S</Key></Keys>
         <Label>Save document and continue editing</Label>
-        <Keys><Key>Cmd</Key> + <Key>Esc</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>Esc</Key></Keys>
         <Label>Cancel editing</Label>
 
-        <Keys><Key>Cmd</Key> + <Key>b</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>b</Key></Keys>
         <Label>Bold</Label>
-        <Keys><Key>Cmd</Key> + <Key>i</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>i</Key></Keys>
         <Label>Italic</Label>
-        <Keys><Key>Cmd</Key> + <Key>u</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>u</Key></Keys>
         <Label>Underline</Label>
-        <Keys><Key>Cmd</Key> + <Key>d</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>d</Key></Keys>
         <Label>Strikethrough</Label>
-        <Keys><Key>Cmd</Key> + <Key>k</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>k</Key></Keys>
         <Label>Link</Label>
-        <Keys><Key>Cmd</Key> + <Key>z</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>z</Key></Keys>
         <Label>Undo</Label>
-        <Keys><Key>Cmd</Key> + <Key>Shift</Key> + <Key>z</Key></Keys>
+        <Keys><Key>⌘</Key> + <Key>Shift</Key> + <Key>z</Key></Keys>
         <Label>Redo</Label>
       </List>
 
