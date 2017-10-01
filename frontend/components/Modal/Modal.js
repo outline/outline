@@ -18,7 +18,7 @@ type Props = {
 const Modal = ({
   children,
   isOpen,
-  title = 'Untitled Modal',
+  title = 'Untitled',
   onRequestClose,
   ...rest
 }: Props) => {
@@ -61,7 +61,8 @@ const StyledModal = styled(ReactModal)`
   overflow-x: hidden;
   overflow-y: auto;
   background: white;
-  padding: 15vh 2rem 2rem
+  padding: 13vh 2rem 2rem;
+  outline: none;
 `;
 
 const Close = styled.a`
