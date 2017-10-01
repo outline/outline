@@ -260,7 +260,7 @@ const StyledEditor = styled(Editor)`
     }
   }
 
-  p:first-of-type {
+  p:nth-child(2) {
     ${Placeholder} {
       visibility: visible;
     }
