@@ -215,6 +215,19 @@ export default function MarkdownShortcuts() {
         return this.onBackspace(ev, state);
       if (endOffset !== startBlock.length) return;
 
+      // Hitting enter while an image is selected should jump caret below and
+      // insert a new paragraph
+      if (startBlock.type === 'image') {
+        ev.preventDefault();
+        return state
+          .transform()
+          .collapseToEnd()
+          .insertBlock('paragraph')
+          .apply();
+      }
+
+      // Hitting enter in a heading or blockquote will split the node at that
+      // point and make the new node a paragraph
       if (
         startBlock.type !== 'heading1' &&
         startBlock.type !== 'heading2' &&
@@ -228,7 +241,6 @@ export default function MarkdownShortcuts() {
       }
 
       ev.preventDefault();
-
       return state.transform().splitBlock().setBlock('paragraph').apply();
     },
 
