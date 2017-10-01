@@ -48,6 +48,10 @@ function KeyboardShortcuts() {
         <Label>Italic</Label>
         <Keys><Key>Cmd</Key> + <Key>u</Key></Keys>
         <Label>Underline</Label>
+        <Keys><Key>Cmd</Key> + <Key>d</Key></Keys>
+        <Label>Strikethrough</Label>
+        <Keys><Key>Cmd</Key> + <Key>k</Key></Keys>
+        <Label>Link</Label>
         <Keys><Key>Cmd</Key> + <Key>z</Key></Keys>
         <Label>Undo</Label>
         <Keys><Key>Cmd</Key> + <Key>Shift</Key> + <Key>z</Key></Keys>
