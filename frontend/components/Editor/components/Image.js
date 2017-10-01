@@ -30,6 +30,7 @@ class Image extends Component {
     const caption = node.data.get('alt');
     const src = node.data.get('src');
     const active = state.isFocused && state.selection.hasEdgeIn(node);
+    const showCaption = !readOnly || caption;
 
     return (
       <CenteredImage>
@@ -40,15 +41,17 @@ class Image extends Component {
           active={active}
           loading={loading}
         />
-        <Caption
-          type="text"
-          placeholder="Write a caption"
-          onChange={this.handleChange}
-          onClick={this.handleClick}
-          defaultValue={caption}
-          contentEditable={false}
-          disabled={readOnly}
-        />
+        {showCaption &&
+          <Caption
+            type="text"
+            placeholder="Write a caption"
+            onChange={this.handleChange}
+            onClick={this.handleClick}
+            defaultValue={caption}
+            contentEditable={false}
+            disabled={readOnly}
+            tabIndex={-1}
+          />}
       </CenteredImage>
     );
   }
