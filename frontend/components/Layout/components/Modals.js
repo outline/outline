@@ -8,7 +8,6 @@ import CollectionEdit from 'scenes/CollectionEdit';
 import CollectionDelete from 'scenes/CollectionDelete';
 import DocumentDelete from 'scenes/DocumentDelete';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
-import MarkdownShortcuts from 'scenes/MarkdownShortcuts';
 import Settings from 'scenes/Settings';
 
 @observer class Modals extends Component {
@@ -51,9 +50,6 @@ import Settings from 'scenes/Settings';
         </Modal>
         <Modal name="keyboard-shortcuts" title="Keyboard shortcuts">
           <KeyboardShortcuts />
-        </Modal>
-        <Modal name="markdown-shortcuts" title="Markdown formatting">
-          <MarkdownShortcuts />
         </Modal>
         <Modal name="settings" title="Settings">
           <Settings />

@@ -73,11 +73,6 @@ type Props = {
     this.props.ui.setActiveModal('keyboard-shortcuts');
   }
 
-  @keydown('shift+3')
-  openMarkdownShortcuts() {
-    this.props.ui.setActiveModal('markdown-shortcuts');
-  }
-
   handleCreateCollection = () => {
     this.props.ui.setActiveModal('collection-new');
   };
