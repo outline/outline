@@ -1,27 +1,83 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
+import styled from 'styled-components';
 import type { Props } from '../types';
 import { color } from 'styles/constants';
-import styled from 'styled-components';
+
+class Image extends Component {
+  props: Props;
+
+  handleChange = (ev: SyntheticInputEvent) => {
+    const alt = ev.target.value;
+    const { editor, node } = this.props;
+    const data = node.data.toObject();
+    const state = editor
+      .getState()
+      .transform()
+      .setNodeByKey(node.key, { data: { ...data, alt } })
+      .apply();
+
+    editor.onChange(state);
+  };
+
+  handleClick = (ev: SyntheticInputEvent) => {
+    ev.stopPropagation();
+  };
+
+  render() {
+    const { attributes, state, node, readOnly } = this.props;
+    const loading = node.data.get('loading');
+    const caption = node.data.get('alt');
+    const src = node.data.get('src');
+    const active = state.isFocused && state.selection.hasEdgeIn(node);
+
+    return (
+      <CenteredImage>
+        <StyledImg
+          {...attributes}
+          src={src}
+          alt={caption}
+          active={active}
+          loading={loading}
+        />
+        <Caption
+          type="text"
+          placeholder="Write a caption"
+          onChange={this.handleChange}
+          onClick={this.handleClick}
+          defaultValue={caption}
+          contentEditable={false}
+          disabled={readOnly}
+        />
+      </CenteredImage>
+    );
+  }
+}
 
 const StyledImg = styled.img`
-  box-shadow: ${props => (props.active ? `0 0 0 3px ${color.slate}` : '0')};
+  box-shadow: ${props => (props.active ? `0 0 0 2px ${color.slate}` : '0')};
+  border-radius: ${props => (props.active ? `2px` : '0')};
   opacity: ${props => (props.loading ? 0.5 : 1)};
 `;
 
-export default function Image({ attributes, state, node }: Props) {
-  const loading = node.data.get('loading');
-  const alt = node.data.get('alt');
-  const src = node.data.get('src');
-  const active = state.isFocused && state.selection.hasEdgeIn(node);
+const CenteredImage = styled.div`
+  text-align: center;
+`;
 
-  return (
-    <StyledImg
-      {...attributes}
-      src={src}
-      alt={alt}
-      active={active}
-      loading={loading}
-    />
-  );
-}
+const Caption = styled.input`
+  border: 0;
+  display: block;
+  font-size: 13px;
+  font-style: italic;
+  color: ${color.slate};
+  margin: 2px auto;
+  text-align: center;
+  width: 100%;
+  outline: none;
+
+  &::placeholder {
+    color: ${color.slate};
+  }
+`;
+
+export default Image;
