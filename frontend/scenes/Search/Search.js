@@ -143,7 +143,6 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
           <div>
             <h1>Not Found</h1>
             <p>We're unable to find the page you're accessing.</p>
-            <hr />
           </div>}
         <ResultsWrapper pinToTop={hasResults} column auto>
           <SearchField
