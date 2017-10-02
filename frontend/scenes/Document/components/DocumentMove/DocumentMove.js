@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { observable, computed, action } from 'mobx';
+import { observable, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router';
 import { Search } from 'js-search';
@@ -18,7 +18,7 @@ import PathToDocument from './components/PathToDocument';
 
 import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
-import CollectionsStore from 'stores/CollectionsStore';
+import CollectionsStore, { type DocumentPath } from 'stores/CollectionsStore';
 
 type Props = {
   match: Object,
@@ -28,16 +28,6 @@ type Props = {
   collections: CollectionsStore,
 };
 
-type DocumentResult = {
-  id: string,
-  title: string,
-  type: 'document' | 'collection', 
-}
-
-type SearchResult = DocumentResult & {
-  path: Array<DocumentResult>,
-}
-
 @observer class DocumentMove extends Component {
   props: Props;
   firstDocument: HTMLElement;
@@ -45,8 +35,7 @@ type SearchResult = DocumentResult & {
   @observable searchTerm: ?string;
   @observable isSaving: boolean;
 
-  @computed
-  get searchIndex() {
+  @computed get searchIndex() {
     const { document, collections } = this.props;
     const paths = collections.pathsToDocuments;
     const index = new Search('id');
@@ -55,49 +44,53 @@ type SearchResult = DocumentResult & {
     // Build index
     paths.forEach(path => {
       // TMP: For now, exclude paths to other collections
-      if (_.first(path).id !== document.collection.id) return;
+      if (_.first(path.path).id !== document.collection.id) return;
 
-      const tail = _.last(path);
-      index.addDocuments([{
-        ...tail,
-        path: path,
-      }]);
+      index.addDocuments([path]);
     });
 
     return index;
   }
 
-  @computed get results(): Array<SearchResult> {
+  @computed get results(): Array<DocumentPath> {
     const { document, collections } = this.props;
 
     let results = [];
     if (collections.isLoaded) {
       if (this.searchTerm) {
-        // Search by 
+        // Search by
         results = this.searchIndex.search(this.searchTerm);
       } else {
         // Default results, root of the current collection
-        results = document.collection.documents.map(
-          doc => collections.getPathForDocument(doc.id)
-        );
+        results = [];
+        document.collection.documents.forEach(doc => {
+          const path = collections.getPathForDocument(doc.id);
+          if (doc && path) {
+            results.push(path);
+          }
+        });
       }
     }
 
-    if (document.parentDocumentId) {
+    if (document && document.parentDocumentId) {
       // Add root if document does have a parent document
-      results = [
-        collections.getPathForDocument(document.collection.id),
-        ...results,
-      ]
-    } else {
-      // Exclude root from search results if document is already at the root
-      results = results.filter(result => 
-        result.id !== document.collection.id);
+      const rootPath = collections.getPathForDocument(document.collection.id);
+      if (rootPath) {
+        results = [rootPath, ...results];
+      }
+    }
+
+    // Exclude root from search results if document is already at the root
+    if (!document.parentDocumentId) {
+      results = results.filter(result => result.id !== document.collection.id);
     }
 
     // Exclude document if on the path to result, or the same result
     results = results.filter(result => {
-      return !result.path.map(doc => doc.id).includes(document.parentDocumentId);
+      return (
+        !result.path.map(doc => doc.id).includes(document.id) &&
+        !result.path.map(doc => doc.id).includes(document.parentDocumentId)
+      );
     });
 
     return results;
@@ -126,49 +119,58 @@ type SearchResult = DocumentResult & {
     this.firstDocument = ref;
   };
 
+  renderPathToCurrentDocument() {
+    const { collections, document } = this.props;
+    const result = collections.getPathForDocument(document.id);
+    if (result) {
+      return <PathToDocument result={result} />;
+    }
+  }
+
   render() {
-    const { document, documents, collections } = this.props;
+    const { document, collections } = this.props;
 
     return (
       <Modal isOpen onRequestClose={this.handleClose} title="Move document">
-        {collections.isLoaded ? (
-          <Flex column>
-            <Section>
-              <Labeled label="Current location">
-                <PathToDocument result={collections.getPathForDocument(document.id)} />
-              </Labeled>
-            </Section>
+        {document && collections.isLoaded
+          ? <Flex column>
+              <Section>
+                <Labeled label="Current location">
+                  {this.renderPathToCurrentDocument()}
+                </Labeled>
+              </Section>
 
-            <Section column>
-              <Labeled label="Choose a new location">
-                <Input
-                  type="text"
-                  placeholder="Filter by document name"
-                  onKeyDown={this.handleKeyDown}
-                  onChange={this.handleFilter}
-                  required
-                  autoFocus
-                />
-              </Labeled>
-              <Flex column>
-                <StyledArrowKeyNavigation
-                  mode={ArrowKeyNavigation.mode.VERTICAL}
-                  defaultActiveChildIndex={0}
-                >
-                  {this.results.map((result, index) => (
-                    <PathToDocument
-                      key={result.id}
-                      result={result}
-                      document={document}
-                      ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
-                      onClick={ () => 'move here' }
-                    />
-                  ))}
-                </StyledArrowKeyNavigation>
-              </Flex>
-            </Section>
-          </Flex>
-        ) : <div>loading</div>}
+              <Section column>
+                <Labeled label="Choose a new location">
+                  <Input
+                    type="text"
+                    placeholder="Filter by document name"
+                    onKeyDown={this.handleKeyDown}
+                    onChange={this.handleFilter}
+                    required
+                    autoFocus
+                  />
+                </Labeled>
+                <Flex column>
+                  <StyledArrowKeyNavigation
+                    mode={ArrowKeyNavigation.mode.VERTICAL}
+                    defaultActiveChildIndex={0}
+                  >
+                    {this.results.map((result, index) => (
+                      <PathToDocument
+                        key={result.id}
+                        result={result}
+                        document={document}
+                        ref={ref =>
+                          index === 0 && this.setFirstDocumentRef(ref)}
+                        onSuccess={this.handleClose}
+                      />
+                    ))}
+                  </StyledArrowKeyNavigation>
+                </Flex>
+              </Section>
+            </Flex>
+          : <div />}
       </Modal>
     );
   }

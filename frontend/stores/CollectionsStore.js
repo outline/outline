@@ -22,6 +22,16 @@ type Options = {
   ui: UiStore,
 };
 
+type DocumentPathItem = {
+  id: string,
+  title: string,
+  type: 'document' | 'collection',
+};
+
+export type DocumentPath = DocumentPathItem & {
+  path: Array<DocumentPathItem>,
+};
+
 class CollectionsStore {
   @observable data: ObservableArray<Collection> = observable.array([]);
   @observable isLoaded: boolean = false;
@@ -41,7 +51,7 @@ class CollectionsStore {
   /**
    * List of paths to each of the documents, where paths are composed of id and title/name pairs
    */
-  @computed get pathsToDocuments(): ?[[{ id: string, title: string }]] {
+  @computed get pathsToDocuments(): Array<DocumentPath> {
     let results = [];
     const travelDocuments = (documentList, path) =>
       documentList.forEach(document => {
@@ -60,17 +70,17 @@ class CollectionsStore {
       });
     }
 
-    return results;
+    return results.map(result => {
+      const tail = _.last(result);
+      return {
+        ...tail,
+        path: result,
+      };
+    });
   }
 
-  getPathForDocument(documentId: string): Object {
-    const result = this.pathsToDocuments.find(path => _.last(path).id === documentId);
-
-    const tail = _.last(result);
-    return {
-      ...tail,
-      path: result,
-    }
+  getPathForDocument(documentId: string): ?DocumentPath {
+    return this.pathsToDocuments.find(path => path.id === documentId);
   }
 
   /* Actions */

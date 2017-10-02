@@ -1,13 +1,15 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-import _ from 'lodash';
 import invariant from 'invariant';
+import _ from 'lodash';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
 
 import Flex from 'components/Flex';
 import ChevronIcon from 'components/Icon/ChevronIcon';
+
+import Document from 'models/Document';
 
 const ResultWrapper = styled.div`
   display: flex;
@@ -46,28 +48,41 @@ const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
 
 type Props = {
   result: Object,
-  document: Document,
-  onClick?: Function,
+  document?: Document,
+  onSuccess?: Function,
   ref?: Function,
 };
 
 @observer class PathToDocument extends React.Component {
   props: Props;
 
-  render() {
-    const { result, document, onClick, ref } = this.props;
-    // $FlowIssue we'll always have a document
-    const Component = onClick ? ResultWrapperLink : ResultWrapper;
+  handleClick = async (ev: SyntheticEvent) => {
+    ev.preventDefault();
+    const { document, result, onSuccess } = this.props;
 
-    if (!result) return <div/>;
+    invariant(onSuccess && document, 'onSuccess unavailable');
+
+    if (result.type === 'document') {
+      await document.move(result.id);
+    } else if (
+      result.type === 'collection' &&
+      result.id === document.collection.id
+    ) {
+      await document.move(null);
+    } else {
+      throw new Error('Not implemented yet');
+    }
+    onSuccess();
+  };
+
+  render() {
+    const { result, document, ref } = this.props;
+    const Component = document ? ResultWrapperLink : ResultWrapper;
+
+    if (!result) return <div />;
 
     return (
-      <Component
-        innerRef={ref}
-        selectable
-        href
-        onClick={onClick}
-      >
+      <Component innerRef={ref} selectable href onClick={this.handleClick}>
         {result.path
           .map(doc => <span key={doc.id}>{doc.title}</span>)
           .reduce((prev, curr) => [prev, <StyledChevronIcon />, curr])}
