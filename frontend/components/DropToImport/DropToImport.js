@@ -8,20 +8,23 @@ import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
 import LoadingIndicator from 'components/LoadingIndicator';
 
+type Props = {
+  children?: React$Element<any>,
+  collectionId: string,
+  documentId?: string,
+  activeClassName?: string,
+  rejectClassName?: string,
+  documents: DocumentsStore,
+  disabled: boolean,
+  dropzoneRef: Function,
+  history: Object,
+};
+
 class DropToImport extends Component {
   state: {
     isImporting: boolean,
   };
-  props: {
-    children?: React$Element<any>,
-    collectionId: string,
-    documentId?: string,
-    activeClassName?: string,
-    rejectClassName?: string,
-    documents: DocumentsStore,
-    disabled: boolean,
-    history: Object,
-  };
+  props: Props;
   state = {
     isImporting: false,
   };
@@ -98,6 +101,7 @@ class DropToImport extends Component {
         disableClick
         disablePreview
         multiple
+        ref={this.props.dropzoneRef}
         {...props}
       >
         {this.state.isImporting && <LoadingIndicator />}
