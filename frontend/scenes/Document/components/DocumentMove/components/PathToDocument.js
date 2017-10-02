@@ -9,9 +9,6 @@ import { color } from 'styles/constants';
 import Flex from 'components/Flex';
 import ChevronIcon from 'components/Icon/ChevronIcon';
 
-import Document from 'models/Document';
-import DocumentsStore from 'stores/DocumentsStore';
-
 const ResultWrapper = styled.div`
   display: flex;
   margin-bottom: 10px;
@@ -48,59 +45,36 @@ const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
 `;
 
 type Props = {
-  documentId?: string,
-  onSuccess?: Function,
-  documents: DocumentsStore,
-  document?: Document,
+  result: Object,
+  document: Document,
+  onClick?: Function,
   ref?: Function,
-  selectable?: boolean,
 };
 
 @observer class PathToDocument extends React.Component {
   props: Props;
 
-  get resultDocument(): ?Document {
-    const { documentId } = this.props;
-    if (documentId) return this.props.documents.getById(documentId);
-  }
-
-  handleSelect = async (event: SyntheticEvent) => {
-    const { document, onSuccess } = this.props;
-
-    invariant(onSuccess && document, 'onSuccess unavailable');
-    event.preventDefault();
-    await document.move(this.resultDocument ? this.resultDocument.id : null);
-    onSuccess();
-  };
-
   render() {
-    const { document, documentId, onSuccess, ref } = this.props;
+    const { result, document, onClick, ref } = this.props;
     // $FlowIssue we'll always have a document
-    const { collection } = documentId ? this.resultDocument : document;
-    const Component = onSuccess ? ResultWrapperLink : ResultWrapper;
+    const Component = onClick ? ResultWrapperLink : ResultWrapper;
 
-    // Exclude document when it's part of the path and not the preview
+    if (!result) return <div/>;
+
     return (
       <Component
         innerRef={ref}
         selectable
         href
-        onClick={onSuccess && this.handleSelect}
+        onClick={onClick}
       >
-        {collection.name}
-        {this.resultDocument &&
-          <Flex>
-            {' '}
-            <StyledChevronIcon />
-            {' '}
-            {this.resultDocument.pathToDocument
-              .map(doc => <span key={doc.id}>{doc.title}</span>)
-              .reduce((prev, curr) => [prev, <StyledChevronIcon />, curr])}
-          </Flex>}
+        {result.path
+          .map(doc => <span key={doc.id}>{doc.title}</span>)
+          .reduce((prev, curr) => [prev, <StyledChevronIcon />, curr])}
         {document &&
           <Flex>
             {' '}
-            <StyledChevronIcon />
+            <ChevronIcon />
             {' '}{document.title}
           </Flex>}
       </Component>

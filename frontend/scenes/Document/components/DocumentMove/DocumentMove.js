@@ -1,9 +1,10 @@
 // @flow
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { observable, action } from 'mobx';
+import { observable, computed, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router';
+import { Search } from 'js-search';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import _ from 'lodash';
 import styled from 'styled-components';
@@ -17,25 +18,89 @@ import PathToDocument from './components/PathToDocument';
 
 import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
+import CollectionsStore from 'stores/CollectionsStore';
 
 type Props = {
   match: Object,
   history: Object,
   document: Document,
   documents: DocumentsStore,
+  collections: CollectionsStore,
 };
+
+type DocumentResult = {
+  id: string,
+  title: string,
+  type: 'document' | 'collection', 
+}
+
+type SearchResult = DocumentResult & {
+  path: Array<DocumentResult>,
+}
 
 @observer class DocumentMove extends Component {
   props: Props;
   firstDocument: HTMLElement;
 
+  @observable searchTerm: ?string;
   @observable isSaving: boolean;
-  @observable resultIds: Array<string> = []; // Document IDs
-  @observable searchTerm: ?string = null;
-  @observable isFetching = false;
 
-  componentDidMount() {
-    this.setDefaultResult();
+  @computed
+  get searchIndex() {
+    const { document, collections } = this.props;
+    const paths = collections.pathsToDocuments;
+    const index = new Search('id');
+    index.addIndex('title');
+
+    // Build index
+    paths.forEach(path => {
+      // TMP: For now, exclude paths to other collections
+      if (_.first(path).id !== document.collection.id) return;
+
+      const tail = _.last(path);
+      index.addDocuments([{
+        ...tail,
+        path: path,
+      }]);
+    });
+
+    return index;
+  }
+
+  @computed get results(): Array<SearchResult> {
+    const { document, collections } = this.props;
+
+    let results = [];
+    if (collections.isLoaded) {
+      if (this.searchTerm) {
+        // Search by 
+        results = this.searchIndex.search(this.searchTerm);
+      } else {
+        // Default results, root of the current collection
+        results = document.collection.documents.map(
+          doc => collections.getPathForDocument(doc.id)
+        );
+      }
+    }
+
+    if (document.parentDocumentId) {
+      // Add root if document does have a parent document
+      results = [
+        collections.getPathForDocument(document.collection.id),
+        ...results,
+      ]
+    } else {
+      // Exclude root from search results if document is already at the root
+      results = results.filter(result => 
+        result.id !== document.collection.id);
+    }
+
+    // Exclude document if on the path to result, or the same result
+    results = results.filter(result => {
+      return !result.path.map(doc => doc.id).includes(document.parentDocumentId);
+    });
+
+    return results;
   }
 
   handleKeyDown = ev => {
@@ -53,101 +118,57 @@ type Props = {
     this.props.history.push(this.props.document.url);
   };
 
-  handleFilter = (ev: SyntheticInputEvent) => {
-    this.searchTerm = ev.target.value;
-    this.updateSearchResults();
+  handleFilter = (e: SyntheticInputEvent) => {
+    this.searchTerm = e.target.value;
   };
-
-  updateSearchResults = _.debounce(() => {
-    this.search();
-  }, 250);
 
   setFirstDocumentRef = ref => {
     this.firstDocument = ref;
   };
 
-  @action setDefaultResult() {
-    this.resultIds = this.props.document.collection.documents.map(
-      doc => doc.id
-    );
-  }
-
-  @action search = async () => {
-    this.isFetching = true;
-
-    if (this.searchTerm) {
-      try {
-        this.resultIds = await this.props.documents.search(this.searchTerm);
-      } catch (e) {
-        console.error('Something went wrong');
-      }
-    } else {
-      this.setDefaultResult();
-    }
-
-    this.isFetching = false;
-  };
-
   render() {
-    const { document, documents } = this.props;
-    let resultSet;
-
-    resultSet = this.resultIds.filter(docId => {
-      const resultDoc = documents.getById(docId);
-
-      if (document && resultDoc) {
-        return (
-          // Exclude the document if it's on the path to a potential new path
-          !resultDoc.pathToDocument.map(doc => doc.id).includes(document.id) &&
-          // Exclude if the same path, e.g the last one before the current
-          _.last(resultDoc.pathToDocument).id !== document.parentDocumentId
-        );
-      }
-      return true;
-    });
-
-    // Prepend root if document does have a parent document
-    resultSet = document.parentDocumentId
-      ? _.concat(null, resultSet)
-      : this.resultIds;
+    const { document, documents, collections } = this.props;
 
     return (
       <Modal isOpen onRequestClose={this.handleClose} title="Move document">
-        <Section>
-          <Labeled label="Current location">
-            <PathToDocument documentId={document.id} documents={documents} />
-          </Labeled>
-        </Section>
-
-        <Section column>
-          <Labeled label="Choose a new location">
-            <Input
-              type="text"
-              placeholder="Filter by document name"
-              onKeyDown={this.handleKeyDown}
-              onChange={this.handleFilter}
-              required
-              autoFocus
-            />
-          </Labeled>
+        {collections.isLoaded ? (
           <Flex column>
-            <StyledArrowKeyNavigation
-              mode={ArrowKeyNavigation.mode.VERTICAL}
-              defaultActiveChildIndex={0}
-            >
-              {resultSet.map((documentId, index) => (
-                <PathToDocument
-                  key={documentId || document.id}
-                  documentId={documentId}
-                  documents={documents}
-                  document={document}
-                  ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
-                  onSuccess={this.handleClose}
+            <Section>
+              <Labeled label="Current location">
+                <PathToDocument result={collections.getPathForDocument(document.id)} />
+              </Labeled>
+            </Section>
+
+            <Section column>
+              <Labeled label="Choose a new location">
+                <Input
+                  type="text"
+                  placeholder="Filter by document name"
+                  onKeyDown={this.handleKeyDown}
+                  onChange={this.handleFilter}
+                  required
+                  autoFocus
                 />
-              ))}
-            </StyledArrowKeyNavigation>
+              </Labeled>
+              <Flex column>
+                <StyledArrowKeyNavigation
+                  mode={ArrowKeyNavigation.mode.VERTICAL}
+                  defaultActiveChildIndex={0}
+                >
+                  {this.results.map((result, index) => (
+                    <PathToDocument
+                      key={result.id}
+                      result={result}
+                      document={document}
+                      ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
+                      onClick={ () => 'move here' }
+                    />
+                  ))}
+                </StyledArrowKeyNavigation>
+              </Flex>
+            </Section>
           </Flex>
-        </Section>
+        ) : <div>loading</div>}
       </Modal>
     );
   }
@@ -163,4 +184,4 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
-export default withRouter(inject('documents')(DocumentMove));
+export default withRouter(inject('documents', 'collections')(DocumentMove));

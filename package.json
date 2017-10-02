@@ -4,14 +4,11 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build:webpack":
-      "NODE_ENV=production webpack --config webpack.config.prod.js",
-    "build:analyze":
-      "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
+    "build:webpack": "NODE_ENV=production webpack --config webpack.config.prod.js",
+    "build:analyze": "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "node index.js",
-    "dev":
-      "NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --inspect --watch server index.js",
+    "dev": "NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --inspect --watch server index.js",
     "lint": "npm run lint:flow && npm run lint:js",
     "lint:js": "eslint frontend",
     "lint:flow": "flow",
@@ -21,24 +18,39 @@
     "sequelize:migrate": "sequelize db:migrate",
     "test": "npm run test:frontend && npm run test:server",
     "test:frontend": "jest",
-    "test:server":
-      "jest --config=server/.jestconfig.json --runInBand --forceExit",
+    "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.js": ["eslint --fix", "git add"]
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "jest": {
     "verbose": false,
-    "roots": ["frontend"],
+    "roots": [
+      "frontend"
+    ],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },
-    "moduleFileExtensions": ["js", "jsx", "json"],
-    "moduleDirectories": ["node_modules"],
-    "modulePaths": ["frontend"],
-    "setupFiles": ["<rootDir>/setupJest.js", "<rootDir>/__mocks__/window.js"]
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "modulePaths": [
+      "frontend"
+    ],
+    "setupFiles": [
+      "<rootDir>/setupJest.js",
+      "<rootDir>/__mocks__/window.js"
+    ]
   },
   "engines": {
     "node": ">= 7.6"
@@ -95,6 +107,7 @@
     "imports-loader": "0.6.5",
     "invariant": "^2.2.2",
     "isomorphic-fetch": "2.2.1",
+    "js-search": "^1.4.2",
     "js-tree": "1.1.0",
     "json-loader": "0.5.4",
     "jsonwebtoken": "7.0.1",
@@ -157,8 +170,7 @@
     "string-hash": "^1.1.0",
     "style-loader": "^0.18.2",
     "styled-components": "^2.0.0",
-    "truncate-html":
-      "https://github.com/jorilallo/truncate-html/tarball/master",
+    "truncate-html": "https://github.com/jorilallo/truncate-html/tarball/master",
     "url-loader": "0.5.7",
     "uuid": "2.0.2",
     "validator": "5.2.0",

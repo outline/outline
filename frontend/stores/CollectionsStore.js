@@ -46,7 +46,7 @@ class CollectionsStore {
     const travelDocuments = (documentList, path) =>
       documentList.forEach(document => {
         const { id, title } = document;
-        const node = { id, title };
+        const node = { id, title, type: 'document' };
         results.push(_.concat(path, node));
         travelDocuments(document.children, _.concat(path, [node]));
       });
@@ -54,12 +54,23 @@ class CollectionsStore {
     if (this.isLoaded) {
       this.data.forEach(collection => {
         const { id, name } = collection;
-        const node = { id, title: name };
+        const node = { id, title: name, type: 'collection' };
+        results.push([node]);
         travelDocuments(collection.documents, [node]);
       });
     }
 
     return results;
+  }
+
+  getPathForDocument(documentId: string): Object {
+    const result = this.pathsToDocuments.find(path => _.last(path).id === documentId);
+
+    const tail = _.last(result);
+    return {
+      ...tail,
+      path: result,
+    }
   }
 
   /* Actions */
