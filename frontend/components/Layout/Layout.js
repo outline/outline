@@ -46,7 +46,7 @@ type Props = {
     search: true,
   };
 
-  @keydown(['/', 't', 'meta+k'])
+  @keydown(['/', 't'])
   goToSearch(ev) {
     ev.preventDefault();
     ev.stopPropagation();
