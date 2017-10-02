@@ -55,7 +55,6 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
             </DropdownMenuItem>
             <DropdownMenuItem onClick={this.onEdit}>Edit</DropdownMenuItem>
           </Flex>}
-        }
         {allowDelete &&
           <DropdownMenuItem onClick={this.onDelete}>Delete</DropdownMenuItem>}
       </DropdownMenu>
