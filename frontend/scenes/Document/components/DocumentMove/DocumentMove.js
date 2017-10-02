@@ -58,7 +58,7 @@ type Props = {
     let results = [];
     if (collections.isLoaded) {
       if (this.searchTerm) {
-        // Search by
+        // Search by the keyword
         results = this.searchIndex.search(this.searchTerm);
       } else {
         // Default results, root of the current collection
@@ -132,45 +132,44 @@ type Props = {
 
     return (
       <Modal isOpen onRequestClose={this.handleClose} title="Move document">
-        {document && collections.isLoaded
-          ? <Flex column>
-              <Section>
-                <Labeled label="Current location">
-                  {this.renderPathToCurrentDocument()}
-                </Labeled>
-              </Section>
+        {document &&
+          collections.isLoaded &&
+          <Flex column>
+            <Section>
+              <Labeled label="Current location">
+                {this.renderPathToCurrentDocument()}
+              </Labeled>
+            </Section>
 
-              <Section column>
-                <Labeled label="Choose a new location">
-                  <Input
-                    type="text"
-                    placeholder="Filter by document name"
-                    onKeyDown={this.handleKeyDown}
-                    onChange={this.handleFilter}
-                    required
-                    autoFocus
-                  />
-                </Labeled>
-                <Flex column>
-                  <StyledArrowKeyNavigation
-                    mode={ArrowKeyNavigation.mode.VERTICAL}
-                    defaultActiveChildIndex={0}
-                  >
-                    {this.results.map((result, index) => (
-                      <PathToDocument
-                        key={result.id}
-                        result={result}
-                        document={document}
-                        ref={ref =>
-                          index === 0 && this.setFirstDocumentRef(ref)}
-                        onSuccess={this.handleClose}
-                      />
-                    ))}
-                  </StyledArrowKeyNavigation>
-                </Flex>
-              </Section>
-            </Flex>
-          : <div />}
+            <Section column>
+              <Labeled label="Choose a new location">
+                <Input
+                  type="text"
+                  placeholder="Filter by document name"
+                  onKeyDown={this.handleKeyDown}
+                  onChange={this.handleFilter}
+                  required
+                  autoFocus
+                />
+              </Labeled>
+              <Flex column>
+                <StyledArrowKeyNavigation
+                  mode={ArrowKeyNavigation.mode.VERTICAL}
+                  defaultActiveChildIndex={0}
+                >
+                  {this.results.map((result, index) => (
+                    <PathToDocument
+                      key={result.id}
+                      result={result}
+                      document={document}
+                      ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
+                      onSuccess={this.handleClose}
+                    />
+                  ))}
+                </StyledArrowKeyNavigation>
+              </Flex>
+            </Section>
+          </Flex>}
       </Modal>
     );
   }
