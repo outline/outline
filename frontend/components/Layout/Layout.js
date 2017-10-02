@@ -69,7 +69,7 @@ type Props = {
   }
 
   @keydown('shift+/')
-  goToOpenKeyboardShortcuts() {
+  openKeyboardShortcuts() {
     this.props.ui.setActiveModal('keyboard-shortcuts');
   }
 

@@ -137,3 +137,7 @@ hr {
 .activeDropZone a {
   color: #FFF !important;
 }
+
+.ReactModal__Body--open {
+  overflow: hidden;
+}

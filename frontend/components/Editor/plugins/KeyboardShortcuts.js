@@ -22,6 +22,11 @@ export default function KeyboardShortcuts() {
           return this.toggleMark(state, 'underlined');
         case 'd':
           return this.toggleMark(state, 'deleted');
+        case 'k':
+          return state
+            .transform()
+            .wrapInline({ type: 'link', data: { href: '' } })
+            .apply();
         default:
           return null;
       }
