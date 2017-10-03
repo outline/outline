@@ -1,6 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import styled from 'styled-components';
+import { color } from 'styles/constants';
 import type { Props } from '../types';
 
 export default class TodoItem extends Component {
@@ -22,7 +23,7 @@ export default class TodoItem extends Component {
     const { children, checked, readOnly } = this.props;
 
     return (
-      <ListItem>
+      <ListItem checked={checked}>
         <Input
           type="checkbox"
           checked={checked}
@@ -39,6 +40,8 @@ export default class TodoItem extends Component {
 const ListItem = styled.li`
   padding-left: 1.4em;
   position: relative;
+  text-decoration: ${props => (props.checked ? 'line-through' : 'none')};
+  color: ${props => (props.checked ? color.slateDark : 'inherit')};
 `;
 
 const Input = styled.input`
