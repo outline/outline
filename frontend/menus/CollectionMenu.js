@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import Icon from 'components/Icon';
+import Flex from 'components/Flex';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 @observer class CollectionMenu extends Component {
@@ -13,6 +14,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
     label?: React$Element<any>,
     onShow?: () => void,
     onClose?: () => void,
+    onImport?: () => void,
     history: Object,
     ui: UiStore,
     collection: Collection,
@@ -34,7 +36,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
   };
 
   render() {
-    const { collection, label, onShow, onClose } = this.props;
+    const { collection, label, onShow, onClose, onImport } = this.props;
     const { allowDelete } = collection;
 
     return (
@@ -44,11 +46,15 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
         onClose={onClose}
       >
         {collection &&
-          <DropdownMenuItem onClick={this.onNewDocument}>
-            New document
-          </DropdownMenuItem>}
-        {collection &&
-          <DropdownMenuItem onClick={this.onEdit}>Edit</DropdownMenuItem>}
+          <Flex column>
+            <DropdownMenuItem onClick={this.onNewDocument}>
+              New document
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onImport}>
+              Import document
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={this.onEdit}>Edit</DropdownMenuItem>
+          </Flex>}
         {allowDelete &&
           <DropdownMenuItem onClick={this.onDelete}>Delete</DropdownMenuItem>}
       </DropdownMenu>
