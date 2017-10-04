@@ -4,9 +4,6 @@
     "postdeploy": "yarn build && yarn sequelize:migrate"
   },
   "env": {
-    "ALLOWED_SLACK_DOMAINS": {
-      "required": true
-    },
     "AWS_ACCESS_KEY_ID": {
       "required": true
     },
@@ -50,12 +47,8 @@
       "required": true
     }
   },
-  "formation": {
-  },
-  "addons": [
-    "heroku-postgresql",
-    "heroku-redis"
-  ],
+  "formation": {},
+  "addons": ["heroku-postgresql", "heroku-redis"],
   "buildpacks": [
     {
       "url": "heroku/nodejs"

@@ -49,8 +49,13 @@ type Props = {
         <h1>Home</h1>
         {this.isLoaded
           ? <Flex column>
-              <Subheading>Recently viewed</Subheading>
-              <DocumentList documents={this.props.documents.recentlyViewed} />
+              {this.props.documents.recentlyViewed.length > 0 &&
+                <Flex column>
+                  <Subheading>Recently viewed</Subheading>
+                  <DocumentList
+                    documents={this.props.documents.recentlyViewed}
+                  />
+                </Flex>}
               <Subheading>Recently edited</Subheading>
               <DocumentList documents={this.props.documents.recentlyEdited} />
             </Flex>
