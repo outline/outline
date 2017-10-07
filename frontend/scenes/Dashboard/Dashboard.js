@@ -49,10 +49,20 @@ type Props = {
         <h1>Home</h1>
         {this.isLoaded
           ? <Flex column>
-              <Subheading>Recently viewed</Subheading>
-              <DocumentList documents={this.props.documents.recentlyViewed} />
-              <Subheading>Recently edited</Subheading>
-              <DocumentList documents={this.props.documents.recentlyEdited} />
+              {this.props.documents.recentlyViewed.length > 0 &&
+                <Flex column>
+                  <Subheading>Recently viewed</Subheading>
+                  <DocumentList
+                    documents={this.props.documents.recentlyViewed}
+                  />
+                </Flex>}
+              {this.props.documents.recentlyEdited.length > 0 &&
+                <Flex column>
+                  <Subheading>Recently edited</Subheading>
+                  <DocumentList
+                    documents={this.props.documents.recentlyEdited}
+                  />
+                </Flex>}
             </Flex>
           : <ListPlaceholder count={5} />}
       </CenteredContent>
