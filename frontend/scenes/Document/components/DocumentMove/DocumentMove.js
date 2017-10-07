@@ -42,17 +42,19 @@ type Props = {
     index.addIndex('title');
 
     // Build index
+    const indexeableDocuments = [];
     paths.forEach(path => {
       // TMP: For now, exclude paths to other collections
       if (_.first(path.path).id !== document.collection.id) return;
 
-      index.addDocuments([path]);
+      indexeableDocuments.push(path);
     });
+    index.addDocuments(indexeableDocuments);
 
     return index;
   }
 
-  @computed get results(): Array<DocumentPath> {
+  @computed get results(): DocumentPath[] {
     const { document, collections } = this.props;
 
     let results = [];
@@ -86,12 +88,11 @@ type Props = {
     }
 
     // Exclude document if on the path to result, or the same result
-    results = results.filter(result => {
-      return (
+    results = results.filter(
+      result =>
         !result.path.map(doc => doc.id).includes(document.id) &&
         !result.path.map(doc => doc.id).includes(document.parentDocumentId)
-      );
-    });
+    );
 
     return results;
   }
@@ -145,7 +146,7 @@ type Props = {
               <Labeled label="Choose a new location">
                 <Input
                   type="text"
-                  placeholder="Filter by document name"
+                  placeholder="Filter by document name…"
                   onKeyDown={this.handleKeyDown}
                   onChange={this.handleFilter}
                   required
