@@ -5,7 +5,6 @@ import {
   action,
   runInAction,
   ObservableArray,
-  autorunAsync,
 } from 'mobx';
 import ApiClient, { client } from 'utils/ApiClient';
 import _ from 'lodash';
@@ -17,12 +16,20 @@ import ErrorsStore from 'stores/ErrorsStore';
 import CacheStore from 'stores/CacheStore';
 import UiStore from 'stores/UiStore';
 
-const COLLECTION_CACHE_KEY = 'COLLECTION_CACHE_KEY';
-
 type Options = {
   teamId: string,
   cache: CacheStore,
   ui: UiStore,
+};
+
+type DocumentPathItem = {
+  id: string,
+  title: string,
+  type: 'document' | 'collection',
+};
+
+export type DocumentPath = DocumentPathItem & {
+  path: Array<DocumentPathItem>,
 };
 
 class CollectionsStore {
@@ -39,6 +46,41 @@ class CollectionsStore {
     return this.ui.activeCollectionId
       ? this.getById(this.ui.activeCollectionId)
       : undefined;
+  }
+
+  /**
+   * List of paths to each of the documents, where paths are composed of id and title/name pairs
+   */
+  @computed get pathsToDocuments(): Array<DocumentPath> {
+    let results = [];
+    const travelDocuments = (documentList, path) =>
+      documentList.forEach(document => {
+        const { id, title } = document;
+        const node = { id, title, type: 'document' };
+        results.push(_.concat(path, node));
+        travelDocuments(document.children, _.concat(path, [node]));
+      });
+
+    if (this.isLoaded) {
+      this.data.forEach(collection => {
+        const { id, name } = collection;
+        const node = { id, title: name, type: 'collection' };
+        results.push([node]);
+        travelDocuments(collection.documents, [node]);
+      });
+    }
+
+    return results.map(result => {
+      const tail = _.last(result);
+      return {
+        ...tail,
+        path: result,
+      };
+    });
+  }
+
+  getPathForDocument(documentId: string): ?DocumentPath {
+    return this.pathsToDocuments.find(path => path.id === documentId);
   }
 
   /* Actions */
@@ -99,21 +141,6 @@ class CollectionsStore {
     this.teamId = options.teamId;
     this.cache = options.cache;
     this.ui = options.ui;
-    //
-    // this.cache.getItem(COLLECTION_CACHE_KEY).then(data => {
-    //   if (data) {
-    //     this.data.replace(data.map(collection => new Collection(collection)));
-    //     this.isLoaded = true;
-    //   }
-    // });
-
-    autorunAsync('CollectionsStore.persists', () => {
-      if (this.data.length > 0)
-        this.cache.setItem(
-          COLLECTION_CACHE_KEY,
-          this.data.map(collection => collection.data)
-        );
-    });
   }
 }
 

@@ -264,7 +264,7 @@ router.post('documents.move', auth(), async ctx => {
   // Set parent document
   if (parentDocument) {
     const parent = await Document.findById(parentDocument);
-    if (parent.atlasId !== document.atlasId)
+    if (!parent || parent.atlasId !== document.atlasId)
       throw httpErrors.BadRequest(
         'Invalid parentDocument (must be same collection)'
       );
