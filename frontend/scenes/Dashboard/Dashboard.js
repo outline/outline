@@ -56,8 +56,13 @@ type Props = {
                     documents={this.props.documents.recentlyViewed}
                   />
                 </Flex>}
-              <Subheading>Recently edited</Subheading>
-              <DocumentList documents={this.props.documents.recentlyEdited} />
+              {this.props.documents.recentlyEdited.length > 0 &&
+                <Flex column>
+                  <Subheading>Recently edited</Subheading>
+                  <DocumentList
+                    documents={this.props.documents.recentlyEdited}
+                  />
+                </Flex>}
             </Flex>
           : <ListPlaceholder count={5} />}
       </CenteredContent>
