@@ -188,7 +188,7 @@ type KeyData = {
           <StyledEditor
             innerRef={ref => (this.editor = ref)}
             placeholder="Start with a title…"
-            bodyPlaceholder="Insert witty platitude here"
+            bodyPlaceholder="…the rest is your canvas"
             schema={this.schema}
             plugins={this.plugins}
             emoji={this.props.emoji}
