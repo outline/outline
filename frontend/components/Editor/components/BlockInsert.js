@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import Portal from 'react-portal';
 import styled from 'styled-components';
 import Icon from 'components/Icon';
+import BlockMenu from 'menus/BlockMenu';
 import _ from 'lodash';
 import type { State } from '../types';
 
@@ -33,31 +34,26 @@ export default class BlockInsert extends Component {
     window.addEventListener('mousemove', this.handleMouseMove);
   };
 
-  componentDidUpdate = () => {
-    this.update();
+  componentWillUpdate = nextProps => {
+    this.update(nextProps);
   };
 
   componentWillUnmount = () => {
     window.removeEventListener('mousemove', this.handleMouseMove);
   };
 
-  handleFocus = () => {
-    this.setState({ focused: true });
-  };
-
-  handleBlur = () => {
-    this.setState({ focused: false });
-  };
-
   setInactive = () => {
+    console.log('setInactive');
     this.setState({ active: false });
   };
 
   handleMouseMove = (ev: SyntheticEvent) => {
-    const windowHalfWidth = window.innerWidth / 2;
-    const active = ev.clientX < windowHalfWidth;
+    const windowWidth = window.innerWidth / 3;
+    const { state } = this.props;
+    let active = ev.clientX < windowWidth;
 
     if (active !== this.state.active) {
+      console.log('setting active', active);
       this.setState({ active });
     }
     if (active) {
@@ -66,20 +62,22 @@ export default class BlockInsert extends Component {
     }
   };
 
-  update = () => {
+  update = props => {
+    console.log('update');
     if (!document.activeElement) return;
-
+    const { state } = props || this.props;
     const boxRect = document.activeElement.getBoundingClientRect();
     const selection = window.getSelection();
-    if (!selection) return;
+    if (!selection.focusNode) return;
 
     const data = { ...this.state };
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
 
-    if (rect.top === 0 && rect.left === 0) {
-      this.setState(data);
-      return;
+    if (rect.top <= 0 || boxRect.left <= 0) return;
+
+    if (state.startBlock.type === 'heading1') {
+      data.active = false;
     }
 
     data.top = `${Math.round(rect.top + window.scrollY)}px`;
@@ -94,6 +92,14 @@ export default class BlockInsert extends Component {
     this.menu = ref;
   };
 
+  onInsertBreak = ev => {
+    ev.preventDefault();
+    let { state } = this.props;
+
+    state = state.transform().insertBlock('horizontal-rule').apply();
+    this.props.onChange(state);
+  };
+
   render() {
     const style = {
       top: this.state.top,
@@ -102,15 +108,22 @@ export default class BlockInsert extends Component {
 
     return (
       <Portal isOpened>
-        <Menu active={this.state.active} innerRef={this.setRef} style={style}>
-          <Icon type="PlusCircle" />
-        </Menu>
+        <Trigger
+          active={this.state.active}
+          innerRef={this.setRef}
+          style={style}
+        >
+          <BlockMenu
+            label={<Icon type="PlusCircle" />}
+            onInsertBreak={this.onInsertBreak}
+          />
+        </Trigger>
       </Portal>
     );
   }
 }
 
-const Menu = styled.div`
+const Trigger = styled.div`
   position: absolute;
   z-index: 1;
   opacity: 0;
@@ -124,6 +137,6 @@ const Menu = styled.div`
 
   ${({ active }) => active && `
     transform: scale(1);
-    opacity: 1;
+    opacity: .9;
   `}
 `;
