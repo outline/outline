@@ -235,17 +235,15 @@ router.post('documents.update', auth(), async ctx => {
   if (text) document.text = text;
   document.lastModifiedById = user.id;
 
-  const [updatedDocument, updatedCollection] = await Promise.all([
-    document.save(),
-    collection.type === 'atlas'
-      ? await collection.updateDocument(document)
-      : Promise.resolve(),
-  ]);
+  await document.save();
+  if (collection.type === 'atlas') {
+    await collection.updateDocument(document);
+  }
 
-  updatedDocument.collection = updatedCollection;
+  document.collection = collection;
 
   ctx.body = {
-    data: await presentDocument(ctx, updatedDocument),
+    data: await presentDocument(ctx, document),
   };
 });
 
@@ -258,6 +256,10 @@ router.post('documents.move', auth(), async ctx => {
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
+  const collection = await Collection.findById(document.atlasId);
+
+  if (collection.type !== 'atlas')
+    throw httpErrors.BadRequest("This document can't be moved");
 
   if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
 
@@ -277,14 +279,8 @@ router.post('documents.move', auth(), async ctx => {
   document.parentDocumentId = parentDocument;
   await document.save();
 
-  const collection = await Collection.findById(document.atlasId);
-  if (collection.type === 'atlas') {
-    await collection.deleteDocument(document);
-    await collection.addDocumentToStructure(document, index);
-  }
+  await collection.moveDocument(document, index);
   // Update collection
-  document.collection = collection;
-
   document.collection = collection;
 
   ctx.body = {
@@ -311,9 +307,9 @@ router.post('documents.delete', auth(), async ctx => {
       );
     }
 
-    // Delete all children
+    // Delete document and all of its children
     try {
-      await collection.deleteDocument(document);
+      await collection.removeDocument(document);
     } catch (e) {
       throw httpErrors.BadRequest('Error while deleting');
     }
