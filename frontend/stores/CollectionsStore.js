@@ -49,7 +49,7 @@ class CollectionsStore {
   }
 
   @computed get orderedData(): Collection[] {
-    return _.sortBy(this.data, collection => collection.name);
+    return _.sortBy(this.data, 'name');
   }
 
   /**
