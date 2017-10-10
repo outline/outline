@@ -94,13 +94,11 @@ Collection.associate = models => {
 // Instance methods
 
 Collection.prototype.getUrl = function() {
-  // const slugifiedName = slug(this.name);
-  // return `/${slugifiedName}-c${this.urlId}`;
   return `/collections/${this.id}`;
 };
 
 Collection.prototype.getDocumentsStructure = async function() {
-  // Lazy fill this.documentStructure
+  // Lazy fill this.documentStructure - TMP for internal release
   if (!this.documentStructure) {
     this.documentStructure = this.navigationTree.children;
 
@@ -121,26 +119,35 @@ Collection.prototype.getDocumentsStructure = async function() {
   return this.documentStructure;
 };
 
-Collection.prototype.addDocumentToStructure = async function(document, index) {
+Collection.prototype.addDocumentToStructure = async function(
+  document,
+  index,
+  options = {}
+) {
   if (!this.documentStructure) return;
+
+  // If moving existing document with children, use existing structure to
+  // keep everything in shape and not loose documents
+  const documentJson = {
+    ...document.toJSON(),
+    ...options.documentJson,
+  };
 
   if (!document.parentDocumentId) {
     this.documentStructure.splice(
-      index || this.documentStructure.length,
+      index !== undefined ? index : this.documentStructure.length,
       0,
-      document.toJSON()
+      documentJson
     );
-    // Sequelize doesn't seem to set the value with splice on JSONB field
-    this.documentStructure = this.documentStructure;
   } else {
     // Recursively place document
     const placeDocument = documentList => {
       return documentList.map(childDocument => {
         if (document.parentDocumentId === childDocument.id) {
           childDocument.children.splice(
-            index || childDocument.children.length,
+            index !== undefined ? index : childDocument.children.length,
             0,
-            document.toJSON()
+            documentJson
           );
         } else {
           childDocument.children = placeDocument(childDocument.children);
@@ -152,10 +159,16 @@ Collection.prototype.addDocumentToStructure = async function(document, index) {
     this.documentStructure = placeDocument(this.documentStructure);
   }
 
+  // Sequelize doesn't seem to set the value with splice on JSONB field
+  this.documentStructure = this.documentStructure;
   await this.save();
+
   return this;
 };
 
+/**
+ * Update document's title and url in the documentStructure
+ */
 Collection.prototype.updateDocument = async function(updatedDocument) {
   if (!this.documentStructure) return;
   const { id } = updatedDocument;
@@ -179,30 +192,83 @@ Collection.prototype.updateDocument = async function(updatedDocument) {
   return this;
 };
 
-Collection.prototype.deleteDocument = async function(document) {
+/**
+ * moveDocument is combination of removing the document from the structure
+ * and placing it back the the new location with the existing children.
+ */
+Collection.prototype.moveDocument = async function(document, index) {
   if (!this.documentStructure) return;
 
-  const deleteFromChildren = (children, id) => {
-    if (_.find(children, { id })) {
-      _.remove(children, { id });
-    } else {
-      children = children.map(childDocument => {
+  const documentJson = await this.removeDocument(document, {
+    deleteDocument: false,
+  });
+  await this.addDocumentToStructure(document, index, { documentJson });
+
+  return this;
+};
+
+type DeleteDocumentOptions = {
+  deleteDocument: boolean,
+};
+
+/**
+ * removeDocument is used for both deleting documents (deleteDocument: true)
+ * and removing them temporarily from the structure while they are being moved
+ * (deleteDocument: false).
+ */
+Collection.prototype.removeDocument = async function(
+  document,
+  options: DeleteDocumentOptions = { deleteDocument: true }
+) {
+  if (!this.documentStructure) return;
+  let returnValue;
+
+  // Helper to destroy all child documents for a document
+  const deleteChildren = async documentId => {
+    const childDocuments = await Document.findAll({
+      where: { parentDocumentId: documentId },
+    });
+    childDocuments.forEach(async child => {
+      await deleteChildren(child.id);
+      await child.destroy();
+    });
+  };
+
+  // Prune, and destroy if needed, from the document structure
+  const deleteFromChildren = async (children, id) => {
+    children = await Promise.all(
+      children.map(async childDocument => {
         return {
           ...childDocument,
-          children: deleteFromChildren(childDocument.children, id),
+          children: await deleteFromChildren(childDocument.children, id),
         };
-      });
+      })
+    );
+
+    const match = _.find(children, { id });
+    if (match) {
+      if (!options.deleteDocument && !returnValue) returnValue = match;
+      _.remove(children, { id });
+
+      if (options.deleteDocument) {
+        const childDocument = await Document.findById(id);
+        // Delete the actual document
+        await childDocument.destroy();
+        // Delete all child documents
+        await deleteChildren(id);
+      }
     }
+
     return children;
   };
 
-  this.documentStructure = deleteFromChildren(
+  this.documentStructure = await deleteFromChildren(
     this.documentStructure,
     document.id
   );
 
-  await this.save();
-  return this;
+  if (options.deleteDocument) await this.save();
+  return returnValue;
 };
 
 export default Collection;
