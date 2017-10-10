@@ -190,7 +190,11 @@ type KeyData = {
           {!readOnly &&
             <Toolbar state={this.state.state} onChange={this.onChange} />}
           {!readOnly &&
-            <BlockInsert state={this.state.state} onChange={this.onChange} />}
+            <BlockInsert
+              state={this.state.state}
+              onChange={this.onChange}
+              onInsertImage={this.insertImageFile}
+            />}
           <StyledEditor
             innerRef={ref => (this.editor = ref)}
             placeholder="Start with a title…"

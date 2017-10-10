@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Portal from 'react-portal';
 import styled from 'styled-components';
 import Icon from 'components/Icon';
@@ -11,6 +12,7 @@ export default class BlockInsert extends Component {
   props: {
     state: State,
     onChange: Function,
+    onInsertImage: File => Promise,
   };
 
   menu: HTMLElement;
@@ -100,6 +102,45 @@ export default class BlockInsert extends Component {
     this.props.onChange(state);
   };
 
+  onInsertTodoList = ev => {
+    ev.preventDefault();
+    let { state } = this.props;
+
+    state = state
+      .transform()
+      .insertBlock({ type: 'list-item', data: { checked: false } })
+      .wrapBlock('todo-list')
+      .collapseToEnd()
+      .focus()
+      .apply();
+    this.props.onChange(state);
+  };
+
+  onInsertList = ev => {
+    ev.preventDefault();
+    let { state } = this.props;
+
+    state = state
+      .transform()
+      .insertBlock('list-item')
+      .wrapBlock('bulleted-list')
+      .collapseToEnd()
+      .focus()
+      .apply();
+    this.props.onChange(state);
+  };
+
+  onPickImage = ev => {
+    this.file.click();
+  };
+
+  onChooseImage = async ev => {
+    const files = getDataTransferFiles(ev);
+    for (const file of files) {
+      await this.props.onInsertImage(file);
+    }
+  };
+
   render() {
     const style = {
       top: this.state.top,
@@ -113,8 +154,17 @@ export default class BlockInsert extends Component {
           innerRef={this.setRef}
           style={style}
         >
+          <HiddenInput
+            type="file"
+            innerRef={ref => (this.file = ref)}
+            onChange={this.onChooseImage}
+            accept="image/*"
+          />
           <BlockMenu
             label={<Icon type="PlusCircle" />}
+            onPickImage={this.onPickImage}
+            onInsertList={this.onInsertList}
+            onInsertTodoList={this.onInsertTodoList}
             onInsertBreak={this.onInsertBreak}
           />
         </Trigger>
@@ -122,6 +172,13 @@ export default class BlockInsert extends Component {
     );
   }
 }
+
+const HiddenInput = styled.input`
+  position: absolute;
+  top: -100px;
+  left: -100px;
+  visibility: hidden;
+`;
 
 const Trigger = styled.div`
   position: absolute;
