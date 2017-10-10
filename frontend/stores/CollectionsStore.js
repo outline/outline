@@ -48,6 +48,10 @@ class CollectionsStore {
       : undefined;
   }
 
+  @computed get orderedData(): Collection[] {
+    return _.sortBy(this.data, collection => collection.name);
+  }
+
   /**
    * List of paths to each of the documents, where paths are composed of id and title/name pairs
    */

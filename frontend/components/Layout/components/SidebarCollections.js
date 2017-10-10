@@ -33,7 +33,7 @@ type Props = {
     return (
       <Flex column>
         <Header>Collections</Header>
-        {collections.data.map(collection => (
+        {collections.orderedData.map(collection => (
           <CollectionLink
             key={collection.id}
             history={history}
