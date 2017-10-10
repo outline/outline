@@ -3,6 +3,7 @@ import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
 import Document from './Document';
+import Event from './Event';
 import _ from 'lodash';
 
 // $FlowIssue invalid flow-typed
@@ -125,6 +126,12 @@ Collection.prototype.addDocumentToStructure = async function(
   options = {}
 ) {
   if (!this.documentStructure) return;
+  const existingData = {
+    old: this.documentStructure,
+    documentId: document,
+    parentDocumentId: document.parentDocumentId,
+    index,
+  };
 
   // If moving existing document with children, use existing structure to
   // keep everything in shape and not loose documents
@@ -162,6 +169,16 @@ Collection.prototype.addDocumentToStructure = async function(
   // Sequelize doesn't seem to set the value with splice on JSONB field
   this.documentStructure = this.documentStructure;
   await this.save();
+
+  await Event.create({
+    name: 'Collection#addDocumentToStructure',
+    data: {
+      ...existingData,
+      new: this.documentStructure,
+    },
+    collectionId: this.id,
+    teamId: this.teamId,
+  });
 
   return this;
 };
@@ -222,6 +239,12 @@ Collection.prototype.removeDocument = async function(
 ) {
   if (!this.documentStructure) return;
   let returnValue;
+  const existingData = {
+    old: this.documentStructure,
+    documentId: document,
+    parentDocumentId: document.parentDocumentId,
+    options,
+  };
 
   // Helper to destroy all child documents for a document
   const deleteChildren = async documentId => {
@@ -268,6 +291,17 @@ Collection.prototype.removeDocument = async function(
   );
 
   if (options.deleteDocument) await this.save();
+
+  await Event.create({
+    name: 'Collection#removeDocument',
+    data: {
+      ...existingData,
+      new: this.documentStructure,
+    },
+    collectionId: this.id,
+    teamId: this.teamId,
+  });
+
   return returnValue;
 };
 
