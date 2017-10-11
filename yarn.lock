@@ -1041,12 +1041,12 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-bcrypt@^0.8.7:
-  version "0.8.7"
-  resolved "https://registry.yarnpkg.com/bcrypt/-/bcrypt-0.8.7.tgz#bc3875a9afd0a7b2cd231a6a7f218a5ce156b093"
+bcrypt@1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/bcrypt/-/bcrypt-1.0.3.tgz#b02ddc6c0b52ea16b8d3cf375d5a32e780dab548"
   dependencies:
-    bindings "1.2.1"
-    nan "2.3.5"
+    nan "2.6.2"
+    node-pre-gyp "0.6.36"
 
 beeper@^1.0.0:
   version "1.1.1"
@@ -1066,10 +1066,6 @@ binary-extensions@^1.0.0:
   dependencies:
     buffers "~0.1.1"
     chainsaw "~0.1.0"
-
-bindings@1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.2.1.tgz#14ad6113812d2d37d72e67b4cacb4bb726505f11"
 
 block-stream@*:
   version "0.0.9"
@@ -4858,6 +4854,10 @@ js-beautify@^1.6.11:
     mkdirp "~0.5.0"
     nopt "~3.0.1"
 
+js-cookie@^2.1.4:
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/js-cookie/-/js-cookie-2.1.4.tgz#da4ec503866f149d164cf25f579ef31015025d8d"
+
 js-search@^1.4.2:
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/js-search/-/js-search-1.4.2.tgz#59a91e117d6badb20bf0d7643ba7577d5a81d7e2"
@@ -6030,7 +6030,11 @@ mz@2:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@2.3.5, nan@^2.3.0:
+nan@2.6.2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.6.2.tgz#e4ff34e6c95fdfb5aecc08de6596f43605a7db45"
+
+nan@^2.3.0:
   version "2.3.5"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.3.5.tgz#822a0dc266290ce4cd3a12282ca3e7e364668a08"
 
@@ -6185,7 +6189,7 @@ node-notifier@^5.0.2:
     shellwords "^0.1.0"
     which "^1.2.12"
 
-node-pre-gyp@^0.6.36:
+node-pre-gyp@0.6.36, node-pre-gyp@^0.6.36:
   version "0.6.36"
   resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.6.36.tgz#db604112cb74e0d477554e9b505b17abddfab786"
   dependencies:
