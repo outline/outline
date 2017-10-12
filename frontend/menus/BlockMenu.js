@@ -7,10 +7,10 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 @observer class BlockMenu extends Component {
   props: {
     label?: React$Element<any>,
-    onPickImage: () => void,
-    onInsertList: () => void,
-    onInsertTodoList: () => void,
-    onInsertBreak: () => void,
+    onPickImage: SyntheticEvent => void,
+    onInsertList: SyntheticEvent => void,
+    onInsertTodoList: SyntheticEvent => void,
+    onInsertBreak: SyntheticEvent => void,
   };
 
   render() {

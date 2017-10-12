@@ -8,14 +8,14 @@ import BlockMenu from 'menus/BlockMenu';
 import _ from 'lodash';
 import type { State } from '../types';
 
-export default class BlockInsert extends Component {
-  props: {
-    state: State,
-    onChange: Function,
-    onInsertImage: File => Promise,
-  };
+type Props = {
+  state: State,
+  onChange: Function,
+  onInsertImage: File => Promise<*>,
+};
 
-  menu: HTMLElement;
+export default class BlockInsert extends Component {
+  props: Props;
   state: {
     active: boolean,
     focused: boolean,
@@ -24,6 +24,8 @@ export default class BlockInsert extends Component {
     mouseX: number,
   };
 
+  mouseMoveTimeout: number;
+  file: HTMLInputElement;
   state = {
     active: false,
     focused: false,
@@ -36,7 +38,7 @@ export default class BlockInsert extends Component {
     window.addEventListener('mousemove', this.handleMouseMove);
   };
 
-  componentWillUpdate = nextProps => {
+  componentWillUpdate = (nextProps: Props) => {
     this.update(nextProps);
   };
 
@@ -45,17 +47,14 @@ export default class BlockInsert extends Component {
   };
 
   setInactive = () => {
-    console.log('setInactive');
     this.setState({ active: false });
   };
 
-  handleMouseMove = (ev: SyntheticEvent) => {
+  handleMouseMove = (ev: SyntheticMouseEvent) => {
     const windowWidth = window.innerWidth / 3;
-    const { state } = this.props;
     let active = ev.clientX < windowWidth;
 
     if (active !== this.state.active) {
-      console.log('setting active', active);
       this.setState({ active });
     }
     if (active) {
@@ -64,8 +63,7 @@ export default class BlockInsert extends Component {
     }
   };
 
-  update = props => {
-    console.log('update');
+  update = (props?: Props) => {
     if (!document.activeElement) return;
     const { state } = props || this.props;
     const boxRect = document.activeElement.getBoundingClientRect();
@@ -90,51 +88,26 @@ export default class BlockInsert extends Component {
     }
   };
 
-  setRef = (ref: HTMLElement) => {
-    this.menu = ref;
-  };
-
-  onInsertBreak = ev => {
+  onClickBlock = (
+    ev: SyntheticEvent,
+    type: string | Object,
+    wrapBlock?: string
+  ) => {
     ev.preventDefault();
     let { state } = this.props;
+    let transform = state.transform().insertBlock(type);
 
-    state = state.transform().insertBlock('horizontal-rule').apply();
+    if (wrapBlock) transform = transform.wrapBlock(wrapBlock);
+
+    state = transform.collapseToEnd().focus().apply();
     this.props.onChange(state);
   };
 
-  onInsertTodoList = ev => {
-    ev.preventDefault();
-    let { state } = this.props;
-
-    state = state
-      .transform()
-      .insertBlock({ type: 'list-item', data: { checked: false } })
-      .wrapBlock('todo-list')
-      .collapseToEnd()
-      .focus()
-      .apply();
-    this.props.onChange(state);
-  };
-
-  onInsertList = ev => {
-    ev.preventDefault();
-    let { state } = this.props;
-
-    state = state
-      .transform()
-      .insertBlock('list-item')
-      .wrapBlock('bulleted-list')
-      .collapseToEnd()
-      .focus()
-      .apply();
-    this.props.onChange(state);
-  };
-
-  onPickImage = ev => {
+  onPickImage = (ev: SyntheticEvent) => {
     this.file.click();
   };
 
-  onChooseImage = async ev => {
+  onChooseImage = async (ev: SyntheticEvent) => {
     const files = getDataTransferFiles(ev);
     for (const file of files) {
       await this.props.onInsertImage(file);
@@ -149,11 +122,7 @@ export default class BlockInsert extends Component {
 
     return (
       <Portal isOpened>
-        <Trigger
-          active={this.state.active}
-          innerRef={this.setRef}
-          style={style}
-        >
+        <Trigger active={this.state.active} style={style}>
           <HiddenInput
             type="file"
             innerRef={ref => (this.file = ref)}
@@ -163,9 +132,15 @@ export default class BlockInsert extends Component {
           <BlockMenu
             label={<Icon type="PlusCircle" />}
             onPickImage={this.onPickImage}
-            onInsertList={this.onInsertList}
-            onInsertTodoList={this.onInsertTodoList}
-            onInsertBreak={this.onInsertBreak}
+            onInsertList={ev =>
+              this.onClickBlock(ev, 'list-item', 'bulleted-list')}
+            onInsertTodoList={ev =>
+              this.onClickBlock(
+                ev,
+                { type: 'list-item', data: { checked: false } },
+                'todo-list'
+              )}
+            onInsertBreak={ev => this.onClickBlock(ev, 'horizontal-rule')}
           />
         </Trigger>
       </Portal>

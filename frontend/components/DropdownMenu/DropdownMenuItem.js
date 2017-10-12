@@ -1,6 +1,5 @@
 // @flow
 import React from 'react';
-import Icon from 'components/Icon';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
 
@@ -8,7 +7,7 @@ const DropdownMenuItem = ({
   onClick,
   children,
 }: {
-  onClick?: () => void,
+  onClick?: SyntheticEvent => void,
   children?: React.Element<any>,
 }) => {
   return (
