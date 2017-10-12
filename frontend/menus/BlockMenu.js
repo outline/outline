@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 @observer class BlockMenu extends Component {
   props: {
-    label?: React$Element<any>,
+    label?: React$Element<*>,
     onPickImage: SyntheticEvent => void,
     onInsertList: SyntheticEvent => void,
     onInsertTodoList: SyntheticEvent => void,
@@ -14,21 +14,31 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
   };
 
   render() {
+    const {
+      label,
+      onPickImage,
+      onInsertList,
+      onInsertTodoList,
+      onInsertBreak,
+      ...rest
+    } = this.props;
+
     return (
       <DropdownMenu
         style={{ marginRight: -70, marginTop: 5 }}
-        label={this.props.label}
+        label={label}
+        {...rest}
       >
-        <DropdownMenuItem onClick={this.props.onPickImage}>
+        <DropdownMenuItem onClick={onPickImage}>
           <Icon type="Image" /> Add images
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={this.props.onInsertList}>
+        <DropdownMenuItem onClick={onInsertList}>
           <Icon type="List" /> Start list
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={this.props.onInsertTodoList}>
+        <DropdownMenuItem onClick={onInsertTodoList}>
           <Icon type="CheckSquare" /> Start checklist
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={this.props.onInsertBreak}>
+        <DropdownMenuItem onClick={onInsertBreak}>
           <Icon type="Minus" /> Add break
         </DropdownMenuItem>
       </DropdownMenu>

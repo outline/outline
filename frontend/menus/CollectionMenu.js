@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 @observer class CollectionMenu extends Component {
   props: {
     label?: React$Element<any>,
-    onShow?: () => void,
+    onOpen?: () => void,
     onClose?: () => void,
     history: Object,
     ui: UiStore,
@@ -34,13 +34,13 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
   };
 
   render() {
-    const { collection, label, onShow, onClose } = this.props;
+    const { collection, label, onOpen, onClose } = this.props;
     const { allowDelete } = collection;
 
     return (
       <DropdownMenu
         label={label || <MoreIcon type="MoreHorizontal" />}
-        onShow={onShow}
+        onOpen={onOpen}
         onClose={onClose}
       >
         {collection &&

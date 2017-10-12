@@ -74,7 +74,7 @@ type Props = {
               <CollectionMenu
                 history={history}
                 collection={collection}
-                onShow={() => (this.menuOpen = true)}
+                onOpen={() => (this.menuOpen = true)}
                 onClose={() => (this.menuOpen = false)}
                 open={this.menuOpen}
               />

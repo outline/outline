@@ -1,12 +1,21 @@
 // @flow
 import React, { Component } from 'react';
+import EditList from 'slate-edit-list';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Portal from 'react-portal';
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
 import styled from 'styled-components';
+import { color } from 'styles/constants';
 import Icon from 'components/Icon';
 import BlockMenu from 'menus/BlockMenu';
 import _ from 'lodash';
 import type { State } from '../types';
+
+const { transforms } = EditList({
+  types: ['ordered-list', 'bulleted-list', 'todo-list'],
+  typeItem: 'list-item',
+});
 
 type Props = {
   state: State,
@@ -14,24 +23,17 @@ type Props = {
   onInsertImage: File => Promise<*>,
 };
 
+@observer
 export default class BlockInsert extends Component {
   props: Props;
-  state: {
-    active: boolean,
-    focused: boolean,
-    top: string,
-    left: string,
-    mouseX: number,
-  };
-
   mouseMoveTimeout: number;
   file: HTMLInputElement;
-  state = {
-    active: false,
-    focused: false,
-    top: '',
-    left: '',
-  };
+
+  @observable active: boolean = false;
+  @observable menuOpen: boolean = false;
+  @observable top: number;
+  @observable left: number;
+  @observable mouseX: number;
 
   componentDidMount = () => {
     this.update();
@@ -47,20 +49,29 @@ export default class BlockInsert extends Component {
   };
 
   setInactive = () => {
-    this.setState({ active: false });
+    if (this.menuOpen) return;
+    this.active = false;
   };
 
   handleMouseMove = (ev: SyntheticMouseEvent) => {
     const windowWidth = window.innerWidth / 3;
     let active = ev.clientX < windowWidth;
 
-    if (active !== this.state.active) {
-      this.setState({ active });
+    if (active !== this.active) {
+      this.active = active || this.menuOpen;
     }
     if (active) {
       clearTimeout(this.mouseMoveTimeout);
       this.mouseMoveTimeout = setTimeout(this.setInactive, 2000);
     }
+  };
+
+  handleMenuOpen = () => {
+    this.menuOpen = true;
+  };
+
+  handleMenuClose = () => {
+    this.menuOpen = false;
   };
 
   update = (props?: Props) => {
@@ -70,22 +81,17 @@ export default class BlockInsert extends Component {
     const selection = window.getSelection();
     if (!selection.focusNode) return;
 
-    const data = { ...this.state };
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
 
     if (rect.top <= 0 || boxRect.left <= 0) return;
 
     if (state.startBlock.type === 'heading1') {
-      data.active = false;
+      this.active = false;
     }
 
-    data.top = `${Math.round(rect.top + window.scrollY)}px`;
-    data.left = `${Math.round(boxRect.left + window.scrollX - 20)}px`;
-
-    if (!_.isEqual(data, this.state)) {
-      this.setState(data);
-    }
+    this.top = Math.round(rect.top + window.scrollY);
+    this.left = Math.round(boxRect.left + window.scrollX - 20);
   };
 
   onClickBlock = (
@@ -95,15 +101,18 @@ export default class BlockInsert extends Component {
   ) => {
     ev.preventDefault();
     let { state } = this.props;
-    let transform = state.transform().insertBlock(type);
+    let transform = transforms.unwrapList(
+      state.transform().collapseToStartOfNextBlock().insertBlock(type)
+    );
 
     if (wrapBlock) transform = transform.wrapBlock(wrapBlock);
 
-    state = transform.collapseToEnd().focus().apply();
+    state = transform.focus().apply();
     this.props.onChange(state);
   };
 
   onPickImage = (ev: SyntheticEvent) => {
+    // simulate a click on the file upload input element
     this.file.click();
   };
 
@@ -115,14 +124,12 @@ export default class BlockInsert extends Component {
   };
 
   render() {
-    const style = {
-      top: this.state.top,
-      left: this.state.left,
-    };
+    const style = { top: `${this.top}px`, left: `${this.left}px` };
+    const todo = { type: 'list-item', data: { checked: false } };
 
     return (
       <Portal isOpened>
-        <Trigger active={this.state.active} style={style}>
+        <Trigger active={this.active} style={style}>
           <HiddenInput
             type="file"
             innerRef={ref => (this.file = ref)}
@@ -134,13 +141,10 @@ export default class BlockInsert extends Component {
             onPickImage={this.onPickImage}
             onInsertList={ev =>
               this.onClickBlock(ev, 'list-item', 'bulleted-list')}
-            onInsertTodoList={ev =>
-              this.onClickBlock(
-                ev,
-                { type: 'list-item', data: { checked: false } },
-                'todo-list'
-              )}
+            onInsertTodoList={ev => this.onClickBlock(ev, todo, 'todo-list')}
             onInsertBreak={ev => this.onClickBlock(ev, 'horizontal-rule')}
+            onOpen={this.handleMenuOpen}
+            onClose={this.handleMenuClose}
           />
         </Trigger>
       </Portal>
@@ -159,7 +163,7 @@ const Trigger = styled.div`
   position: absolute;
   z-index: 1;
   opacity: 0;
-  background-color: #fff;
+  background-color: ${color.white};
   border-radius: 4px;
   transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
   line-height: 0;
