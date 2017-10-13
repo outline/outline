@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import EditList from 'slate-edit-list';
+import EditList from '../plugins/EditList';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Portal from 'react-portal';
 import { observable } from 'mobx';
@@ -12,10 +12,7 @@ import BlockMenu from 'menus/BlockMenu';
 import _ from 'lodash';
 import type { State } from '../types';
 
-const { transforms } = EditList({
-  types: ['ordered-list', 'bulleted-list', 'todo-list'],
-  typeItem: 'list-item',
-});
+const { transforms } = EditList;
 
 type Props = {
   state: State,
@@ -101,9 +98,20 @@ export default class BlockInsert extends Component {
   ) => {
     ev.preventDefault();
     let { state } = this.props;
-    let transform = transforms.unwrapList(
-      state.transform().collapseToStartOfNextBlock().insertBlock(type)
-    );
+    let transform = state.transform();
+    const { document } = state;
+    const parent = document.getParent(state.startBlock.key);
+
+    // lists get some special treatment
+    if (parent && parent.type === 'list-item') {
+      transform = transforms.unwrapList(
+        transforms
+          .splitListItem(transform.collapseToStart())
+          .collapseToEndOfPreviousBlock()
+      );
+    }
+
+    transform = transform.insertBlock(type);
 
     if (wrapBlock) transform = transform.wrapBlock(wrapBlock);
 

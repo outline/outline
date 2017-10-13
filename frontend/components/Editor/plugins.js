@@ -1,11 +1,11 @@
 // @flow
 import DropOrPasteImages from '@tommoor/slate-drop-or-paste-images';
 import PasteLinkify from 'slate-paste-linkify';
-import EditList from 'slate-edit-list';
 import CollapseOnEscape from 'slate-collapse-on-escape';
 import TrailingBlock from 'slate-trailing-block';
 import EditCode from 'slate-edit-code';
 import Prism from 'slate-prism';
+import EditList from './plugins/EditList';
 import KeyboardShortcuts from './plugins/KeyboardShortcuts';
 import MarkdownShortcuts from './plugins/MarkdownShortcuts';
 import insertImage from './insertImage';
@@ -35,10 +35,7 @@ const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
         );
       },
     }),
-    EditList({
-      types: ['ordered-list', 'bulleted-list', 'todo-list'],
-      typeItem: 'list-item',
-    }),
+    EditList,
     EditCode({
       onlyIn: onlyInCode,
       containerType: 'code',
