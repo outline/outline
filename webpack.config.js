@@ -13,6 +13,7 @@ const definePlugin = new webpack.DefinePlugin({
   SLACK_REDIRECT_URI: JSON.stringify(process.env.SLACK_REDIRECT_URI),
   SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
   BASE_URL: JSON.stringify(process.env.URL),
+  BUGSNAG_KEY: JSON.stringify(process.env.BUGSNAG_KEY),
   DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT || 'hosted'),
 });
 

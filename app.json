@@ -45,6 +45,9 @@
     },
     "URL": {
       "required": true
+    },
+    "BUGSNAG_KEY": {
+      "required": true
     }
   },
   "formation": {},
