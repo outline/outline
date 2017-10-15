@@ -20,7 +20,8 @@ type Props = {
   history: Object,
   collections: CollectionsStore,
   activeDocument: ?Document,
-  onCreateCollection: Function,
+  onCreateCollection: () => void,
+  activeDocumentRef: HTMLElement => void,
   ui: UiStore,
 };
 
@@ -28,7 +29,13 @@ type Props = {
   props: Props;
 
   render() {
-    const { history, collections, activeDocument, ui } = this.props;
+    const {
+      history,
+      collections,
+      activeDocument,
+      ui,
+      activeDocumentRef,
+    } = this.props;
 
     return (
       <Flex column>
@@ -39,6 +46,7 @@ type Props = {
             history={history}
             collection={collection}
             activeDocument={activeDocument}
+            activeDocumentRef={activeDocumentRef}
             ui={ui}
           />
         ))}
@@ -62,7 +70,13 @@ type Props = {
   };
 
   render() {
-    const { history, collection, activeDocument, ui } = this.props;
+    const {
+      history,
+      collection,
+      activeDocument,
+      ui,
+      activeDocumentRef,
+    } = this.props;
 
     return (
       <StyledDropToImport
@@ -94,6 +108,7 @@ type Props = {
               {collection.documents.map(document => (
                 <DocumentLink
                   key={document.id}
+                  activeDocumentRef={activeDocumentRef}
                   history={history}
                   document={document}
                   activeDocument={activeDocument}
@@ -111,51 +126,63 @@ type DocumentLinkProps = {
   document: NavigationNode,
   history: Object,
   activeDocument: ?Document,
+  activeDocumentRef: HTMLElement => void,
   depth: number,
 };
 
-const DocumentLink = observer((props: DocumentLinkProps) => {
-  const { document, activeDocument, depth } = props;
+const DocumentLink = observer(
+  ({
+    document,
+    activeDocument,
+    activeDocumentRef,
+    depth,
+  }: DocumentLinkProps) => {
+    const isActiveDocument =
+      activeDocument && activeDocument.id === document.id;
+    const showChildren =
+      activeDocument &&
+      (activeDocument.pathToDocument
+        .map(entry => entry.id)
+        .includes(document.id) ||
+        isActiveDocument);
 
-  const showChildren =
-    activeDocument &&
-    (activeDocument.pathToDocument
-      .map(entry => entry.id)
-      .includes(document.id) ||
-      activeDocument.id === document.id);
-
-  return (
-    <Flex column key={document.id}>
-      <DropToImport
-        history={history}
-        documentId={document.id}
-        activeStyle="activeDropZone"
+    return (
+      <Flex
+        column
+        key={document.id}
+        innerRef={isActiveDocument ? activeDocumentRef : undefined}
       >
-        <SidebarLink
-          to={document.url}
-          hasChildren={document.children.length > 0}
-          expanded={showChildren}
+        <DropToImport
+          history={history}
+          documentId={document.id}
+          activeStyle="activeDropZone"
         >
-          {document.title}
-        </SidebarLink>
-      </DropToImport>
+          <SidebarLink
+            to={document.url}
+            hasChildren={document.children.length > 0}
+            expanded={showChildren}
+          >
+            {document.title}
+          </SidebarLink>
+        </DropToImport>
 
-      {showChildren &&
-        <Children column>
-          {document.children &&
-            document.children.map(childDocument => (
-              <DocumentLink
-                key={childDocument.id}
-                history={history}
-                document={childDocument}
-                activeDocument={activeDocument}
-                depth={depth + 1}
-              />
-            ))}
-        </Children>}
-    </Flex>
-  );
-});
+        {showChildren &&
+          <Children column>
+            {document.children &&
+              document.children.map(childDocument => (
+                <DocumentLink
+                  key={childDocument.id}
+                  history={history}
+                  document={childDocument}
+                  activeDocument={activeDocument}
+                  depth={depth + 1}
+                />
+              ))}
+          </Children>}
+      </Flex>
+    );
+  }
+);
 
 const CollectionAction = styled.a`
   color: ${color.slate};
