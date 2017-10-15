@@ -20,7 +20,7 @@ const styleComponent = component => styled(component)`
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 5px 0;
+  padding: 5px 0;
   margin-left: ${({ hasChildren }) => (hasChildren ? '-20px;' : '0')};
   color: ${color.slateDark};
   font-size: 15px;
