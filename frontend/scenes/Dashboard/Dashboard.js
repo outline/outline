@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
@@ -26,9 +26,9 @@ type Props = {
   documents: DocumentsStore,
 };
 
-@observer class Dashboard extends React.Component {
+@observer class Dashboard extends Component {
   props: Props;
-  @observable isLoaded = false;
+  @observable isLoaded: boolean = false;
 
   componentDidMount() {
     this.loadContent();
@@ -43,25 +43,27 @@ type Props = {
   };
 
   render() {
+    const { documents } = this.props;
+    const recentlyViewedLoaded = documents.recentlyViewed.length > 0;
+    const recentlyEditedLoaded = documents.recentlyEdited.length > 0;
+    const showContent =
+      this.isLoaded || (recentlyViewedLoaded && recentlyEditedLoaded);
+
     return (
       <CenteredContent>
         <PageTitle title="Home" />
         <h1>Home</h1>
-        {this.isLoaded
+        {showContent
           ? <Flex column>
-              {this.props.documents.recentlyViewed.length > 0 &&
+              {recentlyViewedLoaded &&
                 <Flex column>
                   <Subheading>Recently viewed</Subheading>
-                  <DocumentList
-                    documents={this.props.documents.recentlyViewed}
-                  />
+                  <DocumentList documents={documents.recentlyViewed} />
                 </Flex>}
-              {this.props.documents.recentlyEdited.length > 0 &&
+              {recentlyEditedLoaded &&
                 <Flex column>
                   <Subheading>Recently edited</Subheading>
-                  <DocumentList
-                    documents={this.props.documents.recentlyEdited}
-                  />
+                  <DocumentList documents={documents.recentlyEdited} />
                 </Flex>}
             </Flex>
           : <ListPlaceholder count={5} />}
