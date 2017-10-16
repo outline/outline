@@ -66,6 +66,7 @@ export type Editor = {
 export type Node = {
   key: string,
   kind: string,
+  type: string,
   length: number,
   text: string,
   data: Map<string, any>,

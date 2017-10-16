@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import keydown from 'react-keydown';
@@ -9,6 +10,7 @@ import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
 import Placeholder from './components/Placeholder';
+import Minimap from './components/Minimap';
 import Markdown from './serializer';
 import createSchema from './schema';
 import createPlugins from './plugins';
@@ -36,10 +38,7 @@ type KeyData = {
   editor: EditorType;
   schema: Object;
   plugins: Array<Object>;
-
-  state: {
-    state: State,
-  };
+  @observable editorState: State;
 
   constructor(props: Props) {
     super(props);
@@ -51,9 +50,9 @@ type KeyData = {
     });
 
     if (props.text) {
-      this.state = { state: Markdown.deserialize(props.text) };
+      this.editorState = Markdown.deserialize(props.text);
     } else {
-      this.state = { state: Plain.deserialize('') };
+      this.editorState = Plain.deserialize('');
     }
   }
 
@@ -73,12 +72,12 @@ type KeyData = {
     }
   }
 
-  onChange = (state: State) => {
-    this.setState({ state });
+  onChange = (editorState: State) => {
+    this.editorState = editorState;
   };
 
-  onDocumentChange = (document: Document, state: State) => {
-    this.props.onChange(Markdown.serialize(state));
+  onDocumentChange = (document: Document, editorState: State) => {
+    this.props.onChange(Markdown.serialize(editorState));
   };
 
   handleDrop = async (ev: SyntheticEvent) => {
@@ -161,7 +160,7 @@ type KeyData = {
     const transform = state.transform();
     transform.collapseToStartOf(state.document);
     transform.focus();
-    this.setState({ state: transform.apply() });
+    this.editorState = transform.apply();
   };
 
   focusAtEnd = () => {
@@ -169,7 +168,7 @@ type KeyData = {
     const transform = state.transform();
     transform.collapseToEndOf(state.document);
     transform.focus();
-    this.setState({ state: transform.apply() });
+    this.editorState = transform.apply();
   };
 
   render = () => {
@@ -184,7 +183,8 @@ type KeyData = {
       >
         <MaxWidth column auto>
           <Header onClick={this.focusAtStart} readOnly={this.props.readOnly} />
-          <Toolbar state={this.state.state} onChange={this.onChange} />
+          <Toolbar state={this.editorState} onChange={this.onChange} />
+          <Minimap state={this.editorState} />
           <StyledEditor
             innerRef={ref => (this.editor = ref)}
             placeholder="Start with a title…"
@@ -192,7 +192,7 @@ type KeyData = {
             schema={this.schema}
             plugins={this.plugins}
             emoji={this.props.emoji}
-            state={this.state.state}
+            state={this.editorState}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
             onDocumentChange={this.onDocumentChange}
