@@ -29,7 +29,6 @@ const Collection = sequelize.define(
     creatorId: DataTypes.UUID,
 
     /* type: atlas */
-    navigationTree: DataTypes.JSONB, // legacy
     documentStructure: DataTypes.JSONB,
   },
   {
@@ -96,28 +95,6 @@ Collection.associate = models => {
 
 Collection.prototype.getUrl = function() {
   return `/collections/${this.id}`;
-};
-
-Collection.prototype.getDocumentsStructure = async function() {
-  // Lazy fill this.documentStructure - TMP for internal release
-  if (!this.documentStructure) {
-    this.documentStructure = this.navigationTree.children;
-
-    // Remove parent references from all root documents
-    await this.navigationTree.children.forEach(async ({ id }) => {
-      const document = await Document.findById(id);
-      document.parentDocumentId = null;
-      await document.save();
-    });
-
-    // Remove root document
-    const rootDocument = await Document.findById(this.navigationTree.id);
-    await rootDocument.destroy();
-
-    await this.save();
-  }
-
-  return this.documentStructure;
 };
 
 Collection.prototype.addDocumentToStructure = async function(
