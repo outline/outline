@@ -23,5 +23,5 @@ yarn sequelize db:migrate
 Or to run migrations on test database:
 
 ```
-yarn sequelize db:migrate -- --env test
+yarn sequelize db:migrate --env test
 ```
