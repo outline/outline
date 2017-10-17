@@ -22,7 +22,7 @@ type Props = {
   onCancel: Function,
   onImageUploadStart: Function,
   onImageUploadStop: Function,
-  emoji: string,
+  emoji?: string,
   readOnly: boolean,
 };
 

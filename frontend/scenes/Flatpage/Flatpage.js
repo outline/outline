@@ -2,30 +2,32 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import CenteredContent from 'components/CenteredContent';
-import HtmlContent from 'components/HtmlContent';
+import Editor from 'components/Editor';
 import PageTitle from 'components/PageTitle';
-
-import { convertToMarkdown } from 'utils/markdown';
 
 type Props = {
   title: string,
   content: string,
 };
 
-@observer class Flatpage extends React.Component {
-  props: Props;
+const Flatpage = observer((props: Props) => {
+  const { title, content } = props;
 
-  render() {
-    const { title, content } = this.props;
-    const htmlContent = convertToMarkdown(content);
-
-    return (
-      <CenteredContent>
-        <PageTitle title={title} />
-        <HtmlContent dangerouslySetInnerHTML={{ __html: htmlContent }} />
-      </CenteredContent>
-    );
-  }
-}
+  return (
+    <CenteredContent>
+      <PageTitle title={title} />
+      <Editor
+        text={content}
+        onChange={() => {}}
+        onSave={() => {}}
+        onCancel={() => {}}
+        onImageUploadStart={() => {}}
+        onImageUploadStop={() => {}}
+        emoji=""
+        readOnly
+      />
+    </CenteredContent>
+  );
+});
 
 export default Flatpage;
