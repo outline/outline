@@ -88,20 +88,27 @@ const Anchor = styled.a`
   font-weight: ${props => (props.active ? 500 : 400)};
 `;
 
-const Sections = styled.ol`
-  margin: 0 0 0 -8px;
-  padding: 0;
-  list-style: none;
-  font-size: 13px;
-  border-right: 1px solid ${color.slate};
-`;
-
 const ListItem = styled.li`
   position: relative;
   margin-left: ${props => (props.type === 'heading2' ? '8px' : '16px')};
   text-align: right;
   color: ${color.slate};
   padding-right: 10px;
+  opacity: 0;
+`;
+
+const Sections = styled.ol`
+  margin: 0 0 0 -8px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  border-right: 1px solid ${color.slate};
+
+  &:hover {
+    ${ListItem} {
+      opacity: 1;
+    }
+  }
 `;
 
 const Wrapper = styled.div`
@@ -110,6 +117,7 @@ const Wrapper = styled.div`
   top: 160px;
   padding-right: 20px;
   background: ${color.white};
+  z-index: 100;
 `;
 
 export default Minimap;
