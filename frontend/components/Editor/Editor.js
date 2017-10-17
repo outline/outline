@@ -10,7 +10,7 @@ import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
 import Placeholder from './components/Placeholder';
-import Minimap from './components/Minimap';
+import Contents from './components/Contents';
 import Markdown from './serializer';
 import createSchema from './schema';
 import createPlugins from './plugins';
@@ -184,7 +184,7 @@ type KeyData = {
         <MaxWidth column auto>
           <Header onClick={this.focusAtStart} readOnly={this.props.readOnly} />
           <Toolbar state={this.editorState} onChange={this.onChange} />
-          <Minimap state={this.editorState} />
+          <Contents state={this.editorState} />
           <StyledEditor
             innerRef={ref => (this.editor = ref)}
             placeholder="Start with a title…"

@@ -12,7 +12,7 @@ type Props = {
   state: State,
 };
 
-@observer class Minimap extends Component {
+@observer class Contents extends Component {
   props: Props;
   @observable activeHeading: ?string;
 
@@ -68,10 +68,11 @@ type Props = {
         <Sections>
           {this.headings.map(heading => {
             const slug = headingToSlug(heading.type, heading.text);
+            const active = this.activeHeading === slug;
 
             return (
-              <ListItem type={heading.type}>
-                <Anchor href={`#${slug}`} active={this.activeHeading === slug}>
+              <ListItem type={heading.type} active={active}>
+                <Anchor href={`#${slug}`} active={active}>
                   {heading.text}
                 </Anchor>
               </ListItem>
@@ -84,8 +85,16 @@ type Props = {
 }
 
 const Anchor = styled.a`
-  color: ${props => (props.active ? color.primary : color.slate)};
+  color: ${props => (props.active ? color.slateDark : color.slate)};
   font-weight: ${props => (props.active ? 500 : 400)};
+  opacity: 0;
+  transition: all 100ms ease-in-out;
+  margin-right: -5px;
+  padding: 2px 0;
+
+  &:hover {
+    color: ${color.primary};
+  }
 `;
 
 const ListItem = styled.li`
@@ -93,8 +102,14 @@ const ListItem = styled.li`
   margin-left: ${props => (props.type === 'heading2' ? '8px' : '16px')};
   text-align: right;
   color: ${color.slate};
-  padding-right: 10px;
-  opacity: 0;
+  padding-right: 16px;
+
+  &:after {
+    color: ${props => (props.active ? color.slateDark : color.slate)};
+    content: "${props => (props.type === 'heading2' ? '—' : '–')}";
+    position: absolute;
+    right: 0;
+  }
 `;
 
 const Sections = styled.ol`
@@ -102,11 +117,12 @@ const Sections = styled.ol`
   padding: 0;
   list-style: none;
   font-size: 13px;
-  border-right: 1px solid ${color.slate};
 
   &:hover {
-    ${ListItem} {
+    ${Anchor} {
       opacity: 1;
+      margin-right: 0;
+      background: ${color.white};
     }
   }
 `;
@@ -115,9 +131,7 @@ const Wrapper = styled.div`
   position: fixed;
   right: 0;
   top: 160px;
-  padding-right: 20px;
-  background: ${color.white};
   z-index: 100;
 `;
 
-export default Minimap;
+export default Contents;
