@@ -23,7 +23,6 @@ const Flatpage = observer((props: Props) => {
         onCancel={() => {}}
         onImageUploadStart={() => {}}
         onImageUploadStop={() => {}}
-        emoji=""
         readOnly
       />
     </CenteredContent>
