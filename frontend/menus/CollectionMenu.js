@@ -36,7 +36,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
   };
 
   render() {
-    const { collection, label, onShow, onClose, onImport } = this.props;
+    const { collection, label, onOpen, onClose, onImport } = this.props;
     const { allowDelete } = collection;
 
     return (
