@@ -9,7 +9,6 @@ import Heading2Icon from 'components/Icon/Heading2Icon';
 import ItalicIcon from 'components/Icon/ItalicIcon';
 import LinkIcon from 'components/Icon/LinkIcon';
 import StrikethroughIcon from 'components/Icon/StrikethroughIcon';
-import BulletedListIcon from 'components/Icon/BulletedListIcon';
 
 export default class FormattingToolbar extends Component {
   props: {
@@ -95,7 +94,6 @@ export default class FormattingToolbar extends Component {
         {this.renderMarkButton('deleted', StrikethroughIcon)}
         {this.renderBlockButton('heading1', Heading1Icon)}
         {this.renderBlockButton('heading2', Heading2Icon)}
-        {this.renderBlockButton('bulleted-list', BulletedListIcon)}
         {this.renderMarkButton('code', CodeIcon)}
         <ToolbarButton onMouseDown={this.onCreateLink}>
           <LinkIcon light />
