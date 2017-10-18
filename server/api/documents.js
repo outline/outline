@@ -4,10 +4,16 @@ import httpErrors from 'http-errors';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
-import { presentDocument } from '../presenters';
-import { Document, Collection, Star, View } from '../models';
+import { presentDocument, presentRevision } from '../presenters';
+import { Document, Collection, Star, View, Revision } from '../models';
+
+const authDocumentForUser = (ctx, document) => {
+  const user = ctx.state.user;
+  if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
+};
 
 const router = new Router();
+
 router.post('documents.list', auth(), pagination(), async ctx => {
   let { sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
@@ -101,20 +107,35 @@ router.post('documents.info', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
   const document = await Document.findById(id);
 
-  if (!document) throw httpErrors.NotFound();
-
-  // Don't expose private documents outside the team
-  if (document.private) {
-    if (!ctx.state.user) throw httpErrors.NotFound();
-
-    const user = await ctx.state.user;
-    if (document.teamId !== user.teamId) {
-      throw httpErrors.NotFound();
-    }
-  }
+  authDocumentForUser(ctx, document);
 
   ctx.body = {
     data: await presentDocument(ctx, document),
+  };
+});
+
+router.post('documents.revisions', auth(), pagination(), async ctx => {
+  let { id, sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+  ctx.assertPresent(id, 'id is required');
+  const document = await Document.findById(id);
+
+  authDocumentForUser(ctx, document);
+
+  const revisions = await Revision.findAll({
+    where: { documentId: id },
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  const data = await Promise.all(
+    revisions.map(revision => presentRevision(ctx, revision))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
   };
 });
 
@@ -142,8 +163,7 @@ router.post('documents.star', auth(), async ctx => {
   const user = await ctx.state.user;
   const document = await Document.findById(id);
 
-  if (!document || document.teamId !== user.teamId)
-    throw httpErrors.BadRequest();
+  authDocumentForUser(ctx, document);
 
   await Star.findOrCreate({
     where: { documentId: document.id, userId: user.id },
@@ -156,8 +176,7 @@ router.post('documents.unstar', auth(), async ctx => {
   const user = await ctx.state.user;
   const document = await Document.findById(id);
 
-  if (!document || document.teamId !== user.teamId)
-    throw httpErrors.BadRequest();
+  authDocumentForUser(ctx, document);
 
   await Star.destroy({
     where: { documentId: document.id, userId: user.id },
@@ -228,24 +247,22 @@ router.post('documents.update', auth(), async ctx => {
   const document = await Document.findById(id);
   const collection = document.collection;
 
-  if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
+  authDocumentForUser(ctx, document);
 
   // Update document
   if (title) document.title = title;
   if (text) document.text = text;
   document.lastModifiedById = user.id;
 
-  const [updatedDocument, updatedCollection] = await Promise.all([
-    document.save(),
-    collection.type === 'atlas'
-      ? await collection.updateDocument(document)
-      : Promise.resolve(),
-  ]);
+  await document.save();
+  if (collection.type === 'atlas') {
+    await collection.updateDocument(document);
+  }
 
-  updatedDocument.collection = updatedCollection;
+  document.collection = collection;
 
   ctx.body = {
-    data: await presentDocument(ctx, updatedDocument),
+    data: await presentDocument(ctx, document),
   };
 });
 
@@ -256,15 +273,18 @@ router.post('documents.move', auth(), async ctx => {
     ctx.assertUuid(parentDocument, 'parentDocument must be an uuid');
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
-  const user = ctx.state.user;
   const document = await Document.findById(id);
+  const collection = await Collection.findById(document.atlasId);
 
-  if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
+  authDocumentForUser(ctx, document);
+
+  if (collection.type !== 'atlas')
+    throw httpErrors.BadRequest("This document can't be moved");
 
   // Set parent document
   if (parentDocument) {
     const parent = await Document.findById(parentDocument);
-    if (parent.atlasId !== document.atlasId)
+    if (!parent || parent.atlasId !== document.atlasId)
       throw httpErrors.BadRequest(
         'Invalid parentDocument (must be same collection)'
       );
@@ -277,14 +297,8 @@ router.post('documents.move', auth(), async ctx => {
   document.parentDocumentId = parentDocument;
   await document.save();
 
-  const collection = await Collection.findById(document.atlasId);
-  if (collection.type === 'atlas') {
-    await collection.deleteDocument(document);
-    await collection.addDocumentToStructure(document, index);
-  }
+  await collection.moveDocument(document, index);
   // Update collection
-  document.collection = collection;
-
   document.collection = collection;
 
   ctx.body = {
@@ -296,12 +310,10 @@ router.post('documents.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
-  const user = ctx.state.user;
   const document = await Document.findById(id);
   const collection = await Collection.findById(document.atlasId);
 
-  if (!document || document.teamId !== user.teamId)
-    throw httpErrors.BadRequest();
+  authDocumentForUser(ctx, document);
 
   if (collection.type === 'atlas') {
     // Don't allow deletion of root docs
@@ -311,9 +323,9 @@ router.post('documents.delete', auth(), async ctx => {
       );
     }
 
-    // Delete all children
+    // Delete document and all of its children
     try {
-      await collection.deleteDocument(document);
+      await collection.removeDocument(document);
     } catch (e) {
       throw httpErrors.BadRequest('Error while deleting');
     }

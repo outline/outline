@@ -35,16 +35,12 @@ type Props = {
   title?: ?React.Element<any>,
   auth: AuthStore,
   ui: UiStore,
-  search: ?boolean,
   notifications?: React.Element<any>,
 };
 
 @observer class Layout extends React.Component {
   props: Props;
-
-  static defaultProps = {
-    search: true,
-  };
+  scrollable: ?HTMLDivElement;
 
   @keydown(['/', 't'])
   goToSearch(ev) {
@@ -81,6 +77,20 @@ type Props = {
     this.props.ui.setActiveModal('collection-edit');
   };
 
+  setScrollableRef = ref => {
+    this.scrollable = ref;
+  };
+
+  scrollToActiveDocument = ref => {
+    const scrollable = this.scrollable;
+    if (!ref || !scrollable) return;
+
+    const container = scrollable.getBoundingClientRect();
+    const bounds = ref.getBoundingClientRect();
+    const scrollTop = bounds.top + container.top;
+    scrollable.scrollTop = scrollTop;
+  };
+
   render() {
     const { auth, documents, ui } = this.props;
     const { user, team } = auth;
@@ -115,7 +125,7 @@ type Props = {
               />
 
               <Flex auto column>
-                <Scrollable>
+                <Scrollable innerRef={this.setScrollableRef}>
                   <LinkSection>
                     <SidebarLink to="/dashboard">
                       <Icon type="Home" /> Home
@@ -132,6 +142,7 @@ type Props = {
                       history={this.props.history}
                       activeDocument={documents.active}
                       onCreateCollection={this.handleCreateCollection}
+                      activeDocumentRef={this.scrollToActiveDocument}
                     />
                   </LinkSection>
                 </Scrollable>

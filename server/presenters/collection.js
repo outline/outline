@@ -19,7 +19,7 @@ async function present(ctx: Object, collection: Collection) {
   };
 
   if (collection.type === 'atlas') {
-    data.documents = await collection.getDocumentsStructure();
+    data.documents = collection.documentStructure;
   }
 
   if (collection.documents) {
