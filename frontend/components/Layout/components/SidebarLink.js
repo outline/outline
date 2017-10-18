@@ -16,7 +16,7 @@ const activeStyle = {
 const StyleableDiv = props => <div {...props} />;
 
 const styleComponent = component => styled(component)`
-  display: block;
+  display: flex;
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -42,7 +42,7 @@ function SidebarLink(props: Object) {
     <Flex>
       <Component exact activeStyle={activeStyle} {...props}>
         {props.hasChildren && <StyledChevron expanded={props.expanded} />}
-        {props.children}
+        <Content>{props.children}</Content>
       </Component>
     </Flex>
   );
@@ -60,6 +60,10 @@ const StyledChevron = styled(ChevronIcon)`
 
     ${({ expanded }) => expanded && 'transform: rotate(90deg);'}
   }
+`;
+
+const Content = styled.div`
+  width: 100%;
 `;
 
 export default SidebarLink;

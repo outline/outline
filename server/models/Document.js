@@ -2,12 +2,9 @@
 import slug from 'slug';
 import _ from 'lodash';
 import randomstring from 'randomstring';
-import emojiRegex from 'emoji-regex';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
-import { convertToMarkdown } from '../../frontend/utils/markdown';
-import { truncateMarkdown } from '../utils/truncate';
 import parseTitle from '../../shared/parseTitle';
 import Revision from './Revision';
 
@@ -25,8 +22,6 @@ const createRevision = doc => {
   return Revision.create({
     title: doc.title,
     text: doc.text,
-    html: doc.html,
-    preview: doc.preview,
     userId: doc.lastModifiedById,
     documentId: doc.id,
   });
@@ -40,8 +35,6 @@ const beforeSave = async doc => {
   const { emoji } = parseTitle(doc.text);
 
   doc.emoji = emoji;
-  doc.html = convertToMarkdown(doc.text);
-  doc.preview = truncateMarkdown(doc.text, 160);
   doc.revisionCount += 1;
 
   // Collaborators
@@ -74,8 +67,6 @@ const Document = sequelize.define(
     private: { type: DataTypes.BOOLEAN, defaultValue: true },
     title: DataTypes.STRING,
     text: DataTypes.TEXT,
-    html: DataTypes.TEXT,
-    preview: DataTypes.TEXT,
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     parentDocumentId: DataTypes.UUID,
     createdById: {

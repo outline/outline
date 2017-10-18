@@ -1454,7 +1454,7 @@ charenc@~0.0.1:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/charenc/-/charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667"
 
-cheerio@0.22.0, cheerio@^0.22.0:
+cheerio@^0.22.0:
   version "0.22.0"
   resolved "https://registry.yarnpkg.com/cheerio/-/cheerio-0.22.0.tgz#a9baa860a3f9b595a6b81b1a86873121ed3a269e"
   dependencies:
@@ -2496,21 +2496,9 @@ elliptic@^6.0.0:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.0"
 
-emoji-name-map@1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/emoji-name-map/-/emoji-name-map-1.1.2.tgz#662f6b5582b0eaf817be6a9ac272fbd8af10ae73"
-  dependencies:
-    emojilib "^2.0.2"
-    iterate-object "^1.3.1"
-    map-o "^2.0.1"
-
 emoji-regex@^6.1.0, emoji-regex@^6.5.1:
   version "6.5.1"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-6.5.1.tgz#9baea929b155565c11ea41c6626eaa65cef992c2"
-
-emojilib@^2.0.2:
-  version "2.2.9"
-  resolved "https://registry.yarnpkg.com/emojilib/-/emojilib-2.2.9.tgz#ec5722689fc148f56422c14b0dc16a901d446b75"
 
 emojis-list@^2.0.0:
   version "2.1.0"
@@ -3861,10 +3849,6 @@ hide-powered-by@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/hide-powered-by/-/hide-powered-by-1.0.0.tgz#4a85ad65881f62857fc70af7174a1184dccce32b"
 
-highlight.js@9.4.0:
-  version "9.4.0"
-  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-9.4.0.tgz#2687d6cf6df0d57bc68585e836bfe3ab3edf9452"
-
 history@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/history/-/history-3.0.0.tgz#02cff4e6f69dc62dd81161104a63f5b85ead0c85"
@@ -3965,7 +3949,7 @@ html-webpack-plugin@2.17.0:
     pretty-error "^2.0.0"
     toposort "^0.2.12"
 
-htmlparser2@^3.9.0, htmlparser2@^3.9.1:
+htmlparser2@^3.9.1:
   version "3.9.2"
   resolved "https://registry.yarnpkg.com/htmlparser2/-/htmlparser2-3.9.2.tgz#1bdf87acca0f3f9e53fa4fcceb0f4b4cbb00b338"
   dependencies:
@@ -4611,10 +4595,6 @@ isurl@^1.0.0-alpha5:
     has-to-string-tag-x "^1.2.0"
     is-object "^1.0.1"
 
-iterate-object@^1.3.0, iterate-object@^1.3.1:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/iterate-object/-/iterate-object-1.3.2.tgz#24ec15affa5d0039e8839695a21c2cae1f45b66b"
-
 jest-changed-files@^20.0.3:
   version "20.0.3"
   resolved "https://registry.yarnpkg.com/jest-changed-files/-/jest-changed-files-20.0.3.tgz#9394d5cc65c438406149bef1bf4d52b68e03e3f8"
@@ -4869,10 +4849,6 @@ js-string-escape@1.0.1:
 js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
-
-js-tree@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/js-tree/-/js-tree-1.1.0.tgz#087ee3ec366a5b74eb14f486016c5e0e631f1670"
 
 js-yaml@^3.4.3, js-yaml@^3.5.1, js-yaml@^3.7.0:
   version "3.9.1"
@@ -5720,12 +5696,6 @@ map-cache@^0.2.0:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/map-cache/-/map-cache-0.2.2.tgz#c32abd0bd6525d9b051645bb4f26ac5dc98a0dbf"
 
-map-o@^2.0.1:
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/map-o/-/map-o-2.0.7.tgz#7b59395ee87a5200ec2ef881938e9e257f747d61"
-  dependencies:
-    iterate-object "^1.3.0"
-
 map-obj@^1.0.0, map-obj@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/map-obj/-/map-obj-1.0.1.tgz#d933ceb9205d82bdcf4886f6742bdc2b4dea146d"
@@ -5733,12 +5703,6 @@ map-obj@^1.0.0, map-obj@^1.0.1:
 map-stream@~0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/map-stream/-/map-stream-0.1.0.tgz#e56aa94c4c8055a16404a0674b78f215f7c8e194"
-
-marked-sanitized@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/marked-sanitized/-/marked-sanitized-0.1.1.tgz#8a5756887217f64fe92e1a92e71d0cc10e767829"
-  dependencies:
-    sanitize-html "^1.5.2"
 
 marked-terminal@^1.6.2:
   version "1.7.0"
@@ -5750,7 +5714,7 @@ marked-terminal@^1.6.2:
     lodash.assign "^4.2.0"
     node-emoji "^1.4.1"
 
-marked@0.3.6, marked@^0.3.6:
+marked@^0.3.6:
   version "0.3.6"
   resolved "https://registry.yarnpkg.com/marked/-/marked-0.3.6.tgz#b2c6c618fccece4ef86c4fc6cb8a7cbf5aeda8d7"
 
@@ -7610,10 +7574,6 @@ regex-cache@^0.4.2:
   dependencies:
     is-equal-shallow "^0.1.3"
 
-regexp-quote@0.0.0:
-  version "0.0.0"
-  resolved "https://registry.yarnpkg.com/regexp-quote/-/regexp-quote-0.0.0.tgz#1e0f4650c862dcbfed54fd42b148e9bb1721fcf2"
-
 regexpu-core@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/regexpu-core/-/regexpu-core-1.0.0.tgz#86a763f58ee4d7c2f6b102e4764050de7ed90c6b"
@@ -7846,14 +7806,6 @@ sane@~1.6.0:
     walker "~1.0.5"
     watch "~0.10.0"
 
-sanitize-html@^1.5.2:
-  version "1.14.1"
-  resolved "https://registry.yarnpkg.com/sanitize-html/-/sanitize-html-1.14.1.tgz#730ffa2249bdf18333effe45b286173c9c5ad0b8"
-  dependencies:
-    htmlparser2 "^3.9.0"
-    regexp-quote "0.0.0"
-    xtend "^4.0.0"
-
 sax@^1.2.1, sax@~1.2.1:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
@@ -8084,8 +8036,8 @@ slate-edit-list@^0.7.0:
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.7.1.tgz#84ee960d2d5b5a20ce267ad9df894395a91b93d5"
 
 slate-markdown-serializer@tommoor/slate-markdown-serializer:
-  version "0.4.3"
-  resolved "https://codeload.github.com/tommoor/slate-markdown-serializer/tar.gz/8e987951db999617ff6759c85e384dad175d5b92"
+  version "0.5.0"
+  resolved "https://codeload.github.com/tommoor/slate-markdown-serializer/tar.gz/22bdaa096777f5dd7f7c366841a0c6e4392adeb6"
 
 slate-paste-linkify@^0.2.1:
   version "0.2.1"
@@ -8710,12 +8662,6 @@ trim-newlines@^1.0.0:
 trim-right@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/trim-right/-/trim-right-1.0.1.tgz#cb2e1203067e0c8de1f614094b9fe45704ea6003"
-
-"truncate-html@https://github.com/jorilallo/truncate-html/tarball/master":
-  version "0.1.1"
-  resolved "https://github.com/jorilallo/truncate-html/tarball/master#5856f297610d202045d997965fc8c33be453c2e9"
-  dependencies:
-    cheerio "0.22.0"
 
 tryit@^1.0.1:
   version "1.0.3"
