@@ -9,8 +9,6 @@ const Revision = sequelize.define('revision', {
   },
   title: DataTypes.STRING,
   text: DataTypes.TEXT,
-  html: DataTypes.TEXT,
-  preview: DataTypes.TEXT,
 
   userId: {
     type: 'UUID',

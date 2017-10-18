@@ -43,6 +43,24 @@ describe('#documents.list', async () => {
   });
 });
 
+describe('#documents.revision', async () => {
+  it("should return document's revisions", async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.revisions', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).not.toEqual(document.id);
+    expect(body.data[0].title).toEqual(document.title);
+  });
+});
+
 describe('#documents.search', async () => {
   it('should return results', async () => {
     const { user } = await seed();
