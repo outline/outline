@@ -73,6 +73,15 @@ const Auth = ({ children }: AuthProps) => {
         }),
       };
 
+      if (window.Bugsnag) {
+        Bugsnag.user = {
+          id: user.id,
+          name: user.name,
+          teamId: team.id,
+          team: team.name,
+        };
+      }
+
       authenticatedStores.collections.fetchAll();
     }
 
