@@ -9,7 +9,6 @@ import styled from 'styled-components';
 import { color } from 'styles/constants';
 import Icon from 'components/Icon';
 import BlockMenu from 'menus/BlockMenu';
-import _ from 'lodash';
 import type { State } from '../types';
 
 const { transforms } = EditList;
@@ -117,6 +116,7 @@ export default class BlockInsert extends Component {
 
     state = transform.focus().apply();
     this.props.onChange(state);
+    this.active = false;
   };
 
   onPickImage = (ev: SyntheticEvent) => {
