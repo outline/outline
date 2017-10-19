@@ -15,7 +15,6 @@ export async function request(endpoint: string, body: Object) {
   } catch (e) {
     throw httpErrors.BadRequest();
   }
-  console.log('DATA', data);
   if (!data.ok) throw httpErrors.BadRequest(data.error);
 
   return data;
