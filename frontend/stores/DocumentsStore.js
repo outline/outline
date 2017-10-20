@@ -111,8 +111,12 @@ class DocumentsStore extends BaseStore {
     return data.map(documentData => documentData.id);
   };
 
-  @action fetch = async (id: string): Promise<*> => {
-    this.isFetching = true;
+  @action prefetchDocument = async (id: string) => {
+    if (!this.getById(id)) this.fetch(id, true);
+  };
+
+  @action fetch = async (id: string, prefetch: boolean): Promise<*> => {
+    if (!prefetch) this.isFetching = true;
 
     try {
       const res = await client.post('/documents.info', { id });

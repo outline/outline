@@ -14,6 +14,7 @@ import CollectionMenu from 'menus/CollectionMenu';
 import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
 import Document from 'models/Document';
+import DocumentsStore from 'stores/DocumentsStore';
 import { type NavigationNode } from 'types';
 
 type Props = {
@@ -123,6 +124,7 @@ type Props = {
 }
 
 type DocumentLinkProps = {
+  documents: DocumentsStore,
   document: NavigationNode,
   history: Object,
   activeDocument: ?Document,
@@ -130,58 +132,69 @@ type DocumentLinkProps = {
   depth: number,
 };
 
-const DocumentLink = observer(
-  ({
-    document,
-    activeDocument,
-    activeDocumentRef,
-    depth,
-  }: DocumentLinkProps) => {
-    const isActiveDocument =
-      activeDocument && activeDocument.id === document.id;
-    const showChildren =
-      activeDocument &&
-      (activeDocument.pathToDocument
-        .map(entry => entry.id)
-        .includes(document.id) ||
-        isActiveDocument);
+const DocumentLink = inject('documents')(
+  observer(
+    ({
+      documents,
+      document,
+      activeDocument,
+      activeDocumentRef,
+      depth,
+    }: DocumentLinkProps) => {
+      const isActiveDocument =
+        activeDocument && activeDocument.id === document.id;
+      const showChildren =
+        activeDocument &&
+        (activeDocument.pathToDocument
+          .map(entry => entry.id)
+          .includes(document.id) ||
+          isActiveDocument);
 
-    return (
-      <Flex
-        column
-        key={document.id}
-        innerRef={isActiveDocument ? activeDocumentRef : undefined}
-      >
-        <DropToImport
-          history={history}
-          documentId={document.id}
-          activeStyle="activeDropZone"
+      const handleMouseEnter = (event: SyntheticEvent) => {
+        event.stopPropagation();
+        event.preventDefault();
+        documents.prefetchDocument(document.id);
+      };
+
+      return (
+        <Flex
+          column
+          key={document.id}
+          innerRef={isActiveDocument ? activeDocumentRef : undefined}
+          onMouseEnter={handleMouseEnter}
         >
-          <SidebarLink
-            to={document.url}
-            hasChildren={document.children.length > 0}
-            expanded={showChildren}
+          <DropToImport
+            history={history}
+            documentId={document.id}
+            activeStyle="activeDropZone"
           >
-            {document.title}
-          </SidebarLink>
-        </DropToImport>
+            <SidebarLink
+              to={document.url}
+              hasChildren={document.children.length > 0}
+              expanded={showChildren}
+            >
+              {document.title}
+            </SidebarLink>
+          </DropToImport>
 
-        {showChildren &&
-          <Children column>
-            {document.children &&
-              document.children.map(childDocument => (
-                <DocumentLink
-                  key={childDocument.id}
-                  history={history}
-                  document={childDocument}
-                  activeDocument={activeDocument}
-                  depth={depth + 1}
-                />
-              ))}
-          </Children>}
-      </Flex>
-    );
-  }
+          {showChildren &&
+            <Children column>
+              {document.children &&
+                document.children.map(childDocument => (
+                  <DocumentLink
+                    key={childDocument.id}
+                    history={history}
+                    documents={documents}
+                    document={childDocument}
+                    activeDocument={activeDocument}
+                    depth={depth + 1}
+                  />
+                ))}
+            </Children>}
+        </Flex>
+      );
+    }
+  )
 );
 
 const CollectionAction = styled.a`
