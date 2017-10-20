@@ -2,12 +2,16 @@
 import crypto from 'crypto';
 import moment from 'moment';
 import AWS from 'aws-sdk';
+import invariant from 'invariant';
 import fetch from 'isomorphic-fetch';
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
+
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
 const makePolicy = () => {
   const policy = {
@@ -28,8 +32,9 @@ const makePolicy = () => {
 };
 
 const signPolicy = (policy: any) => {
+  invariant(AWS_SECRET_ACCESS_KEY);
   const signature = crypto
-    .createHmac('sha1', process.env.AWS_SECRET_ACCESS_KEY)
+    .createHmac('sha1', AWS_SECRET_ACCESS_KEY)
     .update(policy)
     .digest('base64');
 
@@ -38,8 +43,10 @@ const signPolicy = (policy: any) => {
 
 const uploadToS3FromUrl = async (url: string, key: string) => {
   const s3 = new AWS.S3();
+  invariant(AWS_S3_UPLOAD_BUCKET_NAME);
 
   try {
+    // $FlowIssue dunno it's fine
     const res = await fetch(url);
     const buffer = await res.buffer();
     await s3
@@ -51,7 +58,7 @@ const uploadToS3FromUrl = async (url: string, key: string) => {
         Body: buffer,
       })
       .promise();
-    return `https://s3.amazonaws.com/${process.env.AWS_S3_UPLOAD_BUCKET_NAME}/${key}`;
+    return `https://s3.amazonaws.com/${AWS_S3_UPLOAD_BUCKET_NAME}/${key}`;
   } catch (_e) {
     return undefined;
   }
