@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@tommoor/slate-drop-or-paste-images": "0.5.1",
+    "aws-sdk": "^2.135.0",
     "babel-core": "^6.24.1",
     "babel-eslint": "^7.2.3",
     "babel-loader": "6.2.5",
