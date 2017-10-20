@@ -112,19 +112,17 @@ export default function MarkdownShortcuts() {
 
       if (chars === '--') {
         ev.preventDefault();
-        const transform = state
+        return state
           .transform()
           .extendToStartOf(startBlock)
           .delete()
           .setBlock({
             type: 'horizontal-rule',
             isVoid: true,
-          });
-        state = transform
+          })
           .collapseToStartOfNextBlock()
           .insertBlock('paragraph')
           .apply();
-        return state;
       }
     },
 
