@@ -90,12 +90,16 @@ export default class BlockInsert extends Component {
     this.left = Math.round(boxRect.left + window.scrollX - 20);
   };
 
-  onClickBlock = (
+  insertBlock = (
     ev: SyntheticEvent,
-    type: string | Object,
-    wrapBlock?: string
+    options: {
+      type: string | Object,
+      wrapper?: string | Object,
+      append?: string | Object,
+    }
   ) => {
     ev.preventDefault();
+    const { type, wrapper, append } = options;
     let { state } = this.props;
     let transform = state.transform();
     const { document } = state;
@@ -112,7 +116,8 @@ export default class BlockInsert extends Component {
 
     transform = transform.insertBlock(type);
 
-    if (wrapBlock) transform = transform.wrapBlock(wrapBlock);
+    if (wrapper) transform = transform.wrapBlock(wrapper);
+    if (append) transform = transform.insertBlock(append);
 
     state = transform.focus().apply();
     this.props.onChange(state);
@@ -134,6 +139,7 @@ export default class BlockInsert extends Component {
   render() {
     const style = { top: `${this.top}px`, left: `${this.left}px` };
     const todo = { type: 'list-item', data: { checked: false } };
+    const rule = { type: 'horizontal-rule', isVoid: true };
 
     return (
       <Portal isOpened>
@@ -148,9 +154,14 @@ export default class BlockInsert extends Component {
             label={<Icon type="PlusCircle" />}
             onPickImage={this.onPickImage}
             onInsertList={ev =>
-              this.onClickBlock(ev, 'list-item', 'bulleted-list')}
-            onInsertTodoList={ev => this.onClickBlock(ev, todo, 'todo-list')}
-            onInsertBreak={ev => this.onClickBlock(ev, 'horizontal-rule')}
+              this.insertBlock(ev, {
+                type: 'list-item',
+                wrapper: 'bulleted-list',
+              })}
+            onInsertTodoList={ev =>
+              this.insertBlock(ev, { type: todo, wrapper: 'todo-list' })}
+            onInsertBreak={ev =>
+              this.insertBlock(ev, { type: rule, append: 'paragraph' })}
             onOpen={this.handleMenuOpen}
             onClose={this.handleMenuClose}
           />
