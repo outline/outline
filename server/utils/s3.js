@@ -4,6 +4,7 @@ import moment from 'moment';
 import AWS from 'aws-sdk';
 import invariant from 'invariant';
 import fetch from 'isomorphic-fetch';
+import bugsnag from 'bugsnag';
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -32,7 +33,7 @@ const makePolicy = () => {
 };
 
 const signPolicy = (policy: any) => {
-  invariant(AWS_SECRET_ACCESS_KEY);
+  invariant(AWS_SECRET_ACCESS_KEY, 'AWS_SECRET_ACCESS_KEY not set');
   const signature = crypto
     .createHmac('sha1', AWS_SECRET_ACCESS_KEY)
     .update(policy)
@@ -43,7 +44,7 @@ const signPolicy = (policy: any) => {
 
 const uploadToS3FromUrl = async (url: string, key: string) => {
   const s3 = new AWS.S3();
-  invariant(AWS_S3_UPLOAD_BUCKET_NAME);
+  invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
 
   try {
     // $FlowIssue dunno it's fine
@@ -59,8 +60,8 @@ const uploadToS3FromUrl = async (url: string, key: string) => {
       })
       .promise();
     return `https://s3.amazonaws.com/${AWS_S3_UPLOAD_BUCKET_NAME}/${key}`;
-  } catch (_e) {
-    return undefined;
+  } catch (e) {
+    bugsnag.notify(e);
   }
 };
 

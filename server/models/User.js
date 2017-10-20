@@ -1,6 +1,7 @@
 // @flow
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
+import uuid from 'uuid';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { uploadToS3FromUrl } from '../utils/s3';
 
@@ -71,7 +72,7 @@ User.prototype.verifyPassword = function(password) {
 User.prototype.updateAvatar = async function() {
   this.avatarUrl = await uploadToS3FromUrl(
     this.slackData.image_192,
-    `avatars/${this.id}`
+    `avatars/${this.id}/${uuid.v4()}`
   );
 };
 
