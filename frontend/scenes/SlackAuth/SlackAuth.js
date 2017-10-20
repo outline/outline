@@ -2,6 +2,7 @@
 import React from 'react';
 import { Redirect } from 'react-router';
 import queryString from 'query-string';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { client } from 'utils/ApiClient';
 
@@ -12,17 +13,15 @@ type Props = {
   location: Object,
 };
 
-type State = {
-  redirectTo: string,
-};
-
 @observer class SlackAuth extends React.Component {
   props: Props;
-  state: State;
-  state = {};
+  @observable redirectTo: string;
 
-  // $FlowIssue Flow doesn't like async lifecycle components https://github.com/facebook/flow/issues/1803
-  async componentDidMount(): void {
+  componentDidMount() {
+    this.redirect();
+  }
+
+  async redirect() {
     const { error, code, state } = queryString.parse(
       this.props.location.search
     );
@@ -30,18 +29,18 @@ type State = {
     if (error) {
       if (error === 'access_denied') {
         // User selected "Deny" access on Slack OAuth
-        this.setState({ redirectTo: '/dashboard' });
+        this.redirectTo = '/dashboard';
       } else {
-        this.setState({ redirectTo: '/auth/error' });
+        this.redirectTo = '/auth/error';
       }
     } else {
       if (this.props.location.pathname === '/auth/slack/commands') {
         // User adding webhook integrations
         try {
           await client.post('/auth.slackCommands', { code });
-          this.setState({ redirectTo: '/dashboard' });
+          this.redirectTo = '/dashboard';
         } catch (e) {
-          this.setState({ redirectTo: '/auth/error' });
+          this.redirectTo = '/auth/error';
         }
       } else {
         // Regular Slack authentication
@@ -50,18 +49,15 @@ type State = {
 
         const { success } = await this.props.auth.authWithSlack(code, state);
         success
-          ? this.setState({ redirectTo: redirectTo || '/dashboard' })
-          : this.setState({ redirectTo: '/auth/error' });
+          ? (this.redirectTo = redirectTo || '/dashboard')
+          : (this.redirectTo = '/auth/error');
       }
     }
   }
 
   render() {
-    return (
-      <div>
-        {this.state.redirectTo && <Redirect to={this.state.redirectTo} />}
-      </div>
-    );
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+    return null;
   }
 }
 

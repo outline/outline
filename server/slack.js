@@ -15,7 +15,6 @@ export async function request(endpoint: string, body: Object) {
   } catch (e) {
     throw httpErrors.BadRequest();
   }
-  console.log('DATA', data);
   if (!data.ok) throw httpErrors.BadRequest(data.error);
 
   return data;
@@ -28,7 +27,7 @@ export async function oauthAccess(
   return request('oauth.access', {
     client_id: process.env.SLACK_KEY,
     client_secret: process.env.SLACK_SECRET,
-    redirect_uri: `${process.env.URL || ''}/auth/slack`,
+    redirect_uri,
     code,
   });
 }
