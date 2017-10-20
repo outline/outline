@@ -1,21 +1,22 @@
 import path from 'path';
+import fs from 'fs';
 import httpErrors from 'http-errors';
 import Koa from 'koa';
 import Router from 'koa-router';
 import sendfile from 'koa-sendfile';
-
 import subdomainRedirect from './middlewares/subdomainRedirect';
 
 const koa = new Koa();
 const router = new Router();
 
-router.get('/service-worker.js', async ctx => {
-  ctx.set('Content-Type', 'application/javascript');
-  if (process.env.NODE_ENV === 'production')
-    ctx.set('Cache-Control', `max-age=${30}`);
-  await sendfile(ctx, path.join(__dirname, './static/service-worker.js'));
-  if (!ctx.status) ctx.throw(httpErrors.NotFound());
-});
+const readFile = src => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(src, { encoding: 'utf8' }, (err, data) => {
+      if (err) return reject(err);
+      resolve(data);
+    });
+  });
+};
 
 router.get('/_health', ctx => (ctx.body = 'OK'));
 
@@ -31,6 +32,13 @@ if (process.env.NODE_ENV === 'production') {
     );
   });
 
+  router.get('/', async ctx => {
+    const html = await readFile(path.join(__dirname, '../dist/index.html'));
+    ctx.body = html;
+
+    if (!ctx.status) ctx.throw(httpErrors.NotFound());
+  });
+
   router.get('*', async ctx => {
     await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
     if (!ctx.status) ctx.throw(httpErrors.NotFound());
@@ -39,7 +47,10 @@ if (process.env.NODE_ENV === 'production') {
   koa.use(subdomainRedirect());
 } else {
   router.get('*', async ctx => {
-    await sendfile(ctx, path.join(__dirname, './static/dev.html'));
+    console.log(ctx.cookies.get('loggedIn'));
+    const html = await readFile(path.join(__dirname, './static/dev.html'));
+    ctx.body = html;
+
     if (!ctx.status) ctx.throw(httpErrors.NotFound());
   });
 }

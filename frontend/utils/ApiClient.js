@@ -52,6 +52,7 @@ class ApiClient {
       body,
       headers,
       redirect: 'follow',
+      credentials: 'include',
     });
 
     // Handle request promises and return a new promise

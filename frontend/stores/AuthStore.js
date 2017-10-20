@@ -1,6 +1,7 @@
 // @flow
 import { observable, action, computed, autorunAsync } from 'mobx';
 import invariant from 'invariant';
+import Cookie from 'js-cookie';
 import { client } from 'utils/ApiClient';
 import type { User, Team } from 'types';
 
@@ -33,6 +34,7 @@ class AuthStore {
   @action logout = () => {
     this.user = null;
     this.token = null;
+    Cookie.remove('loggedId', { path: '/' });
   };
 
   @action getOauthState = () => {
