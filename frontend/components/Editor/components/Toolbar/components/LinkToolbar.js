@@ -11,6 +11,7 @@ import DocumentResult from './DocumentResult';
 import type { State } from '../../../types';
 import DocumentsStore from 'stores/DocumentsStore';
 import keydown from 'react-keydown';
+import CloseIcon from 'components/Icon/CloseIcon';
 import Icon from 'components/Icon';
 import Flex from 'components/Flex';
 
@@ -149,7 +150,7 @@ class LinkToolbar extends Component {
           <ToolbarButton onMouseDown={this.removeLink}>
             {this.isEditing
               ? <Icon type="Trash2" light />
-              : <Icon type="XCircle" light />}
+              : <CloseIcon light />}
           </ToolbarButton>
         </LinkEditor>
         {hasResults &&

@@ -61,11 +61,13 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
         >
           New child
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={this.handleMove}>Move</DropdownMenuItem>
-        <DropdownMenuItem onClick={this.handleExport}>Export</DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleExport}>
+          Download
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
         {allowDelete &&
           <DropdownMenuItem onClick={this.handleDelete}>
-            Delete
+            Delete…
           </DropdownMenuItem>}
       </DropdownMenu>
     );

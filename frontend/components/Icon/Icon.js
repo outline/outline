@@ -5,28 +5,20 @@ import { color } from 'styles/constants';
 
 export type Props = {
   className?: string,
-  type?: string,
   light?: boolean,
   black?: boolean,
   primary?: boolean,
   color?: string,
+  size?: number,
 };
 
 type BaseProps = {
-  children?: React$Element<any>,
+  children?: React$Element<*>,
 };
 
-export default function Icon({
-  children,
-  light,
-  black,
-  primary,
-  color,
-  type,
-  ...rest
-}: Props & BaseProps) {
+export default function Icon({ children, ...rest }: Props & BaseProps) {
   return (
-    <Wrapper light={light} black={black} primary={primary} {...rest}>
+    <Wrapper {...rest}>
       {children}
     </Wrapper>
   );
@@ -34,6 +26,9 @@ export default function Icon({
 
 const Wrapper = styled.span`
   svg {
+    width: ${props => (props.size ? props.size + 'px' : 'auto')};
+    height: ${props => (props.size ? props.size + 'px' : 'auto')};
+
     fill: ${props => {
             if (props.color) return props.color;
             if (props.light) return color.white;

@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import Icon from 'components/Icon';
+import SearchIcon from 'components/Icon/SearchIcon';
 import Flex from 'components/Flex';
 import { color } from 'styles/constants';
 import styled from 'styled-components';
@@ -37,7 +37,7 @@ class SearchField extends Component {
           innerRef={this.setRef}
           onChange={this.handleChange}
           spellCheck="false"
-          placeholder="Search…"
+          placeholder="search…"
           autoFocus
         />
       </Flex>
@@ -59,8 +59,9 @@ const StyledInput = styled.input`
   :-ms-input-placeholder { color: ${color.slateLight}; }
 `;
 
-const StyledIcon = styled(Icon)`
-  top: 3px;
+const StyledIcon = styled(SearchIcon)`
+  position: relative;
+  top: 6px;
 `;
 
 export default SearchField;
