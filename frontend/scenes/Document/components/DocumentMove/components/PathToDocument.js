@@ -38,9 +38,7 @@ const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
     cursor: pointer;
 
     ${StyledGoToIcon} {
-      svg {
-        fill: ${color.white};
-      }
+      fill: ${color.white};
     }
   }
 `;
