@@ -115,7 +115,7 @@ class DocumentsStore extends BaseStore {
     if (!this.getById(id)) this.fetch(id, true);
   };
 
-  @action fetch = async (id: string, prefetch: boolean): Promise<*> => {
+  @action fetch = async (id: string, prefetch?: boolean): Promise<*> => {
     /** If document has been fetched under 5s ago, return it */
     const existingDocument = this.getById(id);
     if (existingDocument && existingDocument.timeSinceFetch < 5)
