@@ -5,7 +5,7 @@ import type { Props } from '../types';
 import { color } from 'styles/constants';
 
 function HorizontalRule(props: Props) {
-  const { state, node } = this.props;
+  const { state, node } = props;
   const active = state.isFocused && state.selection.hasEdgeIn(node);
   return <StyledHr active={active} />;
 }
