@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import Code from './components/Code';
+import HorizontalRule from './components/HorizontalRule';
 import InlineCode from './components/InlineCode';
 import Image from './components/Image';
 import Link from './components/Link';
@@ -33,7 +34,7 @@ const createSchema = () => {
       'block-quote': (props: Props) => (
         <blockquote>{props.children}</blockquote>
       ),
-      'horizontal-rule': (props: Props) => <hr />,
+      'horizontal-rule': HorizontalRule,
       'bulleted-list': (props: Props) => <ul>{props.children}</ul>,
       'ordered-list': (props: Props) => <ol>{props.children}</ol>,
       'todo-list': (props: Props) => <TodoList>{props.children}</TodoList>,

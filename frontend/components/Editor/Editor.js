@@ -9,6 +9,7 @@ import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
+import BlockInsert from './components/BlockInsert';
 import Placeholder from './components/Placeholder';
 import Contents from './components/Contents';
 import Markdown from './serializer';
@@ -24,7 +25,7 @@ type Props = {
   onCancel: Function,
   onImageUploadStart: Function,
   onImageUploadStop: Function,
-  emoji: string,
+  emoji?: string,
   readOnly: boolean,
 };
 
@@ -172,6 +173,8 @@ type KeyData = {
   };
 
   render = () => {
+    const { readOnly, emoji, onSave } = this.props;
+
     return (
       <Flex
         onDrop={this.handleDrop}
@@ -182,25 +185,32 @@ type KeyData = {
         auto
       >
         <MaxWidth column auto>
-          <Header onClick={this.focusAtStart} readOnly={this.props.readOnly} />
-          <Toolbar state={this.editorState} onChange={this.onChange} />
+          <Header onClick={this.focusAtStart} readOnly={readOnly} />
           <Contents state={this.editorState} />
+          {!readOnly &&
+            <Toolbar state={this.editorState} onChange={this.onChange} />}
+          {!readOnly &&
+            <BlockInsert
+              state={this.editorState}
+              onChange={this.onChange}
+              onInsertImage={this.insertImageFile}
+            />}
           <StyledEditor
             innerRef={ref => (this.editor = ref)}
             placeholder="Start with a title…"
             bodyPlaceholder="…the rest is your canvas"
             schema={this.schema}
             plugins={this.plugins}
-            emoji={this.props.emoji}
+            emoji={emoji}
             state={this.editorState}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
             onDocumentChange={this.onDocumentChange}
-            onSave={this.props.onSave}
-            readOnly={this.props.readOnly}
+            onSave={onSave}
+            readOnly={readOnly}
           />
           <ClickablePadding
-            onClick={!this.props.readOnly ? this.focusAtEnd : undefined}
+            onClick={!readOnly ? this.focusAtEnd : undefined}
             grow
           />
         </MaxWidth>
@@ -281,6 +291,10 @@ const StyledEditor = styled(Editor)`
     position: relative;
   }
 
+  a:hover {
+    text-decoration: ${({ readOnly }) => (readOnly ? 'underline' : 'none')};
+  }
+
   li p {
     display: inline;
     margin: 0;
@@ -321,6 +335,10 @@ const StyledEditor = styled(Editor)`
   th,
   td {
     padding: 5px 20px 5px 0;
+  }
+
+  b, strong {
+    font-weight: 600;
   }
 `;
 

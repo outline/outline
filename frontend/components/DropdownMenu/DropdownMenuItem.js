@@ -7,7 +7,7 @@ const DropdownMenuItem = ({
   onClick,
   children,
 }: {
-  onClick?: () => void,
+  onClick?: SyntheticEvent => void,
   children?: React.Element<any>,
 }) => {
   return (
@@ -24,10 +24,14 @@ const MenuItem = styled.div`
 
   color: ${color.slateDark};
   display: flex;
-  justify-content: space-between;
+  justify-content: left;
   align-items: center;
   cursor: pointer;
   font-size: 15px;
+
+  svg {
+    margin-right: 8px;
+  }
 
   a {
     text-decoration: none;

@@ -47,6 +47,10 @@ router.post('auth.slack', async ctx => {
     await team.createFirstCollection(user.id);
   }
 
+  // Update user's avatar
+  await user.updateAvatar();
+  await user.save();
+
   ctx.body = {
     data: {
       user: await presentUser(ctx, user),

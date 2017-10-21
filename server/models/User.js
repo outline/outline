@@ -1,7 +1,9 @@
 // @flow
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
+import uuid from 'uuid';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
+import { uploadToS3FromUrl } from '../utils/s3';
 
 import JWT from 'jsonwebtoken';
 
@@ -18,6 +20,7 @@ const User = sequelize.define(
     email: { type: DataTypes.STRING },
     username: { type: DataTypes.STRING },
     name: DataTypes.STRING,
+    avatarUrl: { type: DataTypes.STRING, allowNull: true },
     password: DataTypes.VIRTUAL,
     passwordDigest: DataTypes.STRING,
     isAdmin: DataTypes.BOOLEAN,
@@ -65,6 +68,12 @@ User.prototype.verifyPassword = function(password) {
       resolve(ok);
     });
   });
+};
+User.prototype.updateAvatar = async function() {
+  this.avatarUrl = await uploadToS3FromUrl(
+    this.slackData.image_192,
+    `avatars/${this.id}/${uuid.v4()}`
+  );
 };
 
 const setRandomJwtSecret = model => {
