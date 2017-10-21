@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
-import Icon from 'components/Icon';
+import StarredIcon from 'components/Icon/StarredIcon';
 import PublishingInfo from './components/PublishingInfo';
 
 type Props = {
@@ -15,18 +15,13 @@ type Props = {
   innerRef?: Function,
 };
 
-const StyledStar = styled(({ solid, ...props }) => <Icon {...props} />).attrs({
-  type: 'Star',
-  color: color.text,
-})`
-  width: 16px;
-  height: 16px;
-  top: 1px;
-  margin-left: 4px;
+const StyledStar = styled(({ solid, ...props }) => (
+  <StarredIcon color={solid ? color.black : color.text} {...props} />
+))`
+  position: absolute;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: all 100ms ease-in-out;
-
-  ${props => props.solid && 'polygon { fill: #000};'}
+  margin-left: 2px;
 
   &:hover {
     transform: scale(1.1);
