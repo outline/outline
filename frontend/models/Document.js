@@ -40,6 +40,7 @@ class Document extends BaseModel {
   views: number;
 
   data: Object;
+  fetchedAt: Date;
 
   /* Computed */
 
@@ -99,6 +100,10 @@ class Document extends BaseModel {
     return this.pathToDocument.length > 1
       ? this.pathToDocument[this.pathToDocument.length - 2].id
       : null;
+  }
+
+  get timeSinceFetch(): number {
+    return (new Date() - this.fetchedAt) / 1000;
   }
 
   /* Actions */
@@ -252,6 +257,7 @@ class Document extends BaseModel {
 
     this.updateData(data);
     this.errors = stores.errors;
+    this.fetchedAt = new Date();
   }
 }
 

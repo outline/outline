@@ -20,6 +20,7 @@ import { type NavigationNode } from 'types';
 type Props = {
   history: Object,
   collections: CollectionsStore,
+  documents: DocumentsStore,
   activeDocument: ?Document,
   onCreateCollection: () => void,
   activeDocumentRef: HTMLElement => void,
@@ -36,6 +37,7 @@ type Props = {
       activeDocument,
       ui,
       activeDocumentRef,
+      documents,
     } = this.props;
 
     return (
@@ -48,6 +50,7 @@ type Props = {
             collection={collection}
             activeDocument={activeDocument}
             activeDocumentRef={activeDocumentRef}
+            prefetchDocument={documents.prefetchDocument}
             ui={ui}
           />
         ))}
@@ -77,6 +80,7 @@ type Props = {
       activeDocument,
       ui,
       activeDocumentRef,
+      prefetchDocument,
     } = this.props;
 
     return (
@@ -113,6 +117,7 @@ type Props = {
                   history={history}
                   document={document}
                   activeDocument={activeDocument}
+                  prefetchDocument={prefetchDocument}
                   depth={0}
                 />
               ))}
@@ -124,77 +129,76 @@ type Props = {
 }
 
 type DocumentLinkProps = {
-  documents: DocumentsStore,
   document: NavigationNode,
   history: Object,
   activeDocument: ?Document,
   activeDocumentRef: HTMLElement => void,
+  prefetchDocument: string => void,
   depth: number,
 };
 
-const DocumentLink = inject('documents')(
-  observer(
-    ({
-      documents,
-      document,
-      activeDocument,
-      activeDocumentRef,
-      depth,
-    }: DocumentLinkProps) => {
-      const isActiveDocument =
-        activeDocument && activeDocument.id === document.id;
-      const showChildren =
-        activeDocument &&
-        (activeDocument.pathToDocument
-          .map(entry => entry.id)
-          .includes(document.id) ||
-          isActiveDocument);
+const DocumentLink = observer(
+  ({
+    documents,
+    document,
+    activeDocument,
+    activeDocumentRef,
+    prefetchDocument,
+    depth,
+  }: DocumentLinkProps) => {
+    const isActiveDocument =
+      activeDocument && activeDocument.id === document.id;
+    const showChildren =
+      activeDocument &&
+      (activeDocument.pathToDocument
+        .map(entry => entry.id)
+        .includes(document.id) ||
+        isActiveDocument);
 
-      const handleMouseEnter = (event: SyntheticEvent) => {
-        event.stopPropagation();
-        event.preventDefault();
-        documents.prefetchDocument(document.id);
-      };
+    const handleMouseEnter = (event: SyntheticEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+      prefetchDocument(document.id);
+    };
 
-      return (
-        <Flex
-          column
-          key={document.id}
-          innerRef={isActiveDocument ? activeDocumentRef : undefined}
-          onMouseEnter={handleMouseEnter}
+    return (
+      <Flex
+        column
+        key={document.id}
+        innerRef={isActiveDocument ? activeDocumentRef : undefined}
+        onMouseEnter={handleMouseEnter}
+      >
+        <DropToImport
+          history={history}
+          documentId={document.id}
+          activeStyle="activeDropZone"
         >
-          <DropToImport
-            history={history}
-            documentId={document.id}
-            activeStyle="activeDropZone"
+          <SidebarLink
+            to={document.url}
+            hasChildren={document.children.length > 0}
+            expanded={showChildren}
           >
-            <SidebarLink
-              to={document.url}
-              hasChildren={document.children.length > 0}
-              expanded={showChildren}
-            >
-              {document.title}
-            </SidebarLink>
-          </DropToImport>
+            {document.title}
+          </SidebarLink>
+        </DropToImport>
 
-          {showChildren &&
-            <Children column>
-              {document.children &&
-                document.children.map(childDocument => (
-                  <DocumentLink
-                    key={childDocument.id}
-                    history={history}
-                    documents={documents}
-                    document={childDocument}
-                    activeDocument={activeDocument}
-                    depth={depth + 1}
-                  />
-                ))}
-            </Children>}
-        </Flex>
-      );
-    }
-  )
+        {showChildren &&
+          <Children column>
+            {document.children &&
+              document.children.map(childDocument => (
+                <DocumentLink
+                  key={childDocument.id}
+                  history={history}
+                  document={childDocument}
+                  activeDocument={activeDocument}
+                  prefetchDocument={prefetchDocument}
+                  depth={depth + 1}
+                />
+              ))}
+          </Children>}
+      </Flex>
+    );
+  }
 );
 
 const CollectionAction = styled.a`
@@ -230,4 +234,4 @@ const Children = styled(Flex)`
   margin-left: 20px;
 `;
 
-export default inject('collections', 'ui')(SidebarCollections);
+export default inject('collections', 'ui', 'documents')(SidebarCollections);
