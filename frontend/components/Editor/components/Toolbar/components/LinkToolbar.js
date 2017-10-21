@@ -12,7 +12,8 @@ import type { State } from '../../../types';
 import DocumentsStore from 'stores/DocumentsStore';
 import keydown from 'react-keydown';
 import CloseIcon from 'components/Icon/CloseIcon';
-import Icon from 'components/Icon';
+import OpenIcon from 'components/Icon/OpenIcon';
+import TrashIcon from 'components/Icon/TrashIcon';
 import Flex from 'components/Flex';
 
 @keydown
@@ -145,12 +146,10 @@ class LinkToolbar extends Component {
           />
           {this.isEditing &&
             <ToolbarButton onMouseDown={this.openLink}>
-              <Icon type="ExternalLink" light />
+              <OpenIcon light />
             </ToolbarButton>}
           <ToolbarButton onMouseDown={this.removeLink}>
-            {this.isEditing
-              ? <Icon type="Trash2" light />
-              : <CloseIcon light />}
+            {this.isEditing ? <TrashIcon light /> : <CloseIcon light />}
           </ToolbarButton>
         </LinkEditor>
         {hasResults &&

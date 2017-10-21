@@ -58,7 +58,6 @@ type Props = {
   @observable isDragging = false;
   @observable isLoading = false;
   @observable isSaving = false;
-  @observable showAsSaved = false;
   @observable notFound = false;
   @observable moveModalOpen: boolean = false;
 
@@ -170,16 +169,8 @@ type Props = {
 
     if (redirect || this.props.newDocument) {
       this.props.history.push(document.url);
-    } else {
-      this.toggleShowAsSaved();
     }
   };
-
-  toggleShowAsSaved() {
-    this.showAsSaved = true;
-    this.isSaving = false;
-    this.savedTimeout = setTimeout(() => (this.showAsSaved = false), 2000);
-  }
 
   onImageUploadStart = () => {
     this.isLoading = true;
@@ -194,7 +185,7 @@ type Props = {
     this.document.updateData({ text }, true);
   };
 
-  onCancel = () => {
+  onDiscard = () => {
     let url;
     if (this.document && this.document.url) {
       url = this.document.url;
@@ -265,7 +256,7 @@ type Props = {
                 onImageUploadStop={this.onImageUploadStop}
                 onChange={this.onChange}
                 onSave={this.onSave}
-                onCancel={this.onCancel}
+                onCancel={this.onDiscard}
                 readOnly={!this.isEditing}
               />
               <Meta
@@ -294,7 +285,7 @@ type Props = {
                   </HeaderAction>
                   {this.isEditing &&
                     <HeaderAction>
-                      <a onClick={this.onCancel}>Cancel</a>
+                      <a onClick={this.onDiscard}>Discard</a>
                     </HeaderAction>}
                   {!this.isEditing &&
                     <HeaderAction>
@@ -326,12 +317,11 @@ const Separator = styled.div`
 const HeaderAction = styled(Flex)`
   justify-content: center;
   align-items: center;
-  min-height: 43px;
-  color: ${color.text};
-  padding: 0 0 0 14px;
+  padding: 0 0 0 10px;
 
   a {
     color: ${color.text};
+    height: 24px;
   }
 `;
 

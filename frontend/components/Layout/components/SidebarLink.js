@@ -15,14 +15,9 @@ const activeStyle = {
 const StyleableDiv = props => <div {...props} />;
 
 const StyledGoTo = styled(CollapsedIcon)`
-  margin-right: -10px;
-
-  svg {
-    margin-bottom: -4px;
-    margin-right: 6px;
-
-    ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'}
-  }
+  margin-bottom: -4px;
+  margin-right: 0;
+  ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'}
 `;
 
 const IconWrapper = styled.span`

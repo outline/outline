@@ -1,6 +1,5 @@
 // @flow
 import React from 'react';
-import styled from 'styled-components';
 import { color } from 'styles/constants';
 
 export type Props = {
@@ -16,25 +15,29 @@ type BaseProps = {
   children?: React$Element<*>,
 };
 
-export default function Icon({ children, ...rest }: Props & BaseProps) {
+export default function Icon({
+  children,
+  className,
+  ...rest
+}: Props & BaseProps) {
+  const size = rest.size ? rest.size + 'px' : '24px';
+
+  let fill = color.slateDark;
+  if (rest.color) fill = rest.color;
+  if (rest.light) fill = color.white;
+  if (rest.black) fill = color.black;
+  if (rest.primary) fill = color.primary;
+
   return (
-    <Wrapper {...rest}>
+    <svg
+      fill={fill}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
       {children}
-    </Wrapper>
+    </svg>
   );
 }
-
-const Wrapper = styled.span`
-  svg {
-    width: ${props => (props.size ? props.size + 'px' : 'auto')};
-    height: ${props => (props.size ? props.size + 'px' : 'auto')};
-
-    fill: ${props => {
-            if (props.color) return props.color;
-            if (props.light) return color.white;
-            if (props.black) return color.black;
-            if (props.primary) return color.primary;
-            return color.slateDark;
-          }};
-  }
-`;

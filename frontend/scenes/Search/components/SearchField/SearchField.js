@@ -61,7 +61,7 @@ const StyledInput = styled.input`
 
 const StyledIcon = styled(SearchIcon)`
   position: relative;
-  top: 6px;
+  top: 4px;
 `;
 
 export default SearchField;

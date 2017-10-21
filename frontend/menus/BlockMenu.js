@@ -33,7 +33,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
         {...rest}
       >
         <DropdownMenuItem onClick={onPickImage}>
-          <ImageIcon /> Add images
+          <ImageIcon /> <span>Add images</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onInsertList}>
           <BulletedListIcon /> Start list
