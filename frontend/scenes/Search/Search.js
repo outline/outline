@@ -12,6 +12,7 @@ import { searchUrl } from 'utils/routeHelpers';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
+import Empty from 'components/Empty';
 import Flex from 'components/Flex';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -57,7 +58,7 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   firstDocument: HTMLElement;
   props: Props;
 
-  @observable resultIds: Array<string> = []; // Document IDs
+  @observable resultIds: string[] = []; // Document IDs
   @observable searchTerm: ?string = null;
   @observable isFetching = false;
 
@@ -131,18 +132,19 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   }
 
   render() {
-    const { documents } = this.props;
+    const { documents, notFound } = this.props;
     const query = this.props.match.params.query;
     const hasResults = this.resultIds.length > 0;
+    const showEmpty = !this.isFetching && this.searchTerm && !hasResults;
 
     return (
       <Container auto>
         <PageTitle title={this.title} />
         {this.isFetching && <LoadingIndicator />}
-        {this.props.notFound &&
+        {notFound &&
           <div>
             <h1>Not Found</h1>
-            <p>We're unable to find the page you're accessing.</p>
+            <p>We’re unable to find the page you’re accessing.</p>
           </div>}
         <ResultsWrapper pinToTop={hasResults} column auto>
           <SearchField
@@ -151,6 +153,7 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
             onChange={this.updateQuery}
             value={query || ''}
           />
+          {showEmpty && <Empty>Oop, no matching documents.</Empty>}
           <ResultList visible={hasResults}>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
