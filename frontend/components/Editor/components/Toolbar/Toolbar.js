@@ -144,7 +144,7 @@ const Menu = styled.div`
   top: -10000px;
   left: -10000px;
   opacity: 0;
-  background-color: #222;
+  background-color: #2F3336;
   border-radius: 4px;
   transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
   line-height: 0;

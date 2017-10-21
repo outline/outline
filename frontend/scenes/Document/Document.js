@@ -31,6 +31,7 @@ import LoadingIndicator from 'components/LoadingIndicator';
 import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
+import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
 import Search from 'scenes/Search';
 
 const DISCARD_CHANGES = `
@@ -303,7 +304,7 @@ type Props = {
                   <HeaderAction>
                     {!this.isEditing &&
                       <a onClick={this.onClickNew}>
-                        New
+                        <NewDocumentIcon />
                       </a>}
                   </HeaderAction>
                 </Flex>
@@ -329,15 +330,8 @@ const HeaderAction = styled(Flex)`
   color: ${color.text};
   padding: 0 0 0 14px;
 
-  a,
-  svg {
+  a {
     color: ${color.text};
-    opacity: .8;
-    transition: opacity 100ms ease-in-out;
-
-    &:hover {
-      opacity: 1;
-    }
   }
 `;
 

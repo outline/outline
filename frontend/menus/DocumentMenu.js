@@ -4,7 +4,7 @@ import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
-import Icon from 'components/Icon';
+import MoreIcon from 'components/Icon/MoreIcon';
 import { documentMoveUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
@@ -49,7 +49,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
     const { allowDelete } = document;
 
     return (
-      <DropdownMenu label={label || <Icon type="MoreHorizontal" />}>
+      <DropdownMenu label={label || <MoreIcon />}>
         {document.starred
           ? <DropdownMenuItem onClick={this.handleUnstar}>
               Unstar

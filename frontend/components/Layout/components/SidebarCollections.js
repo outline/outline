@@ -8,7 +8,8 @@ import { color, fontWeight } from 'styles/constants';
 
 import SidebarLink from './SidebarLink';
 import DropToImport from 'components/DropToImport';
-import Icon from 'components/Icon';
+import PlusIcon from 'components/Icon/PlusIcon';
+import CollectionIcon from 'components/Icon/CollectionIcon';
 import CollectionMenu from 'menus/CollectionMenu';
 
 import CollectionsStore from 'stores/CollectionsStore';
@@ -52,8 +53,11 @@ type Props = {
         ))}
 
         {collections.isLoaded &&
-          <SidebarLink onClick={this.props.onCreateCollection}>
-            <Icon type="Plus" /> Add new collection
+          <SidebarLink
+            onClick={this.props.onCreateCollection}
+            icon={<PlusIcon />}
+          >
+            New collection…
           </SidebarLink>}
       </Flex>
     );
@@ -77,6 +81,7 @@ type Props = {
       ui,
       activeDocumentRef,
     } = this.props;
+    const expanded = collection.id === ui.activeCollectionId;
 
     return (
       <StyledDropToImport
@@ -87,7 +92,11 @@ type Props = {
         menuOpen={this.menuOpen}
         dropzoneRef={ref => (this.dropzoneRef = ref)}
       >
-        <SidebarLink key={collection.id} to={collection.url}>
+        <SidebarLink
+          key={collection.id}
+          to={collection.url}
+          icon={<CollectionIcon expanded={expanded} />}
+        >
           <Flex justify="space-between">
             {collection.name}
 
@@ -103,7 +112,7 @@ type Props = {
             </CollectionAction>
           </Flex>
 
-          {collection.id === ui.activeCollectionId &&
+          {expanded &&
             <Children column>
               {collection.documents.map(document => (
                 <DocumentLink
@@ -139,12 +148,11 @@ const DocumentLink = observer(
   }: DocumentLinkProps) => {
     const isActiveDocument =
       activeDocument && activeDocument.id === document.id;
-    const showChildren =
-      activeDocument &&
+    const showChildren = !!(activeDocument &&
       (activeDocument.pathToDocument
         .map(entry => entry.id)
         .includes(document.id) ||
-        isActiveDocument);
+        isActiveDocument));
 
     return (
       <Flex
@@ -185,6 +193,8 @@ const DocumentLink = observer(
 );
 
 const CollectionAction = styled.a`
+  position: absolute;
+  right: 0;
   color: ${color.slate};
   svg { opacity: .75; }
 
@@ -206,11 +216,12 @@ const StyledDropToImport = styled(DropToImport)`
 `;
 
 const Header = styled(Flex)`
-  font-size: 11px;
+  font-size: 12px;
   font-weight: ${fontWeight.semiBold};
   text-transform: uppercase;
   color: ${color.slate};
   letter-spacing: 0.04em;
+  margin-bottom: 4px;
 `;
 
 const Children = styled(Flex)`

@@ -12,7 +12,9 @@ import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 import Avatar from 'components/Avatar';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
-import Icon from 'components/Icon';
+import HomeIcon from 'components/Icon/HomeIcon';
+import SearchIcon from 'components/Icon/SearchIcon';
+import StarredIcon from 'components/Icon/StarredIcon';
 import Toasts from 'components/Toasts';
 import AccountMenu from 'menus/AccountMenu';
 
@@ -127,14 +129,14 @@ type Props = {
               <Flex auto column>
                 <Scrollable innerRef={this.setScrollableRef}>
                   <LinkSection>
-                    <SidebarLink to="/dashboard">
-                      <Icon type="Home" /> Home
+                    <SidebarLink to="/dashboard" icon={<HomeIcon />}>
+                      Home
                     </SidebarLink>
-                    <SidebarLink to="/search">
-                      <Icon type="Search" /> Search
+                    <SidebarLink to="/search" icon={<SearchIcon />}>
+                      Search
                     </SidebarLink>
-                    <SidebarLink to="/starred">
-                      <Icon type="Star" /> Starred
+                    <SidebarLink to="/starred" icon={<StarredIcon />}>
+                      Starred
                     </SidebarLink>
                   </LinkSection>
                   <LinkSection>
