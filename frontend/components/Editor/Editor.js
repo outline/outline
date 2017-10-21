@@ -291,6 +291,10 @@ const StyledEditor = styled(Editor)`
     position: relative;
   }
 
+  a:hover {
+    text-decoration: ${({ readOnly }) => (readOnly ? 'underline' : 'none')};
+  }
+
   li p {
     display: inline;
     margin: 0;
@@ -331,6 +335,10 @@ const StyledEditor = styled(Editor)`
   th,
   td {
     padding: 5px 20px 5px 0;
+  }
+
+  b, strong {
+    font-weight: 600;
   }
 `;
 
