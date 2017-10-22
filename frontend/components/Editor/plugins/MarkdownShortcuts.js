@@ -78,13 +78,16 @@ export default function MarkdownShortcuts() {
           const { text } = startBlock;
           const start = i;
           const end = i + shortcut.length;
+          const beginningOfBlock = start === 0;
+          const endOfBlock = end === text.length;
+          const surroundedByWhitespaces = [
+            text.slice(start - 1, start),
+            text.slice(end, end + 1),
+          ].includes(' ');
+
           if (
             text.slice(start, end) === shortcut &&
-            (start === 0 ||
-              end === text.length ||
-              [text.slice(start - 1, start), text.slice(end, end + 1)].includes(
-                ' '
-              ))
+            (beginningOfBlock || endOfBlock || surroundedByWhitespaces)
           )
             inlineTags.push(i);
         }
