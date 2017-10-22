@@ -4,7 +4,6 @@ import styled from 'styled-components';
 import { darken } from 'polished';
 import { color } from 'styles/constants';
 import { fadeAndScaleIn } from 'styles/animations';
-import Icon from 'components/Icon';
 
 type Props = {
   onRequestClose: () => void,
@@ -38,9 +37,6 @@ class Toast extends Component {
 
     return (
       <Container onClick={onRequestClose} type={type}>
-        {type === 'info'
-          ? <Icon type="Info" light />
-          : <Icon type="AlertCircle" light />}
         <Message>{message}</Message>
       </Container>
     );

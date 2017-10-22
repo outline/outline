@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
+import Flex from 'components/Flex';
 import { color } from 'styles/constants';
 
 const DropdownMenuItem = ({
@@ -17,13 +18,12 @@ const DropdownMenuItem = ({
   );
 };
 
-const MenuItem = styled.div`
+const MenuItem = styled(Flex)`
   margin: 0;
   padding: 5px 10px;
   height: 32px;
 
   color: ${color.slateDark};
-  display: flex;
   justify-content: left;
   align-items: center;
   cursor: pointer;
@@ -41,6 +41,10 @@ const MenuItem = styled.div`
   &:hover {
     color: ${color.white};
     background: ${color.primary};
+
+    svg {
+      fill: ${color.white};
+    }
   }
 `;
 

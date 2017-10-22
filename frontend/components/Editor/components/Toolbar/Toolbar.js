@@ -144,15 +144,16 @@ const Menu = styled.div`
   top: -10000px;
   left: -10000px;
   opacity: 0;
-  background-color: #222;
+  background-color: #2F3336;
   border-radius: 4px;
-  transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
+  transform: scale(.95);
+  transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   line-height: 0;
   height: 40px;
   min-width: 260px;
 
   ${({ active }) => active && `
-    transform: translateY(-6px);
+    transform: translateY(-6px) scale(1);
     opacity: 1;
   `}
 `;

@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { color } from 'styles/constants';
 
 import Flex from 'components/Flex';
-import ChevronIcon from 'components/Icon/ChevronIcon';
+import GoToIcon from 'components/Icon/GoToIcon';
 
 import Document from 'models/Document';
 
@@ -19,10 +19,7 @@ const ResultWrapper = styled.div`
   cursor: default;
 `;
 
-const StyledChevronIcon = styled(ChevronIcon)`
-  padding-top: 2px;
-  width: 24px;
-  height: 24px; 
+const StyledGoToIcon = styled(GoToIcon)`
 `;
 
 const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
@@ -40,8 +37,8 @@ const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
     outline: none;
     cursor: pointer;
 
-    ${StyledChevronIcon} svg {
-      fill: ${color.smokeLight};
+    ${StyledGoToIcon} {
+      fill: ${color.white};
     }
   }
 `;
@@ -82,14 +79,14 @@ type Props = {
     if (!result) return <div />;
 
     return (
-      <Component innerRef={ref} selectable href onClick={this.handleClick}>
+      <Component innerRef={ref} onClick={this.handleClick} selectable href>
         {result.path
           .map(doc => <span key={doc.id}>{doc.title}</span>)
-          .reduce((prev, curr) => [prev, <StyledChevronIcon />, curr])}
+          .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
         {document &&
           <Flex>
             {' '}
-            <ChevronIcon />
+            <StyledGoToIcon />
             {' '}{document.title}
           </Flex>}
       </Component>

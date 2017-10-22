@@ -7,7 +7,7 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { color } from 'styles/constants';
-import Icon from 'components/Icon';
+import PlusIcon from 'components/Icon/PlusIcon';
 import BlockMenu from 'menus/BlockMenu';
 import type { State } from '../types';
 
@@ -151,7 +151,7 @@ export default class BlockInsert extends Component {
             accept="image/*"
           />
           <BlockMenu
-            label={<Icon type="PlusCircle" />}
+            label={<PlusIcon />}
             onPickImage={this.onPickImage}
             onInsertList={ev =>
               this.insertBlock(ev, {
@@ -183,11 +183,10 @@ const Trigger = styled.div`
   z-index: 1;
   opacity: 0;
   background-color: ${color.white};
-  border-radius: 4px;
   transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
   line-height: 0;
-  height: 16px;
-  width: 16px;
+  margin-top: -2px;
+  margin-left: -4px;
   transform: scale(.9);
 
   ${({ active }) => active && `

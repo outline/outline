@@ -85,7 +85,7 @@ const Label = styled(Flex).attrs({
 `;
 
 const Menu = styled.div`
-  animation: ${fadeAndScaleIn} 250ms ease;
+  animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
 
   position: absolute;

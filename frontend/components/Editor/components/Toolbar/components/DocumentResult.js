@@ -3,7 +3,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { fontWeight, color } from 'styles/constants';
 import Document from 'models/Document';
-import Icon from 'components/Icon';
+import GoToIcon from 'components/Icon/GoToIcon';
 
 type Props = {
   innerRef?: Function,
@@ -14,7 +14,7 @@ type Props = {
 function DocumentResult({ document, ...rest }: Props) {
   return (
     <ListItem {...rest} href="">
-      <i><Icon type="ChevronRight" light /></i>
+      <i><GoToIcon light /></i>
       {document.title}
     </ListItem>
   );
