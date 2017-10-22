@@ -22,6 +22,7 @@ import Document from 'models/Document';
 import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import CollectionsStore from 'stores/CollectionsStore';
 import DocumentMenu from 'menus/DocumentMenu';
 import SaveAction from './components/SaveAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
@@ -45,6 +46,7 @@ type Props = {
   location: Object,
   keydown: Object,
   documents: DocumentsStore,
+  collections: CollectionsStore,
   newDocument?: boolean,
   ui: UiStore,
 };
@@ -213,7 +215,9 @@ type Props = {
     const isMoving = this.props.match.path === matchDocumentMove;
     const document = this.document;
     const isFetching = !document;
-    const titleText = get(document, 'title', '');
+    const titleText =
+      get(document, 'title', '') ||
+      this.props.collections.titleForDocument(this.props.location.pathname);
 
     if (this.notFound) {
       return this.renderNotFound();
@@ -362,4 +366,6 @@ const StyledDropToImport = styled(DropToImport)`
   flex: 1;
 `;
 
-export default withRouter(inject('ui', 'user', 'documents')(DocumentScene));
+export default withRouter(
+  inject('ui', 'user', 'documents', 'collections')(DocumentScene)
+);
