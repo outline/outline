@@ -6,11 +6,13 @@ import { color } from 'styles/constants';
 import type { Props } from '../types';
 
 export default function Code({ children, node, readOnly, attributes }: Props) {
+  const language = node.data.get('language') || 'javascript';
+
   return (
     <Container>
       {readOnly && <CopyButton text={node.text} />}
-      <Pre>
-        <code {...attributes}>
+      <Pre className={`language-${language}`}>
+        <code {...attributes} className={`language-${language}`}>
           {children}
         </code>
       </Pre>
@@ -20,7 +22,7 @@ export default function Code({ children, node, readOnly, attributes }: Props) {
 
 const Pre = styled.pre`
   padding: .5em 1em;
-  background: ${color.smoke};
+  background: ${color.smokeLight};
   border-radius: 4px;
   border: 1px solid ${color.smokeDark};
 
