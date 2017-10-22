@@ -1,26 +1,12 @@
 // @flow
 import React, { Component } from 'react';
-import Icon from 'components/Icon';
+import SearchIcon from 'components/Icon/SearchIcon';
 import Flex from 'components/Flex';
 import { color } from 'styles/constants';
 import styled from 'styled-components';
 
-const Field = styled.input`
-  width: 100%;
-  padding: 10px;
-  font-size: 48px;
-  font-weight: 400;
-  outline: none;
-  border: 0;
-
-  ::-webkit-input-placeholder { color: ${color.slate}; }
-  :-moz-placeholder { color: ${color.slate}; }
-  ::-moz-placeholder { color: ${color.slate}; }
-  :-ms-input-placeholder { color: ${color.slate}; }
-`;
-
 class SearchField extends Component {
-  input: HTMLElement;
+  input: HTMLInputElement;
   props: {
     onChange: Function,
   };
@@ -33,29 +19,49 @@ class SearchField extends Component {
     this.input.focus();
   };
 
-  setRef = (ref: HTMLElement) => {
+  setRef = (ref: HTMLInputElement) => {
     this.input = ref;
   };
 
   render() {
     return (
       <Flex align="center">
-        <Icon
+        <StyledIcon
           type="Search"
-          size={48}
-          color="#C9CFD6"
+          size={46}
+          color={color.slateLight}
           onClick={this.focusInput}
         />
-        <Field
+        <StyledInput
           {...this.props}
           innerRef={this.setRef}
           onChange={this.handleChange}
-          placeholder="Search…"
+          spellCheck="false"
+          placeholder="search…"
           autoFocus
         />
       </Flex>
     );
   }
 }
+
+const StyledInput = styled.input`
+  width: 100%;
+  padding: 10px;
+  font-size: 48px;
+  font-weight: 400;
+  outline: none;
+  border: 0;
+
+  ::-webkit-input-placeholder { color: ${color.slateLight}; }
+  :-moz-placeholder { color: ${color.slateLight}; }
+  ::-moz-placeholder { color: ${color.slateLight}; }
+  :-ms-input-placeholder { color: ${color.slateLight}; }
+`;
+
+const StyledIcon = styled(SearchIcon)`
+  position: relative;
+  top: 4px;
+`;
 
 export default SearchField;

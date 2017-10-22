@@ -55,6 +55,10 @@ router.post('auth.slack', async ctx => {
     expires: new Date('2100'),
   });
 
+  // Update user's avatar
+  await user.updateAvatar();
+  await user.save();
+
   ctx.body = {
     data: {
       user: await presentUser(ctx, user),

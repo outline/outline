@@ -11,7 +11,9 @@ import DocumentResult from './DocumentResult';
 import type { State } from '../../../types';
 import DocumentsStore from 'stores/DocumentsStore';
 import keydown from 'react-keydown';
-import Icon from 'components/Icon';
+import CloseIcon from 'components/Icon/CloseIcon';
+import OpenIcon from 'components/Icon/OpenIcon';
+import TrashIcon from 'components/Icon/TrashIcon';
 import Flex from 'components/Flex';
 
 @keydown
@@ -109,16 +111,15 @@ class LinkToolbar extends Component {
 
   save = (href: string) => {
     href = href.trim();
-    const transform = this.props.state.transform();
-    transform.unwrapInline('link');
+    const { state } = this.props;
+    const transform = state.transform();
 
-    if (href) {
-      const data = { href };
-      transform.wrapInline({ type: 'link', data });
+    if (state.selection.isExpanded) {
+      transform.unwrapInline('link');
+      if (href) transform.wrapInline({ type: 'link', data: { href } });
     }
 
-    const state = transform.apply();
-    this.props.onChange(state);
+    this.props.onChange(transform.apply());
     this.props.onBlur();
   };
 
@@ -144,12 +145,10 @@ class LinkToolbar extends Component {
           />
           {this.isEditing &&
             <ToolbarButton onMouseDown={this.openLink}>
-              <Icon type="ExternalLink" light />
+              <OpenIcon light />
             </ToolbarButton>}
           <ToolbarButton onMouseDown={this.removeLink}>
-            {this.isEditing
-              ? <Icon type="Trash2" light />
-              : <Icon type="XCircle" light />}
+            {this.isEditing ? <TrashIcon light /> : <CloseIcon light />}
           </ToolbarButton>
         </LinkEditor>
         {hasResults &&

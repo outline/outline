@@ -1,13 +1,14 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
+import Flex from 'components/Flex';
 import { color } from 'styles/constants';
 
 const DropdownMenuItem = ({
   onClick,
   children,
 }: {
-  onClick?: () => void,
+  onClick?: SyntheticEvent => void,
   children?: React.Element<any>,
 }) => {
   return (
@@ -17,17 +18,20 @@ const DropdownMenuItem = ({
   );
 };
 
-const MenuItem = styled.div`
+const MenuItem = styled(Flex)`
   margin: 0;
   padding: 5px 10px;
   height: 32px;
 
   color: ${color.slateDark};
-  display: flex;
-  justify-content: space-between;
+  justify-content: left;
   align-items: center;
   cursor: pointer;
   font-size: 15px;
+
+  svg {
+    margin-right: 8px;
+  }
 
   a {
     text-decoration: none;
@@ -37,6 +41,10 @@ const MenuItem = styled.div`
   &:hover {
     color: ${color.white};
     background: ${color.primary};
+
+    svg {
+      fill: ${color.white};
+    }
   }
 `;
 

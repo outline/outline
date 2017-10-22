@@ -12,7 +12,9 @@ import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 import Avatar from 'components/Avatar';
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Scrollable from 'components/Scrollable';
-import Icon from 'components/Icon';
+import HomeIcon from 'components/Icon/HomeIcon';
+import SearchIcon from 'components/Icon/SearchIcon';
+import StarredIcon from 'components/Icon/StarredIcon';
 import Toasts from 'components/Toasts';
 import AccountMenu from 'menus/AccountMenu';
 
@@ -35,16 +37,12 @@ type Props = {
   title?: ?React.Element<any>,
   auth: AuthStore,
   ui: UiStore,
-  search: ?boolean,
   notifications?: React.Element<any>,
 };
 
 @observer class Layout extends React.Component {
   props: Props;
-
-  static defaultProps = {
-    search: true,
-  };
+  scrollable: ?HTMLDivElement;
 
   @keydown(['/', 't'])
   goToSearch(ev) {
@@ -81,6 +79,20 @@ type Props = {
     this.props.ui.setActiveModal('collection-edit');
   };
 
+  setScrollableRef = ref => {
+    this.scrollable = ref;
+  };
+
+  scrollToActiveDocument = ref => {
+    const scrollable = this.scrollable;
+    if (!ref || !scrollable) return;
+
+    const container = scrollable.getBoundingClientRect();
+    const bounds = ref.getBoundingClientRect();
+    const scrollTop = bounds.top + container.top;
+    scrollable.scrollTop = scrollTop;
+  };
+
   render() {
     const { auth, documents, ui } = this.props;
     const { user, team } = auth;
@@ -115,16 +127,16 @@ type Props = {
               />
 
               <Flex auto column>
-                <Scrollable>
+                <Scrollable innerRef={this.setScrollableRef}>
                   <LinkSection>
-                    <SidebarLink to="/dashboard">
-                      <Icon type="Home" /> Home
+                    <SidebarLink to="/dashboard" icon={<HomeIcon />}>
+                      Home
                     </SidebarLink>
-                    <SidebarLink to="/search">
-                      <Icon type="Search" /> Search
+                    <SidebarLink to="/search" icon={<SearchIcon />}>
+                      Search
                     </SidebarLink>
-                    <SidebarLink to="/starred">
-                      <Icon type="Star" /> Starred
+                    <SidebarLink to="/starred" icon={<StarredIcon />}>
+                      Starred
                     </SidebarLink>
                   </LinkSection>
                   <LinkSection>
@@ -132,6 +144,7 @@ type Props = {
                       history={this.props.history}
                       activeDocument={documents.active}
                       onCreateCollection={this.handleCreateCollection}
+                      activeDocumentRef={this.scrollToActiveDocument}
                     />
                   </LinkSection>
                 </Scrollable>

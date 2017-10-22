@@ -1,18 +1,17 @@
 // @flow
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
-import styled from 'styled-components';
 
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
-import Icon from 'components/Icon';
+import MoreIcon from 'components/Icon/MoreIcon';
 import Flex from 'components/Flex';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 @observer class CollectionMenu extends Component {
   props: {
-    label?: React$Element<any>,
-    onShow?: () => void,
+    label?: React$Element<*>,
+    onOpen?: () => void,
     onClose?: () => void,
     onImport?: () => void,
     history: Object,
@@ -36,13 +35,13 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
   };
 
   render() {
-    const { collection, label, onShow, onClose, onImport } = this.props;
+    const { collection, label, onOpen, onClose, onImport } = this.props;
     const { allowDelete } = collection;
 
     return (
       <DropdownMenu
-        label={label || <MoreIcon type="MoreHorizontal" />}
-        onShow={onShow}
+        label={label || <MoreIcon />}
+        onOpen={onOpen}
         onClose={onClose}
       >
         {collection &&
@@ -53,17 +52,13 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
             <DropdownMenuItem onClick={onImport}>
               Import document
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={this.onEdit}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
           </Flex>}
         {allowDelete &&
-          <DropdownMenuItem onClick={this.onDelete}>Delete</DropdownMenuItem>}
+          <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>}
       </DropdownMenu>
     );
   }
 }
-
-const MoreIcon = styled(Icon)`
-  width: 22px;
-`;
 
 export default inject('ui')(CollectionMenu);

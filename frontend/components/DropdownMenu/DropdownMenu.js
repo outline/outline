@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
 import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
@@ -10,14 +10,14 @@ import { color } from 'styles/constants';
 import { fadeAndScaleIn } from 'styles/animations';
 
 type Props = {
-  label: React.Element<any>,
-  onShow?: () => void,
+  label: React.Element<*>,
+  onOpen?: () => void,
   onClose?: () => void,
-  children?: React.Element<any>,
+  children?: React.Element<*>,
   style?: Object,
 };
 
-@observer class DropdownMenu extends React.Component {
+@observer class DropdownMenu extends Component {
   props: Props;
   actionRef: Object;
   @observable open: boolean = false;
@@ -37,7 +37,7 @@ type Props = {
       this.open = true;
       this.top = targetRect.bottom - bodyRect.top;
       this.right = bodyRect.width - targetRect.left - targetRect.width;
-      if (this.props.onShow) this.props.onShow();
+      if (this.props.onOpen) this.props.onOpen();
     }
   };
 
@@ -85,7 +85,7 @@ const Label = styled(Flex).attrs({
 `;
 
 const Menu = styled.div`
-  animation: ${fadeAndScaleIn} 250ms ease;
+  animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
 
   position: absolute;

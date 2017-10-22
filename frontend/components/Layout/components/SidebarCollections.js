@@ -8,19 +8,23 @@ import { color, fontWeight } from 'styles/constants';
 
 import SidebarLink from './SidebarLink';
 import DropToImport from 'components/DropToImport';
-import Icon from 'components/Icon';
+import PlusIcon from 'components/Icon/PlusIcon';
+import CollectionIcon from 'components/Icon/CollectionIcon';
 import CollectionMenu from 'menus/CollectionMenu';
 
 import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
 import Document from 'models/Document';
+import DocumentsStore from 'stores/DocumentsStore';
 import { type NavigationNode } from 'types';
 
 type Props = {
   history: Object,
   collections: CollectionsStore,
+  documents: DocumentsStore,
   activeDocument: ?Document,
-  onCreateCollection: Function,
+  onCreateCollection: () => void,
+  activeDocumentRef: HTMLElement => void,
   ui: UiStore,
 };
 
@@ -28,7 +32,14 @@ type Props = {
   props: Props;
 
   render() {
-    const { history, collections, activeDocument, ui } = this.props;
+    const {
+      history,
+      collections,
+      activeDocument,
+      ui,
+      activeDocumentRef,
+      documents,
+    } = this.props;
 
     return (
       <Flex column>
@@ -39,13 +50,18 @@ type Props = {
             history={history}
             collection={collection}
             activeDocument={activeDocument}
+            activeDocumentRef={activeDocumentRef}
+            prefetchDocument={documents.prefetchDocument}
             ui={ui}
           />
         ))}
 
         {collections.isLoaded &&
-          <SidebarLink onClick={this.props.onCreateCollection}>
-            <Icon type="Plus" /> Add new collection
+          <SidebarLink
+            onClick={this.props.onCreateCollection}
+            icon={<PlusIcon />}
+          >
+            New collection…
           </SidebarLink>}
       </Flex>
     );
@@ -62,7 +78,15 @@ type Props = {
   };
 
   render() {
-    const { history, collection, activeDocument, ui } = this.props;
+    const {
+      history,
+      collection,
+      activeDocument,
+      ui,
+      activeDocumentRef,
+      prefetchDocument,
+    } = this.props;
+    const expanded = collection.id === ui.activeCollectionId;
 
     return (
       <StyledDropToImport
@@ -73,7 +97,11 @@ type Props = {
         menuOpen={this.menuOpen}
         dropzoneRef={ref => (this.dropzoneRef = ref)}
       >
-        <SidebarLink key={collection.id} to={collection.url}>
+        <SidebarLink
+          key={collection.id}
+          to={collection.url}
+          icon={<CollectionIcon expanded={expanded} />}
+        >
           <Flex justify="space-between">
             {collection.name}
 
@@ -81,7 +109,7 @@ type Props = {
               <CollectionMenu
                 history={history}
                 collection={collection}
-                onShow={() => (this.menuOpen = true)}
+                onOpen={() => (this.menuOpen = true)}
                 onClose={() => (this.menuOpen = false)}
                 onImport={this.handleImport}
                 open={this.menuOpen}
@@ -89,14 +117,16 @@ type Props = {
             </CollectionAction>
           </Flex>
 
-          {collection.id === ui.activeCollectionId &&
+          {expanded &&
             <Children column>
               {collection.documents.map(document => (
                 <DocumentLink
                   key={document.id}
+                  activeDocumentRef={activeDocumentRef}
                   history={history}
                   document={document}
                   activeDocument={activeDocument}
+                  prefetchDocument={prefetchDocument}
                   depth={0}
                 />
               ))}
@@ -111,53 +141,76 @@ type DocumentLinkProps = {
   document: NavigationNode,
   history: Object,
   activeDocument: ?Document,
+  activeDocumentRef: HTMLElement => void,
+  prefetchDocument: (documentId: string) => void,
   depth: number,
 };
 
-const DocumentLink = observer((props: DocumentLinkProps) => {
-  const { document, activeDocument, depth } = props;
+const DocumentLink = observer(
+  ({
+    document,
+    activeDocument,
+    activeDocumentRef,
+    prefetchDocument,
+    depth,
+  }: DocumentLinkProps) => {
+    const isActiveDocument =
+      activeDocument && activeDocument.id === document.id;
+    const showChildren = !!(activeDocument &&
+      (activeDocument.pathToDocument
+        .map(entry => entry.id)
+        .includes(document.id) ||
+        isActiveDocument));
 
-  const showChildren =
-    activeDocument &&
-    (activeDocument.pathToDocument
-      .map(entry => entry.id)
-      .includes(document.id) ||
-      activeDocument.id === document.id);
+    const handleMouseEnter = (event: SyntheticEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+      prefetchDocument(document.id);
+    };
 
-  return (
-    <Flex column key={document.id}>
-      <DropToImport
-        history={history}
-        documentId={document.id}
-        activeStyle="activeDropZone"
+    return (
+      <Flex
+        column
+        key={document.id}
+        innerRef={isActiveDocument ? activeDocumentRef : undefined}
+        onMouseEnter={handleMouseEnter}
       >
-        <SidebarLink
-          to={document.url}
-          hasChildren={document.children.length > 0}
-          expanded={showChildren}
+        <DropToImport
+          history={history}
+          documentId={document.id}
+          activeStyle="activeDropZone"
         >
-          {document.title}
-        </SidebarLink>
-      </DropToImport>
+          <SidebarLink
+            to={document.url}
+            hasChildren={document.children.length > 0}
+            expanded={showChildren}
+          >
+            {document.title}
+          </SidebarLink>
+        </DropToImport>
 
-      {showChildren &&
-        <Children column>
-          {document.children &&
-            document.children.map(childDocument => (
-              <DocumentLink
-                key={childDocument.id}
-                history={history}
-                document={childDocument}
-                activeDocument={activeDocument}
-                depth={depth + 1}
-              />
-            ))}
-        </Children>}
-    </Flex>
-  );
-});
+        {showChildren &&
+          <Children column>
+            {document.children &&
+              document.children.map(childDocument => (
+                <DocumentLink
+                  key={childDocument.id}
+                  history={history}
+                  document={childDocument}
+                  activeDocument={activeDocument}
+                  prefetchDocument={prefetchDocument}
+                  depth={depth + 1}
+                />
+              ))}
+          </Children>}
+      </Flex>
+    );
+  }
+);
 
 const CollectionAction = styled.a`
+  position: absolute;
+  right: 0;
   color: ${color.slate};
   svg { opacity: .75; }
 
@@ -179,15 +232,16 @@ const StyledDropToImport = styled(DropToImport)`
 `;
 
 const Header = styled(Flex)`
-  font-size: 11px;
+  font-size: 12px;
   font-weight: ${fontWeight.semiBold};
   text-transform: uppercase;
   color: ${color.slate};
   letter-spacing: 0.04em;
+  margin-bottom: 4px;
 `;
 
 const Children = styled(Flex)`
   margin-left: 20px;
 `;
 
-export default inject('collections', 'ui')(SidebarCollections);
+export default inject('collections', 'ui', 'documents')(SidebarCollections);

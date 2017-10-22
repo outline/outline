@@ -65,8 +65,8 @@ if (process.env.NODE_ENV === 'development') {
   app.use(logger());
 }
 
-if (process.env.NODE_ENV === 'production') {
-  bugsnag.register('ad7a85f99b1b9324a31e16732cdf3192');
+if (process.env.NODE_ENV === 'production' && process.env.BUGSNAG_KEY) {
+  bugsnag.register(process.env.BUGSNAG_KEY);
   app.on('error', bugsnag.koaHandler);
 }
 
