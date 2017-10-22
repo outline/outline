@@ -15,11 +15,13 @@ import CollectionMenu from 'menus/CollectionMenu';
 import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
 import Document from 'models/Document';
+import DocumentsStore from 'stores/DocumentsStore';
 import { type NavigationNode } from 'types';
 
 type Props = {
   history: Object,
   collections: CollectionsStore,
+  documents: DocumentsStore,
   activeDocument: ?Document,
   onCreateCollection: () => void,
   activeDocumentRef: HTMLElement => void,
@@ -36,6 +38,7 @@ type Props = {
       activeDocument,
       ui,
       activeDocumentRef,
+      documents,
     } = this.props;
 
     return (
@@ -48,6 +51,7 @@ type Props = {
             collection={collection}
             activeDocument={activeDocument}
             activeDocumentRef={activeDocumentRef}
+            prefetchDocument={documents.prefetchDocument}
             ui={ui}
           />
         ))}
@@ -80,6 +84,7 @@ type Props = {
       activeDocument,
       ui,
       activeDocumentRef,
+      prefetchDocument,
     } = this.props;
     const expanded = collection.id === ui.activeCollectionId;
 
@@ -121,6 +126,7 @@ type Props = {
                   history={history}
                   document={document}
                   activeDocument={activeDocument}
+                  prefetchDocument={prefetchDocument}
                   depth={0}
                 />
               ))}
@@ -136,6 +142,7 @@ type DocumentLinkProps = {
   history: Object,
   activeDocument: ?Document,
   activeDocumentRef: HTMLElement => void,
+  prefetchDocument: (documentId: string) => void,
   depth: number,
 };
 
@@ -144,6 +151,7 @@ const DocumentLink = observer(
     document,
     activeDocument,
     activeDocumentRef,
+    prefetchDocument,
     depth,
   }: DocumentLinkProps) => {
     const isActiveDocument =
@@ -154,11 +162,18 @@ const DocumentLink = observer(
         .includes(document.id) ||
         isActiveDocument));
 
+    const handleMouseEnter = (event: SyntheticEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+      prefetchDocument(document.id);
+    };
+
     return (
       <Flex
         column
         key={document.id}
         innerRef={isActiveDocument ? activeDocumentRef : undefined}
+        onMouseEnter={handleMouseEnter}
       >
         <DropToImport
           history={history}
@@ -183,6 +198,7 @@ const DocumentLink = observer(
                   history={history}
                   document={childDocument}
                   activeDocument={activeDocument}
+                  prefetchDocument={prefetchDocument}
                   depth={depth + 1}
                 />
               ))}
@@ -228,4 +244,4 @@ const Children = styled(Flex)`
   margin-left: 20px;
 `;
 
-export default inject('collections', 'ui')(SidebarCollections);
+export default inject('collections', 'ui', 'documents')(SidebarCollections);
