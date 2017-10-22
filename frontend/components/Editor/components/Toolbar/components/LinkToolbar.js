@@ -111,16 +111,15 @@ class LinkToolbar extends Component {
 
   save = (href: string) => {
     href = href.trim();
-    const transform = this.props.state.transform();
-    transform.unwrapInline('link');
+    const { state } = this.props;
+    const transform = state.transform();
 
-    if (href) {
-      const data = { href };
-      transform.wrapInline({ type: 'link', data });
+    if (state.selection.isExpanded) {
+      transform.unwrapInline('link');
+      if (href) transform.wrapInline({ type: 'link', data: { href } });
     }
 
-    const state = transform.apply();
-    this.props.onChange(state);
+    this.props.onChange(transform.apply());
     this.props.onBlur();
   };
 
