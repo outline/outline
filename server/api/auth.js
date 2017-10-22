@@ -50,7 +50,7 @@ router.post('auth.slack', async ctx => {
   // Signal to backend that the user is logged in.
   // This is only used to signal SSR rendering, not
   // used for auth.
-  ctx.cookies.set('loggedId', 'true', {
+  ctx.cookies.set('loggedIn', 'true', {
     httpOnly: false,
     expires: new Date('2100'),
   });

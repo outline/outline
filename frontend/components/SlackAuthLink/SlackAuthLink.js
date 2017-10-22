@@ -4,8 +4,8 @@ import { observer, inject } from 'mobx-react';
 import AuthStore from 'stores/AuthStore';
 
 type Props = {
-  children: React.Element<any>,
-  scopes?: Array<string>,
+  children: React$Element<*>,
+  scopes?: string[],
   auth: AuthStore,
   redirectUri: string,
 };
@@ -32,9 +32,7 @@ type Props = {
     };
 
     const urlParams = Object.keys(params)
-      .map(key => {
-        return `${key}=${encodeURIComponent(params[key])}`;
-      })
+      .map(key => `${key}=${encodeURIComponent(params[key])}`)
       .join('&');
 
     return `${baseUrl}?${urlParams}`;

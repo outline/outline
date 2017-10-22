@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { withRouter } from 'react-router-dom';
-import Helmet from 'react-helmet';
+import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
@@ -99,18 +99,15 @@ type Props = {
 
     return (
       <Container column auto>
-        <Helmet
-          title="Atlas"
-          meta={[
-            {
-              name: 'viewport',
-              content: 'width=device-width, initial-scale=1.0',
-            },
-          ]}
-        />
+        <Helmet>
+          <title>Atlas</title>
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+        </Helmet>
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
-
         {this.props.notifications}
 
         <Flex auto>
