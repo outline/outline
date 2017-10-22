@@ -133,13 +133,12 @@ type DocumentLinkProps = {
   history: Object,
   activeDocument: ?Document,
   activeDocumentRef: HTMLElement => void,
-  prefetchDocument: string => void,
+  prefetchDocument: (documentId: string) => void,
   depth: number,
 };
 
 const DocumentLink = observer(
   ({
-    documents,
     document,
     activeDocument,
     activeDocumentRef,

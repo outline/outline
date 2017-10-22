@@ -250,6 +250,7 @@ class Document extends BaseModel {
     if (dirty) this.hasPendingChanges = true;
     this.data = data;
     extendObservable(this, data);
+    this.fetchedAt = new Date();
   }
 
   constructor(data?: Object = {}) {
@@ -257,7 +258,6 @@ class Document extends BaseModel {
 
     this.updateData(data);
     this.errors = stores.errors;
-    this.fetchedAt = new Date();
   }
 }
 
