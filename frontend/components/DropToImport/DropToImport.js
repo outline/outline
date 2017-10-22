@@ -40,11 +40,7 @@ class DropToImport extends Component {
         text,
       };
 
-      if (documentId) {
-        data.parentDocument = {
-          id: documentId,
-        };
-      }
+      if (documentId) data.parentDocument = documentId;
 
       let document = new Document(data);
       document = await document.save();
