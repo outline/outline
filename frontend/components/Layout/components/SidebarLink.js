@@ -1,5 +1,7 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
+import { observable, action } from 'mobx';
+import { observer } from 'mobx-react';
 import { NavLink } from 'react-router-dom';
 import { color, fontWeight } from 'styles/constants';
 import styled from 'styled-components';
@@ -54,22 +56,54 @@ type Props = {
   onClick?: SyntheticEvent => *,
   children?: React$Element<*>,
   icon?: React$Element<*>,
-  hasChildren?: boolean,
-  expanded?: boolean,
+  expand?: boolean,
+  expandedContent?: React$Element<*>,
 };
 
-function SidebarLink({ icon, children, expanded, ...rest }: Props) {
-  const Component = styleComponent(rest.to ? NavLink : StyleableDiv);
+@observer class SidebarLink extends Component {
+  props: Props;
 
-  return (
-    <Flex>
-      <Component exact activeStyle={activeStyle} {...rest}>
-        {icon && <IconWrapper>{icon}</IconWrapper>}
-        {rest.hasChildren && <StyledGoTo expanded={expanded} />}
-        <Content>{children}</Content>
-      </Component>
-    </Flex>
-  );
+  componentDidMount() {
+    if (this.props.expand) this.handleExpand();
+  }
+
+  componentDidReceiveProps(nextProps: Props) {
+    if (nextProps.expand) this.handleExpand();
+  }
+
+  @observable expanded: boolean = false;
+
+  @action handleClick = (event: SyntheticEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    this.expanded = !this.expanded;
+  };
+
+  @action handleExpand = () => {
+    this.expanded = true;
+  };
+
+  render() {
+    const { icon, children, expandedContent, ...rest } = this.props;
+    const Component = styleComponent(rest.to ? NavLink : StyleableDiv);
+
+    return (
+      <Flex column>
+        <Component
+          exact
+          activeStyle={activeStyle}
+          hasChildren={expandedContent}
+          {...rest}
+        >
+          {icon && <IconWrapper>{icon}</IconWrapper>}
+          {expandedContent &&
+            <StyledGoTo expanded={this.expanded} onClick={this.handleClick} />}
+          <Content onClick={this.handleExpand}>{children}</Content>
+        </Component>
+        {this.expanded && expandedContent}
+      </Flex>
+    );
+  }
 }
 
 const Content = styled.div`

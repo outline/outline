@@ -182,27 +182,27 @@ const DocumentLink = observer(
         >
           <SidebarLink
             to={document.url}
-            hasChildren={document.children.length > 0}
-            expanded={showChildren}
+            expand={showChildren}
+            expandedContent={
+              document.children.length
+                ? <Children column>
+                    {document.children.map(childDocument => (
+                      <DocumentLink
+                        key={childDocument.id}
+                        history={history}
+                        document={childDocument}
+                        activeDocument={activeDocument}
+                        prefetchDocument={prefetchDocument}
+                        depth={depth + 1}
+                      />
+                    ))}
+                  </Children>
+                : undefined
+            }
           >
             {document.title}
           </SidebarLink>
         </DropToImport>
-
-        {showChildren &&
-          <Children column>
-            {document.children &&
-              document.children.map(childDocument => (
-                <DocumentLink
-                  key={childDocument.id}
-                  history={history}
-                  document={childDocument}
-                  activeDocument={activeDocument}
-                  prefetchDocument={prefetchDocument}
-                  depth={depth + 1}
-                />
-              ))}
-          </Children>}
       </Flex>
     );
   }
