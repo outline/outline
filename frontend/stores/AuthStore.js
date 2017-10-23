@@ -34,7 +34,7 @@ class AuthStore {
   @action logout = () => {
     this.user = null;
     this.token = null;
-    Cookie.remove('loggedId', { path: '/' });
+    Cookie.remove('loggedIn', { path: '/' });
   };
 
   @action getOauthState = () => {

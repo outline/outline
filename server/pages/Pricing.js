@@ -1,14 +1,8 @@
 // @flow
 import React from 'react';
-import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import { Helmet } from 'react-helmet';
-
-const Header = styled.div`
-  width: 100%;
-  padding: 3em;
-  text-align: center;
-`;
+import Hero from './components/Hero';
 
 export default function Pricing() {
   return (
@@ -16,12 +10,12 @@ export default function Pricing() {
       <Helmet>
         <title>Pricing</title>
       </Helmet>
-      <Header>
+      <Hero>
         <h1>Pricing</h1>
         <p>
-          Just a proof of concept for multiple pages.
+          Explore Atlas with a 14 day trial, free forever for teams smaller than 5.
         </p>
-      </Header>
+      </Hero>
     </Grid>
   );
 }

@@ -1,14 +1,8 @@
 // @flow
 import React from 'react';
-import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import { Helmet } from 'react-helmet';
-
-const Header = styled.div`
-  width: 100%;
-  padding: 3em;
-  text-align: center;
-`;
+import Hero from './components/Hero';
 
 export default function About() {
   return (
@@ -16,12 +10,12 @@ export default function About() {
       <Helmet>
         <title>About</title>
       </Helmet>
-      <Header>
+      <Hero>
         <h1>About Atlas</h1>
         <p>
           Just a proof of concept for multiple pages.
         </p>
-      </Header>
+      </Hero>
     </Grid>
   );
 }

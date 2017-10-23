@@ -5,6 +5,7 @@ import queryString from 'query-string';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { client } from 'utils/ApiClient';
+import { slackAuth } from 'utils/routeHelpers';
 
 import AuthStore from 'stores/AuthStore';
 
@@ -33,7 +34,7 @@ type Props = {
       } else {
         this.redirectTo = '/auth/error';
       }
-    } else {
+    } else if (code) {
       if (this.props.location.pathname === '/auth/slack/commands') {
         // User adding webhook integrations
         try {
@@ -43,7 +44,7 @@ type Props = {
           this.redirectTo = '/auth/error';
         }
       } else {
-        // Regular Slack authentication
+        // Slack authentication
         const redirectTo = sessionStorage.getItem('redirectTo');
         sessionStorage.removeItem('redirectTo');
 
@@ -52,6 +53,9 @@ type Props = {
           ? (this.redirectTo = redirectTo || '/dashboard')
           : (this.redirectTo = '/auth/error');
       }
+    } else {
+      // Sign In
+      window.location.href = slackAuth(this.props.auth.getOauthState());
     }
   }
 

@@ -2,25 +2,24 @@
 import React from 'react';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
+import Hero from './components/Hero';
 
 const Unit = Grid.Unit;
 
-const Header = styled.div`
-  width: 100%;
+const Feature = styled(Unit)`
   padding: 3em;
-  text-align: center;
 `;
 
 export default function Home() {
   return (
     <Grid>
-      <Header>
+      <Hero>
         <h1>Your team’s knowledge base</h1>
         <p>
           Documentation, meeting notes, playbooks, onboarding, work logs, brainstorming, decisions, & more…
         </p>
-        <a href="">Sign In</a>
-      </Header>
+        <a href="/auth/slack">Sign In</a>
+      </Hero>
       <Unit size={{ desktop: 1 / 2 }} />
       <Unit size={{ desktop: 1 / 2 }}>
         <h2>Blazing Fast</h2>
@@ -39,30 +38,30 @@ export default function Home() {
 
       <Unit size={{ desktop: 1 / 2 }} />
       <Unit size={{ desktop: 1 / 2 }}>
-        <h2>Markdown Support</h2>
+        <h2>Beautiful Editor</h2>
         <p>
           Documents are stored in Markdown and you can export them at any time. Markdown shortcuts are also built right into the editor so you can easily format using markdown syntax or our GUI.
         </p>
       </Unit>
 
-      <Unit size={{ desktop: 1 / 3 }}>
+      <Feature size={{ desktop: 1 / 3 }}>
         <h2>Powerful Search</h2>
         <p>
           Built-in search makes that one document easy to find in a large knowledgebase.
         </p>
-      </Unit>
-      <Unit size={{ desktop: 1 / 3 }}>
+      </Feature>
+      <Feature size={{ desktop: 1 / 3 }}>
         <h2>API & Integrations</h2>
         <p>
-          Atlas is built on it’s own API, treat Atlas as a CMS or automatically great documents from outside events.
+          Atlas is built on it’s own API, treat Atlas as a CMS or automatically create documents from outside events.
         </p>
-      </Unit>
-      <Unit size={{ desktop: 1 / 3 }}>
+      </Feature>
+      <Feature size={{ desktop: 1 / 3 }}>
         <h2>Open Source</h2>
         <p>
-          Want to contribute or host Atlas yourself? All of the code is on GitHub.
+          Want to contribute or host Atlas yourself? All of the code is available on GitHub.
         </p>
-      </Unit>
+      </Feature>
     </Grid>
   );
 }

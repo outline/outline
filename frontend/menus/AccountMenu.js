@@ -24,7 +24,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
   handleLogout = () => {
     this.props.auth.logout();
-    this.props.history.push('/');
+    window.location.href = BASE_URL;
   };
 
   render() {
