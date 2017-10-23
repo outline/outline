@@ -51,7 +51,7 @@ type KeyData = {
       onImageUploadStop: props.onImageUploadStop,
     });
 
-    if (props.text) {
+    if (props.text.trim().length) {
       this.state = { state: Markdown.deserialize(props.text) };
     } else {
       this.state = { state: Plain.deserialize('') };
