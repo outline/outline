@@ -28,6 +28,7 @@ export default function Home() {
           Atlas is fast, really fast. We’ve trimmed 100ms and 50ms there to make sure that documents load instantly, search is speedy and there are keyboard shortcuts for everything.
         </p>
       </Unit>
+
       <Unit size={{ desktop: 1 / 2 }}>
         <h2>Markdown Support</h2>
         <p>
@@ -35,6 +36,33 @@ export default function Home() {
         </p>
       </Unit>
       <Unit size={{ desktop: 1 / 2 }} />
+
+      <Unit size={{ desktop: 1 / 2 }} />
+      <Unit size={{ desktop: 1 / 2 }}>
+        <h2>Markdown Support</h2>
+        <p>
+          Documents are stored in Markdown and you can export them at any time. Markdown shortcuts are also built right into the editor so you can easily format using markdown syntax or our GUI.
+        </p>
+      </Unit>
+
+      <Unit size={{ desktop: 1 / 3 }}>
+        <h2>Powerful Search</h2>
+        <p>
+          Built-in search makes that one document easy to find in a large knowledgebase.
+        </p>
+      </Unit>
+      <Unit size={{ desktop: 1 / 3 }}>
+        <h2>API & Integrations</h2>
+        <p>
+          Atlas is built on it’s own API, treat Atlas as a CMS or automatically great documents from outside events.
+        </p>
+      </Unit>
+      <Unit size={{ desktop: 1 / 3 }}>
+        <h2>Open Source</h2>
+        <p>
+          Want to contribute or host Atlas yourself? All of the code is on GitHub.
+        </p>
+      </Unit>
     </Grid>
   );
 }

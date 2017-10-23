@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import { Helmet } from 'react-helmet';
+import Navigation from './Navigation';
 
 type Props = {
   children?: React$Element<*>,
@@ -19,6 +20,7 @@ export default function Layout({ children }: Props) {
         {'{{CSS}}'}
       </head>
       <body>
+        <Navigation />
         {children}
       </body>
     </html>
