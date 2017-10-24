@@ -1,19 +1,16 @@
 /*
 
-Name:       Base16 Atelier Sulphurpool Light
-Author:     Bram de Haan (http://atelierbram.github.io/syntax-highlighting/atelier-schemes/sulphurpool)
-
-Prism template by Bram de Haan (http://atelierbram.github.io/syntax-highlighting/prism/)
+Based on Prism template by Bram de Haan (http://atelierbram.github.io/syntax-highlighting/prism/)
 Original Base16 color scheme by Chris Kempson (https://github.com/chriskempson/base16)
 
 */
 code[class*="language-"],
 pre[class*="language-"] {
+  -webkit-font-smoothing: initial;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
   font-size: 13px;
   line-height: 1.375;
   direction: ltr;
-  font-weight: 600;
   text-align: left;
   white-space: pre;
   word-spacing: normal;
@@ -25,20 +22,7 @@ pre[class*="language-"] {
   -moz-hyphens: none;
   -ms-hyphens: none;
   hyphens: none;
-  background: #f5f7ff;
-  color: #5e6687;
-}
-
-pre[class*="language-"]::-moz-selection, pre[class*="language-"] ::-moz-selection,
-code[class*="language-"]::-moz-selection, code[class*="language-"] ::-moz-selection {
-  text-shadow: none;
-  background: #dfe2f1;
-}
-
-pre[class*="language-"]::selection, pre[class*="language-"] ::selection,
-code[class*="language-"]::selection, code[class*="language-"] ::selection {
-  text-shadow: none;
-  background: #dfe2f1;
+  color: #24292e;
 }
 
 /* Code blocks */
@@ -58,7 +42,7 @@ pre[class*="language-"] {
 .token.prolog,
 .token.doctype,
 .token.cdata {
-  color: #898ea4;
+  color: #6a737d;
 }
 
 .token.punctuation {
@@ -72,7 +56,7 @@ pre[class*="language-"] {
 .token.operator,
 .token.boolean,
 .token.number {
-  color: #c76b29;
+  color: #d73a49;
 }
 
 .token.property {
@@ -84,7 +68,7 @@ pre[class*="language-"] {
 }
 
 .token.string {
-  color: #22a2c9;
+  color: #032f62;
 }
 
 .token.selector {
@@ -107,7 +91,11 @@ pre[class*="language-"] {
 .token.control,
 .token.directive,
 .token.unit {
-  color: #ac9739;
+  color: #d73a49;
+}
+
+.token.function {
+  color: #6f42c1;
 }
 
 .token.statement,
@@ -150,24 +138,4 @@ pre[class*="language-"] {
 pre > code.highlight {
   outline: 0.4em solid #c94922;
   outline-offset: .4em;
-}
-
-/* overrides color-values for the Line Numbers plugin
- * http://prismjs.com/plugins/line-numbers/
- */
-.line-numbers .line-numbers-rows {
-  border-right-color: #dfe2f1;
-}
-
-.line-numbers-rows > span:before {
-  color: #979db4;
-}
-
-/* overrides color-values for the Line Highlight plugin
- * http://prismjs.com/plugins/line-highlight/
- */
-.line-highlight {
-  background: rgba(107, 115, 148, 0.2);
-  background: -webkit-linear-gradient(left, rgba(107, 115, 148, 0.2) 70%, rgba(107, 115, 148, 0));
-  background: linear-gradient(to right, rgba(107, 115, 148, 0.2) 70%, rgba(107, 115, 148, 0));
 }
