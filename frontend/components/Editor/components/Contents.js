@@ -26,9 +26,12 @@ type Props = {
   }
 
   updateActiveHeading = () => {
-    let activeHeading = this.headingElements[0].id;
+    const elements = this.headingElements;
+    if (!elements.length) return;
 
-    for (const element of this.headingElements) {
+    let activeHeading = elements[0].id;
+
+    for (const element of elements) {
       const bounds = element.getBoundingClientRect();
       if (bounds.top <= 0) activeHeading = element.id;
     }
@@ -38,7 +41,7 @@ type Props = {
 
   get headingElements(): HTMLElement[] {
     const elements = [];
-    const tagNames = ['h2', 'h3', 'h4', 'h5', 'h6'];
+    const tagNames = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
     for (const tagName of tagNames) {
       for (const ele of document.getElementsByTagName(tagName)) {
@@ -54,7 +57,6 @@ type Props = {
 
     return state.document.nodes.filter((node: Block) => {
       if (!node.text) return false;
-      if (node.type === 'heading1') return false;
       return node.type.match(/^heading/);
     });
   }
@@ -67,7 +69,7 @@ type Props = {
       <Wrapper>
         <Sections>
           {this.headings.map(heading => {
-            const slug = headingToSlug(heading.type, heading.text);
+            const slug = headingToSlug(heading);
             const active = this.activeHeading === slug;
 
             return (
@@ -84,6 +86,13 @@ type Props = {
   }
 }
 
+const Wrapper = styled.div`
+  position: fixed;
+  right: 0;
+  top: 150px;
+  z-index: 100;
+`;
+
 const Anchor = styled.a`
   color: ${props => (props.active ? color.slateDark : color.slate)};
   font-weight: ${props => (props.active ? 500 : 400)};
@@ -91,6 +100,8 @@ const Anchor = styled.a`
   transition: all 100ms ease-in-out;
   margin-right: -5px;
   padding: 2px 0;
+  pointer-events: none;
+  text-overflow: ellipsis;
 
   &:hover {
     color: ${color.primary};
@@ -99,14 +110,15 @@ const Anchor = styled.a`
 
 const ListItem = styled.li`
   position: relative;
-  margin-left: ${props => (props.type === 'heading2' ? '8px' : '16px')};
+  margin-left: ${props => (props.type.match(/heading[12]/) ? '8px' : '16px')};
   text-align: right;
   color: ${color.slate};
   padding-right: 16px;
+  white-space: nowrap;
 
   &:after {
     color: ${props => (props.active ? color.slateDark : color.slate)};
-    content: "${props => (props.type === 'heading2' ? '—' : '–')}";
+    content: "${props => (props.type.match(/heading[12]/) ? '—' : '–')}";
     position: absolute;
     right: 0;
   }
@@ -117,21 +129,21 @@ const Sections = styled.ol`
   padding: 0;
   list-style: none;
   font-size: 13px;
+  width: 100px;
+  transition-delay: 1s;
+  transition: width 100ms ease-in-out;
 
   &:hover {
+    width: 300px;
+    transition-delay: 0s;
+
     ${Anchor} {
       opacity: 1;
       margin-right: 0;
       background: ${color.white};
+      pointer-events: all;
     }
   }
-`;
-
-const Wrapper = styled.div`
-  position: fixed;
-  right: 0;
-  top: 160px;
-  z-index: 100;
 `;
 
 export default Contents;

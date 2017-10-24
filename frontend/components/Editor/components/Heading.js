@@ -30,7 +30,7 @@ function Heading(props: Props) {
   const parentIsDocument = parent instanceof Document;
   const firstHeading = parentIsDocument && parent.nodes.first() === node;
   const showPlaceholder = placeholder && firstHeading && !node.text;
-  const slugish = headingToSlug(node.type, node.text);
+  const slugish = headingToSlug(node);
   const showHash = readOnly && !!slugish;
   const Component = component;
   const emoji = editor.props.emoji || '';
