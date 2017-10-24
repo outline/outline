@@ -7310,10 +7310,6 @@ react-dropzone@3.6.0:
   dependencies:
     attr-accept "^1.0.3"
 
-react-feather@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/react-feather/-/react-feather-1.0.7.tgz#f2118f1d2402b0c1e6f23c732f9e7f9fd4ca61e2"
-
 react-helmet@3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/react-helmet/-/react-helmet-3.1.0.tgz#63486194682f33004826f3687dc49a138b557050"

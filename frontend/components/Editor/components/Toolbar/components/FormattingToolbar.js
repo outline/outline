@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import styled from 'styled-components';
 import type { State } from '../../../types';
 import ToolbarButton from './ToolbarButton';
 import BoldIcon from 'components/Icon/BoldIcon';
@@ -10,7 +11,7 @@ import ItalicIcon from 'components/Icon/ItalicIcon';
 import LinkIcon from 'components/Icon/LinkIcon';
 import StrikethroughIcon from 'components/Icon/StrikethroughIcon';
 
-export default class FormattingToolbar extends Component {
+class FormattingToolbar extends Component {
   props: {
     state: State,
     onChange: Function,
@@ -92,9 +93,11 @@ export default class FormattingToolbar extends Component {
         {this.renderMarkButton('bold', BoldIcon)}
         {this.renderMarkButton('italic', ItalicIcon)}
         {this.renderMarkButton('deleted', StrikethroughIcon)}
+        {this.renderMarkButton('code', CodeIcon)}
+        <Separator />
         {this.renderBlockButton('heading1', Heading1Icon)}
         {this.renderBlockButton('heading2', Heading2Icon)}
-        {this.renderMarkButton('code', CodeIcon)}
+        <Separator />
         <ToolbarButton onMouseDown={this.onCreateLink}>
           <LinkIcon light />
         </ToolbarButton>
@@ -102,3 +105,14 @@ export default class FormattingToolbar extends Component {
     );
   }
 }
+
+const Separator = styled.div`
+  height: 100%;
+  width: 1px;
+  background: #FFF;
+  opacity: .2;
+  display: inline-block;
+  margin-left: 10px;
+`;
+
+export default FormattingToolbar;

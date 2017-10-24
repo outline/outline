@@ -14,6 +14,11 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     ...options,
   };
   ctx.cache.set(document.id, document);
+
+  // For empty document content, return the title
+  if (document.text.trim().length === 0)
+    document.text = `# ${document.title || 'Untitled document'}`;
+
   const data = {
     id: document.id,
     url: document.getUrl(),

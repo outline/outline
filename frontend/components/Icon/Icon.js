@@ -1,53 +1,46 @@
 // @flow
 import React from 'react';
-import styled from 'styled-components';
 import { color } from 'styles/constants';
-import * as Icons from 'react-feather';
 
 export type Props = {
   className?: string,
-  type?: string,
   light?: boolean,
+  black?: boolean,
+  primary?: boolean,
+  color?: string,
+  size?: number,
+  onClick?: Function,
 };
 
 type BaseProps = {
-  children?: React$Element<any>,
+  children?: React$Element<*>,
 };
 
 export default function Icon({
   children,
-  light,
-  type,
+  className,
+  onClick,
   ...rest
 }: Props & BaseProps) {
-  if (type) {
-    children = React.createElement(Icons[type], {
-      size: '1em',
-      color: light ? color.white : undefined,
-      ...rest,
-    });
+  const size = rest.size ? rest.size + 'px' : '24px';
 
-    return (
-      <FeatherWrapper {...rest}>
-        {children}
-      </FeatherWrapper>
-    );
-  }
+  let fill = color.slateDark;
+  if (rest.color) fill = rest.color;
+  if (rest.light) fill = color.white;
+  if (rest.black) fill = color.black;
+  if (rest.primary) fill = color.primary;
 
   return (
-    <Wrapper light={light} {...rest}>
+    <svg
+      fill={fill}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      onClick={onClick}
+    >
       {children}
-    </Wrapper>
+    </svg>
   );
 }
-
-const FeatherWrapper = styled.span`
-  position: relative;
-  top: .1em;
-`;
-
-const Wrapper = styled.span`
-  svg {
-    fill: ${props => (props.light ? color.white : color.black)}
-  }
-`;

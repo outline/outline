@@ -1,6 +1,9 @@
 // @flow
 import React, { Component } from 'react';
-import Icon from 'components/Icon';
+import ImageIcon from 'components/Icon/ImageIcon';
+import BulletedListIcon from 'components/Icon/BulletedListIcon';
+import HorizontalRuleIcon from 'components/Icon/HorizontalRuleIcon';
+import TodoListIcon from 'components/Icon/TodoListIcon';
 import { observer } from 'mobx-react';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
@@ -30,16 +33,16 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
         {...rest}
       >
         <DropdownMenuItem onClick={onPickImage}>
-          <Icon type="Image" /> Add images
+          <ImageIcon /> <span>Add images</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onInsertList}>
-          <Icon type="List" /> Start list
+          <BulletedListIcon /> Start list
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onInsertTodoList}>
-          <Icon type="CheckSquare" /> Start checklist
+          <TodoListIcon /> Start checklist
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onInsertBreak}>
-          <Icon type="Minus" /> Add break
+          <HorizontalRuleIcon /> Add break
         </DropdownMenuItem>
       </DropdownMenu>
     );

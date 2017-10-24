@@ -73,8 +73,22 @@ export default function MarkdownShortcuts() {
         let { mark, shortcut } = key;
         let inlineTags = [];
 
+        // only add tags if they have spaces around them or the tag is beginning or the end of the block
         for (let i = 0; i < startBlock.text.length; i++) {
-          if (startBlock.text.slice(i, i + shortcut.length) === shortcut)
+          const { text } = startBlock;
+          const start = i;
+          const end = i + shortcut.length;
+          const beginningOfBlock = start === 0;
+          const endOfBlock = end === text.length;
+          const surroundedByWhitespaces = [
+            text.slice(start - 1, start),
+            text.slice(end, end + 1),
+          ].includes(' ');
+
+          if (
+            text.slice(start, end) === shortcut &&
+            (beginningOfBlock || endOfBlock || surroundedByWhitespaces)
+          )
             inlineTags.push(i);
         }
 

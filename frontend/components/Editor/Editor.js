@@ -4,7 +4,7 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import keydown from 'react-keydown';
-import type { Document, State, Editor as EditorType } from './types';
+import type { State, Editor as EditorType } from './types';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
@@ -50,7 +50,7 @@ type KeyData = {
       onImageUploadStop: props.onImageUploadStop,
     });
 
-    if (props.text) {
+    if (props.text.trim().length) {
       this.editorState = Markdown.deserialize(props.text);
     } else {
       this.editorState = Plain.deserialize('');
@@ -73,12 +73,12 @@ type KeyData = {
     }
   }
 
-  onChange = (editorState: State) => {
-    this.editorState = editorState;
-  };
+  onChange = (state: State) => {
+    if (this.editorState !== state) {
+      this.props.onChange(Markdown.serialize(state));
+    }
 
-  onDocumentChange = (document: Document, editorState: State) => {
-    this.props.onChange(Markdown.serialize(editorState));
+    this.editorState = editorState;
   };
 
   handleDrop = async (ev: SyntheticEvent) => {
@@ -205,7 +205,6 @@ type KeyData = {
             state={this.editorState}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
-            onDocumentChange={this.onDocumentChange}
             onSave={onSave}
             readOnly={readOnly}
           />
