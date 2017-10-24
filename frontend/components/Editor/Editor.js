@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import keydown from 'react-keydown';
-import type { Document, State, Editor as EditorType } from './types';
+import type { State, Editor as EditorType } from './types';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
@@ -76,10 +76,10 @@ type KeyData = {
 
   onChange = (state: State) => {
     this.setState({ state });
-  };
 
-  onDocumentChange = (document: Document, state: State) => {
-    this.props.onChange(Markdown.serialize(state));
+    if (this.state.state !== state) {
+      this.props.onChange(Markdown.serialize(state));
+    }
   };
 
   handleDrop = async (ev: SyntheticEvent) => {
@@ -205,7 +205,6 @@ type KeyData = {
             state={this.state.state}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
-            onDocumentChange={this.onDocumentChange}
             onSave={onSave}
             readOnly={readOnly}
           />
