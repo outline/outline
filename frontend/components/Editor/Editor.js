@@ -245,22 +245,6 @@ const StyledEditor = styled(Editor)`
   h5,
   h6 {
     font-weight: 500;
-
-    .anchor {
-      visibility: hidden;
-      color: #dedede;
-      padding-left: 0.25em;
-    }
-
-    &:hover {
-      .anchor {
-        visibility: visible;
-
-        &:hover {
-          color: #cdcdcd;
-        }
-      }
-    }
   }
 
   h1:first-of-type {
