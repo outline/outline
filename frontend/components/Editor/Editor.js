@@ -83,6 +83,7 @@ type KeyData = {
   };
 
   handleDrop = async (ev: SyntheticEvent) => {
+    if (this.props.readOnly) return;
     // check if this event was already handled by the Editor
     if (ev.isDefaultPrevented()) return;
 
@@ -92,7 +93,9 @@ type KeyData = {
 
     const files = getDataTransferFiles(ev);
     for (const file of files) {
-      await this.insertImageFile(file);
+      if (file.type.startsWith('image/')) {
+        await this.insertImageFile(file);
+      }
     }
   };
 
