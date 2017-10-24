@@ -114,9 +114,10 @@ class LinkToolbar extends Component {
     const { state } = this.props;
     const transform = state.transform();
 
-    if (state.selection.isExpanded) {
+    if (href) {
+      transform.setInline({ type: 'link', data: { href } });
+    } else {
       transform.unwrapInline('link');
-      if (href) transform.wrapInline({ type: 'link', data: { href } });
     }
 
     this.props.onChange(transform.apply());
@@ -179,7 +180,7 @@ class LinkToolbar extends Component {
 }
 
 const SearchResults = styled.div`
-  background: rgba(34, 34, 34, .95);
+  background: #2F3336;
   position: absolute;
   top: 100%;
   width: 100%;
