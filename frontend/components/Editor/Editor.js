@@ -73,9 +73,9 @@ type KeyData = {
     }
   }
 
-  onChange = (state: State) => {
-    if (this.editorState !== state) {
-      this.props.onChange(Markdown.serialize(state));
+  onChange = (editorState: State) => {
+    if (this.editorState !== editorState) {
+      this.props.onChange(Markdown.serialize(editorState));
     }
 
     this.editorState = editorState;
