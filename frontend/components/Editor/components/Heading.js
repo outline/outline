@@ -72,6 +72,7 @@ export const Heading1 = styled(Heading)`
   &:hover {
     ${Anchor} {
       visibility: visible;
+      text-decoration: none;
     }
   }
 `;
