@@ -15,6 +15,7 @@ export default async function insertImageFile(
   try {
     // load the file as a data URL
     const id = uuid.v4();
+    const alt = '';
     const reader = new FileReader();
     reader.addEventListener('load', () => {
       const src = reader.result;
@@ -24,7 +25,7 @@ export default async function insertImageFile(
         .insertBlock({
           type: 'image',
           isVoid: true,
-          data: { src, id, loading: true },
+          data: { src, id, alt, loading: true },
         })
         .apply();
       editor.onChange(state);
@@ -45,7 +46,7 @@ export default async function insertImageFile(
     );
 
     return finalTransform.setNodeByKey(placeholder.key, {
-      data: { src, loading: false },
+      data: { src, alt, loading: false },
     });
   } catch (err) {
     throw err;
