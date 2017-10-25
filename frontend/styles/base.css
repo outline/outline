@@ -101,11 +101,11 @@ samp {
 }
 code,
 samp {
-  font-size: 87.5%;
+  font-size: 85%;
   padding: 0.125em;
 }
 pre {
-  font-size: 87.5%;
+  font-size: 85%;
   overflow: scroll;
 }
 blockquote {

@@ -71,7 +71,10 @@ export const StyledHeading = styled(Heading)`
   position: relative;
 
   &:hover {
-    ${Anchor} { visibility: visible; }
+    ${Anchor} {
+      visibility: visible;
+      text-decoration: none;
+    }
   }
 `;
 export const Heading1 = (props: Props) => (

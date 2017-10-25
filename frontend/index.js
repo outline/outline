@@ -19,8 +19,7 @@ import 'normalize.css/normalize.css';
 import 'styles/base.css';
 import 'styles/fonts.css';
 import 'styles/transitions.css';
-import 'styles/prism-tomorrow.css';
-import 'styles/hljs-github-gist.css';
+import 'styles/prism.css';
 
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';

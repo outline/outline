@@ -27,7 +27,6 @@ import DocumentMenu from 'menus/DocumentMenu';
 import SaveAction from './components/SaveAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import Editor from 'components/Editor';
-import DropToImport from 'components/DropToImport';
 import LoadingIndicator from 'components/LoadingIndicator';
 import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
@@ -57,7 +56,6 @@ type Props = {
 
   @observable editCache: ?string;
   @observable newDocument: ?Document;
-  @observable isDragging = false;
   @observable isLoading = false;
   @observable isSaving = false;
   @observable notFound = false;
@@ -198,14 +196,6 @@ type Props = {
     this.props.history.push(url);
   };
 
-  onStartDragging = () => {
-    this.isDragging = true;
-  };
-
-  onStopDragging = () => {
-    this.isDragging = false;
-  };
-
   renderNotFound() {
     return <Search notFound />;
   }
@@ -226,11 +216,6 @@ type Props = {
     return (
       <Container column auto>
         {isMoving && document && <DocumentMove document={document} />}
-
-        {this.isDragging &&
-          <DropHere align="center" justify="center">
-            Drop files here to import into Atlas.
-          </DropHere>}
         {titleText && <PageTitle title={titleText} />}
         {this.isLoading && <LoadingIndicator />}
         {isFetching &&
@@ -239,73 +224,60 @@ type Props = {
           </CenteredContent>}
         {!isFetching &&
           document &&
-          <StyledDropToImport
-            documentId={document.id}
-            history={this.props.history}
-            onDragEnter={this.onStartDragging}
-            onDragLeave={this.onStopDragging}
-            onDrop={this.onStopDragging}
-            disabled={this.isEditing}
-          >
-            <Flex justify="center" auto>
-              <Prompt
-                when={document.hasPendingChanges}
-                message={DISCARD_CHANGES}
-              />
-              <Editor
-                key={document.id}
-                text={document.text}
-                emoji={document.emoji}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onChange={this.onChange}
-                onSave={this.onSave}
-                onCancel={this.onDiscard}
-                readOnly={!this.isEditing}
-              />
-              <Meta
-                align="center"
-                justify="flex-end"
-                readOnly={!this.isEditing}
-              >
-                <Flex align="center">
-                  {!isNew &&
-                    !this.isEditing &&
-                    <Collaborators document={document} />}
-                  <HeaderAction>
-                    {this.isEditing
-                      ? <SaveAction
-                          isSaving={this.isSaving}
-                          onClick={this.onSave.bind(this, true)}
-                          disabled={
-                            !(this.document && this.document.allowSave) ||
-                              this.isSaving
-                          }
-                          isNew={!!isNew}
-                        />
-                      : <a onClick={this.onClickEdit}>
-                          Edit
-                        </a>}
-                  </HeaderAction>
-                  {this.isEditing &&
-                    <HeaderAction>
-                      <a onClick={this.onDiscard}>Discard</a>
-                    </HeaderAction>}
-                  {!this.isEditing &&
-                    <HeaderAction>
-                      <DocumentMenu document={document} />
-                    </HeaderAction>}
-                  {!this.isEditing && <Separator />}
-                  <HeaderAction>
-                    {!this.isEditing &&
-                      <a onClick={this.onClickNew}>
-                        <NewDocumentIcon />
+          <Flex justify="center" auto>
+            <Prompt
+              when={document.hasPendingChanges}
+              message={DISCARD_CHANGES}
+            />
+            <Editor
+              key={document.id}
+              text={document.text}
+              emoji={document.emoji}
+              onImageUploadStart={this.onImageUploadStart}
+              onImageUploadStop={this.onImageUploadStop}
+              onChange={this.onChange}
+              onSave={this.onSave}
+              onCancel={this.onDiscard}
+              readOnly={!this.isEditing}
+            />
+            <Meta align="center" justify="flex-end" readOnly={!this.isEditing}>
+              <Flex align="center">
+                {!isNew &&
+                  !this.isEditing &&
+                  <Collaborators document={document} />}
+                <HeaderAction>
+                  {this.isEditing
+                    ? <SaveAction
+                        isSaving={this.isSaving}
+                        onClick={this.onSave.bind(this, true)}
+                        disabled={
+                          !(this.document && this.document.allowSave) ||
+                            this.isSaving
+                        }
+                        isNew={!!isNew}
+                      />
+                    : <a onClick={this.onClickEdit}>
+                        Edit
                       </a>}
-                  </HeaderAction>
-                </Flex>
-              </Meta>
-            </Flex>
-          </StyledDropToImport>}
+                </HeaderAction>
+                {this.isEditing &&
+                  <HeaderAction>
+                    <a onClick={this.onDiscard}>Discard</a>
+                  </HeaderAction>}
+                {!this.isEditing &&
+                  <HeaderAction>
+                    <DocumentMenu document={document} />
+                  </HeaderAction>}
+                {!this.isEditing && <Separator />}
+                <HeaderAction>
+                  {!this.isEditing &&
+                    <a onClick={this.onClickNew}>
+                      <NewDocumentIcon />
+                    </a>}
+                </HeaderAction>
+              </Flex>
+            </Meta>
+          </Flex>}
       </Container>
     );
   }
@@ -329,18 +301,6 @@ const HeaderAction = styled(Flex)`
   }
 `;
 
-const DropHere = styled(Flex)`
-  pointer-events: none;
-  position: fixed;
-  top: 0;
-  left: ${layout.sidebarWidth};
-  bottom: 0;
-  right: 0;
-  text-align: center;
-  background: rgba(255,255,255,.9);
-  z-index: 1;
-`;
-
 const Meta = styled(Flex)`
   align-items: flex-start;
   position: fixed;
@@ -359,11 +319,6 @@ const Container = styled(Flex)`
 
 const LoadingState = styled(LoadingPlaceholder)`
   margin: 90px 0;
-`;
-
-const StyledDropToImport = styled(DropToImport)`
-  display: flex;
-  flex: 1;
 `;
 
 export default withRouter(
