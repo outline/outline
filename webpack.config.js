@@ -29,7 +29,7 @@ module.exports = {
         test: /\.js$/,
         loader: 'babel',
         include: [
-          path.join(__dirname, 'frontend'),
+          path.join(__dirname, 'app'),
           path.join(__dirname, 'shared'),
         ],
       },
@@ -50,7 +50,7 @@ module.exports = {
     noParse: [new RegExp('node_modules/localforage/dist/localforage.js')],
   },
   resolve: {
-    root: path.join(__dirname, 'frontend'),
+    root: path.join(__dirname, 'app'),
     // you can now require('file') instead of require('file.json')
     extensions: ['', '.js', '.json'],
   },

@@ -1,5 +1,5 @@
 [include]
-.*/frontend/.*
+.*/app/.*
 .*/server/.*
 .*/shared/.*
 
@@ -17,7 +17,7 @@
 emoji=true
 
 module.system.node.resolve_dirname=node_modules
-module.system.node.resolve_dirname=frontend
+module.system.node.resolve_dirname=app
 
 module.name_mapper='^\(.*\)\.s?css$' -> 'empty/object'
 module.name_mapper='^\(.*\)\.md$' -> 'empty/object'

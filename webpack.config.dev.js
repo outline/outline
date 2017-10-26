@@ -12,7 +12,7 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
     'babel-polyfill',
     'babel-regenerator-runtime',
     'webpack-hot-middleware/client',
-    './frontend/index',
+    './app/index',
   ],
 });
 

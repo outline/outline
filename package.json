@@ -10,14 +10,14 @@
     "start": "node index.js",
     "dev": "NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --inspect --watch server index.js",
     "lint": "npm run lint:flow && npm run lint:js",
-    "lint:js": "eslint frontend",
+    "lint:js": "eslint app",
     "lint:flow": "flow",
     "deploy": "git push heroku master",
     "heroku-postbuild": "npm run build && npm run sequelize:migrate",
     "sequelize:create-migration": "sequelize migration:create",
     "sequelize:migrate": "sequelize db:migrate",
-    "test": "npm run test:frontend && npm run test:server",
-    "test:frontend": "jest",
+    "test": "npm run test:app && npm run test:server",
+    "test:app": "jest",
     "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "precommit": "lint-staged"
   },
@@ -30,7 +30,7 @@
   "jest": {
     "verbose": false,
     "roots": [
-      "frontend"
+      "app"
     ],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
@@ -45,7 +45,7 @@
       "node_modules"
     ],
     "modulePaths": [
-      "frontend"
+      "app"
     ],
     "setupFiles": [
       "<rootDir>/setupJest.js",
