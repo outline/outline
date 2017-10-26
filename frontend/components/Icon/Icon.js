@@ -9,6 +9,7 @@ export type Props = {
   primary?: boolean,
   color?: string,
   size?: number,
+  onClick?: Function,
 };
 
 type BaseProps = {
@@ -18,6 +19,7 @@ type BaseProps = {
 export default function Icon({
   children,
   className,
+  onClick,
   ...rest
 }: Props & BaseProps) {
   const size = rest.size ? rest.size + 'px' : '24px';
@@ -36,6 +38,7 @@ export default function Icon({
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      onClick={onClick}
     >
       {children}
     </svg>

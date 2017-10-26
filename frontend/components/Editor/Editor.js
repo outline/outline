@@ -1,15 +1,17 @@
 // @flow
 import React, { Component } from 'react';
+import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Editor, Plain } from 'slate';
 import keydown from 'react-keydown';
-import type { Document, State, Editor as EditorType } from './types';
+import type { State, Editor as EditorType } from './types';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'components/Flex';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
 import BlockInsert from './components/BlockInsert';
 import Placeholder from './components/Placeholder';
+import Contents from './components/Contents';
 import Markdown from './serializer';
 import createSchema from './schema';
 import createPlugins from './plugins';
@@ -37,10 +39,7 @@ type KeyData = {
   editor: EditorType;
   schema: Object;
   plugins: Array<Object>;
-
-  state: {
-    state: State,
-  };
+  @observable editorState: State;
 
   constructor(props: Props) {
     super(props);
@@ -51,10 +50,10 @@ type KeyData = {
       onImageUploadStop: props.onImageUploadStop,
     });
 
-    if (props.text) {
-      this.state = { state: Markdown.deserialize(props.text) };
+    if (props.text.trim().length) {
+      this.editorState = Markdown.deserialize(props.text);
     } else {
-      this.state = { state: Plain.deserialize('') };
+      this.editorState = Plain.deserialize('');
     }
   }
 
@@ -74,15 +73,16 @@ type KeyData = {
     }
   }
 
-  onChange = (state: State) => {
-    this.setState({ state });
-  };
+  onChange = (editorState: State) => {
+    if (this.editorState !== editorState) {
+      this.props.onChange(Markdown.serialize(editorState));
+    }
 
-  onDocumentChange = (document: Document, state: State) => {
-    this.props.onChange(Markdown.serialize(state));
+    this.editorState = editorState;
   };
 
   handleDrop = async (ev: SyntheticEvent) => {
+    if (this.props.readOnly) return;
     // check if this event was already handled by the Editor
     if (ev.isDefaultPrevented()) return;
 
@@ -92,7 +92,9 @@ type KeyData = {
 
     const files = getDataTransferFiles(ev);
     for (const file of files) {
-      await this.insertImageFile(file);
+      if (file.type.startsWith('image/')) {
+        await this.insertImageFile(file);
+      }
     }
   };
 
@@ -162,7 +164,7 @@ type KeyData = {
     const transform = state.transform();
     transform.collapseToStartOf(state.document);
     transform.focus();
-    this.setState({ state: transform.apply() });
+    this.editorState = transform.apply();
   };
 
   focusAtEnd = () => {
@@ -170,7 +172,7 @@ type KeyData = {
     const transform = state.transform();
     transform.collapseToEndOf(state.document);
     transform.focus();
-    this.setState({ state: transform.apply() });
+    this.editorState = transform.apply();
   };
 
   render = () => {
@@ -187,11 +189,12 @@ type KeyData = {
       >
         <MaxWidth column auto>
           <Header onClick={this.focusAtStart} readOnly={readOnly} />
+          <Contents state={this.editorState} />
           {!readOnly &&
-            <Toolbar state={this.state.state} onChange={this.onChange} />}
+            <Toolbar state={this.editorState} onChange={this.onChange} />}
           {!readOnly &&
             <BlockInsert
-              state={this.state.state}
+              state={this.editorState}
               onChange={this.onChange}
               onInsertImage={this.insertImageFile}
             />}
@@ -202,10 +205,9 @@ type KeyData = {
             schema={this.schema}
             plugins={this.plugins}
             emoji={emoji}
-            state={this.state.state}
+            state={this.editorState}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
-            onDocumentChange={this.onDocumentChange}
             onSave={onSave}
             readOnly={readOnly}
           />
@@ -246,22 +248,6 @@ const StyledEditor = styled(Editor)`
   h5,
   h6 {
     font-weight: 500;
-
-    .anchor {
-      visibility: hidden;
-      color: #dedede;
-      padding-left: 0.25em;
-    }
-
-    &:hover {
-      .anchor {
-        visibility: visible;
-
-        &:hover {
-          color: #cdcdcd;
-        }
-      }
-    }
   }
 
   h1:first-of-type {

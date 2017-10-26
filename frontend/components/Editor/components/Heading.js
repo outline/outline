@@ -2,13 +2,12 @@
 import React from 'react';
 import { Document } from 'slate';
 import styled from 'styled-components';
-import _ from 'lodash';
-import slug from 'slug';
+import headingToSlug from '../headingToSlug';
 import type { Node, Editor } from '../types';
 import Placeholder from './Placeholder';
 
 type Props = {
-  children: React$Element<any>,
+  children: React$Element<*>,
   placeholder?: boolean,
   parent: Node,
   node: Node,
@@ -31,7 +30,7 @@ function Heading(props: Props) {
   const parentIsDocument = parent instanceof Document;
   const firstHeading = parentIsDocument && parent.nodes.first() === node;
   const showPlaceholder = placeholder && firstHeading && !node.text;
-  const slugish = _.escape(`${component}-${slug(node.text)}`);
+  const slugish = headingToSlug(node);
   const showHash = readOnly && !!slugish;
   const Component = component;
   const emoji = editor.props.emoji || '';
@@ -40,8 +39,10 @@ function Heading(props: Props) {
     emoji && title.match(new RegExp(`^${emoji}\\s`));
 
   return (
-    <Component {...rest}>
-      <Wrapper hasEmoji={startsWithEmojiAndSpace}>{children}</Wrapper>
+    <Component {...rest} id={slugish}>
+      <Wrapper hasEmoji={startsWithEmojiAndSpace}>
+        {children}
+      </Wrapper>
       {showPlaceholder &&
         <Placeholder contentEditable={false}>
           {editor.props.placeholder}
@@ -53,7 +54,7 @@ function Heading(props: Props) {
 
 const Wrapper = styled.div`
   display: inline;
-  margin-left: ${props => (props.hasEmoji ? '-1.2em' : 0)}
+  margin-left: ${(props: Props) => (props.hasEmoji ? '-1.2em' : 0)}
 `;
 
 const Anchor = styled.a`
@@ -66,19 +67,31 @@ const Anchor = styled.a`
   }
 `;
 
-export const Heading1 = styled(Heading)`
+export const StyledHeading = styled(Heading)`
   position: relative;
 
   &:hover {
     ${Anchor} {
       visibility: visible;
+      text-decoration: none;
     }
   }
 `;
-export const Heading2 = Heading1.withComponent('h2');
-export const Heading3 = Heading1.withComponent('h3');
-export const Heading4 = Heading1.withComponent('h4');
-export const Heading5 = Heading1.withComponent('h5');
-export const Heading6 = Heading1.withComponent('h6');
-
-export default Heading;
+export const Heading1 = (props: Props) => (
+  <StyledHeading component="h1" {...props} />
+);
+export const Heading2 = (props: Props) => (
+  <StyledHeading component="h2" {...props} />
+);
+export const Heading3 = (props: Props) => (
+  <StyledHeading component="h3" {...props} />
+);
+export const Heading4 = (props: Props) => (
+  <StyledHeading component="h4" {...props} />
+);
+export const Heading5 = (props: Props) => (
+  <StyledHeading component="h5" {...props} />
+);
+export const Heading6 = (props: Props) => (
+  <StyledHeading component="h6" {...props} />
+);
