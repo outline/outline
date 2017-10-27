@@ -5,15 +5,35 @@ import { color } from '../../../shared/styles/constants';
 
 function Navigation() {
   return (
-    <nav>
+    <Nav>
       <Brand href="/">Atlas</Brand>
-      <ul>
-        <li><a href="/about">About</a></li>
-        <li><a href="/pricing">Pricing</a></li>
-      </ul>
-    </nav>
+      <Menu>
+        <MenuItem><a href="/about">About</a></MenuItem>
+        <MenuItem><a href="/pricing">Pricing</a></MenuItem>
+        <MenuItem><a href="/auth/slack">Sign In</a></MenuItem>
+      </Menu>
+    </Nav>
   );
 }
+
+const Nav = styled.nav`
+  display: flex;
+  padding: 20px;
+  justify-content: space-between;
+`;
+
+const Menu = styled.ul`
+  margin: 0;
+  padding: 0;
+  list-style: none;
+`;
+
+const MenuItem = styled.li`
+  display: inline-block;
+  margin: 0 0 0 40px;
+  font-size: 15px;
+  font-weight: 500;
+`;
 
 const Brand = styled.a`
   font-weight: 600;
