@@ -6,8 +6,8 @@ import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import Portal from 'react-portal';
 import Flex from 'components/Flex';
-import { color } from 'styles/constants';
-import { fadeAndScaleIn } from 'styles/animations';
+import { color } from 'shared/styles/constants';
+import { fadeAndScaleIn } from 'shared/styles/animations';
 
 type Props = {
   label: React.Element<*>,

@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
-import { layout } from 'styles/constants';
+import { layout } from 'shared/styles/constants';
 import Toast from './components/Toast';
 
 @observer class Toasts extends Component {

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 
 type Props = {
   children: string,

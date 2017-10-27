@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import SearchIcon from 'components/Icon/SearchIcon';
 import Flex from 'components/Flex';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 import styled from 'styled-components';
 
 class SearchField extends Component {

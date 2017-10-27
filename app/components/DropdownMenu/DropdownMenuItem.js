@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import Flex from 'components/Flex';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 
 const DropdownMenuItem = ({
   onClick,

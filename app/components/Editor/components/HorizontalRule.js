@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import type { Props } from '../types';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 
 function HorizontalRule(props: Props) {
   const { state, node } = props;

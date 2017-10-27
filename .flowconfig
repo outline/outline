@@ -21,6 +21,8 @@ module.system.node.resolve_dirname=app
 
 module.name_mapper='^\(.*\)\.s?css$' -> 'empty/object'
 module.name_mapper='^\(.*\)\.md$' -> 'empty/object'
+module.name_mapper='^shared\/\(.*\)$' -> '<PROJECT_ROOT>/shared/\1'
+
 module.file_ext=.js
 module.file_ext=.scss
 module.file_ext=.md

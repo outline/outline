@@ -6,7 +6,7 @@ import Portal from 'react-portal';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 import PlusIcon from 'components/Icon/PlusIcon';
 import BlockMenu from 'menus/BlockMenu';
 import type { State } from '../types';

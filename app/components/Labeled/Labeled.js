@@ -3,7 +3,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import Flex from 'components/Flex';
 import styled from 'styled-components';
-import { size } from 'styles/constants';
+import { size } from 'shared/styles/constants';
 
 type Props = {
   label: React.Element<*> | string,

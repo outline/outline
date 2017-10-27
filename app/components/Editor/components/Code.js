@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import CopyButton from './CopyButton';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 import type { Props } from '../types';
 
 export default function Code({ children, node, readOnly, attributes }: Props) {

@@ -2,8 +2,8 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import styled from 'styled-components';
-import { pulsate } from 'styles/animations';
-import { color } from 'styles/constants';
+import { pulsate } from 'shared/styles/animations';
+import { color } from 'shared/styles/constants';
 import Flex from 'components/Flex';
 
 import { randomInteger } from 'utils/random';

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import ApiKeyRow from './components/ApiKeyRow';
 import SettingsStore from './SettingsStore';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 
 import Flex from 'components/Flex';
 import Button from 'components/Button';

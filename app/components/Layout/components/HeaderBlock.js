@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 import type { User, Team } from 'types';
 import Flex from 'components/Flex';
 
@@ -28,7 +28,6 @@ const UserName = styled.div`
 `;
 
 const TeamName = styled.div`
-  font-family: 'Atlas Grotesk';
   font-weight: bold;
   color: ${color.text};
   text-decoration: none;

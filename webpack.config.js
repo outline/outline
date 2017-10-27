@@ -50,9 +50,9 @@ module.exports = {
     noParse: [new RegExp('node_modules/localforage/dist/localforage.js')],
   },
   resolve: {
-    root: path.join(__dirname, 'app'),
-    // you can now require('file') instead of require('file.json')
+    root: path.resolve(__dirname, 'app'),
     extensions: ['', '.js', '.json'],
+    alias: { shared: path.resolve(__dirname, 'shared') }
   },
   plugins: [
     definePlugin,

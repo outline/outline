@@ -7,7 +7,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router';
 import keydown from 'react-keydown';
 import Flex from 'components/Flex';
-import { color, layout } from 'styles/constants';
+import { color, layout } from 'shared/styles/constants';
 import {
   collectionUrl,
   updateDocumentUrl,

@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import invariant from 'invariant';
 import _ from 'lodash';
 import styled from 'styled-components';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 
 import Flex from 'components/Flex';
 import GoToIcon from 'components/Icon/GoToIcon';

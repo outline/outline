@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { fontWeight, color } from 'styles/constants';
+import { fontWeight, color } from 'shared/styles/constants';
 import Document from 'models/Document';
 import NextIcon from 'components/Icon/NextIcon';
 

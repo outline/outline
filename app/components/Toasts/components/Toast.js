@@ -2,8 +2,8 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 import { darken } from 'polished';
-import { color } from 'styles/constants';
-import { fadeAndScaleIn } from 'styles/animations';
+import { color } from 'shared/styles/constants';
+import { fadeAndScaleIn } from 'shared/styles/animations';
 
 type Props = {
   onRequestClose: () => void,

@@ -14,10 +14,8 @@ import stores from 'stores';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import CacheStore from 'stores/CacheStore';
+import globalStyles from 'shared/styles/globals';
 
-import 'normalize.css/normalize.css';
-import 'styles/base.css';
-import 'styles/fonts.css';
 import 'styles/transitions.css';
 import 'styles/prism.css';
 
@@ -102,6 +100,8 @@ const DocumentNew = () => <Document newDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
+
+globalStyles();
 
 render(
   <div style={{ display: 'flex', flex: 1, height: '100%' }}>

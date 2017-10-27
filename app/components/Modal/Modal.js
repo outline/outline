@@ -3,8 +3,8 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import ReactModal from 'react-modal';
-import { color } from 'styles/constants';
-import { fadeAndScaleIn } from 'styles/animations';
+import { color } from 'shared/styles/constants';
+import { fadeAndScaleIn } from 'shared/styles/animations';
 import CloseIcon from 'components/Icon/CloseIcon';
 import Flex from 'components/Flex';
 

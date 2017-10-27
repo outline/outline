@@ -2,12 +2,15 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import Navigation from './Navigation';
+import globalStyles from '../../../shared/styles/globals';
 
 type Props = {
   children?: React$Element<*>,
 };
 
 export default function Layout({ children }: Props) {
+  globalStyles();
+
   return (
     <html lang="en">
       <head>

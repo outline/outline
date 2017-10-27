@@ -1,6 +1,6 @@
 // @flow
 import styled from 'styled-components';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 
 const HelpText = styled.p`
   margin-top: 0;

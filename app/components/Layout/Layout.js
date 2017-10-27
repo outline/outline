@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import Flex from 'components/Flex';
-import { color, layout } from 'styles/constants';
+import { color, layout } from 'shared/styles/constants';
 import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 
 import Avatar from 'components/Avatar';

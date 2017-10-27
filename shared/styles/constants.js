@@ -1,5 +1,4 @@
 // @flow
-
 export const layout = {
   padding: '1.5vw 1.875vw',
   vpadding: '1.5vw',
@@ -60,6 +59,5 @@ export const color = {
   /* Misc */
   white: '#FFFFFF',
   black: '#000000',
-
-  /* Alert colors */
+  blue: '#16B3FF',
 };

@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import Flex from 'components/Flex';
-import { size, color } from 'styles/constants';
+import { size, color } from 'shared/styles/constants';
 
 const RealTextarea = styled.textarea`
   border: 0;

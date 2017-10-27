@@ -1,8 +1,8 @@
 // @flow
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import { pulsate } from 'styles/animations';
-import { color } from 'styles/constants';
+import { pulsate } from 'shared/styles/animations';
+import { color } from 'shared/styles/constants';
 import { randomInteger } from 'utils/random';
 import Flex from 'components/Flex';
 

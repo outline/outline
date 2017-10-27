@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 import styled from 'styled-components';
 import CopyToClipboard from 'components/CopyToClipboard';
 

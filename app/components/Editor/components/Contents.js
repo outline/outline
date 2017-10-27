@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { List } from 'immutable';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 import headingToSlug from '../headingToSlug';
 import type { State, Block } from '../types';
 import styled from 'styled-components';

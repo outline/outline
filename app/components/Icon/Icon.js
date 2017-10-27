@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 
 export type Props = {
   className?: string,

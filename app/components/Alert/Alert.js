@@ -3,7 +3,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import Flex from 'components/Flex';
 import styled from 'styled-components';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 
 type Props = {
   children: React.Element<*>,

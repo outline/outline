@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { observable, action } from 'mobx';
 import { observer } from 'mobx-react';
 import { NavLink } from 'react-router-dom';
-import { color, fontWeight } from 'styles/constants';
+import { color, fontWeight } from 'shared/styles/constants';
 import styled from 'styled-components';
 import Flex from 'components/Flex';
 import CollapsedIcon from 'components/Icon/CollapsedIcon';

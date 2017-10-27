@@ -2,7 +2,7 @@
 import React from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 import Flex from 'components/Flex';
 import Tooltip from 'components/Tooltip';
 import Document from 'models/Document';

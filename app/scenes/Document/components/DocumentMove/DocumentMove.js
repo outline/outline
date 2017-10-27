@@ -8,7 +8,7 @@ import { Search } from 'js-search';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import _ from 'lodash';
 import styled from 'styled-components';
-import { size } from 'styles/constants';
+import { size } from 'shared/styles/constants';
 
 import Modal from 'components/Modal';
 import Input from 'components/Input';

@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import Document from 'models/Document';
 import styled from 'styled-components';
-import { color } from 'styles/constants';
+import { color } from 'shared/styles/constants';
 import StarredIcon from 'components/Icon/StarredIcon';
 import PublishingInfo from './components/PublishingInfo';
 
