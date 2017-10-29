@@ -47,6 +47,14 @@ router.post('auth.slack', async ctx => {
     await team.createFirstCollection(user.id);
   }
 
+  // Signal to backend that the user is logged in.
+  // This is only used to signal SSR rendering, not
+  // used for auth.
+  ctx.cookies.set('loggedIn', 'true', {
+    httpOnly: false,
+    expires: new Date('2100'),
+  });
+
   // Update user's avatar
   await user.updateAvatar();
   await user.save();

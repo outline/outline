@@ -9,7 +9,7 @@ commonWebpackConfig = require('./webpack.config');
 productionWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
   devtool: 'source-map',
-  entry: ['babel-polyfill', 'babel-regenerator-runtime', './frontend/index'],
+  entry: ['babel-polyfill', 'babel-regenerator-runtime', './app/index'],
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.[hash].js',

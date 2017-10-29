@@ -46,7 +46,7 @@ if (process.env.NODE_ENV === 'development') {
         // use the same as in webpack
         publicPath: config.output.publicPath,
 
-        // options for formating the statistics
+        // options for formatting the statistics
         stats: {
           colors: true,
         },

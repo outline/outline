@@ -10,14 +10,14 @@
     "start": "node index.js",
     "dev": "NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --inspect --watch server index.js",
     "lint": "npm run lint:flow && npm run lint:js",
-    "lint:js": "eslint frontend",
+    "lint:js": "eslint app",
     "lint:flow": "flow",
     "deploy": "git push heroku master",
     "heroku-postbuild": "npm run build && npm run sequelize:migrate",
     "sequelize:create-migration": "sequelize migration:create",
     "sequelize:migrate": "sequelize db:migrate",
-    "test": "npm run test:frontend && npm run test:server",
-    "test:frontend": "jest",
+    "test": "npm run test:app && npm run test:server",
+    "test:app": "jest",
     "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "precommit": "lint-staged"
   },
@@ -30,7 +30,7 @@
   "jest": {
     "verbose": false,
     "roots": [
-      "frontend"
+      "app"
     ],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
@@ -45,7 +45,7 @@
       "node_modules"
     ],
     "modulePaths": [
-      "frontend"
+      "app"
     ],
     "setupFiles": [
       "<rootDir>/setupJest.js",
@@ -78,7 +78,7 @@
     "babel-preset-react": "6.11.1",
     "babel-preset-react-hmre": "1.1.1",
     "babel-regenerator-runtime": "6.5.0",
-    "bcrypt": "^0.8.7",
+    "bcrypt": "1.0.3",
     "boundless-arrow-key-navigation": "^1.0.4",
     "boundless-popover": "^1.0.4",
     "bugsnag": "^1.7.0",
@@ -106,6 +106,7 @@
     "imports-loader": "0.6.5",
     "invariant": "^2.2.2",
     "isomorphic-fetch": "2.2.1",
+    "js-cookie": "^2.1.4",
     "js-search": "^1.4.2",
     "json-loader": "0.5.4",
     "jsonwebtoken": "7.0.1",
@@ -120,6 +121,7 @@
     "koa-mount": "^3.0.0",
     "koa-router": "7.0.1",
     "koa-sendfile": "2.0.0",
+    "koa-static": "^4.0.1",
     "localforage": "^1.5.0",
     "lodash": "^4.17.4",
     "lodash.orderby": "4.4.0",
@@ -141,7 +143,7 @@
     "react-addons-css-transition-group": "15.3.2",
     "react-dom": "^15.6.1",
     "react-dropzone": "3.6.0",
-    "react-helmet": "3.1.0",
+    "react-helmet": "^5.2.0",
     "react-keydown": "^1.7.3",
     "react-modal": "^2.2.1",
     "react-portal": "^3.1.0",
@@ -165,6 +167,8 @@
     "string-hash": "^1.1.0",
     "style-loader": "^0.18.2",
     "styled-components": "^2.0.0",
+    "styled-components-grid": "^1.0.0-preview.15",
+    "styled-normalize": "^2.2.1",
     "url-loader": "0.5.7",
     "uuid": "2.0.2",
     "validator": "5.2.0",
