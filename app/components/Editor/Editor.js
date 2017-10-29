@@ -6,7 +6,7 @@ import { Editor, Plain } from 'slate';
 import keydown from 'react-keydown';
 import type { State, Editor as EditorType } from './types';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import ClickablePadding from './components/ClickablePadding';
 import Toolbar from './components/Toolbar';
 import BlockInsert from './components/BlockInsert';

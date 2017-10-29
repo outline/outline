@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 

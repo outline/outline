@@ -13,7 +13,7 @@ import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import Empty from 'components/Empty';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
 import SearchField from './components/SearchField';

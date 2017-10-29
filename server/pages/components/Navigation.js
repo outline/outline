@@ -8,8 +8,6 @@ function Navigation() {
     <Nav>
       <Brand href="/">Atlas</Brand>
       <Menu>
-        <MenuItem><a href="/about">About</a></MenuItem>
-        <MenuItem><a href="/pricing">Pricing</a></MenuItem>
         <MenuItem><a href="/auth/slack">Sign In</a></MenuItem>
       </Menu>
     </Nav>
@@ -18,7 +16,7 @@ function Navigation() {
 
 const Nav = styled.nav`
   display: flex;
-  padding: 20px;
+  padding: 20px 30px;
   justify-content: space-between;
 `;
 

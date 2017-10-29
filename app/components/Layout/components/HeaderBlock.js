@@ -3,7 +3,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import type { User, Team } from 'types';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 
 type Props = {
   user: User,

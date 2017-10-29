@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import Collection from 'models/Collection';
 import Document from 'models/Document';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 
 const Container = styled(Flex)`
   color: ${color.slate};

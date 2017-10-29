@@ -7,7 +7,7 @@ import ApiKeyRow from './components/ApiKeyRow';
 import SettingsStore from './SettingsStore';
 import { color } from 'shared/styles/constants';
 
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';

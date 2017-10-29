@@ -5,6 +5,7 @@ import httpErrors from 'http-errors';
 import Koa from 'koa';
 import Router from 'koa-router';
 import sendfile from 'koa-sendfile';
+import serve from 'koa-static';
 import subdomainRedirect from './middlewares/subdomainRedirect';
 import renderpage from './utils/renderpage';
 
@@ -23,6 +24,9 @@ const renderapp = async ctx => {
     await sendfile(ctx, path.join(__dirname, './static/dev.html'));
   }
 };
+
+// serve static assets
+koa.use(serve(path.resolve(__dirname, '../public')));
 
 router.get('/_health', ctx => (ctx.body = 'OK'));
 

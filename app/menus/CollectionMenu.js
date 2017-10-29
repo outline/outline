@@ -5,7 +5,7 @@ import { inject, observer } from 'mobx-react';
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import MoreIcon from 'components/Icon/MoreIcon';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 @observer class CollectionMenu extends Component {

@@ -4,7 +4,7 @@ import _ from 'lodash';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import styled from 'styled-components';
 import Mask from './components/Mask';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 
 type Props = {
   count?: number,

@@ -6,7 +6,7 @@ import ReactModal from 'react-modal';
 import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 import CloseIcon from 'components/Icon/CloseIcon';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 
 type Props = {
   children?: React$Element<any>,

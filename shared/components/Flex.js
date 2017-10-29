@@ -22,7 +22,7 @@ type Props = {
   justify?: JustifyValues,
   auto?: ?boolean,
   className?: string,
-  children?: React.Element<any>,
+  children?: React$Element<*>,
 };
 
 const Flex = (props: Props) => {

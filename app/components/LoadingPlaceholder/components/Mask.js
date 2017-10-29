@@ -3,8 +3,8 @@ import React, { Component } from 'react';
 import styled from 'styled-components';
 import { pulsate } from 'shared/styles/animations';
 import { color } from 'shared/styles/constants';
-import { randomInteger } from 'utils/random';
-import Flex from 'components/Flex';
+import { randomInteger } from 'shared/random';
+import Flex from 'shared/components/Flex';
 
 class Mask extends Component {
   width: number;
@@ -13,8 +13,7 @@ class Mask extends Component {
     return false;
   }
 
-  constructor(props: Object) {
-    super(props);
+  componentWillmount() {
     this.width = randomInteger(75, 100);
   }
 

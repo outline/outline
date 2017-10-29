@@ -4,9 +4,9 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import styled from 'styled-components';
 import { pulsate } from 'shared/styles/animations';
 import { color } from 'shared/styles/constants';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 
-import { randomInteger } from 'utils/random';
+import { randomInteger } from 'shared/random';
 
 const randomValues = Array.from(
   new Array(5),

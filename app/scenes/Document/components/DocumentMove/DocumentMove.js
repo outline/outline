@@ -13,7 +13,7 @@ import { size } from 'shared/styles/constants';
 import Modal from 'components/Modal';
 import Input from 'components/Input';
 import Labeled from 'components/Labeled';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import PathToDocument from './components/PathToDocument';
 
 import Document from 'models/Document';

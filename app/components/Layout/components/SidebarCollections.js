@@ -2,7 +2,7 @@
 import React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
 import { color, fontWeight } from 'shared/styles/constants';
 

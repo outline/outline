@@ -5,7 +5,7 @@ import Popover from 'components/Popover';
 import styled from 'styled-components';
 import DocumentViewers from './components/DocumentViewers';
 import DocumentViewersStore from './DocumentViewersStore';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 
 const Container = styled(Flex)`
   font-size: 13px;

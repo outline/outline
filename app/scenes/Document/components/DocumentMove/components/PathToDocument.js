@@ -6,7 +6,7 @@ import _ from 'lodash';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import GoToIcon from 'components/Icon/GoToIcon';
 
 import Document from 'models/Document';

@@ -5,7 +5,7 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import Portal from 'react-portal';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 

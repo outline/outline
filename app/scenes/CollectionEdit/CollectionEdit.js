@@ -5,7 +5,7 @@ import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
 import Input from 'components/Input';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 import Collection from 'models/Collection';
 

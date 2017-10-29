@@ -2,7 +2,7 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import Mask from './components/Mask';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 
 export default (props: Object) => {
   return (

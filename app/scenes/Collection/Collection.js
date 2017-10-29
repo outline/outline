@@ -14,7 +14,7 @@ import Collection from 'models/Collection';
 import CenteredContent from 'components/CenteredContent';
 import LoadingListPlaceholder from 'components/LoadingListPlaceholder';
 import Button from 'components/Button';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 
 type Props = {

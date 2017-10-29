@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import Key from 'components/Key';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 
 function KeyboardShortcuts() {

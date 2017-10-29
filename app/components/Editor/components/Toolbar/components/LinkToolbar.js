@@ -14,7 +14,7 @@ import keydown from 'react-keydown';
 import CloseIcon from 'components/Icon/CloseIcon';
 import OpenIcon from 'components/Icon/OpenIcon';
 import TrashIcon from 'components/Icon/TrashIcon';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 
 @keydown
 @observer

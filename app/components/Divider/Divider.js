@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 
 const Divider = () => {
   return <Flex auto justify="center"><Content /></Flex>;

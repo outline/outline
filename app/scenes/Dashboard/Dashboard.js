@@ -5,7 +5,7 @@ import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 
 import DocumentsStore from 'stores/DocumentsStore';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import CenteredContent from 'components/CenteredContent';
