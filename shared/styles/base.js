@@ -68,16 +68,4 @@ export default `
     margin-top: 1em;
     margin-bottom: 1em;
   }
-
-  .activeDropZone {
-    background: #4E5C6E;
-  }
-
-  .activeDropZone a {
-    color: #FFF !important;
-  }
-
-  .ReactModal__Body--open {
-    overflow: hidden;
-  }
 `;

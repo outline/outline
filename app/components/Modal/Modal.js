@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { observer } from 'mobx-react';
-import styled from 'styled-components';
+import styled, { injectGlobal } from 'styled-components';
 import ReactModal from 'react-modal';
 import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
@@ -14,6 +14,12 @@ type Props = {
   title?: string,
   onRequestClose: () => void,
 };
+
+injectGlobal`
+  .ReactModal__Body--open {
+    overflow: hidden;
+  }
+`;
 
 const Modal = ({
   children,

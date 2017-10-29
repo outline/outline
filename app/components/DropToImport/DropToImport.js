@@ -1,6 +1,8 @@
 // @flow
 import React, { Component } from 'react';
 import { inject } from 'mobx-react';
+import { injectGlobal } from 'styled-components';
+import { color } from 'shared/styles/constants';
 import invariant from 'invariant';
 import _ from 'lodash';
 import Dropzone from 'react-dropzone';
@@ -19,6 +21,17 @@ type Props = {
   dropzoneRef: Function,
   history: Object,
 };
+
+injectGlobal`
+  .activeDropZone {
+    background: ${color.slateDark};
+    svg { fill: ${color.white}; }
+  }
+
+  .activeDropZone a {
+    color: ${color.white} !important;
+  }
+`;
 
 class DropToImport extends Component {
   state: {
