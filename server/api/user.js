@@ -18,7 +18,7 @@ router.post('user.s3Upload', auth(), async ctx => {
   ctx.assertPresent(size, 'size is required');
 
   const s3Key = uuid.v4();
-  const key = `${s3Key}/${filename}`;
+  const key = `uploads/${s3Key}/${filename}`;
   const policy = makePolicy();
 
   ctx.body = {
@@ -36,7 +36,7 @@ router.post('user.s3Upload', auth(), async ctx => {
       },
       asset: {
         contentType: kind,
-        url: `${process.env.AWS_S3_UPLOAD_BUCKET_URL}${s3Key}/${filename}`,
+        url: `${process.env.AWS_S3_UPLOAD_BUCKET_URL}${key}`,
         name: filename,
         size,
       },
