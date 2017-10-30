@@ -18,7 +18,6 @@ To install and run the application:
  1. Install dependencies with `yarn`
  1. Register a Slack app at https://api.slack.com/apps
  1. Copy the file `.env.sample` to `.env` and fill out the keys
-   - Use `openssl rand -hex 32` to create `SEQUELIZE_SECRET`
  1. Run DB migrations `yarn sequelize db:migrate`
  1. Start the development server `yarn start`
 
