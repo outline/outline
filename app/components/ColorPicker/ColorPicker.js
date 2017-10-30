@@ -3,9 +3,9 @@ import React from 'react';
 import { observable, computed, action } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
-import Flex from 'components/Flex';
+import Flex from 'shared/components/Flex';
 import { LabelText, Outline } from 'components/Input';
-import { color, fonts, fontWeight } from 'styles/constants';
+import { color, fonts, fontWeight } from 'shared/styles/constants';
 import { validateColorHex } from '../../../shared/utils/color';
 
 const colors = [
