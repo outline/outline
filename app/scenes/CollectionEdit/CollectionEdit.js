@@ -7,6 +7,7 @@ import Button from 'components/Button';
 import Input from 'components/Input';
 import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
+import ColorPicker from 'components/ColorPicker';
 import Collection from 'models/Collection';
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
 @observer class CollectionEdit extends Component {
   props: Props;
   @observable name: string;
+  @observable color: string = '';
   @observable isSaving: boolean;
 
   componentWillMount() {
@@ -28,7 +30,7 @@ type Props = {
     ev.preventDefault();
     this.isSaving = true;
 
-    this.props.collection.updateData({ name: this.name });
+    this.props.collection.updateData({ name: this.name, color: this.color });
     const success = await this.props.collection.save();
 
     if (success) {
@@ -40,6 +42,10 @@ type Props = {
 
   handleNameChange = (ev: SyntheticInputEvent) => {
     this.name = ev.target.value;
+  };
+
+  handleColor = (color: string) => {
+    this.color = color;
   };
 
   render() {
@@ -57,6 +63,10 @@ type Props = {
             value={this.name}
             required
             autoFocus
+          />
+          <ColorPicker
+            onSelect={this.handleColor}
+            value={this.props.collection.color}
           />
           <Button
             type="submit"

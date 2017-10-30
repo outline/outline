@@ -100,7 +100,7 @@ type Props = {
         <SidebarLink
           key={collection.id}
           to={collection.url}
-          icon={<CollectionIcon expanded={expanded} />}
+          icon={<CollectionIcon expanded={expanded} color={collection.color} />}
         >
           <Flex justify="space-between">
             {collection.name}

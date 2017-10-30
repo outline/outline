@@ -5,7 +5,7 @@ import randomstring from 'randomstring';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
-import parseTitle from '../../shared/parseTitle';
+import parseTitle from '../../shared/utils/parseTitle.js';
 import Revision from './Revision';
 
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;

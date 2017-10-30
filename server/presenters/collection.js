@@ -11,6 +11,7 @@ async function present(ctx: Object, collection: Collection) {
     url: collection.getUrl(),
     name: collection.name,
     description: collection.description,
+    color: collection.color || '#4E5C6E',
     type: collection.type,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,

@@ -1,6 +1,7 @@
 // @flow
 import apiError from '../../errors';
 import validator from 'validator';
+import { validateColorHex } from '../../../shared/utils/color';
 
 export default function validation() {
   return function validationMiddleware(ctx: Object, next: Function) {
@@ -24,6 +25,12 @@ export default function validation() {
 
     ctx.assertPositiveInteger = (value, message) => {
       if (!validator.isInt(value, { min: 0 })) {
+        throw apiError(400, 'validation_error', message);
+      }
+    };
+
+    ctx.assertHexColor = (value, message) => {
+      if (!validateColorHex(value)) {
         throw apiError(400, 'validation_error', message);
       }
     };

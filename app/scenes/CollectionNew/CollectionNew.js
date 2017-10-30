@@ -5,6 +5,7 @@ import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
 import Input from 'components/Input';
+import ColorPicker from 'components/ColorPicker';
 import HelpText from 'components/HelpText';
 
 import Collection from 'models/Collection';
@@ -20,6 +21,7 @@ type Props = {
   props: Props;
   @observable collection: Collection;
   @observable name: string = '';
+  @observable color: string = '';
   @observable isSaving: boolean;
 
   constructor(props: Props) {
@@ -30,7 +32,7 @@ type Props = {
   handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
     this.isSaving = true;
-    this.collection.updateData({ name: this.name });
+    this.collection.updateData({ name: this.name, color: this.color });
     const success = await this.collection.save();
 
     if (success) {
@@ -44,6 +46,10 @@ type Props = {
 
   handleNameChange = (ev: SyntheticInputEvent) => {
     this.name = ev.target.value;
+  };
+
+  handleColor = (color: string) => {
+    this.color = color;
   };
 
   render() {
@@ -61,6 +67,7 @@ type Props = {
           required
           autoFocus
         />
+        <ColorPicker onSelect={this.handleColor} />
         <Button type="submit" disabled={this.isSaving || !this.name}>
           {this.isSaving ? 'Creating…' : 'Create'}
         </Button>
