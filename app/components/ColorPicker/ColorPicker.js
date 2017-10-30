@@ -131,17 +131,17 @@ const Swatch = ({ onClick, ...props }: SwatchProps) => (
 );
 
 const SwatchOutset = styled(Flex)`
-width: 24px;
-height: 24px;
-margin-right: 5px;
-border: 2px solid ${({ active, color }) => (active ? color : 'transparent')};
-border-radius: 2px;
-background: ${({ color }) => color};
-${({ onClick }) => onClick && `cursor: pointer;`}
+  width: 24px;
+  height: 24px;
+  margin-right: 5px;
+  border: 2px solid ${({ active, color }) => (active ? color : 'transparent')};
+  border-radius: 2px;
+  background: ${({ color }) => color};
+  ${({ onClick }) => onClick && `cursor: pointer;`}
 
-&:last-child {
-  margin-right: 0;
-}
+  &:last-child {
+    margin-right: 0;
+  }
 `;
 
 const SwatchInset = styled(Flex)`
