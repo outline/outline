@@ -159,7 +159,7 @@
     "slate-collapse-on-escape": "^0.2.1",
     "slate-edit-code": "^0.10.2",
     "slate-edit-list": "^0.7.0",
-    "slate-markdown-serializer": "tommoor/slate-markdown-serializer",
+    "slate-md-serializer": "0.5.5",
     "slate-paste-linkify": "^0.2.1",
     "slate-prism": "^0.2.2",
     "slate-trailing-block": "^0.2.4",
