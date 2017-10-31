@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import { Redirect } from 'react-router';
+import { Redirect } from 'react-router-dom';
 import queryString from 'query-string';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';

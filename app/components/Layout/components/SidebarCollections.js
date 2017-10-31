@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import Flex from 'shared/components/Flex';
@@ -28,7 +28,7 @@ type Props = {
   ui: UiStore,
 };
 
-@observer class SidebarCollections extends React.PureComponent {
+@observer class SidebarCollections extends Component {
   props: Props;
 
   render() {
@@ -68,7 +68,7 @@ type Props = {
   }
 }
 
-@observer class CollectionLink extends React.Component {
+@observer class CollectionLink extends Component {
   dropzoneRef;
 
   @observable menuOpen = false;

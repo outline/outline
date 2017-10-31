@@ -1,10 +1,9 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { Redirect } from 'react-router';
+import { Redirect } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import _ from 'lodash';
 import styled from 'styled-components';
 import { newDocumentUrl } from 'utils/routeHelpers';
 
@@ -14,17 +13,17 @@ import Collection from 'models/Collection';
 import CenteredContent from 'components/CenteredContent';
 import LoadingListPlaceholder from 'components/LoadingListPlaceholder';
 import Button from 'components/Button';
-import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
+import Flex from 'shared/components/Flex';
 
 type Props = {
   collections: CollectionsStore,
   match: Object,
 };
 
-@observer class CollectionScene extends React.Component {
+@observer class CollectionScene extends Component {
   props: Props;
-  collection: ?Collection;
+  @observable collection: ?Collection;
   @observable isFetching = true;
   @observable redirectUrl;
 
@@ -41,7 +40,7 @@ type Props = {
   fetchDocument = async (id: string) => {
     const { collections } = this.props;
 
-    this.collection = await collections.getById(id);
+    this.collection = await collections.fetchById(id);
 
     if (!this.collection) this.redirectUrl = '/404';
 
@@ -51,41 +50,48 @@ type Props = {
     this.isFetching = false;
   };
 
-  renderNewDocument() {
+  renderEmptyCollection() {
+    if (!this.collection) return;
+
     return (
       <NewDocumentContainer auto column justify="center">
         <h1>Create a document</h1>
         <HelpText>
-          Publish your first document to start building your collection.
+          Publish your first document to start building the
+          {' '}
+          <strong>{this.collection.name}</strong>
+          {' '}
+          collection.
         </HelpText>
-        {this.collection &&
-          <Action>
-            <Link to={newDocumentUrl(this.collection)}>
-              <Button>Create new document</Button>
-            </Link>
-          </Action>}
+        <Action>
+          <Link to={newDocumentUrl(this.collection)}>
+            <Button>Create new document</Button>
+          </Link>
+        </Action>
       </NewDocumentContainer>
     );
   }
 
   render() {
+    if (this.redirectUrl) return <Redirect to={this.redirectUrl} />;
+
     return (
       <CenteredContent>
-        {this.redirectUrl && <Redirect to={this.redirectUrl} />}
         {this.isFetching
           ? <LoadingListPlaceholder />
-          : this.renderNewDocument()}
+          : this.renderEmptyCollection()}
       </CenteredContent>
     );
   }
 }
 
 const NewDocumentContainer = styled(Flex)`
-  padding-top: 70px;
+  padding-top: 50%;
+  transform: translateY(-50%);
 `;
 
 const Action = styled(Flex)`
-  margin: 20px 0;
+  margin: 10px 0;
 `;
 
 export default inject('collections')(CollectionScene);

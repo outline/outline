@@ -4,7 +4,7 @@ import get from 'lodash/get';
 import styled from 'styled-components';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Prompt } from 'react-router';
+import { withRouter, Prompt } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
 import { color, layout } from 'shared/styles/constants';

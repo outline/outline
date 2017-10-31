@@ -13,9 +13,6 @@ const activeStyle = {
   fontWeight: fontWeight.semiBold,
 };
 
-// This is a hack for `styleComponent()` as NavLink fails to render without `to` prop
-const StyleableDiv = props => <div {...props} />;
-
 const StyledGoTo = styled(CollapsedIcon)`
   margin-bottom: -4px;
   margin-right: 0;
@@ -28,7 +25,7 @@ const IconWrapper = styled.span`
   height: 24px;
 `;
 
-const styleComponent = component => styled(component)`
+const StyledNavLink = styled(NavLink)`
   display: flex;
   width: 100%;
   position: relative;
@@ -51,6 +48,8 @@ const styleComponent = component => styled(component)`
   }
 `;
 
+const StyledDiv = StyledNavLink.withComponent('div');
+
 type Props = {
   to?: string,
   onClick?: SyntheticEvent => *,
@@ -62,6 +61,7 @@ type Props = {
 
 @observer class SidebarLink extends Component {
   props: Props;
+  @observable expanded: boolean = false;
 
   componentDidMount() {
     if (this.props.expand) this.handleExpand();
@@ -70,8 +70,6 @@ type Props = {
   componentDidReceiveProps(nextProps: Props) {
     if (nextProps.expand) this.handleExpand();
   }
-
-  @observable expanded: boolean = false;
 
   @action handleClick = (event: SyntheticEvent) => {
     event.preventDefault();
@@ -85,7 +83,7 @@ type Props = {
 
   render() {
     const { icon, children, expandedContent, ...rest } = this.props;
-    const Component = styleComponent(rest.to ? NavLink : StyleableDiv);
+    const Component = rest.to ? StyledNavLink : StyledDiv;
 
     return (
       <Flex column>
