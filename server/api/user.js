@@ -18,7 +18,7 @@ router.post('user.s3Upload', auth(), async ctx => {
   ctx.assertPresent(size, 'size is required');
 
   const s3Key = uuid.v4();
-  const key = `uploads/${s3Key}/${filename}`;
+  const key = `uploads/${ctx.state.user.id}/${s3Key}/${filename}`;
   const policy = makePolicy();
 
   ctx.body = {
