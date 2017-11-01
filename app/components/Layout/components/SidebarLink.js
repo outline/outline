@@ -18,8 +18,8 @@ const StyleableDiv = props => <div {...props} />;
 
 const StyledGoTo = styled(CollapsedIcon)`
   margin-bottom: -4px;
-  margin-left: -2px;
-  margin-right: 0;
+  margin-left: 1px;
+  margin-right: -3px;
   ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'}
 `;
 

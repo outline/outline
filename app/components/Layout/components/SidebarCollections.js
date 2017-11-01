@@ -241,7 +241,7 @@ const Header = styled(Flex)`
 `;
 
 const Children = styled(Flex)`
-  margin-left: 10px;
+  margin-left: 12px;
 `;
 
 export default inject('collections', 'ui', 'documents')(SidebarCollections);
