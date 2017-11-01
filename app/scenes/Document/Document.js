@@ -4,7 +4,8 @@ import get from 'lodash/get';
 import styled from 'styled-components';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Prompt } from 'react-router';
+import { withRouter, Prompt } from 'react-router-dom';
+import type { Location } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
 import { color, layout } from 'shared/styles/constants';
@@ -42,7 +43,7 @@ Are you sure you want to discard them?
 type Props = {
   match: Object,
   history: Object,
-  location: Object,
+  location: Location,
   keydown: Object,
   documents: DocumentsStore,
   collections: CollectionsStore,

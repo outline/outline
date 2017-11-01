@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
-import { Redirect } from 'react-router';
+import { Redirect } from 'react-router-dom';
+import type { Location } from 'react-router-dom';
 import queryString from 'query-string';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
@@ -11,7 +12,7 @@ import AuthStore from 'stores/AuthStore';
 
 type Props = {
   auth: AuthStore,
-  location: Object,
+  location: Location,
 };
 
 @observer class SlackAuth extends React.Component {

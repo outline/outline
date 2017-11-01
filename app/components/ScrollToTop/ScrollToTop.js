@@ -1,7 +1,7 @@
 // @flow
 // based on: https://reacttraining.com/react-router/web/guides/scroll-restoration
 import { Component } from 'react';
-import { withRouter } from 'react-router';
+import { withRouter } from 'react-router-dom';
 
 class ScrollToTop extends Component {
   componentDidUpdate(prevProps) {

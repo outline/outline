@@ -1,7 +1,8 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import type { Location } from 'react-router-dom';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
 import { color, fontWeight } from 'shared/styles/constants';
@@ -20,6 +21,7 @@ import { type NavigationNode } from 'types';
 
 type Props = {
   history: Object,
+  location: Location,
   collections: CollectionsStore,
   documents: DocumentsStore,
   activeDocument: ?Document,
@@ -28,7 +30,7 @@ type Props = {
   ui: UiStore,
 };
 
-@observer class SidebarCollections extends React.PureComponent {
+@observer class SidebarCollections extends Component {
   props: Props;
 
   render() {
@@ -68,7 +70,7 @@ type Props = {
   }
 }
 
-@observer class CollectionLink extends React.Component {
+@observer class CollectionLink extends Component {
   dropzoneRef;
 
   @observable menuOpen = false;

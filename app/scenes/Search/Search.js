@@ -7,7 +7,7 @@ import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
 import DocumentsStore from 'stores/DocumentsStore';
 
-import { withRouter } from 'react-router';
+import { withRouter } from 'react-router-dom';
 import { searchUrl } from 'utils/routeHelpers';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
