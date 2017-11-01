@@ -16,6 +16,7 @@ import CollectionMenu from 'menus/CollectionMenu';
 import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
 import Document from 'models/Document';
+import Collection from 'models/Collection';
 import DocumentsStore from 'stores/DocumentsStore';
 import { type NavigationNode } from 'types';
 
@@ -36,6 +37,7 @@ type Props = {
   render() {
     const {
       history,
+      location,
       collections,
       activeDocument,
       ui,
@@ -50,6 +52,7 @@ type Props = {
           <CollectionLink
             key={collection.id}
             history={history}
+            location={location}
             collection={collection}
             activeDocument={activeDocument}
             activeDocumentRef={activeDocumentRef}
@@ -70,7 +73,17 @@ type Props = {
   }
 }
 
+type CollectionLinkProps = {
+  history: Object,
+  collection: Collection,
+  ui: UiStore,
+  activeDocument: ?Document,
+  activeDocumentRef: HTMLElement => void,
+  prefetchDocument: (id: string) => Promise<void>,
+};
+
 @observer class CollectionLink extends Component {
+  props: CollectionLinkProps;
   dropzoneRef;
 
   @observable menuOpen = false;
