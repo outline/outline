@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import { LabelText, Outline } from 'components/Input';
 import { color, fonts, fontWeight } from 'shared/styles/constants';
-import { validateColorHex } from '../../../shared/utils/color';
+import { validateColorHex } from 'shared/utils/color';
 
 const colors = [
   '#4E5C6E',
@@ -21,7 +21,7 @@ const colors = [
 ];
 
 type Props = {
-  onSelect: string => void,
+  onSelect: (color: string) => void,
   value?: string,
 };
 
@@ -119,7 +119,7 @@ type Props = {
 }
 
 type SwatchProps = {
-  onClick?: Function,
+  onClick?: () => void,
   color?: string,
   active?: boolean,
 };
