@@ -11,14 +11,17 @@ import { Collection } from '../models';
 const router = new Router();
 
 router.post('collections.create', auth(), async ctx => {
-  const { name, description, type } = ctx.body;
+  const { name, color, description, type } = ctx.body;
   ctx.assertPresent(name, 'name is required');
+  if (color)
+    ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
 
   const user = ctx.state.user;
 
   const collection = await Collection.create({
     name,
     description,
+    color,
     type: type || 'atlas',
     teamId: user.teamId,
     creatorId: user.id,
@@ -30,11 +33,14 @@ router.post('collections.create', auth(), async ctx => {
 });
 
 router.post('collections.update', auth(), async ctx => {
-  const { id, name } = ctx.body;
+  const { id, name, color } = ctx.body;
   ctx.assertPresent(name, 'name is required');
+  if (color)
+    ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
 
   const collection = await Collection.findById(id);
   collection.name = name;
+  collection.color = color;
   await collection.save();
 
   ctx.body = {

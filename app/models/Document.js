@@ -5,7 +5,7 @@ import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
-import parseTitle from '../../shared/parseTitle';
+import parseTitle from '../../shared/utils/parseTitle';
 
 import type { User } from 'types';
 import BaseModel from './BaseModel';

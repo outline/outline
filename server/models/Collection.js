@@ -22,6 +22,7 @@ const Collection = sequelize.define(
     urlId: { type: DataTypes.STRING, unique: true },
     name: DataTypes.STRING,
     description: DataTypes.STRING,
+    color: DataTypes.STRING,
     type: {
       type: DataTypes.STRING,
       validate: { isIn: allowedCollectionTypes },

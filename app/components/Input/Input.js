@@ -32,7 +32,7 @@ const Wrapper = styled.div`
 
 `;
 
-const Outline = styled(Flex)`
+export const Outline = styled(Flex)`
   display: flex;
   flex: 1;
   margin: 0 0 ${size.large};
@@ -48,7 +48,7 @@ const Outline = styled(Flex)`
   }
 `;
 
-const LabelText = styled.div`
+export const LabelText = styled.div`
   font-weight: 500;
   padding-bottom: 4px;
 `;

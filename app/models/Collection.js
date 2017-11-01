@@ -19,6 +19,7 @@ class Collection extends BaseModel {
   description: ?string;
   id: string;
   name: string;
+  color: string;
   type: 'atlas' | 'journal';
   documents: Array<NavigationNode>;
   updatedAt: string;
@@ -57,19 +58,21 @@ class Collection extends BaseModel {
     if (this.isSaving) return this;
     this.isSaving = true;
 
+    const params = {
+      name: this.name,
+      color: this.color,
+      description: this.description,
+    };
+
     try {
       let res;
       if (this.id) {
         res = await client.post('/collections.update', {
           id: this.id,
-          name: this.name,
-          description: this.description,
+          ...params,
         });
       } else {
-        res = await client.post('/collections.create', {
-          name: this.name,
-          description: this.description,
-        });
+        res = await client.post('/collections.create', params);
       }
       runInAction('Collection#save', () => {
         invariant(res && res.data, 'Data should be available');
