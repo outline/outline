@@ -1,3 +1,3 @@
 // @flow
-import MarkdownSerializer from 'slate-markdown-serializer';
+import MarkdownSerializer from 'slate-md-serializer';
 export default new MarkdownSerializer();
