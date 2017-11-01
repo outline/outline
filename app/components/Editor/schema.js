@@ -16,6 +16,7 @@ import {
   Heading6,
 } from './components/Heading';
 import Paragraph from './components/Paragraph';
+import BlockToolbar from './components/BlockToolbar';
 import type { Props, Node, Transform } from './types';
 
 const createSchema = () => {
@@ -30,6 +31,7 @@ const createSchema = () => {
     },
 
     nodes: {
+      'block-toolbar': (props: Props) => <BlockToolbar {...props} />,
       paragraph: (props: Props) => <Paragraph {...props} />,
       'block-quote': (props: Props) => (
         <blockquote>{props.children}</blockquote>

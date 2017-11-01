@@ -8,7 +8,6 @@ import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import PlusIcon from 'components/Icon/PlusIcon';
-import BlockMenu from 'menus/BlockMenu';
 import type { State } from '../types';
 
 const { transforms } = EditList;
@@ -144,26 +143,9 @@ export default class BlockInsert extends Component {
     return (
       <Portal isOpened>
         <Trigger active={this.active} style={style}>
-          <HiddenInput
-            type="file"
-            innerRef={ref => (this.file = ref)}
-            onChange={this.onChooseImage}
-            accept="image/*"
-          />
-          <BlockMenu
-            label={<PlusIcon />}
-            onPickImage={this.onPickImage}
-            onInsertList={ev =>
-              this.insertBlock(ev, {
-                type: 'list-item',
-                wrapper: 'bulleted-list',
-              })}
-            onInsertTodoList={ev =>
-              this.insertBlock(ev, { type: todo, wrapper: 'todo-list' })}
-            onInsertBreak={ev =>
-              this.insertBlock(ev, { type: rule, append: 'paragraph' })}
-            onOpen={this.handleMenuOpen}
-            onClose={this.handleMenuClose}
+          <PlusIcon
+            onClick={ev =>
+              this.insertBlock(ev, { type: 'block-toolbar', isVoid: true })}
           />
         </Trigger>
       </Portal>
