@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import type { Location } from 'react-router-dom';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
 import { color, fontWeight } from 'shared/styles/constants';
@@ -20,6 +21,7 @@ import { type NavigationNode } from 'types';
 
 type Props = {
   history: Object,
+  location: Location,
   collections: CollectionsStore,
   documents: DocumentsStore,
   activeDocument: ?Document,

@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import { withRouter } from 'react-router-dom';
+import type { Location } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
@@ -30,6 +31,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 
 type Props = {
   history: Object,
+  location: Location,
   collections: CollectionsStore,
   documents: DocumentsStore,
   children?: ?React.Element<any>,
@@ -139,6 +141,7 @@ type Props = {
                   <LinkSection>
                     <SidebarCollections
                       history={this.props.history}
+                      location={this.props.location}
                       activeDocument={documents.active}
                       onCreateCollection={this.handleCreateCollection}
                       activeDocumentRef={this.scrollToActiveDocument}
