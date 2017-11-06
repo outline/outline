@@ -16,10 +16,15 @@ import {
   Heading6,
 } from './components/Heading';
 import Paragraph from './components/Paragraph';
-import BlockToolbar from './components/BlockToolbar';
+import BlockToolbar from './components/Toolbar/BlockToolbar';
 import type { Props, Node, Transform } from './types';
 
-const createSchema = () => {
+type Options = {
+  onInsertImage: Function,
+  onChange: Function,
+};
+
+const createSchema = ({ onInsertImage, onChange }: Options) => {
   return {
     marks: {
       bold: (props: Props) => <strong>{props.children}</strong>,
@@ -31,7 +36,13 @@ const createSchema = () => {
     },
 
     nodes: {
-      'block-toolbar': (props: Props) => <BlockToolbar {...props} />,
+      'block-toolbar': (props: Props) => (
+        <BlockToolbar
+          onChange={onChange}
+          onInsertImage={onInsertImage}
+          {...props}
+        />
+      ),
       paragraph: (props: Props) => <Paragraph {...props} />,
       'block-quote': (props: Props) => (
         <blockquote>{props.children}</blockquote>

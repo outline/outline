@@ -1,6 +1,5 @@
 // @flow
 import React, { Component } from 'react';
-import EditList from '../plugins/EditList';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Portal from 'react-portal';
 import { observable } from 'mobx';
@@ -9,8 +8,7 @@ import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import PlusIcon from 'components/Icon/PlusIcon';
 import type { State } from '../types';
-
-const { transforms } = EditList;
+import { splitAndInsertBlock } from '../transforms';
 
 type Props = {
   state: State,
@@ -22,7 +20,6 @@ type Props = {
 export default class BlockInsert extends Component {
   props: Props;
   mouseMoveTimeout: number;
-  file: HTMLInputElement;
 
   @observable active: boolean = false;
   @observable menuOpen: boolean = false;
@@ -89,76 +86,27 @@ export default class BlockInsert extends Component {
     this.left = Math.round(boxRect.left + window.scrollX - 20);
   };
 
-  insertBlock = (
-    ev: SyntheticEvent,
-    options: {
-      type: string | Object,
-      wrapper?: string | Object,
-      append?: string | Object,
-    }
-  ) => {
-    ev.preventDefault();
-    const { type, wrapper, append } = options;
-    let { state } = this.props;
-    let transform = state.transform();
-    const { document } = state;
-    const parent = document.getParent(state.startBlock.key);
-
-    // lists get some special treatment
-    if (parent && parent.type === 'list-item') {
-      transform = transforms.unwrapList(
-        transforms
-          .splitListItem(transform.collapseToStart())
-          .collapseToEndOfPreviousBlock()
-      );
-    }
-
-    transform = transform.insertBlock(type);
-
-    if (wrapper) transform = transform.wrapBlock(wrapper);
-    if (append) transform = transform.insertBlock(append);
-
-    state = transform.focus().apply();
+  handleClick = () => {
+    const transform = splitAndInsertBlock(this.props.state, {
+      type: { type: 'block-toolbar', isVoid: true },
+    });
+    const state = transform.apply();
     this.props.onChange(state);
     this.active = false;
   };
 
-  onPickImage = (ev: SyntheticEvent) => {
-    // simulate a click on the file upload input element
-    this.file.click();
-  };
-
-  onChooseImage = async (ev: SyntheticEvent) => {
-    const files = getDataTransferFiles(ev);
-    for (const file of files) {
-      await this.props.onInsertImage(file);
-    }
-  };
-
   render() {
     const style = { top: `${this.top}px`, left: `${this.left}px` };
-    const todo = { type: 'list-item', data: { checked: false } };
-    const rule = { type: 'horizontal-rule', isVoid: true };
 
     return (
       <Portal isOpened>
         <Trigger active={this.active} style={style}>
-          <PlusIcon
-            onClick={ev =>
-              this.insertBlock(ev, { type: 'block-toolbar', isVoid: true })}
-          />
+          <PlusIcon onClick={this.handleClick} />
         </Trigger>
       </Portal>
     );
   }
 }
-
-const HiddenInput = styled.input`
-  position: absolute;
-  top: -100px;
-  left: -100px;
-  visibility: hidden;
-`;
 
 const Trigger = styled.div`
   position: absolute;
@@ -167,9 +115,15 @@ const Trigger = styled.div`
   background-color: ${color.white};
   transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
   line-height: 0;
-  margin-top: -2px;
-  margin-left: -4px;
+  margin-top: -3px;
+  margin-left: -10px;
+  box-shadow: inset 0 0 0 2px ${color.slateDark};
+  border-radius: 100%;
   transform: scale(.9);
+
+  &:hover {
+    background-color: ${color.smokeDark};
+  }
 
   ${({ active }) => active && `
     transform: scale(1);

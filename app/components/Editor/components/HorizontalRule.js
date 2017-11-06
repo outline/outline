@@ -11,6 +11,7 @@ function HorizontalRule(props: Props) {
 }
 
 const StyledHr = styled.hr`
+  border: 0;
   border-bottom: 1px solid ${props => (props.active ? color.slate : color.slateLight)};
 `;
 
