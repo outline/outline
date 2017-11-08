@@ -138,7 +138,7 @@ class InlineForm extends React.Component {
             onChange={onChange}
             validationError={validationError}
           />
-          <Button type="submit" value={buttonLabel} size="small" />
+          <Button type="submit" value={buttonLabel} />
         </Flex>
       </form>
     );
