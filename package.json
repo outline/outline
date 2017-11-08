@@ -4,11 +4,14 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build:webpack": "NODE_ENV=production webpack --config webpack.config.prod.js",
-    "build:analyze": "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
+    "build:webpack":
+      "NODE_ENV=production webpack --config webpack.config.prod.js",
+    "build:analyze":
+      "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "node index.js",
-    "dev": "NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --inspect --watch server index.js",
+    "dev":
+      "NODE_ENV=development DEBUG=sql,cache,presenters ./node_modules/.bin/nodemon --inspect --watch server index.js",
     "lint": "npm run lint:flow && npm run lint:js",
     "lint:js": "eslint app",
     "lint:flow": "flow",
@@ -18,39 +21,24 @@
     "sequelize:migrate": "sequelize db:migrate",
     "test": "npm run test:app && npm run test:server",
     "test:app": "jest",
-    "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
+    "test:server":
+      "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "git add"
-    ]
+    "*.js": ["eslint --fix", "git add"]
   },
   "jest": {
     "verbose": false,
-    "roots": [
-      "app"
-    ],
+    "roots": ["app"],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },
-    "moduleFileExtensions": [
-      "js",
-      "jsx",
-      "json"
-    ],
-    "moduleDirectories": [
-      "node_modules"
-    ],
-    "modulePaths": [
-      "app"
-    ],
-    "setupFiles": [
-      "<rootDir>/setupJest.js",
-      "<rootDir>/__mocks__/window.js"
-    ]
+    "moduleFileExtensions": ["js", "jsx", "json"],
+    "moduleDirectories": ["node_modules"],
+    "modulePaths": ["app"],
+    "setupFiles": ["<rootDir>/setupJest.js", "<rootDir>/__mocks__/window.js"]
   },
   "engines": {
     "node": ">= 7.6"
@@ -145,6 +133,7 @@
     "react-dropzone": "3.6.0",
     "react-helmet": "^5.2.0",
     "react-keydown": "^1.7.3",
+    "react-medium-image-zoom": "^2.0.3",
     "react-modal": "^2.2.1",
     "react-portal": "^3.1.0",
     "react-router-dom": "^4.1.1",
