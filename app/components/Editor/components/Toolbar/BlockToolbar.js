@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import keydown from 'react-keydown';
 import styled from 'styled-components';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Heading1Icon from 'components/Icon/Heading1Icon';
@@ -38,7 +39,6 @@ class BlockToolbar extends Component {
     const becameInactive = !isActive && wasActive;
 
     if (becameInactive) {
-      console.log('becameInactive');
       const state = nextProps.state
         .transform()
         .removeNodeByKey(nextProps.node.key)
@@ -47,10 +47,23 @@ class BlockToolbar extends Component {
     }
   }
 
-  insertBlock = (options: Options) => {
-    let transform = splitAndInsertBlock(this.props.state, options);
+  @keydown('esc')
+  removeSelf(ev: SyntheticEvent) {
+    ev.preventDefault();
+    ev.stopPropagation();
 
-    this.props.state.document.nodes.forEach(node => {
+    const state = this.props.state
+      .transform()
+      .removeNodeByKey(this.props.node.key)
+      .apply();
+    this.props.onChange(state);
+  }
+
+  insertBlock = (options: Options) => {
+    const { state } = this.props;
+    let transform = splitAndInsertBlock(state.transform(), state, options);
+
+    state.document.nodes.forEach(node => {
       if (node.type === 'block-toolbar') {
         transform.removeNodeByKey(node.key);
       }
@@ -61,7 +74,6 @@ class BlockToolbar extends Component {
 
   handleClickBlock = (ev: SyntheticEvent, type: string) => {
     ev.preventDefault();
-    ev.stopPropagation();
 
     switch (type) {
       case 'heading1':
@@ -114,11 +126,11 @@ class BlockToolbar extends Component {
   };
 
   render() {
-    const { state, node } = this.props;
+    const { state, attributes, node } = this.props;
     const active = state.isFocused && state.selection.hasEdgeIn(node);
 
     return (
-      <Bar active={active}>
+      <Bar active={active} {...attributes}>
         <HiddenInput
           type="file"
           innerRef={ref => (this.file = ref)}

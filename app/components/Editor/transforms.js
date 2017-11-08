@@ -1,6 +1,6 @@
 // @flow
 import EditList from './plugins/EditList';
-import type { State } from './types';
+import type { State, Transform } from './types';
 
 const { transforms } = EditList;
 
@@ -10,9 +10,12 @@ type Options = {
   append?: string | Object,
 };
 
-export function splitAndInsertBlock(state: State, options: Options) {
+export function splitAndInsertBlock(
+  transform: Transform,
+  state: State,
+  options: Options
+) {
   const { type, wrapper, append } = options;
-  let transform = state.transform();
   const { document } = state;
   const parent = document.getParent(state.startBlock.key);
 

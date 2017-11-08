@@ -45,16 +45,30 @@ const createSchema = ({ onInsertImage, onChange }: Options) => {
       ),
       paragraph: (props: Props) => <Paragraph {...props} />,
       'block-quote': (props: Props) => (
-        <blockquote>{props.children}</blockquote>
+        <blockquote {...props.attributes}>{props.children}</blockquote>
       ),
       'horizontal-rule': HorizontalRule,
-      'bulleted-list': (props: Props) => <ul>{props.children}</ul>,
-      'ordered-list': (props: Props) => <ol>{props.children}</ol>,
-      'todo-list': (props: Props) => <TodoList>{props.children}</TodoList>,
-      table: (props: Props) => <table>{props.children}</table>,
-      'table-row': (props: Props) => <tr>{props.children}</tr>,
-      'table-head': (props: Props) => <th>{props.children}</th>,
-      'table-cell': (props: Props) => <td>{props.children}</td>,
+      'bulleted-list': (props: Props) => (
+        <ul {...props.attributes}>{props.children}</ul>
+      ),
+      'ordered-list': (props: Props) => (
+        <ol {...props.attributes}>{props.children}</ol>
+      ),
+      'todo-list': (props: Props) => (
+        <TodoList {...props.attributes}>{props.children}</TodoList>
+      ),
+      table: (props: Props) => (
+        <table {...props.attributes}>{props.children}</table>
+      ),
+      'table-row': (props: Props) => (
+        <tr {...props.attributes}>{props.children}</tr>
+      ),
+      'table-head': (props: Props) => (
+        <th {...props.attributes}>{props.children}</th>
+      ),
+      'table-cell': (props: Props) => (
+        <td {...props.attributes}>{props.children}</td>
+      ),
       code: Code,
       image: Image,
       link: Link,
