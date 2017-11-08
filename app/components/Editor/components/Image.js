@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import ImageZoom from 'react-medium-image-zoom';
 import styled from 'styled-components';
 import type { Props } from '../types';
 import { color } from 'shared/styles/constants';
@@ -34,13 +35,25 @@ class Image extends Component {
 
     return (
       <CenteredImage>
-        <StyledImg
-          {...attributes}
-          src={src}
-          alt={caption}
-          active={active}
-          loading={loading}
-        />
+        {!readOnly
+          ? <StyledImg
+              {...attributes}
+              src={src}
+              alt={caption}
+              active={active}
+              loading={loading}
+            />
+          : <ImageZoom
+              image={{
+                src,
+                alt: caption,
+                style: {
+                  maxWidth: '100%',
+                },
+                ...attributes,
+              }}
+              shouldRespectMaxDimension
+            />}
         {showCaption &&
           <Caption
             type="text"
@@ -58,6 +71,7 @@ class Image extends Component {
 }
 
 const StyledImg = styled.img`
+  max-width: 100%;
   box-shadow: ${props => (props.active ? `0 0 0 2px ${color.slate}` : '0')};
   border-radius: ${props => (props.active ? `2px` : '0')};
   opacity: ${props => (props.loading ? 0.5 : 1)};
