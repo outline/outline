@@ -12,12 +12,12 @@ type Props = {
 
 const Labeled = ({ label, children, ...props }: Props) => (
   <Flex column {...props}>
-    <Header>{label}</Header>
+    <Label>{label}</Label>
     {children}
   </Flex>
 );
 
-const Header = styled(Flex)`
+export const Label = styled(Flex)`
   margin-bottom: ${size.medium};  
   font-size: 13px;
   font-weight: 500;

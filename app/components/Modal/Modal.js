@@ -16,6 +16,10 @@ type Props = {
 };
 
 injectGlobal`
+  .ReactModal__Overlay {
+    z-index: 100;
+  }
+
   .ReactModal__Body--open {
     overflow: hidden;
   }
