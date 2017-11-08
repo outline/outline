@@ -11,6 +11,7 @@ import Flex from 'shared/components/Flex';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
+import { Label } from 'components/Labeled';
 import SlackAuthLink from 'components/SlackAuthLink';
 
 @observer class Settings extends React.Component {
@@ -28,10 +29,10 @@ import SlackAuthLink from 'components/SlackAuthLink';
       <Flex column>
         {showSlackSettings &&
           <Section>
-            <h2>Slack</h2>
+            <SectionLabel>Slack</SectionLabel>
             <HelpText>
               Connect Atlas to your Slack to instantly search for your documents
-              using <code>/atlas</code> command.
+              using <Code>/atlas</Code> command.
             </HelpText>
 
             <SlackAuthLink
@@ -49,7 +50,7 @@ import SlackAuthLink from 'components/SlackAuthLink';
           </Section>}
 
         <Section>
-          <h2>API access</h2>
+          <SectionLabel>API Access</SectionLabel>
           <HelpText>
             Create API tokens to hack on your Atlas.
             Learn more in <Link to="/developers">API documentation</Link>.
@@ -130,14 +131,14 @@ class InlineForm extends React.Component {
     return (
       <form onSubmit={this.handleSubmit}>
         <Flex auto>
-          <Input
+          <ApiKeyInput
             type="text"
             placeholder={validationError ? 'Please add a label' : placeholder}
             value={value || ''}
             onChange={onChange}
             validationError={validationError}
           />
-          <Button type="submit" value={buttonLabel} />
+          <Button type="submit" value={buttonLabel} size="small" />
         </Flex>
       </form>
     );
@@ -156,6 +157,24 @@ const Table = styled.table`
     margin-right: 20px;
     color: ${color.slate};
   }
+`;
+
+const SectionLabel = styled(Label)`
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #EAEBEA;
+`;
+
+const Code = styled.code`
+  padding: 4px 6px;
+  margin: 0 2px;
+  background: #EAEBEA;
+  border-radius: 4px;
+`;
+
+const ApiKeyInput = styled(Input)`
+  width: 100%;
+  margin-right: 12px;
 `;
 
 export default Settings;

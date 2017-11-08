@@ -1,3 +1,4 @@
 // @flow
-import Labeled from './Labeled';
+import Labeled, { Label } from './Labeled';
 export default Labeled;
+export { Label };

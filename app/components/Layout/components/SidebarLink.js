@@ -10,7 +10,7 @@ import CollapsedIcon from 'components/Icon/CollapsedIcon';
 
 const activeStyle = {
   color: color.black,
-  fontWeight: fontWeight.semiBold,
+  fontWeight: fontWeight.medium,
 };
 
 const StyledGoTo = styled(CollapsedIcon)`

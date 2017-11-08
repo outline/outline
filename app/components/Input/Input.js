@@ -60,11 +60,11 @@ export type Props = {
   className?: string,
 };
 
-export default function Input({ type, label, ...rest }: Props) {
+export default function Input({ type, label, className, ...rest }: Props) {
   const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
 
   return (
-    <Wrapper>
+    <Wrapper className={className}>
       <label>
         {label && <LabelText>{label}</LabelText>}
         <Outline>
