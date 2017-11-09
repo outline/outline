@@ -15,7 +15,7 @@ export default function Layout({ children }: Props) {
     <html lang="en">
       <head>
         <Helmet>
-          <title>Atlas</title>
+          <title>Outline</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
         </Helmet>
 

@@ -102,7 +102,7 @@ type Props = {
     return (
       <Container column auto>
         <Helmet>
-          <title>Atlas</title>
+          <title>Outline</title>
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0"
