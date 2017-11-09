@@ -1,12 +1,12 @@
-# Atlas
+# Outline
 
 ![](https://circleci.com/gh/jorilallo/atlas.svg?style=shield&circle-token=c0c4c2f39990e277385d5c1ae96169c409eb887a)
 
-Atlas is a modern wiki for your team built using React and Node.js. [https://www.beautifulatlas.com/](https://www.beautifulatlas.com/)
+Outline is a modern wiki for your team built using React and Node.js. [https://www.getoutline.com/](https://www.getoutline.com/)
 
 ## Installation
 
-Atlas requires following dependencies to work:
+Outline requires following dependencies to work:
 
 - Postgres >=9.5
 - Redis
@@ -40,4 +40,4 @@ yarn sequelize db:migrate --env test
 
 ## License
 
-Atlas is [BSD licensed](/blob/master/LICENSE).
+Outline is [BSD licensed](/blob/master/LICENSE).
