@@ -42,7 +42,12 @@ export type StateTransform = {
   wrapText: Function,
 };
 
-export type Transform = NodeTransform & StateTransform;
+export type SelectionTransform = {
+  collapseToStart: Function,
+  collapseToEnd: Function,
+};
+
+export type Transform = NodeTransform & StateTransform & SelectionTransform;
 
 export type Editor = {
   props: Object,
