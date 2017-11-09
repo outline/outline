@@ -2,7 +2,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import Navigation from './Navigation';
-import Analytics from './Analytics';
+import Analytics from '../../../shared/components/Analytics';
 import globalStyles from '../../../shared/styles/globals';
 
 type Props = {
