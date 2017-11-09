@@ -6,7 +6,7 @@ import { color } from '../../../shared/styles/constants';
 function Navigation() {
   return (
     <Nav>
-      <Brand href="/">Atlas</Brand>
+      <Brand href="/">Outline</Brand>
       <Menu>
         <MenuItem><a href="/auth/slack">Sign In</a></MenuItem>
       </Menu>

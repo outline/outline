@@ -1,5 +1,5 @@
 {
-  "name": "Atlas",
+  "name": "Outline",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -45,7 +45,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jorilallo/atlas.git"
+    "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "dependencies": {
     "@tommoor/slate-drop-or-paste-images": "0.5.1",

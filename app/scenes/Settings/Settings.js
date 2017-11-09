@@ -31,8 +31,8 @@ import SlackAuthLink from 'components/SlackAuthLink';
           <Section>
             <SectionLabel>Slack</SectionLabel>
             <HelpText>
-              Connect Atlas to your Slack to instantly search for your documents
-              using <Code>/atlas</Code> command.
+              Connect Outline to your Slack to instantly search for your documents
+              using <Code>/outline</Code> command.
             </HelpText>
 
             <SlackAuthLink
@@ -52,7 +52,7 @@ import SlackAuthLink from 'components/SlackAuthLink';
         <Section>
           <SectionLabel>API Access</SectionLabel>
           <HelpText>
-            Create API tokens to hack on your Atlas.
+            Create API tokens to hack on your Outline.
             Learn more in <Link to="/developers">API documentation</Link>.
           </HelpText>
 

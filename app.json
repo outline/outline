@@ -1,5 +1,5 @@
 {
-  "name": "atlas",
+  "name": "outline",
   "scripts": {
     "postdeploy": "yarn build && yarn sequelize:migrate"
   },

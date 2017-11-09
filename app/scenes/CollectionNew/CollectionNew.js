@@ -56,7 +56,7 @@ type Props = {
     return (
       <form onSubmit={this.handleSubmit}>
         <HelpText>
-          Collections are for grouping your Atlas. They work best when organized
+          Collections are for grouping your Outline. They work best when organized
           around a topic or internal team — Product or Engineering for example.
         </HelpText>
         <Input

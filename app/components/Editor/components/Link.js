@@ -14,13 +14,13 @@ function getPathFromUrl(href: string) {
   }
 }
 
-function isAtlasUrl(href: string) {
+function isOutlineUrl(href: string) {
   if (href[0] === '/') return true;
 
   try {
-    const atlas = new URL(BASE_URL);
+    const outline = new URL(BASE_URL);
     const parsed = new URL(href);
-    return parsed.hostname === atlas.hostname;
+    return parsed.hostname === outline.hostname;
   } catch (err) {
     return false;
   }
@@ -30,7 +30,7 @@ export default function Link({ attributes, node, children, readOnly }: Props) {
   const href = node.data.get('href');
   const path = getPathFromUrl(href);
 
-  if (isAtlasUrl(href) && readOnly) {
+  if (isOutlineUrl(href) && readOnly) {
     return <InternalLink {...attributes} to={path}>{children}</InternalLink>;
   } else {
     return <a {...attributes} href={href} target="_blank">{children}</a>;

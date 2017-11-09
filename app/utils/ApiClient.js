@@ -13,7 +13,7 @@ class ApiClient {
 
   constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || '/api';
-    this.userAgent = 'AtlasFrontend';
+    this.userAgent = 'OutlineFrontend';
   }
 
   fetch = (

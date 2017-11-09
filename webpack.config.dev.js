@@ -24,7 +24,7 @@ developmentWebpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
 developmentWebpackConfig.plugins.push(new webpack.NoErrorsPlugin());
 developmentWebpackConfig.plugins.push(
   new HtmlWebpackPlugin({
-    title: 'Atlas',
+    title: 'Outline',
   })
 );
 

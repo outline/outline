@@ -9,7 +9,7 @@ function KeyboardShortcuts() {
   return (
     <Flex column>
       <HelpText>
-        Atlas is designed to be super fast and easy to use.
+        Outline is designed to be super fast and easy to use.
         All of your usual keyboard shortcuts work here, and there
         {"'"}
         s Markdown too.

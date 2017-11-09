@@ -1,15 +1,15 @@
-# Atlas API
+# Outline API
 
 _Our API is currently in beta and we might make minor adjustments._
 
 ## Making requests
 
-Atlas' API follows JSON RPC style conventions where each API endpoint is a method on `https://www.beautifulatlas.com/api/<METHOD>`. Each request needs to be made using HTTPS and both `GET` and `POST` (recommended) methods are supported.
+Outline's API follows JSON RPC style conventions where each API endpoint is a method on `https://www.getoutline.com/api/<METHOD>`. Each request needs to be made using HTTPS and both `GET` and `POST` (recommended) methods are supported.
 
 For `GET` requests query string parameters are expected (e.g. `/api/document.info?id=...&token=...`). When making `POST` requests, request parameters are parsed depending on `Content-Type` header. To make a call using JSON payload, one must pass `Content-Type: application/json` header:
 
 ```shell
-curl 'https://www.beautifulatlas.com/api/documents.info?id=atlas-api-NTpezNwhUP'\
+curl 'https://www.getoutline.com/api/documents.info?id=outline-api-NTpezNwhUP'\
   -H 'authorization: Bearer <API KEY>'\
   -H 'content-type: application/json'\
   -H 'accept: application/json'
@@ -17,9 +17,9 @@ curl 'https://www.beautifulatlas.com/api/documents.info?id=atlas-api-NTpezNwhUP'
 
 ## Authentication
 
-To access private API endpoints, you must provide a valid API key. You can create new API keys in your [account settings](https://www.beautifulatlas.com/settings). Be careful when handling your keys as they give access to all of your documents.
+To access private API endpoints, you must provide a valid API key. You can create new API keys in your [account settings](https://www.getoutline.com/settings). Be careful when handling your keys as they give access to all of your documents.
 
-To authenticate with Atlas API, you can supply the API key as a header (`Authorization: Bearer <API KEY>`) or as part of the payload using `token` parameter.
+To authenticate with Outline API, you can supply the API key as a header (`Authorization: Bearer <API KEY>`) or as part of the payload using `token` parameter.
 
 Some API endpoints allow unauhenticated requests for public resources and they can be called without an API key.
 
@@ -42,7 +42,7 @@ This method returns the information for currently logged in user.
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/user.info`
+`https://www.getoutline.com/api/user.info`
 
 Parameter | Description
 ------------ | -------------
@@ -52,11 +52,11 @@ Parameter | Description
 
 ### `user.s3Upload` - Gets S3 upload credentials
 
-You can upload small files and images as part of your documents. All files are stored using Amazon S3. Instead of uploading files to Atlas, you need to upload them directly to S3 with special credentials which can be obtained through this endpoint.
+You can upload small files and images as part of your documents. All files are stored using Amazon S3. Instead of uploading files to Outline, you need to upload them directly to S3 with special credentials which can be obtained through this endpoint.
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/user.s3Upload`
+`https://www.getoutline.com/api/user.s3Upload`
 
 Parameter | Description
 ------------ | -------------
@@ -73,7 +73,7 @@ List all your document collections.
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/collections.list`
+`https://www.getoutline.com/api/collections.list`
 
 Parameter | Description
 ------------ | -------------
@@ -89,7 +89,7 @@ Returns detailed information on a document collection.
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/collections.info`
+`https://www.getoutline.com/api/collections.info`
 
 Parameter | Description
 ------------ | -------------
@@ -100,14 +100,14 @@ Parameter | Description
 
 ### `collections.create` - Create a document collection
 
-Creates a new document collection. Atlas supports two types of collections:
+Creates a new document collection. Outline supports two types of collections:
 
 - `atlas` - Structured collection with a navigation tree
 - `journal` - Chronological collection of documents
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/collections.create`
+`https://www.getoutline.com/api/collections.create`
 
 Parameter | Description
 ------------ | -------------
@@ -124,7 +124,7 @@ Collection navigation can be re-organized by sending a modified version of the n
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/collections.updateNavigationTree`
+`https://www.getoutline.com/api/collections.updateNavigationTree`
 
 Parameter | Description
 ------------ | -------------
@@ -139,11 +139,11 @@ Parameter | Description
 This method returns information for a document with a specific ID. Following identifiers are allowed:
 
 - UUID - `id` field of the document
-- URI identifier - Human readable identifier used in Atlas URLs (e.g. `atlas-api-i48ZEZc5zjXndcP`)
+- URI identifier - Human readable identifier used in Outline URLs (e.g. `outline-api-i48ZEZc5zjXndcP`)
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/documents.info`
+`https://www.getoutline.com/api/documents.info`
 
 Parameter | Description
 ------------ | -------------
@@ -158,7 +158,7 @@ This methods allows you to search all of your documents with keywords.
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/documents.search`
+`https://www.getoutline.com/api/documents.search`
 
 Parameter | Description
 ------------ | -------------
@@ -173,7 +173,7 @@ This method allows you to publish a new document under an existing collection. I
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/documents.create`
+`https://www.getoutline.com/api/documents.create`
 
 Parameter | Description
 ------------ | -------------
@@ -191,7 +191,7 @@ Delete a document and all of its child documents if any.
 
 #### Arguments
 
-`https://www.beautifulatlas.com/api/documents.delete`
+`https://www.getoutline.com/api/documents.delete`
 
 Parameter | Description
 ------------ | -------------

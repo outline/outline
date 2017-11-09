@@ -11,7 +11,7 @@ export default function About() {
         <title>About</title>
       </Helmet>
       <Hero>
-        <h1>About Atlas</h1>
+        <h1>About Outline</h1>
         <p>
           Just a proof of concept for multiple pages.
         </p>
