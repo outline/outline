@@ -2,6 +2,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import Navigation from './Navigation';
+import Analytics from './Analytics';
 import globalStyles from '../../../shared/styles/globals';
 
 type Props = {
@@ -18,6 +19,7 @@ export default function Layout({ children }: Props) {
           <title>Atlas</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
         </Helmet>
+        <Analytics />
 
         {'{{HEAD}}'}
         {'{{CSS}}'}
