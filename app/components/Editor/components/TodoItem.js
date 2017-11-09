@@ -20,10 +20,10 @@ export default class TodoItem extends Component {
   };
 
   render() {
-    const { children, checked, readOnly } = this.props;
+    const { children, checked, attributes, readOnly } = this.props;
 
     return (
-      <ListItem checked={checked}>
+      <ListItem checked={checked} {...attributes}>
         <Input
           type="checkbox"
           checked={checked}

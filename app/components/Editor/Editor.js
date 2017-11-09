@@ -44,7 +44,10 @@ type KeyData = {
   constructor(props: Props) {
     super(props);
 
-    this.schema = createSchema();
+    this.schema = createSchema({
+      onInsertImage: this.insertImageFile,
+      onChange: this.onChange,
+    });
     this.plugins = createPlugins({
       onImageUploadStart: props.onImageUploadStart,
       onImageUploadStop: props.onImageUploadStop,

@@ -1,17 +1,13 @@
 // @flow
 import React, { Component } from 'react';
-import EditList from '../plugins/EditList';
-import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Portal from 'react-portal';
+import { findDOMNode, Node } from 'slate';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import PlusIcon from 'components/Icon/PlusIcon';
-import BlockMenu from 'menus/BlockMenu';
 import type { State } from '../types';
-
-const { transforms } = EditList;
 
 type Props = {
   state: State,
@@ -19,25 +15,32 @@ type Props = {
   onInsertImage: File => Promise<*>,
 };
 
+function findClosestRootNode(state, ev) {
+  let previous;
+
+  for (const node of state.document.nodes) {
+    const element = findDOMNode(node);
+    const bounds = element.getBoundingClientRect();
+    if (bounds.top > ev.clientY) return previous;
+    previous = { node, element, bounds };
+  }
+}
+
 @observer
 export default class BlockInsert extends Component {
   props: Props;
   mouseMoveTimeout: number;
-  file: HTMLInputElement;
+  mouseMovementSinceClick: number = 0;
+  lastClientX: number = 0;
+  lastClientY: number = 0;
 
+  @observable closestRootNode: Node;
   @observable active: boolean = false;
-  @observable menuOpen: boolean = false;
   @observable top: number;
   @observable left: number;
-  @observable mouseX: number;
 
   componentDidMount = () => {
-    this.update();
     window.addEventListener('mousemove', this.handleMouseMove);
-  };
-
-  componentWillUpdate = (nextProps: Props) => {
-    this.update(nextProps);
   };
 
   componentWillUnmount = () => {
@@ -45,149 +48,95 @@ export default class BlockInsert extends Component {
   };
 
   setInactive = () => {
-    if (this.menuOpen) return;
     this.active = false;
   };
 
   handleMouseMove = (ev: SyntheticMouseEvent) => {
-    const windowWidth = window.innerWidth / 3;
-    let active = ev.clientX < windowWidth;
+    const windowWidth = window.innerWidth / 2.5;
+    const result = findClosestRootNode(this.props.state, ev);
+    const movementThreshold = 200;
 
-    if (active !== this.active) {
-      this.active = active || this.menuOpen;
+    this.mouseMovementSinceClick +=
+      Math.abs(this.lastClientX - ev.clientX) +
+      Math.abs(this.lastClientY - ev.clientY);
+    this.lastClientX = ev.clientX;
+    this.lastClientY = ev.clientY;
+
+    this.active =
+      ev.clientX < windowWidth &&
+      this.mouseMovementSinceClick > movementThreshold;
+
+    if (result) {
+      this.closestRootNode = result.node;
+
+      // do not show block menu on title heading or editor
+      const firstNode = this.props.state.document.nodes.first();
+      if (result.node === firstNode || result.node.type === 'block-toolbar') {
+        this.left = -1000;
+      } else {
+        this.left = Math.round(result.bounds.left - 20);
+        this.top = Math.round(result.bounds.top + window.scrollY);
+      }
     }
-    if (active) {
+
+    if (this.active) {
       clearTimeout(this.mouseMoveTimeout);
       this.mouseMoveTimeout = setTimeout(this.setInactive, 2000);
     }
   };
 
-  handleMenuOpen = () => {
-    this.menuOpen = true;
-  };
-
-  handleMenuClose = () => {
-    this.menuOpen = false;
-  };
-
-  update = (props?: Props) => {
-    if (!document.activeElement) return;
-    const { state } = props || this.props;
-    const boxRect = document.activeElement.getBoundingClientRect();
-    const selection = window.getSelection();
-    if (!selection.focusNode) return;
-
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-
-    if (rect.top <= 0 || boxRect.left <= 0) return;
-
-    if (state.startBlock.type === 'heading1') {
-      this.active = false;
-    }
-
-    this.top = Math.round(rect.top + window.scrollY);
-    this.left = Math.round(boxRect.left + window.scrollX - 20);
-  };
-
-  insertBlock = (
-    ev: SyntheticEvent,
-    options: {
-      type: string | Object,
-      wrapper?: string | Object,
-      append?: string | Object,
-    }
-  ) => {
-    ev.preventDefault();
-    const { type, wrapper, append } = options;
-    let { state } = this.props;
-    let transform = state.transform();
-    const { document } = state;
-    const parent = document.getParent(state.startBlock.key);
-
-    // lists get some special treatment
-    if (parent && parent.type === 'list-item') {
-      transform = transforms.unwrapList(
-        transforms
-          .splitListItem(transform.collapseToStart())
-          .collapseToEndOfPreviousBlock()
-      );
-    }
-
-    transform = transform.insertBlock(type);
-
-    if (wrapper) transform = transform.wrapBlock(wrapper);
-    if (append) transform = transform.insertBlock(append);
-
-    state = transform.focus().apply();
-    this.props.onChange(state);
+  handleClick = (ev: SyntheticMouseEvent) => {
+    this.mouseMovementSinceClick = 0;
     this.active = false;
-  };
 
-  onPickImage = (ev: SyntheticEvent) => {
-    // simulate a click on the file upload input element
-    this.file.click();
-  };
+    const { state } = this.props;
+    const type = { type: 'block-toolbar', isVoid: true };
+    let transform = state.transform();
 
-  onChooseImage = async (ev: SyntheticEvent) => {
-    const files = getDataTransferFiles(ev);
-    for (const file of files) {
-      await this.props.onInsertImage(file);
-    }
+    // remove any existing toolbars in the document as a fail safe
+    state.document.nodes.forEach(node => {
+      if (node.type === 'block-toolbar') {
+        transform.removeNodeByKey(node.key);
+      }
+    });
+
+    transform
+      .collapseToStartOf(this.closestRootNode)
+      .collapseToEndOfPreviousBlock()
+      .insertBlock(type);
+
+    this.props.onChange(transform.apply());
   };
 
   render() {
     const style = { top: `${this.top}px`, left: `${this.left}px` };
-    const todo = { type: 'list-item', data: { checked: false } };
-    const rule = { type: 'horizontal-rule', isVoid: true };
 
     return (
       <Portal isOpened>
         <Trigger active={this.active} style={style}>
-          <HiddenInput
-            type="file"
-            innerRef={ref => (this.file = ref)}
-            onChange={this.onChooseImage}
-            accept="image/*"
-          />
-          <BlockMenu
-            label={<PlusIcon />}
-            onPickImage={this.onPickImage}
-            onInsertList={ev =>
-              this.insertBlock(ev, {
-                type: 'list-item',
-                wrapper: 'bulleted-list',
-              })}
-            onInsertTodoList={ev =>
-              this.insertBlock(ev, { type: todo, wrapper: 'todo-list' })}
-            onInsertBreak={ev =>
-              this.insertBlock(ev, { type: rule, append: 'paragraph' })}
-            onOpen={this.handleMenuOpen}
-            onClose={this.handleMenuClose}
-          />
+          <PlusIcon onClick={this.handleClick} color={color.slate} />
         </Trigger>
       </Portal>
     );
   }
 }
 
-const HiddenInput = styled.input`
-  position: absolute;
-  top: -100px;
-  left: -100px;
-  visibility: hidden;
-`;
-
 const Trigger = styled.div`
   position: absolute;
   z-index: 1;
   opacity: 0;
   background-color: ${color.white};
-  transition: opacity 250ms ease-in-out, transform 250ms ease-in-out;
+  transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   line-height: 0;
-  margin-top: -2px;
-  margin-left: -4px;
+  margin-left: -10px;
+  box-shadow: inset 0 0 0 2px ${color.slate};
+  border-radius: 100%;
   transform: scale(.9);
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${color.smokeDark};
+  }
 
   ${({ active }) => active && `
     transform: scale(1);

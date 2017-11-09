@@ -23,7 +23,7 @@ export default function Link({
     !node.text;
 
   return (
-    <p>
+    <p {...attributes}>
       {children}
       {showPlaceholder &&
         <Placeholder contentEditable={false}>

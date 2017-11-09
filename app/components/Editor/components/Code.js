@@ -9,10 +9,10 @@ export default function Code({ children, node, readOnly, attributes }: Props) {
   const language = node.data.get('language') || 'javascript';
 
   return (
-    <Container>
+    <Container {...attributes}>
       {readOnly && <CopyButton text={node.text} />}
       <Pre className={`language-${language}`}>
-        <code {...attributes} className={`language-${language}`}>
+        <code className={`language-${language}`}>
           {children}
         </code>
       </Pre>

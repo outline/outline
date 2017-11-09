@@ -140,7 +140,7 @@ export default class Toolbar extends Component {
 const Menu = styled.div`
   padding: 8px 16px;
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: -10000px;
   left: -10000px;
   opacity: 0;
