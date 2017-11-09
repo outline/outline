@@ -31,8 +31,8 @@ export default class BlockInsert extends Component {
   props: Props;
   mouseMoveTimeout: number;
   mouseMovementSinceClick: number = 0;
-  mouseClickX: number = 0;
-  mouseClickY: number = 0;
+  lastClientX: number = 0;
+  lastClientY: number = 0;
 
   @observable closestRootNode: Node;
   @observable active: boolean = false;
@@ -40,12 +40,10 @@ export default class BlockInsert extends Component {
   @observable left: number;
 
   componentDidMount = () => {
-    window.addEventListener('mousedown', this.handleWindowClick);
     window.addEventListener('mousemove', this.handleMouseMove);
   };
 
   componentWillUnmount = () => {
-    window.removeEventListener('mousedown', this.handleWindowClick);
     window.removeEventListener('mousemove', this.handleMouseMove);
   };
 
@@ -56,19 +54,24 @@ export default class BlockInsert extends Component {
   handleMouseMove = (ev: SyntheticMouseEvent) => {
     const windowWidth = window.innerWidth / 2.5;
     const result = findClosestRootNode(this.props.state, ev);
-    const movementToReset = 1000;
+    const movementThreshold = 200;
 
-    this.mouseMovementSinceClick += Math.abs(this.mouseClickX - ev.clientX);
+    this.mouseMovementSinceClick +=
+      Math.abs(this.lastClientX - ev.clientX) +
+      Math.abs(this.lastClientY - ev.clientY);
+    this.lastClientX = ev.clientX;
+    this.lastClientY = ev.clientY;
+
     this.active =
       ev.clientX < windowWidth &&
-      this.mouseMovementSinceClick > movementToReset;
+      this.mouseMovementSinceClick > movementThreshold;
 
     if (result) {
       this.closestRootNode = result.node;
 
       // do not show block menu on title heading or editor
-      const { type } = result.node;
-      if (type === 'heading1' || type === 'block-toolbar') {
+      const firstNode = this.props.state.document.nodes.first();
+      if (result.node === firstNode || result.node.type === 'block-toolbar') {
         this.left = -1000;
       } else {
         this.left = Math.round(result.bounds.left - 20);
@@ -82,14 +85,10 @@ export default class BlockInsert extends Component {
     }
   };
 
-  handleWindowClick = (ev: SyntheticMouseEvent) => {
-    this.mouseClickX = ev.clientX;
-    this.mouseClickY = ev.clientY;
+  handleClick = (ev: SyntheticMouseEvent) => {
     this.mouseMovementSinceClick = 0;
     this.active = false;
-  };
 
-  handleClick = () => {
     const { state } = this.props;
     const type = { type: 'block-toolbar', isVoid: true };
     let transform = state.transform();
@@ -101,7 +100,10 @@ export default class BlockInsert extends Component {
       }
     });
 
-    transform.collapseToStartOf(this.closestRootNode).insertBlock(type);
+    transform
+      .collapseToStartOf(this.closestRootNode)
+      .collapseToEndOfPreviousBlock()
+      .insertBlock(type);
 
     this.props.onChange(transform.apply());
   };
