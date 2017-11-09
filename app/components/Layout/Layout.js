@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
+import Analytics from 'shared/components/Analytics';
 import Flex from 'shared/components/Flex';
 import { color, layout } from 'shared/styles/constants';
 import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
@@ -108,6 +109,7 @@ type Props = {
             content="width=device-width, initial-scale=1.0"
           />
         </Helmet>
+        <Analytics />
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
         {this.props.notifications}
