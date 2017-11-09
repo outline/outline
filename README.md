@@ -1,8 +1,9 @@
 # Outline
 
 ![](https://circleci.com/gh/jorilallo/atlas.svg?style=shield&circle-token=c0c4c2f39990e277385d5c1ae96169c409eb887a)
+[![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/outline)
 
-Outline is a modern wiki for your team built using React and Node.js. [https://www.getoutline.com/](https://www.getoutline.com/)
+An open, extensible, knowledge base for your team built using React and Node.js. Try Outline out using our hosted version at [www.getoutline.com](https://www.getoutline.com) or read on to learn about installing on your own infrastructure.
 
 ## Installation
 
