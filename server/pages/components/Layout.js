@@ -25,8 +25,18 @@ export default function Layout({ children }: Props) {
           <meta name="og:site_name" content="Outline" />
           <meta name="og:type" content="website" />
           <meta name="theme-color" content={color.primary} />
-
-          <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+          <link
+            rel="shortcut icon"
+            type="image/png"
+            href="/favicon-16.png"
+            sizes="16x16"
+          />
+          <link
+            rel="shortcut icon"
+            type="image/png"
+            href="/favicon-32.png"
+            sizes="32x32"
+          />
           <link
             rel="dns-prefetch"
             href={process.env.AWS_S3_UPLOAD_BUCKET_URL}
