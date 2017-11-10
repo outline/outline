@@ -31,8 +31,16 @@ export default function Link({ attributes, node, children, readOnly }: Props) {
   const path = getPathFromUrl(href);
 
   if (isOutlineUrl(href) && readOnly) {
-    return <InternalLink {...attributes} to={path}>{children}</InternalLink>;
+    return (
+      <InternalLink {...attributes} to={path}>
+        {children}
+      </InternalLink>
+    );
   } else {
-    return <a {...attributes} href={href} target="_blank">{children}</a>;
+    return (
+      <a {...attributes} href={href} target="_blank">
+        {children}
+      </a>
+    );
   }
 }

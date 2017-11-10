@@ -12,16 +12,14 @@ export default function Code({ children, node, readOnly, attributes }: Props) {
     <Container {...attributes}>
       {readOnly && <CopyButton text={node.text} />}
       <Pre className={`language-${language}`}>
-        <code className={`language-${language}`}>
-          {children}
-        </code>
+        <code className={`language-${language}`}>{children}</code>
       </Pre>
     </Container>
   );
 }
 
 const Pre = styled.pre`
-  padding: .5em 1em;
+  padding: 0.5em 1em;
   background: ${color.smokeLight};
   border-radius: 4px;
   border: 1px solid ${color.smokeDark};

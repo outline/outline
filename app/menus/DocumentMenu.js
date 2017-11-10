@@ -8,7 +8,8 @@ import MoreIcon from 'components/Icon/MoreIcon';
 import { documentMoveUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
-@observer class DocumentMenu extends Component {
+@observer
+class DocumentMenu extends Component {
   props: {
     ui: UiStore,
     label?: React$Element<any>,
@@ -50,11 +51,13 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
     return (
       <DropdownMenu label={label || <MoreIcon />}>
-        {document.starred
-          ? <DropdownMenuItem onClick={this.handleUnstar}>
-              Unstar
-            </DropdownMenuItem>
-          : <DropdownMenuItem onClick={this.handleStar}>Star</DropdownMenuItem>}
+        {document.starred ? (
+          <DropdownMenuItem onClick={this.handleUnstar}>
+            Unstar
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={this.handleStar}>Star</DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onClick={this.handleNewChild}
           title="Create a new child document for the current document"
@@ -65,10 +68,11 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
           Download
         </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
-        {allowDelete &&
+        {allowDelete && (
           <DropdownMenuItem onClick={this.handleDelete}>
             Delete…
-          </DropdownMenuItem>}
+          </DropdownMenuItem>
+        )}
       </DropdownMenu>
     );
   }

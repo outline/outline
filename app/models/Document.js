@@ -43,11 +43,13 @@ class Document extends BaseModel {
 
   /* Computed */
 
-  @computed get modifiedSinceViewed(): boolean {
+  @computed
+  get modifiedSinceViewed(): boolean {
     return !!this.lastViewedAt && this.lastViewedAt < this.updatedAt;
   }
 
-  @computed get pathToDocument(): Array<{ id: string, title: string }> {
+  @computed
+  get pathToDocument(): Array<{ id: string, title: string }> {
     let path;
     const traveler = (nodes, previousPath) => {
       nodes.forEach(childNode => {
@@ -76,16 +78,19 @@ class Document extends BaseModel {
     return [];
   }
 
-  @computed get isEmpty(): boolean {
+  @computed
+  get isEmpty(): boolean {
     // Check if the document title has been modified and user generated content exists
     return this.text.replace(new RegExp(`^#$`), '').trim().length === 0;
   }
 
-  @computed get allowSave(): boolean {
+  @computed
+  get allowSave(): boolean {
     return !this.isEmpty && !this.isSaving;
   }
 
-  @computed get allowDelete(): boolean {
+  @computed
+  get allowDelete(): boolean {
     const collection = this.collection;
     return (
       collection &&
@@ -95,7 +100,8 @@ class Document extends BaseModel {
     );
   }
 
-  @computed get parentDocumentId(): ?string {
+  @computed
+  get parentDocumentId(): ?string {
     return this.pathToDocument.length > 1
       ? this.pathToDocument[this.pathToDocument.length - 2].id
       : null;
@@ -103,7 +109,8 @@ class Document extends BaseModel {
 
   /* Actions */
 
-  @action star = async () => {
+  @action
+  star = async () => {
     this.starred = true;
     try {
       await client.post('/documents.star', { id: this.id });
@@ -113,7 +120,8 @@ class Document extends BaseModel {
     }
   };
 
-  @action unstar = async () => {
+  @action
+  unstar = async () => {
     this.starred = false;
     try {
       await client.post('/documents.unstar', { id: this.id });
@@ -123,7 +131,8 @@ class Document extends BaseModel {
     }
   };
 
-  @action view = async () => {
+  @action
+  view = async () => {
     this.views++;
     try {
       await client.post('/views.create', { id: this.id });
@@ -132,7 +141,8 @@ class Document extends BaseModel {
     }
   };
 
-  @action fetch = async () => {
+  @action
+  fetch = async () => {
     try {
       const res = await client.post('/documents.info', { id: this.id });
       invariant(res && res.data, 'Document API response should be available');
@@ -145,7 +155,8 @@ class Document extends BaseModel {
     }
   };
 
-  @action save = async () => {
+  @action
+  save = async () => {
     if (this.isSaving) return this;
     this.isSaving = true;
 
@@ -196,7 +207,8 @@ class Document extends BaseModel {
     return this;
   };
 
-  @action move = async (parentDocumentId: ?string) => {
+  @action
+  move = async (parentDocumentId: ?string) => {
     try {
       const res = await client.post('/documents.move', {
         id: this.id,
@@ -214,7 +226,8 @@ class Document extends BaseModel {
     return;
   };
 
-  @action delete = async () => {
+  @action
+  delete = async () => {
     try {
       await client.post('/documents.delete', { id: this.id });
       this.emit('documents.delete', {
@@ -232,7 +245,9 @@ class Document extends BaseModel {
     const a = window.document.createElement('a');
     a.textContent = 'download';
     a.download = `${this.title}.md`;
-    a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(this.text)}`;
+    a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(
+      this.text
+    )}`;
     a.click();
   }
 

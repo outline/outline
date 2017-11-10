@@ -36,24 +36,24 @@ class PublishingInfo extends Component {
 
     return (
       <Container align="center">
-        {createdAt === updatedAt
-          ? <span>
-              {createdBy.name}
+        {createdAt === updatedAt ? (
+          <span>
+            {createdBy.name} published {moment(createdAt).fromNow()}
+          </span>
+        ) : (
+          <span>
+            {updatedBy.name}
+            <Modified highlight={modifiedSinceViewed}>
               {' '}
-              published
-              {' '}
-              {moment(createdAt).fromNow()}
-            </span>
-          : <span>
-              {updatedBy.name}
-              <Modified highlight={modifiedSinceViewed}>
-                {' '}
-                modified
-                {' '}
-                {moment(updatedAt).fromNow()}
-              </Modified>
-            </span>}
-        {collection && <span>&nbsp;in <strong>{collection.name}</strong></span>}
+              modified {moment(updatedAt).fromNow()}
+            </Modified>
+          </span>
+        )}
+        {collection && (
+          <span>
+            &nbsp;in <strong>{collection.name}</strong>
+          </span>
+        )}
       </Container>
     );
   }

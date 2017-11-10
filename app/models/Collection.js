@@ -27,19 +27,22 @@ class Collection extends BaseModel {
 
   /* Computed */
 
-  @computed get entryUrl(): string {
+  @computed
+  get entryUrl(): string {
     return this.type === 'atlas' && this.documents.length > 0
       ? this.documents[0].url
       : this.url;
   }
 
-  @computed get allowDelete(): boolean {
+  @computed
+  get allowDelete(): boolean {
     return true;
   }
 
   /* Actions */
 
-  @action fetch = async () => {
+  @action
+  fetch = async () => {
     try {
       const res = await client.post('/collections.info', { id: this.id });
       invariant(res && res.data, 'API response should be available');
@@ -54,7 +57,8 @@ class Collection extends BaseModel {
     return this;
   };
 
-  @action save = async () => {
+  @action
+  save = async () => {
     if (this.isSaving) return this;
     this.isSaving = true;
 
@@ -89,7 +93,8 @@ class Collection extends BaseModel {
     return true;
   };
 
-  @action delete = async () => {
+  @action
+  delete = async () => {
     try {
       await client.post('/collections.delete', { id: this.id });
       this.emit('collections.delete', {
@@ -102,7 +107,8 @@ class Collection extends BaseModel {
     return false;
   };
 
-  @action updateData(data: Object = {}) {
+  @action
+  updateData(data: Object = {}) {
     this.data = data;
     extendObservable(this, data);
   }

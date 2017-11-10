@@ -25,7 +25,8 @@ type Props = {
   value?: string,
 };
 
-@observer class ColorPicker extends React.Component {
+@observer
+class ColorPicker extends React.Component {
   props: Props;
 
   @observable selectedColor: string = colors[0];
@@ -52,26 +53,30 @@ type Props = {
     );
   };
 
-  @computed get customColor(): string {
+  @computed
+  get customColor(): string {
     return this.customColorValue &&
       validateColorHex(`#${this.customColorValue}`)
       ? `#${this.customColorValue}`
       : colors[0];
   }
 
-  @action setColor = (color: string) => {
+  @action
+  setColor = (color: string) => {
     this.selectedColor = color;
     this.customColorSelected = false;
     this.fireCallback();
   };
 
-  @action focusOnCustomColor = (event: SyntheticEvent) => {
+  @action
+  focusOnCustomColor = (event: SyntheticEvent) => {
     this.selectedColor = '';
     this.customColorSelected = true;
     this.fireCallback();
   };
 
-  @action setCustomColor = (event: SyntheticEvent) => {
+  @action
+  setCustomColor = (event: SyntheticEvent) => {
     let target = event.target;
     if (target instanceof HTMLInputElement) {
       const color = target.value;
@@ -137,9 +142,7 @@ const SwatchOutset = styled(Flex)`
   border: 2px solid ${({ active, color }) => (active ? color : 'transparent')};
   border-radius: 2px;
   background: ${({ color }) => color};
-  ${({ onClick }) => onClick && `cursor: pointer;`}
-
-  &:last-child {
+  ${({ onClick }) => onClick && `cursor: pointer;`} &:last-child {
     margin-right: 0;
   }
 `;

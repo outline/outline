@@ -20,7 +20,7 @@ const Container = styled.div`
   top: 0;
   z-index: 9999;
 
-  background-color: #03A9F4;
+  background-color: #03a9f4;
   width: 100%;
   animation: ${loadingFrame} 4s ease-in-out infinite;
   animation-delay: 250ms;
@@ -30,7 +30,7 @@ const Container = styled.div`
 const Loader = styled.div`
   width: 100%;
   height: 2px;
-  background-color: #03A9F4;
+  background-color: #03a9f4;
 `;
 
 export default LoadingIndicatorBar;

@@ -28,9 +28,7 @@ const RealInput = styled.input`
   }
 `;
 
-const Wrapper = styled.div`
-
-`;
+const Wrapper = styled.div``;
 
 export const Outline = styled(Flex)`
   display: flex;
@@ -44,7 +42,7 @@ export const Outline = styled(Flex)`
   font-weight: normal;
 
   &:focus {
-    border-color: ${color.slate}
+    border-color: ${color.slate};
   }
 `;
 

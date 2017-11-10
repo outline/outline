@@ -16,7 +16,8 @@ type Props = {
   onSubmit: () => void,
 };
 
-@observer class CollectionEdit extends Component {
+@observer
+class CollectionEdit extends Component {
   props: Props;
   @observable name: string;
   @observable color: string = '';

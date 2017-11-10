@@ -17,7 +17,8 @@ type Props = {
   style?: Object,
 };
 
-@observer class DropdownMenu extends Component {
+@observer
+class DropdownMenu extends Component {
   props: Props;
   @observable top: number;
   @observable left: number;
@@ -93,7 +94,8 @@ const Menu = styled.div`
   border-radius: 2px;
   min-width: 160px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 4px 8px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.08);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.08);
 `;
 
 export default DropdownMenu;

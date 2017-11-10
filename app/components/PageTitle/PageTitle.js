@@ -7,7 +7,9 @@ type Props = {
 };
 
 const PageTitle = ({ title }: Props) => (
-  <Helmet><title>{`${title} - Outline`}</title></Helmet>
+  <Helmet>
+    <title>{`${title} - Outline`}</title>
+  </Helmet>
 );
 
 export default PageTitle;

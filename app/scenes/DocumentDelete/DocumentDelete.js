@@ -16,7 +16,8 @@ type Props = {
   onSubmit: () => void,
 };
 
-@observer class DocumentDelete extends Component {
+@observer
+class DocumentDelete extends Component {
   props: Props;
   @observable isDeleting: boolean;
 
@@ -41,10 +42,7 @@ type Props = {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            Are you sure? Deleting the
-            {' '}
-            <strong>{document.title}</strong>
-            {' '}
+            Are you sure? Deleting the <strong>{document.title}</strong>{' '}
             document is permanant and will also delete all of its history.
           </HelpText>
           <Button type="submit" danger>

@@ -12,7 +12,7 @@ export default styled.button`
   background: none;
   transition: opacity 100ms ease-in-out;
   padding: 0;
-  opacity: .7;
+  opacity: 0.7;
 
   &:first-child {
     margin-left: 0;
@@ -22,5 +22,5 @@ export default styled.button`
     opacity: 1;
   }
 
-  ${({ active }) => active && 'opacity: 1;'}
+  ${({ active }) => active && 'opacity: 1;'};
 `;

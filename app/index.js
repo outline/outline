@@ -82,9 +82,7 @@ const Auth = ({ children }: AuthProps) => {
 
     return (
       <Flex auto>
-        <Provider {...authenticatedStores}>
-          {children}
-        </Provider>
+        <Provider {...authenticatedStores}>{children}</Provider>
       </Flex>
     );
   } else {

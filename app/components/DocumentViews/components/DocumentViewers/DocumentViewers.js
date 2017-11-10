@@ -40,8 +40,7 @@ class DocumentViewers extends Component {
           {map(this.props.viewers, view => (
             <li key={view.user.id}>
               <Flex align="center">
-                <Avatar src={view.user.avatarUrl} />
-                {' '}
+                <Avatar src={view.user.avatarUrl} />{' '}
                 <UserName>{view.user.name}</UserName>
               </Flex>
             </li>

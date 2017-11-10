@@ -14,7 +14,8 @@ import HelpText from 'components/HelpText';
 import { Label } from 'components/Labeled';
 import SlackAuthLink from 'components/SlackAuthLink';
 
-@observer class Settings extends React.Component {
+@observer
+class Settings extends React.Component {
   store: SettingsStore;
 
   constructor() {
@@ -27,12 +28,12 @@ import SlackAuthLink from 'components/SlackAuthLink';
 
     return (
       <Flex column>
-        {showSlackSettings &&
+        {showSlackSettings && (
           <Section>
             <SectionLabel>Slack</SectionLabel>
             <HelpText>
-              Connect Outline to your Slack to instantly search for your documents
-              using <Code>/outline</Code> command.
+              Connect Outline to your Slack to instantly search for your
+              documents using <Code>/outline</Code> command.
             </HelpText>
 
             <SlackAuthLink
@@ -47,16 +48,17 @@ import SlackAuthLink from 'components/SlackAuthLink';
                 srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
               />
             </SlackAuthLink>
-          </Section>}
+          </Section>
+        )}
 
         <Section>
           <SectionLabel>API Access</SectionLabel>
           <HelpText>
-            Create API tokens to hack on your Outline.
-            Learn more in <Link to="/developers">API documentation</Link>.
+            Create API tokens to hack on your Outline. Learn more in{' '}
+            <Link to="/developers">API documentation</Link>.
           </HelpText>
 
-          {this.store.apiKeys &&
+          {this.store.apiKeys && (
             <Table>
               <tbody>
                 {this.store.apiKeys &&
@@ -70,7 +72,8 @@ import SlackAuthLink from 'components/SlackAuthLink';
                     />
                   ))}
               </tbody>
-            </Table>}
+            </Table>
+          )}
           <InlineForm
             placeholder="Token name"
             buttonLabel="Create token"
@@ -162,13 +165,13 @@ const Table = styled.table`
 const SectionLabel = styled(Label)`
   padding-bottom: 12px;
   margin-bottom: 20px;
-  border-bottom: 1px solid #EAEBEA;
+  border-bottom: 1px solid #eaebea;
 `;
 
 const Code = styled.code`
   padding: 4px 6px;
   margin: 0 2px;
-  background: #EAEBEA;
+  background: #eaebea;
   border-radius: 4px;
 `;
 

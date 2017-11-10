@@ -16,11 +16,13 @@ class AuthStore {
 
   /* Computed */
 
-  @computed get authenticated(): boolean {
+  @computed
+  get authenticated(): boolean {
     return !!this.token;
   }
 
-  @computed get asJson(): string {
+  @computed
+  get asJson(): string {
     return JSON.stringify({
       user: this.user,
       team: this.team,
@@ -31,19 +33,24 @@ class AuthStore {
 
   /* Actions */
 
-  @action logout = () => {
+  @action
+  logout = () => {
     this.user = null;
     this.token = null;
     Cookie.remove('loggedIn', { path: '/' });
   };
 
-  @action getOauthState = () => {
-    const state = Math.random().toString(36).substring(7);
+  @action
+  getOauthState = () => {
+    const state = Math.random()
+      .toString(36)
+      .substring(7);
     this.oauthState = state;
     return this.oauthState;
   };
 
-  @action authWithSlack = async (code: string, state: string) => {
+  @action
+  authWithSlack = async (code: string, state: string) => {
     if (state !== this.oauthState) {
       return {
         success: false,

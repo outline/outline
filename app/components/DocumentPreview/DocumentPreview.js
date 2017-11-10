@@ -49,7 +49,7 @@ const DocumentLink = styled(Link)`
     outline: none;
 
     ${StyledStar} {
-      opacity: .5;
+      opacity: 0.5;
 
       &:hover {
         opacity: 1;
@@ -63,11 +63,12 @@ const DocumentLink = styled(Link)`
 
   h3 {
     margin-top: 0;
-    margin-bottom: .25em;
+    margin-bottom: 0.25em;
   }
 `;
 
-@observer class DocumentPreview extends Component {
+@observer
+class DocumentPreview extends Component {
   props: Props;
 
   star = (ev: SyntheticEvent) => {
@@ -89,13 +90,15 @@ const DocumentLink = styled(Link)`
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
         <h3>
           {document.title}
-          {document.starred
-            ? <a onClick={this.unstar}>
-                <StyledStar solid />
-              </a>
-            : <a onClick={this.star}>
-                <StyledStar />
-              </a>}
+          {document.starred ? (
+            <a onClick={this.unstar}>
+              <StyledStar solid />
+            </a>
+          ) : (
+            <a onClick={this.star}>
+              <StyledStar />
+            </a>
+          )}
         </h3>
         <PublishingInfo
           document={document}

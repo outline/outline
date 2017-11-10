@@ -6,7 +6,8 @@ import { color } from 'shared/styles/constants';
 import styled from 'styled-components';
 import CopyToClipboard from 'components/CopyToClipboard';
 
-@observer class CopyButton extends Component {
+@observer
+class CopyButton extends Component {
   @observable copied: boolean = false;
   copiedTimeout: ?number;
 

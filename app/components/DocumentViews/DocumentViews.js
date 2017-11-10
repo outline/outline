@@ -25,7 +25,8 @@ type Props = {
   count: number,
 };
 
-@observer class DocumentViews extends Component {
+@observer
+class DocumentViews extends Component {
   anchor: HTMLElement;
   store: DocumentViewersStore;
   props: Props;
@@ -55,19 +56,16 @@ type Props = {
     return (
       <Container align="center">
         <a ref={this.setRef} onClick={this.openPopover}>
-          Viewed
-          {' '}
-          {this.props.count}
-          {' '}
-          {this.props.count === 1 ? 'time' : 'times'}
+          Viewed {this.props.count} {this.props.count === 1 ? 'time' : 'times'}
         </a>
-        {this.state.opened &&
+        {this.state.opened && (
           <Popover anchor={this.anchor} onClose={this.closePopover}>
             <DocumentViewers
               onMount={this.store.fetchViewers}
               viewers={this.store.viewers}
             />
-          </Popover>}
+          </Popover>
+        )}
       </Container>
     );
   }

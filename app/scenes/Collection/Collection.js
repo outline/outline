@@ -20,7 +20,8 @@ type Props = {
   match: Object,
 };
 
-@observer class CollectionScene extends Component {
+@observer
+class CollectionScene extends Component {
   props: Props;
   @observable collection: ?Collection;
   @observable isFetching = true;
@@ -56,11 +57,8 @@ type Props = {
       <NewDocumentContainer auto column justify="center">
         <h1>Create a document</h1>
         <HelpText>
-          Publish your first document to start building the
-          {' '}
-          <strong>{this.collection.name}</strong>
-          {' '}
-          collection.
+          Publish your first document to start building the{' '}
+          <strong>{this.collection.name}</strong> collection.
         </HelpText>
         <Action>
           <Link to={newDocumentUrl(this.collection)}>
@@ -76,9 +74,11 @@ type Props = {
 
     return (
       <CenteredContent>
-        {this.isFetching
-          ? <LoadingListPlaceholder />
-          : this.renderEmptyCollection()}
+        {this.isFetching ? (
+          <LoadingListPlaceholder />
+        ) : (
+          this.renderEmptyCollection()
+        )}
       </CenteredContent>
     );
   }

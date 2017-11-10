@@ -64,7 +64,10 @@ export default function MarkdownShortcuts() {
           }
         }
 
-        state = transform.extendToStartOf(startBlock).delete().apply();
+        state = transform
+          .extendToStartOf(startBlock)
+          .delete()
+          .apply();
         return state;
       }
 
@@ -113,7 +116,10 @@ export default function MarkdownShortcuts() {
             lastCodeTagIndex - shortcut.length
           );
           transform.addMark(mark);
-          state = transform.collapseToEnd().removeMark(mark).apply();
+          state = transform
+            .collapseToEnd()
+            .removeMark(mark)
+            .apply();
           return state;
         }
       }
@@ -212,7 +218,11 @@ export default function MarkdownShortcuts() {
     onTab(ev: SyntheticEvent, state: Object) {
       if (state.startBlock.type === 'heading1') {
         ev.preventDefault();
-        return state.transform().splitBlock().setBlock('paragraph').apply();
+        return state
+          .transform()
+          .splitBlock()
+          .setBlock('paragraph')
+          .apply();
       }
     },
 
@@ -253,7 +263,11 @@ export default function MarkdownShortcuts() {
       }
 
       ev.preventDefault();
-      return state.transform().splitBlock().setBlock('paragraph').apply();
+      return state
+        .transform()
+        .splitBlock()
+        .setBlock('paragraph')
+        .apply();
     },
 
     /**

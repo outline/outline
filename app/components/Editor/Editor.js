@@ -34,7 +34,8 @@ type KeyData = {
   key: string,
 };
 
-@observer class MarkdownEditor extends Component {
+@observer
+class MarkdownEditor extends Component {
   props: Props;
   editor: EditorType;
   schema: Object;
@@ -193,14 +194,16 @@ type KeyData = {
         <MaxWidth column auto>
           <Header onClick={this.focusAtStart} readOnly={readOnly} />
           <Contents state={this.editorState} />
-          {!readOnly &&
-            <Toolbar state={this.editorState} onChange={this.onChange} />}
-          {!readOnly &&
+          {!readOnly && (
+            <Toolbar state={this.editorState} onChange={this.onChange} />
+          )}
+          {!readOnly && (
             <BlockInsert
               state={this.editorState}
               onChange={this.onChange}
               onInsertImage={this.insertImageFile}
-            />}
+            />
+          )}
           <StyledEditor
             innerRef={ref => (this.editor = ref)}
             placeholder="Start with a title…"
@@ -234,7 +237,7 @@ const Header = styled(Flex)`
   height: 60px;
   flex-shrink: 0;
   align-items: flex-end;
-  ${({ readOnly }) => !readOnly && 'cursor: text;'}
+  ${({ readOnly }) => !readOnly && 'cursor: text;'};
 `;
 
 const StyledEditor = styled(Editor)`
@@ -326,7 +329,8 @@ const StyledEditor = styled(Editor)`
     padding: 5px 20px 5px 0;
   }
 
-  b, strong {
+  b,
+  strong {
     font-weight: 600;
   }
 `;

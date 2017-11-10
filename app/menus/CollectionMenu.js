@@ -8,7 +8,8 @@ import MoreIcon from 'components/Icon/MoreIcon';
 import Flex from 'shared/components/Flex';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
-@observer class CollectionMenu extends Component {
+@observer
+class CollectionMenu extends Component {
   props: {
     label?: React$Element<*>,
     onOpen?: () => void,
@@ -44,7 +45,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
         onOpen={onOpen}
         onClose={onClose}
       >
-        {collection &&
+        {collection && (
           <Flex column>
             <DropdownMenuItem onClick={this.onNewDocument}>
               New document
@@ -53,9 +54,11 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
               Import document
             </DropdownMenuItem>
             <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
-          </Flex>}
-        {allowDelete &&
-          <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>}
+          </Flex>
+        )}
+        {allowDelete && (
+          <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>
+        )}
       </DropdownMenu>
     );
   }

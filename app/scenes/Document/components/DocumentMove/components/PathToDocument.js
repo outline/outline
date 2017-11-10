@@ -19,8 +19,7 @@ const ResultWrapper = styled.div`
   cursor: default;
 `;
 
-const StyledGoToIcon = styled(GoToIcon)`
-`;
+const StyledGoToIcon = styled(GoToIcon)``;
 
 const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
   height: 32px;
@@ -50,7 +49,8 @@ type Props = {
   ref?: Function,
 };
 
-@observer class PathToDocument extends React.Component {
+@observer
+class PathToDocument extends React.Component {
   props: Props;
 
   handleClick = async (ev: SyntheticEvent) => {
@@ -83,12 +83,12 @@ type Props = {
         {result.path
           .map(doc => <span key={doc.id}>{doc.title}</span>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
-        {document &&
+        {document && (
           <Flex>
             {' '}
-            <StyledGoToIcon />
-            {' '}{document.title}
-          </Flex>}
+            <StyledGoToIcon /> {document.title}
+          </Flex>
+        )}
       </Component>
     );
   }

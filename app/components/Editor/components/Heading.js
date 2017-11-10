@@ -41,26 +41,29 @@ function Heading(props: Props) {
 
   return (
     <Component {...attributes} id={slugish}>
-      <Wrapper hasEmoji={startsWithEmojiAndSpace}>
-        {children}
-      </Wrapper>
-      {showPlaceholder &&
+      <Wrapper hasEmoji={startsWithEmojiAndSpace}>{children}</Wrapper>
+      {showPlaceholder && (
         <Placeholder contentEditable={false}>
           {editor.props.placeholder}
-        </Placeholder>}
-      {showHash && <Anchor name={slugish} href={`#${slugish}`}>#</Anchor>}
+        </Placeholder>
+      )}
+      {showHash && (
+        <Anchor name={slugish} href={`#${slugish}`}>
+          #
+        </Anchor>
+      )}
     </Component>
   );
 }
 
 const Wrapper = styled.div`
   display: inline;
-  margin-left: ${(props: Props) => (props.hasEmoji ? '-1.2em' : 0)}
+  margin-left: ${(props: Props) => (props.hasEmoji ? '-1.2em' : 0)};
 `;
 
 const Anchor = styled.a`
   visibility: hidden;
-  padding-left: .25em;
+  padding-left: 0.25em;
   color: #dedede;
 
   &:hover {

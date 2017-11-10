@@ -42,7 +42,10 @@ class FormattingToolbar extends Component {
     ev.preventDefault();
     let { state } = this.props;
 
-    state = state.transform().toggleMark(type).apply();
+    state = state
+      .transform()
+      .toggleMark(type)
+      .apply();
     this.props.onChange(state);
   };
 
@@ -50,7 +53,10 @@ class FormattingToolbar extends Component {
     ev.preventDefault();
     let { state } = this.props;
 
-    state = state.transform().setBlock(type).apply();
+    state = state
+      .transform()
+      .setBlock(type)
+      .apply();
     this.props.onChange(state);
   };
 
@@ -59,7 +65,10 @@ class FormattingToolbar extends Component {
     ev.stopPropagation();
     let { state } = this.props;
     const data = { href: '' };
-    state = state.transform().wrapInline({ type: 'link', data }).apply();
+    state = state
+      .transform()
+      .wrapInline({ type: 'link', data })
+      .apply();
     this.props.onChange(state);
     this.props.onCreateLink();
   };
@@ -109,8 +118,8 @@ class FormattingToolbar extends Component {
 const Separator = styled.div`
   height: 100%;
   width: 1px;
-  background: #FFF;
-  opacity: .2;
+  background: #fff;
+  opacity: 0.2;
   display: inline-block;
   margin-left: 10px;
 `;

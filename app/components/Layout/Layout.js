@@ -43,7 +43,8 @@ type Props = {
   notifications?: React.Element<any>,
 };
 
-@observer class Layout extends React.Component {
+@observer
+class Layout extends React.Component {
   props: Props;
   scrollable: ?HTMLDivElement;
 
@@ -117,41 +118,42 @@ type Props = {
         <Flex auto>
           {auth.authenticated &&
             user &&
-            team &&
-            <Sidebar column editMode={ui.editMode}>
-              <AccountMenu
-                label={
-                  <HeaderBlock user={user} team={team}>
-                    <Avatar src={user.avatarUrl} />
-                  </HeaderBlock>
-                }
-              />
+            team && (
+              <Sidebar column editMode={ui.editMode}>
+                <AccountMenu
+                  label={
+                    <HeaderBlock user={user} team={team}>
+                      <Avatar src={user.avatarUrl} />
+                    </HeaderBlock>
+                  }
+                />
 
-              <Flex auto column>
-                <Scrollable innerRef={this.setScrollableRef}>
-                  <LinkSection>
-                    <SidebarLink to="/dashboard" icon={<HomeIcon />}>
-                      Home
-                    </SidebarLink>
-                    <SidebarLink to="/search" icon={<SearchIcon />}>
-                      Search
-                    </SidebarLink>
-                    <SidebarLink to="/starred" icon={<StarredIcon />}>
-                      Starred
-                    </SidebarLink>
-                  </LinkSection>
-                  <LinkSection>
-                    <SidebarCollections
-                      history={this.props.history}
-                      location={this.props.location}
-                      activeDocument={documents.active}
-                      onCreateCollection={this.handleCreateCollection}
-                      activeDocumentRef={this.scrollToActiveDocument}
-                    />
-                  </LinkSection>
-                </Scrollable>
-              </Flex>
-            </Sidebar>}
+                <Flex auto column>
+                  <Scrollable innerRef={this.setScrollableRef}>
+                    <LinkSection>
+                      <SidebarLink to="/dashboard" icon={<HomeIcon />}>
+                        Home
+                      </SidebarLink>
+                      <SidebarLink to="/search" icon={<SearchIcon />}>
+                        Search
+                      </SidebarLink>
+                      <SidebarLink to="/starred" icon={<StarredIcon />}>
+                        Starred
+                      </SidebarLink>
+                    </LinkSection>
+                    <LinkSection>
+                      <SidebarCollections
+                        history={this.props.history}
+                        location={this.props.location}
+                        activeDocument={documents.active}
+                        onCreateCollection={this.handleCreateCollection}
+                        activeDocumentRef={this.scrollToActiveDocument}
+                      />
+                    </LinkSection>
+                  </Scrollable>
+                </Flex>
+              </Sidebar>
+            )}
 
           <Content auto justify="center" editMode={ui.editMode}>
             {this.props.children}

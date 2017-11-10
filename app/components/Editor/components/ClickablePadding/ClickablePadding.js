@@ -16,7 +16,7 @@ const Container = styled.div`
   padding-top: 50px;
   cursor: ${({ onClick }) => (onClick ? 'text' : 'default')};
 
-  ${({ grow }) => grow && `flex-grow: 1;`}
+  ${({ grow }) => grow && `flex-grow: 1;`};
 `;
 
 export default ClickablePadding;

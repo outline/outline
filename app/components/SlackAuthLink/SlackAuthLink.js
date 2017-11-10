@@ -10,7 +10,8 @@ type Props = {
   redirectUri: string,
 };
 
-@observer class SlackAuthLink extends React.Component {
+@observer
+class SlackAuthLink extends React.Component {
   props: Props;
 
   static defaultProps = {

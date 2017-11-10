@@ -10,7 +10,8 @@ type Props = {
   type?: 'info' | 'success' | 'warning' | 'danger' | 'offline',
 };
 
-@observer class Alert extends React.Component {
+@observer
+class Alert extends React.Component {
   props: Props;
   defaultProps = {
     type: 'info',

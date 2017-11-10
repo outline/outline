@@ -25,10 +25,11 @@ export default function Link({
   return (
     <p {...attributes}>
       {children}
-      {showPlaceholder &&
+      {showPlaceholder && (
         <Placeholder contentEditable={false}>
           {editor.props.bodyPlaceholder}
-        </Placeholder>}
+        </Placeholder>
+      )}
     </p>
   );
 }

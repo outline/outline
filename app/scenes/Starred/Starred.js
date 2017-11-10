@@ -8,7 +8,8 @@ import PageTitle from 'components/PageTitle';
 import DocumentList from 'components/DocumentList';
 import DocumentsStore from 'stores/DocumentsStore';
 
-@observer class Starred extends Component {
+@observer
+class Starred extends Component {
   props: {
     documents: DocumentsStore,
   };

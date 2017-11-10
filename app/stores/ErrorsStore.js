@@ -6,11 +6,13 @@ class ErrorsStore {
 
   /* Actions */
 
-  @action add = (message: string): void => {
+  @action
+  add = (message: string): void => {
     this.data.push(message);
   };
 
-  @action remove = (index: number): void => {
+  @action
+  remove = (index: number): void => {
     this.data.splice(index, 1);
   };
 }

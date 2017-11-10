@@ -10,7 +10,8 @@ import DocumentDelete from 'scenes/DocumentDelete';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
 import Settings from 'scenes/Settings';
 
-@observer class Modals extends Component {
+@observer
+class Modals extends Component {
   props: {
     ui: UiStore,
   };

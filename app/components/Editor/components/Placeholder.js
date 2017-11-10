@@ -7,5 +7,5 @@ export default styled.span`
   visibility: hidden;
   pointer-events: none;
   user-select: none;
-  color: #B1BECC;
+  color: #b1becc;
 `;

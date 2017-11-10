@@ -19,9 +19,7 @@ const Content = styled.div`
 const CenteredContent = ({ children, ...rest }: Props) => {
   return (
     <Container {...rest}>
-      <Content>
-        {children}
-      </Content>
+      <Content>{children}</Content>
     </Container>
   );
 };
