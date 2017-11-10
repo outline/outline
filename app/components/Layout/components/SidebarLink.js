@@ -41,14 +41,6 @@ const StyledNavLink = styled(NavLink)`
   &:hover {
     color: ${color.text};
   }
-
-  &.active {
-    ${IconWrapper} & {
-      svg {
-        fill: ${({ iconColor }) => (iconColor ? iconColor : activeStyle.color)}
-      }
-    }
-  }
 `;
 
 const StyledDiv = StyledNavLink.withComponent('div');
@@ -86,16 +78,17 @@ type Props = {
   };
 
   render() {
-    const { icon, children, expandedContent, ...rest } = this.props;
-    const Component = rest.to ? StyledNavLink : StyledDiv;
+    const { icon, children, onClick, to, expandedContent } = this.props;
+    const Component = to ? StyledNavLink : StyledDiv;
 
     return (
       <Flex column>
         <Component
-          exact
           activeStyle={activeStyle}
           hasChildren={expandedContent}
-          {...rest}
+          onClick={onClick}
+          to={to}
+          exact
         >
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {expandedContent &&
