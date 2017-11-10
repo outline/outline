@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import Portal from 'react-portal';
+import { Portal } from 'react-portal';
 import styled from 'styled-components';
 import _ from 'lodash';
 import type { State } from '../../types';
@@ -118,7 +118,7 @@ export default class Toolbar extends Component {
     };
 
     return (
-      <Portal isOpened>
+      <Portal>
         <Menu active={this.state.active} innerRef={this.setRef} style={style}>
           {link &&
             <LinkToolbar

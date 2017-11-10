@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import Portal from 'react-portal';
+import { Portal } from 'react-portal';
 import { findDOMNode, Node } from 'slate';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
@@ -112,7 +112,7 @@ export default class BlockInsert extends Component {
     const style = { top: `${this.top}px`, left: `${this.left}px` };
 
     return (
-      <Portal isOpened>
+      <Portal>
         <Trigger active={this.active} style={style}>
           <PlusIcon onClick={this.handleClick} color={color.slate} />
         </Trigger>

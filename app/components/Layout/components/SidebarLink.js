@@ -71,7 +71,7 @@ type Props = {
     if (this.props.expand) this.handleExpand();
   }
 
-  componentDidReceiveProps(nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps.expand) this.handleExpand();
   }
 

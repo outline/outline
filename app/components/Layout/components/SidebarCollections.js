@@ -194,7 +194,7 @@ const DocumentLink = observer(
         <DropToImport
           history={history}
           documentId={document.id}
-          activeStyle="activeDropZone"
+          activeClassName="activeDropZone"
         >
           <SidebarLink
             to={document.url}

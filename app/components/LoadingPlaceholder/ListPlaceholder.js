@@ -1,8 +1,8 @@
 // @flow
 import React from 'react';
 import _ from 'lodash';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import styled from 'styled-components';
+import { fadeIn } from 'shared/styles/animations';
 import Mask from './components/Mask';
 import Flex from 'shared/components/Flex';
 
@@ -12,24 +12,20 @@ type Props = {
 
 const ListPlaceHolder = ({ count }: Props) => {
   return (
-    <ReactCSSTransitionGroup
-      transitionName="fadeIn"
-      transitionAppearTimeout={0}
-      transitionEnterTimeout={0}
-      transitionLeaveTimeout={0}
-      transitionAppear
-      transitionEnter
-      transitionLeave
-    >
+    <Fade>
       {_.times(count || 2, index => (
         <Item key={index} column auto>
           <Mask header />
           <Mask />
         </Item>
       ))}
-    </ReactCSSTransitionGroup>
+    </Fade>
   );
 };
+
+const Fade = styled.span`
+  animation: ${fadeIn} 150ms ease-in-out;
+`;
 
 const Item = styled(Flex)`
   padding: 18px 0;
