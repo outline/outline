@@ -15,6 +15,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import CacheStore from 'stores/CacheStore';
 import globalStyles from 'shared/styles/globals';
+import 'shared/styles/prism.css';
 
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';

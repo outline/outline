@@ -27,7 +27,6 @@ function Heading(props: Props) {
     children,
     component = 'h1',
     attributes,
-    ...rest
   } = props;
   const parentIsDocument = parent instanceof Document;
   const firstHeading = parentIsDocument && parent.nodes.first() === node;
@@ -41,7 +40,7 @@ function Heading(props: Props) {
     emoji && title.match(new RegExp(`^${emoji}\\s`));
 
   return (
-    <Component {...attributes} {...rest} id={slugish}>
+    <Component {...attributes} id={slugish}>
       <Wrapper hasEmoji={startsWithEmojiAndSpace}>
         {children}
       </Wrapper>
