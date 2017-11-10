@@ -38,8 +38,7 @@ export const fontWeight = {
 export const fonts = {
   regular: `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
   Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;`,
-  monospace: `'Atlas Typewriter', 'Source Code Pro', Menlo, Consolas,
-    'Liberation Mono', monospace;`,
+  monospace: `'Source Code Pro', Menlo, Consolas, 'Liberation Mono', monospace;`,
 };
 
 export const color = {
