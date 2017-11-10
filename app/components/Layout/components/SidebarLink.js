@@ -43,8 +43,10 @@ const StyledNavLink = styled(NavLink)`
   }
 
   &.active {
-    svg {
-      fill: ${activeStyle.color}
+    ${IconWrapper} & {
+      svg {
+        fill: ${({ iconColor }) => (iconColor ? iconColor : activeStyle.color)}
+      }
     }
   }
 `;
@@ -58,6 +60,7 @@ type Props = {
   icon?: React$Element<*>,
   expand?: boolean,
   expandedContent?: React$Element<*>,
+  iconColor?: string,
 };
 
 @observer class SidebarLink extends Component {

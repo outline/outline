@@ -116,6 +116,7 @@ type CollectionLinkProps = {
           key={collection.id}
           to={collection.url}
           icon={<CollectionIcon expanded={expanded} color={collection.color} />}
+          iconColor={collection.color}
         >
           <Flex justify="space-between">
             {collection.name}
