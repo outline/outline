@@ -20,8 +20,28 @@ To install and run the application:
  1. Register a Slack app at https://api.slack.com/apps
  1. Copy the file `.env.sample` to `.env` and fill out the keys
  1. Run DB migrations `yarn sequelize db:migrate`
- 1. Start the development server `yarn start`
+ 
+ To run Outline in development mode with server and frontend code reloading:
 
+```shell
+yarn dev
+```
+
+To run Outline in production mode:
+
+```shell
+yarn start
+```
+
+## Development
+
+### Server
+
+To enable debugging statements, set the following env vars:
+
+```
+DEBUG=sql,cache,presenters
+```
 
 ## Migrations
 

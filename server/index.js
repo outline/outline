@@ -5,6 +5,7 @@ import logger from 'koa-logger';
 import mount from 'koa-mount';
 import Koa from 'koa';
 import bugsnag from 'bugsnag';
+import updates from './utils/updates';
 
 import api from './api';
 import routes from './routes';
@@ -81,5 +82,18 @@ app.use(
     },
   })
 );
+
+/**
+ * Production updates and anonymous analytics.
+ * 
+ * Set ENABLE_UPDATES=false to disable them for your installation
+ */
+if (
+  process.env.ENABLE_UPDATES !== 'false' &&
+  process.env.NODE_ENV === 'production'
+) {
+  updates();
+  setInterval(updates, 24 * 3600 * 1000);
+}
 
 export default app;

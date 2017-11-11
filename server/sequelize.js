@@ -3,7 +3,7 @@ import Sequelize from 'sequelize';
 import EncryptedField from 'sequelize-encrypted';
 import debug from 'debug';
 
-const secretKey = process.env.SEQUELIZE_SECRET;
+const secretKey = process.env.SECRET_KEY;
 
 export const encryptedFields = EncryptedField(Sequelize, secretKey);
 

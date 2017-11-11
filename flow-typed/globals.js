@@ -6,3 +6,8 @@ declare var BASE_URL: string;
 declare var BUGSNAG_KEY: ?string;
 declare var DEPLOYMENT: string;
 declare var Bugsnag: any;
+declare var process: {
+  env: {
+    [string]: string,
+  },
+};
