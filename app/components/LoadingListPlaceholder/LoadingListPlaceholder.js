@@ -1,9 +1,10 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { fadeIn, pulsate } from 'shared/styles/animations';
+import { pulsate } from 'shared/styles/animations';
 import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
+import Fade from 'components/Fade';
 
 import { randomInteger } from 'shared/random';
 
@@ -26,10 +27,6 @@ export default (props: Object) => {
     </Fade>
   );
 };
-
-const Fade = styled.span`
-  animation: ${fadeIn} 150ms ease-in-out;
-`;
 
 const Item = styled(Flex)`
   padding: 18px 0;

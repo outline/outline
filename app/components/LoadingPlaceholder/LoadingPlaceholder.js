@@ -1,8 +1,7 @@
 // @flow
 import React from 'react';
-import styled from 'styled-components';
-import { fadeIn } from 'shared/styles/animations';
 import Mask from './components/Mask';
+import Fade from 'components/Fade';
 import Flex from 'shared/components/Flex';
 
 export default function LoadingPlaceholder(props: Object) {
@@ -17,7 +16,3 @@ export default function LoadingPlaceholder(props: Object) {
     </Fade>
   );
 }
-
-const Fade = styled.span`
-  animation: ${fadeIn} 150ms ease-in-out;
-`;

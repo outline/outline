@@ -1,9 +1,10 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { fadeIn, pulsate } from 'shared/styles/animations';
+import { pulsate } from 'shared/styles/animations';
 import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
+import Fade from 'components/Fade';
 
 import { randomInteger } from 'shared/random';
 
@@ -12,7 +13,7 @@ const randomValues = Array.from(
   () => `${randomInteger(85, 100)}%`
 );
 
-export default (props: Object) => {
+const LoadingPlaceholder = (props: Object) => {
   return (
     <Fade>
       <Flex column auto {...props}>
@@ -25,13 +26,11 @@ export default (props: Object) => {
   );
 };
 
-const Fade = styled.span`
-  animation: ${fadeIn} 150ms ease-in-out;
-`;
-
 const Mask = styled(Flex)`
   height: ${props => (props.header ? 28 : 18)}px;
   margin-bottom: ${props => (props.header ? 32 : 14)}px;
   background-color: ${color.smoke};
   animation: ${pulsate} 1.3s infinite;
 `;
+
+export default LoadingPlaceholder;
