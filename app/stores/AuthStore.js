@@ -1,5 +1,5 @@
 // @flow
-import { observable, action, computed, autorunAsync } from 'mobx';
+import { observable, action, computed, autorun } from 'mobx';
 import invariant from 'invariant';
 import Cookie from 'js-cookie';
 import { client } from 'utils/ApiClient';
@@ -87,7 +87,7 @@ class AuthStore {
     this.token = data.token;
     this.oauthState = data.oauthState;
 
-    autorunAsync(() => {
+    autorun(() => {
       localStorage.setItem(AUTH_STORE, this.asJson);
     });
   }
