@@ -54,7 +54,8 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
-@observer class Search extends React.Component {
+@observer
+class Search extends React.Component {
   firstDocument: HTMLElement;
   props: Props;
 
@@ -99,7 +100,8 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
     this.search(this.props.match.params.query);
   }, 250);
 
-  @action search = async (query: string) => {
+  @action
+  search = async (query: string) => {
     this.searchTerm = query;
     this.isFetching = true;
 
@@ -141,11 +143,12 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
       <Container auto>
         <PageTitle title={this.title} />
         {this.isFetching && <LoadingIndicator />}
-        {notFound &&
+        {notFound && (
           <div>
             <h1>Not Found</h1>
             <p>We’re unable to find the page you’re accessing.</p>
-          </div>}
+          </div>
+        )}
         <ResultsWrapper pinToTop={hasResults} column auto>
           <SearchField
             searchTerm={this.searchTerm}
@@ -165,7 +168,8 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
                 return (
                   <DocumentPreview
                     innerRef={ref =>
-                      index === 0 && this.setFirstDocumentRef(ref)}
+                      index === 0 && this.setFirstDocumentRef(ref)
+                    }
                     key={documentId}
                     document={document}
                     highlight={this.searchTerm}

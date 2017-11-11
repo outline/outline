@@ -14,7 +14,9 @@ type Props = {
 function DocumentResult({ document, ...rest }: Props) {
   return (
     <ListItem {...rest} href="">
-      <i><NextIcon light /></i>
+      <i>
+        <NextIcon light />
+      </i>
       {document.title}
     </ListItem>
   );

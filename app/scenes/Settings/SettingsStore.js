@@ -10,7 +10,8 @@ class SearchStore {
 
   @observable isFetching: boolean = false;
 
-  @action fetchApiKeys = async () => {
+  @action
+  fetchApiKeys = async () => {
     this.isFetching = true;
 
     try {
@@ -27,7 +28,8 @@ class SearchStore {
     this.isFetching = false;
   };
 
-  @action createApiKey = async () => {
+  @action
+  createApiKey = async () => {
     this.isFetching = true;
 
     try {
@@ -46,7 +48,8 @@ class SearchStore {
     this.isFetching = false;
   };
 
-  @action deleteApiKey = async (id: string) => {
+  @action
+  deleteApiKey = async (id: string) => {
     this.isFetching = true;
 
     try {
@@ -62,7 +65,8 @@ class SearchStore {
     this.isFetching = false;
   };
 
-  @action setKeyName = (value: SyntheticInputEvent) => {
+  @action
+  setKeyName = (value: SyntheticInputEvent) => {
     this.keyName = value.target.value;
   };
 

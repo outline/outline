@@ -170,7 +170,7 @@ const Bar = styled(Flex)`
 
   &:before,
   &:after {
-    content: "";
+    content: '';
     position: absolute;
     left: -100%;
     width: 100%;

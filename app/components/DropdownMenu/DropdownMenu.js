@@ -4,7 +4,7 @@ import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
-import Portal from 'react-portal';
+import { PortalWithState } from 'react-portal';
 import Flex from 'shared/components/Flex';
 import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
@@ -17,60 +17,57 @@ type Props = {
   style?: Object,
 };
 
-@observer class DropdownMenu extends Component {
+@observer
+class DropdownMenu extends Component {
   props: Props;
-  actionRef: Object;
-  @observable open: boolean = false;
   @observable top: number;
   @observable left: number;
   @observable right: number;
 
-  handleClick = (ev: SyntheticEvent) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-    const currentTarget = ev.currentTarget;
-    invariant(document.body, 'why you not here');
+  handleOpen = (openPortal: SyntheticEvent => void) => {
+    return (ev: SyntheticMouseEvent) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const currentTarget = ev.currentTarget;
+      invariant(document.body, 'why you not here');
 
-    if (currentTarget instanceof HTMLDivElement) {
-      const bodyRect = document.body.getBoundingClientRect();
-      const targetRect = currentTarget.getBoundingClientRect();
-      this.open = true;
-      this.top = targetRect.bottom - bodyRect.top;
-      this.right = bodyRect.width - targetRect.left - targetRect.width;
-      if (this.props.onOpen) this.props.onOpen();
-    }
-  };
-
-  handleClose = (ev: SyntheticEvent) => {
-    this.open = false;
-    if (this.props.onClose) this.props.onClose();
+      if (currentTarget instanceof HTMLDivElement) {
+        const bodyRect = document.body.getBoundingClientRect();
+        const targetRect = currentTarget.getBoundingClientRect();
+        this.top = targetRect.bottom - bodyRect.top;
+        this.right = bodyRect.width - targetRect.left - targetRect.width;
+        openPortal(ev);
+      }
+    };
   };
 
   render() {
     return (
       <div>
-        <Label
-          onClick={this.handleClick}
-          innerRef={ref => (this.actionRef = ref)}
-        >
-          {this.props.label}
-        </Label>
-        <Portal
+        <PortalWithState
+          onOpen={this.props.onOpen}
+          onClose={this.props.onClose}
           closeOnEsc
           closeOnOutsideClick
-          isOpened={this.open}
-          onClose={this.handleClose}
         >
-          <Menu
-            onClick={this.handleClose}
-            style={this.props.style}
-            left={this.left}
-            top={this.top}
-            right={this.right}
-          >
-            {this.props.children}
-          </Menu>
-        </Portal>
+          {({ closePortal, openPortal, portal }) => [
+            <Label onClick={this.handleOpen(openPortal)} key="label">
+              {this.props.label}
+            </Label>,
+            portal(
+              <Menu
+                key="menu"
+                onClick={closePortal}
+                style={this.props.style}
+                left={this.left}
+                top={this.top}
+                right={this.right}
+              >
+                {this.props.children}
+              </Menu>
+            ),
+          ]}
+        </PortalWithState>
       </div>
     );
   }
@@ -97,7 +94,8 @@ const Menu = styled.div`
   border-radius: 2px;
   min-width: 160px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 4px 8px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.08);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.08);
 `;
 
 export default DropdownMenu;

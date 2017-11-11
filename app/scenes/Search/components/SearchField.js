@@ -53,10 +53,18 @@ const StyledInput = styled.input`
   outline: none;
   border: 0;
 
-  ::-webkit-input-placeholder { color: ${color.slateLight}; }
-  :-moz-placeholder { color: ${color.slateLight}; }
-  ::-moz-placeholder { color: ${color.slateLight}; }
-  :-ms-input-placeholder { color: ${color.slateLight}; }
+  ::-webkit-input-placeholder {
+    color: ${color.slateLight};
+  }
+  :-moz-placeholder {
+    color: ${color.slateLight};
+  }
+  ::-moz-placeholder {
+    color: ${color.slateLight};
+  }
+  :-ms-input-placeholder {
+    color: ${color.slateLight};
+  }
 `;
 
 const StyledIcon = styled(SearchIcon)`

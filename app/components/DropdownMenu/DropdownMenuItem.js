@@ -11,11 +11,7 @@ const DropdownMenuItem = ({
   onClick?: SyntheticEvent => void,
   children?: React.Element<any>,
 }) => {
-  return (
-    <MenuItem onClick={onClick}>
-      {children}
-    </MenuItem>
-  );
+  return <MenuItem onClick={onClick}>{children}</MenuItem>;
 };
 
 const MenuItem = styled(Flex)`

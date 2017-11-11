@@ -15,7 +15,8 @@ type Props = {
   location: Location,
 };
 
-@observer class SlackAuth extends React.Component {
+@observer
+class SlackAuth extends React.Component {
   props: Props;
   @observable redirectTo: string;
 

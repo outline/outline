@@ -30,18 +30,19 @@ const StyledPopover = styled(BoundlessPopover)`
     position: absolute;
 
     polygon:first-child {
-      fill: rgba(0,0,0,.075);
+      fill: rgba(0, 0, 0, 0.075);
     }
     polygon {
-      fill: #FFF;
+      fill: #fff;
     }
   }
 `;
 
 const Dialog = styled.div`
   outline: none;
-  background: #FFF;
-  box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 8px 16px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.1);
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 8px 16px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   line-height: 1.5;
   padding: 16px;

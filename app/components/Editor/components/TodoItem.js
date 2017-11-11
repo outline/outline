@@ -40,8 +40,11 @@ export default class TodoItem extends Component {
 const ListItem = styled.li`
   padding-left: 1.4em;
   position: relative;
-  text-decoration: ${props => (props.checked ? 'line-through' : 'none')};
-  color: ${props => (props.checked ? color.slateDark : 'inherit')};
+
+  > p > span {
+    color: ${props => (props.checked ? color.slateDark : 'inherit')};
+    text-decoration: ${props => (props.checked ? 'line-through' : 'none')};
+  }
 `;
 
 const Input = styled.input`

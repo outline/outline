@@ -12,7 +12,8 @@ type Props = {
   state: State,
 };
 
-@observer class Contents extends Component {
+@observer
+class Contents extends Component {
   props: Props;
   @observable activeHeading: ?string;
 

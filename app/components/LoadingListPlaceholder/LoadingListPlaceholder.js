@@ -1,10 +1,10 @@
 // @flow
 import React from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import styled from 'styled-components';
 import { pulsate } from 'shared/styles/animations';
 import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
+import Fade from 'components/Fade';
 
 import { randomInteger } from 'shared/random';
 
@@ -15,15 +15,7 @@ const randomValues = Array.from(
 
 export default (props: Object) => {
   return (
-    <ReactCSSTransitionGroup
-      transitionName="fadeIn"
-      transitionAppear
-      transitionEnter
-      transitionLeave
-      transitionAppearTimeout={0}
-      transitionEnterTimeout={0}
-      transitionLeaveTimeout={0}
-    >
+    <Fade>
       <Item column auto>
         <Mask style={{ width: randomValues[0] }} header />
         <Mask style={{ width: randomValues[1] }} />
@@ -32,7 +24,7 @@ export default (props: Object) => {
         <Mask style={{ width: randomValues[2] }} header />
         <Mask style={{ width: randomValues[3] }} />
       </Item>
-    </ReactCSSTransitionGroup>
+    </Fade>
   );
 };
 

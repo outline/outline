@@ -17,7 +17,7 @@ const StyledGoTo = styled(CollapsedIcon)`
   margin-bottom: -4px;
   margin-left: 1px;
   margin-right: -3px;
-  ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'}
+  ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'};
 `;
 
 const IconWrapper = styled.span`
@@ -41,14 +41,6 @@ const StyledNavLink = styled(NavLink)`
   &:hover {
     color: ${color.text};
   }
-
-  &.active {
-    ${IconWrapper} & {
-      svg {
-        fill: ${({ iconColor }) => (iconColor ? iconColor : activeStyle.color)}
-      }
-    }
-  }
 `;
 
 const StyledDiv = StyledNavLink.withComponent('div');
@@ -63,7 +55,8 @@ type Props = {
   iconColor?: string,
 };
 
-@observer class SidebarLink extends Component {
+@observer
+class SidebarLink extends Component {
   props: Props;
   @observable expanded: boolean = false;
 
@@ -71,35 +64,39 @@ type Props = {
     if (this.props.expand) this.handleExpand();
   }
 
-  componentDidReceiveProps(nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps.expand) this.handleExpand();
   }
 
-  @action handleClick = (event: SyntheticEvent) => {
+  @action
+  handleClick = (event: SyntheticEvent) => {
     event.preventDefault();
     event.stopPropagation();
     this.expanded = !this.expanded;
   };
 
-  @action handleExpand = () => {
+  @action
+  handleExpand = () => {
     this.expanded = true;
   };
 
   render() {
-    const { icon, children, expandedContent, ...rest } = this.props;
-    const Component = rest.to ? StyledNavLink : StyledDiv;
+    const { icon, children, onClick, to, expandedContent } = this.props;
+    const Component = to ? StyledNavLink : StyledDiv;
 
     return (
       <Flex column>
         <Component
-          exact
           activeStyle={activeStyle}
           hasChildren={expandedContent}
-          {...rest}
+          onClick={onClick}
+          to={to}
+          exact
         >
           {icon && <IconWrapper>{icon}</IconWrapper>}
-          {expandedContent &&
-            <StyledGoTo expanded={this.expanded} onClick={this.handleClick} />}
+          {expandedContent && (
+            <StyledGoTo expanded={this.expanded} onClick={this.handleClick} />
+          )}
           <Content onClick={this.handleExpand}>{children}</Content>
         </Component>
         {this.expanded && expandedContent}

@@ -29,35 +29,35 @@ const RealButton = styled.button`
 
   svg {
     position: relative;
-    top: .05em;
+    top: 0.05em;
   }
 
-  ${props => props.light && `
+  ${props =>
+    props.light &&
+    `
     color: ${color.text};
     background: ${lighten(0.08, color.slateLight)};
 
     &:hover {
       background: ${color.slateLight};
     }
-  `}
-
-  ${props => props.neutral && `
+  `} ${props =>
+      props.neutral &&
+      `
     background: ${color.slate};
 
     &:hover {
       background: ${darken(0.05, color.slate)};
     }
-  `}
-
-  ${props => props.danger && `
+  `} ${props =>
+      props.danger &&
+      `
     background: ${color.danger};
 
     &:hover {
       background: ${darken(0.05, color.danger)};
     }
-  `}
-
-  &:disabled {
+  `} &:disabled {
     background: ${color.slateLight};
     cursor: default;
   }
@@ -68,7 +68,7 @@ const Label = styled.span`
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  ${props => props.hasIcon && 'padding-left: 2px;'}
+  ${props => props.hasIcon && 'padding-left: 2px;'};
 `;
 
 const Inner = styled.span`
@@ -78,7 +78,9 @@ const Inner = styled.span`
   justify-content: center;
   align-items: center;
 
-  ${props => props.hasIcon && (props.small ? 'padding-left: 6px;' : 'padding-left: 10px;')}
+  ${props =>
+    props.hasIcon &&
+    (props.small ? 'padding-left: 6px;' : 'padding-left: 10px;')};
 `;
 
 export type Props = {

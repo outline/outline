@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import Portal from 'react-portal';
+import { Portal } from 'react-portal';
 import { findDOMNode, Node } from 'slate';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
@@ -112,7 +112,7 @@ export default class BlockInsert extends Component {
     const style = { top: `${this.top}px`, left: `${this.left}px` };
 
     return (
-      <Portal isOpened>
+      <Portal>
         <Trigger active={this.active} style={style}>
           <PlusIcon onClick={this.handleClick} color={color.slate} />
         </Trigger>
@@ -126,20 +126,23 @@ const Trigger = styled.div`
   z-index: 1;
   opacity: 0;
   background-color: ${color.white};
-  transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   line-height: 0;
   margin-left: -10px;
   box-shadow: inset 0 0 0 2px ${color.slate};
   border-radius: 100%;
-  transform: scale(.9);
+  transform: scale(0.9);
   cursor: pointer;
 
   &:hover {
     background-color: ${color.smokeDark};
   }
 
-  ${({ active }) => active && `
+  ${({ active }) =>
+    active &&
+    `
     transform: scale(1);
     opacity: .9;
-  `}
+  `};
 `;

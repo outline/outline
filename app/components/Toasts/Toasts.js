@@ -5,7 +5,8 @@ import styled from 'styled-components';
 import { layout } from 'shared/styles/constants';
 import Toast from './components/Toast';
 
-@observer class Toasts extends Component {
+@observer
+class Toasts extends Component {
   handleClose = index => {
     this.props.errors.remove(index);
   };

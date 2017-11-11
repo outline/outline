@@ -11,39 +11,47 @@ class UiStore {
   @observable editMode: boolean = false;
 
   /* Actions */
-  @action setActiveModal = (name: string, props: ?Object): void => {
+  @action
+  setActiveModal = (name: string, props: ?Object): void => {
     this.activeModalName = name;
     this.activeModalProps = props;
   };
 
-  @action clearActiveModal = (): void => {
+  @action
+  clearActiveModal = (): void => {
     this.activeModalName = undefined;
     this.activeModalProps = undefined;
   };
 
-  @action setActiveDocument = (document: Document): void => {
+  @action
+  setActiveDocument = (document: Document): void => {
     this.activeDocumentId = document.id;
     this.activeCollectionId = document.collection.id;
   };
 
-  @action clearActiveDocument = (): void => {
+  @action
+  clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
     this.activeCollectionId = undefined;
   };
 
-  @action enableEditMode() {
+  @action
+  enableEditMode() {
     this.editMode = true;
   }
 
-  @action disableEditMode() {
+  @action
+  disableEditMode() {
     this.editMode = false;
   }
 
-  @action enableProgressBar() {
+  @action
+  enableProgressBar() {
     this.progressBarVisible = true;
   }
 
-  @action disableProgressBar() {
+  @action
+  disableProgressBar() {
     this.progressBarVisible = false;
   }
 }

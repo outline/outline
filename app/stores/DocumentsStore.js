@@ -37,7 +37,8 @@ class DocumentsStore extends BaseStore {
 
   /* Computed */
 
-  @computed get recentlyViewed(): Array<Document> {
+  @computed
+  get recentlyViewed(): Array<Document> {
     return _.take(
       _.filter(this.data.values(), ({ id }) =>
         this.recentlyViewedIds.includes(id)
@@ -46,15 +47,18 @@ class DocumentsStore extends BaseStore {
     );
   }
 
-  @computed get recentlyEdited(): Array<Document> {
+  @computed
+  get recentlyEdited(): Array<Document> {
     return _.take(_.orderBy(this.data.values(), 'updatedAt', 'desc'), 5);
   }
 
-  @computed get starred(): Array<Document> {
+  @computed
+  get starred(): Array<Document> {
     return _.filter(this.data.values(), 'starred');
   }
 
-  @computed get active(): ?Document {
+  @computed
+  get active(): ?Document {
     return this.ui.activeDocumentId
       ? this.getById(this.ui.activeDocumentId)
       : undefined;
@@ -62,10 +66,8 @@ class DocumentsStore extends BaseStore {
 
   /* Actions */
 
-  @action fetchAll = async (
-    request: string = 'list',
-    options: ?Object
-  ): Promise<*> => {
+  @action
+  fetchAll = async (request: string = 'list', options: ?Object): Promise<*> => {
     this.isFetching = true;
 
     try {
@@ -86,11 +88,13 @@ class DocumentsStore extends BaseStore {
     }
   };
 
-  @action fetchRecentlyModified = async (options: ?Object): Promise<*> => {
+  @action
+  fetchRecentlyModified = async (options: ?Object): Promise<*> => {
     return await this.fetchAll('list', options);
   };
 
-  @action fetchRecentlyViewed = async (options: ?Object): Promise<*> => {
+  @action
+  fetchRecentlyViewed = async (options: ?Object): Promise<*> => {
     const data = await this.fetchAll('viewed', options);
 
     runInAction('DocumentsStore#fetchRecentlyViewed', () => {
@@ -99,11 +103,13 @@ class DocumentsStore extends BaseStore {
     return data;
   };
 
-  @action fetchStarred = async (): Promise<*> => {
+  @action
+  fetchStarred = async (): Promise<*> => {
     await this.fetchAll('starred');
   };
 
-  @action search = async (query: string): Promise<*> => {
+  @action
+  search = async (query: string): Promise<*> => {
     const res = await client.get('/documents.search', { query });
     invariant(res && res.data, 'res or res.data missing');
     const { data } = res;
@@ -111,11 +117,13 @@ class DocumentsStore extends BaseStore {
     return data.map(documentData => documentData.id);
   };
 
-  @action prefetchDocument = async (id: string) => {
+  @action
+  prefetchDocument = async (id: string) => {
     if (!this.getById(id)) this.fetch(id, true);
   };
 
-  @action fetch = async (id: string, prefetch?: boolean): Promise<*> => {
+  @action
+  fetch = async (id: string, prefetch?: boolean): Promise<*> => {
     if (!prefetch) this.isFetching = true;
 
     try {
@@ -137,11 +145,13 @@ class DocumentsStore extends BaseStore {
     }
   };
 
-  @action add = (document: Document): void => {
+  @action
+  add = (document: Document): void => {
     this.data.set(document.id, document);
   };
 
-  @action remove = (id: string): void => {
+  @action
+  remove = (id: string): void => {
     this.data.delete(id);
   };
 

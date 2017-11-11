@@ -14,7 +14,9 @@ class Error404 extends React.Component {
 
         <p>We're unable to find the page you're accessing.</p>
 
-        <p>Maybe you want to try <Link to="/search">search</Link> instead?</p>
+        <p>
+          Maybe you want to try <Link to="/search">search</Link> instead?
+        </p>
       </CenteredContent>
     );
   }

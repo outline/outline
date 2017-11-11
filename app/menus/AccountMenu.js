@@ -6,7 +6,8 @@ import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
-@observer class AccountMenu extends Component {
+@observer
+class AccountMenu extends Component {
   props: {
     label?: React$Element<any>,
     history: Object,
@@ -42,9 +43,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
         <Link to="/developers">
           <DropdownMenuItem>API documentation</DropdownMenuItem>
         </Link>
-        <DropdownMenuItem onClick={this.handleLogout}>
-          Logout
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleLogout}>Logout</DropdownMenuItem>
       </DropdownMenu>
     );
   }

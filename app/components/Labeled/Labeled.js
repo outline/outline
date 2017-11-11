@@ -18,11 +18,11 @@ const Labeled = ({ label, children, ...props }: Props) => (
 );
 
 export const Label = styled(Flex)`
-  margin-bottom: ${size.medium};  
+  margin-bottom: ${size.medium};
   font-size: 13px;
   font-weight: 500;
   text-transform: uppercase;
-  color: #9FA6AB;
+  color: #9fa6ab;
   letter-spacing: 0.04em;
 `;
 

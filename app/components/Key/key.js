@@ -5,7 +5,8 @@ import { color } from 'shared/styles/constants';
 const Key = styled.kbd`
   display: inline-block;
   padding: 4px 6px;
-  font: 11px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font: 11px 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier,
+    monospace;
   line-height: 10px;
   color: ${color.text};
   vertical-align: middle;

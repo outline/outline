@@ -17,7 +17,8 @@ type Props = {
   onSubmit: () => void,
 };
 
-@observer class CollectionNew extends Component {
+@observer
+class CollectionNew extends Component {
   props: Props;
   @observable collection: Collection;
   @observable name: string = '';
@@ -56,8 +57,9 @@ type Props = {
     return (
       <form onSubmit={this.handleSubmit}>
         <HelpText>
-          Collections are for grouping your Outline. They work best when organized
-          around a topic or internal team — Product or Engineering for example.
+          Collections are for grouping your Outline. They work best when
+          organized around a topic or internal team — Product or Engineering for
+          example.
         </HelpText>
         <Input
           type="text"

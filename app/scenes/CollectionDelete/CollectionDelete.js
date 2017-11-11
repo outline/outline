@@ -17,7 +17,8 @@ type Props = {
   onSubmit: () => void,
 };
 
-@observer class CollectionDelete extends Component {
+@observer
+class CollectionDelete extends Component {
   props: Props;
   @observable isDeleting: boolean;
 
@@ -42,12 +43,9 @@ type Props = {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            Are you sure? Deleting the
-            {' '}
-            <strong>{collection.name}</strong>
-            {' '}
-            collection is permanant and will also delete all of the documents within
-            it, so be careful with that.
+            Are you sure? Deleting the <strong>{collection.name}</strong>{' '}
+            collection is permanant and will also delete all of the documents
+            within it, so be careful with that.
           </HelpText>
           <Button type="submit" danger>
             {this.isDeleting ? 'Deleting…' : 'Delete'}

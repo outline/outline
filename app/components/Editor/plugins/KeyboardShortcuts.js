@@ -37,7 +37,10 @@ export default function KeyboardShortcuts() {
       const firstNode = state.document.nodes.first();
       if (firstNode === state.startBlock) return;
 
-      state = state.transform().toggleMark(type).apply();
+      state = state
+        .transform()
+        .toggleMark(type)
+        .apply();
       return state;
     },
   };

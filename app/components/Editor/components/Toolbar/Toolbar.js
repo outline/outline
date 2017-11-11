@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import Portal from 'react-portal';
+import { Portal } from 'react-portal';
 import styled from 'styled-components';
 import _ from 'lodash';
 import type { State } from '../../types';
@@ -99,7 +99,9 @@ export default class Toolbar extends Component {
 
       const left =
         rect.left + window.scrollX - this.menu.offsetWidth / 2 + rect.width / 2;
-      data.top = `${Math.round(rect.top + window.scrollY - this.menu.offsetHeight)}px`;
+      data.top = `${Math.round(
+        rect.top + window.scrollY - this.menu.offsetHeight
+      )}px`;
       data.left = `${Math.round(Math.max(padding, left))}px`;
       this.setState(data);
     }
@@ -118,19 +120,17 @@ export default class Toolbar extends Component {
     };
 
     return (
-      <Portal isOpened>
+      <Portal>
         <Menu active={this.state.active} innerRef={this.setRef} style={style}>
-          {link &&
-            <LinkToolbar
-              {...this.props}
-              link={link}
-              onBlur={this.handleBlur}
-            />}
-          {!link &&
+          {link && (
+            <LinkToolbar {...this.props} link={link} onBlur={this.handleBlur} />
+          )}
+          {!link && (
             <FormattingToolbar
               onCreateLink={this.handleFocus}
               {...this.props}
-            />}
+            />
+          )}
         </Menu>
       </Portal>
     );
@@ -144,16 +144,19 @@ const Menu = styled.div`
   top: -10000px;
   left: -10000px;
   opacity: 0;
-  background-color: #2F3336;
+  background-color: #2f3336;
   border-radius: 4px;
-  transform: scale(.95);
-  transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: scale(0.95);
+  transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   line-height: 0;
   height: 40px;
   min-width: 260px;
 
-  ${({ active }) => active && `
+  ${({ active }) =>
+    active &&
+    `
     transform: translateY(-6px) scale(1);
     opacity: 1;
-  `}
+  `};
 `;

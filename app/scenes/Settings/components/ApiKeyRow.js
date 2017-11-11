@@ -12,7 +12,8 @@ type Props = {
   onDelete: Function,
 };
 
-@observer class ApiKeyRow extends React.Component {
+@observer
+class ApiKeyRow extends React.Component {
   props: Props;
   @observable disabled: boolean;
 
@@ -28,7 +29,9 @@ type Props = {
     return (
       <tr>
         <td>{name}</td>
-        <td><code>{secret}</code></td>
+        <td>
+          <code>{secret}</code>
+        </td>
         <td>
           <Action role="button" onClick={this.onClick} disabled={disabled}>
             Action

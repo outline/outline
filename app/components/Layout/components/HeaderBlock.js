@@ -43,14 +43,14 @@ const Header = styled(Flex)`
 
   &:active,
   &:hover {
-    background: rgba(0,0,0,.05);
+    background: rgba(0, 0, 0, 0.05);
   }
 
   &::after {
-    content: "";
+    content: '';
     left: 24px;
     right: 24px;
-    background: rgba(0,0,0,.075);
+    background: rgba(0, 0, 0, 0.075);
     height: 1px;
     position: absolute;
     bottom: 0;

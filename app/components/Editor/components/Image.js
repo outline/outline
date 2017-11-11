@@ -35,26 +35,28 @@ class Image extends Component {
 
     return (
       <CenteredImage>
-        {!readOnly
-          ? <StyledImg
-              {...attributes}
-              src={src}
-              alt={caption}
-              active={active}
-              loading={loading}
-            />
-          : <ImageZoom
-              image={{
-                src,
-                alt: caption,
-                style: {
-                  maxWidth: '100%',
-                },
-                ...attributes,
-              }}
-              shouldRespectMaxDimension
-            />}
-        {showCaption &&
+        {!readOnly ? (
+          <StyledImg
+            {...attributes}
+            src={src}
+            alt={caption}
+            active={active}
+            loading={loading}
+          />
+        ) : (
+          <ImageZoom
+            image={{
+              src,
+              alt: caption,
+              style: {
+                maxWidth: '100%',
+              },
+              ...attributes,
+            }}
+            shouldRespectMaxDimension
+          />
+        )}
+        {showCaption && (
           <Caption
             type="text"
             placeholder="Write a caption"
@@ -64,7 +66,8 @@ class Image extends Component {
             contentEditable={false}
             disabled={readOnly}
             tabIndex={-1}
-          />}
+          />
+        )}
       </CenteredImage>
     );
   }

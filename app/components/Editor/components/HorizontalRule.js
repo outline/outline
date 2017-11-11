@@ -11,10 +11,11 @@ function HorizontalRule(props: Props) {
 }
 
 const StyledHr = styled.hr`
-  padding-top: .75em;
+  padding-top: 0.75em;
   margin: 0;
   border: 0;
-  border-bottom: 1px solid ${props => (props.active ? color.slate : color.slateLight)};
+  border-bottom: 1px solid
+    ${props => (props.active ? color.slate : color.slateLight)};
 `;
 
 export default HorizontalRule;

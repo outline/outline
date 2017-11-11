@@ -15,9 +15,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import CacheStore from 'stores/CacheStore';
 import globalStyles from 'shared/styles/globals';
-
-import 'styles/transitions.css';
-import 'styles/prism.css';
+import 'shared/styles/prism.css';
 
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
@@ -84,9 +82,7 @@ const Auth = ({ children }: AuthProps) => {
 
     return (
       <Flex auto>
-        <Provider {...authenticatedStores}>
-          {children}
-        </Provider>
+        <Provider {...authenticatedStores}>{children}</Provider>
       </Flex>
     );
   } else {

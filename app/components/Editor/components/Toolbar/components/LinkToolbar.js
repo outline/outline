@@ -39,7 +39,8 @@ class LinkToolbar extends Component {
     this.isEditing = !!this.props.link.data.get('href');
   }
 
-  @action search = async () => {
+  @action
+  search = async () => {
     this.isFetching = true;
 
     if (this.searchTerm) {
@@ -144,15 +145,16 @@ class LinkToolbar extends Component {
             onChange={this.onChange}
             autoFocus
           />
-          {this.isEditing &&
+          {this.isEditing && (
             <ToolbarButton onMouseDown={this.openLink}>
               <OpenIcon light />
-            </ToolbarButton>}
+            </ToolbarButton>
+          )}
           <ToolbarButton onMouseDown={this.removeLink}>
             {this.isEditing ? <TrashIcon light /> : <CloseIcon light />}
           </ToolbarButton>
         </LinkEditor>
-        {hasResults &&
+        {hasResults && (
           <SearchResults>
             <ArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
@@ -165,7 +167,8 @@ class LinkToolbar extends Component {
                 return (
                   <DocumentResult
                     innerRef={ref =>
-                      index === 0 && this.setFirstDocumentRef(ref)}
+                      index === 0 && this.setFirstDocumentRef(ref)
+                    }
                     document={document}
                     key={document.id}
                     onClick={ev => this.selectDocument(ev, document)}
@@ -173,14 +176,15 @@ class LinkToolbar extends Component {
                 );
               })}
             </ArrowKeyNavigation>
-          </SearchResults>}
+          </SearchResults>
+        )}
       </span>
     );
   }
 }
 
 const SearchResults = styled.div`
-  background: #2F3336;
+  background: #2f3336;
   position: absolute;
   top: 100%;
   width: 100%;
@@ -199,7 +203,7 @@ const LinkEditor = styled(Flex)`
 
 const Input = styled.input`
   font-size: 15px;
-  background: rgba(255,255,255,.1);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
   padding: 4px 8px;
   border: 0;

@@ -31,7 +31,8 @@ type Props = {
   ui: UiStore,
 };
 
-@observer class SidebarCollections extends Component {
+@observer
+class SidebarCollections extends Component {
   props: Props;
 
   render() {
@@ -61,13 +62,14 @@ type Props = {
           />
         ))}
 
-        {collections.isLoaded &&
+        {collections.isLoaded && (
           <SidebarLink
             onClick={this.props.onCreateCollection}
             icon={<PlusIcon />}
           >
             New collection…
-          </SidebarLink>}
+          </SidebarLink>
+        )}
       </Flex>
     );
   }
@@ -82,7 +84,8 @@ type CollectionLinkProps = {
   prefetchDocument: (id: string) => Promise<void>,
 };
 
-@observer class CollectionLink extends Component {
+@observer
+class CollectionLink extends Component {
   props: CollectionLinkProps;
   dropzoneRef;
 
@@ -133,7 +136,7 @@ type CollectionLinkProps = {
             </CollectionAction>
           </Flex>
 
-          {expanded &&
+          {expanded && (
             <Children column>
               {collection.documents.map(document => (
                 <DocumentLink
@@ -146,7 +149,8 @@ type CollectionLinkProps = {
                   depth={0}
                 />
               ))}
-            </Children>}
+            </Children>
+          )}
         </SidebarLink>
       </StyledDropToImport>
     );
@@ -172,11 +176,13 @@ const DocumentLink = observer(
   }: DocumentLinkProps) => {
     const isActiveDocument =
       activeDocument && activeDocument.id === document.id;
-    const showChildren = !!(activeDocument &&
+    const showChildren = !!(
+      activeDocument &&
       (activeDocument.pathToDocument
         .map(entry => entry.id)
         .includes(document.id) ||
-        isActiveDocument));
+        isActiveDocument)
+    );
 
     const handleMouseEnter = (event: SyntheticEvent) => {
       event.stopPropagation();
@@ -194,26 +200,28 @@ const DocumentLink = observer(
         <DropToImport
           history={history}
           documentId={document.id}
-          activeStyle="activeDropZone"
+          activeClassName="activeDropZone"
         >
           <SidebarLink
             to={document.url}
             expand={showChildren}
             expandedContent={
-              document.children.length
-                ? <Children column>
-                    {document.children.map(childDocument => (
-                      <DocumentLink
-                        key={childDocument.id}
-                        history={history}
-                        document={childDocument}
-                        activeDocument={activeDocument}
-                        prefetchDocument={prefetchDocument}
-                        depth={depth + 1}
-                      />
-                    ))}
-                  </Children>
-                : undefined
+              document.children.length ? (
+                <Children column>
+                  {document.children.map(childDocument => (
+                    <DocumentLink
+                      key={childDocument.id}
+                      history={history}
+                      document={childDocument}
+                      activeDocument={activeDocument}
+                      prefetchDocument={prefetchDocument}
+                      depth={depth + 1}
+                    />
+                  ))}
+                </Children>
+              ) : (
+                undefined
+              )
             }
           >
             {document.title}
@@ -228,10 +236,14 @@ const CollectionAction = styled.a`
   position: absolute;
   right: 0;
   color: ${color.slate};
-  svg { opacity: .75; }
+  svg {
+    opacity: 0.75;
+  }
 
   &:hover {
-    svg { opacity: 1; }
+    svg {
+      opacity: 1;
+    }
   }
 `;
 

@@ -15,7 +15,7 @@ const Subheading = styled.h3`
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
-  color: #9FA6AB;
+  color: #9fa6ab;
   letter-spacing: 0.04em;
   border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
@@ -26,7 +26,8 @@ type Props = {
   documents: DocumentsStore,
 };
 
-@observer class Dashboard extends Component {
+@observer
+class Dashboard extends Component {
   props: Props;
   @observable isLoaded: boolean = false;
 
@@ -53,20 +54,24 @@ type Props = {
       <CenteredContent>
         <PageTitle title="Home" />
         <h1>Home</h1>
-        {showContent
-          ? <Flex column>
-              {recentlyViewedLoaded &&
-                <Flex column>
-                  <Subheading>Recently viewed</Subheading>
-                  <DocumentList documents={documents.recentlyViewed} />
-                </Flex>}
-              {recentlyEditedLoaded &&
-                <Flex column>
-                  <Subheading>Recently edited</Subheading>
-                  <DocumentList documents={documents.recentlyEdited} />
-                </Flex>}
-            </Flex>
-          : <ListPlaceholder count={5} />}
+        {showContent ? (
+          <Flex column>
+            {recentlyViewedLoaded && (
+              <Flex column>
+                <Subheading>Recently viewed</Subheading>
+                <DocumentList documents={documents.recentlyViewed} />
+              </Flex>
+            )}
+            {recentlyEditedLoaded && (
+              <Flex column>
+                <Subheading>Recently edited</Subheading>
+                <DocumentList documents={documents.recentlyEdited} />
+              </Flex>
+            )}
+          </Flex>
+        ) : (
+          <ListPlaceholder count={5} />
+        )}
       </CenteredContent>
     );
   }

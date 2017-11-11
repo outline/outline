@@ -27,7 +27,6 @@ function Heading(props: Props) {
     children,
     component = 'h1',
     attributes,
-    ...rest
   } = props;
   const parentIsDocument = parent instanceof Document;
   const firstHeading = parentIsDocument && parent.nodes.first() === node;
@@ -41,27 +40,30 @@ function Heading(props: Props) {
     emoji && title.match(new RegExp(`^${emoji}\\s`));
 
   return (
-    <Component {...attributes} {...rest} id={slugish}>
-      <Wrapper hasEmoji={startsWithEmojiAndSpace}>
-        {children}
-      </Wrapper>
-      {showPlaceholder &&
+    <Component {...attributes} id={slugish}>
+      <Wrapper hasEmoji={startsWithEmojiAndSpace}>{children}</Wrapper>
+      {showPlaceholder && (
         <Placeholder contentEditable={false}>
           {editor.props.placeholder}
-        </Placeholder>}
-      {showHash && <Anchor name={slugish} href={`#${slugish}`}>#</Anchor>}
+        </Placeholder>
+      )}
+      {showHash && (
+        <Anchor name={slugish} href={`#${slugish}`}>
+          #
+        </Anchor>
+      )}
     </Component>
   );
 }
 
 const Wrapper = styled.div`
   display: inline;
-  margin-left: ${(props: Props) => (props.hasEmoji ? '-1.2em' : 0)}
+  margin-left: ${(props: Props) => (props.hasEmoji ? '-1.2em' : 0)};
 `;
 
 const Anchor = styled.a`
   visibility: hidden;
-  padding-left: .25em;
+  padding-left: 0.25em;
   color: #dedede;
 
   &:hover {

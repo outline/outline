@@ -43,20 +43,23 @@ class CollectionsStore {
   cache: CacheStore;
   ui: UiStore;
 
-  @computed get active(): ?Collection {
+  @computed
+  get active(): ?Collection {
     return this.ui.activeCollectionId
       ? this.getById(this.ui.activeCollectionId)
       : undefined;
   }
 
-  @computed get orderedData(): Collection[] {
+  @computed
+  get orderedData(): Collection[] {
     return _.sortBy(this.data, 'name');
   }
 
   /**
    * List of paths to each of the documents, where paths are composed of id and title/name pairs
    */
-  @computed get pathsToDocuments(): Array<DocumentPath> {
+  @computed
+  get pathsToDocuments(): Array<DocumentPath> {
     let results = [];
     const travelDocuments = (documentList, path) =>
       documentList.forEach(document => {
@@ -95,7 +98,8 @@ class CollectionsStore {
 
   /* Actions */
 
-  @action fetchAll = async (): Promise<*> => {
+  @action
+  fetchAll = async (): Promise<*> => {
     try {
       const res = await this.client.post('/collections.list', {
         id: this.teamId,
@@ -111,7 +115,8 @@ class CollectionsStore {
     }
   };
 
-  @action fetchById = async (id: string): Promise<?Collection> => {
+  @action
+  fetchById = async (id: string): Promise<?Collection> => {
     let collection = this.getById(id);
     if (!collection) {
       try {
@@ -133,11 +138,13 @@ class CollectionsStore {
     return collection;
   };
 
-  @action add = (collection: Collection): void => {
+  @action
+  add = (collection: Collection): void => {
     this.data.push(collection);
   };
 
-  @action remove = (id: string): void => {
+  @action
+  remove = (id: string): void => {
     this.data.splice(this.data.indexOf(id), 1);
   };
 

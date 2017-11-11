@@ -97,7 +97,9 @@ class DropToImport extends Component {
       'documentId',
       'collectionId',
       'documents',
-      'disabled'
+      'disabled',
+      'dropzoneRef',
+      'menuOpen'
     );
 
     if (this.props.disabled) return this.props.children;
