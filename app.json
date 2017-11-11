@@ -28,7 +28,7 @@
     "REDIS_URL": {
       "required": true
     },
-    "SEQUELIZE_SECRET": {
+    "SECRET_KEY": {
       "required": true
     },
     "SLACK_KEY": {
@@ -51,7 +51,10 @@
     }
   },
   "formation": {},
-  "addons": ["heroku-postgresql", "heroku-redis"],
+  "addons": [
+    "heroku-postgresql",
+    "heroku-redis"
+  ],
   "buildpacks": [
     {
       "url": "heroku/nodejs"
