@@ -8414,9 +8414,9 @@ styled-components-grid@^1.0.0-preview.15:
     react-create-component-from-tag-prop "^1.2.1"
     styled-components-breakpoint "^1.0.1"
 
-styled-components@^2.0.0:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-2.1.2.tgz#bb419978e1287c5d0d88fa9106b2dd75f66a324c"
+styled-components@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.npmjs.org/styled-components/-/styled-components-2.2.3.tgz#154575c269880c840f903f580287dab155cf684c"
   dependencies:
     buffer "^5.0.3"
     css-to-react-native "^2.0.3"
@@ -8425,12 +8425,16 @@ styled-components@^2.0.0:
     is-function "^1.0.1"
     is-plain-object "^2.0.1"
     prop-types "^15.5.4"
-    stylis "^3.2.1"
+    stylis "3.x"
     supports-color "^3.2.3"
 
 styled-normalize@^2.2.1:
   version "2.2.1"
   resolved "https://registry.npmjs.org/styled-normalize/-/styled-normalize-2.2.1.tgz#c93a007c0339a69e3254eeef8cb6a5a96e5ca4eb"
+
+stylis@3.x:
+  version "3.4.1"
+  resolved "https://registry.npmjs.org/stylis/-/stylis-3.4.1.tgz#46896ff4c51fbb58e44815eae5e0b2180a1f1fcb"
 
 stylis@^3.2.1:
   version "3.2.15"

@@ -153,7 +153,7 @@
     "slug": "0.9.1",
     "string-hash": "^1.1.0",
     "style-loader": "^0.18.2",
-    "styled-components": "^2.0.0",
+    "styled-components": "^2.2.3",
     "styled-components-grid": "^1.0.0-preview.15",
     "styled-normalize": "^2.2.1",
     "url-loader": "0.5.7",
