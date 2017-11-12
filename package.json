@@ -134,7 +134,7 @@
     "react-medium-image-zoom": "^3.0.2",
     "react-modal": "^3.1.2",
     "react-portal": "^4.0.0",
-    "react-router-dom": "^4.1.1",
+    "react-router-dom": "^4.2.0",
     "redis": "^2.6.2",
     "redis-lock": "^0.1.0",
     "rimraf": "^2.5.4",

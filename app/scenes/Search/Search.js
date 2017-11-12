@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
 import { observable, action } from 'mobx';
@@ -55,21 +55,21 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 `;
 
 @observer
-class Search extends React.Component {
+class Search extends Component {
   firstDocument: HTMLElement;
   props: Props;
 
   @observable resultIds: string[] = []; // Document IDs
-  @observable searchTerm: ?string = null;
+  @observable query: string = '';
   @observable isFetching = false;
 
   componentDidMount() {
-    this.updateSearchResults();
+    this.handleQueryChange();
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.match.params.query !== this.props.match.params.query) {
-      this.updateSearchResults();
+      this.handleQueryChange();
     }
   }
 
@@ -90,24 +90,26 @@ class Search extends React.Component {
       ev.preventDefault();
       if (this.firstDocument) {
         const element = ReactDOM.findDOMNode(this.firstDocument);
-        // $FlowFixMe
-        if (element && element.focus) element.focus();
+        if (element instanceof HTMLElement) element.focus();
       }
     }
   };
 
-  updateSearchResults = _.debounce(() => {
-    this.search(this.props.match.params.query);
-  }, 250);
+  handleQueryChange = () => {
+    const query = this.props.match.params.query;
+    this.query = query ? decodeURIComponent(query) : '';
+    this.fetchResultsDebounced();
+  };
+
+  fetchResultsDebounced = _.debounce(this.fetchResults, 250);
 
   @action
-  search = async (query: string) => {
-    this.searchTerm = query;
+  fetchResults = async () => {
     this.isFetching = true;
 
-    if (query) {
+    if (this.query) {
       try {
-        this.resultIds = await this.props.documents.search(query);
+        this.resultIds = await this.props.documents.search(this.query);
       } catch (e) {
         console.error('Something went wrong');
       }
@@ -118,7 +120,7 @@ class Search extends React.Component {
     this.isFetching = false;
   };
 
-  updateQuery = query => {
+  updateLocation = query => {
     this.props.history.replace(searchUrl(query));
   };
 
@@ -127,7 +129,7 @@ class Search extends React.Component {
   };
 
   get title() {
-    const query = this.searchTerm;
+    const query = this.query;
     const title = 'Search';
     if (query) return `${query} - ${title}`;
     return title;
@@ -135,9 +137,8 @@ class Search extends React.Component {
 
   render() {
     const { documents, notFound } = this.props;
-    const query = this.props.match.params.query;
     const hasResults = this.resultIds.length > 0;
-    const showEmpty = !this.isFetching && this.searchTerm && !hasResults;
+    const showEmpty = !this.isFetching && this.query && !hasResults;
 
     return (
       <Container auto>
@@ -151,12 +152,11 @@ class Search extends React.Component {
         )}
         <ResultsWrapper pinToTop={hasResults} column auto>
           <SearchField
-            searchTerm={this.searchTerm}
             onKeyDown={this.handleKeyDown}
-            onChange={this.updateQuery}
-            value={query || ''}
+            onChange={this.updateLocation}
+            value={this.query}
           />
-          {showEmpty && <Empty>Oop, no matching documents.</Empty>}
+          {showEmpty && <Empty>No matching documents.</Empty>}
           <ResultList visible={hasResults}>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
@@ -172,7 +172,7 @@ class Search extends React.Component {
                     }
                     key={documentId}
                     document={document}
-                    highlight={this.searchTerm}
+                    highlight={this.query}
                     showCollection
                   />
                 );
