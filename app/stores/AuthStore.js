@@ -2,6 +2,7 @@
 import { observable, action, computed, autorun } from 'mobx';
 import invariant from 'invariant';
 import Cookie from 'js-cookie';
+import localForage from 'localforage';
 import { client } from 'utils/ApiClient';
 import type { User, Team } from 'types';
 
@@ -37,6 +38,7 @@ class AuthStore {
   logout = () => {
     this.user = null;
     this.token = null;
+    localForage.clear();
     Cookie.remove('loggedIn', { path: '/' });
   };
 
