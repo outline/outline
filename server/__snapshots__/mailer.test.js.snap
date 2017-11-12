@@ -2,7 +2,7 @@
 
 exports[`Mailer #welcome 1`] = `
 Object {
-  "from": "Outline <hello@mail.getoutline.com>",
+  "from": "hello@example.com",
   "html": "
       <!DOCTYPE html PUBLIC \\"-//W3C//DTD XHTML 1.0 Strict//EN\\" \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\\">
       <html
