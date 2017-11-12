@@ -29,7 +29,9 @@ const Collaborators = ({ document }: Props) => {
     <Avatars>
       <StyledTooltip tooltip={tooltip} placement="bottom">
         {collaborators.map(user => (
-          <Avatar key={user.id} src={user.avatarUrl} />
+          <AvatarWrapper>
+            <Avatar key={user.id} src={user.avatarUrl} />
+          </AvatarWrapper>
         ))}
       </StyledTooltip>
     </Avatars>
@@ -41,17 +43,19 @@ const StyledTooltip = styled(Tooltip)`
   flex-direction: row-reverse;
 `;
 
+const AvatarWrapper = styled.div`
+  width: 24px;
+  height: 24px;
+  margin-right: -10px;
+
+  &:first-child {
+    margin-right: 0;
+  }
+`;
+
 const Avatars = styled(Flex)`
   align-items: center;
   flex-direction: row-reverse;
-
-  ${Avatar} & {
-    margin-right: -10px;
-  }
-
-  ${Avatar} &:first-child {
-    margin-right: 0;
-  }
 `;
 
 export default Collaborators;
