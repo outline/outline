@@ -1,6 +1,7 @@
 // @flow
 import Koa from 'koa';
 import Router from 'koa-router';
+import httpErrors from 'http-errors';
 import { Mailer } from '../mailer';
 
 const emailPreviews = new Koa();
@@ -18,7 +19,7 @@ router.get('/:type/:format', async ctx => {
       previewMailer.welcome('user@example.com');
       break;
     default:
-      console.log(1);
+      throw httpErrors.NotFound();
   }
 
   if (!mailerOutput) return;
