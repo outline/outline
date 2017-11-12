@@ -2,12 +2,14 @@
 import React from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
+import Avatar from 'components/Avatar';
 import Tooltip from 'components/Tooltip';
 import Document from 'models/Document';
 
-const Collaborators = function({ document }: { document: Document }) {
+type Props = { document: Document };
+
+const Collaborators = ({ document }: Props) => {
   const {
     createdAt,
     updatedAt,
@@ -40,19 +42,14 @@ const StyledTooltip = styled(Tooltip)`
 `;
 
 const Avatars = styled(Flex)`
+  align-items: center;
   flex-direction: row-reverse;
-  height: 26px;
-`;
 
-const Avatar = styled.img`
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  border: 2px solid ${color.white};
-  margin-right: -10px;
+  ${Avatar} & {
+    margin-right: -10px;
+  }
 
-  &:first-child {
+  ${Avatar} &:first-child {
     margin-right: 0;
   }
 `;
