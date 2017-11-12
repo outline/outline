@@ -82,7 +82,7 @@ export function newDocumentUrl(collection: Collection): string {
 }
 
 export function searchUrl(query?: string): string {
-  if (query) return `/search/${query}`;
+  if (query) return `/search/${encodeURIComponent(query)}`;
   return `/search`;
 }
 
