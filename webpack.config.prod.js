@@ -37,6 +37,7 @@ productionWebpackConfig.plugins.push(
 productionWebpackConfig.plugins.push(
   new webpack.DefinePlugin({
     'process.env': {
+      URL: JSON.stringify(process.env.URL),
       NODE_ENV: JSON.stringify('production'),
       GOOGLE_ANALYTICS_ID: JSON.stringify(process.env.GOOGLE_ANALYTICS_ID),
     },

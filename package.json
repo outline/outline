@@ -4,10 +4,8 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build:webpack":
-      "NODE_ENV=production webpack --config webpack.config.prod.js",
-    "build:analyze":
-      "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
+    "build:webpack": "NODE_ENV=production webpack --config webpack.config.prod.js",
+    "build:analyze": "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development nodemon --inspect --watch server index.js",
@@ -20,24 +18,39 @@
     "sequelize:migrate": "sequelize db:migrate",
     "test": "npm run test:app && npm run test:server",
     "test:app": "jest",
-    "test:server":
-      "jest --config=server/.jestconfig.json --runInBand --forceExit",
+    "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.js": ["eslint --fix", "git add"]
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "jest": {
     "verbose": false,
-    "roots": ["app"],
+    "roots": [
+      "app"
+    ],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },
-    "moduleFileExtensions": ["js", "jsx", "json"],
-    "moduleDirectories": ["node_modules"],
-    "modulePaths": ["app"],
-    "setupFiles": ["<rootDir>/setupJest.js", "<rootDir>/__mocks__/window.js"]
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "modulePaths": [
+      "app"
+    ],
+    "setupFiles": [
+      "<rootDir>/setupJest.js",
+      "<rootDir>/__mocks__/window.js"
+    ]
   },
   "engines": {
     "node": ">= 7.6"
@@ -117,8 +130,10 @@
     "mobx-react-devtools": "^4.2.11",
     "moment": "2.13.0",
     "node-dev": "3.1.0",
+    "nodemailer": "^4.4.0",
     "normalize.css": "^7.0.0",
     "normalizr": "2.0.1",
+    "oy-vey": "^0.10.0",
     "pg": "^6.1.5",
     "pg-hstore": "2.3.2",
     "polished": "1.2.1",

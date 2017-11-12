@@ -10,6 +10,12 @@ afterAll(server.close);
 
 describe.skip('#auth.signup', async () => {
   it('should signup a new user', async () => {
+    const welcomeEmailMock = jest.fn();
+    jest.doMock('../mailer', () => {
+      return {
+        welcome: welcomeEmailMock,
+      };
+    });
     const res = await server.post('/api/auth.signup', {
       body: {
         username: 'testuser',
@@ -23,6 +29,7 @@ describe.skip('#auth.signup', async () => {
     expect(res.status).toEqual(200);
     expect(body.ok).toBe(true);
     expect(body.data.user).toBeTruthy();
+    expect(welcomeEmailMock).toBeCalledWith('new.user@example.com');
   });
 
   it('should require params', async () => {

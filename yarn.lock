@@ -1517,6 +1517,12 @@ clean-css@3.4.x:
     commander "2.8.x"
     source-map "0.4.x"
 
+clean-css@^4.0.12:
+  version "4.1.9"
+  resolved "https://registry.yarnpkg.com/clean-css/-/clean-css-4.1.9.tgz#35cee8ae7687a49b98034f70de00c4edd3826301"
+  dependencies:
+    source-map "0.5.x"
+
 cli-color@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/cli-color/-/cli-color-1.2.0.tgz#3a5ae74fd76b6267af666e69e2afbbd01def34d1"
@@ -6175,6 +6181,10 @@ node-pre-gyp@0.6.36, node-pre-gyp@^0.6.36:
     tar "^2.2.1"
     tar-pack "^3.4.0"
 
+nodemailer@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-4.4.0.tgz#571989e524a906fb83b1518f3e4c0d3140db24af"
+
 nodemon@1.11.0:
   version "1.11.0"
   resolved "https://registry.yarnpkg.com/nodemon/-/nodemon-1.11.0.tgz#226c562bd2a7b13d3d7518b49ad4828a3623d06c"
@@ -6491,6 +6501,14 @@ osenv@^0.1.0, osenv@^0.1.4:
 "over@>= 0.0.5 < 1":
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/over/-/over-0.0.5.tgz#f29852e70fd7e25f360e013a8ec44c82aedb5708"
+
+oy-vey@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/oy-vey/-/oy-vey-0.10.0.tgz#16160f837f0ea3d0340adfc2377ba93d1ed9ce76"
+  dependencies:
+    clean-css "^4.0.12"
+    object-assign "^4.1.1"
+    sanitizer "^0.1.3"
 
 p-cancelable@^0.3.0:
   version "0.3.0"
@@ -7827,6 +7845,10 @@ sane@~1.6.0:
     walker "~1.0.5"
     watch "~0.10.0"
 
+sanitizer@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/sanitizer/-/sanitizer-0.1.3.tgz#d4f0af7475d9a7baf2a9e5a611718baa178a39e1"
+
 sax@1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.1.tgz#7b8e656190b228e81a66aea748480d828cd2d37a"
@@ -8177,7 +8199,7 @@ source-map@0.5.6:
   version "0.5.6"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.6.tgz#75ce38f52bf0733c5a7f0c118d81334a2bb5f412"
 
-source-map@^0.5.3, source-map@^0.5.6, source-map@^0.5.7, source-map@~0.5.0, source-map@~0.5.1, source-map@~0.5.3:
+source-map@0.5.x, source-map@^0.5.3, source-map@^0.5.6, source-map@^0.5.7, source-map@~0.5.0, source-map@~0.5.1, source-map@~0.5.3:
   version "0.5.7"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
 
