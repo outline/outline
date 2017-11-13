@@ -1,5 +1,7 @@
 // @flow
 import React, { Component } from 'react';
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
 import { Portal } from 'react-portal';
 import styled from 'styled-components';
 import _ from 'lodash';
@@ -7,28 +9,20 @@ import type { State } from '../../types';
 import FormattingToolbar from './components/FormattingToolbar';
 import LinkToolbar from './components/LinkToolbar';
 
+@observer
 export default class Toolbar extends Component {
+  @observable active: boolean = false;
+  @observable focused: boolean = false;
+  @observable link: ?React$Element<any>;
+  @observable top: string = '';
+  @observable left: string = '';
+
   props: {
     state: State,
-    onChange: Function,
+    onChange: (state: State) => void,
   };
 
   menu: HTMLElement;
-  state: {
-    active: boolean,
-    focused: boolean,
-    link: React$Element<any>,
-    top: string,
-    left: string,
-  };
-
-  state = {
-    active: false,
-    focused: false,
-    link: null,
-    top: '',
-    left: '',
-  };
 
   componentDidMount = () => {
     this.update();
@@ -39,11 +33,11 @@ export default class Toolbar extends Component {
   };
 
   handleFocus = () => {
-    this.setState({ focused: true });
+    this.focused = true;
   };
 
   handleBlur = () => {
-    this.setState({ focused: false });
+    this.focused = false;
   };
 
   get linkInSelection(): any {
@@ -66,8 +60,11 @@ export default class Toolbar extends Component {
     const link = this.linkInSelection;
 
     if (state.isBlurred || (state.isCollapsed && !link)) {
-      if (this.state.active && !this.state.focused) {
-        this.setState({ active: false, link: null, top: '', left: '' });
+      if (this.active && !this.focused) {
+        this.active = false;
+        this.link = undefined;
+        this.top = '';
+        this.left = '';
       }
       return;
     }
@@ -79,32 +76,25 @@ export default class Toolbar extends Component {
     // don't display toolbar for code blocks
     if (state.startBlock.type === 'code') return;
 
-    const data = {
-      ...this.state,
-      active: true,
-      link,
-      focused: !!link,
-    };
+    this.active = true;
+    this.focused = !!link;
+    this.link = link;
 
-    if (!_.isEqual(data, this.state)) {
-      const padding = 16;
-      const selection = window.getSelection();
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
+    const padding = 16;
+    const selection = window.getSelection();
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
 
-      if (rect.top === 0 && rect.left === 0) {
-        this.setState(data);
-        return;
-      }
-
-      const left =
-        rect.left + window.scrollX - this.menu.offsetWidth / 2 + rect.width / 2;
-      data.top = `${Math.round(
-        rect.top + window.scrollY - this.menu.offsetHeight
-      )}px`;
-      data.left = `${Math.round(Math.max(padding, left))}px`;
-      this.setState(data);
+    if (rect.top === 0 && rect.left === 0) {
+      return;
     }
+
+    const left =
+      rect.left + window.scrollX - this.menu.offsetWidth / 2 + rect.width / 2;
+    this.top = `${Math.round(
+      rect.top + window.scrollY - this.menu.offsetHeight
+    )}px`;
+    this.left = `${Math.round(Math.max(padding, left))}px`;
   };
 
   setRef = (ref: HTMLElement) => {
@@ -112,20 +102,21 @@ export default class Toolbar extends Component {
   };
 
   render() {
-    const link = this.state.link;
-
     const style = {
-      top: this.state.top,
-      left: this.state.left,
+      top: this.top,
+      left: this.left,
     };
 
     return (
       <Portal>
-        <Menu active={this.state.active} innerRef={this.setRef} style={style}>
-          {link && (
-            <LinkToolbar {...this.props} link={link} onBlur={this.handleBlur} />
-          )}
-          {!link && (
+        <Menu active={this.active} innerRef={this.setRef} style={style}>
+          {this.link ? (
+            <LinkToolbar
+              {...this.props}
+              link={this.link}
+              onBlur={this.handleBlur}
+            />
+          ) : (
             <FormattingToolbar
               onCreateLink={this.handleFocus}
               {...this.props}
