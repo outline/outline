@@ -26,7 +26,7 @@ class ErrorBoundary extends Component {
     if (this.error) {
       return (
         <CenteredContent>
-          <PageTitle title="Unknown Error" />
+          <PageTitle title="Something went wrong" />
           <h1>Something went wrong</h1>
           <p>
             An unrecoverable error occurred. Please try{' '}
