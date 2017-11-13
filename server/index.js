@@ -8,6 +8,7 @@ import bugsnag from 'bugsnag';
 import updates from './utils/updates';
 
 import api from './api';
+import emails from './emails';
 import routes from './routes';
 
 const app = new Koa();
@@ -71,6 +72,10 @@ if (process.env.NODE_ENV === 'production' && process.env.BUGSNAG_KEY) {
   app.on('error', bugsnag.koaHandler);
 }
 
+if (process.env.NODE_ENV === 'development') {
+  app.use(mount('/emails', emails));
+}
+
 app.use(mount('/api', api));
 app.use(mount(routes));
 
@@ -85,7 +90,7 @@ app.use(
 
 /**
  * Production updates and anonymous analytics.
- * 
+ *
  * Set ENABLE_UPDATES=false to disable them for your installation
  */
 if (
