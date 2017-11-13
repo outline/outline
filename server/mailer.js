@@ -46,6 +46,7 @@ class Mailer {
       try {
         await transporter.sendMail({
           from: process.env.SMTP_SENDER_EMAIL,
+          replyTo: process.env.SMTP_REPLY_TO || process.env.SMTP_SENDER_EMAIL,
           to: data.to,
           subject: data.title,
           html: html,

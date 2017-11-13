@@ -49,6 +49,7 @@ Object {
         </body>
       </html>
     ",
+  "replyTo": "hello@example.com",
   "subject": "Welcome to Outline",
   "text": "
 Welcome to Outline!
