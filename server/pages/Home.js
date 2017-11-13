@@ -42,7 +42,11 @@ function Home() {
             </Feature>
           </Grid.Unit>
           <Feature size={{ desktop: 2 / 3 }}>
-            <Screenshot src="/screenshot.png" />
+            <Screenshot
+              srcset="screenshot.png, screenshot@2x.png 2x"
+              src="/screenshot@2x.png"
+              alt="Outline Screenshot"
+            />
           </Feature>
         </Features>
         <Highlights id="features">
