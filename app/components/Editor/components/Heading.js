@@ -15,6 +15,7 @@ type Props = {
   readOnly: boolean,
   component?: string,
   attributes: Object,
+  className?: string,
 };
 
 function Heading(props: Props) {
@@ -26,6 +27,7 @@ function Heading(props: Props) {
     readOnly,
     children,
     component = 'h1',
+    className,
     attributes,
   } = props;
   const parentIsDocument = parent instanceof Document;
@@ -40,7 +42,7 @@ function Heading(props: Props) {
     emoji && title.match(new RegExp(`^${emoji}\\s`));
 
   return (
-    <Component {...attributes} id={slugish}>
+    <Component {...attributes} id={slugish} className={className}>
       <Wrapper hasEmoji={startsWithEmojiAndSpace}>{children}</Wrapper>
       {showPlaceholder && (
         <Placeholder contentEditable={false}>
