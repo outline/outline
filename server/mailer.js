@@ -2,7 +2,6 @@
 import React from 'react';
 import nodemailer from 'nodemailer';
 import Oy from 'oy-vey';
-import invariant from 'invariant';
 import { baseStyles } from './emails/components/EmailLayout';
 
 import { WelcomeEmail, welcomeEmailText } from './emails/WelcomeEmail';
@@ -22,8 +21,8 @@ type SendMailType = {
  *
  * Mailer class to contruct and send emails.
  *
- * To preview emails, add a new preview to `emails/index.js` and visit following
- * URLs in development mode:
+ * To preview emails, add a new preview to `emails/index.js` if they
+ * require additional data (properties). Otherwise preview will work automatically.
  *
  * HTML: http://localhost:3000/email/:email_type/html
  * TEXT: http://localhost:3000/email/:email_type/text
@@ -35,16 +34,17 @@ class Mailer {
    *
    */
   sendMail = async (data: SendMailType): ?Promise<*> => {
-    if (this.transporter) {
+    const { transporter } = this;
+
+    if (transporter) {
       const html = Oy.renderTemplate(data.html, {
         title: data.title,
         headCSS: [baseStyles, data.headCSS].join(' '),
         previewText: data.previewText,
       });
 
-      invariant(this.transporter, 'very sure this.transporter exists');
       try {
-        await this.transporter.sendMail({
+        await transporter.sendMail({
           from: process.env.SMTP_SENDER_EMAIL,
           to: data.to,
           subject: data.title,

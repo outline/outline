@@ -15,11 +15,14 @@ router.get('/:type/:format', async ctx => {
   };
 
   switch (ctx.params.type) {
-    case 'welcome':
-      previewMailer.welcome('user@example.com');
-      break;
+    // case 'emailWithProperties':
+    //   previewMailer.emailWithProperties('user@example.com', {...properties});
+    //   break;
     default:
-      throw httpErrors.NotFound();
+      if (Object.getOwnPropertyNames(previewMailer).includes(ctx.params.type)) {
+        // $FlowIssue flow doesn't like this but we're ok with it
+        previewMailer[ctx.params.type]('user@example.com');
+      } else throw httpErrors.NotFound();
   }
 
   if (!mailerOutput) return;
