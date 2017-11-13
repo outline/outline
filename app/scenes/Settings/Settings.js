@@ -1,5 +1,6 @@
 // @flow
-import React from 'react';
+import React, { Component } from 'react';
+import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
@@ -15,7 +16,7 @@ import { Label } from 'components/Labeled';
 import SlackAuthLink from 'components/SlackAuthLink';
 
 @observer
-class Settings extends React.Component {
+class Settings extends Component {
   store: SettingsStore;
 
   constructor() {
@@ -89,7 +90,8 @@ class Settings extends React.Component {
   }
 }
 
-class InlineForm extends React.Component {
+@observer
+class InlineForm extends Component {
   props: {
     placeholder: string,
     buttonLabel: string,
@@ -99,11 +101,9 @@ class InlineForm extends React.Component {
     onSubmit: Function,
     disabled?: ?boolean,
   };
-  validationTimeout: number;
 
-  state = {
-    validationError: false,
-  };
+  @observable validationError: boolean = false;
+  validationTimeout: number;
 
   componentWillUnmount() {
     clearTimeout(this.validationTimeout);
@@ -114,14 +114,9 @@ class InlineForm extends React.Component {
     if (this.props.value) {
       this.props.onSubmit();
     } else {
-      this.setState({
-        validationError: true,
-      });
+      this.validationError = true;
       this.validationTimeout = setTimeout(
-        () =>
-          this.setState({
-            validationError: false,
-          }),
+        () => (this.validationError = false),
         2500
       );
     }
@@ -129,17 +124,18 @@ class InlineForm extends React.Component {
 
   render() {
     const { placeholder, value, onChange, buttonLabel } = this.props;
-    const { validationError } = this.state;
 
     return (
       <form onSubmit={this.handleSubmit}>
         <Flex auto>
           <ApiKeyInput
             type="text"
-            placeholder={validationError ? 'Please add a label' : placeholder}
+            placeholder={
+              this.validationError ? 'Please add a label' : placeholder
+            }
             value={value || ''}
             onChange={onChange}
-            validationError={validationError}
+            validationError={this.validationError}
           />
           <Button type="submit" value={buttonLabel} />
         </Flex>

@@ -1,6 +1,7 @@
 // @flow
 import React, { Component } from 'react';
-import { inject } from 'mobx-react';
+import { observable } from 'mobx';
+import { observer, inject } from 'mobx-react';
 import { injectGlobal } from 'styled-components';
 import { color } from 'shared/styles/constants';
 import invariant from 'invariant';
@@ -22,6 +23,7 @@ type Props = {
   history: Object,
 };
 
+// eslint-disable-next-line
 injectGlobal`
   .activeDropZone {
     background: ${color.slateDark};
@@ -33,14 +35,10 @@ injectGlobal`
   }
 `;
 
+@observer
 class DropToImport extends Component {
-  state: {
-    isImporting: boolean,
-  };
+  @observable isImporting: boolean = false;
   props: Props;
-  state = {
-    isImporting: false,
-  };
 
   importFile = async ({ file, documentId, collectionId, redirect }) => {
     const reader = new FileReader();
@@ -67,7 +65,7 @@ class DropToImport extends Component {
   };
 
   onDropAccepted = async (files = []) => {
-    this.setState({ isImporting: true });
+    this.isImporting = true;
 
     try {
       let collectionId = this.props.collectionId;
@@ -86,7 +84,7 @@ class DropToImport extends Component {
     } catch (err) {
       // TODO: show error alert.
     } finally {
-      this.setState({ isImporting: false });
+      this.isImporting = false;
     }
   };
 
@@ -115,7 +113,7 @@ class DropToImport extends Component {
         ref={this.props.dropzoneRef}
         {...props}
       >
-        {this.state.isImporting && <LoadingIndicator />}
+        {this.isImporting && <LoadingIndicator />}
         {this.props.children}
       </Dropzone>
     );

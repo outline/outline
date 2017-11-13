@@ -15,6 +15,7 @@ type Props = {
   onRequestClose: () => void,
 };
 
+// eslint-disable-next-line
 injectGlobal`
   .ReactModal__Overlay {
     z-index: 100;

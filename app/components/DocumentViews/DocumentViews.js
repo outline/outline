@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import Popover from 'components/Popover';
 import styled from 'styled-components';
@@ -27,13 +28,10 @@ type Props = {
 
 @observer
 class DocumentViews extends Component {
+  @observable opened: boolean = false;
   anchor: HTMLElement;
   store: DocumentViewersStore;
   props: Props;
-  state: {
-    opened: boolean,
-  };
-  state = {};
 
   constructor(props: Props) {
     super(props);
@@ -41,11 +39,11 @@ class DocumentViews extends Component {
   }
 
   openPopover = () => {
-    this.setState({ opened: true });
+    this.opened = true;
   };
 
   closePopover = () => {
-    this.setState({ opened: false });
+    this.opened = false;
   };
 
   setRef = (ref: HTMLElement) => {
@@ -58,7 +56,7 @@ class DocumentViews extends Component {
         <a ref={this.setRef} onClick={this.openPopover}>
           Viewed {this.props.count} {this.props.count === 1 ? 'time' : 'times'}
         </a>
-        {this.state.opened && (
+        {this.opened && (
           <Popover anchor={this.anchor} onClose={this.closePopover}>
             <DocumentViewers
               onMount={this.store.fetchViewers}
