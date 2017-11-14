@@ -23,6 +23,10 @@ class AccountMenu extends Component {
     this.props.ui.setActiveModal('settings');
   };
 
+  handleApi = () => {
+    window.location.href = '/developers';
+  };
+
   handleLogout = () => {
     this.props.auth.logout();
     window.location.href = BASE_URL;
@@ -30,19 +34,12 @@ class AccountMenu extends Component {
 
   render() {
     return (
-      <DropdownMenu
-        style={{ marginRight: 10, marginTop: -10 }}
-        label={this.props.label}
-      >
-        <DropdownMenuItem onClick={this.handleOpenSettings}>
-          Settings
-        </DropdownMenuItem>
+      <DropdownMenu style={{ marginRight: 10, marginTop: -10 }} label={this.props.label}>
+        <DropdownMenuItem onClick={this.handleOpenSettings}>Settings</DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
           Keyboard shortcuts
         </DropdownMenuItem>
-        <Link to="/developers">
-          <DropdownMenuItem>API documentation</DropdownMenuItem>
-        </Link>
+        <DropdownMenuItem onClick={this.handleApi}>API documentation</DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleLogout}>Logout</DropdownMenuItem>
       </DropdownMenu>
     );

@@ -2,7 +2,6 @@
 import React from 'react';
 import Grid from 'styled-components-grid';
 import { Helmet } from 'react-helmet';
-import Flex from '../../shared/components/Flex';
 
 export default function Pricing() {
   return (
@@ -13,33 +12,28 @@ export default function Pricing() {
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <h1>Outline API</h1>
         <p>
-          First thing we build for Outline was its API. It's the heart and sole
-          of the service and as developers, it's our mission to make the API as
-          rich and easy to use as possible.
+          First thing we build for Outline was its API. It's the heart and sole of the service and
+          as developers, it's our mission to make the API as rich and easy to use as possible.
         </p>
         <p>
           <i>
-            While Outline is still in public beta, we might make small
-            adjustments, including breaking changes to the API.
+            While Outline is still in public beta, we might make small adjustments, including
+            breaking changes to the API.
           </i>
         </p>
         <h2>Making requests</h2>
         <p>
-          Outline's API follows simple RPC style conventions where each API
-          endpoint is a method on{' '}
-          <code>https://www.getoutline.com/api/&lt;METHOD&gt;</code>. Both{' '}
-          <code>GET</code> and <code>POST</code> methods are supported but it's
-          recommeded that you make all call using <code>POST</code>. Only HTTPS
-          is supported in production.
+          Outline's API follows simple RPC style conventions where each API endpoint is a method on{' '}
+          <code>https://www.getoutline.com/api/&lt;METHOD&gt;</code>. Both <code>GET</code> and{' '}
+          <code>POST</code> methods are supported but it's recommeded that you make all call using{' '}
+          <code>POST</code>. Only HTTPS is supported in production.
         </p>
 
         <p>
-          For <code>GET</code> requests query string parameters are expected
-          (e.g.
-          <code>/api/document.info?id=...&token=...</code>). When making{' '}
-          <code>POST</code> requests, request parameters are parsed depending on{' '}
-          <code>Content-Type</code> header. To make a call using JSON payload,
-          one must pass <code>Content-Type: application/json</code> header:
+          For <code>GET</code> requests query string parameters are expected (e.g.
+          <code>/api/document.info?id=...&token=...</code>). When making <code>POST</code> requests,
+          request parameters are parsed depending on <code>Content-Type</code> header. To make a
+          call using JSON payload, one must pass <code>Content-Type: application/json</code> header:
         </p>
 
         <p>
@@ -72,33 +66,30 @@ curl https://www.getoutline.com/api/documents.info?id=outline-api-NTpezNwhUP&tok
         <h2>Authentication</h2>
 
         <p>
-          To access private API endpoints, you must provide a valid API key. You
-          can create new API keys in your{' '}
-          <a href={`${process.env.URL}/settings`}>account settings</a>. Be
-          careful when handling your keys as they give access to all of your
-          documents.
+          To access private API endpoints, you must provide a valid API key. You can create new API
+          keys in your <a href={`${process.env.URL}/settings`}>account settings</a>. Be careful when
+          handling your keys as they give access to all of your documents.
         </p>
 
         <p>
-          To authenticate with Outline API, you can supply the API key as a
-          header (<code>Authorization: Bearer YOUR_API_KEY</code>) or as part of
-          the payload using <code>token</code> parameter. If you're making{' '}
-          <code>GET</code> requests, header based authentication is recommended
-          so that your keys don't leak into logs.
+          To authenticate with Outline API, you can supply the API key as a header (<code>
+            Authorization: Bearer YOUR_API_KEY
+          </code>) or as part of the payload using <code>token</code> parameter. If you're making{' '}
+          <code>GET</code> requests, header based authentication is recommended so that your keys
+          don't leak into logs.
         </p>
 
         <p>
-          Some API endpoints allow unauhenticated requests for public resources
-          and they can be called without an API key.
+          Some API endpoints allow unauhenticated requests for public resources and they can be
+          called without an API key.
         </p>
 
         <h2>Errors</h2>
 
         <p>
-          All successful API requests will be returned with <code>200</code>{' '}
-          status code and <code>ok: true</code> in the response payload. If
-          there's an error while making the request, appropriate status code is
-          returned with the <code>error</code> message:
+          All successful API requests will be returned with <code>200</code> status code and{' '}
+          <code>ok: true</code> in the response payload. If there's an error while making the
+          request, appropriate status code is returned with the <code>error</code> message:
         </p>
 
         <pre>
@@ -125,44 +116,98 @@ curl https://www.getoutline.com/api/documents.info?id=outline-api-NTpezNwhUP&tok
 
         <Method method="user.s3Upload" label="Get S3 upload credentials">
           <Description>
-            You can upload small files and images as part of your documents. All
-            files are stored using Amazon S3. Instead of uploading files to
-            Outline, you need to upload them directly to S3 with special
-            credentials which can be obtained through this endpoint.
+            You can upload small files and images as part of your documents. All files are stored
+            using Amazon S3. Instead of uploading files to Outline, you need to upload them directly
+            to S3 with special credentials which can be obtained through this endpoint.
           </Description>
           <Arguments>
-            <Argument
-              id="filename"
-              description="Filename of the uploaded file"
-              required
-            />
-            <Argument
-              id="kind"
-              description="Mimetype of the document"
-              required
-            />
-            <Argument
-              id="size"
-              description="Filesize of the document"
-              required
-            />
+            <Argument id="filename" description="Filename of the uploaded file" required />
+            <Argument id="kind" description="Mimetype of the document" required />
+            <Argument id="size" description="Filesize of the document" required />
           </Arguments>
         </Method>
 
-        <Method
-          method="collections.list"
-          label="List your document collections"
-        >
+        <Method method="collections.list" label="List your document collections">
           <Description>List all your document collections.</Description>
           <Arguments pagination />
         </Method>
 
         <Method method="collections.info" label="Get a document collection">
-          <Description>
-            Returns detailed information on a document collection.
-          </Description>
+          <Description>Returns detailed information on a document collection.</Description>
           <Arguments>
             <Argument id="id" description="Collection id" required />
+          </Arguments>
+        </Method>
+
+        <Method method="collections.create" label="Create a document collection">
+          <Description>Creates a new document collection.</Description>
+          <Arguments>
+            <Argument id="name" description="Collection name" required />
+            <Argument id="description" description="Short description for the collection" />
+          </Arguments>
+        </Method>
+
+        <Method method="documents.info" label="Get a document">
+          <Description>
+            <p>
+              This method returns information for a document with a specific ID. Following
+              identifiers are allowed:
+            </p>
+            <ul>
+              <li>UUID - `id` field of the document</li>
+              <li>
+                URI identifier - Human readable identifier used in Outline URLs (e.g.{' '}
+                <code>outline-api-i48ZEZc5zjXndcP</code>)
+              </li>
+            </ul>
+          </Description>
+          <Arguments>
+            <Argument id="id" description="Document id or URI identifier" required />
+          </Arguments>
+        </Method>
+
+        <Method method="documents.search" label="Search documents">
+          <Description>
+            This methods allows you to search all of your documents with keywords.
+          </Description>
+          <Arguments>
+            <Argument id="query" description="Search query" required />
+          </Arguments>
+        </Method>
+
+        <Method method="documents.create" label="Create a new document">
+          <Description>
+            This method allows you to publish a new document under an existing collection. By
+            default a document is set to the parent collection root. If you want to create a
+            subdocument, you can pass <code>parentDocument</code> to set parent document.
+          </Description>
+          <Arguments>
+            <Argument
+              id="collection"
+              description={
+                <span>
+                  <code>ID</code> of the collection to which the document is created
+                </span>
+              }
+              required
+            />
+            <Argument id="title" description="Title for the document" required />
+            <Argument id="text" description="Content of the document in Markdow" required />
+            <Argument
+              id="parentDocument"
+              description={
+                <span>
+                  <code>ID</code> of the parent document within the collection
+                </span>
+              }
+            />
+          </Arguments>
+        </Method>
+
+        <Method method="documents.delete" label="Delete a document">
+          <Description>Delete a document and all of its child documents if any.</Description>
+          <Arguments>
+            <Argument id="id" description="Document id or URI identifier" required />
           </Arguments>
         </Method>
       </div>
@@ -196,9 +241,7 @@ const Method = (props: MethodProps) => {
   );
 };
 
-const Description = (props: { children: React.Element<*> }) => (
-  <p>{props.children}</p>
-);
+const Description = (props: { children: React.Element<*> }) => <p>{props.children}</p>;
 const Arguments = (props: { children: React.Element<*> }) => (
   <table>
     <thead>
