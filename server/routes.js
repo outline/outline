@@ -12,6 +12,7 @@ import renderpage from './utils/renderpage';
 import Home from './pages/Home';
 import About from './pages/About';
 import Pricing from './pages/Pricing';
+import Api from './pages/Api';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const koa = new Koa();
@@ -46,6 +47,7 @@ if (process.env.NODE_ENV === 'production') {
 // static pages
 router.get('/about', ctx => renderpage(ctx, <About />));
 router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
+router.get('/developers', ctx => renderpage(ctx, <Api />));
 
 // home page
 router.get('/', async ctx => {
