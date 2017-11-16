@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
+import { signin, developers, blogUrl } from '../../utils/routeHelpers';
 import { color } from '../../../shared/styles/constants';
 
 function Navigation() {
@@ -8,7 +9,18 @@ function Navigation() {
     <Nav>
       <Brand href="/">Outline</Brand>
       <Menu>
-        <MenuItem><a href="/auth/slack">Sign In</a></MenuItem>
+        <MenuItem>
+          <a href="/#features">Features</a>
+        </MenuItem>
+        <MenuItem>
+          <a href={blogUrl()}>Blog</a>
+        </MenuItem>
+        <MenuItem>
+          <a href={developers()}>API</a>
+        </MenuItem>
+        <MenuItem>
+          <a href={signin()}>Sign In</a>
+        </MenuItem>
       </Menu>
     </Nav>
   );
@@ -31,6 +43,15 @@ const MenuItem = styled.li`
   margin: 0 0 0 40px;
   font-size: 15px;
   font-weight: 500;
+
+  a {
+    color: ${color.slate};
+  }
+
+  a:hover {
+    color: ${color.slateDark};
+    text-decoration: underline;
+  }
 `;
 
 const Brand = styled.a`
