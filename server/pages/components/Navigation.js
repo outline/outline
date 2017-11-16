@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { signin, githubOrganization } from '../../utils/routeHelpers';
+import { signin, developers, blogUrl } from '../../utils/routeHelpers';
 import { color } from '../../../shared/styles/constants';
 
 function Navigation() {
@@ -13,7 +13,10 @@ function Navigation() {
           <a href="/#features">Features</a>
         </MenuItem>
         <MenuItem>
-          <a href={githubOrganization()}>Open Source</a>
+          <a href={blogUrl()}>Blog</a>
+        </MenuItem>
+        <MenuItem>
+          <a href={developers()}>API</a>
         </MenuItem>
         <MenuItem>
           <a href={signin()}>Sign In</a>

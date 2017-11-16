@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import Hero from './components/Hero';
 import SignupButton from './components/SignupButton';
+import { developers, githubUrl } from '../utils/routeHelpers';
 import { color } from '../../shared/styles/constants';
-import { pulsate } from '../../shared/styles/animations';
 
 function Home() {
   return (
@@ -20,24 +20,23 @@ function Home() {
           <p>
             <SignupButton />
           </p>
-          <ScrollCTA>Scroll for more…</ScrollCTA>
         </Hero>
         <Features>
           <Grid.Unit size={{ desktop: 1 / 3 }}>
             <Feature>
               <h2>Blazing Fast</h2>
               <p>
-                Atlas is fast, really fast. We’ve trimmed 100ms and 50ms there
+                Outline is fast, really fast. We’ve trimmed 100ms and 50ms there
                 to make sure that documents load instantly, search is speedy and
-                navigating the UI is fluid.
+                navigating the UI is delightful.
               </p>
             </Feature>
             <Feature>
               <h2># Markdown Support</h2>
               <p>
                 Outline stores all documents in plain Markdown. Shortcuts are
-                also built right into the editor so you can easily format using
-                **markdown syntax** if you like.
+                also built right into the editor so you can easily format using{' '}
+                <strong>**markdown syntax**</strong> if you like.
               </p>
             </Feature>
           </Grid.Unit>
@@ -57,6 +56,9 @@ function Home() {
               You get new features, interface improvements, and bug fixes for
               free.
             </p>
+            <p>
+              <a href={githubUrl()}>GitHub</a>
+            </p>
           </Feature>
           <Feature size={{ desktop: 1 / 3 }}>
             <h2>Integrations &amp; API</h2>
@@ -65,19 +67,23 @@ function Home() {
               editor itself is built on React and we’re working on making it
               pluggable and extensible.
             </p>
+            <p>
+              <a href={developers()}>Documentation</a>
+            </p>
           </Feature>
           <Feature size={{ desktop: 1 / 3 }}>
             <h2>Powerful Search</h2>
             <p>
-              Search is the best way to find what you’re looking for once your
-              knowledgebase starts to grow in size.
+              Outline includes a super fast search that’s the best way to find
+              what you’re looking for once your knowledge base starts to grow in
+              size.
             </p>
           </Feature>
         </Highlights>
         <Footer>
           <h2>Create an account</h2>
           <p>
-            On the same page as us? Create a free account to give Outline a try.
+            On the same page as us? Create a beta account to give Outline a try.
           </p>
           <p>
             <SignupButton />
@@ -88,17 +94,6 @@ function Home() {
   );
 }
 
-const ScrollCTA = styled.div`
-  animation: ${pulsate} 1.3s infinite;
-
-  position: absolute;
-  bottom: 20px;
-  color: ${color.slate};
-  text-align: center;
-  width: 100%;
-  left: 0;
-`;
-
 const Screenshot = styled.img`
   width: 150%;
   box-shadow: 0 0 80px 0 rgba(124, 124, 124, 0.5),
@@ -107,7 +102,7 @@ const Screenshot = styled.img`
 `;
 
 const Highlights = styled(Grid)`
-  background: #ffd95c;
+  background: ${color.yellow};
   margin: 0 1em;
   padding: 0 1em;
 `;
@@ -118,10 +113,18 @@ const Features = styled(Grid)`
 `;
 
 const Feature = styled(Grid.Unit)`
-  padding: 6em 3em;
+  padding: 4em 3em;
 
   h2 {
     margin-top: 0;
+  }
+
+  a {
+    color: ${color.black};
+    text-decoration: underline;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-size: 14px;
   }
 `;
 

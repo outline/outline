@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 const Hero = styled.div`
   width: 100%;
-  height: 90vh;
+  height: 70vh;
   padding: 6em 2em 0;
   text-align: center;
 
