@@ -20,17 +20,20 @@ class CollectionMenu extends Component {
     collection: Collection,
   };
 
-  onNewDocument = () => {
+  onNewDocument = (ev: SyntheticEvent) => {
+    ev.preventDefault();
     const { collection, history } = this.props;
     history.push(`${collection.url}/new`);
   };
 
-  onEdit = () => {
+  onEdit = (ev: SyntheticEvent) => {
+    ev.preventDefault();
     const { collection } = this.props;
     this.props.ui.setActiveModal('collection-edit', { collection });
   };
 
-  onDelete = () => {
+  onDelete = (ev: SyntheticEvent) => {
+    ev.preventDefault();
     const { collection } = this.props;
     this.props.ui.setActiveModal('collection-delete', { collection });
   };
