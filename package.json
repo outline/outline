@@ -4,8 +4,10 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build:webpack": "NODE_ENV=production webpack --config webpack.config.prod.js",
-    "build:analyze": "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
+    "build:webpack":
+      "NODE_ENV=production webpack --config webpack.config.prod.js",
+    "build:analyze":
+      "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development nodemon --inspect --watch server index.js",
@@ -18,39 +20,31 @@
     "sequelize:migrate": "sequelize db:migrate",
     "test": "npm run test:app && npm run test:server",
     "test:app": "jest",
-    "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
-    "precommit": "lint-staged"
+    "test:server":
+      "jest --config=server/.jestconfig.json --runInBand --forceExit",
+    "precommit": "lint-staged",
+    "prettier":
+      "prettier 'app/**/*.js' 'server/**/*.js' 'shared/**/*.js' --write"
   },
   "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "git add"
-    ]
+    "*.js": ["eslint --fix", "yarn prettier", "git add"]
+  },
+  "prettier": {
+    "printWidth": 80,
+    "singleQuote": true,
+    "trailingComma": "es5"
   },
   "jest": {
     "verbose": false,
-    "roots": [
-      "app"
-    ],
+    "roots": ["app"],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },
-    "moduleFileExtensions": [
-      "js",
-      "jsx",
-      "json"
-    ],
-    "moduleDirectories": [
-      "node_modules"
-    ],
-    "modulePaths": [
-      "app"
-    ],
-    "setupFiles": [
-      "<rootDir>/setupJest.js",
-      "<rootDir>/__mocks__/window.js"
-    ]
+    "moduleFileExtensions": ["js", "jsx", "json"],
+    "moduleDirectories": ["node_modules"],
+    "modulePaths": ["app"],
+    "setupFiles": ["<rootDir>/setupJest.js", "<rootDir>/__mocks__/window.js"]
   },
   "engines": {
     "node": ">= 7.6"

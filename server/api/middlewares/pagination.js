@@ -29,7 +29,9 @@ export default function pagination(options) {
 
     query.limit = ctx.state.pagination.limit;
     query.offset = ctx.state.pagination.offset + query.limit;
-    ctx.state.pagination.nextPath = `/api${ctx.request.path}?${querystring.stringify(query)}`;
+    ctx.state.pagination.nextPath = `/api${
+      ctx.request.path
+    }?${querystring.stringify(query)}`;
 
     return next();
   };
