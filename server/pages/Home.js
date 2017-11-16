@@ -22,7 +22,7 @@ function Home() {
           </p>
         </Hero>
         <Features>
-          <Grid.Unit size={{ desktop: 1 / 3 }}>
+          <Grid.Unit size={{ desktop: 1 / 3, tablet: 1 / 2 }}>
             <Feature>
               <h2>Blazing Fast</h2>
               <p>
@@ -40,7 +40,7 @@ function Home() {
               </p>
             </Feature>
           </Grid.Unit>
-          <Feature size={{ desktop: 2 / 3 }}>
+          <Feature size={{ desktop: 2 / 3, tablet: 1 / 2 }}>
             <Screenshot
               srcset="screenshot.png, screenshot@2x.png 2x"
               src="/screenshot@2x.png"
