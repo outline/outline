@@ -26,9 +26,9 @@ function Home() {
             <Feature>
               <h2>Blazing Fast</h2>
               <p>
-                Outline is fast, really fast. We’ve trimmed 100ms and 50ms there
-                to make sure that documents load instantly, search is speedy and
-                navigating the UI is delightful.
+                Outline is fast, really fast. We’ve worked hard to ensure
+                millisecond response times, documents load instantly, search is
+                speedy and navigating the UI is delightful.
               </p>
             </Feature>
             <Feature>
