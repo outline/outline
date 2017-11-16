@@ -10,9 +10,7 @@ const sheet = new ServerStyleSheet();
 export default function renderpage(ctx: Object, children: React$Element<*>) {
   const html = ReactDOMServer.renderToString(
     <StyleSheetManager sheet={sheet.instance}>
-      <Layout>
-        {children}
-      </Layout>
+      <Layout>{children}</Layout>
     </StyleSheetManager>
   );
 

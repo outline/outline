@@ -12,7 +12,8 @@ function Home() {
         <Hero>
           <h1>Your team’s knowledge base</h1>
           <HeroText>
-            Documentation, meeting notes, playbooks, onboarding, work logs, brainstorming, decisions, & more…
+            Documentation, meeting notes, playbooks, onboarding, work logs,
+            brainstorming, decisions, & more…
           </HeroText>
           <p>
             <SignupButton />

@@ -17,7 +17,7 @@ describe('Collection model', () => {
         data: {
           name: 'New collection',
         },
-      }))
+      }));
 
       const collection = new Collection({
         id: 123,
@@ -25,12 +25,14 @@ describe('Collection model', () => {
       });
 
       await collection.fetch();
-      expect(client.post).toHaveBeenCalledWith('/collections.info', { id: 123 });
+      expect(client.post).toHaveBeenCalledWith('/collections.info', {
+        id: 123,
+      });
       expect(collection.name).toBe('New collection');
     });
 
     test('should report errors', async () => {
-      client.post = jest.fn(() => Promise.reject())
+      client.post = jest.fn(() => Promise.reject());
 
       const collection = new Collection({
         id: 123,

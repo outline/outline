@@ -13,7 +13,8 @@ export default function Pricing() {
       <Hero>
         <h1>Pricing</h1>
         <p>
-          Explore Outline with a 14 day trial, free forever for teams smaller than 5.
+          Explore Outline with a 14 day trial, free forever for teams smaller
+          than 5.
         </p>
       </Hero>
     </Grid>

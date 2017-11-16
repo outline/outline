@@ -8,7 +8,9 @@ function Navigation() {
     <Nav>
       <Brand href="/">Outline</Brand>
       <Menu>
-        <MenuItem><a href="/auth/slack">Sign In</a></MenuItem>
+        <MenuItem>
+          <a href="/auth/slack">Sign In</a>
+        </MenuItem>
       </Menu>
     </Nav>
   );
