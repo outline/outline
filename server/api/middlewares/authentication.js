@@ -1,10 +1,15 @@
+// @flow
 import httpErrors from 'http-errors';
 import JWT from 'jsonwebtoken';
+import { type Context } from 'koa';
 
 import { User, ApiKey } from '../../models';
 
-export default function auth({ require = true } = {}) {
-  return async function authMiddleware(ctx, next) {
+export default function auth({ require = true }: { require?: boolean } = {}) {
+  return async function authMiddleware(
+    ctx: Context,
+    next: () => Promise<void>
+  ) {
     let token;
 
     const authorizationHeader = ctx.request.get('authorization');
@@ -25,6 +30,7 @@ export default function auth({ require = true } = {}) {
           );
         }
       }
+      // $FlowFixMe
     } else if (ctx.body.token) {
       token = ctx.body.token;
     } else if (ctx.request.query.token) {
@@ -38,7 +44,7 @@ export default function auth({ require = true } = {}) {
     if (token) {
       let user;
 
-      if (token.match(/^[\w]{38}$/)) {
+      if (String(token).match(/^[\w]{38}$/)) {
         // API key
         let apiKey;
         try {
@@ -83,6 +89,7 @@ export default function auth({ require = true } = {}) {
 
       ctx.state.token = token;
       ctx.state.user = user;
+      // $FlowFixMe
       ctx.cache[user.id] = user;
     }
 

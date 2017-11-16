@@ -1,4 +1,8 @@
-function present(ctx, key) {
+// @flow
+import { type Context } from 'koa';
+import { ApiKey } from '../models';
+
+function present(ctx: Context, key: ApiKey) {
   return {
     id: key.id,
     name: key.name,

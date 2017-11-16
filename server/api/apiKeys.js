@@ -1,3 +1,4 @@
+// @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
 

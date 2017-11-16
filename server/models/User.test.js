@@ -1,3 +1,4 @@
+/* eslint-disable flowtype/require-valid-file-annotation */
 import { flushdb, seed } from '../test/support';
 
 beforeEach(flushdb);
