@@ -121,7 +121,7 @@ class CollectionLink extends Component {
           icon={<CollectionIcon expanded={expanded} color={collection.color} />}
           iconColor={collection.color}
         >
-          <Flex justify="space-between">
+          <CollectionName justify="space-between">
             {collection.name}
 
             <CollectionAction>
@@ -134,7 +134,7 @@ class CollectionLink extends Component {
                 open={this.menuOpen}
               />
             </CollectionAction>
-          </Flex>
+          </CollectionName>
 
           {expanded && (
             <Children column>
@@ -231,6 +231,10 @@ const DocumentLink = observer(
     );
   }
 );
+
+const CollectionName = styled(Flex)`
+  padding: 0 0 4px;
+`;
 
 const CollectionAction = styled.a`
   position: absolute;
