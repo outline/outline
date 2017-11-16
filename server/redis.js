@@ -1,3 +1,4 @@
+// @flow
 import redis from 'redis';
 import redisLock from 'redis-lock';
 

@@ -1,5 +1,3 @@
-'use strict';
-
 module.exports = {
   up: function(queryInterface, Sequelize) {
     // Remove old indeces

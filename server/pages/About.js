@@ -12,9 +12,7 @@ export default function About() {
       </Helmet>
       <Hero>
         <h1>About Outline</h1>
-        <p>
-          Just a proof of concept for multiple pages.
-        </p>
+        <p>Just a proof of concept for multiple pages.</p>
       </Hero>
     </Grid>
   );

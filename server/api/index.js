@@ -1,3 +1,4 @@
+// @flow
 import bodyParser from 'koa-bodyparser';
 import Koa from 'koa';
 import Router from 'koa-router';

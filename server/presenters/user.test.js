@@ -1,5 +1,5 @@
+/* eslint-disable flowtype/require-valid-file-annotation */
 import presentUser from './user';
-
 import ctx from '../../__mocks__/ctx';
 
 it('presents a user', async () => {

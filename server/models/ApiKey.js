@@ -1,3 +1,4 @@
+// @flow
 import { DataTypes, sequelize } from '../sequelize';
 import randomstring from 'randomstring';
 

@@ -1,6 +1,7 @@
+// @flow
 import httpErrors from 'http-errors';
 
-const apiError = (code, id, message) => {
+const apiError = (code: number, id: string, message: string) => {
   return httpErrors(code, message, { id });
 };
 
