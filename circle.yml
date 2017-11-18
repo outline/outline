@@ -10,7 +10,7 @@ machine:
     DATABASE_URL_TEST: postgres://ubuntu@localhost:5432/circle_test
     DATABASE_URL: postgres://ubuntu@localhost:5432/circle_test
     URL: http://localhost:3000
-    SMTP_SENDER_EMAIL: hello@example.com
+    SMTP_FROM_EMAIL: hello@example.com
 
 dependencies:
   override:
