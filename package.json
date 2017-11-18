@@ -38,9 +38,9 @@
     "moduleDirectories": ["node_modules"],
     "modulePaths": ["app"],
     "setupFiles": [
+      "raf/polyfill",
       "<rootDir>/setupJest.js",
-      "<rootDir>/__mocks__/window.js",
-      "raf/polyfill"
+      "<rootDir>/__mocks__/window.js"
     ]
   },
   "engines": {
