@@ -6,6 +6,8 @@ describe('Mailer', () => {
   let sendMailOutput;
 
   beforeEach(() => {
+    process.env.SMTP_FROM_EMAIL = 'hello@example.com';
+
     fakeMailer = new Mailer();
     fakeMailer.transporter = {
       sendMail: output => (sendMailOutput = output),
