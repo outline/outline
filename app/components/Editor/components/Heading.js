@@ -27,6 +27,7 @@ function Heading(props: Props) {
     readOnly,
     children,
     component = 'h1',
+    className,
     attributes,
     className,
   } = props;
