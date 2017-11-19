@@ -25,14 +25,13 @@ type Props = {
   location: Location,
   collections: CollectionsStore,
   documents: DocumentsStore,
-  activeDocument: ?Document,
   onCreateCollection: () => void,
   activeDocumentRef: HTMLElement => void,
   ui: UiStore,
 };
 
 @observer
-class SidebarCollections extends Component {
+class Collections extends Component {
   props: Props;
 
   render() {
@@ -40,7 +39,6 @@ class SidebarCollections extends Component {
       history,
       location,
       collections,
-      activeDocument,
       ui,
       activeDocumentRef,
       documents,
@@ -55,7 +53,7 @@ class SidebarCollections extends Component {
             history={history}
             location={location}
             collection={collection}
-            activeDocument={activeDocument}
+            activeDocument={documents.active}
             activeDocumentRef={activeDocumentRef}
             prefetchDocument={documents.prefetchDocument}
             ui={ui}
@@ -276,4 +274,4 @@ const Children = styled(Flex)`
   margin-left: 12px;
 `;
 
-export default inject('collections', 'ui', 'documents')(SidebarCollections);
+export default inject('collections', 'ui', 'documents')(Collections);
