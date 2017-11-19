@@ -29,7 +29,6 @@ function Heading(props: Props) {
     component = 'h1',
     className,
     attributes,
-    className,
   } = props;
   const parentIsDocument = parent instanceof Document;
   const firstHeading = parentIsDocument && parent.nodes.first() === node;
