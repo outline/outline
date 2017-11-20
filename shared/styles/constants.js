@@ -45,7 +45,7 @@ export const color = {
   text: '#171B35',
 
   /* Brand */
-  primary: '#2B8FBF',
+  primary: '#1AB6FF',
   danger: '#D0021B',
   warning: '#f08a24' /* replace */,
   success: '#43AC6A' /* replace */,

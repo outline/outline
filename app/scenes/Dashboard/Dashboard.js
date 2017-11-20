@@ -2,25 +2,13 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
 
 import DocumentsStore from 'stores/DocumentsStore';
-import Flex from 'shared/components/Flex';
+import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
-import CenteredContent from 'components/CenteredContent';
+import Subheading from 'components/Subheading';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
-
-const Subheading = styled.h3`
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  color: #9fa6ab;
-  letter-spacing: 0.04em;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
-  margin-top: 30px;
-`;
 
 type Props = {
   documents: DocumentsStore,
@@ -45,30 +33,26 @@ class Dashboard extends Component {
 
   render() {
     const { documents } = this.props;
-    const recentlyViewedLoaded = documents.recentlyViewed.length > 0;
-    const recentlyEditedLoaded = documents.recentlyEdited.length > 0;
+    const hasRecentlyViewed = documents.recentlyViewed.length > 0;
+    const hasRecentlyEdited = documents.recentlyEdited.length > 0;
     const showContent =
-      this.isLoaded || (recentlyViewedLoaded && recentlyEditedLoaded);
+      this.isLoaded || (hasRecentlyViewed && hasRecentlyEdited);
 
     return (
       <CenteredContent>
         <PageTitle title="Home" />
         <h1>Home</h1>
         {showContent ? (
-          <Flex column>
-            {recentlyViewedLoaded && (
-              <Flex column>
-                <Subheading>Recently viewed</Subheading>
-                <DocumentList documents={documents.recentlyViewed} />
-              </Flex>
-            )}
-            {recentlyEditedLoaded && (
-              <Flex column>
-                <Subheading>Recently edited</Subheading>
-                <DocumentList documents={documents.recentlyEdited} />
-              </Flex>
-            )}
-          </Flex>
+          <span>
+            {hasRecentlyViewed && [
+              <Subheading>Recently viewed</Subheading>,
+              <DocumentList documents={documents.recentlyViewed} />,
+            ]}
+            {hasRecentlyEdited && [
+              <Subheading>Recently edited</Subheading>,
+              <DocumentList documents={documents.recentlyEdited} />,
+            ]}
+          </span>
         ) : (
           <ListPlaceholder count={5} />
         )}

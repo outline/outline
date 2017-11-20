@@ -44,7 +44,6 @@ type Props = {
   match: Object,
   history: Object,
   location: Location,
-  keydown: Object,
   documents: DocumentsStore,
   collections: CollectionsStore,
   newDocument?: boolean,

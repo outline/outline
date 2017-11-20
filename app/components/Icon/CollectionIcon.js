@@ -6,7 +6,7 @@ import type { Props } from './Icon';
 export default function CollectionIcon({
   expanded,
   ...rest
-}: Props & { expanded: boolean }) {
+}: Props & { expanded?: boolean }) {
   return (
     <Icon {...rest}>
       {expanded ? (

@@ -228,8 +228,8 @@ class MarkdownEditor extends Component {
 }
 
 const MaxWidth = styled(Flex)`
-  padding: 0 60px;
-  max-width: 50em;
+  margin: 0 60px;
+  max-width: 46em;
   height: 100%;
 `;
 
@@ -281,6 +281,8 @@ const StyledEditor = styled(Editor)`
 
   p {
     position: relative;
+    margin-top: 1.2em;
+    margin-bottom: 1.2em;
   }
 
   a:hover {

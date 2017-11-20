@@ -12,7 +12,7 @@ const Container = styled.div`
 `;
 
 const Content = styled.div`
-  max-width: 50em;
+  max-width: 46em;
   margin: 0 auto;
 `;
 
