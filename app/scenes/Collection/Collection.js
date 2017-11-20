@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { Link } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { newDocumentUrl } from 'utils/routeHelpers';
 
@@ -12,8 +12,11 @@ import UiStore from 'stores/UiStore';
 import Collection from 'models/Collection';
 
 import Search from 'scenes/Search';
+import CollectionMenu from 'menus/CollectionMenu';
+import Actions, { Action, Separator } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
 import CollectionIcon from 'components/Icon/CollectionIcon';
+import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
@@ -26,6 +29,7 @@ type Props = {
   ui: UiStore,
   documents: DocumentsStore,
   collections: CollectionsStore,
+  history: Object,
   match: Object,
 };
 
@@ -62,6 +66,14 @@ class CollectionScene extends Component {
     this.isFetching = false;
   };
 
+  onNewDocument = (ev: SyntheticEvent) => {
+    ev.preventDefault();
+
+    if (this.collection) {
+      this.props.history.push(`${this.collection.url}/new`);
+    }
+  };
+
   renderEmptyCollection() {
     if (!this.collection) return;
 
@@ -75,11 +87,11 @@ class CollectionScene extends Component {
         <HelpText>
           Publish your first document to start building this collection.
         </HelpText>
-        <Action>
+        <Wrapper>
           <Link to={newDocumentUrl(this.collection)}>
             <Button>Create new document</Button>
           </Link>
-        </Action>
+        </Wrapper>
       </CenteredContent>
     );
   }
@@ -115,6 +127,17 @@ class CollectionScene extends Component {
                 this.collection.id
               )}
             />
+            <Actions align="center" justify="flex-end">
+              <Action>
+                <CollectionMenu collection={this.collection} />
+              </Action>
+              <Separator />
+              <Action>
+                <a onClick={this.onNewDocument}>
+                  <NewDocumentIcon />
+                </a>
+              </Action>
+            </Actions>
           </span>
         ) : (
           <ListPlaceholder count={5} />
@@ -133,8 +156,10 @@ const Heading = styled.h1`
   }
 `;
 
-const Action = styled(Flex)`
+const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject('collections', 'documents', 'ui')(CollectionScene);
+export default withRouter(
+  inject('collections', 'documents', 'ui')(CollectionScene)
+);
