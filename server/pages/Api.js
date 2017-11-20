@@ -241,7 +241,7 @@ export default function Pricing() {
 
           <Method method="collections.delete" label="Delete a collection">
             <Description>
-              Delete a collection and all of its documents. This action can't be
+              Delete a collection and all of its documents. This action can`t be
               undone so please be careful.
             </Description>
             <Arguments>
