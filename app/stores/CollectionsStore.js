@@ -10,7 +10,6 @@ import ErrorsStore from 'stores/ErrorsStore';
 import UiStore from 'stores/UiStore';
 
 type Options = {
-  teamId: string,
   ui: UiStore,
 };
 
@@ -31,7 +30,6 @@ class CollectionsStore {
   @observable isFetching: boolean = false;
 
   client: ApiClient;
-  teamId: string;
   errors: ErrorsStore;
   ui: UiStore;
 
@@ -95,9 +93,7 @@ class CollectionsStore {
     this.isFetching = true;
 
     try {
-      const res = await this.client.post('/collections.list', {
-        id: this.teamId,
-      });
+      const res = await this.client.post('/collections.list');
       invariant(res && res.data, 'Collection list not available');
       const { data } = res;
       runInAction('CollectionsStore#fetch', () => {
@@ -158,7 +154,6 @@ class CollectionsStore {
   constructor(options: Options) {
     this.client = client;
     this.errors = stores.errors;
-    this.teamId = options.teamId;
     this.ui = options.ui;
   }
 }
