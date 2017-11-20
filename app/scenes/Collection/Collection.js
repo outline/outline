@@ -14,7 +14,7 @@ import Collection from 'models/Collection';
 import Search from 'scenes/Search';
 import CenteredContent from 'components/CenteredContent';
 import CollectionIcon from 'components/Icon/CollectionIcon';
-import LoadingListPlaceholder from 'components/LoadingListPlaceholder';
+import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
 import DocumentList from 'components/DocumentList';
@@ -48,7 +48,7 @@ class CollectionScene extends Component {
   loadContent = async (id: string) => {
     const { collections } = this.props;
 
-    const collection = await collections.fetch(id);
+    const collection = collections.getById(id) || (await collections.fetch(id));
 
     if (collection) {
       this.props.ui.setActiveCollection(collection);
@@ -89,23 +89,36 @@ class CollectionScene extends Component {
   }
 
   render() {
-    if (this.isFetching) return <LoadingListPlaceholder />;
-    if (!this.collection) return this.renderNotFound();
-    if (this.collection.isEmpty) return this.renderEmptyCollection();
+    if (!this.isFetching && !this.collection) {
+      return this.renderNotFound();
+    }
+    if (this.collection && this.collection.isEmpty) {
+      return this.renderEmptyCollection();
+    }
 
     return (
       <CenteredContent>
-        <PageTitle title={this.collection.name} />
-        <Heading>
-          <CollectionIcon color={this.collection.color} size={40} expanded />{' '}
-          {this.collection.name}
-        </Heading>
-        <Subheading>Recently edited</Subheading>
-        <DocumentList
-          documents={this.props.documents.recentlyEditedInCollection(
-            this.collection.id
-          )}
-        />
+        {this.collection ? (
+          <span>
+            <PageTitle title={this.collection.name} />
+            <Heading>
+              <CollectionIcon
+                color={this.collection.color}
+                size={40}
+                expanded
+              />{' '}
+              {this.collection.name}
+            </Heading>
+            <Subheading>Recently edited</Subheading>
+            <DocumentList
+              documents={this.props.documents.recentlyEditedInCollection(
+                this.collection.id
+              )}
+            />
+          </span>
+        ) : (
+          <ListPlaceholder count={5} />
+        )}
       </CenteredContent>
     );
   }
