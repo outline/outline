@@ -164,10 +164,9 @@ class DocumentScene extends Component {
     let document = this.document;
 
     if (!document) return;
-    this.isLoading = true;
     this.isSaving = true;
     document = await document.save();
-    this.isLoading = false;
+    this.isSaving = false;
 
     if (redirect || this.props.newDocument) {
       this.props.history.push(document.url);
@@ -219,7 +218,7 @@ class DocumentScene extends Component {
       <Container column auto>
         {isMoving && document && <DocumentMove document={document} />}
         {titleText && <PageTitle title={titleText} />}
-        {this.isLoading && <LoadingIndicator />}
+        {(this.isLoading || this.isSaving) && <LoadingIndicator />}
         {isFetching && (
           <CenteredContent>
             <LoadingState />
