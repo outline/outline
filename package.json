@@ -10,7 +10,7 @@
       "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "NODE_ENV=production node index.js",
-    "dev": "NODE_ENV=development nodemon --inspect --watch server index.js",
+    "dev": "NODE_ENV=development nodemon --watch server index.js",
     "lint": "npm run lint:flow && npm run lint:js",
     "lint:js": "eslint app",
     "lint:flow": "flow",
