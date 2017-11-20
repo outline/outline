@@ -1,12 +1,12 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.addColumn('atlases', 'creatorId', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.addColumn('atlases', 'creatorId', {
       type: Sequelize.UUID,
       allowNull: true,
     });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.removeColumn('atlases', 'creatorId');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('atlases', 'creatorId');
   },
 };

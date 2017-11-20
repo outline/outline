@@ -1,6 +1,6 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.createTable('revisions', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('revisions', {
       id: {
         type: 'UUID',
         allowNull: false,
@@ -47,7 +47,7 @@ module.exports = {
       },
     });
 
-    queryInterface.addColumn('documents', 'lastModifiedById', {
+    await queryInterface.addColumn('documents', 'lastModifiedById', {
       type: 'UUID',
       allowNull: false,
       references: {
@@ -55,16 +55,16 @@ module.exports = {
       },
     });
 
-    queryInterface.addColumn('documents', 'revisionCount', {
+    await queryInterface.addColumn('documents', 'revisionCount', {
       type: 'INTEGER',
       defaultValue: 0,
     });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.dropTable('revisions');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('revisions');
 
-    queryInterface.removeColumn('documents', 'lastModifiedById');
-    queryInterface.removeColumn('documents', 'revisionCount');
+    await queryInterface.removeColumn('documents', 'lastModifiedById');
+    await queryInterface.removeColumn('documents', 'revisionCount');
   },
 };

@@ -1,5 +1,5 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
+  up: async (queryInterface, Sequelize) => {
     const searchDocument = `
 ALTER TABLE documents ADD COLUMN "searchVector" tsvector;
 CREATE INDEX documents_tsv_idx ON documents USING gin("searchVector");
@@ -34,11 +34,11 @@ CREATE TRIGGER atlases_tsvectorupdate BEFORE INSERT OR UPDATE
 ON atlases FOR EACH ROW EXECUTE PROCEDURE atlases_search_trigger();
     `;
 
-    queryInterface.sequelize.query(searchDocument);
-    queryInterface.sequelize.query(searchCollection);
+    await queryInterface.sequelize.query(searchDocument);
+    await queryInterface.sequelize.query(searchCollection);
   },
 
-  down: function(queryInterface, Sequelize) {
+  down: async (queryInterface, Sequelize) => {
     // TODO?
   },
 };

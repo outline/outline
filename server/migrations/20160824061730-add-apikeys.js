@@ -1,6 +1,6 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.createTable('apiKeys', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('apiKeys', {
       id: {
         type: 'UUID',
         allowNull: false,
@@ -17,11 +17,7 @@ module.exports = {
       },
       userId: {
         type: 'UUID',
-        allowNull: true,
-        // references: {
-        //   model: 'users',
-        //   key: 'id',
-        // },
+        allowNull: true
       },
       createdAt: {
         type: 'TIMESTAMP WITH TIME ZONE',
@@ -38,7 +34,7 @@ module.exports = {
     });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.dropTable('apiKeys');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('apiKeys');
   },
 };

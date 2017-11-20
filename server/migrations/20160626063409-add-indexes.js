@@ -1,27 +1,27 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.addIndex('documents', ['urlId']);
-    queryInterface.addIndex('documents', ['id', 'atlasId']);
-    queryInterface.addIndex('documents', ['id', 'teamId']);
-    queryInterface.addIndex('documents', ['parentDocumentId', 'atlasId']);
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.addIndex('documents', ['urlId']);
+    await queryInterface.addIndex('documents', ['id', 'atlasId']);
+    await queryInterface.addIndex('documents', ['id', 'teamId']);
+    await queryInterface.addIndex('documents', ['parentDocumentId', 'atlasId']);
 
-    queryInterface.addIndex('atlases', ['id', 'teamId']);
+    await queryInterface.addIndex('atlases', ['id', 'teamId']);
 
-    queryInterface.addIndex('teams', ['slackId']);
+    await queryInterface.addIndex('teams', ['slackId']);
 
-    queryInterface.addIndex('users', ['slackId']);
+    await queryInterface.addIndex('users', ['slackId']);
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.removeIndex('documents', ['urlId']);
-    queryInterface.removeIndex('documents', ['id', 'atlasId']);
-    queryInterface.removeIndex('documents', ['id', 'teamId']);
-    queryInterface.removeIndex('documents', ['parentDocumentId', 'atlasId']);
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeIndex('documents', ['urlId']);
+    await queryInterface.removeIndex('documents', ['id', 'atlasId']);
+    await queryInterface.removeIndex('documents', ['id', 'teamId']);
+    await queryInterface.removeIndex('documents', ['parentDocumentId', 'atlasId']);
 
-    queryInterface.removeIndex('atlases', ['id', 'teamId']);
+    await queryInterface.removeIndex('atlases', ['id', 'teamId']);
 
-    queryInterface.removeIndex('teams', ['slackId']);
+    await queryInterface.removeIndex('teams', ['slackId']);
 
-    queryInterface.removeIndex('users', ['slackId']);
+    await queryInterface.removeIndex('users', ['slackId']);
   },
 };

@@ -1,18 +1,18 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.addColumn('atlases', 'deletedAt', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.addColumn('atlases', 'deletedAt', {
       type: Sequelize.DATE,
       allowNull: true,
     });
 
-    queryInterface.addColumn('documents', 'deletedAt', {
+    await queryInterface.addColumn('documents', 'deletedAt', {
       type: Sequelize.DATE,
       allowNull: true,
     });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.removeColumn('atlases', 'deletedAt');
-    queryInterface.removeColumn('documents', 'deletedAt');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('atlases', 'deletedAt');
+    await queryInterface.removeColumn('documents', 'deletedAt');
   },
 };

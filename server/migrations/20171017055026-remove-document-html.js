@@ -1,22 +1,22 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.removeColumn('documents', 'html');
-    queryInterface.removeColumn('documents', 'preview');
-    queryInterface.removeColumn('revisions', 'html');
-    queryInterface.removeColumn('revisions', 'preview');
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('documents', 'html');
+    await queryInterface.removeColumn('documents', 'preview');
+    await queryInterface.removeColumn('revisions', 'html');
+    await queryInterface.removeColumn('revisions', 'preview');
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.addColumn('documents', 'html', {
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.addColumn('documents', 'html', {
       type: Sequelize.TEXT,
     });
-    queryInterface.addColumn('documents', 'preview', {
+    await queryInterface.addColumn('documents', 'preview', {
       type: Sequelize.TEXT,
     });
-    queryInterface.addColumn('revisions', 'html', {
+    await queryInterface.addColumn('revisions', 'html', {
       type: Sequelize.TEXT,
     });
-    queryInterface.addColumn('revisions', 'preview', {
+    await queryInterface.addColumn('revisions', 'preview', {
       type: Sequelize.TEXT,
     });
   },
