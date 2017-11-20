@@ -3,7 +3,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 type Props = {
-  onClick: Function,
+  onClick: (redirect: ?boolean) => *,
   disabled?: boolean,
   isNew?: boolean,
   isSaving?: boolean,
