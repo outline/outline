@@ -1,11 +1,5 @@
 // @flow
-import {
-  observable,
-  computed,
-  action,
-  runInAction,
-  ObservableArray,
-} from 'mobx';
+import { observable, computed, action, runInAction, ObservableMap } from 'mobx';
 import ApiClient, { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
@@ -13,12 +7,10 @@ import invariant from 'invariant';
 import stores from 'stores';
 import Collection from 'models/Collection';
 import ErrorsStore from 'stores/ErrorsStore';
-import CacheStore from 'stores/CacheStore';
 import UiStore from 'stores/UiStore';
 
 type Options = {
   teamId: string,
-  cache: CacheStore,
   ui: UiStore,
 };
 
@@ -30,17 +22,17 @@ type DocumentPathItem = {
 };
 
 export type DocumentPath = DocumentPathItem & {
-  path: Array<DocumentPathItem>,
+  path: DocumentPathItem[],
 };
 
 class CollectionsStore {
-  @observable data: ObservableArray<Collection> = observable.array([]);
+  @observable data: Map<string, Collection> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
+  @observable isFetching: boolean = false;
 
   client: ApiClient;
   teamId: string;
   errors: ErrorsStore;
-  cache: CacheStore;
   ui: UiStore;
 
   @computed
@@ -52,7 +44,7 @@ class CollectionsStore {
 
   @computed
   get orderedData(): Collection[] {
-    return _.sortBy(this.data, 'name');
+    return _.sortBy(this.data.values(), 'name');
   }
 
   /**
@@ -100,6 +92,8 @@ class CollectionsStore {
 
   @action
   fetchAll = async (): Promise<*> => {
+    this.isFetching = true;
+
     try {
       const res = await this.client.post('/collections.list', {
         id: this.teamId,
@@ -107,56 +101,64 @@ class CollectionsStore {
       invariant(res && res.data, 'Collection list not available');
       const { data } = res;
       runInAction('CollectionsStore#fetch', () => {
-        this.data.replace(data.map(collection => new Collection(collection)));
+        data.forEach(collection => {
+          this.data.set(collection.id, new Collection(collection));
+        });
         this.isLoaded = true;
       });
     } catch (e) {
       this.errors.add('Failed to load collections');
+    } finally {
+      this.isFetching = false;
     }
   };
 
   @action
-  fetchById = async (id: string): Promise<?Collection> => {
+  fetch = async (id: string): Promise<?Collection> => {
     let collection = this.getById(id);
-    if (!collection) {
-      try {
-        const res = await this.client.post('/collections.info', {
-          id,
-        });
-        invariant(res && res.data, 'Collection not available');
-        const { data } = res;
-        runInAction('CollectionsStore#getById', () => {
-          collection = new Collection(data);
-          this.add(collection);
-        });
-      } catch (e) {
-        Bugsnag.notify(e);
-        this.errors.add('Something went wrong');
-      }
-    }
+    if (collection) return collection;
 
-    return collection;
+    this.isFetching = true;
+
+    try {
+      const res = await this.client.post('/collections.info', {
+        id,
+      });
+      invariant(res && res.data, 'Collection not available');
+      const { data } = res;
+      const collection = new Collection(data);
+
+      runInAction('CollectionsStore#fetch', () => {
+        this.data.set(data.id, collection);
+        this.isLoaded = true;
+      });
+
+      return collection;
+    } catch (e) {
+      this.errors.add('Something went wrong');
+    } finally {
+      this.isFetching = false;
+    }
   };
 
   @action
   add = (collection: Collection): void => {
-    this.data.push(collection);
+    this.data.set(collection.id, collection);
   };
 
   @action
   remove = (id: string): void => {
-    this.data.splice(this.data.indexOf(id), 1);
+    this.data.delete(id);
   };
 
   getById = (id: string): ?Collection => {
-    return _.find(this.data, { id });
+    return this.data.get(id);
   };
 
   constructor(options: Options) {
     this.client = client;
     this.errors = stores.errors;
     this.teamId = options.teamId;
-    this.cache = options.cache;
     this.ui = options.ui;
   }
 }

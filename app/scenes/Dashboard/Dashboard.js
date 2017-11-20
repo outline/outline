@@ -4,11 +4,10 @@ import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 
 import DocumentsStore from 'stores/DocumentsStore';
-import Flex from 'shared/components/Flex';
+import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import Subheading from 'components/Subheading';
-import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 type Props = {
@@ -34,30 +33,26 @@ class Dashboard extends Component {
 
   render() {
     const { documents } = this.props;
-    const recentlyViewedLoaded = documents.recentlyViewed.length > 0;
-    const recentlyEditedLoaded = documents.recentlyEdited.length > 0;
+    const hasRecentlyViewed = documents.recentlyViewed.length > 0;
+    const hasRecentlyEdited = documents.recentlyEdited.length > 0;
     const showContent =
-      this.isLoaded || (recentlyViewedLoaded && recentlyEditedLoaded);
+      this.isLoaded || (hasRecentlyViewed && hasRecentlyEdited);
 
     return (
       <CenteredContent>
         <PageTitle title="Home" />
         <h1>Home</h1>
         {showContent ? (
-          <Flex column>
-            {recentlyViewedLoaded && (
-              <Flex column>
-                <Subheading>Recently viewed</Subheading>
-                <DocumentList documents={documents.recentlyViewed} />
-              </Flex>
-            )}
-            {recentlyEditedLoaded && (
-              <Flex column>
-                <Subheading>Recently edited</Subheading>
-                <DocumentList documents={documents.recentlyEdited} />
-              </Flex>
-            )}
-          </Flex>
+          <span>
+            {hasRecentlyViewed && [
+              <Subheading>Recently viewed</Subheading>,
+              <DocumentList documents={documents.recentlyViewed} />,
+            ]}
+            {hasRecentlyEdited && [
+              <Subheading>Recently edited</Subheading>,
+              <DocumentList documents={documents.recentlyEdited} />,
+            ]}
+          </span>
         ) : (
           <ListPlaceholder count={5} />
         )}

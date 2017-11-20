@@ -1,6 +1,7 @@
 // @flow
 import { observable, action } from 'mobx';
 import Document from 'models/Document';
+import Collection from 'models/Collection';
 
 class UiStore {
   @observable activeModalName: ?string;
@@ -27,6 +28,11 @@ class UiStore {
   setActiveDocument = (document: Document): void => {
     this.activeDocumentId = document.id;
     this.activeCollectionId = document.collection.id;
+  };
+
+  @action
+  setActiveCollection = (collection: Collection): void => {
+    this.activeCollectionId = collection.id;
   };
 
   @action
