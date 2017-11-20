@@ -61,7 +61,7 @@ export default function Pricing() {
       <Container>
         <h1>Outline API</h1>
         <p>
-          First thing we build for Outline was its API. It’s the heart and sole
+          First thing we build for Outline was its API. It’s the heart and soul
           of the service and as developers, it’s our mission to make the API as
           rich and easy to use as possible.
         </p>
