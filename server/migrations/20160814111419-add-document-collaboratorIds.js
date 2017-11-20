@@ -1,10 +1,10 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.addColumn('documents', 'collaboratorIds', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.addColumn('documents', 'collaboratorIds', {
       type: Sequelize.ARRAY(Sequelize.UUID),
     });
   },
-  down: function(queryInterface, Sequelize) {
-    queryInterface.removeColumn('documents', 'collaboratorIds');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('documents', 'collaboratorIds');
   },
 };

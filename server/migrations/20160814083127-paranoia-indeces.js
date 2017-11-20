@@ -1,47 +1,47 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
+  up: async (queryInterface, Sequelize) => {
     // Remove old indeces
-    queryInterface.removeIndex('documents', ['urlId']);
-    queryInterface.removeIndex('documents', ['id', 'atlasId']);
-    queryInterface.removeIndex('documents', ['id', 'teamId']);
-    queryInterface.removeIndex('documents', ['parentDocumentId', 'atlasId']);
+    await queryInterface.removeIndex('documents', ['urlId']);
+    await queryInterface.removeIndex('documents', ['id', 'atlasId']);
+    await queryInterface.removeIndex('documents', ['id', 'teamId']);
+    await queryInterface.removeIndex('documents', ['parentDocumentId', 'atlasId']);
 
-    queryInterface.removeIndex('atlases', ['id', 'teamId']);
+    await queryInterface.removeIndex('atlases', ['id', 'teamId']);
 
     // Add new ones
-    queryInterface.addIndex('documents', ['id', 'deletedAt']);
-    queryInterface.addIndex('documents', ['urlId', 'deletedAt']);
-    queryInterface.addIndex('documents', ['id', 'atlasId', 'deletedAt']);
-    queryInterface.addIndex('documents', ['id', 'teamId', 'deletedAt']);
-    queryInterface.addIndex('documents', [
+    await queryInterface.addIndex('documents', ['id', 'deletedAt']);
+    await queryInterface.addIndex('documents', ['urlId', 'deletedAt']);
+    await queryInterface.addIndex('documents', ['id', 'atlasId', 'deletedAt']);
+    await queryInterface.addIndex('documents', ['id', 'teamId', 'deletedAt']);
+    await queryInterface.addIndex('documents', [
       'parentDocumentId',
       'atlasId',
       'deletedAt',
     ]);
 
-    queryInterface.addIndex('atlases', ['id', 'deletedAt']);
-    queryInterface.addIndex('atlases', ['id', 'teamId', 'deletedAt']);
+    await queryInterface.addIndex('atlases', ['id', 'deletedAt']);
+    await queryInterface.addIndex('atlases', ['id', 'teamId', 'deletedAt']);
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.addIndex('documents', ['urlId']);
-    queryInterface.addIndex('documents', ['id', 'atlasId']);
-    queryInterface.addIndex('documents', ['id', 'teamId']);
-    queryInterface.addIndex('documents', ['parentDocumentId', 'atlasId']);
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.addIndex('documents', ['urlId']);
+    await queryInterface.addIndex('documents', ['id', 'atlasId']);
+    await queryInterface.addIndex('documents', ['id', 'teamId']);
+    await queryInterface.addIndex('documents', ['parentDocumentId', 'atlasId']);
 
-    queryInterface.addIndex('atlases', ['id', 'teamId']);
+    await queryInterface.addIndex('atlases', ['id', 'teamId']);
 
-    queryInterface.removeIndex('documents', ['id', 'deletedAt']);
-    queryInterface.removeIndex('documents', ['urlId', 'deletedAt']);
-    queryInterface.removeIndex('documents', ['id', 'atlasId', 'deletedAt']);
-    queryInterface.removeIndex('documents', ['id', 'teamId', 'deletedAt']);
-    queryInterface.removeIndex('documents', [
+    await queryInterface.removeIndex('documents', ['id', 'deletedAt']);
+    await queryInterface.removeIndex('documents', ['urlId', 'deletedAt']);
+    await queryInterface.removeIndex('documents', ['id', 'atlasId', 'deletedAt']);
+    await queryInterface.removeIndex('documents', ['id', 'teamId', 'deletedAt']);
+    await queryInterface.removeIndex('documents', [
       'parentDocumentId',
       'atlasId',
       'deletedAt',
     ]);
 
-    queryInterface.removeIndex('atlases', ['id', 'deletedAt']);
-    queryInterface.removeIndex('atlases', ['id', 'teamId', 'deletedAt']);
+    await queryInterface.removeIndex('atlases', ['id', 'deletedAt']);
+    await queryInterface.removeIndex('atlases', ['id', 'teamId', 'deletedAt']);
   },
 };

@@ -1,5 +1,5 @@
 module.exports = {
-  up: async function(queryInterface, Sequelize) {
+  up: async (queryInterface, Sequelize) => {
     await queryInterface.changeColumn('documents', 'atlasId', {
       type: Sequelize.UUID,
       allowNull: true,
@@ -32,7 +32,7 @@ module.exports = {
     });
   },
 
-  down: async function(queryInterface, Sequelize) {
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.query(
       'ALTER TABLE documents DROP CONSTRAINT "atlasId_foreign_idx";'
     );

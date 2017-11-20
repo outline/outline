@@ -1,6 +1,6 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.addColumn('documents', 'createdById', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.addColumn('documents', 'createdById', {
       type: 'UUID',
       allowNull: true,
       references: {
@@ -9,7 +9,7 @@ module.exports = {
     });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.removeColumn('documents', 'createdById');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('documents', 'createdById');
   },
 };
