@@ -52,6 +52,17 @@ class DocumentsStore extends BaseStore {
     return _.take(_.orderBy(this.data.values(), 'updatedAt', 'desc'), 5);
   }
 
+  recentlyEditedInCollection(collectionId: string): Array<Document> {
+    return _.orderBy(
+      _.filter(
+        this.data.values(),
+        document => document.collectionId === collectionId
+      ),
+      'updatedAt',
+      'desc'
+    );
+  }
+
   @computed
   get starred(): Array<Document> {
     return _.filter(this.data.values(), 'starred');
