@@ -96,7 +96,7 @@ class CollectionsStore {
       const res = await this.client.post('/collections.list');
       invariant(res && res.data, 'Collection list not available');
       const { data } = res;
-      runInAction('CollectionsStore#fetch', () => {
+      runInAction('CollectionsStore#fetchAll', () => {
         data.forEach(collection => {
           this.data.set(collection.id, new Collection(collection));
         });

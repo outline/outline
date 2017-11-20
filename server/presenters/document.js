@@ -36,6 +36,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     team: document.teamId,
     collaborators: [],
     starred: !!(document.starred && document.starred.length),
+    collectionId: document.atlasId,
     collaboratorCount: undefined,
     collection: undefined,
     views: undefined,

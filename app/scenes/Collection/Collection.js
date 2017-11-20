@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import { newDocumentUrl } from 'utils/routeHelpers';
 
 import CollectionsStore from 'stores/CollectionsStore';
+import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 import Collection from 'models/Collection';
 
@@ -16,12 +17,14 @@ import CollectionIcon from 'components/Icon/CollectionIcon';
 import LoadingListPlaceholder from 'components/LoadingListPlaceholder';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
+import DocumentList from 'components/DocumentList';
 import Subheading from 'components/Subheading';
 import PageTitle from 'components/PageTitle';
 import Flex from 'shared/components/Flex';
 
 type Props = {
   ui: UiStore,
+  documents: DocumentsStore,
   collections: CollectionsStore,
   match: Object,
 };
@@ -32,23 +35,28 @@ class CollectionScene extends Component {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
 
-  componentDidMount = () => {
-    this.fetchCollection(this.props.match.params.id);
-  };
+  componentDidMount() {
+    this.loadContent(this.props.match.params.id);
+  }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.match.params.id !== this.props.match.params.id) {
-      this.fetchCollection(nextProps.match.params.id);
+      this.loadContent(nextProps.match.params.id);
     }
   }
 
-  fetchCollection = async (id: string) => {
+  loadContent = async (id: string) => {
     const { collections } = this.props;
 
     const collection = await collections.fetch(id);
+
     if (collection) {
       this.props.ui.setActiveCollection(collection);
       this.collection = collection;
+      await this.props.documents.fetchRecentlyModified({
+        limit: 5,
+        collectionId: collection.id,
+      });
     }
 
     this.isFetching = false;
@@ -93,6 +101,11 @@ class CollectionScene extends Component {
           {this.collection.name}
         </Heading>
         <Subheading>Recently edited</Subheading>
+        <DocumentList
+          documents={this.props.documents.recentlyEditedInCollection(
+            this.collection.id
+          )}
+        />
       </CenteredContent>
     );
   }
@@ -111,4 +124,4 @@ const Action = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject('collections', 'ui')(CollectionScene);
+export default inject('collections', 'documents', 'ui')(CollectionScene);

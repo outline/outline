@@ -34,6 +34,17 @@ describe('#documents.list', async () => {
     expect(body.data[1].id).toEqual(document.id);
   });
 
+  it('should allow filtering by collection', async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.list', {
+      body: { token: user.getJwtToken(), collectionId: document.atlasId },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+  });
+
   it('should require authentication', async () => {
     const res = await server.post('/api/documents.list');
     const body = await res.json();

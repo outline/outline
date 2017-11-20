@@ -20,6 +20,7 @@ class Document extends BaseModel {
 
   collaborators: Array<User>;
   collection: $Shape<Collection>;
+  collectionId: string;
   firstViewedAt: ?string;
   lastViewedAt: ?string;
   modifiedSinceViewed: ?boolean;

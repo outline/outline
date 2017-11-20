@@ -15,14 +15,17 @@ const authDocumentForUser = (ctx, document) => {
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction } = ctx.body;
+  let { sort = 'updatedAt', direction, collectionId } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
+  let where = { teamId: user.teamId };
+  if (collectionId) where = { ...where, atlasId: collectionId };
+
   const userId = user.id;
   const starredScope = { method: ['withStarred', userId] };
   const documents = await Document.scope('defaultScope', starredScope).findAll({
-    where: { teamId: user.teamId },
+    where,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
