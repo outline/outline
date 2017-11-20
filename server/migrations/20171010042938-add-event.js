@@ -1,6 +1,6 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.createTable('events', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('events', {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -46,7 +46,7 @@ module.exports = {
     });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.dropTable('events');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('events');
   },
 };

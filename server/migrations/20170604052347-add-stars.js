@@ -1,6 +1,6 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface
       .createTable('stars', {
         id: {
           type: Sequelize.UUID,
@@ -23,17 +23,14 @@ module.exports = {
           type: Sequelize.DATE,
           allowNull: false,
         },
-      })
-      .then(() => {
-        queryInterface.addIndex('stars', ['documentId', 'userId'], {
-          indicesType: 'UNIQUE',
-        });
       });
+    await queryInterface.addIndex('stars', ['documentId', 'userId'], {
+      indicesType: 'UNIQUE',
+    });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.removeIndex('stars', ['documentId', 'userId']).then(() => {
-      queryInterface.dropTable('stars');
-    });
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeIndex('stars', ['documentId', 'userId']);
+    await queryInterface.dropTable('stars');
   },
 };

@@ -1,6 +1,6 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface
       .createTable('views', {
         id: {
           type: Sequelize.UUID,
@@ -28,17 +28,14 @@ module.exports = {
           type: Sequelize.DATE,
           allowNull: false,
         },
-      })
-      .then(() => {
-        queryInterface.addIndex('views', ['documentId', 'userId'], {
-          indicesType: 'UNIQUE',
-        });
+      });
+      await queryInterface.addIndex('views', ['documentId', 'userId'], {
+        indicesType: 'UNIQUE',
       });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.removeIndex('views', ['documentId', 'userId']).then(() => {
-      queryInterface.dropTable('views');
-    });
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeIndex('views', ['documentId', 'userId']);
+    await queryInterface.dropTable('views');
   },
 };

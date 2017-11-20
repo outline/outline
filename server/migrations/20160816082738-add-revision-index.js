@@ -1,9 +1,9 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.addIndex('revisions', ['documentId']);
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.addIndex('revisions', ['documentId']);
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.removeIndex('revisions', ['documentId']);
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeIndex('revisions', ['documentId']);
   },
 };

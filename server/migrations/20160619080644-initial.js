@@ -1,6 +1,6 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.createTable('teams', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('teams', {
       id: {
         type: 'UUID',
         allowNull: false,
@@ -29,7 +29,7 @@ module.exports = {
       },
     });
 
-    queryInterface.createTable('atlases', {
+    await queryInterface.createTable('atlases', {
       id: {
         type: 'UUID',
         allowNull: false,
@@ -61,15 +61,11 @@ module.exports = {
       },
       teamId: {
         type: 'UUID',
-        allowNull: false,
-        // references: {
-        //   model: "teams",
-        //   key: "id",
-        // }
+        allowNull: false
       },
     });
 
-    queryInterface.createTable('users', {
+    await queryInterface.createTable('users', {
       id: {
         type: 'UUID',
         allowNull: false,
@@ -119,15 +115,11 @@ module.exports = {
       },
       teamId: {
         type: 'UUID',
-        allowNull: true,
-        // references: {
-        //   model: "teams",
-        //   key: "id",
-        // }
+        allowNull: true
       },
     });
 
-    queryInterface.createTable('documents', {
+    await queryInterface.createTable('documents', {
       id: {
         type: 'UUID',
         allowNull: false,
@@ -169,32 +161,20 @@ module.exports = {
       },
       userId: {
         type: 'UUID',
-        allowNull: true,
-        // references: {
-        //   model: "users",
-        //   key: "id",
-        // }
+        allowNull: true
       },
       atlasId: {
         type: 'UUID',
-        allowNull: true,
-        // references: {
-        //   model: "atlases",
-        //   key: "id",
-        // }
+        allowNull: true
       },
       teamId: {
         type: 'UUID',
-        allowNull: true,
-        // references: {
-        //   model: "teams",
-        //   key: "id",
-        // }
+        allowNull: true
       },
     });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.dropAllTables();
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropAllTables();
   },
 };

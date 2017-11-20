@@ -1,11 +1,11 @@
 module.exports = {
-  up: function(queryInterface, Sequelize) {
-    queryInterface.addColumn('collections', 'color', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.addColumn('collections', 'color', {
       type: Sequelize.TEXT,
     });
   },
 
-  down: function(queryInterface, Sequelize) {
-    queryInterface.removeColumn('collections', 'color');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('collections', 'color');
   },
 };
