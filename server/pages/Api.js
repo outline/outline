@@ -158,276 +158,323 @@ export default function Pricing() {
         </pre>
 
         <h2>Methods</h2>
+        <Methods>
+          <Method method="user.info" label="Get current user">
+            <Description>
+              This method returns the information for currently logged in user.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection id" required />
+            </Arguments>
+          </Method>
 
-        <Method method="user.info" label="Get current user">
-          <Description>
-            This method returns the information for currently logged in user.
-          </Description>
-          <Arguments>
-            <Argument id="id" description="Collection id" required />
-          </Arguments>
-        </Method>
+          <Method method="user.s3Upload" label="Get S3 upload credentials">
+            <Description>
+              You can upload small files and images as part of your documents.
+              All files are stored using Amazon S3. Instead of uploading files
+              to Outline, you need to upload them directly to S3 with special
+              credentials which can be obtained through this endpoint.
+            </Description>
+            <Arguments>
+              <Argument
+                id="filename"
+                description="Filename of the uploaded file"
+                required
+              />
+              <Argument
+                id="kind"
+                description="Mimetype of the document"
+                required
+              />
+              <Argument
+                id="size"
+                description="Filesize of the document"
+                required
+              />
+            </Arguments>
+          </Method>
 
-        <Method method="user.s3Upload" label="Get S3 upload credentials">
-          <Description>
-            You can upload small files and images as part of your documents. All
-            files are stored using Amazon S3. Instead of uploading files to
-            Outline, you need to upload them directly to S3 with special
-            credentials which can be obtained through this endpoint.
-          </Description>
-          <Arguments>
-            <Argument
-              id="filename"
-              description="Filename of the uploaded file"
-              required
-            />
-            <Argument
-              id="kind"
-              description="Mimetype of the document"
-              required
-            />
-            <Argument
-              id="size"
-              description="Filesize of the document"
-              required
-            />
-          </Arguments>
-        </Method>
+          <Method
+            method="collections.list"
+            label="List your document collections"
+          >
+            <Description>List all your document collections.</Description>
+            <Arguments pagination />
+          </Method>
 
-        <Method
-          method="collections.list"
-          label="List your document collections"
-        >
-          <Description>List all your document collections.</Description>
-          <Arguments pagination />
-        </Method>
+          <Method method="collections.info" label="Get a document collection">
+            <Description>
+              Returns detailed information on a document collection.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection id" required />
+            </Arguments>
+          </Method>
 
-        <Method method="collections.info" label="Get a document collection">
-          <Description>
-            Returns detailed information on a document collection.
-          </Description>
-          <Arguments>
-            <Argument id="id" description="Collection id" required />
-          </Arguments>
-        </Method>
+          <Method
+            method="collections.create"
+            label="Create a document collection"
+          >
+            <Description>Creates a new document collection.</Description>
+            <Arguments>
+              <Argument id="name" description="Collection name" required />
+              <Argument
+                id="description"
+                description="Short description for the collection"
+              />
+            </Arguments>
+          </Method>
 
-        <Method
-          method="collections.create"
-          label="Create a document collection"
-        >
-          <Description>Creates a new document collection.</Description>
-          <Arguments>
-            <Argument id="name" description="Collection name" required />
-            <Argument
-              id="description"
-              description="Short description for the collection"
-            />
-          </Arguments>
-        </Method>
+          <Method method="collections.update" label="Update a collection">
+            <Description>
+              This method allows you to modify already created document.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
+              <Argument id="name" description="Name for the collection" />
+              <Argument
+                id="color"
+                description="Collection color in hex form (e.g. #E1E1E1)"
+              />
+            </Arguments>
+          </Method>
 
-        <Method method="documents.info" label="Get a document">
-          <Description>
-            <p>
-              This method returns information for a document with a specific ID.
-              Following identifiers are allowed:
-            </p>
-            <ul>
-              <li>
-                UUID - <code>id</code> field of the document
-              </li>
-              <li>
-                URI identifier - Human readable identifier used in Outline URLs
-                (e.g. <code>outline-api-i48ZEZc5zjXndcP</code>)
-              </li>
-            </ul>
-          </Description>
-          <Arguments>
-            <Argument
-              id="id"
-              description="Document id or URI identifier"
-              required
-            />
-          </Arguments>
-        </Method>
+          <Method method="collections.delete" label="Delete a collection">
+            <Description>
+              Delete a collection and all of its documents. This action can't be
+              undone so please be careful.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
+            </Arguments>
+          </Method>
 
-        <Method method="documents.search" label="Search documents">
-          <Description>
-            This methods allows you to search all of your documents with
-            keywords.
-          </Description>
-          <Arguments>
-            <Argument id="query" description="Search query" required />
-          </Arguments>
-        </Method>
+          <Method method="documents.info" label="Get a document">
+            <Description>
+              <p>
+                This method returns information for a document with a specific
+                ID. Following identifiers are allowed:
+              </p>
+              <ul>
+                <li>
+                  UUID - <code>id</code> field of the document
+                </li>
+                <li>
+                  URI identifier - Human readable identifier used in Outline
+                  URLs (e.g. <code>outline-api-i48ZEZc5zjXndcP</code>)
+                </li>
+              </ul>
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document id or URI identifier"
+                required
+              />
+            </Arguments>
+          </Method>
 
-        <Method method="documents.create" label="Create a new document">
-          <Description>
-            This method allows you to publish a new document under an existing
-            collection. By default a document is set to the parent collection
-            root. If you want to create a subdocument, you can pass{' '}
-            <code>parentDocument</code> to set parent document.
-          </Description>
-          <Arguments>
-            <Argument
-              id="collection"
-              description={
-                <span>
-                  <code>ID</code> of the collection to which the document is
-                  created
-                </span>
-              }
-              required
-            />
-            <Argument
-              id="title"
-              description="Title for the document"
-              required
-            />
-            <Argument
-              id="text"
-              description="Content of the document in Markdow"
-              required
-            />
-            <Argument
-              id="parentDocument"
-              description={
-                <span>
-                  <code>ID</code> of the parent document within the collection
-                </span>
-              }
-            />
-          </Arguments>
-        </Method>
+          <Method method="documents.search" label="Search documents">
+            <Description>
+              This methods allows you to search all of your documents with
+              keywords.
+            </Description>
+            <Arguments>
+              <Argument id="query" description="Search query" required />
+            </Arguments>
+          </Method>
 
-        <Method method="documents.update" label="Update a document">
-          <Description>
-            This method allows you to modify already created document.
-          </Description>
-          <Arguments>
-            <Argument
-              id="id"
-              description="Document id or URI identifier"
-              required
-            />
-            <Argument id="title" description="Title for the document" />
-            <Argument
-              id="text"
-              description="Content of the document in Markdown"
-            />
-          </Arguments>
-        </Method>
+          <Method method="documents.create" label="Create a new document">
+            <Description>
+              This method allows you to publish a new document under an existing
+              collection. By default a document is set to the parent collection
+              root. If you want to create a subdocument, you can pass{' '}
+              <code>parentDocument</code> to set parent document.
+            </Description>
+            <Arguments>
+              <Argument
+                id="collection"
+                description={
+                  <span>
+                    <code>ID</code> of the collection to which the document is
+                    created
+                  </span>
+                }
+                required
+              />
+              <Argument
+                id="title"
+                description="Title for the document"
+                required
+              />
+              <Argument
+                id="text"
+                description="Content of the document in Markdow"
+                required
+              />
+              <Argument
+                id="parentDocument"
+                description={
+                  <span>
+                    <code>ID</code> of the parent document within the collection
+                  </span>
+                }
+              />
+            </Arguments>
+          </Method>
 
-        <Method method="documents.move" label="Move document in a collection">
-          <Description>
-            Move a document into a new location inside the collection. This is
-            easily done by defining the parent document ID and optional index.
-            If no parent document is provided, the document will be moved to the
-            collection root.
-          </Description>
-          <Arguments>
-            <Argument
-              id="id"
-              description="Document id or URI identifier"
-              required
-            />
-            <Argument
-              id="parentDocument"
-              description="ID of the new parent document (if any)"
-            />
-            <Argument id="index" description="Index of the new location" />
-          </Arguments>
-        </Method>
+          <Method method="documents.update" label="Update a document">
+            <Description>
+              This method allows you to modify already created document.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document id or URI identifier"
+                required
+              />
+              <Argument id="title" description="Title for the document" />
+              <Argument
+                id="text"
+                description="Content of the document in Markdown"
+              />
+            </Arguments>
+          </Method>
 
-        <Method method="documents.delete" label="Delete a document">
-          <Description>
-            Delete a document and all of its child documents if any.
-          </Description>
-          <Arguments>
-            <Argument
-              id="id"
-              description="Document id or URI identifier"
-              required
-            />
-          </Arguments>
-        </Method>
+          <Method method="documents.move" label="Move document in a collection">
+            <Description>
+              Move a document into a new location inside the collection. This is
+              easily done by defining the parent document ID and optional index.
+              If no parent document is provided, the document will be moved to
+              the collection root.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document id or URI identifier"
+                required
+              />
+              <Argument
+                id="parentDocument"
+                description="ID of the new parent document (if any)"
+              />
+              <Argument id="index" description="Index of the new location" />
+            </Arguments>
+          </Method>
 
-        <Method method="documents.info" label="Get a document">
-          <Description>
-            Get a document with its ID or URL identifier from user’s
-            collections.
-          </Description>
-          <Arguments>
-            <Argument
-              id="id"
-              description="Document id or URI identifier"
-              required
-            />
-          </Arguments>
-        </Method>
+          <Method method="documents.delete" label="Delete a document">
+            <Description>
+              Delete a document and all of its child documents if any.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document id or URI identifier"
+                required
+              />
+            </Arguments>
+          </Method>
 
-        <Method method="documents.star" label="Star a document">
-          <Description>
-            Star (favorite) a document for authenticated user.
-          </Description>
-          <Arguments>
-            <Argument
-              id="id"
-              description="Document id or URI identifier"
-              required
-            />
-          </Arguments>
-        </Method>
+          <Method method="documents.info" label="Get a document">
+            <Description>
+              Get a document with its ID or URL identifier from user’s
+              collections.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document id or URI identifier"
+                required
+              />
+            </Arguments>
+          </Method>
 
-        <Method method="documents.unstar" label="Unstar a document">
-          <Description>
-            Unstar as starred (favorited) a document for authenticated user.
-          </Description>
-          <Arguments>
-            <Argument
-              id="id"
-              description="Document id or URI identifier"
-              required
-            />
-          </Arguments>
-        </Method>
+          <Method method="documents.star" label="Star a document">
+            <Description>
+              Star (favorite) a document for authenticated user.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document id or URI identifier"
+                required
+              />
+            </Arguments>
+          </Method>
 
-        <Method
-          method="documents.viewed"
-          label="Get recently viewed document for user"
-        >
-          <Description>
-            Return recently viewed documents for the authenticated user
-          </Description>
-          <Arguments pagination />
-        </Method>
+          <Method method="documents.unstar" label="Unstar a document">
+            <Description>
+              Unstar as starred (favorited) a document for authenticated user.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document id or URI identifier"
+                required
+              />
+            </Arguments>
+          </Method>
 
-        <Method
-          method="documents.starred"
-          label="Get recently starred document for user"
-        >
-          <Description>
-            Return recently starred documents for the authenticated user
-          </Description>
-          <Arguments pagination />
-        </Method>
+          <Method
+            method="documents.viewed"
+            label="Get recently viewed document for user"
+          >
+            <Description>
+              Return recently viewed documents for the authenticated user
+            </Description>
+            <Arguments pagination />
+          </Method>
 
-        <Method
-          method="documents.revisions"
-          label="Get revisions for a document"
-        >
-          <Description>
-            Return revisions for a document. Upon each edit, a new revision is
-            stored.
-          </Description>
-          <Arguments pagination />
-        </Method>
+          <Method
+            method="documents.starred"
+            label="Get recently starred document for user"
+          >
+            <Description>
+              Return recently starred documents for the authenticated user
+            </Description>
+            <Arguments pagination />
+          </Method>
+
+          <Method
+            method="documents.revisions"
+            label="Get revisions for a document"
+          >
+            <Description>
+              Return revisions for a document. Upon each edit, a new revision is
+              stored.
+            </Description>
+            <Arguments pagination />
+          </Method>
+        </Methods>
       </Container>
     </Grid>
   );
 }
 
+const MethodList = styled.ul`
+  margin-bottom: 80px;
+`;
+
+const Methods = (props: { children: React.Element<*> }) => {
+  const children = React.Children.toArray(props.children);
+  const methods = children.map(child => child.props.method);
+
+  return (
+    <div>
+      <MethodList>
+        {methods.map(method => (
+          <li key={method}>
+            <a href={`#${method}`}>{method}</a>
+          </li>
+        ))}
+      </MethodList>
+      {children}
+    </div>
+  );
+};
+
 const MethodContainer = styled.div`
-  margin-bottom: 40px;
+  margin-bottom: 80px;
 `;
 
 const Request = styled.h4`
@@ -447,7 +494,7 @@ const Method = (props: MethodProps) => {
 
   return (
     <MethodContainer>
-      <h3>
+      <h3 id={props.method}>
         <code>{props.method}</code> - {props.label}
       </h3>
       <div>{description}</div>
