@@ -61,8 +61,8 @@ export default function Pricing() {
       <Container>
         <h1>Outline API</h1>
         <p>
-          First thing we build for Outline was its API. It's the heart and sole
-          of the service and as developers, it's our mission to make the API as
+          First thing we build for Outline was its API. It’s the heart and sole
+          of the service and as developers, it’s our mission to make the API as
           rich and easy to use as possible.
         </p>
         <p>
@@ -73,10 +73,10 @@ export default function Pricing() {
         </p>
         <h2>Making requests</h2>
         <p>
-          Outline's API follows simple RPC style conventions where each API
+          Outline’s API follows simple RPC style conventions where each API
           endpoint is a method on{' '}
           <code>https://www.getoutline.com/api/&lt;METHOD&gt;</code>. Both{' '}
-          <code>GET</code> and <code>POST</code> methods are supported but it's
+          <code>GET</code> and <code>POST</code> methods are supported but it’s
           recommeded that you make all call using <code>POST</code>. Only HTTPS
           is supported in production.
         </p>
@@ -143,7 +143,7 @@ export default function Pricing() {
         <p>
           All successful API requests will be returned with <code>200</code>{' '}
           status code and <code>ok: true</code> in the response payload. If
-          there's an error while making the request, appropriate status code is
+          there’s an error while making the request, appropriate status code is
           returned with the <code>error</code> message:
         </p>
 
@@ -353,7 +353,7 @@ export default function Pricing() {
 
         <Method method="documents.info" label="Get a document">
           <Description>
-            Get a document with its ID or URL identifier from user's
+            Get a document with its ID or URL identifier from user’s
             collections.
           </Description>
           <Arguments>

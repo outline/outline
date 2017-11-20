@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -34,12 +34,19 @@ class AccountMenu extends Component {
 
   render() {
     return (
-      <DropdownMenu style={{ marginRight: 10, marginTop: -10 }} label={this.props.label}>
-        <DropdownMenuItem onClick={this.handleOpenSettings}>Settings</DropdownMenuItem>
+      <DropdownMenu
+        style={{ marginRight: 10, marginTop: -10 }}
+        label={this.props.label}
+      >
+        <DropdownMenuItem onClick={this.handleOpenSettings}>
+          Settings
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
           Keyboard shortcuts
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={this.handleApi}>API documentation</DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleApi}>
+          API documentation
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleLogout}>Logout</DropdownMenuItem>
       </DropdownMenu>
     );
