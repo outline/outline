@@ -5,6 +5,7 @@ import {
   signin,
   developers,
   githubUrl,
+  spectrumUrl,
   blogUrl,
   twitterUrl,
 } from '../../utils/routeHelpers';
@@ -38,6 +39,9 @@ function BottomNavigation() {
       <Menu>
         <MenuItem>
           <a href={githubUrl()}>GitHub</a>
+        </MenuItem>
+        <MenuItem>
+          <a href={spectrumUrl()}>Spectrum</a>
         </MenuItem>
         <MenuItem>
           <a href={blogUrl()}>Medium</a>

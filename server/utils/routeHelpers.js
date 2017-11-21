@@ -12,6 +12,10 @@ export function twitterUrl(): string {
   return 'https://twitter.com/getoutline';
 }
 
+export function spectrumUrl(): string {
+  return 'https://spectrum.chat/outline';
+}
+
 export function developers(): string {
   return '/developers';
 }
