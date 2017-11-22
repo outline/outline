@@ -1,10 +1,17 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { signin, developers, blogUrl } from '../../utils/routeHelpers';
+import {
+  signin,
+  developers,
+  githubUrl,
+  spectrumUrl,
+  blogUrl,
+  twitterUrl,
+} from '../../utils/routeHelpers';
 import { color } from '../../../shared/styles/constants';
 
-function Navigation() {
+function TopNavigation() {
   return (
     <Nav>
       <Brand href="/">Outline</Brand>
@@ -26,10 +33,36 @@ function Navigation() {
   );
 }
 
+function BottomNavigation() {
+  return (
+    <BottomNav>
+      <Menu>
+        <MenuItem>
+          <a href={githubUrl()}>GitHub</a>
+        </MenuItem>
+        <MenuItem>
+          <a href={spectrumUrl()}>Spectrum</a>
+        </MenuItem>
+        <MenuItem>
+          <a href={blogUrl()}>Medium</a>
+        </MenuItem>
+        <MenuItem>
+          <a href={twitterUrl()}>Twitter</a>
+        </MenuItem>
+      </Menu>
+    </BottomNav>
+  );
+}
+
 const Nav = styled.nav`
   display: flex;
   padding: 20px 30px;
   justify-content: space-between;
+`;
+
+const BottomNav = styled(Nav)`
+  margin-bottom: 30px;
+  justify-content: center;
 `;
 
 const Menu = styled.ul`
@@ -52,6 +85,10 @@ const MenuItem = styled.li`
     color: ${color.slateDark};
     text-decoration: underline;
   }
+
+  &:first-child {
+    margin-left: 0;
+  }
 `;
 
 const Brand = styled.a`
@@ -61,4 +98,4 @@ const Brand = styled.a`
   color: ${color.black};
 `;
 
-export default Navigation;
+export { TopNavigation, BottomNavigation };
