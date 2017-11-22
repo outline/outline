@@ -26,24 +26,30 @@ router.post('hooks.slack', async ctx => {
     limit: 5,
   });
 
-  const results = [];
-  let number = 1;
-  for (const document of documents) {
-    results.push(
-      `${number}. <${process.env.URL}${document.getUrl()}|${document.title}>`
-    );
-    number += 1;
-  }
+  if (documents) {
+    const results = [];
+    let number = 1;
+    for (const document of documents) {
+      results.push(
+        `${number}. <${process.env.URL}${document.getUrl()}|${document.title}>`
+      );
+      number += 1;
+    }
 
-  ctx.body = {
-    text: 'Search results:',
-    attachments: [
-      {
-        text: results.join('\n'),
-        color: '#3AA3E3',
-      },
-    ],
-  };
+    ctx.body = {
+      text: 'Search results:',
+      attachments: [
+        {
+          text: results.join('\n'),
+          color: '#3AA3E3',
+        },
+      ],
+    };
+  } else {
+    ctx.body = {
+      text: 'No search results',
+    };
+  }
 });
 
 export default router;
