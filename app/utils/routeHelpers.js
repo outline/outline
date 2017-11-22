@@ -22,31 +22,6 @@ export function documentUrl(doc: Document): string {
   return doc.url;
 }
 
-export function slackAuth(
-  state: string,
-  scopes: string[] = [
-    'identity.email',
-    'identity.basic',
-    'identity.avatar',
-    'identity.team',
-  ],
-  redirectUri: string = `${BASE_URL}/auth/slack`
-): string {
-  const baseUrl = 'https://slack.com/oauth/authorize';
-  const params = {
-    client_id: SLACK_KEY,
-    scope: scopes ? scopes.join(' ') : '',
-    redirect_uri: redirectUri,
-    state,
-  };
-
-  const urlParams = Object.keys(params)
-    .map(key => `${key}=${encodeURIComponent(params[key])}`)
-    .join('&');
-
-  return `${baseUrl}?${urlParams}`;
-}
-
 export function documentNewUrl(doc: Document): string {
   const newUrl = `${doc.collection.url}/new`;
   if (doc.parentDocumentId) {

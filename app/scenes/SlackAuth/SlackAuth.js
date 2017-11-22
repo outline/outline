@@ -6,7 +6,7 @@ import queryString from 'query-string';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { client } from 'utils/ApiClient';
-import { slackAuth } from 'utils/routeHelpers';
+import { slackAuth } from 'shared/utils/routeHelpers';
 
 import AuthStore from 'stores/AuthStore';
 

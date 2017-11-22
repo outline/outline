@@ -53,7 +53,10 @@ class AuthStore {
 
   @action
   authWithSlack = async (code: string, state: string) => {
-    if (state !== this.oauthState) {
+    // in the case of direct install from the Slack app store the state is
+    // created on the server and set as a cookie
+    const serverState = Cookie.get('state', { path: '/' });
+    if (state !== this.oauthState && state !== serverState) {
       return {
         success: false,
       };
@@ -67,6 +70,9 @@ class AuthStore {
         success: false,
       };
     }
+
+    // State can only ever be used once so now's the time to remove it.
+    Cookie.remove('state', { path: '/' });
 
     invariant(
       res && res.data && res.data.user && res.data.team && res.data.accessToken,
