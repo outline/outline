@@ -13,7 +13,7 @@ type Props = {
 
 function SlackAuthLink({ auth, children, scopes, redirectUri }: Props) {
   return (
-    <a href={slackAuth(this.props.auth.getOauthState(), scopes, redirectUri)}>
+    <a href={slackAuth(auth.getOauthState(), scopes, redirectUri)}>
       {children}
     </a>
   );
