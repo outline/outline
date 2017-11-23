@@ -15,12 +15,12 @@ const authDocumentForUser = (ctx, document) => {
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction, collectionId } = ctx.body;
+  let { sort = 'updatedAt', direction, collection } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
   let where = { teamId: user.teamId };
-  if (collectionId) where = { ...where, atlasId: collectionId };
+  if (collection) where = { ...where, atlasId: collection };
 
   const userId = user.id;
   const starredScope = { method: ['withStarred', userId] };
