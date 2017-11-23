@@ -58,8 +58,8 @@ class CollectionScene extends Component {
       this.props.ui.setActiveCollection(collection);
       this.collection = collection;
       await this.props.documents.fetchRecentlyModified({
-        limit: 5,
-        collectionId: collection.id,
+        limit: 10,
+        collection: collection.id,
       });
     }
 

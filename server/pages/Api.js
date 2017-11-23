@@ -128,9 +128,9 @@ export default function Pricing() {
         <p>
           To authenticate with Outline API, you can supply the API key as a
           header (<code>Authorization: Bearer YOUR_API_KEY</code>) or as part of
-          the payload using <code>token</code> parameter. If you're making{' '}
+          the payload using <code>token</code> parameter. If you’re making{' '}
           <code>GET</code> requests, header based authentication is recommended
-          so that your keys don't leak into logs.
+          so that your keys don’t leak into logs.
         </p>
 
         <p>
@@ -241,11 +241,21 @@ export default function Pricing() {
 
           <Method method="collections.delete" label="Delete a collection">
             <Description>
-              Delete a collection and all of its documents. This action can`t be
+              Delete a collection and all of its documents. This action can’t be
               undone so please be careful.
             </Description>
             <Arguments>
               <Argument id="id" description="Collection ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="documents.list" label="List your documents">
+            <Description>List all your documents.</Description>
+            <Arguments pagination>
+              <Argument
+                id="collection"
+                description="Collection id to filter by"
+              />
             </Arguments>
           </Method>
 
@@ -487,26 +497,6 @@ type MethodProps = {
   children: React.Element<*>,
 };
 
-const Method = (props: MethodProps) => {
-  const children = React.Children.toArray(props.children);
-  const description = children.find(child => child.type === Description);
-  const apiArgs = children.find(child => child.type === Arguments);
-
-  return (
-    <MethodContainer>
-      <h3 id={props.method}>
-        <code>{props.method}</code> - {props.label}
-      </h3>
-      <div>{description}</div>
-      <Request>HTTP request & arguments</Request>
-      <p>
-        <code>{`${process.env.URL}/api/${props.method}`}</code>
-      </p>
-      {apiArgs}
-    </MethodContainer>
-  );
-};
-
 const Description = (props: { children: React.Element<*> }) => (
   <p>{props.children}</p>
 );
@@ -535,6 +525,26 @@ const Arguments = (props: ArgumentsProps) => (
     </tbody>
   </table>
 );
+
+const Method = (props: MethodProps) => {
+  const children = React.Children.toArray(props.children);
+  const description = children.find(child => child.type === Description);
+  const apiArgs = children.find(child => child.type === Arguments);
+
+  return (
+    <MethodContainer>
+      <h3 id={props.method}>
+        <code>{props.method}</code> - {props.label}
+      </h3>
+      <div>{description}</div>
+      <Request>HTTP request & arguments</Request>
+      <p>
+        <code>{`${process.env.URL}/api/${props.method}`}</code>
+      </p>
+      {apiArgs}
+    </MethodContainer>
+  );
+};
 
 type ArgumentProps = {
   id: string,
