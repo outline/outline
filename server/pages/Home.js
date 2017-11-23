@@ -14,8 +14,8 @@ function Home() {
         <Hero>
           <h1>Your team’s knowledge base</h1>
           <HeroText>
-            Documentation, meeting notes, playbooks, onboarding, work logs,
-            brainstorming, decisions, & more…
+            Team wiki, documentation, meeting notes, playbooks, onboarding, work
+            logs, brainstorming, & more…
           </HeroText>
           <p>
             <SignupButton />
@@ -24,7 +24,7 @@ function Home() {
         <Features>
           <Grid.Unit size={{ desktop: 1 / 3, tablet: 1 / 2 }}>
             <Feature>
-              <h2>Blazing Fast</h2>
+              <h2>Blazing Fast Wiki</h2>
               <p>
                 Outline is fast, really fast. We’ve worked hard to ensure
                 millisecond response times, documents load instantly, search is
@@ -34,9 +34,10 @@ function Home() {
             <Feature>
               <h2># Markdown Support</h2>
               <p>
-                Outline stores all documents in plain Markdown. Shortcuts are
-                also built right into the editor so you can easily format using{' '}
-                <strong>**markdown syntax**</strong> if you like.
+                Outline stores, imports and exports all documents in plain
+                Markdown. Shortcuts are also built right into the editor so you
+                can easily format using <strong>**markdown syntax**</strong> if
+                you like.
               </p>
             </Feature>
           </Grid.Unit>
@@ -85,9 +86,9 @@ function Home() {
           <p>
             On the same page as us? Create a beta account to give Outline a try.
           </p>
-          <p>
+          <FooterCTA>
             <SignupButton />
-          </p>
+          </FooterCTA>
         </Footer>
       </Grid>
     </span>
@@ -132,6 +133,10 @@ const Footer = styled.div`
   text-align: center;
   width: 100%;
   padding: 6em;
+`;
+
+const FooterCTA = styled.p`
+  padding-top: 1em;
 `;
 
 const HeroText = styled.p`

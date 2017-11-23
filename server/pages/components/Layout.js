@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import Navigation from './Navigation';
+import { TopNavigation, BottomNavigation } from './Navigation';
 import Analytics from '../../../shared/components/Analytics';
 import globalStyles from '../../../shared/styles/globals';
 import { color } from '../../../shared/styles/constants';
@@ -48,8 +48,9 @@ export default function Layout({ children }: Props) {
         {'{{CSS}}'}
       </head>
       <body>
-        <Navigation />
+        <TopNavigation />
         {children}
+        <BottomNavigation />
       </body>
     </html>
   );

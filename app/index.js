@@ -24,7 +24,6 @@ import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import SlackAuth from 'scenes/SlackAuth';
-import Flatpage from 'scenes/Flatpage';
 import ErrorAuth from 'scenes/ErrorAuth';
 import Error404 from 'scenes/Error404';
 
@@ -32,8 +31,6 @@ import ErrorBoundary from 'components/ErrorBoundary';
 import ScrollToTop from 'components/ScrollToTop';
 import Layout from 'components/Layout';
 import RouteSidebarHidden from 'components/RouteSidebarHidden';
-
-import flatpages from 'static/flatpages';
 
 import { matchDocumentSlug } from 'utils/routeHelpers';
 
@@ -92,7 +89,6 @@ const Auth = ({ children }: AuthProps) => {
 };
 
 const notFoundSearch = () => <Search notFound />;
-const Api = () => <Flatpage title="API" content={flatpages.api} />;
 const DocumentNew = () => <Document newDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
@@ -141,7 +137,6 @@ render(
 
                     <Route exact path="/search" component={Search} />
                     <Route exact path="/search/:query" component={Search} />
-                    <Route exact path="/developers" component={Api} />
 
                     <Route path="/404" component={Error404} />
 

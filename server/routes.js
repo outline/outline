@@ -8,10 +8,12 @@ import sendfile from 'koa-sendfile';
 import serve from 'koa-static';
 import subdomainRedirect from './middlewares/subdomainRedirect';
 import renderpage from './utils/renderpage';
+import { slackAuth } from '../shared/utils/routeHelpers';
 
 import Home from './pages/Home';
 import About from './pages/About';
 import Pricing from './pages/Pricing';
+import Api from './pages/Api';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const koa = new Koa();
@@ -43,9 +45,23 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// slack direct install
+router.get('/auth/slack/install', async ctx => {
+  const state = Math.random()
+    .toString(36)
+    .substring(7);
+
+  ctx.cookies.set('state', state, {
+    httpOnly: false,
+    expires: new Date('2100'),
+  });
+  ctx.redirect(slackAuth(state));
+});
+
 // static pages
 router.get('/about', ctx => renderpage(ctx, <About />));
 router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
+router.get('/developers', ctx => renderpage(ctx, <Api />));
 
 // home page
 router.get('/', async ctx => {

@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -23,6 +23,10 @@ class AccountMenu extends Component {
     this.props.ui.setActiveModal('settings');
   };
 
+  handleApi = () => {
+    window.location.href = '/developers';
+  };
+
   handleLogout = () => {
     this.props.auth.logout();
     window.location.href = BASE_URL;
@@ -40,9 +44,9 @@ class AccountMenu extends Component {
         <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
           Keyboard shortcuts
         </DropdownMenuItem>
-        <Link to="/developers">
-          <DropdownMenuItem>API documentation</DropdownMenuItem>
-        </Link>
+        <DropdownMenuItem onClick={this.handleApi}>
+          API documentation
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleLogout}>Logout</DropdownMenuItem>
       </DropdownMenu>
     );
