@@ -39,6 +39,7 @@ class Document extends BaseModel {
   updatedBy: User;
   url: string;
   views: number;
+  revision: number;
 
   data: Object;
 
@@ -168,6 +169,7 @@ class Document extends BaseModel {
           id: this.id,
           title: this.title,
           text: this.text,
+          lastRevision: this.revision,
         });
       } else {
         if (!this.title) {
