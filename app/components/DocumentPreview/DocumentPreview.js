@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
+import Highlight from 'components/Highlight';
 import StarredIcon from 'components/Icon/StarredIcon';
 import PublishingInfo from './components/PublishingInfo';
 
@@ -84,12 +85,18 @@ class DocumentPreview extends Component {
   };
 
   render() {
-    const { document, showCollection, innerRef, ...rest } = this.props;
+    const {
+      document,
+      showCollection,
+      innerRef,
+      highlight,
+      ...rest
+    } = this.props;
 
     return (
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
         <h3>
-          {document.title}
+          <Highlight text={document.title} highlight={highlight} />
           {document.starred ? (
             <a onClick={this.unstar}>
               <StyledStar solid />

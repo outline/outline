@@ -4,10 +4,8 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build:webpack":
-      "NODE_ENV=production webpack --config webpack.config.prod.js",
-    "build:analyze":
-      "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
+    "build:webpack": "NODE_ENV=production webpack --config webpack.config.prod.js",
+    "build:analyze": "NODE_ENV=production webpack --config webpack.config.prod.js --json | webpack-bundle-size-analyzer",
     "build": "npm run clean && npm run build:webpack",
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development nodemon --watch server index.js",
@@ -20,23 +18,35 @@
     "sequelize:migrate": "sequelize db:migrate",
     "test": "npm run test:app && npm run test:server",
     "test:app": "jest",
-    "test:server":
-      "jest --config=server/.jestconfig.json --runInBand --forceExit",
+    "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "*.js": ["eslint --fix", "git add"]
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "jest": {
     "verbose": false,
-    "roots": ["app"],
+    "roots": [
+      "app"
+    ],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },
-    "moduleFileExtensions": ["js", "jsx", "json"],
-    "moduleDirectories": ["node_modules"],
-    "modulePaths": ["app"],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "modulePaths": [
+      "app"
+    ],
     "setupFiles": [
       "raf/polyfill",
       "<rootDir>/setupJest.js",
@@ -158,6 +168,7 @@
     "slate-trailing-block": "^0.2.4",
     "slug": "0.9.1",
     "string-hash": "^1.1.0",
+    "string-replace-to-array": "^1.0.3",
     "style-loader": "^0.18.2",
     "styled-components": "^2.2.3",
     "styled-components-grid": "^1.0.0-preview.15",
