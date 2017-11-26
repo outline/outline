@@ -4,10 +4,9 @@ import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import type { ApiKey } from 'types';
 
-class SearchStore {
+class SettingsStore {
   @observable apiKeys: ApiKey[] = [];
   @observable keyName: ?string;
-
   @observable isFetching: boolean = false;
 
   @action
@@ -75,4 +74,4 @@ class SearchStore {
   }
 }
 
-export default SearchStore;
+export default SettingsStore;

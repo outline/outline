@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import { withRouter } from 'react-router-dom';
+import { Switch, Route, withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
@@ -13,6 +13,7 @@ import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Sidebar from 'components/Sidebar';
+import SettingsSidebar from 'components/Sidebar/Settings';
 import Modals from 'components/Modals';
 import Toasts from 'components/Toasts';
 
@@ -84,7 +85,12 @@ class Layout extends React.Component {
         {this.props.notifications}
 
         <Flex auto>
-          {showSidebar && <Sidebar />}
+          {showSidebar && (
+            <Switch>
+              <Route path="/settings" component={SettingsSidebar} />
+              <Route component={Sidebar} />
+            </Switch>
+          )}
 
           <Content auto justify="center" editMode={ui.editMode}>
             {this.props.children}

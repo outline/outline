@@ -20,7 +20,7 @@ class AccountMenu extends Component {
   };
 
   handleOpenSettings = () => {
-    this.props.ui.setActiveModal('settings');
+    this.props.history.push('/settings');
   };
 
   handleApi = () => {
