@@ -242,13 +242,17 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text } = ctx.body;
+  const { id, title, text, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
   const collection = document.collection;
+
+  if (lastRevision && lastRevision !== document.revisionCount) {
+    throw httpErrors.BadRequest('Document has changed since last revision');
+  }
 
   authDocumentForUser(ctx, document);
 

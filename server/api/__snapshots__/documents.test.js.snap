@@ -45,6 +45,15 @@ Object {
 }
 `;
 
+exports[`#documents.update should fail if document lastRevision does not match 1`] = `
+Object {
+  "error": "document_has_changed_since_last_revision",
+  "message": "Document has changed since last revision",
+  "ok": false,
+  "status": 400,
+}
+`;
+
 exports[`#documents.viewed should require authentication 1`] = `
 Object {
   "error": "authentication_required",
