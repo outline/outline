@@ -8355,6 +8355,14 @@ string-length@^1.0.0, string-length@^1.0.1:
   dependencies:
     strip-ansi "^3.0.0"
 
+string-replace-to-array@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.npmjs.org/string-replace-to-array/-/string-replace-to-array-1.0.3.tgz#c93eba999a5ee24d731aebbaf5aba36b5f18f7bf"
+  dependencies:
+    invariant "^2.2.1"
+    lodash.flatten "^4.2.0"
+    lodash.isstring "^4.0.1"
+
 string-width@^1.0.1, string-width@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-1.0.2.tgz#118bdf5b8cdc51a2a7e70d211e07e2b0b9b107d3"
