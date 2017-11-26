@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
@@ -16,13 +17,23 @@ import Subheading from 'components/Subheading';
 
 @observer
 class Settings extends Component {
+  @observable name: string = '';
   props: {
     settings: SettingsStore,
   };
 
-  handleSubmit = (ev: SyntheticEvent) => {
+  componentDidMount() {
+    this.props.settings.fetchApiKeys();
+  }
+
+  handleUpdate = (ev: SyntheticInputEvent) => {
+    this.name = ev.target.value;
+  };
+
+  handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
-    this.props.settings.createApiKey();
+    await this.props.settings.createApiKey(this.name);
+    this.name = '';
   };
 
   render() {
@@ -31,8 +42,8 @@ class Settings extends Component {
 
     return (
       <CenteredContent>
-        <PageTitle title="API Tokens" />
-        <h1>API Tokens</h1>
+        <PageTitle title="API Access" />
+        <h1>API Access</h1>
 
         {hasApiKeys && [
           <Subheading>Your tokens</Subheading>,
@@ -49,9 +60,9 @@ class Settings extends Component {
               ))}
             </tbody>
           </Table>,
+          <Subheading>Create a token</Subheading>,
         ]}
 
-        <Subheading>Create a token</Subheading>
         <HelpText>
           You can create unlimited personal API tokens to hack on your wiki.
           Learn more in the <Link to="/developers">API documentation</Link>.
@@ -59,13 +70,16 @@ class Settings extends Component {
 
         <form onSubmit={this.handleSubmit}>
           <Input
-            type="text"
+            onChange={this.handleUpdate}
             placeholder="Token label (eg. development)"
-            value={settings.keyName || ''}
-            onChange={settings.setKeyName}
+            value={this.name}
             required
           />
-          <Button type="submit" value="Create Token" />
+          <Button
+            type="submit"
+            value="Create Token"
+            disabled={settings.isSaving}
+          />
         </form>
       </CenteredContent>
     );

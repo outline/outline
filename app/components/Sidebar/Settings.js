@@ -78,7 +78,7 @@ class Sidebar extends Component {
                 Notifications
               </SidebarLink>
               <SidebarLink to="/settings/tokens" icon={<HomeIcon />}>
-                API Tokens
+                API Access
               </SidebarLink>
             </Section>
             <Section>

@@ -32,6 +32,11 @@ const RealButton = styled.button`
     top: 0.05em;
   }
 
+  &:disabled {
+    opacity: 0.8;
+    cursor: default;
+  }
+
   ${props =>
     props.light &&
     `
@@ -57,10 +62,7 @@ const RealButton = styled.button`
     &:hover {
       background: ${darken(0.05, color.danger)};
     }
-  `} &:disabled {
-    background: ${color.slateLight};
-    cursor: default;
-  }
+  `};
 `;
 
 const Label = styled.span`

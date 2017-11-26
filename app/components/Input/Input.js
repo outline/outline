@@ -52,13 +52,18 @@ export const LabelText = styled.div`
 `;
 
 export type Props = {
-  type: string,
+  type?: string,
   value?: string,
   label?: string,
   className?: string,
 };
 
-export default function Input({ type, label, className, ...rest }: Props) {
+export default function Input({
+  type = 'text',
+  label,
+  className,
+  ...rest
+}: Props) {
   const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
 
   return (

@@ -8,7 +8,7 @@ type Props = {
   id: string,
   name: ?string,
   secret: string,
-  onDelete: (id: string) => void,
+  onDelete: (id: string) => *,
 };
 
 @observer
