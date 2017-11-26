@@ -8,7 +8,6 @@ import {
   Route,
   Redirect,
 } from 'react-router-dom';
-import Flex from 'shared/components/Flex';
 
 import stores from 'stores';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -78,14 +77,11 @@ const Auth = ({ children }: AuthProps) => {
       authenticatedStores.collections.fetchAll();
     }
 
-    return (
-      <Flex auto>
-        <Provider {...authenticatedStores}>{children}</Provider>
-      </Flex>
-    );
-  } else {
-    return <Redirect to="/" />;
+    return <Provider {...authenticatedStores}>{children}</Provider>;
   }
+
+  stores.auth.logout();
+  window.location.href = BASE_URL;
 };
 
 const notFoundSearch = () => <Search notFound />;
