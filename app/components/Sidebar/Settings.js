@@ -7,22 +7,19 @@ import { observer, inject } from 'mobx-react';
 import Flex from 'shared/components/Flex';
 import { color, layout } from 'shared/styles/constants';
 
-import AccountMenu from 'menus/AccountMenu';
-import Avatar from 'components/Avatar';
 import Scrollable from 'components/Scrollable';
-import HomeIcon from 'components/Icon/HomeIcon';
+import StarredIcon from 'components/Icon/StarredIcon';
+import SettingsIcon from 'components/Icon/SettingsIcon';
+import CodeIcon from 'components/Icon/CodeIcon';
 import Header from './components/Header';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
-
 import AuthStore from 'stores/AuthStore';
-import UiStore from 'stores/UiStore';
 
 type Props = {
   history: Object,
   location: Location,
   auth: AuthStore,
-  ui: UiStore,
 };
 
 @observer
@@ -30,70 +27,46 @@ class Sidebar extends Component {
   props: Props;
   scrollable: ?HTMLDivElement;
 
-  handleCreateCollection = () => {
-    this.props.ui.setActiveModal('collection-new');
-  };
-
-  handleEditCollection = () => {
-    this.props.ui.setActiveModal('collection-edit');
-  };
-
   setScrollableRef = ref => {
     this.scrollable = ref;
   };
 
-  scrollToActiveDocument = ref => {
-    const scrollable = this.scrollable;
-    if (!ref || !scrollable) return;
-
-    const container = scrollable.getBoundingClientRect();
-    const bounds = ref.getBoundingClientRect();
-    const scrollTop = bounds.top + container.top;
-    scrollable.scrollTop = scrollTop;
+  returnToDashboard = () => {
+    this.props.history.push('/');
   };
 
   render() {
-    const { auth, ui } = this.props;
-    const { user, team } = auth;
-    if (!user || !team) return;
+    const { auth } = this.props;
+    const { team } = auth;
+    if (!team) return;
 
     return (
-      <Container column editMode={ui.editMode}>
-        <AccountMenu
-          label={
-            <HeaderBlock user={user} team={team}>
-              <Avatar src={user.avatarUrl} />
-            </HeaderBlock>
-          }
+      <Container column>
+        <HeaderBlock
+          subheading="◄ Return to Dashboard"
+          teamName={team.name}
+          logoUrl={team.avatarUrl}
+          onClick={this.returnToDashboard}
         />
 
         <Flex auto column>
           <Scrollable innerRef={this.setScrollableRef}>
             <Section>
               <Header>Account</Header>
-              <SidebarLink to="/settings" icon={<HomeIcon />}>
+              <SidebarLink to="/settings" icon={<StarredIcon />}>
                 Profile
               </SidebarLink>
-              <SidebarLink to="/settings/notifications" icon={<HomeIcon />}>
-                Notifications
-              </SidebarLink>
-              <SidebarLink to="/settings/tokens" icon={<HomeIcon />}>
+              <SidebarLink to="/settings/tokens" icon={<CodeIcon />}>
                 API Access
               </SidebarLink>
             </Section>
             <Section>
               <Header>Team</Header>
-              <SidebarLink to="/settings/details" icon={<HomeIcon />}>
-                Details
-              </SidebarLink>
-              <SidebarLink to="/settings/people" icon={<HomeIcon />}>
-                People
-              </SidebarLink>
               <SidebarLink
                 to="/settings/integrations/slack"
-                icon={<HomeIcon />}
+                icon={<SettingsIcon />}
               >
-                Slack
+                Integrations
               </SidebarLink>
             </Section>
           </Scrollable>
@@ -107,7 +80,7 @@ const Container = styled(Flex)`
   position: fixed;
   top: 0;
   bottom: 0;
-  left: ${props => (props.editMode ? `-${layout.sidebarWidth}` : 0)};
+  left: 0;
   width: ${layout.sidebarWidth};
   background: ${color.smoke};
   transition: left 200ms ease-in-out;
@@ -120,4 +93,4 @@ const Section = styled(Flex)`
   position: relative;
 `;
 
-export default withRouter(inject('user', 'auth', 'ui')(Sidebar));
+export default withRouter(inject('auth')(Sidebar));

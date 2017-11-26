@@ -8,7 +8,6 @@ import Flex from 'shared/components/Flex';
 import { color, layout } from 'shared/styles/constants';
 
 import AccountMenu from 'menus/AccountMenu';
-import Avatar from 'components/Avatar';
 import Scrollable from 'components/Scrollable';
 import HomeIcon from 'components/Icon/HomeIcon';
 import SearchIcon from 'components/Icon/SearchIcon';
@@ -63,9 +62,11 @@ class Sidebar extends Component {
       <Container column editMode={ui.editMode}>
         <AccountMenu
           label={
-            <HeaderBlock user={user} team={team}>
-              <Avatar src={user.avatarUrl} />
-            </HeaderBlock>
+            <HeaderBlock
+              subheading={user.name}
+              teamName={team.name}
+              logoUrl={team.avatarUrl}
+            />
           }
         />
 

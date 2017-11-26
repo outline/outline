@@ -2,33 +2,38 @@
 import React from 'react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
-import type { User, Team } from 'types';
 import Flex from 'shared/components/Flex';
+import TeamLogo from './TeamLogo';
 
 type Props = {
-  user: User,
-  team: Team,
-  children?: React$Element<any>,
+  teamName: string,
+  subheading: string,
+  logoUrl: string,
 };
 
-function HeaderBlock({ user, team, children }: Props) {
+function HeaderBlock({ teamName, subheading, logoUrl, ...rest }: Props) {
   return (
-    <Header justify="space-between" align="center">
+    <Header justify="flex-start" align="center" {...rest}>
+      <TeamLogo src={logoUrl} />
       <Flex align="flex-start" column>
-        <TeamName>{team.name}</TeamName>
-        <UserName>{user.name}</UserName>
+        <TeamName>{teamName}</TeamName>
+        <Subheading>{subheading}</Subheading>
       </Flex>
-      {children}
     </Header>
   );
 }
 
-const UserName = styled.div`
-  font-size: 13px;
+const Subheading = styled.div`
+  padding-left: 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: ${color.slateDark};
 `;
 
 const TeamName = styled.div`
-  font-weight: bold;
+  padding-left: 10px;
+  font-weight: 600;
   color: ${color.text};
   text-decoration: none;
   font-size: 16px;
@@ -43,17 +48,8 @@ const Header = styled(Flex)`
 
   &:active,
   &:hover {
+    transition: background 100ms ease-in-out;
     background: rgba(0, 0, 0, 0.05);
-  }
-
-  &::after {
-    content: '';
-    left: 24px;
-    right: 24px;
-    background: rgba(0, 0, 0, 0.075);
-    height: 1px;
-    position: absolute;
-    bottom: 0;
   }
 `;
 

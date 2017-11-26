@@ -9,6 +9,7 @@ export type User = {
 export type Team = {
   id: string,
   name: string,
+  avatarUrl: string,
 };
 
 export type NavigationNode = {
