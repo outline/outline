@@ -232,7 +232,7 @@ class DocumentScene extends Component {
                 message={DISCARD_CHANGES}
               />
               <Editor
-                key={document.id}
+                key={`${document.id}-${document.revision}`}
                 text={document.text}
                 emoji={document.emoji}
                 onImageUploadStart={this.onImageUploadStart}
