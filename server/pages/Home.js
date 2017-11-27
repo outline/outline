@@ -145,7 +145,7 @@ const Feature = styled(Grid.Unit)`
 const Footer = styled.div`
   text-align: center;
   width: 100%;
-  padding: 6em 5em;
+  padding: 6em 4em;
 `;
 
 const FooterCTA = styled.p`
