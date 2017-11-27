@@ -193,7 +193,7 @@ class MarkdownEditor extends Component {
       >
         <MaxWidth column auto>
           <Header onClick={this.focusAtStart} readOnly={readOnly} />
-          <Contents state={this.editorState} />
+          {readOnly && <Contents state={this.editorState} />}
           {!readOnly && (
             <Toolbar state={this.editorState} onChange={this.onChange} />
           )}
