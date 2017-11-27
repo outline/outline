@@ -8444,7 +8444,7 @@ style-loader@^0.18.2:
 
 styled-components-breakpoint@^1.0.1:
   version "1.0.1"
-  resolved "https://registry.npmjs.org/styled-components-breakpoint/-/styled-components-breakpoint-1.0.1.tgz#51fb474d9449e228b6f3f2cd232631ec65c149bc"
+  resolved "https://registry.yarnpkg.com/styled-components-breakpoint/-/styled-components-breakpoint-1.0.1.tgz#51fb474d9449e228b6f3f2cd232631ec65c149bc"
 
 styled-components-grid@^1.0.0-preview.15:
   version "1.0.0-preview.15"

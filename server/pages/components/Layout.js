@@ -21,7 +21,10 @@ export default function Layout({ children }: Props) {
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta name="referrer" content="origin" />
-          <meta name="description" content="Your team’s knowledge base" />
+          <meta
+            name="description"
+            content="Your team’s knowledge base - Team wiki, documentation, playbooks, onboarding & more…"
+          />
           <meta name="og:site_name" content="Outline" />
           <meta name="og:type" content="website" />
           <meta name="theme-color" content={color.primary} />

@@ -4,6 +4,7 @@ import styled from 'styled-components';
 const Hero = styled.div`
   width: 100%;
   height: 70vh;
+  min-height: 400px;
   max-height: 600px;
   padding: 6em 2em 0;
   text-align: center;

@@ -1,7 +1,9 @@
 // @flow
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
+import breakpoint from 'styled-components-breakpoint';
 import Hero from './components/Hero';
 import SignupButton from './components/SignupButton';
 import { developers, githubUrl } from '../utils/routeHelpers';
@@ -10,6 +12,9 @@ import { color } from '../../shared/styles/constants';
 function Home() {
   return (
     <span>
+      <Helmet>
+        <title>Outline - Team wiki & documentation</title>
+      </Helmet>
       <Grid>
         <Hero>
           <h1>Your team’s knowledge base</h1>
@@ -21,7 +26,7 @@ function Home() {
             <SignupButton />
           </p>
         </Hero>
-        <Features>
+        <Features reverse={{ mobile: true, tablet: false, desktop: false }}>
           <Grid.Unit size={{ desktop: 1 / 3, tablet: 1 / 2 }}>
             <Feature>
               <h2>Blazing Fast Wiki</h2>
@@ -96,10 +101,14 @@ function Home() {
 }
 
 const Screenshot = styled.img`
-  width: 150%;
+  width: 100%;
   box-shadow: 0 0 80px 0 rgba(124, 124, 124, 0.5),
     0 0 10px 0 rgba(237, 237, 237, 0.5);
   border-radius: 5px;
+
+  ${breakpoint('desktop')`
+    width: 150%;
+  `};
 `;
 
 const Highlights = styled(Grid)`
@@ -111,6 +120,10 @@ const Highlights = styled(Grid)`
 const Features = styled(Grid)`
   padding: 0 2em;
   overflow: hidden;
+
+  ${breakpoint('mobile')`
+    flex-direction
+  `};
 `;
 
 const Feature = styled(Grid.Unit)`
@@ -132,7 +145,7 @@ const Feature = styled(Grid.Unit)`
 const Footer = styled.div`
   text-align: center;
   width: 100%;
-  padding: 6em;
+  padding: 6em 4em;
 `;
 
 const FooterCTA = styled.p`
