@@ -25,19 +25,13 @@ type Props = {
 @observer
 class Sidebar extends Component {
   props: Props;
-  scrollable: ?HTMLDivElement;
-
-  setScrollableRef = ref => {
-    this.scrollable = ref;
-  };
 
   returnToDashboard = () => {
     this.props.history.push('/');
   };
 
   render() {
-    const { auth } = this.props;
-    const { team } = auth;
+    const { team } = this.props.auth;
     if (!team) return;
 
     return (
@@ -50,7 +44,7 @@ class Sidebar extends Component {
         />
 
         <Flex auto column>
-          <Scrollable innerRef={this.setScrollableRef}>
+          <Scrollable>
             <Section>
               <Header>Account</Header>
               <SidebarLink to="/settings" icon={<ProfileIcon />}>
