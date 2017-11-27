@@ -159,9 +159,18 @@ export default function Pricing() {
 
         <h2>Methods</h2>
         <Methods>
+          <Method method="auth.info" label="Get current auth">
+            <Description>
+              This method returns the user and team info for the user identified
+              by the token.
+            </Description>
+            <Arguments />
+          </Method>
+
           <Method method="user.info" label="Get current user">
             <Description>
-              This method returns the information for currently logged in user.
+              This method returns the profile info for the user identified by
+              the token.
             </Description>
             <Arguments>
               <Argument id="id" description="Collection id" required />
@@ -254,7 +263,7 @@ export default function Pricing() {
             <Arguments pagination>
               <Argument
                 id="collection"
-                description="Collection id to filter by"
+                description="Collection ID to filter by"
               />
             </Arguments>
           </Method>
@@ -278,7 +287,7 @@ export default function Pricing() {
             <Arguments>
               <Argument
                 id="id"
-                description="Document id or URI identifier"
+                description="Document ID or URI identifier"
                 required
               />
             </Arguments>
@@ -340,7 +349,7 @@ export default function Pricing() {
             <Arguments>
               <Argument
                 id="id"
-                description="Document id or URI identifier"
+                description="Document ID or URI identifier"
                 required
               />
               <Argument id="title" description="Title for the document" />
@@ -361,7 +370,7 @@ export default function Pricing() {
             <Arguments>
               <Argument
                 id="id"
-                description="Document id or URI identifier"
+                description="Document ID or URI identifier"
                 required
               />
               <Argument
@@ -379,7 +388,7 @@ export default function Pricing() {
             <Arguments>
               <Argument
                 id="id"
-                description="Document id or URI identifier"
+                description="Document ID or URI identifier"
                 required
               />
             </Arguments>
@@ -393,7 +402,7 @@ export default function Pricing() {
             <Arguments>
               <Argument
                 id="id"
-                description="Document id or URI identifier"
+                description="Document ID or URI identifier"
                 required
               />
             </Arguments>
@@ -406,7 +415,7 @@ export default function Pricing() {
             <Arguments>
               <Argument
                 id="id"
-                description="Document id or URI identifier"
+                description="Document ID or URI identifier"
                 required
               />
             </Arguments>
@@ -419,7 +428,7 @@ export default function Pricing() {
             <Arguments>
               <Argument
                 id="id"
-                description="Document id or URI identifier"
+                description="Document ID or URI identifier"
                 required
               />
             </Arguments>
