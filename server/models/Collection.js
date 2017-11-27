@@ -7,6 +7,7 @@ import { asyncLock } from '../redis';
 import events from '../events';
 import Document from './Document';
 import Event from './Event';
+import { welcomeMessage } from '../utils/onboarding';
 
 // $FlowIssue invalid flow-typed
 slug.defaults.mode = 'rfc3986';
@@ -57,8 +58,8 @@ const Collection = sequelize.define(
             userId: collection.creatorId,
             lastModifiedById: collection.creatorId,
             createdById: collection.creatorId,
-            title: 'Introduction',
-            text: '# Introduction\n\nLets get started...',
+            title: 'Welcome to Outline',
+            text: welcomeMessage(collection.id),
           });
           collection.documentStructure = [document.toJSON()];
         } else {
