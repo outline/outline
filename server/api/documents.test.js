@@ -34,6 +34,17 @@ describe('#documents.list', async () => {
     expect(body.data[1].id).toEqual(document.id);
   });
 
+  it('should allow filtering by collection', async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.list', {
+      body: { token: user.getJwtToken(), collection: document.atlasId },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+  });
+
   it('should require authentication', async () => {
     const res = await server.post('/api/documents.list');
     const body = await res.json();
@@ -266,6 +277,7 @@ describe('#documents.update', async () => {
         id: document.id,
         title: 'Updated title',
         text: 'Updated text',
+        lastRevision: document.revision,
       },
     });
     const body = await res.json();
@@ -274,6 +286,23 @@ describe('#documents.update', async () => {
     expect(body.data.title).toBe('Updated title');
     expect(body.data.text).toBe('Updated text');
     expect(body.data.collection.documents[1].title).toBe('Updated title');
+  });
+
+  it('should fail if document lastRevision does not match', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: 'Updated text',
+        lastRevision: 123,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body).toMatchSnapshot();
   });
 
   it('should update document details for children', async () => {

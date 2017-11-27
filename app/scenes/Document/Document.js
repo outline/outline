@@ -8,7 +8,6 @@ import { withRouter, Prompt } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
-import { color, layout } from 'shared/styles/constants';
 import {
   collectionUrl,
   updateDocumentUrl,
@@ -33,6 +32,7 @@ import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
+import Actions, { Action, Separator } from 'components/Actions';
 import Search from 'scenes/Search';
 
 const DISCARD_CHANGES = `
@@ -44,7 +44,6 @@ type Props = {
   match: Object,
   history: Object,
   location: Location,
-  keydown: Object,
   documents: DocumentsStore,
   collections: CollectionsStore,
   newDocument?: boolean,
@@ -233,7 +232,7 @@ class DocumentScene extends Component {
                 message={DISCARD_CHANGES}
               />
               <Editor
-                key={document.id}
+                key={`${document.id}-${document.revision}`}
                 text={document.text}
                 emoji={document.emoji}
                 onImageUploadStart={this.onImageUploadStart}
@@ -243,84 +242,53 @@ class DocumentScene extends Component {
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing}
               />
-              <Meta
+              <Actions
                 align="center"
                 justify="flex-end"
                 readOnly={!this.isEditing}
               >
-                <Flex align="center">
-                  {!isNew &&
-                    !this.isEditing && <Collaborators document={document} />}
-                  <HeaderAction>
-                    {this.isEditing ? (
-                      <SaveAction
-                        isSaving={this.isSaving}
-                        onClick={this.onSave.bind(this, true)}
-                        disabled={
-                          !(this.document && this.document.allowSave) ||
-                          this.isSaving
-                        }
-                        isNew={!!isNew}
-                      />
-                    ) : (
-                      <a onClick={this.onClickEdit}>Edit</a>
-                    )}
-                  </HeaderAction>
-                  {this.isEditing && (
-                    <HeaderAction>
-                      <a onClick={this.onDiscard}>Discard</a>
-                    </HeaderAction>
+                {!isNew &&
+                  !this.isEditing && <Collaborators document={document} />}
+                <Action>
+                  {this.isEditing ? (
+                    <SaveAction
+                      isSaving={this.isSaving}
+                      onClick={this.onSave.bind(this, true)}
+                      disabled={
+                        !(this.document && this.document.allowSave) ||
+                        this.isSaving
+                      }
+                      isNew={!!isNew}
+                    />
+                  ) : (
+                    <a onClick={this.onClickEdit}>Edit</a>
                   )}
+                </Action>
+                {this.isEditing && (
+                  <Action>
+                    <a onClick={this.onDiscard}>Discard</a>
+                  </Action>
+                )}
+                {!this.isEditing && (
+                  <Action>
+                    <DocumentMenu document={document} />
+                  </Action>
+                )}
+                {!this.isEditing && <Separator />}
+                <Action>
                   {!this.isEditing && (
-                    <HeaderAction>
-                      <DocumentMenu document={document} />
-                    </HeaderAction>
+                    <a onClick={this.onClickNew}>
+                      <NewDocumentIcon />
+                    </a>
                   )}
-                  {!this.isEditing && <Separator />}
-                  <HeaderAction>
-                    {!this.isEditing && (
-                      <a onClick={this.onClickNew}>
-                        <NewDocumentIcon />
-                      </a>
-                    )}
-                  </HeaderAction>
-                </Flex>
-              </Meta>
+                </Action>
+              </Actions>
             </Flex>
           )}
       </Container>
     );
   }
 }
-
-const Separator = styled.div`
-  margin-left: 12px;
-  width: 1px;
-  height: 20px;
-  background: ${color.slateLight};
-`;
-
-const HeaderAction = styled(Flex)`
-  justify-content: center;
-  align-items: center;
-  padding: 0 0 0 10px;
-
-  a {
-    color: ${color.text};
-    height: 24px;
-  }
-`;
-
-const Meta = styled(Flex)`
-  align-items: flex-start;
-  position: fixed;
-  top: 0;
-  right: 0;
-  padding: ${layout.vpadding} ${layout.hpadding} 8px 8px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(20px);
-`;
 
 const Container = styled(Flex)`
   position: relative;

@@ -157,6 +157,10 @@ const SwatchInset = styled(Flex)`
 
 const StyledOutline = styled(Outline)`
   padding: 5px;
+
+  strong {
+    font-weight: 500;
+  }
 `;
 
 const HexHash = styled.div`

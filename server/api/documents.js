@@ -15,14 +15,17 @@ const authDocumentForUser = (ctx, document) => {
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction } = ctx.body;
+  let { sort = 'updatedAt', direction, collection } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
+  let where = { teamId: user.teamId };
+  if (collection) where = { ...where, atlasId: collection };
+
   const userId = user.id;
   const starredScope = { method: ['withStarred', userId] };
   const documents = await Document.scope('defaultScope', starredScope).findAll({
-    where: { teamId: user.teamId },
+    where,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
@@ -239,13 +242,17 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text } = ctx.body;
+  const { id, title, text, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
   const collection = document.collection;
+
+  if (lastRevision && lastRevision !== document.revisionCount) {
+    throw httpErrors.BadRequest('Document has changed since last revision');
+  }
 
   authDocumentForUser(ctx, document);
 

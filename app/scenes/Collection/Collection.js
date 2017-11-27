@@ -2,21 +2,34 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { Link, Redirect } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { newDocumentUrl } from 'utils/routeHelpers';
 
 import CollectionsStore from 'stores/CollectionsStore';
+import DocumentsStore from 'stores/DocumentsStore';
+import UiStore from 'stores/UiStore';
 import Collection from 'models/Collection';
 
+import Search from 'scenes/Search';
+import CollectionMenu from 'menus/CollectionMenu';
+import Actions, { Action, Separator } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
-import LoadingListPlaceholder from 'components/LoadingListPlaceholder';
+import CollectionIcon from 'components/Icon/CollectionIcon';
+import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
+import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
+import DocumentList from 'components/DocumentList';
+import Subheading from 'components/Subheading';
+import PageTitle from 'components/PageTitle';
 import Flex from 'shared/components/Flex';
 
 type Props = {
+  ui: UiStore,
+  documents: DocumentsStore,
   collections: CollectionsStore,
+  history: Object,
   match: Object,
 };
 
@@ -24,73 +37,129 @@ type Props = {
 class CollectionScene extends Component {
   props: Props;
   @observable collection: ?Collection;
-  @observable isFetching = true;
-  @observable redirectUrl;
+  @observable isFetching: boolean = true;
 
-  componentDidMount = () => {
-    this.fetchDocument(this.props.match.params.id);
-  };
+  componentDidMount() {
+    this.loadContent(this.props.match.params.id);
+  }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.match.params.id !== this.props.match.params.id) {
-      this.fetchDocument(nextProps.match.params.id);
+      this.loadContent(nextProps.match.params.id);
     }
   }
 
-  fetchDocument = async (id: string) => {
+  loadContent = async (id: string) => {
     const { collections } = this.props;
 
-    this.collection = await collections.fetchById(id);
+    const collection = collections.getById(id) || (await collections.fetch(id));
 
-    if (!this.collection) this.redirectUrl = '/404';
-
-    if (this.collection && this.collection.documents.length > 0) {
-      this.redirectUrl = this.collection.documents[0].url;
+    if (collection) {
+      this.props.ui.setActiveCollection(collection);
+      this.collection = collection;
+      await this.props.documents.fetchRecentlyModified({
+        limit: 10,
+        collection: collection.id,
+      });
     }
+
     this.isFetching = false;
+  };
+
+  onNewDocument = (ev: SyntheticEvent) => {
+    ev.preventDefault();
+
+    if (this.collection) {
+      this.props.history.push(`${this.collection.url}/new`);
+    }
   };
 
   renderEmptyCollection() {
     if (!this.collection) return;
 
     return (
-      <NewDocumentContainer auto column justify="center">
-        <h1>Create a document</h1>
+      <CenteredContent>
+        <PageTitle title={this.collection.name} />
+        <Heading>
+          <CollectionIcon color={this.collection.color} size={40} expanded />{' '}
+          {this.collection.name}
+        </Heading>
         <HelpText>
-          Publish your first document to start building the{' '}
-          <strong>{this.collection.name}</strong> collection.
+          Publish your first document to start building this collection.
         </HelpText>
-        <Action>
+        <Wrapper>
           <Link to={newDocumentUrl(this.collection)}>
             <Button>Create new document</Button>
           </Link>
-        </Action>
-      </NewDocumentContainer>
+        </Wrapper>
+      </CenteredContent>
     );
   }
 
+  renderNotFound() {
+    return <Search notFound />;
+  }
+
   render() {
-    if (this.redirectUrl) return <Redirect to={this.redirectUrl} />;
+    if (!this.isFetching && !this.collection) {
+      return this.renderNotFound();
+    }
+    if (this.collection && this.collection.isEmpty) {
+      return this.renderEmptyCollection();
+    }
 
     return (
       <CenteredContent>
-        {this.isFetching ? (
-          <LoadingListPlaceholder />
+        {this.collection ? (
+          <span>
+            <PageTitle title={this.collection.name} />
+            <Heading>
+              <CollectionIcon
+                color={this.collection.color}
+                size={40}
+                expanded
+              />{' '}
+              {this.collection.name}
+            </Heading>
+            <Subheading>Recently edited</Subheading>
+            <DocumentList
+              documents={this.props.documents.recentlyEditedInCollection(
+                this.collection.id
+              )}
+            />
+            <Actions align="center" justify="flex-end">
+              <Action>
+                <CollectionMenu collection={this.collection} />
+              </Action>
+              <Separator />
+              <Action>
+                <a onClick={this.onNewDocument}>
+                  <NewDocumentIcon />
+                </a>
+              </Action>
+            </Actions>
+          </span>
         ) : (
-          this.renderEmptyCollection()
+          <ListPlaceholder count={5} />
         )}
       </CenteredContent>
     );
   }
 }
 
-const NewDocumentContainer = styled(Flex)`
-  padding-top: 50%;
-  transform: translateY(-50%);
+const Heading = styled.h1`
+  display: flex;
+
+  svg {
+    margin-left: -6px;
+    margin-right: 6px;
+  }
 `;
 
-const Action = styled(Flex)`
+const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject('collections')(CollectionScene);
+export default withRouter(
+  inject('collections', 'documents', 'ui')(CollectionScene)
+);

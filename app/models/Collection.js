@@ -39,6 +39,11 @@ class Collection extends BaseModel {
     return true;
   }
 
+  @computed
+  get isEmpty(): boolean {
+    return this.documents.length === 0;
+  }
+
   /* Actions */
 
   @action

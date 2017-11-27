@@ -4,29 +4,24 @@ import CollectionsStore from './CollectionsStore';
 jest.mock('utils/ApiClient', () => ({
   client: { post: {} },
 }));
-jest.mock('stores', () => ({ errors: {} }));
+jest.mock('stores', () => ({
+  errors: { add: jest.fn() }
+}));
 
 describe('CollectionsStore', () => {
   let store;
 
   beforeEach(() => {
-    const cache = {
-      getItem: jest.fn(() => Promise.resolve()),
-      setItem: jest.fn(() => {}),
-    };
-
-    store = new CollectionsStore({
-      teamId: 123,
-      cache,
-    });
+    store = new CollectionsStore({});
   });
 
-  describe('#fetch', () => {
+  describe('#fetchAll', () => {
     test('should load stores', async () => {
       store.client = {
         post: jest.fn(() => ({
           data: [
             {
+              id: 123,
               name: 'New collection',
             },
           ],
@@ -35,19 +30,14 @@ describe('CollectionsStore', () => {
 
       await store.fetchAll();
 
-      expect(store.client.post).toHaveBeenCalledWith('/collections.list', {
-        id: 123,
-      });
-      expect(store.data.length).toBe(1);
-      expect(store.data[0].name).toBe('New collection');
+      expect(store.client.post).toHaveBeenCalledWith('/collections.list');
+      expect(store.data.size).toBe(1);
+      expect(store.data.values()[0].name).toBe('New collection');
     });
 
     test('should report errors', async () => {
       store.client = {
         post: jest.fn(() => Promise.reject),
-      };
-      store.errors = {
-        add: jest.fn(),
       };
 
       await store.fetchAll();
