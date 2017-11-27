@@ -39,8 +39,9 @@ const StyledCopyToClipboard = styled(CopyToClipboard)`
   z-index: 1;
   font-size: 12px;
   background: ${color.slateLight};
-  border-radius: 2px;
+  border-radius: 0 2px 0 2px;
   padding: 1px 6px;
+  cursor: pointer;
 
   &:hover {
     background: ${color.slate};
