@@ -5,6 +5,7 @@ import { inject, observer } from 'mobx-react';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import { spectrumUrl } from '../../shared/utils/routeHelpers';
 
 @observer
 class AccountMenu extends Component {
@@ -32,6 +33,10 @@ class AccountMenu extends Component {
     window.location.href = BASE_URL;
   };
 
+  handleFeedback = () => {
+    window.location.href = spectrumUrl();
+  };
+
   render() {
     return (
       <DropdownMenu
@@ -46,6 +51,9 @@ class AccountMenu extends Component {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleApi}>
           API documentation
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleFeedback}>
+          Feedback
         </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleLogout}>Logout</DropdownMenuItem>
       </DropdownMenu>

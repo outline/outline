@@ -9,7 +9,7 @@ import {
   spectrumUrl,
   blogUrl,
   twitterUrl,
-} from '../../utils/routeHelpers';
+} from '../../../shared/utils/routeHelpers';
 import { color } from '../../../shared/styles/constants';
 
 function TopNavigation() {
