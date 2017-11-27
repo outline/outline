@@ -10,6 +10,7 @@ import {
 } from 'react-router-dom';
 
 import stores from 'stores';
+import SettingsStore from 'stores/SettingsStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import CacheStore from 'stores/CacheStore';
@@ -22,6 +23,9 @@ import Starred from 'scenes/Starred';
 import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
 import Search from 'scenes/Search';
+import Settings from 'scenes/Settings';
+import Slack from 'scenes/Settings/Slack';
+import Tokens from 'scenes/Settings/Tokens';
 import SlackAuth from 'scenes/SlackAuth';
 import ErrorAuth from 'scenes/ErrorAuth';
 import Error404 from 'scenes/Error404';
@@ -54,6 +58,7 @@ const Auth = ({ children }: AuthProps) => {
       const { user, team } = stores.auth;
       const cache = new CacheStore(user.id);
       authenticatedStores = {
+        settings: new SettingsStore(),
         documents: new DocumentsStore({
           ui: stores.ui,
           cache,
@@ -110,6 +115,14 @@ render(
                   <Switch>
                     <Route exact path="/dashboard" component={Dashboard} />
                     <Route exact path="/starred" component={Starred} />
+                    <Route exact path="/settings" component={Settings} />
+                    <Route exact path="/settings/tokens" component={Tokens} />
+                    <Route
+                      exact
+                      path="/settings/integrations/slack"
+                      component={Slack}
+                    />
+
                     <Route
                       exact
                       path="/collections/:id"

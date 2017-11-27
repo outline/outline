@@ -4,11 +4,10 @@ import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import type { ApiKey } from 'types';
 
-class SearchStore {
+class SettingsStore {
   @observable apiKeys: ApiKey[] = [];
-  @observable keyName: ?string;
-
   @observable isFetching: boolean = false;
+  @observable isSaving: boolean = false;
 
   @action
   fetchApiKeys = async () => {
@@ -29,50 +28,33 @@ class SearchStore {
   };
 
   @action
-  createApiKey = async () => {
-    this.isFetching = true;
+  createApiKey = async (name: string) => {
+    this.isSaving = true;
 
     try {
-      const res = await client.post('/apiKeys.create', {
-        name: this.keyName ? this.keyName : 'Untitled key',
-      });
+      const res = await client.post('/apiKeys.create', { name });
       invariant(res && res.data, 'Data should be available');
       const { data } = res;
       runInAction('createApiKey', () => {
         this.apiKeys.push(data);
-        this.keyName = '';
       });
     } catch (e) {
       console.error('Something went wrong');
     }
-    this.isFetching = false;
+    this.isSaving = false;
   };
 
   @action
   deleteApiKey = async (id: string) => {
-    this.isFetching = true;
-
     try {
-      await client.post('/apiKeys.delete', {
-        id,
-      });
+      await client.post('/apiKeys.delete', { id });
       runInAction('deleteApiKey', () => {
         this.fetchApiKeys();
       });
     } catch (e) {
       console.error('Something went wrong');
     }
-    this.isFetching = false;
   };
-
-  @action
-  setKeyName = (value: SyntheticInputEvent) => {
-    this.keyName = value.target.value;
-  };
-
-  constructor() {
-    this.fetchApiKeys();
-  }
 }
 
-export default SearchStore;
+export default SettingsStore;

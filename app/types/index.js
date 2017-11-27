@@ -3,12 +3,14 @@ export type User = {
   avatarUrl: string,
   id: string,
   name: string,
+  email: string,
   username: string,
 };
 
 export type Team = {
   id: string,
   name: string,
+  avatarUrl: string,
 };
 
 export type NavigationNode = {

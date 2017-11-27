@@ -7,6 +7,8 @@ function present(ctx: Object, team: Team) {
   return {
     id: team.id,
     name: team.name,
+    avatarUrl:
+      team.avatarUrl || (team.slackData ? team.slackData.image_88 : null),
   };
 }
 

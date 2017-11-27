@@ -1,14 +1,21 @@
 // @flow
 import React from 'react';
 
-function SlackLogo() {
+type Props = {
+  size?: number,
+  fill?: string,
+  className?: string,
+};
+
+function SlackLogo({ size = 34, fill = '#FFF', className }: Props) {
   return (
     <svg
-      fill="#fff"
-      width="34"
-      height="34"
+      fill={fill}
+      width={size}
+      height={size}
       viewBox="0 0 34 34"
       xmlns="http://www.w3.org/2000/svg"
+      className={className}
     >
       <g>
         <rect

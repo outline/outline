@@ -8,6 +8,7 @@ function present(ctx: Object, user: User) {
     id: user.id,
     username: user.username,
     name: user.name,
+    email: user.email,
     avatarUrl:
       user.avatarUrl || (user.slackData ? user.slackData.image_192 : null),
   };

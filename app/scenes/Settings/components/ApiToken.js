@@ -2,18 +2,17 @@
 import React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
+import Button from 'components/Button';
 
 type Props = {
   id: string,
   name: ?string,
   secret: string,
-  onDelete: Function,
+  onDelete: (id: string) => *,
 };
 
 @observer
-class ApiKeyRow extends React.Component {
+class ApiToken extends React.Component {
   props: Props;
   @observable disabled: boolean;
 
@@ -32,21 +31,14 @@ class ApiKeyRow extends React.Component {
         <td>
           <code>{secret}</code>
         </td>
-        <td>
-          <Action role="button" onClick={this.onClick} disabled={disabled}>
-            Action
-          </Action>
+        <td align="right">
+          <Button onClick={this.onClick} disabled={disabled} neutral>
+            Revoke
+          </Button>
         </td>
       </tr>
     );
   }
 }
 
-const Action = styled.span`
-  font-size: 14px;
-  color: ${color.text};
-
-  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
-`;
-
-export default ApiKeyRow;
+export default ApiToken;

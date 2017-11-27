@@ -1,179 +1,43 @@
 // @flow
 import React, { Component } from 'react';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import ApiKeyRow from './components/ApiKeyRow';
-import SettingsStore from './SettingsStore';
-import { color } from 'shared/styles/constants';
+import { observer, inject } from 'mobx-react';
 
-import Flex from 'shared/components/Flex';
-import Button from 'components/Button';
+import AuthStore from 'stores/AuthStore';
 import Input from 'components/Input';
+import CenteredContent from 'components/CenteredContent';
+import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
-import { Label } from 'components/Labeled';
-import SlackAuthLink from 'components/SlackAuthLink';
 
 @observer
 class Settings extends Component {
-  store: SettingsStore;
-
-  constructor() {
-    super();
-    this.store = new SettingsStore();
-  }
-
-  render() {
-    const showSlackSettings = DEPLOYMENT === 'hosted';
-
-    return (
-      <Flex column>
-        {showSlackSettings && (
-          <Section>
-            <SectionLabel>Slack</SectionLabel>
-            <HelpText>
-              Connect Outline to your Slack to instantly search for your
-              documents using <Code>/outline</Code> command.
-            </HelpText>
-
-            <SlackAuthLink
-              scopes={['commands']}
-              redirectUri={`${BASE_URL}/auth/slack/commands`}
-            >
-              <img
-                alt="Add to Slack"
-                height="40"
-                width="139"
-                src="https://platform.slack-edge.com/img/add_to_slack.png"
-                srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"
-              />
-            </SlackAuthLink>
-          </Section>
-        )}
-
-        <Section>
-          <SectionLabel>API Access</SectionLabel>
-          <HelpText>
-            Create API tokens to hack on your Outline. Learn more in{' '}
-            <Link to="/developers">API documentation</Link>.
-          </HelpText>
-
-          {this.store.apiKeys && (
-            <Table>
-              <tbody>
-                {this.store.apiKeys &&
-                  this.store.apiKeys.map(key => (
-                    <ApiKeyRow
-                      id={key.id}
-                      key={key.id}
-                      name={key.name}
-                      secret={key.secret}
-                      onDelete={this.store.deleteApiKey}
-                    />
-                  ))}
-              </tbody>
-            </Table>
-          )}
-          <InlineForm
-            placeholder="Token name"
-            buttonLabel="Create token"
-            name="inline_form"
-            value={this.store.keyName}
-            onChange={this.store.setKeyName}
-            onSubmit={this.store.createApiKey}
-            disabled={this.store.isFetching}
-          />
-        </Section>
-      </Flex>
-    );
-  }
-}
-
-@observer
-class InlineForm extends Component {
   props: {
-    placeholder: string,
-    buttonLabel: string,
-    name: string,
-    value: ?string,
-    onChange: Function,
-    onSubmit: Function,
-    disabled?: ?boolean,
-  };
-
-  @observable validationError: boolean = false;
-  validationTimeout: number;
-
-  componentWillUnmount() {
-    clearTimeout(this.validationTimeout);
-  }
-
-  handleSubmit = event => {
-    event.preventDefault();
-    if (this.props.value) {
-      this.props.onSubmit();
-    } else {
-      this.validationError = true;
-      this.validationTimeout = setTimeout(
-        () => (this.validationError = false),
-        2500
-      );
-    }
+    auth: AuthStore,
   };
 
   render() {
-    const { placeholder, value, onChange, buttonLabel } = this.props;
+    const { user } = this.props.auth;
+    if (!user) return null;
 
     return (
-      <form onSubmit={this.handleSubmit}>
-        <Flex auto>
-          <ApiKeyInput
-            type="text"
-            placeholder={
-              this.validationError ? 'Please add a label' : placeholder
-            }
-            value={value || ''}
-            onChange={onChange}
-            validationError={this.validationError}
-          />
-          <Button type="submit" value={buttonLabel} />
-        </Flex>
-      </form>
+      <CenteredContent>
+        <PageTitle title="Profile" />
+        <h1>Profile</h1>
+        <HelpText>
+          You’re signed in to Outline with Slack. To update your profile
+          information here please{' '}
+          <a href="https://slack.com/account/profile" target="_blank">
+            update your profile on Slack
+          </a>{' '}
+          and re-login to refresh.
+        </HelpText>
+
+        <form>
+          <Input label="Name" value={user.name} disabled />
+          <Input label="Email" value={user.email} disabled />
+        </form>
+      </CenteredContent>
     );
   }
 }
 
-const Section = styled.div`
-  margin-bottom: 40px;
-`;
-
-const Table = styled.table`
-  margin-bottom: 20px;
-  width: 100%;
-
-  td {
-    margin-right: 20px;
-    color: ${color.slate};
-  }
-`;
-
-const SectionLabel = styled(Label)`
-  padding-bottom: 12px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eaebea;
-`;
-
-const Code = styled.code`
-  padding: 4px 6px;
-  margin: 0 2px;
-  background: #eaebea;
-  border-radius: 4px;
-`;
-
-const ApiKeyInput = styled(Input)`
-  width: 100%;
-  margin-right: 12px;
-`;
-
-export default Settings;
+export default inject('auth')(Settings);

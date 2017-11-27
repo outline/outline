@@ -5,8 +5,9 @@ import { observer, inject } from 'mobx-react';
 import type { Location } from 'react-router-dom';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
-import { color, fontWeight } from 'shared/styles/constants';
+import { color } from 'shared/styles/constants';
 
+import Header from './Header';
 import SidebarLink from './SidebarLink';
 import DropToImport from 'components/DropToImport';
 import PlusIcon from 'components/Icon/PlusIcon';
@@ -259,15 +260,6 @@ const StyledDropToImport = styled(DropToImport)`
       display: inline;
     }
   }
-`;
-
-const Header = styled(Flex)`
-  font-size: 12px;
-  font-weight: ${fontWeight.semiBold};
-  text-transform: uppercase;
-  color: ${color.slate};
-  letter-spacing: 0.04em;
-  margin-bottom: 4px;
 `;
 
 const Children = styled(Flex)`
