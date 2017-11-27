@@ -56,7 +56,7 @@ class DocumentsStore extends BaseStore {
     return _.orderBy(
       _.filter(
         this.data.values(),
-        document => document.collectionId === collectionId
+        document => document.collection.id === collectionId
       ),
       'updatedAt',
       'desc'
