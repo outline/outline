@@ -42,8 +42,8 @@ class Settings extends Component {
 
     return (
       <CenteredContent>
-        <PageTitle title="API Access" />
-        <h1>API Access</h1>
+        <PageTitle title="API Tokens" />
+        <h1>API Tokens</h1>
 
         {hasApiKeys && [
           <Subheading>Your tokens</Subheading>,

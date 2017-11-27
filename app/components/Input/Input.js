@@ -11,6 +11,7 @@ const RealTextarea = styled.textarea`
   outline: none;
   background: none;
 
+  &:disabled,
   &::placeholder {
     color: ${color.slate};
   }
@@ -23,6 +24,7 @@ const RealInput = styled.input`
   outline: none;
   background: none;
 
+  &:disabled,
   &::placeholder {
     color: ${color.slate};
   }

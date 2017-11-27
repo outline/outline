@@ -8,7 +8,7 @@ import Flex from 'shared/components/Flex';
 import { color, layout } from 'shared/styles/constants';
 
 import Scrollable from 'components/Scrollable';
-import StarredIcon from 'components/Icon/StarredIcon';
+import ProfileIcon from 'components/Icon/ProfileIcon';
 import SettingsIcon from 'components/Icon/SettingsIcon';
 import CodeIcon from 'components/Icon/CodeIcon';
 import Header from './components/Header';
@@ -53,11 +53,11 @@ class Sidebar extends Component {
           <Scrollable innerRef={this.setScrollableRef}>
             <Section>
               <Header>Account</Header>
-              <SidebarLink to="/settings" icon={<StarredIcon />}>
+              <SidebarLink to="/settings" icon={<ProfileIcon />}>
                 Profile
               </SidebarLink>
               <SidebarLink to="/settings/tokens" icon={<CodeIcon />}>
-                API Access
+                API Tokens
               </SidebarLink>
             </Section>
             <Section>
