@@ -44,6 +44,19 @@ class Collection extends BaseModel {
     return this.documents.length === 0;
   }
 
+  @computed
+  get documentIds(): string[] {
+    const results = [];
+    const travelDocuments = (documentList, path) =>
+      documentList.forEach(document => {
+        results.push(document.id);
+        travelDocuments(document.children);
+      });
+
+    travelDocuments(this.documents);
+    return results;
+  }
+
   /* Actions */
 
   @action
