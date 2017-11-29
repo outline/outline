@@ -5,6 +5,7 @@ import breakpoint from 'styled-components-breakpoint';
 import {
   signin,
   developers,
+  changelog,
   githubUrl,
   spectrumUrl,
   blogUrl,
@@ -22,6 +23,9 @@ function TopNavigation() {
         </MenuItemDesktop>
         <MenuItemDesktop>
           <a href={blogUrl()}>Blog</a>
+        </MenuItemDesktop>
+        <MenuItemDesktop>
+          <a href={changelog()}>Changelog</a>
         </MenuItemDesktop>
         <MenuItem>
           <a href={developers()}>API</a>

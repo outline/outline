@@ -3,10 +3,12 @@ import React from 'react';
 import Grid from 'styled-components-grid';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
+import Header from './components/Header';
 
 const Container = styled.div`
   max-width: 720px;
   margin: 0 auto;
+  padding: 0 2em;
 
   pre {
     padding: 0.5em 1em;
@@ -56,20 +58,17 @@ export default function Pricing() {
   return (
     <Grid>
       <Helmet>
-        <title>Developer API - Outline</title>
+        <title>API Documentation - Outline</title>
       </Helmet>
+      <Header>
+        <h1>Documentation</h1>
+        <p>The API is the heart and soul of Outline.</p>
+      </Header>
       <Container>
-        <h1>Outline API</h1>
         <p>
-          First thing we build for Outline was its API. It’s the heart and soul
-          of the service and as developers, it’s our mission to make the API as
-          rich and easy to use as possible.
-        </p>
-        <p>
-          <i>
-            While Outline is still in public beta, we might make small
-            adjustments, including breaking changes to the API.
-          </i>
+          As developers, it’s our mission to make the API as great as possible.
+          While Outline is still in public beta, we might make small
+          adjustments, including breaking changes to the API.
         </p>
         <h2>Making requests</h2>
         <p>
