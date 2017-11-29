@@ -6,7 +6,7 @@ import Grid from 'styled-components-grid';
 import breakpoint from 'styled-components-breakpoint';
 import Hero from './components/Hero';
 import SignupButton from './components/SignupButton';
-import { developers, githubUrl } from '../utils/routeHelpers';
+import { developers, githubUrl } from '../../shared/utils/routeHelpers';
 import { color } from '../../shared/styles/constants';
 
 function Home() {

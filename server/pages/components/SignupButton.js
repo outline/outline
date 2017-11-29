@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import { signin } from '../../utils/routeHelpers';
+import { signin } from '../../../shared/utils/routeHelpers';
 import SlackLogo from '../../../shared/components/SlackLogo';
 import { color } from '../../../shared/styles/constants';
 
