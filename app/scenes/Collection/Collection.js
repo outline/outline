@@ -123,8 +123,8 @@ class CollectionScene extends Component {
             </Heading>
             <Subheading>Recently edited</Subheading>
             <DocumentList
-              documents={this.props.documents.recentlyEditedInCollection(
-                this.collection.id
+              documents={this.props.documents.recentlyEditedIn(
+                this.collection.documentIds
               )}
             />
             <Actions align="center" justify="flex-end">

@@ -48,15 +48,14 @@ class DocumentsStore extends BaseStore {
   }
 
   @computed
-  get recentlyEdited(): Array<Document> {
+  get recentlyEdited(): Document[] {
     return _.take(_.orderBy(this.data.values(), 'updatedAt', 'desc'), 5);
   }
 
-  recentlyEditedInCollection(collectionId: string): Array<Document> {
+  recentlyEditedIn(documentIds: string[]): Document[] {
     return _.orderBy(
-      _.filter(
-        this.data.values(),
-        document => document.collection.id === collectionId
+      _.filter(this.data.values(), document =>
+        documentIds.includes(document.id)
       ),
       'updatedAt',
       'desc'
