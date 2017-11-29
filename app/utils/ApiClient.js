@@ -32,7 +32,7 @@ class ApiClient {
         modifiedPath = path;
       }
     } else if (method === 'POST' || method === 'PUT') {
-      body = JSON.stringify(data);
+      body = data ? JSON.stringify(data) : undefined;
     }
 
     // Construct headers

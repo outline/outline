@@ -50,9 +50,8 @@ type AuthProps = {
 
 const Auth = ({ children }: AuthProps) => {
   if (stores.auth.authenticated && stores.auth.team && stores.auth.user) {
-    // Only initialize stores once. Kept in global scope
-    // because otherwise they will get overriden on route
-    // change
+    // Only initialize stores once. Kept in global scope because otherwise they
+    // will get overridden on route change
     if (!authenticatedStores) {
       // Stores for authenticated user
       const { user, team } = stores.auth;
@@ -79,6 +78,7 @@ const Auth = ({ children }: AuthProps) => {
         };
       }
 
+      stores.auth.fetch();
       authenticatedStores.collections.fetchAll();
     }
 

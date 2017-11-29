@@ -1,10 +1,23 @@
 // @flow
 import Router from 'koa-router';
+import auth from './middlewares/authentication';
 import { presentUser, presentTeam } from '../presenters';
 import { User, Team } from '../models';
 import * as Slack from '../slack';
 
 const router = new Router();
+
+router.post('auth.info', auth(), async ctx => {
+  const user = ctx.state.user;
+  const team = await Team.findOne({ where: { id: user.teamId } });
+
+  ctx.body = {
+    data: {
+      user: await presentUser(ctx, user),
+      team: await presentTeam(ctx, team),
+    },
+  };
+});
 
 router.post('auth.slack', async ctx => {
   const { code } = ctx.body;

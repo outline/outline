@@ -1,5 +1,5 @@
 // @flow
-import { observable, action, computed, autorun } from 'mobx';
+import { observable, action, computed, autorun, runInAction } from 'mobx';
 import invariant from 'invariant';
 import Cookie from 'js-cookie';
 import localForage from 'localforage';
@@ -32,7 +32,20 @@ class AuthStore {
     });
   }
 
-  /* Actions */
+  @action
+  fetch = async () => {
+    try {
+      const res = await client.post('/auth.info');
+      invariant(res && res.data, 'Auth not available');
+
+      runInAction('AuthStore#fetch', () => {
+        this.user = res.data.user;
+        this.team = res.data.team;
+      });
+    } catch (e) {
+      // Failure to update user info is a non-fatal error.
+    }
+  };
 
   @action
   logout = () => {
