@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import path from 'path';
+import fs from 'fs-extra';
 import httpErrors from 'http-errors';
 import Koa from 'koa';
 import Router from 'koa-router';
@@ -12,6 +13,7 @@ import { slackAuth } from '../shared/utils/routeHelpers';
 
 import Home from './pages/Home';
 import About from './pages/About';
+import Changelog from './pages/Changelog';
 import Pricing from './pages/Pricing';
 import Api from './pages/Api';
 
@@ -62,6 +64,11 @@ router.get('/auth/slack/install', async ctx => {
 router.get('/about', ctx => renderpage(ctx, <About />));
 router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
 router.get('/developers', ctx => renderpage(ctx, <Api />));
+router.get('/changelog', async ctx => {
+  const data = await fs.readFile(path.join(__dirname, '../CHANGELOG.md'));
+  const body = data.toString();
+  return renderpage(ctx, <Changelog body={body} />);
+});
 
 // home page
 router.get('/', async ctx => {

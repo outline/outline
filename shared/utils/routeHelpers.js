@@ -45,6 +45,10 @@ export function developers(): string {
   return '/developers';
 }
 
+export function changelog(): string {
+  return '/changelog';
+}
+
 export function signin(): string {
   return '/auth/slack';
 }
