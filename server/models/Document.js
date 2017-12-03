@@ -160,16 +160,20 @@ Document.findById = async id => {
   }
 };
 
-Document.searchForUser = async (user, query, options = {}) => {
+Document.searchForUser = async (
+  user,
+  query,
+  options = {}
+): Promise<Document[]> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
 
   const sql = `
-        SELECT * FROM documents
+        SELECT *, ts_rank(documents."searchVector", plainto_tsquery('english', :query)) as "searchRanking" FROM documents
         WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
           "teamId" = '${user.teamId}'::uuid AND
           "deletedAt" IS NULL
-        ORDER BY ts_rank(documents."searchVector", plainto_tsquery('english', :query)) DESC
+        ORDER BY "searchRanking" DESC
         LIMIT :limit OFFSET :offset;
         `;
 
@@ -184,10 +188,17 @@ Document.searchForUser = async (user, query, options = {}) => {
     })
     .map(document => document.id);
 
+  // Second query to get views for the data
   const withViewsScope = { method: ['withViews', user.id] };
-  return Document.scope('defaultScope', withViewsScope).findAll({
+  const documents = await Document.scope(
+    'defaultScope',
+    withViewsScope
+  ).findAll({
     where: { id: ids },
   });
+
+  // Order the documents in the same order as the first query
+  return _.sortBy(documents, doc => ids.indexOf(doc.id));
 };
 
 // Instance methods
