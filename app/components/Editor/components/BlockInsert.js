@@ -13,10 +13,10 @@ type Props = {
   editor: Editor,
 };
 
-function findClosestRootNode(state, ev) {
+function findClosestRootNode(value, ev) {
   let previous;
 
-  for (const node of state.document.nodes) {
+  for (const node of value.document.nodes) {
     const element = findDOMNode(node);
     const bounds = element.getBoundingClientRect();
     if (bounds.top > ev.clientY) return previous;

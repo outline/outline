@@ -13,14 +13,13 @@ import HorizontalRuleIcon from 'components/Icon/HorizontalRuleIcon';
 import TodoListIcon from 'components/Icon/TodoListIcon';
 import Flex from 'shared/components/Flex';
 import ToolbarButton from './components/ToolbarButton';
-import type { props } from 'slate-prop-types';
+import type { SlateNodeProps } from '../../types';
 import { color } from 'shared/styles/constants';
 import { fadeIn } from 'shared/styles/animations';
 import { splitAndInsertBlock } from '../../transforms';
 
-type Props = props & {
-  onInsertImage: Function,
-  onChange: Function,
+type Props = SlateNodeProps & {
+  onInsertImage: *,
 };
 
 type Options = {

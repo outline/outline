@@ -1,9 +1,14 @@
 // @flow
 import React from 'react';
 import InlineCode from './components/InlineCode';
-import type { props } from 'slate-prop-types';
+import { Mark } from 'slate';
 
-export default function renderMark(props: props) {
+type Props = {
+  children: React$Element<*>,
+  mark: Mark,
+};
+
+export default function renderMark(props: Props) {
   switch (props.mark.type) {
     case 'bold':
       return <strong>{props.children}</strong>;

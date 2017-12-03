@@ -1,10 +1,5 @@
 // @flow
-import type { change } from 'slate-prop-types';
-
-type KeyData = {
-  isMeta: boolean,
-  key: string,
-};
+import { Change } from 'slate';
 
 const inlineShortcuts = [
   { mark: 'bold', shortcut: '**' },
@@ -18,22 +13,19 @@ const inlineShortcuts = [
 
 export default function MarkdownShortcuts() {
   return {
-    /**
-     * On key down, check for our specific key shortcuts.
-     */
-    onKeyDown(ev: SyntheticEvent, data: KeyData, change: change) {
-      switch (data.key) {
+    onKeyDown(ev: SyntheticKeyboardEvent, change: Change) {
+      switch (ev.key) {
         case '-':
           return this.onDash(ev, change);
         case '`':
           return this.onBacktick(ev, change);
-        case 'tab':
+        case 'Tab':
           return this.onTab(ev, change);
-        case 'space':
+        case ' ':
           return this.onSpace(ev, change);
-        case 'backspace':
+        case 'Backspace':
           return this.onBackspace(ev, change);
-        case 'enter':
+        case 'Enter':
           return this.onEnter(ev, change);
         default:
           return null;
@@ -44,10 +36,10 @@ export default function MarkdownShortcuts() {
      * On space, if it was after an auto-markdown shortcut, convert the current
      * node into the shortcut's corresponding type.
      */
-    onSpace(ev: SyntheticEvent, change: change) {
-      const { state } = change;
-      if (state.isExpanded) return;
-      const { startBlock, startOffset } = state;
+    onSpace(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+      const { startBlock, startOffset } = value;
       const chars = startBlock.text.slice(0, startOffset).trim();
       const type = this.getType(chars);
 
@@ -58,7 +50,7 @@ export default function MarkdownShortcuts() {
         let checked;
         if (chars === '[x]') checked = true;
         if (chars === '[ ]') checked = false;
-        const change = state.change().setBlock({ type, data: { checked } });
+        change.setBlock({ type, data: { checked } });
 
         if (type === 'list-item') {
           if (checked !== undefined) {
@@ -99,40 +91,32 @@ export default function MarkdownShortcuts() {
 
         // if we have multiple tags then mark the text between as inline code
         if (inlineTags.length > 1) {
-          const change = state.change();
           const firstText = startBlock.getFirstText();
           const firstCodeTagIndex = inlineTags[0];
           const lastCodeTagIndex = inlineTags[inlineTags.length - 1];
-          change.removeTextByKey(
-            firstText.key,
-            lastCodeTagIndex,
-            shortcut.length
-          );
-          change.removeTextByKey(
-            firstText.key,
-            firstCodeTagIndex,
-            shortcut.length
-          );
-          change.moveOffsetsTo(
-            firstCodeTagIndex,
-            lastCodeTagIndex - shortcut.length
-          );
-          change.addMark(mark);
-          return change.collapseToEnd().removeMark(mark);
+          change
+            .removeTextByKey(firstText.key, lastCodeTagIndex, shortcut.length)
+            .removeTextByKey(firstText.key, firstCodeTagIndex, shortcut.length)
+            .moveOffsetsTo(
+              firstCodeTagIndex,
+              lastCodeTagIndex - shortcut.length
+            )
+            .addMark(mark)
+            .collapseToEnd()
+            .removeMark(mark);
         }
       }
     },
 
-    onDash(ev: SyntheticEvent, change: change) {
-      const { state } = change;
-      if (state.isExpanded) return;
-      const { startBlock, startOffset } = state;
+    onDash(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+      const { startBlock, startOffset } = value;
       const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
 
       if (chars === '--') {
         ev.preventDefault();
-        return state
-          .change()
+        return change
           .extendToStartOf(startBlock)
           .delete()
           .setBlock({
@@ -144,16 +128,15 @@ export default function MarkdownShortcuts() {
       }
     },
 
-    onBacktick(ev: SyntheticEvent, change: change) {
-      const { state } = change;
-      if (state.isExpanded) return;
-      const { startBlock, startOffset } = state;
+    onBacktick(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+      const { startBlock, startOffset } = value;
       const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
 
       if (chars === '``') {
         ev.preventDefault();
-        return state
-          .change()
+        return change
           .extendToStartOf(startBlock)
           .delete()
           .setBlock({
@@ -162,20 +145,22 @@ export default function MarkdownShortcuts() {
       }
     },
 
-    onBackspace(ev: SyntheticEvent, change: change) {
-      const { state } = change;
-      if (change.isExpanded) return;
-      const { startBlock, selection, startOffset } = state;
+    onBackspace(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+      const { startBlock, selection, startOffset } = value;
 
       // If at the start of a non-paragraph, convert it back into a paragraph
       if (startOffset === 0) {
         if (startBlock.type === 'paragraph') return;
         ev.preventDefault();
 
-        const change = state.change().setBlock('paragraph');
+        change.setBlock('paragraph');
 
-        if (startBlock.type === 'list-item')
+        if (startBlock.type === 'list-item') {
           change.unwrapBlock('bulleted-list');
+        }
+
         return change;
       }
 
@@ -195,14 +180,12 @@ export default function MarkdownShortcuts() {
             .reverse()
             .takeUntil((v, k) => !v.marks.some(mark => mark.type === 'code'));
 
-          return state
-            .change()
-            .removeMarkByKey(
-              textNode.key,
-              change.startOffset - charsInCodeBlock.size,
-              change.startOffset,
-              'code'
-            );
+          change.removeMarkByKey(
+            textNode.key,
+            change.startOffset - charsInCodeBlock.size,
+            change.startOffset,
+            'code'
+          );
         }
       }
     },
@@ -211,15 +194,12 @@ export default function MarkdownShortcuts() {
      * On tab, if at the end of the heading jump to the main body content
      * as if it is another input field (act the same as enter).
      */
-    onTab(ev: SyntheticEvent, change: change) {
-      const { state } = change;
+    onTab(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
 
-      if (state.startBlock.type === 'heading1') {
+      if (value.startBlock.type === 'heading1') {
         ev.preventDefault();
-        return state
-          .change()
-          .splitBlock()
-          .setBlock('paragraph');
+        change.splitBlock().setBlock('paragraph');
       }
     },
 
@@ -227,10 +207,10 @@ export default function MarkdownShortcuts() {
      * On return, if at the end of a node type that should not be extended,
      * create a new paragraph below it.
      */
-    onEnter(ev: SyntheticEvent, change: change) {
-      const { state } = change;
-      if (state.isExpanded) return;
-      const { startBlock, startOffset, endOffset } = state;
+    onEnter(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+      const { startBlock, startOffset, endOffset } = value;
       if (startOffset === 0 && startBlock.length === 0)
         return this.onBackspace(ev, change);
       if (endOffset !== startBlock.length) return;
@@ -239,10 +219,7 @@ export default function MarkdownShortcuts() {
       // insert a new paragraph
       if (startBlock.type === 'image') {
         ev.preventDefault();
-        return state
-          .change()
-          .collapseToEnd()
-          .insertBlock('paragraph');
+        return change.collapseToEnd().insertBlock('paragraph');
       }
 
       // Hitting enter in a heading or blockquote will split the node at that
@@ -260,10 +237,7 @@ export default function MarkdownShortcuts() {
       }
 
       ev.preventDefault();
-      return state
-        .change()
-        .splitBlock()
-        .setBlock('paragraph');
+      change.splitBlock().setBlock('paragraph');
     },
 
     /**

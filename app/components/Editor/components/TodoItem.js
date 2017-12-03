@@ -2,10 +2,10 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
-import type { props } from 'slate-prop-types';
+import type { SlateNodeProps } from '../types';
 
 export default class TodoItem extends Component {
-  props: props & { checked: boolean };
+  props: SlateNodeProps & { checked: boolean };
 
   handleChange = (ev: SyntheticInputEvent) => {
     const checked = ev.target.checked;

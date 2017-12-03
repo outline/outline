@@ -1,12 +1,13 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import type { props } from 'slate-prop-types';
+import type { SlateNodeProps } from '../types';
 import { color } from 'shared/styles/constants';
 
-function HorizontalRule(props: props) {
-  const { state, node, attributes } = props;
-  const active = state.isFocused && state.selection.hasEdgeIn(node);
+function HorizontalRule(props: SlateNodeProps) {
+  const { editor, node, attributes } = props;
+  const active =
+    editor.value.isFocused && editor.value.selection.hasEdgeIn(node);
   return <StyledHr active={active} {...attributes} />;
 }
 

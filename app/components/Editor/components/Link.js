@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { Link as InternalLink } from 'react-router-dom';
-import type { props } from 'slate-prop-types';
+import type { SlateNodeProps } from '../types';
 
 function getPathFromUrl(href: string) {
   if (href[0] === '/') return href;
@@ -26,7 +26,12 @@ function isInternalUrl(href: string) {
   }
 }
 
-export default function Link({ attributes, node, children, readOnly }: props) {
+export default function Link({
+  attributes,
+  node,
+  children,
+  readOnly,
+}: SlateNodeProps) {
   const href = node.data.get('href');
   const path = getPathFromUrl(href);
 

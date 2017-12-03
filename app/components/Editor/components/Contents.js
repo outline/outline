@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Editor } from 'slate-react';
-import type { state, block } from 'slate-prop-types';
+import { Block } from 'slate';
 import { List } from 'immutable';
 import { color } from 'shared/styles/constants';
 import headingToSlug from '../headingToSlug';
@@ -54,10 +54,10 @@ class Contents extends Component {
     return elements;
   }
 
-  get headings(): List<block> {
+  get headings(): List<Block> {
     const { editor } = this.props;
 
-    return editor.value.document.nodes.filter((node: block) => {
+    return editor.value.document.nodes.filter((node: Block) => {
       if (!node.text) return false;
       return node.type.match(/^heading/);
     });

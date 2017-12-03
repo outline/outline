@@ -4,7 +4,7 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Portal } from 'react-portal';
 import { Editor } from 'slate-react';
-import type { value } from 'slate-prop-types';
+import { Value } from 'slate';
 import styled from 'styled-components';
 import _ from 'lodash';
 import FormattingToolbar from './components/FormattingToolbar';
@@ -20,7 +20,7 @@ export default class Toolbar extends Component {
 
   props: {
     editor: Editor,
-    value: value,
+    value: Value,
   };
 
   menu: HTMLElement;

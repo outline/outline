@@ -1,8 +1,8 @@
 // @flow
-import type { change } from 'slate-prop-types';
+import { Change } from 'slate';
 import EditList from './plugins/EditList';
 
-const { transforms } = EditList;
+const { changes } = EditList;
 
 type Options = {
   type: string | Object,
@@ -10,7 +10,7 @@ type Options = {
   append?: string | Object,
 };
 
-export function splitAndInsertBlock(change: change, options: Options) {
+export function splitAndInsertBlock(change: Change, options: Options) {
   const { type, wrapper, append } = options;
   const { value } = change;
   const { document } = value;
@@ -18,8 +18,8 @@ export function splitAndInsertBlock(change: change, options: Options) {
 
   // lists get some special treatment
   if (parent && parent.type === 'list-item') {
-    change = transforms.unwrapList(
-      transforms
+    change = changes.unwrapList(
+      changes
         .splitListItem(change.collapseToStart())
         .collapseToEndOfPreviousBlock()
     );

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { Document } from 'slate';
-import type { props } from 'slate-prop-types';
+import type { SlateNodeProps } from '../types';
 import Placeholder from './Placeholder';
 
 export default function Link({
@@ -11,7 +11,7 @@ export default function Link({
   parent,
   children,
   readOnly,
-}: props) {
+}: SlateNodeProps) {
   const parentIsDocument = parent instanceof Document;
   const firstParagraph = parent && parent.nodes.get(1) === node;
   const lastParagraph = parent && parent.nodes.last() === node;

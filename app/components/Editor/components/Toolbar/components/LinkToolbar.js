@@ -4,10 +4,10 @@ import ReactDOM from 'react-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
+import { Change } from 'slate';
 import { Editor } from 'slate-react';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
-import type { change } from 'slate-prop-types';
 import ToolbarButton from './ToolbarButton';
 import DocumentResult from './DocumentResult';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -28,7 +28,7 @@ class LinkToolbar extends Component {
     link: Object,
     documents: DocumentsStore,
     onBlur: () => void,
-    onChange: change => *,
+    onChange: Change => *,
   };
 
   @observable isEditing: boolean = false;

@@ -1,20 +1,12 @@
 // @flow
-import type { change } from 'slate-prop-types';
+import { Change } from 'slate';
 
 export default function KeyboardShortcuts() {
   return {
-    /**
-     * On key down, check for our specific key shortcuts.
-     *
-     * @param {Event} e
-     * @param {Data} data
-     * @param {State} state
-     * @return {State or Null} state
-     */
-    onKeyDown(ev: SyntheticEvent, data: Object, change: change) {
-      if (!data.isMeta) return null;
+    onKeyDown(ev: SyntheticKeyboardEvent, change: Change) {
+      if (!ev.metaKey) return null;
 
-      switch (data.key) {
+      switch (ev.key) {
         case 'b':
           return this.toggleMark(change, 'bold');
         case 'i':
@@ -30,13 +22,13 @@ export default function KeyboardShortcuts() {
       }
     },
 
-    toggleMark(change: change, type: string) {
-      const { state } = change;
+    toggleMark(change: Change, type: string) {
+      const { value } = change;
       // don't allow formatting of document title
-      const firstNode = state.document.nodes.first();
-      if (firstNode === state.startBlock) return;
+      const firstNode = value.document.nodes.first();
+      if (firstNode === value.startBlock) return;
 
-      return state.change().toggleMark(type);
+      change.toggleMark(type);
     },
   };
 }

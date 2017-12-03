@@ -2,8 +2,9 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import { Value, Change } from 'slate';
 import { Editor } from 'slate-react';
-import type { state, props, change } from 'slate-prop-types';
+import type { SlateNodeProps } from './types';
 import Plain from 'slate-plain-serializer';
 import keydown from 'react-keydown';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
@@ -22,7 +23,7 @@ import styled from 'styled-components';
 
 type Props = {
   text: string,
-  onChange: change => *,
+  onChange: Change => *,
   onSave: (redirect?: boolean) => *,
   onCancel: () => void,
   onImageUploadStart: () => void,
@@ -31,18 +32,13 @@ type Props = {
   readOnly: boolean,
 };
 
-type KeyData = {
-  isMeta: boolean,
-  key: string,
-};
-
 @observer
 class MarkdownEditor extends Component {
   props: Props;
   editor: Editor;
-  renderNode: props => *;
+  renderNode: SlateNodeProps => *;
   plugins: Object[];
-  @observable editorValue: state;
+  @observable editorValue: Value;
 
   constructor(props: Props) {
     super(props);
@@ -79,7 +75,7 @@ class MarkdownEditor extends Component {
     }
   }
 
-  onChange = (change: change) => {
+  onChange = (change: Change) => {
     if (this.editorValue !== change.value) {
       this.props.onChange(Markdown.serialize(change.value));
     }
@@ -146,17 +142,17 @@ class MarkdownEditor extends Component {
   }
 
   // Handling of keyboard shortcuts within editor focus
-  onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData, change: change) => {
-    if (!data.isMeta) return;
+  onKeyDown = (ev: SyntheticKeyboardEvent, change: Change) => {
+    if (!ev.metaKey) return;
 
-    switch (data.key) {
+    switch (ev.key) {
       case 's':
         this.onSave(ev);
         return change;
-      case 'enter':
+      case 'Enter':
         this.onSaveAndExit(ev);
         return change;
-      case 'escape':
+      case 'Escape':
         this.onCancel();
         return change;
       default:

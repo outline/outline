@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import type { props } from 'slate-prop-types';
+import type { SlateNodeProps } from '../types';
 import TodoItem from './TodoItem';
 
 export default function ListItem({
@@ -8,7 +8,7 @@ export default function ListItem({
   node,
   attributes,
   ...props
-}: props) {
+}: SlateNodeProps) {
   const checked = node.data.get('checked');
 
   if (checked !== undefined) {

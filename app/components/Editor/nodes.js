@@ -16,14 +16,14 @@ import {
   Heading6,
 } from './components/Heading';
 import Paragraph from './components/Paragraph';
-import type { props } from 'slate-prop-types';
+import type { SlateNodeProps } from './types';
 
 type Options = {
   onInsertImage: *,
 };
 
 export default function createRenderNode({ onChange, onInsertImage }: Options) {
-  return function renderNode(props: props) {
+  return function renderNode(props: SlateNodeProps) {
     const { attributes } = props;
 
     switch (props.node.type) {
