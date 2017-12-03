@@ -7415,6 +7415,10 @@ react-helmet@^5.2.0:
     prop-types "^15.5.4"
     react-side-effect "^1.1.0"
 
+react-image-crop@^3.0.7:
+  version "3.0.7"
+  resolved "https://registry.yarnpkg.com/react-image-crop/-/react-image-crop-3.0.7.tgz#8f7f1f03031c76c8b6306d11f7d1b8bf3007ab8c"
+
 react-immutable-proptypes@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/react-immutable-proptypes/-/react-immutable-proptypes-2.1.0.tgz#023d6f39bb15c97c071e9e60d00d136eac5fa0b4"

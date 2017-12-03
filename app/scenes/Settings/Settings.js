@@ -9,10 +9,11 @@ import { color, size } from 'shared/styles/constants';
 import { client } from 'utils/ApiClient';
 import AuthStore from 'stores/AuthStore';
 import ErrorsStore from 'stores/ErrorsStore';
-import Input from 'components/Input';
+import Input, { LabelText } from 'components/Input';
 import Button from 'components/Button';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
+import Flex from 'shared/components/Flex';
 
 @observer
 class Settings extends Component {
@@ -65,12 +66,21 @@ class Settings extends Component {
   render() {
     const { user } = this.props.auth;
     if (!user) return null;
+    const avatarUrl = user.avatarUrl;
 
     return (
       <CenteredContent>
         <PageTitle title="Profile" />
         <h1>Profile</h1>
-
+        <ProfilePicture column>
+          <LabelText>Profile picture</LabelText>
+          <AvatarContainer>
+            <Avatar src={avatarUrl} />
+            <Flex auto align="center" justify="center">
+              Upload new image
+            </Flex>
+          </AvatarContainer>
+        </ProfilePicture>
         <form onSubmit={this.handleSubmit}>
           <Input
             label="Name"
@@ -96,6 +106,43 @@ const SuccessMessage = styled.span`
   opacity: ${props => (props.visible ? 1 : 0)};
 
   transition: opacity 0.25s;
+`;
+
+const ProfilePicture = styled(Flex)`
+  margin-bottom: ${size.huge};
+`;
+
+const avatarStyles = `
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+`;
+
+const AvatarContainer = styled(Flex)`
+  ${avatarStyles};
+  position: relative;
+
+  div {
+    ${avatarStyles};
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+    transition: all 250ms;
+  }
+
+  &:hover div {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.75);
+    color: #ffffff;
+  }
+`;
+
+const Avatar = styled.img`
+  ${avatarStyles};
 `;
 
 export default inject('auth', 'errors', 'auth')(Settings);
