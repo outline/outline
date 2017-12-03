@@ -124,6 +124,10 @@ const Container = styled(Flex)`
 const Content = styled(Flex)`
   margin-left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
   transition: margin-left 200ms ease-in-out;
+
+  @media print {
+    margin-left: 0;
+  }
 `;
 
 export default withRouter(inject('user', 'auth', 'ui', 'documents')(Layout));

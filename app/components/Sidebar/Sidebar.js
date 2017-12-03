@@ -106,6 +106,11 @@ const Container = styled(Flex)`
   width: ${layout.sidebarWidth};
   background: ${color.smoke};
   transition: left 200ms ease-in-out;
+
+  @media print {
+    display: none;
+    left: 0;
+  }
 `;
 
 const Section = styled(Flex)`

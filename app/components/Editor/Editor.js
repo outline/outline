@@ -238,6 +238,10 @@ const Header = styled(Flex)`
   flex-shrink: 0;
   align-items: flex-end;
   ${({ readOnly }) => !readOnly && 'cursor: text;'};
+
+  @media print {
+    display: none;
+  }
 `;
 
 const StyledEditor = styled(Editor)`

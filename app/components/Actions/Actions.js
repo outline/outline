@@ -29,6 +29,10 @@ const Actions = styled(Flex)`
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.9);
   -webkit-backdrop-filter: blur(20px);
+
+  @media print {
+    display: none;
+  }
 `;
 
 export default Actions;
