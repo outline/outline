@@ -5,7 +5,7 @@ import { observer, inject } from 'mobx-react';
 import type { Location } from 'react-router-dom';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
+import { color, fontWeight } from 'shared/styles/constants';
 
 import Header from './Header';
 import SidebarLink from './SidebarLink';
@@ -264,6 +264,8 @@ const StyledDropToImport = styled(DropToImport)`
 
 const Children = styled(Flex)`
   margin-left: 12px;
+  font-weight: ${fontWeight.regular};
+  color: ${color.slateDark};
 `;
 
 export default inject('collections', 'ui', 'documents')(Collections);
