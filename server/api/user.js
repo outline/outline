@@ -11,6 +11,17 @@ router.post('user.info', auth(), async ctx => {
   ctx.body = { data: await presentUser(ctx, ctx.state.user) };
 });
 
+router.post('user.update', auth(), async ctx => {
+  const { user } = ctx.state;
+  const { name } = ctx.body;
+  ctx.assertNotEmpty(name, "name can't be empty");
+
+  if (name) user.name = name;
+  await user.save();
+
+  ctx.body = { data: await presentUser(ctx, user) };
+});
+
 router.post('user.s3Upload', auth(), async ctx => {
   const { filename, kind, size } = ctx.body;
   ctx.assertPresent(filename, 'filename is required');
