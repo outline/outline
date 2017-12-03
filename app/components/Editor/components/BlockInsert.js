@@ -1,18 +1,16 @@
 // @flow
 import React, { Component } from 'react';
 import { Portal } from 'react-portal';
-import { findDOMNode, Node } from 'slate';
+import { Node } from 'slate';
+import { Editor, findDOMNode } from 'slate-react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import PlusIcon from 'components/Icon/PlusIcon';
-import type { State } from '../types';
 
 type Props = {
-  state: State,
-  onChange: Function,
-  onInsertImage: File => Promise<*>,
+  editor: Editor,
 };
 
 function findClosestRootNode(state, ev) {
@@ -53,7 +51,7 @@ export default class BlockInsert extends Component {
 
   handleMouseMove = (ev: SyntheticMouseEvent) => {
     const windowWidth = window.innerWidth / 2.5;
-    const result = findClosestRootNode(this.props.state, ev);
+    const result = findClosestRootNode(this.props.editor.value, ev);
     const movementThreshold = 200;
 
     this.mouseMovementSinceClick +=
@@ -70,7 +68,7 @@ export default class BlockInsert extends Component {
       this.closestRootNode = result.node;
 
       // do not show block menu on title heading or editor
-      const firstNode = this.props.state.document.nodes.first();
+      const firstNode = this.props.editor.value.document.nodes.first();
       if (result.node === firstNode || result.node.type === 'block-toolbar') {
         this.left = -1000;
       } else {
@@ -89,23 +87,22 @@ export default class BlockInsert extends Component {
     this.mouseMovementSinceClick = 0;
     this.active = false;
 
-    const { state } = this.props;
+    const { editor } = this.props;
     const type = { type: 'block-toolbar', isVoid: true };
-    let transform = state.transform();
 
-    // remove any existing toolbars in the document as a fail safe
-    state.document.nodes.forEach(node => {
-      if (node.type === 'block-toolbar') {
-        transform.removeNodeByKey(node.key);
-      }
+    editor.change(change => {
+      // remove any existing toolbars in the document as a fail safe
+      editor.value.document.nodes.forEach(node => {
+        if (node.type === 'block-toolbar') {
+          change.removeNodeByKey(node.key);
+        }
+      });
+
+      change
+        .collapseToStartOf(this.closestRootNode)
+        .collapseToEndOfPreviousBlock()
+        .insertBlock(type);
     });
-
-    transform
-      .collapseToStartOf(this.closestRootNode)
-      .collapseToEndOfPreviousBlock()
-      .insertBlock(type);
-
-    this.props.onChange(transform.apply());
   };
 
   render() {

@@ -1,10 +1,10 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
-import type { Props } from '../types';
+import type { props } from 'slate-prop-types';
 import { color } from 'shared/styles/constants';
 
-function HorizontalRule(props: Props) {
+function HorizontalRule(props: props) {
   const { state, node, attributes } = props;
   const active = state.isFocused && state.selection.hasEdgeIn(node);
   return <StyledHr active={active} {...attributes} />;

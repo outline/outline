@@ -2,23 +2,23 @@
 import React, { Component } from 'react';
 import ImageZoom from 'react-medium-image-zoom';
 import styled from 'styled-components';
-import type { Props } from '../types';
+import type { props } from 'slate-prop-types';
 import { color } from 'shared/styles/constants';
 
 class Image extends Component {
-  props: Props;
+  props: props;
 
   handleChange = (ev: SyntheticInputEvent) => {
     const alt = ev.target.value;
     const { editor, node } = this.props;
     const data = node.data.toObject();
-    const state = editor
-      .getState()
-      .transform()
-      .setNodeByKey(node.key, { data: { ...data, alt } })
-      .apply();
 
-    editor.onChange(state);
+    editor.onChange(
+      editor
+        .getState()
+        .change()
+        .setNodeByKey(node.key, { data: { ...data, alt } })
+    );
   };
 
   handleClick = (ev: SyntheticInputEvent) => {

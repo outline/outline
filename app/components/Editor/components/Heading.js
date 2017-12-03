@@ -1,16 +1,17 @@
 // @flow
 import React from 'react';
 import { Document } from 'slate';
+import { Editor } from 'slate-react';
 import styled from 'styled-components';
+import type { node } from 'slate-prop-types';
 import headingToSlug from '../headingToSlug';
-import type { Node, Editor } from '../types';
 import Placeholder from './Placeholder';
 
 type Props = {
   children: React$Element<*>,
   placeholder?: boolean,
-  parent: Node,
-  node: Node,
+  parent: node,
+  node: node,
   editor: Editor,
   readOnly: boolean,
   component?: string,

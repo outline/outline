@@ -4,11 +4,12 @@ import ReactDOM from 'react-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
+import { Editor } from 'slate-react';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
+import type { change } from 'slate-prop-types';
 import ToolbarButton from './ToolbarButton';
 import DocumentResult from './DocumentResult';
-import type { State } from '../../../types';
 import DocumentsStore from 'stores/DocumentsStore';
 import keydown from 'react-keydown';
 import CloseIcon from 'components/Icon/CloseIcon';
@@ -23,11 +24,11 @@ class LinkToolbar extends Component {
   firstDocument: HTMLElement;
 
   props: {
-    state: State,
+    editor: Editor,
     link: Object,
     documents: DocumentsStore,
     onBlur: () => void,
-    onChange: State => void,
+    onChange: change => *,
   };
 
   @observable isEditing: boolean = false;
@@ -112,17 +113,14 @@ class LinkToolbar extends Component {
 
   save = (href: string) => {
     href = href.trim();
-    const { state } = this.props;
-    const transform = state.transform();
-
-    if (href) {
-      transform.setInline({ type: 'link', data: { href } });
-    } else {
-      transform.unwrapInline('link');
-    }
-
-    this.props.onChange(transform.apply());
-    this.props.onBlur();
+    this.props.editor.change(change => {
+      if (href) {
+        change.setInline({ type: 'link', data: { href } });
+      } else {
+        change.unwrapInline('link');
+      }
+      this.props.onBlur();
+    });
   };
 
   setFirstDocumentRef = ref => {

@@ -29,8 +29,8 @@ const Collaborators = ({ document }: Props) => {
     <Avatars>
       <StyledTooltip tooltip={tooltip} placement="bottom">
         {collaborators.map(user => (
-          <AvatarWrapper>
-            <Avatar key={user.id} src={user.avatarUrl} />
+          <AvatarWrapper key={user.id}>
+            <Avatar src={user.avatarUrl} />
           </AvatarWrapper>
         ))}
       </StyledTooltip>

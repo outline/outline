@@ -1,7 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import type { State } from '../../../types';
+import { Editor } from 'slate-react';
 import ToolbarButton from './ToolbarButton';
 import BoldIcon from 'components/Icon/BoldIcon';
 import CodeIcon from 'components/Icon/CodeIcon';
@@ -13,8 +13,7 @@ import StrikethroughIcon from 'components/Icon/StrikethroughIcon';
 
 class FormattingToolbar extends Component {
   props: {
-    state: State,
-    onChange: Function,
+    editor: Editor,
     onCreateLink: Function,
   };
 
@@ -25,11 +24,11 @@ class FormattingToolbar extends Component {
    * @return {Boolean}
    */
   hasMark = (type: string) => {
-    return this.props.state.marks.some(mark => mark.type === type);
+    return this.props.editor.value.marks.some(mark => mark.type === type);
   };
 
   isBlock = (type: string) => {
-    return this.props.state.startBlock.type === type;
+    return this.props.editor.value.startBlock.type === type;
   };
 
   /**
@@ -40,37 +39,23 @@ class FormattingToolbar extends Component {
    */
   onClickMark = (ev: SyntheticEvent, type: string) => {
     ev.preventDefault();
-    let { state } = this.props;
-
-    state = state
-      .transform()
-      .toggleMark(type)
-      .apply();
-    this.props.onChange(state);
+    this.props.editor.change(change => change.toggleMark(type));
   };
 
   onClickBlock = (ev: SyntheticEvent, type: string) => {
     ev.preventDefault();
-    let { state } = this.props;
-
-    state = state
-      .transform()
-      .setBlock(type)
-      .apply();
-    this.props.onChange(state);
+    this.props.editor.change(change => change.setBlock(type));
   };
 
   onCreateLink = (ev: SyntheticEvent) => {
     ev.preventDefault();
     ev.stopPropagation();
-    let { state } = this.props;
+
     const data = { href: '' };
-    state = state
-      .transform()
-      .wrapInline({ type: 'link', data })
-      .apply();
-    this.props.onChange(state);
-    this.props.onCreateLink();
+    this.props.editor.change(change => {
+      change.wrapInline({ type: 'link', data });
+      this.props.onCreateLink();
+    });
   };
 
   renderMarkButton = (type: string, IconClass: Function) => {

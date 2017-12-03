@@ -1,10 +1,11 @@
 // @flow
 import uuid from 'uuid';
 import uploadFile from 'utils/uploadFile';
-import type { Editor, Transform } from './types';
+import { Editor } from 'slate-react';
+import type { change } from 'slate-prop-types';
 
 export default async function insertImageFile(
-  transform: Transform,
+  change: change,
   file: window.File,
   editor: Editor,
   onImageUploadStart: () => void,
@@ -21,7 +22,7 @@ export default async function insertImageFile(
       const src = reader.result;
 
       // insert into document as uploading placeholder
-      const state = transform
+      const state = change
         .insertBlock({
           type: 'image',
           isVoid: true,
@@ -36,11 +37,11 @@ export default async function insertImageFile(
     const asset = await uploadFile(file);
     const src = asset.url;
 
-    // we dont use the original transform provided to the callback here
+    // we dont use the original change provided to the callback here
     // as the state may have changed significantly in the time it took to
     // upload the file.
     const state = editor.getState();
-    const finalTransform = state.transform();
+    const finalTransform = state.change();
     const placeholder = state.document.findDescendant(
       node => node.data && node.data.get('id') === id
     );

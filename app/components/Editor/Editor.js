@@ -2,9 +2,10 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { Editor, Plain } from 'slate';
+import { Editor } from 'slate-react';
+import type { state, props, change } from 'slate-prop-types';
+import Plain from 'slate-plain-serializer';
 import keydown from 'react-keydown';
-import type { State, Editor as EditorType } from './types';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'shared/components/Flex';
 import ClickablePadding from './components/ClickablePadding';
@@ -13,18 +14,19 @@ import BlockInsert from './components/BlockInsert';
 import Placeholder from './components/Placeholder';
 import Contents from './components/Contents';
 import Markdown from './serializer';
-import createSchema from './schema';
 import createPlugins from './plugins';
 import insertImage from './insertImage';
+import renderMark from './marks';
+import createRenderNode from './nodes';
 import styled from 'styled-components';
 
 type Props = {
   text: string,
-  onChange: Function,
-  onSave: Function,
-  onCancel: Function,
-  onImageUploadStart: Function,
-  onImageUploadStop: Function,
+  onChange: change => *,
+  onSave: (redirect?: boolean) => *,
+  onCancel: () => void,
+  onImageUploadStart: () => void,
+  onImageUploadStop: () => void,
   emoji?: string,
   readOnly: boolean,
 };
@@ -37,15 +39,15 @@ type KeyData = {
 @observer
 class MarkdownEditor extends Component {
   props: Props;
-  editor: EditorType;
-  schema: Object;
-  plugins: Array<Object>;
-  @observable editorState: State;
+  editor: Editor;
+  renderNode: props => *;
+  plugins: Object[];
+  @observable editorValue: state;
 
   constructor(props: Props) {
     super(props);
 
-    this.schema = createSchema({
+    this.renderNode = createRenderNode({
       onInsertImage: this.insertImageFile,
       onChange: this.onChange,
     });
@@ -55,9 +57,9 @@ class MarkdownEditor extends Component {
     });
 
     if (props.text.trim().length) {
-      this.editorState = Markdown.deserialize(props.text);
+      this.editorValue = Markdown.deserialize(props.text);
     } else {
-      this.editorState = Plain.deserialize('');
+      this.editorValue = Plain.deserialize('');
     }
   }
 
@@ -77,12 +79,11 @@ class MarkdownEditor extends Component {
     }
   }
 
-  onChange = (editorState: State) => {
-    if (this.editorState !== editorState) {
-      this.props.onChange(Markdown.serialize(editorState));
+  onChange = (change: change) => {
+    if (this.editorValue !== change.value) {
+      this.props.onChange(Markdown.serialize(change.value));
     }
-
-    this.editorState = editorState;
+    this.editorValue = change.value;
   };
 
   handleDrop = async (ev: SyntheticEvent) => {
@@ -103,17 +104,16 @@ class MarkdownEditor extends Component {
   };
 
   insertImageFile = async (file: window.File) => {
-    const state = this.editor.getState();
-    let transform = state.transform();
-
-    transform = await insertImage(
-      transform,
-      file,
-      this.editor,
-      this.props.onImageUploadStart,
-      this.props.onImageUploadStop
+    this.editor.change(
+      async change =>
+        await insertImage(
+          change,
+          file,
+          this.editor,
+          this.props.onImageUploadStart,
+          this.props.onImageUploadStop
+        )
     );
-    this.editor.onChange(transform.apply());
   };
 
   cancelEvent = (ev: SyntheticEvent) => {
@@ -136,7 +136,7 @@ class MarkdownEditor extends Component {
 
     ev.preventDefault();
     ev.stopPropagation();
-    this.props.onSave({ redirect: false });
+    this.props.onSave(true);
   }
 
   @keydown('esc')
@@ -146,37 +146,33 @@ class MarkdownEditor extends Component {
   }
 
   // Handling of keyboard shortcuts within editor focus
-  onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData, state: State) => {
+  onKeyDown = (ev: SyntheticKeyboardEvent, data: KeyData, change: change) => {
     if (!data.isMeta) return;
 
     switch (data.key) {
       case 's':
         this.onSave(ev);
-        return state;
+        return change;
       case 'enter':
         this.onSaveAndExit(ev);
-        return state;
+        return change;
       case 'escape':
         this.onCancel();
-        return state;
+        return change;
       default:
     }
   };
 
   focusAtStart = () => {
-    const state = this.editor.getState();
-    const transform = state.transform();
-    transform.collapseToStartOf(state.document);
-    transform.focus();
-    this.editorState = transform.apply();
+    this.editor.change(change =>
+      change.collapseToStartOf(change.value.document).focus()
+    );
   };
 
   focusAtEnd = () => {
-    const state = this.editor.getState();
-    const transform = state.transform();
-    transform.collapseToEndOf(state.document);
-    transform.focus();
-    this.editorState = transform.apply();
+    this.editor.change(change =>
+      change.collapseToEndOf(change.value.document).focus()
+    );
   };
 
   render = () => {
@@ -193,25 +189,27 @@ class MarkdownEditor extends Component {
       >
         <MaxWidth column auto>
           <Header onClick={this.focusAtStart} readOnly={readOnly} />
-          {readOnly && <Contents state={this.editorState} />}
-          {!readOnly && (
-            <Toolbar state={this.editorState} onChange={this.onChange} />
-          )}
-          {!readOnly && (
-            <BlockInsert
-              state={this.editorState}
-              onChange={this.onChange}
-              onInsertImage={this.insertImageFile}
-            />
-          )}
+          {readOnly && this.editor && <Contents editor={this.editor} />}
+          {!readOnly &&
+            this.editor && (
+              <Toolbar value={this.editorValue} editor={this.editor} />
+            )}
+          {!readOnly &&
+            this.editor && (
+              <BlockInsert
+                editor={this.editor}
+                onInsertImage={this.insertImageFile}
+              />
+            )}
           <StyledEditor
             innerRef={ref => (this.editor = ref)}
             placeholder="Start with a title…"
             bodyPlaceholder="…the rest is your canvas"
-            schema={this.schema}
             plugins={this.plugins}
             emoji={emoji}
-            state={this.editorState}
+            value={this.editorValue}
+            renderNode={this.renderNode}
+            renderMark={renderMark}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
             onSave={onSave}

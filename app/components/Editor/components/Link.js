@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { Link as InternalLink } from 'react-router-dom';
-import type { Props } from '../types';
+import type { props } from 'slate-prop-types';
 
 function getPathFromUrl(href: string) {
   if (href[0] === '/') return href;
@@ -14,7 +14,7 @@ function getPathFromUrl(href: string) {
   }
 }
 
-function isOutlineUrl(href: string) {
+function isInternalUrl(href: string) {
   if (href[0] === '/') return true;
 
   try {
@@ -26,11 +26,11 @@ function isOutlineUrl(href: string) {
   }
 }
 
-export default function Link({ attributes, node, children, readOnly }: Props) {
+export default function Link({ attributes, node, children, readOnly }: props) {
   const href = node.data.get('href');
   const path = getPathFromUrl(href);
 
-  if (isOutlineUrl(href) && readOnly) {
+  if (isInternalUrl(href) && readOnly) {
     return (
       <InternalLink {...attributes} to={path}>
         {children}

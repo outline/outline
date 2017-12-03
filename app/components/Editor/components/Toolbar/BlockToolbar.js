@@ -13,12 +13,12 @@ import HorizontalRuleIcon from 'components/Icon/HorizontalRuleIcon';
 import TodoListIcon from 'components/Icon/TodoListIcon';
 import Flex from 'shared/components/Flex';
 import ToolbarButton from './components/ToolbarButton';
-import type { Props as BaseProps } from '../../types';
+import type { props } from 'slate-prop-types';
 import { color } from 'shared/styles/constants';
 import { fadeIn } from 'shared/styles/animations';
 import { splitAndInsertBlock } from '../../transforms';
 
-type Props = BaseProps & {
+type Props = props & {
   onInsertImage: Function,
   onChange: Function,
 };
@@ -34,16 +34,15 @@ class BlockToolbar extends Component {
   file: HTMLInputElement;
 
   componentWillReceiveProps(nextProps: Props) {
-    const wasActive = this.props.state.selection.hasEdgeIn(this.props.node);
-    const isActive = nextProps.state.selection.hasEdgeIn(nextProps.node);
+    const { editor } = this.props;
+    const wasActive = editor.value.selection.hasEdgeIn(this.props.node);
+    const isActive = nextProps.editor.value.selection.hasEdgeIn(nextProps.node);
     const becameInactive = !isActive && wasActive;
 
     if (becameInactive) {
-      const state = nextProps.state
-        .transform()
-        .removeNodeByKey(nextProps.node.key)
-        .apply();
-      this.props.onChange(state);
+      nextProps.editor.change(change =>
+        change.removeNodeByKey(nextProps.node.key)
+      );
     }
   }
 
@@ -52,24 +51,25 @@ class BlockToolbar extends Component {
     ev.preventDefault();
     ev.stopPropagation();
 
-    const state = this.props.state
-      .transform()
-      .removeNodeByKey(this.props.node.key)
-      .apply();
-    this.props.onChange(state);
+    this.props.editor.change(change =>
+      change.removeNodeByKey(this.props.node.key)
+    );
   }
 
   insertBlock = (options: Options) => {
-    const { state } = this.props;
-    let transform = splitAndInsertBlock(state.transform(), state, options);
+    const { editor } = this.props;
 
-    state.document.nodes.forEach(node => {
-      if (node.type === 'block-toolbar') {
-        transform.removeNodeByKey(node.key);
-      }
+    editor.change(change => {
+      splitAndInsertBlock(change, options);
+
+      change.value.document.nodes.forEach(node => {
+        if (node.type === 'block-toolbar') {
+          change.removeNodeByKey(node.key);
+        }
+      });
+
+      change.focus();
     });
-
-    this.props.onChange(transform.focus().apply());
   };
 
   handleClickBlock = (ev: SyntheticEvent, type: string) => {
@@ -126,8 +126,9 @@ class BlockToolbar extends Component {
   };
 
   render() {
-    const { state, attributes, node } = this.props;
-    const active = state.isFocused && state.selection.hasEdgeIn(node);
+    const { editor, attributes, node } = this.props;
+    const active =
+      editor.value.isFocused && editor.value.selection.hasEdgeIn(node);
 
     return (
       <Bar active={active} {...attributes}>

@@ -2,14 +2,15 @@
 import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import { Editor } from 'slate-react';
+import type { state, block } from 'slate-prop-types';
 import { List } from 'immutable';
 import { color } from 'shared/styles/constants';
 import headingToSlug from '../headingToSlug';
-import type { State, Block } from '../types';
 import styled from 'styled-components';
 
 type Props = {
-  state: State,
+  editor: Editor,
 };
 
 @observer
@@ -53,10 +54,10 @@ class Contents extends Component {
     return elements;
   }
 
-  get headings(): List<Block> {
-    const { state } = this.props;
+  get headings(): List<block> {
+    const { editor } = this.props;
 
-    return state.document.nodes.filter((node: Block) => {
+    return editor.value.document.nodes.filter((node: block) => {
       if (!node.text) return false;
       return node.type.match(/^heading/);
     });
@@ -74,7 +75,7 @@ class Contents extends Component {
             const active = this.activeHeading === slug;
 
             return (
-              <ListItem type={heading.type} active={active}>
+              <ListItem type={heading.type} active={active} key={slug}>
                 <Anchor href={`#${slug}`} active={active}>
                   {heading.text}
                 </Anchor>

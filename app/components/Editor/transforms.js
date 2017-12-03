@@ -1,6 +1,6 @@
 // @flow
+import type { change } from 'slate-prop-types';
 import EditList from './plugins/EditList';
-import type { State, Transform } from './types';
 
 const { transforms } = EditList;
 
@@ -10,28 +10,25 @@ type Options = {
   append?: string | Object,
 };
 
-export function splitAndInsertBlock(
-  transform: Transform,
-  state: State,
-  options: Options
-) {
+export function splitAndInsertBlock(change: change, options: Options) {
   const { type, wrapper, append } = options;
-  const { document } = state;
-  const parent = document.getParent(state.startBlock.key);
+  const { value } = change;
+  const { document } = value;
+  const parent = document.getParent(value.startBlock.key);
 
   // lists get some special treatment
   if (parent && parent.type === 'list-item') {
-    transform = transforms.unwrapList(
+    change = transforms.unwrapList(
       transforms
-        .splitListItem(transform.collapseToStart())
+        .splitListItem(change.collapseToStart())
         .collapseToEndOfPreviousBlock()
     );
   }
 
-  transform = transform.insertBlock(type);
+  change = change.insertBlock(type);
 
-  if (wrapper) transform = transform.wrapBlock(wrapper);
-  if (append) transform = transform.insertBlock(append);
+  if (wrapper) change = change.wrapBlock(wrapper);
+  if (append) change = change.insertBlock(append);
 
-  return transform;
+  return change;
 }

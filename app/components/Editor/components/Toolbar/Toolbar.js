@@ -3,9 +3,10 @@ import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Portal } from 'react-portal';
+import { Editor } from 'slate-react';
+import type { value } from 'slate-prop-types';
 import styled from 'styled-components';
 import _ from 'lodash';
-import type { State } from '../../types';
 import FormattingToolbar from './components/FormattingToolbar';
 import LinkToolbar from './components/LinkToolbar';
 
@@ -18,8 +19,8 @@ export default class Toolbar extends Component {
   @observable left: string = '';
 
   props: {
-    state: State,
-    onChange: (state: State) => void,
+    editor: Editor,
+    value: value,
   };
 
   menu: HTMLElement;
@@ -41,11 +42,11 @@ export default class Toolbar extends Component {
   };
 
   get linkInSelection(): any {
-    const { state } = this.props;
+    const { value } = this.props;
 
     try {
-      const selectedLinks = state.startBlock
-        .getInlinesAtRange(state.selection)
+      const selectedLinks = value.startBlock
+        .getInlinesAtRange(value.selection)
         .filter(node => node.type === 'link');
       if (selectedLinks.size) {
         return selectedLinks.first();
@@ -56,10 +57,10 @@ export default class Toolbar extends Component {
   }
 
   update = () => {
-    const { state } = this.props;
+    const { value } = this.props;
     const link = this.linkInSelection;
 
-    if (state.isBlurred || (state.isCollapsed && !link)) {
+    if (value.isBlurred || (value.isCollapsed && !link)) {
       if (this.active && !this.focused) {
         this.active = false;
         this.link = undefined;
@@ -70,11 +71,11 @@ export default class Toolbar extends Component {
     }
 
     // don't display toolbar for document title
-    const firstNode = state.document.nodes.first();
-    if (firstNode === state.startBlock) return;
+    const firstNode = value.document.nodes.first();
+    if (firstNode === value.startBlock) return;
 
     // don't display toolbar for code blocks
-    if (state.startBlock.type === 'code') return;
+    if (value.startBlock.type === 'code') return;
 
     this.active = true;
     this.focused = !!link;
