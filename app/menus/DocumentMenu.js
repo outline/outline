@@ -67,6 +67,7 @@ class DocumentMenu extends Component {
         <DropdownMenuItem onClick={this.handleExport}>
           Download
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
         {allowDelete && (
           <DropdownMenuItem onClick={this.handleDelete}>

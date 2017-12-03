@@ -182,6 +182,10 @@ const Bar = styled(Flex)`
     left: auto;
     right: -100%;
   }
+
+  @media print {
+    display: none;
+  }
 `;
 
 const HiddenInput = styled.input`
