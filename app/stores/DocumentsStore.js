@@ -126,7 +126,7 @@ class DocumentsStore extends BaseStore {
   @action
   search = async (
     query: string,
-    options: PaginationParams
+    options?: PaginationParams
   ): Promise<string[]> => {
     const res = await client.get('/documents.search', {
       ...options,
