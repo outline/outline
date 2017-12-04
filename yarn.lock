@@ -2,18 +2,6 @@
 # yarn lockfile v1
 
 
-"@tommoor/slate-drop-or-paste-images@0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@tommoor/slate-drop-or-paste-images/-/slate-drop-or-paste-images-0.5.1.tgz#67a8853bb59d3a449f2fe7c7071dc19fe3aff93d"
-  dependencies:
-    data-uri-to-blob "0.0.4"
-    es6-promise "^4.0.5"
-    image-to-data-uri "^1.0.0"
-    is-data-uri "^0.1.0"
-    is-image "^1.0.1"
-    is-url "^1.2.2"
-    mime-types "^2.1.11"
-
 "@types/geojson@^1.0.0":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-1.0.3.tgz#fbcf7fa5eb6dd108d51385cc6987ec1f24214523"
@@ -2171,10 +2159,6 @@ dashify@^0.2.0:
 data-uri-regex@^0.1.2:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/data-uri-regex/-/data-uri-regex-0.1.4.tgz#1e1db6c8397eca8a48ecdb55ad1b927ec0bbac2e"
-
-data-uri-to-blob@0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/data-uri-to-blob/-/data-uri-to-blob-0.0.4.tgz#087a7bff42f41a6cc0b2e2fb7312a7c29904fbaa"
 
 date-fns@^1.27.2:
   version "1.28.5"
@@ -8217,9 +8201,21 @@ slate-collapse-on-escape@^0.6.0:
   dependencies:
     to-pascal-case "^1.0.0"
 
-slate-dev-logger@^0.1.25, slate-dev-logger@^0.1.36:
+slate-dev-logger@^0.1.0, slate-dev-logger@^0.1.25, slate-dev-logger@^0.1.36:
   version "0.1.36"
   resolved "https://registry.npmjs.org/slate-dev-logger/-/slate-dev-logger-0.1.36.tgz#ecdb37dbf944dfc742bab23b6a20d5a0472db95e"
+
+slate-drop-or-paste-images@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.npmjs.org/slate-drop-or-paste-images/-/slate-drop-or-paste-images-0.8.0.tgz#2c363a117688c1b57517ab9cd468c4060e09824e"
+  dependencies:
+    es6-promise "^4.0.5"
+    image-to-data-uri "^1.0.0"
+    is-data-uri "^0.1.0"
+    is-image "^1.0.1"
+    is-url "^1.2.2"
+    mime-types "^2.1.11"
+    slate-dev-logger "^0.1.0"
 
 slate-edit-code@^0.13.2:
   version "0.13.2"
@@ -8234,9 +8230,9 @@ slate-edit-list@^0.10.1:
   version "0.10.1"
   resolved "https://registry.npmjs.org/slate-edit-list/-/slate-edit-list-0.10.1.tgz#9c6a142a314b0ff22a327f1b50c8f5c85468cb17"
 
-slate-md-serializer@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/slate-md-serializer/-/slate-md-serializer-1.0.1.tgz#10fb8118bf0b97addaf9d7fd77c1b19f3d767309"
+slate-md-serializer@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/slate-md-serializer/-/slate-md-serializer-1.0.4.tgz#519b819b436706a31d93a8e787657694c0c75d35"
 
 slate-paste-linkify@^0.5.0:
   version "0.5.0"

@@ -16,7 +16,7 @@ import ToolbarButton from './components/ToolbarButton';
 import type { SlateNodeProps } from '../../types';
 import { color } from 'shared/styles/constants';
 import { fadeIn } from 'shared/styles/animations';
-import { splitAndInsertBlock } from '../../transforms';
+import { splitAndInsertBlock } from '../../changes';
 
 type Props = SlateNodeProps & {
   onInsertImage: *,
@@ -61,7 +61,7 @@ class BlockToolbar extends Component {
     editor.change(change => {
       splitAndInsertBlock(change, options);
 
-      change.value.document.nodes.forEach(node => {
+      editor.value.document.nodes.forEach(node => {
         if (node.type === 'block-toolbar') {
           change.removeNodeByKey(node.key);
         }

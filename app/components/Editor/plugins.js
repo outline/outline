@@ -1,5 +1,5 @@
 // @flow
-// import DropOrPasteImages from '@tommoor/slate-drop-or-paste-images';
+import InsertImages from 'slate-drop-or-paste-images';
 import PasteLinkify from 'slate-paste-linkify';
 import CollapseOnEscape from 'slate-collapse-on-escape';
 import TrailingBlock from 'slate-trailing-block';
@@ -8,7 +8,7 @@ import Prism from 'slate-prism';
 import EditList from './plugins/EditList';
 import KeyboardShortcuts from './plugins/KeyboardShortcuts';
 import MarkdownShortcuts from './plugins/MarkdownShortcuts';
-// import insertImage from './insertImage';
+import { insertImageFile } from './changes';
 
 const onlyInCode = node => node.type === 'code';
 
@@ -23,18 +23,17 @@ const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
       type: 'link',
       collapseTo: 'end',
     }),
-    // DropOrPasteImages({
-    //   extensions: ['png', 'jpg', 'gif'],
-    //   applyTransform: (transform, file, editor) => {
-    //     return insertImage(
-    //       transform,
-    //       file,
-    //       editor,
-    //       onImageUploadStart,
-    //       onImageUploadStop
-    //     );
-    //   },
-    // }),
+    InsertImages({
+      extensions: ['png', 'jpg', 'gif'],
+      insertImage(change, file) {
+        return change.call(
+          insertImageFile,
+          file,
+          onImageUploadStart,
+          onImageUploadStop
+        );
+      },
+    }),
     EditList,
     EditCode({
       onlyIn: onlyInCode,

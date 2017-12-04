@@ -1,5 +1,5 @@
 // @flow
-import { Value, Node } from 'slate';
+import { Value, Change, Node } from 'slate';
 import { Editor } from 'slate-react';
 
 export type SlateNodeProps = {
@@ -10,4 +10,10 @@ export type SlateNodeProps = {
   editor: Editor,
   node: Node,
   parent: Node,
+};
+
+export type Plugin = {
+  validateNode?: Node => *,
+  onClick?: SyntheticEvent => *,
+  onKeyDown?: (SyntheticKeyboardEvent, Change) => *,
 };

@@ -22,7 +22,7 @@ type Options = {
   onInsertImage: *,
 };
 
-export default function createRenderNode({ onChange, onInsertImage }: Options) {
+export default function createRenderNode({ onInsertImage }: Options) {
   return function renderNode(props: SlateNodeProps) {
     const { attributes } = props;
 

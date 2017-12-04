@@ -182,8 +182,8 @@ export default function MarkdownShortcuts() {
 
           change.removeMarkByKey(
             textNode.key,
-            change.startOffset - charsInCodeBlock.size,
-            change.startOffset,
+            startOffset - charsInCodeBlock.size,
+            startOffset,
             'code'
           );
         }
@@ -210,10 +210,13 @@ export default function MarkdownShortcuts() {
     onEnter(ev: SyntheticKeyboardEvent, change: Change) {
       const { value } = change;
       if (value.isExpanded) return;
+
       const { startBlock, startOffset, endOffset } = value;
       if (startOffset === 0 && startBlock.length === 0)
         return this.onBackspace(ev, change);
-      if (endOffset !== startBlock.length) return;
+
+      // Hitting enter at the end of the line reverts to standard behavior
+      if (endOffset === startBlock.length) return;
 
       // Hitting enter while an image is selected should jump caret below and
       // insert a new paragraph
@@ -225,19 +228,12 @@ export default function MarkdownShortcuts() {
       // Hitting enter in a heading or blockquote will split the node at that
       // point and make the new node a paragraph
       if (
-        startBlock.type !== 'heading1' &&
-        startBlock.type !== 'heading2' &&
-        startBlock.type !== 'heading3' &&
-        startBlock.type !== 'heading4' &&
-        startBlock.type !== 'heading5' &&
-        startBlock.type !== 'heading6' &&
-        startBlock.type !== 'block-quote'
+        startBlock.type.startsWith('heading') ||
+        startBlock.type === 'block-quote'
       ) {
-        return;
+        ev.preventDefault();
+        return change.splitBlock().setBlock('paragraph');
       }
-
-      ev.preventDefault();
-      change.splitBlock().setBlock('paragraph');
     },
 
     /**

@@ -4,7 +4,7 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Value, Change } from 'slate';
 import { Editor } from 'slate-react';
-import type { SlateNodeProps } from './types';
+import type { SlateNodeProps, Plugin } from './types';
 import Plain from 'slate-plain-serializer';
 import keydown from 'react-keydown';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
@@ -16,9 +16,10 @@ import Placeholder from './components/Placeholder';
 import Contents from './components/Contents';
 import Markdown from './serializer';
 import createPlugins from './plugins';
-import insertImage from './insertImage';
+import { insertImageFile } from './changes';
 import renderMark from './marks';
 import createRenderNode from './nodes';
+import schema from './schema';
 import styled from 'styled-components';
 
 type Props = {
@@ -37,7 +38,7 @@ class MarkdownEditor extends Component {
   props: Props;
   editor: Editor;
   renderNode: SlateNodeProps => *;
-  plugins: Object[];
+  plugins: Plugin[];
   @observable editorValue: Value;
 
   constructor(props: Props) {
@@ -60,12 +61,11 @@ class MarkdownEditor extends Component {
   }
 
   componentDidMount() {
-    if (!this.props.readOnly) {
-      if (this.props.text) {
-        this.focusAtEnd();
-      } else {
-        this.focusAtStart();
-      }
+    if (this.props.readOnly) return;
+    if (this.props.text) {
+      this.focusAtEnd();
+    } else {
+      this.focusAtStart();
     }
   }
 
@@ -78,8 +78,8 @@ class MarkdownEditor extends Component {
   onChange = (change: Change) => {
     if (this.editorValue !== change.value) {
       this.props.onChange(Markdown.serialize(change.value));
+      this.editorValue = change.value;
     }
-    this.editorValue = change.value;
   };
 
   handleDrop = async (ev: SyntheticEvent) => {
@@ -100,15 +100,13 @@ class MarkdownEditor extends Component {
   };
 
   insertImageFile = async (file: window.File) => {
-    this.editor.change(
-      async change =>
-        await insertImage(
-          change,
-          file,
-          this.editor,
-          this.props.onImageUploadStart,
-          this.props.onImageUploadStop
-        )
+    this.editor.change(change =>
+      change.call(
+        insertImageFile,
+        file,
+        this.props.onImageUploadStart,
+        this.props.onImageUploadStop
+      )
     );
   };
 
@@ -206,10 +204,12 @@ class MarkdownEditor extends Component {
             value={this.editorValue}
             renderNode={this.renderNode}
             renderMark={renderMark}
+            schema={schema}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
             onSave={onSave}
             readOnly={readOnly}
+            spellCheck={!readOnly}
           />
           <ClickablePadding
             onClick={!readOnly ? this.focusAtEnd : undefined}

@@ -10,12 +10,9 @@ export default class TodoItem extends Component {
   handleChange = (ev: SyntheticInputEvent) => {
     const checked = ev.target.checked;
     const { editor, node } = this.props;
-    const change = editor
-      .getState()
-      .change()
-      .setNodeByKey(node.key, { data: { checked } });
-
-    editor.onChange(change);
+    editor.change(change =>
+      change.setNodeByKey(node.key, { data: { checked } })
+    );
   };
 
   render() {

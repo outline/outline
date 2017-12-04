@@ -1,18 +1,46 @@
 // @flow
-import uuid from 'uuid';
-import uploadFile from 'utils/uploadFile';
 import { Change } from 'slate';
-import { Editor } from 'slate-react';
+import uuid from 'uuid';
+import EditList from './plugins/EditList';
+import uploadFile from 'utils/uploadFile';
 
-export default async function insertImageFile(
+const { changes } = EditList;
+
+type Options = {
+  type: string | Object,
+  wrapper?: string | Object,
+  append?: string | Object,
+};
+
+export function splitAndInsertBlock(change: Change, options: Options) {
+  const { type, wrapper, append } = options;
+  const parent = change.value.document.getParent(change.value.startBlock.key);
+
+  // lists get some special treatment
+  if (parent && parent.type === 'list-item') {
+    change = changes.unwrapList(
+      changes
+        .splitListItem(change.collapseToStart())
+        .collapseToEndOfPreviousBlock()
+    );
+  }
+
+  change = change.insertBlock(type);
+
+  if (wrapper) change = change.wrapBlock(wrapper);
+  if (append) change = change.insertBlock(append);
+
+  return change;
+}
+
+export async function insertImageFile(
   change: Change,
   file: window.File,
-  editor: Editor,
   onImageUploadStart: () => void,
   onImageUploadStop: () => void
 ) {
   onImageUploadStart();
-
+  console.log(file);
   try {
     // load the file as a data URL
     const id = uuid.v4();
@@ -27,6 +55,7 @@ export default async function insertImageFile(
         isVoid: true,
         data: { src, id, alt, loading: true },
       });
+      console.log('insertBlock', change);
     });
     reader.readAsDataURL(file);
 
@@ -37,12 +66,12 @@ export default async function insertImageFile(
     // we dont use the original change provided to the callback here
     // as the state may have changed significantly in the time it took to
     // upload the file.
-    const finalTransform = editor.value.change();
-    const placeholder = editor.value.document.findDescendant(
+    const placeholder = change.value.document.findDescendant(
       node => node.data && node.data.get('id') === id
     );
+    console.log('placeholder', placeholder);
 
-    return finalTransform.setNodeByKey(placeholder.key, {
+    return change.setNodeByKey(placeholder.key, {
       data: { src, alt, loading: false },
     });
   } catch (err) {
