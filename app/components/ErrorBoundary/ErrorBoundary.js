@@ -9,6 +9,14 @@ import PageTitle from 'components/PageTitle';
 class ErrorBoundary extends Component {
   @observable error: boolean = false;
 
+  componentWillReceiveProps(nextProps: Object) {
+    if (
+      (this.props.location || nextProps.location) &&
+      this.props.location.pathname !== nextProps.location.pathname
+    )
+      this.error = false;
+  }
+
   componentDidCatch(error: Error, info: Object) {
     this.error = true;
 
@@ -27,9 +35,10 @@ class ErrorBoundary extends Component {
       return (
         <CenteredContent>
           <PageTitle title="Something went wrong" />
-          <h1>Something went wrong</h1>
+          <h1>🛸 Something unexpected happened</h1>
           <p>
-            An unrecoverable error occurred. Please try{' '}
+            An unrecoverable error occurred{window.Bugsnag ||
+              (true && ' and our engineers have been notified')}. Please try{' '}
             <a onClick={this.handleReload}>reloading</a>.
           </p>
         </CenteredContent>
