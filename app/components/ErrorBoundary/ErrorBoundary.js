@@ -8,6 +8,7 @@ import PageTitle from 'components/PageTitle';
 
 type Props = {
   location?: Location,
+  children?: ?React.Element<any>,
 };
 
 @observer
