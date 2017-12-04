@@ -2,16 +2,23 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { observable } from 'mobx';
+import type { Location } from 'react-router-dom';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 
+type Props = {
+  location?: Location,
+};
+
 @observer
 class ErrorBoundary extends Component {
+  props: Props;
   @observable error: boolean = false;
 
   componentWillReceiveProps(nextProps: Object) {
     if (
-      (this.props.location || nextProps.location) &&
+      this.props.location &&
+      nextProps.location &&
       this.props.location.pathname !== nextProps.location.pathname
     )
       this.error = false;
