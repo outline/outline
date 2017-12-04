@@ -39,10 +39,19 @@ export type Document = {
   views: number,
 };
 
+// Pagination response in an API call
 export type Pagination = {
   limit: number,
   nextPath: string,
   offset: number,
+};
+
+// Pagination request params
+export type PaginationParams = {
+  limit?: number,
+  offset?: number,
+  sort?: string,
+  direction?: 'ASC' | 'DESC',
 };
 
 export type ApiKey = {

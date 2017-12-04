@@ -2,10 +2,13 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
+import Waypoint from 'react-waypoint';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import _ from 'lodash';
-import DocumentsStore from 'stores/DocumentsStore';
+import DocumentsStore, {
+  DEFAULT_PAGINATION_LIMIT,
+} from 'stores/DocumentsStore';
 
 import { withRouter } from 'react-router-dom';
 import { searchUrl } from 'utils/routeHelpers';
@@ -44,6 +47,7 @@ const ResultsWrapper = styled(Flex)`
 `;
 
 const ResultList = styled(Flex)`
+  margin-bottom: 150px;
   opacity: ${props => (props.visible ? '1' : '0')};
   transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
 `;
@@ -61,6 +65,8 @@ class Search extends Component {
 
   @observable resultIds: string[] = []; // Document IDs
   @observable query: string = '';
+  @observable offset: number = 0;
+  @observable allowLoadMore: boolean = true;
   @observable isFetching = false;
 
   componentDidMount() {
@@ -98,10 +104,27 @@ class Search extends Component {
   handleQueryChange = () => {
     const query = this.props.match.params.query;
     this.query = query ? decodeURIComponent(query) : '';
+    this.allowLoadMore = true;
+
+    // To prevent "no results" showing before debounce kicks in
+    if (this.query) this.isFetching = true;
+
     this.fetchResultsDebounced();
   };
 
-  fetchResultsDebounced = _.debounce(this.fetchResults, 250);
+  fetchResultsDebounced = _.debounce(this.fetchResults, 350, {
+    leading: false,
+    trailing: true,
+  });
+
+  @action
+  loadMoreResults = async () => {
+    // Don't paginate if there aren't more results or we're in the middle of fetching
+    if (!this.allowLoadMore || this.isFetching) return;
+
+    // Fetch more results
+    await this.fetchResults();
+  };
 
   @action
   fetchResults = async () => {
@@ -109,7 +132,19 @@ class Search extends Component {
 
     if (this.query) {
       try {
-        this.resultIds = await this.props.documents.search(this.query);
+        const newResults = await this.props.documents.search(this.query, {
+          offset: this.offset,
+          limit: DEFAULT_PAGINATION_LIMIT,
+        });
+        this.resultIds = this.resultIds.concat(newResults);
+        if (
+          newResults.length === 0 ||
+          newResults.length < DEFAULT_PAGINATION_LIMIT
+        ) {
+          this.allowLoadMore = false;
+        } else {
+          this.offset += DEFAULT_PAGINATION_LIMIT;
+        }
       } catch (e) {
         console.error('Something went wrong');
       }
@@ -157,7 +192,7 @@ class Search extends Component {
             value={this.query}
           />
           {showEmpty && <Empty>No matching documents.</Empty>}
-          <ResultList visible={hasResults}>
+          <ResultList column visible={hasResults}>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
@@ -178,6 +213,9 @@ class Search extends Component {
                 );
               })}
             </StyledArrowKeyNavigation>
+            {this.allowLoadMore && (
+              <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+            )}
           </ResultList>
         </ResultsWrapper>
       </Container>

@@ -17,8 +17,10 @@ import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
 import CacheStore from 'stores/CacheStore';
 import UiStore from 'stores/UiStore';
+import type { PaginationParams } from 'types';
 
 const DOCUMENTS_CACHE_KEY = 'DOCUMENTS_CACHE_KEY';
+export const DEFAULT_PAGINATION_LIMIT = 25;
 
 type Options = {
   cache: CacheStore,
@@ -77,7 +79,10 @@ class DocumentsStore extends BaseStore {
   /* Actions */
 
   @action
-  fetchAll = async (request: string = 'list', options: ?Object): Promise<*> => {
+  fetchAll = async (
+    request: string = 'list',
+    options: ?PaginationParams
+  ): Promise<*> => {
     this.isFetching = true;
 
     try {
@@ -99,12 +104,12 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
-  fetchRecentlyModified = async (options: ?Object): Promise<*> => {
+  fetchRecentlyModified = async (options: ?PaginationParams): Promise<*> => {
     return await this.fetchAll('list', options);
   };
 
   @action
-  fetchRecentlyViewed = async (options: ?Object): Promise<*> => {
+  fetchRecentlyViewed = async (options: ?PaginationParams): Promise<*> => {
     const data = await this.fetchAll('viewed', options);
 
     runInAction('DocumentsStore#fetchRecentlyViewed', () => {
@@ -119,8 +124,14 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
-  search = async (query: string): Promise<*> => {
-    const res = await client.get('/documents.search', { query });
+  search = async (
+    query: string,
+    options: PaginationParams
+  ): Promise<string[]> => {
+    const res = await client.get('/documents.search', {
+      ...options,
+      query,
+    });
     invariant(res && res.data, 'res or res.data missing');
     const { data } = res;
     data.forEach(documentData => this.add(new Document(documentData)));

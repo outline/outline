@@ -142,13 +142,17 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   };
 });
 
-router.post('documents.search', auth(), async ctx => {
+router.post('documents.search', auth(), pagination(), async ctx => {
   const { query } = ctx.body;
+  const { offset, limit } = ctx.state.pagination;
   ctx.assertPresent(query, 'query is required');
 
   const user = await ctx.state.user;
 
-  const documents = await Document.searchForUser(user, query);
+  const documents = await Document.searchForUser(user, query, {
+    offset,
+    limit,
+  });
 
   const data = await Promise.all(
     documents.map(async document => await presentDocument(ctx, document))
