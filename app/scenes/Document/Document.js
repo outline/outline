@@ -217,7 +217,7 @@ class DocumentScene extends Component {
 
     return (
       <Container column auto>
-        <ErrorBoundary location={this.props.location}>
+        <ErrorBoundary key={this.props.location.pathname}>
           {isMoving && document && <DocumentMove document={document} />}
           {titleText && <PageTitle title={titleText} />}
           {(this.isLoading || this.isSaving) && <LoadingIndicator />}
