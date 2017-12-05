@@ -27,7 +27,6 @@ type Props = {
   collections: CollectionsStore,
   documents: DocumentsStore,
   onCreateCollection: () => void,
-  activeDocumentRef: HTMLElement => void,
   ui: UiStore,
 };
 
@@ -36,14 +35,7 @@ class Collections extends Component {
   props: Props;
 
   render() {
-    const {
-      history,
-      location,
-      collections,
-      ui,
-      activeDocumentRef,
-      documents,
-    } = this.props;
+    const { history, location, collections, ui, documents } = this.props;
 
     return (
       <Flex column>
@@ -55,7 +47,6 @@ class Collections extends Component {
             location={location}
             collection={collection}
             activeDocument={documents.active}
-            activeDocumentRef={activeDocumentRef}
             prefetchDocument={documents.prefetchDocument}
             ui={ui}
           />
@@ -79,7 +70,6 @@ type CollectionLinkProps = {
   collection: Collection,
   ui: UiStore,
   activeDocument: ?Document,
-  activeDocumentRef: HTMLElement => void,
   prefetchDocument: (id: string) => Promise<void>,
 };
 
@@ -100,7 +90,6 @@ class CollectionLink extends Component {
       collection,
       activeDocument,
       ui,
-      activeDocumentRef,
       prefetchDocument,
     } = this.props;
     const expanded = collection.id === ui.activeCollectionId;
@@ -140,7 +129,6 @@ class CollectionLink extends Component {
               {collection.documents.map(document => (
                 <DocumentLink
                   key={document.id}
-                  activeDocumentRef={activeDocumentRef}
                   history={history}
                   document={document}
                   activeDocument={activeDocument}
