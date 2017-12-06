@@ -1,5 +1,6 @@
 // @flow
 import { Change } from 'slate';
+import { Editor } from 'slate-react';
 import uuid from 'uuid';
 import EditList from './plugins/EditList';
 import uploadFile from 'utils/uploadFile';
@@ -36,6 +37,7 @@ export function splitAndInsertBlock(change: Change, options: Options) {
 export async function insertImageFile(
   change: Change,
   file: window.File,
+  editor: Editor,
   onImageUploadStart: () => void,
   onImageUploadStop: () => void
 ) {
@@ -47,13 +49,24 @@ export async function insertImageFile(
     const reader = new FileReader();
     reader.addEventListener('load', () => {
       const src = reader.result;
-
-      // insert into document as uploading placeholder
-      change.insertBlock({
+      const node = {
         type: 'image',
         isVoid: true,
         data: { src, id, alt, loading: true },
-      });
+      };
+
+      // insert / replace into document as uploading placeholder replacing
+      // empty paragraphs if available.
+      if (
+        !change.value.startBlock.text &&
+        change.value.startBlock.type === 'paragraph'
+      ) {
+        change.setBlock(node);
+      } else {
+        change.insertBlock(node);
+      }
+
+      editor.onChange(change);
     });
     reader.readAsDataURL(file);
 
@@ -64,13 +77,14 @@ export async function insertImageFile(
     // we dont use the original change provided to the callback here
     // as the state may have changed significantly in the time it took to
     // upload the file.
-    const placeholder = change.value.document.findDescendant(
+    const placeholder = editor.value.document.findDescendant(
       node => node.data && node.data.get('id') === id
     );
 
-    return change.setNodeByKey(placeholder.key, {
+    change.setNodeByKey(placeholder.key, {
       data: { src, alt, loading: false },
     });
+    editor.onChange(change);
   } catch (err) {
     throw err;
   } finally {

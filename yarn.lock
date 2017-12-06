@@ -2,6 +2,18 @@
 # yarn lockfile v1
 
 
+"@tommoor/slate-drop-or-paste-images@^0.8.1":
+  version "0.8.1"
+  resolved "https://registry.npmjs.org/@tommoor/slate-drop-or-paste-images/-/slate-drop-or-paste-images-0.8.1.tgz#4d94b5c1dd2de109546ee1f38a1e4a18df078c1e"
+  dependencies:
+    es6-promise "^4.0.5"
+    image-to-data-uri "^1.0.0"
+    is-data-uri "^0.1.0"
+    is-image "^1.0.1"
+    is-url "^1.2.2"
+    mime-types "^2.1.11"
+    slate-dev-logger "^0.1.0"
+
 "@types/geojson@^1.0.0":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-1.0.3.tgz#fbcf7fa5eb6dd108d51385cc6987ec1f24214523"
@@ -8204,18 +8216,6 @@ slate-collapse-on-escape@^0.6.0:
 slate-dev-logger@^0.1.0, slate-dev-logger@^0.1.25, slate-dev-logger@^0.1.36:
   version "0.1.36"
   resolved "https://registry.npmjs.org/slate-dev-logger/-/slate-dev-logger-0.1.36.tgz#ecdb37dbf944dfc742bab23b6a20d5a0472db95e"
-
-slate-drop-or-paste-images@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.npmjs.org/slate-drop-or-paste-images/-/slate-drop-or-paste-images-0.8.0.tgz#2c363a117688c1b57517ab9cd468c4060e09824e"
-  dependencies:
-    es6-promise "^4.0.5"
-    image-to-data-uri "^1.0.0"
-    is-data-uri "^0.1.0"
-    is-image "^1.0.1"
-    is-url "^1.2.2"
-    mime-types "^2.1.11"
-    slate-dev-logger "^0.1.0"
 
 slate-edit-code@^0.13.2:
   version "0.13.2"

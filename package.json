@@ -61,6 +61,7 @@
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "dependencies": {
+    "@tommoor/slate-drop-or-paste-images": "^0.8.1",
     "aws-sdk": "^2.135.0",
     "babel-core": "^6.24.1",
     "babel-eslint": "^7.2.3",
@@ -162,7 +163,6 @@
     "sequelize-encrypted": "0.1.0",
     "slate": "^0.29.0",
     "slate-collapse-on-escape": "^0.6.0",
-    "slate-drop-or-paste-images": "^0.8.0",
     "slate-edit-code": "^0.13.2",
     "slate-edit-list": "^0.10.1",
     "slate-md-serializer": "^1.0.4",

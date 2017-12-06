@@ -1,5 +1,5 @@
 // @flow
-import InsertImages from 'slate-drop-or-paste-images';
+import InsertImages from '@tommoor/slate-drop-or-paste-images';
 import PasteLinkify from 'slate-paste-linkify';
 import CollapseOnEscape from 'slate-collapse-on-escape';
 import TrailingBlock from 'slate-trailing-block';
@@ -25,10 +25,11 @@ const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
     }),
     InsertImages({
       extensions: ['png', 'jpg', 'gif', 'webp'],
-      insertImage: (change, file) => {
+      insertImage: async (change, file, editor) => {
         return change.call(
           insertImageFile,
           file,
+          editor,
           onImageUploadStart,
           onImageUploadStop
         );

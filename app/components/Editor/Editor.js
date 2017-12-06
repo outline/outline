@@ -75,9 +75,11 @@ class MarkdownEditor extends Component {
   }
 
   onChange = (change: Change) => {
-    // TODO: Lets avoid constantly serializing to Markdown
     if (this.editorValue !== change.value) {
-      this.props.onChange(Markdown.serialize(change.value));
+      const text = Markdown.serialize(change.value);
+      if (text !== this.props.text) {
+        this.props.onChange(text);
+      }
       this.editorValue = change.value;
     }
   };
@@ -104,6 +106,7 @@ class MarkdownEditor extends Component {
       change.call(
         insertImageFile,
         file,
+        this.editor,
         this.props.onImageUploadStart,
         this.props.onImageUploadStop
       )
