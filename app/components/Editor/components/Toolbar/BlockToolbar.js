@@ -26,7 +26,6 @@ type Props = SlateNodeProps & {
 type Options = {
   type: string | Object,
   wrapper?: string | Object,
-  append?: string | Object,
 };
 
 class BlockToolbar extends Component {

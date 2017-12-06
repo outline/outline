@@ -10,7 +10,6 @@ export default function ListItem({
   ...props
 }: SlateNodeProps) {
   const checked = node.data.get('checked');
-  console.log('ListItem.checked', checked);
 
   if (checked !== undefined) {
     return (

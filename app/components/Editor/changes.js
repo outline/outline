@@ -9,11 +9,10 @@ const { changes } = EditList;
 type Options = {
   type: string | Object,
   wrapper?: string | Object,
-  append?: string | Object,
 };
 
 export function splitAndInsertBlock(change: Change, options: Options) {
-  const { type, wrapper, append } = options;
+  const { type, wrapper } = options;
   const parent = change.value.document.getParent(change.value.startBlock.key);
 
   // lists get some special treatment
@@ -28,8 +27,6 @@ export function splitAndInsertBlock(change: Change, options: Options) {
   change.insertBlock(type);
 
   if (wrapper) change.wrapBlock(wrapper);
-  if (append) change.insertBlock(append);
-
   return change;
 }
 
@@ -40,7 +37,6 @@ export async function insertImageFile(
   onImageUploadStop: () => void
 ) {
   onImageUploadStart();
-  console.log(file);
   try {
     // load the file as a data URL
     const id = uuid.v4();
@@ -55,7 +51,6 @@ export async function insertImageFile(
         isVoid: true,
         data: { src, id, alt, loading: true },
       });
-      console.log('insertBlock', change);
     });
     reader.readAsDataURL(file);
 
@@ -69,7 +64,6 @@ export async function insertImageFile(
     const placeholder = change.value.document.findDescendant(
       node => node.data && node.data.get('id') === id
     );
-    console.log('placeholder', placeholder);
 
     return change.setNodeByKey(placeholder.key, {
       data: { src, alt, loading: false },
