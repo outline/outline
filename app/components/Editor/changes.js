@@ -25,7 +25,9 @@ export function splitAndInsertBlock(change: Change, options: Options) {
   }
 
   if (wrapper) change.collapseToStartOfNextBlock();
-  change.insertBlock(type);
+
+  // this is a hack as insertBlock with normalize: false does not appear to work
+  change.insertBlock('paragraph').setBlock(type, { normalize: false });
 
   if (wrapper) change.wrapBlock(wrapper);
   return change;

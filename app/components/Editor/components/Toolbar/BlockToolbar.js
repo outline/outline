@@ -73,9 +73,9 @@ class BlockToolbar extends Component {
     editor.change(change => {
       change
         .collapseToEndOf(this.props.node)
+        .call(splitAndInsertBlock, options)
         .removeNodeByKey(this.props.node.key)
-        .collapseToEnd()
-        .call(splitAndInsertBlock, options);
+        .collapseToEnd();
 
       if (cursorPosition === 'before') change.collapseToStartOfPreviousBlock();
       if (cursorPosition === 'after') change.collapseToStartOfNextBlock();
