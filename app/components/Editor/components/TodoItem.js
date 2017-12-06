@@ -5,7 +5,7 @@ import { color } from 'shared/styles/constants';
 import type { SlateNodeProps } from '../types';
 
 export default class TodoItem extends Component {
-  props: SlateNodeProps & { checked: boolean };
+  props: SlateNodeProps;
 
   handleChange = (ev: SyntheticInputEvent) => {
     const checked = ev.target.checked;
@@ -16,7 +16,8 @@ export default class TodoItem extends Component {
   };
 
   render() {
-    const { children, checked, attributes, readOnly } = this.props;
+    const { children, node, attributes, readOnly } = this.props;
+    const checked = node.data.get('checked');
 
     return (
       <ListItem checked={checked} {...attributes}>

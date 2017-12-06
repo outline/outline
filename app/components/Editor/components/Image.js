@@ -13,11 +13,8 @@ class Image extends Component {
     const { editor, node } = this.props;
     const data = node.data.toObject();
 
-    editor.onChange(
-      editor
-        .getState()
-        .change()
-        .setNodeByKey(node.key, { data: { ...data, alt } })
+    editor.change(change =>
+      change.setNodeByKey(node.key, { data: { ...data, alt } })
     );
   };
 

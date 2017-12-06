@@ -10,12 +10,12 @@ import KeyboardShortcuts from './plugins/KeyboardShortcuts';
 import MarkdownShortcuts from './plugins/MarkdownShortcuts';
 import { insertImageFile } from './changes';
 
-const onlyInCode = node => node.type === 'code';
-
 type Options = {
-  onImageUploadStart: Function,
-  onImageUploadStop: Function,
+  onImageUploadStart: () => void,
+  onImageUploadStop: () => void,
 };
+
+const onlyInCode = node => node.type === 'code';
 
 const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
   return [

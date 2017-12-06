@@ -2,32 +2,26 @@
 import { Block, Change, Node, Mark } from 'slate';
 
 const schema = {
-  blocks: {
-    heading1: { marks: [''] },
-    heading2: { marks: [''] },
-    heading3: { marks: [''] },
-    heading4: { marks: [''] },
-    heading5: { marks: [''] },
-    heading6: { marks: [''] },
-    'ordered-list': {
-      nodes: [{ types: ['list-item'] }],
-    },
-    'bulleted-list': {
-      nodes: [{ types: ['list-item'] }],
-    },
-    table: {
-      nodes: [{ types: ['table-row', 'table-head', 'table-cell'] }],
-    },
-    image: {
-      isVoid: true,
-    },
-    'horizontal-rule': {
-      isVoid: true,
-    },
-    'block-toolbar': {
-      isVoid: true,
-    },
-  },
+  // blocks: {
+  //   heading1: { marks: [''] },
+  //   heading2: { marks: [''] },
+  //   heading3: { marks: [''] },
+  //   heading4: { marks: [''] },
+  //   heading5: { marks: [''] },
+  //   heading6: { marks: [''] },
+  //   table: {
+  //     nodes: [{ types: ['table-row', 'table-head', 'table-cell'] }],
+  //   },
+  //   image: {
+  //     isVoid: true,
+  //   },
+  //   'horizontal-rule': {
+  //     isVoid: true,
+  //   },
+  //   'block-toolbar': {
+  //     isVoid: true,
+  //   },
+  // },
   document: {
     nodes: [
       { types: ['heading1'], min: 1, max: 1 },

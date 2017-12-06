@@ -10,15 +10,11 @@ export default function ListItem({
   ...props
 }: SlateNodeProps) {
   const checked = node.data.get('checked');
+  console.log('ListItem.checked', checked);
 
   if (checked !== undefined) {
     return (
-      <TodoItem
-        checked={checked}
-        node={node}
-        attributes={attributes}
-        {...props}
-      >
+      <TodoItem node={node} attributes={attributes} {...props}>
         {children}
       </TodoItem>
     );

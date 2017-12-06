@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import { findDOMNode } from 'react-dom';
 import keydown from 'react-keydown';
 import styled from 'styled-components';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
@@ -30,20 +31,29 @@ type Options = {
 
 class BlockToolbar extends Component {
   props: Props;
+  bar: HTMLDivElement;
   file: HTMLInputElement;
 
-  componentWillReceiveProps(nextProps: Props) {
-    const { editor } = this.props;
-    const wasActive = editor.value.selection.hasEdgeIn(this.props.node);
-    const isActive = nextProps.editor.value.selection.hasEdgeIn(nextProps.node);
-    const becameInactive = !isActive && wasActive;
-
-    if (becameInactive) {
-      nextProps.editor.change(change =>
-        change.removeNodeByKey(nextProps.node.key)
-      );
-    }
+  componentDidMount() {
+    window.addEventListener('click', this.handleOutsideMouseClick);
   }
+
+  componentWillUnmount() {
+    window.removeEventListener('click', this.handleOutsideMouseClick);
+  }
+
+  handleOutsideMouseClick = (ev: SyntheticMouseEvent) => {
+    const element = findDOMNode(this.bar);
+
+    if (
+      !element ||
+      (ev.target instanceof Node && element.contains(ev.target)) ||
+      (ev.button && ev.button !== 0)
+    ) {
+      return;
+    }
+    this.removeSelf(ev);
+  };
 
   @keydown('esc')
   removeSelf(ev: SyntheticEvent) {
@@ -59,7 +69,7 @@ class BlockToolbar extends Component {
     const { editor } = this.props;
 
     editor.change(change => {
-      splitAndInsertBlock(change, options);
+      change.call(splitAndInsertBlock, options);
 
       editor.value.document.nodes.forEach(node => {
         if (node.type === 'block-toolbar') {
@@ -130,7 +140,7 @@ class BlockToolbar extends Component {
       editor.value.isFocused && editor.value.selection.hasEdgeIn(node);
 
     return (
-      <Bar active={active} {...attributes}>
+      <Bar active={active} {...attributes} ref={ref => (this.bar = ref)}>
         <HiddenInput
           type="file"
           innerRef={ref => (this.file = ref)}

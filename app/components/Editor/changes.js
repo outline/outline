@@ -18,17 +18,17 @@ export function splitAndInsertBlock(change: Change, options: Options) {
 
   // lists get some special treatment
   if (parent && parent.type === 'list-item') {
-    change = changes.unwrapList(
-      changes
-        .splitListItem(change.collapseToStart())
-        .collapseToEndOfPreviousBlock()
-    );
+    change
+      .collapseToStart()
+      .call(changes.splitListItem)
+      .collapseToEndOfPreviousBlock()
+      .call(changes.unwrapList);
   }
 
-  change = change.insertBlock(type);
+  change.insertBlock(type);
 
-  if (wrapper) change = change.wrapBlock(wrapper);
-  if (append) change = change.insertBlock(append);
+  if (wrapper) change.wrapBlock(wrapper);
+  if (append) change.insertBlock(append);
 
   return change;
 }

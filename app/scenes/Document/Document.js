@@ -292,7 +292,6 @@ class DocumentScene extends Component {
 
 const Container = styled(Flex)`
   position: relative;
-  width: 100%;
 `;
 
 const LoadingState = styled(LoadingPlaceholder)`

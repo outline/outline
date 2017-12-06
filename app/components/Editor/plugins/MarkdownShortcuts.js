@@ -50,7 +50,17 @@ export default function MarkdownShortcuts() {
         let checked;
         if (chars === '[x]') checked = true;
         if (chars === '[ ]') checked = false;
-        change.setBlock({ type, data: { checked } });
+
+        change
+          .extendToStartOf(startBlock)
+          .delete()
+          .setBlock(
+            {
+              type,
+              data: { checked },
+            },
+            { normalize: false }
+          );
 
         if (type === 'list-item') {
           if (checked !== undefined) {
@@ -62,7 +72,7 @@ export default function MarkdownShortcuts() {
           }
         }
 
-        return change.extendToStartOf(startBlock).delete();
+        return true;
       }
 
       for (const key of inlineShortcuts) {
@@ -70,7 +80,8 @@ export default function MarkdownShortcuts() {
         let { mark, shortcut } = key;
         let inlineTags = [];
 
-        // only add tags if they have spaces around them or the tag is beginning or the end of the block
+        // only add tags if they have spaces around them or the tag is beginning
+        // or the end of the block
         for (let i = 0; i < startBlock.text.length; i++) {
           const { text } = startBlock;
           const start = i;
@@ -85,8 +96,9 @@ export default function MarkdownShortcuts() {
           if (
             text.slice(start, end) === shortcut &&
             (beginningOfBlock || endOfBlock || surroundedByWhitespaces)
-          )
+          ) {
             inlineTags.push(i);
+          }
         }
 
         // if we have multiple tags then mark the text between as inline code
@@ -94,7 +106,7 @@ export default function MarkdownShortcuts() {
           const firstText = startBlock.getFirstText();
           const firstCodeTagIndex = inlineTags[0];
           const lastCodeTagIndex = inlineTags[inlineTags.length - 1];
-          change
+          return change
             .removeTextByKey(firstText.key, lastCodeTagIndex, shortcut.length)
             .removeTextByKey(firstText.key, firstCodeTagIndex, shortcut.length)
             .moveOffsetsTo(
@@ -139,9 +151,7 @@ export default function MarkdownShortcuts() {
         return change
           .extendToStartOf(startBlock)
           .delete()
-          .setBlock({
-            type: 'code',
-          });
+          .setBlock({ type: 'code' });
       }
     },
 

@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Portal } from 'react-portal';
-import { Editor } from 'slate-react';
+import { Editor, findDOMNode } from 'slate-react';
 import { Value } from 'slate';
 import styled from 'styled-components';
 import _ from 'lodash';
@@ -45,14 +45,14 @@ export default class Toolbar extends Component {
     const { value } = this.props;
 
     try {
-      const selectedLinks = value.startBlock
+      const selectedLinks = value.document
         .getInlinesAtRange(value.selection)
         .filter(node => node.type === 'link');
       if (selectedLinks.size) {
         return selectedLinks.first();
       }
     } catch (err) {
-      //
+      // It's okay.
     }
   }
 
@@ -74,8 +74,8 @@ export default class Toolbar extends Component {
     const firstNode = value.document.nodes.first();
     if (firstNode === value.startBlock) return;
 
-    // don't display toolbar for code blocks
-    if (value.startBlock.type === 'code') return;
+    // don't display toolbar for code blocks, code-lines inline code.
+    if (value.startBlock.type.match(/code/)) return;
 
     this.active = true;
     this.focused = !!link;
@@ -84,7 +84,9 @@ export default class Toolbar extends Component {
     const padding = 16;
     const selection = window.getSelection();
     const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
+    const rect = link
+      ? findDOMNode(link).getBoundingClientRect()
+      : range.getBoundingClientRect();
 
     if (rect.top === 0 && rect.left === 0) {
       return;

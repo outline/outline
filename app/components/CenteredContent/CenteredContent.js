@@ -8,7 +8,7 @@ type Props = {
 
 const Container = styled.div`
   width: 100%;
-  margin: 60px;
+  padding: 60px;
 `;
 
 const Content = styled.div`

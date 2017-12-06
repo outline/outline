@@ -14,7 +14,7 @@ import StrikethroughIcon from 'components/Icon/StrikethroughIcon';
 class FormattingToolbar extends Component {
   props: {
     editor: Editor,
-    onCreateLink: Function,
+    onCreateLink: () => void,
   };
 
   /**
@@ -52,10 +52,10 @@ class FormattingToolbar extends Component {
     ev.stopPropagation();
 
     const data = { href: '' };
-    this.props.editor.change(change => {
-      change.wrapInline({ type: 'link', data });
-      this.props.onCreateLink();
-    });
+    this.props.editor.change(change =>
+      change.wrapInline({ type: 'link', data })
+    );
+    this.props.onCreateLink();
   };
 
   renderMarkButton = (type: string, IconClass: Function) => {

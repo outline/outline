@@ -46,7 +46,6 @@ class MarkdownEditor extends Component {
 
     this.renderNode = createRenderNode({
       onInsertImage: this.insertImageFile,
-      onChange: this.onChange,
     });
     this.plugins = createPlugins({
       onImageUploadStart: props.onImageUploadStart,
@@ -76,6 +75,7 @@ class MarkdownEditor extends Component {
   }
 
   onChange = (change: Change) => {
+    // TODO: Lets avoid constantly serializing to Markdown
     if (this.editorValue !== change.value) {
       this.props.onChange(Markdown.serialize(change.value));
       this.editorValue = change.value;
@@ -99,7 +99,7 @@ class MarkdownEditor extends Component {
     }
   };
 
-  insertImageFile = async (file: window.File) => {
+  insertImageFile = (file: window.File) => {
     this.editor.change(change =>
       change.call(
         insertImageFile,

@@ -84,11 +84,13 @@ export default class BlockInsert extends Component {
   };
 
   handleClick = (ev: SyntheticMouseEvent) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+
     this.mouseMovementSinceClick = 0;
     this.active = false;
 
     const { editor } = this.props;
-    const type = { type: 'block-toolbar', isVoid: true };
 
     editor.change(change => {
       // remove any existing toolbars in the document as a fail safe
@@ -101,7 +103,7 @@ export default class BlockInsert extends Component {
       change
         .collapseToStartOf(this.closestRootNode)
         .collapseToEndOfPreviousBlock()
-        .insertBlock(type);
+        .insertBlock({ type: 'block-toolbar', isVoid: true });
     });
   };
 
@@ -133,7 +135,11 @@ const Trigger = styled.div`
   cursor: pointer;
 
   &:hover {
-    background-color: ${color.smokeDark};
+    background-color: ${color.slate};
+
+    svg {
+      fill: ${color.white};
+    }
   }
 
   ${({ active }) =>
