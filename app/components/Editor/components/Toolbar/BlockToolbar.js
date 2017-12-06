@@ -72,7 +72,7 @@ class BlockToolbar extends Component {
 
       editor.value.document.nodes.forEach(node => {
         if (node.type === 'block-toolbar') {
-          change.removeNodeByKey(node.key);
+          change.removeNodeByKey(node.key, undefined, { normalize: false });
         }
       });
 

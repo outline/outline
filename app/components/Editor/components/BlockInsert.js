@@ -22,6 +22,8 @@ function findClosestRootNode(value, ev) {
     if (bounds.top > ev.clientY) return previous;
     previous = { node, element, bounds };
   }
+
+  return previous;
 }
 
 @observer
@@ -100,10 +102,21 @@ export default class BlockInsert extends Component {
         }
       });
 
-      change
-        .collapseToStartOf(this.closestRootNode)
-        .collapseToEndOfPreviousBlock()
-        .insertBlock({ type: 'block-toolbar', isVoid: true });
+      change.collapseToStartOf(this.closestRootNode);
+
+      // if we're on an empty paragraph then just replace it with the block
+      // toolbar. Otherwise insert the toolbar as an extra Node.
+      if (
+        !this.closestRootNode.text &&
+        this.closestRootNode.type === 'paragraph'
+      ) {
+        change.setNodeByKey(this.closestRootNode.key, {
+          type: 'block-toolbar',
+          isVoid: true,
+        });
+      } else {
+        change.insertBlock({ type: 'block-toolbar', isVoid: true });
+      }
     });
   };
 

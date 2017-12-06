@@ -131,12 +131,15 @@ export default function MarkdownShortcuts() {
         return change
           .extendToStartOf(startBlock)
           .delete()
-          .setBlock({
-            type: 'horizontal-rule',
-            isVoid: true,
-          })
-          .collapseToStartOfNextBlock()
-          .insertBlock('paragraph');
+          .setBlock(
+            {
+              type: 'horizontal-rule',
+              isVoid: true,
+            },
+            { normalize: false }
+          )
+          .insertBlock('paragraph')
+          .collapseToStart();
       }
     },
 

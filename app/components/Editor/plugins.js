@@ -24,7 +24,7 @@ const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
       collapseTo: 'end',
     }),
     InsertImages({
-      extensions: ['png', 'jpg', 'gif'],
+      extensions: ['png', 'jpg', 'gif', 'webp'],
       insertImage: (change, file) => {
         return change.call(
           insertImageFile,
