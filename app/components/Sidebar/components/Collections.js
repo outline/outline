@@ -5,7 +5,7 @@ import { observer, inject } from 'mobx-react';
 import type { Location } from 'react-router-dom';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
-import { color, fontWeight } from 'shared/styles/constants';
+import { color } from 'shared/styles/constants';
 
 import Header from './Header';
 import SidebarLink from './SidebarLink';
@@ -84,14 +84,32 @@ class CollectionLink extends Component {
     this.dropzoneRef.open();
   };
 
-  render() {
+  renderDocuments() {
     const {
       history,
       collection,
       activeDocument,
-      ui,
       prefetchDocument,
     } = this.props;
+
+    return (
+      <CollectionChildren column>
+        {collection.documents.map(document => (
+          <DocumentLink
+            key={document.id}
+            history={history}
+            document={document}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            depth={0}
+          />
+        ))}
+      </CollectionChildren>
+    );
+  }
+
+  render() {
+    const { history, collection, ui } = this.props;
     const expanded = collection.id === ui.activeCollectionId;
 
     return (
@@ -108,6 +126,9 @@ class CollectionLink extends Component {
           to={collection.url}
           icon={<CollectionIcon expanded={expanded} color={collection.color} />}
           iconColor={collection.color}
+          expandedContent={this.renderDocuments()}
+          hideExpandToggle
+          expand={expanded}
         >
           <CollectionName justify="space-between">
             {collection.name}
@@ -123,21 +144,6 @@ class CollectionLink extends Component {
               />
             </CollectionAction>
           </CollectionName>
-
-          {expanded && (
-            <Children column>
-              {collection.documents.map(document => (
-                <DocumentLink
-                  key={document.id}
-                  history={history}
-                  document={document}
-                  activeDocument={activeDocument}
-                  prefetchDocument={prefetchDocument}
-                  depth={0}
-                />
-              ))}
-            </Children>
-          )}
         </SidebarLink>
       </StyledDropToImport>
     );
@@ -194,7 +200,7 @@ const DocumentLink = observer(
             expand={showChildren}
             expandedContent={
               document.children.length ? (
-                <Children column>
+                <DocumentChildren column>
                   {document.children.map(childDocument => (
                     <DocumentLink
                       key={childDocument.id}
@@ -205,7 +211,7 @@ const DocumentLink = observer(
                       depth={depth + 1}
                     />
                   ))}
-                </Children>
+                </DocumentChildren>
               ) : (
                 undefined
               )
@@ -223,7 +229,7 @@ const CollectionName = styled(Flex)`
   padding: 0 0 4px;
 `;
 
-const CollectionAction = styled.a`
+const CollectionAction = styled.span`
   position: absolute;
   right: 0;
   color: ${color.slate};
@@ -250,10 +256,14 @@ const StyledDropToImport = styled(DropToImport)`
   }
 `;
 
-const Children = styled(Flex)`
+const CollectionChildren = styled(Flex)`
+  margin-top: -4px;
+  margin-left: 36px;
+`;
+
+const DocumentChildren = styled(Flex)`
+  margin-top: -4px;
   margin-left: 12px;
-  font-weight: ${fontWeight.regular};
-  color: ${color.slateDark};
 `;
 
 export default inject('collections', 'ui', 'documents')(Collections);
