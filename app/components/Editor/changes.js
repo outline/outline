@@ -24,6 +24,7 @@ export function splitAndInsertBlock(change: Change, options: Options) {
       .call(changes.unwrapList);
   }
 
+  if (wrapper) change.collapseToStartOfNextBlock();
   change.insertBlock(type);
 
   if (wrapper) change.wrapBlock(wrapper);

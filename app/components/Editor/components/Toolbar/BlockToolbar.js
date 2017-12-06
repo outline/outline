@@ -64,19 +64,22 @@ class BlockToolbar extends Component {
     );
   }
 
-  insertBlock = (options: Options) => {
+  insertBlock = (
+    options: Options,
+    cursorPosition: 'before' | 'on' | 'after' = 'on'
+  ) => {
     const { editor } = this.props;
 
     editor.change(change => {
-      change.call(splitAndInsertBlock, options);
+      change
+        .collapseToEndOf(this.props.node)
+        .removeNodeByKey(this.props.node.key)
+        .collapseToEnd()
+        .call(splitAndInsertBlock, options);
 
-      editor.value.document.nodes.forEach(node => {
-        if (node.type === 'block-toolbar') {
-          change.removeNodeByKey(node.key, undefined, { normalize: false });
-        }
-      });
-
-      change.focus();
+      if (cursorPosition === 'before') change.collapseToStartOfPreviousBlock();
+      if (cursorPosition === 'after') change.collapseToStartOfNextBlock();
+      return change.focus();
     });
   };
 
@@ -89,9 +92,12 @@ class BlockToolbar extends Component {
       case 'code':
         return this.insertBlock({ type });
       case 'horizontal-rule':
-        return this.insertBlock({
-          type: { type: 'horizontal-rule', isVoid: true },
-        });
+        return this.insertBlock(
+          {
+            type: { type: 'horizontal-rule', isVoid: true },
+          },
+          'after'
+        );
       case 'bulleted-list':
         return this.insertBlock({
           type: 'list-item',
