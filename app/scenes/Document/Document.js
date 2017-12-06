@@ -183,6 +183,7 @@ class DocumentScene extends Component {
 
   onChange = text => {
     if (!this.document) return;
+    if (this.document.text === text) return;
     this.document.updateData({ text }, true);
   };
 
