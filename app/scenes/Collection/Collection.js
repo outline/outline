@@ -49,6 +49,10 @@ class CollectionScene extends Component {
     }
   }
 
+  componentWillUnmount() {
+    this.props.ui.clearActiveCollection();
+  }
+
   loadContent = async (id: string) => {
     const { collections } = this.props;
 

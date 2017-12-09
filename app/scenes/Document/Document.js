@@ -63,7 +63,7 @@ class DocumentScene extends Component {
   @observable notFound = false;
   @observable moveModalOpen: boolean = false;
 
-  componentWillMount() {
+  componentDidMount() {
     this.loadDocument(this.props);
   }
 
