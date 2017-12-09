@@ -8224,7 +8224,7 @@ slate-collapse-on-escape@^0.6.0:
   dependencies:
     to-pascal-case "^1.0.0"
 
-slate-dev-logger@^0.1.0, slate-dev-logger@^0.1.25, slate-dev-logger@^0.1.36:
+slate-dev-logger@^0.1.0, slate-dev-logger@^0.1.36:
   version "0.1.36"
   resolved "https://registry.npmjs.org/slate-dev-logger/-/slate-dev-logger-0.1.36.tgz#ecdb37dbf944dfc742bab23b6a20d5a0472db95e"
 
@@ -8294,9 +8294,9 @@ slate-trailing-block@^0.4.0:
   version "0.4.0"
   resolved "https://registry.npmjs.org/slate-trailing-block/-/slate-trailing-block-0.4.0.tgz#92573d7729e4c2a05c45521616ae2db28197476c"
 
-slate@^0.29.0:
-  version "0.29.1"
-  resolved "https://registry.npmjs.org/slate/-/slate-0.29.1.tgz#a9df98158e67f92456b9b8f38fb6d279ba8f9f7e"
+slate@^0.31.5:
+  version "0.31.5"
+  resolved "https://registry.npmjs.org/slate/-/slate-0.31.5.tgz#3fe2e7b63e478aaf5cadfa65f7752bb451f6a3bf"
   dependencies:
     debug "^2.3.2"
     direction "^0.1.5"
@@ -8304,7 +8304,7 @@ slate@^0.29.0:
     is-empty "^1.0.0"
     is-plain-object "^2.0.4"
     lodash "^4.17.4"
-    slate-dev-logger "^0.1.25"
+    slate-dev-logger "^0.1.36"
     type-of "^2.0.1"
 
 slice-ansi@0.0.4:

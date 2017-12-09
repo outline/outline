@@ -230,10 +230,12 @@ class DocumentScene extends Component {
           {!isFetching &&
             document && (
               <Flex justify="center" auto>
-                <Prompt
-                  when={document.hasPendingChanges}
-                  message={DISCARD_CHANGES}
-                />
+                {this.isEditing && (
+                  <Prompt
+                    when={document.hasPendingChanges}
+                    message={DISCARD_CHANGES}
+                  />
+                )}
                 <Editor
                   key={`${document.id}-${document.revision}`}
                   text={document.text}
