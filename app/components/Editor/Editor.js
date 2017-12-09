@@ -72,7 +72,6 @@ class MarkdownEditor extends Component {
   onChange = (change: Change) => {
     if (this.editorValue !== change.value) {
       this.props.onChange(Markdown.serialize(change.value));
-      console.log('this.props.onChange', Markdown.serialize(change.value));
       this.editorValue = change.value;
     }
   };
