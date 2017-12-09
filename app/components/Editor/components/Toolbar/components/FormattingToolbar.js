@@ -28,7 +28,8 @@ class FormattingToolbar extends Component {
   };
 
   isBlock = (type: string) => {
-    return this.props.editor.value.startBlock.type === type;
+    const startBlock = this.props.editor.value.startBlock;
+    return startBlock && startBlock.type === type;
   };
 
   /**

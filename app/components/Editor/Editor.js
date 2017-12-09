@@ -5,7 +5,6 @@ import { observer } from 'mobx-react';
 import { Value, Change } from 'slate';
 import { Editor } from 'slate-react';
 import type { SlateNodeProps, Plugin } from './types';
-import Plain from 'slate-plain-serializer';
 import keydown from 'react-keydown';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'shared/components/Flex';
@@ -52,11 +51,7 @@ class MarkdownEditor extends Component {
       onImageUploadStop: props.onImageUploadStop,
     });
 
-    if (props.text.trim().length) {
-      this.editorValue = Markdown.deserialize(props.text);
-    } else {
-      this.editorValue = Plain.deserialize('');
-    }
+    this.editorValue = Markdown.deserialize(props.text);
   }
 
   componentDidMount() {
@@ -77,6 +72,7 @@ class MarkdownEditor extends Component {
   onChange = (change: Change) => {
     if (this.editorValue !== change.value) {
       this.props.onChange(Markdown.serialize(change.value));
+      console.log('this.props.onChange', Markdown.serialize(change.value));
       this.editorValue = change.value;
     }
   };
