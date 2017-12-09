@@ -33,7 +33,7 @@ const StyledNavLink = styled(NavLink)`
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 4px 0;
-  margin-left: ${({ hasChildren }) => (hasChildren ? '-20px;' : '0')};
+  margin-left: ${({ iconVisible }) => (iconVisible ? '-20px;' : '0')};
   color: ${color.slateDark};
   font-size: 15px;
   cursor: pointer;
@@ -52,6 +52,7 @@ type Props = {
   icon?: React$Element<*>,
   expand?: boolean,
   expandedContent?: React$Element<*>,
+  hideExpandToggle?: boolean,
   iconColor?: string,
 };
 
@@ -81,25 +82,35 @@ class SidebarLink extends Component {
   };
 
   render() {
-    const { icon, children, onClick, to, expandedContent } = this.props;
+    const {
+      icon,
+      children,
+      onClick,
+      to,
+      expandedContent,
+      expand,
+      hideExpandToggle,
+    } = this.props;
     const Component = to ? StyledNavLink : StyledDiv;
+    const showExpandIcon = expandedContent && !hideExpandToggle;
 
     return (
       <Flex column>
         <Component
+          iconVisible={showExpandIcon}
           activeStyle={activeStyle}
-          hasChildren={expandedContent}
           onClick={onClick}
           to={to}
           exact
         >
           {icon && <IconWrapper>{icon}</IconWrapper>}
-          {expandedContent && (
+          {showExpandIcon && (
             <StyledGoTo expanded={this.expanded} onClick={this.handleClick} />
           )}
           <Content onClick={this.handleExpand}>{children}</Content>
         </Component>
-        {this.expanded && expandedContent}
+        {/* Collection */ expand && hideExpandToggle && expandedContent}
+        {/* Document */ this.expanded && !hideExpandToggle && expandedContent}
       </Flex>
     );
   }

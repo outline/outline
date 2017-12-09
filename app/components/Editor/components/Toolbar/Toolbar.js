@@ -153,4 +153,8 @@ const Menu = styled.div`
     transform: translateY(-6px) scale(1);
     opacity: 1;
   `};
+
+  @media print {
+    display: none;
+  }
 `;

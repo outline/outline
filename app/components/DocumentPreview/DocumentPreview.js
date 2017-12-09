@@ -98,13 +98,13 @@ class DocumentPreview extends Component {
         <h3>
           <Highlight text={document.title} highlight={highlight} />
           {document.starred ? (
-            <a onClick={this.unstar}>
+            <span onClick={this.unstar}>
               <StyledStar solid />
-            </a>
+            </span>
           ) : (
-            <a onClick={this.star}>
+            <span onClick={this.star}>
               <StyledStar />
-            </a>
+            </span>
           )}
         </h3>
         <PublishingInfo

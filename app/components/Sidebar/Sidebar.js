@@ -29,7 +29,6 @@ type Props = {
 @observer
 class Sidebar extends Component {
   props: Props;
-  scrollable: ?HTMLDivElement;
 
   handleCreateCollection = () => {
     this.props.ui.setActiveModal('collection-new');
@@ -37,20 +36,6 @@ class Sidebar extends Component {
 
   handleEditCollection = () => {
     this.props.ui.setActiveModal('collection-edit');
-  };
-
-  setScrollableRef = ref => {
-    this.scrollable = ref;
-  };
-
-  scrollToActiveDocument = ref => {
-    const scrollable = this.scrollable;
-    if (!ref || !scrollable) return;
-
-    const container = scrollable.getBoundingClientRect();
-    const bounds = ref.getBoundingClientRect();
-    const scrollTop = bounds.top + container.top;
-    scrollable.scrollTop = scrollTop;
   };
 
   render() {
@@ -71,7 +56,7 @@ class Sidebar extends Component {
         />
 
         <Flex auto column>
-          <Scrollable innerRef={this.setScrollableRef}>
+          <Scrollable>
             <Section>
               <SidebarLink to="/dashboard" icon={<HomeIcon />}>
                 Home
@@ -88,7 +73,6 @@ class Sidebar extends Component {
                 history={this.props.history}
                 location={this.props.location}
                 onCreateCollection={this.handleCreateCollection}
-                activeDocumentRef={this.scrollToActiveDocument}
               />
             </Section>
           </Scrollable>
@@ -106,6 +90,11 @@ const Container = styled(Flex)`
   width: ${layout.sidebarWidth};
   background: ${color.smoke};
   transition: left 200ms ease-in-out;
+
+  @media print {
+    display: none;
+    left: 0;
+  }
 `;
 
 const Section = styled(Flex)`

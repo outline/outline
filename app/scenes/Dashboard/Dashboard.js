@@ -45,12 +45,18 @@ class Dashboard extends Component {
         {showContent ? (
           <span>
             {hasRecentlyViewed && [
-              <Subheading>Recently viewed</Subheading>,
-              <DocumentList documents={documents.recentlyViewed} />,
+              <Subheading key="viewed">Recently viewed</Subheading>,
+              <DocumentList
+                key="viewedDocuments"
+                documents={documents.recentlyViewed}
+              />,
             ]}
             {hasRecentlyEdited && [
-              <Subheading>Recently edited</Subheading>,
-              <DocumentList documents={documents.recentlyEdited} />,
+              <Subheading key="edited">Recently edited</Subheading>,
+              <DocumentList
+                key="editedDocuments"
+                documents={documents.recentlyEdited}
+              />,
             ]}
           </span>
         ) : (

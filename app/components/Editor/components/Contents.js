@@ -93,6 +93,10 @@ const Wrapper = styled.div`
   right: 0;
   top: 150px;
   z-index: 100;
+
+  @media print {
+    display: none;
+  }
 `;
 
 const Anchor = styled.a`

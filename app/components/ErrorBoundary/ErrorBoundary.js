@@ -5,8 +5,13 @@ import { observable } from 'mobx';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 
+type Props = {
+  children?: ?React.Element<any>,
+};
+
 @observer
 class ErrorBoundary extends Component {
+  props: Props;
   @observable error: boolean = false;
 
   componentDidCatch(error: Error, info: Object) {
@@ -27,9 +32,10 @@ class ErrorBoundary extends Component {
       return (
         <CenteredContent>
           <PageTitle title="Something went wrong" />
-          <h1>Something went wrong</h1>
+          <h1>🛸 Something unexpected happened</h1>
           <p>
-            An unrecoverable error occurred. Please try{' '}
+            An unrecoverable error occurred{window.Bugsnag ||
+              (true && ' and our engineers have been notified')}. Please try{' '}
             <a onClick={this.handleReload}>reloading</a>.
           </p>
         </CenteredContent>
