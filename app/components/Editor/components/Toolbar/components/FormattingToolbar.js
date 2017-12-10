@@ -14,7 +14,7 @@ import StrikethroughIcon from 'components/Icon/StrikethroughIcon';
 class FormattingToolbar extends Component {
   props: {
     editor: Editor,
-    onCreateLink: () => void,
+    onCreateLink: SyntheticEvent => void,
   };
 
   /**
@@ -48,15 +48,15 @@ class FormattingToolbar extends Component {
     this.props.editor.change(change => change.setBlock(type));
   };
 
-  onCreateLink = (ev: SyntheticEvent) => {
+  handleCreateLink = (ev: SyntheticEvent) => {
     ev.preventDefault();
     ev.stopPropagation();
 
     const data = { href: '' };
-    this.props.editor.change(change =>
-      change.wrapInline({ type: 'link', data })
-    );
-    this.props.onCreateLink();
+    this.props.editor.change(change => {
+      change.wrapInline({ type: 'link', data });
+      this.props.onCreateLink(ev);
+    });
   };
 
   renderMarkButton = (type: string, IconClass: Function) => {
@@ -93,7 +93,7 @@ class FormattingToolbar extends Component {
         {this.renderBlockButton('heading1', Heading1Icon)}
         {this.renderBlockButton('heading2', Heading2Icon)}
         <Separator />
-        <ToolbarButton onMouseDown={this.onCreateLink}>
+        <ToolbarButton onMouseDown={this.handleCreateLink}>
           <LinkIcon light />
         </ToolbarButton>
       </span>

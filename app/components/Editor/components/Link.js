@@ -43,7 +43,7 @@ export default function Link({
     );
   } else {
     return (
-      <a {...attributes} href={href} target="_blank">
+      <a {...attributes} href={readOnly ? href : undefined} target="_blank">
         {children}
       </a>
     );
