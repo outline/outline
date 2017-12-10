@@ -58,6 +58,10 @@ class LinkToolbar extends Component {
       return;
     }
 
+    this.close();
+  };
+
+  close = () => {
     if (this.input.value) {
       this.props.onBlur();
     } else {
@@ -93,7 +97,7 @@ class LinkToolbar extends Component {
         ev.preventDefault();
         return this.save(ev.target.value);
       case 27: // escape
-        return this.input.blur();
+        return this.close();
       case 40: // down
         ev.preventDefault();
         if (this.firstDocument) {
@@ -129,11 +133,13 @@ class LinkToolbar extends Component {
   save = (href: string) => {
     const { editor, link } = this.props;
     href = href.trim();
+
     editor.change(change => {
       if (href) {
         change.setInline({ type: 'link', data: { href } });
       } else if (link) {
-        change.unwrapInlineByKey(link.key);
+        const selContainsLink = !!change.value.startBlock.getChild(link.key);
+        if (selContainsLink) change.unwrapInlineByKey(link.key);
       }
       change.deselect();
       this.props.onBlur();
@@ -145,8 +151,7 @@ class LinkToolbar extends Component {
   };
 
   render() {
-    const { link } = this.props;
-    const href = link && link.data.get('href');
+    const href = this.props.link.data.get('href');
     const hasResults = this.resultIds.length > 0;
 
     return (
