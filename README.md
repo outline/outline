@@ -8,37 +8,27 @@ An open, extensible, knowledge base for your team built using React and Node.js.
 
 ## Installation
 
-Outline requires following dependencies to work:
+Outline requires the following dependencies:
 
 - Postgres >=9.5
 - Redis
-- S3 bucket configured to support CORS uploads
 - Slack developer application
 
-To install and run the application:
+In development you can quickly can an environment running using Docker by
+following these steps:
 
- 1. Install dependencies with `yarn`
- 1. Register a Slack app at https://api.slack.com/apps
- 1. Copy the file `.env.sample` to `.env` and fill out the keys
- 1. Run DB migrations `yarn sequelize db:migrate`
- 
- To run Outline in development mode with server and frontend code reloading:
+1. Install [Docker for Desktop](https://www.docker.com) if you don't already have it.
+1. Register a Slack app at https://api.slack.com/apps
+1. Copy the file `.env.sample` to `.env` and fill out the Slack keys, everything
+   else should work well for development.
+1. Run `make up`. This will download dependencies, build and launch a development version of Outline.
 
-```shell
-yarn dev
-```
-
-To run Outline in production mode:
-
-```shell
-yarn start
-```
 
 ## Development
 
 ### Server
 
-To enable debugging statements, set the following env vars:
+To enable debugging statements, add the following to your `.env` file:
 
 ```
 DEBUG=sql,cache,presenters

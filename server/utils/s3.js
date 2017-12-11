@@ -1,6 +1,7 @@
 // @flow
 import crypto from 'crypto';
 import moment from 'moment';
+import path from 'path';
 import AWS from 'aws-sdk';
 import invariant from 'invariant';
 import fetch from 'isomorphic-fetch';
@@ -47,7 +48,7 @@ const uploadToS3FromUrl = async (url: string, key: string) => {
   invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
 
   try {
-    // $FlowIssue dunno it's fine
+    // $FlowIssue https://github.com/facebook/flow/issues/2171
     const res = await fetch(url);
     const buffer = await res.buffer();
     await s3
@@ -59,7 +60,7 @@ const uploadToS3FromUrl = async (url: string, key: string) => {
         Body: buffer,
       })
       .promise();
-    return `https://s3.amazonaws.com/${AWS_S3_UPLOAD_BUCKET_NAME}/${key}`;
+    return path.join(process.env.AWS_S3_UPLOAD_BUCKET_URL, key);
   } catch (e) {
     bugsnag.notify(e);
   }
