@@ -1,21 +1,15 @@
 // @flow
 import crypto from 'crypto';
 import moment from 'moment';
-import path from 'path';
 import AWS from 'aws-sdk';
 import invariant from 'invariant';
 import fetch from 'isomorphic-fetch';
 import bugsnag from 'bugsnag';
 
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-});
-
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
-const makePolicy = () => {
+export const makePolicy = () => {
   const policy = {
     conditions: [
       { bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME },
@@ -33,7 +27,7 @@ const makePolicy = () => {
   return new Buffer(JSON.stringify(policy)).toString('base64');
 };
 
-const signPolicy = (policy: any) => {
+export const signPolicy = (policy: any) => {
   invariant(AWS_SECRET_ACCESS_KEY, 'AWS_SECRET_ACCESS_KEY not set');
   const signature = crypto
     .createHmac('sha1', AWS_SECRET_ACCESS_KEY)
@@ -43,8 +37,24 @@ const signPolicy = (policy: any) => {
   return signature;
 };
 
-const uploadToS3FromUrl = async (url: string, key: string) => {
-  const s3 = new AWS.S3();
+export const publicS3Endpoint = () => {
+  // lose trailing slash if there is one and convert fake-s3 url to localhost
+  // for access outside of docker containers in local development
+  const host = process.env.AWS_S3_UPLOAD_BUCKET_URL.replace(
+    's3:',
+    'localhost:'
+  ).replace(/\/$/, '');
+
+  return `${host}/${process.env.AWS_S3_UPLOAD_BUCKET_NAME}`;
+};
+
+export const uploadToS3FromUrl = async (url: string, key: string) => {
+  const s3 = new AWS.S3({
+    s3ForcePathStyle: true,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
+  });
   invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
 
   try {
@@ -53,6 +63,7 @@ const uploadToS3FromUrl = async (url: string, key: string) => {
     const buffer = await res.buffer();
     await s3
       .putObject({
+        ACL: 'public-read',
         Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
         Key: key,
         ContentType: res.headers['content-type'],
@@ -60,10 +71,14 @@ const uploadToS3FromUrl = async (url: string, key: string) => {
         Body: buffer,
       })
       .promise();
-    return path.join(process.env.AWS_S3_UPLOAD_BUCKET_URL, key);
-  } catch (e) {
-    bugsnag.notify(e);
+
+    const endpoint = publicS3Endpoint();
+    return `${endpoint}/${key}`;
+  } catch (err) {
+    if (process.env.NODE_ENV === 'production') {
+      bugsnag.notify(err);
+    } else {
+      throw err;
+    }
   }
 };
-
-export { makePolicy, signPolicy, uploadToS3FromUrl };
