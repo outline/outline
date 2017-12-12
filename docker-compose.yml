@@ -1,0 +1,39 @@
+version: "3"
+services:
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: outline
+  s3:
+    image: lphoward/fake-s3
+    ports:
+      - "4569:4569"
+    volumes:
+      - ./fakes3:/fakes3_root
+  outline:
+    image: outline:v001
+    command: yarn dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        pull: 1
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/opt/outline
+    depends_on:
+      - postgres
+      - redis
+      - s3
+    environment:
+      NODE_PATH: "/opt/outline/node_modules:/opt/node_modules"
+      PATH: "/opt/outline/node_modules/.bin:/opt/node_modules/.bin:$PATH"
