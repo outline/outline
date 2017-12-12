@@ -2,25 +2,22 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
-import type { Props } from '../types';
+import type { SlateNodeProps } from '../types';
 
 export default class TodoItem extends Component {
-  props: Props & { checked: boolean };
+  props: SlateNodeProps;
 
   handleChange = (ev: SyntheticInputEvent) => {
     const checked = ev.target.checked;
     const { editor, node } = this.props;
-    const state = editor
-      .getState()
-      .transform()
-      .setNodeByKey(node.key, { data: { checked } })
-      .apply();
-
-    editor.onChange(state);
+    editor.change(change =>
+      change.setNodeByKey(node.key, { data: { checked } })
+    );
   };
 
   render() {
-    const { children, checked, attributes, readOnly } = this.props;
+    const { children, node, attributes, readOnly } = this.props;
+    const checked = node.data.get('checked');
 
     return (
       <ListItem checked={checked} {...attributes}>

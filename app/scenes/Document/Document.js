@@ -183,8 +183,10 @@ class DocumentScene extends Component {
   };
 
   onChange = text => {
-    if (!this.document) return;
-    this.document.updateData({ text }, true);
+    let document = this.document;
+    if (!document) return;
+    if (document.text.trim() === text.trim()) return;
+    document.updateData({ text }, true);
   };
 
   onDiscard = () => {
@@ -229,10 +231,12 @@ class DocumentScene extends Component {
           {!isFetching &&
             document && (
               <Flex justify="center" auto>
-                <Prompt
-                  when={document.hasPendingChanges}
-                  message={DISCARD_CHANGES}
-                />
+                {this.isEditing && (
+                  <Prompt
+                    when={document.hasPendingChanges}
+                    message={DISCARD_CHANGES}
+                  />
+                )}
                 <Editor
                   key={`${document.id}-${document.revision}`}
                   text={document.text}
@@ -295,7 +299,6 @@ class DocumentScene extends Component {
 
 const Container = styled(Flex)`
   position: relative;
-  width: 100%;
 `;
 
 const LoadingState = styled(LoadingPlaceholder)`

@@ -2,23 +2,20 @@
 import React, { Component } from 'react';
 import ImageZoom from 'react-medium-image-zoom';
 import styled from 'styled-components';
-import type { Props } from '../types';
+import type { SlateNodeProps } from '../types';
 import { color } from 'shared/styles/constants';
 
 class Image extends Component {
-  props: Props;
+  props: SlateNodeProps;
 
   handleChange = (ev: SyntheticInputEvent) => {
     const alt = ev.target.value;
     const { editor, node } = this.props;
     const data = node.data.toObject();
-    const state = editor
-      .getState()
-      .transform()
-      .setNodeByKey(node.key, { data: { ...data, alt } })
-      .apply();
 
-    editor.onChange(state);
+    editor.change(change =>
+      change.setNodeByKey(node.key, { data: { ...data, alt } })
+    );
   };
 
   handleClick = (ev: SyntheticInputEvent) => {
@@ -26,11 +23,12 @@ class Image extends Component {
   };
 
   render() {
-    const { attributes, state, node, readOnly } = this.props;
+    const { attributes, editor, node, readOnly } = this.props;
     const loading = node.data.get('loading');
     const caption = node.data.get('alt');
     const src = node.data.get('src');
-    const active = state.isFocused && state.selection.hasEdgeIn(node);
+    const active =
+      editor.value.isFocused && editor.value.selection.hasEdgeIn(node);
     const showCaption = !readOnly || caption;
 
     return (

@@ -1,29 +1,29 @@
 // @flow
 import React, { Component } from 'react';
 import { Portal } from 'react-portal';
-import { findDOMNode, Node } from 'slate';
+import { Node } from 'slate';
+import { Editor, findDOMNode } from 'slate-react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import PlusIcon from 'components/Icon/PlusIcon';
-import type { State } from '../types';
 
 type Props = {
-  state: State,
-  onChange: Function,
-  onInsertImage: File => Promise<*>,
+  editor: Editor,
 };
 
-function findClosestRootNode(state, ev) {
+function findClosestRootNode(value, ev) {
   let previous;
 
-  for (const node of state.document.nodes) {
+  for (const node of value.document.nodes) {
     const element = findDOMNode(node);
     const bounds = element.getBoundingClientRect();
     if (bounds.top > ev.clientY) return previous;
     previous = { node, element, bounds };
   }
+
+  return previous;
 }
 
 @observer
@@ -53,7 +53,7 @@ export default class BlockInsert extends Component {
 
   handleMouseMove = (ev: SyntheticMouseEvent) => {
     const windowWidth = window.innerWidth / 2.5;
-    const result = findClosestRootNode(this.props.state, ev);
+    const result = findClosestRootNode(this.props.editor.value, ev);
     const movementThreshold = 200;
 
     this.mouseMovementSinceClick +=
@@ -70,7 +70,7 @@ export default class BlockInsert extends Component {
       this.closestRootNode = result.node;
 
       // do not show block menu on title heading or editor
-      const firstNode = this.props.state.document.nodes.first();
+      const firstNode = this.props.editor.value.document.nodes.first();
       if (result.node === firstNode || result.node.type === 'block-toolbar') {
         this.left = -1000;
       } else {
@@ -86,26 +86,38 @@ export default class BlockInsert extends Component {
   };
 
   handleClick = (ev: SyntheticMouseEvent) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+
     this.mouseMovementSinceClick = 0;
     this.active = false;
 
-    const { state } = this.props;
-    const type = { type: 'block-toolbar', isVoid: true };
-    let transform = state.transform();
+    const { editor } = this.props;
 
-    // remove any existing toolbars in the document as a fail safe
-    state.document.nodes.forEach(node => {
-      if (node.type === 'block-toolbar') {
-        transform.removeNodeByKey(node.key);
+    editor.change(change => {
+      // remove any existing toolbars in the document as a fail safe
+      editor.value.document.nodes.forEach(node => {
+        if (node.type === 'block-toolbar') {
+          change.removeNodeByKey(node.key);
+        }
+      });
+
+      change.collapseToStartOf(this.closestRootNode);
+
+      // if we're on an empty paragraph then just replace it with the block
+      // toolbar. Otherwise insert the toolbar as an extra Node.
+      if (
+        !this.closestRootNode.text &&
+        this.closestRootNode.type === 'paragraph'
+      ) {
+        change.setNodeByKey(this.closestRootNode.key, {
+          type: 'block-toolbar',
+          isVoid: true,
+        });
+      } else {
+        change.insertBlock({ type: 'block-toolbar', isVoid: true });
       }
     });
-
-    transform
-      .collapseToStartOf(this.closestRootNode)
-      .collapseToEndOfPreviousBlock()
-      .insertBlock(type);
-
-    this.props.onChange(transform.apply());
   };
 
   render() {
@@ -136,7 +148,11 @@ const Trigger = styled.div`
   cursor: pointer;
 
   &:hover {
-    background-color: ${color.smokeDark};
+    background-color: ${color.slate};
+
+    svg {
+      fill: ${color.white};
+    }
   }
 
   ${({ active }) =>

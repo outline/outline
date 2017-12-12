@@ -1,6 +1,6 @@
 // @flow
 import { escape } from 'lodash';
-import type { Node } from './types';
+import { Node } from 'slate';
 import slug from 'slug';
 
 export default function headingToSlug(node: Node) {

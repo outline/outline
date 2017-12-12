@@ -1,4 +1,6 @@
 // @flow
+import { Change } from 'slate';
+
 const inlineShortcuts = [
   { mark: 'bold', shortcut: '**' },
   { mark: 'bold', shortcut: '__' },
@@ -11,23 +13,20 @@ const inlineShortcuts = [
 
 export default function MarkdownShortcuts() {
   return {
-    /**
-     * On key down, check for our specific key shortcuts.
-     */
-    onKeyDown(ev: SyntheticEvent, data: Object, state: Object) {
-      switch (data.key) {
+    onKeyDown(ev: SyntheticKeyboardEvent, change: Change) {
+      switch (ev.key) {
         case '-':
-          return this.onDash(ev, state);
+          return this.onDash(ev, change);
         case '`':
-          return this.onBacktick(ev, state);
-        case 'tab':
-          return this.onTab(ev, state);
-        case 'space':
-          return this.onSpace(ev, state);
-        case 'backspace':
-          return this.onBackspace(ev, state);
-        case 'enter':
-          return this.onEnter(ev, state);
+          return this.onBacktick(ev, change);
+        case 'Tab':
+          return this.onTab(ev, change);
+        case ' ':
+          return this.onSpace(ev, change);
+        case 'Backspace':
+          return this.onBackspace(ev, change);
+        case 'Enter':
+          return this.onEnter(ev, change);
         default:
           return null;
       }
@@ -37,9 +36,10 @@ export default function MarkdownShortcuts() {
      * On space, if it was after an auto-markdown shortcut, convert the current
      * node into the shortcut's corresponding type.
      */
-    onSpace(ev: SyntheticEvent, state: Object) {
-      if (state.isExpanded) return;
-      const { startBlock, startOffset } = state;
+    onSpace(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+      const { startBlock, startOffset } = value;
       const chars = startBlock.text.slice(0, startOffset).trim();
       const type = this.getType(chars);
 
@@ -50,25 +50,29 @@ export default function MarkdownShortcuts() {
         let checked;
         if (chars === '[x]') checked = true;
         if (chars === '[ ]') checked = false;
-        const transform = state
-          .transform()
-          .setBlock({ type, data: { checked } });
+
+        change
+          .extendToStartOf(startBlock)
+          .delete()
+          .setBlock(
+            {
+              type,
+              data: { checked },
+            },
+            { normalize: false }
+          );
 
         if (type === 'list-item') {
           if (checked !== undefined) {
-            transform.wrapBlock('todo-list');
+            change.wrapBlock('todo-list');
           } else if (chars === '1.') {
-            transform.wrapBlock('ordered-list');
+            change.wrapBlock('ordered-list');
           } else {
-            transform.wrapBlock('bulleted-list');
+            change.wrapBlock('bulleted-list');
           }
         }
 
-        state = transform
-          .extendToStartOf(startBlock)
-          .delete()
-          .apply();
-        return state;
+        return true;
       }
 
       for (const key of inlineShortcuts) {
@@ -76,7 +80,8 @@ export default function MarkdownShortcuts() {
         let { mark, shortcut } = key;
         let inlineTags = [];
 
-        // only add tags if they have spaces around them or the tag is beginning or the end of the block
+        // only add tags if they have spaces around them or the tag is beginning
+        // or the end of the block
         for (let i = 0; i < startBlock.text.length; i++) {
           const { text } = startBlock;
           const start = i;
@@ -91,95 +96,85 @@ export default function MarkdownShortcuts() {
           if (
             text.slice(start, end) === shortcut &&
             (beginningOfBlock || endOfBlock || surroundedByWhitespaces)
-          )
+          ) {
             inlineTags.push(i);
+          }
         }
 
         // if we have multiple tags then mark the text between as inline code
         if (inlineTags.length > 1) {
-          const transform = state.transform();
           const firstText = startBlock.getFirstText();
           const firstCodeTagIndex = inlineTags[0];
           const lastCodeTagIndex = inlineTags[inlineTags.length - 1];
-          transform.removeTextByKey(
-            firstText.key,
-            lastCodeTagIndex,
-            shortcut.length
-          );
-          transform.removeTextByKey(
-            firstText.key,
-            firstCodeTagIndex,
-            shortcut.length
-          );
-          transform.moveOffsetsTo(
-            firstCodeTagIndex,
-            lastCodeTagIndex - shortcut.length
-          );
-          transform.addMark(mark);
-          state = transform
+          return change
+            .removeTextByKey(firstText.key, lastCodeTagIndex, shortcut.length)
+            .removeTextByKey(firstText.key, firstCodeTagIndex, shortcut.length)
+            .moveOffsetsTo(
+              firstCodeTagIndex,
+              lastCodeTagIndex - shortcut.length
+            )
+            .addMark(mark)
             .collapseToEnd()
-            .removeMark(mark)
-            .apply();
-          return state;
+            .removeMark(mark);
         }
       }
     },
 
-    onDash(ev: SyntheticEvent, state: Object) {
-      if (state.isExpanded) return;
-      const { startBlock, startOffset } = state;
+    onDash(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+      const { startBlock, startOffset } = value;
       const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
 
       if (chars === '--') {
         ev.preventDefault();
-        return state
-          .transform()
+        return change
           .extendToStartOf(startBlock)
           .delete()
-          .setBlock({
-            type: 'horizontal-rule',
-            isVoid: true,
-          })
-          .collapseToStartOfNextBlock()
+          .setBlock(
+            {
+              type: 'horizontal-rule',
+              isVoid: true,
+            },
+            { normalize: false }
+          )
           .insertBlock('paragraph')
-          .apply();
+          .collapseToStart();
       }
     },
 
-    onBacktick(ev: SyntheticEvent, state: Object) {
-      if (state.isExpanded) return;
-      const { startBlock, startOffset } = state;
+    onBacktick(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+      const { startBlock, startOffset } = value;
       const chars = startBlock.text.slice(0, startOffset).replace(/\s*/g, '');
 
       if (chars === '``') {
         ev.preventDefault();
-        return state
-          .transform()
+        return change
           .extendToStartOf(startBlock)
           .delete()
-          .setBlock({
-            type: 'code',
-          })
-          .apply();
+          .setBlock({ type: 'code' });
       }
     },
 
-    onBackspace(ev: SyntheticEvent, state: Object) {
-      if (state.isExpanded) return;
-      const { startBlock, selection, startOffset } = state;
+    onBackspace(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+      const { startBlock, selection, startOffset } = value;
 
       // If at the start of a non-paragraph, convert it back into a paragraph
       if (startOffset === 0) {
         if (startBlock.type === 'paragraph') return;
         ev.preventDefault();
 
-        const transform = state.transform().setBlock('paragraph');
+        change.setBlock('paragraph');
 
-        if (startBlock.type === 'list-item')
-          transform.unwrapBlock('bulleted-list');
+        if (startBlock.type === 'list-item') {
+          change.unwrapBlock('bulleted-list');
+        }
 
-        state = transform.apply();
-        return state;
+        return change;
       }
 
       // If at the end of a code mark hitting backspace should remove the mark
@@ -198,15 +193,12 @@ export default function MarkdownShortcuts() {
             .reverse()
             .takeUntil((v, k) => !v.marks.some(mark => mark.type === 'code'));
 
-          const transform = state.transform();
-          transform.removeMarkByKey(
+          change.removeMarkByKey(
             textNode.key,
-            state.startOffset - charsInCodeBlock.size,
-            state.startOffset,
+            startOffset - charsInCodeBlock.size,
+            startOffset,
             'code'
           );
-          state = transform.apply();
-          return state;
         }
       }
     },
@@ -215,14 +207,12 @@ export default function MarkdownShortcuts() {
      * On tab, if at the end of the heading jump to the main body content
      * as if it is another input field (act the same as enter).
      */
-    onTab(ev: SyntheticEvent, state: Object) {
-      if (state.startBlock.type === 'heading1') {
+    onTab(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+
+      if (value.startBlock.type === 'heading1') {
         ev.preventDefault();
-        return state
-          .transform()
-          .splitBlock()
-          .setBlock('paragraph')
-          .apply();
+        change.splitBlock().setBlock('paragraph');
       }
     },
 
@@ -230,44 +220,33 @@ export default function MarkdownShortcuts() {
      * On return, if at the end of a node type that should not be extended,
      * create a new paragraph below it.
      */
-    onEnter(ev: SyntheticEvent, state: Object) {
-      if (state.isExpanded) return;
-      const { startBlock, startOffset, endOffset } = state;
+    onEnter(ev: SyntheticKeyboardEvent, change: Change) {
+      const { value } = change;
+      if (value.isExpanded) return;
+
+      const { startBlock, startOffset, endOffset } = value;
       if (startOffset === 0 && startBlock.length === 0)
-        return this.onBackspace(ev, state);
-      if (endOffset !== startBlock.length) return;
+        return this.onBackspace(ev, change);
+
+      // Hitting enter at the end of the line reverts to standard behavior
+      if (endOffset === startBlock.length) return;
 
       // Hitting enter while an image is selected should jump caret below and
       // insert a new paragraph
       if (startBlock.type === 'image') {
         ev.preventDefault();
-        return state
-          .transform()
-          .collapseToEnd()
-          .insertBlock('paragraph')
-          .apply();
+        return change.collapseToEnd().insertBlock('paragraph');
       }
 
       // Hitting enter in a heading or blockquote will split the node at that
       // point and make the new node a paragraph
       if (
-        startBlock.type !== 'heading1' &&
-        startBlock.type !== 'heading2' &&
-        startBlock.type !== 'heading3' &&
-        startBlock.type !== 'heading4' &&
-        startBlock.type !== 'heading5' &&
-        startBlock.type !== 'heading6' &&
-        startBlock.type !== 'block-quote'
+        startBlock.type.startsWith('heading') ||
+        startBlock.type === 'block-quote'
       ) {
-        return;
+        ev.preventDefault();
+        return change.splitBlock().setBlock('paragraph');
       }
-
-      ev.preventDefault();
-      return state
-        .transform()
-        .splitBlock()
-        .setBlock('paragraph')
-        .apply();
     },
 
     /**

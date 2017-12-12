@@ -1,21 +1,15 @@
 // @flow
 import React from 'react';
 import { Document } from 'slate';
+import type { SlateNodeProps } from '../types';
 import styled from 'styled-components';
 import headingToSlug from '../headingToSlug';
-import type { Node, Editor } from '../types';
 import Placeholder from './Placeholder';
 
-type Props = {
-  children: React$Element<*>,
-  placeholder?: boolean,
-  parent: Node,
-  node: Node,
-  editor: Editor,
-  readOnly: boolean,
-  component?: string,
-  attributes: Object,
-  className?: string,
+type Props = SlateNodeProps & {
+  component: string,
+  className: string,
+  placeholder: string,
 };
 
 function Heading(props: Props) {
@@ -60,7 +54,7 @@ function Heading(props: Props) {
 
 const Wrapper = styled.div`
   display: inline;
-  margin-left: ${(props: Props) => (props.hasEmoji ? '-1.2em' : 0)};
+  margin-left: ${(props: SlateNodeProps) => (props.hasEmoji ? '-1.2em' : 0)};
 `;
 
 const Anchor = styled.a`
@@ -83,21 +77,21 @@ export const StyledHeading = styled(Heading)`
     }
   }
 `;
-export const Heading1 = (props: Props) => (
+export const Heading1 = (props: SlateNodeProps) => (
   <StyledHeading component="h1" {...props} />
 );
-export const Heading2 = (props: Props) => (
+export const Heading2 = (props: SlateNodeProps) => (
   <StyledHeading component="h2" {...props} />
 );
-export const Heading3 = (props: Props) => (
+export const Heading3 = (props: SlateNodeProps) => (
   <StyledHeading component="h3" {...props} />
 );
-export const Heading4 = (props: Props) => (
+export const Heading4 = (props: SlateNodeProps) => (
   <StyledHeading component="h4" {...props} />
 );
-export const Heading5 = (props: Props) => (
+export const Heading5 = (props: SlateNodeProps) => (
   <StyledHeading component="h5" {...props} />
 );
-export const Heading6 = (props: Props) => (
+export const Heading6 = (props: SlateNodeProps) => (
   <StyledHeading component="h6" {...props} />
 );

@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import type { Props } from '../types';
+import type { SlateNodeProps } from '../types';
 import TodoItem from './TodoItem';
 
 export default function ListItem({
@@ -8,17 +8,12 @@ export default function ListItem({
   node,
   attributes,
   ...props
-}: Props) {
+}: SlateNodeProps) {
   const checked = node.data.get('checked');
 
   if (checked !== undefined) {
     return (
-      <TodoItem
-        checked={checked}
-        node={node}
-        attributes={attributes}
-        {...props}
-      >
+      <TodoItem node={node} attributes={attributes} {...props}>
         {children}
       </TodoItem>
     );

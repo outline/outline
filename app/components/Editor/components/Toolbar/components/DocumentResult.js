@@ -25,10 +25,12 @@ function DocumentResult({ document, ...rest }: Props) {
 const ListItem = styled.a`
   display: flex;
   align-items: center;
-  height: 24px;
-  padding: 4px 8px 4px 0;
+  height: 28px;
+  padding: 6px 8px 6px 0;
   color: ${color.white};
   font-size: 15px;
+  overflow: hidden;
+  white-space: nowrap;
 
   i {
     visibility: hidden;

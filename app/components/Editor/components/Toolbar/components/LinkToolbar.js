@@ -1,14 +1,15 @@
 // @flow
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
+import { findDOMNode } from 'react-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
+import { Node } from 'slate';
+import { Editor } from 'slate-react';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import ToolbarButton from './ToolbarButton';
 import DocumentResult from './DocumentResult';
-import type { State } from '../../../types';
 import DocumentsStore from 'stores/DocumentsStore';
 import keydown from 'react-keydown';
 import CloseIcon from 'components/Icon/CloseIcon';
@@ -19,15 +20,15 @@ import Flex from 'shared/components/Flex';
 @keydown
 @observer
 class LinkToolbar extends Component {
+  wrapper: HTMLSpanElement;
   input: HTMLElement;
   firstDocument: HTMLElement;
 
   props: {
-    state: State,
-    link: Object,
+    editor: Editor,
+    link: Node,
     documents: DocumentsStore,
     onBlur: () => void,
-    onChange: State => void,
   };
 
   @observable isEditing: boolean = false;
@@ -35,9 +36,38 @@ class LinkToolbar extends Component {
   @observable resultIds: string[] = [];
   @observable searchTerm: ?string = null;
 
-  componentWillMount() {
+  componentDidMount() {
     this.isEditing = !!this.props.link.data.get('href');
+    setImmediate(() =>
+      window.addEventListener('click', this.handleOutsideMouseClick)
+    );
   }
+
+  componentWillUnmount() {
+    window.removeEventListener('click', this.handleOutsideMouseClick);
+  }
+
+  handleOutsideMouseClick = (ev: SyntheticMouseEvent) => {
+    const element = findDOMNode(this.wrapper);
+
+    if (
+      !element ||
+      (ev.target instanceof HTMLElement && element.contains(ev.target)) ||
+      (ev.button && ev.button !== 0)
+    ) {
+      return;
+    }
+
+    this.close();
+  };
+
+  close = () => {
+    if (this.input.value) {
+      this.props.onBlur();
+    } else {
+      this.removeLink();
+    }
+  };
 
   @action
   search = async () => {
@@ -67,11 +97,11 @@ class LinkToolbar extends Component {
         ev.preventDefault();
         return this.save(ev.target.value);
       case 27: // escape
-        return this.input.blur();
+        return this.close();
       case 40: // down
         ev.preventDefault();
         if (this.firstDocument) {
-          const element = ReactDOM.findDOMNode(this.firstDocument);
+          const element = findDOMNode(this.firstDocument);
           if (element instanceof HTMLElement) element.focus();
         }
         break;
@@ -91,16 +121,6 @@ class LinkToolbar extends Component {
     this.resultIds = [];
   };
 
-  onBlur = () => {
-    if (!this.resultIds.length) {
-      if (this.input.value) {
-        this.props.onBlur();
-      } else {
-        this.removeLink();
-      }
-    }
-  };
-
   removeLink = () => {
     this.save('');
   };
@@ -111,18 +131,19 @@ class LinkToolbar extends Component {
   };
 
   save = (href: string) => {
+    const { editor, link } = this.props;
     href = href.trim();
-    const { state } = this.props;
-    const transform = state.transform();
 
-    if (href) {
-      transform.setInline({ type: 'link', data: { href } });
-    } else {
-      transform.unwrapInline('link');
-    }
-
-    this.props.onChange(transform.apply());
-    this.props.onBlur();
+    editor.change(change => {
+      if (href) {
+        change.setInline({ type: 'link', data: { href } });
+      } else if (link) {
+        const selContainsLink = !!change.value.startBlock.getChild(link.key);
+        if (selContainsLink) change.unwrapInlineByKey(link.key);
+      }
+      change.deselect();
+      this.props.onBlur();
+    });
   };
 
   setFirstDocumentRef = ref => {
@@ -134,13 +155,12 @@ class LinkToolbar extends Component {
     const hasResults = this.resultIds.length > 0;
 
     return (
-      <span>
+      <span ref={ref => (this.wrapper = ref)}>
         <LinkEditor>
           <Input
             innerRef={ref => (this.input = ref)}
             defaultValue={href}
             placeholder="Search or paste a link…"
-            onBlur={this.onBlur}
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
             autoFocus

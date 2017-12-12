@@ -3,23 +3,36 @@ import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Portal } from 'react-portal';
+import { Editor, findDOMNode } from 'slate-react';
+import { Node, Value } from 'slate';
 import styled from 'styled-components';
 import _ from 'lodash';
-import type { State } from '../../types';
 import FormattingToolbar from './components/FormattingToolbar';
 import LinkToolbar from './components/LinkToolbar';
+
+function getLinkInSelection(value): any {
+  try {
+    const selectedLinks = value.document
+      .getInlinesAtRange(value.selection)
+      .filter(node => node.type === 'link');
+    if (selectedLinks.size) {
+      return selectedLinks.first();
+    }
+  } catch (err) {
+    // It's okay.
+  }
+}
 
 @observer
 export default class Toolbar extends Component {
   @observable active: boolean = false;
-  @observable focused: boolean = false;
-  @observable link: ?React$Element<any>;
+  @observable link: ?Node;
   @observable top: string = '';
   @observable left: string = '';
 
   props: {
-    state: State,
-    onChange: (state: State) => void,
+    editor: Editor,
+    value: Value,
   };
 
   menu: HTMLElement;
@@ -32,35 +45,24 @@ export default class Toolbar extends Component {
     this.update();
   };
 
-  handleFocus = () => {
-    this.focused = true;
+  hideLinkToolbar = () => {
+    this.link = undefined;
   };
 
-  handleBlur = () => {
-    this.focused = false;
+  showLinkToolbar = (ev: SyntheticEvent) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const link = getLinkInSelection(this.props.value);
+    this.link = link;
   };
-
-  get linkInSelection(): any {
-    const { state } = this.props;
-
-    try {
-      const selectedLinks = state.startBlock
-        .getInlinesAtRange(state.selection)
-        .filter(node => node.type === 'link');
-      if (selectedLinks.size) {
-        return selectedLinks.first();
-      }
-    } catch (err) {
-      //
-    }
-  }
 
   update = () => {
-    const { state } = this.props;
-    const link = this.linkInSelection;
+    const { value } = this.props;
+    const link = getLinkInSelection(value);
 
-    if (state.isBlurred || (state.isCollapsed && !link)) {
-      if (this.active && !this.focused) {
+    if (value.isBlurred || (value.isCollapsed && !link)) {
+      if (this.active && !this.link) {
         this.active = false;
         this.link = undefined;
         this.top = '';
@@ -70,22 +72,27 @@ export default class Toolbar extends Component {
     }
 
     // don't display toolbar for document title
-    const firstNode = state.document.nodes.first();
-    if (firstNode === state.startBlock) return;
+    const firstNode = value.document.nodes.first();
+    if (firstNode === value.startBlock) return;
 
-    // don't display toolbar for code blocks
-    if (state.startBlock.type === 'code') return;
+    // don't display toolbar for code blocks, code-lines inline code.
+    if (value.startBlock.type.match(/code/)) return;
 
     this.active = true;
-    this.focused = !!link;
-    this.link = link;
+    this.link = this.link || link;
 
     const padding = 16;
     const selection = window.getSelection();
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
+    let rect;
 
-    if (rect.top === 0 && rect.left === 0) {
+    if (link) {
+      rect = findDOMNode(link).getBoundingClientRect();
+    } else if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      rect = range.getBoundingClientRect();
+    }
+
+    if (!rect || (rect.top === 0 && rect.left === 0)) {
       return;
     }
 
@@ -114,11 +121,11 @@ export default class Toolbar extends Component {
             <LinkToolbar
               {...this.props}
               link={this.link}
-              onBlur={this.handleBlur}
+              onBlur={this.hideLinkToolbar}
             />
           ) : (
             <FormattingToolbar
-              onCreateLink={this.handleFocus}
+              onCreateLink={this.showLinkToolbar}
               {...this.props}
             />
           )}
