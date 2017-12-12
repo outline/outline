@@ -5,4 +5,7 @@ import redisLock from 'redis-lock';
 const client = redis.createClient(process.env.REDIS_URL);
 const lock = redisLock(client);
 
-export { client, lock };
+const asyncLock = (lockName: string) =>
+  new Promise(resolve => lock(lockName, unlock => resolve(unlock)));
+
+export { client, asyncLock };

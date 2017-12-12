@@ -2,6 +2,7 @@
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
+import { asyncLock } from '../redis';
 import Document from './Document';
 import Event from './Event';
 import _ from 'lodash';
@@ -111,6 +112,9 @@ Collection.prototype.addDocumentToStructure = async function(
     index,
   };
 
+  // documentStructure can only be updated by one request at the time
+  const unlock = await asyncLock(`collection-${this.id}`);
+
   // If moving existing document with children, use existing structure to
   // keep everything in shape and not loose documents
   const documentJson = {
@@ -158,6 +162,8 @@ Collection.prototype.addDocumentToStructure = async function(
     teamId: this.teamId,
   });
 
+  unlock();
+
   return this;
 };
 
@@ -166,6 +172,10 @@ Collection.prototype.addDocumentToStructure = async function(
  */
 Collection.prototype.updateDocument = async function(updatedDocument) {
   if (!this.documentStructure) return;
+
+  // documentStructure can only be updated by one request at the time
+  const unlock = await asyncLock(`collection-${this.id}`);
+
   const { id } = updatedDocument;
 
   const updateChildren = documents => {
@@ -184,6 +194,7 @@ Collection.prototype.updateDocument = async function(updatedDocument) {
 
   this.documentStructure = updateChildren(this.documentStructure);
   await this.save();
+  unlock();
   return this;
 };
 
@@ -216,7 +227,12 @@ Collection.prototype.removeDocument = async function(
   options: DeleteDocumentOptions = { deleteDocument: true }
 ) {
   if (!this.documentStructure) return;
+
   let returnValue;
+
+  // documentStructure can only be updated by one request at the time
+  const unlock = await asyncLock('testLock');
+
   const existingData = {
     old: this.documentStructure,
     documentId: document,
@@ -279,6 +295,8 @@ Collection.prototype.removeDocument = async function(
     collectionId: this.id,
     teamId: this.teamId,
   });
+
+  await unlock();
 
   return returnValue;
 };
