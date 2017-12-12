@@ -183,9 +183,10 @@ class DocumentScene extends Component {
   };
 
   onChange = text => {
-    if (!this.document) return;
-    if (this.document.text === text) return;
-    this.document.updateData({ text }, true);
+    let document = this.document;
+    if (!document) return;
+    if (document.text.trim() === text.trim()) return;
+    document.updateData({ text }, true);
   };
 
   onDiscard = () => {
