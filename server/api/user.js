@@ -1,7 +1,13 @@
 // @flow
 import uuid from 'uuid';
 import Router from 'koa-router';
+<<<<<<< HEAD
 import { makePolicy, signPolicy, publicS3Endpoint } from '../utils/s3';
+=======
+
+import Event from '../models/Event';
+import { makePolicy, signPolicy } from '../utils/s3';
+>>>>>>> Avatar upload
 import auth from './middlewares/authentication';
 import { presentUser } from '../presenters';
 
@@ -13,10 +19,16 @@ router.post('user.info', auth(), async ctx => {
 
 router.post('user.update', auth(), async ctx => {
   const { user } = ctx.state;
-  const { name } = ctx.body;
-  ctx.assertNotEmpty(name, "name can't be empty");
+  const { name, avatarUrl } = ctx.body;
 
   if (name) user.name = name;
+  if (
+    avatarUrl &&
+    avatarUrl.startsWith(
+      `${process.env.AWS_S3_UPLOAD_BUCKET_URL}uploads/${ctx.state.user.id}`
+    )
+  )
+    user.avatarUrl = avatarUrl;
   await user.save();
 
   ctx.body = { data: await presentUser(ctx, user) };
@@ -32,6 +44,19 @@ router.post('user.s3Upload', auth(), async ctx => {
   const key = `uploads/${ctx.state.user.id}/${s3Key}/${filename}`;
   const policy = makePolicy();
   const endpoint = publicS3Endpoint();
+  const url = `${endpoint}/${key}`;
+
+  await Event.create({
+    name: 'user.s3Upload',
+    data: {
+      filename,
+      kind,
+      size,
+      url,
+    },
+    teamId: ctx.state.user.teamId,
+    userId: ctx.state.user.id,
+  });
 
   ctx.body = {
     data: {
@@ -48,8 +73,8 @@ router.post('user.s3Upload', auth(), async ctx => {
       },
       asset: {
         contentType: kind,
-        url: `${endpoint}/${key}`,
         name: filename,
+        url,
         size,
       },
     },

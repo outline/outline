@@ -9,6 +9,7 @@ import { color, size } from 'shared/styles/constants';
 import { client } from 'utils/ApiClient';
 import AuthStore from 'stores/AuthStore';
 import ErrorsStore from 'stores/ErrorsStore';
+import ImageUpload from './components/ImageUpload';
 import Input, { LabelText } from 'components/Input';
 import Button from 'components/Button';
 import CenteredContent from 'components/CenteredContent';
@@ -24,6 +25,7 @@ class Settings extends Component {
   };
 
   @observable name: string;
+  @observable avatarUrl: ?string;
   @observable updated: boolean;
   @observable isSaving: boolean;
 
@@ -44,6 +46,7 @@ class Settings extends Component {
     try {
       const res = await client.post(`/user.update`, {
         name: this.name,
+        avatarUrl: this.avatarUrl,
       });
       invariant(res && res.data, 'Document list not available');
       const { data } = res;
@@ -63,10 +66,18 @@ class Settings extends Component {
     this.name = ev.target.value;
   };
 
+  handleAvatarUpload = (avatarUrl: string) => {
+    this.avatarUrl = avatarUrl;
+  };
+
+  handleAvatarError = (error: ?string) => {
+    this.props.errors.add(error || 'Unable to upload new avatar');
+  };
+
   render() {
     const { user } = this.props.auth;
     if (!user) return null;
-    const avatarUrl = user.avatarUrl;
+    const avatarUrl = this.avatarUrl || user.avatarUrl;
 
     return (
       <CenteredContent>
@@ -75,14 +86,19 @@ class Settings extends Component {
         <ProfilePicture column>
           <LabelText>Profile picture</LabelText>
           <AvatarContainer>
-            <Avatar src={avatarUrl} />
-            <Flex auto align="center" justify="center">
-              Upload new image
-            </Flex>
+            <ImageUpload
+              onSuccess={this.handleAvatarUpload}
+              onError={this.handleAvatarError}
+            >
+              <Avatar src={avatarUrl} />
+              <Flex auto align="center" justify="center">
+                Upload new image
+              </Flex>
+            </ImageUpload>
           </AvatarContainer>
         </ProfilePicture>
         <form onSubmit={this.handleSubmit}>
-          <Input
+          <StyledInput
             label="Name"
             value={this.name}
             onChange={this.handleNameChange}
@@ -122,7 +138,7 @@ const AvatarContainer = styled(Flex)`
   ${avatarStyles};
   position: relative;
 
-  div {
+  div div {
     ${avatarStyles};
     position: absolute;
     top: 0;
@@ -143,6 +159,10 @@ const AvatarContainer = styled(Flex)`
 
 const Avatar = styled.img`
   ${avatarStyles};
+`;
+
+const StyledInput = styled(Input)`
+  max-width: 350px;
 `;
 
 export default inject('auth', 'errors', 'auth')(Settings);

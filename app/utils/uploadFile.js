@@ -6,15 +6,22 @@ type File = {
   blob: boolean,
   type: string,
   size: number,
-  name: string,
+  name?: string,
   file: string,
 };
 
-export default async function uploadFile(file: File) {
+type Options = {
+  name?: string,
+};
+
+export const uploadFile = async (file: File | Blob, option?: Options) => {
+  // $FlowFixMe Blob makes life hard
+  const filename = (option && option.name) || file.name;
+
   const response = await client.post('/user.s3Upload', {
     kind: file.type,
     size: file.size,
-    filename: file.name,
+    filename,
   });
 
   invariant(response, 'Response should be available');
@@ -28,6 +35,7 @@ export default async function uploadFile(file: File) {
   }
 
   if (file.blob) {
+    // $FlowFixMe
     formData.append('file', file.file);
   } else {
     // $FlowFixMe
@@ -41,4 +49,14 @@ export default async function uploadFile(file: File) {
   await fetch(data.uploadUrl, options);
 
   return asset;
-}
+};
+
+export const dataUrlToBlob = (dataURL: string) => {
+  var blobBin = atob(dataURL.split(',')[1]);
+  var array = [];
+  for (var i = 0; i < blobBin.length; i++) {
+    array.push(blobBin.charCodeAt(i));
+  }
+  const file = new Blob([new Uint8Array(array)], { type: 'image/png' });
+  return file;
+};

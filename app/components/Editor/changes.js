@@ -3,7 +3,7 @@ import { Change } from 'slate';
 import { Editor } from 'slate-react';
 import uuid from 'uuid';
 import EditList from './plugins/EditList';
-import uploadFile from 'utils/uploadFile';
+import { uploadFile } from 'utils/uploadFile';
 
 const { changes } = EditList;
 
