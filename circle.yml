@@ -11,6 +11,8 @@ machine:
     DATABASE_URL: postgres://ubuntu@localhost:5432/circle_test
     URL: http://localhost:3000
     SMTP_FROM_EMAIL: hello@example.com
+    AWS_S3_UPLOAD_BUCKET_URL: https://s3.amazonaws.com
+    AWS_S3_UPLOAD_BUCKET_NAME: outline-circle
 
 dependencies:
   override:
