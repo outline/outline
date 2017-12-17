@@ -25,7 +25,7 @@ class DropToImport extends Component {
   @observable zoom: number = 1;
   props: Props;
   file: File;
-  avatarEditorRef: HTMLCanvasElement;
+  avatarEditorRef: AvatarEditor;
 
   onDropAccepted = async (files: File[]) => {
     this.isCropping = true;
@@ -33,7 +33,6 @@ class DropToImport extends Component {
   };
 
   handleCrop = async () => {
-    // $FlowIssue getImage() exists
     const canvas = this.avatarEditorRef.getImage();
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
     try {
