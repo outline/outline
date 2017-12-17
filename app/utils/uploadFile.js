@@ -2,22 +2,15 @@
 import { client } from './ApiClient';
 import invariant from 'invariant';
 
-type File = {
-  blob: boolean,
-  type: string,
-  size: number,
-  name?: string,
-  file: string,
-};
-
 type Options = {
   name?: string,
 };
 
-export const uploadFile = async (file: File | Blob, option?: Options) => {
-  // $FlowFixMe Blob makes life hard
-  const filename = (option && option.name) || file.name;
-
+export const uploadFile = async (
+  file: File | Blob,
+  option?: Options = { name: '' }
+) => {
+  const filename = file instanceof File ? file.name : option.name;
   const response = await client.post('/user.s3Upload', {
     kind: file.type,
     size: file.size,
@@ -38,7 +31,6 @@ export const uploadFile = async (file: File | Blob, option?: Options) => {
     // $FlowFixMe
     formData.append('file', file.file);
   } else {
-    // $FlowFixMe
     formData.append('file', file);
   }
 
