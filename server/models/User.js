@@ -2,11 +2,10 @@
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import uuid from 'uuid';
+import JWT from 'jsonwebtoken';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { uploadToS3FromUrl } from '../utils/s3';
 import mailer from '../mailer';
-
-import JWT from 'jsonwebtoken';
 
 const BCRYPT_COST = process.env.NODE_ENV !== 'production' ? 4 : 12;
 

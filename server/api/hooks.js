@@ -1,7 +1,7 @@
 // @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
-import { Document, User } from '../models';
+import { Authentication, Document, User } from '../models';
 import * as Slack from '../slack';
 const router = new Router();
 
@@ -14,18 +14,27 @@ router.post('hooks.unfurl', async ctx => {
 
   // TODO: Everything from here onwards will get moved to an async job
   const user = await User.find({ where: { slackId: event.user } });
+  if (!user) return;
+
+  const auth = await Authentication.find({
+    where: { serviceId: 'slack', teamId: user.teamId },
+  });
+  if (!auth) {
+    await Slack.post('chat.unfurl', {
+      token: user.slackAccessToken,
+      channel: event.channel,
+      ts: event.message_ts,
+      user_auth_required: true,
+    });
+    return;
+  }
 
   // get content for unfurled links
   let unfurls = {};
-  let authRequired = false;
   for (let link of event.links) {
     const id = link.url.substr(link.url.lastIndexOf('/') + 1);
     const doc = await Document.findById(id);
-
-    if (!doc || doc.teamId !== user.teamId) {
-      authRequired = true;
-      break;
-    }
+    if (!doc || doc.teamId !== user.teamId) continue;
 
     unfurls[link.url] = {
       title: doc.title,
@@ -35,14 +44,11 @@ router.post('hooks.unfurl', async ctx => {
   }
 
   await Slack.post('chat.unfurl', {
-    token: user.slackAccessToken,
+    token: auth.token,
     channel: event.channel,
     ts: event.message_ts,
     unfurls,
-    user_auth_required: authRequired,
   });
-
-  ctx.body = 'OK';
 });
 
 router.post('hooks.slack', async ctx => {

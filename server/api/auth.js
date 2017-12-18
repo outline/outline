@@ -2,7 +2,7 @@
 import Router from 'koa-router';
 import auth from './middlewares/authentication';
 import { presentUser, presentTeam } from '../presenters';
-import { User, Team } from '../models';
+import { Authentication, User, Team } from '../models';
 import * as Slack from '../slack';
 
 const router = new Router();
@@ -81,11 +81,21 @@ router.post('auth.slack', async ctx => {
   };
 });
 
-router.post('auth.slackCommands', async ctx => {
+router.post('auth.slackCommands', auth(), async ctx => {
   const { code } = ctx.body;
   ctx.assertPresent(code, 'code is required');
 
-  await Slack.oauthAccess(code, `${process.env.URL || ''}/auth/slack/commands`);
+  const user = ctx.state.user;
+  const endpoint = `${process.env.URL || ''}/auth/slack/commands`;
+  const data = await Slack.oauthAccess(code, endpoint);
+
+  await Authentication.create({
+    serviceId: 'slack',
+    userId: user.id,
+    teamId: user.teamId,
+    token: data.access_token,
+    scopes: data.scope.split(','),
+  });
 });
 
 export default router;

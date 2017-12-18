@@ -1,4 +1,5 @@
 // @flow
+import Authentication from './Authentication';
 import User from './User';
 import Team from './Team';
 import Collection from './Collection';
@@ -9,6 +10,7 @@ import View from './View';
 import Star from './Star';
 
 const models = {
+  Authentication,
   User,
   Team,
   Collection,
@@ -26,4 +28,14 @@ Object.keys(models).forEach(modelName => {
   }
 });
 
-export { User, Team, Collection, Document, Revision, ApiKey, View, Star };
+export {
+  Authentication,
+  User,
+  Team,
+  Collection,
+  Document,
+  Revision,
+  ApiKey,
+  View,
+  Star,
+};
