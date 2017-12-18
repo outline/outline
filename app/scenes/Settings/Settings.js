@@ -26,7 +26,7 @@ class Settings extends Component {
 
   @observable name: string;
   @observable avatarUrl: ?string;
-  @observable updated: boolean;
+  @observable isUpdated: boolean;
   @observable isSaving: boolean;
 
   componentDidMount() {
@@ -52,8 +52,8 @@ class Settings extends Component {
       const { data } = res;
       runInAction('Settings#handleSubmit', () => {
         this.props.auth.user = data;
-        this.updated = true;
-        this.timeout = setTimeout(() => (this.updated = false), 2500);
+        this.isUpdated = true;
+        this.timeout = setTimeout(() => (this.isUpdated = false), 2500);
       });
     } catch (e) {
       this.props.errors.add('Failed to load documents');
@@ -107,7 +107,7 @@ class Settings extends Component {
           <Button type="submit" disabled={this.isSaving || !this.name}>
             Save
           </Button>
-          <SuccessMessage visible={this.updated}>
+          <SuccessMessage visible={this.isUpdated}>
             Profile updated!
           </SuccessMessage>
         </form>
