@@ -17,7 +17,7 @@ class Slack extends Component {
         <h1>Slack</h1>
         <HelpText>
           Connect Outline to your Slack team to instantly search for documents
-          using the <Code>/outline</Code> command and unfurl Outline links.
+          using the <Code>/outline</Code> command and preview Outline links.
         </HelpText>
 
         <SlackButton

@@ -31,7 +31,7 @@ router.post('hooks.unfurl', async ctx => {
     unfurls[link.url] = {
       title: doc.title,
       text: doc.getSummary(),
-      color: doc.collection.color || undefined,
+      color: doc.collection.color,
     };
   }
 
