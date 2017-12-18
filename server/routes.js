@@ -14,6 +14,7 @@ import { slackAuth } from '../shared/utils/routeHelpers';
 import Home from './pages/Home';
 import About from './pages/About';
 import Changelog from './pages/Changelog';
+import Privacy from './pages/Privacy';
 import Pricing from './pages/Pricing';
 import Api from './pages/Api';
 
@@ -64,6 +65,7 @@ router.get('/auth/slack/install', async ctx => {
 router.get('/about', ctx => renderpage(ctx, <About />));
 router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
 router.get('/developers', ctx => renderpage(ctx, <Api />));
+router.get('/privacy', ctx => renderpage(ctx, <Privacy />));
 router.get('/changelog', async ctx => {
   const data = await fs.readFile(path.join(__dirname, '../CHANGELOG.md'));
   const body = data.toString();
