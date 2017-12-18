@@ -10,11 +10,13 @@ export default function apiWrapper() {
 
     const ok = ctx.status < 400;
 
-    // $FlowFixMe
-    ctx.body = {
-      ...ctx.body,
-      status: ctx.status,
-      ok,
-    };
+    if (typeof ctx.body !== 'string') {
+      // $FlowFixMe
+      ctx.body = {
+        ...ctx.body,
+        status: ctx.status,
+        ok,
+      };
+    }
   };
 }

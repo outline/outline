@@ -168,6 +168,7 @@
     "slate-edit-list": "^0.10.1",
     "slate-md-serializer": "^1.0.5",
     "slate-paste-linkify": "^0.5.0",
+    "slate-plain-serializer": "^0.4.15",
     "slate-prism": "^0.4.0",
     "slate-react": "^0.10.19",
     "slate-trailing-block": "^0.4.0",

@@ -2,12 +2,15 @@
 import slug from 'slug';
 import _ from 'lodash';
 import randomstring from 'randomstring';
+import MarkdownSerializer from 'slate-md-serializer';
+import Plain from 'slate-plain-serializer';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
 import parseTitle from '../../shared/utils/parseTitle';
 import Revision from './Revision';
 
+const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 
 // $FlowIssue invalid flow-typed
@@ -202,6 +205,13 @@ Document.searchForUser = async (
 };
 
 // Instance methods
+
+Document.prototype.getSummary = function() {
+  const value = Markdown.deserialize(this.text);
+  const plain = Plain.serialize(value);
+  const lines = _.compact(plain.split('\n'));
+  return lines.length >= 1 ? lines[1] : '';
+};
 
 Document.prototype.getUrl = function() {
   const slugifiedTitle = slugify(this.title);
