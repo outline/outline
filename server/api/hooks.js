@@ -19,15 +19,7 @@ router.post('hooks.unfurl', async ctx => {
   const auth = await Authentication.find({
     where: { serviceId: 'slack', teamId: user.teamId },
   });
-  if (!auth) {
-    await Slack.post('chat.unfurl', {
-      token: user.slackAccessToken,
-      channel: event.channel,
-      ts: event.message_ts,
-      user_auth_required: true,
-    });
-    return;
-  }
+  if (!auth) return;
 
   // get content for unfurled links
   let unfurls = {};
