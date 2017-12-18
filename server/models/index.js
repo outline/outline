@@ -1,5 +1,6 @@
 // @flow
 import Authentication from './Authentication';
+import Event from './Event';
 import User from './User';
 import Team from './Team';
 import Collection from './Collection';
@@ -11,6 +12,7 @@ import Star from './Star';
 
 const models = {
   Authentication,
+  Event,
   User,
   Team,
   Collection,
@@ -30,6 +32,7 @@ Object.keys(models).forEach(modelName => {
 
 export {
   Authentication,
+  Event,
   User,
   Team,
   Collection,
