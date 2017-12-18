@@ -167,7 +167,7 @@
     "slate-collapse-on-escape": "^0.6.0",
     "slate-edit-code": "^0.13.2",
     "slate-edit-list": "^0.10.1",
-    "slate-md-serializer": "^1.0.5",
+    "slate-md-serializer": "^1.0.6",
     "slate-paste-linkify": "^0.5.0",
     "slate-prism": "^0.4.0",
     "slate-react": "^0.10.19",
