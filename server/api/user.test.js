@@ -38,3 +38,31 @@ describe('#user.info', async () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe('#user.update', async () => {
+  it('should update user profile information', async () => {
+    await seed();
+    const user = await User.findOne({
+      where: {
+        email: 'user1@example.com',
+      },
+    });
+
+    const res = await server.post('/api/user.update', {
+      body: { token: user.getJwtToken(), name: 'New name' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authentication', async () => {
+    await seed();
+    const res = await server.post('/api/user.update');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+});

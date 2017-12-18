@@ -7379,6 +7379,12 @@ rc@^1.0.1, rc@^1.1.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
+react-avatar-editor@^10.3.0:
+  version "10.3.0"
+  resolved "https://registry.yarnpkg.com/react-avatar-editor/-/react-avatar-editor-10.3.0.tgz#7ee54774a274b3aa733d8651e6138d4904114c7d"
+  dependencies:
+    prop-types "^15.5.8"
+
 react-create-component-from-tag-prop@^1.2.1:
   version "1.3.1"
   resolved "https://registry.npmjs.org/react-create-component-from-tag-prop/-/react-create-component-from-tag-prop-1.3.1.tgz#5389407d99f88ba2b36351780a6094470b44a7c7"

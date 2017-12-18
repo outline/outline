@@ -11,6 +11,12 @@ export default function validation() {
       }
     };
 
+    ctx.assertNotEmpty = function assertNotEmpty(value, message) {
+      if (value === '') {
+        throw apiError(400, 'validation_error', message);
+      }
+    };
+
     ctx.assertEmail = (value, message) => {
       if (!validator.isEmail(value)) {
         throw apiError(400, 'validation_error', message);
