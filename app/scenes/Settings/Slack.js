@@ -17,11 +17,11 @@ class Slack extends Component {
         <h1>Slack</h1>
         <HelpText>
           Connect Outline to your Slack team to instantly search for documents
-          using the <Code>/outline</Code> command.
+          using the <Code>/outline</Code> command and preview Outline links.
         </HelpText>
 
         <SlackButton
-          scopes={['commands']}
+          scopes={['commands', 'links:read', 'links:write']}
           redirectUri={`${BASE_URL}/auth/slack/commands`}
         />
       </CenteredContent>

@@ -9,30 +9,6 @@ const Event = sequelize.define('event', {
   },
   name: DataTypes.STRING,
   data: DataTypes.JSONB,
-
-  userId: {
-    type: 'UUID',
-    allowNull: true,
-    references: {
-      model: 'users',
-    },
-  },
-
-  collectionId: {
-    type: 'UUID',
-    allowNull: true,
-    references: {
-      model: 'collections',
-    },
-  },
-
-  teamId: {
-    type: 'UUID',
-    allowNull: true,
-    references: {
-      model: 'teams',
-    },
-  },
 });
 
 Event.associate = models => {

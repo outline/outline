@@ -5,6 +5,27 @@ import { httpErrors } from './errors';
 
 const SLACK_API_URL = 'https://slack.com/api';
 
+export async function post(endpoint: string, body: Object) {
+  let data;
+  try {
+    const token = body.token;
+    const response = await fetch(`${SLACK_API_URL}/${endpoint}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    data = await response.json();
+  } catch (e) {
+    throw httpErrors.BadRequest();
+  }
+  if (!data.ok) throw httpErrors.BadRequest(data.error);
+
+  return data;
+}
+
 export async function request(endpoint: string, body: Object) {
   let data;
   try {

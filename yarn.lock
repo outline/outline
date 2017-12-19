@@ -8264,6 +8264,12 @@ slate-plain-serializer@^0.4.12:
   dependencies:
     slate-dev-logger "^0.1.36"
 
+slate-plain-serializer@^0.4.15:
+  version "0.4.15"
+  resolved "https://registry.yarnpkg.com/slate-plain-serializer/-/slate-plain-serializer-0.4.15.tgz#bb4ff0594b7c56b88158d52ac99196972e5d0ba9"
+  dependencies:
+    slate-dev-logger "^0.1.36"
+
 slate-prism@^0.4.0:
   version "0.4.0"
   resolved "https://registry.npmjs.org/slate-prism/-/slate-prism-0.4.0.tgz#9d43b1fafa4c3a8e3bceaa8dbc41dd5ca39445a9"
