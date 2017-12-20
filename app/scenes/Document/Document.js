@@ -171,6 +171,9 @@ class DocumentScene extends Component {
     if (redirect) {
       this.props.history.push(document.url);
       this.props.ui.setActiveDocument(document);
+    } else if (this.props.newDocument) {
+      this.props.history.push(documentEditUrl(document));
+      this.props.ui.setActiveDocument(document);
     }
   };
 
