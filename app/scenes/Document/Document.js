@@ -168,7 +168,7 @@ class DocumentScene extends Component {
     document = await document.save();
     this.isSaving = false;
 
-    if (redirect || this.props.newDocument) {
+    if (redirect) {
       this.props.history.push(document.url);
       this.props.ui.setActiveDocument(document);
     }
