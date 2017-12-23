@@ -10,10 +10,6 @@ import {
 } from 'react-router-dom';
 
 import stores from 'stores';
-import SettingsStore from 'stores/SettingsStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import CollectionsStore from 'stores/CollectionsStore';
-import CacheStore from 'stores/CacheStore';
 import globalStyles from 'shared/styles/globals';
 import 'shared/styles/prism.css';
 
@@ -33,6 +29,7 @@ import Error404 from 'scenes/Error404';
 import ErrorBoundary from 'components/ErrorBoundary';
 import ScrollToTop from 'components/ScrollToTop';
 import Layout from 'components/Layout';
+import Auth from 'components/Auth';
 import RouteSidebarHidden from 'components/RouteSidebarHidden';
 
 import { matchDocumentSlug } from 'utils/routeHelpers';
@@ -41,53 +38,6 @@ let DevTools;
 if (__DEV__) {
   DevTools = require('mobx-react-devtools').default; // eslint-disable-line global-require
 }
-
-let authenticatedStores;
-
-type AuthProps = {
-  children?: React.Element<any>,
-};
-
-const Auth = ({ children }: AuthProps) => {
-  if (stores.auth.authenticated && stores.auth.team && stores.auth.user) {
-    // Only initialize stores once. Kept in global scope because otherwise they
-    // will get overridden on route change
-    if (!authenticatedStores) {
-      // Stores for authenticated user
-      const { user, team } = stores.auth;
-      const cache = new CacheStore(user.id);
-      authenticatedStores = {
-        settings: new SettingsStore(),
-        documents: new DocumentsStore({
-          ui: stores.ui,
-          cache,
-        }),
-        collections: new CollectionsStore({
-          ui: stores.ui,
-          teamId: team.id,
-          cache,
-        }),
-      };
-
-      if (window.Bugsnag) {
-        Bugsnag.user = {
-          id: user.id,
-          name: user.name,
-          teamId: team.id,
-          team: team.name,
-        };
-      }
-
-      stores.auth.fetch();
-      authenticatedStores.collections.fetchAll();
-    }
-
-    return <Provider {...authenticatedStores}>{children}</Provider>;
-  }
-
-  stores.auth.logout();
-  window.location.href = BASE_URL;
-};
 
 const notFoundSearch = () => <Search notFound />;
 const DocumentNew = () => <Document newDocument />;
@@ -105,7 +55,6 @@ render(
           <ScrollToTop>
             <Switch>
               <Route exact path="/" component={Home} />
-
               <Route exact path="/auth/slack" component={SlackAuth} />
               <Route exact path="/auth/slack/commands" component={SlackAuth} />
               <Route exact path="/auth/error" component={ErrorAuth} />
@@ -172,5 +121,3 @@ render(
   </div>,
   document.getElementById('root')
 );
-
-window.authenticatedStores = authenticatedStores;
