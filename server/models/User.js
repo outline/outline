@@ -5,7 +5,7 @@ import uuid from 'uuid';
 import JWT from 'jsonwebtoken';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { uploadToS3FromUrl } from '../utils/s3';
-import mailer from '../mailer';
+import { sendEmail } from '../mailer';
 
 const BCRYPT_COST = process.env.NODE_ENV !== 'production' ? 4 : 12;
 
@@ -99,6 +99,6 @@ const hashPassword = function hashPassword(model) {
 User.beforeCreate(hashPassword);
 User.beforeUpdate(hashPassword);
 User.beforeCreate(setRandomJwtSecret);
-User.afterCreate(user => mailer.welcome(user.email));
+User.afterCreate(user => sendEmail('welcome', user.email));
 
 export default User;

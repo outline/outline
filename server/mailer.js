@@ -2,8 +2,8 @@
 import React from 'react';
 import nodemailer from 'nodemailer';
 import Oy from 'oy-vey';
+import Queue from 'bull';
 import { baseStyles } from './emails/components/EmailLayout';
-
 import { WelcomeEmail, welcomeEmailText } from './emails/WelcomeEmail';
 
 type SendMailType = {
@@ -54,13 +54,14 @@ class Mailer {
         });
       } catch (e) {
         Bugsnag.notifyException(e);
+        throw e; // Re-throw for queue to re-try
       }
     }
   };
 
-  welcome = async (to: string) => {
+  welcome = async (opts: { to: string }) => {
     this.sendMail({
-      to,
+      to: opts.to,
       title: 'Welcome to Outline',
       previewText:
         'Outline is a place for your team to build and share knowledge.',
@@ -87,6 +88,30 @@ class Mailer {
 }
 
 const mailer = new Mailer();
+const mailerQueue = new Queue('email', process.env.REDIS_URL);
 
-export { Mailer };
-export default mailer;
+mailerQueue.process(async function(job) {
+  // $FlowIssue flow doesn't like dynamic values
+  await mailer[job.data.type](job.data.opts);
+});
+
+const sendEmail = (type: string, to: string, options?: Object = {}) => {
+  mailerQueue.add(
+    {
+      type,
+      opts: {
+        to,
+        ...options,
+      },
+    },
+    {
+      attempts: 5,
+      backoff: {
+        type: 'exponential',
+        delay: 60 * 1000,
+      },
+    }
+  );
+};
+
+export { Mailer, mailerQueue, sendEmail };
