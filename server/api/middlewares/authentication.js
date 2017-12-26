@@ -5,7 +5,17 @@ import { type Context } from 'koa';
 
 import { User, ApiKey } from '../../models';
 
-export default function auth({ require = true }: { require?: boolean } = {}) {
+type AuthOptions = {
+  require?: boolean,
+  adminOnly?: boolean,
+};
+
+export default function auth(options: AuthOptions = {}) {
+  options = {
+    require: true,
+    ...options,
+  };
+
   return async function authMiddleware(
     ctx: Context,
     next: () => Promise<void>
@@ -25,8 +35,7 @@ export default function auth({ require = true }: { require?: boolean } = {}) {
       } else {
         if (require) {
           throw httpErrors.Unauthorized(
-            `Bad Authorization header format. \
-            Format is "Authorization: Bearer <token>"\n`
+            `Bad Authorization header format. Format is "Authorization: Bearer <token>"`
           );
         }
       }
@@ -57,13 +66,13 @@ export default function auth({ require = true }: { require?: boolean } = {}) {
           throw httpErrors.Unauthorized('Invalid API key');
         }
 
-        if (!apiKey) throw httpErrors.Unauthorized('Invalid token');
+        if (!apiKey) throw httpErrors.Unauthorized('Invalid API key');
 
         user = await User.findOne({
           where: { id: apiKey.userId },
         });
 
-        if (!user) throw httpErrors.Unauthorized('Invalid token');
+        if (!user) throw httpErrors.Unauthorized('Invalid API key');
       } else {
         // JWT
         // Get user without verifying payload signature
@@ -85,6 +94,10 @@ export default function auth({ require = true }: { require?: boolean } = {}) {
         } catch (e) {
           throw httpErrors.Unauthorized('Invalid token');
         }
+      }
+
+      if (options.adminOnly && !user.isAdmin) {
+        throw httpErrors.Forbidden('Only available for admins');
       }
 
       ctx.state.token = token;
