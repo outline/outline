@@ -466,7 +466,7 @@ export default function Pricing() {
 
           <Method method="team.users" label="List team's users">
             <Description>
-              List team's users. This endpoint is only available for admin
+              List team`s users. This endpoint is only available for admin
               users.
             </Description>
             <Arguments pagination />
