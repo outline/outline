@@ -463,6 +463,43 @@ export default function Pricing() {
             </Description>
             <Arguments pagination />
           </Method>
+
+          <Method method="team.users" label="List team's users">
+            <Description>
+              List team's users. This endpoint is only available for admin
+              users.
+            </Description>
+            <Arguments pagination />
+          </Method>
+
+          <Method method="team.addAdmin" label="Promote a new admin user">
+            <Description>
+              Promote a user to be a team admin. This endpoint is only available
+              for admin users.
+            </Description>
+            <Arguments pagination>
+              <Argument
+                id="user"
+                description="User ID to be promoted"
+                required
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="team.removeAdmin" label="Demote existing admin user">
+            <Description>
+              Demote existing team admin if there are more than one as one admin
+              is always required. This endpoint is only available for admin
+              users.
+            </Description>
+            <Arguments pagination>
+              <Argument
+                id="user"
+                description="User ID to be demoted"
+                required
+              />
+            </Arguments>
+          </Method>
         </Methods>
       </Container>
     </Grid>
