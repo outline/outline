@@ -6,8 +6,9 @@ import { presentView } from '../presenters';
 import { View, Document } from '../models';
 
 const router = new Router();
+router.use(auth());
 
-router.post('views.list', auth(), async ctx => {
+router.post('views.list', async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
@@ -36,7 +37,7 @@ router.post('views.list', auth(), async ctx => {
   };
 });
 
-router.post('views.create', auth(), async ctx => {
+router.post('views.create', async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
