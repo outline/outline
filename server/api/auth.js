@@ -13,7 +13,7 @@ router.post('auth.info', auth(), async ctx => {
 
   ctx.body = {
     data: {
-      user: await presentUser(ctx, user),
+      user: await presentUser(ctx, user, { includeDetails: true }),
       team: await presentTeam(ctx, team),
     },
   };
@@ -51,9 +51,14 @@ router.post('auth.slack', async ctx => {
       name: data.user.name,
       email: data.user.email,
       teamId: team.id,
+      isAdmin: !teamExisted,
       slackData: data.user,
       slackAccessToken: data.access_token,
     });
+
+    // Set initial avatar
+    await user.updateAvatar();
+    await user.save();
   }
 
   if (!teamExisted) {
@@ -67,10 +72,6 @@ router.post('auth.slack', async ctx => {
     httpOnly: false,
     expires: new Date('2100'),
   });
-
-  // Update user's avatar
-  await user.updateAvatar();
-  await user.save();
 
   ctx.body = {
     data: {

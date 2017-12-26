@@ -161,7 +161,7 @@
     "redis-lock": "^0.1.0",
     "rimraf": "^2.5.4",
     "safestart": "1.1.0",
-    "sequelize": "^4.3.1",
+    "sequelize": "4.28.6",
     "sequelize-cli": "^2.7.0",
     "sequelize-encrypted": "0.1.0",
     "slate": "^0.31.5",

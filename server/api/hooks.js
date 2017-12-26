@@ -59,6 +59,8 @@ router.post('hooks.slack', async ctx => {
   });
 
   if (!user) throw httpErrors.BadRequest('Invalid user');
+  if (!user.isAdmin)
+    throw httpErrors.BadRequest('Only admins can add integrations');
 
   const documents = await Document.searchForUser(user, text, {
     limit: 5,

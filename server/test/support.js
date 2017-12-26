@@ -36,6 +36,21 @@ const seed = async () => {
     },
   });
 
+  const admin = await User.create({
+    id: 'fa952cff-fa64-4d42-a6ea-6955c9689046',
+    email: 'admin@example.com',
+    username: 'admin',
+    name: 'Admin User',
+    password: 'test123!',
+    teamId: team.id,
+    isAdmin: true,
+    slackId: 'U2399UF1P',
+    slackData: {
+      id: 'U2399UF1P',
+      image_192: 'http://example.com/avatar.png',
+    },
+  });
+
   let collection = await Collection.create({
     id: '26fde1d4-0050-428f-9f0b-0bf77f8bdf62',
     name: 'Collection',
@@ -59,6 +74,7 @@ const seed = async () => {
 
   return {
     user,
+    admin,
     collection,
     document,
     team,

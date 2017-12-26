@@ -1,6 +1,7 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
+import { DataTypes, sequelize, Op } from '../sequelize';
 import Collection from './Collection';
+import User from './User';
 
 const Team = sequelize.define(
   'team',
@@ -39,6 +40,28 @@ Team.prototype.createFirstCollection = async function(userId) {
     creatorId: userId,
   });
   return atlas;
+};
+
+Team.prototype.addAdmin = async function(user: User) {
+  return await user.update({ isAdmin: true });
+};
+
+Team.prototype.removeAdmin = async function(user: User) {
+  const res = await User.findAndCountAll({
+    where: {
+      teamId: user.teamId,
+      isAdmin: true,
+      id: {
+        [Op.ne]: user.id,
+      },
+    },
+    limit: 1,
+  });
+  if (res.count >= 1) {
+    return await user.update({ isAdmin: false });
+  } else {
+    throw new Error('At least one admin is required');
+  }
 };
 
 export default Team;

@@ -3,7 +3,6 @@
 exports[`presents a user 1`] = `
 Object {
   "avatarUrl": "http://example.com/avatar.png",
-  "email": undefined,
   "id": "123",
   "name": "Test User",
   "username": "testuser",
@@ -13,7 +12,6 @@ Object {
 exports[`presents a user without slack data 1`] = `
 Object {
   "avatarUrl": null,
-  "email": undefined,
   "id": "123",
   "name": "Test User",
   "username": "testuser",
