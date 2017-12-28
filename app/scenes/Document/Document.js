@@ -211,7 +211,6 @@ class DocumentScene extends Component {
     const isNew = this.props.newDocument;
     const isMoving = this.props.match.path === matchDocumentMove;
     const document = this.document;
-    const isFetching = !document;
     const titleText =
       get(document, 'title', '') ||
       this.props.collections.titleForDocument(this.props.location.pathname);
@@ -226,74 +225,71 @@ class DocumentScene extends Component {
           {isMoving && document && <DocumentMove document={document} />}
           {titleText && <PageTitle title={titleText} />}
           {(this.isLoading || this.isSaving) && <LoadingIndicator />}
-          {isFetching && (
+          {!document ? (
             <CenteredContent>
               <LoadingState />
             </CenteredContent>
-          )}
-          {!isFetching &&
-            document && (
-              <Flex justify="center" auto>
-                {this.isEditing && (
-                  <Prompt
-                    when={document.hasPendingChanges}
-                    message={DISCARD_CHANGES}
-                  />
-                )}
-                <Editor
-                  key={`${document.id}-${document.revision}`}
-                  text={document.text}
-                  emoji={document.emoji}
-                  onImageUploadStart={this.onImageUploadStart}
-                  onImageUploadStop={this.onImageUploadStop}
-                  onChange={this.onChange}
-                  onSave={this.onSave}
-                  onCancel={this.onDiscard}
-                  readOnly={!this.isEditing}
+          ) : (
+            <Flex justify="center" auto>
+              {this.isEditing && (
+                <Prompt
+                  when={document.hasPendingChanges}
+                  message={DISCARD_CHANGES}
                 />
-                <Actions
-                  align="center"
-                  justify="flex-end"
-                  readOnly={!this.isEditing}
-                >
-                  {!isNew &&
-                    !this.isEditing && <Collaborators document={document} />}
-                  <Action>
-                    {this.isEditing ? (
-                      <SaveAction
-                        isSaving={this.isSaving}
-                        onClick={this.onSave.bind(this, true)}
-                        disabled={
-                          !(this.document && this.document.allowSave) ||
-                          this.isSaving
-                        }
-                        isNew={!!isNew}
-                      />
-                    ) : (
-                      <a onClick={this.onClickEdit}>Edit</a>
-                    )}
-                  </Action>
-                  {this.isEditing && (
-                    <Action>
-                      <a onClick={this.onDiscard}>Discard</a>
-                    </Action>
+              )}
+              <Editor
+                text={document.text}
+                emoji={document.emoji}
+                onImageUploadStart={this.onImageUploadStart}
+                onImageUploadStop={this.onImageUploadStop}
+                onChange={this.onChange}
+                onSave={this.onSave}
+                onCancel={this.onDiscard}
+                readOnly={!this.isEditing}
+              />
+              <Actions
+                align="center"
+                justify="flex-end"
+                readOnly={!this.isEditing}
+              >
+                {!isNew &&
+                  !this.isEditing && <Collaborators document={document} />}
+                <Action>
+                  {this.isEditing ? (
+                    <SaveAction
+                      isSaving={this.isSaving}
+                      onClick={this.onSave.bind(this, true)}
+                      disabled={
+                        !(this.document && this.document.allowSave) ||
+                        this.isSaving
+                      }
+                      isNew={!!isNew}
+                    />
+                  ) : (
+                    <a onClick={this.onClickEdit}>Edit</a>
                   )}
+                </Action>
+                {this.isEditing && (
+                  <Action>
+                    <a onClick={this.onDiscard}>Discard</a>
+                  </Action>
+                )}
+                {!this.isEditing && (
+                  <Action>
+                    <DocumentMenu document={document} />
+                  </Action>
+                )}
+                {!this.isEditing && <Separator />}
+                <Action>
                   {!this.isEditing && (
-                    <Action>
-                      <DocumentMenu document={document} />
-                    </Action>
+                    <a onClick={this.onClickNew}>
+                      <NewDocumentIcon />
+                    </a>
                   )}
-                  {!this.isEditing && <Separator />}
-                  <Action>
-                    {!this.isEditing && (
-                      <a onClick={this.onClickNew}>
-                        <NewDocumentIcon />
-                      </a>
-                    )}
-                  </Action>
-                </Actions>
-              </Flex>
-            )}
+                </Action>
+              </Actions>
+            </Flex>
+          )}
         </ErrorBoundary>
       </Container>
     );

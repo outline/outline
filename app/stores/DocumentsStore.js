@@ -203,6 +203,9 @@ class DocumentsStore extends BaseStore {
     this.on('documents.delete', (data: { id: string }) => {
       this.remove(data.id);
     });
+    this.on('documents.create', (data: Document) => {
+      this.add(new Document(data));
+    });
 
     autorunAsync('DocumentsStore.persists', () => {
       if (this.data.size) {
