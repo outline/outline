@@ -31,7 +31,7 @@ following these steps:
 To enable debugging statements, add the following to your `.env` file:
 
 ```
-DEBUG=sql,cache,presenters
+DEBUG=sql,cache,presenters,events
 ```
 
 ## Migrations
