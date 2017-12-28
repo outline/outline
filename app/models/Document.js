@@ -190,6 +190,7 @@ class Document extends BaseModel {
           data.parentDocument = this.parentDocument;
         }
         res = await client.post('/documents.create', data);
+        if (res && res.data) this.emit('documents.create', res.data);
       }
       runInAction('Document#save', () => {
         invariant(res && res.data, 'Data should be available');
