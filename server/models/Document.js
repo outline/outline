@@ -207,12 +207,17 @@ Document.searchForUser = async (
 
 // Hooks
 
-Document.addHook('afterCreate', 'event', (document, options) => {
-  events.add({
-    name: 'documents.create',
-    model: document,
-  });
-});
+Document.addHook('afterCreate', model =>
+  events.add({ name: 'documents.create', model })
+);
+
+Document.addHook('afterDestroy', model =>
+  events.add({ name: 'documents.delete', model })
+);
+
+Document.addHook('afterUpdate', model =>
+  events.add({ name: 'documents.update', model })
+);
 
 // Instance methods
 

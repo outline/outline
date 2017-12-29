@@ -1,30 +1,29 @@
 // @flow
-import fs from 'fs-extra';
-import path from 'path';
 import Queue from 'bull';
 import debug from 'debug';
+import services from '../services';
+import Document from './models/Document';
+import Collection from './models/Collection';
 
-export type Event = {
-  name: string,
-  model: Object,
+type DocumentEvent = {
+  name: 'documents.create',
+  model: Document,
 };
+
+type CollectionEvent = {
+  name: 'collections.create',
+  model: Collection,
+};
+
+export type Event = DocumentEvent | CollectionEvent;
 
 const log = debug('events');
 const queue = new Queue('events', process.env.REDIS_URL);
-const services = [];
-
-fs
-  .readdirSync(path.join(__dirname, 'services'))
-  .filter(file => file.indexOf('.') !== 0)
-  .forEach(file => {
-    // $FlowIssue
-    const service = require(path.join(__dirname, 'services', file)).default;
-    services.push(service);
-    log(`Loaded service: ${service.name}`);
-  });
 
 queue.process(async function(job) {
-  services.forEach(service => {
+  const names = Object.keys(services);
+  names.forEach(name => {
+    const service = services[name];
     if (service.on) {
       const event = job.data;
       log(`Triggering ${event.name} for ${service.name}`);
