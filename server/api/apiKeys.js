@@ -8,8 +8,9 @@ import { presentApiKey } from '../presenters';
 import { ApiKey } from '../models';
 
 const router = new Router();
+router.use(auth());
 
-router.post('apiKeys.create', auth(), async ctx => {
+router.post('apiKeys.create', async ctx => {
   const { name } = ctx.body;
   ctx.assertPresent(name, 'name is required');
 
@@ -25,7 +26,7 @@ router.post('apiKeys.create', auth(), async ctx => {
   };
 });
 
-router.post('apiKeys.list', auth(), pagination(), async ctx => {
+router.post('apiKeys.list', pagination(), async ctx => {
   const user = ctx.state.user;
   const keys = await ApiKey.findAll({
     where: {
@@ -46,7 +47,7 @@ router.post('apiKeys.list', auth(), pagination(), async ctx => {
   };
 });
 
-router.post('apiKeys.delete', auth(), async ctx => {
+router.post('apiKeys.delete', async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 

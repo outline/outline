@@ -13,7 +13,6 @@ exports[`#user.info should return known user 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
-    "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "name": "User 1",
     "username": "user1",
@@ -36,7 +35,6 @@ exports[`#user.update should update user profile information 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
-    "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "name": "New name",
     "username": "user1",

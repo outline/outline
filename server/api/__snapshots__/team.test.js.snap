@@ -1,0 +1,105 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`#team.addAdmin should promote a new admin 1`] = `
+Object {
+  "avatarUrl": "http://example.com/avatar.png",
+  "email": "user1@example.com",
+  "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+  "isAdmin": true,
+  "name": "User 1",
+  "ok": true,
+  "status": 200,
+  "username": "user1",
+}
+`;
+
+exports[`#team.addAdmin should require admin 1`] = `
+Object {
+  "error": "only_available_for_admins",
+  "message": "Only available for admins",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#team.removeAdmin should demote an admin 1`] = `
+Object {
+  "avatarUrl": null,
+  "ok": true,
+  "status": 200,
+}
+`;
+
+exports[`#team.removeAdmin should require admin 1`] = `
+Object {
+  "error": "only_available_for_admins",
+  "message": "Only available for admins",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#team.removeAdmin shouldn't demote admins if only one available  1`] = `
+Object {
+  "error": "at_least_one_admin_is_required",
+  "message": "At least one admin is required",
+  "ok": false,
+  "status": 400,
+}
+`;
+
+exports[`#team.users should require admin for detailed info 1`] = `
+Object {
+  "data": Array [
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "id": "fa952cff-fa64-4d42-a6ea-6955c9689046",
+      "name": "Admin User",
+      "username": "admin",
+    },
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+      "name": "User 1",
+      "username": "user1",
+    },
+  ],
+  "ok": true,
+  "pagination": Object {
+    "limit": 15,
+    "nextPath": "/api/team.users?limit=15&offset=15",
+    "offset": 0,
+  },
+  "status": 200,
+}
+`;
+
+exports[`#team.users should return teams paginated user list 1`] = `
+Object {
+  "data": Array [
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "email": "admin@example.com",
+      "id": "fa952cff-fa64-4d42-a6ea-6955c9689046",
+      "isAdmin": true,
+      "name": "Admin User",
+      "username": "admin",
+    },
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "email": "user1@example.com",
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+      "isAdmin": false,
+      "name": "User 1",
+      "username": "user1",
+    },
+  ],
+  "ok": true,
+  "pagination": Object {
+    "limit": 15,
+    "nextPath": "/api/team.users?limit=15&offset=15",
+    "offset": 0,
+  },
+  "status": 200,
+}
+`;
