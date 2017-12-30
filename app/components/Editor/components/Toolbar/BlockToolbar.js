@@ -89,6 +89,7 @@ class BlockToolbar extends Component {
     switch (type) {
       case 'heading1':
       case 'heading2':
+      case 'block-quote':
       case 'code':
         return this.insertBlock({ type });
       case 'horizontal-rule':
@@ -159,6 +160,7 @@ class BlockToolbar extends Component {
         {this.renderBlockButton('ordered-list', OrderedListIcon)}
         {this.renderBlockButton('todo-list', TodoListIcon)}
         <Separator />
+        {this.renderBlockButton('block-quote', Heading2Icon)}
         {this.renderBlockButton('code', CodeIcon)}
         {this.renderBlockButton('horizontal-rule', HorizontalRuleIcon)}
         {this.renderBlockButton('image', ImageIcon)}

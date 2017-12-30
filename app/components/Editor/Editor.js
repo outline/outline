@@ -304,7 +304,9 @@ const StyledEditor = styled(Editor)`
 
   blockquote {
     border-left: 3px solid #efefef;
+    margin: 1.2em 0;
     padding-left: 10px;
+    font-style: italic;
   }
 
   table {

@@ -9,6 +9,7 @@ const schema = {
     heading4: { marks: [''] },
     heading5: { marks: [''] },
     heading6: { marks: [''] },
+    'block-quote': { marks: [''] },
     table: {
       nodes: [{ types: ['table-row', 'table-head', 'table-cell'] }],
     },
@@ -31,6 +32,7 @@ const schema = {
           'heading4',
           'heading5',
           'heading6',
+          'block-quote',
           'code',
           'horizontal-rule',
           'image',

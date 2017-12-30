@@ -92,6 +92,7 @@ class FormattingToolbar extends Component {
         <Separator />
         {this.renderBlockButton('heading1', Heading1Icon)}
         {this.renderBlockButton('heading2', Heading2Icon)}
+        {this.renderBlockButton('block-quote', Heading2Icon)}
         <Separator />
         <ToolbarButton onMouseDown={this.handleCreateLink}>
           <LinkIcon light />
