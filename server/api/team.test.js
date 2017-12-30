@@ -23,14 +23,14 @@ describe('#team.users', async () => {
     expect(body).toMatchSnapshot();
   });
 
-  it('should require admin', async () => {
+  it('should require admin for detailed info', async () => {
     const { user } = await seed();
     const res = await server.post('/api/team.users', {
       body: { token: user.getJwtToken() },
     });
     const body = await res.json();
 
-    expect(res.status).toEqual(403);
+    expect(res.status).toEqual(200);
     expect(body).toMatchSnapshot();
   });
 });

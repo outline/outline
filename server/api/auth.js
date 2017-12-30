@@ -27,7 +27,7 @@ router.post('auth.slack', async ctx => {
 
   let user = await User.findOne({ where: { slackId: data.user.id } });
   let team = await Team.findOne({ where: { slackId: data.team.id } });
-  const teamExisted = !!team;
+  const isFirstUser = !team;
 
   if (team) {
     team.name = data.team.name;
@@ -51,7 +51,7 @@ router.post('auth.slack', async ctx => {
       name: data.user.name,
       email: data.user.email,
       teamId: team.id,
-      isAdmin: !teamExisted,
+      isAdmin: isFirstUser,
       slackData: data.user,
       slackAccessToken: data.access_token,
     });
@@ -61,7 +61,7 @@ router.post('auth.slack', async ctx => {
     await user.save();
   }
 
-  if (!teamExisted) {
+  if (isFirstUser) {
     await team.createFirstCollection(user.id);
   }
 

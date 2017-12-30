@@ -10,9 +10,8 @@ import pagination from './middlewares/pagination';
 import { presentUser } from '../presenters';
 
 const router = new Router();
-router.use(auth({ adminOnly: true }));
 
-router.post('team.users', pagination(), async ctx => {
+router.post('team.users', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
 
   const users = await User.findAll({
@@ -26,11 +25,13 @@ router.post('team.users', pagination(), async ctx => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: users.map(user => presentUser(ctx, user, { includeDetails: true })),
+    data: users.map(listUser =>
+      presentUser(ctx, listUser, { includeDetails: user.isAdmin })
+    ),
   };
 });
 
-router.post('team.addAdmin', async ctx => {
+router.post('team.addAdmin', auth({ adminOnly: true }), async ctx => {
   const { user } = ctx.body;
   const admin = ctx.state.user;
   ctx.assertPresent(user, 'id is required');
@@ -47,7 +48,7 @@ router.post('team.addAdmin', async ctx => {
   ctx.body = presentUser(ctx, promotedUser, { includeDetails: true });
 });
 
-router.post('team.removeAdmin', async ctx => {
+router.post('team.removeAdmin', auth({ adminOnly: true }), async ctx => {
   const { user } = ctx.body;
   const admin = ctx.state.user;
   ctx.assertPresent(user, 'id is required');

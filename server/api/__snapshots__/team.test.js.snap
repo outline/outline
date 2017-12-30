@@ -48,12 +48,29 @@ Object {
 }
 `;
 
-exports[`#team.users should require admin 1`] = `
+exports[`#team.users should require admin for detailed info 1`] = `
 Object {
-  "error": "only_available_for_admins",
-  "message": "Only available for admins",
-  "ok": false,
-  "status": 403,
+  "data": Array [
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "id": "fa952cff-fa64-4d42-a6ea-6955c9689046",
+      "name": "Admin User",
+      "username": "admin",
+    },
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+      "name": "User 1",
+      "username": "user1",
+    },
+  ],
+  "ok": true,
+  "pagination": Object {
+    "limit": 15,
+    "nextPath": "/api/team.users?limit=15&offset=15",
+    "offset": 0,
+  },
+  "status": 200,
 }
 `;
 
