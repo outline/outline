@@ -12,7 +12,7 @@
   <a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat"></a>
 </p>
 
-This is the source code that runs **Outline** and all the associated services. If you want to use outline then you don't need to run this code we offer a hosted version of the app at [getoutline.com](https://www.getoutline.com).
+This is the source code that runs **Outline** and all the associated services. If you want to use outline then you don't need to run this code, we offer a hosted version of the app at [getoutline.com](https://www.getoutline.com).
 
 If you'd like to run your own copy of Outline or contribute to development then this is the place for you.
 
@@ -24,7 +24,7 @@ Outline requires the following dependencies:
 - Redis
 - Slack developer application
 
-In development you can quickly can an environment running using Docker by following these steps:
+In development you can quickly get an environment running using Docker by following these steps:
 
 1. Install [Docker for Desktop](https://www.docker.com) if you don't already have it.
 1. Register a Slack app at https://api.slack.com/apps
@@ -59,16 +59,16 @@ yarn sequelize db:migrate --env test
 
 ## Structure
 
-Outline composes out of separate backend and frontend application which are both driven by the same Node process. As both are written in Javascript, they share some code but are mostly separate. We utilize latest language features, including `async`/`await`, and [Flow](https://flow.org/) typing. Prettier and ESLint are ran in as pre-commit hooks.
+Outline is composed of separate backend and frontend application which are both driven by the same Node process. As both are written in Javascript, they share some code but are mostly separate. We utilize latest language features, including `async`/`await`, and [Flow](https://flow.org/) typing. Prettier and ESLint are ran as pre-commit hooks.
 
 ### Frontend
 
-Outline's frontend is a React application compiled with [Webpack](https://webpack.js.org/). It uses [Mobx](https://mobx.js.org/) for state management and [Styled Component](https://www.styled-components.com/) for component styles. Unless global, state logic and styles are always co-located with React components together with their subcomponents to make the component tree easier to manage. The editor is driven by [Slate](https://github.com/ianstormtaylor/slate) with several plugins.
+Outline's frontend is a React application compiled with [Webpack](https://webpack.js.org/). It uses [Mobx](https://mobx.js.org/) for state management and [Styled Components](https://www.styled-components.com/) for component styles. Unless global, state logic and styles are always co-located with React components together with their subcomponents to make the component tree easier to manage. The editor is driven by [Slate](https://github.com/ianstormtaylor/slate) with several plugins.
 
 - `app/` - Frontend React application
 - `app/scenes` - Full page views
-- `app/component` - Reusable React components
-- `app/component/Editor` - Text editor and its plugins
+- `app/components` - Reusable React components
+- `app/components/Editor` - Text editor and its plugins
 - `app/stores` - Global state stores
 - `app/models` - State models
 - `app/types` - Flow types for non-models
@@ -92,7 +92,7 @@ However, before working on a pull request please let the core team know by creat
 
 If you're looking for ways to get started, here's a list of ways to help us improve Outline:
 
-* Issues with `good first task` label
+* Issues with [`good first task`](https://github.com/outline/outline/labels/good%20first%20issue) label
 * Performance improvements, both on server and frontend
 * Developer happiness and documentation
 * Bugs and other issues listed on GitHub
