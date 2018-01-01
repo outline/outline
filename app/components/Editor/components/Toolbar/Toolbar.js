@@ -29,6 +29,7 @@ export default class Toolbar extends Component {
   @observable link: ?Node;
   @observable top: string = '';
   @observable left: string = '';
+  @observable mouseDown: boolean = false;
 
   props: {
     editor: Editor,
@@ -39,6 +40,13 @@ export default class Toolbar extends Component {
 
   componentDidMount = () => {
     this.update();
+    window.addEventListener('mousedown', this.handleMouseDown);
+    window.addEventListener('mouseup', this.handleMouseUp);
+  };
+
+  componentWillUnmount = () => {
+    window.removeEventListener('mousedown', this.handleMouseDown);
+    window.removeEventListener('mouseup', this.handleMouseUp);
   };
 
   componentDidUpdate = () => {
@@ -47,6 +55,15 @@ export default class Toolbar extends Component {
 
   hideLinkToolbar = () => {
     this.link = undefined;
+  };
+
+  handleMouseDown = (e: SyntheticMouseEvent) => {
+    this.mouseDown = true;
+  };
+
+  handleMouseUp = (e: SyntheticMouseEvent) => {
+    this.mouseDown = false;
+    this.update();
   };
 
   showLinkToolbar = (ev: SyntheticEvent) => {
@@ -77,6 +94,9 @@ export default class Toolbar extends Component {
 
     // don't display toolbar for code blocks, code-lines inline code.
     if (value.startBlock.type.match(/code/)) return;
+
+    // don't show until user has released pointing device button
+    if (this.mouseDown) return;
 
     this.active = true;
     this.link = this.link || link;
