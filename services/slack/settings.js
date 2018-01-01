@@ -1,10 +1,39 @@
 // @flow
 import React, { Component } from 'react';
+import { observer } from 'mobx-react';
+import styled from 'styled-components';
 
-class Settings extends Component {
+import CenteredContent from '../../app/components/CenteredContent';
+import PageTitle from '../../app/components/PageTitle';
+import HelpText from '../../app/components/HelpText';
+import SlackButton from './components/SlackButton';
+
+@observer
+class Slack extends Component {
   render() {
-    return <p>Slack settings</p>;
+    return (
+      <CenteredContent>
+        <PageTitle title="Slack" />
+        <h1>Slack</h1>
+        <HelpText>
+          Connect Outline to your Slack team to instantly search for documents
+          using the <Code>/outline</Code> command and preview Outline links.
+        </HelpText>
+
+        <SlackButton
+          scopes={['commands', 'links:read', 'links:write']}
+          redirectUri={`${BASE_URL}/auth/slack/commands`}
+        />
+      </CenteredContent>
+    );
   }
 }
 
-export default Settings;
+const Code = styled.code`
+  padding: 4px 6px;
+  margin: 0 2px;
+  background: #eaebea;
+  border-radius: 4px;
+`;
+
+export default Slack;

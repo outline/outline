@@ -1,8 +1,4 @@
 {
   "name": "slack",
-  "description": "Hook up your Slack to your Outline.",
-  "main": "index.js",
-  "components": {
-    "settings": "settings.js"
-  }
+  "description": "Hook up your Slack to your Outline."
 }
