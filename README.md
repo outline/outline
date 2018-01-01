@@ -2,7 +2,7 @@
   <img src="https://user-images.githubusercontent.com/31465/34380645-bd67f474-eb0b-11e7-8d03-0151c1730654.png" height="29" />
 </p>
 <p align="center">
-  <i>An open, extensible, knowledge base for your team built using React and Node.js.<br/>Try out Outline using our hosted version at <a href="https://www.getoutline.com">www.getoutline.com</a>.</i>
+  <i>An open, extensible, wiki for your team built using React and Node.js.<br/>Try out Outline using our hosted version at <a href="https://www.getoutline.com">www.getoutline.com</a>.</i>
   <br/>
   <img src="https://user-images.githubusercontent.com/31465/34456332-51e41eb0-ed9c-11e7-9fa9-20e7fa946494.jpg" alt="Outline" width="800" height="500">
 </p>
@@ -12,7 +12,7 @@
   <a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat"></a>
 </p>
 
-This is the source code that runs [**Outline**](https://www.getoutline.com) and all the associated services. If you want to use outline then you don't need to run this code, we offer a hosted version of the app at [getoutline.com](https://www.getoutline.com).
+This is the source code that runs [**Outline**](https://www.getoutline.com) and all the associated services. If you want to use Outline then you don't need to run this code, we offer a hosted version of the app at [getoutline.com](https://www.getoutline.com).
 
 If you'd like to run your own copy of Outline or contribute to development then this is the place for you.
 
