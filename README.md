@@ -88,7 +88,7 @@ Backend is driven by [Koa](http://koajs.com/) (API, web server), [Sequelize](htt
 
 We aim to have sufficient test coverage for critical parts of the application and aren't aiming for 100% unit test coverage. All API endpoints and anything authentication related should be thoroughly tested, and it's generally good to add tests for backend features and code.
 
-To add new tests, write your tests with [Jest]https://facebook.github.io/jest/() add a file with `.test.js` extension next to the tested code.
+To add new tests, write your tests with [Jest](https://facebook.github.io/jest/) add a file with `.test.js` extension next to the tested code.
 
 ```shell
 # To run all tests
