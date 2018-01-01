@@ -8,6 +8,7 @@ import CodeIcon from 'components/Icon/CodeIcon';
 import Heading1Icon from 'components/Icon/Heading1Icon';
 import Heading2Icon from 'components/Icon/Heading2Icon';
 import ItalicIcon from 'components/Icon/ItalicIcon';
+import BlockQuoteIcon from 'components/Icon/BlockQuoteIcon';
 import LinkIcon from 'components/Icon/LinkIcon';
 import StrikethroughIcon from 'components/Icon/StrikethroughIcon';
 
@@ -92,7 +93,7 @@ class FormattingToolbar extends Component {
         <Separator />
         {this.renderBlockButton('heading1', Heading1Icon)}
         {this.renderBlockButton('heading2', Heading2Icon)}
-        {this.renderBlockButton('block-quote', Heading2Icon)}
+        {this.renderBlockButton('block-quote', BlockQuoteIcon)}
         <Separator />
         <ToolbarButton onMouseDown={this.handleCreateLink}>
           <LinkIcon light />

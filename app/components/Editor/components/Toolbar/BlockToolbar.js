@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Heading1Icon from 'components/Icon/Heading1Icon';
 import Heading2Icon from 'components/Icon/Heading2Icon';
+import BlockQuoteIcon from 'components/Icon/BlockQuoteIcon';
 import ImageIcon from 'components/Icon/ImageIcon';
 import CodeIcon from 'components/Icon/CodeIcon';
 import BulletedListIcon from 'components/Icon/BulletedListIcon';
@@ -160,7 +161,7 @@ class BlockToolbar extends Component {
         {this.renderBlockButton('ordered-list', OrderedListIcon)}
         {this.renderBlockButton('todo-list', TodoListIcon)}
         <Separator />
-        {this.renderBlockButton('block-quote', Heading2Icon)}
+        {this.renderBlockButton('block-quote', BlockQuoteIcon)}
         {this.renderBlockButton('code', CodeIcon)}
         {this.renderBlockButton('horizontal-rule', HorizontalRuleIcon)}
         {this.renderBlockButton('image', ImageIcon)}
