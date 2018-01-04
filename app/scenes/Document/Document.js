@@ -25,7 +25,6 @@ import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import DocumentMenu from 'menus/DocumentMenu';
 import SaveAction from './components/SaveAction';
-import type EditorType from 'components/Editor';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import Collaborators from 'components/Collaborators';
@@ -238,77 +237,77 @@ class DocumentScene extends Component {
               <LoadingState />
             </CenteredContent>
           ) : (
-              <Flex justify="center" auto>
-                {this.isEditing && (
-                  <Prompt
-                    when={document.hasPendingChanges}
-                    message={DISCARD_CHANGES}
-                  />
-                )}
-                <Editor
-                  text={document.text}
-                  emoji={document.emoji}
-                  onImageUploadStart={this.onImageUploadStart}
-                  onImageUploadStop={this.onImageUploadStop}
-                  onChange={this.onChange}
-                  onSave={this.onSave}
-                  onCancel={this.onDiscard}
-                  readOnly={!this.isEditing}
+            <Flex justify="center" auto>
+              {this.isEditing && (
+                <Prompt
+                  when={document.hasPendingChanges}
+                  message={DISCARD_CHANGES}
                 />
-                <Actions
-                  align="center"
-                  justify="flex-end"
-                  readOnly={!this.isEditing}
-                >
-                  {!isNew &&
-                    !this.isEditing && <Collaborators document={document} />}
-                  <Action>
-                    {this.isEditing ? (
-                      <SaveAction
-                        isSaving={this.isSaving}
-                        onClick={this.onSave.bind(this, true)}
-                        disabled={
-                          !(this.document && this.document.allowSave) ||
-                          this.isSaving
-                        }
-                        isNew={!!isNew}
-                      />
-                    ) : (
-                        <a onClick={this.onClickEdit}>Edit</a>
-                      )}
-                  </Action>
-                  {this.isEditing && (
-                    <Action>
-                      <a onClick={this.onDiscard}>Discard</a>
-                    </Action>
+              )}
+              <Editor
+                text={document.text}
+                emoji={document.emoji}
+                onImageUploadStart={this.onImageUploadStart}
+                onImageUploadStop={this.onImageUploadStop}
+                onChange={this.onChange}
+                onSave={this.onSave}
+                onCancel={this.onDiscard}
+                readOnly={!this.isEditing}
+              />
+              <Actions
+                align="center"
+                justify="flex-end"
+                readOnly={!this.isEditing}
+              >
+                {!isNew &&
+                  !this.isEditing && <Collaborators document={document} />}
+                <Action>
+                  {this.isEditing ? (
+                    <SaveAction
+                      isSaving={this.isSaving}
+                      onClick={this.onSave.bind(this, true)}
+                      disabled={
+                        !(this.document && this.document.allowSave) ||
+                        this.isSaving
+                      }
+                      isNew={!!isNew}
+                    />
+                  ) : (
+                    <a onClick={this.onClickEdit}>Edit</a>
                   )}
+                </Action>
+                {this.isEditing && (
+                  <Action>
+                    <a onClick={this.onDiscard}>Discard</a>
+                  </Action>
+                )}
+                {!this.isEditing && (
+                  <Action>
+                    <DocumentMenu document={document} />
+                  </Action>
+                )}
+                {!this.isEditing && <Separator />}
+                <Action>
                   {!this.isEditing && (
-                    <Action>
-                      <DocumentMenu document={document} />
-                    </Action>
+                    <a onClick={this.onClickNew}>
+                      <NewDocumentIcon />
+                    </a>
                   )}
-                  {!this.isEditing && <Separator />}
-                  <Action>
-                    {!this.isEditing && (
-                      <a onClick={this.onClickNew}>
-                        <NewDocumentIcon />
-                      </a>
-                    )}
-                  </Action>
-                </Actions>
-              </Flex>
-            )}
+                </Action>
+              </Actions>
+            </Flex>
+          )}
         </ErrorBoundary>
       </Container>
     );
   }
 }
 
-const Container = styled(Flex) `
+const Container = styled(Flex)`
   position: relative;
 `;
 
-const LoadingState = styled(LoadingPlaceholder) `
+const LoadingState = styled(LoadingPlaceholder)`
   margin: 90px 0;
 `;
 

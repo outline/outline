@@ -24,12 +24,12 @@ import styled from 'styled-components';
 type Props = {
   text: string,
   onChange: Change => *,
-    onSave: (redirect?: boolean) => *,
-      onCancel: () => void,
-        onImageUploadStart: () => void,
-          onImageUploadStop: () => void,
-            emoji ?: string,
-            readOnly: boolean,
+  onSave: (redirect?: boolean) => *,
+  onCancel: () => void,
+  onImageUploadStart: () => void,
+  onImageUploadStop: () => void,
+  emoji?: string,
+  readOnly: boolean,
 };
 
 @observer
@@ -216,13 +216,13 @@ class MarkdownEditor extends Component {
   };
 }
 
-const MaxWidth = styled(Flex) `
+const MaxWidth = styled(Flex)`
   margin: 0 60px;
   max-width: 46em;
   height: 100%;
 `;
 
-const Header = styled(Flex) `
+const Header = styled(Flex)`
   height: 60px;
   flex-shrink: 0;
   align-items: flex-end;
@@ -233,7 +233,7 @@ const Header = styled(Flex) `
   }
 `;
 
-const StyledEditor = styled(Editor) `
+const StyledEditor = styled(Editor)`
   font-weight: 400;
   font-size: 1em;
   line-height: 1.7em;

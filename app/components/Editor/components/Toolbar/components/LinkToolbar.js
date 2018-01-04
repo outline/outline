@@ -7,7 +7,7 @@ import { withRouter } from 'react-router-dom';
 import { Node } from 'slate';
 import { Editor } from 'slate-react';
 import styled from 'styled-components';
-import ArrowKeyNavigation from 'boundless-arrow-key-navigation/build';
+import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import ToolbarButton from './ToolbarButton';
 import DocumentResult from './DocumentResult';
 import DocumentsStore from 'stores/DocumentsStore';

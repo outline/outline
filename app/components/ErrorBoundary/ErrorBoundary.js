@@ -32,7 +32,12 @@ class ErrorBoundary extends Component {
       return (
         <CenteredContent>
           <PageTitle title="Something went wrong" />
-          <h1>🛸 Something unexpected happened</h1>
+          <h1>
+            <span role="img" aria-label="Space ship">
+              🛸
+            </span>{' '}
+            Something unexpected happened
+          </h1>
           <p>
             An unrecoverable error occurred{window.Bugsnag ||
               (true && ' and our engineers have been notified')}. Please try{' '}

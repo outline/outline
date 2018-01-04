@@ -6,7 +6,6 @@ import { Portal } from 'react-portal';
 import { Editor, findDOMNode } from 'slate-react';
 import { Node, Value } from 'slate';
 import styled from 'styled-components';
-import _ from 'lodash';
 import FormattingToolbar from './components/FormattingToolbar';
 import LinkToolbar from './components/LinkToolbar';
 

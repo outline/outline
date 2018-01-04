@@ -2,7 +2,7 @@
 import React from 'react';
 import Document from 'models/Document';
 import DocumentPreview from 'components/DocumentPreview';
-import ArrowKeyNavigation from 'boundless-arrow-key-navigation/build';
+import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 class DocumentList extends React.Component {
   props: {

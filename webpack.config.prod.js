@@ -4,7 +4,7 @@ var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-commonWebpackConfig = require('./webpack.base');
+commonWebpackConfig = require('./webpack.config');
 
 productionWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,

@@ -5,7 +5,7 @@ import { observable, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Search } from 'js-search';
-import ArrowKeyNavigation from 'boundless-arrow-key-navigation/build';
+import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import _ from 'lodash';
 import styled from 'styled-components';
 import { size } from 'shared/styles/constants';

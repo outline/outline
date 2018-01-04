@@ -13,7 +13,7 @@ import DocumentsStore, {
 import { withRouter } from 'react-router-dom';
 import { searchUrl } from 'utils/routeHelpers';
 import styled from 'styled-components';
-import ArrowKeyNavigation from 'boundless-arrow-key-navigation/build';
+import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import Empty from 'components/Empty';
 import Flex from 'shared/components/Flex';

@@ -4,8 +4,8 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build:webpack": "NODE_ENV=production webpack --config config/webpack.prod.js",
-    "build:analyze": "NODE_ENV=production webpack --config config/webpack.prod.js --json > stats.json",
+    "build:webpack": "NODE_ENV=production webpack --config webpack.config.prod.js",
+    "build:analyze": "NODE_ENV=production webpack --config webpack.config.prod.js --json > stats.json",
     "build": "npm run clean && npm run build:webpack",
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development nodemon --watch server index.js",
@@ -49,7 +49,7 @@
     ],
     "setupFiles": [
       "raf/polyfill",
-      "<rootDir>/config/setupJest.js",
+      "<rootDir>/setupJest.js",
       "<rootDir>/__mocks__/window.js"
     ]
   },
@@ -92,10 +92,9 @@
     "emoji-regex": "^6.5.1",
     "eslint": "^4.14.0",
     "eslint-config-react-app": "^2.0.1",
-    "eslint-import-resolver-webpack": "^0.8.3",
     "eslint-plugin-flowtype": "^2.40.1",
     "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-jsx-a11y": "5.1.1",
     "eslint-plugin-prettier": "^2.4.0",
     "eslint-plugin-react": "^7.5.1",
     "exports-loader": "^0.6.4",
