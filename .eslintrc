@@ -6,10 +6,7 @@
     "plugin:import/warnings",
     "plugin:flowtype/recommended"
   ],
-  "plugins": [
-    "prettier",
-    "flowtype"
-  ],
+  "plugins": ["prettier", "flowtype"],
   "rules": {
     "eqeqeq": 2,
     "no-unused-vars": 2,
@@ -22,9 +19,7 @@
     "import/no-unresolved": [
       "error",
       {
-        "ignore": [
-          "slate-drop-or-paste-images"
-        ]
+        "ignore": ["slate-drop-or-paste-images"]
       }
     ],
     // Flow
@@ -35,14 +30,8 @@
         "annotationStyle": "line"
       }
     ],
-    "flowtype/space-after-type-colon": [
-      2,
-      "always"
-    ],
-    "flowtype/space-before-type-colon": [
-      2,
-      "never"
-    ],
+    "flowtype/space-after-type-colon": [2, "always"],
+    "flowtype/space-before-type-colon": [2, "never"],
     // Enforce that code is formatted with prettier.
     "prettier/prettier": [
       "error",
@@ -56,10 +45,7 @@
   "settings": {
     "import/resolver": {
       "node": {
-        "paths": [
-          "app",
-          "."
-        ]
+        "paths": ["app", "."]
       }
     },
     "flowtype": {

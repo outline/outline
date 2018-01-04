@@ -1,8 +1,5 @@
 {
-  "presets": [
-    "react",
-    "env"
-  ],
+  "presets": ["react", "env"],
   "plugins": [
     "lodash",
     "styled-components",
@@ -15,9 +12,7 @@
   ],
   "env": {
     "development": {
-      "presets": [
-        "react-hmre"
-      ]
+      "presets": ["react-hmre"]
     }
   }
 }
