@@ -15,6 +15,7 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
     filename: 'bundle.[hash].js',
     publicPath: '/static/',
   },
+  stats: "normal"
 });
 productionWebpackConfig.plugins.push(
   new HtmlWebpackPlugin({

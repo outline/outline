@@ -2,5 +2,6 @@ dist
 node_modules/*
 .env
 npm-debug.log
+stats.json
 .DS_Store
 fakes3/*

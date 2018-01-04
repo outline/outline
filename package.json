@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build:webpack": "NODE_ENV=production webpack --config config/webpack.prod.js",
-    "build:analyze": "NODE_ENV=production webpack --config config/webpack.prod.js --json | webpack-bundle-size-analyzer",
+    "build:analyze": "NODE_ENV=production webpack --config config/webpack.prod.js --json > stats.json",
     "build": "npm run clean && npm run build:webpack",
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development nodemon --watch server index.js",
