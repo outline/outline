@@ -1,5 +1,8 @@
 {
-  "presets": ["react", "env"],
+  "presets": [
+    "react",
+    "env"
+  ],
   "plugins": [
     "lodash",
     "styled-components",
@@ -7,11 +10,14 @@
     "transform-es2015-destructuring",
     "transform-object-rest-spread",
     "transform-regenerator",
-    "transform-class-properties"
+    "transform-class-properties",
+    "syntax-dynamic-import"
   ],
   "env": {
     "development": {
-      "presets": ["react-hmre"]
+      "presets": [
+        "react-hmre"
+      ]
     }
   }
 }
