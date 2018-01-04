@@ -32,8 +32,8 @@ module.exports = {
         test: /\.js$/,
         loader: 'babel-loader',
         include: [
-          path.join(__dirname, 'app'),
-          path.join(__dirname, 'shared'),
+          path.join(__dirname, '../app'),
+          path.join(__dirname, '../shared'),
         ],
       },
       { test: /\.json$/, loader: 'json-loader' },
@@ -57,11 +57,11 @@ module.exports = {
   },
   resolve: {
     modules: [
-      path.resolve(__dirname, 'app'),
+      path.resolve(__dirname, '../app'),
       'node_modules'
     ],
     alias: {
-      shared: path.resolve(__dirname, 'shared'),
+      shared: path.resolve(__dirname, '../shared'),
       'boundless-utils-omit-keys': 'boundless-utils-omit-keys/build',
       'boundless-utils-uuid': 'boundless-utils-uuid/build'
     }

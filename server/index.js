@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
   const webpack = require('webpack');
   const devMiddleware = require('koa-webpack-dev-middleware');
   const hotMiddleware = require('koa-webpack-hot-middleware');
-  const config = require('../webpack.config.dev');
+  const config = require('../config/webpack.dev');
   const compile = webpack(config);
   /* eslint-enable global-require */
 
