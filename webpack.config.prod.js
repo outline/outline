@@ -22,15 +22,12 @@ productionWebpackConfig.plugins.push(
   })
 );
 productionWebpackConfig.plugins.push(
-  new ExtractTextPlugin('styles.[hash].css')
-);
-productionWebpackConfig.plugins.push(
-  new webpack.optimize.OccurenceOrderPlugin()
+  new ExtractTextPlugin({ filename: 'styles.[hash].css' })
 );
 productionWebpackConfig.plugins.push(
   new webpack.optimize.UglifyJsPlugin({
     compress: {
-      warnings: false,
+      sourceMap: true,
     },
   })
 );
