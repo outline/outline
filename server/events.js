@@ -18,18 +18,29 @@ type CollectionEvent = {
 export type Event = DocumentEvent | CollectionEvent;
 
 const log = debug('events');
-const queue = new Queue('events', process.env.REDIS_URL);
+const globalEventsQueue = new Queue('global events', process.env.REDIS_URL);
+const serviceEventsQueue = new Queue('service events', process.env.REDIS_URL);
 
-queue.process(async function(job) {
+// this queue processes global events and hands them off to service hooks
+globalEventsQueue.process(async function(job) {
   const names = Object.keys(services);
   names.forEach(name => {
     const service = services[name];
     if (service.on) {
-      const event = job.data;
-      log(`Triggering ${event.name} for ${service.name}`);
-      service.on(event);
+      serviceEventsQueue.add({ service: name, ...job.data });
     }
   });
 });
 
-export default queue;
+// this queue processes an individual event for a specific service
+serviceEventsQueue.process(async function(job) {
+  const event = job.data;
+  const service = services[event.service];
+
+  if (service.on) {
+    log(`Triggering ${event.name} for ${service.name}`);
+    service.on(event);
+  }
+});
+
+export default globalEventsQueue;

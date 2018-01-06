@@ -48,7 +48,7 @@ class Settings extends Component {
         name: this.name,
         avatarUrl: this.avatarUrl,
       });
-      invariant(res && res.data, 'Document list not available');
+      invariant(res && res.data, 'User response not available');
       const { data } = res;
       runInAction('Settings#handleSubmit', () => {
         this.props.auth.user = data;
@@ -56,7 +56,7 @@ class Settings extends Component {
         this.timeout = setTimeout(() => (this.isUpdated = false), 2500);
       });
     } catch (e) {
-      this.props.errors.add('Failed to load documents');
+      this.props.errors.add('Failed to update user');
     } finally {
       this.isSaving = false;
     }
@@ -153,7 +153,7 @@ const AvatarContainer = styled(Flex)`
   &:hover div {
     opacity: 1;
     background: rgba(0, 0, 0, 0.75);
-    color: #ffffff;
+    color: ${color.white};
   }
 `;
 
@@ -165,4 +165,4 @@ const StyledInput = styled(Input)`
   max-width: 350px;
 `;
 
-export default inject('auth', 'errors', 'auth')(Settings);
+export default inject('auth', 'errors')(Settings);
