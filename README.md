@@ -39,7 +39,7 @@ In development you can quickly get an environment running using Docker by follow
 To enable debugging statements, set the following env vars:
 
 ```
-DEBUG=sql,cache,presenters
+DEBUG=sql,cache,presenters,events
 ```
 
 ## Migrations

@@ -7,6 +7,7 @@ import Plain from 'slate-plain-serializer';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
+import events from '../events';
 import parseTitle from '../../shared/utils/parseTitle';
 import Revision from './Revision';
 
@@ -203,6 +204,20 @@ Document.searchForUser = async (
   // Order the documents in the same order as the first query
   return _.sortBy(documents, doc => ids.indexOf(doc.id));
 };
+
+// Hooks
+
+Document.addHook('afterCreate', model =>
+  events.add({ name: 'documents.create', model })
+);
+
+Document.addHook('afterDestroy', model =>
+  events.add({ name: 'documents.delete', model })
+);
+
+Document.addHook('afterUpdate', model =>
+  events.add({ name: 'documents.update', model })
+);
 
 // Instance methods
 

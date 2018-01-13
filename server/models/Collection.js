@@ -1,11 +1,12 @@
 // @flow
+import _ from 'lodash';
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
 import { asyncLock } from '../redis';
+import events from '../events';
 import Document from './Document';
 import Event from './Event';
-import _ from 'lodash';
 
 // $FlowIssue invalid flow-typed
 slug.defaults.mode = 'rfc3986';
@@ -92,6 +93,20 @@ Collection.associate = models => {
     ],
   });
 };
+
+// Hooks
+
+Collection.addHook('afterCreate', model =>
+  events.add({ name: 'collections.create', model })
+);
+
+Collection.addHook('afterDestroy', model =>
+  events.add({ name: 'collections.delete', model })
+);
+
+Collection.addHook('afterUpdate', model =>
+  events.add({ name: 'collections.update', model })
+);
 
 // Instance methods
 

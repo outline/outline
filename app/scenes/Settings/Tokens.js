@@ -16,7 +16,7 @@ import HelpText from 'components/HelpText';
 import Subheading from 'components/Subheading';
 
 @observer
-class Settings extends Component {
+class Tokens extends Component {
   @observable name: string = '';
   props: {
     settings: SettingsStore,
@@ -96,4 +96,4 @@ const Table = styled.table`
   }
 `;
 
-export default inject('settings')(Settings);
+export default inject('settings')(Tokens);
