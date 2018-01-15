@@ -26,7 +26,6 @@ import CollectionsStore from 'stores/CollectionsStore';
 import DocumentMenu from 'menus/DocumentMenu';
 import SaveAction from './components/SaveAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
-import Editor from 'components/Editor';
 import LoadingIndicator from 'components/LoadingIndicator';
 import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
@@ -56,6 +55,7 @@ class DocumentScene extends Component {
   props: Props;
   savedTimeout: number;
 
+  @observable editorComponent;
   @observable editCache: ?string;
   @observable newDocument: ?Document;
   @observable isLoading = false;
@@ -65,6 +65,7 @@ class DocumentScene extends Component {
 
   componentDidMount() {
     this.loadDocument(this.props);
+    this.loadEditor();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -126,6 +127,11 @@ class DocumentScene extends Component {
         this.notFound = true;
       }
     }
+  };
+
+  loadEditor = async () => {
+    const EditorImport = await import('components/Editor');
+    this.editorComponent = EditorImport.default;
   };
 
   get isEditing() {
@@ -208,6 +214,7 @@ class DocumentScene extends Component {
   }
 
   render() {
+    const Editor = this.editorComponent;
     const isNew = this.props.newDocument;
     const isMoving = this.props.match.path === matchDocumentMove;
     const document = this.document;
@@ -225,7 +232,7 @@ class DocumentScene extends Component {
           {isMoving && document && <DocumentMove document={document} />}
           {titleText && <PageTitle title={titleText} />}
           {(this.isLoading || this.isSaving) && <LoadingIndicator />}
-          {!document ? (
+          {!document || !Editor ? (
             <CenteredContent>
               <LoadingState />
             </CenteredContent>

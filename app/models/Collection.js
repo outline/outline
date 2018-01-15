@@ -1,7 +1,6 @@
 // @flow
 import { extendObservable, action, computed, runInAction } from 'mobx';
 import invariant from 'invariant';
-import _ from 'lodash';
 
 import BaseModel from 'models/BaseModel';
 import { client } from 'utils/ApiClient';

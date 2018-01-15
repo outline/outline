@@ -2,7 +2,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import invariant from 'invariant';
-import _ from 'lodash';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 

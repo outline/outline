@@ -166,6 +166,7 @@ const DocumentLink = observer(
     activeDocumentRef,
     prefetchDocument,
     depth,
+    history,
   }: DocumentLinkProps) => {
     const isActiveDocument =
       activeDocument && activeDocument.id === document.id;
