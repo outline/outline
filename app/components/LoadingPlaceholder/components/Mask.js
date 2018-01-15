@@ -13,7 +13,7 @@ class Mask extends Component {
     return false;
   }
 
-  componentWillmount() {
+  componentWillMount() {
     this.width = randomInteger(75, 100);
   }
 
