@@ -7,13 +7,12 @@ import auth from './middlewares/authentication';
 import { presentUser } from '../presenters';
 
 const router = new Router();
-router.use(auth());
 
-router.post('user.info', async ctx => {
+router.post('user.info', auth(), async ctx => {
   ctx.body = { data: await presentUser(ctx, ctx.state.user) };
 });
 
-router.post('user.update', async ctx => {
+router.post('user.update', auth(), async ctx => {
   const { user } = ctx.state;
   const { name, avatarUrl } = ctx.body;
   const endpoint = publicS3Endpoint();
@@ -29,7 +28,7 @@ router.post('user.update', async ctx => {
   ctx.body = { data: await presentUser(ctx, user) };
 });
 
-router.post('user.s3Upload', async ctx => {
+router.post('user.s3Upload', auth(), async ctx => {
   const { filename, kind, size } = ctx.body;
   ctx.assertPresent(filename, 'filename is required');
   ctx.assertPresent(kind, 'kind is required');
