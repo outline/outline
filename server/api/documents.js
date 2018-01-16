@@ -1,6 +1,7 @@
 // @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
+import { Op } from 'sequelize';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
@@ -105,6 +106,28 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('documents.drafts', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const documents = await Document.findAll({
+    where: { userId: user.id, publishedAt: { [Op.eq]: null } },
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  const data = await Promise.all(
+    documents.map(document => presentDocument(ctx, document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
 router.post('documents.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
@@ -191,9 +214,10 @@ router.post('documents.unstar', auth(), async ctx => {
 });
 
 router.post('documents.create', auth(), async ctx => {
-  const { collection, title, text, parentDocument, index } = ctx.body;
-  ctx.assertPresent(collection, 'collection is required');
-  ctx.assertUuid(collection, 'collection must be an uuid');
+  const { title, text, publish, parentDocument, index } = ctx.body;
+  const collectionId = ctx.body.collection;
+  ctx.assertPresent(collectionId, 'collection is required');
+  ctx.assertUuid(collectionId, 'collection must be an uuid');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
   if (parentDocument)
@@ -201,44 +225,46 @@ router.post('documents.create', auth(), async ctx => {
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
   const user = ctx.state.user;
-  const ownerCollection = await Collection.findOne({
+  const collection = await Collection.findOne({
     where: {
-      id: collection,
+      id: collectionId,
       teamId: user.teamId,
     },
   });
 
-  if (!ownerCollection) throw httpErrors.BadRequest();
+  if (!collection) throw httpErrors.BadRequest();
 
   let parentDocumentObj = {};
-  if (parentDocument && ownerCollection.type === 'atlas') {
+  if (parentDocument && collection.type === 'atlas') {
     parentDocumentObj = await Document.findOne({
       where: {
         id: parentDocument,
-        atlasId: ownerCollection.id,
+        atlasId: collection.id,
       },
     });
   }
 
-  const newDocument = await Document.create({
+  const publishedAt = publish ? new Date() : undefined;
+  const document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
-    atlasId: ownerCollection.id,
+    atlasId: collection.id,
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,
     createdById: user.id,
+    publishedAt,
     title,
     text,
   });
 
   // reload to get all of the data needed to present (user, collection etc)
-  const document = await Document.findById(newDocument.id);
+  await document.reload();
 
-  if (ownerCollection.type === 'atlas') {
-    await ownerCollection.addDocumentToStructure(document, index);
+  if (publishedAt && collection.type === 'atlas') {
+    await collection.addDocumentToStructure(document, index);
   }
 
-  document.collection = ownerCollection;
+  document.collection = collection;
 
   ctx.body = {
     data: await presentDocument(ctx, document),
@@ -246,7 +272,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, lastRevision } = ctx.body;
+  const { id, title, text, publish, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -261,13 +287,18 @@ router.post('documents.update', auth(), async ctx => {
   authDocumentForUser(ctx, document);
 
   // Update document
+  if (publish) document.publishedAt = new Date();
   if (title) document.title = title;
   if (text) document.text = text;
   document.lastModifiedById = user.id;
 
   await document.save();
   if (collection.type === 'atlas') {
-    await collection.updateDocument(document);
+    if (document.publishedAt) {
+      await collection.updateDocument(document);
+    } else {
+      await collection.addDocumentToStructure(document);
+    }
   }
 
   document.collection = collection;

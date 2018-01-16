@@ -165,7 +165,7 @@ class DocumentScene extends Component {
 
     if (!document) return;
     this.isSaving = true;
-    document = await document.save();
+    document = await document.save(redirect);
     this.isSaving = false;
 
     if (redirect) {

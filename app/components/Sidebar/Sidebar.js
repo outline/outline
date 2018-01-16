@@ -12,6 +12,7 @@ import Scrollable from 'components/Scrollable';
 import HomeIcon from 'components/Icon/HomeIcon';
 import SearchIcon from 'components/Icon/SearchIcon';
 import StarredIcon from 'components/Icon/StarredIcon';
+import EditIcon from 'components/Icon/EditIcon';
 import Collections from './components/Collections';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
@@ -66,6 +67,9 @@ class Sidebar extends Component {
               </SidebarLink>
               <SidebarLink to="/starred" icon={<StarredIcon />}>
                 Starred
+              </SidebarLink>
+              <SidebarLink to="/drafts" icon={<EditIcon />}>
+                Drafts
               </SidebarLink>
             </Section>
             <Section>

@@ -65,8 +65,13 @@ class DocumentsStore extends BaseStore {
   }
 
   @computed
-  get starred(): Array<Document> {
+  get starred(): Document[] {
     return _.filter(this.data.values(), 'starred');
+  }
+
+  @computed
+  get drafts(): Document[] {
+    return _.filter(this.data.values(), doc => !doc.publishedAt);
   }
 
   @computed
@@ -121,6 +126,11 @@ class DocumentsStore extends BaseStore {
   @action
   fetchStarred = async (): Promise<*> => {
     await this.fetchAll('starred');
+  };
+
+  @action
+  fetchDrafts = async (): Promise<*> => {
+    await this.fetchAll('drafts');
   };
 
   @action

@@ -4,6 +4,7 @@ import _ from 'lodash';
 import randomstring from 'randomstring';
 import MarkdownSerializer from 'slate-md-serializer';
 import Plain from 'slate-plain-serializer';
+import Sequelize from 'sequelize';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
@@ -72,6 +73,7 @@ const Document = sequelize.define(
     title: DataTypes.STRING,
     text: DataTypes.TEXT,
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+    publishedAt: DataTypes.DATE,
     parentDocumentId: DataTypes.UUID,
     createdById: {
       type: DataTypes.UUID,
@@ -135,6 +137,11 @@ Document.associate = models => {
         { model: models.User, as: 'createdBy' },
         { model: models.User, as: 'updatedBy' },
       ],
+      // where: {
+      //   publishedAt: {
+      //     [Sequelize.Op.ne]: null,
+      //   },
+      // },
     },
     { override: true }
   );
