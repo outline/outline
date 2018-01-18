@@ -30,12 +30,6 @@ class Members extends Component {
     this.props.settings.fetchMembers();
   }
 
-  handleUserInvite = async () => {};
-
-  handleInviteEmailChange = e => {
-    this.inviteEmails = e.target.value;
-  };
-
   render() {
     return (
       <CenteredContent>
