@@ -32,14 +32,13 @@ Team.associate = models => {
 };
 
 Team.prototype.createFirstCollection = async function(userId) {
-  const atlas = await Collection.create({
-    name: this.name,
+  return await Collection.create({
+    name: 'General',
     description: 'Your first Collection',
     type: 'atlas',
     teamId: this.id,
     creatorId: userId,
   });
-  return atlas;
 };
 
 Team.prototype.addAdmin = async function(user: User) {
