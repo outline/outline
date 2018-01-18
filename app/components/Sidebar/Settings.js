@@ -56,6 +56,9 @@ class Sidebar extends Component {
             </Section>
             <Section>
               <Header>Team</Header>
+              <SidebarLink to="/settings/members" icon={<CodeIcon />}>
+                Members
+              </SidebarLink>
               <SidebarLink
                 to="/settings/integrations/slack"
                 icon={<SettingsIcon />}

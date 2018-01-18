@@ -20,6 +20,7 @@ import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
+import Members from 'scenes/Settings/Members';
 import Slack from 'scenes/Settings/Slack';
 import Tokens from 'scenes/Settings/Tokens';
 import SlackAuth from 'scenes/SlackAuth';
@@ -65,6 +66,7 @@ render(
                     <Route exact path="/dashboard" component={Dashboard} />
                     <Route exact path="/starred" component={Starred} />
                     <Route exact path="/settings" component={Settings} />
+                    <Route exact path="/settings/members" component={Members} />
                     <Route exact path="/settings/tokens" component={Tokens} />
                     <Route
                       exact

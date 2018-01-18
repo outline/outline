@@ -1,75 +1,83 @@
 // @flow
 import React, { Component } from 'react';
-import { observable, runInAction } from 'mobx';
-import { observer } from 'mobx-react';
-import invariant from 'invariant';
+import { observable } from 'mobx';
+import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';
-import { color, layout } from 'shared/styles/constants';
+import { color } from 'shared/styles/constants';
 
-import { client } from 'utils/ApiClient';
+import ErrorsStore from 'stores/ErrorsStore';
+import SettingsStore from 'stores/SettingsStore';
 import CenteredContent from 'components/CenteredContent';
+import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
 
 @observer
 class Members extends Component {
+  props: {
+    errors: ErrorsStore,
+    settings: SettingsStore,
+  };
+
   @observable members;
   @observable isLoaded: boolean = false;
 
+  @observable inviteEmails: string = '';
+  @observable isInviting: boolean = false;
+
   componentDidMount() {
-    this.fetchMembers();
+    this.props.settings.fetchMembers();
   }
 
-  async fetchMembers() {
-    try {
-      const res = await client.post(`/team.users`);
-      invariant(res && res.data, 'Unable ');
-      const { data } = res;
-      runInAction('Members#fetchMembers', () => {
-        this.members = data;
-      });
-    } catch (e) {
-      // show error
-    }
-  }
+  handleUserInvite = async () => {};
+
+  handleInviteEmailChange = e => {
+    this.inviteEmails = e.target.value;
+  };
 
   render() {
     return (
       <CenteredContent>
         <PageTitle title="Members" />
         <h1>Members</h1>
-        {this.members && (
-          <MemberList>
-            {this.members.map(member => (
-              <Member auto justify="space-between">
-                <Flex>
-                  <Avatar src={member.avatarUrl} />
-                  <UserName>
-                    {member.name} &middot; {member.email}
-                    {member.isAdmin && <AdminBadge>Admin</AdminBadge>}
-                  </UserName>
-                </Flex>
-                <Flex>
-                  <Action onClick={() => { }}>Make admin</Action>
-                </Flex>
-              </Member>
-            ))}
-          </MemberList>
+
+        {!this.props.settings.isFetching ? (
+          <Flex column>
+            {this.props.settings.members && (
+              <MemberList>
+                {this.props.settings.members.map(member => (
+                  <Member auto justify="space-between">
+                    <Flex>
+                      <Avatar src={member.avatarUrl} />
+                      <UserName>
+                        {member.name} {member.email && `(${member.email})`}
+                        {member.isAdmin && <AdminBadge>Admin</AdminBadge>}
+                      </UserName>
+                    </Flex>
+                  </Member>
+                ))}
+              </MemberList>
+            )}
+          </Flex>
+        ) : (
+          <LoadingPlaceholder />
         )}
       </CenteredContent>
     );
   }
 }
 
-const MemberList = styled(Flex) `
+const MemberList = styled(Flex)`
   border: 1px solid ${color.smoke};
   border-radius: 4px;
+
+  margin-top: 20px;
+  margin-bottom: 40px;
 `;
 
-const Member = styled(Flex) `
-  padding: 4px 10px;
+const Member = styled(Flex)`
+  padding: 10px;
   border-bottom: 1px solid ${color.smoke};
   font-size: 15px;
 
@@ -90,6 +98,4 @@ const AdminBadge = styled.span`
   font-weight: normal;
 `;
 
-const Action = styled.span``;
-
-export default Members;
+export default inject('errors', 'settings')(Members);
