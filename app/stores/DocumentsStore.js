@@ -71,7 +71,10 @@ class DocumentsStore extends BaseStore {
 
   @computed
   get drafts(): Document[] {
-    return _.filter(this.data.values(), doc => !doc.publishedAt);
+    return _.filter(
+      _.orderBy(this.data.values(), 'updatedAt', 'desc'),
+      doc => !doc.publishedAt
+    );
   }
 
   @computed

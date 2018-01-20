@@ -247,7 +247,27 @@ describe('#documents.create', async () => {
     expect(newDocument.collection.id).toBe(collection.id);
   });
 
-  it('should create as a child', async () => {
+  it('should create as a child and add to collection if published', async () => {
+    const { user, document, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title: 'new document',
+        text: 'hello',
+        parentDocument: document.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('new document');
+    expect(body.data.collection.documents.length).toBe(2);
+    expect(body.data.collection.documents[1].children[0].id).toBe(body.data.id);
+  });
+
+  it('should create as a child and not add to collection', async () => {
     const { user, document, collection } = await seed();
     const res = await server.post('/api/documents.create', {
       body: {
@@ -263,7 +283,6 @@ describe('#documents.create', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('new document');
     expect(body.data.collection.documents.length).toBe(2);
-    expect(body.data.collection.documents[1].children[0].id).toBe(body.data.id);
   });
 });
 
