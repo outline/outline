@@ -244,8 +244,8 @@ router.post('documents.create', auth(), async ctx => {
     });
   }
 
-  const publishedAt = publish ? new Date() : undefined;
-  const document = await Document.create({
+  const publishedAt = publish ? new Date() : null;
+  let document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
     atlasId: collection.id,
     teamId: user.teamId,
@@ -257,14 +257,16 @@ router.post('documents.create', auth(), async ctx => {
     text,
   });
 
-  // reload to get all of the data needed to present (user, collection etc)
-  await document.reload();
-
   if (publishedAt && collection.type === 'atlas') {
     await collection.addDocumentToStructure(document, index);
   }
 
-  document.collection = collection;
+  // reload to get all of the data needed to present (user, collection etc)
+  // we need to specify publishedAt to bypass default scope that only returns
+  // published documents
+  document = await Document.find({
+    where: { id: document.id, publishedAt },
+  });
 
   ctx.body = {
     data: await presentDocument(ctx, document),

@@ -57,6 +57,7 @@ const Collection = sequelize.define(
             userId: collection.creatorId,
             lastModifiedById: collection.creatorId,
             createdById: collection.creatorId,
+            publishedAt: new Date(),
             title: 'Introduction',
             text: '# Introduction\n\nLets get started...',
           });

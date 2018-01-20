@@ -235,6 +235,7 @@ describe('#removeDocument', () => {
       userId: collection.creatorId,
       lastModifiedById: collection.creatorId,
       createdById: collection.creatorId,
+      publishedAt: new Date(),
       title: 'Child document',
       text: 'content',
     });

@@ -137,11 +137,11 @@ Document.associate = models => {
         { model: models.User, as: 'createdBy' },
         { model: models.User, as: 'updatedBy' },
       ],
-      // where: {
-      //   publishedAt: {
-      //     [Sequelize.Op.ne]: null,
-      //   },
-      // },
+      where: {
+        publishedAt: {
+          [Sequelize.Op.ne]: null,
+        },
+      },
     },
     { override: true }
   );

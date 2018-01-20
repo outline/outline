@@ -23,6 +23,20 @@ describe('#documents.list', async () => {
     expect(body.data[0].id).toEqual(document.id);
   });
 
+  it('should not return unpublished documents', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post('/api/documents.list', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
   it('should allow changing sort direction', async () => {
     const { user, document } = await seed();
     const res = await server.post('/api/documents.list', {
@@ -51,6 +65,22 @@ describe('#documents.list', async () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#documents.drafts', async () => {
+  it('should return unpublished documents', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post('/api/documents.drafts', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 });
 
@@ -233,6 +263,7 @@ describe('#documents.create', async () => {
         collection: collection.id,
         title: 'new document',
         text: 'hello',
+        publish: true,
       },
     });
     const body = await res.json();
