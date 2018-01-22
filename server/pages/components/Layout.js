@@ -5,6 +5,7 @@ import { TopNavigation, BottomNavigation } from './Navigation';
 import Analytics from '../../../shared/components/Analytics';
 import globalStyles from '../../../shared/styles/globals';
 import { color } from '../../../shared/styles/constants';
+import prefetchTags from '../../utils/prefetchTags';
 
 type Props = {
   children?: React$Element<*>,
@@ -40,10 +41,7 @@ export default function Layout({ children }: Props) {
             href="/favicon-32.png"
             sizes="32x32"
           />
-          <link
-            rel="dns-prefetch"
-            href={process.env.AWS_S3_UPLOAD_BUCKET_URL}
-          />
+          {prefetchTags}
         </Helmet>
         <Analytics />
 
