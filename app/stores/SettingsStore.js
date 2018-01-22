@@ -2,10 +2,11 @@
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { ApiKey } from 'types';
+import type { ApiKey, User } from 'types';
 
 class SettingsStore {
   @observable apiKeys: ApiKey[] = [];
+  @observable members: User[] = [];
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
 
@@ -54,6 +55,24 @@ class SettingsStore {
     } catch (e) {
       console.error('Something went wrong');
     }
+  };
+
+  @action
+  fetchMembers = async () => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post('/team.users');
+      invariant(res && res.data, 'Data should be available');
+      const { data } = res;
+
+      runInAction('fetchMembers', () => {
+        this.members = data;
+      });
+    } catch (e) {
+      console.error('Something went wrong');
+    }
+    this.isFetching = false;
   };
 }
 
