@@ -9,7 +9,7 @@ import { color } from '../../../shared/styles/constants';
 export const title = 'Outline';
 export const description =
   'Your team’s knowledge base - Team wiki, documentation, playbooks, onboarding & more…';
-export const screenshotUrl = 'https://www.getoutline.com/screenshot.png';
+export const screenshotUrl = `${process.env.URL}/screenshot.png`;
 
 type Props = {
   children?: React$Element<*>,
@@ -39,7 +39,7 @@ export default function Layout({ children }: Props) {
           <meta name="twitter:title" value={title} />
           <meta name="twitter:description" value={description} />
           <meta name="twitter:image" content={screenshotUrl} />
-          <meta name="twitter:url" value="https://www.getoutline.com/" />
+          <meta name="twitter:url" value={process.env.URL} />
 
           <meta name="theme-color" content={color.primary} />
           <link
