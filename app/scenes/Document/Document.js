@@ -115,7 +115,9 @@ class DocumentScene extends Component {
         this.props.ui.setActiveDocument(document);
         // Cache data if user enters edit mode and cancels
         this.editCache = document.text;
-        if (!this.isEditing) document.view();
+        if (!this.isEditing && document.publishedAt) {
+          document.view();
+        }
 
         // Update url to match the current one
         this.props.history.replace(
