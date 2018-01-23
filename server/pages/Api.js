@@ -258,13 +258,17 @@ export default function Pricing() {
           </Method>
 
           <Method method="documents.list" label="List your documents">
-            <Description>List all your documents.</Description>
+            <Description>List all published documents.</Description>
             <Arguments pagination>
               <Argument
                 id="collection"
                 description="Collection ID to filter by"
               />
             </Arguments>
+          </Method>
+
+          <Method method="documents.drafts" label="List your draft documents">
+            <Description>List all your draft documents.</Description>
           </Method>
 
           <Method method="documents.info" label="Get a document">
@@ -338,6 +342,15 @@ export default function Pricing() {
                   </span>
                 }
               />
+              <Argument
+                id="publish"
+                description={
+                  <span>
+                    <code>true</code> by default. Pass <code>false</code> to
+                    create a draft.
+                  </span>
+                }
+              />
             </Arguments>
           </Method>
 
@@ -355,6 +368,14 @@ export default function Pricing() {
               <Argument
                 id="text"
                 description="Content of the document in Markdown"
+              />
+              <Argument
+                id="publish"
+                description={
+                  <span>
+                    Pass <code>true</code> to publish a draft
+                  </span>
+                }
               />
             </Arguments>
           </Method>

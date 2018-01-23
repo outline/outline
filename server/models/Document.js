@@ -4,7 +4,7 @@ import _ from 'lodash';
 import randomstring from 'randomstring';
 import MarkdownSerializer from 'slate-md-serializer';
 import Plain from 'slate-plain-serializer';
-import Sequelize from 'sequelize';
+import Sequelize, { Op } from 'sequelize';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
@@ -139,12 +139,19 @@ Document.associate = models => {
       ],
       where: {
         publishedAt: {
-          [Sequelize.Op.ne]: null,
+          [Op.ne]: null,
         },
       },
     },
     { override: true }
   );
+  Document.addScope('withUnpublished', {
+    include: [
+      { model: models.Collection, as: 'collection' },
+      { model: models.User, as: 'createdBy' },
+      { model: models.User, as: 'updatedBy' },
+    ],
+  });
   Document.addScope('withViews', userId => ({
     include: [
       { model: models.View, as: 'views', where: { userId }, required: false },
@@ -158,12 +165,14 @@ Document.associate = models => {
 };
 
 Document.findById = async id => {
+  const scope = Document.scope('withUnpublished');
+
   if (isUUID(id)) {
-    return Document.findOne({
+    return scope.findOne({
       where: { id },
     });
   } else if (id.match(URL_REGEX)) {
-    return Document.findOne({
+    return scope.findOne({
       where: {
         urlId: id.match(URL_REGEX)[1],
       },

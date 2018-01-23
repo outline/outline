@@ -14,9 +14,14 @@ module.exports = {
         where id  = '${document.id}'
       `)
     }
+
+    await queryInterface.removeIndex('documents', ['id', 'atlasId']);
+    await queryInterface.addIndex('documents', ['id', 'atlasId', 'publishedAt']);
   },
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeColumn('documents', 'publishedAt');
+    await queryInterface.removeIndex('documents', ['id', 'atlasId', 'publishedAt']);
+    await queryInterface.addIndex('documents', ['id', 'atlasId']);
   }
 };

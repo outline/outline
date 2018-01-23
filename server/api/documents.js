@@ -244,7 +244,7 @@ router.post('documents.create', auth(), async ctx => {
     });
   }
 
-  const publishedAt = publish ? new Date() : null;
+  const publishedAt = publish === false ? null : new Date();
   let document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
     atlasId: collection.id,

@@ -10,9 +10,37 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
+describe('#documents.info', async () => {
+  it('should return published document', async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+  });
+
+  it('should return drafts', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+  });
+});
+
 describe('#documents.list', async () => {
   it('should return documents', async () => {
     const { user, document } = await seed();
+
     const res = await server.post('/api/documents.list', {
       body: { token: user.getJwtToken() },
     });
