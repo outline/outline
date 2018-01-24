@@ -67,7 +67,7 @@ class SettingsStore {
       const { data } = res;
 
       runInAction('fetchMembers', () => {
-        this.members = data;
+        this.members = data.reverse();
       });
     } catch (e) {
       console.error('Something went wrong');
