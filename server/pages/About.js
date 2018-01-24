@@ -40,7 +40,7 @@ export default function About() {
       </Helmet>
       <Header>
         <h1>About Us</h1>
-        <p>Who builds this anyway?</p>
+        <p>The team behind Outline</p>
       </Header>
       <Content>
         <p>
