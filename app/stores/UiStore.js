@@ -27,7 +27,10 @@ class UiStore {
   @action
   setActiveDocument = (document: Document): void => {
     this.activeDocumentId = document.id;
-    this.activeCollectionId = document.collection.id;
+
+    if (document.publishedAt) {
+      this.activeCollectionId = document.collection.id;
+    }
   };
 
   @action

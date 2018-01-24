@@ -18,12 +18,14 @@ import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
 
 import AuthStore from 'stores/AuthStore';
+import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
   history: Object,
   location: Location,
   auth: AuthStore,
+  documents: DocumentsStore,
   ui: UiStore,
 };
 
@@ -40,7 +42,7 @@ class Sidebar extends Component {
   };
 
   render() {
-    const { auth, ui } = this.props;
+    const { auth, ui, documents } = this.props;
     const { user, team } = auth;
     if (!user || !team) return;
 
@@ -68,7 +70,13 @@ class Sidebar extends Component {
               <SidebarLink to="/starred" icon={<StarredIcon />}>
                 Starred
               </SidebarLink>
-              <SidebarLink to="/drafts" icon={<EditIcon />}>
+              <SidebarLink
+                to="/drafts"
+                icon={<EditIcon />}
+                active={
+                  documents.active ? !documents.active.publishedAt : undefined
+                }
+              >
                 Drafts
               </SidebarLink>
             </Section>
@@ -108,4 +116,4 @@ const Section = styled(Flex)`
   position: relative;
 `;
 
-export default withRouter(inject('user', 'auth', 'ui')(Sidebar));
+export default withRouter(inject('user', 'auth', 'ui', 'documents')(Sidebar));

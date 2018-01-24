@@ -276,19 +276,18 @@ class DocumentScene extends Component {
                     <a onClick={this.onDiscard}>Discard</a>
                   </Action>
                 )}
-                {!this.isEditing && (
-                  <Action>
-                    <DocumentMenu document={document} />
-                  </Action>
-                )}
-                {!this.isEditing && <Separator />}
-                <Action>
-                  {!this.isEditing && (
-                    <a onClick={this.onClickNew}>
-                      <NewDocumentIcon />
-                    </a>
-                  )}
-                </Action>
+                {!this.isEditing &&
+                  document.publishedAt && [
+                    <Action>
+                      <DocumentMenu document={document} />
+                    </Action>,
+                    <Separator />,
+                    <Action>
+                      <a onClick={this.onClickNew}>
+                        <NewDocumentIcon />
+                      </a>
+                    </Action>,
+                  ]}
               </Actions>
             </Flex>
           )}

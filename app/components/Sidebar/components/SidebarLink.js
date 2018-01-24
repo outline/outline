@@ -54,6 +54,7 @@ type Props = {
   expandedContent?: React$Element<*>,
   hideExpandToggle?: boolean,
   iconColor?: string,
+  active?: boolean,
 };
 
 @observer
@@ -89,6 +90,7 @@ class SidebarLink extends Component {
       to,
       expandedContent,
       expand,
+      active,
       hideExpandToggle,
     } = this.props;
     const Component = to ? StyledNavLink : StyledDiv;
@@ -99,6 +101,7 @@ class SidebarLink extends Component {
         <Component
           iconVisible={showExpandIcon}
           activeStyle={activeStyle}
+          style={active ? activeStyle : undefined}
           onClick={onClick}
           to={to}
           exact
