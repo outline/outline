@@ -52,3 +52,11 @@ export function changelog(): string {
 export function signin(): string {
   return '/auth/slack';
 }
+
+export function about(): string {
+  return '/about';
+}
+
+export function privacy(): string {
+  return '/privacy';
+}
