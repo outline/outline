@@ -84,6 +84,10 @@ function Home() {
               what you’re looking for once your knowledge base starts to grow in
               size.
             </p>
+            <p>
+              Search directly within Slack using{' '}
+              <code>/outline &lt;keyword&gt;</code> command.
+            </p>
           </Feature>
         </Highlights>
         <Footer>
