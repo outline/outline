@@ -10,6 +10,7 @@ import serve from 'koa-static';
 import subdomainRedirect from './middlewares/subdomainRedirect';
 import renderpage from './utils/renderpage';
 import { slackAuth } from '../shared/utils/routeHelpers';
+import { robotsResponse } from './utils/robots';
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -80,6 +81,9 @@ router.get('/', async ctx => {
     await renderpage(ctx, <Home />);
   }
 });
+
+// Other
+router.get('/robots.txt', ctx => (ctx.body = robotsResponse(ctx)));
 
 // catch all for react app
 router.get('*', async ctx => {
