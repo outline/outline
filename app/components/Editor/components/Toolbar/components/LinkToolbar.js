@@ -163,6 +163,7 @@ class LinkToolbar extends Component {
             placeholder="Search or paste a link…"
             onKeyDown={this.onKeyDown}
             onChange={this.onChange}
+            autoFocus={href === ''}
           />
           {this.isEditing && (
             <ToolbarButton onMouseDown={this.openLink}>
