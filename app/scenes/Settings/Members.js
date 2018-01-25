@@ -39,7 +39,7 @@ class Members extends Component {
         {!this.props.settings.isFetching ? (
           <Flex column>
             {this.props.settings.members && (
-              <MemberList>
+              <MemberList column>
                 {this.props.settings.members.map(member => (
                   <Member auto justify="space-between">
                     <Flex>
