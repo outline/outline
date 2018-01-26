@@ -16,12 +16,13 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   ],
 });
 
-developmentWebpackConfig.plugins.push(new ExtractTextPlugin({ filename: 'styles.css' }));
-developmentWebpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
-developmentWebpackConfig.plugins.push(
+developmentWebpackConfig.plugins = [
+  ...developmentWebpackConfig.plugins,
+  new ExtractTextPlugin({ filename: 'styles.css' }),
+  new webpack.HotModuleReplacementPlugin(),
   new HtmlWebpackPlugin({
     title: 'Outline',
-  })
-);
+  }),
+];
 
 module.exports = developmentWebpackConfig;
