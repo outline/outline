@@ -6,10 +6,11 @@ import {
   signin,
   developers,
   changelog,
+  about,
+  privacy,
   githubUrl,
   spectrumUrl,
   blogUrl,
-  twitterUrl,
 } from '../../../shared/utils/routeHelpers';
 import { color } from '../../../shared/styles/constants';
 
@@ -22,7 +23,7 @@ function TopNavigation() {
           <a href="/#features">Features</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
-          <a href={blogUrl()}>Blog</a>
+          <a href={about()}>About</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
           <a href={changelog()}>Changelog</a>
@@ -51,7 +52,7 @@ function BottomNavigation() {
         <a href={blogUrl()}>Medium</a>
       </div>
       <div>
-        <a href={twitterUrl()}>Twitter</a>
+        <a href={privacy()}>Privacy</a>
       </div>
     </BottomNav>
   );

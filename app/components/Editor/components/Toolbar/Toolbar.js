@@ -6,7 +6,6 @@ import { Portal } from 'react-portal';
 import { Editor, findDOMNode } from 'slate-react';
 import { Node, Value } from 'slate';
 import styled from 'styled-components';
-import _ from 'lodash';
 import FormattingToolbar from './components/FormattingToolbar';
 import LinkToolbar from './components/LinkToolbar';
 
@@ -15,8 +14,10 @@ function getLinkInSelection(value): any {
     const selectedLinks = value.document
       .getInlinesAtRange(value.selection)
       .filter(node => node.type === 'link');
+
     if (selectedLinks.size) {
-      return selectedLinks.first();
+      const link = selectedLinks.first();
+      if (value.selection.hasEdgeIn(link)) return link;
     }
   } catch (err) {
     // It's okay.
@@ -170,7 +171,7 @@ const Menu = styled.div`
   transition-delay: 250ms;
   line-height: 0;
   height: 40px;
-  min-width: 260px;
+  min-width: 300px;
 
   ${({ active }) =>
     active &&

@@ -27,10 +27,10 @@ module.exports = {
     publicPath: '/static/',
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
-        loader: 'babel',
+        loader: 'babel-loader',
         include: [
           path.join(__dirname, 'app'),
           path.join(__dirname, 'shared'),
@@ -45,7 +45,10 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loader: ExtractTextPlugin.extract('style-loader', 'css-loader'),
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: 'css-loader'
+        }),
       },
       { test: /\.md/, loader: 'raw-loader' },
     ],
@@ -53,14 +56,19 @@ module.exports = {
     noParse: [new RegExp('node_modules/localforage/dist/localforage.js')],
   },
   resolve: {
-    root: path.resolve(__dirname, 'app'),
-    extensions: ['', '.js', '.json'],
-    alias: { shared: path.resolve(__dirname, 'shared') }
+    modules: [
+      path.resolve(__dirname, 'app'),
+      'node_modules'
+    ],
+    mainFields: ["browser",  "main"],
+    alias: {
+      shared: path.resolve(__dirname, 'shared'),
+    }
   },
   plugins: [
     definePlugin,
     new webpack.ProvidePlugin({
-      fetch: 'imports?this=>global!exports?global.fetch!isomorphic-fetch',
+      fetch: 'imports-loader?this=>global!exports-loader?global.fetch!isomorphic-fetch',
     }),
     new webpack.ContextReplacementPlugin(/moment[\\\/]locale$/, /^\.\/(en)$/),
     new webpack.IgnorePlugin(/unicode\/category\/So/),

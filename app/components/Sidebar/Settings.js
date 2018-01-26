@@ -11,6 +11,7 @@ import Scrollable from 'components/Scrollable';
 import ProfileIcon from 'components/Icon/ProfileIcon';
 import SettingsIcon from 'components/Icon/SettingsIcon';
 import CodeIcon from 'components/Icon/CodeIcon';
+import UserIcon from 'components/Icon/UserIcon';
 import Header from './components/Header';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
@@ -56,6 +57,9 @@ class Sidebar extends Component {
             </Section>
             <Section>
               <Header>Team</Header>
+              <SidebarLink to="/settings/members" icon={<UserIcon />}>
+                Members
+              </SidebarLink>
               <SidebarLink
                 to="/settings/integrations/slack"
                 icon={<SettingsIcon />}

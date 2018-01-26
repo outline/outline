@@ -16,12 +16,8 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   ],
 });
 
-developmentWebpackConfig.plugins.push(
-  new webpack.optimize.OccurenceOrderPlugin()
-);
-developmentWebpackConfig.plugins.push(new ExtractTextPlugin('styles.css'));
+developmentWebpackConfig.plugins.push(new ExtractTextPlugin({ filename: 'styles.css' }));
 developmentWebpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
-developmentWebpackConfig.plugins.push(new webpack.NoErrorsPlugin());
 developmentWebpackConfig.plugins.push(
   new HtmlWebpackPlugin({
     title: 'Outline',
