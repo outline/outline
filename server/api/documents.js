@@ -298,7 +298,7 @@ router.post('documents.update', auth(), async ctx => {
   if (collection.type === 'atlas') {
     if (document.publishedAt) {
       await collection.updateDocument(document);
-    } else {
+    } else if (publish) {
       await collection.addDocumentToStructure(document);
     }
   }

@@ -210,9 +210,9 @@ class DocumentScene extends Component {
   }
 
   render() {
-    const isNew = this.props.newDocument;
     const isMoving = this.props.match.path === matchDocumentMove;
     const document = this.document;
+    const isDraft = !(document && document.publishedAt);
     const titleText =
       get(document, 'title', '') ||
       this.props.collections.titleForDocument(this.props.location.pathname);
@@ -254,30 +254,33 @@ class DocumentScene extends Component {
                 justify="flex-end"
                 readOnly={!this.isEditing}
               >
-                {!isNew &&
+                {!isDraft &&
                   !this.isEditing && <Collaborators document={document} />}
-                <Action>
-                  {this.isEditing ? (
+                {this.isEditing && (
+                  <Action>
                     <SaveAction
-                      isSaving={this.isSaving}
                       onClick={this.onSave.bind(this, true)}
+                      isDraft={isDraft}
+                      isSaving={this.isSaving}
                       disabled={
                         !(this.document && this.document.allowSave) ||
                         this.isSaving
                       }
-                      isNew={!!isNew}
                     />
-                  ) : (
+                  </Action>
+                )}
+                {!this.isEditing && (
+                  <Action>
                     <a onClick={this.onClickEdit}>Edit</a>
-                  )}
-                </Action>
+                  </Action>
+                )}
                 {this.isEditing && (
                   <Action>
                     <a onClick={this.onDiscard}>Discard</a>
                   </Action>
                 )}
                 {!this.isEditing &&
-                  document.publishedAt && [
+                  !isDraft && [
                     <Action>
                       <DocumentMenu document={document} />
                     </Action>,

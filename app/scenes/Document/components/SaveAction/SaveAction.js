@@ -5,7 +5,7 @@ import styled from 'styled-components';
 type Props = {
   onClick: (redirect: ?boolean) => *,
   disabled?: boolean,
-  isNew?: boolean,
+  isDraft?: boolean,
   isSaving?: boolean,
 };
 
@@ -20,7 +20,7 @@ class SaveAction extends React.Component {
   };
 
   render() {
-    const { isSaving, isNew, disabled } = this.props;
+    const { isSaving, isDraft, disabled } = this.props;
 
     return (
       <Link
@@ -28,9 +28,7 @@ class SaveAction extends React.Component {
         title="Save changes (Cmd+Enter)"
         disabled={disabled}
       >
-        {isNew
-          ? isSaving ? 'Publishing…' : 'Publish'
-          : isSaving ? 'Saving…' : 'Save'}
+        {isSaving ? 'Saving…' : isDraft ? 'Publish' : 'Save'}
       </Link>
     );
   }
