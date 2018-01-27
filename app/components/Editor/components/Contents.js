@@ -64,14 +64,16 @@ class Contents extends Component {
   }
 
   render() {
+    const { editor } = this.props;
+
     // If there are one or less headings in the document no need for a minimap
     if (this.headings.size <= 1) return null;
 
     return (
       <Wrapper>
         <Sections>
-          {this.headings.map((heading, index) => {
-            const slug = headingToSlug(heading, index);
+          {this.headings.map(heading => {
+            const slug = headingToSlug(editor.value.document, heading);
             const active = this.activeHeading === slug;
 
             return (

@@ -1,8 +1,7 @@
 // @flow
 import React from 'react';
-import { Document, Block } from 'slate';
+import { Document } from 'slate';
 import type { SlateNodeProps } from '../types';
-import { List } from 'immutable';
 import styled from 'styled-components';
 import headingToSlug from '../headingToSlug';
 import Placeholder from './Placeholder';
@@ -12,15 +11,6 @@ type Props = SlateNodeProps & {
   className: string,
   placeholder: string,
 };
-
-function indexInDocument(document, heading) {
-  const headings = document.nodes.filter((node: Block) => {
-    if (!node.text) return false;
-    return node.type.match(/^heading/);
-  });
-
-  return headings.indexOf(heading);
-}
 
 function Heading(props: Props) {
   const {
@@ -37,10 +27,7 @@ function Heading(props: Props) {
   const parentIsDocument = parent instanceof Document;
   const firstHeading = parentIsDocument && parent.nodes.first() === node;
   const showPlaceholder = placeholder && firstHeading && !node.text;
-  const slugish = headingToSlug(
-    node,
-    indexInDocument(editor.value.document, node)
-  );
+  const slugish = headingToSlug(editor.value.document, node);
   const showHash = readOnly && !!slugish;
   const Component = component;
   const emoji = editor.props.emoji || '';
