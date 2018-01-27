@@ -70,8 +70,8 @@ class Contents extends Component {
     return (
       <Wrapper>
         <Sections>
-          {this.headings.map(heading => {
-            const slug = headingToSlug(heading);
+          {this.headings.map((heading, index) => {
+            const slug = headingToSlug(heading, index);
             const active = this.activeHeading === slug;
 
             return (
