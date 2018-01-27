@@ -1,14 +1,11 @@
 // @flow
 import { Change } from 'slate';
+import { isCmdKey } from '../utils';
 
 export default function KeyboardShortcuts() {
   return {
     onKeyDown(ev: SyntheticKeyboardEvent, change: Change) {
-      const isMac = /Mac OS/.test(navigator.userAgent);
-      // Mac OS x
-      if (isMac && !ev.metaKey) return null;
-      // Windows etc
-      if (!isMac && !ev.ctrlKey) return null;
+      if (!isCmdKey(ev)) return null;
 
       switch (ev.key) {
         case 'b':
