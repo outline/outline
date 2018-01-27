@@ -4,7 +4,11 @@ import { Change } from 'slate';
 export default function KeyboardShortcuts() {
   return {
     onKeyDown(ev: SyntheticKeyboardEvent, change: Change) {
-      if (!ev.metaKey) return null;
+      const isMac = /Mac OS/.test(navigator.userAgent);
+      // Mac OS x
+      if (isMac && !ev.metaKey) return null;
+      // Windows etc
+      if (!isMac && !ev.ctrlKey) return null;
 
       switch (ev.key) {
         case 'b':
