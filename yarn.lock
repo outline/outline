@@ -7891,9 +7891,9 @@ react-markdown@^3.0.2:
     unist-util-visit "^1.1.3"
     xtend "^4.0.1"
 
-react-medium-image-zoom@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.npmjs.org/react-medium-image-zoom/-/react-medium-image-zoom-3.0.2.tgz#13bb39a2aa2c4d63821fd018f8b4a93cd3316cd4"
+react-medium-image-zoom@^3.0.10:
+  version "3.0.10"
+  resolved "https://registry.yarnpkg.com/react-medium-image-zoom/-/react-medium-image-zoom-3.0.10.tgz#7e011844b02605aef0500b36f10dcc2808731583"
 
 react-modal@^3.1.2:
   version "3.1.2"
@@ -8731,9 +8731,9 @@ slate-edit-code@^0.13.2:
     ends-with "^0.2.0"
     is-hotkey "^0.1.1"
 
-slate-edit-list@^0.10.1:
-  version "0.10.1"
-  resolved "https://registry.npmjs.org/slate-edit-list/-/slate-edit-list-0.10.1.tgz#9c6a142a314b0ff22a327f1b50c8f5c85468cb17"
+slate-edit-list@^0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.10.2.tgz#938a791c7e7974fac3ef00505cc98710c307efc6"
 
 slate-md-serializer@^1.0.7:
   version "1.0.7"
@@ -8746,15 +8746,15 @@ slate-paste-linkify@^0.5.0:
     is-url "^1.2.2"
     to-pascal-case "^1.0.0"
 
-slate-plain-serializer@^0.4.12:
-  version "0.4.12"
-  resolved "https://registry.npmjs.org/slate-plain-serializer/-/slate-plain-serializer-0.4.12.tgz#802c246bbb7f5c03170a6b3b862251ec51d39cb6"
+slate-plain-serializer@0.4.13:
+  version "0.4.13"
+  resolved "https://registry.yarnpkg.com/slate-plain-serializer/-/slate-plain-serializer-0.4.13.tgz#1979e4bb57008312e8d45c92c511db5169c316a5"
   dependencies:
     slate-dev-logger "^0.1.36"
 
-slate-plain-serializer@^0.4.15:
-  version "0.4.15"
-  resolved "https://registry.yarnpkg.com/slate-plain-serializer/-/slate-plain-serializer-0.4.15.tgz#bb4ff0594b7c56b88158d52ac99196972e5d0ba9"
+slate-plain-serializer@^0.4.12:
+  version "0.4.12"
+  resolved "https://registry.npmjs.org/slate-plain-serializer/-/slate-plain-serializer-0.4.12.tgz#802c246bbb7f5c03170a6b3b862251ec51d39cb6"
   dependencies:
     slate-dev-logger "^0.1.36"
 
