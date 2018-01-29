@@ -95,6 +95,14 @@ Collection.associate = models => {
   });
 };
 
+Collection.addHook('afterDestroy', async model => {
+  await Document.destroy({
+    where: {
+      atlasId: model.id,
+    },
+  });
+});
+
 // Hooks
 
 Collection.addHook('afterCreate', model =>
