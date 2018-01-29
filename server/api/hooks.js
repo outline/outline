@@ -71,13 +71,14 @@ router.post('hooks.slack', async ctx => {
         color: document.collection.color,
         title: document.title,
         title_link: `${process.env.URL}${document.getUrl()}`,
+        footer: document.collection.name,
         text: document.getSummary(),
-        ts: new Date(document.updatedAt).getTime(),
+        ts: document.getTimestamp(),
       });
     }
 
     ctx.body = {
-      text: `This is what we found…`,
+      text: `This is what we found for "${text}"…`,
       attachments,
     };
   } else {
