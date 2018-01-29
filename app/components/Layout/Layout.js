@@ -60,7 +60,7 @@ class Layout extends React.Component {
     this.props.history.push(documentEditUrl(activeDocument));
   }
 
-  @keydown('meta+/')
+  @keydown('shift+/')
   openKeyboardShortcuts() {
     this.props.ui.setActiveModal('keyboard-shortcuts');
   }
