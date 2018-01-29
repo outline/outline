@@ -6,6 +6,9 @@ up:
 build:
 	docker-compose build --pull outline
 
+test:
+	docker-compose run --rm outline yarn test
+
 destroy:
 	docker-compose stop
 	docker-compose rm -f
