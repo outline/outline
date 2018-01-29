@@ -221,6 +221,10 @@ Document.addHook('afterUpdate', model =>
 
 // Instance methods
 
+Document.prototype.getTimestamp = function() {
+  return Math.round(new Date(this.updatedAt).getTime() / 1000);
+};
+
 Document.prototype.getSummary = function() {
   const value = Markdown.deserialize(this.text);
   const plain = Plain.serialize(value);
