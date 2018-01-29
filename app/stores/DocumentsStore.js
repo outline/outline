@@ -29,6 +29,7 @@ type Options = {
 
 class DocumentsStore extends BaseStore {
   @observable recentlyViewedIds: Array<string> = [];
+  @observable recentlyEditedIds: Array<string> = [];
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
@@ -41,17 +42,22 @@ class DocumentsStore extends BaseStore {
 
   @computed
   get recentlyViewed(): Array<Document> {
-    return _.take(
-      _.filter(this.data.values(), ({ id }) =>
-        this.recentlyViewedIds.includes(id)
-      ),
-      5
-    );
+    const docs = [];
+    this.recentlyViewedIds.forEach(id => {
+      const doc = this.getById(id);
+      if (doc) docs.push(doc);
+    });
+    return docs;
   }
 
   @computed
   get recentlyEdited(): Document[] {
-    return _.take(_.orderBy(this.data.values(), 'updatedAt', 'desc'), 5);
+    const docs = [];
+    this.recentlyEditedIds.forEach(id => {
+      const doc = this.getById(id);
+      if (doc) docs.push(doc);
+    });
+    return docs;
   }
 
   recentlyEditedIn(documentIds: string[]): Document[] {
@@ -105,7 +111,12 @@ class DocumentsStore extends BaseStore {
 
   @action
   fetchRecentlyModified = async (options: ?PaginationParams): Promise<*> => {
-    return await this.fetchAll('list', options);
+    const data = await this.fetchAll('list', options);
+
+    runInAction('DocumentsStore#fetchRecentlyModified', () => {
+      this.recentlyEditedIds = _.map(data, 'id');
+    });
+    return data;
   };
 
   @action
@@ -205,6 +216,16 @@ class DocumentsStore extends BaseStore {
     });
     this.on('documents.create', (data: Document) => {
       this.add(new Document(data));
+    });
+
+    // Re-fetch dashboard content so that we don't show deleted documents
+    this.on('collections.delete', () => {
+      this.fetchRecentlyModified();
+      this.fetchRecentlyViewed();
+    });
+    this.on('documents.delete', () => {
+      this.fetchRecentlyModified();
+      this.fetchRecentlyViewed();
     });
 
     autorunAsync('DocumentsStore.persists', () => {
