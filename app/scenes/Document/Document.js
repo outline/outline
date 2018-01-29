@@ -226,7 +226,7 @@ class DocumentScene extends Component {
     }
 
     return (
-      <Container column auto>
+      <Container key={this.props.location.pathname} column auto>
         {isMoving && document && <DocumentMove document={document} />}
         {titleText && <PageTitle title={titleText} />}
         {(this.isLoading || this.isSaving) && <LoadingIndicator />}
