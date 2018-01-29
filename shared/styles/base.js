@@ -69,10 +69,6 @@ export default `
     margin-bottom: 1em;
   }
 
-  li {
-    padding: .2em 0;
-  }
-
   hr {
     border: 0;
   height: 0;
