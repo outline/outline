@@ -50,7 +50,7 @@ router.post('hooks.slack', async ctx => {
   ctx.assertPresent(text, 'text is required');
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN)
-    throw httpErrors.BadRequest('Invalid token');
+    throw httpErrors.Unauthorized('Invalid token');
 
   const user = await User.find({
     where: {
@@ -59,35 +59,30 @@ router.post('hooks.slack', async ctx => {
   });
 
   if (!user) throw httpErrors.BadRequest('Invalid user');
-  if (!user.isAdmin)
-    throw httpErrors.BadRequest('Only admins can add integrations');
 
   const documents = await Document.searchForUser(user, text, {
     limit: 5,
   });
 
-  if (documents) {
-    const results = [];
-    let number = 1;
+  if (documents.length) {
+    const attachments = [];
     for (const document of documents) {
-      results.push(
-        `${number}. <${process.env.URL}${document.getUrl()}|${document.title}>`
-      );
-      number += 1;
+      attachments.push({
+        color: document.collection.color,
+        title: document.title,
+        title_link: `${process.env.URL}${document.getUrl()}`,
+        text: document.getSummary(),
+        ts: new Date(document.updatedAt).getTime(),
+      });
     }
 
     ctx.body = {
-      text: 'Search results:',
-      attachments: [
-        {
-          text: results.join('\n'),
-          color: '#3AA3E3',
-        },
-      ],
+      text: `This is what we found…`,
+      attachments,
     };
   } else {
     ctx.body = {
-      text: 'No search results',
+      text: `No results for "${text}"`,
     };
   }
 });
