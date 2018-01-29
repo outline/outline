@@ -19,6 +19,7 @@ import { insertImageFile } from './changes';
 import renderMark from './marks';
 import createRenderNode from './nodes';
 import schema from './schema';
+import { isModKey } from './utils';
 import styled from 'styled-components';
 
 type Props = {
@@ -136,7 +137,7 @@ class MarkdownEditor extends Component {
 
   // Handling of keyboard shortcuts within editor focus
   onKeyDown = (ev: SyntheticKeyboardEvent, change: Change) => {
-    if (!ev.metaKey) return;
+    if (!isModKey(ev)) return;
 
     switch (ev.key) {
       case 's':

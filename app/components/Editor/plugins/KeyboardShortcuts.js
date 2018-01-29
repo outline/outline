@@ -1,10 +1,11 @@
 // @flow
 import { Change } from 'slate';
+import { isModKey } from '../utils';
 
 export default function KeyboardShortcuts() {
   return {
     onKeyDown(ev: SyntheticKeyboardEvent, change: Change) {
-      if (!ev.metaKey) return null;
+      if (!isModKey(ev)) return null;
 
       switch (ev.key) {
         case 'b':
