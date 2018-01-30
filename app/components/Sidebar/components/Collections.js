@@ -126,17 +126,16 @@ class CollectionLink extends Component {
         >
           <CollectionName justify="space-between">
             {collection.name}
-
-            <CollectionAction>
-              <CollectionMenu
-                history={history}
-                collection={collection}
-                onOpen={() => (this.menuOpen = true)}
-                onClose={() => (this.menuOpen = false)}
-              />
-            </CollectionAction>
           </CollectionName>
         </SidebarLink>
+        <CollectionAction>
+          <CollectionMenu
+            history={history}
+            collection={collection}
+            onOpen={() => (this.menuOpen = true)}
+            onClose={() => (this.menuOpen = false)}
+          />
+        </CollectionAction>
       </StyledDropToImport>
     );
   }
@@ -225,6 +224,7 @@ const CollectionName = styled(Flex)`
 const CollectionAction = styled.span`
   position: absolute;
   right: 0;
+  top: 0;
   color: ${color.slate};
   svg {
     opacity: 0.75;
@@ -238,6 +238,8 @@ const CollectionAction = styled.span`
 `;
 
 const StyledDropToImport = styled(DropToImport)`
+  position: relative;
+
   ${CollectionAction} {
     display: ${props => (props.menuOpen ? 'inline' : 'none')};
   }

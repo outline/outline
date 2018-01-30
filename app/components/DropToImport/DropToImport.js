@@ -54,11 +54,19 @@ class DropToImport extends Component {
       }
 
       for (const file of files) {
-        await importFile({ file, documentId, collectionId, redirect }, doc => {
-          if (redirect) {
-            this.props.history.push(doc.url);
+        importFile(
+          {
+            documents: this.props.documents,
+            file,
+            documentId,
+            collectionId,
+          },
+          doc => {
+            if (redirect) {
+              this.props.history.push(doc.url);
+            }
           }
-        });
+        );
       }
     } catch (err) {
       // TODO: show error alert.

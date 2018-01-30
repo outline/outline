@@ -33,7 +33,9 @@ class CollectionMenu extends Component {
     history.push(`${collection.url}/new`);
   };
 
-  onImportFile = (ev: SyntheticEvent) => {
+  onImportDocument = (ev: SyntheticEvent) => {
+    ev.preventDefault();
+
     // simulate a click on the file upload input element
     this.file.click();
   };
@@ -87,7 +89,7 @@ class CollectionMenu extends Component {
               <DropdownMenuItem onClick={this.onNewDocument}>
                 New document
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={this.onImportFile}>
+              <DropdownMenuItem onClick={this.onImportDocument}>
                 Import document
               </DropdownMenuItem>
               <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
