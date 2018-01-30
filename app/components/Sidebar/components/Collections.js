@@ -254,6 +254,7 @@ const StyledDropToImport = styled(DropToImport)`
 const CollectionChildren = styled(Flex)`
   margin-top: -4px;
   margin-left: 36px;
+  padding-bottom: 4px;
 `;
 
 const DocumentChildren = styled(Flex)`
