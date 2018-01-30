@@ -78,6 +78,22 @@ class CollectionScene extends Component {
     }
   };
 
+  renderActions() {
+    return (
+      <Actions align="center" justify="flex-end">
+        <Action>
+          <CollectionMenu collection={this.collection} />
+        </Action>
+        <Separator />
+        <Action>
+          <a onClick={this.onNewDocument}>
+            <NewDocumentIcon />
+          </a>
+        </Action>
+      </Actions>
+    );
+  }
+
   renderEmptyCollection() {
     if (!this.collection) return;
 
@@ -88,6 +104,7 @@ class CollectionScene extends Component {
           <CollectionIcon color={this.collection.color} size={40} expanded />{' '}
           {this.collection.name}
         </Heading>
+        {this.renderActions()}
         <HelpText>
           Publish your first document to start building this collection.
         </HelpText>
@@ -131,17 +148,7 @@ class CollectionScene extends Component {
                 this.collection.documentIds
               )}
             />
-            <Actions align="center" justify="flex-end">
-              <Action>
-                <CollectionMenu collection={this.collection} />
-              </Action>
-              <Separator />
-              <Action>
-                <a onClick={this.onNewDocument}>
-                  <NewDocumentIcon />
-                </a>
-              </Action>
-            </Actions>
+            {this.renderActions()}
           </span>
         ) : (
           <ListPlaceholder count={5} />
