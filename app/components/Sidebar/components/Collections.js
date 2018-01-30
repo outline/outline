@@ -76,13 +76,8 @@ type CollectionLinkProps = {
 @observer
 class CollectionLink extends Component {
   props: CollectionLinkProps;
-  dropzoneRef;
 
   @observable menuOpen = false;
-
-  handleImport = () => {
-    this.dropzoneRef.open();
-  };
 
   renderDocuments() {
     const {
@@ -119,7 +114,6 @@ class CollectionLink extends Component {
         collectionId={collection.id}
         activeClassName="activeDropZone"
         menuOpen={this.menuOpen}
-        dropzoneRef={ref => (this.dropzoneRef = ref)}
       >
         <SidebarLink
           key={collection.id}
@@ -139,8 +133,6 @@ class CollectionLink extends Component {
                 collection={collection}
                 onOpen={() => (this.menuOpen = true)}
                 onClose={() => (this.menuOpen = false)}
-                onImport={this.handleImport}
-                open={this.menuOpen}
               />
             </CollectionAction>
           </CollectionName>
