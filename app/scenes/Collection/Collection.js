@@ -82,7 +82,10 @@ class CollectionScene extends Component {
     return (
       <Actions align="center" justify="flex-end">
         <Action>
-          <CollectionMenu collection={this.collection} />
+          <CollectionMenu
+            history={this.props.history}
+            collection={this.collection}
+          />
         </Action>
         <Separator />
         <Action>
@@ -104,7 +107,6 @@ class CollectionScene extends Component {
           <CollectionIcon color={this.collection.color} size={40} expanded />{' '}
           {this.collection.name}
         </Heading>
-        {this.renderActions()}
         <HelpText>
           Publish your first document to start building this collection.
         </HelpText>
@@ -113,6 +115,7 @@ class CollectionScene extends Component {
             <Button>Create new document</Button>
           </Link>
         </Wrapper>
+        {this.renderActions()}
       </CenteredContent>
     );
   }

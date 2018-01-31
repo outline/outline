@@ -4,10 +4,10 @@ import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { injectGlobal } from 'styled-components';
 import { color } from 'shared/styles/constants';
+import importFile from 'utils/importFile';
 import invariant from 'invariant';
 import _ from 'lodash';
 import Dropzone from 'react-dropzone';
-import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
 import LoadingIndicator from 'components/LoadingIndicator';
 
@@ -19,7 +19,6 @@ type Props = {
   rejectClassName?: string,
   documents: DocumentsStore,
   disabled: boolean,
-  dropzoneRef: Function,
   history: Object,
 };
 
@@ -40,30 +39,6 @@ class DropToImport extends Component {
   @observable isImporting: boolean = false;
   props: Props;
 
-  importFile = async ({ file, documentId, collectionId, redirect }) => {
-    const reader = new FileReader();
-
-    reader.onload = async ev => {
-      const text = ev.target.result;
-      let data = {
-        parentDocument: undefined,
-        collection: { id: collectionId },
-        text,
-      };
-
-      if (documentId) data.parentDocument = documentId;
-
-      let document = new Document(data);
-      document = await document.save();
-      this.props.documents.add(document);
-
-      if (redirect && this.props.history) {
-        this.props.history.push(document.url);
-      }
-    };
-    reader.readAsText(file);
-  };
-
   onDropAccepted = async (files = []) => {
     this.isImporting = true;
 
@@ -79,7 +54,16 @@ class DropToImport extends Component {
       }
 
       for (const file of files) {
-        await this.importFile({ file, documentId, collectionId, redirect });
+        const doc = await importFile({
+          documents: this.props.documents,
+          file,
+          documentId,
+          collectionId,
+        });
+
+        if (redirect) {
+          this.props.history.push(doc.url);
+        }
       }
     } catch (err) {
       // TODO: show error alert.
@@ -96,7 +80,6 @@ class DropToImport extends Component {
       'collectionId',
       'documents',
       'disabled',
-      'dropzoneRef',
       'menuOpen'
     );
 
@@ -110,7 +93,6 @@ class DropToImport extends Component {
         disableClick
         disablePreview
         multiple
-        ref={this.props.dropzoneRef}
         {...props}
       >
         {this.isImporting && <LoadingIndicator />}
