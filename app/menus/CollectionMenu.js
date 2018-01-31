@@ -40,19 +40,15 @@ class CollectionMenu extends Component {
     this.file.click();
   };
 
-  onFilePicked = (ev: SyntheticEvent) => {
+  onFilePicked = async (ev: SyntheticEvent) => {
     const files = getDataTransferFiles(ev);
+    const document = await importFile({
+      file: files[0],
+      documents: this.props.documents,
+      collectionId: this.props.collection.id,
+    });
 
-    importFile(
-      {
-        file: files[0],
-        documents: this.props.documents,
-        collectionId: this.props.collection.id,
-      },
-      document => {
-        this.props.history.push(document.url);
-      }
-    );
+    this.props.history.push(document.url);
   };
 
   onEdit = (ev: SyntheticEvent) => {

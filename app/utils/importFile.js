@@ -9,28 +9,32 @@ type Options = {
   documentId?: string,
 };
 
-const importFile = async (
-  { documents, file, documentId, collectionId }: Options,
-  callback: Document => *
-) => {
-  const reader = new FileReader();
+const importFile = async ({
+  documents,
+  file,
+  documentId,
+  collectionId,
+}: Options): Promise<Document> => {
+  return new Promise(resolve => {
+    const reader = new FileReader();
 
-  reader.onload = async ev => {
-    const text = ev.target.result;
-    let data = {
-      parentDocument: undefined,
-      collection: { id: collectionId },
-      text,
+    reader.onload = async ev => {
+      const text = ev.target.result;
+      let data = {
+        parentDocument: undefined,
+        collection: { id: collectionId },
+        text,
+      };
+
+      if (documentId) data.parentDocument = documentId;
+
+      let document = new Document(data);
+      document = await document.save();
+      documents.add(document);
+      resolve(document);
     };
-
-    if (documentId) data.parentDocument = documentId;
-
-    let document = new Document(data);
-    document = await document.save();
-    documents.add(document);
-    callback(document);
-  };
-  reader.readAsText(file);
+    reader.readAsText(file);
+  });
 };
 
 export default importFile;
