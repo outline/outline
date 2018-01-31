@@ -78,6 +78,25 @@ class CollectionScene extends Component {
     }
   };
 
+  renderActions() {
+    return (
+      <Actions align="center" justify="flex-end">
+        <Action>
+          <CollectionMenu
+            history={this.props.history}
+            collection={this.collection}
+          />
+        </Action>
+        <Separator />
+        <Action>
+          <a onClick={this.onNewDocument}>
+            <NewDocumentIcon />
+          </a>
+        </Action>
+      </Actions>
+    );
+  }
+
   renderEmptyCollection() {
     if (!this.collection) return;
 
@@ -96,6 +115,7 @@ class CollectionScene extends Component {
             <Button>Create new document</Button>
           </Link>
         </Wrapper>
+        {this.renderActions()}
       </CenteredContent>
     );
   }
@@ -131,20 +151,7 @@ class CollectionScene extends Component {
                 this.collection.documentIds
               )}
             />
-            <Actions align="center" justify="flex-end">
-              <Action>
-                <CollectionMenu
-                  history={this.props.history}
-                  collection={this.collection}
-                />
-              </Action>
-              <Separator />
-              <Action>
-                <a onClick={this.onNewDocument}>
-                  <NewDocumentIcon />
-                </a>
-              </Action>
-            </Actions>
+            {this.renderActions()}
           </span>
         ) : (
           <ListPlaceholder count={5} />
