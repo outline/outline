@@ -1,3 +1,32 @@
+## Jan 28th 2018
+
+- Fixed keyboard shortcuts on Windows
+- Fixed slack slash command and improved results formatting in Slack
+- Fixed headings now have stable anchors for external linking
+- Fixed several JS issues in the editor
+- Improved toolbar behavior for link editing
+
+---
+
+## Jan 23rd 2018
+
+- Added 'about' page
+- Added dynamic prefetching of scripts for improved performance
+- Added more meta tags
+- Added new onboarding document
+
+---
+
+## Jan 15th 2018
+
+- Fixed loading placeholders styling
+- Added members view to settings pages
+- Dynamic loading of editor JS for first load performance
+- Added event bus for future integrations
+- Improved handling of malformed links
+
+---
+
 ## Jan 6th, 2018
 
 - Improved the floating toolbar behavior in the editor
