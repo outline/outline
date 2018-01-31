@@ -133,7 +133,10 @@ class CollectionScene extends Component {
             />
             <Actions align="center" justify="flex-end">
               <Action>
-                <CollectionMenu collection={this.collection} />
+                <CollectionMenu
+                  history={this.props.history}
+                  collection={this.collection}
+                />
               </Action>
               <Separator />
               <Action>
