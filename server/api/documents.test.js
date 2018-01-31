@@ -247,6 +247,22 @@ describe('#documents.create', async () => {
     expect(newDocument.collection.id).toBe(collection.id);
   });
 
+  it('should fallback to a default title', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title: ' ',
+        text: ' ',
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('Untitled document');
+    expect(body.data.text).toBe('# Untitled document');
+  });
+
   it('should create as a child', async () => {
     const { user, document, collection } = await seed();
     const res = await server.post('/api/documents.create', {
@@ -286,6 +302,26 @@ describe('#documents.update', async () => {
     expect(body.data.title).toBe('Updated title');
     expect(body.data.text).toBe('Updated text');
     expect(body.data.collection.documents[1].title).toBe('Updated title');
+  });
+
+  it('should fallback to a default title', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: ' ',
+        text: ' ',
+        lastRevision: document.revision,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('Untitled document');
+    expect(body.data.text).toBe('# Untitled document');
+    expect(body.data.collection.documents[1].title).toBe('Untitled document');
   });
 
   it('should fail if document lastRevision does not match', async () => {
