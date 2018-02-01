@@ -13,6 +13,7 @@ import Revision from './Revision';
 
 const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
+const DEFAULT_TITLE = 'Untitled document';
 
 // $FlowIssue invalid flow-typed
 slug.defaults.mode = 'rfc3986';
@@ -36,14 +37,19 @@ const createUrlId = doc => {
 };
 
 const beforeSave = async doc => {
-  const { emoji } = parseTitle(doc.text);
+  const { emoji, title } = parseTitle(doc.text);
 
+  // emoji in the title is split out for easier display
   doc.emoji = emoji;
-  doc.revisionCount += 1;
 
-  // Collaborators
+  // ensure document has a title
+  if (!title) {
+    doc.title = DEFAULT_TITLE;
+    doc.text = doc.text.replace(/^.*$/m, `# ${DEFAULT_TITLE}`);
+  }
+
+  // calculate collaborators
   let ids = [];
-  // Only get previous user IDs if the document already exists
   if (doc.id) {
     ids = await Revision.findAll({
       attributes: [[DataTypes.literal('DISTINCT "userId"'), 'userId']],
@@ -52,9 +58,13 @@ const beforeSave = async doc => {
       },
     }).map(rev => rev.userId);
   }
-  // We'll add the current user as revision hasn't been generated yet
+
+  // add the current user as revision hasn't been generated yet
   ids.push(doc.lastModifiedById);
   doc.collaboratorIds = _.uniq(ids);
+
+  // increment revision
+  doc.revisionCount += 1;
 
   return doc;
 };

@@ -11,8 +11,6 @@ import type { User } from 'types';
 import BaseModel from './BaseModel';
 import Collection from './Collection';
 
-const DEFAULT_TITLE = 'Untitled document';
-
 class Document extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
@@ -172,14 +170,6 @@ class Document extends BaseModel {
           lastRevision: this.revision,
         });
       } else {
-        if (!this.title) {
-          this.title = DEFAULT_TITLE;
-          this.text = this.text.replace(
-            new RegExp(`^# `),
-            `# ${DEFAULT_TITLE}`
-          );
-        }
-
         const data = {
           parentDocument: undefined,
           collection: this.collection.id,
