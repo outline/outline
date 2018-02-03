@@ -62,6 +62,7 @@
   },
   "dependencies": {
     "@tommoor/slate-drop-or-paste-images": "^0.8.1",
+    "@tommoor/slate-edit-code": "^0.13.3",
     "aws-sdk": "^2.135.0",
     "babel-core": "^6.24.1",
     "babel-eslint": "^8.1.2",
@@ -165,7 +166,6 @@
     "sequelize-encrypted": "0.1.0",
     "slate": "^0.31.5",
     "slate-collapse-on-escape": "^0.6.0",
-    "slate-edit-code": "^0.13.2",
     "slate-edit-list": "^0.10.2",
     "slate-md-serializer": "^1.0.7",
     "slate-paste-linkify": "^0.5.0",
