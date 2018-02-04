@@ -85,7 +85,7 @@ class DocumentsStore extends BaseStore {
   /* Actions */
 
   @action
-  fetchAll = async (
+  fetchPage = async (
     request: string = 'list',
     options: ?PaginationParams
   ): Promise<*> => {
@@ -95,7 +95,7 @@ class DocumentsStore extends BaseStore {
       const res = await client.post(`/documents.${request}`, options);
       invariant(res && res.data, 'Document list not available');
       const { data } = res;
-      runInAction('DocumentsStore#fetchAll', () => {
+      runInAction('DocumentsStore#fetchPage', () => {
         data.forEach(document => {
           this.data.set(document.id, new Document(document));
         });
@@ -111,7 +111,7 @@ class DocumentsStore extends BaseStore {
 
   @action
   fetchRecentlyModified = async (options: ?PaginationParams): Promise<*> => {
-    const data = await this.fetchAll('list', options);
+    const data = await this.fetchPage('list', options);
 
     runInAction('DocumentsStore#fetchRecentlyModified', () => {
       this.recentlyEditedIds = _.map(data, 'id');
@@ -121,7 +121,7 @@ class DocumentsStore extends BaseStore {
 
   @action
   fetchRecentlyViewed = async (options: ?PaginationParams): Promise<*> => {
-    const data = await this.fetchAll('viewed', options);
+    const data = await this.fetchPage('viewed', options);
 
     runInAction('DocumentsStore#fetchRecentlyViewed', () => {
       this.recentlyViewedIds = _.map(data, 'id');
@@ -131,7 +131,7 @@ class DocumentsStore extends BaseStore {
 
   @action
   fetchStarred = async (): Promise<*> => {
-    await this.fetchAll('starred');
+    await this.fetchPage('starred');
   };
 
   @action

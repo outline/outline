@@ -15,7 +15,7 @@ describe('CollectionsStore', () => {
     store = new CollectionsStore({});
   });
 
-  describe('#fetchAll', () => {
+  describe('#fetchPage', () => {
     test('should load stores', async () => {
       store.client = {
         post: jest.fn(() => ({
@@ -28,7 +28,7 @@ describe('CollectionsStore', () => {
         })),
       };
 
-      await store.fetchAll();
+      await store.fetchPage();
 
       expect(store.client.post).toHaveBeenCalledWith('/collections.list');
       expect(store.data.size).toBe(1);
@@ -40,7 +40,7 @@ describe('CollectionsStore', () => {
         post: jest.fn(() => Promise.reject),
       };
 
-      await store.fetchAll();
+      await store.fetchPage();
 
       expect(store.errors.add).toHaveBeenCalledWith(
         'Failed to load collections'
