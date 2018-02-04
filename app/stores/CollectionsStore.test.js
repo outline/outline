@@ -1,12 +1,6 @@
 /* eslint-disable */
 import CollectionsStore from './CollectionsStore';
-
-jest.mock('utils/ApiClient', () => ({
-  client: { post: {} },
-}));
-jest.mock('stores', () => ({
-  errors: { add: jest.fn() }
-}));
+const { client } = require('utils/ApiClient');
 
 describe('CollectionsStore', () => {
   let store;
@@ -15,32 +9,31 @@ describe('CollectionsStore', () => {
     store = new CollectionsStore({});
   });
 
-  describe('#fetchAll', () => {
+  describe('#fetchPage', () => {
     test('should load stores', async () => {
-      store.client = {
-        post: jest.fn(() => ({
-          data: [
-            {
-              id: 123,
-              name: 'New collection',
-            },
-          ],
-        })),
-      };
+      client.post = jest.fn(() => ({
+        data: [
+          {
+            id: 123,
+            name: 'New collection',
+          },
+        ],
+      }))
 
-      await store.fetchAll();
+      await store.fetchPage();
 
-      expect(store.client.post).toHaveBeenCalledWith('/collections.list');
+      expect(client.post).toHaveBeenCalledWith('/collections.list', undefined);
       expect(store.data.size).toBe(1);
       expect(store.data.values()[0].name).toBe('New collection');
     });
 
     test('should report errors', async () => {
-      store.client = {
-        post: jest.fn(() => Promise.reject),
+      client.post = jest.fn(() => Promise.reject())
+      store.errors = {
+        add: jest.fn(),
       };
 
-      await store.fetchAll();
+      await store.fetchPage();
 
       expect(store.errors.add).toHaveBeenCalledWith(
         'Failed to load collections'
