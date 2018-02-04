@@ -15,7 +15,7 @@ export default function Code({
   readOnly,
   attributes,
 }: SlateNodeProps) {
-  // TODO: There is a currently a big in slate-prism that prevents code elements
+  // TODO: There is a currently a bug in slate-prism that prevents code elements
   // with a language class name from formatting correctly on first load.
   // const language = node.data.get('language') || 'javascript';
 
