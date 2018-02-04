@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import Code from './components/InlineCode';
+import InlineCode from './components/InlineCode';
 import { Mark } from 'slate';
 
 type Props = {
@@ -13,7 +13,7 @@ export default function renderMark(props: Props) {
     case 'bold':
       return <strong>{props.children}</strong>;
     case 'code':
-      return <Code>{props.children}</Code>;
+      return <InlineCode>{props.children}</InlineCode>;
     case 'italic':
       return <em>{props.children}</em>;
     case 'underlined':

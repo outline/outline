@@ -3,7 +3,7 @@ import InsertImages from '@tommoor/slate-drop-or-paste-images';
 import PasteLinkify from 'slate-paste-linkify';
 import CollapseOnEscape from 'slate-collapse-on-escape';
 import TrailingBlock from 'slate-trailing-block';
-import EditCode from 'slate-edit-code';
+import EditCode from '@tommoor/slate-edit-code';
 import Prism from 'slate-prism';
 import EditList from './plugins/EditList';
 import KeyboardShortcuts from './plugins/KeyboardShortcuts';
@@ -14,8 +14,6 @@ type Options = {
   onImageUploadStart: () => void,
   onImageUploadStop: () => void,
 };
-
-const onlyInCode = node => node.type === 'code';
 
 const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
   return [
@@ -37,14 +35,14 @@ const createPlugins = ({ onImageUploadStart, onImageUploadStop }: Options) => {
     }),
     EditList,
     EditCode({
-      onlyIn: onlyInCode,
       containerType: 'code',
       lineType: 'code-line',
       exitBlocktype: 'paragraph',
+      allowMarks: false,
       selectAll: true,
     }),
     Prism({
-      onlyIn: onlyInCode,
+      onlyIn: node => node.type === 'code',
       getSyntax: node => 'javascript',
     }),
     CollapseOnEscape({ toEdge: 'end' }),
