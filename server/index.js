@@ -68,7 +68,9 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 if (process.env.NODE_ENV === 'production' && process.env.BUGSNAG_KEY) {
-  bugsnag.register(process.env.BUGSNAG_KEY);
+  bugsnag.register(process.env.BUGSNAG_KEY, {
+    filters: ['authorization'],
+  });
   app.on('error', bugsnag.koaHandler);
 }
 
