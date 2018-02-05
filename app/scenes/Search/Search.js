@@ -67,8 +67,8 @@ class Search extends Component {
   @observable query: string = '';
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
-  @observable isFetching = false;
-  @observable pinToTop = false;
+  @observable isFetching: boolean = false;
+  @observable pinToTop: boolean = false;
 
   componentDidMount() {
     this.handleQueryChange();
