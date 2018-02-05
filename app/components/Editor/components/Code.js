@@ -29,14 +29,14 @@ export default function Code({
 
 const Container = styled.div`
   position: relative;
-  padding: 0.5em 1em;
   background: ${color.smokeLight};
   border-radius: 4px;
   border: 1px solid ${color.smokeDark};
 
   code {
     display: block;
-    padding: 0;
+    overflow-x: scroll;
+    padding: 0.5em 1em;
     line-height: 1.4em;
   }
 
