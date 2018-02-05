@@ -1,5 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`#documents.create should create as a child 1`] = `
+Object {
+  "error": "invalid_parent_document",
+  "message": "Invalid parentDocument",
+  "ok": false,
+  "status": 400,
+}
+`;
+
 exports[`#documents.list should require authentication 1`] = `
 Object {
   "error": "authentication_required",
