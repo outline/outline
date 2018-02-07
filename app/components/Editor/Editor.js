@@ -40,6 +40,7 @@ class MarkdownEditor extends Component {
   renderNode: SlateNodeProps => *;
   plugins: Plugin[];
   @observable editorValue: Value;
+  @observable editorLoaded: boolean = false;
 
   constructor(props: Props) {
     super(props);
@@ -69,6 +70,12 @@ class MarkdownEditor extends Component {
       this.focusAtEnd();
     }
   }
+
+  setEditorRef = (ref: Editor) => {
+    this.editor = ref;
+    // Force re-render to show ToC (<Content />)
+    this.editorLoaded = true;
+  };
 
   onChange = (change: Change) => {
     if (this.editorValue !== change.value) {
@@ -179,7 +186,9 @@ class MarkdownEditor extends Component {
       >
         <MaxWidth column auto>
           <Header onClick={this.focusAtStart} readOnly={readOnly} />
-          {readOnly && this.editor && <Contents editor={this.editor} />}
+          {readOnly &&
+            this.editorLoaded &&
+            this.editor && <Contents editor={this.editor} />}
           {!readOnly &&
             this.editor && (
               <Toolbar value={this.editorValue} editor={this.editor} />
@@ -192,7 +201,7 @@ class MarkdownEditor extends Component {
               />
             )}
           <StyledEditor
-            innerRef={ref => (this.editor = ref)}
+            innerRef={this.setEditorRef}
             placeholder="Start with a title…"
             bodyPlaceholder="…the rest is your canvas"
             plugins={this.plugins}
