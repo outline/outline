@@ -3,6 +3,21 @@ import _ from 'lodash';
 import { Collection } from '../models';
 import presentDocument from './document';
 
+type Document = {
+  children: Document[],
+  id: string,
+  title: string,
+  url: string,
+};
+
+const sortDocuments = (documents: Document[]) => {
+  const orderedDocs = _.sortBy(documents, ['title']);
+  return orderedDocs.map(document => ({
+    ...document,
+    children: sortDocuments(document.children),
+  }));
+};
+
 async function present(ctx: Object, collection: Collection) {
   ctx.cache.set(collection.id, collection);
 
@@ -20,7 +35,8 @@ async function present(ctx: Object, collection: Collection) {
   };
 
   if (collection.type === 'atlas') {
-    data.documents = collection.documentStructure;
+    // Force alphabetical sorting
+    data.documents = sortDocuments(collection.documentStructure);
   }
 
   if (collection.documents) {
