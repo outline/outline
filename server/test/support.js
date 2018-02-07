@@ -62,7 +62,7 @@ const seed = async () => {
 
   const document = await Document.create({
     parentDocumentId: null,
-    atlasId: collection.id,
+    collectionId: collection.id,
     teamId: team.id,
     userId: collection.creatorId,
     lastModifiedById: collection.creatorId,
