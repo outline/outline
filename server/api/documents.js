@@ -20,7 +20,7 @@ router.post('documents.list', auth(), pagination(), async ctx => {
 
   const user = ctx.state.user;
   let where = { teamId: user.teamId };
-  if (collection) where = { ...where, collectionId: collection };
+  if (collection) where = { ...where, atlasId: collection };
 
   const userId = user.id;
   const starredScope = { method: ['withStarred', userId] };
@@ -215,7 +215,7 @@ router.post('documents.create', auth(), async ctx => {
     parentDocumentObj = await Document.findOne({
       where: {
         id: parentDocument,
-        collectionId: ownerCollection.id,
+        atlasId: ownerCollection.id,
       },
     });
     if (!parentDocumentObj)
@@ -224,7 +224,7 @@ router.post('documents.create', auth(), async ctx => {
 
   const newDocument = await Document.create({
     parentDocumentId: parentDocumentObj.id,
-    collectionId: ownerCollection.id,
+    atlasId: ownerCollection.id,
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,
@@ -287,7 +287,7 @@ router.post('documents.move', auth(), async ctx => {
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
   const document = await Document.findById(id);
-  const collection = await Collection.findById(document.collectionId);
+  const collection = await Collection.findById(document.atlasId);
 
   authDocumentForUser(ctx, document);
 
@@ -297,7 +297,7 @@ router.post('documents.move', auth(), async ctx => {
   // Set parent document
   if (parentDocument) {
     const parent = await Document.findById(parentDocument);
-    if (!parent || parent.collectionId !== document.collectionId)
+    if (!parent || parent.atlasId !== document.atlasId)
       throw httpErrors.BadRequest(
         'Invalid parentDocument (must be same collection)'
       );
@@ -324,7 +324,7 @@ router.post('documents.delete', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const document = await Document.findById(id);
-  const collection = await Collection.findById(document.collectionId);
+  const collection = await Collection.findById(document.atlasId);
 
   authDocumentForUser(ctx, document);
 

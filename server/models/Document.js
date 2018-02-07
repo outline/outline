@@ -116,7 +116,7 @@ const Document = sequelize.define(
 Document.associate = models => {
   Document.belongsTo(models.Collection, {
     as: 'collection',
-    foreignKey: 'collectionId',
+    foreignKey: 'atlasId',
     onDelete: 'cascade',
   });
   Document.belongsTo(models.User, {

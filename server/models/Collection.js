@@ -53,7 +53,7 @@ const Collection = sequelize.define(
           // Create intro document if first collection for team
           const document = await Document.create({
             parentDocumentId: null,
-            collectionId: collection.id,
+            atlasId: collection.id,
             teamId: collection.teamId,
             userId: collection.creatorId,
             lastModifiedById: collection.creatorId,
@@ -77,7 +77,7 @@ const Collection = sequelize.define(
 Collection.associate = models => {
   Collection.hasMany(models.Document, {
     as: 'documents',
-    foreignKey: 'collectionId',
+    foreignKey: 'atlasId',
     onDelete: 'cascade',
   });
   Collection.belongsTo(models.Team, {
@@ -98,7 +98,7 @@ Collection.associate = models => {
 Collection.addHook('afterDestroy', async model => {
   await Document.destroy({
     where: {
-      collectionId: model.id,
+      atlasId: model.id,
     },
   });
 });
