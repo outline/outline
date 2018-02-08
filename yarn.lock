@@ -8794,9 +8794,9 @@ slate-trailing-block@^0.4.0:
   version "0.4.0"
   resolved "https://registry.npmjs.org/slate-trailing-block/-/slate-trailing-block-0.4.0.tgz#92573d7729e4c2a05c45521616ae2db28197476c"
 
-slate@^0.31.5:
-  version "0.31.5"
-  resolved "https://registry.npmjs.org/slate/-/slate-0.31.5.tgz#3fe2e7b63e478aaf5cadfa65f7752bb451f6a3bf"
+slate@^0.31.8:
+  version "0.31.8"
+  resolved "https://registry.yarnpkg.com/slate/-/slate-0.31.8.tgz#d93fd397bcceb2b5eb2e1cbafa20643044230d63"
   dependencies:
     debug "^2.3.2"
     direction "^0.1.5"
