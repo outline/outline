@@ -164,7 +164,7 @@
     "sequelize": "4.28.6",
     "sequelize-cli": "^2.7.0",
     "sequelize-encrypted": "0.1.0",
-    "slate": "^0.31.5",
+    "slate": "^0.31.8",
     "slate-collapse-on-escape": "^0.6.0",
     "slate-edit-list": "^0.10.2",
     "slate-md-serializer": "^1.0.7",
