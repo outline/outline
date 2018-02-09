@@ -228,7 +228,7 @@ class MarkdownEditor extends Component {
 }
 
 const MaxWidth = styled(Flex)`
-  padding: 0 16px;
+  padding: 0 20px;
   max-width: 100vw;
   height: 100%;
 

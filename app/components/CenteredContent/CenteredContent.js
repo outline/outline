@@ -9,7 +9,7 @@ type Props = {
 
 const Container = styled.div`
   width: 100%;
-  padding: 60px 16px;
+  padding: 60px 20px;
 
   ${breakpoint('tablet')`
     padding: 60px;
