@@ -110,7 +110,7 @@ const Screenshot = styled.img`
     0 0 10px 0 rgba(237, 237, 237, 0.5);
   border-radius: 5px;
 
-  ${breakpoint('tablet')`
+  ${breakpoint('desktop')`
     width: 150%;
   `};
 `;
