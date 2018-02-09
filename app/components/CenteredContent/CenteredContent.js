@@ -1,6 +1,7 @@
 // @flow
 import React from 'react';
 import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 
 type Props = {
   children?: React.Element<any>,
@@ -9,6 +10,11 @@ type Props = {
 const Container = styled.div`
   width: 100%;
   padding: 60px;
+
+  ${breakpoint('mobile')`
+    padding-left: 16px;
+    padding-right: 16px;
+  `};
 `;
 
 const Content = styled.div`

@@ -33,7 +33,11 @@ class Toast extends Component {
   }
 
   render() {
-    const { type, onRequestClose, message } = this.props;
+    const { type, onRequestClose } = this.props;
+    const message =
+      typeof this.props.message === 'string'
+        ? this.props.message
+        : this.props.message.toString();
 
     return (
       <Container onClick={onRequestClose} type={type}>

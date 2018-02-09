@@ -1,5 +1,6 @@
 // @flow
 import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import Flex from 'shared/components/Flex';
 import { layout, color } from 'shared/styles/constants';
 
@@ -33,6 +34,10 @@ const Actions = styled(Flex)`
   @media print {
     display: none;
   }
+
+  ${breakpoint('mobile')`
+    padding: 16px;
+  `};
 `;
 
 export default Actions;

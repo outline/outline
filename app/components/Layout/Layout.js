@@ -4,6 +4,7 @@ import { Switch, Route, withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import Analytics from 'shared/components/Analytics';
@@ -128,6 +129,10 @@ const Content = styled(Flex)`
   @media print {
     margin-left: 0;
   }
+
+  ${breakpoint('mobile')`
+    margin-left: 0;
+  `};
 `;
 
 export default withRouter(inject('user', 'auth', 'ui', 'documents')(Layout));

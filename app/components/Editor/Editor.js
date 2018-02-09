@@ -4,8 +4,10 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Value, Change } from 'slate';
 import { Editor } from 'slate-react';
-import type { SlateNodeProps, Plugin } from './types';
+import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import keydown from 'react-keydown';
+import type { SlateNodeProps, Plugin } from './types';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'shared/components/Flex';
 import ClickablePadding from './components/ClickablePadding';
@@ -20,7 +22,6 @@ import renderMark from './marks';
 import createRenderNode from './nodes';
 import schema from './schema';
 import { isModKey } from './utils';
-import styled from 'styled-components';
 
 type Props = {
   text: string,
@@ -230,6 +231,10 @@ const MaxWidth = styled(Flex)`
   margin: 0 60px;
   max-width: 46em;
   height: 100%;
+
+  ${breakpoint('mobile')`
+    margin: 0 16px;
+  `};
 `;
 
 const Header = styled(Flex)`
