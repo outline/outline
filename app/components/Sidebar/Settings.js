@@ -1,12 +1,9 @@
 // @flow
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
-import type { Location } from 'react-router-dom';
-import styled from 'styled-components';
 import { observer, inject } from 'mobx-react';
 import Flex from 'shared/components/Flex';
-import { color, layout } from 'shared/styles/constants';
 
+import Sidebar, { Section } from './Sidebar';
 import Scrollable from 'components/Scrollable';
 import ProfileIcon from 'components/Icon/ProfileIcon';
 import SettingsIcon from 'components/Icon/SettingsIcon';
@@ -19,12 +16,11 @@ import AuthStore from 'stores/AuthStore';
 
 type Props = {
   history: Object,
-  location: Location,
   auth: AuthStore,
 };
 
 @observer
-class Sidebar extends Component {
+class SettingsSidebar extends Component {
   props: Props;
 
   returnToDashboard = () => {
@@ -36,7 +32,7 @@ class Sidebar extends Component {
     if (!team) return;
 
     return (
-      <Container column>
+      <Sidebar>
         <HeaderBlock
           subheading="◄ Return to Dashboard"
           teamName={team.name}
@@ -69,26 +65,9 @@ class Sidebar extends Component {
             </Section>
           </Scrollable>
         </Flex>
-      </Container>
+      </Sidebar>
     );
   }
 }
 
-const Container = styled(Flex)`
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: ${layout.sidebarWidth};
-  background: ${color.smoke};
-  transition: left 200ms ease-in-out;
-`;
-
-const Section = styled(Flex)`
-  flex-direction: column;
-  margin: 24px 0;
-  padding: 0 24px;
-  position: relative;
-`;
-
-export default withRouter(inject('auth')(Sidebar));
+export default inject('auth')(SettingsSidebar);

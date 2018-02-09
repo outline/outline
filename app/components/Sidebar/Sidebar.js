@@ -8,21 +8,13 @@ import { observer, inject } from 'mobx-react';
 import Flex from 'shared/components/Flex';
 import { color, layout } from 'shared/styles/constants';
 
-import AccountMenu from 'menus/AccountMenu';
-import Scrollable from 'components/Scrollable';
 import CloseIcon from 'components/Icon/CloseIcon';
-import HomeIcon from 'components/Icon/HomeIcon';
 import MenuIcon from 'components/Icon/MenuIcon';
-import SearchIcon from 'components/Icon/SearchIcon';
-import StarredIcon from 'components/Icon/StarredIcon';
-import Collections from './components/Collections';
-import SidebarLink from './components/SidebarLink';
-import HeaderBlock from './components/HeaderBlock';
-
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
+  children: React.Element<any>,
   history: Object,
   location: Location,
   auth: AuthStore,
@@ -39,22 +31,12 @@ class Sidebar extends Component {
     }
   };
 
-  handleCreateCollection = () => {
-    this.props.ui.setActiveModal('collection-new');
-  };
-
-  handleEditCollection = () => {
-    this.props.ui.setActiveModal('collection-edit');
-  };
-
   toggleSidebar = () => {
     this.props.ui.toggleMobileSidebar();
   };
 
   render() {
-    const { auth, ui } = this.props;
-    const { user, team } = auth;
-    if (!user || !team) return;
+    const { children, ui } = this.props;
 
     return (
       <Container
@@ -68,38 +50,7 @@ class Sidebar extends Component {
         >
           {ui.mobileSidebarVisible ? <CloseIcon /> : <MenuIcon />}
         </Toggle>
-        <AccountMenu
-          label={
-            <HeaderBlock
-              subheading={user.name}
-              teamName={team.name}
-              logoUrl={team.avatarUrl}
-            />
-          }
-        />
-
-        <Flex auto column>
-          <Scrollable>
-            <Section>
-              <SidebarLink to="/dashboard" icon={<HomeIcon />}>
-                Home
-              </SidebarLink>
-              <SidebarLink to="/search" icon={<SearchIcon />}>
-                Search
-              </SidebarLink>
-              <SidebarLink to="/starred" icon={<StarredIcon />}>
-                Starred
-              </SidebarLink>
-            </Section>
-            <Section>
-              <Collections
-                history={this.props.history}
-                location={this.props.location}
-                onCreateCollection={this.handleCreateCollection}
-              />
-            </Section>
-          </Scrollable>
-        </Flex>
+        {children}
       </Container>
     );
   }
@@ -127,7 +78,7 @@ const Container = styled(Flex)`
   `};
 `;
 
-const Section = styled(Flex)`
+export const Section = styled(Flex)`
   flex-direction: column;
   margin: 24px 0;
   padding: 0 24px;
@@ -147,4 +98,4 @@ const Toggle = styled.a`
   `};
 `;
 
-export default withRouter(inject('user', 'auth', 'ui')(Sidebar));
+export default withRouter(inject('ui')(Sidebar));

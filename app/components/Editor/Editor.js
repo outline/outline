@@ -233,7 +233,8 @@ const MaxWidth = styled(Flex)`
   height: 100%;
 
   ${breakpoint('tablet')`
-    padding: 0 60px;
+    padding: 0;
+    margin: 0 60px;
     max-width: 46em;
   `};
 `;
