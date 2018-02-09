@@ -110,7 +110,7 @@ const Screenshot = styled.img`
     0 0 10px 0 rgba(237, 237, 237, 0.5);
   border-radius: 5px;
 
-  ${breakpoint('desktop')`
+  ${breakpoint('tablet')`
     width: 150%;
   `};
 `;
@@ -124,10 +124,6 @@ const Highlights = styled(Grid)`
 const Features = styled(Grid)`
   padding: 0 2em;
   overflow: hidden;
-
-  ${breakpoint('mobile')`
-    flex-direction
-  `};
 `;
 
 const Feature = styled(Grid.Unit)`

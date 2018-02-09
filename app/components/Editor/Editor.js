@@ -228,12 +228,13 @@ class MarkdownEditor extends Component {
 }
 
 const MaxWidth = styled(Flex)`
-  margin: 0 60px;
-  max-width: 46em;
+  padding: 0 16px;
+  max-width: 100vw;
   height: 100%;
 
-  ${breakpoint('mobile')`
-    margin: 0 16px;
+  ${breakpoint('tablet')`
+    padding: 0 60px;
+    max-width: 46em;
   `};
 `;
 

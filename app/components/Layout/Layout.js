@@ -123,15 +123,15 @@ const Container = styled(Flex)`
 `;
 
 const Content = styled(Flex)`
-  margin-left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
+  margin: 0;
   transition: margin-left 200ms ease-in-out;
 
   @media print {
-    margin-left: 0;
+    margin: 0;
   }
 
-  ${breakpoint('mobile')`
-    margin-left: 0;
+  ${breakpoint('tablet')`
+    margin-left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
   `};
 `;
 

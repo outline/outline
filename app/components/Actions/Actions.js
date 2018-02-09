@@ -26,17 +26,17 @@ const Actions = styled(Flex)`
   position: fixed;
   top: 0;
   right: 0;
-  padding: ${layout.vpadding} ${layout.hpadding} 8px 8px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.9);
+  padding: 16px;
   -webkit-backdrop-filter: blur(20px);
 
   @media print {
     display: none;
   }
 
-  ${breakpoint('mobile')`
-    padding: 16px;
+  ${breakpoint('tablet')`
+    padding: ${layout.vpadding} ${layout.hpadding} 8px 8px;
   `};
 `;
 

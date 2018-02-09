@@ -9,11 +9,10 @@ type Props = {
 
 const Container = styled.div`
   width: 100%;
-  padding: 60px;
+  padding: 60px 16px;
 
-  ${breakpoint('mobile')`
-    padding-left: 16px;
-    padding-right: 16px;
+  ${breakpoint('tablet')`
+    padding: 60px;
   `};
 `;
 

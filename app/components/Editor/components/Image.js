@@ -94,6 +94,7 @@ const Caption = styled.input`
   text-align: center;
   width: 100%;
   outline: none;
+  background: none;
 
   &::placeholder {
     color: ${color.slate};

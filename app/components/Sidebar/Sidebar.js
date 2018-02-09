@@ -106,9 +106,10 @@ const Container = styled(Flex)`
   top: 0;
   bottom: 0;
   left: ${props => (props.editMode ? `-${layout.sidebarWidth}` : 0)};
-  width: ${layout.sidebarWidth};
+  width: 100%;
   background: ${color.smoke};
   transition: left 200ms ease-in-out;
+  margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
   z-index: 1;
 
   @media print {
@@ -116,9 +117,9 @@ const Container = styled(Flex)`
     left: 0;
   }
 
-  ${breakpoint('mobile')`
-    width: 100%;
-    margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
+  ${breakpoint('tablet')`
+    width: ${layout.sidebarWidth};
+    margin: 0;
   `};
 `;
 
@@ -138,6 +139,10 @@ const Toggle = styled.a`
   padding: 12px;
   margin: 16px;
   background: red;
+
+  ${breakpoint('tablet')`
+    display: none;
+  `};
 `;
 
 export default withRouter(inject('user', 'auth', 'ui')(Sidebar));
