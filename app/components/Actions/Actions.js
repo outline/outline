@@ -26,6 +26,7 @@ const Actions = styled(Flex)`
   position: fixed;
   top: 0;
   right: 0;
+  left: 0;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.9);
   padding: 16px;
@@ -36,6 +37,7 @@ const Actions = styled(Flex)`
   }
 
   ${breakpoint('tablet')`
+    left: auto;
     padding: ${layout.vpadding} ${layout.hpadding} 8px 8px;
   `};
 `;

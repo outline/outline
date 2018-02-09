@@ -10,7 +10,9 @@ import { color, layout } from 'shared/styles/constants';
 
 import AccountMenu from 'menus/AccountMenu';
 import Scrollable from 'components/Scrollable';
+import CloseIcon from 'components/Icon/CloseIcon';
 import HomeIcon from 'components/Icon/HomeIcon';
+import MenuIcon from 'components/Icon/MenuIcon';
 import SearchIcon from 'components/Icon/SearchIcon';
 import StarredIcon from 'components/Icon/StarredIcon';
 import Collections from './components/Collections';
@@ -63,7 +65,9 @@ class Sidebar extends Component {
         <Toggle
           onClick={this.toggleSidebar}
           mobileSidebarVisible={ui.mobileSidebarVisible}
-        />
+        >
+          {ui.mobileSidebarVisible ? <CloseIcon /> : <MenuIcon />}
+        </Toggle>
         <AccountMenu
           label={
             <HeaderBlock
@@ -136,9 +140,7 @@ const Toggle = styled.a`
   left: ${props => (props.mobileSidebarVisible ? 'auto' : 0)};
   right: ${props => (props.mobileSidebarVisible ? 0 : 'auto')};
   z-index: 1;
-  padding: 12px;
   margin: 16px;
-  background: red;
 
   ${breakpoint('tablet')`
     display: none;
