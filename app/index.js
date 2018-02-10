@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
 import {
@@ -28,7 +28,6 @@ import ErrorAuth from 'scenes/ErrorAuth';
 import Error404 from 'scenes/Error404';
 
 import ErrorBoundary from 'components/ErrorBoundary';
-import RecordPageview from 'components/RecordPageview';
 import ScrollToTop from 'components/ScrollToTop';
 import Layout from 'components/Layout';
 import Auth from 'components/Auth';
@@ -50,87 +49,91 @@ const RedirectDocument = ({ match }: { match: Object }) => (
 globalStyles();
 
 render(
-  <div style={{ display: 'flex', flex: 1, height: '100%' }}>
+  <React.Fragment>
     <ErrorBoundary>
       <Provider {...stores}>
         <Router>
-          <RecordPageview>
-            <ScrollToTop>
-              <Switch>
-                <Route exact path="/" component={Home} />
-                <Route exact path="/auth/slack" component={SlackAuth} />
-                <Route
-                  exact
-                  path="/auth/slack/commands"
-                  component={SlackAuth}
-                />
-                <Route exact path="/auth/error" component={ErrorAuth} />
+          <ScrollToTop>
+            <Switch>
+              <Route exact path="/" component={Home} />
+              <Route exact path="/auth/slack" component={SlackAuth} />
+              <Route exact path="/auth/slack/commands" component={SlackAuth} />
+              <Route exact path="/auth/error" component={ErrorAuth} />
 
-                <Auth>
-                  <Layout>
-                    <Switch>
-                      <Route exact path="/dashboard" component={Dashboard} />
-                      <Route exact path="/starred" component={Starred} />
-                      <Route exact path="/settings" component={Settings} />
-                      <Route
-                        exact
-                        path="/settings/members"
-                        component={Members}
-                      />
-                      <Route exact path="/settings/tokens" component={Tokens} />
-                      <Route
-                        exact
-                        path="/settings/integrations/slack"
-                        component={Slack}
-                      />
+              <Auth>
+                <Layout>
+                  <Switch>
+                    <Route exact path="/dashboard" component={Dashboard} />
+                    <Route exact path="/starred" component={Starred} />
+                    <Route exact path="/settings" component={Settings} />
+                    <Route exact path="/settings/members" component={Members} />
+                    <Route exact path="/settings/tokens" component={Tokens} />
+                    <Route
+                      exact
+                      path="/settings/integrations/slack"
+                      component={Slack}
+                    />
 
-                      <Route
-                        exact
-                        path="/collections/:id"
-                        component={Collection}
-                      />
-                      <Route
-                        exact
-                        path={`/d/${matchDocumentSlug}`}
-                        component={RedirectDocument}
-                      />
-                      <Route
-                        exact
-                        path={`/doc/${matchDocumentSlug}`}
-                        component={Document}
-                      />
-                      <Route
-                        exact
-                        path={`/doc/${matchDocumentSlug}/move`}
-                        component={Document}
-                      />
+                    <Route
+                      exact
+                      path="/collections/:id"
+                      component={Collection}
+                    />
+                    <Route
+                      exact
+                      path={`/d/${matchDocumentSlug}`}
+                      component={RedirectDocument}
+                    />
+                    <Route
+                      exact
+                      path={`/doc/${matchDocumentSlug}`}
+                      component={Document}
+                    />
+                    <Route
+                      exact
+                      path={`/doc/${matchDocumentSlug}/move`}
+                      component={Document}
+                    />
 
-                      <Route exact path="/search" component={Search} />
-                      <Route exact path="/search/:query" component={Search} />
+                    <Route exact path="/search" component={Search} />
+                    <Route exact path="/search/:query" component={Search} />
 
-                      <Route path="/404" component={Error404} />
+                    <Route path="/404" component={Error404} />
 
-                      <RouteSidebarHidden
-                        exact
-                        path={`/doc/${matchDocumentSlug}/edit`}
-                        component={Document}
-                      />
-                      <RouteSidebarHidden
-                        exact
-                        path="/collections/:id/new"
-                        component={DocumentNew}
-                      />
-                      <Route component={notFoundSearch} />
-                    </Switch>
-                  </Layout>
-                </Auth>
-              </Switch>
-            </ScrollToTop>
-          </RecordPageview>
+                    <RouteSidebarHidden
+                      exact
+                      path={`/doc/${matchDocumentSlug}/edit`}
+                      component={Document}
+                    />
+                    <RouteSidebarHidden
+                      exact
+                      path="/collections/:id/new"
+                      component={DocumentNew}
+                    />
+                    <Route component={notFoundSearch} />
+                  </Switch>
+                </Layout>
+              </Auth>
+            </Switch>
+          </ScrollToTop>
         </Router>
       </Provider>
     </ErrorBoundary>
     {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}
-  </div>,
+  </React.Fragment>,
   document.getElementById('root')
 );
+
+window.addEventListener('load', async () => {
+  // installation does not use Google Analytics, or tracking is blocked on client
+  // no point loading the rest of the analytics bundles
+  if (!process.env.GOOGLE_ANALYTICS_ID || !window.ga) return;
+
+  await import('autotrack/lib/plugins/outbound-link-tracker');
+  await import('autotrack/lib/plugins/url-change-tracker');
+
+  window.ga('create', process.env.GOOGLE_ANALYTICS_ID, 'auto');
+  window.ga('require', 'outboundLinkTracker');
+  window.ga('require', 'urlChangeTracker');
+  window.ga('send', 'pageview');
+});
