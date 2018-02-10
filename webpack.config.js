@@ -16,8 +16,7 @@ const definePlugin = new webpack.DefinePlugin({
   DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT || 'hosted'),
   'process.env': {
     URL: JSON.stringify(process.env.URL),
-    SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
-    GOOGLE_ANALYTICS_ID: JSON.stringify(process.env.GOOGLE_ANALYTICS_ID),
+    SLACK_KEY: JSON.stringify(process.env.SLACK_KEY)
   }
 });
 

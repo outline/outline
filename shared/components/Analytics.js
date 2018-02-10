@@ -2,6 +2,8 @@
 import * as React from 'react';
 
 function Analytics() {
+  if (!process.env.GOOGLE_ANALYTICS_ID) return null;
+
   return (
     <React.Fragment>
       <script
@@ -11,9 +13,7 @@ function Analytics() {
         `,
         }}
       />
-      {process.env.GOOGLE_ANALYTICS_ID && (
-        <script async src="https://www.google-analytics.com/analytics.js" />
-      )}
+      <script async src="https://www.google-analytics.com/analytics.js" />
     </React.Fragment>
   );
 }
