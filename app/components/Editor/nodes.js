@@ -53,6 +53,8 @@ export default function createRenderNode({ onInsertImage }: Options) {
         return <HorizontalRule {...props} />;
       case 'code':
         return <Code {...props} />;
+      case 'code-line':
+        return <pre {...attributes}>{props.children}</pre>;
       case 'image':
         return <Image {...props} />;
       case 'link':

@@ -281,6 +281,23 @@ describe('#documents.create', async () => {
     expect(body.data.collection.documents.length).toBe(2);
     expect(body.data.collection.documents[1].children[0].id).toBe(body.data.id);
   });
+
+  it('should create as a child', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title: 'new document',
+        text: 'hello',
+        parentDocument: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body).toMatchSnapshot();
+  });
 });
 
 describe('#documents.update', async () => {

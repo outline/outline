@@ -218,6 +218,8 @@ router.post('documents.create', auth(), async ctx => {
         atlasId: ownerCollection.id,
       },
     });
+    if (!parentDocumentObj)
+      throw httpErrors.BadRequest('Invalid parentDocument');
   }
 
   const newDocument = await Document.create({

@@ -94,8 +94,5 @@ router.get('*', async ctx => {
 // middleware
 koa.use(subdomainRedirect());
 koa.use(router.routes());
-koa.use(async () => {
-  throw httpErrors.NotFound();
-});
 
 export default koa;

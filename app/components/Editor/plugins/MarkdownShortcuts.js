@@ -40,6 +40,10 @@ export default function MarkdownShortcuts() {
       const { value } = change;
       if (value.isExpanded) return;
       const { startBlock, startOffset } = value;
+
+      // no markdown shortcuts work in headings
+      if (startBlock.type.match(/heading/)) return;
+
       const chars = startBlock.text.slice(0, startOffset).trim();
       const type = this.getType(chars);
 
