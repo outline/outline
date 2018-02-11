@@ -54,7 +54,7 @@
     ]
   },
   "engines": {
-    "node": ">= 7.6"
+    "node": ">= 8.0"
   },
   "repository": {
     "type": "git",
@@ -125,6 +125,7 @@
     "koa-jwt": "^3.2.1",
     "koa-logger": "^2.0.1",
     "koa-mount": "^3.0.0",
+    "koa-onerror": "^4.0.0",
     "koa-router": "7.0.1",
     "koa-sendfile": "2.0.0",
     "koa-static": "^4.0.1",
