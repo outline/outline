@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
 import {
@@ -49,7 +49,7 @@ const RedirectDocument = ({ match }: { match: Object }) => (
 globalStyles();
 
 render(
-  <div style={{ display: 'flex', flex: 1, height: '100%' }}>
+  <React.Fragment>
     <ErrorBoundary>
       <Provider {...stores}>
         <Router>
@@ -120,6 +120,20 @@ render(
       </Provider>
     </ErrorBoundary>
     {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}
-  </div>,
+  </React.Fragment>,
   document.getElementById('root')
 );
+
+window.addEventListener('load', async () => {
+  // installation does not use Google Analytics, or tracking is blocked on client
+  // no point loading the rest of the analytics bundles
+  if (!process.env.GOOGLE_ANALYTICS_ID || !window.ga) return;
+
+  await import('autotrack/lib/plugins/outbound-link-tracker');
+  await import('autotrack/lib/plugins/url-change-tracker');
+
+  window.ga('create', process.env.GOOGLE_ANALYTICS_ID, 'auto');
+  window.ga('require', 'outboundLinkTracker');
+  window.ga('require', 'urlChangeTracker');
+  window.ga('send', 'pageview');
+});
