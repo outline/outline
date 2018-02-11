@@ -129,8 +129,8 @@ window.addEventListener('load', async () => {
   // no point loading the rest of the analytics bundles
   if (!process.env.GOOGLE_ANALYTICS_ID || !window.ga) return;
 
-  await import('autotrack/lib/plugins/outbound-link-tracker');
-  await import('autotrack/lib/plugins/url-change-tracker');
+  // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
+  await import('autotrack/autotrack.js');
 
   window.ga('create', process.env.GOOGLE_ANALYTICS_ID, 'auto');
   window.ga('require', 'outboundLinkTracker');
