@@ -132,8 +132,6 @@ window.addEventListener('load', async () => {
   // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
   await import('autotrack/autotrack.js');
 
-  window.ga('create', process.env.GOOGLE_ANALYTICS_ID, 'auto');
   window.ga('require', 'outboundLinkTracker');
   window.ga('require', 'urlChangeTracker');
-  window.ga('send', 'pageview');
 });
