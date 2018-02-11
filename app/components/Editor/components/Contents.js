@@ -1,5 +1,7 @@
 // @flow
 import React, { Component } from 'react';
+import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Editor } from 'slate-react';
@@ -7,7 +9,6 @@ import { Block } from 'slate';
 import { List } from 'immutable';
 import { color } from 'shared/styles/constants';
 import headingToSlug from '../headingToSlug';
-import styled from 'styled-components';
 
 type Props = {
   editor: Editor,
@@ -64,6 +65,8 @@ class Contents extends Component {
   }
 
   render() {
+    const { editor } = this.props;
+
     // If there are one or less headings in the document no need for a minimap
     if (this.headings.size <= 1) return null;
 
@@ -71,7 +74,7 @@ class Contents extends Component {
       <Wrapper>
         <Sections>
           {this.headings.map(heading => {
-            const slug = headingToSlug(heading);
+            const slug = headingToSlug(editor.value.document, heading);
             const active = this.activeHeading === slug;
 
             return (
@@ -89,6 +92,7 @@ class Contents extends Component {
 }
 
 const Wrapper = styled.div`
+  display: none;
   position: fixed;
   right: 0;
   top: 150px;
@@ -97,6 +101,10 @@ const Wrapper = styled.div`
   @media print {
     display: none;
   }
+
+  ${breakpoint('tablet')`
+    display: block;
+  `};
 `;
 
 const Anchor = styled.a`

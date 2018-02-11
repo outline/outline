@@ -138,7 +138,8 @@ class LinkToolbar extends Component {
       if (href) {
         change.setInline({ type: 'link', data: { href } });
       } else if (link) {
-        const selContainsLink = !!change.value.startBlock.getChild(link.key);
+        const startBlock = change.value.startBlock;
+        const selContainsLink = !!(startBlock && startBlock.getChild(link.key));
         if (selContainsLink) change.unwrapInlineByKey(link.key);
       }
       change.deselect();

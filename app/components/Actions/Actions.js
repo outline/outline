@@ -1,5 +1,6 @@
 // @flow
 import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import Flex from 'shared/components/Flex';
 import { layout, color } from 'shared/styles/constants';
 
@@ -25,14 +26,20 @@ const Actions = styled(Flex)`
   position: fixed;
   top: 0;
   right: 0;
-  padding: ${layout.vpadding} ${layout.hpadding} 8px 8px;
+  left: 0;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.9);
+  padding: 16px;
   -webkit-backdrop-filter: blur(20px);
 
   @media print {
     display: none;
   }
+
+  ${breakpoint('tablet')`
+    left: auto;
+    padding: ${layout.vpadding} ${layout.hpadding} 8px 8px;
+  `};
 `;
 
 export default Actions;

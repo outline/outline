@@ -44,7 +44,7 @@ const Auth = ({ children }: Props) => {
       }
 
       stores.auth.fetch();
-      authenticatedStores.collections.fetchAll();
+      authenticatedStores.collections.fetchPage({ limit: 100 });
     }
 
     return <Provider {...authenticatedStores}>{children}</Provider>;

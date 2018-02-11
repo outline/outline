@@ -78,7 +78,8 @@ const StyledImg = styled.img`
   opacity: ${props => (props.loading ? 0.5 : 1)};
 `;
 
-const CenteredImage = styled.div`
+const CenteredImage = styled.span`
+  display: block;
   text-align: center;
 `;
 
@@ -93,6 +94,7 @@ const Caption = styled.input`
   text-align: center;
   width: 100%;
   outline: none;
+  background: none;
 
   &::placeholder {
     color: ${color.slate};

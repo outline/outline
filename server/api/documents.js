@@ -242,6 +242,8 @@ router.post('documents.create', auth(), async ctx => {
         atlasId: collection.id,
       },
     });
+    if (!parentDocumentObj)
+      throw httpErrors.BadRequest('Invalid parentDocument');
   }
 
   const publishedAt = publish === false ? null : new Date();

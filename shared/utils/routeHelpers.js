@@ -34,7 +34,7 @@ export function blogUrl(): string {
 }
 
 export function twitterUrl(): string {
-  return 'https://twitter.com/getoutline';
+  return 'https://twitter.com/outlinewiki';
 }
 
 export function spectrumUrl(): string {

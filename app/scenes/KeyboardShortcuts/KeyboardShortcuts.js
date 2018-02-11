@@ -38,7 +38,7 @@ function KeyboardShortcuts() {
         <Label>Jump to dashboard</Label>
 
         <Keys>
-          <Key>⌘</Key> + <Key>/</Key>
+          <Key>?</Key>
         </Keys>
         <Label>Open this guide</Label>
       </List>

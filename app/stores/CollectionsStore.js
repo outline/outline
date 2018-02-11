@@ -1,6 +1,6 @@
 // @flow
 import { observable, computed, action, runInAction, ObservableMap } from 'mobx';
-import ApiClient, { client } from 'utils/ApiClient';
+import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
 
@@ -8,6 +8,7 @@ import stores from 'stores';
 import Collection from 'models/Collection';
 import ErrorsStore from 'stores/ErrorsStore';
 import UiStore from 'stores/UiStore';
+import type { PaginationParams } from 'types';
 
 type Options = {
   ui: UiStore,
@@ -29,7 +30,6 @@ class CollectionsStore {
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
 
-  client: ApiClient;
   errors: ErrorsStore;
   ui: UiStore;
 
@@ -89,19 +89,20 @@ class CollectionsStore {
   /* Actions */
 
   @action
-  fetchAll = async (): Promise<*> => {
+  fetchPage = async (options: ?PaginationParams): Promise<*> => {
     this.isFetching = true;
 
     try {
-      const res = await this.client.post('/collections.list');
+      const res = await client.post('/collections.list', options);
       invariant(res && res.data, 'Collection list not available');
       const { data } = res;
-      runInAction('CollectionsStore#fetchAll', () => {
+      runInAction('CollectionsStore#fetchPage', () => {
         data.forEach(collection => {
           this.data.set(collection.id, new Collection(collection));
         });
         this.isLoaded = true;
       });
+      return res;
     } catch (e) {
       this.errors.add('Failed to load collections');
     } finally {
@@ -117,7 +118,7 @@ class CollectionsStore {
     this.isFetching = true;
 
     try {
-      const res = await this.client.post('/collections.info', {
+      const res = await client.post('/collections.info', {
         id,
       });
       invariant(res && res.data, 'Collection not available');
@@ -152,7 +153,6 @@ class CollectionsStore {
   };
 
   constructor(options: Options) {
-    this.client = client;
     this.errors = stores.errors;
     this.ui = options.ui;
   }

@@ -67,7 +67,8 @@ class Search extends Component {
   @observable query: string = '';
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
-  @observable isFetching = false;
+  @observable isFetching: boolean = false;
+  @observable pinToTop: boolean = false;
 
   componentDidMount() {
     this.handleQueryChange();
@@ -103,7 +104,9 @@ class Search extends Component {
 
   handleQueryChange = () => {
     const query = this.props.match.params.query;
-    this.query = query ? decodeURIComponent(query) : '';
+    this.query = query ? query : '';
+    this.resultIds = [];
+    this.offset = 0;
     this.allowLoadMore = true;
 
     // To prevent "no results" showing before debounce kicks in
@@ -137,6 +140,7 @@ class Search extends Component {
           limit: DEFAULT_PAGINATION_LIMIT,
         });
         this.resultIds = this.resultIds.concat(newResults);
+        if (this.resultIds.length > 0) this.pinToTop = true;
         if (
           newResults.length === 0 ||
           newResults.length < DEFAULT_PAGINATION_LIMIT
@@ -150,6 +154,7 @@ class Search extends Component {
       }
     } else {
       this.resultIds = [];
+      this.pinToTop = false;
     }
 
     this.isFetching = false;
@@ -172,8 +177,8 @@ class Search extends Component {
 
   render() {
     const { documents, notFound } = this.props;
-    const hasResults = this.resultIds.length > 0;
-    const showEmpty = !this.isFetching && this.query && !hasResults;
+    const showEmpty =
+      !this.isFetching && this.query && this.resultIds.length === 0;
 
     return (
       <Container auto>
@@ -185,14 +190,14 @@ class Search extends Component {
             <p>We’re unable to find the page you’re accessing.</p>
           </div>
         )}
-        <ResultsWrapper pinToTop={hasResults} column auto>
+        <ResultsWrapper pinToTop={this.pinToTop} column auto>
           <SearchField
             onKeyDown={this.handleKeyDown}
             onChange={this.updateLocation}
             value={this.query}
           />
           {showEmpty && <Empty>No matching documents.</Empty>}
-          <ResultList column visible={hasResults}>
+          <ResultList column visible={this.pinToTop}>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}

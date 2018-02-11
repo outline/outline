@@ -23,7 +23,7 @@ class CopyButton extends Component {
   render() {
     return (
       <StyledCopyToClipboard onCopy={this.handleCopy} {...this.props}>
-        <span>{this.copied ? 'Copied!' : 'Copy to clipboard'}</span>
+        <span>{this.copied ? 'Copied!' : 'Copy'}</span>
       </StyledCopyToClipboard>
     );
   }
@@ -38,13 +38,13 @@ const StyledCopyToClipboard = styled(CopyToClipboard)`
   transition: opacity 50ms ease-in-out;
   z-index: 1;
   font-size: 12px;
-  background: ${color.slateLight};
+  background: ${color.smoke};
   border-radius: 0 2px 0 2px;
   padding: 1px 6px;
   cursor: pointer;
 
   &:hover {
-    background: ${color.slate};
+    background: ${color.smokeDark};
   }
 `;
 

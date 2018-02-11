@@ -9,6 +9,7 @@ import {
   about,
   privacy,
   githubUrl,
+  twitterUrl,
   spectrumUrl,
   blogUrl,
 } from '../../../shared/utils/routeHelpers';
@@ -24,6 +25,9 @@ function TopNavigation() {
         </MenuItemDesktop>
         <MenuItemDesktop>
           <a href={about()}>About</a>
+        </MenuItemDesktop>
+        <MenuItemDesktop>
+          <a href={twitterUrl()}>Twitter</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
           <a href={changelog()}>Changelog</a>
@@ -44,6 +48,9 @@ function BottomNavigation() {
     <BottomNav>
       <div>
         <a href={githubUrl()}>GitHub</a>
+      </div>
+      <div>
+        <a href={twitterUrl()}>Twitter</a>
       </div>
       <div>
         <a href={spectrumUrl()}>Spectrum</a>

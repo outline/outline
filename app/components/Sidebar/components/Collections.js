@@ -76,13 +76,8 @@ type CollectionLinkProps = {
 @observer
 class CollectionLink extends Component {
   props: CollectionLinkProps;
-  dropzoneRef;
 
   @observable menuOpen = false;
-
-  handleImport = () => {
-    this.dropzoneRef.open();
-  };
 
   renderDocuments() {
     const {
@@ -119,7 +114,6 @@ class CollectionLink extends Component {
         collectionId={collection.id}
         activeClassName="activeDropZone"
         menuOpen={this.menuOpen}
-        dropzoneRef={ref => (this.dropzoneRef = ref)}
       >
         <SidebarLink
           key={collection.id}
@@ -132,19 +126,16 @@ class CollectionLink extends Component {
         >
           <CollectionName justify="space-between">
             {collection.name}
-
-            <CollectionAction>
-              <CollectionMenu
-                history={history}
-                collection={collection}
-                onOpen={() => (this.menuOpen = true)}
-                onClose={() => (this.menuOpen = false)}
-                onImport={this.handleImport}
-                open={this.menuOpen}
-              />
-            </CollectionAction>
           </CollectionName>
         </SidebarLink>
+        <CollectionAction>
+          <CollectionMenu
+            history={history}
+            collection={collection}
+            onOpen={() => (this.menuOpen = true)}
+            onClose={() => (this.menuOpen = false)}
+          />
+        </CollectionAction>
       </StyledDropToImport>
     );
   }
@@ -233,6 +224,7 @@ const CollectionName = styled(Flex)`
 const CollectionAction = styled.span`
   position: absolute;
   right: 0;
+  top: 0;
   color: ${color.slate};
   svg {
     opacity: 0.75;
@@ -246,6 +238,8 @@ const CollectionAction = styled.span`
 `;
 
 const StyledDropToImport = styled(DropToImport)`
+  position: relative;
+
   ${CollectionAction} {
     display: ${props => (props.menuOpen ? 'inline' : 'none')};
   }
@@ -260,6 +254,7 @@ const StyledDropToImport = styled(DropToImport)`
 const CollectionChildren = styled(Flex)`
   margin-top: -4px;
   margin-left: 36px;
+  padding-bottom: 4px;
 `;
 
 const DocumentChildren = styled(Flex)`

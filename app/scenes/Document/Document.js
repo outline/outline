@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import get from 'lodash/get';
 import styled from 'styled-components';
 import { observable } from 'mobx';
@@ -32,7 +32,6 @@ import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
 import Actions, { Action, Separator } from 'components/Actions';
-import ErrorBoundary from 'components/ErrorBoundary';
 import Search from 'scenes/Search';
 
 const DISCARD_CHANGES = `
@@ -51,7 +50,7 @@ type Props = {
 };
 
 @observer
-class DocumentScene extends Component {
+class DocumentScene extends React.Component {
   props: Props;
   savedTimeout: number;
 
@@ -114,6 +113,7 @@ class DocumentScene extends Component {
 
       if (document) {
         this.props.ui.setActiveDocument(document);
+
         // Cache data if user enters edit mode and cancels
         this.editCache = document.text;
         if (!this.isEditing && document.publishedAt) {
@@ -229,65 +229,65 @@ class DocumentScene extends Component {
     }
 
     return (
-      <Container column auto>
-        <ErrorBoundary key={this.props.location.pathname}>
-          {isMoving && document && <DocumentMove document={document} />}
-          {titleText && <PageTitle title={titleText} />}
-          {(this.isLoading || this.isSaving) && <LoadingIndicator />}
-          {!document || !Editor ? (
-            <CenteredContent>
-              <LoadingState />
-            </CenteredContent>
-          ) : (
-            <Flex justify="center" auto>
-              {this.isEditing && (
-                <Prompt
-                  when={document.hasPendingChanges}
-                  message={DISCARD_CHANGES}
-                />
-              )}
-              <Editor
-                text={document.text}
-                emoji={document.emoji}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onChange={this.onChange}
-                onSave={this.onSave}
-                onCancel={this.onDiscard}
-                readOnly={!this.isEditing}
+      <Container key={this.props.location.pathname} column auto>
+        {isMoving && document && <DocumentMove document={document} />}
+        {titleText && <PageTitle title={titleText} />}
+        {(this.isLoading || this.isSaving) && <LoadingIndicator />}
+        {!document || !Editor ? (
+          <CenteredContent>
+            <LoadingState />
+          </CenteredContent>
+        ) : (
+          <Flex justify="center" auto>
+            {this.isEditing && (
+              <Prompt
+                when={document.hasPendingChanges}
+                message={DISCARD_CHANGES}
               />
-              <Actions
-                align="center"
-                justify="flex-end"
-                readOnly={!this.isEditing}
-              >
-                {!isDraft &&
-                  !this.isEditing && <Collaborators document={document} />}
-                {this.isEditing && (
-                  <Action>
-                    <SaveAction
-                      onClick={this.onSave.bind(this, true)}
-                      isDraft={isDraft}
-                      isSaving={this.isSaving}
-                      disabled={
-                        !(this.document && this.document.allowSave) ||
-                        this.isSaving
-                      }
-                    />
-                  </Action>
+            )}
+            <Editor
+              text={document.text}
+              emoji={document.emoji}
+              onImageUploadStart={this.onImageUploadStart}
+              onImageUploadStop={this.onImageUploadStop}
+              onChange={this.onChange}
+              onSave={this.onSave}
+              onCancel={this.onDiscard}
+              readOnly={!this.isEditing}
+            />
+            <Actions
+              align="center"
+              justify="flex-end"
+              readOnly={!this.isEditing}
+            >
+              {!isDraft &&
+                !this.isEditing && <Collaborators document={document} />}
+              <Action>
+                {(this.isEditing || isDraft) && (
+                  <SaveAction
+                    isDraft={isDraft}
+                    isSaving={this.isSaving}
+                    onClick={this.onSave.bind(this, true)}
+                    disabled={
+                      !(this.document && this.document.allowSave) ||
+                      this.isSaving
+                    }
+                  />
                 )}
-                {!this.isEditing && (
-                  <Action>
-                    <a onClick={this.onClickEdit}>Edit</a>
-                  </Action>
-                )}
-                {this.isEditing && (
-                  <Action>
-                    <a onClick={this.onDiscard}>Discard</a>
-                  </Action>
-                )}
-                {!this.isEditing &&
-                  !isDraft && [
+              </Action>
+              {!this.isEditing && (
+                <Action>
+                  <a onClick={this.onClickEdit}>Edit</a>
+                </Action>
+              )}
+              {this.isEditing && (
+                <Action>
+                  <a onClick={this.onDiscard}>Discard</a>
+                </Action>
+              )}
+              {!this.isEditing &&
+                !isDraft && (
+                  <React.Fragment>
                     <Action>
                       <DocumentMenu document={document} />
                     </Action>,
@@ -297,11 +297,11 @@ class DocumentScene extends Component {
                         <NewDocumentIcon />
                       </a>
                     </Action>,
-                  ]}
-              </Actions>
-            </Flex>
-          )}
-        </ErrorBoundary>
+                  </React.Fragment>
+                )}
+            </Actions>
+          </Flex>
+        )}
       </Container>
     );
   }

@@ -4,8 +4,10 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { Value, Change } from 'slate';
 import { Editor } from 'slate-react';
-import type { SlateNodeProps, Plugin } from './types';
+import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import keydown from 'react-keydown';
+import type { SlateNodeProps, Plugin } from './types';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import Flex from 'shared/components/Flex';
 import ClickablePadding from './components/ClickablePadding';
@@ -19,7 +21,7 @@ import { insertImageFile } from './changes';
 import renderMark from './marks';
 import createRenderNode from './nodes';
 import schema from './schema';
-import styled from 'styled-components';
+import { isModKey } from './utils';
 
 type Props = {
   text: string,
@@ -39,6 +41,7 @@ class MarkdownEditor extends Component {
   renderNode: SlateNodeProps => *;
   plugins: Plugin[];
   @observable editorValue: Value;
+  @observable editorLoaded: boolean = false;
 
   constructor(props: Props) {
     super(props);
@@ -68,6 +71,12 @@ class MarkdownEditor extends Component {
       this.focusAtEnd();
     }
   }
+
+  setEditorRef = (ref: Editor) => {
+    this.editor = ref;
+    // Force re-render to show ToC (<Content />)
+    this.editorLoaded = true;
+  };
 
   onChange = (change: Change) => {
     if (this.editorValue !== change.value) {
@@ -136,7 +145,7 @@ class MarkdownEditor extends Component {
 
   // Handling of keyboard shortcuts within editor focus
   onKeyDown = (ev: SyntheticKeyboardEvent, change: Change) => {
-    if (!ev.metaKey) return;
+    if (!isModKey(ev)) return;
 
     switch (ev.key) {
       case 's':
@@ -178,7 +187,9 @@ class MarkdownEditor extends Component {
       >
         <MaxWidth column auto>
           <Header onClick={this.focusAtStart} readOnly={readOnly} />
-          {readOnly && this.editor && <Contents editor={this.editor} />}
+          {readOnly &&
+            this.editorLoaded &&
+            this.editor && <Contents editor={this.editor} />}
           {!readOnly &&
             this.editor && (
               <Toolbar value={this.editorValue} editor={this.editor} />
@@ -191,7 +202,7 @@ class MarkdownEditor extends Component {
               />
             )}
           <StyledEditor
-            innerRef={ref => (this.editor = ref)}
+            innerRef={this.setEditorRef}
             placeholder="Start with a title…"
             bodyPlaceholder="…the rest is your canvas"
             plugins={this.plugins}
@@ -217,9 +228,15 @@ class MarkdownEditor extends Component {
 }
 
 const MaxWidth = styled(Flex)`
-  margin: 0 60px;
-  max-width: 46em;
+  padding: 0 20px;
+  max-width: 100vw;
   height: 100%;
+
+  ${breakpoint('tablet')`
+    padding: 0;
+    margin: 0 60px;
+    max-width: 46em;
+  `};
 `;
 
 const Header = styled(Flex)`

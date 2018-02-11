@@ -1,24 +1,20 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 
 function Analytics() {
-  const id = process.env.GOOGLE_ANALYTICS_ID;
-  if (!id) return null;
+  if (!process.env.GOOGLE_ANALYTICS_ID) return null;
 
   return (
-    <span>
-      <script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} />
+    <React.Fragment>
       <script
         dangerouslySetInnerHTML={{
           __html: `
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${id}');
+          window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
         `,
         }}
       />
-    </span>
+      <script async src="https://www.google-analytics.com/analytics.js" />
+    </React.Fragment>
   );
 }
 
