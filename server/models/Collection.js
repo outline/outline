@@ -147,6 +147,8 @@ Collection.prototype.addDocumentToStructure = async function(
   };
 
   if (!document.parentDocumentId) {
+    // Note: Index is supported on DB level but it's being ignored
+    // by the API presentation until we build product support for it.
     this.documentStructure.splice(
       index !== undefined ? index : this.documentStructure.length,
       0,

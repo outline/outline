@@ -279,7 +279,7 @@ describe('#documents.create', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('new document');
     expect(body.data.collection.documents.length).toBe(2);
-    expect(body.data.collection.documents[1].children[0].id).toBe(body.data.id);
+    expect(body.data.collection.documents[0].children[0].id).toBe(body.data.id);
   });
 
   it('should create as a child', async () => {
@@ -318,7 +318,7 @@ describe('#documents.update', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Updated title');
     expect(body.data.text).toBe('Updated text');
-    expect(body.data.collection.documents[1].title).toBe('Updated title');
+    expect(body.data.collection.documents[0].title).toBe('Updated title');
   });
 
   it('should fallback to a default title', async () => {
@@ -338,7 +338,7 @@ describe('#documents.update', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Untitled document');
     expect(body.data.text).toBe('# Untitled document');
-    expect(body.data.collection.documents[1].title).toBe('Untitled document');
+    expect(body.data.collection.documents[0].title).toBe('Untitled document');
   });
 
   it('should fail if document lastRevision does not match', async () => {
