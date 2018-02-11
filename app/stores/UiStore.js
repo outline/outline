@@ -10,6 +10,7 @@ class UiStore {
   @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
+  @observable mobileSidebarVisible: boolean = false;
 
   /* Actions */
   @action
@@ -64,6 +65,16 @@ class UiStore {
   @action
   disableProgressBar() {
     this.progressBarVisible = false;
+  }
+
+  @action
+  toggleMobileSidebar() {
+    this.mobileSidebarVisible = !this.mobileSidebarVisible;
+  }
+
+  @action
+  hideMobileSidebar() {
+    this.mobileSidebarVisible = false;
   }
 }
 

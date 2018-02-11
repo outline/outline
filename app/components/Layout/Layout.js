@@ -4,6 +4,7 @@ import { Switch, Route, withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import Analytics from 'shared/components/Analytics';
@@ -122,12 +123,16 @@ const Container = styled(Flex)`
 `;
 
 const Content = styled(Flex)`
-  margin-left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
+  margin: 0;
   transition: margin-left 200ms ease-in-out;
 
   @media print {
-    margin-left: 0;
+    margin: 0;
   }
+
+  ${breakpoint('tablet')`
+    margin-left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
+  `};
 `;
 
 export default withRouter(inject('user', 'auth', 'ui', 'documents')(Layout));

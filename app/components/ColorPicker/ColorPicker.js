@@ -157,6 +157,7 @@ const SwatchInset = styled(Flex)`
 
 const StyledOutline = styled(Outline)`
   padding: 5px;
+  flex-wrap: wrap;
 
   strong {
     font-weight: 500;

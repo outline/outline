@@ -124,10 +124,6 @@ const Highlights = styled(Grid)`
 const Features = styled(Grid)`
   padding: 0 2em;
   overflow: hidden;
-
-  ${breakpoint('mobile')`
-    flex-direction
-  `};
 `;
 
 const Feature = styled(Grid.Unit)`

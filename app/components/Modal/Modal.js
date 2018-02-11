@@ -2,6 +2,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import styled, { injectGlobal } from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import ReactModal from 'react-modal';
 import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
@@ -80,14 +81,19 @@ const StyledModal = styled(ReactModal)`
 
 const Close = styled.a`
   position: fixed;
-  top: 3rem;
-  right: 3rem;
+  top: 16px;
+  right: 16px;
   opacity: 0.5;
   color: ${color.text};
 
   &:hover {
     opacity: 1;
   }
+
+  ${breakpoint('tablet')`
+    top: 3rem;
+    right: 3rem;
+  `};
 `;
 
 export default observer(Modal);
