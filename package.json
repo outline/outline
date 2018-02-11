@@ -54,7 +54,7 @@
     ]
   },
   "engines": {
-    "node": ">= 7.6"
+    "node": ">= 8.0"
   },
   "repository": {
     "type": "git",
