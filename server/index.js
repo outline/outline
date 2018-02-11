@@ -5,6 +5,7 @@ import logger from 'koa-logger';
 import mount from 'koa-mount';
 import Koa from 'koa';
 import bugsnag from 'bugsnag';
+import onerror from 'koa-onerror';
 import updates from './utils/updates';
 
 import api from './api';
@@ -65,17 +66,17 @@ if (process.env.NODE_ENV === 'development') {
     )
   );
   app.use(logger());
-}
 
-if (process.env.NODE_ENV === 'production' && process.env.BUGSNAG_KEY) {
-  bugsnag.register(process.env.BUGSNAG_KEY, {
-    filters: ['authorization'],
-  });
-  app.on('error', bugsnag.koaHandler);
-}
-
-if (process.env.NODE_ENV === 'development') {
   app.use(mount('/emails', emails));
+} else if (process.env.NODE_ENV === 'production') {
+  onerror(app);
+
+  if (process.env.BUGSNAG_KEY) {
+    bugsnag.register(process.env.BUGSNAG_KEY, {
+      filters: ['authorization'],
+    });
+    app.on('error', bugsnag.koaHandler);
+  }
 }
 
 app.use(mount('/api', api));
