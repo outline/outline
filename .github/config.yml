@@ -1,0 +1,16 @@
+# Configuration for request-info - https://github.com/behaviorbot/request-info
+
+# Comment to reply with
+requestInfoReplyComment: >
+  Hey there! It looks like you didn't provide much information here. Please
+  consider adding more details about the issue / pr or it will be automatically
+  closed. Thanks for helping us maintain the project!
+
+# default titles to check against for lack of descriptiveness
+requestInfoDefaultTitles:
+  - update readme.md
+  - updates
+  - fix
+  - fixes
+
+requestInfoLabelToAdd: more information needed
