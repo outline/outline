@@ -51,7 +51,6 @@ const Auth = ({ children }: Props) => {
   }
 
   stores.auth.logout();
-  window.location.href = BASE_URL;
   return null;
 };
 

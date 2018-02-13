@@ -11,8 +11,6 @@ type Props = {
 const Home = observer(({ auth }: Props) => {
   if (auth.authenticated) return <Redirect to="/dashboard" />;
   auth.logout();
-
-  window.location.href = BASE_URL;
   return null;
 });
 
