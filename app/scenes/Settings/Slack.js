@@ -1,16 +1,25 @@
 // @flow
 import React, { Component } from 'react';
-import { observer } from 'mobx-react';
+import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
 
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
 import SlackButton from './components/SlackButton';
+import CollectionsStore from 'stores/CollectionsStore';
+
+type Props = {
+  collections: CollectionsStore,
+};
 
 @observer
 class Slack extends Component {
+  props: Props;
+
   render() {
+    const { collections } = this.props;
+
     return (
       <CenteredContent>
         <PageTitle title="Slack" />
@@ -24,6 +33,18 @@ class Slack extends Component {
           scopes={['commands', 'links:read', 'links:write']}
           redirectUri={`${BASE_URL}/auth/slack/commands`}
         />
+
+        <ol>
+          {collections.orderedData.map(collection => (
+            <li>
+              {collection.name}
+              <SlackButton
+                scopes={['chat:write']}
+                redirectUri={`${BASE_URL}/auth/slack/post`}
+              />
+            </li>
+          ))}
+        </ol>
       </CenteredContent>
     );
   }
@@ -36,4 +57,4 @@ const Code = styled.code`
   border-radius: 4px;
 `;
 
-export default Slack;
+export default inject('collections')(Slack);
