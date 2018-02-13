@@ -42,17 +42,20 @@ class AuthStore {
         this.user = res.data.user;
         this.team = res.data.team;
       });
-    } catch (e) {
+    } catch (err) {
       // Failure to update user info is a non-fatal error.
+      console.error(err);
     }
   };
 
   @action
-  logout = () => {
+  logout = async () => {
     this.user = null;
     this.token = null;
-    localForage.clear();
+
     Cookie.remove('loggedIn', { path: '/' });
+    await localForage.clear();
+    window.location.href = BASE_URL;
   };
 
   @action

@@ -30,7 +30,6 @@ class AccountMenu extends Component {
 
   handleLogout = () => {
     this.props.auth.logout();
-    window.location.href = BASE_URL;
   };
 
   handleFeedback = () => {
