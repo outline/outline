@@ -90,17 +90,6 @@ class Document extends BaseModel {
   }
 
   @computed
-  get allowDelete(): boolean {
-    const collection = this.collection;
-    return (
-      collection &&
-      collection.type === 'atlas' &&
-      collection.documents &&
-      collection.documents.length > 1
-    );
-  }
-
-  @computed
   get parentDocumentId(): ?string {
     return this.pathToDocument.length > 1
       ? this.pathToDocument[this.pathToDocument.length - 2].id

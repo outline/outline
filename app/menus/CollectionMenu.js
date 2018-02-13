@@ -65,7 +65,6 @@ class CollectionMenu extends Component {
 
   render() {
     const { collection, label, onOpen, onClose } = this.props;
-    const { allowDelete } = collection;
 
     return (
       <span>
@@ -91,9 +90,7 @@ class CollectionMenu extends Component {
               <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
             </Flex>
           )}
-          {allowDelete && (
-            <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>
-          )}
+          <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>
         </DropdownMenu>
       </span>
     );

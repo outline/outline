@@ -47,7 +47,6 @@ class DocumentMenu extends Component {
 
   render() {
     const { document, label } = this.props;
-    const { allowDelete } = document;
 
     return (
       <DropdownMenu label={label || <MoreIcon />}>
@@ -69,11 +68,7 @@ class DocumentMenu extends Component {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
-        {allowDelete && (
-          <DropdownMenuItem onClick={this.handleDelete}>
-            Delete…
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem onClick={this.handleDelete}>Delete…</DropdownMenuItem>
       </DropdownMenu>
     );
   }
