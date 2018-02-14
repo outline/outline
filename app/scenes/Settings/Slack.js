@@ -8,17 +8,23 @@ import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
 import SlackButton from './components/SlackButton';
 import CollectionsStore from 'stores/CollectionsStore';
+import IntegrationsStore from 'stores/IntegrationsStore';
 
 type Props = {
   collections: CollectionsStore,
+  integrations: IntegrationsStore,
 };
 
 @observer
 class Slack extends Component {
   props: Props;
 
+  componentDidMount() {
+    this.props.integrations.fetchPage();
+  }
+
   render() {
-    const { collections } = this.props;
+    const { collections, integrations } = this.props;
 
     return (
       <CenteredContent>
@@ -33,6 +39,15 @@ class Slack extends Component {
           scopes={['commands', 'links:read', 'links:write']}
           redirectUri={`${BASE_URL}/auth/slack/commands`}
         />
+
+        <h2>Existing</h2>
+        <ol>
+          {integrations.orderedData.map(integration => (
+            <li>
+              {integration.serviceId} posting to {integration.settings.channel}
+            </li>
+          ))}
+        </ol>
 
         <h2>Add new</h2>
         <ol>
@@ -59,4 +74,4 @@ const Code = styled.code`
   border-radius: 4px;
 `;
 
-export default inject('collections')(Slack);
+export default inject('collections', 'integrations')(Slack);

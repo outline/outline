@@ -5,6 +5,7 @@ import stores from 'stores';
 import SettingsStore from 'stores/SettingsStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
+import IntegrationsStore from 'stores/IntegrationsStore';
 import CacheStore from 'stores/CacheStore';
 
 type Props = {
@@ -23,6 +24,7 @@ const Auth = ({ children }: Props) => {
       const cache = new CacheStore(user.id);
       authenticatedStores = {
         settings: new SettingsStore(),
+        integrations: new IntegrationsStore(),
         documents: new DocumentsStore({
           ui: stores.ui,
           cache,

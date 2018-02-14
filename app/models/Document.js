@@ -16,7 +16,7 @@ class Document extends BaseModel {
   hasPendingChanges: boolean = false;
   errors: ErrorsStore;
 
-  collaborators: Array<User>;
+  collaborators: User[];
   collection: $Shape<Collection>;
   collectionId: string;
   firstViewedAt: ?string;

@@ -6,6 +6,7 @@ import presentRevision from './revision';
 import presentCollection from './collection';
 import presentApiKey from './apiKey';
 import presentTeam from './team';
+import presentIntegration from './integration';
 
 export {
   presentUser,
@@ -15,4 +16,5 @@ export {
   presentCollection,
   presentApiKey,
   presentTeam,
+  presentIntegration,
 };
