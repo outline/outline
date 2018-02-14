@@ -10,7 +10,7 @@ function Analytics() {
         dangerouslySetInnerHTML={{
           __html: `
           window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-          ga('create', ${process.env.GOOGLE_ANALYTICS_ID}, 'auto');
+          ga('create', '${process.env.GOOGLE_ANALYTICS_ID}', 'auto');
           ga('send', 'pageview');
         `,
         }}
