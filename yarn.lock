@@ -8818,13 +8818,17 @@ slate-dev-logger@^0.1.0, slate-dev-logger@^0.1.36:
   version "0.1.36"
   resolved "https://registry.npmjs.org/slate-dev-logger/-/slate-dev-logger-0.1.36.tgz#ecdb37dbf944dfc742bab23b6a20d5a0472db95e"
 
+slate-dev-logger@^0.1.39:
+  version "0.1.39"
+  resolved "https://registry.yarnpkg.com/slate-dev-logger/-/slate-dev-logger-0.1.39.tgz#744a69b85034244713e6de51483af5713c345af4"
+
 slate-edit-list@^0.10.2:
   version "0.10.2"
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.10.2.tgz#938a791c7e7974fac3ef00505cc98710c307efc6"
 
-slate-md-serializer@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-1.0.7.tgz#c21411322c9dd9d5662da5897614f4ff5db1e68f"
+slate-md-serializer@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-2.0.0.tgz#fe143a44fef333d190055810a9fba9509928ee14"
 
 slate-paste-linkify@^0.5.0:
   version "0.5.0"
@@ -8877,13 +8881,17 @@ slate-react@^0.10.19:
     slate-plain-serializer "^0.4.12"
     slate-prop-types "^0.4.12"
 
+slate-schema-violations@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/slate-schema-violations/-/slate-schema-violations-0.1.2.tgz#45f2e6ed2e77c98925bb1e159bf24cad9dc7f8ac"
+
 slate-trailing-block@^0.4.0:
   version "0.4.0"
   resolved "https://registry.npmjs.org/slate-trailing-block/-/slate-trailing-block-0.4.0.tgz#92573d7729e4c2a05c45521616ae2db28197476c"
 
-slate@^0.31.8:
-  version "0.31.8"
-  resolved "https://registry.yarnpkg.com/slate/-/slate-0.31.8.tgz#d93fd397bcceb2b5eb2e1cbafa20643044230d63"
+slate@^0.32.4:
+  version "0.32.4"
+  resolved "https://registry.yarnpkg.com/slate/-/slate-0.32.4.tgz#dcc971d1cf4e4b7ac158b5bac9c39c9915805435"
   dependencies:
     debug "^2.3.2"
     direction "^0.1.5"
@@ -8891,7 +8899,8 @@ slate@^0.31.8:
     is-empty "^1.0.0"
     is-plain-object "^2.0.4"
     lodash "^4.17.4"
-    slate-dev-logger "^0.1.36"
+    slate-dev-logger "^0.1.39"
+    slate-schema-violations "^0.1.2"
     type-of "^2.0.1"
 
 slice-ansi@0.0.4:
