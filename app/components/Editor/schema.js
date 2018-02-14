@@ -3,12 +3,12 @@ import { Block, Change, Node, Mark } from 'slate';
 
 const schema = {
   blocks: {
-    heading1: { nodes: [{ kinds: ['text'] }], marks: [''] },
-    heading2: { nodes: [{ kinds: ['text'] }], marks: [''] },
-    heading3: { nodes: [{ kinds: ['text'] }], marks: [''] },
-    heading4: { nodes: [{ kinds: ['text'] }], marks: [''] },
-    heading5: { nodes: [{ kinds: ['text'] }], marks: [''] },
-    heading6: { nodes: [{ kinds: ['text'] }], marks: [''] },
+    heading1: { nodes: [{ objects: ['text'] }], marks: [''] },
+    heading2: { nodes: [{ objects: ['text'] }], marks: [''] },
+    heading3: { nodes: [{ objects: ['text'] }], marks: [''] },
+    heading4: { nodes: [{ objects: ['text'] }], marks: [''] },
+    heading5: { nodes: [{ objects: ['text'] }], marks: [''] },
+    heading6: { nodes: [{ objects: ['text'] }], marks: [''] },
     'block-quote': { marks: [''] },
     table: {
       nodes: [{ types: ['table-row', 'table-head', 'table-cell'] }],
