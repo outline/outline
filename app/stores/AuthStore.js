@@ -102,14 +102,23 @@ class AuthStore {
 
   constructor() {
     // Rehydrate
-    const data = JSON.parse(localStorage.getItem(AUTH_STORE) || '{}');
+    let data = {};
+    try {
+      data = JSON.parse(localStorage.getItem(AUTH_STORE) || '{}');
+    } catch (_) {
+      // no-op Safari private mode
+    }
     this.user = data.user;
     this.team = data.team;
     this.token = data.token;
     this.oauthState = data.oauthState;
 
     autorun(() => {
-      localStorage.setItem(AUTH_STORE, this.asJson);
+      try {
+        localStorage.setItem(AUTH_STORE, this.asJson);
+      } catch (_) {
+        // no-op Safari private mode
+      }
     });
   }
 }
