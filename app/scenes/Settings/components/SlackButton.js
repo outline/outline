@@ -11,12 +11,13 @@ type Props = {
   auth: AuthStore,
   scopes?: string[],
   redirectUri?: string,
+  state?: string,
 };
 
-function SlackButton({ auth, scopes, redirectUri }: Props) {
+function SlackButton({ auth, state, scopes, redirectUri }: Props) {
   const handleClick = () =>
     (window.location.href = slackAuth(
-      auth.getOauthState(),
+      state ? auth.saveOauthState(state) : auth.genOauthState(),
       scopes,
       redirectUri
     ));

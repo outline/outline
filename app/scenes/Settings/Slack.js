@@ -34,13 +34,15 @@ class Slack extends Component {
           redirectUri={`${BASE_URL}/auth/slack/commands`}
         />
 
+        <h2>Add new</h2>
         <ol>
           {collections.orderedData.map(collection => (
             <li>
               {collection.name}
               <SlackButton
-                scopes={['chat:write']}
+                scopes={['incoming-webhook']}
                 redirectUri={`${BASE_URL}/auth/slack/post`}
+                state={collection.id}
               />
             </li>
           ))}
