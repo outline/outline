@@ -52,7 +52,7 @@ class SlackAuth extends React.Component {
             code,
             collectionId: this.props.auth.oauthState,
           });
-          this.redirectTo = '/dashboard';
+          this.redirectTo = '/settings/integrations/slack';
         } catch (e) {
           this.redirectTo = '/auth/error';
         }

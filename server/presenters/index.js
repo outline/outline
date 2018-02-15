@@ -7,6 +7,7 @@ import presentCollection from './collection';
 import presentApiKey from './apiKey';
 import presentTeam from './team';
 import presentIntegration from './integration';
+import presentSlackAttachment from './slackAttachment';
 
 export {
   presentUser,
@@ -17,4 +18,5 @@ export {
   presentApiKey,
   presentTeam,
   presentIntegration,
+  presentSlackAttachment,
 };

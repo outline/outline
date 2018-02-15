@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
 
+import Button from 'components/Button';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
@@ -45,6 +46,7 @@ class Slack extends Component {
           {integrations.orderedData.map(integration => (
             <li>
               {integration.serviceId} posting to {integration.settings.channel}
+              <Button onClick={integration.delete}>Remove</Button>
             </li>
           ))}
         </ol>

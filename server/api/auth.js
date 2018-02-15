@@ -92,6 +92,7 @@ router.post('auth.slackCommands', auth(), async ctx => {
 
   await Authentication.create({
     serviceId: 'slack',
+    type: 'command',
     userId: user.id,
     teamId: user.teamId,
     token: data.access_token,
@@ -118,6 +119,7 @@ router.post('auth.slackPost', auth(), async ctx => {
 
   await Integration.create({
     serviceId,
+    type: 'post',
     userId: user.id,
     teamId: user.teamId,
     authenticationId: authentication.id,

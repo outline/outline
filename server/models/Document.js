@@ -119,6 +119,10 @@ Document.associate = models => {
     foreignKey: 'atlasId',
     onDelete: 'cascade',
   });
+  Document.belongsTo(models.Team, {
+    as: 'team',
+    foreignKey: 'teamId',
+  });
   Document.belongsTo(models.User, {
     as: 'createdBy',
     foreignKey: 'createdById',

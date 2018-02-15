@@ -7,6 +7,7 @@ const Integration = sequelize.define('integration', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  type: DataTypes.STRING,
   serviceId: DataTypes.STRING,
   settings: DataTypes.JSONB,
   events: DataTypes.ARRAY(DataTypes.STRING),
