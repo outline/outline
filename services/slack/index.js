@@ -5,22 +5,26 @@ import { presentSlackAttachment } from '../../server/presenters';
 
 const Slack = {
   on: async (event: Event) => {
-    console.log(`Slack service received ${event.name}, id: ${event.model.id}`);
-    if (event.name !== 'documents.create') return;
-    const document = await Document.findById(event.model.id);
-    console.log(document.teamId);
+    if (event.name !== 'documents.create' && event.name !== 'documents.update')
+      return;
 
+    const document = await Document.findById(event.model.id);
     const integration = await Integration.findOne({
       where: {
         teamId: document.teamId,
         serviceId: 'slack',
+        collectionId: document.atlasId,
         type: 'post',
       },
     });
+    console.log(integration);
+
     if (integration) {
-      console.log(integration.toJSON());
-      const attachments = [presentSlackAttachment(document)];
-      console.log('attachments', attachments);
+      let text = `${document.createdBy.name} published a new document`;
+
+      if (event.name === 'documents.update') {
+        text = `${document.createdBy.name} updated a document`;
+      }
 
       await fetch(integration.settings.url, {
         method: 'POST',
@@ -28,8 +32,8 @@ const Slack = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text: `${document.createdBy.name} created a new document`,
-          attachments,
+          text,
+          attachments: [presentSlackAttachment(document)],
         }),
       });
     }

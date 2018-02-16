@@ -1,6 +1,7 @@
 // @flow
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
+import _ from 'lodash';
 import styled from 'styled-components';
 
 import Button from 'components/Button';
@@ -32,42 +33,74 @@ class Slack extends Component {
         <PageTitle title="Slack" />
         <h1>Slack</h1>
         <HelpText>
-          Connect Outline to your Slack team to instantly search for documents
-          using the <Code>/outline</Code> command and preview Outline links.
+          Once connected use the <Code>/outline</Code> slash command in Slack to
+          search for documents in your teams wiki without leaving chat and
+          preview Outline links.
+        </HelpText>
+        <p>
+          <SlackButton
+            scopes={['commands', 'links:read', 'links:write']}
+            redirectUri={`${BASE_URL}/auth/slack/commands`}
+          />
+        </p>
+        <p>&nbsp;</p>
+
+        <h2>Collections</h2>
+        <HelpText>
+          Connect collections to Slack channels and Outline will post messages
+          when documents are published or updated.
         </HelpText>
 
-        <SlackButton
-          scopes={['commands', 'links:read', 'links:write']}
-          redirectUri={`${BASE_URL}/auth/slack/commands`}
-        />
+        <List>
+          {collections.orderedData.map(collection => {
+            const integration = _.find(integrations.orderedData, {
+              collectionId: collection.id,
+            });
 
-        <h2>Existing</h2>
-        <ol>
-          {integrations.orderedData.map(integration => (
-            <li>
-              {integration.serviceId} posting to {integration.settings.channel}
-              <Button onClick={integration.delete}>Remove</Button>
-            </li>
-          ))}
-        </ol>
+            if (integration) {
+              return (
+                <ListItem key={integration.id}>
+                  <span>
+                    <strong>{collection.name}</strong> posting activity to the{' '}
+                    <strong>{integration.settings.channel}</strong> Slack
+                    channel
+                  </span>
+                  <Button onClick={integration.delete}>Disconnect</Button>
+                </ListItem>
+              );
+            }
 
-        <h2>Add new</h2>
-        <ol>
-          {collections.orderedData.map(collection => (
-            <li>
-              {collection.name}
-              <SlackButton
-                scopes={['incoming-webhook']}
-                redirectUri={`${BASE_URL}/auth/slack/post`}
-                state={collection.id}
-              />
-            </li>
-          ))}
-        </ol>
+            return (
+              <ListItem key={collection.id}>
+                <strong>{collection.name}</strong>
+                <SlackButton
+                  scopes={['incoming-webhook']}
+                  redirectUri={`${BASE_URL}/auth/slack/post`}
+                  state={collection.id}
+                  label="Connect"
+                />
+              </ListItem>
+            );
+          })}
+        </List>
       </CenteredContent>
     );
   }
 }
+
+const List = styled.ol`
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+`;
+
+const ListItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eaebea;
+`;
 
 const Code = styled.code`
   padding: 4px 6px;

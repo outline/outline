@@ -19,6 +19,7 @@ class Integration extends BaseModel {
 
   id: string;
   serviceId: string;
+  collectionId: string;
   events: Events;
   settings: Settings;
 
