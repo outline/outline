@@ -53,7 +53,7 @@ router.post('apiKeys.delete', auth(), async ctx => {
 
   const user = ctx.state.user;
   const key = await ApiKey.findById(id);
-  authorize(user, 'delete', ApiKey);
+  authorize(user, 'delete', key);
 
   try {
     await key.destroy();
