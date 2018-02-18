@@ -38,6 +38,11 @@ api.use(async (ctx, next) => {
       }
     }
 
+    if (message.match('Authorization error')) {
+      ctx.status = 404;
+      message = 'Not Found';
+    }
+
     if (ctx.status === 500) {
       message = 'Internal Server Error';
       ctx.app.emit('error', err, ctx);

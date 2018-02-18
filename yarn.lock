@@ -423,6 +423,10 @@ attr-accept@^1.0.3:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-1.1.0.tgz#b5cd35227f163935a8f1de10ed3eba16941f6be6"
 
+auto-bind@^1.1.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/auto-bind/-/auto-bind-1.2.0.tgz#8b7e318aad53d43ba8a8ecaf0066d85d5f798cd6"
+
 autoprefixer@^6.3.1:
   version "6.7.7"
   resolved "https://registry.yarnpkg.com/autoprefixer/-/autoprefixer-6.7.7.tgz#1dbd1c835658e35ce3f9984099db00585c782014"
@@ -1530,6 +1534,14 @@ camelcase@^4.1.0:
 camelize@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/camelize/-/camelize-1.0.0.tgz#164a5483e630fa4321e5af07020e531831b2609b"
+
+cancan@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/cancan/-/cancan-3.1.0.tgz#4d148e73795324f689a9b1002e61839c17ea821e"
+  dependencies:
+    arrify "^1.0.1"
+    auto-bind "^1.1.0"
+    is-plain-obj "^1.1.0"
 
 caniuse-api@^1.5.2:
   version "1.6.1"
