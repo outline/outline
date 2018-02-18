@@ -1,7 +1,6 @@
 // @flow
 import policy from './policy';
-import Collection from '../models/Collection';
-import User from '../models/User';
+import { Collection, User } from '../models';
 
 const { allow } = policy;
 

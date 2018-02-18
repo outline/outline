@@ -2,8 +2,7 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
 
-import Team from '../models/Team';
-import User from '../models/User';
+import { Team, User } from '../models';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';

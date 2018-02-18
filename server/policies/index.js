@@ -1,7 +1,8 @@
 // @flow
 import policy from './policy';
-import './document';
+import './apiKey';
 import './collection';
+import './document';
 import './user';
 
 export default policy;

@@ -1,6 +1,5 @@
 // @flow
-import Team from '../models/Team';
-import User from '../models/User';
+import { Team, User } from '../models';
 import uuid from 'uuid';
 
 let count = 0;

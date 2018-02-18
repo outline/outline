@@ -2,8 +2,7 @@
 import Queue from 'bull';
 import debug from 'debug';
 import services from '../services';
-import Document from './models/Document';
-import Collection from './models/Collection';
+import { Collection, Document } from './models';
 
 type DocumentEvent = {
   name: 'documents.create',

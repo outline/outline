@@ -3,7 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '..';
 import { flushdb, seed } from '../test/support';
 import { buildUser } from '../test/factories';
-import Collection from '../models/Collection';
+import { Collection } from '../models';
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);

@@ -1,10 +1,9 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '..';
-import { View, Star } from '../models';
+import { Document, View, Star } from '../models';
 import { flushdb, seed } from '../test/support';
 import { buildUser } from '../test/factories';
-import Document from '../models/Document';
 
 const server = new TestServer(app.callback());
 
