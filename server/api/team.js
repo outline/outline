@@ -2,13 +2,15 @@
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
 
-import User from '../models/User';
 import Team from '../models/Team';
+import User from '../models/User';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentUser } from '../presenters';
+import policy from '../policies';
 
+const { authorize } = policy;
 const router = new Router();
 
 router.post('team.users', auth(), pagination(), async ctx => {
@@ -31,41 +33,41 @@ router.post('team.users', auth(), pagination(), async ctx => {
   };
 });
 
-router.post('team.addAdmin', auth({ adminOnly: true }), async ctx => {
-  const { user } = ctx.body;
-  const admin = ctx.state.user;
-  ctx.assertPresent(user, 'id is required');
+router.post('team.addAdmin', auth(), async ctx => {
+  const userId = ctx.body.user;
+  const teamId = ctx.state.user.teamId;
+  ctx.assertPresent(userId, 'id is required');
 
-  const team = await Team.findById(admin.teamId);
-  const promotedUser = await User.findOne({
-    where: { id: user, teamId: admin.teamId },
-  });
+  const user = await User.findById(userId);
+  authorize(ctx.state.user, 'promote', user);
 
-  if (!promotedUser) throw httpErrors.NotFound();
+  const team = await Team.findById(teamId);
+  await team.addAdmin(user);
 
-  await team.addAdmin(promotedUser);
-
-  ctx.body = presentUser(ctx, promotedUser, { includeDetails: true });
+  ctx.body = {
+    data: presentUser(ctx, user, { includeDetails: true }),
+  };
 });
 
-router.post('team.removeAdmin', auth({ adminOnly: true }), async ctx => {
-  const { user } = ctx.body;
-  const admin = ctx.state.user;
-  ctx.assertPresent(user, 'id is required');
+router.post('team.removeAdmin', auth(), async ctx => {
+  const userId = ctx.body.user;
+  const teamId = ctx.state.user.teamId;
+  ctx.assertPresent(userId, 'id is required');
 
-  const team = await Team.findById(admin.teamId);
-  const demotedUser = await User.findOne({
-    where: { id: user, teamId: admin.teamId },
-  });
+  const user = await User.findById(userId);
+  authorize(ctx.state.user, 'demote', user);
 
-  if (!demotedUser) throw httpErrors.NotFound();
+  const team = await Team.findById(teamId);
 
   try {
-    await team.removeAdmin(demotedUser);
-    ctx.body = presentUser(ctx, user, { includeDetails: true });
-  } catch (e) {
-    throw httpErrors.BadRequest(e.message);
+    await team.removeAdmin(user);
+  } catch (err) {
+    throw httpErrors.BadRequest(err.message);
   }
+
+  ctx.body = {
+    data: presentUser(ctx, user, { includeDetails: true }),
+  };
 });
 
 export default router;

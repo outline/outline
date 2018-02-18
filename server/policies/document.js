@@ -5,9 +5,11 @@ import User from '../models/User';
 
 const { allow } = policy;
 
+allow(User, 'create', Document);
+
 allow(
   User,
-  ['create', 'read', 'update', 'delete'],
+  ['read', 'update', 'delete'],
   Document,
-  (user, doc) => user.teamId === doc.teamId
+  (user, document) => user.teamId === document.teamId
 );

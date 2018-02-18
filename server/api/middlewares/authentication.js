@@ -7,7 +7,6 @@ import { User, ApiKey } from '../../models';
 
 type AuthOptions = {
   require?: boolean,
-  adminOnly?: boolean,
 };
 
 export default function auth(options: AuthOptions = {}) {
@@ -94,10 +93,6 @@ export default function auth(options: AuthOptions = {}) {
         } catch (e) {
           throw httpErrors.Unauthorized('Invalid token');
         }
-      }
-
-      if (options.adminOnly && !user.isAdmin) {
-        throw httpErrors.Forbidden('Only available for admins');
       }
 
       ctx.state.token = token;

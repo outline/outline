@@ -81,7 +81,7 @@ describe('#documents.revision', async () => {
         id: document.id,
       },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 });
 
@@ -219,7 +219,7 @@ describe('#documents.star', async () => {
     const res = await server.post('/api/documents.star', {
       body: { token: user.getJwtToken(), id: document.id },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 });
 
@@ -251,7 +251,7 @@ describe('#documents.unstar', async () => {
     const res = await server.post('/api/documents.unstar', {
       body: { token: user.getJwtToken(), id: document.id },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 });
 
@@ -442,6 +442,6 @@ describe('#documents.update', async () => {
     const res = await server.post('/api/documents.update', {
       body: { token: user.getJwtToken(), id: document.id, text: 'Updated' },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 });
