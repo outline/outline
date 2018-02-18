@@ -18,6 +18,7 @@ router.post('collections.create', auth(), async ctx => {
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
 
   const user = ctx.state.user;
+  authorize(user, 'create', Collection);
 
   const collection = await Collection.create({
     name,

@@ -8,7 +8,7 @@ allow(User, 'create', Collection);
 
 allow(
   User,
-  ['read', 'update'],
+  ['read', 'publish', 'update'],
   Collection,
   (user, collection) => collection && user.teamId === collection.teamId
 );

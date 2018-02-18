@@ -198,12 +198,15 @@ router.post('documents.create', auth(), async ctx => {
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
   const user = ctx.state.user;
+  authorize(user, 'create', Document);
+
   const ownerCollection = await Collection.findOne({
     where: {
       id: collection,
       teamId: user.teamId,
     },
   });
+  authorize(user, 'publish', ownerCollection);
 
   if (!ownerCollection) throw httpErrors.BadRequest();
 
