@@ -38,9 +38,7 @@ class Integration extends BaseModel {
   delete = async () => {
     try {
       await client.post('/integrations.delete', { id: this.id });
-      this.emit('integrations.delete', {
-        id: this.id,
-      });
+      this.emit('integrations.delete', { id: this.id });
       return true;
     } catch (e) {
       this.errors.add('Integration failed to delete');

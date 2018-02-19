@@ -29,4 +29,18 @@ router.post('integrations.list', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('integrations.delete', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const integration = await Integration.findById(id);
+  // TODO: authorization once other PR is merged
+
+  await integration.destroy();
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 export default router;

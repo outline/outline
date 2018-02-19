@@ -41,7 +41,7 @@ class SlackAuth extends React.Component {
         // incoming webhooks from Slack
         try {
           await client.post('/auth.slackCommands', { code });
-          this.redirectTo = '/dashboard';
+          this.redirectTo = '/settings/integrations/slack';
         } catch (e) {
           this.redirectTo = '/auth/error';
         }

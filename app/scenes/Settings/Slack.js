@@ -25,6 +25,12 @@ class Slack extends Component {
     this.props.integrations.fetchPage();
   }
 
+  get commandIntegration() {
+    return _.find(this.props.integrations.slackIntegrations, {
+      type: 'command',
+    });
+  }
+
   render() {
     const { collections, integrations } = this.props;
 
@@ -33,27 +39,31 @@ class Slack extends Component {
         <PageTitle title="Slack" />
         <h1>Slack</h1>
         <HelpText>
-          Once connected use the <Code>/outline</Code> slash command in Slack to
-          search for documents in your teams wiki without leaving chat and
-          preview Outline links.
+          Preview Outline links your team mates share and use the{' '}
+          <Code>/outline</Code> slash command in Slack to search for documents
+          in your teams wiki.
         </HelpText>
         <p>
-          <SlackButton
-            scopes={['commands', 'links:read', 'links:write']}
-            redirectUri={`${BASE_URL}/auth/slack/commands`}
-          />
+          {this.commandIntegration ? (
+            <Button onClick={this.commandIntegration.delete}>Disconnect</Button>
+          ) : (
+            <SlackButton
+              scopes={['commands', 'links:read', 'links:write']}
+              redirectUri={`${BASE_URL}/auth/slack/commands`}
+            />
+          )}
         </p>
         <p>&nbsp;</p>
 
         <h2>Collections</h2>
         <HelpText>
-          Connect collections to Slack channels and Outline will post messages
-          when documents are published or updated.
+          Connect Outline collections to Slack channels and messages will be
+          posted in Slack when documents are published or updated.
         </HelpText>
 
         <List>
           {collections.orderedData.map(collection => {
-            const integration = _.find(integrations.orderedData, {
+            const integration = _.find(integrations.slackIntegrations, {
               collectionId: collection.id,
             });
 

@@ -89,14 +89,22 @@ router.post('auth.slackCommands', auth(), async ctx => {
   const user = ctx.state.user;
   const endpoint = `${process.env.URL || ''}/auth/slack/commands`;
   const data = await Slack.oauthAccess(code, endpoint);
+  const serviceId = 'slack';
 
-  await Authentication.create({
-    serviceId: 'slack',
-    type: 'command',
+  const authentication = await Authentication.create({
+    serviceId,
     userId: user.id,
     teamId: user.teamId,
     token: data.access_token,
     scopes: data.scope.split(','),
+  });
+
+  await Integration.create({
+    serviceId,
+    type: 'command',
+    userId: user.id,
+    teamId: user.teamId,
+    authenticationId: authentication.id,
   });
 });
 

@@ -5,11 +5,12 @@ import _ from 'lodash';
 import invariant from 'invariant';
 import stores from './';
 import ErrorsStore from './ErrorsStore';
+import BaseStore from './BaseStore';
 
 import Integration from 'models/Integration';
 import type { PaginationParams } from 'types';
 
-class IntegrationsStore {
+class IntegrationsStore extends BaseStore {
   @observable data: Map<string, Integration> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
@@ -19,6 +20,11 @@ class IntegrationsStore {
   @computed
   get orderedData(): Integration[] {
     return _.sortBy(this.data.values(), 'name');
+  }
+
+  @computed
+  get slackIntegrations(): Integration[] {
+    return _.filter(this.orderedData, { serviceId: 'slack' });
   }
 
   @action
@@ -58,7 +64,12 @@ class IntegrationsStore {
   };
 
   constructor() {
+    super();
     this.errors = stores.errors;
+
+    this.on('integrations.delete', (data: { id: string }) => {
+      this.remove(data.id);
+    });
   }
 }
 
