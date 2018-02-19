@@ -34,11 +34,6 @@ class Collection extends BaseModel {
   }
 
   @computed
-  get allowDelete(): boolean {
-    return true;
-  }
-
-  @computed
   get isEmpty(): boolean {
     return this.documents.length === 0;
   }

@@ -42,17 +42,20 @@ class AuthStore {
         this.user = res.data.user;
         this.team = res.data.team;
       });
-    } catch (e) {
+    } catch (err) {
       // Failure to update user info is a non-fatal error.
+      console.error(err);
     }
   };
 
   @action
-  logout = () => {
+  logout = async () => {
     this.user = null;
     this.token = null;
-    localForage.clear();
+
     Cookie.remove('loggedIn', { path: '/' });
+    await localForage.clear();
+    window.location.href = BASE_URL;
   };
 
   @action
@@ -102,14 +105,23 @@ class AuthStore {
 
   constructor() {
     // Rehydrate
-    const data = JSON.parse(localStorage.getItem(AUTH_STORE) || '{}');
+    let data = {};
+    try {
+      data = JSON.parse(localStorage.getItem(AUTH_STORE) || '{}');
+    } catch (_) {
+      // no-op Safari private mode
+    }
     this.user = data.user;
     this.team = data.team;
     this.token = data.token;
     this.oauthState = data.oauthState;
 
     autorun(() => {
-      localStorage.setItem(AUTH_STORE, this.asJson);
+      try {
+        localStorage.setItem(AUTH_STORE, this.asJson);
+      } catch (_) {
+        // no-op Safari private mode
+      }
     });
   }
 }
