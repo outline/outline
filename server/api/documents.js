@@ -254,13 +254,12 @@ router.post('documents.update', auth(), async ctx => {
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
-  const collection = document.collection;
+
+  authDocumentForUser(ctx, document);
 
   if (lastRevision && lastRevision !== document.revisionCount) {
     throw httpErrors.BadRequest('Document has changed since last revision');
   }
-
-  authDocumentForUser(ctx, document);
 
   // Update document
   if (title) document.title = title;
@@ -268,6 +267,7 @@ router.post('documents.update', auth(), async ctx => {
   document.lastModifiedById = user.id;
 
   await document.save();
+  const collection = document.collection;
   if (collection.type === 'atlas') {
     await collection.updateDocument(document);
   }
@@ -287,10 +287,10 @@ router.post('documents.move', auth(), async ctx => {
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
   const document = await Document.findById(id);
-  const collection = await Collection.findById(document.atlasId);
 
   authDocumentForUser(ctx, document);
 
+  const collection = document.collection;
   if (collection.type !== 'atlas')
     throw httpErrors.BadRequest("This document can't be moved");
 
@@ -324,10 +324,10 @@ router.post('documents.delete', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const document = await Document.findById(id);
-  const collection = await Collection.findById(document.atlasId);
 
   authDocumentForUser(ctx, document);
 
+  const collection = document.collection;
   if (collection.type === 'atlas') {
     // Don't allow deletion of root docs
     if (collection.documentStructure.length === 1) {
