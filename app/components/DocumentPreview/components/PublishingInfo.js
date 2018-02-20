@@ -40,9 +40,9 @@ class PublishingInfo extends Component {
     return (
       <Container align="center">
         {publishedAt === updatedAt ? (
-          <React.Fragment>
+          <span>
             {createdBy.name} published {timeAgo}
-          </React.Fragment>
+          </span>
         ) : (
           <React.Fragment>
             {updatedBy.name}
@@ -56,9 +56,9 @@ class PublishingInfo extends Component {
           </React.Fragment>
         )}
         {collection && (
-          <React.Fragment>
+          <span>
             &nbsp;in <strong>{collection.name}</strong>
-          </React.Fragment>
+          </span>
         )}
       </Container>
     );

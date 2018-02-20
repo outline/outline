@@ -29,7 +29,7 @@ class Drafts extends Component {
         <h1>Drafts</h1>
         {showLoading && <ListPlaceholder />}
         {showEmpty && <Empty>No drafts yet.</Empty>}
-        <DocumentList documents={drafts} />
+        <DocumentList documents={drafts} showCollection />
       </CenteredContent>
     );
   }

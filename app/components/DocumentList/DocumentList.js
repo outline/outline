@@ -6,18 +6,25 @@ import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 class DocumentList extends React.Component {
   props: {
-    documents: Array<Document>,
+    documents: Document[],
+    showCollection?: boolean,
   };
 
   render() {
+    const { documents, showCollection } = this.props;
+
     return (
       <ArrowKeyNavigation
         mode={ArrowKeyNavigation.mode.VERTICAL}
         defaultActiveChildIndex={0}
       >
-        {this.props.documents &&
-          this.props.documents.map(document => (
-            <DocumentPreview key={document.id} document={document} />
+        {documents &&
+          documents.map(document => (
+            <DocumentPreview
+              key={document.id}
+              document={document}
+              showCollection={showCollection}
+            />
           ))}
       </ArrowKeyNavigation>
     );

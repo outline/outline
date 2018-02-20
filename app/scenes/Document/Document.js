@@ -152,12 +152,7 @@ class DocumentScene extends React.Component {
   handleCloseMoveModal = () => (this.moveModalOpen = false);
   handleOpenMoveModal = () => (this.moveModalOpen = true);
 
-  onSave = async (
-    options: {
-      redirect?: boolean,
-      publish?: boolean,
-    } = {}
-  ) => {
+  onSave = async (options: { redirect?: boolean, publish?: boolean } = {}) => {
     const { redirect, publish } = options;
 
     let document = this.document;
