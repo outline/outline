@@ -1,11 +1,11 @@
 // @flow
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection } from '../presenters';
 import { Collection } from '../models';
+import { ValidationError } from '../errors';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -95,13 +95,9 @@ router.post('collections.delete', auth(), async ctx => {
   authorize(ctx.state.user, 'delete', collection);
 
   const total = await Collection.count();
-  if (total === 1) throw httpErrors.BadRequest('Cannot delete last collection');
+  if (total === 1) throw new ValidationError('Cannot delete last collection');
 
-  try {
-    await collection.destroy();
-  } catch (e) {
-    throw httpErrors.BadRequest('Error while deleting collection');
-  }
+  await collection.destroy();
 
   ctx.body = {
     success: true,

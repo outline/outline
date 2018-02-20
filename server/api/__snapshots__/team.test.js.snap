@@ -17,9 +17,10 @@ Object {
 
 exports[`#team.addAdmin should require admin 1`] = `
 Object {
-  "error": "authorization_error",
-  "message": "Authorization Required",
+  "error": "admin_required",
+  "message": "An admin role is required to access this resource",
   "ok": false,
+  "status": 403,
 }
 `;
 
@@ -40,15 +41,16 @@ Object {
 
 exports[`#team.removeAdmin should require admin 1`] = `
 Object {
-  "error": "authorization_error",
-  "message": "Authorization Required",
+  "error": "admin_required",
+  "message": "An admin role is required to access this resource",
   "ok": false,
+  "status": 403,
 }
 `;
 
 exports[`#team.removeAdmin shouldn't demote admins if only one available  1`] = `
 Object {
-  "error": "at_least_one_admin_is_required",
+  "error": "validation_error",
   "message": "At least one admin is required",
   "ok": false,
   "status": 400,

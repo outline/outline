@@ -1,7 +1,6 @@
 // @flow
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
-
+import { ValidationError } from '../errors';
 import { Team, User } from '../models';
 
 import auth from './middlewares/authentication';
@@ -61,7 +60,7 @@ router.post('team.removeAdmin', auth(), async ctx => {
   try {
     await team.removeAdmin(user);
   } catch (err) {
-    throw httpErrors.BadRequest(err.message);
+    throw new ValidationError(err.message);
   }
 
   ctx.body = {

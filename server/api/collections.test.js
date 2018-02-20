@@ -57,7 +57,7 @@ describe('#collections.info', async () => {
     const res = await server.post('/api/collections.info', {
       body: { token: user.getJwtToken(), id: collection.id },
     });
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 });
 

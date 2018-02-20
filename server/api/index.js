@@ -39,13 +39,7 @@ api.use(async (ctx, next) => {
     }
 
     if (message.match('Authorization error')) {
-      if (ctx.path.match('info')) {
-        ctx.status = 404;
-        message = 'Not Found';
-      } else {
-        ctx.status = 403;
-        message = 'Authorization Required';
-      }
+      ctx.status = 403;
     }
 
     if (ctx.status === 500) {

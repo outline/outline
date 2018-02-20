@@ -1,6 +1,5 @@
 // @flow
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
@@ -55,11 +54,7 @@ router.post('apiKeys.delete', auth(), async ctx => {
   const key = await ApiKey.findById(id);
   authorize(user, 'delete', key);
 
-  try {
-    await key.destroy();
-  } catch (e) {
-    throw httpErrors.BadRequest('Error while deleting key');
-  }
+  await key.destroy();
 
   ctx.body = {
     success: true,
