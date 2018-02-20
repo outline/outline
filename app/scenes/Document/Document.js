@@ -13,25 +13,20 @@ import {
   updateDocumentUrl,
   documentMoveUrl,
   documentEditUrl,
-  documentNewUrl,
   matchDocumentEdit,
   matchDocumentMove,
 } from 'utils/routeHelpers';
 
 import Document from 'models/Document';
+import Actions from './components/Actions';
 import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
-import DocumentMenu from 'menus/DocumentMenu';
-import SaveAction from './components/SaveAction';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
-import Collaborators from 'components/Collaborators';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
-import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
-import Actions, { Action, Separator } from 'components/Actions';
 import Search from 'scenes/Search';
 
 const DISCARD_CHANGES = `
@@ -59,6 +54,7 @@ class DocumentScene extends React.Component {
   @observable newDocument: ?Document;
   @observable isLoading = false;
   @observable isSaving = false;
+  @observable isPublishing = false;
   @observable notFound = false;
   @observable moveModalOpen: boolean = false;
 
@@ -153,28 +149,26 @@ class DocumentScene extends React.Component {
     return this.getDocument();
   }
 
-  onClickEdit = () => {
-    if (!this.document) return;
-    this.props.history.push(documentEditUrl(this.document));
-  };
-
-  onClickNew = () => {
-    if (!this.document) return;
-    this.props.history.push(documentNewUrl(this.document));
-  };
-
   handleCloseMoveModal = () => (this.moveModalOpen = false);
   handleOpenMoveModal = () => (this.moveModalOpen = true);
 
-  onSave = async (redirect: boolean = false) => {
-    if (this.document && !this.document.allowSave) return;
-    this.editCache = null;
-    let document = this.document;
+  onSave = async (
+    options: {
+      redirect?: boolean,
+      publish?: boolean,
+    } = {}
+  ) => {
+    const { redirect, publish } = options;
 
-    if (!document) return;
+    let document = this.document;
+    if (!document || !document.allowSave) return;
+
+    this.editCache = null;
     this.isSaving = true;
-    document = await document.save(redirect);
+    this.isPublishing = publish;
+    document = await document.save(publish);
     this.isSaving = false;
+    this.isPublishing = false;
 
     if (redirect) {
       this.props.history.push(document.url);
@@ -219,7 +213,6 @@ class DocumentScene extends React.Component {
     const Editor = this.editorComponent;
     const isMoving = this.props.match.path === matchDocumentMove;
     const document = this.document;
-    const isDraft = !(document && document.publishedAt);
     const titleText =
       get(document, 'title', '') ||
       this.props.collections.titleForDocument(this.props.location.pathname);
@@ -255,51 +248,19 @@ class DocumentScene extends React.Component {
               onCancel={this.onDiscard}
               readOnly={!this.isEditing}
             />
-            <Actions
-              align="center"
-              justify="flex-end"
-              readOnly={!this.isEditing}
-            >
-              {!isDraft &&
-                !this.isEditing && <Collaborators document={document} />}
-              <Action>
-                {(this.isEditing || isDraft) && (
-                  <SaveAction
-                    isDraft={isDraft}
-                    isSaving={this.isSaving}
-                    onClick={this.onSave.bind(this, true)}
-                    disabled={
-                      !(this.document && this.document.allowSave) ||
-                      this.isSaving
-                    }
-                  />
-                )}
-              </Action>
-              {!this.isEditing && (
-                <Action>
-                  <a onClick={this.onClickEdit}>Edit</a>
-                </Action>
-              )}
-              {this.isEditing && (
-                <Action>
-                  <a onClick={this.onDiscard}>Discard</a>
-                </Action>
-              )}
-              {!this.isEditing &&
-                !isDraft && (
-                  <React.Fragment>
-                    <Action>
-                      <DocumentMenu document={document} />
-                    </Action>,
-                    <Separator />,
-                    <Action>
-                      <a onClick={this.onClickNew}>
-                        <NewDocumentIcon />
-                      </a>
-                    </Action>,
-                  </React.Fragment>
-                )}
-            </Actions>
+            {document && (
+              <Actions
+                document={document}
+                isDraft={!document.publishedAt}
+                isEditing={this.isEditing}
+                isSaving={this.isSaving}
+                isPublishing={this.isPublishing}
+                savingIsDisabled={!document.allowSave}
+                history={this.props.history}
+                onDiscard={this.onDiscard}
+                onSave={this.onSave}
+              />
+            )}
           </Flex>
         )}
       </Container>

@@ -97,15 +97,16 @@ class DocumentPreview extends Component {
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
         <h3>
           <Highlight text={document.title} highlight={highlight} />
-          {document.starred ? (
-            <span onClick={this.unstar}>
-              <StyledStar solid />
-            </span>
-          ) : (
-            <span onClick={this.star}>
-              <StyledStar />
-            </span>
-          )}
+          {document.publishedAt &&
+            (document.starred ? (
+              <span onClick={this.unstar}>
+                <StyledStar solid />
+              </span>
+            ) : (
+              <span onClick={this.star}>
+                <StyledStar />
+              </span>
+            ))}
         </h3>
         <PublishingInfo
           document={document}

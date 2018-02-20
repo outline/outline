@@ -145,7 +145,7 @@ class Document extends BaseModel {
   };
 
   @action
-  save = async (publish: boolean = true) => {
+  save = async (publish: boolean = false) => {
     if (this.isSaving) return this;
     this.isSaving = true;
 

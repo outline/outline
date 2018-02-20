@@ -4,7 +4,7 @@ import _ from 'lodash';
 import randomstring from 'randomstring';
 import MarkdownSerializer from 'slate-md-serializer';
 import Plain from 'slate-plain-serializer';
-import Sequelize, { Op } from 'sequelize';
+import { Op } from 'sequelize';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
@@ -241,9 +241,12 @@ Document.addHook('afterDestroy', model =>
   events.add({ name: 'documents.delete', model })
 );
 
-Document.addHook('afterUpdate', model =>
-  events.add({ name: 'documents.update', model })
-);
+Document.addHook('afterUpdate', model => {
+  if (!model.previous('publishedAt') && model.publishedAt) {
+    events.add({ name: 'documents.publish', model });
+  }
+  events.add({ name: 'documents.update', model });
+});
 
 // Instance methods
 
