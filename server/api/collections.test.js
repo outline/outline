@@ -2,7 +2,8 @@
 import TestServer from 'fetch-test-server';
 import app from '..';
 import { flushdb, seed } from '../test/support';
-import Collection from '../models/Collection';
+import { buildUser } from '../test/factories';
+import { Collection } from '../models';
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
@@ -31,14 +32,6 @@ describe('#collections.list', async () => {
 });
 
 describe('#collections.info', async () => {
-  it('should require authentication', async () => {
-    const res = await server.post('/api/collections.info');
-    const body = await res.json();
-
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
   it('should return collection', async () => {
     const { user, collection } = await seed();
     const res = await server.post('/api/collections.info', {
@@ -48,6 +41,23 @@ describe('#collections.info', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(collection.id);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/collections.info');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { collection } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/collections.info', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 
@@ -80,6 +90,15 @@ describe('#collections.delete', async () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { collection } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/collections.delete', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it('should not delete last collection', async () => {

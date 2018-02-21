@@ -1,9 +1,9 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '..';
-import { View, Star } from '../models';
+import { Document, View, Star } from '../models';
 import { flushdb, seed } from '../test/support';
-import Document from '../models/Document';
+import { buildUser } from '../test/factories';
 
 const server = new TestServer(app.callback());
 
@@ -55,7 +55,7 @@ describe('#documents.list', async () => {
 });
 
 describe('#documents.revision', async () => {
-  it("should return document's revisions", async () => {
+  it("should return a document's revisions", async () => {
     const { user, document } = await seed();
     const res = await server.post('/api/documents.revisions', {
       body: {
@@ -69,6 +69,18 @@ describe('#documents.revision', async () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).not.toEqual(document.id);
     expect(body.data[0].title).toEqual(document.title);
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.revisions', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 
@@ -199,6 +211,15 @@ describe('#documents.star', async () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.star', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
 });
 
 describe('#documents.unstar', async () => {
@@ -221,6 +242,15 @@ describe('#documents.unstar', async () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.unstar', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 
@@ -392,5 +422,25 @@ describe('#documents.update', async () => {
     expect(body.data.collection.documents[0].children[1].title).toBe(
       'Updated title'
     );
+  });
+
+  it('should require authentication', async () => {
+    const { document } = await seed();
+    const res = await server.post('/api/documents.update', {
+      body: { id: document.id, text: 'Updated' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.update', {
+      body: { token: user.getJwtToken(), id: document.id, text: 'Updated' },
+    });
+    expect(res.status).toEqual(403);
   });
 });

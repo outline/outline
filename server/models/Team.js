@@ -42,13 +42,13 @@ Team.prototype.createFirstCollection = async function(userId) {
 };
 
 Team.prototype.addAdmin = async function(user: User) {
-  return await user.update({ isAdmin: true });
+  return user.update({ isAdmin: true });
 };
 
 Team.prototype.removeAdmin = async function(user: User) {
   const res = await User.findAndCountAll({
     where: {
-      teamId: user.teamId,
+      teamId: this.id,
       isAdmin: true,
       id: {
         [Op.ne]: user.id,
@@ -57,7 +57,7 @@ Team.prototype.removeAdmin = async function(user: User) {
     limit: 1,
   });
   if (res.count >= 1) {
-    return await user.update({ isAdmin: false });
+    return user.update({ isAdmin: false });
   } else {
     throw new Error('At least one admin is required');
   }

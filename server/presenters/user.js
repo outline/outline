@@ -1,5 +1,5 @@
 // @flow
-import User from '../models/User';
+import { User } from '../models';
 
 type Options = {
   includeDetails?: boolean,
