@@ -5,7 +5,12 @@ import { inject, observer } from 'mobx-react';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import { spectrumUrl } from '../../shared/utils/routeHelpers';
+import {
+  developers,
+  githubIssuesUrl,
+  mailToUrl,
+  spectrumUrl,
+} from '../../shared/utils/routeHelpers';
 
 @observer
 class AccountMenu extends Component {
@@ -24,16 +29,8 @@ class AccountMenu extends Component {
     this.props.history.push('/settings');
   };
 
-  handleApi = () => {
-    window.location.href = '/developers';
-  };
-
   handleLogout = () => {
     this.props.auth.logout();
-  };
-
-  handleFeedback = () => {
-    window.location.href = spectrumUrl();
   };
 
   render() {
@@ -48,12 +45,20 @@ class AccountMenu extends Component {
         <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
           Keyboard shortcuts
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={this.handleApi}>
+        <DropdownMenuItem href={developers()} target="_blank">
           API documentation
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={this.handleFeedback}>
-          Feedback
+        <hr />
+        <DropdownMenuItem href={spectrumUrl()} target="_blank">
+          Community
         </DropdownMenuItem>
+        <DropdownMenuItem href={mailToUrl()} target="_blank">
+          Send us feedback
+        </DropdownMenuItem>
+        <DropdownMenuItem href={githubIssuesUrl()} target="_blank">
+          Report a bug
+        </DropdownMenuItem>
+        <hr />
         <DropdownMenuItem onClick={this.handleLogout}>Logout</DropdownMenuItem>
       </DropdownMenu>
     );
