@@ -1,6 +1,6 @@
 // @flow
-import httpErrors from 'http-errors';
 import querystring from 'querystring';
+import { InvalidRequestError } from '../../errors';
 import { type Context } from 'koa';
 
 export default function pagination(options?: Object) {
@@ -24,7 +24,7 @@ export default function pagination(options?: Object) {
     offset = isNaN(offset) ? 0 : offset;
 
     if (limit > opts.maxLimit) {
-      throw httpErrors.BadRequest(
+      throw new InvalidRequestError(
         `Pagination limit is too large (max ${opts.maxLimit})`
       );
     }
