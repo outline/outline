@@ -1,11 +1,11 @@
 // @flow
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
 import { Document, Collection, Star, View, Revision } from '../models';
+import { ValidationError, InvalidRequestError } from '../errors';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -208,8 +208,6 @@ router.post('documents.create', auth(), async ctx => {
   });
   authorize(user, 'publish', ownerCollection);
 
-  if (!ownerCollection) throw httpErrors.BadRequest();
-
   let parentDocumentObj = {};
   if (parentDocument && ownerCollection.type === 'atlas') {
     parentDocumentObj = await Document.findOne({
@@ -218,8 +216,7 @@ router.post('documents.create', auth(), async ctx => {
         atlasId: ownerCollection.id,
       },
     });
-    if (!parentDocumentObj)
-      throw httpErrors.BadRequest('Invalid parentDocument');
+    authorize(user, 'read', parentDocumentObj);
   }
 
   const newDocument = await Document.create({
@@ -258,7 +255,7 @@ router.post('documents.update', auth(), async ctx => {
   authorize(ctx.state.user, 'update', document);
 
   if (lastRevision && lastRevision !== document.revisionCount) {
-    throw httpErrors.BadRequest('Document has changed since last revision');
+    throw new InvalidRequestError('Document has changed since last revision');
   }
 
   // Update document
@@ -283,27 +280,25 @@ router.post('documents.move', auth(), async ctx => {
   const { id, parentDocument, index } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   if (parentDocument)
-    ctx.assertUuid(parentDocument, 'parentDocument must be an uuid');
+    ctx.assertUuid(parentDocument, 'parentDocument must be a uuid');
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
+  const user = ctx.state.user;
   const document = await Document.findById(id);
-  authorize(ctx.state.user, 'update', document);
+  authorize(user, 'update', document);
 
   const collection = document.collection;
   if (collection.type !== 'atlas')
-    throw httpErrors.BadRequest("This document can't be moved");
+    throw new InvalidRequestError('This document can’t be moved');
 
   // Set parent document
   if (parentDocument) {
     const parent = await Document.findById(parentDocument);
-    if (!parent || parent.atlasId !== document.atlasId)
-      throw httpErrors.BadRequest(
-        'Invalid parentDocument (must be same collection)'
-      );
+    authorize(user, 'update', parent);
   }
 
   if (parentDocument === id)
-    throw httpErrors.BadRequest('Infinite loop detected and prevented!');
+    throw new InvalidRequestError('Infinite loop detected and prevented!');
 
   // If no parent document is provided, set it as null (move to root level)
   document.parentDocumentId = parentDocument;
@@ -327,27 +322,11 @@ router.post('documents.delete', auth(), async ctx => {
 
   const collection = document.collection;
   if (collection.type === 'atlas') {
-    // Don't allow deletion of root docs
-    if (collection.documentStructure.length === 1) {
-      throw httpErrors.BadRequest(
-        "Unable to delete collection's only document"
-      );
-    }
-
     // Delete document and all of its children
-    try {
-      await collection.removeDocument(document);
-    } catch (e) {
-      throw httpErrors.BadRequest('Error while deleting');
-    }
+    await collection.removeDocument(document);
   }
 
-  // Delete the actual document
-  try {
-    await document.destroy();
-  } catch (e) {
-    throw httpErrors.BadRequest('Error while deleting document');
-  }
+  await document.destroy();
 
   ctx.body = {
     success: true,

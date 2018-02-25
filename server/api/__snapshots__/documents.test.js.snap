@@ -1,11 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`#documents.create should create as a child 1`] = `
+exports[`#documents.create should error with invalid parentDocument 1`] = `
 Object {
-  "error": "invalid_parent_document",
-  "message": "Invalid parentDocument",
+  "error": "authorization_error",
+  "message": "Authorization error",
   "ok": false,
-  "status": 400,
 }
 `;
 
@@ -56,7 +55,7 @@ Object {
 
 exports[`#documents.update should fail if document lastRevision does not match 1`] = `
 Object {
-  "error": "document_has_changed_since_last_revision",
+  "error": "invalid_request",
   "message": "Document has changed since last revision",
   "ok": false,
   "status": 400,
