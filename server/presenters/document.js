@@ -38,6 +38,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     team: document.teamId,
     collaborators: [],
     starred: !!(document.starred && document.starred.length),
+    pinned: !!document.pinnedBy,
     revision: document.revisionCount,
     collectionId: document.atlasId,
     collaboratorCount: undefined,

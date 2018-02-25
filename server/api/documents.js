@@ -144,8 +144,7 @@ router.post('documents.search', auth(), pagination(), async ctx => {
   const { offset, limit } = ctx.state.pagination;
   ctx.assertPresent(query, 'query is required');
 
-  const user = await ctx.state.user;
-
+  const user = ctx.state.user;
   const documents = await Document.searchForUser(user, query, {
     offset,
     limit,
@@ -161,13 +160,45 @@ router.post('documents.search', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('documents.pin', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = ctx.state.user;
+  const document = await Document.findById(id);
+
+  authorize(user, 'update', document);
+
+  document.pinnedBy = user;
+  await document.save();
+
+  ctx.body = {
+    data: await presentDocument(ctx, document),
+  };
+});
+
+router.post('documents.unpin', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = ctx.state.user;
+  const document = await Document.findById(id);
+
+  authorize(user, 'update', document);
+
+  document.pinnedBy = undefined;
+  await document.save();
+
+  ctx.body = {
+    data: await presentDocument(ctx, document),
+  };
+});
+
 router.post('documents.star', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const user = await ctx.state.user;
+  const user = ctx.state.user;
   const document = await Document.findById(id);
 
-  authorize(ctx.state.user, 'read', document);
+  authorize(user, 'read', document);
 
   await Star.findOrCreate({
     where: { documentId: document.id, userId: user.id },
@@ -177,10 +208,10 @@ router.post('documents.star', auth(), async ctx => {
 router.post('documents.unstar', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const user = await ctx.state.user;
+  const user = ctx.state.user;
   const document = await Document.findById(id);
 
-  authorize(ctx.state.user, 'read', document);
+  authorize(user, 'read', document);
 
   await Star.destroy({
     where: { documentId: document.id, userId: user.id },

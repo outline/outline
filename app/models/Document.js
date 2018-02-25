@@ -16,7 +16,7 @@ class Document extends BaseModel {
   hasPendingChanges: boolean = false;
   errors: ErrorsStore;
 
-  collaborators: Array<User>;
+  collaborators: User[];
   collection: $Shape<Collection>;
   collectionId: string;
   firstViewedAt: ?string;
@@ -24,17 +24,19 @@ class Document extends BaseModel {
   modifiedSinceViewed: ?boolean;
   createdAt: string;
   createdBy: User;
+  updatedAt: string;
+  updatedBy: User;
   html: string;
   id: string;
   team: string;
   emoji: string;
   private: boolean = false;
   starred: boolean = false;
+  pinned: boolean = false;
+  pinnedBy: User;
   text: string = '';
   title: string = '';
   parentDocument: ?string;
-  updatedAt: string;
-  updatedBy: User;
   url: string;
   views: number;
   revision: number;
