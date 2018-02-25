@@ -406,6 +406,34 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
+          <Method method="documents.pin" label="Pin a document">
+            <Description>
+              Pins a document to the collection home. The pinned document is
+              visible to all members of the team.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="documents.unpin" label="Unpin a document">
+            <Description>
+              Unpins a document from the collection home. It will still remain
+              in the collection itself.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+            </Arguments>
+          </Method>
+
           <Method method="documents.star" label="Star a document">
             <Description>
               Star (favorite) a document for authenticated user.
@@ -421,7 +449,7 @@ export default function Pricing() {
 
           <Method method="documents.unstar" label="Unstar a document">
             <Description>
-              Unstar as starred (favorited) a document for authenticated user.
+              Unstar a starred (favorited) document for authenticated user.
             </Description>
             <Arguments>
               <Argument
