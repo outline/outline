@@ -1,13 +1,14 @@
 // @flow
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
-import _ from 'lodash';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection } from '../presenters';
 import { Collection } from '../models';
+import { ValidationError } from '../errors';
+import policy from '../policies';
 
+const { authorize } = policy;
 const router = new Router();
 
 router.post('collections.create', auth(), async ctx => {
@@ -17,6 +18,7 @@ router.post('collections.create', auth(), async ctx => {
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
 
   const user = ctx.state.user;
+  authorize(user, 'create', Collection);
 
   const collection = await Collection.create({
     name,
@@ -32,6 +34,18 @@ router.post('collections.create', auth(), async ctx => {
   };
 });
 
+router.post('collections.info', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const collection = await Collection.scope('withRecentDocuments').findById(id);
+  authorize(ctx.state.user, 'read', collection);
+
+  ctx.body = {
+    data: await presentCollection(ctx, collection),
+  };
+});
+
 router.post('collections.update', auth(), async ctx => {
   const { id, name, color } = ctx.body;
   ctx.assertPresent(name, 'name is required');
@@ -39,28 +53,11 @@ router.post('collections.update', auth(), async ctx => {
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
 
   const collection = await Collection.findById(id);
+  authorize(ctx.state.user, 'update', collection);
+
   collection.name = name;
   collection.color = color;
   await collection.save();
-
-  ctx.body = {
-    data: await presentCollection(ctx, collection),
-  };
-});
-
-router.post('collections.info', auth(), async ctx => {
-  const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
-
-  const user = ctx.state.user;
-  const collection = await Collection.scope('withRecentDocuments').findOne({
-    where: {
-      id,
-      teamId: user.teamId,
-    },
-  });
-
-  if (!collection) throw httpErrors.NotFound();
 
   ctx.body = {
     data: await presentCollection(ctx, collection),
@@ -94,20 +91,13 @@ router.post('collections.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
-  const user = ctx.state.user;
   const collection = await Collection.findById(id);
+  authorize(ctx.state.user, 'delete', collection);
+
   const total = await Collection.count();
+  if (total === 1) throw new ValidationError('Cannot delete last collection');
 
-  if (total === 1) throw httpErrors.BadRequest('Cannot delete last collection');
-
-  if (!collection || collection.teamId !== user.teamId)
-    throw httpErrors.BadRequest();
-
-  try {
-    await collection.destroy();
-  } catch (e) {
-    throw httpErrors.BadRequest('Error while deleting collection');
-  }
+  await collection.destroy();
 
   ctx.body = {
     success: true,

@@ -1,7 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import { flushdb, seed } from '../test/support';
-import Collection from '../models/Collection';
-import Document from '../models/Document';
+import { Collection, Document } from '../models';
 
 beforeEach(flushdb);
 beforeEach(jest.resetAllMocks);

@@ -1,7 +1,7 @@
 // @flow
 import fetch from 'isomorphic-fetch';
 import querystring from 'querystring';
-import { httpErrors } from './errors';
+import httpErrors from 'http-errors';
 
 const SLACK_API_URL = 'https://slack.com/api';
 

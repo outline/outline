@@ -7,12 +7,9 @@ import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
 import { Document, Collection, Star, View, Revision } from '../models';
+import policy from '../policies';
 
-const authDocumentForUser = (ctx, document) => {
-  const user = ctx.state.user;
-  if (!document || document.teamId !== user.teamId) throw httpErrors.NotFound();
-};
-
+const { authorize } = policy;
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
@@ -133,7 +130,7 @@ router.post('documents.info', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
   const document = await Document.findById(id);
 
-  authDocumentForUser(ctx, document);
+  authorize(ctx.state.user, 'read', document);
 
   ctx.body = {
     data: await presentDocument(ctx, document),
@@ -146,7 +143,7 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   ctx.assertPresent(id, 'id is required');
   const document = await Document.findById(id);
 
-  authDocumentForUser(ctx, document);
+  authorize(ctx.state.user, 'read', document);
 
   const revisions = await Revision.findAll({
     where: { documentId: id },
@@ -193,7 +190,7 @@ router.post('documents.star', auth(), async ctx => {
   const user = await ctx.state.user;
   const document = await Document.findById(id);
 
-  authDocumentForUser(ctx, document);
+  authorize(ctx.state.user, 'read', document);
 
   await Star.findOrCreate({
     where: { documentId: document.id, userId: user.id },
@@ -206,7 +203,7 @@ router.post('documents.unstar', auth(), async ctx => {
   const user = await ctx.state.user;
   const document = await Document.findById(id);
 
-  authDocumentForUser(ctx, document);
+  authorize(ctx.state.user, 'read', document);
 
   await Star.destroy({
     where: { documentId: document.id, userId: user.id },
@@ -225,14 +222,15 @@ router.post('documents.create', auth(), async ctx => {
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
   const user = ctx.state.user;
+  authorize(user, 'create', Document);
+
   const collection = await Collection.findOne({
     where: {
       id: collectionId,
       teamId: user.teamId,
     },
   });
-
-  if (!collection) throw httpErrors.BadRequest();
+  authorize(user, 'publish', collection);
 
   let parentDocumentObj = {};
   if (parentDocument && collection.type === 'atlas') {
@@ -282,13 +280,12 @@ router.post('documents.update', auth(), async ctx => {
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
-  const collection = document.collection;
+
+  authorize(ctx.state.user, 'update', document);
 
   if (lastRevision && lastRevision !== document.revisionCount) {
     throw httpErrors.BadRequest('Document has changed since last revision');
   }
-
-  authDocumentForUser(ctx, document);
 
   // Update document
   if (publish) document.publishedAt = new Date();
@@ -297,6 +294,7 @@ router.post('documents.update', auth(), async ctx => {
   document.lastModifiedById = user.id;
 
   await document.save();
+  const collection = document.collection;
   if (collection.type === 'atlas') {
     if (document.publishedAt) {
       await collection.updateDocument(document);
@@ -320,10 +318,9 @@ router.post('documents.move', auth(), async ctx => {
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
   const document = await Document.findById(id);
-  const collection = await Collection.findById(document.atlasId);
+  authorize(ctx.state.user, 'update', document);
 
-  authDocumentForUser(ctx, document);
-
+  const collection = document.collection;
   if (collection.type !== 'atlas')
     throw httpErrors.BadRequest("This document can't be moved");
 
@@ -357,10 +354,9 @@ router.post('documents.delete', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const document = await Document.findById(id);
-  const collection = await Collection.findById(document.atlasId);
+  authorize(ctx.state.user, 'delete', document);
 
-  authDocumentForUser(ctx, document);
-
+  const collection = document.collection;
   if (collection.type === 'atlas') {
     // Don't allow deletion of root docs
     if (collection.documentStructure.length === 1) {

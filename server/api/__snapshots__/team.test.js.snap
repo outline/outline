@@ -2,21 +2,23 @@
 
 exports[`#team.addAdmin should promote a new admin 1`] = `
 Object {
-  "avatarUrl": "http://example.com/avatar.png",
-  "email": "user1@example.com",
-  "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-  "isAdmin": true,
-  "name": "User 1",
+  "data": Object {
+    "avatarUrl": "http://example.com/avatar.png",
+    "email": "user1@example.com",
+    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    "isAdmin": true,
+    "name": "User 1",
+    "username": "user1",
+  },
   "ok": true,
   "status": 200,
-  "username": "user1",
 }
 `;
 
 exports[`#team.addAdmin should require admin 1`] = `
 Object {
-  "error": "only_available_for_admins",
-  "message": "Only available for admins",
+  "error": "admin_required",
+  "message": "An admin role is required to access this resource",
   "ok": false,
   "status": 403,
 }
@@ -24,7 +26,14 @@ Object {
 
 exports[`#team.removeAdmin should demote an admin 1`] = `
 Object {
-  "avatarUrl": null,
+  "data": Object {
+    "avatarUrl": "http://example.com/avatar.png",
+    "email": "user1@example.com",
+    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+    "isAdmin": false,
+    "name": "User 1",
+    "username": "user1",
+  },
   "ok": true,
   "status": 200,
 }
@@ -32,8 +41,8 @@ Object {
 
 exports[`#team.removeAdmin should require admin 1`] = `
 Object {
-  "error": "only_available_for_admins",
-  "message": "Only available for admins",
+  "error": "admin_required",
+  "message": "An admin role is required to access this resource",
   "ok": false,
   "status": 403,
 }
@@ -41,7 +50,7 @@ Object {
 
 exports[`#team.removeAdmin shouldn't demote admins if only one available  1`] = `
 Object {
-  "error": "at_least_one_admin_is_required",
+  "error": "validation_error",
   "message": "At least one admin is required",
   "ok": false,
   "status": 400,

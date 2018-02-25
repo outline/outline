@@ -40,10 +40,7 @@ describe('#team.addAdmin', async () => {
     const { admin, user } = await seed();
 
     const res = await server.post('/api/team.addAdmin', {
-      body: {
-        token: admin.getJwtToken(),
-        user: user.id,
-      },
+      body: { token: admin.getJwtToken(), user: user.id },
     });
     const body = await res.json();
 
@@ -54,7 +51,7 @@ describe('#team.addAdmin', async () => {
   it('should require admin', async () => {
     const { user } = await seed();
     const res = await server.post('/api/team.addAdmin', {
-      body: { token: user.getJwtToken() },
+      body: { token: user.getJwtToken(), user: user.id },
     });
     const body = await res.json();
 
@@ -98,7 +95,7 @@ describe('#team.removeAdmin', async () => {
   it('should require admin', async () => {
     const { user } = await seed();
     const res = await server.post('/api/team.addAdmin', {
-      body: { token: user.getJwtToken() },
+      body: { token: user.getJwtToken(), user: user.id },
     });
     const body = await res.json();
 
