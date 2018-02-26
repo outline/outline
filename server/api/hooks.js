@@ -1,6 +1,6 @@
 // @flow
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
+import { AuthenticationError, InvalidRequestError } from '../errors';
 import { Authentication, Document, User } from '../models';
 import * as Slack from '../slack';
 const router = new Router();
@@ -10,7 +10,7 @@ router.post('hooks.unfurl', async ctx => {
   if (challenge) return (ctx.body = ctx.body.challenge);
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN)
-    throw httpErrors.BadRequest('Invalid token');
+    throw new AuthenticationError('Invalid token');
 
   // TODO: Everything from here onwards will get moved to an async job
   const user = await User.find({ where: { slackId: event.user } });
@@ -50,7 +50,7 @@ router.post('hooks.slack', async ctx => {
   ctx.assertPresent(text, 'text is required');
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN)
-    throw httpErrors.Unauthorized('Invalid token');
+    throw new AuthenticationError('Invalid token');
 
   const user = await User.find({
     where: {
@@ -58,7 +58,7 @@ router.post('hooks.slack', async ctx => {
     },
   });
 
-  if (!user) throw httpErrors.BadRequest('Invalid user');
+  if (!user) throw new InvalidRequestError('Invalid user');
 
   const documents = await Document.searchForUser(user, text, {
     limit: 5,

@@ -1,7 +1,7 @@
 // @flow
 import Koa from 'koa';
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
+import { NotFoundError } from '../errors';
 import { Mailer } from '../mailer';
 
 const emailPreviews = new Koa();
@@ -22,7 +22,7 @@ router.get('/:type/:format', async ctx => {
       if (Object.getOwnPropertyNames(previewMailer).includes(ctx.params.type)) {
         // $FlowIssue flow doesn't like this but we're ok with it
         previewMailer[ctx.params.type]('user@example.com');
-      } else throw httpErrors.NotFound();
+      } else throw new NotFoundError('Email template could not be found');
   }
 
   if (!mailerOutput) return;
