@@ -372,7 +372,7 @@ describe('#documents.create', async () => {
     expect(body.data.collection.documents[0].children[0].id).toBe(body.data.id);
   });
 
-  it('should create as a child', async () => {
+  it('should error with invalid parentDocument', async () => {
     const { user, collection } = await seed();
     const res = await server.post('/api/documents.create', {
       body: {
@@ -385,7 +385,7 @@ describe('#documents.create', async () => {
     });
     const body = await res.json();
 
-    expect(res.status).toEqual(400);
+    expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
 

@@ -1,14 +1,10 @@
 // @flow
 import httpErrors from 'http-errors';
 
-export function ValidationError(message: string = 'Validation failed') {
-  return httpErrors(400, message, { id: 'validation_error' });
-}
-
-export function ParamRequiredError(
-  message: string = 'Required parameter missing'
+export function AuthenticationError(
+  message: string = 'Invalid authentication'
 ) {
-  return httpErrors(400, message, { id: 'param_required' });
+  return httpErrors(401, message, { id: 'authentication_required' });
 }
 
 export function AuthorizationError(
@@ -23,6 +19,20 @@ export function AdminRequiredError(
   return httpErrors(403, message, { id: 'admin_required' });
 }
 
+export function InvalidRequestError(message: string = 'Request invalid') {
+  return httpErrors(400, message, { id: 'invalid_request' });
+}
+
 export function NotFoundError(message: string = 'Resource not found') {
   return httpErrors(404, message, { id: 'not_found' });
+}
+
+export function ParamRequiredError(
+  message: string = 'Required parameter missing'
+) {
+  return httpErrors(400, message, { id: 'param_required' });
+}
+
+export function ValidationError(message: string = 'Validation failed') {
+  return httpErrors(400, message, { id: 'validation_error' });
 }

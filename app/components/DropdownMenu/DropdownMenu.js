@@ -21,7 +21,6 @@ type Props = {
 class DropdownMenu extends Component {
   props: Props;
   @observable top: number;
-  @observable left: number;
   @observable right: number;
 
   handleOpen = (openPortal: SyntheticEvent => void) => {
@@ -59,7 +58,6 @@ class DropdownMenu extends Component {
                 key="menu"
                 onClick={closePortal}
                 style={this.props.style}
-                left={this.left}
                 top={this.top}
                 right={this.right}
               >

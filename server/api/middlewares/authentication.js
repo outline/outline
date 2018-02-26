@@ -1,20 +1,10 @@
 // @flow
-import httpErrors from 'http-errors';
 import JWT from 'jsonwebtoken';
 import { type Context } from 'koa';
-
 import { User, ApiKey } from '../../models';
+import { AuthenticationError } from '../../errors';
 
-type AuthOptions = {
-  require?: boolean,
-};
-
-export default function auth(options: AuthOptions = {}) {
-  options = {
-    require: true,
-    ...options,
-  };
-
+export default function auth() {
   return async function authMiddleware(
     ctx: Context,
     next: () => Promise<void>
@@ -32,11 +22,9 @@ export default function auth(options: AuthOptions = {}) {
           token = credentials;
         }
       } else {
-        if (require) {
-          throw httpErrors.Unauthorized(
-            `Bad Authorization header format. Format is "Authorization: Bearer <token>"`
-          );
-        }
+        throw new AuthenticationError(
+          `Bad Authorization header format. Format is "Authorization: Bearer <token>"`
+        );
       }
       // $FlowFixMe
     } else if (ctx.body.token) {
@@ -45,9 +33,7 @@ export default function auth(options: AuthOptions = {}) {
       token = ctx.request.query.token;
     }
 
-    if (!token && require) {
-      throw httpErrors.Unauthorized('Authentication required');
-    }
+    if (!token) throw new AuthenticationError('Authentication required');
 
     if (token) {
       let user;
@@ -62,16 +48,13 @@ export default function auth(options: AuthOptions = {}) {
             },
           });
         } catch (e) {
-          throw httpErrors.Unauthorized('Invalid API key');
+          throw new AuthenticationError('Invalid API key');
         }
 
-        if (!apiKey) throw httpErrors.Unauthorized('Invalid API key');
+        if (!apiKey) throw new AuthenticationError('Invalid API key');
 
-        user = await User.findOne({
-          where: { id: apiKey.userId },
-        });
-
-        if (!user) throw httpErrors.Unauthorized('Invalid API key');
+        user = await User.findById(apiKey.userId);
+        if (!user) throw new AuthenticationError('Invalid API key');
       } else {
         // JWT
         // Get user without verifying payload signature
@@ -79,19 +62,17 @@ export default function auth(options: AuthOptions = {}) {
         try {
           payload = JWT.decode(token);
         } catch (e) {
-          throw httpErrors.Unauthorized('Unable to decode JWT token');
+          throw new AuthenticationError('Unable to decode JWT token');
         }
 
-        if (!payload) throw httpErrors.Unauthorized('Invalid token');
+        if (!payload) throw new AuthenticationError('Invalid token');
 
-        user = await User.findOne({
-          where: { id: payload.id },
-        });
+        user = await User.findById(payload.id);
 
         try {
           JWT.verify(token, user.jwtSecret);
         } catch (e) {
-          throw httpErrors.Unauthorized('Invalid token');
+          throw new AuthenticationError('Invalid token');
         }
       }
 
