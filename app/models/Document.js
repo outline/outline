@@ -33,7 +33,6 @@ class Document extends BaseModel {
   private: boolean = false;
   starred: boolean = false;
   pinned: boolean = false;
-  pinnedBy: User;
   text: string = '';
   title: string = '';
   parentDocument: ?string;
@@ -99,6 +98,28 @@ class Document extends BaseModel {
   }
 
   /* Actions */
+
+  @action
+  pin = async () => {
+    this.pinned = true;
+    try {
+      await client.post('/documents.pin', { id: this.id });
+    } catch (e) {
+      this.pinned = false;
+      this.errors.add('Document failed to pin');
+    }
+  };
+
+  @action
+  unpin = async () => {
+    this.pinned = false;
+    try {
+      await client.post('/documents.unpin', { id: this.id });
+    } catch (e) {
+      this.pinned = true;
+      this.errors.add('Document failed to unpin');
+    }
+  };
 
   @action
   star = async () => {

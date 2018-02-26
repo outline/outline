@@ -6,6 +6,7 @@ import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import Highlight from 'components/Highlight';
+import PinIcon from 'components/Icon/PinIcon';
 import StarredIcon from 'components/Icon/StarredIcon';
 import PublishingInfo from './components/PublishingInfo';
 
@@ -18,6 +19,22 @@ type Props = {
 
 const StyledStar = styled(({ solid, ...props }) => (
   <StarredIcon color={solid ? color.black : color.text} {...props} />
+))`
+  position: absolute;
+  opacity: ${props => (props.solid ? '1 !important' : 0)};
+  transition: all 100ms ease-in-out;
+  margin-left: 2px;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
+const StyledPin = styled(({ solid, ...props }) => (
+  <PinIcon color={solid ? color.black : color.text} {...props} />
 ))`
   position: absolute;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
@@ -84,6 +101,12 @@ class DocumentPreview extends Component {
     this.props.document.unstar();
   };
 
+  unpin = (ev: SyntheticEvent) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.props.document.unpin();
+  };
+
   render() {
     const {
       document,
@@ -104,6 +127,12 @@ class DocumentPreview extends Component {
           ) : (
             <span onClick={this.star}>
               <StyledStar />
+            </span>
+          )}
+          {document.pinned && (
+            <span onClick={this.unpin}>
+              PINNED
+              <StyledPin solid />
             </span>
           )}
         </h3>

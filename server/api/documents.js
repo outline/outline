@@ -168,7 +168,7 @@ router.post('documents.pin', auth(), async ctx => {
 
   authorize(user, 'update', document);
 
-  document.pinnedBy = user;
+  document.pinnedById = user.id;
   await document.save();
 
   ctx.body = {
@@ -184,7 +184,7 @@ router.post('documents.unpin', auth(), async ctx => {
 
   authorize(user, 'update', document);
 
-  document.pinnedBy = undefined;
+  document.pinnedById = undefined;
   await document.save();
 
   ctx.body = {

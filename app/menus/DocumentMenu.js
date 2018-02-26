@@ -33,6 +33,14 @@ class DocumentMenu extends Component {
     this.props.history.push(documentMoveUrl(this.props.document));
   };
 
+  handlePin = () => {
+    this.props.document.pin();
+  };
+
+  handleUnpin = () => {
+    this.props.document.unpin();
+  };
+
   handleStar = () => {
     this.props.document.star();
   };
@@ -50,6 +58,11 @@ class DocumentMenu extends Component {
 
     return (
       <DropdownMenu label={label || <MoreIcon />}>
+        {document.pinned ? (
+          <DropdownMenuItem onClick={this.handleUnpin}>Unpin</DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={this.handlePin}>Pin</DropdownMenuItem>
+        )}
         {document.starred ? (
           <DropdownMenuItem onClick={this.handleUnstar}>
             Unstar

@@ -145,6 +145,14 @@ class CollectionScene extends Component {
               />{' '}
               {this.collection.name}
             </Heading>
+
+            <Subheading>Pinned</Subheading>
+            <DocumentList
+              documents={this.props.documents.recentlyEditedIn(
+                this.collection.documentIds
+              )}
+            />
+
             <Subheading>Recently edited</Subheading>
             <DocumentList
               documents={this.props.documents.recentlyEditedIn(
