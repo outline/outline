@@ -481,6 +481,14 @@ export default function Pricing() {
           </Method>
 
           <Method
+            method="documents.pinned"
+            label="Get pinned documents for a collection"
+          >
+            <Description>Return pinned documents for a collection</Description>
+            <Arguments pagination />
+          </Method>
+
+          <Method
             method="documents.revisions"
             label="Get revisions for a document"
           >

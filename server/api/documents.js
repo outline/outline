@@ -1,6 +1,7 @@
 // @flow
 import Router from 'koa-router';
 import httpErrors from 'http-errors';
+import { Op } from 'sequelize';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
@@ -19,10 +20,39 @@ router.post('documents.list', auth(), pagination(), async ctx => {
   let where = { teamId: user.teamId };
   if (collection) where = { ...where, atlasId: collection };
 
-  const userId = user.id;
-  const starredScope = { method: ['withStarred', userId] };
+  const starredScope = { method: ['withStarred', user.id] };
   const documents = await Document.scope('defaultScope', starredScope).findAll({
     where,
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  const data = await Promise.all(
+    documents.map(document => presentDocument(ctx, document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
+router.post('documents.pinned', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction, collection } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+  ctx.assertPresent(collection, 'collection is required');
+
+  const user = ctx.state.user;
+  const starredScope = { method: ['withStarred', user.id] };
+  const documents = await Document.scope('defaultScope', starredScope).findAll({
+    where: {
+      teamId: user.teamId,
+      atlasId: collection,
+      pinnedById: {
+        [Op.ne]: null,
+      },
+    },
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
@@ -184,7 +214,7 @@ router.post('documents.unpin', auth(), async ctx => {
 
   authorize(user, 'update', document);
 
-  document.pinnedById = undefined;
+  document.pinnedById = null;
   await document.save();
 
   ctx.body = {

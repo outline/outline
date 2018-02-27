@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
+import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
 import PinIcon from 'components/Icon/PinIcon';
 import StarredIcon from 'components/Icon/StarredIcon';
@@ -20,10 +21,8 @@ type Props = {
 const StyledStar = styled(({ solid, ...props }) => (
   <StarredIcon color={solid ? color.black : color.text} {...props} />
 ))`
-  position: absolute;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: all 100ms ease-in-out;
-  margin-left: 2px;
 
   &:hover {
     transform: scale(1.1);
@@ -36,10 +35,8 @@ const StyledStar = styled(({ solid, ...props }) => (
 const StyledPin = styled(({ solid, ...props }) => (
   <PinIcon color={solid ? color.black : color.text} {...props} />
 ))`
-  position: absolute;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: all 100ms ease-in-out;
-  margin-left: 2px;
 
   &:hover {
     transform: scale(1.1);
@@ -66,7 +63,7 @@ const DocumentLink = styled(Link)`
     border: 2px solid ${color.smoke};
     outline: none;
 
-    ${StyledStar} {
+    ${StyledStar}, ${StyledPin} {
       opacity: 0.5;
 
       &:hover {
@@ -80,9 +77,17 @@ const DocumentLink = styled(Link)`
   }
 
   h3 {
+    display: flex;
+    align-items: center;
+    height: 24px;
     margin-top: 0;
     margin-bottom: 0.25em;
   }
+`;
+
+const Actions = styled(Flex)`
+  margin-left: 4px;
+  align-items: center;
 `;
 
 @observer
@@ -99,6 +104,12 @@ class DocumentPreview extends Component {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.document.unstar();
+  };
+
+  pin = (ev: SyntheticEvent) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.props.document.pin();
   };
 
   unpin = (ev: SyntheticEvent) => {
@@ -120,21 +131,18 @@ class DocumentPreview extends Component {
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
         <h3>
           <Highlight text={document.title} highlight={highlight} />
-          {document.starred ? (
-            <span onClick={this.unstar}>
-              <StyledStar solid />
-            </span>
-          ) : (
-            <span onClick={this.star}>
-              <StyledStar />
-            </span>
-          )}
-          {document.pinned && (
-            <span onClick={this.unpin}>
-              PINNED
-              <StyledPin solid />
-            </span>
-          )}
+          <Actions>
+            {document.pinned ? (
+              <StyledPin onClick={this.unpin} solid />
+            ) : (
+              <StyledPin onClick={this.pin} />
+            )}
+            {document.starred ? (
+              <StyledStar onClick={this.unstar} solid />
+            ) : (
+              <StyledStar onClick={this.star} />
+            )}
+          </Actions>
         </h3>
         <PublishingInfo
           document={document}

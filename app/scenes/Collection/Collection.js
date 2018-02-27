@@ -55,7 +55,6 @@ class CollectionScene extends Component {
 
   loadContent = async (id: string) => {
     const { collections } = this.props;
-
     const collection = collections.getById(id) || (await collections.fetch(id));
 
     if (collection) {
@@ -63,7 +62,10 @@ class CollectionScene extends Component {
       this.collection = collection;
       await this.props.documents.fetchRecentlyModified({
         limit: 10,
-        collection: collection.id,
+        collection: id,
+      });
+      await this.props.documents.fetchPinned({
+        collection: id,
       });
     }
 
@@ -132,10 +134,18 @@ class CollectionScene extends Component {
       return this.renderEmptyCollection();
     }
 
+    const pinnedDocuments = this.collection
+      ? this.props.documents.pinnedInCollection(this.collection.id)
+      : [];
+    const recentDocuments = this.collection
+      ? this.props.documents.recentlyEditedInCollection(this.collection.id)
+      : [];
+    const hasPinnedDocuments = !!pinnedDocuments.length;
+
     return (
       <CenteredContent>
         {this.collection ? (
-          <span>
+          <React.Fragment>
             <PageTitle title={this.collection.name} />
             <Heading>
               <CollectionIcon
@@ -146,21 +156,12 @@ class CollectionScene extends Component {
               {this.collection.name}
             </Heading>
 
-            <Subheading>Pinned</Subheading>
-            <DocumentList
-              documents={this.props.documents.recentlyEditedIn(
-                this.collection.documentIds
-              )}
-            />
+            {hasPinnedDocuments && <DocumentList documents={pinnedDocuments} />}
 
             <Subheading>Recently edited</Subheading>
-            <DocumentList
-              documents={this.props.documents.recentlyEditedIn(
-                this.collection.documentIds
-              )}
-            />
+            <DocumentList documents={recentDocuments} limit={10} />
             {this.renderActions()}
-          </span>
+          </React.Fragment>
         ) : (
           <ListPlaceholder count={5} />
         )}

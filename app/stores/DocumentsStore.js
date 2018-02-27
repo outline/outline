@@ -60,10 +60,22 @@ class DocumentsStore extends BaseStore {
     return docs;
   }
 
-  recentlyEditedIn(documentIds: string[]): Document[] {
+  pinnedInCollection(collectionId: string): Document[] {
     return _.orderBy(
-      _.filter(this.data.values(), document =>
-        documentIds.includes(document.id)
+      _.filter(
+        this.data.values(),
+        document => document.collectionId === collectionId && document.pinned
+      ),
+      'updatedAt',
+      'desc'
+    );
+  }
+
+  recentlyEditedInCollection(collectionId: string): Document[] {
+    return _.orderBy(
+      _.filter(
+        this.data.values(),
+        document => document.collectionId === collectionId
       ),
       'updatedAt',
       'desc'
@@ -132,6 +144,11 @@ class DocumentsStore extends BaseStore {
   @action
   fetchStarred = async (): Promise<*> => {
     await this.fetchPage('starred');
+  };
+
+  @action
+  fetchPinned = async (options: ?PaginationParams): Promise<*> => {
+    await this.fetchPage('pinned', options);
   };
 
   @action
