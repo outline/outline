@@ -26,7 +26,7 @@ import { isModKey } from './utils';
 type Props = {
   text: string,
   onChange: Change => *,
-  onSave: (redirect?: boolean) => *,
+  onSave: ({ redirect?: boolean, publish?: boolean }) => *,
   onCancel: () => void,
   onImageUploadStart: () => void,
   onImageUploadStop: () => void,
@@ -125,7 +125,7 @@ class MarkdownEditor extends Component {
 
     ev.preventDefault();
     ev.stopPropagation();
-    this.props.onSave();
+    this.props.onSave({ redirect: false });
   }
 
   @keydown('meta+enter')
@@ -134,7 +134,7 @@ class MarkdownEditor extends Component {
 
     ev.preventDefault();
     ev.stopPropagation();
-    this.props.onSave(true);
+    this.props.onSave({ redirect: true });
   }
 
   @keydown('esc')

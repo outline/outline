@@ -1,6 +1,6 @@
 // @flow
 import Router from 'koa-router';
-
+import { Op } from 'sequelize';
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
@@ -102,6 +102,28 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('documents.drafts', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const documents = await Document.findAll({
+    where: { userId: user.id, publishedAt: { [Op.eq]: null } },
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  const data = await Promise.all(
+    documents.map(document => presentDocument(ctx, document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
 router.post('documents.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
@@ -188,9 +210,10 @@ router.post('documents.unstar', auth(), async ctx => {
 });
 
 router.post('documents.create', auth(), async ctx => {
-  const { collection, title, text, parentDocument, index } = ctx.body;
-  ctx.assertPresent(collection, 'collection is required');
-  ctx.assertUuid(collection, 'collection must be an uuid');
+  const { title, text, publish, parentDocument, index } = ctx.body;
+  const collectionId = ctx.body.collection;
+  ctx.assertPresent(collectionId, 'collection is required');
+  ctx.assertUuid(collectionId, 'collection must be an uuid');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
   if (parentDocument)
@@ -200,44 +223,48 @@ router.post('documents.create', auth(), async ctx => {
   const user = ctx.state.user;
   authorize(user, 'create', Document);
 
-  const ownerCollection = await Collection.findOne({
+  const collection = await Collection.findOne({
     where: {
-      id: collection,
+      id: collectionId,
       teamId: user.teamId,
     },
   });
-  authorize(user, 'publish', ownerCollection);
+  authorize(user, 'publish', collection);
 
   let parentDocumentObj = {};
-  if (parentDocument && ownerCollection.type === 'atlas') {
+  if (parentDocument && collection.type === 'atlas') {
     parentDocumentObj = await Document.findOne({
       where: {
         id: parentDocument,
-        atlasId: ownerCollection.id,
+        atlasId: collection.id,
       },
     });
     authorize(user, 'read', parentDocumentObj);
   }
 
-  const newDocument = await Document.create({
+  const publishedAt = publish === false ? null : new Date();
+  let document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
-    atlasId: ownerCollection.id,
+    atlasId: collection.id,
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,
     createdById: user.id,
+    publishedAt,
     title,
     text,
   });
 
-  // reload to get all of the data needed to present (user, collection etc)
-  const document = await Document.findById(newDocument.id);
-
-  if (ownerCollection.type === 'atlas') {
-    await ownerCollection.addDocumentToStructure(document, index);
+  if (publishedAt && collection.type === 'atlas') {
+    await collection.addDocumentToStructure(document, index);
   }
 
-  document.collection = ownerCollection;
+  // reload to get all of the data needed to present (user, collection etc)
+  // we need to specify publishedAt to bypass default scope that only returns
+  // published documents
+  document = await Document.find({
+    where: { id: document.id, publishedAt },
+  });
 
   ctx.body = {
     data: await presentDocument(ctx, document),
@@ -245,7 +272,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, lastRevision } = ctx.body;
+  const { id, title, text, publish, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -259,6 +286,7 @@ router.post('documents.update', auth(), async ctx => {
   }
 
   // Update document
+  if (publish) document.publishedAt = new Date();
   if (title) document.title = title;
   if (text) document.text = text;
   document.lastModifiedById = user.id;
@@ -266,7 +294,11 @@ router.post('documents.update', auth(), async ctx => {
   await document.save();
   const collection = document.collection;
   if (collection.type === 'atlas') {
-    await collection.updateDocument(document);
+    if (document.publishedAt) {
+      await collection.updateDocument(document);
+    } else if (publish) {
+      await collection.addDocumentToStructure(document);
+    }
   }
 
   document.collection = collection;

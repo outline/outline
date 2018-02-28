@@ -67,6 +67,7 @@ const seed = async () => {
     userId: collection.creatorId,
     lastModifiedById: collection.creatorId,
     createdById: collection.creatorId,
+    publishedAt: new Date(),
     title: 'Second document',
     text: '# Much guidance',
   });

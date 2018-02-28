@@ -4,6 +4,7 @@ import _ from 'lodash';
 import randomstring from 'randomstring';
 import MarkdownSerializer from 'slate-md-serializer';
 import Plain from 'slate-plain-serializer';
+import { Op } from 'sequelize';
 
 import isUUID from 'validator/lib/isUUID';
 import { DataTypes, sequelize } from '../sequelize';
@@ -82,6 +83,7 @@ const Document = sequelize.define(
     title: DataTypes.STRING,
     text: DataTypes.TEXT,
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+    publishedAt: DataTypes.DATE,
     parentDocumentId: DataTypes.UUID,
     createdById: {
       type: DataTypes.UUID,
@@ -145,9 +147,21 @@ Document.associate = models => {
         { model: models.User, as: 'createdBy' },
         { model: models.User, as: 'updatedBy' },
       ],
+      where: {
+        publishedAt: {
+          [Op.ne]: null,
+        },
+      },
     },
     { override: true }
   );
+  Document.addScope('withUnpublished', {
+    include: [
+      { model: models.Collection, as: 'collection' },
+      { model: models.User, as: 'createdBy' },
+      { model: models.User, as: 'updatedBy' },
+    ],
+  });
   Document.addScope('withViews', userId => ({
     include: [
       { model: models.View, as: 'views', where: { userId }, required: false },
@@ -161,12 +175,14 @@ Document.associate = models => {
 };
 
 Document.findById = async id => {
+  const scope = Document.scope('withUnpublished');
+
   if (isUUID(id)) {
-    return Document.findOne({
+    return scope.findOne({
       where: { id },
     });
   } else if (id.match(URL_REGEX)) {
-    return Document.findOne({
+    return scope.findOne({
       where: {
         urlId: id.match(URL_REGEX)[1],
       },
@@ -225,9 +241,12 @@ Document.addHook('afterDestroy', model =>
   events.add({ name: 'documents.delete', model })
 );
 
-Document.addHook('afterUpdate', model =>
-  events.add({ name: 'documents.update', model })
-);
+Document.addHook('afterUpdate', model => {
+  if (!model.previous('publishedAt') && model.publishedAt) {
+    events.add({ name: 'documents.publish', model });
+  }
+  events.add({ name: 'documents.update', model });
+});
 
 // Instance methods
 

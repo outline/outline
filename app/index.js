@@ -16,6 +16,7 @@ import 'shared/styles/prism.css';
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
 import Starred from 'scenes/Starred';
+import Drafts from 'scenes/Drafts';
 import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
 import Search from 'scenes/Search';
@@ -65,6 +66,7 @@ render(
                   <Switch>
                     <Route exact path="/dashboard" component={Dashboard} />
                     <Route exact path="/starred" component={Starred} />
+                    <Route exact path="/drafts" component={Drafts} />
                     <Route exact path="/settings" component={Settings} />
                     <Route exact path="/settings/members" component={Members} />
                     <Route exact path="/settings/tokens" component={Tokens} />

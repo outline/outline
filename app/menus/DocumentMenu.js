@@ -47,27 +47,34 @@ class DocumentMenu extends Component {
 
   render() {
     const { document, label } = this.props;
+    const isDraft = !document.publishedAt;
 
     return (
       <DropdownMenu label={label || <MoreIcon />}>
-        {document.starred ? (
-          <DropdownMenuItem onClick={this.handleUnstar}>
-            Unstar
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={this.handleStar}>Star</DropdownMenuItem>
+        {!isDraft && (
+          <React.Fragment>
+            {document.starred ? (
+              <DropdownMenuItem onClick={this.handleUnstar}>
+                Unstar
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={this.handleStar}>
+                Star
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem
+              onClick={this.handleNewChild}
+              title="Create a new child document for the current document"
+            >
+              New child
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
+          </React.Fragment>
         )}
-        <DropdownMenuItem
-          onClick={this.handleNewChild}
-          title="Create a new child document for the current document"
-        >
-          New child
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleExport}>
           Download
         </DropdownMenuItem>
         <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
-        <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleDelete}>Delete…</DropdownMenuItem>
       </DropdownMenu>
     );

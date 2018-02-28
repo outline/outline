@@ -71,8 +71,16 @@ class DocumentsStore extends BaseStore {
   }
 
   @computed
-  get starred(): Array<Document> {
+  get starred(): Document[] {
     return _.filter(this.data.values(), 'starred');
+  }
+
+  @computed
+  get drafts(): Document[] {
+    return _.filter(
+      _.orderBy(this.data.values(), 'updatedAt', 'desc'),
+      doc => !doc.publishedAt
+    );
   }
 
   @computed
@@ -130,14 +138,19 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
-  fetchStarred = async (): Promise<*> => {
-    await this.fetchPage('starred');
+  fetchStarred = async (options: ?PaginationParams): Promise<*> => {
+    await this.fetchPage('starred', options);
+  };
+
+  @action
+  fetchDrafts = async (options: ?PaginationParams): Promise<*> => {
+    await this.fetchPage('drafts', options);
   };
 
   @action
   search = async (
     query: string,
-    options?: PaginationParams
+    options: ?PaginationParams
   ): Promise<string[]> => {
     const res = await client.get('/documents.search', {
       ...options,
