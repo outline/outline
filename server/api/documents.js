@@ -286,6 +286,7 @@ router.post('documents.update', auth(), async ctx => {
   }
 
   // Update document
+  const previouslyPublished = !!document.publishedAt;
   if (publish) document.publishedAt = new Date();
   if (title) document.title = title;
   if (text) document.text = text;
@@ -294,7 +295,7 @@ router.post('documents.update', auth(), async ctx => {
   await document.save();
   const collection = document.collection;
   if (collection.type === 'atlas') {
-    if (document.publishedAt) {
+    if (previouslyPublished) {
       await collection.updateDocument(document);
     } else if (publish) {
       await collection.addDocumentToStructure(document);

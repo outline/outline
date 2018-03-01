@@ -3,9 +3,10 @@ import localForage from 'localforage';
 
 class CacheStore {
   key: string;
+  version: number = 1;
 
   cacheKey = (key: string): string => {
-    return `CACHE_${this.key}_${key}`;
+    return `CACHE_${this.key}_${this.version}_${key}`;
   };
 
   getItem = (key: string): any => {
