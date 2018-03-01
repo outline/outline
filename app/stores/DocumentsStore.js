@@ -61,13 +61,9 @@ class DocumentsStore extends BaseStore {
   }
 
   pinnedInCollection(collectionId: string): Document[] {
-    return _.orderBy(
-      _.filter(
-        this.data.values(),
-        document => document.collectionId === collectionId && document.pinned
-      ),
-      'updatedAt',
-      'desc'
+    return _.filter(
+      this.recentlyEditedInCollection(collectionId),
+      document => document.pinned
     );
   }
 
@@ -75,7 +71,8 @@ class DocumentsStore extends BaseStore {
     return _.orderBy(
       _.filter(
         this.data.values(),
-        document => document.collectionId === collectionId
+        document =>
+          document.collectionId === collectionId && !!document.publishedAt
       ),
       'updatedAt',
       'desc'
