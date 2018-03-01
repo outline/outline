@@ -36,6 +36,7 @@ class Document extends BaseModel {
   text: string = '';
   title: string = '';
   parentDocument: ?string;
+  publishedAt: ?string;
   url: string;
   views: number;
   revision: number;
@@ -72,8 +73,7 @@ class Document extends BaseModel {
 
     if (this.collection.documents) {
       traveler(this.collection.documents, []);
-      invariant(path, 'Path is not available for collection, abort');
-      return path;
+      if (path) return path;
     }
 
     return [];
@@ -168,7 +168,7 @@ class Document extends BaseModel {
   };
 
   @action
-  save = async () => {
+  save = async (publish: boolean = false) => {
     if (this.isSaving) return this;
     this.isSaving = true;
 
@@ -180,6 +180,7 @@ class Document extends BaseModel {
           title: this.title,
           text: this.text,
           lastRevision: this.revision,
+          publish,
         });
       } else {
         const data = {
@@ -187,6 +188,7 @@ class Document extends BaseModel {
           collection: this.collection.id,
           title: this.title,
           text: this.text,
+          publish,
         };
         if (this.parentDocument) {
           data.parentDocument = this.parentDocument;

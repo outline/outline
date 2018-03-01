@@ -10,7 +10,9 @@ import { color, layout } from 'shared/styles/constants';
 
 import CloseIcon from 'components/Icon/CloseIcon';
 import MenuIcon from 'components/Icon/MenuIcon';
+
 import AuthStore from 'stores/AuthStore';
+import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
@@ -18,6 +20,7 @@ type Props = {
   history: Object,
   location: Location,
   auth: AuthStore,
+  documents: DocumentsStore,
   ui: UiStore,
 };
 

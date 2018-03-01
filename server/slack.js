@@ -1,14 +1,15 @@
 // @flow
 import fetch from 'isomorphic-fetch';
 import querystring from 'querystring';
-import httpErrors from 'http-errors';
+import { InvalidRequestError } from './errors';
 
 const SLACK_API_URL = 'https://slack.com/api';
 
 export async function post(endpoint: string, body: Object) {
   let data;
+
+  const token = body.token;
   try {
-    const token = body.token;
     const response = await fetch(`${SLACK_API_URL}/${endpoint}`, {
       method: 'POST',
       headers: {
@@ -18,10 +19,10 @@ export async function post(endpoint: string, body: Object) {
       body: JSON.stringify(body),
     });
     data = await response.json();
-  } catch (e) {
-    throw httpErrors.BadRequest();
+  } catch (err) {
+    throw new InvalidRequestError(err.message);
   }
-  if (!data.ok) throw httpErrors.BadRequest(data.error);
+  if (!data.ok) throw new InvalidRequestError(data.error);
 
   return data;
 }
@@ -33,10 +34,10 @@ export async function request(endpoint: string, body: Object) {
       `${SLACK_API_URL}/${endpoint}?${querystring.stringify(body)}`
     );
     data = await response.json();
-  } catch (e) {
-    throw httpErrors.BadRequest();
+  } catch (err) {
+    throw new InvalidRequestError(err.message);
   }
-  if (!data.ok) throw httpErrors.BadRequest(data.error);
+  if (!data.ok) throw new InvalidRequestError(data.error);
 
   return data;
 }

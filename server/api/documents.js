@@ -1,12 +1,11 @@
 // @flow
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
 import { Op } from 'sequelize';
-
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
 import { Document, Collection, Star, View, Revision } from '../models';
+import { ValidationError, InvalidRequestError } from '../errors';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -132,6 +131,28 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('documents.drafts', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const documents = await Document.findAll({
+    where: { userId: user.id, publishedAt: { [Op.eq]: null } },
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  const data = await Promise.all(
+    documents.map(document => presentDocument(ctx, document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
 router.post('documents.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
@@ -249,9 +270,10 @@ router.post('documents.unstar', auth(), async ctx => {
 });
 
 router.post('documents.create', auth(), async ctx => {
-  const { collection, title, text, parentDocument, index } = ctx.body;
-  ctx.assertPresent(collection, 'collection is required');
-  ctx.assertUuid(collection, 'collection must be an uuid');
+  const { title, text, publish, parentDocument, index } = ctx.body;
+  const collectionId = ctx.body.collection;
+  ctx.assertPresent(collectionId, 'collection is required');
+  ctx.assertUuid(collectionId, 'collection must be an uuid');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
   if (parentDocument)
@@ -261,47 +283,48 @@ router.post('documents.create', auth(), async ctx => {
   const user = ctx.state.user;
   authorize(user, 'create', Document);
 
-  const ownerCollection = await Collection.findOne({
+  const collection = await Collection.findOne({
     where: {
-      id: collection,
+      id: collectionId,
       teamId: user.teamId,
     },
   });
-  authorize(user, 'publish', ownerCollection);
-
-  if (!ownerCollection) throw httpErrors.BadRequest();
+  authorize(user, 'publish', collection);
 
   let parentDocumentObj = {};
-  if (parentDocument && ownerCollection.type === 'atlas') {
+  if (parentDocument && collection.type === 'atlas') {
     parentDocumentObj = await Document.findOne({
       where: {
         id: parentDocument,
-        atlasId: ownerCollection.id,
+        atlasId: collection.id,
       },
     });
-    if (!parentDocumentObj)
-      throw httpErrors.BadRequest('Invalid parentDocument');
+    authorize(user, 'read', parentDocumentObj);
   }
 
-  const newDocument = await Document.create({
+  const publishedAt = publish === false ? null : new Date();
+  let document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
-    atlasId: ownerCollection.id,
+    atlasId: collection.id,
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,
     createdById: user.id,
+    publishedAt,
     title,
     text,
   });
 
-  // reload to get all of the data needed to present (user, collection etc)
-  const document = await Document.findById(newDocument.id);
-
-  if (ownerCollection.type === 'atlas') {
-    await ownerCollection.addDocumentToStructure(document, index);
+  if (publishedAt && collection.type === 'atlas') {
+    await collection.addDocumentToStructure(document, index);
   }
 
-  document.collection = ownerCollection;
+  // reload to get all of the data needed to present (user, collection etc)
+  // we need to specify publishedAt to bypass default scope that only returns
+  // published documents
+  document = await Document.find({
+    where: { id: document.id, publishedAt },
+  });
 
   ctx.body = {
     data: await presentDocument(ctx, document),
@@ -309,7 +332,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, lastRevision } = ctx.body;
+  const { id, title, text, publish, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -319,10 +342,11 @@ router.post('documents.update', auth(), async ctx => {
   authorize(ctx.state.user, 'update', document);
 
   if (lastRevision && lastRevision !== document.revisionCount) {
-    throw httpErrors.BadRequest('Document has changed since last revision');
+    throw new InvalidRequestError('Document has changed since last revision');
   }
 
   // Update document
+  if (publish) document.publishedAt = new Date();
   if (title) document.title = title;
   if (text) document.text = text;
   document.lastModifiedById = user.id;
@@ -330,7 +354,11 @@ router.post('documents.update', auth(), async ctx => {
   await document.save();
   const collection = document.collection;
   if (collection.type === 'atlas') {
-    await collection.updateDocument(document);
+    if (document.publishedAt) {
+      await collection.updateDocument(document);
+    } else if (publish) {
+      await collection.addDocumentToStructure(document);
+    }
   }
 
   document.collection = collection;
@@ -344,27 +372,25 @@ router.post('documents.move', auth(), async ctx => {
   const { id, parentDocument, index } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   if (parentDocument)
-    ctx.assertUuid(parentDocument, 'parentDocument must be an uuid');
+    ctx.assertUuid(parentDocument, 'parentDocument must be a uuid');
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
+  const user = ctx.state.user;
   const document = await Document.findById(id);
-  authorize(ctx.state.user, 'update', document);
+  authorize(user, 'update', document);
 
   const collection = document.collection;
   if (collection.type !== 'atlas')
-    throw httpErrors.BadRequest("This document can't be moved");
+    throw new InvalidRequestError('This document can’t be moved');
 
   // Set parent document
   if (parentDocument) {
     const parent = await Document.findById(parentDocument);
-    if (!parent || parent.atlasId !== document.atlasId)
-      throw httpErrors.BadRequest(
-        'Invalid parentDocument (must be same collection)'
-      );
+    authorize(user, 'update', parent);
   }
 
   if (parentDocument === id)
-    throw httpErrors.BadRequest('Infinite loop detected and prevented!');
+    throw new InvalidRequestError('Infinite loop detected and prevented!');
 
   // If no parent document is provided, set it as null (move to root level)
   document.parentDocumentId = parentDocument;
@@ -388,27 +414,11 @@ router.post('documents.delete', auth(), async ctx => {
 
   const collection = document.collection;
   if (collection.type === 'atlas') {
-    // Don't allow deletion of root docs
-    if (collection.documentStructure.length === 1) {
-      throw httpErrors.BadRequest(
-        "Unable to delete collection's only document"
-      );
-    }
-
     // Delete document and all of its children
-    try {
-      await collection.removeDocument(document);
-    } catch (e) {
-      throw httpErrors.BadRequest('Error while deleting');
-    }
+    await collection.removeDocument(document);
   }
 
-  // Delete the actual document
-  try {
-    await document.destroy();
-  } catch (e) {
-    throw httpErrors.BadRequest('Error while deleting document');
-  }
+  await document.destroy();
 
   ctx.body = {
     success: true,

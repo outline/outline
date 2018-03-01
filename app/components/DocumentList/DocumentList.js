@@ -7,11 +7,12 @@ import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 class DocumentList extends React.Component {
   props: {
     documents: Document[],
+    showCollection?: boolean,
     limit?: number,
   };
 
   render() {
-    const { limit } = this.props;
+    const { limit, showCollection } = this.props;
     const documents = limit
       ? this.props.documents.splice(0, limit)
       : this.props.documents;
@@ -22,7 +23,11 @@ class DocumentList extends React.Component {
         defaultActiveChildIndex={0}
       >
         {documents.map(document => (
-          <DocumentPreview key={document.id} document={document} />
+          <DocumentPreview
+            key={document.id}
+            document={document}
+            showCollection={showCollection}
+          />
         ))}
       </ArrowKeyNavigation>
     );

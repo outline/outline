@@ -33,6 +33,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     createdBy: presentUser(ctx, document.createdBy),
     updatedAt: document.updatedAt,
     updatedBy: presentUser(ctx, document.updatedBy),
+    publishedAt: document.publishedAt,
     firstViewedAt: undefined,
     lastViewedAt: undefined,
     team: document.teamId,

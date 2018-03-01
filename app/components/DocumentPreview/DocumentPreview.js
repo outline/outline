@@ -131,18 +131,20 @@ class DocumentPreview extends Component {
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
         <h3>
           <Highlight text={document.title} highlight={highlight} />
-          <Actions>
-            {document.pinned ? (
-              <StyledPin onClick={this.unpin} solid />
-            ) : (
-              <StyledPin onClick={this.pin} />
-            )}
-            {document.starred ? (
-              <StyledStar onClick={this.unstar} solid />
-            ) : (
-              <StyledStar onClick={this.star} />
-            )}
-          </Actions>
+          {document.publishedAt && (
+            <Actions>
+              {document.pinned ? (
+                <StyledPin onClick={this.unpin} solid />
+              ) : (
+                <StyledPin onClick={this.pin} />
+              )}
+              {document.starred ? (
+                <StyledStar onClick={this.unstar} solid />
+              ) : (
+                <StyledStar onClick={this.star} />
+              )}
+            </Actions>
+          )}
         </h3>
         <PublishingInfo
           document={document}

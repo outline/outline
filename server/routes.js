@@ -2,7 +2,6 @@
 import React from 'react';
 import path from 'path';
 import fs from 'fs-extra';
-import httpErrors from 'http-errors';
 import Koa from 'koa';
 import Router from 'koa-router';
 import sendfile from 'koa-sendfile';
@@ -11,6 +10,7 @@ import subdomainRedirect from './middlewares/subdomainRedirect';
 import renderpage from './utils/renderpage';
 import { slackAuth } from '../shared/utils/routeHelpers';
 import { robotsResponse } from './utils/robots';
+import { NotFoundError } from './errors';
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -88,7 +88,7 @@ router.get('/robots.txt', ctx => (ctx.body = robotsResponse(ctx)));
 // catch all for react app
 router.get('*', async ctx => {
   await renderapp(ctx);
-  if (!ctx.status) ctx.throw(httpErrors.NotFound());
+  if (!ctx.status) ctx.throw(new NotFoundError());
 });
 
 // middleware

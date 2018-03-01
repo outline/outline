@@ -10,9 +10,37 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
+describe('#documents.info', async () => {
+  it('should return published document', async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+  });
+
+  it('should return drafts', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+  });
+});
+
 describe('#documents.list', async () => {
   it('should return documents', async () => {
     const { user, document } = await seed();
+
     const res = await server.post('/api/documents.list', {
       body: { token: user.getJwtToken() },
     });
@@ -21,6 +49,20 @@ describe('#documents.list', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
     expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it('should not return unpublished documents', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post('/api/documents.list', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 
   it('should allow changing sort direction', async () => {
@@ -51,6 +93,22 @@ describe('#documents.list', async () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#documents.drafts', async () => {
+  it('should return unpublished documents', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post('/api/documents.drafts', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 });
 
@@ -323,6 +381,7 @@ describe('#documents.create', async () => {
         collection: collection.id,
         title: 'new document',
         text: 'hello',
+        publish: true,
       },
     });
     const body = await res.json();
@@ -353,7 +412,44 @@ describe('#documents.create', async () => {
     expect(body.data.text).toBe('# Untitled document');
   });
 
-  it('should create as a child', async () => {
+  it('should create as a child and add to collection if published', async () => {
+    const { user, document, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title: 'new document',
+        text: 'hello',
+        parentDocument: document.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('new document');
+    expect(body.data.collection.documents.length).toBe(2);
+    expect(body.data.collection.documents[0].children[0].id).toBe(body.data.id);
+  });
+
+  it('should error with invalid parentDocument', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title: 'new document',
+        text: 'hello',
+        parentDocument: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should create as a child and not add to collection', async () => {
     const { user, document, collection } = await seed();
     const res = await server.post('/api/documents.create', {
       body: {
@@ -369,24 +465,6 @@ describe('#documents.create', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('new document');
     expect(body.data.collection.documents.length).toBe(2);
-    expect(body.data.collection.documents[0].children[0].id).toBe(body.data.id);
-  });
-
-  it('should create as a child', async () => {
-    const { user, collection } = await seed();
-    const res = await server.post('/api/documents.create', {
-      body: {
-        token: user.getJwtToken(),
-        collection: collection.id,
-        title: 'new document',
-        text: 'hello',
-        parentDocument: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(400);
-    expect(body).toMatchSnapshot();
   });
 });
 
