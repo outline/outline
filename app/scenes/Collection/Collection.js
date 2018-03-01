@@ -17,6 +17,7 @@ import Actions, { Action, Separator } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
 import CollectionIcon from 'components/Icon/CollectionIcon';
 import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
+import PinIcon from 'components/Icon/PinIcon';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
@@ -60,13 +61,16 @@ class CollectionScene extends Component {
     if (collection) {
       this.props.ui.setActiveCollection(collection);
       this.collection = collection;
-      await this.props.documents.fetchRecentlyModified({
-        limit: 10,
-        collection: id,
-      });
-      await this.props.documents.fetchPinned({
-        collection: id,
-      });
+
+      await Promise.all([
+        this.props.documents.fetchRecentlyModified({
+          limit: 10,
+          collection: id,
+        }),
+        this.props.documents.fetchPinned({
+          collection: id,
+        }),
+      ]);
     }
 
     this.isFetching = false;
@@ -156,7 +160,14 @@ class CollectionScene extends Component {
               {this.collection.name}
             </Heading>
 
-            {hasPinnedDocuments && <DocumentList documents={pinnedDocuments} />}
+            {hasPinnedDocuments && (
+              <React.Fragment>
+                <Subheading>
+                  <TinyPinIcon size={18} /> Pinned
+                </Subheading>
+                <DocumentList documents={pinnedDocuments} />
+              </React.Fragment>
+            )}
 
             <Subheading>Recently edited</Subheading>
             <DocumentList documents={recentDocuments} limit={10} />
@@ -169,6 +180,12 @@ class CollectionScene extends Component {
     );
   }
 }
+
+const TinyPinIcon = styled(PinIcon)`
+  position: relative;
+  top: 4px;
+  opacity: 0.8;
+`;
 
 const Heading = styled.h1`
   display: flex;

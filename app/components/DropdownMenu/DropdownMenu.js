@@ -14,6 +14,7 @@ type Props = {
   onOpen?: () => void,
   onClose?: () => void,
   children?: React.Element<*>,
+  className?: string,
   style?: Object,
 };
 
@@ -41,8 +42,10 @@ class DropdownMenu extends Component {
   };
 
   render() {
+    const { className, label, children } = this.props;
+
     return (
-      <div>
+      <div className={className}>
         <PortalWithState
           onOpen={this.props.onOpen}
           onClose={this.props.onClose}
@@ -51,17 +54,20 @@ class DropdownMenu extends Component {
         >
           {({ closePortal, openPortal, portal }) => [
             <Label onClick={this.handleOpen(openPortal)} key="label">
-              {this.props.label}
+              {label}
             </Label>,
             portal(
               <Menu
                 key="menu"
-                onClick={closePortal}
+                onClick={ev => {
+                  ev.stopPropagation();
+                  closePortal();
+                }}
                 style={this.props.style}
                 top={this.top}
                 right={this.right}
               >
-                {this.props.children}
+                {children}
               </Menu>
             ),
           ]}

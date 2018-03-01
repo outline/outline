@@ -7,9 +7,9 @@ import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
-import PinIcon from 'components/Icon/PinIcon';
 import StarredIcon from 'components/Icon/StarredIcon';
 import PublishingInfo from './components/PublishingInfo';
+import DocumentMenu from 'menus/DocumentMenu';
 
 type Props = {
   document: Document,
@@ -32,18 +32,11 @@ const StyledStar = styled(({ solid, ...props }) => (
   }
 `;
 
-const StyledPin = styled(({ solid, ...props }) => (
-  <PinIcon color={solid ? color.black : color.text} {...props} />
-))`
-  opacity: ${props => (props.solid ? '1 !important' : 0)};
-  transition: all 100ms ease-in-out;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-  &:active {
-    transform: scale(0.95);
-  }
+const StyledDocumentMenu = styled(DocumentMenu)`
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 `;
 
 const DocumentLink = styled(Link)`
@@ -55,6 +48,11 @@ const DocumentLink = styled(Link)`
   max-height: 50vh;
   min-width: 100%;
   overflow: hidden;
+  position: relative;
+
+  ${StyledDocumentMenu} {
+    opacity: 0;
+  }
 
   &:hover,
   &:active,
@@ -63,7 +61,7 @@ const DocumentLink = styled(Link)`
     border: 2px solid ${color.smoke};
     outline: none;
 
-    ${StyledStar}, ${StyledPin} {
+    ${StyledStar}, ${StyledDocumentMenu} {
       opacity: 0.5;
 
       &:hover {
@@ -75,14 +73,14 @@ const DocumentLink = styled(Link)`
   &:focus {
     border: 2px solid ${color.slateDark};
   }
+`;
 
-  h3 {
-    display: flex;
-    align-items: center;
-    height: 24px;
-    margin-top: 0;
-    margin-bottom: 0.25em;
-  }
+const Heading = styled.h3`
+  display: flex;
+  align-items: center;
+  height: 24px;
+  margin-top: 0;
+  margin-bottom: 0.25em;
 `;
 
 const Actions = styled(Flex)`
@@ -106,18 +104,6 @@ class DocumentPreview extends Component {
     this.props.document.unstar();
   };
 
-  pin = (ev: SyntheticEvent) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-    this.props.document.pin();
-  };
-
-  unpin = (ev: SyntheticEvent) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-    this.props.document.unpin();
-  };
-
   render() {
     const {
       document,
@@ -129,15 +115,10 @@ class DocumentPreview extends Component {
 
     return (
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
-        <h3>
+        <Heading>
           <Highlight text={document.title} highlight={highlight} />
           {document.publishedAt && (
             <Actions>
-              {document.pinned ? (
-                <StyledPin onClick={this.unpin} solid />
-              ) : (
-                <StyledPin onClick={this.pin} />
-              )}
               {document.starred ? (
                 <StyledStar onClick={this.unstar} solid />
               ) : (
@@ -145,7 +126,8 @@ class DocumentPreview extends Component {
               )}
             </Actions>
           )}
-        </h3>
+          <StyledDocumentMenu document={document} />
+        </Heading>
         <PublishingInfo
           document={document}
           collection={showCollection ? document.collection : undefined}
