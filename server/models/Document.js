@@ -85,20 +85,6 @@ const Document = sequelize.define(
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     publishedAt: DataTypes.DATE,
     parentDocumentId: DataTypes.UUID,
-    createdById: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: 'users',
-      },
-    },
-    lastModifiedById: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: 'users',
-      },
-    },
     collaboratorIds: DataTypes.ARRAY(DataTypes.UUID),
   },
   {
@@ -128,6 +114,10 @@ Document.associate = models => {
   Document.belongsTo(models.User, {
     as: 'updatedBy',
     foreignKey: 'lastModifiedById',
+  });
+  Document.belongsTo(models.User, {
+    as: 'pinnedBy',
+    foreignKey: 'pinnedById',
   });
   Document.hasMany(models.Revision, {
     as: 'revisions',

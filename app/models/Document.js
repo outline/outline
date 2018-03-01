@@ -16,7 +16,7 @@ class Document extends BaseModel {
   hasPendingChanges: boolean = false;
   errors: ErrorsStore;
 
-  collaborators: Array<User>;
+  collaborators: User[];
   collection: $Shape<Collection>;
   collectionId: string;
   firstViewedAt: ?string;
@@ -24,18 +24,19 @@ class Document extends BaseModel {
   modifiedSinceViewed: ?boolean;
   createdAt: string;
   createdBy: User;
+  updatedAt: string;
+  updatedBy: User;
   html: string;
   id: string;
   team: string;
   emoji: string;
   private: boolean = false;
   starred: boolean = false;
+  pinned: boolean = false;
   text: string = '';
   title: string = '';
   parentDocument: ?string;
   publishedAt: ?string;
-  updatedAt: string;
-  updatedBy: User;
   url: string;
   views: number;
   revision: number;
@@ -97,6 +98,28 @@ class Document extends BaseModel {
   }
 
   /* Actions */
+
+  @action
+  pin = async () => {
+    this.pinned = true;
+    try {
+      await client.post('/documents.pin', { id: this.id });
+    } catch (e) {
+      this.pinned = false;
+      this.errors.add('Document failed to pin');
+    }
+  };
+
+  @action
+  unpin = async () => {
+    this.pinned = false;
+    try {
+      await client.post('/documents.unpin', { id: this.id });
+    } catch (e) {
+      this.pinned = true;
+      this.errors.add('Document failed to unpin');
+    }
+  };
 
   @action
   star = async () => {

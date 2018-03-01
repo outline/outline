@@ -15,44 +15,60 @@ class DocumentMenu extends Component {
     label?: React$Element<any>,
     history: Object,
     document: Document,
+    className: string,
   };
 
-  handleNewChild = () => {
+  handleNewChild = (ev: SyntheticEvent) => {
     const { history, document } = this.props;
     history.push(
       `${document.collection.url}/new?parentDocument=${document.id}`
     );
   };
 
-  handleDelete = () => {
+  handleDelete = (ev: SyntheticEvent) => {
     const { document } = this.props;
     this.props.ui.setActiveModal('document-delete', { document });
   };
 
-  handleMove = () => {
+  handleMove = (ev: SyntheticEvent) => {
     this.props.history.push(documentMoveUrl(this.props.document));
   };
 
-  handleStar = () => {
+  handlePin = (ev: SyntheticEvent) => {
+    this.props.document.pin();
+  };
+
+  handleUnpin = (ev: SyntheticEvent) => {
+    this.props.document.unpin();
+  };
+
+  handleStar = (ev: SyntheticEvent) => {
     this.props.document.star();
   };
 
-  handleUnstar = () => {
+  handleUnstar = (ev: SyntheticEvent) => {
     this.props.document.unstar();
   };
 
-  handleExport = () => {
+  handleExport = (ev: SyntheticEvent) => {
     this.props.document.download();
   };
 
   render() {
-    const { document, label } = this.props;
+    const { document, label, className } = this.props;
     const isDraft = !document.publishedAt;
 
     return (
-      <DropdownMenu label={label || <MoreIcon />}>
+      <DropdownMenu label={label || <MoreIcon />} className={className}>
         {!isDraft && (
           <React.Fragment>
+            {document.pinned ? (
+              <DropdownMenuItem onClick={this.handleUnpin}>
+                Unpin
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={this.handlePin}>Pin</DropdownMenuItem>
+            )}
             {document.starred ? (
               <DropdownMenuItem onClick={this.handleUnstar}>
                 Unstar
@@ -62,6 +78,7 @@ class DocumentMenu extends Component {
                 Star
               </DropdownMenuItem>
             )}
+            <hr />
             <DropdownMenuItem
               onClick={this.handleNewChild}
               title="Create a new child document for the current document"
@@ -71,11 +88,12 @@ class DocumentMenu extends Component {
             <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
           </React.Fragment>
         )}
+        <DropdownMenuItem onClick={this.handleDelete}>Delete…</DropdownMenuItem>
+        <hr />
         <DropdownMenuItem onClick={this.handleExport}>
           Download
         </DropdownMenuItem>
         <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
-        <DropdownMenuItem onClick={this.handleDelete}>Delete…</DropdownMenuItem>
       </DropdownMenu>
     );
   }

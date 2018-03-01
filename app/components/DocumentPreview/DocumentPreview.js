@@ -5,9 +5,11 @@ import { Link } from 'react-router-dom';
 import Document from 'models/Document';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
+import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
 import StarredIcon from 'components/Icon/StarredIcon';
 import PublishingInfo from './components/PublishingInfo';
+import DocumentMenu from 'menus/DocumentMenu';
 
 type Props = {
   document: Document,
@@ -19,10 +21,8 @@ type Props = {
 const StyledStar = styled(({ solid, ...props }) => (
   <StarredIcon color={solid ? color.black : color.text} {...props} />
 ))`
-  position: absolute;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: all 100ms ease-in-out;
-  margin-left: 2px;
 
   &:hover {
     transform: scale(1.1);
@@ -30,6 +30,13 @@ const StyledStar = styled(({ solid, ...props }) => (
   &:active {
     transform: scale(0.95);
   }
+`;
+
+const StyledDocumentMenu = styled(DocumentMenu)`
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 `;
 
 const DocumentLink = styled(Link)`
@@ -41,6 +48,11 @@ const DocumentLink = styled(Link)`
   max-height: 50vh;
   min-width: 100%;
   overflow: hidden;
+  position: relative;
+
+  ${StyledDocumentMenu} {
+    opacity: 0;
+  }
 
   &:hover,
   &:active,
@@ -49,7 +61,7 @@ const DocumentLink = styled(Link)`
     border: 2px solid ${color.smoke};
     outline: none;
 
-    ${StyledStar} {
+    ${StyledStar}, ${StyledDocumentMenu} {
       opacity: 0.5;
 
       &:hover {
@@ -61,11 +73,19 @@ const DocumentLink = styled(Link)`
   &:focus {
     border: 2px solid ${color.slateDark};
   }
+`;
 
-  h3 {
-    margin-top: 0;
-    margin-bottom: 0.25em;
-  }
+const Heading = styled.h3`
+  display: flex;
+  align-items: center;
+  height: 24px;
+  margin-top: 0;
+  margin-bottom: 0.25em;
+`;
+
+const Actions = styled(Flex)`
+  margin-left: 4px;
+  align-items: center;
 `;
 
 @observer
@@ -95,19 +115,19 @@ class DocumentPreview extends Component {
 
     return (
       <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
-        <h3>
+        <Heading>
           <Highlight text={document.title} highlight={highlight} />
-          {document.publishedAt &&
-            (document.starred ? (
-              <span onClick={this.unstar}>
-                <StyledStar solid />
-              </span>
-            ) : (
-              <span onClick={this.star}>
-                <StyledStar />
-              </span>
-            ))}
-        </h3>
+          {document.publishedAt && (
+            <Actions>
+              {document.starred ? (
+                <StyledStar onClick={this.unstar} solid />
+              ) : (
+                <StyledStar onClick={this.star} />
+              )}
+            </Actions>
+          )}
+          <StyledDocumentMenu document={document} />
+        </Heading>
         <PublishingInfo
           document={document}
           collection={showCollection ? document.collection : undefined}

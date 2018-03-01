@@ -19,10 +19,39 @@ router.post('documents.list', auth(), pagination(), async ctx => {
   let where = { teamId: user.teamId };
   if (collection) where = { ...where, atlasId: collection };
 
-  const userId = user.id;
-  const starredScope = { method: ['withStarred', userId] };
+  const starredScope = { method: ['withStarred', user.id] };
   const documents = await Document.scope('defaultScope', starredScope).findAll({
     where,
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  const data = await Promise.all(
+    documents.map(document => presentDocument(ctx, document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
+router.post('documents.pinned', auth(), pagination(), async ctx => {
+  let { sort = 'updatedAt', direction, collection } = ctx.body;
+  if (direction !== 'ASC') direction = 'DESC';
+  ctx.assertPresent(collection, 'collection is required');
+
+  const user = ctx.state.user;
+  const starredScope = { method: ['withStarred', user.id] };
+  const documents = await Document.scope('defaultScope', starredScope).findAll({
+    where: {
+      teamId: user.teamId,
+      atlasId: collection,
+      pinnedById: {
+        [Op.ne]: null,
+      },
+    },
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
@@ -166,8 +195,7 @@ router.post('documents.search', auth(), pagination(), async ctx => {
   const { offset, limit } = ctx.state.pagination;
   ctx.assertPresent(query, 'query is required');
 
-  const user = await ctx.state.user;
-
+  const user = ctx.state.user;
   const documents = await Document.searchForUser(user, query, {
     offset,
     limit,
@@ -183,13 +211,45 @@ router.post('documents.search', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('documents.pin', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = ctx.state.user;
+  const document = await Document.findById(id);
+
+  authorize(user, 'update', document);
+
+  document.pinnedById = user.id;
+  await document.save();
+
+  ctx.body = {
+    data: await presentDocument(ctx, document),
+  };
+});
+
+router.post('documents.unpin', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  const user = ctx.state.user;
+  const document = await Document.findById(id);
+
+  authorize(user, 'update', document);
+
+  document.pinnedById = null;
+  await document.save();
+
+  ctx.body = {
+    data: await presentDocument(ctx, document),
+  };
+});
+
 router.post('documents.star', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const user = await ctx.state.user;
+  const user = ctx.state.user;
   const document = await Document.findById(id);
 
-  authorize(ctx.state.user, 'read', document);
+  authorize(user, 'read', document);
 
   await Star.findOrCreate({
     where: { documentId: document.id, userId: user.id },
@@ -199,10 +259,10 @@ router.post('documents.star', auth(), async ctx => {
 router.post('documents.unstar', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const user = await ctx.state.user;
+  const user = ctx.state.user;
   const document = await Document.findById(id);
 
-  authorize(ctx.state.user, 'read', document);
+  authorize(user, 'read', document);
 
   await Star.destroy({
     where: { documentId: document.id, userId: user.id },

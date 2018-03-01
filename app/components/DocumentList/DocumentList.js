@@ -8,24 +8,27 @@ class DocumentList extends React.Component {
   props: {
     documents: Document[],
     showCollection?: boolean,
+    limit?: number,
   };
 
   render() {
-    const { documents, showCollection } = this.props;
+    const { limit, showCollection } = this.props;
+    const documents = limit
+      ? this.props.documents.splice(0, limit)
+      : this.props.documents;
 
     return (
       <ArrowKeyNavigation
         mode={ArrowKeyNavigation.mode.VERTICAL}
         defaultActiveChildIndex={0}
       >
-        {documents &&
-          documents.map(document => (
-            <DocumentPreview
-              key={document.id}
-              document={document}
-              showCollection={showCollection}
-            />
-          ))}
+        {documents.map(document => (
+          <DocumentPreview
+            key={document.id}
+            document={document}
+            showCollection={showCollection}
+          />
+        ))}
       </ArrowKeyNavigation>
     );
   }
