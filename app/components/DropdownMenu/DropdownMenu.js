@@ -24,10 +24,9 @@ class DropdownMenu extends Component {
   @observable top: number;
   @observable right: number;
 
-  handleOpen = (openPortal: SyntheticEvent => void) => {
+  handleOpen = (openPortal: SyntheticEvent => *) => {
     return (ev: SyntheticMouseEvent) => {
       ev.preventDefault();
-      ev.stopPropagation();
       const currentTarget = ev.currentTarget;
       invariant(document.body, 'why you not here');
 
@@ -49,28 +48,27 @@ class DropdownMenu extends Component {
         <PortalWithState
           onOpen={this.props.onOpen}
           onClose={this.props.onClose}
-          closeOnEsc
           closeOnOutsideClick
+          closeOnEsc
         >
-          {({ closePortal, openPortal, portal }) => [
-            <Label onClick={this.handleOpen(openPortal)} key="label">
-              {label}
-            </Label>,
-            portal(
-              <Menu
-                key="menu"
-                onClick={ev => {
-                  ev.stopPropagation();
-                  closePortal();
-                }}
-                style={this.props.style}
-                top={this.top}
-                right={this.right}
-              >
-                {children}
-              </Menu>
-            ),
-          ]}
+          {({ closePortal, openPortal, portal }) => (
+            <React.Fragment>
+              <Label onClick={this.handleOpen(openPortal)}>{label}</Label>
+              {portal(
+                <Menu
+                  onClick={ev => {
+                    ev.stopPropagation();
+                    closePortal();
+                  }}
+                  style={this.props.style}
+                  top={this.top}
+                  right={this.right}
+                >
+                  {children}
+                </Menu>
+              )}
+            </React.Fragment>
+          )}
         </PortalWithState>
       </div>
     );
