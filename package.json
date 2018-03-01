@@ -63,8 +63,8 @@
   "dependencies": {
     "@tommoor/slate-drop-or-paste-images": "^0.8.1",
     "@tommoor/slate-edit-code": "^0.13.3",
-    "aws-sdk": "^2.135.0",
     "autotrack": "^2.4.1",
+    "aws-sdk": "^2.135.0",
     "babel-core": "^6.24.1",
     "babel-eslint": "^8.1.2",
     "babel-loader": "^7.1.2",
@@ -136,6 +136,7 @@
     "mobx-react": "^4.1.8",
     "mobx-react-devtools": "^4.2.11",
     "moment": "2.13.0",
+    "natural-sort": "^1.0.0",
     "node-dev": "3.1.0",
     "nodemailer": "^4.4.0",
     "normalize.css": "^7.0.0",

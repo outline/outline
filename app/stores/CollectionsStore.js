@@ -8,6 +8,7 @@ import stores from 'stores';
 import Collection from 'models/Collection';
 import ErrorsStore from 'stores/ErrorsStore';
 import UiStore from 'stores/UiStore';
+import naturalSort from 'shared/utils/naturalSort';
 import type { PaginationParams } from 'types';
 
 type Options = {
@@ -42,7 +43,7 @@ class CollectionsStore {
 
   @computed
   get orderedData(): Collection[] {
-    return _.sortBy(this.data.values(), 'name');
+    return naturalSort(Array.from(this.data.values()), 'name');
   }
 
   /**
