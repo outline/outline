@@ -6628,6 +6628,10 @@ natural-compare@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
 
+natural-sort@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/natural-sort/-/natural-sort-1.0.0.tgz#eac301fd86c268a771222c62dc7719402aa34380"
+
 ncname@1.0.x:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/ncname/-/ncname-1.0.0.tgz#5b57ad18b1ca092864ef62b0b1ed8194f383b71c"
