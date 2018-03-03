@@ -94,7 +94,7 @@ class DocumentMove extends Component {
     results = results.filter(
       result =>
         !result.path.map(doc => doc.id).includes(document.id) &&
-        !result.path.map(doc => doc.id).includes(document.parentDocumentId)
+        _.last(result.path.map(doc => doc.id)) !== document.parentDocumentId
     );
 
     return results;

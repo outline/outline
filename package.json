@@ -63,8 +63,8 @@
   "dependencies": {
     "@tommoor/slate-drop-or-paste-images": "^0.8.1",
     "@tommoor/slate-edit-code": "^0.13.3",
-    "aws-sdk": "^2.135.0",
     "autotrack": "^2.4.1",
+    "aws-sdk": "^2.135.0",
     "babel-core": "^6.24.1",
     "babel-eslint": "^8.1.2",
     "babel-loader": "^7.1.2",
@@ -87,6 +87,7 @@
     "boundless-popover": "^1.0.4",
     "bugsnag": "^1.7.0",
     "bull": "^3.3.7",
+    "cancan": "3.1.0",
     "copy-to-clipboard": "^3.0.6",
     "css-loader": "^0.28.7",
     "debug": "2.2.0",
@@ -135,6 +136,7 @@
     "mobx-react": "^4.1.8",
     "mobx-react-devtools": "^4.2.11",
     "moment": "2.13.0",
+    "natural-sort": "^1.0.0",
     "node-dev": "3.1.0",
     "nodemailer": "^4.4.0",
     "normalize.css": "^7.0.0",
@@ -168,12 +170,12 @@
     "sequelize-encrypted": "0.1.0",
     "slate": "^0.32.4",
     "slate-collapse-on-escape": "^0.6.0",
-    "slate-edit-list": "^0.10.2",
+    "slate-edit-list": "^0.11.2",
     "slate-md-serializer": "^2.0.0",
     "slate-paste-linkify": "^0.5.0",
-    "slate-plain-serializer": "0.4.13",
+    "slate-plain-serializer": "0.5.4",
     "slate-prism": "^0.4.0",
-    "slate-react": "^0.10.19",
+    "slate-react": "^0.11.4",
     "slate-trailing-block": "^0.4.0",
     "slug": "0.9.1",
     "string-hash": "^1.1.0",
@@ -204,5 +206,6 @@
     "prettier": "1.8.2",
     "raf": "^3.4.0",
     "react-test-renderer": "^16.1.0"
-  }
+  },
+  "version": "0.2.0"
 }

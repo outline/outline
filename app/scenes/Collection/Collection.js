@@ -17,6 +17,7 @@ import Actions, { Action, Separator } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
 import CollectionIcon from 'components/Icon/CollectionIcon';
 import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
+import PinIcon from 'components/Icon/PinIcon';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
@@ -55,16 +56,21 @@ class CollectionScene extends Component {
 
   loadContent = async (id: string) => {
     const { collections } = this.props;
-
     const collection = collections.getById(id) || (await collections.fetch(id));
 
     if (collection) {
       this.props.ui.setActiveCollection(collection);
       this.collection = collection;
-      await this.props.documents.fetchRecentlyModified({
-        limit: 10,
-        collection: collection.id,
-      });
+
+      await Promise.all([
+        this.props.documents.fetchRecentlyModified({
+          limit: 10,
+          collection: id,
+        }),
+        this.props.documents.fetchPinned({
+          collection: id,
+        }),
+      ]);
     }
 
     this.isFetching = false;
@@ -132,10 +138,18 @@ class CollectionScene extends Component {
       return this.renderEmptyCollection();
     }
 
+    const pinnedDocuments = this.collection
+      ? this.props.documents.pinnedInCollection(this.collection.id)
+      : [];
+    const recentDocuments = this.collection
+      ? this.props.documents.recentlyEditedInCollection(this.collection.id)
+      : [];
+    const hasPinnedDocuments = !!pinnedDocuments.length;
+
     return (
       <CenteredContent>
         {this.collection ? (
-          <span>
+          <React.Fragment>
             <PageTitle title={this.collection.name} />
             <Heading>
               <CollectionIcon
@@ -145,14 +159,20 @@ class CollectionScene extends Component {
               />{' '}
               {this.collection.name}
             </Heading>
+
+            {hasPinnedDocuments && (
+              <React.Fragment>
+                <Subheading>
+                  <TinyPinIcon size={18} /> Pinned
+                </Subheading>
+                <DocumentList documents={pinnedDocuments} />
+              </React.Fragment>
+            )}
+
             <Subheading>Recently edited</Subheading>
-            <DocumentList
-              documents={this.props.documents.recentlyEditedIn(
-                this.collection.documentIds
-              )}
-            />
+            <DocumentList documents={recentDocuments} limit={10} />
             {this.renderActions()}
-          </span>
+          </React.Fragment>
         ) : (
           <ListPlaceholder count={5} />
         )}
@@ -160,6 +180,12 @@ class CollectionScene extends Component {
     );
   }
 }
+
+const TinyPinIcon = styled(PinIcon)`
+  position: relative;
+  top: 4px;
+  opacity: 0.8;
+`;
 
 const Heading = styled.h1`
   display: flex;

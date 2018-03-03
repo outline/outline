@@ -17,7 +17,6 @@ const Slack = {
         type: 'post',
       },
     });
-    console.log(integration);
 
     if (integration) {
       let text = `${document.createdBy.name} published a new document`;

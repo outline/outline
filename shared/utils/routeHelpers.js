@@ -29,6 +29,10 @@ export function githubUrl(): string {
   return 'https://www.github.com/outline';
 }
 
+export function githubIssuesUrl(): string {
+  return 'https://www.github.com/outline/outline/issues';
+}
+
 export function blogUrl(): string {
   return 'https://medium.com/getoutline';
 }
@@ -39,6 +43,10 @@ export function twitterUrl(): string {
 
 export function spectrumUrl(): string {
   return 'https://spectrum.chat/outline';
+}
+
+export function mailToUrl(): string {
+  return 'mailto:hello@getoutline.com';
 }
 
 export function developers(): string {

@@ -7,7 +7,7 @@ import { layout, color } from 'shared/styles/constants';
 export const Action = styled(Flex)`
   justify-content: center;
   align-items: center;
-  padding: 0 0 0 10px;
+  padding: 0 0 0 12px;
 
   a {
     color: ${color.text};

@@ -1,12 +1,13 @@
 // @flow
 import Router from 'koa-router';
-import httpErrors from 'http-errors';
 
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentApiKey } from '../presenters';
 import { ApiKey } from '../models';
+import policy from '../policies';
 
+const { authorize } = policy;
 const router = new Router();
 
 router.post('apiKeys.create', auth(), async ctx => {
@@ -14,6 +15,7 @@ router.post('apiKeys.create', auth(), async ctx => {
   ctx.assertPresent(name, 'name is required');
 
   const user = ctx.state.user;
+  authorize(user, 'create', ApiKey);
 
   const key = await ApiKey.create({
     name,
@@ -36,9 +38,7 @@ router.post('apiKeys.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const data = keys.map(key => {
-    return presentApiKey(ctx, key);
-  });
+  const data = keys.map(key => presentApiKey(ctx, key));
 
   ctx.body = {
     pagination: ctx.state.pagination,
@@ -52,15 +52,9 @@ router.post('apiKeys.delete', auth(), async ctx => {
 
   const user = ctx.state.user;
   const key = await ApiKey.findById(id);
+  authorize(user, 'delete', key);
 
-  if (!key || key.userId !== user.id) throw httpErrors.BadRequest();
-
-  // Delete the actual document
-  try {
-    await key.destroy();
-  } catch (e) {
-    throw httpErrors.BadRequest('Error while deleting key');
-  }
+  await key.destroy();
 
   ctx.body = {
     success: true,

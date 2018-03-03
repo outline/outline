@@ -1,18 +1,46 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '..';
-import { View, Star } from '../models';
+import { Document, View, Star } from '../models';
 import { flushdb, seed } from '../test/support';
-import Document from '../models/Document';
+import { buildUser } from '../test/factories';
 
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
 afterAll(server.close);
 
+describe('#documents.info', async () => {
+  it('should return published document', async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+  });
+
+  it('should return drafts', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+  });
+});
+
 describe('#documents.list', async () => {
   it('should return documents', async () => {
     const { user, document } = await seed();
+
     const res = await server.post('/api/documents.list', {
       body: { token: user.getJwtToken() },
     });
@@ -21,6 +49,20 @@ describe('#documents.list', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
     expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it('should not return unpublished documents', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post('/api/documents.list', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 
   it('should allow changing sort direction', async () => {
@@ -54,8 +96,24 @@ describe('#documents.list', async () => {
   });
 });
 
+describe('#documents.drafts', async () => {
+  it('should return unpublished documents', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post('/api/documents.drafts', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+});
+
 describe('#documents.revision', async () => {
-  it("should return document's revisions", async () => {
+  it("should return a document's revisions", async () => {
     const { user, document } = await seed();
     const res = await server.post('/api/documents.revisions', {
       body: {
@@ -69,6 +127,18 @@ describe('#documents.revision', async () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).not.toEqual(document.id);
     expect(body.data[0].title).toEqual(document.title);
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.revisions', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 
@@ -178,6 +248,66 @@ describe('#documents.starred', async () => {
   });
 });
 
+describe('#documents.pin', async () => {
+  it('should pin the document', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.pin', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+    expect(body.data.pinned).toEqual(true);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.pin');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.pin', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe('#documents.unpin', async () => {
+  it('should unpin the document', async () => {
+    const { user, document } = await seed();
+    document.pinnedBy = user;
+    await document.save();
+
+    const res = await server.post('/api/documents.unpin', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+    expect(body.data.pinned).toEqual(false);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.unpin');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.unpin', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe('#documents.star', async () => {
   it('should star the document', async () => {
     const { user, document } = await seed();
@@ -198,6 +328,15 @@ describe('#documents.star', async () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.star', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 
@@ -222,6 +361,15 @@ describe('#documents.unstar', async () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.unstar', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
 });
 
 describe('#documents.create', async () => {
@@ -233,6 +381,7 @@ describe('#documents.create', async () => {
         collection: collection.id,
         title: 'new document',
         text: 'hello',
+        publish: true,
       },
     });
     const body = await res.json();
@@ -263,7 +412,44 @@ describe('#documents.create', async () => {
     expect(body.data.text).toBe('# Untitled document');
   });
 
-  it('should create as a child', async () => {
+  it('should create as a child and add to collection if published', async () => {
+    const { user, document, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title: 'new document',
+        text: 'hello',
+        parentDocument: document.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('new document');
+    expect(body.data.collection.documents.length).toBe(2);
+    expect(body.data.collection.documents[0].children[0].id).toBe(body.data.id);
+  });
+
+  it('should error with invalid parentDocument', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title: 'new document',
+        text: 'hello',
+        parentDocument: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should create as a child and not add to collection', async () => {
     const { user, document, collection } = await seed();
     const res = await server.post('/api/documents.create', {
       body: {
@@ -279,24 +465,6 @@ describe('#documents.create', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('new document');
     expect(body.data.collection.documents.length).toBe(2);
-    expect(body.data.collection.documents[0].children[0].id).toBe(body.data.id);
-  });
-
-  it('should create as a child', async () => {
-    const { user, collection } = await seed();
-    const res = await server.post('/api/documents.create', {
-      body: {
-        token: user.getJwtToken(),
-        collection: collection.id,
-        title: 'new document',
-        text: 'hello',
-        parentDocument: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(400);
-    expect(body).toMatchSnapshot();
   });
 });
 
@@ -392,5 +560,25 @@ describe('#documents.update', async () => {
     expect(body.data.collection.documents[0].children[1].title).toBe(
       'Updated title'
     );
+  });
+
+  it('should require authentication', async () => {
+    const { document } = await seed();
+    const res = await server.post('/api/documents.update', {
+      body: { id: document.id, text: 'Updated' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.update', {
+      body: { token: user.getJwtToken(), id: document.id, text: 'Updated' },
+    });
+    expect(res.status).toEqual(403);
   });
 });

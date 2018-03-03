@@ -60,10 +60,19 @@ class DocumentsStore extends BaseStore {
     return docs;
   }
 
-  recentlyEditedIn(documentIds: string[]): Document[] {
+  pinnedInCollection(collectionId: string): Document[] {
+    return _.filter(
+      this.recentlyEditedInCollection(collectionId),
+      document => document.pinned
+    );
+  }
+
+  recentlyEditedInCollection(collectionId: string): Document[] {
     return _.orderBy(
-      _.filter(this.data.values(), document =>
-        documentIds.includes(document.id)
+      _.filter(
+        this.data.values(),
+        document =>
+          document.collectionId === collectionId && !!document.publishedAt
       ),
       'updatedAt',
       'desc'
@@ -71,8 +80,16 @@ class DocumentsStore extends BaseStore {
   }
 
   @computed
-  get starred(): Array<Document> {
+  get starred(): Document[] {
     return _.filter(this.data.values(), 'starred');
+  }
+
+  @computed
+  get drafts(): Document[] {
+    return _.filter(
+      _.orderBy(this.data.values(), 'updatedAt', 'desc'),
+      doc => !doc.publishedAt
+    );
   }
 
   @computed
@@ -130,14 +147,24 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
-  fetchStarred = async (): Promise<*> => {
-    await this.fetchPage('starred');
+  fetchStarred = async (options: ?PaginationParams): Promise<*> => {
+    await this.fetchPage('starred', options);
+  };
+
+  @action
+  fetchDrafts = async (options: ?PaginationParams): Promise<*> => {
+    await this.fetchPage('drafts', options);
+  };
+
+  @action
+  fetchPinned = async (options: ?PaginationParams): Promise<*> => {
+    await this.fetchPage('pinned', options);
   };
 
   @action
   search = async (
     query: string,
-    options?: PaginationParams
+    options: ?PaginationParams
   ): Promise<string[]> => {
     const res = await client.get('/documents.search', {
       ...options,

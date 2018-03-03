@@ -9,6 +9,7 @@ import AccountMenu from 'menus/AccountMenu';
 import Sidebar, { Section } from './Sidebar';
 import Scrollable from 'components/Scrollable';
 import HomeIcon from 'components/Icon/HomeIcon';
+import EditIcon from 'components/Icon/EditIcon';
 import SearchIcon from 'components/Icon/SearchIcon';
 import StarredIcon from 'components/Icon/StarredIcon';
 import Collections from './components/Collections';
@@ -16,12 +17,14 @@ import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
 
 import AuthStore from 'stores/AuthStore';
+import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
   history: Object,
   location: Location,
   auth: AuthStore,
+  documents: DocumentsStore,
   ui: UiStore,
 };
 
@@ -38,7 +41,7 @@ class MainSidebar extends Component {
   };
 
   render() {
-    const { auth } = this.props;
+    const { auth, documents } = this.props;
     const { user, team } = auth;
     if (!user || !team) return;
 
@@ -65,6 +68,15 @@ class MainSidebar extends Component {
               <SidebarLink to="/starred" icon={<StarredIcon />}>
                 Starred
               </SidebarLink>
+              <SidebarLink
+                to="/drafts"
+                icon={<EditIcon />}
+                active={
+                  documents.active ? !documents.active.publishedAt : undefined
+                }
+              >
+                Drafts
+              </SidebarLink>
             </Section>
             <Section>
               <Collections
@@ -80,4 +92,6 @@ class MainSidebar extends Component {
   }
 }
 
-export default withRouter(inject('user', 'auth', 'ui')(MainSidebar));
+export default withRouter(
+  inject('user', 'documents', 'auth', 'ui')(MainSidebar)
+);

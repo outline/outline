@@ -1,6 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import { flushdb, seed } from '../../test/support';
-import ApiKey from '../../models/ApiKey';
+import { ApiKey } from '../../models';
 import randomstring from 'randomstring';
 import auth from './authentication';
 
@@ -87,45 +87,6 @@ describe('Authentication middleware', async () => {
         );
       } catch (e) {
         expect(e.message).toBe('Invalid API key');
-      }
-    });
-  });
-
-  describe('adminOnly', () => {
-    it('should work if user is an admin', async () => {
-      const state = {};
-      const { user } = await seed();
-      const authMiddleware = auth({ adminOnly: true });
-      user.isAdmin = true;
-      await user.save();
-
-      await authMiddleware(
-        {
-          request: {
-            get: jest.fn(() => `Bearer ${user.getJwtToken()}`),
-          },
-          state,
-          cache: {},
-        },
-        jest.fn()
-      );
-      expect(state.user.id).toEqual(user.id);
-    });
-
-    it('should raise 403 if user is not an admin', async () => {
-      const { user } = await seed();
-      const authMiddleware = auth({ adminOnly: true });
-      user.idAdmin = true;
-      await user.save();
-
-      try {
-        await authMiddleware({
-          request: {
-            get: jest.fn(() => `Bearer ${user.getJwtToken()}`),
-          },
-        });
-      } catch (e) {
-        expect(e.message).toBe('Only available for admins');
       }
     });
   });

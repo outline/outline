@@ -9,7 +9,6 @@ import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import MoreIcon from 'components/Icon/MoreIcon';
-import Flex from 'shared/components/Flex';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
@@ -80,15 +79,16 @@ class CollectionMenu extends Component {
           onClose={onClose}
         >
           {collection && (
-            <Flex column>
+            <React.Fragment>
               <DropdownMenuItem onClick={this.onNewDocument}>
                 New document
               </DropdownMenuItem>
               <DropdownMenuItem onClick={this.onImportDocument}>
                 Import document
               </DropdownMenuItem>
+              <hr />
               <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
-            </Flex>
+            </React.Fragment>
           )}
           <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>
         </DropdownMenu>

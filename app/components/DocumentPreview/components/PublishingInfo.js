@@ -32,22 +32,28 @@ class PublishingInfo extends Component {
       updatedAt,
       createdBy,
       updatedBy,
+      publishedAt,
     } = document;
+
+    const timeAgo = moment(createdAt).fromNow();
 
     return (
       <Container align="center">
-        {createdAt === updatedAt ? (
+        {publishedAt === updatedAt ? (
           <span>
-            {createdBy.name} published {moment(createdAt).fromNow()}
+            {createdBy.name} published {timeAgo}
           </span>
         ) : (
-          <span>
+          <React.Fragment>
             {updatedBy.name}
-            <Modified highlight={modifiedSinceViewed}>
-              {' '}
-              modified {moment(updatedAt).fromNow()}
-            </Modified>
-          </span>
+            {publishedAt ? (
+              <Modified highlight={modifiedSinceViewed}>
+                &nbsp;modified {timeAgo}
+              </Modified>
+            ) : (
+              <span>&nbsp;saved {timeAgo}</span>
+            )}
+          </React.Fragment>
         )}
         {collection && (
           <span>

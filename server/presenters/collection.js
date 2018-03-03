@@ -1,7 +1,7 @@
 // @flow
-import _ from 'lodash';
 import { Collection } from '../models';
 import presentDocument from './document';
+import naturalSort from '../../shared/utils/naturalSort';
 
 type Document = {
   children: Document[],
@@ -11,7 +11,7 @@ type Document = {
 };
 
 const sortDocuments = (documents: Document[]) => {
-  const orderedDocs = _.sortBy(documents, ['title']);
+  const orderedDocs = naturalSort(documents, 'title');
   return orderedDocs.map(document => ({
     ...document,
     children: sortDocuments(document.children),

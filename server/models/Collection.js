@@ -58,6 +58,7 @@ const Collection = sequelize.define(
             userId: collection.creatorId,
             lastModifiedById: collection.creatorId,
             createdById: collection.creatorId,
+            publishedAt: new Date(),
             title: 'Welcome to Outline',
             text: welcomeMessage(collection.id),
           });
