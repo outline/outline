@@ -5,7 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import ApiToken from './components/ApiToken';
-import SettingsStore from 'stores/SettingsStore';
+import ApiKeysStore from 'stores/settings/ApiKeysStore';
 import { color } from 'shared/styles/constants';
 
 import Button from 'components/Button';
@@ -19,11 +19,11 @@ import Subheading from 'components/Subheading';
 class Tokens extends Component {
   @observable name: string = '';
   props: {
-    settings: SettingsStore,
+    apiKeys: ApiKeysStore,
   };
 
   componentDidMount() {
-    this.props.settings.fetchApiKeys();
+    this.props.apiKeys.fetchApiKeys();
   }
 
   handleUpdate = (ev: SyntheticInputEvent) => {
@@ -32,13 +32,13 @@ class Tokens extends Component {
 
   handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
-    await this.props.settings.createApiKey(this.name);
+    await this.props.apiKeys.createApiKey(this.name);
     this.name = '';
   };
 
   render() {
-    const { settings } = this.props;
-    const hasApiKeys = settings.apiKeys.length > 0;
+    const { apiKeys } = this.props;
+    const hasApiKeys = apiKeys.apiKeys.length > 0;
 
     return (
       <CenteredContent>
@@ -49,13 +49,13 @@ class Tokens extends Component {
           <Subheading>Your tokens</Subheading>,
           <Table>
             <tbody>
-              {settings.apiKeys.map(key => (
+              {apiKeys.apiKeys.map(key => (
                 <ApiToken
                   id={key.id}
                   key={key.id}
                   name={key.name}
                   secret={key.secret}
-                  onDelete={settings.deleteApiKey}
+                  onDelete={apiKeys.deleteApiKey}
                 />
               ))}
             </tbody>
@@ -78,7 +78,7 @@ class Tokens extends Component {
           <Button
             type="submit"
             value="Create Token"
-            disabled={settings.isSaving}
+            disabled={apiKeys.isSaving}
           />
         </form>
       </CenteredContent>
@@ -96,4 +96,4 @@ const Table = styled.table`
   }
 `;
 
-export default inject('settings')(Tokens);
+export default inject('apiKeys')(Tokens);

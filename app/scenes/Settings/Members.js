@@ -1,5 +1,6 @@
 // @flow
 import React, { Component } from 'react';
+import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
@@ -7,17 +8,20 @@ import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';
 import { color } from 'shared/styles/constants';
 
+import AuthStore from 'stores/AuthStore';
 import ErrorsStore from 'stores/ErrorsStore';
-import SettingsStore from 'stores/SettingsStore';
+import MembersStore from 'stores/settings/MembersStore';
 import CenteredContent from 'components/CenteredContent';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import PageTitle from 'components/PageTitle';
+import MemberMenu from './components/MemberMenu';
 
 @observer
 class Members extends Component {
   props: {
+    auth: AuthStore,
     errors: ErrorsStore,
-    settings: SettingsStore,
+    members: MembersStore,
   };
 
   @observable members;
@@ -27,27 +31,36 @@ class Members extends Component {
   @observable isInviting: boolean = false;
 
   componentDidMount() {
-    this.props.settings.fetchMembers();
+    this.props.members.fetchMembers();
   }
 
   render() {
+    const user = this.props.auth.user;
+    invariant(user, 'User should exist');
+
     return (
       <CenteredContent>
         <PageTitle title="Members" />
         <h1>Members</h1>
 
-        {!this.props.settings.isFetching ? (
+        {!this.props.members.isFetching ? (
           <Flex column>
-            {this.props.settings.members && (
+            {this.props.members.members && (
               <MemberList column>
-                {this.props.settings.members.map(member => (
+                {this.props.members.members.map(member => (
                   <Member key={member.id} justify="space-between" auto>
                     <Flex>
                       <Avatar src={member.avatarUrl} />
                       <UserName>
                         {member.name} {member.email && `(${member.email})`}
-                        {member.isAdmin && <AdminBadge>Admin</AdminBadge>}
+                        {member.isAdmin && (
+                          <Badge admin={member.isAdmin}>Admin</Badge>
+                        )}
+                        {member.isSuspended && <Badge>Suspended</Badge>}
                       </UserName>
+                    </Flex>
+                    <Flex>
+                      {user.id !== member.id && <MemberMenu user={member} />}
                     </Flex>
                   </Member>
                 ))}
@@ -84,12 +97,15 @@ const UserName = styled.span`
   padding-left: 8px;
 `;
 
-const AdminBadge = styled.span`
+const Badge = styled.span`
   margin-left: 10px;
-  color: #777;
-  font-size: 13px;
+  padding: 2px 6px;
+  background-color: ${({ admin }) => (admin ? color.primary : color.smokeDark)};
+  color: ${({ admin }) => (admin ? color.white : color.text)};
+  border-radius: 4px;
+  font-size: 11px;
   text-transform: uppercase;
   font-weight: normal;
 `;
 
-export default inject('errors', 'settings')(Members);
+export default inject('auth', 'errors', 'members')(Members);
