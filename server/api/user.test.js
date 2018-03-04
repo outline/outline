@@ -66,3 +66,148 @@ describe('#user.update', async () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe('#user.promote', async () => {
+  it('should promote a new admin', async () => {
+    const { admin, user } = await seed();
+
+    const res = await server.post('/api/user.promote', {
+      body: { token: admin.getJwtToken(), user: user.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require admin', async () => {
+    const { user } = await seed();
+    const res = await server.post('/api/user.promote', {
+      body: { token: user.getJwtToken(), user: user.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#user.demote', async () => {
+  it('should demote an admin', async () => {
+    const { admin, user } = await seed();
+    await user.update({ isAdmin: true }); // Make another admin
+
+    const res = await server.post('/api/user.demote', {
+      body: {
+        token: admin.getJwtToken(),
+        user: user.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("shouldn't demote admins if only one available ", async () => {
+    const { admin } = await seed();
+
+    const res = await server.post('/api/user.demote', {
+      body: {
+        token: admin.getJwtToken(),
+        user: admin.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require admin', async () => {
+    const { user } = await seed();
+    const res = await server.post('/api/user.promote', {
+      body: { token: user.getJwtToken(), user: user.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#user.suspend', async () => {
+  it('should suspend an user', async () => {
+    const { admin, user } = await seed();
+
+    const res = await server.post('/api/user.suspend', {
+      body: {
+        token: admin.getJwtToken(),
+        user: user.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("shouldn't allow suspending the user themselves", async () => {
+    const { admin } = await seed();
+
+    const res = await server.post('/api/user.suspend', {
+      body: {
+        token: admin.getJwtToken(),
+        user: admin.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require admin', async () => {
+    const { user } = await seed();
+    const res = await server.post('/api/user.suspend', {
+      body: { token: user.getJwtToken(), user: user.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#user.activate', async () => {
+  it('should activate a suspended user', async () => {
+    const { admin, user } = await seed();
+    await user.update({
+      suspendedById: admin.id,
+      suspendedAt: new Date(),
+    });
+
+    expect(user.isSuspended).toBe(true);
+    const res = await server.post('/api/user.activate', {
+      body: {
+        token: admin.getJwtToken(),
+        user: user.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require admin', async () => {
+    const { user } = await seed();
+    const res = await server.post('/api/user.activate', {
+      body: { token: user.getJwtToken(), user: user.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+});

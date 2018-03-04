@@ -2,10 +2,13 @@
 import uuid from 'uuid';
 import Router from 'koa-router';
 import { makePolicy, signPolicy, publicS3Endpoint } from '../utils/s3';
-import { Event } from '../models';
+import { ValidationError } from '../errors';
+import { Event, User, Team } from '../models';
 import auth from './middlewares/authentication';
 import { presentUser } from '../presenters';
+import policy from '../policies';
 
+const { authorize } = policy;
 const router = new Router();
 
 router.post('user.info', auth(), async ctx => {
@@ -72,6 +75,93 @@ router.post('user.s3Upload', auth(), async ctx => {
         size,
       },
     },
+  };
+});
+
+// Admin specific
+
+router.post('user.promote', auth(), async ctx => {
+  const userId = ctx.body.id;
+  const teamId = ctx.state.user.teamId;
+  ctx.assertPresent(userId, 'id is required');
+
+  const user = await User.findById(userId);
+  authorize(ctx.state.user, 'promote', user);
+
+  const team = await Team.findById(teamId);
+  await team.addAdmin(user);
+
+  ctx.body = {
+    data: presentUser(ctx, user, { includeDetails: true }),
+  };
+});
+
+router.post('user.demote', auth(), async ctx => {
+  const userId = ctx.body.id;
+  const teamId = ctx.state.user.teamId;
+  ctx.assertPresent(userId, 'id is required');
+
+  const user = await User.findById(userId);
+  authorize(ctx.state.user, 'demote', user);
+
+  const team = await Team.findById(teamId);
+  try {
+    await team.removeAdmin(user);
+  } catch (err) {
+    throw new ValidationError(err.message);
+  }
+
+  ctx.body = {
+    data: presentUser(ctx, user, { includeDetails: true }),
+  };
+});
+
+/**
+ * Suspend user
+ *
+ * Admin can suspend users to reduce the number of accounts on their billing plan
+ */
+router.post('user.suspend', auth(), async ctx => {
+  const admin = ctx.state.user;
+  const userId = ctx.body.id;
+  const teamId = ctx.state.user.teamId;
+  ctx.assertPresent(userId, 'user is required');
+
+  const user = await User.findById(userId);
+  authorize(ctx.state.user, 'suspend', user);
+
+  const team = await Team.findById(teamId);
+  try {
+    await team.suspendUser(user, admin);
+  } catch (err) {
+    throw new ValidationError(err.message);
+  }
+
+  ctx.body = {
+    data: presentUser(ctx, user, { includeDetails: true }),
+  };
+});
+
+/**
+ * Activate user
+ *
+ * Admin can activate users to let them access resources. These users will also
+ * account towards the billing plan limits.
+ */
+router.post('user.activate', auth(), async ctx => {
+  const admin = ctx.state.user;
+  const userId = ctx.body.id;
+  const teamId = ctx.state.user.teamId;
+  ctx.assertPresent(userId, 'user is required');
+
+  const user = await User.findById(userId);
+  authorize(ctx.state.user, 'activate', user);
+
+  const team = await Team.findById(teamId);
+  await team.activateUser(user, admin);
+
+  ctx.body = {
+    data: presentUser(ctx, user, { includeDetails: true }),
   };
 });
 

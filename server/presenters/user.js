@@ -30,6 +30,7 @@ export default (
 
   if (options.includeDetails) {
     userData.isAdmin = user.isAdmin;
+    userData.isSuspended = user.isSuspended;
     userData.email = user.email;
   }
 
