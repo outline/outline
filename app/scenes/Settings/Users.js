@@ -96,10 +96,10 @@ const UserName = styled.span`
 
 const Badge = styled.span`
   margin-left: 10px;
-  padding: 2px 6px;
+  padding: 2px 6px 3px;
   background-color: ${({ admin }) => (admin ? color.primary : color.smokeDark)};
   color: ${({ admin }) => (admin ? color.white : color.text)};
-  border-radius: 4px;
+  border-radius: 2px;
   font-size: 11px;
   text-transform: uppercase;
   font-weight: normal;
