@@ -3,6 +3,7 @@ import React from 'react';
 import EmailTemplate from './components/EmailLayout';
 import Body from './components/Body';
 import Button from './components/Button';
+import Heading from './components/Heading';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import EmptySpace from './components/EmptySpace';
@@ -25,9 +26,7 @@ export const WelcomeEmail = () => {
       <Header />
 
       <Body>
-        <p>
-          <strong>Welcome to Outline!</strong>
-        </p>
+        <Heading>Welcome to Outline!</Heading>
 
         <p>Outline is a place for your team to build and share knowledge.</p>
         <p>
