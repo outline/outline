@@ -2,22 +2,22 @@
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { User } from 'types';
+import type { User, PaginationParams } from 'types';
 
-class MemberSettingsStore {
-  @observable users: User[] = [];
+class UsersStore {
+  @observable data: User[] = [];
   @observable isLoaded: boolean = false;
   @observable isSaving: boolean = false;
 
   @action
-  fetchUsers = async () => {
+  fetchPage = async (options: ?PaginationParams): Promise<*> => {
     try {
-      const res = await client.post('/team.users');
+      const res = await client.post('/team.users', options);
       invariant(res && res.data, 'Data should be available');
       const { data } = res;
 
       runInAction('fetchUsers', () => {
-        this.users = data.reverse();
+        this.data = data.reverse();
       });
     } catch (e) {
       console.error('Something went wrong');
@@ -53,10 +53,8 @@ class MemberSettingsStore {
       invariant(res && res.data, 'Data should be available');
       const { data } = res;
 
-      runInAction(`MemberSettingsStore#${action}`, () => {
-        this.users = this.users.map(
-          user => (user.id === data.id ? data : user)
-        );
+      runInAction(`UsersStore#${action}`, () => {
+        this.data = this.data.map(user => (user.id === data.id ? data : user));
       });
     } catch (e) {
       console.error('Something went wrong');
@@ -64,4 +62,4 @@ class MemberSettingsStore {
   };
 }
 
-export default MemberSettingsStore;
+export default UsersStore;

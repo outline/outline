@@ -1,7 +1,6 @@
 // @flow
 import React, { Component } from 'react';
 import invariant from 'invariant';
-import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
@@ -10,61 +9,55 @@ import { color } from 'shared/styles/constants';
 
 import AuthStore from 'stores/AuthStore';
 import ErrorsStore from 'stores/ErrorsStore';
-import MemberSettingsStore from 'stores/MemberSettingsStore';
+import UsersStore from 'stores/UsersStore';
 import CenteredContent from 'components/CenteredContent';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import PageTitle from 'components/PageTitle';
-import MemberMenu from './components/MemberMenu';
+import UserMenu from './components/UserMenu';
 
 @observer
-class Members extends Component {
+class Users extends Component {
   props: {
     auth: AuthStore,
     errors: ErrorsStore,
-    memberSettings: MemberSettingsStore,
+    users: UsersStore,
   };
 
-  @observable members;
-  @observable isLoaded: boolean = false;
-
-  @observable inviteEmails: string = '';
-  @observable isInviting: boolean = false;
-
   componentDidMount() {
-    this.props.memberSettings.fetchUsers();
+    this.props.users.fetchPage({ limit: 100 });
   }
 
   render() {
-    const user = this.props.auth.user;
-    invariant(user, 'User should exist');
+    const currentUser = this.props.auth.user;
+    invariant(currentUser, 'User should exist');
 
     return (
       <CenteredContent>
-        <PageTitle title="Members" />
-        <h1>Members</h1>
+        <PageTitle title="Users" />
+        <h1>Users</h1>
 
-        {!this.props.memberSettings.isLoaded ? (
+        {!this.props.users.isLoaded ? (
           <Flex column>
-            {this.props.memberSettings.users && (
-              <MemberList column>
-                {this.props.memberSettings.users.map(member => (
-                  <Member key={member.id} justify="space-between" auto>
-                    <MemberDetails suspended={member.isSuspended}>
-                      <Avatar src={member.avatarUrl} />
+            {this.props.users.data && (
+              <UserList column>
+                {this.props.users.data.map(user => (
+                  <User key={user.id} justify="space-between" auto>
+                    <UserDetails suspended={user.isSuspended}>
+                      <Avatar src={user.avatarUrl} />
                       <UserName>
-                        {member.name} {member.email && `(${member.email})`}
-                        {member.isAdmin && (
-                          <Badge admin={member.isAdmin}>Admin</Badge>
+                        {user.name} {user.email && `(${user.email})`}
+                        {user.isAdmin && (
+                          <Badge admin={user.isAdmin}>Admin</Badge>
                         )}
-                        {member.isSuspended && <Badge>Suspended</Badge>}
+                        {user.isSuspended && <Badge>Suspended</Badge>}
                       </UserName>
-                    </MemberDetails>
+                    </UserDetails>
                     <Flex>
-                      {user.id !== member.id && <MemberMenu user={member} />}
+                      {currentUser.id !== user.id && <UserMenu user={user} />}
                     </Flex>
-                  </Member>
+                  </User>
                 ))}
-              </MemberList>
+              </UserList>
             )}
           </Flex>
         ) : (
@@ -75,7 +68,7 @@ class Members extends Component {
   }
 }
 
-const MemberList = styled(Flex)`
+const UserList = styled(Flex)`
   border: 1px solid ${color.smoke};
   border-radius: 4px;
 
@@ -83,7 +76,7 @@ const MemberList = styled(Flex)`
   margin-bottom: 40px;
 `;
 
-const Member = styled(Flex)`
+const User = styled(Flex)`
   padding: 10px;
   border-bottom: 1px solid ${color.smoke};
   font-size: 15px;
@@ -93,7 +86,7 @@ const Member = styled(Flex)`
   }
 `;
 
-const MemberDetails = styled(Flex)`
+const UserDetails = styled(Flex)`
   opacity: ${({ suspended }) => (suspended ? 0.5 : 1)};
 `;
 
@@ -112,4 +105,4 @@ const Badge = styled.span`
   font-weight: normal;
 `;
 
-export default inject('auth', 'errors', 'memberSettings')(Members);
+export default inject('auth', 'errors', 'users')(Users);

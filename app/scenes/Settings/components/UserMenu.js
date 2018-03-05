@@ -2,23 +2,23 @@
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 
-import MemberSettingsStore from 'stores/MemberSettingsStore';
+import UsersStore from 'stores/UsersStore';
 import MoreIcon from 'components/Icon/MoreIcon';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import type { User } from 'types';
 
 type Props = {
   user: User,
-  memberSettings: MemberSettingsStore,
+  users: UsersStore,
 };
 
 @observer
-class MemberMenu extends Component {
+class UserMenu extends Component {
   props: Props;
 
   handlePromote = (ev: SyntheticEvent) => {
     ev.preventDefault();
-    const { user, memberSettings } = this.props;
+    const { user, users } = this.props;
     if (
       !window.confirm(
         `Are you want to make ${
@@ -28,21 +28,21 @@ class MemberMenu extends Component {
     ) {
       return;
     }
-    memberSettings.promote(user);
+    users.promote(user);
   };
 
   handleDemote = (ev: SyntheticEvent) => {
     ev.preventDefault();
-    const { user, memberSettings } = this.props;
+    const { user, users } = this.props;
     if (!window.confirm(`Are you want to make ${user.name} a member?`)) {
       return;
     }
-    memberSettings.demote(user);
+    users.demote(user);
   };
 
   handleSuspend = (ev: SyntheticEvent) => {
     ev.preventDefault();
-    const { user, memberSettings } = this.props;
+    const { user, users } = this.props;
     if (
       !window.confirm(
         "Are you want to suspend this account? Suspended users won't be able to access Outline."
@@ -50,13 +50,13 @@ class MemberMenu extends Component {
     ) {
       return;
     }
-    memberSettings.suspend(user);
+    users.suspend(user);
   };
 
   handleActivate = (ev: SyntheticEvent) => {
     ev.preventDefault();
-    const { user, memberSettings } = this.props;
-    memberSettings.activate(user);
+    const { user, users } = this.props;
+    users.activate(user);
   };
 
   render() {
@@ -90,4 +90,4 @@ class MemberMenu extends Component {
   }
 }
 
-export default inject('memberSettings')(MemberMenu);
+export default inject('users')(UserMenu);
