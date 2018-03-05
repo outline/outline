@@ -1,16 +1,15 @@
 // @flow
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
-import styled from 'styled-components';
 
-import MembersStore from 'stores/settings/MembersStore';
+import MemberSettingsStore from 'stores/MemberSettingsStore';
 import MoreIcon from 'components/Icon/MoreIcon';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import type { User } from 'types';
 
 type Props = {
   user: User,
-  members: MembersStore,
+  memberSettings: MemberSettingsStore,
 };
 
 @observer
@@ -19,18 +18,45 @@ class MemberMenu extends Component {
 
   handlePromote = (ev: SyntheticEvent) => {
     ev.preventDefault();
+    const { user, memberSettings } = this.props;
+    if (
+      !window.confirm(
+        `Are you want to make ${
+          user.name
+        } an admin? Admins can modify team and billing information.`
+      )
+    ) {
+      return;
+    }
+    memberSettings.promote(user);
   };
 
   handleDemote = (ev: SyntheticEvent) => {
     ev.preventDefault();
+    const { user, memberSettings } = this.props;
+    if (!window.confirm(`Are you want to make ${user.name} a member?`)) {
+      return;
+    }
+    memberSettings.demote(user);
   };
 
   handleSuspend = (ev: SyntheticEvent) => {
     ev.preventDefault();
+    const { user, memberSettings } = this.props;
+    if (
+      !window.confirm(
+        "Are you want to suspend this account? Suspended users won't be able to access Outline."
+      )
+    ) {
+      return;
+    }
+    memberSettings.suspend(user);
   };
 
   handleActivate = (ev: SyntheticEvent) => {
     ev.preventDefault();
+    const { user, memberSettings } = this.props;
+    memberSettings.activate(user);
   };
 
   render() {
@@ -51,7 +77,7 @@ class MemberMenu extends Component {
             ))}
           {user.isSuspended ? (
             <DropdownMenuItem onClick={this.handleActivate}>
-              Activate account…
+              Activate account
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem onClick={this.handleSuspend}>
@@ -64,4 +90,4 @@ class MemberMenu extends Component {
   }
 }
 
-export default inject('members')(MemberMenu);
+export default inject('memberSettings')(MemberMenu);

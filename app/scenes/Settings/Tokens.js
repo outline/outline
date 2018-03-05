@@ -5,7 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import ApiToken from './components/ApiToken';
-import ApiKeysStore from 'stores/settings/ApiKeysStore';
+import ApiKeySettingsStore from 'stores/ApiKeySettingsStore';
 import { color } from 'shared/styles/constants';
 
 import Button from 'components/Button';
@@ -19,7 +19,7 @@ import Subheading from 'components/Subheading';
 class Tokens extends Component {
   @observable name: string = '';
   props: {
-    apiKeys: ApiKeysStore,
+    apiKeys: ApiKeySettingsStore,
   };
 
   componentDidMount() {

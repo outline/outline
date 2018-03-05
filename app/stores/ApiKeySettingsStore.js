@@ -4,7 +4,7 @@ import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import type { ApiKey } from 'types';
 
-class SettingsApiKeysStore {
+class SettingsApiKeySettingsStore {
   @observable apiKeys: ApiKey[] = [];
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
@@ -57,4 +57,4 @@ class SettingsApiKeysStore {
   };
 }
 
-export default SettingsApiKeysStore;
+export default SettingsApiKeySettingsStore;

@@ -5,6 +5,8 @@ export type User = {
   name: string,
   email: string,
   username: string,
+  isAdmin?: boolean,
+  isSuspended?: boolean,
 };
 
 export type Team = {

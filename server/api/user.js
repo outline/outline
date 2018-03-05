@@ -125,7 +125,7 @@ router.post('user.suspend', auth(), async ctx => {
   const admin = ctx.state.user;
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
-  ctx.assertPresent(userId, 'user is required');
+  ctx.assertPresent(userId, 'id is required');
 
   const user = await User.findById(userId);
   authorize(ctx.state.user, 'suspend', user);
@@ -152,7 +152,7 @@ router.post('user.activate', auth(), async ctx => {
   const admin = ctx.state.user;
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
-  ctx.assertPresent(userId, 'user is required');
+  ctx.assertPresent(userId, 'id is required');
 
   const user = await User.findById(userId);
   authorize(ctx.state.user, 'activate', user);

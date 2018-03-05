@@ -72,7 +72,7 @@ describe('#user.promote', async () => {
     const { admin, user } = await seed();
 
     const res = await server.post('/api/user.promote', {
-      body: { token: admin.getJwtToken(), user: user.id },
+      body: { token: admin.getJwtToken(), id: user.id },
     });
     const body = await res.json();
 
@@ -83,7 +83,7 @@ describe('#user.promote', async () => {
   it('should require admin', async () => {
     const { user } = await seed();
     const res = await server.post('/api/user.promote', {
-      body: { token: user.getJwtToken(), user: user.id },
+      body: { token: user.getJwtToken(), id: user.id },
     });
     const body = await res.json();
 
@@ -100,7 +100,7 @@ describe('#user.demote', async () => {
     const res = await server.post('/api/user.demote', {
       body: {
         token: admin.getJwtToken(),
-        user: user.id,
+        id: user.id,
       },
     });
     const body = await res.json();
@@ -115,7 +115,7 @@ describe('#user.demote', async () => {
     const res = await server.post('/api/user.demote', {
       body: {
         token: admin.getJwtToken(),
-        user: admin.id,
+        id: admin.id,
       },
     });
     const body = await res.json();
@@ -127,7 +127,7 @@ describe('#user.demote', async () => {
   it('should require admin', async () => {
     const { user } = await seed();
     const res = await server.post('/api/user.promote', {
-      body: { token: user.getJwtToken(), user: user.id },
+      body: { token: user.getJwtToken(), id: user.id },
     });
     const body = await res.json();
 
@@ -143,7 +143,7 @@ describe('#user.suspend', async () => {
     const res = await server.post('/api/user.suspend', {
       body: {
         token: admin.getJwtToken(),
-        user: user.id,
+        id: user.id,
       },
     });
     const body = await res.json();
@@ -158,7 +158,7 @@ describe('#user.suspend', async () => {
     const res = await server.post('/api/user.suspend', {
       body: {
         token: admin.getJwtToken(),
-        user: admin.id,
+        id: admin.id,
       },
     });
     const body = await res.json();
@@ -170,7 +170,7 @@ describe('#user.suspend', async () => {
   it('should require admin', async () => {
     const { user } = await seed();
     const res = await server.post('/api/user.suspend', {
-      body: { token: user.getJwtToken(), user: user.id },
+      body: { token: user.getJwtToken(), id: user.id },
     });
     const body = await res.json();
 
@@ -191,7 +191,7 @@ describe('#user.activate', async () => {
     const res = await server.post('/api/user.activate', {
       body: {
         token: admin.getJwtToken(),
-        user: user.id,
+        id: user.id,
       },
     });
     const body = await res.json();
@@ -203,7 +203,7 @@ describe('#user.activate', async () => {
   it('should require admin', async () => {
     const { user } = await seed();
     const res = await server.post('/api/user.activate', {
-      body: { token: user.getJwtToken(), user: user.id },
+      body: { token: user.getJwtToken(), id: user.id },
     });
     const body = await res.json();
 

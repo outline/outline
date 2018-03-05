@@ -10,7 +10,7 @@ import { color } from 'shared/styles/constants';
 
 import AuthStore from 'stores/AuthStore';
 import ErrorsStore from 'stores/ErrorsStore';
-import MembersStore from 'stores/settings/MembersStore';
+import MemberSettingsStore from 'stores/MemberSettingsStore';
 import CenteredContent from 'components/CenteredContent';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import PageTitle from 'components/PageTitle';
@@ -21,7 +21,7 @@ class Members extends Component {
   props: {
     auth: AuthStore,
     errors: ErrorsStore,
-    members: MembersStore,
+    memberSettings: MemberSettingsStore,
   };
 
   @observable members;
@@ -31,7 +31,7 @@ class Members extends Component {
   @observable isInviting: boolean = false;
 
   componentDidMount() {
-    this.props.members.fetchMembers();
+    this.props.memberSettings.fetchUsers();
   }
 
   render() {
@@ -43,13 +43,13 @@ class Members extends Component {
         <PageTitle title="Members" />
         <h1>Members</h1>
 
-        {!this.props.members.isFetching ? (
+        {!this.props.memberSettings.isLoaded ? (
           <Flex column>
-            {this.props.members.members && (
+            {this.props.memberSettings.users && (
               <MemberList column>
-                {this.props.members.members.map(member => (
+                {this.props.memberSettings.users.map(member => (
                   <Member key={member.id} justify="space-between" auto>
-                    <Flex>
+                    <MemberDetails suspended={member.isSuspended}>
                       <Avatar src={member.avatarUrl} />
                       <UserName>
                         {member.name} {member.email && `(${member.email})`}
@@ -58,7 +58,7 @@ class Members extends Component {
                         )}
                         {member.isSuspended && <Badge>Suspended</Badge>}
                       </UserName>
-                    </Flex>
+                    </MemberDetails>
                     <Flex>
                       {user.id !== member.id && <MemberMenu user={member} />}
                     </Flex>
@@ -93,6 +93,10 @@ const Member = styled(Flex)`
   }
 `;
 
+const MemberDetails = styled(Flex)`
+  opacity: ${({ suspended }) => (suspended ? 0.5 : 1)};
+`;
+
 const UserName = styled.span`
   padding-left: 8px;
 `;
@@ -108,4 +112,4 @@ const Badge = styled.span`
   font-weight: normal;
 `;
 
-export default inject('auth', 'errors', 'members')(Members);
+export default inject('auth', 'errors', 'memberSettings')(Members);

@@ -29,9 +29,9 @@ export default (
     user.avatarUrl || (user.slackData ? user.slackData.image_192 : null);
 
   if (options.includeDetails) {
+    userData.email = user.email;
     userData.isAdmin = user.isAdmin;
     userData.isSuspended = user.isSuspended;
-    userData.email = user.email;
   }
 
   return userData;
