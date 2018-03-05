@@ -2,7 +2,7 @@
 import JWT from 'jsonwebtoken';
 import { type Context } from 'koa';
 import { User, ApiKey } from '../../models';
-import { AuthenticationError } from '../../errors';
+import { AuthenticationError, UserSuspendedError } from '../../errors';
 
 export default function auth() {
   return async function authMiddleware(
@@ -35,52 +35,52 @@ export default function auth() {
 
     if (!token) throw new AuthenticationError('Authentication required');
 
-    if (token) {
-      let user;
+    let user;
 
-      if (String(token).match(/^[\w]{38}$/)) {
-        // API key
-        let apiKey;
-        try {
-          apiKey = await ApiKey.findOne({
-            where: {
-              secret: token,
-            },
-          });
-        } catch (e) {
-          throw new AuthenticationError('Invalid API key');
-        }
-
-        if (!apiKey) throw new AuthenticationError('Invalid API key');
-
-        user = await User.findById(apiKey.userId);
-        if (!user) throw new AuthenticationError('Invalid API key');
-      } else {
-        // JWT
-        // Get user without verifying payload signature
-        let payload;
-        try {
-          payload = JWT.decode(token);
-        } catch (e) {
-          throw new AuthenticationError('Unable to decode JWT token');
-        }
-
-        if (!payload) throw new AuthenticationError('Invalid token');
-
-        user = await User.findById(payload.id);
-
-        try {
-          JWT.verify(token, user.jwtSecret);
-        } catch (e) {
-          throw new AuthenticationError('Invalid token');
-        }
+    if (String(token).match(/^[\w]{38}$/)) {
+      // API key
+      let apiKey;
+      try {
+        apiKey = await ApiKey.findOne({
+          where: {
+            secret: token,
+          },
+        });
+      } catch (e) {
+        throw new AuthenticationError('Invalid API key');
       }
 
-      ctx.state.token = token;
-      ctx.state.user = user;
-      // $FlowFixMe
-      ctx.cache[user.id] = user;
+      if (!apiKey) throw new AuthenticationError('Invalid API key');
+
+      user = await User.findById(apiKey.userId);
+      if (!user) throw new AuthenticationError('Invalid API key');
+    } else {
+      // JWT
+      // Get user without verifying payload signature
+      let payload;
+      try {
+        payload = JWT.decode(token);
+      } catch (e) {
+        throw new AuthenticationError('Unable to decode JWT token');
+      }
+
+      if (!payload) throw new AuthenticationError('Invalid token');
+
+      user = await User.findById(payload.id);
+
+      try {
+        JWT.verify(token, user.jwtSecret);
+      } catch (e) {
+        throw new AuthenticationError('Invalid token');
+      }
     }
+
+    if (user.isSuspended) throw new UserSuspendedError();
+
+    ctx.state.token = token;
+    ctx.state.user = user;
+    // $FlowFixMe
+    ctx.cache[user.id] = user;
 
     return next();
   };
