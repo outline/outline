@@ -14,6 +14,7 @@ class AuthStore {
   @observable token: ?string;
   @observable oauthState: string;
   @observable isLoading: boolean = false;
+  @observable isSuspended: boolean = false;
 
   /* Computed */
 
@@ -43,8 +44,9 @@ class AuthStore {
         this.team = res.data.team;
       });
     } catch (err) {
-      // Failure to update user info is a non-fatal error.
-      console.error(err);
+      if (err.data.error === 'user_suspended') {
+        this.isSuspended = true;
+      }
     }
   };
 

@@ -75,7 +75,9 @@ export default function auth() {
       }
     }
 
-    if (user.isSuspended) throw new UserSuspendedError();
+    if (user.isSuspended) {
+      throw new UserSuspendedError();
+    }
 
     ctx.state.token = token;
     ctx.state.user = user;

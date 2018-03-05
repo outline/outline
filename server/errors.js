@@ -22,7 +22,9 @@ export function AdminRequiredError(
 export function UserSuspendedError(
   message: string = 'Your access has been suspended by the team admin'
 ) {
-  return httpErrors(403, message, { id: 'user_suspended' });
+  return httpErrors(403, message, {
+    id: 'user_suspended',
+  });
 }
 
 export function InvalidRequestError(message: string = 'Request invalid') {
