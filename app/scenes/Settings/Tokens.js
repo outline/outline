@@ -5,7 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import ApiToken from './components/ApiToken';
-import ApiKeySettingsStore from 'stores/ApiKeySettingsStore';
+import ApiKeysStore from 'stores/ApiKeysStore';
 import { color } from 'shared/styles/constants';
 
 import Button from 'components/Button';
@@ -19,11 +19,11 @@ import Subheading from 'components/Subheading';
 class Tokens extends Component {
   @observable name: string = '';
   props: {
-    apiKeys: ApiKeySettingsStore,
+    apiKeys: ApiKeysStore,
   };
 
   componentDidMount() {
-    this.props.apiKeys.fetchApiKeys();
+    this.props.apiKeys.fetchPage({ limit: 100 });
   }
 
   handleUpdate = (ev: SyntheticInputEvent) => {
@@ -38,7 +38,7 @@ class Tokens extends Component {
 
   render() {
     const { apiKeys } = this.props;
-    const hasApiKeys = apiKeys.apiKeys.length > 0;
+    const hasApiKeys = apiKeys.data.length > 0;
 
     return (
       <CenteredContent>
@@ -49,7 +49,7 @@ class Tokens extends Component {
           <Subheading>Your tokens</Subheading>,
           <Table>
             <tbody>
-              {apiKeys.apiKeys.map(key => (
+              {apiKeys.data.map(key => (
                 <ApiToken
                   id={key.id}
                   key={key.id}
