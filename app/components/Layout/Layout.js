@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import { Switch, Route, Redirect, withRouter } from 'react-router-dom';
+import { Switch, Route, withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
@@ -67,16 +67,12 @@ class Layout extends React.Component {
     this.props.ui.setActiveModal('keyboard-shortcuts');
   }
 
-  renderSuspended() {
-    return <ErrorSuspended />;
-  }
-
   render() {
     const { auth, ui } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
 
-    if (auth.isSuspended) return this.renderSuspended();
+    if (auth.isSuspended) return <ErrorSuspended />;
 
     return (
       <Container column auto>
