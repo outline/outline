@@ -1,6 +1,7 @@
 // @flow
 import crypto from 'crypto';
-import moment from 'moment';
+import addHours from 'date-fns/add_hours';
+import format from 'date-fns/format';
 import AWS from 'aws-sdk';
 import invariant from 'invariant';
 import fetch from 'isomorphic-fetch';
@@ -10,6 +11,7 @@ const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
 export const makePolicy = () => {
+  const tomorrow = addHours(new Date(), 24);
   const policy = {
     conditions: [
       { bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME },
@@ -19,9 +21,7 @@ export const makePolicy = () => {
       ['starts-with', '$Content-Type', 'image'],
       ['starts-with', '$Cache-Control', ''],
     ],
-    expiration: moment()
-      .add(24 * 60, 'minutes')
-      .format('YYYY-MM-DDTHH:mm:ss\\Z'),
+    expiration: format(tomorrow, 'YYYY-MM-DDTHH:mm:ss\\Z'),
   };
 
   return new Buffer(JSON.stringify(policy)).toString('base64');

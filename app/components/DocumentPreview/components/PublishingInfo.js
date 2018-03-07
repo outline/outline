@@ -1,6 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import moment from 'moment';
+import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import Collection from 'models/Collection';
@@ -35,7 +35,7 @@ class PublishingInfo extends Component {
       publishedAt,
     } = document;
 
-    const timeAgo = moment(createdAt).fromNow();
+    const timeAgo = `${distanceInWordsToNow(new Date(createdAt))} ago`;
 
     return (
       <Container align="center">
