@@ -75,15 +75,6 @@
     mime-types "^2.1.11"
     slate-dev-logger "^0.1.0"
 
-"@tommoor/slate-edit-code@^0.13.3":
-  version "0.13.3"
-  resolved "https://registry.yarnpkg.com/@tommoor/slate-edit-code/-/slate-edit-code-0.13.3.tgz#05c00bd23e79d1229fccdd9988c23bd8bb94b448"
-  dependencies:
-    detect-indent "^4.0.0"
-    detect-newline "^2.1.0"
-    ends-with "^0.2.0"
-    is-hotkey "^0.1.1"
-
 "@types/geojson@^1.0.0":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-1.0.3.tgz#fbcf7fa5eb6dd108d51385cc6987ec1f24214523"
@@ -8841,6 +8832,15 @@ slate-dev-logger@^0.1.0:
 slate-dev-logger@^0.1.39:
   version "0.1.39"
   resolved "https://registry.yarnpkg.com/slate-dev-logger/-/slate-dev-logger-0.1.39.tgz#744a69b85034244713e6de51483af5713c345af4"
+
+slate-edit-code@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/slate-edit-code/-/slate-edit-code-0.14.0.tgz#8fec510957eaef9a861746d0c7f10c3ede3998d0"
+  dependencies:
+    detect-indent "^4.0.0"
+    detect-newline "^2.1.0"
+    ends-with "^0.2.0"
+    is-hotkey "^0.1.1"
 
 slate-edit-list@^0.11.2:
   version "0.11.2"

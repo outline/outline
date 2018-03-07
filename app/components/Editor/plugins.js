@@ -3,7 +3,7 @@ import InsertImages from '@tommoor/slate-drop-or-paste-images';
 import PasteLinkify from 'slate-paste-linkify';
 import CollapseOnEscape from 'slate-collapse-on-escape';
 import TrailingBlock from 'slate-trailing-block';
-import EditCode from '@tommoor/slate-edit-code';
+import EditCode from 'slate-edit-code';
 import Prism from 'slate-prism';
 import EditList from './plugins/EditList';
 import KeyboardShortcuts from './plugins/KeyboardShortcuts';
