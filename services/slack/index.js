@@ -9,6 +9,8 @@ const Slack = {
       return;
 
     const document = await Document.findById(event.model.id);
+    if (!document) return;
+
     const integration = await Integration.findOne({
       where: {
         teamId: document.teamId,

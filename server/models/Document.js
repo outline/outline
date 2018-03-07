@@ -7,6 +7,7 @@ import Plain from 'slate-plain-serializer';
 import { Op } from 'sequelize';
 
 import isUUID from 'validator/lib/isUUID';
+import { Collection } from '../models';
 import { DataTypes, sequelize } from '../sequelize';
 import events from '../events';
 import parseTitle from '../../shared/utils/parseTitle';
@@ -230,20 +231,24 @@ Document.searchForUser = async (
 Document.addHook('beforeSave', async model => {
   if (!model.publishedAt) return;
 
-  const collection = await model.getCollection();
+  const collection = await Collection.findById(model.atlasId);
   if (collection.type !== 'atlas') return;
 
   await collection.updateDocument(model);
+  model.collection = collection;
 });
 
 Document.addHook('afterCreate', async model => {
   if (!model.publishedAt) return;
 
-  const collection = await model.getCollection();
+  const collection = await Collection.findById(model.atlasId);
   if (collection.type !== 'atlas') return;
 
   await collection.addDocumentToStructure(model);
+  model.collection = collection;
+
   events.add({ name: 'documents.create', model });
+  return model;
 });
 
 Document.addHook('afterDestroy', model =>
@@ -253,17 +258,19 @@ Document.addHook('afterDestroy', model =>
 // Instance methods
 
 Document.prototype.publish = async function() {
-  const collection = await this.getCollection();
+  if (this.publishedAt) return this.save();
 
-  // no-op if not atlas already published
-  if (this.publishedAt || collection.type !== 'atlas') {
-    return this.save();
-  }
+  const collection = await Collection.findById(this.atlasId);
+  if (collection.type !== 'atlas') return this.save();
 
   await collection.addDocumentToStructure(this);
+  this.collection = collection;
+
   this.publishedAt = new Date();
   await this.save();
+
   events.add({ name: 'documents.publish', model: this });
+  return this;
 };
 
 Document.prototype.getTimestamp = function() {
