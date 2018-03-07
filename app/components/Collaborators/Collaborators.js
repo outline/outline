@@ -1,6 +1,6 @@
 // @flow
 import React from 'react';
-import moment from 'moment';
+import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';
@@ -20,9 +20,13 @@ const Collaborators = ({ document }: Props) => {
   let tooltip;
 
   if (createdAt === updatedAt) {
-    tooltip = `${createdBy.name} published ${moment(createdAt).fromNow()}`;
+    tooltip = `${createdBy.name} published ${distanceInWordsToNow(
+      new Date(createdAt)
+    )} ago`;
   } else {
-    tooltip = `${updatedBy.name} modified ${moment(updatedAt).fromNow()}`;
+    tooltip = `${updatedBy.name} modified ${distanceInWordsToNow(
+      new Date(updatedAt)
+    )} ago`;
   }
 
   return (

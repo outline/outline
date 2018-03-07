@@ -70,7 +70,6 @@ module.exports = {
     new webpack.ProvidePlugin({
       fetch: 'imports-loader?this=>global!exports-loader?global.fetch!isomorphic-fetch',
     }),
-    new webpack.ContextReplacementPlugin(/moment[\\\/]locale$/, /^\.\/(en)$/),
     new webpack.IgnorePlugin(/unicode\/category\/So/),
   ],
   stats: {

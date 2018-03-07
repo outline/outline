@@ -75,15 +75,6 @@
     mime-types "^2.1.11"
     slate-dev-logger "^0.1.0"
 
-"@tommoor/slate-edit-code@^0.13.3":
-  version "0.13.3"
-  resolved "https://registry.yarnpkg.com/@tommoor/slate-edit-code/-/slate-edit-code-0.13.3.tgz#05c00bd23e79d1229fccdd9988c23bd8bb94b448"
-  dependencies:
-    detect-indent "^4.0.0"
-    detect-newline "^2.1.0"
-    ends-with "^0.2.0"
-    is-hotkey "^0.1.1"
-
 "@types/geojson@^1.0.0":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-1.0.3.tgz#fbcf7fa5eb6dd108d51385cc6987ec1f24214523"
@@ -2398,6 +2389,10 @@ dashify@^0.2.0:
 data-uri-regex@^0.1.2:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/data-uri-regex/-/data-uri-regex-0.1.4.tgz#1e1db6c8397eca8a48ecdb55ad1b927ec0bbac2e"
+
+date-fns@1.29.0:
+  version "1.29.0"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-1.29.0.tgz#12e609cdcb935127311d04d33334e2960a2a54e6"
 
 date-fns@^1.27.2:
   version "1.28.5"
@@ -6545,13 +6540,13 @@ moment-timezone@^0.5.4:
   dependencies:
     moment ">= 2.9.0"
 
-moment@2.13.0, moment@^2.13.0:
-  version "2.13.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.13.0.tgz#24162d99521e6d40f99ae6939e806d2139eaac52"
-
 moment@2.x.x, "moment@>= 2.9.0", moment@^2.16.0, moment@^2.17.1:
   version "2.18.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
+
+moment@^2.13.0:
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.13.0.tgz#24162d99521e6d40f99ae6939e806d2139eaac52"
 
 morgan@~1.6.1:
   version "1.6.1"
@@ -8837,6 +8832,15 @@ slate-dev-logger@^0.1.0:
 slate-dev-logger@^0.1.39:
   version "0.1.39"
   resolved "https://registry.yarnpkg.com/slate-dev-logger/-/slate-dev-logger-0.1.39.tgz#744a69b85034244713e6de51483af5713c345af4"
+
+slate-edit-code@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/slate-edit-code/-/slate-edit-code-0.14.0.tgz#8fec510957eaef9a861746d0c7f10c3ede3998d0"
+  dependencies:
+    detect-indent "^4.0.0"
+    detect-newline "^2.1.0"
+    ends-with "^0.2.0"
+    is-hotkey "^0.1.1"
 
 slate-edit-list@^0.11.2:
   version "0.11.2"
