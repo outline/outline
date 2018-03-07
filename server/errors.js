@@ -19,11 +19,10 @@ export function AdminRequiredError(
   return httpErrors(403, message, { id: 'admin_required' });
 }
 
-export function UserSuspendedError(
-  message: string = 'Your access has been suspended by the team admin'
-) {
-  return httpErrors(403, message, {
+export function UserSuspendedError({ adminEmail }: { adminEmail: string }) {
+  return httpErrors(403, 'Your access has been suspended by the team admin', {
     id: 'user_suspended',
+    adminEmail,
   });
 }
 

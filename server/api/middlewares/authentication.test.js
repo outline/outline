@@ -159,8 +159,10 @@ describe('Authentication middleware', async () => {
 
   it('should return an error for suspended users', async () => {
     const state = {};
+    const admin = await buildUser({});
     const user = await buildUser({
       suspendedAt: new Date(),
+      suspendedById: admin.id,
     });
     const authMiddleware = auth();
 
@@ -179,6 +181,7 @@ describe('Authentication middleware', async () => {
       expect(e.message).toEqual(
         'Your access has been suspended by the team admin'
       );
+      expect(e.adminEmail).toEqual(admin.email);
     }
   });
 });

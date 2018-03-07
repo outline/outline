@@ -29,6 +29,7 @@ const User = sequelize.define(
     slackData: DataTypes.JSONB,
     jwtSecret: encryptedFields.vault('jwtSecret'),
     suspendedAt: DataTypes.DATE,
+    suspendedById: DataTypes.UUID,
   },
   {
     getterMethods: {

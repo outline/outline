@@ -29,6 +29,7 @@ api.use(async (ctx, next) => {
   } catch (err) {
     ctx.status = err.status || 500;
     let message = err.message || err.name;
+    let error;
 
     if (err instanceof Sequelize.ValidationError) {
       // super basic form error handling
@@ -40,18 +41,21 @@ api.use(async (ctx, next) => {
 
     if (message.match('Authorization error')) {
       ctx.status = 403;
+      error = 'authorization_error';
     }
 
     if (ctx.status === 500) {
       message = 'Internal Server Error';
+      error = 'internal_server_error';
       ctx.app.emit('error', err, ctx);
     }
 
     ctx.body = {
       ok: false,
-      error: _.snakeCase(err.id || err.message),
+      error: _.snakeCase(err.id || error),
       status: err.status,
       message,
+      adminEmail: err.adminEmail ? err.adminEmail : undefined,
     };
   }
 });

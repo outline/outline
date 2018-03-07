@@ -76,7 +76,8 @@ export default function auth() {
     }
 
     if (user.isSuspended) {
-      throw new UserSuspendedError();
+      const suspendingAdmin = await User.findById(user.suspendedById);
+      throw new UserSuspendedError({ adminEmail: suspendingAdmin.email });
     }
 
     ctx.state.token = token;

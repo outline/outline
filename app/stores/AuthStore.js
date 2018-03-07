@@ -15,6 +15,7 @@ class AuthStore {
   @observable oauthState: string;
   @observable isLoading: boolean = false;
   @observable isSuspended: boolean = false;
+  @observable suspendedContactEmail: ?string;
 
   /* Computed */
 
@@ -46,6 +47,7 @@ class AuthStore {
     } catch (err) {
       if (err.data.error === 'user_suspended') {
         this.isSuspended = true;
+        this.suspendedContactEmail = err.data.adminEmail;
       }
     }
   };
