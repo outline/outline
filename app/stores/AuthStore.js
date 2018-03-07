@@ -45,9 +45,9 @@ class AuthStore {
         this.team = res.data.team;
       });
     } catch (err) {
-      if (err.data.error === 'user_suspended') {
+      if (err.error.error === 'user_suspended') {
         this.isSuspended = true;
-        this.suspendedContactEmail = err.data.adminEmail;
+        this.suspendedContactEmail = err.error.data.adminEmail;
       }
     }
   };

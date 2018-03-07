@@ -55,7 +55,7 @@ api.use(async (ctx, next) => {
       error: _.snakeCase(err.id || error),
       status: err.status,
       message,
-      adminEmail: err.adminEmail ? err.adminEmail : undefined,
+      data: err.errorData ? err.errorData : undefined,
     };
   }
 });
