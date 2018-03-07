@@ -28,8 +28,15 @@ const User = sequelize.define(
     slackId: { type: DataTypes.STRING, allowNull: true, unique: true },
     slackData: DataTypes.JSONB,
     jwtSecret: encryptedFields.vault('jwtSecret'),
+    suspendedAt: DataTypes.DATE,
+    suspendedById: DataTypes.UUID,
   },
   {
+    getterMethods: {
+      isSuspended() {
+        return !!this.suspendedAt;
+      },
+    },
     indexes: [
       {
         fields: ['email'],

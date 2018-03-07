@@ -53,8 +53,8 @@ class SettingsSidebar extends Component {
             </Section>
             <Section>
               <Header>Team</Header>
-              <SidebarLink to="/settings/members" icon={<UserIcon />}>
-                Members
+              <SidebarLink to="/settings/users" icon={<UserIcon />}>
+                Users
               </SidebarLink>
               <SidebarLink
                 to="/settings/integrations/slack"

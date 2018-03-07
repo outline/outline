@@ -2,7 +2,8 @@
 import React from 'react';
 import { Provider } from 'mobx-react';
 import stores from 'stores';
-import SettingsStore from 'stores/SettingsStore';
+import ApiKeysStore from 'stores/ApiKeysStore';
+import UsersStore from 'stores/UsersStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import CacheStore from 'stores/CacheStore';
@@ -22,7 +23,8 @@ const Auth = ({ children }: Props) => {
       const { user, team } = stores.auth;
       const cache = new CacheStore(user.id);
       authenticatedStores = {
-        settings: new SettingsStore(),
+        apiKeys: new ApiKeysStore(),
+        users: new UsersStore(),
         documents: new DocumentsStore({
           ui: stores.ui,
           cache,

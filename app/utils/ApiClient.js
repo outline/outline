@@ -84,7 +84,7 @@ class ApiClient {
         })
         .catch(error => {
           error.response.json().then(json => {
-            error.data = json;
+            error.error = json;
             reject(error);
           });
         });
