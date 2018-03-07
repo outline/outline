@@ -15,8 +15,8 @@ const ErrorSuspended = () => (
     </h1>
 
     <p>
-      Team admin has suspended your account. To re-activate your account, please
-      reach out to them directly.
+      A team admin has suspended your account. To re-activate your account,
+      please reach out to them directly.
     </p>
   </CenteredContent>
 );

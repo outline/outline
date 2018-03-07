@@ -202,6 +202,58 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
+          <Method method="user.promote" label="Promote a new admin user">
+            <Description>
+              Promote a user to be a team admin. This endpoint is only available
+              for admin users.
+            </Description>
+            <Arguments pagination>
+              <Argument id="id" description="User ID to be promoted" required />
+            </Arguments>
+          </Method>
+
+          <Method method="user.demote" label="Demote existing admin user">
+            <Description>
+              Demote existing team admin if there are more than one as one admin
+              is always required. This endpoint is only available for admin
+              users.
+            </Description>
+            <Arguments pagination>
+              <Argument id="id" description="User ID to be demoted" required />
+            </Arguments>
+          </Method>
+
+          <Method method="user.suspend" label="Suspend user account">
+            <Description>
+              Admin can suspend users to reduce the number of accounts on their
+              billing plan or prevent them from accessing documention.
+            </Description>
+            <Arguments pagination>
+              <Argument
+                id="id"
+                description="User ID to be suspended"
+                required
+              />
+            </Arguments>
+          </Method>
+
+          <Method
+            method="user.activate"
+            label="Activate a suspended user account"
+          >
+            <Description>
+              Admin can re-active a suspended user. This will update the billing
+              plan and re-enable their access to the documention.
+            </Description>
+            <Arguments pagination>
+              <Argument
+                id="id"
+                description="User ID to be activated"
+                required
+              />
+            </Arguments>
+          </Method>
+
           <Method
             method="collections.list"
             label="List your document collections"
@@ -526,27 +578,6 @@ export default function Pricing() {
               users.
             </Description>
             <Arguments pagination />
-          </Method>
-
-          <Method method="user.promote" label="Promote a new admin user">
-            <Description>
-              Promote a user to be a team admin. This endpoint is only available
-              for admin users.
-            </Description>
-            <Arguments pagination>
-              <Argument id="id" description="User ID to be promoted" required />
-            </Arguments>
-          </Method>
-
-          <Method method="user.demote" label="Demote existing admin user">
-            <Description>
-              Demote existing team admin if there are more than one as one admin
-              is always required. This endpoint is only available for admin
-              users.
-            </Description>
-            <Arguments pagination>
-              <Argument id="id" description="User ID to be demoted" required />
-            </Arguments>
           </Method>
         </Methods>
       </Container>
