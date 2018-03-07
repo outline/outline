@@ -227,22 +227,44 @@ Document.searchForUser = async (
 
 // Hooks
 
-Document.addHook('afterCreate', model =>
-  events.add({ name: 'documents.create', model })
-);
+Document.addHook('beforeSave', async model => {
+  if (!model.publishedAt) return;
+
+  const collection = await model.getCollection();
+  if (collection.type !== 'atlas') return;
+
+  await collection.updateDocument(model);
+});
+
+Document.addHook('afterCreate', async model => {
+  if (!model.publishedAt) return;
+
+  const collection = await model.getCollection();
+  if (collection.type !== 'atlas') return;
+
+  await collection.addDocumentToStructure(model);
+  events.add({ name: 'documents.create', model });
+});
 
 Document.addHook('afterDestroy', model =>
   events.add({ name: 'documents.delete', model })
 );
 
-Document.addHook('afterUpdate', model => {
-  if (!model.previous('publishedAt') && model.publishedAt) {
-    events.add({ name: 'documents.publish', model });
-  }
-  events.add({ name: 'documents.update', model });
-});
-
 // Instance methods
+
+Document.prototype.publish = async function() {
+  const collection = await this.getCollection();
+
+  // no-op if not atlas already published
+  if (this.publishedAt || collection.type !== 'atlas') {
+    return this.save();
+  }
+
+  await collection.addDocumentToStructure(this);
+  this.publishedAt = new Date();
+  await this.save();
+  events.add({ name: 'documents.publish', model: this });
+};
 
 Document.prototype.getTimestamp = function() {
   return Math.round(new Date(this.updatedAt).getTime() / 1000);

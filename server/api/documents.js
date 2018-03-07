@@ -5,7 +5,8 @@ import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
 import { Document, Collection, Star, View, Revision } from '../models';
-import { ValidationError, InvalidRequestError } from '../errors';
+import { InvalidRequestError } from '../errors';
+import events from '../events';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -302,28 +303,27 @@ router.post('documents.create', auth(), async ctx => {
     authorize(user, 'read', parentDocumentObj);
   }
 
-  const publishedAt = publish === false ? null : new Date();
-  let document = await Document.create({
+  const newDocument = await Document.create({
     parentDocumentId: parentDocumentObj.id,
     atlasId: collection.id,
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,
     createdById: user.id,
-    publishedAt,
     title,
     text,
   });
 
-  if (publishedAt && collection.type === 'atlas') {
-    await collection.addDocumentToStructure(document, index);
+  if (publish) {
+    newDocument.collection = collection;
+    await newDocument.publish();
   }
 
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
-  document = await Document.find({
-    where: { id: document.id, publishedAt },
+  const document = await Document.find({
+    where: { id: newDocument.id, publishedAt: newDocument.publishedAt },
   });
 
   ctx.body = {
@@ -346,23 +346,15 @@ router.post('documents.update', auth(), async ctx => {
   }
 
   // Update document
-  const previouslyPublished = !!document.publishedAt;
-  if (publish) document.publishedAt = new Date();
   if (title) document.title = title;
   if (text) document.text = text;
   document.lastModifiedById = user.id;
 
-  await document.save();
-  const collection = document.collection;
-  if (collection.type === 'atlas') {
-    if (previouslyPublished) {
-      await collection.updateDocument(document);
-    } else if (publish) {
-      await collection.addDocumentToStructure(document);
-    }
+  if (publish) {
+    await document.publish();
+  } else {
+    await document.save();
   }
-
-  document.collection = collection;
 
   ctx.body = {
     data: await presentDocument(ctx, document),

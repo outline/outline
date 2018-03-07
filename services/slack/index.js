@@ -17,25 +17,24 @@ const Slack = {
         type: 'post',
       },
     });
+    if (!integration) return;
 
-    if (integration) {
-      let text = `${document.createdBy.name} published a new document`;
+    let text = `${document.createdBy.name} published a new document`;
 
-      if (event.name === 'documents.update') {
-        text = `${document.createdBy.name} updated a document`;
-      }
-
-      await fetch(integration.settings.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text,
-          attachments: [presentSlackAttachment(document)],
-        }),
-      });
+    if (event.name === 'documents.update') {
+      text = `${document.createdBy.name} updated a document`;
     }
+
+    await fetch(integration.settings.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        attachments: [presentSlackAttachment(document)],
+      }),
+    });
   },
 };
 

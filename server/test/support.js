@@ -71,7 +71,6 @@ const seed = async () => {
     title: 'Second document',
     text: '# Much guidance',
   });
-  collection = await collection.addDocumentToStructure(document);
 
   return {
     user,

@@ -1,5 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`#collections.create should create collection 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#collections.create should require authentication 1`] = `
 Object {
   "error": "authentication_required",
@@ -18,6 +27,15 @@ Object {
 }
 `;
 
+exports[`#collections.delete should require authorization 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#collections.info should require authentication 1`] = `
 Object {
   "error": "authentication_required",
@@ -28,6 +46,15 @@ Object {
 `;
 
 exports[`#collections.list should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.list should return collections 1`] = `
 Object {
   "error": "authentication_required",
   "message": "Authentication required",
