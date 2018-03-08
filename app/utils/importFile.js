@@ -29,7 +29,7 @@ const importFile = async ({
       if (documentId) data.parentDocument = documentId;
 
       let document = new Document(data);
-      document = await document.save();
+      document = await document.save(true);
       documents.add(document);
       resolve(document);
     };

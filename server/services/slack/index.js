@@ -1,11 +1,11 @@
 // @flow
-import type { Event } from '../../server/events';
-import { Document, Integration } from '../../server/models';
-import { presentSlackAttachment } from '../../server/presenters';
+import type { Event } from '../../events';
+import { Document, Integration } from '../../models';
+import { presentSlackAttachment } from '../../presenters';
 
 const Slack = {
   on: async (event: Event) => {
-    if (event.name !== 'documents.create' && event.name !== 'documents.update')
+    if (event.name !== 'documents.publish' && event.name !== 'documents.update')
       return;
 
     const document = await Document.findById(event.model.id);

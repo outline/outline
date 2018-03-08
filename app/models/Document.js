@@ -168,7 +168,7 @@ class Document extends BaseModel {
   };
 
   @action
-  save = async (publish: boolean = false) => {
+  save = async (publish: boolean = false, done: boolean = false) => {
     if (this.isSaving) return this;
     this.isSaving = true;
 
@@ -181,6 +181,7 @@ class Document extends BaseModel {
           text: this.text,
           lastRevision: this.revision,
           publish,
+          done,
         });
       } else {
         const data = {
@@ -189,6 +190,7 @@ class Document extends BaseModel {
           title: this.title,
           text: this.text,
           publish,
+          done,
         };
         if (this.parentDocument) {
           data.parentDocument = this.parentDocument;

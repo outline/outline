@@ -332,7 +332,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, publish, lastRevision } = ctx.body;
+  const { id, title, text, publish, done, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -354,6 +354,10 @@ router.post('documents.update', auth(), async ctx => {
     await document.publish();
   } else {
     await document.save();
+
+    if (document.publishedAt && done) {
+      events.add({ name: 'documents.update', model: document });
+    }
   }
 
   ctx.body = {

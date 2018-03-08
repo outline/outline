@@ -161,7 +161,7 @@ class DocumentScene extends React.Component {
     this.editCache = null;
     this.isSaving = true;
     this.isPublishing = publish;
-    document = await document.save(publish);
+    document = await document.save(publish, redirect);
     this.isSaving = false;
     this.isPublishing = false;
 
