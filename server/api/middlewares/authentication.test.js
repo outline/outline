@@ -1,5 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import { flushdb, seed } from '../../test/support';
+import { buildUser } from '../../test/factories';
 import { ApiKey } from '../../models';
 import randomstring from 'randomstring';
 import auth from './authentication';
@@ -154,5 +155,33 @@ describe('Authentication middleware', async () => {
       jest.fn()
     );
     expect(state.user.id).toEqual(user.id);
+  });
+
+  it('should return an error for suspended users', async () => {
+    const state = {};
+    const admin = await buildUser({});
+    const user = await buildUser({
+      suspendedAt: new Date(),
+      suspendedById: admin.id,
+    });
+    const authMiddleware = auth();
+
+    try {
+      await authMiddleware(
+        {
+          request: {
+            get: jest.fn(() => `Bearer ${user.getJwtToken()}`),
+          },
+          state,
+          cache: {},
+        },
+        jest.fn()
+      );
+    } catch (e) {
+      expect(e.message).toEqual(
+        'Your access has been suspended by the team admin'
+      );
+      expect(e.errorData.adminEmail).toEqual(admin.email);
+    }
   });
 });

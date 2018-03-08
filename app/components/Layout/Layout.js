@@ -17,6 +17,7 @@ import Sidebar from 'components/Sidebar';
 import SettingsSidebar from 'components/Sidebar/Settings';
 import Modals from 'components/Modals';
 import Toasts from 'components/Toasts';
+import ErrorSuspended from 'scenes/ErrorSuspended';
 
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
@@ -70,6 +71,8 @@ class Layout extends React.Component {
     const { auth, ui } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
+
+    if (auth.isSuspended) return <ErrorSuspended />;
 
     return (
       <Container column auto>

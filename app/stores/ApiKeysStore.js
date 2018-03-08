@@ -2,25 +2,24 @@
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { ApiKey, User } from 'types';
+import type { ApiKey, PaginationParams } from 'types';
 
-class SettingsStore {
-  @observable apiKeys: ApiKey[] = [];
-  @observable members: User[] = [];
+class ApiKeysStore {
+  @observable data: ApiKey[] = [];
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
 
   @action
-  fetchApiKeys = async () => {
+  fetchPage = async (options: ?PaginationParams): Promise<*> => {
     this.isFetching = true;
 
     try {
-      const res = await client.post('/apiKeys.list');
+      const res = await client.post('/apiKeys.list', options);
       invariant(res && res.data, 'Data should be available');
       const { data } = res;
 
       runInAction('fetchApiKeys', () => {
-        this.apiKeys = data;
+        this.data = data;
       });
     } catch (e) {
       console.error('Something went wrong');
@@ -37,7 +36,7 @@ class SettingsStore {
       invariant(res && res.data, 'Data should be available');
       const { data } = res;
       runInAction('createApiKey', () => {
-        this.apiKeys.push(data);
+        this.data.push(data);
       });
     } catch (e) {
       console.error('Something went wrong');
@@ -50,30 +49,12 @@ class SettingsStore {
     try {
       await client.post('/apiKeys.delete', { id });
       runInAction('deleteApiKey', () => {
-        this.fetchApiKeys();
+        this.fetchPage();
       });
     } catch (e) {
       console.error('Something went wrong');
     }
-  };
-
-  @action
-  fetchMembers = async () => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post('/team.users');
-      invariant(res && res.data, 'Data should be available');
-      const { data } = res;
-
-      runInAction('fetchMembers', () => {
-        this.members = data.reverse();
-      });
-    } catch (e) {
-      console.error('Something went wrong');
-    }
-    this.isFetching = false;
   };
 }
 
-export default SettingsStore;
+export default ApiKeysStore;

@@ -1,62 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`#team.addAdmin should promote a new admin 1`] = `
-Object {
-  "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
-    "email": "user1@example.com",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "isAdmin": true,
-    "name": "User 1",
-    "username": "user1",
-  },
-  "ok": true,
-  "status": 200,
-}
-`;
-
-exports[`#team.addAdmin should require admin 1`] = `
-Object {
-  "error": "admin_required",
-  "message": "An admin role is required to access this resource",
-  "ok": false,
-  "status": 403,
-}
-`;
-
-exports[`#team.removeAdmin should demote an admin 1`] = `
-Object {
-  "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
-    "email": "user1@example.com",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "isAdmin": false,
-    "name": "User 1",
-    "username": "user1",
-  },
-  "ok": true,
-  "status": 200,
-}
-`;
-
-exports[`#team.removeAdmin should require admin 1`] = `
-Object {
-  "error": "admin_required",
-  "message": "An admin role is required to access this resource",
-  "ok": false,
-  "status": 403,
-}
-`;
-
-exports[`#team.removeAdmin shouldn't demote admins if only one available  1`] = `
-Object {
-  "error": "validation_error",
-  "message": "At least one admin is required",
-  "ok": false,
-  "status": 400,
-}
-`;
-
 exports[`#team.users should require admin for detailed info 1`] = `
 Object {
   "data": Array [
@@ -91,6 +34,7 @@ Object {
       "email": "admin@example.com",
       "id": "fa952cff-fa64-4d42-a6ea-6955c9689046",
       "isAdmin": true,
+      "isSuspended": false,
       "name": "Admin User",
       "username": "admin",
     },
@@ -99,6 +43,7 @@ Object {
       "email": "user1@example.com",
       "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
       "isAdmin": false,
+      "isSuspended": false,
       "name": "User 1",
       "username": "user1",
     },
