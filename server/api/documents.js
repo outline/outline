@@ -303,7 +303,7 @@ router.post('documents.create', auth(), async ctx => {
     authorize(user, 'read', parentDocumentObj);
   }
 
-  const newDocument = await Document.create({
+  let document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
     atlasId: collection.id,
     teamId: user.teamId,
@@ -315,15 +315,14 @@ router.post('documents.create', auth(), async ctx => {
   });
 
   if (publish) {
-    newDocument.collection = collection;
-    await newDocument.publish();
+    await document.publish();
   }
 
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
-  const document = await Document.find({
-    where: { id: newDocument.id, publishedAt: newDocument.publishedAt },
+  document = await Document.find({
+    where: { id: document.id, publishedAt: document.publishedAt },
   });
 
   ctx.body = {

@@ -264,10 +264,10 @@ Document.prototype.publish = async function() {
   if (collection.type !== 'atlas') return this.save();
 
   await collection.addDocumentToStructure(this);
-  this.collection = collection;
 
   this.publishedAt = new Date();
   await this.save();
+  this.collection = collection;
 
   events.add({ name: 'documents.publish', model: this });
   return this;

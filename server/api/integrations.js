@@ -4,7 +4,9 @@ import Integration from '../models/Integration';
 import pagination from './middlewares/pagination';
 import auth from './middlewares/authentication';
 import { presentIntegration } from '../presenters';
+import policy from '../policies';
 
+const { authorize } = policy;
 const router = new Router();
 
 router.post('integrations.list', auth(), pagination(), async ctx => {
@@ -34,7 +36,7 @@ router.post('integrations.delete', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const integration = await Integration.findById(id);
-  // TODO: authorization once other PR is merged
+  authorize(ctx.state.user, 'delete', integration);
 
   await integration.destroy();
 
