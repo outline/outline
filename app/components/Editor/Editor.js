@@ -291,8 +291,7 @@ const StyledEditor = styled(Editor)`
 
   p {
     position: relative;
-    margin-top: 1.2em;
-    margin-bottom: 1.2em;
+    margin: 0;
   }
 
   a:hover {
