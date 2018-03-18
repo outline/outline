@@ -280,7 +280,7 @@ const StyledEditor = styled(Editor)`
 
   ul,
   ol {
-    margin: 1em 0.1em;
+    margin: 0 0.1em;
     padding-left: 1em;
 
     ul,
@@ -320,7 +320,7 @@ const StyledEditor = styled(Editor)`
 
   blockquote {
     border-left: 3px solid #efefef;
-    margin: 1.2em 0;
+    margin: 0;
     padding-left: 10px;
     font-style: italic;
   }
