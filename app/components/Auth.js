@@ -4,6 +4,7 @@ import { Provider } from 'mobx-react';
 import stores from 'stores';
 import ApiKeysStore from 'stores/ApiKeysStore';
 import UsersStore from 'stores/UsersStore';
+import BillingStore from 'stores/BillingStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import CacheStore from 'stores/CacheStore';
@@ -25,6 +26,7 @@ const Auth = ({ children }: Props) => {
       authenticatedStores = {
         apiKeys: new ApiKeysStore(),
         users: new UsersStore(),
+        billing: new BillingStore(),
         documents: new DocumentsStore({
           ui: stores.ui,
           cache,

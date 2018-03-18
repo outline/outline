@@ -27,7 +27,6 @@ router.post('auth.slack', async ctx => {
 
   let user = await User.findOne({ where: { slackId: data.user.id } });
   let team = await Team.findOne({ where: { slackId: data.team.id } });
-  const isFirstUser = !team;
 
   if (team) {
     team.name = data.team.name;
@@ -38,6 +37,7 @@ router.post('auth.slack', async ctx => {
       name: data.team.name,
       slackId: data.team.id,
       slackData: data.team,
+      stripeEmail: user.email,
     });
   }
 
@@ -46,23 +46,13 @@ router.post('auth.slack', async ctx => {
     user.slackData = data.user;
     await user.save();
   } else {
-    user = await User.create({
+    await team.addUser({
       slackId: data.user.id,
       name: data.user.name,
       email: data.user.email,
-      teamId: team.id,
-      isAdmin: isFirstUser,
       slackData: data.user,
       slackAccessToken: data.access_token,
     });
-
-    // Set initial avatar
-    await user.updateAvatar();
-    await user.save();
-  }
-
-  if (isFirstUser) {
-    await team.createFirstCollection(user.id);
   }
 
   // Signal to backend that the user is logged in.

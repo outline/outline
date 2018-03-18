@@ -7,7 +7,7 @@ import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
 import parseTitle from '../../shared/utils/parseTitle';
 
-import type { User } from 'types';
+import type { User } from 'shared/types';
 import BaseModel from './BaseModel';
 import Collection from './Collection';
 

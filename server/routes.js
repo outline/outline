@@ -6,6 +6,7 @@ import Koa from 'koa';
 import Router from 'koa-router';
 import sendfile from 'koa-sendfile';
 import serve from 'koa-static';
+import _ from 'lodash';
 import subdomainRedirect from './middlewares/subdomainRedirect';
 import renderpage from './utils/renderpage';
 import { slackAuth } from '../shared/utils/routeHelpers';
@@ -27,7 +28,9 @@ const renderapp = async ctx => {
   if (isProduction) {
     await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
   } else {
-    await sendfile(ctx, path.join(__dirname, './static/dev.html'));
+    const data = await fs.readFile(path.join(__dirname, './static/dev.html'));
+    const template = _.template(data.toString());
+    ctx.body = template();
   }
 };
 

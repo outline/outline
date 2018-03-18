@@ -13,10 +13,11 @@ const definePlugin = new webpack.DefinePlugin({
   SLACK_APP_ID: JSON.stringify(process.env.SLACK_APP_ID),
   BASE_URL: JSON.stringify(process.env.URL),
   BUGSNAG_KEY: JSON.stringify(process.env.BUGSNAG_KEY),
-  DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT || 'hosted'),
   'process.env': {
     URL: JSON.stringify(process.env.URL),
-    SLACK_KEY: JSON.stringify(process.env.SLACK_KEY)
+    SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
+    DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT || 'hosted'),
+    STRIPE_PUBLIC_KEY: JSON.stringify(process.env.STRIPE_PUBLIC_KEY),
   }
 });
 

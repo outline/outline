@@ -2,7 +2,7 @@
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { User, PaginationParams } from 'types';
+import type { User, PaginationParams } from 'shared/types';
 
 class UsersStore {
   @observable data: User[] = [];

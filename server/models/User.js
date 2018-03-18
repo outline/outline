@@ -50,14 +50,12 @@ User.associate = models => {
   User.hasMany(models.ApiKey, { as: 'apiKeys' });
   User.hasMany(models.Document, { as: 'documents' });
   User.hasMany(models.View, { as: 'views' });
+  User.belongsTo(models.Team);
 };
 
 // Instance methods
 User.prototype.getJwtToken = function() {
   return JWT.sign({ id: this.id }, this.jwtSecret);
-};
-User.prototype.getTeam = async function() {
-  return this.team;
 };
 User.prototype.verifyPassword = function(password) {
   return new Promise((resolve, reject) => {
