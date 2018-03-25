@@ -21,23 +21,26 @@ import Flex from 'shared/components/Flex';
 @observer
 class LinkToolbar extends Component {
   wrapper: HTMLSpanElement;
-  input: HTMLElement;
+  input: HTMLInputElement;
   firstDocument: HTMLElement;
 
   props: {
     editor: Editor,
     link: Node,
     documents: DocumentsStore,
-    onBlur: () => void,
+    onBlur: () => *,
   };
 
+  originalValue: string = '';
   @observable isEditing: boolean = false;
   @observable isFetching: boolean = false;
   @observable resultIds: string[] = [];
   @observable searchTerm: ?string = null;
 
   componentDidMount() {
-    this.isEditing = !!this.props.link.data.get('href');
+    this.originalValue = this.props.link.data.get('href');
+    this.isEditing = !!this.originalValue;
+
     setImmediate(() =>
       window.addEventListener('click', this.handleOutsideMouseClick)
     );
@@ -58,15 +61,8 @@ class LinkToolbar extends Component {
       return;
     }
 
-    this.close();
-  };
-
-  close = () => {
-    if (this.input.value) {
-      this.props.onBlur();
-    } else {
-      this.removeLink();
-    }
+    ev.preventDefault();
+    this.save(this.input.value);
   };
 
   @action
@@ -97,7 +93,7 @@ class LinkToolbar extends Component {
         ev.preventDefault();
         return this.save(ev.target.value);
       case 27: // escape
-        return this.close();
+        return this.save(this.originalValue);
       case 40: // down
         ev.preventDefault();
         if (this.firstDocument) {
@@ -136,11 +132,9 @@ class LinkToolbar extends Component {
 
     editor.change(change => {
       if (href) {
-        change.setInline({ type: 'link', data: { href } });
+        change.setNodeByKey(link.key, { type: 'link', data: { href } });
       } else if (link) {
-        const startBlock = change.value.startBlock;
-        const selContainsLink = !!(startBlock && startBlock.getChild(link.key));
-        if (selContainsLink) change.unwrapInlineByKey(link.key);
+        change.unwrapInlineByKey(link.key);
       }
       change.deselect();
       this.props.onBlur();
