@@ -1769,9 +1769,9 @@ cli-width@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/cli-width/-/cli-width-2.2.0.tgz#ff19ede8a9a5e579324147b0c11f0fbcbabed639"
 
-clipboard@^1.5.5:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/clipboard/-/clipboard-1.7.1.tgz#360d6d6946e99a7a1fef395e42ba92b5e9b5a16b"
+clipboard@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/clipboard/-/clipboard-2.0.0.tgz#4661dc972fb72a4c4770b8db78aa9b1caef52b50"
   dependencies:
     good-listener "^1.2.2"
     select "^1.1.2"
@@ -7711,11 +7711,11 @@ pretty-hrtime@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/pretty-hrtime/-/pretty-hrtime-1.0.3.tgz#b7e3ea42435a4c9b2759d99e0f201eb195802ee1"
 
-prismjs@^1.6.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/prismjs/-/prismjs-1.6.0.tgz#118d95fb7a66dba2272e343b345f5236659db365"
+prismjs@^1.13.0:
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/prismjs/-/prismjs-1.13.0.tgz#edcc14a90bbd72a03e5ffd2bab81a04c79a607a6"
   optionalDependencies:
-    clipboard "^1.5.5"
+    clipboard "^2.0.0"
 
 private@^0.1.6, private@^0.1.7, private@~0.1.5:
   version "0.1.7"
@@ -8813,9 +8813,9 @@ slash@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/slash/-/slash-1.0.0.tgz#c41f2f6c39fc16d1cd17ad4b5d896114ae470d55"
 
-slate-base64-serializer@^0.2.23:
-  version "0.2.23"
-  resolved "https://registry.yarnpkg.com/slate-base64-serializer/-/slate-base64-serializer-0.2.23.tgz#d19b8a29ac800135d8c359f9153ba4af6210c407"
+slate-base64-serializer@^0.2.28:
+  version "0.2.28"
+  resolved "https://registry.yarnpkg.com/slate-base64-serializer/-/slate-base64-serializer-0.2.28.tgz#141a93654b58203e82ee24c4068107a67b72aff8"
   dependencies:
     isomorphic-base64 "^1.0.2"
 
@@ -8857,27 +8857,33 @@ slate-paste-linkify@^0.5.0:
     is-url "^1.2.2"
     to-pascal-case "^1.0.0"
 
-slate-plain-serializer@0.5.4, slate-plain-serializer@^0.5.4:
+slate-plain-serializer@0.5.4:
   version "0.5.4"
   resolved "https://registry.yarnpkg.com/slate-plain-serializer/-/slate-plain-serializer-0.5.4.tgz#ba5a1713a50e6e9020e080c10e5869f38820dc96"
   dependencies:
     slate-dev-logger "^0.1.39"
 
-slate-prism@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.npmjs.org/slate-prism/-/slate-prism-0.4.0.tgz#9d43b1fafa4c3a8e3bceaa8dbc41dd5ca39445a9"
-  dependencies:
-    prismjs "^1.6.0"
-
-slate-prop-types@^0.4.21:
-  version "0.4.21"
-  resolved "https://registry.yarnpkg.com/slate-prop-types/-/slate-prop-types-0.4.21.tgz#618214e867d44469fb7da9b8ac4ea68e9e0fa56b"
+slate-plain-serializer@^0.5.9:
+  version "0.5.9"
+  resolved "https://registry.yarnpkg.com/slate-plain-serializer/-/slate-plain-serializer-0.5.9.tgz#dc6ac5d10c46cac1bfa8d9af36f5e76d766fd57e"
   dependencies:
     slate-dev-logger "^0.1.39"
 
-slate-react@^0.11.4:
-  version "0.11.4"
-  resolved "https://registry.yarnpkg.com/slate-react/-/slate-react-0.11.4.tgz#c24d2cb8a3724e9a41c1f3566136ab8d3fa1ac8e"
+slate-prism@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/slate-prism/-/slate-prism-0.5.0.tgz#009eb74fea38ad76c64db67def7ea0884917adec"
+  dependencies:
+    prismjs "^1.13.0"
+
+slate-prop-types@^0.4.26:
+  version "0.4.26"
+  resolved "https://registry.yarnpkg.com/slate-prop-types/-/slate-prop-types-0.4.26.tgz#72ef2b6fded5893a2a0a273f679b92c4eee99e73"
+  dependencies:
+    slate-dev-logger "^0.1.39"
+
+slate-react@^0.12.3:
+  version "0.12.3"
+  resolved "https://registry.yarnpkg.com/slate-react/-/slate-react-0.12.3.tgz#3d0739af6930ae2a178fa90da480d5106ba1c504"
   dependencies:
     debug "^2.3.2"
     get-window "^1.1.1"
@@ -8890,22 +8896,22 @@ slate-react@^0.11.4:
     react-immutable-proptypes "^2.1.0"
     react-portal "^3.1.0"
     selection-is-backward "^1.0.0"
-    slate-base64-serializer "^0.2.23"
+    slate-base64-serializer "^0.2.28"
     slate-dev-logger "^0.1.39"
-    slate-plain-serializer "^0.5.4"
-    slate-prop-types "^0.4.21"
+    slate-plain-serializer "^0.5.9"
+    slate-prop-types "^0.4.26"
 
-slate-schema-violations@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/slate-schema-violations/-/slate-schema-violations-0.1.2.tgz#45f2e6ed2e77c98925bb1e159bf24cad9dc7f8ac"
+slate-schema-violations@^0.1.3:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/slate-schema-violations/-/slate-schema-violations-0.1.7.tgz#cf2c6156eaf545f4d1985d3d1b94c50d6d273a08"
 
-slate-trailing-block@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.npmjs.org/slate-trailing-block/-/slate-trailing-block-0.4.0.tgz#92573d7729e4c2a05c45521616ae2db28197476c"
+slate-trailing-block@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/slate-trailing-block/-/slate-trailing-block-0.5.0.tgz#cedb4f2975f1167e0fb9d259ce1252b82f4d74ff"
 
-slate@^0.32.4:
-  version "0.32.4"
-  resolved "https://registry.yarnpkg.com/slate/-/slate-0.32.4.tgz#dcc971d1cf4e4b7ac158b5bac9c39c9915805435"
+slate@^0.32.5:
+  version "0.32.5"
+  resolved "https://registry.yarnpkg.com/slate/-/slate-0.32.5.tgz#5386c75dec1e5b87648189c9fbb4294cec623ff0"
   dependencies:
     debug "^2.3.2"
     direction "^0.1.5"
@@ -8914,7 +8920,7 @@ slate@^0.32.4:
     is-plain-object "^2.0.4"
     lodash "^4.17.4"
     slate-dev-logger "^0.1.39"
-    slate-schema-violations "^0.1.2"
+    slate-schema-violations "^0.1.3"
     type-of "^2.0.1"
 
 slice-ansi@0.0.4:
