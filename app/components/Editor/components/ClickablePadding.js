@@ -12,7 +12,7 @@ const ClickablePadding = (props: Props) => {
 };
 
 const Container = styled.div`
-  min-height: 150px;
+  min-height: 50vh;
   padding-top: 50px;
   cursor: ${({ onClick }) => (onClick ? 'text' : 'default')};
 
