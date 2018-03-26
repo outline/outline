@@ -109,7 +109,7 @@ However, before working on a pull request please let the core team know by creat
 
 If you're looking for ways to get started, here's a list of ways to help us improve Outline:
 
-* Issues with [`good first task`](https://github.com/outline/outline/labels/good%20first%20issue) label
+* Issues with [`good first issue`](https://github.com/outline/outline/labels/good%20first%20issue) label
 * Performance improvements, both on server and frontend
 * Developer happiness and documentation
 * Bugs and other issues listed on GitHub
