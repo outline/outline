@@ -8846,9 +8846,9 @@ slate-edit-list@^0.11.2:
   version "0.11.2"
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.11.2.tgz#c67b961d98435f9f7747d20b870cbc51d25af7a8"
 
-slate-md-serializer@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-2.0.0.tgz#fe143a44fef333d190055810a9fba9509928ee14"
+slate-md-serializer@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-3.0.0.tgz#ed46213f037550b555f785a7411555a1688ceff9"
 
 slate-paste-linkify@^0.5.0:
   version "0.5.0"

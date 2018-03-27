@@ -61,7 +61,11 @@ class BlockToolbar extends Component {
     ev.stopPropagation();
 
     this.props.editor.change(change =>
-      change.removeNodeByKey(this.props.node.key)
+      change.setNodeByKey(this.props.node.key, {
+        type: 'paragraph',
+        text: '',
+        isVoid: false,
+      })
     );
   }
 

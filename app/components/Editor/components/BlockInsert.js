@@ -71,7 +71,11 @@ export default class BlockInsert extends Component {
 
       // do not show block menu on title heading or editor
       const firstNode = this.props.editor.value.document.nodes.first();
-      if (result.node === firstNode || result.node.type === 'block-toolbar') {
+      if (
+        result.node === firstNode ||
+        result.node.type === 'block-toolbar' ||
+        !!result.node.text.trim()
+      ) {
         this.left = -1000;
       } else {
         this.left = Math.round(result.bounds.left - 20);
@@ -107,15 +111,13 @@ export default class BlockInsert extends Component {
       // if we're on an empty paragraph then just replace it with the block
       // toolbar. Otherwise insert the toolbar as an extra Node.
       if (
-        !this.closestRootNode.text &&
+        !this.closestRootNode.text.trim() &&
         this.closestRootNode.type === 'paragraph'
       ) {
         change.setNodeByKey(this.closestRootNode.key, {
           type: 'block-toolbar',
           isVoid: true,
         });
-      } else {
-        change.insertBlock({ type: 'block-toolbar', isVoid: true });
       }
     });
   };
