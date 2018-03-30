@@ -3,11 +3,13 @@ import { observable, action, computed, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import { type Subscription } from 'shared/types';
+import AuthStore from './AuthStore';
 
 type AvailablePlans = 'free' | 'monthly' | 'yearly';
 type State = 'fetching' | 'subscribing' | 'canceling';
 
 class BillingStore {
+  auth: AuthStore;
   @observable data: ?Subscription; // TODO annotate
   @observable selectedPlan: AvailablePlans = 'free';
   @observable stripeToken: ?string;
@@ -88,6 +90,7 @@ class BillingStore {
       console.error('Something went wrong');
     }
     this.state = null;
+    this.auth.fetch();
   };
 
   @action
@@ -108,6 +111,7 @@ class BillingStore {
       console.error('Something went wrong');
     }
     this.state = null;
+    this.auth.fetch();
   };
 
   @action
@@ -128,7 +132,12 @@ class BillingStore {
       console.error('Something went wrong');
     }
     this.state = null;
+    this.auth.fetch();
   };
+
+  constructor(options: { auth: AuthStore }) {
+    this.auth = options.auth;
+  }
 }
 
 export default BillingStore;

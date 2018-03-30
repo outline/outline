@@ -25,8 +25,12 @@ const Auth = ({ children }: Props) => {
       const cache = new CacheStore(user.id);
       authenticatedStores = {
         apiKeys: new ApiKeysStore(),
-        users: new UsersStore(),
-        billing: new BillingStore(),
+        users: new UsersStore({
+          auth: stores.auth,
+        }),
+        billing: new BillingStore({
+          auth: stores.auth,
+        }),
         documents: new DocumentsStore({
           ui: stores.ui,
           cache,

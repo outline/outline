@@ -3,8 +3,10 @@ import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import type { User, PaginationParams } from 'shared/types';
+import AuthStore from './AuthStore';
 
 class UsersStore {
+  auth: AuthStore;
   @observable data: User[] = [];
   @observable isLoaded: boolean = false;
   @observable isSaving: boolean = false;
@@ -59,7 +61,12 @@ class UsersStore {
     } catch (e) {
       console.error('Something went wrong');
     }
+    this.auth.fetch();
   };
+
+  constructor(options: { auth: AuthStore }) {
+    this.auth = options.auth;
+  }
 }
 
 export default UsersStore;
