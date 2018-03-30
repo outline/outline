@@ -14,6 +14,8 @@ import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
 import AuthStore from 'stores/AuthStore';
 
+import { BILLING_ENABLED } from 'shared/environment';
+
 type Props = {
   history: Object,
   auth: AuthStore,
@@ -56,6 +58,11 @@ class SettingsSidebar extends Component {
               <SidebarLink to="/settings/users" icon={<UserIcon />}>
                 Users
               </SidebarLink>
+              {BILLING_ENABLED && (
+                <SidebarLink to="/settings/billing" icon={<UserIcon />}>
+                  Billing
+                </SidebarLink>
+              )}
               <SidebarLink
                 to="/settings/integrations/slack"
                 icon={<SettingsIcon />}

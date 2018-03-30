@@ -19,7 +19,7 @@ import UiStore from 'stores/UiStore';
 import Document from 'models/Document';
 import Collection from 'models/Collection';
 import DocumentsStore from 'stores/DocumentsStore';
-import { type NavigationNode } from 'types';
+import { type NavigationNode } from 'shared/types';
 
 type Props = {
   history: Object,

@@ -23,11 +23,12 @@
     min-height: 100vh;
   }
 </style>
-</head>
+<%= process.env.STRIPE_PUBLIC_KEY && '<script id="stripe-js" src="https://js.stripe.com/v3/" async></script>' %>
+  </head>
 
-<body>
-  <div id="root"></div>
-  <script src="/static/bundle.js"></script>
-</body>
+  <body>
+    <div id="root"></div>
+    <script src="/static/bundle.js"></script>
+  </body>
 
 </html>

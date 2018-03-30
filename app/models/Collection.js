@@ -6,7 +6,7 @@ import BaseModel from 'models/BaseModel';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
-import type { NavigationNode } from 'types';
+import type { NavigationNode } from 'shared/types';
 
 class Collection extends BaseModel {
   isSaving: boolean = false;

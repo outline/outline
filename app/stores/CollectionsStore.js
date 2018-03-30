@@ -9,7 +9,7 @@ import Collection from 'models/Collection';
 import ErrorsStore from 'stores/ErrorsStore';
 import UiStore from 'stores/UiStore';
 import naturalSort from 'shared/utils/naturalSort';
-import type { PaginationParams } from 'types';
+import type { PaginationParams } from 'shared/types';
 
 type Options = {
   ui: UiStore,

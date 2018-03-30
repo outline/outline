@@ -17,7 +17,7 @@ import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
 import CacheStore from 'stores/CacheStore';
 import UiStore from 'stores/UiStore';
-import type { PaginationParams } from 'types';
+import type { PaginationParams } from 'shared/types';
 
 const DOCUMENTS_CACHE_KEY = 'DOCUMENTS_CACHE_KEY';
 export const DEFAULT_PAGINATION_LIMIT = 25;

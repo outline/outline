@@ -5,7 +5,7 @@ import { inject, observer } from 'mobx-react';
 import UsersStore from 'stores/UsersStore';
 import MoreIcon from 'components/Icon/MoreIcon';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import type { User } from 'types';
+import type { User } from 'shared/types';
 
 type Props = {
   user: User,

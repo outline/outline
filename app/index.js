@@ -22,6 +22,7 @@ import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import Users from 'scenes/Settings/Users';
+import Billing from 'scenes/Settings/Billing';
 import Slack from 'scenes/Settings/Slack';
 import Tokens from 'scenes/Settings/Tokens';
 import SlackAuth from 'scenes/SlackAuth';
@@ -35,6 +36,7 @@ import Auth from 'components/Auth';
 import RouteSidebarHidden from 'components/RouteSidebarHidden';
 
 import { matchDocumentSlug } from 'utils/routeHelpers';
+import { BILLING_ENABLED } from 'shared/environment';
 
 let DevTools;
 if (__DEV__) {
@@ -69,6 +71,13 @@ render(
                     <Route exact path="/drafts" component={Drafts} />
                     <Route exact path="/settings" component={Settings} />
                     <Route exact path="/settings/users" component={Users} />
+                    {BILLING_ENABLED && (
+                      <Route
+                        exact
+                        path="/settings/billing"
+                        component={Billing}
+                      />
+                    )}
                     <Route exact path="/settings/tokens" component={Tokens} />
                     <Route
                       exact

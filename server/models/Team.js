@@ -2,6 +2,8 @@
 import { DataTypes, sequelize, Op } from '../sequelize';
 import Collection from './Collection';
 import User from './User';
+import { subscriptionsQueue } from '../jobs/subscriptions';
+import { FREE_USER_LIMIT, BILLING_ENABLED } from '../../shared/environment';
 
 const Team = sequelize.define(
   'team',
@@ -14,6 +16,13 @@ const Team = sequelize.define(
     name: DataTypes.STRING,
     slackId: { type: DataTypes.STRING, allowNull: true },
     slackData: DataTypes.JSONB,
+
+    /* Billing related */
+    userCount: DataTypes.INTEGER, // Only count active users
+    stripeEmail: { type: DataTypes.STRING, allowNull: true }, // prefill from first admin
+    stripeCustomerId: { type: DataTypes.STRING, allowNull: true },
+    stripeSubscriptionId: { type: DataTypes.STRING, allowNull: true },
+    stripeSubscriptionStatus: { type: DataTypes.STRING, allowNull: true }, // Need this to monitor if the subscription has been canceled etc
   },
   {
     indexes: [
@@ -22,6 +31,15 @@ const Team = sequelize.define(
         fields: ['slackId'],
       },
     ],
+    getterMethods: {
+      suspended() {
+        return (
+          BILLING_ENABLED &&
+          this.userCount > FREE_USER_LIMIT &&
+          this.stripeSubscriptionStatus !== 'active'
+        );
+      },
+    },
   }
 );
 
@@ -63,20 +81,72 @@ Team.prototype.removeAdmin = async function(user: User) {
   }
 };
 
+Team.prototype.addUser = async function(userProps: {
+  slackId: string,
+  name: string,
+  email: string,
+  slackData: Object,
+  slackAccessToken: string,
+}) {
+  const res = await User.findAndCountAll({
+    where: {
+      teamId: this.id,
+      isAdmin: true,
+    },
+  });
+  const adminCount = res.count;
+  const user = await User.create({
+    ...userProps,
+    teamId: this.id,
+    isAdmin: adminCount === 0,
+  });
+
+  // Set initial avatar
+  await user.updateAvatar();
+  await user.save();
+
+  await this.createFirstCollection(user.id);
+
+  await updateSubscriptions(this);
+};
+
 Team.prototype.suspendUser = async function(user: User, admin: User) {
   if (user.id === admin.id)
     throw new Error('Unable to suspend the current user');
-  return user.update({
+  await user.update({
     suspendedById: admin.id,
     suspendedAt: new Date(),
   });
+
+  await updateSubscriptions(this);
 };
 
 Team.prototype.activateUser = async function(user: User, admin: User) {
-  return user.update({
+  await user.update({
     suspendedById: null,
     suspendedAt: null,
   });
+
+  await updateSubscriptions(this);
+};
+
+const updateSubscriptions = async (team: Team) => {
+  const { count } = await User.findAndCountAll({
+    where: {
+      teamId: team.id,
+      suspendedAt: null,
+    },
+  });
+  await team.update({
+    userCount: count,
+  });
+
+  if (BILLING_ENABLED) {
+    subscriptionsQueue.add({
+      type: 'updateSubscription',
+      teamId: team.id,
+    });
+  }
 };
 
 export default Team;
