@@ -45,3 +45,9 @@ export function ParamRequiredError(
 export function ValidationError(message: string = 'Validation failed') {
   return httpErrors(400, message, { id: 'validation_error' });
 }
+
+export function TeamSuspendedError(
+  message: string = 'Please subscribe to a paid plan to create content for your team'
+) {
+  return httpErrors(400, message, { id: 'team_suspended' });
+}

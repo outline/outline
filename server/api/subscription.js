@@ -53,7 +53,7 @@ router.post('subscription.create', async ctx => {
 
   const user = ctx.state.user;
   const team = await user.getTeam();
-  authorize(user, 'subscribe', team);
+  authorize(user, 'createPlanSubscription', team);
 
   try {
     const subscriptionResponse = await createSubscription({
@@ -74,6 +74,7 @@ router.post('subscription.create', async ctx => {
 router.post('subscription.status', async ctx => {
   const user = ctx.state.user;
   const team = await user.getTeam();
+  authorize(user, 'readPlanSubscription', team);
 
   try {
     const subscriptionResponse = await subscriptionStatus({
@@ -90,7 +91,7 @@ router.post('subscription.status', async ctx => {
 router.post('subscription.cancel', async ctx => {
   const user = ctx.state.user;
   const team = await user.getTeam();
-  authorize(user, 'subscribe', team);
+  authorize(user, 'cancelPlanSubscription', team);
 
   try {
     const subscriptionResponse = await cancelSubscription({
@@ -110,7 +111,7 @@ router.post('subscription.update', async ctx => {
 
   const user = ctx.state.user;
   const team = await user.getTeam();
-  authorize(user, 'subscribe', team);
+  authorize(user, 'updatePlanSubscription', team);
 
   try {
     const subscriptionResponse = await updateSubscription({

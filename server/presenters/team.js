@@ -11,7 +11,7 @@ function present(ctx: Object, team: Team) {
     avatarUrl:
       team.avatarUrl || (team.slackData ? team.slackData.image_88 : null),
     userCount: team.userCount,
-    isSuspended: BILLING_ENABLED ? team.suspended : undefined,
+    isSuspended: BILLING_ENABLED ? team.isSuspended : undefined,
   };
 }
 

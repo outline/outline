@@ -32,7 +32,7 @@ const Team = sequelize.define(
       },
     ],
     getterMethods: {
-      suspended() {
+      isSuspended() {
         return (
           BILLING_ENABLED &&
           this.userCount > FREE_USER_LIMIT &&

@@ -5,7 +5,7 @@ import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
 import { Document, Collection, Star, View, Revision } from '../models';
-import { ValidationError, InvalidRequestError } from '../errors';
+import { InvalidRequestError } from '../errors';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -282,6 +282,8 @@ router.post('documents.create', auth(), async ctx => {
 
   const user = ctx.state.user;
   authorize(user, 'create', Document);
+  const team = await user.getTeam();
+  authorize(user, 'createContent', team);
 
   const collection = await Collection.findOne({
     where: {
