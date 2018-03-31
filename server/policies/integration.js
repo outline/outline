@@ -16,5 +16,6 @@ allow(
 
 allow(User, ['update', 'delete'], Integration, (user, integration) => {
   if (!integration || user.teamId !== integration.teamId) return false;
-  if (!user.isAdmin) throw new AdminRequiredError();
+  if (user.isAdmin) return true;
+  throw new AdminRequiredError();
 });
