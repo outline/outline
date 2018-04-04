@@ -56,6 +56,15 @@ function Home() {
         </Features>
         <Highlights id="features">
           <Feature size={{ desktop: 1 / 3 }}>
+            <h2>Slack integration</h2>
+            <p>
+              Keep your team up to date and informed with Slack notifications
+              about newly published documents. You can also search Outline
+              directly within Slack using <code>/outline &lt;keyword&gt;</code>{' '}
+              command.
+            </p>
+          </Feature>
+          <Feature size={{ desktop: 1 / 3 }}>
             <h2>Open Source</h2>
             <p>
               Outline is open source, so the community can help improve it too.
@@ -69,24 +78,12 @@ function Home() {
           <Feature size={{ desktop: 1 / 3 }}>
             <h2>Integrations &amp; API</h2>
             <p>
-              All of Outline’s functionality is available through the API. The
-              editor itself is built on React and we’re working on making it
-              pluggable and extensible.
+              All of Outline’s functionality is available through the API.
+              Migrating Markdown documents or setting up automations is a breeze
+              with a few lines of code.
             </p>
             <p>
               <a href={developers()}>Documentation</a>
-            </p>
-          </Feature>
-          <Feature size={{ desktop: 1 / 3 }}>
-            <h2>Powerful Search</h2>
-            <p>
-              Outline includes a super fast search that’s the best way to find
-              what you’re looking for once your knowledge base starts to grow in
-              size.
-            </p>
-            <p>
-              Search directly within Slack using{' '}
-              <code>/outline &lt;keyword&gt;</code> command.
             </p>
           </Feature>
         </Highlights>
