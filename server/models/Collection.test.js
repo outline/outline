@@ -1,6 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import { flushdb, seed } from '../test/support';
 import { Collection, Document } from '../models';
+import uuid from 'uuid';
 
 beforeEach(flushdb);
 beforeEach(jest.resetAllMocks);
@@ -15,34 +16,37 @@ describe('#getUrl', () => {
 describe('#addDocumentToStructure', async () => {
   test('should add as last element without index', async () => {
     const { collection } = await seed();
+    const id = uuid.v4();
     const newDocument = new Document({
-      id: '5',
+      id,
       title: 'New end node',
       parentDocumentId: null,
     });
 
     await collection.addDocumentToStructure(newDocument);
     expect(collection.documentStructure.length).toBe(3);
-    expect(collection.documentStructure[2].id).toBe('5');
+    expect(collection.documentStructure[2].id).toBe(id);
   });
 
   test('should add with an index', async () => {
     const { collection } = await seed();
+    const id = uuid.v4();
     const newDocument = new Document({
-      id: '5',
+      id,
       title: 'New end node',
       parentDocumentId: null,
     });
 
     await collection.addDocumentToStructure(newDocument, 1);
     expect(collection.documentStructure.length).toBe(3);
-    expect(collection.documentStructure[1].id).toBe('5');
+    expect(collection.documentStructure[1].id).toBe(id);
   });
 
   test('should add as a child if with parent', async () => {
     const { collection, document } = await seed();
+    const id = uuid.v4();
     const newDocument = new Document({
-      id: '5',
+      id,
       title: 'New end node',
       parentDocumentId: document.id,
     });
@@ -51,18 +55,19 @@ describe('#addDocumentToStructure', async () => {
     expect(collection.documentStructure.length).toBe(2);
     expect(collection.documentStructure[1].id).toBe(document.id);
     expect(collection.documentStructure[1].children.length).toBe(1);
-    expect(collection.documentStructure[1].children[0].id).toBe('5');
+    expect(collection.documentStructure[1].children[0].id).toBe(id);
   });
 
   test('should add as a child if with parent with index', async () => {
     const { collection, document } = await seed();
     const newDocument = new Document({
-      id: '5',
+      id: uuid.v4(),
       title: 'node',
       parentDocumentId: document.id,
     });
+    const id = uuid.v4();
     const secondDocument = new Document({
-      id: '6',
+      id,
       title: 'New start node',
       parentDocumentId: document.id,
     });
@@ -72,14 +77,15 @@ describe('#addDocumentToStructure', async () => {
     expect(collection.documentStructure.length).toBe(2);
     expect(collection.documentStructure[1].id).toBe(document.id);
     expect(collection.documentStructure[1].children.length).toBe(2);
-    expect(collection.documentStructure[1].children[0].id).toBe('6');
+    expect(collection.documentStructure[1].children[0].id).toBe(id);
   });
 
   describe('options: documentJson', async () => {
     test("should append supplied json over document's own", async () => {
       const { collection } = await seed();
+      const id = uuid.v4();
       const newDocument = new Document({
-        id: '5',
+        id: uuid.v4(),
         title: 'New end node',
         parentDocumentId: null,
       });
@@ -88,7 +94,7 @@ describe('#addDocumentToStructure', async () => {
         documentJson: {
           children: [
             {
-              id: '7',
+              id,
               title: 'Totally fake',
               children: [],
             },
@@ -96,7 +102,7 @@ describe('#addDocumentToStructure', async () => {
         },
       });
       expect(collection.documentStructure[2].children.length).toBe(1);
-      expect(collection.documentStructure[2].children[0].id).toBe('7');
+      expect(collection.documentStructure[2].children[0].id).toBe(id);
     });
   });
 });

@@ -59,6 +59,7 @@ render(
               <Route exact path="/" component={Home} />
               <Route exact path="/auth/slack" component={SlackAuth} />
               <Route exact path="/auth/slack/commands" component={SlackAuth} />
+              <Route exact path="/auth/slack/post" component={SlackAuth} />
               <Route exact path="/auth/error" component={ErrorAuth} />
 
               <Auth>

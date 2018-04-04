@@ -2,6 +2,7 @@
 import Router from 'koa-router';
 import { AuthenticationError, InvalidRequestError } from '../errors';
 import { Authentication, Document, User } from '../models';
+import { presentSlackAttachment } from '../presenters';
 import * as Slack from '../slack';
 const router = new Router();
 
@@ -67,14 +68,7 @@ router.post('hooks.slack', async ctx => {
   if (documents.length) {
     const attachments = [];
     for (const document of documents) {
-      attachments.push({
-        color: document.collection.color,
-        title: document.title,
-        title_link: `${process.env.URL}${document.getUrl()}`,
-        footer: document.collection.name,
-        text: document.getSummary(),
-        ts: document.getTimestamp(),
-      });
+      attachments.push(presentSlackAttachment(document));
     }
 
     ctx.body = {

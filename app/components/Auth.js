@@ -6,6 +6,7 @@ import ApiKeysStore from 'stores/ApiKeysStore';
 import UsersStore from 'stores/UsersStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
+import IntegrationsStore from 'stores/IntegrationsStore';
 import CacheStore from 'stores/CacheStore';
 
 type Props = {
@@ -23,6 +24,7 @@ const Auth = ({ children }: Props) => {
       const { user, team } = stores.auth;
       const cache = new CacheStore(user.id);
       authenticatedStores = {
+        integrations: new IntegrationsStore(),
         apiKeys: new ApiKeysStore(),
         users: new UsersStore(),
         documents: new DocumentsStore({

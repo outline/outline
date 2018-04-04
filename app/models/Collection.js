@@ -109,9 +109,7 @@ class Collection extends BaseModel {
   delete = async () => {
     try {
       await client.post('/collections.delete', { id: this.id });
-      this.emit('collections.delete', {
-        id: this.id,
-      });
+      this.emit('collections.delete', { id: this.id });
       return true;
     } catch (e) {
       this.errors.add('Collection failed to delete');

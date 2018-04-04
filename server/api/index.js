@@ -13,6 +13,7 @@ import views from './views';
 import hooks from './hooks';
 import apiKeys from './apiKeys';
 import team from './team';
+import integrations from './integrations';
 
 import validation from './middlewares/validation';
 import methodOverride from '../middlewares/methodOverride';
@@ -74,6 +75,7 @@ router.use('/', views.routes());
 router.use('/', hooks.routes());
 router.use('/', apiKeys.routes());
 router.use('/', team.routes());
+router.use('/', integrations.routes());
 
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.

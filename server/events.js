@@ -1,22 +1,21 @@
 // @flow
 import Queue from 'bull';
 import debug from 'debug';
-import services from '../services';
+import services from './services';
 import { Collection, Document } from './models';
 
 type DocumentEvent = {
-  name: 'documents.create',
+  name: 'documents.create' | 'documents.update' | 'documents.publish',
   model: Document,
 };
 
 type CollectionEvent = {
-  name: 'collections.create',
+  name: 'collections.create' | 'collections.update',
   model: Collection,
 };
 
 export type Event = DocumentEvent | CollectionEvent;
 
-const log = debug('events');
 const globalEventsQueue = new Queue('global events', process.env.REDIS_URL);
 const serviceEventsQueue = new Queue('service events', process.env.REDIS_URL);
 
@@ -37,7 +36,6 @@ serviceEventsQueue.process(async function(job) {
   const service = services[event.service];
 
   if (service.on) {
-    log(`Triggering ${event.name} for ${service.name}`);
     service.on(event);
   }
 });

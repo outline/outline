@@ -5,7 +5,8 @@ import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
 import { Document, Collection, Star, View, Revision } from '../models';
-import { ValidationError, InvalidRequestError } from '../errors';
+import { InvalidRequestError } from '../errors';
+import events from '../events';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -302,7 +303,6 @@ router.post('documents.create', auth(), async ctx => {
     authorize(user, 'read', parentDocumentObj);
   }
 
-  const publishedAt = publish === false ? null : new Date();
   let document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
     atlasId: collection.id,
@@ -310,20 +310,19 @@ router.post('documents.create', auth(), async ctx => {
     userId: user.id,
     lastModifiedById: user.id,
     createdById: user.id,
-    publishedAt,
     title,
     text,
   });
 
-  if (publishedAt && collection.type === 'atlas') {
-    await collection.addDocumentToStructure(document, index);
+  if (publish) {
+    await document.publish();
   }
 
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
   document = await Document.find({
-    where: { id: document.id, publishedAt },
+    where: { id: document.id, publishedAt: document.publishedAt },
   });
 
   ctx.body = {
@@ -332,7 +331,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, publish, lastRevision } = ctx.body;
+  const { id, title, text, publish, done, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -346,23 +345,19 @@ router.post('documents.update', auth(), async ctx => {
   }
 
   // Update document
-  const previouslyPublished = !!document.publishedAt;
-  if (publish) document.publishedAt = new Date();
   if (title) document.title = title;
   if (text) document.text = text;
   document.lastModifiedById = user.id;
 
-  await document.save();
-  const collection = document.collection;
-  if (collection.type === 'atlas') {
-    if (previouslyPublished) {
-      await collection.updateDocument(document);
-    } else if (publish) {
-      await collection.addDocumentToStructure(document);
+  if (publish) {
+    await document.publish();
+  } else {
+    await document.save();
+
+    if (document.publishedAt && done) {
+      events.add({ name: 'documents.update', model: document });
     }
   }
-
-  document.collection = collection;
 
   ctx.body = {
     data: await presentDocument(ctx, document),

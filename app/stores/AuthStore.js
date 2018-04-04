@@ -63,10 +63,16 @@ class AuthStore {
   };
 
   @action
-  getOauthState = () => {
+  genOauthState = () => {
     const state = Math.random()
       .toString(36)
       .substring(7);
+    this.oauthState = state;
+    return this.oauthState;
+  };
+
+  @action
+  saveOauthState = (state: string) => {
     this.oauthState = state;
     return this.oauthState;
   };

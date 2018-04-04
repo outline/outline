@@ -2,7 +2,7 @@
 import Router from 'koa-router';
 import auth from './middlewares/authentication';
 import { presentUser, presentTeam } from '../presenters';
-import { Authentication, User, Team } from '../models';
+import { Authentication, Integration, User, Team } from '../models';
 import * as Slack from '../slack';
 
 const router = new Router();
@@ -89,13 +89,55 @@ router.post('auth.slackCommands', auth(), async ctx => {
   const user = ctx.state.user;
   const endpoint = `${process.env.URL || ''}/auth/slack/commands`;
   const data = await Slack.oauthAccess(code, endpoint);
+  const serviceId = 'slack';
 
-  await Authentication.create({
-    serviceId: 'slack',
+  const authentication = await Authentication.create({
+    serviceId,
     userId: user.id,
     teamId: user.teamId,
     token: data.access_token,
     scopes: data.scope.split(','),
+  });
+
+  await Integration.create({
+    serviceId,
+    type: 'command',
+    userId: user.id,
+    teamId: user.teamId,
+    authenticationId: authentication.id,
+  });
+});
+
+router.post('auth.slackPost', auth(), async ctx => {
+  const { code, collectionId } = ctx.body;
+  ctx.assertPresent(code, 'code is required');
+
+  const user = ctx.state.user;
+  const endpoint = `${process.env.URL || ''}/auth/slack/post`;
+  const data = await Slack.oauthAccess(code, endpoint);
+  const serviceId = 'slack';
+
+  const authentication = await Authentication.create({
+    serviceId,
+    userId: user.id,
+    teamId: user.teamId,
+    token: data.access_token,
+    scopes: data.scope.split(','),
+  });
+
+  await Integration.create({
+    serviceId,
+    type: 'post',
+    userId: user.id,
+    teamId: user.teamId,
+    authenticationId: authentication.id,
+    collectionId,
+    events: [],
+    settings: {
+      url: data.incoming_webhook.url,
+      channel: data.incoming_webhook.channel,
+      channelId: data.incoming_webhook.channel_id,
+    },
   });
 });
 
