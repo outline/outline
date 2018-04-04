@@ -1,5 +1,4 @@
 // @flow
-import _ from 'lodash';
 import { Revision } from '../models';
 
 function present(ctx: Object, revision: Revision) {
