@@ -3,15 +3,19 @@ import React, { Component } from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 
+import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
+
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import Subheading from 'components/Subheading';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
+import TeamSuspended from 'components/TeamSuspended';
 
 type Props = {
   documents: DocumentsStore,
+  auth: AuthStore,
 };
 
 @observer
@@ -32,15 +36,18 @@ class Dashboard extends Component {
   };
 
   render() {
-    const { documents } = this.props;
+    const { documents, auth } = this.props;
     const hasRecentlyViewed = documents.recentlyViewed.length > 0;
     const hasRecentlyEdited = documents.recentlyEdited.length > 0;
     const showContent =
       this.isLoaded || (hasRecentlyViewed && hasRecentlyEdited);
+    const showTeamSuspended = auth.team && auth.team.isSuspended;
 
     return (
       <CenteredContent>
         <PageTitle title="Home" />
+        {showTeamSuspended && <TeamSuspended />}
+
         <h1>Home</h1>
         {showContent ? (
           <span>
@@ -67,4 +74,4 @@ class Dashboard extends Component {
   }
 }
 
-export default inject('documents')(Dashboard);
+export default inject('documents', 'auth')(Dashboard);

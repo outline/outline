@@ -68,7 +68,7 @@ class Layout extends React.Component {
   }
 
   render() {
-    const { auth, ui } = this.props;
+    const { auth, ui, notifications } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
 
@@ -97,8 +97,8 @@ class Layout extends React.Component {
         </Helmet>
         <Analytics />
 
-        {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
-        {this.props.notifications}
+        {ui.progressBarVisible && <LoadingIndicatorBar />}
+        {notifications}
 
         <Flex auto>
           {showSidebar && (
