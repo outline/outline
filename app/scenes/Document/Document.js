@@ -7,6 +7,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import keydown from 'react-keydown';
+import Editor from 'rich-markdown-editor';
 import Flex from 'shared/components/Flex';
 import {
   collectionUrl,
@@ -16,6 +17,7 @@ import {
   matchDocumentEdit,
   matchDocumentMove,
 } from 'utils/routeHelpers';
+
 
 import Document from 'models/Document';
 import Actions from './components/Actions';
@@ -128,8 +130,8 @@ class DocumentScene extends React.Component {
   };
 
   loadEditor = async () => {
-    const EditorImport = await import('components/Editor');
-    this.editorComponent = EditorImport.default;
+    // const EditorImport = await import('rich-markdown-editor');
+    // this.editorComponent = EditorImport.default;
   };
 
   get isEditing() {
@@ -205,7 +207,7 @@ class DocumentScene extends React.Component {
   }
 
   render() {
-    const Editor = this.editorComponent;
+    // const Editor = this.editorComponent;
     const isMoving = this.props.match.path === matchDocumentMove;
     const document = this.document;
     const titleText =

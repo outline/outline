@@ -8517,6 +8517,10 @@ retry-as-promised@^2.3.1:
     bluebird "^3.4.6"
     debug "^2.6.9"
 
+rich-markdown-editor@*:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-0.0.1.tgz#e6c22cc8d0bff7304912773372fcc8ab8f44b461"
+
 right-align@^0.1.1:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/right-align/-/right-align-0.1.3.tgz#61339b722fe6a3515689210d24e14c96148613ef"
