@@ -38,10 +38,21 @@ class SlackAuth extends React.Component {
       }
     } else if (code) {
       if (this.props.location.pathname === '/auth/slack/commands') {
-        // User adding webhook integrations
+        // incoming webhooks from Slack
         try {
           await client.post('/auth.slackCommands', { code });
-          this.redirectTo = '/dashboard';
+          this.redirectTo = '/settings/integrations/slack';
+        } catch (e) {
+          this.redirectTo = '/auth/error';
+        }
+      } else if (this.props.location.pathname === '/auth/slack/post') {
+        // outgoing webhooks to Slack
+        try {
+          await client.post('/auth.slackPost', {
+            code,
+            collectionId: this.props.auth.oauthState,
+          });
+          this.redirectTo = '/settings/integrations/slack';
         } catch (e) {
           this.redirectTo = '/auth/error';
         }
@@ -56,8 +67,8 @@ class SlackAuth extends React.Component {
           : (this.redirectTo = '/auth/error');
       }
     } else {
-      // Sign In
-      window.location.href = slackAuth(this.props.auth.getOauthState());
+      // signing in
+      window.location.href = slackAuth(this.props.auth.genOauthState());
     }
   }
 

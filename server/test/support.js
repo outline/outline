@@ -51,7 +51,7 @@ const seed = async () => {
     },
   });
 
-  let collection = await Collection.create({
+  const collection = await Collection.create({
     id: '26fde1d4-0050-428f-9f0b-0bf77f8bdf62',
     name: 'Collection',
     urlId: 'collection',
@@ -71,12 +71,11 @@ const seed = async () => {
     title: 'Second document',
     text: '# Much guidance',
   });
-  collection = await collection.addDocumentToStructure(document);
 
   return {
     user,
     admin,
-    collection,
+    collection: document.collection,
     document,
     team,
   };

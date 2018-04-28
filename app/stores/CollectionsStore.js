@@ -5,9 +5,10 @@ import _ from 'lodash';
 import invariant from 'invariant';
 
 import stores from 'stores';
+import BaseStore from './BaseStore';
+import ErrorsStore from './ErrorsStore';
+import UiStore from './UiStore';
 import Collection from 'models/Collection';
-import ErrorsStore from 'stores/ErrorsStore';
-import UiStore from 'stores/UiStore';
 import naturalSort from 'shared/utils/naturalSort';
 import type { PaginationParams } from 'types';
 
@@ -26,7 +27,7 @@ export type DocumentPath = DocumentPathItem & {
   path: DocumentPathItem[],
 };
 
-class CollectionsStore {
+class CollectionsStore extends BaseStore {
   @observable data: Map<string, Collection> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
@@ -154,8 +155,13 @@ class CollectionsStore {
   };
 
   constructor(options: Options) {
+    super();
     this.errors = stores.errors;
     this.ui = options.ui;
+
+    this.on('collections.delete', (data: { id: string }) => {
+      this.remove(data.id);
+    });
   }
 }
 

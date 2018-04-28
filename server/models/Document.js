@@ -7,6 +7,7 @@ import Plain from 'slate-plain-serializer';
 import { Op } from 'sequelize';
 
 import isUUID from 'validator/lib/isUUID';
+import { Collection } from '../models';
 import { DataTypes, sequelize } from '../sequelize';
 import events from '../events';
 import parseTitle from '../../shared/utils/parseTitle';
@@ -106,6 +107,10 @@ Document.associate = models => {
     as: 'collection',
     foreignKey: 'atlasId',
     onDelete: 'cascade',
+  });
+  Document.belongsTo(models.Team, {
+    as: 'team',
+    foreignKey: 'teamId',
   });
   Document.belongsTo(models.User, {
     as: 'createdBy',
@@ -223,22 +228,50 @@ Document.searchForUser = async (
 
 // Hooks
 
-Document.addHook('afterCreate', model =>
-  events.add({ name: 'documents.create', model })
-);
+Document.addHook('beforeSave', async model => {
+  if (!model.publishedAt) return;
+
+  const collection = await Collection.findById(model.atlasId);
+  if (collection.type !== 'atlas') return;
+
+  await collection.updateDocument(model);
+  model.collection = collection;
+});
+
+Document.addHook('afterCreate', async model => {
+  if (!model.publishedAt) return;
+
+  const collection = await Collection.findById(model.atlasId);
+  if (collection.type !== 'atlas') return;
+
+  await collection.addDocumentToStructure(model);
+  model.collection = collection;
+
+  events.add({ name: 'documents.create', model });
+  return model;
+});
 
 Document.addHook('afterDestroy', model =>
   events.add({ name: 'documents.delete', model })
 );
 
-Document.addHook('afterUpdate', model => {
-  if (!model.previous('publishedAt') && model.publishedAt) {
-    events.add({ name: 'documents.publish', model });
-  }
-  events.add({ name: 'documents.update', model });
-});
-
 // Instance methods
+
+Document.prototype.publish = async function() {
+  if (this.publishedAt) return this.save();
+
+  const collection = await Collection.findById(this.atlasId);
+  if (collection.type !== 'atlas') return this.save();
+
+  await collection.addDocumentToStructure(this);
+
+  this.publishedAt = new Date();
+  await this.save();
+  this.collection = collection;
+
+  events.add({ name: 'documents.publish', model: this });
+  return this;
+};
 
 Document.prototype.getTimestamp = function() {
   return Math.round(new Date(this.updatedAt).getTime() / 1000);

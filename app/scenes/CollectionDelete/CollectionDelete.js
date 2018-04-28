@@ -28,7 +28,6 @@ class CollectionDelete extends Component {
     const success = await this.props.collection.delete();
 
     if (success) {
-      this.props.collections.remove(this.props.collection.id);
       this.props.history.push(homeUrl());
       this.props.onSubmit();
     }

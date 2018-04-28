@@ -385,12 +385,7 @@ describe('#documents.create', async () => {
       },
     });
     const body = await res.json();
-    const newDocument = await Document.findOne({
-      where: {
-        id: body.data.id,
-      },
-    });
-
+    const newDocument = await Document.findById(body.data.id);
     expect(res.status).toEqual(200);
     expect(newDocument.parentDocumentId).toBe(null);
     expect(newDocument.collection.id).toBe(collection.id);
