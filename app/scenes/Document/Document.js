@@ -2,12 +2,12 @@
 import * as React from 'react';
 import get from 'lodash/get';
 import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Prompt } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import keydown from 'react-keydown';
-import Editor from 'rich-markdown-editor';
 import Flex from 'shared/components/Flex';
 import {
   collectionUrl,
@@ -129,8 +129,8 @@ class DocumentScene extends React.Component {
   };
 
   loadEditor = async () => {
-    // const EditorImport = await import('rich-markdown-editor');
-    // this.editorComponent = EditorImport.default;
+    const EditorImport = await import('rich-markdown-editor');
+    this.editorComponent = EditorImport.default;
   };
 
   get isEditing() {
@@ -206,7 +206,7 @@ class DocumentScene extends React.Component {
   }
 
   render() {
-    // const Editor = this.editorComponent;
+    const Editor = this.editorComponent;
     const isMoving = this.props.match.path === matchDocumentMove;
     const document = this.document;
     const titleText =
@@ -234,16 +234,20 @@ class DocumentScene extends React.Component {
                 message={DISCARD_CHANGES}
               />
             )}
-            <Editor
-              defaultValue={document.text}
-              pretitle={document.emoji}
-              onImageUploadStart={this.onImageUploadStart}
-              onImageUploadStop={this.onImageUploadStop}
-              onChange={this.onChange}
-              onSave={this.onSave}
-              onCancel={this.onDiscard}
-              readOnly={!this.isEditing}
-            />
+            <MaxWidth column auto>
+              <Editor
+                titlePlaceholder="Start with a title…"
+                bodyPlaceholder="…the rest is your canvas"
+                defaultValue={document.text}
+                pretitle={document.emoji}
+                onImageUploadStart={this.onImageUploadStart}
+                onImageUploadStop={this.onImageUploadStop}
+                onChange={this.onChange}
+                onSave={this.onSave}
+                onCancel={this.onDiscard}
+                readOnly={!this.isEditing}
+              />
+            </MaxWidth>
             {document && (
               <Actions
                 document={document}
@@ -263,6 +267,18 @@ class DocumentScene extends React.Component {
     );
   }
 }
+
+const MaxWidth = styled(Flex)`
+  padding: 0 20px;
+  max-width: 100vw;
+  height: 100%;
+
+  ${breakpoint('tablet')`	
+    padding: 0;
+    margin: 60px;
+    max-width: 46em;
+  `};
+`;
 
 const Container = styled(Flex)`
   position: relative;
