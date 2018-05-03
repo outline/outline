@@ -17,6 +17,8 @@ import {
   matchDocumentEdit,
   matchDocumentMove,
 } from 'utils/routeHelpers';
+import { uploadFile } from 'utils/uploadFile';
+import isInternalUrl from 'utils/isInternalUrl';
 
 import Document from 'models/Document';
 import Actions from './components/Actions';
@@ -201,9 +203,32 @@ class DocumentScene extends React.Component {
     this.props.history.push(url);
   };
 
-  renderNotFound() {
-    return <Search notFound />;
-  }
+  onUploadImage = async (file: File) => {
+    const result = await uploadFile(file);
+    return result.url;
+  };
+
+  onSearchLink = async (term: string) => {
+    const resultIds = await this.props.documents.search(term);
+
+    return resultIds.map((id, index) => {
+      const document = this.props.documents.getById(id);
+      if (!document) return {};
+
+      return {
+        title: document.title,
+        url: document.url,
+      };
+    });
+  };
+
+  onClickLink = (href: string) => {
+    if (isInternalUrl(href)) {
+      this.props.history.push(href);
+    } else {
+      window.open(href, '_blank');
+    }
+  };
 
   render() {
     const Editor = this.editorComponent;
@@ -214,7 +239,7 @@ class DocumentScene extends React.Component {
       this.props.collections.titleForDocument(this.props.location.pathname);
 
     if (this.notFound) {
-      return this.renderNotFound();
+      return <Search notFound />;
     }
 
     return (
@@ -240,8 +265,11 @@ class DocumentScene extends React.Component {
                 bodyPlaceholder="…the rest is your canvas"
                 defaultValue={document.text}
                 pretitle={document.emoji}
+                uploadImage={this.onUploadImage}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
+                onSearchLink={this.onSearchLink}
+                onClickLink={this.onClickLink}
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onCancel={this.onDiscard}
