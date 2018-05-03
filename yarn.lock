@@ -8559,9 +8559,9 @@ retry-as-promised@^2.3.1:
     bluebird "^3.4.6"
     debug "^2.6.9"
 
-rich-markdown-editor@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-0.2.1.tgz#e9b0330ebe2df40b152ada46038f5d1d7142fedd"
+rich-markdown-editor@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-0.2.2.tgz#4647d7b71f465dea8b9e77cb1156e27c5109a6e1"
   dependencies:
     "@tommoor/slate-drop-or-paste-images" "^0.8.1"
     boundless-arrow-key-navigation "^1.1.0"
