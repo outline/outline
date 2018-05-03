@@ -3,15 +3,12 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
-import Flex from 'shared/components/Flex';
+import { HomeIcon, EditIcon, SearchIcon, StarredIcon } from 'outline-icons';
 
+import Flex from 'shared/components/Flex';
 import AccountMenu from 'menus/AccountMenu';
 import Sidebar, { Section } from './Sidebar';
 import Scrollable from 'components/Scrollable';
-import HomeIcon from 'components/Icon/HomeIcon';
-import EditIcon from 'components/Icon/EditIcon';
-import SearchIcon from 'components/Icon/SearchIcon';
-import StarredIcon from 'components/Icon/StarredIcon';
 import Collections from './components/Collections';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';

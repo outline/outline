@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
-import StarredIcon from 'components/Icon/StarredIcon';
+import { StarredIcon } from 'outline-icons';
 import PublishingInfo from './components/PublishingInfo';
 import DocumentMenu from 'menus/DocumentMenu';
 

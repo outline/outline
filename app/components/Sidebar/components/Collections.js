@@ -6,12 +6,11 @@ import type { Location } from 'react-router-dom';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
+import { PlusIcon, CollectionIcon } from 'outline-icons';
 
 import Header from './Header';
 import SidebarLink from './SidebarLink';
 import DropToImport from 'components/DropToImport';
-import PlusIcon from 'components/Icon/PlusIcon';
-import CollectionIcon from 'components/Icon/CollectionIcon';
 import CollectionMenu from 'menus/CollectionMenu';
 
 import CollectionsStore from 'stores/CollectionsStore';

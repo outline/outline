@@ -1,9 +1,9 @@
 // @flow
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
+import { MoreIcon } from 'outline-icons';
 
 import UsersStore from 'stores/UsersStore';
-import MoreIcon from 'components/Icon/MoreIcon';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import type { User } from 'types';
 

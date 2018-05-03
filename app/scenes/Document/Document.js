@@ -18,7 +18,6 @@ import {
   matchDocumentMove,
 } from 'utils/routeHelpers';
 
-
 import Document from 'models/Document';
 import Actions from './components/Actions';
 import DocumentMove from './components/DocumentMove';
@@ -236,8 +235,8 @@ class DocumentScene extends React.Component {
               />
             )}
             <Editor
-              text={document.text}
-              emoji={document.emoji}
+              defaultValue={document.text}
+              pretitle={document.emoji}
               onImageUploadStart={this.onImageUploadStart}
               onImageUploadStop={this.onImageUploadStop}
               onChange={this.onChange}

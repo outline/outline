@@ -4,9 +4,9 @@ import { observer } from 'mobx-react';
 import styled, { injectGlobal } from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import ReactModal from 'react-modal';
+import { CloseIcon } from 'outline-icons';
 import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
-import CloseIcon from 'components/Icon/CloseIcon';
 import Flex from 'shared/components/Flex';
 
 type Props = {

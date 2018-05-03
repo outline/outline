@@ -5,11 +5,9 @@ import type { Location } from 'react-router-dom';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observer, inject } from 'mobx-react';
+import { CloseIcon, MenuIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 import { color, layout } from 'shared/styles/constants';
-
-import CloseIcon from 'components/Icon/CloseIcon';
-import MenuIcon from 'components/Icon/MenuIcon';
 
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';

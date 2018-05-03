@@ -2,13 +2,13 @@
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
+import { MoreIcon } from 'outline-icons';
 
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import importFile from 'utils/importFile';
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
-import MoreIcon from 'components/Icon/MoreIcon';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {

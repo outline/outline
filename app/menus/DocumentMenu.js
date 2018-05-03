@@ -2,9 +2,10 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
+import { MoreIcon } from 'outline-icons';
+
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
-import MoreIcon from 'components/Icon/MoreIcon';
 import { documentMoveUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 

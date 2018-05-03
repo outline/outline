@@ -1,14 +1,14 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
+import { NewDocumentIcon } from 'outline-icons';
 
+import { color } from 'shared/styles/constants';
 import Document from 'models/Document';
 import { documentEditUrl, documentNewUrl } from 'utils/routeHelpers';
 
 import DocumentMenu from 'menus/DocumentMenu';
 import Collaborators from 'components/Collaborators';
-import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
 import Actions, { Action, Separator } from 'components/Actions';
 
 type Props = {

@@ -1,9 +1,10 @@
 // @flow
 import React, { Component } from 'react';
-import SearchIcon from 'components/Icon/SearchIcon';
+import styled from 'styled-components';
+import { SearchIcon } from 'outline-icons';
+
 import Flex from 'shared/components/Flex';
 import { color } from 'shared/styles/constants';
-import styled from 'styled-components';
 
 class SearchField extends Component {
   input: HTMLInputElement;
