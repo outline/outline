@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import nodemailer from 'nodemailer';
 import Oy from 'oy-vey';
 import Queue from 'bull';
@@ -12,7 +12,7 @@ type SendMailType = {
   title: string,
   previewText?: string,
   text: string,
-  html: React.Element<*>,
+  html: React.Node,
   headCSS?: string,
 };
 

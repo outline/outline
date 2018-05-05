@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
@@ -9,49 +9,49 @@ import UiStore from 'stores/UiStore';
 import { documentMoveUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
-@observer
-class DocumentMenu extends Component {
-  props: {
-    ui: UiStore,
-    label?: React$Element<any>,
-    history: Object,
-    document: Document,
-    className: string,
-  };
+type Props = {
+  ui: UiStore,
+  label?: React.Node,
+  history: Object,
+  document: Document,
+  className: string,
+};
 
-  handleNewChild = (ev: SyntheticEvent) => {
+@observer
+class DocumentMenu extends React.Component<Props> {
+  handleNewChild = (ev: SyntheticEvent<*>) => {
     const { history, document } = this.props;
     history.push(
       `${document.collection.url}/new?parentDocument=${document.id}`
     );
   };
 
-  handleDelete = (ev: SyntheticEvent) => {
+  handleDelete = (ev: SyntheticEvent<*>) => {
     const { document } = this.props;
     this.props.ui.setActiveModal('document-delete', { document });
   };
 
-  handleMove = (ev: SyntheticEvent) => {
+  handleMove = (ev: SyntheticEvent<*>) => {
     this.props.history.push(documentMoveUrl(this.props.document));
   };
 
-  handlePin = (ev: SyntheticEvent) => {
+  handlePin = (ev: SyntheticEvent<*>) => {
     this.props.document.pin();
   };
 
-  handleUnpin = (ev: SyntheticEvent) => {
+  handleUnpin = (ev: SyntheticEvent<*>) => {
     this.props.document.unpin();
   };
 
-  handleStar = (ev: SyntheticEvent) => {
+  handleStar = (ev: SyntheticEvent<*>) => {
     this.props.document.star();
   };
 
-  handleUnstar = (ev: SyntheticEvent) => {
+  handleUnstar = (ev: SyntheticEvent<*>) => {
     this.props.document.unstar();
   };
 
-  handleExport = (ev: SyntheticEvent) => {
+  handleExport = (ev: SyntheticEvent<*>) => {
     this.props.document.download();
   };
 

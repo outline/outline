@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import Document from 'models/Document';
@@ -89,16 +89,14 @@ const Actions = styled(Flex)`
 `;
 
 @observer
-class DocumentPreview extends Component {
-  props: Props;
-
-  star = (ev: SyntheticEvent) => {
+class DocumentPreview extends React.Component<Props> {
+  star = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.document.star();
   };
 
-  unstar = (ev: SyntheticEvent) => {
+  unstar = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.document.unstar();

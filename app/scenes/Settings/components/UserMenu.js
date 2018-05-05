@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { inject, observer } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
@@ -13,10 +13,8 @@ type Props = {
 };
 
 @observer
-class UserMenu extends Component {
-  props: Props;
-
-  handlePromote = (ev: SyntheticEvent) => {
+class UserMenu extends React.Component<Props> {
+  handlePromote = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { user, users } = this.props;
     if (
@@ -31,7 +29,7 @@ class UserMenu extends Component {
     users.promote(user);
   };
 
-  handleDemote = (ev: SyntheticEvent) => {
+  handleDemote = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { user, users } = this.props;
     if (!window.confirm(`Are you want to make ${user.name} a member?`)) {
@@ -40,7 +38,7 @@ class UserMenu extends Component {
     users.demote(user);
   };
 
-  handleSuspend = (ev: SyntheticEvent) => {
+  handleSuspend = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { user, users } = this.props;
     if (
@@ -53,7 +51,7 @@ class UserMenu extends Component {
     users.suspend(user);
   };
 
-  handleActivate = (ev: SyntheticEvent) => {
+  handleActivate = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { user, users } = this.props;
     users.activate(user);

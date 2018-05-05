@@ -1,11 +1,11 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { Table, TBody, TR, TD } from 'oy-vey';
 
 import EmptySpace from './EmptySpace';
 
 type Props = {
-  children: React$Element<*>,
+  children: React.Node,
 };
 
 export default ({ children }: Props) => {

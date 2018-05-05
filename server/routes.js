@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import path from 'path';
 import fs from 'fs-extra';
 import Koa from 'koa';

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import styled from 'styled-components';
 import Key from 'components/Key';
 import Flex from 'shared/components/Flex';

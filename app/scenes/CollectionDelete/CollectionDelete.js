@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
@@ -18,11 +18,10 @@ type Props = {
 };
 
 @observer
-class CollectionDelete extends Component {
-  props: Props;
+class CollectionDelete extends React.Component<Props> {
   @observable isDeleting: boolean;
 
-  handleSubmit = async (ev: SyntheticEvent) => {
+  handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isDeleting = true;
     const success = await this.props.collection.delete();

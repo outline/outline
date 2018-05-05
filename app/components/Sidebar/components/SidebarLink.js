@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable, action } from 'mobx';
 import { observer } from 'mobx-react';
 import { NavLink } from 'react-router-dom';
@@ -47,19 +47,18 @@ const StyledDiv = StyledNavLink.withComponent('div');
 
 type Props = {
   to?: string,
-  onClick?: SyntheticEvent => *,
-  children?: React$Element<*>,
-  icon?: React$Element<*>,
+  onClick?: (SyntheticEvent<*>) => *,
+  children?: React.Node,
+  icon?: React.Node,
   expand?: boolean,
-  expandedContent?: React$Element<*>,
+  expandedContent?: React.Node,
   hideExpandToggle?: boolean,
   iconColor?: string,
   active?: boolean,
 };
 
 @observer
-class SidebarLink extends Component {
-  props: Props;
+class SidebarLink extends React.Component<Props> {
   @observable expanded: boolean = false;
 
   componentDidMount() {
@@ -71,7 +70,7 @@ class SidebarLink extends Component {
   }
 
   @action
-  handleClick = (event: SyntheticEvent) => {
+  handleClick = (event: SyntheticEvent<*>) => {
     event.preventDefault();
     event.stopPropagation();
     this.expanded = !this.expanded;

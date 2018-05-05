@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import type { Location } from 'react-router-dom';
@@ -30,9 +30,7 @@ type Props = {
 };
 
 @observer
-class Collections extends Component {
-  props: Props;
-
+class Collections extends React.Component<Props> {
   render() {
     const { history, location, collections, ui, documents } = this.props;
 
@@ -73,7 +71,7 @@ type CollectionLinkProps = {
 };
 
 @observer
-class CollectionLink extends Component {
+class CollectionLink extends React.Component<*> {
   props: CollectionLinkProps;
 
   @observable menuOpen = false;
@@ -168,7 +166,7 @@ const DocumentLink = observer(
         isActiveDocument)
     );
 
-    const handleMouseEnter = (event: SyntheticEvent) => {
+    const handleMouseEnter = (event: SyntheticEvent<*>) => {
       event.stopPropagation();
       event.preventDefault();
       prefetchDocument(document.id);

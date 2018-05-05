@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { inject, observer } from 'mobx-react';
 import _ from 'lodash';
 import styled from 'styled-components';
@@ -18,9 +18,7 @@ type Props = {
 };
 
 @observer
-class Slack extends Component {
-  props: Props;
-
+class Slack extends React.Component<Props> {
   componentDidMount() {
     this.props.integrations.fetchPage();
   }

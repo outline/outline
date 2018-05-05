@@ -1,22 +1,20 @@
 // @flow
-import React, { PureComponent } from 'react';
+import * as React from 'react';
 import copy from 'copy-to-clipboard';
 
 type Props = {
   text: string,
-  children?: React.Element<any>,
+  children?: React.Node,
   onClick?: () => void,
   onCopy: () => void,
 };
 
-class CopyToClipboard extends PureComponent {
-  props: Props;
-
-  onClick = (ev: SyntheticEvent) => {
+class CopyToClipboard extends React.PureComponent<Props> {
+  onClick = (ev: SyntheticEvent<*>) => {
     const { text, onCopy, children } = this.props;
     const elem = React.Children.only(children);
     copy(text, {
-      debug: __DEV__,
+      debug: !!__DEV__,
     });
 
     if (onCopy) onCopy();

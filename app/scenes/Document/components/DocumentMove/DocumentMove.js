@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import ReactDOM from 'react-dom';
 import { observable, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
@@ -29,10 +29,8 @@ type Props = {
 };
 
 @observer
-class DocumentMove extends Component {
-  props: Props;
-  firstDocument: HTMLElement;
-
+class DocumentMove extends React.Component<Props> {
+  firstDocument: *;
   @observable searchTerm: ?string;
   @observable isSaving: boolean;
 
@@ -115,7 +113,7 @@ class DocumentMove extends Component {
     this.props.history.push(this.props.document.url);
   };
 
-  handleFilter = (e: SyntheticInputEvent) => {
+  handleFilter = (e: SyntheticInputEvent<*>) => {
     this.searchTerm = e.target.value;
   };
 

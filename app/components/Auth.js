@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { Provider } from 'mobx-react';
 import stores from 'stores';
 import ApiKeysStore from 'stores/ApiKeysStore';
@@ -10,7 +10,7 @@ import IntegrationsStore from 'stores/IntegrationsStore';
 import CacheStore from 'stores/CacheStore';
 
 type Props = {
-  children?: React.Element<any>,
+  children?: React.Node,
 };
 
 let authenticatedStores;

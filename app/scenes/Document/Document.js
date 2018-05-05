@@ -48,9 +48,8 @@ type Props = {
 };
 
 @observer
-class DocumentScene extends React.Component {
-  props: Props;
-  savedTimeout: number;
+class DocumentScene extends React.Component<Props> {
+  savedTimeout: TimeoutID;
 
   @observable editorComponent;
   @observable editCache: ?string;
@@ -136,7 +135,7 @@ class DocumentScene extends React.Component {
   };
 
   get isEditing() {
-    return (
+    return !!(
       this.props.match.path === matchDocumentEdit || this.props.newDocument
     );
   }
@@ -163,7 +162,7 @@ class DocumentScene extends React.Component {
 
     this.editCache = null;
     this.isSaving = true;
-    this.isPublishing = publish;
+    this.isPublishing = !!publish;
     document = await document.save(publish, redirect);
     this.isSaving = false;
     this.isPublishing = false;

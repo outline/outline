@@ -1,13 +1,13 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
 import { size } from 'shared/styles/constants';
 
 type Props = {
-  label: React.Element<*> | string,
-  children: React.Element<*>,
+  label: React.Node | string,
+  children: React.Node,
 };
 
 const Labeled = ({ label, children, ...props }: Props) => (

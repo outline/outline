@@ -1,11 +1,11 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 
 type Props = {
-  onClick?: SyntheticEvent => void,
-  children?: React.Element<any>,
+  onClick?: (SyntheticEvent<*>) => *,
+  children?: React.Node,
 };
 
 const DropdownMenuItem = ({ onClick, children, ...rest }: Props) => {

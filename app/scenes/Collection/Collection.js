@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Link } from 'react-router-dom';
@@ -33,8 +33,7 @@ type Props = {
 };
 
 @observer
-class CollectionScene extends Component {
-  props: Props;
+class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
 
@@ -74,7 +73,7 @@ class CollectionScene extends Component {
     this.isFetching = false;
   };
 
-  onNewDocument = (ev: SyntheticEvent) => {
+  onNewDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
 
     if (this.collection) {

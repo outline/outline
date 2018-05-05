@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { observable, computed, action } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
@@ -26,9 +26,7 @@ type Props = {
 };
 
 @observer
-class ColorPicker extends React.Component {
-  props: Props;
-
+class ColorPicker extends React.Component<Props> {
   @observable selectedColor: string = colors[0];
   @observable customColorValue: string = '';
   @observable customColorSelected: boolean;
@@ -69,14 +67,14 @@ class ColorPicker extends React.Component {
   };
 
   @action
-  focusOnCustomColor = (event: SyntheticEvent) => {
+  focusOnCustomColor = (event: SyntheticEvent<*>) => {
     this.selectedColor = '';
     this.customColorSelected = true;
     this.fireCallback();
   };
 
   @action
-  setCustomColor = (event: SyntheticEvent) => {
+  setCustomColor = (event: SyntheticEvent<*>) => {
     let target = event.target;
     if (target instanceof HTMLInputElement) {
       const color = target.value;

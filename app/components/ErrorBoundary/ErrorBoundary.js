@@ -1,17 +1,16 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 import { observable } from 'mobx';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 
 type Props = {
-  children?: ?React.Element<any>,
+  children?: ?React.Node,
 };
 
 @observer
-class ErrorBoundary extends Component {
-  props: Props;
+class ErrorBoundary extends React.Component<Props> {
   @observable error: boolean = false;
 
   componentDidCatch(error: Error, info: Object) {

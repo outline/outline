@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import BoundlessPopover from 'boundless-popover';
 import styled, { keyframes } from 'styled-components';
 

@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { injectGlobal } from 'styled-components';
@@ -12,7 +12,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import LoadingIndicator from 'components/LoadingIndicator';
 
 type Props = {
-  children?: React$Element<any>,
+  children?: React.Node,
   collectionId: string,
   documentId?: string,
   activeClassName?: string,
@@ -35,9 +35,8 @@ injectGlobal`
 `;
 
 @observer
-class DropToImport extends Component {
+class DropToImport extends React.Component<Props> {
   @observable isImporting: boolean = false;
-  props: Props;
 
   onDropAccepted = async (files = []) => {
     this.isImporting = true;

@@ -1,7 +1,9 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 
-export default (props: { href: string, children: React.Element<*> }) => {
+type Props = { href: string, children: React.Node };
+
+export default (props: Props) => {
   const style = {
     display: 'inline-block',
     padding: '10px 20px',
@@ -13,5 +15,5 @@ export default (props: { href: string, children: React.Element<*> }) => {
     cursor: 'pointer',
   };
 
-  return <a {...props} style={style} />;
+  return <a {...props} style={style}>{props.children}</a>;
 };

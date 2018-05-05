@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
@@ -26,9 +26,7 @@ type Props = {
 };
 
 @observer
-class MainSidebar extends Component {
-  props: Props;
-
+class MainSidebar extends React.Component<Props> {
   handleCreateCollection = () => {
     this.props.ui.setActiveModal('collection-new');
   };

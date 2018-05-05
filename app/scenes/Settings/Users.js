@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import invariant from 'invariant';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
@@ -15,14 +15,14 @@ import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import PageTitle from 'components/PageTitle';
 import UserMenu from './components/UserMenu';
 
-@observer
-class Users extends Component {
-  props: {
-    auth: AuthStore,
-    errors: ErrorsStore,
-    users: UsersStore,
-  };
+type Props = {
+  auth: AuthStore,
+  errors: ErrorsStore,
+  users: UsersStore,
+};
 
+@observer
+class Users extends React.Component<Props> {
   componentDidMount() {
     this.props.users.fetchPage({ limit: 100 });
   }
