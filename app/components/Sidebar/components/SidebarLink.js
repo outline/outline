@@ -52,6 +52,8 @@ type Props = {
   icon?: React.Node,
   expand?: boolean,
   expandedContent?: React.Node,
+  menu?: React.Node,
+  menuOpen?: boolean,
   hideExpandToggle?: boolean,
   iconColor?: string,
   active?: boolean,
@@ -90,13 +92,15 @@ class SidebarLink extends React.Component<Props> {
       expandedContent,
       expand,
       active,
+      menu,
+      menuOpen,
       hideExpandToggle,
     } = this.props;
     const Component = to ? StyledNavLink : StyledDiv;
     const showExpandIcon = expandedContent && !hideExpandToggle;
 
     return (
-      <Flex column>
+      <Wrapper menuOpen={menuOpen} column>
         <Component
           iconVisible={showExpandIcon}
           activeStyle={activeStyle}
@@ -113,10 +117,41 @@ class SidebarLink extends React.Component<Props> {
         </Component>
         {/* Collection */ expand && hideExpandToggle && expandedContent}
         {/* Document */ this.expanded && !hideExpandToggle && expandedContent}
-      </Flex>
+        {menu && <Action>{menu}</Action>}
+      </Wrapper>
     );
   }
 }
+
+const Action = styled.span`
+  position: absolute;
+  right: 0;
+  top: 2px;
+  color: ${color.slate};
+  svg {
+    opacity: 0.75;
+  }
+
+  &:hover {
+    svg {
+      opacity: 1;
+    }
+  }
+`;
+
+const Wrapper = styled(Flex)`
+  position: relative;
+
+  > ${Action} {
+    display: ${props => (props.menuOpen ? 'inline' : 'none')};
+  }
+
+  &:hover {
+    > ${Action} {
+      display: inline;
+    }
+  }
+`;
 
 const Content = styled.div`
   width: 100%;
