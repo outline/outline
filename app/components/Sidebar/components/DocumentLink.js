@@ -3,7 +3,6 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import Document from 'models/Document';
-import DocumentMenu from 'menus/DocumentMenu';
 import SidebarLink from './SidebarLink';
 import DropToImport from 'components/DropToImport';
 import Flex from 'shared/components/Flex';
@@ -81,7 +80,6 @@ class DocumentLink extends React.Component<Props> {
                 undefined
               )
             }
-            menu={<DocumentMenu document={document} />}
           >
             {document.title}
           </SidebarLink>
