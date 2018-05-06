@@ -41,7 +41,6 @@ class CollectionLink extends React.Component<Props> {
         history={history}
         collectionId={collection.id}
         activeClassName="activeDropZone"
-        menuOpen={this.menuOpen}
       >
         <SidebarLink
           key={collection.id}
@@ -50,6 +49,7 @@ class CollectionLink extends React.Component<Props> {
           iconColor={collection.color}
           expand={expanded}
           hideExpandToggle
+          menuOpen={this.menuOpen}
           expandedContent={
             <CollectionChildren column>
               {collection.documents.map(document => (

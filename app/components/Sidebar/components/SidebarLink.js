@@ -53,6 +53,7 @@ type Props = {
   expand?: boolean,
   expandedContent?: React.Node,
   menu?: React.Node,
+  menuOpen?: boolean,
   hideExpandToggle?: boolean,
   iconColor?: string,
   active?: boolean,
@@ -92,13 +93,14 @@ class SidebarLink extends React.Component<Props> {
       expand,
       active,
       menu,
+      menuOpen,
       hideExpandToggle,
     } = this.props;
     const Component = to ? StyledNavLink : StyledDiv;
     const showExpandIcon = expandedContent && !hideExpandToggle;
 
     return (
-      <Wrapper column>
+      <Wrapper menuOpen={menuOpen} column>
         <Component
           iconVisible={showExpandIcon}
           activeStyle={activeStyle}
@@ -124,7 +126,7 @@ class SidebarLink extends React.Component<Props> {
 const Action = styled.span`
   position: absolute;
   right: 0;
-  top: 0;
+  top: 2px;
   color: ${color.slate};
   svg {
     opacity: 0.75;
