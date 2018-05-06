@@ -15,6 +15,7 @@ type Props = {
   history: Object,
   document: Document,
   className: string,
+  showPrint?: boolean,
 };
 
 @observer
@@ -56,7 +57,7 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    const { document, label, className } = this.props;
+    const { document, label, className, showPrint } = this.props;
     const isDraft = !document.publishedAt;
 
     return (
@@ -84,7 +85,7 @@ class DocumentMenu extends React.Component<Props> {
               onClick={this.handleNewChild}
               title="Create a new child document for the current document"
             >
-              New child
+              New child document
             </DropdownMenuItem>
             <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
           </React.Fragment>
@@ -94,7 +95,9 @@ class DocumentMenu extends React.Component<Props> {
         <DropdownMenuItem onClick={this.handleExport}>
           Download
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
+        {showPrint && (
+          <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
+        )}
       </DropdownMenu>
     );
   }

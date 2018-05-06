@@ -98,7 +98,7 @@ class DocumentActions extends React.Component<Props> {
         )}
         {!isEditing && (
           <Action>
-            <DocumentMenu document={document} />
+            <DocumentMenu document={document} showPrint />
           </Action>
         )}
         {!isEditing &&
