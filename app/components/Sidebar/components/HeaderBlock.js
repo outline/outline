@@ -1,7 +1,8 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
+import { ExpandedIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 import TeamLogo from './TeamLogo';
 
@@ -16,12 +17,20 @@ function HeaderBlock({ teamName, subheading, logoUrl, ...rest }: Props) {
     <Header justify="flex-start" align="center" {...rest}>
       <TeamLogo src={logoUrl} />
       <Flex align="flex-start" column>
-        <TeamName>{teamName}</TeamName>
+        <TeamName>
+          {teamName} <StyledExpandedIcon color={color.text} />
+        </TeamName>
         <Subheading>{subheading}</Subheading>
       </Flex>
     </Header>
   );
 }
+
+const StyledExpandedIcon = styled(ExpandedIcon)`
+  position: relative;
+  top: 6px;
+  left: -4px;
+`;
 
 const Subheading = styled.div`
   padding-left: 10px;

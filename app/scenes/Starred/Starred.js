@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
@@ -8,12 +8,12 @@ import PageTitle from 'components/PageTitle';
 import DocumentList from 'components/DocumentList';
 import DocumentsStore from 'stores/DocumentsStore';
 
-@observer
-class Starred extends Component {
-  props: {
-    documents: DocumentsStore,
-  };
+type Props = {
+  documents: DocumentsStore,
+};
 
+@observer
+class Starred extends React.Component<Props> {
   componentDidMount() {
     this.props.documents.fetchStarred();
   }

@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import Popover from 'components/Popover';
@@ -27,11 +27,10 @@ type Props = {
 };
 
 @observer
-class DocumentViews extends Component {
+class DocumentViews extends React.Component<Props> {
   @observable opened: boolean = false;
-  anchor: HTMLElement;
+  anchor: ?HTMLElement;
   store: DocumentViewersStore;
-  props: Props;
 
   constructor(props: Props) {
     super(props);
@@ -46,7 +45,7 @@ class DocumentViews extends Component {
     this.opened = false;
   };
 
-  setRef = (ref: HTMLElement) => {
+  setRef = (ref: ?HTMLElement) => {
     this.anchor = ref;
   };
 

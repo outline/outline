@@ -1,15 +1,15 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { inject } from 'mobx-react';
 import { Route } from 'react-router-dom';
 import UiStore from 'stores/UiStore';
 
-class RouteSidebarHidden extends Component {
-  props: {
-    ui: UiStore,
-    component: any,
-  };
+type Props = {
+  ui: UiStore,
+  component: *,
+};
 
+class RouteSidebarHidden extends React.Component<Props> {
   componentDidMount() {
     this.props.ui.enableEditMode();
   }

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import Grid from 'styled-components-grid';
 import styled from 'styled-components';
 import { Helmet } from 'react-helmet';
@@ -68,7 +68,7 @@ export default function About() {
               <strong>Jori Lallo</strong>
             </div>
             <div>
-              <a href="https://twitter.com/jorilallo" target="_blank">
+              <a href="https://twitter.com/jorilallo" target="_blank" rel="noopener noreferrer">
                 @jorilallo
               </a>
             </div>
@@ -80,7 +80,7 @@ export default function About() {
               <strong>Tom Moor</strong>
             </div>
             <div>
-              <a href="https://twitter.com/tommoor" target="_blank">
+              <a href="https://twitter.com/tommoor" target="_blank" rel="noopener noreferrer">
                 @tommoor
               </a>
             </div>
@@ -93,6 +93,7 @@ export default function About() {
           <a
             href="https://github.com/outline/outline/graphs/contributors"
             target="_blank"
+            rel="noopener noreferrer"
           >
             maintainers
           </a>, we believe in being honest and transparent.
@@ -141,6 +142,7 @@ export default function About() {
           <a
             href="https://spectrum.chat/outline/feature-requests?thread=a851c20d-251a-4c7b-8977-e1438894db51"
             target="_blank"
+            rel="noopener noreferrer"
           >
             here
           </a>.

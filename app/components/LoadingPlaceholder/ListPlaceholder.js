@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import _ from 'lodash';
 import styled from 'styled-components';
 import Mask from './components/Mask';

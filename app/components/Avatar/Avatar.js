@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import styled from 'styled-components';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
@@ -7,7 +7,7 @@ import { color } from 'shared/styles/constants';
 import placeholder from './placeholder.png';
 
 @observer
-class Avatar extends Component {
+class Avatar extends React.Component<*> {
   @observable error: boolean;
 
   handleError = () => {

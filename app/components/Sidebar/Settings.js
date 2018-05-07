@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { ProfileIcon, SettingsIcon, CodeIcon, UserIcon } from 'outline-icons';
 
@@ -17,9 +17,7 @@ type Props = {
 };
 
 @observer
-class SettingsSidebar extends Component {
-  props: Props;
-
+class SettingsSidebar extends React.Component<Props> {
   returnToDashboard = () => {
     this.props.history.push('/');
   };
@@ -38,7 +36,7 @@ class SettingsSidebar extends Component {
         />
 
         <Flex auto column>
-          <Scrollable>
+          <Scrollable shadow>
             <Section>
               <Header>Account</Header>
               <SidebarLink to="/settings" icon={<ProfileIcon />}>

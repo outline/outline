@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable, action } from 'mobx';
 import { observer } from 'mobx-react';
 import { NavLink } from 'react-router-dom';
@@ -47,19 +47,20 @@ const StyledDiv = StyledNavLink.withComponent('div');
 
 type Props = {
   to?: string,
-  onClick?: SyntheticEvent => *,
-  children?: React$Element<*>,
-  icon?: React$Element<*>,
+  onClick?: (SyntheticEvent<*>) => *,
+  children?: React.Node,
+  icon?: React.Node,
   expand?: boolean,
-  expandedContent?: React$Element<*>,
+  expandedContent?: React.Node,
+  menu?: React.Node,
+  menuOpen?: boolean,
   hideExpandToggle?: boolean,
   iconColor?: string,
   active?: boolean,
 };
 
 @observer
-class SidebarLink extends Component {
-  props: Props;
+class SidebarLink extends React.Component<Props> {
   @observable expanded: boolean = false;
 
   componentDidMount() {
@@ -71,7 +72,7 @@ class SidebarLink extends Component {
   }
 
   @action
-  handleClick = (event: SyntheticEvent) => {
+  handleClick = (event: SyntheticEvent<*>) => {
     event.preventDefault();
     event.stopPropagation();
     this.expanded = !this.expanded;
@@ -91,13 +92,15 @@ class SidebarLink extends Component {
       expandedContent,
       expand,
       active,
+      menu,
+      menuOpen,
       hideExpandToggle,
     } = this.props;
     const Component = to ? StyledNavLink : StyledDiv;
     const showExpandIcon = expandedContent && !hideExpandToggle;
 
     return (
-      <Flex column>
+      <Wrapper menuOpen={menuOpen} column>
         <Component
           iconVisible={showExpandIcon}
           activeStyle={activeStyle}
@@ -114,10 +117,41 @@ class SidebarLink extends Component {
         </Component>
         {/* Collection */ expand && hideExpandToggle && expandedContent}
         {/* Document */ this.expanded && !hideExpandToggle && expandedContent}
-      </Flex>
+        {menu && <Action>{menu}</Action>}
+      </Wrapper>
     );
   }
 }
+
+const Action = styled.span`
+  position: absolute;
+  right: 0;
+  top: 2px;
+  color: ${color.slate};
+  svg {
+    opacity: 0.75;
+  }
+
+  &:hover {
+    svg {
+      opacity: 1;
+    }
+  }
+`;
+
+const Wrapper = styled(Flex)`
+  position: relative;
+
+  > ${Action} {
+    display: ${props => (props.menuOpen ? 'inline' : 'none')};
+  }
+
+  &:hover {
+    > ${Action} {
+      display: inline;
+    }
+  }
+`;
 
 const Content = styled.div`
   width: 100%;

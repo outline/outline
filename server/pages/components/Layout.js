@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import { TopNavigation, BottomNavigation } from './Navigation';
 import Analytics from '../../../shared/components/Analytics';
@@ -13,7 +13,7 @@ export const description =
 export const screenshotUrl = `${process.env.URL}/screenshot.png`;
 
 type Props = {
-  children?: React$Element<*>,
+  children?: React.Node,
 };
 
 export default function Layout({ children }: Props) {

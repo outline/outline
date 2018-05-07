@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 import styled, { injectGlobal } from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
@@ -10,10 +10,10 @@ import { fadeAndScaleIn } from 'shared/styles/animations';
 import Flex from 'shared/components/Flex';
 
 type Props = {
-  children?: React$Element<any>,
+  children?: React.Node,
   isOpen: boolean,
   title?: string,
-  onRequestClose: () => void,
+  onRequestClose: () => *,
 };
 
 // eslint-disable-next-line

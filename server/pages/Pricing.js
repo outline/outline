@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import Grid from 'styled-components-grid';
 import { Helmet } from 'react-helmet';
 import Hero from './components/Hero';

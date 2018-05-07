@@ -26,9 +26,7 @@ type Props = {
   history: Object,
 };
 
-class DocumentActions extends React.Component {
-  props: Props;
-
+class DocumentActions extends React.Component<Props> {
   handleNewDocument = () => {
     this.props.history.push(documentNewUrl(this.props.document));
   };
@@ -100,7 +98,7 @@ class DocumentActions extends React.Component {
         )}
         {!isEditing && (
           <Action>
-            <DocumentMenu document={document} />
+            <DocumentMenu document={document} showPrint />
           </Action>
         )}
         {!isEditing &&

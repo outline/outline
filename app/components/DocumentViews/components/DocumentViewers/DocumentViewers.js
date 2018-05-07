@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
 import map from 'lodash/map';
@@ -26,9 +26,7 @@ const UserName = styled.span`
   padding-left: 8px;
 `;
 
-class DocumentViewers extends Component {
-  props: Props;
-
+class DocumentViewers extends React.Component<Props> {
   componentDidMount() {
     this.props.onMount();
   }

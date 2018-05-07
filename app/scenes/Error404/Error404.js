@@ -1,11 +1,11 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { Link } from 'react-router-dom';
 
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 
-class Error404 extends React.Component {
+class Error404 extends React.Component<*> {
   render() {
     return (
       <CenteredContent>

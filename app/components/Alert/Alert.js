@@ -1,18 +1,17 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 
 type Props = {
-  children: React.Element<*>,
+  children: React.Node,
   type?: 'info' | 'success' | 'warning' | 'danger' | 'offline',
 };
 
 @observer
-class Alert extends React.Component {
-  props: Props;
+class Alert extends React.Component<Props> {
   defaultProps = {
     type: 'info',
   };

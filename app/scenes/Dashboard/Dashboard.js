@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 
@@ -15,8 +15,7 @@ type Props = {
 };
 
 @observer
-class Dashboard extends Component {
-  props: Props;
+class Dashboard extends React.Component<Props> {
   @observable isLoaded: boolean = false;
 
   componentDidMount() {

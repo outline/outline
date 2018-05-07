@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
@@ -59,9 +59,8 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 `;
 
 @observer
-class Search extends Component {
+class Search extends React.Component<Props> {
   firstDocument: HTMLElement;
-  props: Props;
 
   @observable resultIds: string[] = []; // Document IDs
   @observable query: string = '';

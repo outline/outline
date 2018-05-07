@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
@@ -17,13 +17,13 @@ const Modified = styled.span`
   font-weight: ${props => (props.highlight ? '600' : '400')};
 `;
 
-class PublishingInfo extends Component {
-  props: {
-    collection?: Collection,
-    document: Document,
-    views?: number,
-  };
+type Props = {
+  collection?: Collection,
+  document: Document,
+  views?: number,
+};
 
+class PublishingInfo extends React.Component<Props> {
   render() {
     const { collection, document } = this.props;
     const {

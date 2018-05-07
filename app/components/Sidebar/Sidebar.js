@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import styled from 'styled-components';
@@ -14,7 +14,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
-  children: React.Element<any>,
+  children: React.Node,
   history: Object,
   location: Location,
   auth: AuthStore,
@@ -23,9 +23,7 @@ type Props = {
 };
 
 @observer
-class Sidebar extends Component {
-  props: Props;
-
+class Sidebar extends React.Component<Props> {
   componentWillReceiveProps = (nextProps: Props) => {
     if (this.props.location !== nextProps.location) {
       this.props.ui.hideMobileSidebar();

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import Button from 'components/Button';
@@ -12,8 +12,7 @@ type Props = {
 };
 
 @observer
-class ApiToken extends React.Component {
-  props: Props;
+class ApiToken extends React.Component<Props> {
   @observable disabled: boolean;
 
   onClick = () => {

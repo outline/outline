@@ -51,6 +51,7 @@ Team.prototype.removeAdmin = async function(user: User) {
       teamId: this.id,
       isAdmin: true,
       id: {
+        // $FlowFixMe
         [Op.ne]: user.id,
       },
     },

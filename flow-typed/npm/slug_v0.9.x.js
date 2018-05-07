@@ -1,5 +1,5 @@
-// flow-typed signature: aa2cc901101dc881d88fa9b82d248a4e
-// flow-typed version: dbef68335c/slug_v0.9.x/flow_>=v0.28.x
+// flow-typed signature: c499686d8ed4b3da5bd13133389c6088
+// flow-typed version: b43dff3e0e/slug_v0.9.x/flow_>=v0.25.x
 
 type SlugMode = 'rfc3986' | 'pretty'
 
