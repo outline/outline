@@ -25,8 +25,9 @@ const slugify = text =>
     remove: /[.]/g,
   });
 
-const createRevision = doc => {
-  // Create revision of the current (latest)
+const createRevision = (doc, options = {}) => {
+  if (options.autosave) return;
+
   return Revision.create({
     title: doc.title,
     text: doc.text,
@@ -204,15 +205,14 @@ Document.searchForUser = async (
         LIMIT :limit OFFSET :offset;
         `;
 
-  const results = await sequelize
-    .query(sql, {
-      replacements: {
-        query,
-        limit,
-        offset,
-      },
-      model: Document,
-    })
+  const results = await sequelize.query(sql, {
+    replacements: {
+      query,
+      limit,
+      offset,
+    },
+    model: Document,
+  });
   const ids = results.map(document => document.id);
 
   // Second query to get views for the data

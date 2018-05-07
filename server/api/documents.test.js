@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '..';
-import { Document, View, Star } from '../models';
+import { Document, View, Star, Revision } from '../models';
 import { flushdb, seed } from '../test/support';
 import { buildUser } from '../test/factories';
 
@@ -482,6 +482,31 @@ describe('#documents.update', async () => {
     expect(body.data.title).toBe('Updated title');
     expect(body.data.text).toBe('Updated text');
     expect(body.data.collection.documents[0].title).toBe('Updated title');
+  });
+
+  it('should not create new version when autosave=true', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+        lastRevision: document.revision,
+        autosave: true,
+      },
+    });
+
+    const prevRevisionRecords = await Revision.count();
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe('Updated title');
+    expect(body.data.text).toBe('Updated text');
+
+    const revisionRecords = await Revision.count();
+    expect(revisionRecords).toBe(prevRevisionRecords);
   });
 
   it('should fallback to a default title', async () => {

@@ -11,6 +11,8 @@ import type { User } from 'types';
 import BaseModel from './BaseModel';
 import Collection from './Collection';
 
+type SaveOptions = { publish: boolean, done: boolean, autosave: boolean };
+
 class Document extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
@@ -168,7 +170,7 @@ class Document extends BaseModel {
   };
 
   @action
-  save = async (publish: boolean = false, done: boolean = false) => {
+  save = async (options: SaveOptions) => {
     if (this.isSaving) return this;
     this.isSaving = true;
 
@@ -180,8 +182,7 @@ class Document extends BaseModel {
           title: this.title,
           text: this.text,
           lastRevision: this.revision,
-          publish,
-          done,
+          ...options,
         });
       } else {
         const data = {
@@ -189,8 +190,7 @@ class Document extends BaseModel {
           collection: this.collection.id,
           title: this.title,
           text: this.text,
-          publish,
-          done,
+          ...options,
         };
         if (this.parentDocument) {
           data.parentDocument = this.parentDocument;

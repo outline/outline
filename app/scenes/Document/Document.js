@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import get from 'lodash/get';
+import debounce from 'lodash/debounce';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
@@ -32,6 +33,7 @@ import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Search from 'scenes/Search';
 
+const AUTOSAVE_INTERVAL = 3000;
 const DISCARD_CHANGES = `
 You have unsaved changes.
 Are you sure you want to discard them?
@@ -154,20 +156,20 @@ class DocumentScene extends React.Component<Props> {
   handleCloseMoveModal = () => (this.moveModalOpen = false);
   handleOpenMoveModal = () => (this.moveModalOpen = true);
 
-  onSave = async (options: { redirect?: boolean, publish?: boolean } = {}) => {
-    const { redirect, publish } = options;
-
+  onSave = async (
+    options: { redirect?: boolean, publish?: boolean, autosave?: boolean } = {}
+  ) => {
     let document = this.document;
     if (!document || !document.allowSave) return;
 
     this.editCache = null;
     this.isSaving = true;
-    this.isPublishing = !!publish;
-    document = await document.save(publish, redirect);
+    this.isPublishing = !!options.publish;
+    document = await document.save(options);
     this.isSaving = false;
     this.isPublishing = false;
 
-    if (redirect) {
+    if (options.redirect) {
       this.props.history.push(document.url);
       this.props.ui.setActiveDocument(document);
     } else if (this.props.newDocument) {
@@ -175,6 +177,10 @@ class DocumentScene extends React.Component<Props> {
       this.props.ui.setActiveDocument(document);
     }
   };
+
+  autosave = debounce(async () => {
+    this.onSave({ redirect: false, autosave: true });
+  }, AUTOSAVE_INTERVAL);
 
   onImageUploadStart = () => {
     this.isLoading = true;
@@ -189,6 +195,7 @@ class DocumentScene extends React.Component<Props> {
     if (!document) return;
     if (document.text.trim() === text.trim()) return;
     document.updateData({ text }, true);
+    this.autosave();
   };
 
   onDiscard = () => {
