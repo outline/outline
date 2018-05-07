@@ -52,7 +52,7 @@ class MainSidebar extends React.Component<Props> {
           }
         />
         <Flex auto column>
-          <Scrollable>
+          <Scrollable shadow>
             <Section>
               <SidebarLink to="/dashboard" icon={<HomeIcon />}>
                 Home

@@ -36,7 +36,7 @@ class SettingsSidebar extends React.Component<Props> {
         />
 
         <Flex auto column>
-          <Scrollable>
+          <Scrollable shadow>
             <Section>
               <Header>Account</Header>
               <SidebarLink to="/settings" icon={<ProfileIcon />}>
