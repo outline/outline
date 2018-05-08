@@ -172,6 +172,8 @@ class Document extends BaseModel {
   @action
   save = async (options: SaveOptions) => {
     if (this.isSaving) return this;
+
+    const wasDraft = !this.publishedAt;
     this.isSaving = true;
 
     try {
@@ -208,8 +210,15 @@ class Document extends BaseModel {
         document: this,
         collectionId: this.collection.id,
       });
+
+      if (wasDraft && this.publishedAt) {
+        this.emit('documents.publish', {
+          id: this.id,
+          collectionId: this.collection.id,
+        });
+      }
     } catch (e) {
-      this.errors.add('Document failed saving');
+      this.errors.add('Document failed to save');
     } finally {
       this.isSaving = false;
     }
