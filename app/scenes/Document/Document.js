@@ -157,7 +157,7 @@ class DocumentScene extends React.Component<Props> {
   handleOpenMoveModal = () => (this.moveModalOpen = true);
 
   onSave = async (
-    options: { redirect?: boolean, publish?: boolean, autosave?: boolean } = {}
+    options: { done?: boolean, publish?: boolean, autosave?: boolean } = {}
   ) => {
     let document = this.document;
     if (!document || !document.allowSave) return;
@@ -169,7 +169,7 @@ class DocumentScene extends React.Component<Props> {
     this.isSaving = false;
     this.isPublishing = false;
 
-    if (options.redirect) {
+    if (options.done) {
       this.props.history.push(document.url);
       this.props.ui.setActiveDocument(document);
     } else if (this.props.newDocument) {
@@ -179,7 +179,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   autosave = debounce(async () => {
-    this.onSave({ redirect: false, autosave: true });
+    this.onSave({ done: false, autosave: true });
   }, AUTOSAVE_INTERVAL);
 
   onImageUploadStart = () => {

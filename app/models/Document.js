@@ -11,7 +11,7 @@ import type { User } from 'types';
 import BaseModel from './BaseModel';
 import Collection from './Collection';
 
-type SaveOptions = { publish: boolean, done: boolean, autosave: boolean };
+type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
 class Document extends BaseModel {
   isSaving: boolean = false;
@@ -204,9 +204,9 @@ class Document extends BaseModel {
         this.hasPendingChanges = false;
       });
 
-      this.emit('collections.update', {
-        id: this.collection.id,
-        collection: this.collection,
+      this.emit('documents.update', {
+        document: this,
+        collectionId: this.collection.id,
       });
     } catch (e) {
       this.errors.add('Document failed saving');

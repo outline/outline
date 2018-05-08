@@ -3,6 +3,7 @@ import { extendObservable, action, computed, runInAction } from 'mobx';
 import invariant from 'invariant';
 
 import BaseModel from 'models/BaseModel';
+import Document from 'models/Document';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import ErrorsStore from 'stores/ErrorsStore';
@@ -20,7 +21,7 @@ class Collection extends BaseModel {
   name: string;
   color: string;
   type: 'atlas' | 'journal';
-  documents: Array<NavigationNode>;
+  documents: NavigationNode[];
   updatedAt: string;
   url: string;
 
@@ -49,6 +50,21 @@ class Collection extends BaseModel {
 
     travelDocuments(this.documents);
     return results;
+  }
+
+  @action
+  updateDocument(document: Document) {
+    const travelDocuments = (documentList, path) =>
+      documentList.forEach(d => {
+        if (d.id === document.id) {
+          d.title = document.title;
+          d.url = document.url;
+        } else {
+          travelDocuments(d.children);
+        }
+      });
+
+    travelDocuments(this.documents);
   }
 
   /* Actions */
@@ -123,7 +139,7 @@ class Collection extends BaseModel {
     extendObservable(this, data);
   }
 
-  constructor(collection: Object = {}) {
+  constructor(collection: $Shape<Collection>) {
     super();
 
     this.updateData(collection);
@@ -133,11 +149,11 @@ class Collection extends BaseModel {
       if (data.collectionId === this.id) this.fetch();
     });
     this.on(
-      'collections.update',
-      (data: { id: string, collection: Collection }) => {
-        // FIXME: calling this.updateData won't update the
-        // UI. Some mobx issue
-        if (data.id === this.id) this.fetch();
+      'documents.update',
+      (data: { collectionId: string, document: Document }) => {
+        if (data.collectionId === this.id) {
+          this.updateDocument(data.document);
+        }
       }
     );
     this.on('documents.move', (data: { collectionId: string }) => {

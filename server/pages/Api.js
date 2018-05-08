@@ -425,7 +425,25 @@ export default function Pricing() {
                 id="publish"
                 description={
                   <span>
-                    Pass <code>true</code> to publish a draft
+                    Pass <code>true</code> to publish a draft.
+                  </span>
+                }
+              />
+              <Argument
+                id="autosave"
+                description={
+                  <span>
+                    Pass <code>true</code> to signify an autosave. This skips
+                    creating a revision.
+                  </span>
+                }
+              />
+              <Argument
+                id="done"
+                description={
+                  <span>
+                    Pass <code>true</code> to signify the end of an editing
+                    session. This will trigger documents.update hooks.
                   </span>
                 }
               />
