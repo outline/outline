@@ -43,7 +43,7 @@ class DocumentDelete extends Component {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Are you sure? Deleting the <strong>{document.title}</strong>{' '}
-            document is permanant and will also delete all of its history.
+            document is permanent and will also delete all of its history.
           </HelpText>
           <Button type="submit" danger>
             {this.isDeleting ? 'Deleting…' : 'Delete'}
