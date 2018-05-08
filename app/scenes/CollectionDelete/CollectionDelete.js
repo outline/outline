@@ -43,7 +43,7 @@ class CollectionDelete extends Component {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Are you sure? Deleting the <strong>{collection.name}</strong>{' '}
-            collection is permanant and will also delete all of the documents
+            collection is permanent and will also delete all of the documents
             within it, so be careful with that.
           </HelpText>
           <Button type="submit" danger>
