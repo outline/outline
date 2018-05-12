@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable, runInAction } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import invariant from 'invariant';
@@ -16,13 +16,14 @@ import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Flex from 'shared/components/Flex';
 
+type Props = {
+  auth: AuthStore,
+  errors: ErrorsStore,
+};
+
 @observer
-class Settings extends Component {
-  timeout: number;
-  props: {
-    auth: AuthStore,
-    errors: ErrorsStore,
-  };
+class Settings extends React.Component<Props> {
+  timeout: TimeoutID;
 
   @observable name: string;
   @observable avatarUrl: ?string;
@@ -39,7 +40,7 @@ class Settings extends Component {
     clearTimeout(this.timeout);
   }
 
-  handleSubmit = async (ev: SyntheticEvent) => {
+  handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isSaving = true;
 
@@ -62,7 +63,7 @@ class Settings extends Component {
     }
   };
 
-  handleNameChange = (ev: SyntheticInputEvent) => {
+  handleNameChange = (ev: SyntheticInputEvent<*>) => {
     this.name = ev.target.value;
   };
 

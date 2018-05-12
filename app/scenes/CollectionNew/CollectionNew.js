@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
@@ -18,8 +18,7 @@ type Props = {
 };
 
 @observer
-class CollectionNew extends Component {
-  props: Props;
+class CollectionNew extends React.Component<Props> {
   @observable collection: Collection;
   @observable name: string = '';
   @observable color: string = '';
@@ -30,7 +29,7 @@ class CollectionNew extends Component {
     this.collection = new Collection();
   }
 
-  handleSubmit = async (ev: SyntheticEvent) => {
+  handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isSaving = true;
     this.collection.updateData({ name: this.name, color: this.color });
@@ -45,7 +44,7 @@ class CollectionNew extends Component {
     this.isSaving = false;
   };
 
-  handleNameChange = (ev: SyntheticInputEvent) => {
+  handleNameChange = (ev: SyntheticInputEvent<*>) => {
     this.name = ev.target.value;
   };
 

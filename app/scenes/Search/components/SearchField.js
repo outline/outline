@@ -1,21 +1,23 @@
 // @flow
-import React, { Component } from 'react';
-import SearchIcon from 'components/Icon/SearchIcon';
+import * as React from 'react';
+import styled from 'styled-components';
+import { SearchIcon } from 'outline-icons';
+
 import Flex from 'shared/components/Flex';
 import { color } from 'shared/styles/constants';
-import styled from 'styled-components';
 
-class SearchField extends Component {
+type Props = {
+  onChange: string => *,
+};
+
+class SearchField extends React.Component<Props> {
   input: HTMLInputElement;
-  props: {
-    onChange: Function,
-  };
 
-  handleChange = (ev: SyntheticEvent) => {
+  handleChange = (ev: SyntheticEvent<*>) => {
     this.props.onChange(ev.currentTarget.value ? ev.currentTarget.value : '');
   };
 
-  focusInput = (ev: SyntheticEvent) => {
+  focusInput = (ev: SyntheticEvent<*>) => {
     this.input.focus();
   };
 

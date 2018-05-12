@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import fs from 'fs';
 import path from 'path';
 import webpackConfig from '../../webpack.config';

@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import UiStore from 'stores/UiStore';
@@ -12,15 +12,15 @@ import {
   spectrumUrl,
 } from '../../shared/utils/routeHelpers';
 
-@observer
-class AccountMenu extends Component {
-  props: {
-    label?: React$Element<any>,
-    history: Object,
-    ui: UiStore,
-    auth: AuthStore,
-  };
+type Props = {
+  label?: React.Node,
+  history: Object,
+  ui: UiStore,
+  auth: AuthStore,
+};
 
+@observer
+class AccountMenu extends React.Component<Props> {
   handleOpenKeyboardShortcuts = () => {
     this.props.ui.setActiveModal('keyboard-shortcuts');
   };

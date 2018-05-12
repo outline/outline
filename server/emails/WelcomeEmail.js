@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import EmailTemplate from './components/EmailLayout';
 import Body from './components/Body';
 import Button from './components/Button';

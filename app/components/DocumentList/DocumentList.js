@@ -1,16 +1,16 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import Document from 'models/Document';
 import DocumentPreview from 'components/DocumentPreview';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
-class DocumentList extends React.Component {
-  props: {
-    documents: Document[],
-    showCollection?: boolean,
-    limit?: number,
-  };
+type Props = {
+  documents: Document[],
+  showCollection?: boolean,
+  limit?: number,
+};
 
+class DocumentList extends React.Component<Props> {
   render() {
     const { limit, showCollection } = this.props;
     const documents = limit

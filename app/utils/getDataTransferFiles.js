@@ -1,6 +1,8 @@
 // @flow
-export default function getDataTransferFiles(event: SyntheticEvent) {
+export default function getDataTransferFiles(event: SyntheticEvent<*>): File[] {
   let dataTransferItemsList = [];
+
+  // $FlowFixMe
   if (event.dataTransfer) {
     const dt = event.dataTransfer;
     if (dt.files && dt.files.length) {
@@ -10,6 +12,8 @@ export default function getDataTransferFiles(event: SyntheticEvent) {
       // but Chrome implements some drag store, which is accesible via dataTransfer.items
       dataTransferItemsList = dt.items;
     }
+
+    // $FlowFixMe
   } else if (event.target && event.target.files) {
     dataTransferItemsList = event.target.files;
   }

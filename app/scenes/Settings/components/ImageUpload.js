@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
@@ -13,17 +13,16 @@ import AvatarEditor from 'react-avatar-editor';
 import { uploadFile, dataUrlToBlob } from 'utils/uploadFile';
 
 type Props = {
-  children?: React$Element<any>,
-  onSuccess: string => void,
-  onError: string => void,
+  children?: React.Node,
+  onSuccess: string => *,
+  onError: string => *,
 };
 
 @observer
-class DropToImport extends Component {
+class DropToImport extends React.Component<Props> {
   @observable isUploading: boolean = false;
   @observable isCropping: boolean = false;
   @observable zoom: number = 1;
-  props: Props;
   file: File;
   avatarEditorRef: AvatarEditor;
 
@@ -46,7 +45,7 @@ class DropToImport extends Component {
     }
   };
 
-  handleZoom = (event: SyntheticDragEvent) => {
+  handleZoom = (event: SyntheticDragEvent<*>) => {
     let target = event.target;
     if (target instanceof HTMLInputElement) {
       this.zoom = parseFloat(target.value);

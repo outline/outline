@@ -1,6 +1,6 @@
 // @flow
 import Router from 'koa-router';
-import { Op } from 'sequelize';
+import Sequelize from 'sequelize';
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
@@ -9,6 +9,7 @@ import { InvalidRequestError } from '../errors';
 import events from '../events';
 import policy from '../policies';
 
+const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
 
@@ -50,6 +51,7 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
       teamId: user.teamId,
       atlasId: collection,
       pinnedById: {
+        // $FlowFixMe
         [Op.ne]: null,
       },
     },
@@ -138,6 +140,7 @@ router.post('documents.drafts', auth(), pagination(), async ctx => {
 
   const user = ctx.state.user;
   const documents = await Document.findAll({
+    // $FlowFixMe
     where: { userId: user.id, publishedAt: { [Op.eq]: null } },
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
@@ -331,7 +334,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, publish, done, lastRevision } = ctx.body;
+  const { id, title, text, publish, autosave, done, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -352,7 +355,7 @@ router.post('documents.update', auth(), async ctx => {
   if (publish) {
     await document.publish();
   } else {
-    await document.save();
+    await document.save({ autosave });
 
     if (document.publishedAt && done) {
       events.add({ name: 'documents.update', model: document });

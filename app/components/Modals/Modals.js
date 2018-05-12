@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 import BaseModal from 'components/Modal';
 import UiStore from 'stores/UiStore';
@@ -9,12 +9,11 @@ import CollectionDelete from 'scenes/CollectionDelete';
 import DocumentDelete from 'scenes/DocumentDelete';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
 
+type Props = {
+  ui: UiStore,
+};
 @observer
-class Modals extends Component {
-  props: {
-    ui: UiStore,
-  };
-
+class Modals extends React.Component<Props> {
   handleClose = () => {
     this.props.ui.clearActiveModal();
   };

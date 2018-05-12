@@ -4,7 +4,7 @@ import _ from 'lodash';
 import randomstring from 'randomstring';
 import MarkdownSerializer from 'slate-md-serializer';
 import Plain from 'slate-plain-serializer';
-import { Op } from 'sequelize';
+import Sequelize from 'sequelize';
 
 import isUUID from 'validator/lib/isUUID';
 import { Collection } from '../models';
@@ -13,6 +13,7 @@ import events from '../events';
 import parseTitle from '../../shared/utils/parseTitle';
 import Revision from './Revision';
 
+const Op = Sequelize.Op;
 const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 const DEFAULT_TITLE = 'Untitled document';
@@ -24,8 +25,9 @@ const slugify = text =>
     remove: /[.]/g,
   });
 
-const createRevision = doc => {
-  // Create revision of the current (latest)
+const createRevision = (doc, options = {}) => {
+  if (options.autosave) return;
+
   return Revision.create({
     title: doc.title,
     text: doc.text,
@@ -144,6 +146,7 @@ Document.associate = models => {
       ],
       where: {
         publishedAt: {
+          // $FlowFixMe
           [Op.ne]: null,
         },
       },
@@ -202,16 +205,15 @@ Document.searchForUser = async (
         LIMIT :limit OFFSET :offset;
         `;
 
-  const ids = await sequelize
-    .query(sql, {
-      replacements: {
-        query,
-        limit,
-        offset,
-      },
-      model: Document,
-    })
-    .map(document => document.id);
+  const results = await sequelize.query(sql, {
+    replacements: {
+      query,
+      limit,
+      offset,
+    },
+    model: Document,
+  });
+  const ids = results.map(document => document.id);
 
   // Second query to get views for the data
   const withViewsScope = { method: ['withViews', user.id] };

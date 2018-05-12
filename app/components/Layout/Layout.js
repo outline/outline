@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { Switch, Route, withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
@@ -27,17 +27,16 @@ type Props = {
   history: Object,
   location: Location,
   documents: DocumentsStore,
-  children?: ?React.Element<any>,
-  actions?: ?React.Element<any>,
-  title?: ?React.Element<any>,
+  children?: ?React.Node,
+  actions?: ?React.Node,
+  title?: ?React.Node,
   auth: AuthStore,
   ui: UiStore,
-  notifications?: React.Element<any>,
+  notifications?: React.Node,
 };
 
 @observer
-class Layout extends React.Component {
-  props: Props;
+class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
 
   @keydown(['/', 't'])

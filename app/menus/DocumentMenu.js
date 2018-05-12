@@ -1,61 +1,63 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
+import { MoreIcon } from 'outline-icons';
+
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
-import MoreIcon from 'components/Icon/MoreIcon';
 import { documentMoveUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
-@observer
-class DocumentMenu extends Component {
-  props: {
-    ui: UiStore,
-    label?: React$Element<any>,
-    history: Object,
-    document: Document,
-    className: string,
-  };
+type Props = {
+  ui: UiStore,
+  label?: React.Node,
+  history: Object,
+  document: Document,
+  className: string,
+  showPrint?: boolean,
+};
 
-  handleNewChild = (ev: SyntheticEvent) => {
+@observer
+class DocumentMenu extends React.Component<Props> {
+  handleNewChild = (ev: SyntheticEvent<*>) => {
     const { history, document } = this.props;
     history.push(
       `${document.collection.url}/new?parentDocument=${document.id}`
     );
   };
 
-  handleDelete = (ev: SyntheticEvent) => {
+  handleDelete = (ev: SyntheticEvent<*>) => {
     const { document } = this.props;
     this.props.ui.setActiveModal('document-delete', { document });
   };
 
-  handleMove = (ev: SyntheticEvent) => {
+  handleMove = (ev: SyntheticEvent<*>) => {
     this.props.history.push(documentMoveUrl(this.props.document));
   };
 
-  handlePin = (ev: SyntheticEvent) => {
+  handlePin = (ev: SyntheticEvent<*>) => {
     this.props.document.pin();
   };
 
-  handleUnpin = (ev: SyntheticEvent) => {
+  handleUnpin = (ev: SyntheticEvent<*>) => {
     this.props.document.unpin();
   };
 
-  handleStar = (ev: SyntheticEvent) => {
+  handleStar = (ev: SyntheticEvent<*>) => {
     this.props.document.star();
   };
 
-  handleUnstar = (ev: SyntheticEvent) => {
+  handleUnstar = (ev: SyntheticEvent<*>) => {
     this.props.document.unstar();
   };
 
-  handleExport = (ev: SyntheticEvent) => {
+  handleExport = (ev: SyntheticEvent<*>) => {
     this.props.document.download();
   };
 
   render() {
-    const { document, label, className } = this.props;
+    const { document, label, className, showPrint } = this.props;
     const isDraft = !document.publishedAt;
 
     return (
@@ -83,7 +85,7 @@ class DocumentMenu extends Component {
               onClick={this.handleNewChild}
               title="Create a new child document for the current document"
             >
-              New child
+              New child document
             </DropdownMenuItem>
             <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
           </React.Fragment>
@@ -93,7 +95,9 @@ class DocumentMenu extends Component {
         <DropdownMenuItem onClick={this.handleExport}>
           Download
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
+        {showPrint && (
+          <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
+        )}
       </DropdownMenu>
     );
   }

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import { darken, lighten } from 'polished';
@@ -88,9 +88,9 @@ const Inner = styled.span`
 export type Props = {
   type?: string,
   value?: string,
-  icon?: React$Element<any>,
+  icon?: React.Node,
   className?: string,
-  children?: React$Element<any>,
+  children?: React.Node,
 };
 
 export default function Button({

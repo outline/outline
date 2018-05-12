@@ -1,12 +1,12 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
 import { layout } from 'shared/styles/constants';
 import Toast from './components/Toast';
 
 @observer
-class Toasts extends Component {
+class Toasts extends React.Component<*> {
   handleClose = index => {
     this.props.errors.remove(index);
   };

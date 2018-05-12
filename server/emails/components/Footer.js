@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { Table, TBody, TR, TD } from 'oy-vey';
 import { color } from '../../../shared/styles/constants';
 import { twitterUrl, spectrumUrl } from '../../../shared/utils/routeHelpers';

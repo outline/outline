@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
@@ -10,22 +10,21 @@ import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 
 type Props = {
-  label: React.Element<*>,
+  label: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
-  children?: React.Element<*>,
+  children?: React.Node,
   className?: string,
   style?: Object,
 };
 
 @observer
-class DropdownMenu extends Component {
-  props: Props;
+class DropdownMenu extends React.Component<Props> {
   @observable top: number;
   @observable right: number;
 
-  handleOpen = (openPortal: SyntheticEvent => *) => {
-    return (ev: SyntheticMouseEvent) => {
+  handleOpen = (openPortal: (SyntheticEvent<*>) => *) => {
+    return (ev: SyntheticMouseEvent<*>) => {
       ev.preventDefault();
       const currentTarget = ev.currentTarget;
       invariant(document.body, 'why you not here');

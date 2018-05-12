@@ -1,20 +1,20 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
+import { MoreIcon } from 'outline-icons';
 
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import importFile from 'utils/importFile';
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
-import MoreIcon from 'components/Icon/MoreIcon';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
-  label?: React$Element<*>,
-  onOpen?: () => void,
-  onClose?: () => void,
+  label?: React.Node,
+  onOpen?: () => *,
+  onClose?: () => *,
   history: Object,
   ui: UiStore,
   documents: DocumentsStore,
@@ -22,24 +22,23 @@ type Props = {
 };
 
 @observer
-class CollectionMenu extends Component {
-  props: Props;
+class CollectionMenu extends React.Component<Props> {
   file: HTMLInputElement;
 
-  onNewDocument = (ev: SyntheticEvent) => {
+  onNewDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { collection, history } = this.props;
     history.push(`${collection.url}/new`);
   };
 
-  onImportDocument = (ev: SyntheticEvent) => {
+  onImportDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
 
     // simulate a click on the file upload input element
     this.file.click();
   };
 
-  onFilePicked = async (ev: SyntheticEvent) => {
+  onFilePicked = async (ev: SyntheticEvent<*>) => {
     const files = getDataTransferFiles(ev);
     const document = await importFile({
       file: files[0],
@@ -50,13 +49,13 @@ class CollectionMenu extends Component {
     this.props.history.push(document.url);
   };
 
-  onEdit = (ev: SyntheticEvent) => {
+  onEdit = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { collection } = this.props;
     this.props.ui.setActiveModal('collection-edit', { collection });
   };
 
-  onDelete = (ev: SyntheticEvent) => {
+  onDelete = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { collection } = this.props;
     this.props.ui.setActiveModal('collection-delete', { collection });

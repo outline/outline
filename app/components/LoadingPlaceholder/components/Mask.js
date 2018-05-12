@@ -1,12 +1,12 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import styled from 'styled-components';
 import { pulsate } from 'shared/styles/animations';
 import { color } from 'shared/styles/constants';
 import { randomInteger } from 'shared/random';
 import Flex from 'shared/components/Flex';
 
-class Mask extends Component {
+class Mask extends React.Component<*> {
   width: number;
 
   shouldComponentUpdate() {

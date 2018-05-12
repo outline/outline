@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { Redirect } from 'react-router-dom';
 import AuthStore from 'stores/AuthStore';

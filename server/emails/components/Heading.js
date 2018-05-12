@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 
 const style = {
   fontWeight: 500,
@@ -7,7 +7,7 @@ const style = {
 };
 
 type Props = {
-  children: React$Element<*>,
+  children: React.Node,
 };
 
 export default ({ children }: Props) => (

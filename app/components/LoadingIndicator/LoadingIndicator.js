@@ -1,9 +1,9 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { inject, observer } from 'mobx-react';
 
 @observer
-class LoadingIndicator extends React.Component {
+class LoadingIndicator extends React.Component<*> {
   componentDidMount() {
     this.props.ui.enableProgressBar();
   }

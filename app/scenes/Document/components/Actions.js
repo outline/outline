@@ -1,14 +1,14 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
+import { NewDocumentIcon } from 'outline-icons';
 
+import { color } from 'shared/styles/constants';
 import Document from 'models/Document';
 import { documentEditUrl, documentNewUrl } from 'utils/routeHelpers';
 
 import DocumentMenu from 'menus/DocumentMenu';
 import Collaborators from 'components/Collaborators';
-import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
 import Actions, { Action, Separator } from 'components/Actions';
 
 type Props = {
@@ -20,15 +20,14 @@ type Props = {
   savingIsDisabled: boolean,
   onDiscard: () => *,
   onSave: ({
-    redirect?: boolean,
+    done?: boolean,
     publish?: boolean,
+    autosave?: boolean,
   }) => *,
   history: Object,
 };
 
-class DocumentActions extends React.Component {
-  props: Props;
-
+class DocumentActions extends React.Component<Props> {
   handleNewDocument = () => {
     this.props.history.push(documentNewUrl(this.props.document));
   };
@@ -38,11 +37,11 @@ class DocumentActions extends React.Component {
   };
 
   handleSave = () => {
-    this.props.onSave({ redirect: true });
+    this.props.onSave({ done: true });
   };
 
   handlePublish = () => {
-    this.props.onSave({ redirect: true, publish: true });
+    this.props.onSave({ done: true, publish: true });
   };
 
   render() {
@@ -100,7 +99,7 @@ class DocumentActions extends React.Component {
         )}
         {!isEditing && (
           <Action>
-            <DocumentMenu document={document} />
+            <DocumentMenu document={document} showPrint />
           </Action>
         )}
         {!isEditing &&

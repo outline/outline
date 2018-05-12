@@ -4,9 +4,10 @@ import { sequelize } from '../sequelize';
 
 export function flushdb() {
   const sql = sequelize.getQueryInterface();
-  const tables = Object.keys(sequelize.models).map(model =>
-    sql.quoteTable(sequelize.models[model].getTableName())
-  );
+  const tables = Object.keys(sequelize.models).map(model => {
+    const n = sequelize.models[model].getTableName();
+    return sql.quoteTable(typeof n === 'string' ? n : n.tableName);
+  });
 
   const query = `TRUNCATE ${tables.join(', ')} CASCADE`;
   return sequelize.query(query);

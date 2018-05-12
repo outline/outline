@@ -1,5 +1,5 @@
-// flow-typed signature: b3b804f1ba0cd2d05171763e91ad594a
-// flow-typed version: 94e9f7e0a4/http-errors_v1.x.x/flow_>=v0.28.x
+// flow-typed signature: 573c576fe34eb3c3c65dd7a9c90a46d2
+// flow-typed version: b43dff3e0e/http-errors_v1.x.x/flow_>=v0.25.x
 
 declare module 'http-errors' {
   declare class SpecialHttpError extends HttpError {

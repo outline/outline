@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Link } from 'react-router-dom';
@@ -15,22 +15,23 @@ import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
 import Subheading from 'components/Subheading';
 
+type Props = {
+  apiKeys: ApiKeysStore,
+};
+
 @observer
-class Tokens extends Component {
+class Tokens extends React.Component<Props> {
   @observable name: string = '';
-  props: {
-    apiKeys: ApiKeysStore,
-  };
 
   componentDidMount() {
     this.props.apiKeys.fetchPage({ limit: 100 });
   }
 
-  handleUpdate = (ev: SyntheticInputEvent) => {
+  handleUpdate = (ev: SyntheticInputEvent<*>) => {
     this.name = ev.target.value;
   };
 
-  handleSubmit = async (ev: SyntheticEvent) => {
+  handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     await this.props.apiKeys.createApiKey(this.name);
     this.name = '';

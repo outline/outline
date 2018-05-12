@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import styled from 'styled-components';
 
 type JustifyValues =
@@ -22,7 +22,7 @@ type Props = {
   justify?: JustifyValues,
   auto?: ?boolean,
   className?: string,
-  children?: React$Element<*>,
+  children?: React.Node,
 };
 
 const Flex = (props: Props) => {

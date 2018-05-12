@@ -1,12 +1,12 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 import invariant from 'invariant';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
+import { GoToIcon } from 'outline-icons';
 
+import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
-import GoToIcon from 'components/Icon/GoToIcon';
 
 import Document from 'models/Document';
 
@@ -49,10 +49,8 @@ type Props = {
 };
 
 @observer
-class PathToDocument extends React.Component {
-  props: Props;
-
-  handleClick = async (ev: SyntheticEvent) => {
+class PathToDocument extends React.Component<Props> {
+  handleClick = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { document, result, onSuccess } = this.props;
 

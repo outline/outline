@@ -1,11 +1,12 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { newDocumentUrl } from 'utils/routeHelpers';
+import { CollectionIcon, NewDocumentIcon, PinIcon } from 'outline-icons';
 
+import { newDocumentUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
@@ -15,9 +16,6 @@ import Search from 'scenes/Search';
 import CollectionMenu from 'menus/CollectionMenu';
 import Actions, { Action, Separator } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
-import CollectionIcon from 'components/Icon/CollectionIcon';
-import NewDocumentIcon from 'components/Icon/NewDocumentIcon';
-import PinIcon from 'components/Icon/PinIcon';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
@@ -35,8 +33,7 @@ type Props = {
 };
 
 @observer
-class CollectionScene extends Component {
-  props: Props;
+class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
 
@@ -76,7 +73,7 @@ class CollectionScene extends Component {
     this.isFetching = false;
   };
 
-  onNewDocument = (ev: SyntheticEvent) => {
+  onNewDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
 
     if (this.collection) {

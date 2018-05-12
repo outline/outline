@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import styled from 'styled-components';
 import { darken } from 'polished';
 import { color } from 'shared/styles/constants';
@@ -12,9 +12,8 @@ type Props = {
   type: 'warning' | 'error' | 'info',
 };
 
-class Toast extends Component {
-  timeout: number;
-  props: Props;
+class Toast extends React.Component<Props> {
+  timeout: TimeoutID;
 
   static defaultProps = {
     closeAfterMs: 3000,

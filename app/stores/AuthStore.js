@@ -81,7 +81,7 @@ class AuthStore {
   authWithSlack = async (code: string, state: string) => {
     // in the case of direct install from the Slack app store the state is
     // created on the server and set as a cookie
-    const serverState = Cookie.get('state', { path: '/' });
+    const serverState = Cookie.get('state');
     if (state !== this.oauthState && state !== serverState) {
       return {
         success: false,

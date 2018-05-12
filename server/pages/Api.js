@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import Grid from 'styled-components-grid';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
@@ -425,7 +425,25 @@ export default function Pricing() {
                 id="publish"
                 description={
                   <span>
-                    Pass <code>true</code> to publish a draft
+                    Pass <code>true</code> to publish a draft.
+                  </span>
+                }
+              />
+              <Argument
+                id="autosave"
+                description={
+                  <span>
+                    Pass <code>true</code> to signify an autosave. This skips
+                    creating a revision.
+                  </span>
+                }
+              />
+              <Argument
+                id="done"
+                description={
+                  <span>
+                    Pass <code>true</code> to signify the end of an editing
+                    session. This will trigger documents.update hooks.
                   </span>
                 }
               />
@@ -589,7 +607,7 @@ const MethodList = styled.ul`
   margin-bottom: 80px;
 `;
 
-const Methods = (props: { children: React.Element<*> }) => {
+const Methods = (props: { children: React.Node }) => {
   const children = React.Children.toArray(props.children);
   const methods = children.map(child => child.props.method);
 
@@ -618,16 +636,16 @@ const Request = styled.h4`
 type MethodProps = {
   method: string,
   label: string,
-  children: React.Element<*>,
+  children: React.Node,
 };
 
-const Description = (props: { children: React.Element<*> }) => (
+const Description = (props: { children: React.Node }) => (
   <p>{props.children}</p>
 );
 
 type ArgumentsProps = {
   pagination?: boolean,
-  children?: React.Element<*> | string,
+  children?: React.Node | string,
 };
 
 const Arguments = (props: ArgumentsProps) => (
@@ -673,7 +691,7 @@ const Method = (props: MethodProps) => {
 type ArgumentProps = {
   id: string,
   required?: boolean,
-  description: React.Element<*> | string,
+  description: React.Node | string,
 };
 
 const Argument = (props: ArgumentProps) => (

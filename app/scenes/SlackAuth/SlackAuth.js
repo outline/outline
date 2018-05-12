@@ -1,5 +1,5 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import queryString from 'query-string';
@@ -16,8 +16,7 @@ type Props = {
 };
 
 @observer
-class SlackAuth extends React.Component {
-  props: Props;
+class SlackAuth extends React.Component<Props> {
   @observable redirectTo: string;
 
   componentDidMount() {

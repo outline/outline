@@ -1,5 +1,5 @@
 // @flow
-import React, { Component } from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import Document from 'models/Document';
@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
-import StarredIcon from 'components/Icon/StarredIcon';
+import { StarredIcon } from 'outline-icons';
 import PublishingInfo from './components/PublishingInfo';
 import DocumentMenu from 'menus/DocumentMenu';
 
@@ -89,16 +89,14 @@ const Actions = styled(Flex)`
 `;
 
 @observer
-class DocumentPreview extends Component {
-  props: Props;
-
-  star = (ev: SyntheticEvent) => {
+class DocumentPreview extends React.Component<Props> {
+  star = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.document.star();
   };
 
-  unstar = (ev: SyntheticEvent) => {
+  unstar = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.document.unstar();
