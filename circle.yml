@@ -1,6 +1,6 @@
 machine:
   node:
-    version: 8.0
+    version: 8.11
   services:
     - redis
   environment:
