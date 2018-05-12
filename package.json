@@ -163,7 +163,7 @@
     "react-waypoint": "^7.3.1",
     "redis": "^2.6.2",
     "redis-lock": "^0.1.0",
-    "rich-markdown-editor": "^0.2.2",
+    "rich-markdown-editor": "^0.2.6",
     "rimraf": "^2.5.4",
     "safestart": "1.1.0",
     "sequelize": "4.28.6",
