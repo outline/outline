@@ -3,6 +3,7 @@ var path = require('path');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 var ManifestPlugin = require('webpack-manifest-plugin');
 
 commonWebpackConfig = require('./webpack.config');
@@ -25,8 +26,11 @@ productionWebpackConfig.plugins = [
     template: 'server/static/index.html',
   }),
   new ExtractTextPlugin({ filename: 'styles.[hash].css' }),
-  new webpack.optimize.UglifyJsPlugin({
+  new UglifyJsPlugin({
     sourceMap: true,
+    uglifyOptions: {
+      compress: true
+    }
   }),
   new webpack.DefinePlugin({
     'process.env': {

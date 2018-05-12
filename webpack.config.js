@@ -34,7 +34,7 @@ module.exports = {
         include: [
           path.join(__dirname, 'app'),
           path.join(__dirname, 'shared'),
-        ],
+        ]
       },
       { test: /\.json$/, loader: 'json-loader' },
       // inline base64 URLs for <=8k images, direct URLs for the rest
