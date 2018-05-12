@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:8.11
 
 ENV APP_PATH /opt/outline
 RUN mkdir -p $APP_PATH
