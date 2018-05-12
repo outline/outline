@@ -48,6 +48,7 @@ class MainSidebar extends React.Component<Props> {
               subheading={user.name}
               teamName={team.name}
               logoUrl={team.avatarUrl}
+              showDisclosure
             />
           }
         />
