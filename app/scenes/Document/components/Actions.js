@@ -20,8 +20,9 @@ type Props = {
   savingIsDisabled: boolean,
   onDiscard: () => *,
   onSave: ({
-    redirect?: boolean,
+    done?: boolean,
     publish?: boolean,
+    autosave?: boolean,
   }) => *,
   history: Object,
 };
@@ -36,11 +37,11 @@ class DocumentActions extends React.Component<Props> {
   };
 
   handleSave = () => {
-    this.props.onSave({ redirect: true });
+    this.props.onSave({ done: true });
   };
 
   handlePublish = () => {
-    this.props.onSave({ redirect: true, publish: true });
+    this.props.onSave({ done: true, publish: true });
   };
 
   render() {

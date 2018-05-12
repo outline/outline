@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observable, action } from 'mobx';
 import { observer } from 'mobx-react';
-import { NavLink } from 'react-router-dom';
+import { withRouter, NavLink } from 'react-router-dom';
 import { CollapsedIcon } from 'outline-icons';
 import { color, fontWeight } from 'shared/styles/constants';
 import styled from 'styled-components';
@@ -59,6 +59,7 @@ type Props = {
   active?: boolean,
 };
 
+@withRouter
 @observer
 class SidebarLink extends React.Component<Props> {
   @observable expanded: boolean = false;

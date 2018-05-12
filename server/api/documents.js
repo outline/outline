@@ -334,7 +334,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, publish, done, lastRevision } = ctx.body;
+  const { id, title, text, publish, autosave, done, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -355,7 +355,7 @@ router.post('documents.update', auth(), async ctx => {
   if (publish) {
     await document.publish();
   } else {
-    await document.save();
+    await document.save({ autosave });
 
     if (document.publishedAt && done) {
       events.add({ name: 'documents.update', model: document });

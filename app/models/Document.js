@@ -11,6 +11,8 @@ import type { User } from 'types';
 import BaseModel from './BaseModel';
 import Collection from './Collection';
 
+type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
+
 class Document extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
@@ -168,8 +170,10 @@ class Document extends BaseModel {
   };
 
   @action
-  save = async (publish: boolean = false, done: boolean = false) => {
+  save = async (options: SaveOptions) => {
     if (this.isSaving) return this;
+
+    const wasDraft = !this.publishedAt;
     this.isSaving = true;
 
     try {
@@ -180,8 +184,7 @@ class Document extends BaseModel {
           title: this.title,
           text: this.text,
           lastRevision: this.revision,
-          publish,
-          done,
+          ...options,
         });
       } else {
         const data = {
@@ -189,8 +192,7 @@ class Document extends BaseModel {
           collection: this.collection.id,
           title: this.title,
           text: this.text,
-          publish,
-          done,
+          ...options,
         };
         if (this.parentDocument) {
           data.parentDocument = this.parentDocument;
@@ -204,12 +206,19 @@ class Document extends BaseModel {
         this.hasPendingChanges = false;
       });
 
-      this.emit('collections.update', {
-        id: this.collection.id,
-        collection: this.collection,
+      this.emit('documents.update', {
+        document: this,
+        collectionId: this.collection.id,
       });
+
+      if (wasDraft && this.publishedAt) {
+        this.emit('documents.publish', {
+          id: this.id,
+          collectionId: this.collection.id,
+        });
+      }
     } catch (e) {
-      this.errors.add('Document failed saving');
+      this.errors.add('Document failed to save');
     } finally {
       this.isSaving = false;
     }
