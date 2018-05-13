@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react';
-import get from 'lodash/get';
 import debounce from 'lodash/debounce';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
@@ -26,7 +25,6 @@ import Actions from './components/Actions';
 import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
-import CollectionsStore from 'stores/CollectionsStore';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
@@ -44,7 +42,6 @@ type Props = {
   history: Object,
   location: Location,
   documents: DocumentsStore,
-  collections: CollectionsStore,
   newDocument?: boolean,
   ui: UiStore,
 };
@@ -237,19 +234,19 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
+    const { location, match } = this.props;
     const Editor = this.editorComponent;
-    const isMoving = this.props.match.path === matchDocumentMove;
+    const isMoving = match.path === matchDocumentMove;
     const document = this.document;
-    const titleText =
-      get(document, 'title', '') ||
-      this.props.collections.titleForDocument(this.props.location.pathname);
+    const titleFromState = location.state ? location.state.title : '';
+    const titleText = document ? document.title : titleFromState;
 
     if (this.notFound) {
       return <Search notFound />;
     }
 
     return (
-      <Container key={this.props.location.pathname} column auto>
+      <Container key={location.pathname} column auto>
         {isMoving && document && <DocumentMove document={document} />}
         {titleText && <PageTitle title={titleText} />}
         {(this.isLoading || this.isSaving) && <LoadingIndicator />}
@@ -322,6 +319,4 @@ const LoadingState = styled(LoadingPlaceholder)`
   margin: 90px 0;
 `;
 
-export default withRouter(
-  inject('ui', 'user', 'documents', 'collections')(DocumentScene)
-);
+export default withRouter(inject('ui', 'user', 'documents')(DocumentScene));

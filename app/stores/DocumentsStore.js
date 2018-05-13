@@ -1,29 +1,18 @@
 // @flow
-import {
-  observable,
-  action,
-  computed,
-  ObservableMap,
-  runInAction,
-  autorunAsync,
-} from 'mobx';
+import { observable, action, computed, ObservableMap, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
-import stores from 'stores';
 import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
-import CacheStore from 'stores/CacheStore';
 import UiStore from 'stores/UiStore';
 import type { PaginationParams } from 'types';
 
-const DOCUMENTS_CACHE_KEY = 'DOCUMENTS_CACHE_KEY';
 export const DEFAULT_PAGINATION_LIMIT = 25;
 
 type Options = {
-  cache: CacheStore,
   ui: UiStore,
 };
 
@@ -35,7 +24,6 @@ class DocumentsStore extends BaseStore {
   @observable isFetching: boolean = false;
 
   errors: ErrorsStore;
-  cache: CacheStore;
   ui: UiStore;
 
   /* Computed */
@@ -228,15 +216,8 @@ class DocumentsStore extends BaseStore {
   constructor(options: Options) {
     super();
 
-    this.errors = stores.errors;
-    this.cache = options.cache;
+    this.errors = options.errors;
     this.ui = options.ui;
-
-    this.cache.getItem(DOCUMENTS_CACHE_KEY).then(data => {
-      if (data) {
-        data.forEach(document => this.add(new Document(document)));
-      }
-    });
 
     this.on('documents.delete', (data: { id: string }) => {
       this.remove(data.id);
@@ -253,15 +234,6 @@ class DocumentsStore extends BaseStore {
     this.on('documents.delete', () => {
       this.fetchRecentlyModified();
       this.fetchRecentlyViewed();
-    });
-
-    autorunAsync('DocumentsStore.persists', () => {
-      if (this.data.size) {
-        this.cache.setItem(
-          DOCUMENTS_CACHE_KEY,
-          Array.from(this.data.values()).map(collection => collection.data)
-        );
-      }
     });
   }
 }

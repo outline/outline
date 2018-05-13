@@ -112,7 +112,14 @@ class DocumentPreview extends React.Component<Props> {
     } = this.props;
 
     return (
-      <DocumentLink to={document.url} innerRef={innerRef} {...rest}>
+      <DocumentLink
+        to={{
+          pathname: document.url,
+          state: { title: document.title },
+        }}
+        innerRef={innerRef}
+        {...rest}
+      >
         <Heading>
           <Highlight text={document.title} highlight={highlight} />
           {document.publishedAt && (

@@ -68,6 +68,11 @@ if (element) {
                 />
                 <Route exact path="/auth/slack/post" component={SlackAuth} />
                 <Route exact path="/auth/error" component={ErrorAuth} />
+                <Route
+                  exact
+                  path={`/share/${matchDocumentSlug}`}
+                  component={Document}
+                />
                 <Auth>
                   <Layout>
                     <Switch>

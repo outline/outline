@@ -46,7 +46,7 @@ const StyledNavLink = styled(NavLink)`
 const StyledDiv = StyledNavLink.withComponent('div');
 
 type Props = {
-  to?: string,
+  to?: string | Object,
   onClick?: (SyntheticEvent<*>) => *,
   children?: React.Node,
   icon?: React.Node,
@@ -59,7 +59,6 @@ type Props = {
   active?: boolean,
 };
 
-@withRouter
 @observer
 class SidebarLink extends React.Component<Props> {
   @observable expanded: boolean = false;
@@ -158,4 +157,4 @@ const Content = styled.div`
   width: 100%;
 `;
 
-export default SidebarLink;
+export default withRouter(SidebarLink);
