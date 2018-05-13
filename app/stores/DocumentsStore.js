@@ -14,6 +14,12 @@ export const DEFAULT_PAGINATION_LIMIT = 25;
 
 type Options = {
   ui: UiStore,
+  errors: ErrorsStore,
+};
+
+type FetchOptions = {
+  prefetch?: boolean,
+  shareId?: string,
 };
 
 class DocumentsStore extends BaseStore {
@@ -166,15 +172,20 @@ class DocumentsStore extends BaseStore {
 
   @action
   prefetchDocument = async (id: string) => {
-    if (!this.getById(id)) this.fetch(id, true);
+    if (!this.getById(id)) {
+      this.fetch(id, { prefetch: true });
+    }
   };
 
   @action
-  fetch = async (id: string, prefetch?: boolean): Promise<*> => {
-    if (!prefetch) this.isFetching = true;
+  fetch = async (id: string, options?: FetchOptions = {}): Promise<*> => {
+    if (!options.prefetch) this.isFetching = true;
 
     try {
-      const res = await client.post('/documents.info', { id });
+      const res = await client.post('/documents.info', {
+        id,
+        shareId: options.shareId,
+      });
       invariant(res && res.data, 'Document not available');
       const { data } = res;
       const document = new Document(data);
@@ -186,7 +197,7 @@ class DocumentsStore extends BaseStore {
 
       return document;
     } catch (e) {
-      this.errors.add('Failed to load documents');
+      this.errors.add('Failed to load document');
     } finally {
       this.isFetching = false;
     }

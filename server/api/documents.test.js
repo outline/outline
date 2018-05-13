@@ -3,7 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '..';
 import { Document, View, Star, Revision } from '../models';
 import { flushdb, seed } from '../test/support';
-import { buildUser } from '../test/factories';
+import { buildShare, buildUser } from '../test/factories';
 
 const server = new TestServer(app.callback());
 
@@ -29,6 +29,22 @@ describe('#documents.info', async () => {
 
     const res = await server.post('/api/documents.info', {
       body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+  });
+
+  it('should return documents from shareId', async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), shareId: share.id },
     });
     const body = await res.json();
 

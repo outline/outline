@@ -4,7 +4,7 @@ import Sequelize from 'sequelize';
 import auth from './middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
-import { Document, Collection, Star, View, Revision } from '../models';
+import { Document, Collection, Share, Star, View, Revision } from '../models';
 import { InvalidRequestError } from '../errors';
 import events from '../events';
 import policy from '../policies';
@@ -157,12 +157,26 @@ router.post('documents.drafts', auth(), pagination(), async ctx => {
   };
 });
 
-router.post('documents.info', auth(), async ctx => {
-  const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
-  const document = await Document.findById(id);
+router.post('documents.info', auth({ required: false }), async ctx => {
+  const { id, shareId } = ctx.body;
+  ctx.assertPresent(id || shareId, 'id or shareId is required');
 
-  authorize(ctx.state.user, 'read', document);
+  let document;
+  if (shareId) {
+    const share = await Share.findById(shareId, {
+      include: [
+        {
+          model: Document,
+          required: true,
+          as: 'document',
+        },
+      ],
+    });
+    document = share.document;
+  } else {
+    document = await Document.findById(id);
+    authorize(ctx.state.user, 'read', document);
+  }
 
   ctx.body = {
     data: await presentDocument(ctx, document),
