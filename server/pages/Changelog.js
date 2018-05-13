@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import format from 'date-fns/format';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import ReactMarkdown from 'react-markdown';
@@ -7,7 +8,14 @@ import { Helmet } from 'react-helmet';
 import Header from './components/Header';
 import { color } from '../../shared/styles/constants';
 
-function Changelog({ body }: { body: string }) {
+type Release = {
+  id: string,
+  name: string,
+  body: string,
+  created_at: string,
+};
+
+function Changelog({ releases }: { releases: Release[] }) {
   return (
     <Grid>
       <Helmet>
@@ -19,21 +27,40 @@ function Changelog({ body }: { body: string }) {
           We’re building in public. Here’s what we’ve been changing recently.
         </p>
       </Header>
-      <Container source={body} />
+      <Container>
+        {releases.map(release => (
+          <Article key={release.id}>
+            <h1>{release.name}</h1>
+            <Time datetime={release.created_at}>
+              {format(new Date(release.created_at), 'MMMM Do, YYYY')}
+            </Time>
+            <ReactMarkdown source={release.body} />
+          </Article>
+        ))}
+      </Container>
     </Grid>
   );
 }
 
-const Container = styled(ReactMarkdown)`
+const Time = styled.time`
+  color: ${color.slateDark};
+  margin-top: -16px;
+  display: block;
+`;
+
+const Container = styled.div`
   width: 100%;
   max-width: 720px;
   margin: 0 auto;
   padding: 0 2em;
+`;
 
-  hr {
-    border: 0;
-    border-bottom: 1px solid ${color.slateLight};
-    margin: 4em 0;
+const Article = styled.div`
+  border-bottom: 1px solid ${color.slateLight};
+  padding-bottom: 2em;
+
+  &:last-child {
+    border-bottom: 0;
   }
 `;
 

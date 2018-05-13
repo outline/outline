@@ -68,9 +68,11 @@ router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
 router.get('/developers', ctx => renderpage(ctx, <Api />));
 router.get('/privacy', ctx => renderpage(ctx, <Privacy />));
 router.get('/changelog', async ctx => {
-  const data = await fs.readFile(path.join(__dirname, '../CHANGELOG.md'));
-  const body = data.toString();
-  return renderpage(ctx, <Changelog body={body} />);
+  const data = await fetch(
+    'https://api.github.com/repos/outline/outline/releases'
+  );
+  const releases = await data.json();
+  return renderpage(ctx, <Changelog releases={releases} />);
 });
 
 // home page
