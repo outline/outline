@@ -12,6 +12,7 @@ import documents from './documents';
 import views from './views';
 import hooks from './hooks';
 import apiKeys from './apiKeys';
+import shares from './shares';
 import team from './team';
 import integrations from './integrations';
 
@@ -74,6 +75,7 @@ router.use('/', documents.routes());
 router.use('/', views.routes());
 router.use('/', hooks.routes());
 router.use('/', apiKeys.routes());
+router.use('/', shares.routes());
 router.use('/', team.routes());
 router.use('/', integrations.routes());
 
