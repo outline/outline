@@ -61,4 +61,18 @@ router.post('shares.create', auth(), async ctx => {
   };
 });
 
+router.post('shares.delete', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const share = await Share.findById(id);
+  authorize(ctx.state.user, 'delete', share);
+
+  await share.destroy();
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 export default router;

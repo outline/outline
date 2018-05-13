@@ -2,7 +2,7 @@
 import TestServer from 'fetch-test-server';
 import app from '..';
 import { flushdb, seed } from '../test/support';
-import { buildUser } from '../test/factories';
+import { buildUser, buildShare } from '../test/factories';
 
 const server = new TestServer(app.callback());
 
@@ -11,11 +11,20 @@ afterAll(server.close);
 
 describe('#shares.list', async () => {
   it('should return a list of shares', async () => {
-    const { user } = await seed();
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
     const res = await server.post('/api/shares.list', {
       body: { token: user.getJwtToken() },
     });
+    const body = await res.json();
+
     expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(share.id);
+    expect(body.data[0].documentTitle).toBe(document.title);
   });
 
   it('should require authentication', async () => {
