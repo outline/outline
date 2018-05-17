@@ -40,6 +40,7 @@ class Document extends BaseModel {
   parentDocument: ?string;
   publishedAt: ?string;
   url: string;
+  shareUrl: ?string;
   views: number;
   revision: number;
 
@@ -100,6 +101,18 @@ class Document extends BaseModel {
   }
 
   /* Actions */
+
+  @action
+  share = async () => {
+    try {
+      const res = await client.post('/shares.create', { id: this.id });
+      invariant(res && res.data, 'Document API response should be available');
+
+      this.shareUrl = res.data.url;
+    } catch (e) {
+      this.errors.add('Document failed to share');
+    }
+  };
 
   @action
   pin = async () => {
