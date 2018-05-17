@@ -182,6 +182,9 @@ class DocumentsStore extends BaseStore {
     if (!options.prefetch) this.isFetching = true;
 
     try {
+      const doc = this.getById(id) || this.getByUrl(id);
+      if (doc) return doc;
+
       const res = await client.post('/documents.info', {
         id,
         shareId: options.shareId,

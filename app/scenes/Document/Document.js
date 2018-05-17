@@ -24,6 +24,7 @@ import Document from 'models/Document';
 import Actions from './components/Actions';
 import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
+import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -43,6 +44,7 @@ type Props = {
   location: Location,
   documents: DocumentsStore,
   newDocument?: boolean,
+  auth: AuthStore,
   ui: UiStore,
 };
 
@@ -52,6 +54,7 @@ class DocumentScene extends React.Component<Props> {
 
   @observable editorComponent;
   @observable editCache: ?string;
+  @observable document: ?Document;
   @observable newDocument: ?Document;
   @observable isLoading = false;
   @observable isSaving = false;
@@ -87,7 +90,7 @@ class DocumentScene extends React.Component<Props> {
 
   loadDocument = async props => {
     if (props.newDocument) {
-      const newDocument = new Document({
+      this.document = new Document({
         collection: { id: props.match.params.id },
         parentDocument: new URLSearchParams(props.location.search).get(
           'parentDocument'
@@ -95,32 +98,30 @@ class DocumentScene extends React.Component<Props> {
         title: '',
         text: '',
       });
-      this.newDocument = newDocument;
     } else {
-      let document = this.getDocument(props.match.params.documentSlug);
+      this.document = await this.props.documents.fetch(
+        props.match.params.documentSlug,
+        { shareId: props.match.params.shareId }
+      );
 
-      if (document) {
-        this.props.documents.fetch(props.match.params.documentSlug);
-        this.props.ui.setActiveDocument(document);
-      } else {
-        document = await this.props.documents.fetch(
-          props.match.params.documentSlug
-        );
-      }
+      const document = this.document;
 
       if (document) {
         this.props.ui.setActiveDocument(document);
 
         // Cache data if user enters edit mode and cancels
         this.editCache = document.text;
-        if (!this.isEditing && document.publishedAt) {
-          document.view();
-        }
 
-        // Update url to match the current one
-        this.props.history.replace(
-          updateDocumentUrl(props.match.url, document.url)
-        );
+        if (this.props.auth.user) {
+          if (!this.isEditing && document.publishedAt) {
+            document.view();
+          }
+
+          // Update url to match the current one
+          this.props.history.replace(
+            updateDocumentUrl(props.match.url, document.url)
+          );
+        }
       } else {
         // Render 404 with search
         this.notFound = true;
@@ -134,20 +135,12 @@ class DocumentScene extends React.Component<Props> {
   };
 
   get isEditing() {
+    const document = this.document;
+
     return !!(
-      this.props.match.path === matchDocumentEdit || this.props.newDocument
+      this.props.match.path === matchDocumentEdit ||
+      (document && !document.id)
     );
-  }
-
-  getDocument(documentSlug: ?string) {
-    if (this.newDocument) return this.newDocument;
-    return this.props.documents.getByUrl(
-      `/doc/${documentSlug || this.props.match.params.documentSlug}`
-    );
-  }
-
-  get document() {
-    return this.getDocument();
   }
 
   handleCloseMoveModal = () => (this.moveModalOpen = false);
@@ -159,6 +152,7 @@ class DocumentScene extends React.Component<Props> {
     let document = this.document;
     if (!document || !document.allowSave) return;
 
+    let isNew = !document.id;
     this.editCache = null;
     this.isSaving = true;
     this.isPublishing = !!options.publish;
@@ -169,7 +163,7 @@ class DocumentScene extends React.Component<Props> {
     if (options.done) {
       this.props.history.push(document.url);
       this.props.ui.setActiveDocument(document);
-    } else if (this.props.newDocument) {
+    } else if (isNew) {
       this.props.history.push(documentEditUrl(document));
       this.props.ui.setActiveDocument(document);
     }
@@ -246,7 +240,7 @@ class DocumentScene extends React.Component<Props> {
     }
 
     return (
-      <Container key={location.pathname} column auto>
+      <Container key={document ? document.id : undefined} column auto>
         {isMoving && document && <DocumentMove document={document} />}
         {titleText && <PageTitle title={titleText} />}
         {(this.isLoading || this.isSaving) && <LoadingIndicator />}
@@ -319,4 +313,4 @@ const LoadingState = styled(LoadingPlaceholder)`
   margin: 90px 0;
 `;
 
-export default withRouter(inject('ui', 'user', 'documents')(DocumentScene));
+export default withRouter(inject('ui', 'auth', 'documents')(DocumentScene));

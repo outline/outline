@@ -172,6 +172,8 @@ router.post('documents.info', auth({ required: false }), async ctx => {
         },
       ],
     });
+
+    // TODO: REMOVE COLLECTION AND COLLABORATOR INFO
     document = share.document;
   } else {
     document = await Document.findById(id);
