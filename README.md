@@ -63,12 +63,13 @@ Outline is composed of separate backend and frontend application which are both 
 
 ### Frontend
 
-Outline's frontend is a React application compiled with [Webpack](https://webpack.js.org/). It uses [Mobx](https://mobx.js.org/) for state management and [Styled Components](https://www.styled-components.com/) for component styles. Unless global, state logic and styles are always co-located with React components together with their subcomponents to make the component tree easier to manage. The editor is driven by [Slate](https://github.com/ianstormtaylor/slate) with several plugins.
+Outline's frontend is a React application compiled with [Webpack](https://webpack.js.org/). It uses [Mobx](https://mobx.js.org/) for state management and [Styled Components](https://www.styled-components.com/) for component styles. Unless global, state logic and styles are always co-located with React components together with their subcomponents to make the component tree easier to manage.
+
+The editor itself is built ontop of [Slate](https://github.com/ianstormtaylor/slate) and hosted in a separate repository to encourage reuse: [rich-markdown-editor](https://github.com/outline/rich-markdown-editor)
 
 - `app/` - Frontend React application
 - `app/scenes` - Full page views
 - `app/components` - Reusable React components
-- `app/components/Editor` - Text editor and its plugins
 - `app/stores` - Global state stores
 - `app/models` - State models
 - `app/types` - Flow types for non-models
