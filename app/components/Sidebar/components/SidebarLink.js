@@ -59,7 +59,6 @@ type Props = {
   active?: boolean,
 };
 
-@withRouter
 @observer
 class SidebarLink extends React.Component<Props> {
   @observable expanded: boolean = false;
@@ -158,4 +157,4 @@ const Content = styled.div`
   width: 100%;
 `;
 
-export default SidebarLink;
+export default withRouter(SidebarLink);

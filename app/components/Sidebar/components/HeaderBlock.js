@@ -35,9 +35,9 @@ function HeaderBlock({
 }
 
 const StyledExpandedIcon = styled(ExpandedIcon)`
-  position: relative;
-  top: 6px;
-  left: -4px;
+  position: absolute;
+  right: 0;
+  top: 0;
 `;
 
 const Subheading = styled.div`
@@ -49,8 +49,9 @@ const Subheading = styled.div`
 `;
 
 const TeamName = styled.div`
+  position: relative;
   padding-left: 10px;
-  margin-top: ${props => (props.showDisclosure ? '-8px' : '0')};
+  padding-right: 24px;
   font-weight: 600;
   color: ${color.text};
   text-decoration: none;
