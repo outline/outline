@@ -9,6 +9,15 @@ export type User = {
   isSuspended?: boolean,
 };
 
+export type Share = {
+  id: string,
+  url: string,
+  documentTitle: string,
+  createdBy: User,
+  createdAt: string,
+  updatedAt: string,
+};
+
 export type Team = {
   id: string,
   name: string,

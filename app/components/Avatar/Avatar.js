@@ -6,9 +6,18 @@ import { observer } from 'mobx-react';
 import { color } from 'shared/styles/constants';
 import placeholder from './placeholder.png';
 
+type Props = {
+  src: string,
+  size: number,
+};
+
 @observer
-class Avatar extends React.Component<*> {
+class Avatar extends React.Component<Props> {
   @observable error: boolean;
+
+  static defaultProps = {
+    size: 24,
+  };
 
   handleError = () => {
     this.error = true;
@@ -17,7 +26,7 @@ class Avatar extends React.Component<*> {
   render() {
     return (
       <CircleImg
-        {...this.props}
+        size={this.props.size}
         onError={this.handleError}
         src={this.error ? placeholder : this.props.src}
       />
@@ -26,8 +35,8 @@ class Avatar extends React.Component<*> {
 }
 
 const CircleImg = styled.img`
-  width: 24px;
-  height: 24px;
+  width: ${props => props.size}px;
+  height: ${props => props.size}px;
   border-radius: 50%;
   border: 2px solid ${color.white};
   flex-shrink: 0;

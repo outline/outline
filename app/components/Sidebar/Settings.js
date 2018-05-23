@@ -1,7 +1,13 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { ProfileIcon, SettingsIcon, CodeIcon, UserIcon } from 'outline-icons';
+import {
+  ProfileIcon,
+  SettingsIcon,
+  CodeIcon,
+  UserIcon,
+  LinkIcon,
+} from 'outline-icons';
 
 import Flex from 'shared/components/Flex';
 import Sidebar, { Section } from './Sidebar';
@@ -50,6 +56,9 @@ class SettingsSidebar extends React.Component<Props> {
               <Header>Team</Header>
               <SidebarLink to="/settings/users" icon={<UserIcon />}>
                 Users
+              </SidebarLink>
+              <SidebarLink to="/settings/shares" icon={<LinkIcon />}>
+                Share Links
               </SidebarLink>
               <SidebarLink
                 to="/settings/integrations/slack"

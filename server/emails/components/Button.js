@@ -15,5 +15,9 @@ export default (props: Props) => {
     cursor: 'pointer',
   };
 
-  return <a {...props} style={style}>{props.children}</a>;
+  return (
+    <a {...props} style={style}>
+      {props.children}
+    </a>
+  );
 };
