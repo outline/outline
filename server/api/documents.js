@@ -428,7 +428,7 @@ router.post('documents.delete', auth(), async ctx => {
   authorize(ctx.state.user, 'delete', document);
 
   const collection = document.collection;
-  if (collection.type === 'atlas') {
+  if (collection && collection.type === 'atlas') {
     // Delete document and all of its children
     await collection.removeDocument(document);
   }

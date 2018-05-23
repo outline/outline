@@ -4,7 +4,7 @@
 <p align="center">
   <i>An open, extensible, wiki for your team built using React and Node.js.<br/>Try out Outline using our hosted version at <a href="https://www.getoutline.com">www.getoutline.com</a>.</i>
   <br/>
-  <img src="https://user-images.githubusercontent.com/31465/34456332-51e41eb0-ed9c-11e7-9fa9-20e7fa946494.jpg" alt="Outline" width="800" height="500">
+  <img src="https://user-images.githubusercontent.com/31465/34456332-51e41eb0-ed9c-11e7-9fa9-20e7fa946494.jpg" alt="Outline" width="800" />
 </p>
 <p align="center">
   <img src="https://circleci.com/gh/outline/outline.svg?style=shield&amp;circle-token=c0c4c2f39990e277385d5c1ae96169c409eb887a" alt="" data-canonical-src="" style="max-width:100%;">
@@ -63,12 +63,13 @@ Outline is composed of separate backend and frontend application which are both 
 
 ### Frontend
 
-Outline's frontend is a React application compiled with [Webpack](https://webpack.js.org/). It uses [Mobx](https://mobx.js.org/) for state management and [Styled Components](https://www.styled-components.com/) for component styles. Unless global, state logic and styles are always co-located with React components together with their subcomponents to make the component tree easier to manage. The editor is driven by [Slate](https://github.com/ianstormtaylor/slate) with several plugins.
+Outline's frontend is a React application compiled with [Webpack](https://webpack.js.org/). It uses [Mobx](https://mobx.js.org/) for state management and [Styled Components](https://www.styled-components.com/) for component styles. Unless global, state logic and styles are always co-located with React components together with their subcomponents to make the component tree easier to manage.
+
+The editor itself is built ontop of [Slate](https://github.com/ianstormtaylor/slate) and hosted in a separate repository to encourage reuse: [rich-markdown-editor](https://github.com/outline/rich-markdown-editor)
 
 - `app/` - Frontend React application
 - `app/scenes` - Full page views
 - `app/components` - Reusable React components
-- `app/components/Editor` - Text editor and its plugins
 - `app/stores` - Global state stores
 - `app/models` - State models
 - `app/types` - Flow types for non-models

@@ -29,7 +29,7 @@ class SettingsSidebar extends React.Component<Props> {
     return (
       <Sidebar>
         <HeaderBlock
-          subheading="◄ Return to Dashboard"
+          subheading="◄ Return to App"
           teamName={team.name}
           logoUrl={team.avatarUrl}
           onClick={this.returnToDashboard}

@@ -618,3 +618,41 @@ describe('#documents.update', async () => {
     expect(res.status).toEqual(403);
   });
 });
+
+describe('#documents.delete', async () => {
+  it('should allow deleting document', async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.delete', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+  });
+
+  it('should allow deleting document without collection', async () => {
+    const { user, document, collection } = await seed();
+
+    // delete collection without hooks to trigger document deletion
+    await collection.destroy({ hooks: false });
+    const res = await server.post('/api/documents.delete', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+  });
+
+  it('should require authentication', async () => {
+    const { document } = await seed();
+    const res = await server.post('/api/documents.delete', {
+      body: { id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+});

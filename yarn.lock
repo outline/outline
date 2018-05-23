@@ -8762,9 +8762,9 @@ retry-as-promised@^2.3.1:
     bluebird "^3.4.6"
     debug "^2.6.9"
 
-rich-markdown-editor@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-1.0.0.tgz#ae540474e8e4e86b41d339d20cee0572c9794d2b"
+rich-markdown-editor@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-1.1.0.tgz#178307255bba4777c5b0f991202b522e5e0850a1"
   dependencies:
     "@tommoor/slate-drop-or-paste-images" "^0.8.1"
     boundless-arrow-key-navigation "^1.1.0"
@@ -8778,11 +8778,11 @@ rich-markdown-editor@^1.0.0:
     react-keydown "^1.9.7"
     react-medium-image-zoom "^3.0.10"
     react-portal "^4.1.4"
-    slate "^0.32.5"
+    slate "^0.33.6"
     slate-collapse-on-escape "^0.6.0"
     slate-edit-code "^0.14.0"
     slate-edit-list "^0.11.2"
-    slate-md-serializer "3.0.4"
+    slate-md-serializer "3.1.0"
     slate-paste-linkify "^0.5.0"
     slate-plain-serializer "0.5.4"
     slate-prism "^0.5.0"
@@ -9143,13 +9143,9 @@ slate-edit-list@^0.11.2:
   version "0.11.2"
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.11.2.tgz#c67b961d98435f9f7747d20b870cbc51d25af7a8"
 
-slate-md-serializer@3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-3.0.3.tgz#194aaf74b8c5158cdd45f8d2394a1a1574acaf83"
-
-slate-md-serializer@3.0.4:
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-3.0.4.tgz#0ee04c0c2e44954b82f9fab1410b658bb6191aad"
+slate-md-serializer@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-3.1.0.tgz#8e82899c45a607615b19e03d42cbd38cc7f64acf"
 
 slate-paste-linkify@^0.5.0:
   version "0.5.0"
@@ -9202,26 +9198,26 @@ slate-react@^0.12.3:
     slate-plain-serializer "^0.5.9"
     slate-prop-types "^0.4.26"
 
-slate-schema-violations@^0.1.3:
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/slate-schema-violations/-/slate-schema-violations-0.1.7.tgz#cf2c6156eaf545f4d1985d3d1b94c50d6d273a08"
+slate-schema-violations@^0.1.10:
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/slate-schema-violations/-/slate-schema-violations-0.1.10.tgz#165227c230ea6c1027e523b7171a73e860e73646"
 
 slate-trailing-block@^0.5.0:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/slate-trailing-block/-/slate-trailing-block-0.5.0.tgz#cedb4f2975f1167e0fb9d259ce1252b82f4d74ff"
 
-slate@^0.32.5:
-  version "0.32.5"
-  resolved "https://registry.yarnpkg.com/slate/-/slate-0.32.5.tgz#5386c75dec1e5b87648189c9fbb4294cec623ff0"
+slate@^0.33.6:
+  version "0.33.6"
+  resolved "https://registry.yarnpkg.com/slate/-/slate-0.33.6.tgz#0c7cb193cc5adeecec5c81e2ec0c86ab23dd6755"
   dependencies:
-    debug "^2.3.2"
+    debug "^3.1.0"
     direction "^0.1.5"
     esrever "^0.2.0"
     is-empty "^1.0.0"
     is-plain-object "^2.0.4"
     lodash "^4.17.4"
     slate-dev-logger "^0.1.39"
-    slate-schema-violations "^0.1.3"
+    slate-schema-violations "^0.1.10"
     type-of "^2.0.1"
 
 slice-ansi@0.0.4:
