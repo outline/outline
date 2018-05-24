@@ -1,13 +1,19 @@
 // @flow
-import { observable, action, runInAction } from 'mobx';
+import _ from 'lodash';
+import { observable, action, runInAction, ObservableMap, computed } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import type { Share, PaginationParams } from 'types';
 
 class SharesStore {
-  @observable data: Share[] = [];
+  @observable data: Map<string, Share> = new ObservableMap([]);
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
+
+  @computed
+  get orderedData(): Share[] {
+    return _.sortBy(this.data.values(), 'createdAt').reverse();
+  }
 
   @action
   fetchPage = async (options: ?PaginationParams): Promise<*> => {
@@ -19,7 +25,9 @@ class SharesStore {
       const { data } = res;
 
       runInAction('fetchShares', () => {
-        this.data = data;
+        data.forEach(share => {
+          this.data.set(share.id, share);
+        });
       });
     } catch (e) {
       console.error('Something went wrong');
@@ -28,11 +36,11 @@ class SharesStore {
   };
 
   @action
-  deleteShare = async (id: string) => {
+  revoke = async (share: Share) => {
     try {
-      await client.post('/shares.delete', { id });
-      runInAction('deleteShare', () => {
-        this.fetchPage();
+      await client.post('/shares.delete', { id: share.id });
+      runInAction('revoke', () => {
+        this.data.delete(share.id);
       });
     } catch (e) {
       console.error('Something went wrong');

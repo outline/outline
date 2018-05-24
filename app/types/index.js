@@ -13,6 +13,7 @@ export type Share = {
   id: string,
   url: string,
   documentTitle: string,
+  documentUrl: string,
   createdBy: User,
   createdAt: string,
   updatedAt: string,

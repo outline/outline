@@ -65,8 +65,9 @@ router.post('shares.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
+  const user = ctx.state.user;
   const share = await Share.findById(id);
-  authorize(ctx.state.user, 'delete', share);
+  authorize(user, 'delete', share);
 
   await share.destroy();
 

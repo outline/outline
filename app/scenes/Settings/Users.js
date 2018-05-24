@@ -7,17 +7,15 @@ import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';
 import { color } from 'shared/styles/constants';
 
+import UserMenu from 'menus/UserMenu';
 import AuthStore from 'stores/AuthStore';
-import ErrorsStore from 'stores/ErrorsStore';
 import UsersStore from 'stores/UsersStore';
 import CenteredContent from 'components/CenteredContent';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import PageTitle from 'components/PageTitle';
-import UserMenu from './components/UserMenu';
 
 type Props = {
   auth: AuthStore,
-  errors: ErrorsStore,
   users: UsersStore,
 };
 
@@ -105,4 +103,4 @@ const Badge = styled.span`
   font-weight: normal;
 `;
 
-export default inject('auth', 'errors', 'users')(Users);
+export default inject('auth', 'users')(Users);

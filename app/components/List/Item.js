@@ -50,7 +50,7 @@ const Subtitle = styled.p`
 `;
 
 const Actions = styled.div`
-  align-self: flex-end;
+  align-self: center;
 `;
 
 export default ListItem;
