@@ -70,6 +70,22 @@ describe('#shares.create', async () => {
     expect(body.data.documentTitle).toBe(document.title);
   });
 
+  it('should return existing share link for document and user', async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post('/api/shares.create', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBe(share.id);
+  });
+
   it('should require authentication', async () => {
     const { document } = await seed();
     const res = await server.post('/api/shares.create', {

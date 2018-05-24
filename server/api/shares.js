@@ -5,7 +5,6 @@ import pagination from './middlewares/pagination';
 import { presentShare } from '../presenters';
 import { Document, User, Share } from '../models';
 import policy from '../policies';
-import { constants } from 'os';
 
 const { authorize } = policy;
 const router = new Router();
@@ -53,11 +52,14 @@ router.post('shares.create', auth(), async ctx => {
   const document = await Document.findById(id);
   authorize(user, 'share', document);
 
-  const share = await Share.create({
-    documentId: document.id,
-    userId: user.id,
-    teamId: user.teamId,
+  const [share, created] = await Share.findOrCreate({
+    where: {
+      documentId: document.id,
+      userId: user.id,
+      teamId: user.teamId,
+    },
   });
+  console.log('created', created);
   share.user = user;
   share.document = document;
 
