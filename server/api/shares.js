@@ -5,6 +5,7 @@ import pagination from './middlewares/pagination';
 import { presentShare } from '../presenters';
 import { Document, User, Share } from '../models';
 import policy from '../policies';
+import { constants } from 'os';
 
 const { authorize } = policy;
 const router = new Router();
@@ -14,8 +15,12 @@ router.post('shares.list', auth(), pagination(), async ctx => {
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
+  const where = { teamId: user.teamId, userId: user.id };
+
+  if (user.isAdmin) delete where.userId;
+
   const shares = await Share.findAll({
-    where: { teamId: user.teamId },
+    where,
     order: [[sort, direction]],
     include: [
       {
