@@ -161,7 +161,9 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   const { id, shareId } = ctx.body;
   ctx.assertPresent(id || shareId, 'id or shareId is required');
 
+  const isPublic = !!shareId;
   let document;
+
   if (shareId) {
     const share = await Share.findById(shareId, {
       include: [
@@ -172,8 +174,6 @@ router.post('documents.info', auth({ required: false }), async ctx => {
         },
       ],
     });
-
-    // TODO: REMOVE COLLECTION AND COLLABORATOR INFO
     document = share.document;
   } else {
     document = await Document.findById(id);
@@ -181,7 +181,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, document),
+    data: await presentDocument(ctx, document, { isPublic }),
   };
 });
 

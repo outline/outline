@@ -32,7 +32,6 @@ class Document extends BaseModel {
   id: string;
   team: string;
   emoji: string;
-  private: boolean = false;
   starred: boolean = false;
   pinned: boolean = false;
   text: string = '';

@@ -34,7 +34,7 @@ class DocumentShare extends React.Component<Props> {
         <HelpText>
           The link below allows anyone to access a read-only version of the
           document <strong>{document.title}</strong>. You can revoke this link
-          at any point in the future.
+          in settings at any time.
         </HelpText>
         <Input
           type="text"

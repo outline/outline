@@ -39,7 +39,6 @@ export type Document = {
   createdBy: User,
   html: string,
   id: string,
-  private: boolean,
   starred: boolean,
   views: number,
   team: string,

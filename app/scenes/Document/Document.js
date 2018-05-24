@@ -234,6 +234,7 @@ class DocumentScene extends React.Component<Props> {
     const document = this.document;
     const titleFromState = location.state ? location.state.title : '';
     const titleText = document ? document.title : titleFromState;
+    const isShare = match.params.shareId;
 
     if (this.notFound) {
       return <Search notFound />;
@@ -273,19 +274,20 @@ class DocumentScene extends React.Component<Props> {
                 readOnly={!this.isEditing}
               />
             </MaxWidth>
-            {document && (
-              <Actions
-                document={document}
-                isDraft={!document.publishedAt}
-                isEditing={this.isEditing}
-                isSaving={this.isSaving}
-                isPublishing={this.isPublishing}
-                savingIsDisabled={!document.allowSave}
-                history={this.props.history}
-                onDiscard={this.onDiscard}
-                onSave={this.onSave}
-              />
-            )}
+            {document &&
+              !isShare && (
+                <Actions
+                  document={document}
+                  isDraft={!document.publishedAt}
+                  isEditing={this.isEditing}
+                  isSaving={this.isSaving}
+                  isPublishing={this.isPublishing}
+                  savingIsDisabled={!document.allowSave}
+                  history={this.props.history}
+                  onDiscard={this.onDiscard}
+                  onSave={this.onSave}
+                />
+              )}
           </Flex>
         )}
       </Container>

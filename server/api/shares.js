@@ -52,14 +52,14 @@ router.post('shares.create', auth(), async ctx => {
   const document = await Document.findById(id);
   authorize(user, 'share', document);
 
-  const [share, created] = await Share.findOrCreate({
+  const [share] = await Share.findOrCreate({
     where: {
       documentId: document.id,
       userId: user.id,
       teamId: user.teamId,
     },
   });
-  console.log('created', created);
+
   share.user = user;
   share.document = document;
 
