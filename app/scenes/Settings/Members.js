@@ -16,7 +16,7 @@ type Props = {
 };
 
 @observer
-class Users extends React.Component<Props> {
+class Members extends React.Component<Props> {
   componentDidMount() {
     this.props.users.fetchPage({ limit: 100 });
   }
@@ -28,8 +28,8 @@ class Users extends React.Component<Props> {
 
     return (
       <CenteredContent>
-        <PageTitle title="Users" />
-        <h1>Users</h1>
+        <PageTitle title="Members" />
+        <h1>Members</h1>
 
         <List>
           {users.data.map(user => (
@@ -45,4 +45,4 @@ class Users extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'users')(Users);
+export default inject('auth', 'users')(Members);
