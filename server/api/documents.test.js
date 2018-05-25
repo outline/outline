@@ -36,8 +36,27 @@ describe('#documents.info', async () => {
     expect(body.data.id).toEqual(document.id);
   });
 
-  it('should return documents from shareId', async () => {
-    const { user, document } = await seed();
+  it('should return redacted documents from shareId without token', async () => {
+    const { document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+
+    const res = await server.post('/api/documents.info', {
+      body: { shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+    expect(body.data.collection).toEqual(undefined);
+    expect(body.data.createdBy).toEqual(undefined);
+    expect(body.data.updatedBy).toEqual(undefined);
+  });
+
+  it('should return documents from shareId with token', async () => {
+    const { user, document, collection } = await seed();
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
@@ -50,6 +69,9 @@ describe('#documents.info', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
+    expect(body.data.collection.id).toEqual(collection.id);
+    expect(body.data.createdBy.id).toEqual(user.id);
+    expect(body.data.updatedBy.id).toEqual(user.id);
   });
 });
 

@@ -10,7 +10,7 @@ import events from '../events';
 import policy from '../policies';
 
 const Op = Sequelize.Op;
-const { authorize } = policy;
+const { authorize, cannot } = policy;
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
@@ -161,7 +161,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   const { id, shareId } = ctx.body;
   ctx.assertPresent(id || shareId, 'id or shareId is required');
 
-  const isPublic = !!shareId;
+  const user = ctx.state.user;
   let document;
 
   if (shareId) {
@@ -177,8 +177,10 @@ router.post('documents.info', auth({ required: false }), async ctx => {
     document = share.document;
   } else {
     document = await Document.findById(id);
-    authorize(ctx.state.user, 'read', document);
+    authorize(user, 'read', document);
   }
+
+  const isPublic = cannot(user, 'read', document);
 
   ctx.body = {
     data: await presentDocument(ctx, document, { isPublic }),

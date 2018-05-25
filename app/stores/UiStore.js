@@ -30,7 +30,7 @@ class UiStore {
     this.activeDocumentId = document.id;
 
     if (document.publishedAt) {
-      this.activeCollectionId = document.collection.id;
+      this.activeCollectionId = document.collectionId;
     }
   };
 
