@@ -32,6 +32,7 @@ const Wrapper = styled.li`
 
 const Image = styled.div`
   padding: 0 8px 0 0;
+  max-height: 40px;
 `;
 
 const Heading = styled.h2`
