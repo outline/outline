@@ -2,17 +2,13 @@
 import * as React from 'react';
 import invariant from 'invariant';
 import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
-import Flex from 'shared/components/Flex';
-import Avatar from 'components/Avatar';
-import { color } from 'shared/styles/constants';
 
-import UserMenu from 'menus/UserMenu';
 import AuthStore from 'stores/AuthStore';
 import UsersStore from 'stores/UsersStore';
 import CenteredContent from 'components/CenteredContent';
-import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import PageTitle from 'components/PageTitle';
+import UserListItem from './components/UserListItem';
+import List from 'components/List';
 
 type Props = {
   auth: AuthStore,
@@ -26,7 +22,8 @@ class Users extends React.Component<Props> {
   }
 
   render() {
-    const currentUser = this.props.auth.user;
+    const { users, auth } = this.props;
+    const currentUser = auth.user;
     invariant(currentUser, 'User should exist');
 
     return (
@@ -34,73 +31,18 @@ class Users extends React.Component<Props> {
         <PageTitle title="Users" />
         <h1>Users</h1>
 
-        {!this.props.users.isLoaded ? (
-          <Flex column>
-            {this.props.users.data && (
-              <UserList column>
-                {this.props.users.data.map(user => (
-                  <User key={user.id} justify="space-between" auto>
-                    <UserDetails suspended={user.isSuspended}>
-                      <Avatar src={user.avatarUrl} />
-                      <UserName>
-                        {user.name} {user.email && `(${user.email})`}
-                        {user.isAdmin && (
-                          <Badge admin={user.isAdmin}>Admin</Badge>
-                        )}
-                        {user.isSuspended && <Badge>Suspended</Badge>}
-                      </UserName>
-                    </UserDetails>
-                    <Flex>
-                      {currentUser.id !== user.id && <UserMenu user={user} />}
-                    </Flex>
-                  </User>
-                ))}
-              </UserList>
-            )}
-          </Flex>
-        ) : (
-          <LoadingPlaceholder />
-        )}
+        <List>
+          {users.data.map(user => (
+            <UserListItem
+              key={user.id}
+              user={user}
+              isCurrentUser={currentUser.id === user.id}
+            />
+          ))}
+        </List>
       </CenteredContent>
     );
   }
 }
-
-const UserList = styled(Flex)`
-  border: 1px solid ${color.smoke};
-  border-radius: 4px;
-
-  margin-top: 20px;
-  margin-bottom: 40px;
-`;
-
-const User = styled(Flex)`
-  padding: 10px;
-  border-bottom: 1px solid ${color.smoke};
-  font-size: 15px;
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const UserDetails = styled(Flex)`
-  opacity: ${({ suspended }) => (suspended ? 0.5 : 1)};
-`;
-
-const UserName = styled.span`
-  padding-left: 8px;
-`;
-
-const Badge = styled.span`
-  margin-left: 10px;
-  padding: 2px 6px 3px;
-  background-color: ${({ admin }) => (admin ? color.primary : color.smokeDark)};
-  color: ${({ admin }) => (admin ? color.white : color.text)};
-  border-radius: 2px;
-  font-size: 11px;
-  text-transform: uppercase;
-  font-weight: normal;
-`;
 
 export default inject('auth', 'users')(Users);

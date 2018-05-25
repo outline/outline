@@ -6,7 +6,6 @@ import type { User, PaginationParams } from 'types';
 
 class UsersStore {
   @observable data: User[] = [];
-  @observable isLoaded: boolean = false;
   @observable isSaving: boolean = false;
 
   @action
@@ -22,7 +21,6 @@ class UsersStore {
     } catch (e) {
       console.error('Something went wrong');
     }
-    this.isLoaded = false;
   };
 
   @action
