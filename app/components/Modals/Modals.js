@@ -46,7 +46,7 @@ class Modals extends React.Component<Props> {
           <CollectionDelete onSubmit={this.handleClose} />
         </Modal>
         <Modal name="document-share" title="Share document">
-          <DocumentShare onSubmit={this.handleClose} />
+          <DocumentShare onCopyLink={this.handleClose} />
         </Modal>
         <Modal name="document-delete" title="Delete document">
           <DocumentDelete onSubmit={this.handleClose} />

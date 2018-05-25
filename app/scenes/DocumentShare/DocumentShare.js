@@ -10,6 +10,7 @@ import Document from 'models/Document';
 
 type Props = {
   document: Document,
+  onCopyLink: () => *,
 };
 
 @observer
@@ -23,7 +24,11 @@ class DocumentShare extends React.Component<Props> {
 
   handleCopied = () => {
     this.isCopied = true;
-    this.timeout = setTimeout(() => (this.isCopied = false), 3000);
+
+    this.timeout = setTimeout(() => {
+      this.isCopied = false;
+      this.props.onCopyLink();
+    }, 2000);
   };
 
   render() {
