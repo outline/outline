@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react';
-import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import Button from 'components/Button';
 import ListItem from 'components/List/Item';
 import type { ApiKey } from '../../../types';
