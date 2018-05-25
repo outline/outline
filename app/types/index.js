@@ -67,6 +67,6 @@ export type PaginationParams = {
 
 export type ApiKey = {
   id: string,
-  name: ?string,
+  name: string,
   secret: string,
 };
