@@ -45,16 +45,16 @@ router.post('shares.list', auth(), pagination(), async ctx => {
 });
 
 router.post('shares.create', auth(), async ctx => {
-  const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  const { documentId } = ctx.body;
+  ctx.assertPresent(documentId, 'documentId is required');
 
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findById(documentId);
   authorize(user, 'share', document);
 
   const [share] = await Share.findOrCreate({
     where: {
-      documentId: document.id,
+      documentId,
       userId: user.id,
       teamId: user.teamId,
     },

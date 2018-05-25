@@ -43,8 +43,6 @@ class Document extends BaseModel {
   views: number;
   revision: number;
 
-  data: Object;
-
   /* Computed */
 
   @computed
@@ -104,7 +102,7 @@ class Document extends BaseModel {
   @action
   share = async () => {
     try {
-      const res = await client.post('/shares.create', { id: this.id });
+      const res = await client.post('/shares.create', { documentId: this.id });
       invariant(res && res.data, 'Document API response should be available');
 
       this.shareUrl = res.data.url;
@@ -289,7 +287,6 @@ class Document extends BaseModel {
       data.emoji = emoji;
     }
     if (dirty) this.hasPendingChanges = true;
-    this.data = data;
     extendObservable(this, data);
   }
 

@@ -62,7 +62,7 @@ describe('#shares.create', async () => {
   it('should allow creating a share record for document', async () => {
     const { user, document } = await seed();
     const res = await server.post('/api/shares.create', {
-      body: { token: user.getJwtToken(), id: document.id },
+      body: { token: user.getJwtToken(), documentId: document.id },
     });
     const body = await res.json();
 
@@ -78,7 +78,7 @@ describe('#shares.create', async () => {
       userId: user.id,
     });
     const res = await server.post('/api/shares.create', {
-      body: { token: user.getJwtToken(), id: document.id },
+      body: { token: user.getJwtToken(), documentId: document.id },
     });
     const body = await res.json();
 
@@ -89,7 +89,7 @@ describe('#shares.create', async () => {
   it('should require authentication', async () => {
     const { document } = await seed();
     const res = await server.post('/api/shares.create', {
-      body: { id: document.id },
+      body: { documentId: document.id },
     });
     const body = await res.json();
 
@@ -101,7 +101,7 @@ describe('#shares.create', async () => {
     const { document } = await seed();
     const user = await buildUser();
     const res = await server.post('/api/shares.create', {
-      body: { token: user.getJwtToken(), id: document.id },
+      body: { token: user.getJwtToken(), documentId: document.id },
     });
     expect(res.status).toEqual(403);
   });
