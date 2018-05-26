@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import { Link } from 'react-router-dom';
 import Input from 'components/Input';
 import Button from 'components/Button';
 import CopyToClipboard from 'components/CopyToClipboard';
@@ -9,8 +10,8 @@ import HelpText from 'components/HelpText';
 import Document from 'models/Document';
 
 type Props = {
-  document: Document,
-  onCopyLink: () => *,
+  document?: Document,
+  onSubmit: () => *,
 };
 
 @observer
@@ -27,19 +28,23 @@ class DocumentShare extends React.Component<Props> {
 
     this.timeout = setTimeout(() => {
       this.isCopied = false;
-      this.props.onCopyLink();
-    }, 2000);
+      this.props.onSubmit();
+    }, 1500);
   };
 
   render() {
-    const { document } = this.props;
+    const { document, onSubmit } = this.props;
+    if (!document) return null;
 
     return (
       <div>
         <HelpText>
-          The link below allows anyone to access a read-only version of the
-          document <strong>{document.title}</strong>. You can revoke this link
-          in settings at any time.
+          The link below allows anyone in the world to access a read-only
+          version of the document <strong>{document.title}</strong>. You can
+          revoke this link in settings at any time.{' '}
+          <Link to="/settings/shares" onClick={onSubmit}>
+            Manage share links
+          </Link>.
         </HelpText>
         <Input
           type="text"
