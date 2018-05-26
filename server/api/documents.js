@@ -174,6 +174,9 @@ router.post('documents.info', auth({ required: false }), async ctx => {
         },
       ],
     });
+    if (!share) {
+      throw new InvalidRequestError('Document could not be found for shareId');
+    }
     document = share.document;
   } else {
     document = await Document.findById(id);

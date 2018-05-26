@@ -73,6 +73,13 @@ describe('#documents.info', async () => {
     expect(body.data.createdBy.id).toEqual(user.id);
     expect(body.data.updatedBy.id).toEqual(user.id);
   });
+
+  it('should require a valid shareId', async () => {
+    const res = await server.post('/api/documents.info', {
+      body: { shareId: 123 },
+    });
+    expect(res.status).toEqual(400);
+  });
 });
 
 describe('#documents.list', async () => {
