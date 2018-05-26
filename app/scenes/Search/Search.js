@@ -121,7 +121,7 @@ class Search extends React.Component<Props> {
 
   @action
   loadMoreResults = async () => {
-    // Don't paginate if there aren't more results or we're in the middle of fetching
+    // Don't paginate if there aren't more results or we’re in the middle of fetching
     if (!this.allowLoadMore || this.isFetching) return;
 
     // Fetch more results

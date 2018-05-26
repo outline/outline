@@ -31,6 +31,7 @@ import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Search from 'scenes/Search';
+import Error404 from 'scenes/Error404';
 
 const AUTOSAVE_INTERVAL = 3000;
 const DISCARD_CHANGES = `
@@ -237,7 +238,7 @@ class DocumentScene extends React.Component<Props> {
     const isShare = match.params.shareId;
 
     if (this.notFound) {
-      return <Search notFound />;
+      return isShare ? <Error404 /> : <Search notFound />;
     }
 
     return (
