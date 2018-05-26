@@ -74,6 +74,23 @@ describe('#documents.info', async () => {
     expect(body.data.updatedBy.id).toEqual(user.id);
   });
 
+  it('should require authorization without token', async () => {
+    const { document } = await seed();
+    const res = await server.post('/api/documents.info', {
+      body: { id: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it('should require authorization with incorrect token', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it('should require a valid shareId', async () => {
     const res = await server.post('/api/documents.info', {
       body: { shareId: 123 },
