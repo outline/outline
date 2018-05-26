@@ -1,28 +1,30 @@
 // @flow
+import ApiKey from './ApiKey';
 import Authentication from './Authentication';
-import Integration from './Integration';
-import Event from './Event';
-import User from './User';
-import Team from './Team';
 import Collection from './Collection';
 import Document from './Document';
+import Event from './Event';
+import Integration from './Integration';
 import Revision from './Revision';
-import ApiKey from './ApiKey';
-import View from './View';
+import Share from './Share';
 import Star from './Star';
+import Team from './Team';
+import User from './User';
+import View from './View';
 
 const models = {
+  ApiKey,
   Authentication,
-  Integration,
-  Event,
-  User,
-  Team,
   Collection,
   Document,
+  Event,
+  Integration,
   Revision,
-  ApiKey,
-  View,
+  Share,
   Star,
+  Team,
+  User,
+  View,
 };
 
 // based on https://github.com/sequelize/express-example/blob/master/models/index.js
@@ -33,15 +35,16 @@ Object.keys(models).forEach(modelName => {
 });
 
 export {
+  ApiKey,
   Authentication,
-  Integration,
-  Event,
-  User,
-  Team,
   Collection,
   Document,
+  Event,
+  Integration,
   Revision,
-  ApiKey,
-  View,
+  Share,
   Star,
+  Team,
+  User,
+  View,
 };

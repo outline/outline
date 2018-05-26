@@ -9,8 +9,11 @@ build:
 test:
 	docker-compose run --rm outline yarn test
 
+watch:
+	docker-compose run --rm outline yarn test:watch
+
 destroy:
 	docker-compose stop
 	docker-compose rm -f
 
-.PHONY: up build destroy # let's go to reserve rules names
+.PHONY: up build destroy test watch # let's go to reserve rules names

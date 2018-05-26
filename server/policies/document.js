@@ -8,7 +8,7 @@ allow(User, 'create', Document);
 
 allow(
   User,
-  ['read', 'update', 'delete'],
+  ['read', 'update', 'delete', 'share'],
   Document,
   (user, document) => user.teamId === document.teamId
 );

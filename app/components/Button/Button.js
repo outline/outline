@@ -2,7 +2,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { color } from 'shared/styles/constants';
-import { darken, lighten } from 'polished';
+import { darken } from 'polished';
 
 const RealButton = styled.button`
   display: inline-block;
@@ -40,11 +40,14 @@ const RealButton = styled.button`
   ${props =>
     props.light &&
     `
-    color: ${color.text};
-    background: ${lighten(0.08, color.slateLight)};
+    color: ${color.slate};
+    background: transparent;
+    border: 1px solid ${color.slate};
 
     &:hover {
-      background: ${color.slateLight};
+      background: transparent;
+      color: ${color.slateDark};
+      border: 1px solid ${color.slateDark};
     }
   `} ${props =>
       props.neutral &&

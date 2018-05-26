@@ -7,6 +7,7 @@ import CollectionNew from 'scenes/CollectionNew';
 import CollectionEdit from 'scenes/CollectionEdit';
 import CollectionDelete from 'scenes/CollectionDelete';
 import DocumentDelete from 'scenes/DocumentDelete';
+import DocumentShare from 'scenes/DocumentShare';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
 
 type Props = {
@@ -43,6 +44,9 @@ class Modals extends React.Component<Props> {
         </Modal>
         <Modal name="collection-delete" title="Delete collection">
           <CollectionDelete onSubmit={this.handleClose} />
+        </Modal>
+        <Modal name="document-share" title="Share document">
+          <DocumentShare onSubmit={this.handleClose} />
         </Modal>
         <Modal name="document-delete" title="Delete document">
           <DocumentDelete onSubmit={this.handleClose} />

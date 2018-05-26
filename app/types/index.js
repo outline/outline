@@ -9,6 +9,16 @@ export type User = {
   isSuspended?: boolean,
 };
 
+export type Share = {
+  id: string,
+  url: string,
+  documentTitle: string,
+  documentUrl: string,
+  createdBy: User,
+  createdAt: string,
+  updatedAt: string,
+};
+
 export type Team = {
   id: string,
   name: string,
@@ -29,7 +39,6 @@ export type Document = {
   createdBy: User,
   html: string,
   id: string,
-  private: boolean,
   starred: boolean,
   views: number,
   team: string,
@@ -58,6 +67,6 @@ export type PaginationParams = {
 
 export type ApiKey = {
   id: string,
-  name: ?string,
+  name: string,
   secret: string,
 };

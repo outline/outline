@@ -46,7 +46,7 @@ const StyledNavLink = styled(NavLink)`
 const StyledDiv = StyledNavLink.withComponent('div');
 
 type Props = {
-  to?: string,
+  to?: string | Object,
   onClick?: (SyntheticEvent<*>) => *,
   children?: React.Node,
   icon?: React.Node,

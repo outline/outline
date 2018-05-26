@@ -61,29 +61,27 @@ class UserMenu extends React.Component<Props> {
     const { user } = this.props;
 
     return (
-      <span>
-        <DropdownMenu label={<MoreIcon />}>
-          {!user.isSuspended &&
-            (user.isAdmin ? (
-              <DropdownMenuItem onClick={this.handleDemote}>
-                Make {user.name} a member…
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={this.handlePromote}>
-                Make {user.name} an admin…
-              </DropdownMenuItem>
-            ))}
-          {user.isSuspended ? (
-            <DropdownMenuItem onClick={this.handleActivate}>
-              Activate account
+      <DropdownMenu label={<MoreIcon />}>
+        {!user.isSuspended &&
+          (user.isAdmin ? (
+            <DropdownMenuItem onClick={this.handleDemote}>
+              Make {user.name} a member…
             </DropdownMenuItem>
           ) : (
-            <DropdownMenuItem onClick={this.handleSuspend}>
-              Suspend account…
+            <DropdownMenuItem onClick={this.handlePromote}>
+              Make {user.name} an admin…
             </DropdownMenuItem>
-          )}
-        </DropdownMenu>
-      </span>
+          ))}
+        {user.isSuspended ? (
+          <DropdownMenuItem onClick={this.handleActivate}>
+            Activate account
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={this.handleSuspend}>
+            Suspend account…
+          </DropdownMenuItem>
+        )}
+      </DropdownMenu>
     );
   }
 }

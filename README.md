@@ -108,7 +108,7 @@ Outline is still built and maintained by a small team – we'd love your help to
 
 However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in our [Spectrum community](https://spectrum.chat/outline). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster!
 
-If you're looking for ways to get started, here's a list of ways to help us improve Outline:
+If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
 
 * Issues with [`good first issue`](https://github.com/outline/outline/labels/good%20first%20issue) label
 * Performance improvements, both on server and frontend

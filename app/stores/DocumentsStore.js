@@ -1,30 +1,25 @@
 // @flow
-import {
-  observable,
-  action,
-  computed,
-  ObservableMap,
-  runInAction,
-  autorunAsync,
-} from 'mobx';
+import { observable, action, computed, ObservableMap, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
-import stores from 'stores';
 import Document from 'models/Document';
 import ErrorsStore from 'stores/ErrorsStore';
-import CacheStore from 'stores/CacheStore';
 import UiStore from 'stores/UiStore';
 import type { PaginationParams } from 'types';
 
-const DOCUMENTS_CACHE_KEY = 'DOCUMENTS_CACHE_KEY';
 export const DEFAULT_PAGINATION_LIMIT = 25;
 
 type Options = {
-  cache: CacheStore,
   ui: UiStore,
+  errors: ErrorsStore,
+};
+
+type FetchOptions = {
+  prefetch?: boolean,
+  shareId?: string,
 };
 
 class DocumentsStore extends BaseStore {
@@ -35,7 +30,6 @@ class DocumentsStore extends BaseStore {
   @observable isFetching: boolean = false;
 
   errors: ErrorsStore;
-  cache: CacheStore;
   ui: UiStore;
 
   /* Computed */
@@ -178,15 +172,23 @@ class DocumentsStore extends BaseStore {
 
   @action
   prefetchDocument = async (id: string) => {
-    if (!this.getById(id)) this.fetch(id, true);
+    if (!this.getById(id)) {
+      this.fetch(id, { prefetch: true });
+    }
   };
 
   @action
-  fetch = async (id: string, prefetch?: boolean): Promise<*> => {
-    if (!prefetch) this.isFetching = true;
+  fetch = async (id: string, options?: FetchOptions = {}): Promise<*> => {
+    if (!options.prefetch) this.isFetching = true;
 
     try {
-      const res = await client.post('/documents.info', { id });
+      const doc = this.getById(id) || this.getByUrl(id);
+      if (doc) return doc;
+
+      const res = await client.post('/documents.info', {
+        id,
+        shareId: options.shareId,
+      });
       invariant(res && res.data, 'Document not available');
       const { data } = res;
       const document = new Document(data);
@@ -198,7 +200,7 @@ class DocumentsStore extends BaseStore {
 
       return document;
     } catch (e) {
-      this.errors.add('Failed to load documents');
+      this.errors.add('Failed to load document');
     } finally {
       this.isFetching = false;
     }
@@ -228,15 +230,8 @@ class DocumentsStore extends BaseStore {
   constructor(options: Options) {
     super();
 
-    this.errors = stores.errors;
-    this.cache = options.cache;
+    this.errors = options.errors;
     this.ui = options.ui;
-
-    this.cache.getItem(DOCUMENTS_CACHE_KEY).then(data => {
-      if (data) {
-        data.forEach(document => this.add(new Document(document)));
-      }
-    });
 
     this.on('documents.delete', (data: { id: string }) => {
       this.remove(data.id);
@@ -253,15 +248,6 @@ class DocumentsStore extends BaseStore {
     this.on('documents.delete', () => {
       this.fetchRecentlyModified();
       this.fetchRecentlyViewed();
-    });
-
-    autorunAsync('DocumentsStore.persists', () => {
-      if (this.data.size) {
-        this.cache.setItem(
-          DOCUMENTS_CACHE_KEY,
-          Array.from(this.data.values()).map(collection => collection.data)
-        );
-      }
     });
   }
 }

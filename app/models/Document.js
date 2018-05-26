@@ -32,7 +32,6 @@ class Document extends BaseModel {
   id: string;
   team: string;
   emoji: string;
-  private: boolean = false;
   starred: boolean = false;
   pinned: boolean = false;
   text: string = '';
@@ -40,10 +39,9 @@ class Document extends BaseModel {
   parentDocument: ?string;
   publishedAt: ?string;
   url: string;
+  shareUrl: ?string;
   views: number;
   revision: number;
-
-  data: Object;
 
   /* Computed */
 
@@ -100,6 +98,18 @@ class Document extends BaseModel {
   }
 
   /* Actions */
+
+  @action
+  share = async () => {
+    try {
+      const res = await client.post('/shares.create', { documentId: this.id });
+      invariant(res && res.data, 'Document API response should be available');
+
+      this.shareUrl = res.data.url;
+    } catch (e) {
+      this.errors.add('Document failed to share');
+    }
+  };
 
   @action
   pin = async () => {
@@ -277,7 +287,6 @@ class Document extends BaseModel {
       data.emoji = emoji;
     }
     if (dirty) this.hasPendingChanges = true;
-    this.data = data;
     extendObservable(this, data);
   }
 

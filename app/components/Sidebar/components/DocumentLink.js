@@ -60,7 +60,10 @@ class DocumentLink extends React.Component<Props> {
           activeClassName="activeDropZone"
         >
           <SidebarLink
-            to={document.url}
+            to={{
+              pathname: document.url,
+              state: { title: document.title },
+            }}
             expand={showChildren}
             expandedContent={
               document.children.length ? (

@@ -8,12 +8,12 @@ import presentCollection from './collection';
 const Op = Sequelize.Op;
 
 type Options = {
-  includeCollaborators?: boolean,
+  isPublic?: boolean,
 };
 
 async function present(ctx: Object, document: Document, options: ?Options) {
   options = {
-    includeCollaborators: true,
+    isPublic: false,
     ...options,
   };
   ctx.cache.set(document.id, document);
@@ -27,39 +27,43 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     id: document.id,
     url: document.getUrl(),
     urlId: document.urlId,
-    private: document.private,
     title: document.title,
     text: document.text,
     emoji: document.emoji,
     createdAt: document.createdAt,
-    createdBy: presentUser(ctx, document.createdBy),
+    createdBy: undefined,
     updatedAt: document.updatedAt,
-    updatedBy: presentUser(ctx, document.updatedBy),
+    updatedBy: undefined,
     publishedAt: document.publishedAt,
     firstViewedAt: undefined,
     lastViewedAt: undefined,
     team: document.teamId,
     collaborators: [],
     starred: !!(document.starred && document.starred.length),
-    pinned: !!document.pinnedById,
     revision: document.revisionCount,
-    collectionId: document.atlasId,
+    pinned: undefined,
+    collectionId: undefined,
     collaboratorCount: undefined,
     collection: undefined,
     views: undefined,
   };
 
-  if (document.private && document.collection) {
-    data.collection = await presentCollection(ctx, document.collection);
-  }
+  if (!options.isPublic) {
+    data.pinned = !!document.pinnedById;
+    data.collectionId = document.atlasId;
+    data.createdBy = presentUser(ctx, document.createdBy);
+    data.updatedBy = presentUser(ctx, document.updatedBy);
 
-  if (document.views && document.views.length === 1) {
-    data.views = document.views[0].count;
-    data.firstViewedAt = document.views[0].createdAt;
-    data.lastViewedAt = document.views[0].updatedAt;
-  }
+    if (document.collection) {
+      data.collection = await presentCollection(ctx, document.collection);
+    }
 
-  if (options.includeCollaborators) {
+    if (document.views && document.views.length === 1) {
+      data.views = document.views[0].count;
+      data.firstViewedAt = document.views[0].createdAt;
+      data.lastViewedAt = document.views[0].updatedAt;
+    }
+
     // This could be further optimized by using ctx.cache
     data.collaborators = await User.findAll({
       where: {

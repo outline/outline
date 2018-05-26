@@ -42,8 +42,7 @@ async function present(ctx: Object, collection: Collection) {
   if (collection.documents) {
     data.recentDocuments = await Promise.all(
       collection.documents.map(
-        async document =>
-          await presentDocument(ctx, document, { includeCollaborators: true })
+        async document => await presentDocument(ctx, document)
       )
     );
   }

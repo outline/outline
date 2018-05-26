@@ -56,6 +56,13 @@ class DocumentMenu extends React.Component<Props> {
     this.props.document.download();
   };
 
+  handleShareLink = async (ev: SyntheticEvent<*>) => {
+    const { document } = this.props;
+    if (!document.shareUrl) await document.share();
+
+    this.props.ui.setActiveModal('document-share', { document });
+  };
+
   render() {
     const { document, label, className, showPrint } = this.props;
     const isDraft = !document.publishedAt;
@@ -80,6 +87,12 @@ class DocumentMenu extends React.Component<Props> {
                 Star
               </DropdownMenuItem>
             )}
+            <DropdownMenuItem
+              onClick={this.handleShareLink}
+              title="Create a public share link"
+            >
+              Share link
+            </DropdownMenuItem>
             <hr />
             <DropdownMenuItem
               onClick={this.handleNewChild}

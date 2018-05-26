@@ -1,8 +1,21 @@
 // @flow
-import { Team, User } from '../models';
+import { Share, Team, User } from '../models';
 import uuid from 'uuid';
 
 let count = 0;
+
+export async function buildShare(overrides: Object = {}) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+  if (!overrides.userId) {
+    const user = await buildUser({ teamId: overrides.teamId });
+    overrides.userId = user.id;
+  }
+
+  return Share.create(overrides);
+}
 
 export function buildTeam(overrides: Object = {}) {
   count++;

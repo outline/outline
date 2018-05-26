@@ -31,10 +31,6 @@ class MainSidebar extends React.Component<Props> {
     this.props.ui.setActiveModal('collection-new');
   };
 
-  handleEditCollection = () => {
-    this.props.ui.setActiveModal('collection-edit');
-  };
-
   render() {
     const { auth, documents } = this.props;
     const { user, team } = auth;

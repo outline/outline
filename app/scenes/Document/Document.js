@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react';
-import get from 'lodash/get';
 import debounce from 'lodash/debounce';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
@@ -25,13 +24,14 @@ import Document from 'models/Document';
 import Actions from './components/Actions';
 import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
+import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
-import CollectionsStore from 'stores/CollectionsStore';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Search from 'scenes/Search';
+import Error404 from 'scenes/Error404';
 
 const AUTOSAVE_INTERVAL = 3000;
 const DISCARD_CHANGES = `
@@ -44,8 +44,8 @@ type Props = {
   history: Object,
   location: Location,
   documents: DocumentsStore,
-  collections: CollectionsStore,
   newDocument?: boolean,
+  auth: AuthStore,
   ui: UiStore,
 };
 
@@ -55,6 +55,7 @@ class DocumentScene extends React.Component<Props> {
 
   @observable editorComponent;
   @observable editCache: ?string;
+  @observable document: ?Document;
   @observable newDocument: ?Document;
   @observable isLoading = false;
   @observable isSaving = false;
@@ -90,7 +91,7 @@ class DocumentScene extends React.Component<Props> {
 
   loadDocument = async props => {
     if (props.newDocument) {
-      const newDocument = new Document({
+      this.document = new Document({
         collection: { id: props.match.params.id },
         parentDocument: new URLSearchParams(props.location.search).get(
           'parentDocument'
@@ -98,32 +99,30 @@ class DocumentScene extends React.Component<Props> {
         title: '',
         text: '',
       });
-      this.newDocument = newDocument;
     } else {
-      let document = this.getDocument(props.match.params.documentSlug);
+      this.document = await this.props.documents.fetch(
+        props.match.params.documentSlug,
+        { shareId: props.match.params.shareId }
+      );
 
-      if (document) {
-        this.props.documents.fetch(props.match.params.documentSlug);
-        this.props.ui.setActiveDocument(document);
-      } else {
-        document = await this.props.documents.fetch(
-          props.match.params.documentSlug
-        );
-      }
+      const document = this.document;
 
       if (document) {
         this.props.ui.setActiveDocument(document);
 
         // Cache data if user enters edit mode and cancels
         this.editCache = document.text;
-        if (!this.isEditing && document.publishedAt) {
-          document.view();
-        }
 
-        // Update url to match the current one
-        this.props.history.replace(
-          updateDocumentUrl(props.match.url, document.url)
-        );
+        if (this.props.auth.user) {
+          if (!this.isEditing && document.publishedAt) {
+            document.view();
+          }
+
+          // Update url to match the current one
+          this.props.history.replace(
+            updateDocumentUrl(props.match.url, document.url)
+          );
+        }
       } else {
         // Render 404 with search
         this.notFound = true;
@@ -137,20 +136,12 @@ class DocumentScene extends React.Component<Props> {
   };
 
   get isEditing() {
+    const document = this.document;
+
     return !!(
-      this.props.match.path === matchDocumentEdit || this.props.newDocument
+      this.props.match.path === matchDocumentEdit ||
+      (document && !document.id)
     );
-  }
-
-  getDocument(documentSlug: ?string) {
-    if (this.newDocument) return this.newDocument;
-    return this.props.documents.getByUrl(
-      `/doc/${documentSlug || this.props.match.params.documentSlug}`
-    );
-  }
-
-  get document() {
-    return this.getDocument();
   }
 
   handleCloseMoveModal = () => (this.moveModalOpen = false);
@@ -162,6 +153,7 @@ class DocumentScene extends React.Component<Props> {
     let document = this.document;
     if (!document || !document.allowSave) return;
 
+    let isNew = !document.id;
     this.editCache = null;
     this.isSaving = true;
     this.isPublishing = !!options.publish;
@@ -172,7 +164,7 @@ class DocumentScene extends React.Component<Props> {
     if (options.done) {
       this.props.history.push(document.url);
       this.props.ui.setActiveDocument(document);
-    } else if (this.props.newDocument) {
+    } else if (isNew) {
       this.props.history.push(documentEditUrl(document));
       this.props.ui.setActiveDocument(document);
     }
@@ -237,19 +229,20 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
+    const { location, match } = this.props;
     const Editor = this.editorComponent;
-    const isMoving = this.props.match.path === matchDocumentMove;
+    const isMoving = match.path === matchDocumentMove;
     const document = this.document;
-    const titleText =
-      get(document, 'title', '') ||
-      this.props.collections.titleForDocument(this.props.location.pathname);
+    const titleFromState = location.state ? location.state.title : '';
+    const titleText = document ? document.title : titleFromState;
+    const isShare = match.params.shareId;
 
     if (this.notFound) {
-      return <Search notFound />;
+      return isShare ? <Error404 /> : <Search notFound />;
     }
 
     return (
-      <Container key={this.props.location.pathname} column auto>
+      <Container key={document ? document.id : undefined} column auto>
         {isMoving && document && <DocumentMove document={document} />}
         {titleText && <PageTitle title={titleText} />}
         {(this.isLoading || this.isSaving) && <LoadingIndicator />}
@@ -282,19 +275,20 @@ class DocumentScene extends React.Component<Props> {
                 readOnly={!this.isEditing}
               />
             </MaxWidth>
-            {document && (
-              <Actions
-                document={document}
-                isDraft={!document.publishedAt}
-                isEditing={this.isEditing}
-                isSaving={this.isSaving}
-                isPublishing={this.isPublishing}
-                savingIsDisabled={!document.allowSave}
-                history={this.props.history}
-                onDiscard={this.onDiscard}
-                onSave={this.onSave}
-              />
-            )}
+            {document &&
+              !isShare && (
+                <Actions
+                  document={document}
+                  isDraft={!document.publishedAt}
+                  isEditing={this.isEditing}
+                  isSaving={this.isSaving}
+                  isPublishing={this.isPublishing}
+                  savingIsDisabled={!document.allowSave}
+                  history={this.props.history}
+                  onDiscard={this.onDiscard}
+                  onSave={this.onSave}
+                />
+              )}
           </Flex>
         )}
       </Container>
@@ -322,6 +316,4 @@ const LoadingState = styled(LoadingPlaceholder)`
   margin: 90px 0;
 `;
 
-export default withRouter(
-  inject('ui', 'user', 'documents', 'collections')(DocumentScene)
-);
+export default withRouter(inject('ui', 'auth', 'documents')(DocumentScene));
