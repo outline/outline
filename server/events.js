@@ -1,6 +1,5 @@
 // @flow
 import Queue from 'bull';
-import debug from 'debug';
 import services from './services';
 import { Collection, Document } from './models';
 

@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import path from 'path';
-import fs from 'fs-extra';
 import Koa from 'koa';
 import Router from 'koa-router';
 import sendfile from 'koa-sendfile';

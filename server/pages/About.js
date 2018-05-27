@@ -68,7 +68,11 @@ export default function About() {
               <strong>Jori Lallo</strong>
             </div>
             <div>
-              <a href="https://twitter.com/jorilallo" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://twitter.com/jorilallo"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 @jorilallo
               </a>
             </div>
@@ -80,7 +84,11 @@ export default function About() {
               <strong>Tom Moor</strong>
             </div>
             <div>
-              <a href="https://twitter.com/tommoor" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://twitter.com/tommoor"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 @tommoor
               </a>
             </div>
