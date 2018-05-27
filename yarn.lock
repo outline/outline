@@ -8762,9 +8762,9 @@ retry-as-promised@^2.3.1:
     bluebird "^3.4.6"
     debug "^2.6.9"
 
-rich-markdown-editor@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-1.1.0.tgz#178307255bba4777c5b0f991202b522e5e0850a1"
+rich-markdown-editor@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-1.1.1.tgz#f7ccb07902d347ccd785516e09dcdf3cf489acf4"
   dependencies:
     "@tommoor/slate-drop-or-paste-images" "^0.8.1"
     boundless-arrow-key-navigation "^1.1.0"
@@ -8782,7 +8782,7 @@ rich-markdown-editor@^1.1.0:
     slate-collapse-on-escape "^0.6.0"
     slate-edit-code "^0.14.0"
     slate-edit-list "^0.11.2"
-    slate-md-serializer "3.1.0"
+    slate-md-serializer "3.1.1"
     slate-paste-linkify "^0.5.0"
     slate-plain-serializer "0.5.4"
     slate-prism "^0.5.0"
@@ -9143,9 +9143,9 @@ slate-edit-list@^0.11.2:
   version "0.11.2"
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.11.2.tgz#c67b961d98435f9f7747d20b870cbc51d25af7a8"
 
-slate-md-serializer@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-3.1.0.tgz#8e82899c45a607615b19e03d42cbd38cc7f64acf"
+slate-md-serializer@3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-3.1.1.tgz#65cc9659baeeeee060afe2b029a1b619627d758d"
 
 slate-paste-linkify@^0.5.0:
   version "0.5.0"
