@@ -6,7 +6,7 @@ import { type Context } from 'koa';
 export default function pagination(options?: Object) {
   return async function paginationMiddleware(
     ctx: Context,
-    next: () => Promise<void>
+    next: () => Promise<*>
   ) {
     const opts = {
       defaultLimit: 15,

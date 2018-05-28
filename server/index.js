@@ -8,6 +8,7 @@ import bugsnag from 'bugsnag';
 import onerror from 'koa-onerror';
 import updates from './utils/updates';
 
+import auth from './auth';
 import api from './api';
 import emails from './emails';
 import routes from './routes';
@@ -79,6 +80,7 @@ if (process.env.NODE_ENV === 'development') {
   }
 }
 
+app.use(mount('/auth', auth));
 app.use(mount('/api', api));
 app.use(mount(routes));
 

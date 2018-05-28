@@ -1,7 +1,7 @@
 // @flow
 import Router from 'koa-router';
 import Sequelize from 'sequelize';
-import auth from './middlewares/authentication';
+import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
 import { Document, Collection, Share, Star, View, Revision } from '../models';

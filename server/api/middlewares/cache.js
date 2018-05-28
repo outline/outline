@@ -1,10 +1,11 @@
 // @flow
 import debug from 'debug';
+import { type Context } from 'koa';
 
 const debugCache = debug('cache');
 
 export default function cache() {
-  return async function cacheMiddleware(ctx: Object, next: Function) {
+  return async function cacheMiddleware(ctx: Context, next: () => Promise<*>) {
     ctx.cache = {};
 
     ctx.cache.set = async (id, value) => {

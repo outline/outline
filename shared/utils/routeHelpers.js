@@ -57,8 +57,8 @@ export function changelog(): string {
   return '/changelog';
 }
 
-export function signin(): string {
-  return '/auth/slack';
+export function signin(service: string = 'slack'): string {
+  return `/auth/${service}`;
 }
 
 export function about(): string {

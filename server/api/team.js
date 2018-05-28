@@ -2,7 +2,7 @@
 import Router from 'koa-router';
 import { User } from '../models';
 
-import auth from './middlewares/authentication';
+import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentUser } from '../presenters';
 

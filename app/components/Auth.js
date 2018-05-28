@@ -15,7 +15,12 @@ type Props = {
 let authenticatedStores;
 
 const Auth = ({ children }: Props) => {
-  if (stores.auth.authenticated && stores.auth.team && stores.auth.user) {
+  if (stores.auth.authenticated) {
+    if (!stores.auth.team || !stores.auth.user) {
+      stores.auth.fetch();
+      return null;
+    }
+
     // Only initialize stores once. Kept in global scope because otherwise they
     // will get overridden on route change
     if (!authenticatedStores) {
@@ -42,7 +47,6 @@ const Auth = ({ children }: Props) => {
         };
       }
 
-      stores.auth.fetch();
       authenticatedStores.collections.fetchPage({ limit: 100 });
     }
 

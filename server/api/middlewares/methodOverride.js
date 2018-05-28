@@ -5,7 +5,7 @@ import { type Context } from 'koa';
 export default function methodOverride() {
   return async function methodOverrideMiddleware(
     ctx: Context,
-    next: () => Promise<void>
+    next: () => Promise<*>
   ) {
     if (ctx.method === 'POST') {
       // $FlowFixMe

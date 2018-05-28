@@ -123,7 +123,9 @@ class AuthStore {
     }
     this.user = data.user;
     this.team = data.team;
-    this.token = data.token;
+    this.token = Cookie.get('accessToken') || data.token;
+    console.log('TOKEN', this.token);
+
     this.oauthState = data.oauthState;
 
     autorun(() => {

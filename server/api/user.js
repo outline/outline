@@ -4,7 +4,7 @@ import Router from 'koa-router';
 import { makePolicy, signPolicy, publicS3Endpoint } from '../utils/s3';
 import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
-import auth from './middlewares/authentication';
+import auth from '../middlewares/authentication';
 import { presentUser } from '../presenters';
 import policy from '../policies';
 

@@ -2,15 +2,32 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { signin } from '../../../shared/utils/routeHelpers';
+import Flex from '../../../shared/components/Flex';
 import SlackLogo from '../../../shared/components/SlackLogo';
 import { color } from '../../../shared/styles/constants';
 
-const SlackSignin = () => {
+type Props = {
+  lastLoggedIn: string,
+};
+
+const SlackSignin = ({ lastLoggedIn }: Props) => {
   return (
-    <Button href={signin()}>
-      <SlackLogo />
-      <Spacer>Sign In with Slack</Spacer>
-    </Button>
+    <Flex justify="center">
+      <Flex>
+        <Button href={signin('slack')}>
+          <SlackLogo />
+          <Spacer>Sign In with Slack</Spacer>
+        </Button>
+        {lastLoggedIn === 'slack' && 'You signed in with Slack previously'}
+      </Flex>
+      &nbsp;
+      <Flex>
+        <Button href={signin('google')}>
+          <Spacer>Sign In with Google</Spacer>
+        </Button>
+        {lastLoggedIn === 'google' && 'You signed in with Google previously'}
+      </Flex>
+    </Flex>
   );
 };
 

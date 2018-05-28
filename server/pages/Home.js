@@ -9,7 +9,11 @@ import SignupButton from './components/SignupButton';
 import { developers, githubUrl } from '../../shared/utils/routeHelpers';
 import { color } from '../../shared/styles/constants';
 
-function Home() {
+type Props = {
+  lastLoggedIn: string,
+};
+
+function Home({ lastLoggedIn }: Props) {
   return (
     <span>
       <Helmet>
@@ -23,7 +27,7 @@ function Home() {
             logs, brainstorming, & more…
           </HeroText>
           <p>
-            <SignupButton />
+            <SignupButton lastLoggedIn={lastLoggedIn} />
           </p>
         </Hero>
         <Features reverse={{ mobile: true, tablet: false, desktop: false }}>

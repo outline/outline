@@ -19,8 +19,6 @@ export default (
   user: User,
   options: Options = {}
 ): UserPresentation => {
-  ctx.cache.set(user.id, user);
-
   const userData = {};
   userData.id = user.id;
   userData.username = user.username;

@@ -7,7 +7,6 @@ import sendfile from 'koa-sendfile';
 import serve from 'koa-static';
 import subdomainRedirect from './middlewares/subdomainRedirect';
 import renderpage from './utils/renderpage';
-import { slackAuth } from '../shared/utils/routeHelpers';
 import { robotsResponse } from './utils/robots';
 import { NotFoundError } from './errors';
 
@@ -48,19 +47,6 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// slack direct install
-router.get('/auth/slack/install', async ctx => {
-  const state = Math.random()
-    .toString(36)
-    .substring(7);
-
-  ctx.cookies.set('state', state, {
-    httpOnly: false,
-    expires: new Date('2100'),
-  });
-  ctx.redirect(slackAuth(state));
-});
-
 // static pages
 router.get('/about', ctx => renderpage(ctx, <About />));
 router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
@@ -76,10 +62,14 @@ router.get('/changelog', async ctx => {
 
 // home page
 router.get('/', async ctx => {
-  if (ctx.cookies.get('loggedIn')) {
+  const lastLoggedIn = ctx.cookies.get('lastLoggedIn');
+  const accessToken = ctx.cookies.get('accessToken');
+  console.log(lastLoggedIn, accessToken);
+
+  if (accessToken) {
     await renderapp(ctx);
   } else {
-    await renderpage(ctx, <Home />);
+    await renderpage(ctx, <Home lastLoggedIn={lastLoggedIn} />);
   }
 });
 
