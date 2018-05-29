@@ -22,7 +22,7 @@ type Props = {
 };
 
 @observer
-class Settings extends React.Component<Props> {
+class Profile extends React.Component<Props> {
   timeout: TimeoutID;
 
   @observable name: string;
@@ -166,4 +166,4 @@ const StyledInput = styled(Input)`
   max-width: 350px;
 `;
 
-export default inject('auth', 'errors')(Settings);
+export default inject('auth', 'errors')(Profile);

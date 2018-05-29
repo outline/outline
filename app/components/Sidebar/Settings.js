@@ -54,6 +54,9 @@ class SettingsSidebar extends React.Component<Props> {
             </Section>
             <Section>
               <Header>Team</Header>
+              <SidebarLink to="/settings/details" icon={<SettingsIcon />}>
+                Details
+              </SidebarLink>
               <SidebarLink to="/settings/members" icon={<UserIcon />}>
                 Members
               </SidebarLink>
