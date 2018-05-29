@@ -71,6 +71,7 @@ router.get('/', async ctx => {
     await renderpage(
       ctx,
       <Home
+        notice={ctx.request.query.notice}
         lastSignedIn={lastSignedIn}
         googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}
         slackSigninEnabled={!!process.env.SLACK_KEY}

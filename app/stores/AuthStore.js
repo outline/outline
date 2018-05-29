@@ -122,6 +122,9 @@ class AuthStore {
     this.user = data.user;
     this.team = data.team;
     this.oauthState = data.oauthState;
+
+    // load token from state for backwards compatability with
+    // sessions created pre-google auth
     this.token = Cookie.get('accessToken') || data.token;
 
     autorun(() => {

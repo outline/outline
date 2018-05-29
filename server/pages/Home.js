@@ -10,6 +10,7 @@ import { developers, githubUrl } from '../../shared/utils/routeHelpers';
 import { color } from '../../shared/styles/constants';
 
 type Props = {
+  notice?: 'google-hd',
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
@@ -31,6 +32,12 @@ function Home(props: Props) {
           <p>
             <SigninButtons {...props} />
           </p>
+          {props.notice === 'google-hd' && (
+            <Notice>
+              Sorry, Google sign in cannot be used with a personal email. Please
+              try signing in with your company Google account.
+            </Notice>
+          )}
         </Hero>
         <Features reverse={{ mobile: true, tablet: false, desktop: false }}>
           <Grid.Unit size={{ desktop: 1 / 3, tablet: 1 / 2 }}>
@@ -106,6 +113,13 @@ function Home(props: Props) {
     </span>
   );
 }
+
+const Notice = styled.p`
+  background: #ffd95c;
+  color: hsla(46, 100%, 20%, 1);
+  padding: 10px;
+  border-radius: 4px;
+`;
 
 const Screenshot = styled.img`
   width: 100%;

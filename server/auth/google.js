@@ -37,6 +37,11 @@ router.get('google.callback', async ctx => {
     url: 'https://www.googleapis.com/oauth2/v1/userinfo',
   });
 
+  if (!profile.data.hd) {
+    ctx.redirect('/?notice=google-hd');
+    return;
+  }
+
   const teamName = capitalize(profile.data.hd.split('.')[0]);
   const [team, isFirstUser] = await Team.findOrCreate({
     where: {
