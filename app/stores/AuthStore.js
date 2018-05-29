@@ -29,7 +29,6 @@ class AuthStore {
     return JSON.stringify({
       user: this.user,
       team: this.team,
-      token: this.token,
       oauthState: this.oauthState,
     });
   }
@@ -57,7 +56,7 @@ class AuthStore {
     this.user = null;
     this.token = null;
 
-    Cookie.remove('loggedIn', { path: '/' });
+    Cookie.remove('accessToken', { path: '/' });
     await localForage.clear();
     window.location.href = BASE_URL;
   };
@@ -106,7 +105,6 @@ class AuthStore {
     );
     this.user = res.data.user;
     this.team = res.data.team;
-    this.token = res.data.accessToken;
 
     return {
       success: true,
@@ -123,10 +121,8 @@ class AuthStore {
     }
     this.user = data.user;
     this.team = data.team;
-    this.token = Cookie.get('accessToken') || data.token;
-    console.log('TOKEN', this.token);
-
     this.oauthState = data.oauthState;
+    this.token = Cookie.get('accessToken') || data.token;
 
     autorun(() => {
       try {

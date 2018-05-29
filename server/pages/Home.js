@@ -5,15 +5,17 @@ import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import breakpoint from 'styled-components-breakpoint';
 import Hero from './components/Hero';
-import SignupButton from './components/SignupButton';
+import SigninButtons from './components/SigninButtons';
 import { developers, githubUrl } from '../../shared/utils/routeHelpers';
 import { color } from '../../shared/styles/constants';
 
 type Props = {
-  lastLoggedIn: string,
+  lastSignedIn: string,
+  googleSigninEnabled: boolean,
+  slackSigninEnabled: boolean,
 };
 
-function Home({ lastLoggedIn }: Props) {
+function Home(props: Props) {
   return (
     <span>
       <Helmet>
@@ -27,7 +29,7 @@ function Home({ lastLoggedIn }: Props) {
             logs, brainstorming, & more…
           </HeroText>
           <p>
-            <SignupButton lastLoggedIn={lastLoggedIn} />
+            <SigninButtons {...props} />
           </p>
         </Hero>
         <Features reverse={{ mobile: true, tablet: false, desktop: false }}>
@@ -94,10 +96,10 @@ function Home({ lastLoggedIn }: Props) {
         <Footer>
           <h2>Create an account</h2>
           <p>
-            On the same page as us? Create a beta account to give Outline a try.
+            On the same page as us? Create a free account to give Outline a try.
           </p>
           <FooterCTA>
-            <SignupButton />
+            <SigninButtons {...props} />
           </FooterCTA>
         </Footer>
       </Grid>

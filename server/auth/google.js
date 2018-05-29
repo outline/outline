@@ -66,7 +66,7 @@ router.get('google.callback', async ctx => {
     await team.createFirstCollection(user.id);
   }
 
-  ctx.cookies.set('lastLoggedIn', 'google', {
+  ctx.cookies.set('lastSignedIn', 'google', {
     httpOnly: false,
     expires: new Date('2100'),
   });

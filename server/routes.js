@@ -62,14 +62,20 @@ router.get('/changelog', async ctx => {
 
 // home page
 router.get('/', async ctx => {
-  const lastLoggedIn = ctx.cookies.get('lastLoggedIn');
+  const lastSignedIn = ctx.cookies.get('lastSignedIn');
   const accessToken = ctx.cookies.get('accessToken');
-  console.log(lastLoggedIn, accessToken);
 
   if (accessToken) {
     await renderapp(ctx);
   } else {
-    await renderpage(ctx, <Home lastLoggedIn={lastLoggedIn} />);
+    await renderpage(
+      ctx,
+      <Home
+        lastSignedIn={lastSignedIn}
+        googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}
+        slackSigninEnabled={!!process.env.SLACK_KEY}
+      />
+    );
   }
 });
 
