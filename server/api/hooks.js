@@ -14,7 +14,9 @@ router.post('hooks.unfurl', async ctx => {
     throw new AuthenticationError('Invalid token');
 
   // TODO: Everything from here onwards will get moved to an async job
-  const user = await User.find({ where: { slackId: event.user } });
+  const user = await User.find({
+    where: { service: 'slack', serviceId: event.user },
+  });
   if (!user) return;
 
   const auth = await Authentication.find({
@@ -55,7 +57,8 @@ router.post('hooks.slack', async ctx => {
 
   const user = await User.find({
     where: {
-      slackId: user_id,
+      service: 'slack',
+      serviceId: user_id,
     },
   });
 

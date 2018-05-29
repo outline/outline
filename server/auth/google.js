@@ -1,6 +1,7 @@
 // @flow
 import Router from 'koa-router';
 import addMonths from 'date-fns/add_months';
+import { capitalize } from 'lodash';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Team } from '../models';
 
@@ -32,17 +33,14 @@ router.get('google.callback', async ctx => {
   const response = await client.getToken(code);
   client.setCredentials(response.tokens);
 
-  console.log('Tokens acquired.');
-  console.log(response.tokens);
-
   const profile = await client.request({
     url: 'https://www.googleapis.com/oauth2/v1/userinfo',
   });
 
-  const teamName = profile.data.hd.split('.')[0];
+  const teamName = capitalize(profile.data.hd.split('.')[0]);
   const [team, isFirstUser] = await Team.findOrCreate({
     where: {
-      slackId: profile.data.hd,
+      googleId: profile.data.hd,
     },
     defaults: {
       name: teamName,
@@ -50,9 +48,10 @@ router.get('google.callback', async ctx => {
     },
   });
 
-  const [user, isFirstSignin] = await User.findOrCreate({
+  const [user] = await User.findOrCreate({
     where: {
-      slackId: profile.data.id,
+      service: 'google',
+      serviceId: profile.data.id,
       teamId: team.id,
     },
     defaults: {
@@ -62,10 +61,6 @@ router.get('google.callback', async ctx => {
       avatarUrl: profile.data.picture,
     },
   });
-
-  if (!isFirstSignin) {
-    await user.save();
-  }
 
   if (isFirstUser) {
     await team.createFirstCollection(user.id);
@@ -77,7 +72,7 @@ router.get('google.callback', async ctx => {
   });
   ctx.cookies.set('accessToken', user.getJwtToken(), {
     httpOnly: false,
-    expires: addMonths(new Date(), 6),
+    expires: addMonths(new Date(), 1),
   });
 
   ctx.redirect('/');

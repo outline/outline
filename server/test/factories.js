@@ -40,7 +40,8 @@ export async function buildUser(overrides: Object = {}) {
     username: `user${count}`,
     name: `User ${count}`,
     password: 'test123!',
-    slackId: uuid.v4(),
+    service: 'slack',
+    serviceId: uuid.v4(),
     ...overrides,
   });
 }

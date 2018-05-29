@@ -13,6 +13,8 @@ const Team = sequelize.define(
     },
     name: DataTypes.STRING,
     slackId: { type: DataTypes.STRING, allowNull: true },
+    googleId: { type: DataTypes.STRING, allowNull: true },
+    avatarUrl: { type: DataTypes.STRING, allowNull: true },
     slackData: DataTypes.JSONB,
   },
   {

@@ -3,6 +3,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { signin } from '../../../shared/utils/routeHelpers';
 import Flex from '../../../shared/components/Flex';
+import GoogleLogo from '../../../shared/components/GoogleLogo';
 import SlackLogo from '../../../shared/components/SlackLogo';
 import { color } from '../../../shared/styles/constants';
 
@@ -10,22 +11,27 @@ type Props = {
   lastLoggedIn: string,
 };
 
-const SlackSignin = ({ lastLoggedIn }: Props) => {
+const SignupButton = ({ lastLoggedIn }: Props) => {
   return (
     <Flex justify="center">
-      <Flex>
+      <Flex column>
         <Button href={signin('slack')}>
           <SlackLogo />
           <Spacer>Sign In with Slack</Spacer>
         </Button>
-        {lastLoggedIn === 'slack' && 'You signed in with Slack previously'}
+        <LastLogin>
+          {lastLoggedIn === 'slack' && 'You signed in with Slack previously'}
+        </LastLogin>
       </Flex>
       &nbsp;
-      <Flex>
+      <Flex column>
         <Button href={signin('google')}>
+          <GoogleLogo />
           <Spacer>Sign In with Google</Spacer>
         </Button>
-        {lastLoggedIn === 'google' && 'You signed in with Google previously'}
+        <LastLogin>
+          {lastLoggedIn === 'google' && 'You signed in with Google previously'}
+        </LastLogin>
       </Flex>
     </Flex>
   );
@@ -43,6 +49,13 @@ const Button = styled.a`
   background: ${color.black};
   border-radius: 4px;
   font-weight: 600;
+  height: 56px;
 `;
 
-export default SlackSignin;
+const LastLogin = styled.p`
+  font-size: 12px;
+  color: ${color.slate};
+  padding-top: 4px;
+`;
+
+export default SignupButton;

@@ -26,7 +26,9 @@ router.post('auth.slack', async ctx => {
 
   const data = await Slack.oauthAccess(code);
 
-  let user = await User.findOne({ where: { slackId: data.user.id } });
+  let user = await User.findOne({
+    where: { service: 'slack', serviceId: data.user.id },
+  });
   let team = await Team.findOne({ where: { slackId: data.team.id } });
   const isFirstUser = !team;
 
@@ -48,7 +50,8 @@ router.post('auth.slack', async ctx => {
     await user.save();
   } else {
     user = await User.create({
-      slackId: data.user.id,
+      service: 'slack',
+      serviceId: data.user.id,
       name: data.user.name,
       email: data.user.email,
       teamId: team.id,

@@ -16,8 +16,10 @@ let authenticatedStores;
 
 const Auth = ({ children }: Props) => {
   if (stores.auth.authenticated) {
+    stores.auth.fetch();
+
+    // TODO: Show loading state
     if (!stores.auth.team || !stores.auth.user) {
-      stores.auth.fetch();
       return null;
     }
 
