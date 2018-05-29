@@ -10,7 +10,7 @@ import { developers, githubUrl } from '../../shared/utils/routeHelpers';
 import { color } from '../../shared/styles/constants';
 
 type Props = {
-  notice?: 'google-hd',
+  notice?: 'google-hd' | 'auth-error',
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
@@ -36,6 +36,12 @@ function Home(props: Props) {
             <Notice>
               Sorry, Google sign in cannot be used with a personal email. Please
               try signing in with your company Google account.
+            </Notice>
+          )}
+          {props.notice === 'auth-error' && (
+            <Notice>
+              Authentication failed - we were unable to sign you in at this
+              time. Please try again.
             </Notice>
           )}
         </Hero>

@@ -25,8 +25,6 @@ import Members from 'scenes/Settings/Members';
 import Slack from 'scenes/Settings/Slack';
 import Shares from 'scenes/Settings/Shares';
 import Tokens from 'scenes/Settings/Tokens';
-import SlackAuth from 'scenes/SlackAuth';
-import ErrorAuth from 'scenes/ErrorAuth';
 import Error404 from 'scenes/Error404';
 
 import ErrorBoundary from 'components/ErrorBoundary';
@@ -61,14 +59,6 @@ if (element) {
             <ScrollToTop>
               <Switch>
                 <Route exact path="/" component={Home} />
-                <Route exact path="/auth/slack" component={SlackAuth} />
-                <Route
-                  exact
-                  path="/auth/slack/commands"
-                  component={SlackAuth}
-                />
-                <Route exact path="/auth/slack/post" component={SlackAuth} />
-                <Route exact path="/auth/error" component={ErrorAuth} />
                 <Route exact path="/share/:shareId" component={Document} />
                 <Auth>
                   <Layout>
