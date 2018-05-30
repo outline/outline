@@ -58,7 +58,9 @@ class AuthStore {
 
     Cookie.remove('accessToken', { path: '/' });
     await localForage.clear();
-    window.location.href = BASE_URL;
+
+    // add a timestamp to force reload from server
+    window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
   };
 
   @action
@@ -126,6 +128,8 @@ class AuthStore {
     // load token from state for backwards compatability with
     // sessions created pre-google auth
     this.token = Cookie.get('accessToken') || data.token;
+
+    if (this.token) setImmediate(() => this.fetch());
 
     autorun(() => {
       try {

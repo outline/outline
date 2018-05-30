@@ -1,33 +1,34 @@
 // @flow
 import * as React from 'react';
-import { Provider } from 'mobx-react';
+import { Provider, observer, inject } from 'mobx-react';
 import stores from 'stores';
+import AuthStore from 'stores/AuthStore';
 import ApiKeysStore from 'stores/ApiKeysStore';
 import UsersStore from 'stores/UsersStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import IntegrationsStore from 'stores/IntegrationsStore';
 import CacheStore from 'stores/CacheStore';
+import LoadingIndicator from 'components/LoadingIndicator';
 
 type Props = {
+  auth: AuthStore,
   children?: React.Node,
 };
 
 let authenticatedStores;
 
-const Auth = ({ children }: Props) => {
-  if (stores.auth.authenticated) {
-    stores.auth.fetch();
+const Auth = observer(({ auth, children }: Props) => {
+  if (auth.authenticated) {
+    const { user, team } = auth;
 
-    // TODO: Show loading state
-    if (!stores.auth.team || !stores.auth.user) {
-      return null;
+    if (!team || !user) {
+      return <LoadingIndicator />;
     }
 
     // Only initialize stores once. Kept in global scope because otherwise they
     // will get overridden on route change
     if (!authenticatedStores) {
       // Stores for authenticated user
-      const { user, team } = stores.auth;
       const cache = new CacheStore(user.id);
       authenticatedStores = {
         integrations: new IntegrationsStore(),
@@ -55,8 +56,8 @@ const Auth = ({ children }: Props) => {
     return <Provider {...authenticatedStores}>{children}</Provider>;
   }
 
-  stores.auth.logout();
+  auth.logout();
   return null;
-};
+});
 
-export default Auth;
+export default inject('auth')(Auth);
