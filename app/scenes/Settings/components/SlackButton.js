@@ -17,11 +17,7 @@ type Props = {
 
 function SlackButton({ auth, state, label, scopes, redirectUri }: Props) {
   const handleClick = () =>
-    (window.location.href = slackAuth(
-      state ? auth.saveOauthState(state) : auth.genOauthState(),
-      scopes,
-      redirectUri
-    ));
+    (window.location.href = slackAuth(state, scopes, redirectUri));
 
   return (
     <Button onClick={handleClick} icon={<SpacedSlackLogo size={24} />} neutral>

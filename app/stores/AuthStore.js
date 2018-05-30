@@ -12,7 +12,6 @@ class AuthStore {
   @observable user: ?User;
   @observable team: ?Team;
   @observable token: ?string;
-  @observable oauthState: string;
   @observable isLoading: boolean = false;
   @observable isSuspended: boolean = false;
   @observable suspendedContactEmail: ?string;
@@ -29,7 +28,6 @@ class AuthStore {
     return JSON.stringify({
       user: this.user,
       team: this.team,
-      oauthState: this.oauthState,
     });
   }
 
@@ -63,56 +61,6 @@ class AuthStore {
     window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
   };
 
-  @action
-  genOauthState = () => {
-    const state = Math.random()
-      .toString(36)
-      .substring(7);
-    this.oauthState = state;
-    return this.oauthState;
-  };
-
-  @action
-  saveOauthState = (state: string) => {
-    this.oauthState = state;
-    return this.oauthState;
-  };
-
-  @action
-  authWithSlack = async (code: string, state: string) => {
-    // in the case of direct install from the Slack app store the state is
-    // created on the server and set as a cookie
-    const serverState = Cookie.get('state');
-    if (state !== this.oauthState && state !== serverState) {
-      return {
-        success: false,
-      };
-    }
-
-    let res;
-    try {
-      res = await client.post('/auth.slack', { code });
-    } catch (e) {
-      return {
-        success: false,
-      };
-    }
-
-    // State can only ever be used once so now's the time to remove it.
-    Cookie.remove('state', { path: '/' });
-
-    invariant(
-      res && res.data && res.data.user && res.data.team && res.data.accessToken,
-      'All values should be available'
-    );
-    this.user = res.data.user;
-    this.team = res.data.team;
-
-    return {
-      success: true,
-    };
-  };
-
   constructor() {
     // Rehydrate
     let data = {};
@@ -123,7 +71,6 @@ class AuthStore {
     }
     this.user = data.user;
     this.team = data.team;
-    this.oauthState = data.oauthState;
 
     // load token from state for backwards compatability with
     // sessions created pre-google auth

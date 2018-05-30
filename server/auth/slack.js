@@ -2,7 +2,6 @@
 import Router from 'koa-router';
 import addHours from 'date-fns/add_hours';
 import addMonths from 'date-fns/add_months';
-import auth from '../middlewares/authentication';
 import { slackAuth } from '../../shared/utils/routeHelpers';
 import { Authentication, Integration, User, Team } from '../models';
 import * as Slack from '../slack';
@@ -75,17 +74,19 @@ router.get('slack.callback', async ctx => {
   ctx.redirect('/');
 });
 
-router.post('slack.commands', auth(), async ctx => {
-  const { code } = ctx.body;
+router.get('slack.commands', async ctx => {
+  const { code } = ctx.request.query;
   ctx.assertPresent(code, 'code is required');
 
-  const user = ctx.state.user;
   const endpoint = `${process.env.URL || ''}/auth/slack.commands`;
   const data = await Slack.oauthAccess(code, endpoint);
-  const serviceId = 'slack';
+  const user = await User.find({
+    service: 'slack',
+    serviceId: data.user_id,
+  });
 
   const authentication = await Authentication.create({
-    serviceId,
+    serviceId: 'slack',
     userId: user.id,
     teamId: user.teamId,
     token: data.access_token,
@@ -93,25 +94,33 @@ router.post('slack.commands', auth(), async ctx => {
   });
 
   await Integration.create({
-    serviceId,
+    serviceId: 'slack',
     type: 'command',
     userId: user.id,
     teamId: user.teamId,
     authenticationId: authentication.id,
   });
+
+  ctx.redirect('/settings/integrations/slack');
 });
 
-router.post('slack.post', auth(), async ctx => {
-  const { code, collectionId } = ctx.body;
+router.get('slack.post', async ctx => {
+  const { code, state } = ctx.request.query;
   ctx.assertPresent(code, 'code is required');
 
-  const user = ctx.state.user;
+  const collectionId = state;
+  ctx.assertUuid(collectionId, 'collectionId must be an uuid');
+
   const endpoint = `${process.env.URL || ''}/auth/slack.post`;
   const data = await Slack.oauthAccess(code, endpoint);
-  const serviceId = 'slack';
+
+  const user = await User.find({
+    service: 'slack',
+    serviceId: data.user_id,
+  });
 
   const authentication = await Authentication.create({
-    serviceId,
+    serviceId: 'slack',
     userId: user.id,
     teamId: user.teamId,
     token: data.access_token,
@@ -119,7 +128,7 @@ router.post('slack.post', auth(), async ctx => {
   });
 
   await Integration.create({
-    serviceId,
+    serviceId: 'slack',
     type: 'post',
     userId: user.id,
     teamId: user.teamId,
@@ -132,6 +141,8 @@ router.post('slack.post', auth(), async ctx => {
       channelId: data.incoming_webhook.channel_id,
     },
   });
+
+  ctx.redirect('/settings/integrations/slack');
 });
 
 export default router;
