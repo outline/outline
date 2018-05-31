@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 type Props = {
   label?: React.Node,
   onOpen?: () => *,
-  onClose?: () => *,
+  onClose: () => *,
   history: Object,
   shares: SharesStore,
   share: Share,

@@ -20,7 +20,7 @@ type Props = {
 };
 
 @observer
-class Profile extends React.Component<Props> {
+class Details extends React.Component<Props> {
   timeout: TimeoutID;
   form: ?HTMLFormElement;
 
@@ -28,8 +28,8 @@ class Profile extends React.Component<Props> {
   @observable avatarUrl: ?string;
 
   componentDidMount() {
-    if (this.props.auth.user) {
-      this.name = this.props.auth.user.name;
+    if (this.props.auth.team) {
+      this.name = this.props.auth.team.name;
     }
   }
 
@@ -40,11 +40,11 @@ class Profile extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
 
-    await this.props.auth.updateUser({
+    await this.props.auth.updateTeam({
       name: this.name,
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast('Profile saved', 'success');
+    this.props.ui.showToast('Details saved', 'success');
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -64,16 +64,16 @@ class Profile extends React.Component<Props> {
   }
 
   render() {
-    const { user, isSaving } = this.props.auth;
-    if (!user) return null;
-    const avatarUrl = this.avatarUrl || user.avatarUrl;
+    const { team, isSaving } = this.props.auth;
+    if (!team) return null;
+    const avatarUrl = this.avatarUrl || team.avatarUrl;
 
     return (
       <CenteredContent>
-        <PageTitle title="Profile" />
-        <h1>Profile</h1>
+        <PageTitle title="Details" />
+        <h1>Details</h1>
         <ProfilePicture column>
-          <LabelText>Picture</LabelText>
+          <LabelText>Logo</LabelText>
           <AvatarContainer>
             <ImageUpload
               onSuccess={this.handleAvatarUpload}
@@ -110,12 +110,14 @@ const ProfilePicture = styled(Flex)`
 const avatarStyles = `
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+  border-radius: 8px;
 `;
 
 const AvatarContainer = styled(Flex)`
   ${avatarStyles};
   position: relative;
+  box-shadow: 0 0 0 1px #dae1e9;
+  background: ${color.white};
 
   div div {
     ${avatarStyles};
@@ -140,4 +142,4 @@ const Avatar = styled.img`
   ${avatarStyles};
 `;
 
-export default inject('auth', 'ui')(Profile);
+export default inject('auth', 'ui')(Details);

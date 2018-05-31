@@ -21,11 +21,10 @@ router.post('user.update', auth(), async ctx => {
   const endpoint = publicS3Endpoint();
 
   if (name) user.name = name;
-  if (
-    avatarUrl &&
-    avatarUrl.startsWith(`${endpoint}/uploads/${ctx.state.user.id}`)
-  )
+  if (avatarUrl && avatarUrl.startsWith(`${endpoint}/uploads/${user.id}`)) {
     user.avatarUrl = avatarUrl;
+  }
+
   await user.save();
 
   ctx.body = { data: await presentUser(ctx, user) };

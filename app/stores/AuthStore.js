@@ -67,6 +67,22 @@ class AuthStore {
   };
 
   @action
+  updateTeam = async (params: { name: string, avatarUrl: ?string }) => {
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/team.update`, params);
+      invariant(res && res.data, 'Team response not available');
+
+      runInAction('AuthStore#updateTeam', () => {
+        this.team = res.data;
+      });
+    } finally {
+      this.isSaving = false;
+    }
+  };
+
+  @action
   logout = async () => {
     this.user = null;
     this.token = null;

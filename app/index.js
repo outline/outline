@@ -21,6 +21,7 @@ import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
+import Details from 'scenes/Settings/Details';
 import Members from 'scenes/Settings/Members';
 import Slack from 'scenes/Settings/Slack';
 import Shares from 'scenes/Settings/Shares';
@@ -67,6 +68,11 @@ if (element) {
                       <Route exact path="/starred" component={Starred} />
                       <Route exact path="/drafts" component={Drafts} />
                       <Route exact path="/settings" component={Settings} />
+                      <Route
+                        exact
+                        path="/settings/details"
+                        component={Details}
+                      />
                       <Route
                         exact
                         path="/settings/members"
