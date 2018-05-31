@@ -31,7 +31,9 @@ const Auth = observer(({ auth, children }: Props) => {
       // Stores for authenticated user
       const cache = new CacheStore(user.id);
       authenticatedStores = {
-        integrations: new IntegrationsStore(),
+        integrations: new IntegrationsStore({
+          ui: stores.ui,
+        }),
         apiKeys: new ApiKeysStore(),
         users: new UsersStore(),
         collections: new CollectionsStore({

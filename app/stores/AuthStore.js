@@ -50,6 +50,16 @@ class AuthStore {
   };
 
   @action
+  updateUser = async (params: { name: string, avatarUrl?: string }) => {
+    const res = await client.post(`/user.update`, params);
+    invariant(res && res.data, 'User response not available');
+
+    runInAction('AuthStore#updateUser', () => {
+      this.user = res.data.user;
+    });
+  };
+
+  @action
   logout = async () => {
     this.user = null;
     this.token = null;

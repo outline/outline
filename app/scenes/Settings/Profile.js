@@ -1,14 +1,11 @@
 // @flow
 import * as React from 'react';
-import { observable, runInAction } from 'mobx';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import invariant from 'invariant';
 import styled from 'styled-components';
 import { color, size } from 'shared/styles/constants';
 
-import { client } from 'utils/ApiClient';
 import AuthStore from 'stores/AuthStore';
-import ErrorsStore from 'stores/ErrorsStore';
 import ImageUpload from './components/ImageUpload';
 import Input, { LabelText } from 'components/Input';
 import Button from 'components/Button';
@@ -18,7 +15,6 @@ import Flex from 'shared/components/Flex';
 
 type Props = {
   auth: AuthStore,
-  errors: ErrorsStore,
 };
 
 @observer
@@ -27,8 +23,6 @@ class Profile extends React.Component<Props> {
 
   @observable name: string;
   @observable avatarUrl: ?string;
-  @observable isUpdated: boolean;
-  @observable isSaving: boolean;
 
   componentDidMount() {
     if (this.props.auth.user) {
@@ -42,25 +36,11 @@ class Profile extends React.Component<Props> {
 
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
-    this.isSaving = true;
 
-    try {
-      const res = await client.post(`/user.update`, {
-        name: this.name,
-        avatarUrl: this.avatarUrl,
-      });
-      invariant(res && res.data, 'User response not available');
-      const { data } = res;
-      runInAction('Settings#handleSubmit', () => {
-        this.props.auth.user = data;
-        this.isUpdated = true;
-        this.timeout = setTimeout(() => (this.isUpdated = false), 2500);
-      });
-    } catch (e) {
-      this.props.errors.add('Failed to update user');
-    } finally {
-      this.isSaving = false;
-    }
+    await this.props.auth.updateUser({
+      name: this.name,
+      avatarUrl: this.avatarUrl,
+    });
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -72,7 +52,7 @@ class Profile extends React.Component<Props> {
   };
 
   handleAvatarError = (error: ?string) => {
-    this.props.errors.add(error || 'Unable to upload new avatar');
+    this.props.ui.showToast(error || 'Unable to upload new avatar');
   };
 
   render() {
@@ -85,7 +65,7 @@ class Profile extends React.Component<Props> {
         <PageTitle title="Profile" />
         <h1>Profile</h1>
         <ProfilePicture column>
-          <LabelText>Profile picture</LabelText>
+          <LabelText>Picture</LabelText>
           <AvatarContainer>
             <ImageUpload
               onSuccess={this.handleAvatarUpload}
@@ -108,31 +88,20 @@ class Profile extends React.Component<Props> {
           <Button type="submit" disabled={this.isSaving || !this.name}>
             Save
           </Button>
-          <SuccessMessage visible={this.isUpdated}>
-            Profile updated!
-          </SuccessMessage>
         </form>
       </CenteredContent>
     );
   }
 }
 
-const SuccessMessage = styled.span`
-  margin-left: ${size.large};
-  color: ${color.slate};
-  opacity: ${props => (props.visible ? 1 : 0)};
-
-  transition: opacity 0.25s;
-`;
-
 const ProfilePicture = styled(Flex)`
   margin-bottom: ${size.huge};
 `;
 
 const avatarStyles = `
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
 `;
 
 const AvatarContainer = styled(Flex)`
@@ -166,4 +135,4 @@ const StyledInput = styled(Input)`
   max-width: 350px;
 `;
 
-export default inject('auth', 'errors')(Profile);
+export default inject('auth', 'ui')(Profile);

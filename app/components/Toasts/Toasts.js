@@ -8,15 +8,15 @@ import Toast from './components/Toast';
 @observer
 class Toasts extends React.Component<*> {
   handleClose = index => {
-    this.props.errors.remove(index);
+    this.props.ui.remove(index);
   };
 
   render() {
-    const { errors } = this.props;
+    const { ui } = this.props;
 
     return (
       <List>
-        {errors.data.map((error, index) => (
+        {ui.toasts.map((error, index) => (
           <Toast
             key={index}
             onRequestClose={this.handleClose.bind(this, index)}
@@ -37,4 +37,4 @@ const List = styled.ol`
   padding: 0;
 `;
 
-export default inject('errors')(Toasts);
+export default inject('ui')(Toasts);

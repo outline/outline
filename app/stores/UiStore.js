@@ -11,6 +11,7 @@ class UiStore {
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
+  @observable toasts: string[] = observable.array([]);
 
   /* Actions */
   @action
@@ -79,6 +80,16 @@ class UiStore {
   hideMobileSidebar() {
     this.mobileSidebarVisible = false;
   }
+
+  @action
+  showToast = (message: string): void => {
+    this.toasts.push(message);
+  };
+
+  @action
+  removeToast = (index: number): void => {
+    this.toasts.splice(index, 1);
+  };
 }
 
 export default UiStore;

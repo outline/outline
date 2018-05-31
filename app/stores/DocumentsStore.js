@@ -6,7 +6,6 @@ import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
 import Document from 'models/Document';
-import ErrorsStore from 'stores/ErrorsStore';
 import UiStore from 'stores/UiStore';
 import type { PaginationParams } from 'types';
 
@@ -14,7 +13,6 @@ export const DEFAULT_PAGINATION_LIMIT = 25;
 
 type Options = {
   ui: UiStore,
-  errors: ErrorsStore,
 };
 
 type FetchOptions = {
@@ -29,7 +27,6 @@ class DocumentsStore extends BaseStore {
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
 
-  errors: ErrorsStore;
   ui: UiStore;
 
   /* Computed */
@@ -114,7 +111,7 @@ class DocumentsStore extends BaseStore {
       });
       return data;
     } catch (e) {
-      this.errors.add('Failed to load documents');
+      this.ui.showToast('Failed to load documents');
     } finally {
       this.isFetching = false;
     }
@@ -200,7 +197,7 @@ class DocumentsStore extends BaseStore {
 
       return document;
     } catch (e) {
-      this.errors.add('Failed to load document');
+      this.ui.showToast('Failed to load document');
     } finally {
       this.isFetching = false;
     }
@@ -230,7 +227,6 @@ class DocumentsStore extends BaseStore {
   constructor(options: Options) {
     super();
 
-    this.errors = options.errors;
     this.ui = options.ui;
 
     this.on('documents.delete', (data: { id: string }) => {
