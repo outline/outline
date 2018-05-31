@@ -78,6 +78,8 @@ class Details extends React.Component<Props> {
             <ImageUpload
               onSuccess={this.handleAvatarUpload}
               onError={this.handleAvatarError}
+              submitText="Crop logo"
+              borderRadius={0}
             >
               <Avatar src={avatarUrl} />
               <Flex auto align="center" justify="center">
