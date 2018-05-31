@@ -27,7 +27,7 @@ router.post('user.update', auth(), async ctx => {
 
   await user.save();
 
-  ctx.body = { data: await presentUser(ctx, user) };
+  ctx.body = { data: await presentUser(ctx, user, { includeDetails: true }) };
 });
 
 router.post('user.s3Upload', auth(), async ctx => {
