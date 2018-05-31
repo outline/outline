@@ -22,7 +22,7 @@ import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import Details from 'scenes/Settings/Details';
-import Members from 'scenes/Settings/Members';
+import People from 'scenes/Settings/People';
 import Slack from 'scenes/Settings/Slack';
 import Shares from 'scenes/Settings/Shares';
 import Tokens from 'scenes/Settings/Tokens';
@@ -73,11 +73,7 @@ if (element) {
                         path="/settings/details"
                         component={Details}
                       />
-                      <Route
-                        exact
-                        path="/settings/members"
-                        component={Members}
-                      />
+                      <Route exact path="/settings/people" component={People} />
                       <Route exact path="/settings/shares" component={Shares} />
                       <Route exact path="/settings/tokens" component={Tokens} />
                       <Route

@@ -45,8 +45,9 @@ class Tokens extends React.Component<Props> {
         <h1>API Tokens</h1>
 
         <HelpText>
-          You can create unlimited personal API tokens to hack on your wiki.
-          Learn more in the <Link to="/developers">API documentation</Link>.
+          You can create an unlimited amount of personal API tokens to hack on
+          Outline. For more details about the API take a look at the{' '}
+          <Link to="/developers">developer documentation</Link>.
         </HelpText>
 
         {hasApiKeys && (

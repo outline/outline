@@ -9,6 +9,8 @@ function present(ctx: Object, team: Team) {
     name: team.name,
     avatarUrl:
       team.avatarUrl || (team.slackData ? team.slackData.image_88 : null),
+    slackConnected: !!team.slackId,
+    googleConnected: !!team.googleId,
   };
 }
 

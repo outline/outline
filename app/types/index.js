@@ -28,6 +28,8 @@ export type Team = {
   id: string,
   name: string,
   avatarUrl: string,
+  slackConnected: boolean,
+  googleConnected: boolean,
 };
 
 export type NavigationNode = {
