@@ -12,6 +12,7 @@ class AuthStore {
   @observable user: ?User;
   @observable team: ?Team;
   @observable token: ?string;
+  @observable isSaving: boolean = false;
   @observable isLoading: boolean = false;
   @observable isSuspended: boolean = false;
   @observable suspendedContactEmail: ?string;
@@ -50,13 +51,19 @@ class AuthStore {
   };
 
   @action
-  updateUser = async (params: { name: string, avatarUrl?: string }) => {
-    const res = await client.post(`/user.update`, params);
-    invariant(res && res.data, 'User response not available');
+  updateUser = async (params: { name: string, avatarUrl: ?string }) => {
+    this.isSaving = true;
 
-    runInAction('AuthStore#updateUser', () => {
-      this.user = res.data.user;
-    });
+    try {
+      const res = await client.post(`/user.update`, params);
+      invariant(res && res.data, 'User response not available');
+
+      runInAction('AuthStore#updateUser', () => {
+        this.user = res.data;
+      });
+    } finally {
+      this.isSaving = false;
+    }
   };
 
   @action

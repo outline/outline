@@ -4,7 +4,7 @@ import { withRouter } from 'react-router-dom';
 import { inject } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
-import { Share } from 'types';
+import type { Share } from 'types';
 import CopyToClipboard from 'components/CopyToClipboard';
 import SharesStore from 'stores/SharesStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';

@@ -112,7 +112,7 @@ class Layout extends React.Component<Props> {
           </Content>
         </Flex>
         <Modals ui={ui} />
-        <Toasts />
+        <Toasts ui={ui} />
       </Container>
     );
   }

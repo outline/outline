@@ -2,6 +2,7 @@
 import { observable, action } from 'mobx';
 import Document from 'models/Document';
 import Collection from 'models/Collection';
+import type { Toast } from '../types';
 
 class UiStore {
   @observable activeModalName: ?string;
@@ -11,7 +12,7 @@ class UiStore {
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
-  @observable toasts: string[] = observable.array([]);
+  @observable toasts: Toast[] = observable.array([]);
 
   /* Actions */
   @action
@@ -82,8 +83,11 @@ class UiStore {
   }
 
   @action
-  showToast = (message: string): void => {
-    this.toasts.push(message);
+  showToast = (
+    message: string,
+    type?: 'warning' | 'error' | 'info' | 'success' = 'warning'
+  ): void => {
+    this.toasts.push({ message, type });
   };
 
   @action

@@ -11,7 +11,7 @@ type Props = {
   auth: AuthStore,
   scopes?: string[],
   redirectUri?: string,
-  state?: string,
+  state: string,
   label?: string,
 };
 

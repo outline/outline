@@ -4,7 +4,6 @@ import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
 
-import stores from 'stores';
 import BaseStore from './BaseStore';
 import UiStore from './UiStore';
 import Collection from 'models/Collection';

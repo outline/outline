@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { color, size } from 'shared/styles/constants';
 
 import AuthStore from 'stores/AuthStore';
+import UiStore from 'stores/UiStore';
 import ImageUpload from './components/ImageUpload';
 import Input, { LabelText } from 'components/Input';
 import Button from 'components/Button';
@@ -15,6 +16,7 @@ import Flex from 'shared/components/Flex';
 
 type Props = {
   auth: AuthStore,
+  ui: UiStore,
 };
 
 @observer
@@ -41,6 +43,7 @@ class Profile extends React.Component<Props> {
       name: this.name,
       avatarUrl: this.avatarUrl,
     });
+    this.props.ui.showToast('Profile saved', 'success');
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -56,7 +59,7 @@ class Profile extends React.Component<Props> {
   };
 
   render() {
-    const { user } = this.props.auth;
+    const { user, isSaving } = this.props.auth;
     if (!user) return null;
     const avatarUrl = this.avatarUrl || user.avatarUrl;
 
@@ -73,7 +76,7 @@ class Profile extends React.Component<Props> {
             >
               <Avatar src={avatarUrl} />
               <Flex auto align="center" justify="center">
-                Upload new image
+                Upload
               </Flex>
             </ImageUpload>
           </AvatarContainer>
@@ -85,8 +88,8 @@ class Profile extends React.Component<Props> {
             onChange={this.handleNameChange}
             required
           />
-          <Button type="submit" disabled={this.isSaving || !this.name}>
-            Save
+          <Button type="submit" disabled={isSaving || !this.name}>
+            {isSaving ? 'Saving…' : 'Save'}
           </Button>
         </form>
       </CenteredContent>
@@ -101,7 +104,7 @@ const ProfilePicture = styled(Flex)`
 const avatarStyles = `
   width: 80px;
   height: 80px;
-  border-radius: 10px;
+  border-radius: 50%;
 `;
 
 const AvatarContainer = styled(Flex)`
