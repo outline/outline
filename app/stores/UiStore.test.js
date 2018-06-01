@@ -1,12 +1,12 @@
 /* eslint-disable */
-import UiStore from './UiStore';
+import stores from '.';
 
 // Actions
 describe('UiStore', () => {
   let store;
 
   beforeEach(() => {
-    store = new UiStore();
+    store = new stores.UiStore();
   });
 
   test('#add should add errors', () => {
