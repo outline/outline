@@ -1,8 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
-
 import app from '..';
-import { User } from '../models';
 
 import { flushdb, seed } from '../test/support';
 
