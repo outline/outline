@@ -45,7 +45,7 @@ class DropToImport extends React.Component<Props> {
       const asset = await uploadFile(imageBlob, { name: this.file.name });
       this.props.onSuccess(asset.url);
     } catch (err) {
-      this.props.onError(err);
+      this.props.onError(err.message);
     } finally {
       this.isUploading = false;
       this.isCropping = false;

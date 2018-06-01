@@ -7326,9 +7326,9 @@ outline-icons@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.0.3.tgz#f0928a8bbc7e7ff4ea6762eee8fb2995d477941e"
 
-outline-icons@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.1.0.tgz#08eb188a97a1aa8970a4dded7841c3d8b96b8577"
+outline-icons@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.2.0.tgz#8a0e0e9e9b98336470228837c4933ba10297fcf5"
 
 oy-vey@^0.10.0:
   version "0.10.0"

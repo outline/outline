@@ -68,6 +68,7 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
         Key: key,
         ContentType: res.headers['content-type'],
         ContentLength: res.headers['content-length'],
+        ServerSideEncryption: 'AES256',
         Body: buffer,
       })
       .promise();

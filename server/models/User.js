@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import uuid from 'uuid';
 import JWT from 'jsonwebtoken';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
-import { uploadToS3FromUrl } from '../utils/s3';
+import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
 
 const BCRYPT_COST = process.env.NODE_ENV !== 'production' ? 4 : 12;
@@ -57,9 +57,7 @@ User.associate = models => {
 User.prototype.getJwtToken = function() {
   return JWT.sign({ id: this.id }, this.jwtSecret);
 };
-User.prototype.getTeam = async function() {
-  return this.team;
-};
+
 User.prototype.verifyPassword = function(password) {
   return new Promise((resolve, reject) => {
     if (!this.passwordDigest) {
@@ -77,17 +75,23 @@ User.prototype.verifyPassword = function(password) {
     });
   });
 };
-User.prototype.updateAvatar = async function() {
-  this.avatarUrl = await uploadToS3FromUrl(
-    this.slackData.image_192,
-    `avatars/${this.id}/${uuid.v4()}`
-  );
+
+const uploadAvatar = async model => {
+  const endpoint = publicS3Endpoint();
+
+  if (model.avatarUrl && !model.avatarUrl.startsWith(endpoint)) {
+    const newUrl = await uploadToS3FromUrl(
+      model.avatarUrl,
+      `avatars/${model.id}/${uuid.v4()}`
+    );
+    if (newUrl) model.avatarUrl = newUrl;
+  }
 };
 
 const setRandomJwtSecret = model => {
   model.jwtSecret = crypto.randomBytes(64).toString('hex');
 };
-const hashPassword = function hashPassword(model) {
+const hashPassword = model => {
   if (!model.password) {
     return null;
   }
@@ -106,6 +110,7 @@ const hashPassword = function hashPassword(model) {
 };
 User.beforeCreate(hashPassword);
 User.beforeUpdate(hashPassword);
+User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(user => sendEmail('welcome', user.email));
 

@@ -7,6 +7,7 @@ import {
   CodeIcon,
   UserIcon,
   LinkIcon,
+  TeamIcon,
 } from 'outline-icons';
 
 import Flex from 'shared/components/Flex';
@@ -55,7 +56,7 @@ class SettingsSidebar extends React.Component<Props> {
             <Section>
               <Header>Team</Header>
               {user.isAdmin && (
-                <SidebarLink to="/settings/details" icon={<SettingsIcon />}>
+                <SidebarLink to="/settings/details" icon={<TeamIcon />}>
                   Details
                 </SidebarLink>
               )}
