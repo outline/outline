@@ -34,3 +34,32 @@ describe('#team.users', async () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe('#team.update', async () => {
+  it('should update team details', async () => {
+    const { admin } = await seed();
+    const res = await server.post('/api/team.update', {
+      body: { token: admin.getJwtToken(), name: 'New name' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual('New name');
+  });
+
+  it('should require admin', async () => {
+    const { user } = await seed();
+    const res = await server.post('/api/team.update', {
+      body: { token: user.getJwtToken(), name: 'New name' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+  });
+
+  it('should require authentication', async () => {
+    await seed();
+    const res = await server.post('/api/team.update');
+    expect(res.status).toEqual(401);
+  });
+});
