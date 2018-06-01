@@ -86,7 +86,7 @@ router.get('slack.commands', async ctx => {
   });
 
   const authentication = await Authentication.create({
-    serviceId: 'slack',
+    service: 'slack',
     userId: user.id,
     teamId: user.teamId,
     token: data.access_token,
@@ -94,7 +94,7 @@ router.get('slack.commands', async ctx => {
   });
 
   await Integration.create({
-    serviceId: 'slack',
+    service: 'slack',
     type: 'command',
     userId: user.id,
     teamId: user.teamId,
@@ -120,7 +120,7 @@ router.get('slack.post', async ctx => {
   });
 
   const authentication = await Authentication.create({
-    serviceId: 'slack',
+    service: 'slack',
     userId: user.id,
     teamId: user.teamId,
     token: data.access_token,
@@ -128,7 +128,7 @@ router.get('slack.post', async ctx => {
   });
 
   await Integration.create({
-    serviceId: 'slack',
+    service: 'slack',
     type: 'post',
     userId: user.id,
     teamId: user.teamId,

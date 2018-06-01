@@ -23,7 +23,7 @@ class IntegrationsStore extends BaseStore {
 
   @computed
   get slackIntegrations(): Integration[] {
-    return _.filter(this.orderedData, { serviceId: 'slack' });
+    return _.filter(this.orderedData, { service: 'slack' });
   }
 
   @action

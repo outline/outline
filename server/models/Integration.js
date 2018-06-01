@@ -8,7 +8,7 @@ const Integration = sequelize.define('integration', {
     primaryKey: true,
   },
   type: DataTypes.STRING,
-  serviceId: DataTypes.STRING,
+  service: DataTypes.STRING,
   settings: DataTypes.JSONB,
   events: DataTypes.ARRAY(DataTypes.STRING),
 });

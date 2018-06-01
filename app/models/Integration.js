@@ -18,7 +18,7 @@ class Integration extends BaseModel {
   ui: UiStore;
 
   id: string;
-  serviceId: string;
+  service: string;
   collectionId: string;
   events: Events;
   settings: Settings;

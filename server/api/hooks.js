@@ -20,7 +20,7 @@ router.post('hooks.unfurl', async ctx => {
   if (!user) return;
 
   const auth = await Authentication.find({
-    where: { serviceId: 'slack', teamId: user.teamId },
+    where: { service: 'slack', teamId: user.teamId },
   });
   if (!auth) return;
 

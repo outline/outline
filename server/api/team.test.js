@@ -52,8 +52,6 @@ describe('#team.update', async () => {
     const res = await server.post('/api/team.update', {
       body: { token: user.getJwtToken(), name: 'New name' },
     });
-    const body = await res.json();
-
     expect(res.status).toEqual(403);
   });
 

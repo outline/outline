@@ -18,7 +18,7 @@ describe('#hooks.unfurl', async () => {
   it('should return documents', async () => {
     const { user, document } = await seed();
     await Authentication.create({
-      serviceId: 'slack',
+      service: 'slack',
       userId: user.id,
       teamId: user.teamId,
       token: '',
