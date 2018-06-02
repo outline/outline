@@ -1,4 +1,5 @@
 // @flow
+import crypto from 'crypto';
 import Router from 'koa-router';
 import addMonths from 'date-fns/add_months';
 import { capitalize } from 'lodash';
@@ -42,14 +43,28 @@ router.get('google.callback', async ctx => {
     return;
   }
 
+  const googleId = profile.data.hd;
   const teamName = capitalize(profile.data.hd.split('.')[0]);
+
+  // attempt to get logo from Clearbit API. If one doesn't exist then
+  // fall back to using tiley to generate a placeholder logo
+  const hash = crypto.createHash('sha256');
+  hash.update(googleId);
+  const hashedGoogleId = hash.digest('hex');
+  const cbUrl = `https://logo.clearbit.com/${profile.data.hd}`;
+  const tileyUrl = `https://tiley.herokuapp.com/avatar/${hashedGoogleId}/${
+    teamName[0]
+  }.png`;
+  const cbResponse = await fetch(cbUrl);
+  const avatarUrl = cbResponse.status === 200 ? cbUrl : tileyUrl;
+
   const [team, isFirstUser] = await Team.findOrCreate({
     where: {
-      googleId: profile.data.hd,
+      googleId,
     },
     defaults: {
       name: teamName,
-      avatarUrl: `https://logo.clearbit.com/${profile.data.hd}`,
+      avatarUrl,
     },
   });
 
