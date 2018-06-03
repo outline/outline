@@ -4,7 +4,7 @@ import Router from 'koa-router';
 import { makePolicy, signPolicy, publicS3Endpoint } from '../utils/s3';
 import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
-import auth from './middlewares/authentication';
+import auth from '../middlewares/authentication';
 import { presentUser } from '../presenters';
 import policy from '../policies';
 
@@ -21,14 +21,13 @@ router.post('user.update', auth(), async ctx => {
   const endpoint = publicS3Endpoint();
 
   if (name) user.name = name;
-  if (
-    avatarUrl &&
-    avatarUrl.startsWith(`${endpoint}/uploads/${ctx.state.user.id}`)
-  )
+  if (avatarUrl && avatarUrl.startsWith(`${endpoint}/uploads/${user.id}`)) {
     user.avatarUrl = avatarUrl;
+  }
+
   await user.save();
 
-  ctx.body = { data: await presentUser(ctx, user) };
+  ctx.body = { data: await presentUser(ctx, user, { includeDetails: true }) };
 });
 
 router.post('user.s3Upload', auth(), async ctx => {

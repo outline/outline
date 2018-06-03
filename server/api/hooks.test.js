@@ -18,7 +18,7 @@ describe('#hooks.unfurl', async () => {
   it('should return documents', async () => {
     const { user, document } = await seed();
     await Authentication.create({
-      serviceId: 'slack',
+      service: 'slack',
       userId: user.id,
       teamId: user.teamId,
       token: '',
@@ -32,7 +32,7 @@ describe('#hooks.unfurl', async () => {
         event: {
           type: 'link_shared',
           channel: 'Cxxxxxx',
-          user: user.slackId,
+          user: user.serviceId,
           message_ts: '123456789.9875',
           links: [
             {
@@ -55,7 +55,7 @@ describe('#hooks.slack', async () => {
     const res = await server.post('/api/hooks.slack', {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
-        user_id: user.slackId,
+        user_id: user.serviceId,
         text: 'dsfkndfskndsfkn',
       },
     });
@@ -70,7 +70,7 @@ describe('#hooks.slack', async () => {
     const res = await server.post('/api/hooks.slack', {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
-        user_id: user.slackId,
+        user_id: user.serviceId,
         text: document.title,
       },
     });
@@ -98,7 +98,7 @@ describe('#hooks.slack', async () => {
     const res = await server.post('/api/hooks.slack', {
       body: {
         token: 'wrong-verification-token',
-        user_id: user.slackId,
+        user_id: user.serviceId,
         text: 'Welcome',
       },
     });

@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb, seed } from '../../test/support';
-import { buildUser } from '../../test/factories';
-import { ApiKey } from '../../models';
+import { flushdb, seed } from '../test/support';
+import { buildUser } from '../test/factories';
+import { ApiKey } from '../models';
 import randomstring from 'randomstring';
 import auth from './authentication';
 

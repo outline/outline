@@ -1,6 +1,6 @@
 // @flow
 import Router from 'koa-router';
-import auth from './middlewares/authentication';
+import auth from '../middlewares/authentication';
 import { presentView } from '../presenters';
 import { View, Document } from '../models';
 import policy from '../policies';

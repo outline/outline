@@ -44,7 +44,7 @@ export async function request(endpoint: string, body: Object) {
 
 export async function oauthAccess(
   code: string,
-  redirect_uri: string = `${process.env.URL || ''}/auth/slack`
+  redirect_uri: string = `${process.env.URL || ''}/auth/slack.callback`
 ) {
   return request('oauth.access', {
     client_id: process.env.SLACK_KEY,

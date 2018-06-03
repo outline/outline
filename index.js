@@ -8,7 +8,7 @@ if (process.env.NODE_ENV === 'production') {
 } else if (process.env.NODE_ENV === 'development') {
   console.log(
     '\n\x1b[33m%s\x1b[0m',
-    'Running Outline in development mode with React hot reloading. To run Outline in production mode, use `yarn start`'
+    'Running Outline in development mode with hot reloading. To run Outline in production mode, use `yarn start`'
   );
 }
 

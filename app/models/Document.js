@@ -4,7 +4,7 @@ import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
-import ErrorsStore from 'stores/ErrorsStore';
+import UiStore from 'stores/UiStore';
 import parseTitle from '../../shared/utils/parseTitle';
 
 import type { User } from 'types';
@@ -16,7 +16,7 @@ type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 class Document extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
-  errors: ErrorsStore;
+  ui: UiStore;
 
   collaborators: User[];
   collection: $Shape<Collection>;
@@ -107,7 +107,7 @@ class Document extends BaseModel {
 
       this.shareUrl = res.data.url;
     } catch (e) {
-      this.errors.add('Document failed to share');
+      this.ui.showToast('Document failed to share');
     }
   };
 
@@ -118,7 +118,7 @@ class Document extends BaseModel {
       await client.post('/documents.pin', { id: this.id });
     } catch (e) {
       this.pinned = false;
-      this.errors.add('Document failed to pin');
+      this.ui.showToast('Document failed to pin');
     }
   };
 
@@ -129,7 +129,7 @@ class Document extends BaseModel {
       await client.post('/documents.unpin', { id: this.id });
     } catch (e) {
       this.pinned = true;
-      this.errors.add('Document failed to unpin');
+      this.ui.showToast('Document failed to unpin');
     }
   };
 
@@ -140,7 +140,7 @@ class Document extends BaseModel {
       await client.post('/documents.star', { id: this.id });
     } catch (e) {
       this.starred = false;
-      this.errors.add('Document failed star');
+      this.ui.showToast('Document failed star');
     }
   };
 
@@ -151,7 +151,7 @@ class Document extends BaseModel {
       await client.post('/documents.unstar', { id: this.id });
     } catch (e) {
       this.starred = false;
-      this.errors.add('Document failed unstar');
+      this.ui.showToast('Document failed unstar');
     }
   };
 
@@ -161,7 +161,7 @@ class Document extends BaseModel {
     try {
       await client.post('/views.create', { id: this.id });
     } catch (e) {
-      this.errors.add('Document failed to record view');
+      this.ui.showToast('Document failed to record view');
     }
   };
 
@@ -175,7 +175,7 @@ class Document extends BaseModel {
         this.updateData(data);
       });
     } catch (e) {
-      this.errors.add('Document failed loading');
+      this.ui.showToast('Document failed loading');
     }
   };
 
@@ -228,7 +228,7 @@ class Document extends BaseModel {
         });
       }
     } catch (e) {
-      this.errors.add('Document failed to save');
+      this.ui.showToast('Document failed to save');
     } finally {
       this.isSaving = false;
     }
@@ -250,7 +250,7 @@ class Document extends BaseModel {
         collectionId: this.collection.id,
       });
     } catch (e) {
-      this.errors.add('Error while moving the document');
+      this.ui.showToast('Error while moving the document');
     }
     return;
   };
@@ -265,7 +265,7 @@ class Document extends BaseModel {
       });
       return true;
     } catch (e) {
-      this.errors.add('Error while deleting the document');
+      this.ui.showToast('Error while deleting the document');
     }
     return false;
   };
@@ -294,7 +294,7 @@ class Document extends BaseModel {
     super();
 
     this.updateData(data);
-    this.errors = stores.errors;
+    this.ui = stores.ui;
   }
 }
 

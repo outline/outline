@@ -1,26 +1,30 @@
 // @flow
 import * as React from 'react';
-import { inject, observer } from 'mobx-react';
+import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { layout } from 'shared/styles/constants';
 import Toast from './components/Toast';
+import UiStore from '../../stores/UiStore';
 
+type Props = {
+  ui: UiStore,
+};
 @observer
-class Toasts extends React.Component<*> {
-  handleClose = index => {
-    this.props.errors.remove(index);
+class Toasts extends React.Component<Props> {
+  handleClose = (index: number) => {
+    this.props.ui.removeToast(index);
   };
 
   render() {
-    const { errors } = this.props;
+    const { ui } = this.props;
 
     return (
       <List>
-        {errors.data.map((error, index) => (
+        {ui.toasts.map((toast, index) => (
           <Toast
             key={index}
             onRequestClose={this.handleClose.bind(this, index)}
-            message={error}
+            toast={toast}
           />
         ))}
       </List>
@@ -35,6 +39,7 @@ const List = styled.ol`
   list-style: none;
   margin: 0;
   padding: 0;
+  z-index: 1000;
 `;
 
-export default inject('errors')(Toasts);
+export default Toasts;

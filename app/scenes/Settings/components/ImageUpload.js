@@ -16,6 +16,8 @@ type Props = {
   children?: React.Node,
   onSuccess: string => *,
   onError: string => *,
+  submitText: string,
+  borderRadius: number,
 };
 
 @observer
@@ -25,6 +27,11 @@ class DropToImport extends React.Component<Props> {
   @observable zoom: number = 1;
   file: File;
   avatarEditorRef: AvatarEditor;
+
+  static defaultProps = {
+    submitText: 'Crop Picture',
+    borderRadius: 150,
+  };
 
   onDropAccepted = async (files: File[]) => {
     this.isCropping = true;
@@ -38,11 +45,16 @@ class DropToImport extends React.Component<Props> {
       const asset = await uploadFile(imageBlob, { name: this.file.name });
       this.props.onSuccess(asset.url);
     } catch (err) {
-      this.props.onError('Unable to upload image');
+      this.props.onError(err.message);
     } finally {
       this.isUploading = false;
       this.isCropping = false;
     }
+  };
+
+  handleClose = () => {
+    this.isUploading = false;
+    this.isCropping = false;
   };
 
   handleZoom = (event: SyntheticDragEvent<*>) => {
@@ -53,8 +65,10 @@ class DropToImport extends React.Component<Props> {
   };
 
   renderCropping() {
+    const { submitText } = this.props;
+
     return (
-      <Modal isOpen title="">
+      <Modal isOpen onRequestClose={this.handleClose} title="">
         <Flex auto column align="center" justify="center">
           <AvatarEditorContainer>
             <AvatarEditor
@@ -63,7 +77,7 @@ class DropToImport extends React.Component<Props> {
               width={250}
               height={250}
               border={25}
-              borderRadius={150}
+              borderRadius={this.props.borderRadius}
               color={[255, 255, 255, 0.6]} // RGBA
               scale={this.zoom}
               rotate={0}
@@ -79,7 +93,7 @@ class DropToImport extends React.Component<Props> {
           />
           {this.isUploading && <LoadingIndicator />}
           <CropButton onClick={this.handleCrop} disabled={this.isUploading}>
-            Crop avatar
+            {submitText}
           </CropButton>
         </Flex>
       </Modal>
@@ -89,19 +103,20 @@ class DropToImport extends React.Component<Props> {
   render() {
     if (this.isCropping) {
       return this.renderCropping();
-    } else {
-      return (
-        <Dropzone
-          accept="image/png, image/jpeg"
-          onDropAccepted={this.onDropAccepted}
-          style={{}}
-          disablePreview
-          {...this.props}
-        >
-          {this.props.children}
-        </Dropzone>
-      );
     }
+
+    return (
+      <Dropzone
+        accept="image/png, image/jpeg"
+        onDropAccepted={this.onDropAccepted}
+        style={{}}
+        disablePreview
+        onSuccess={this.props.onSuccess}
+        onError={this.props.onError}
+      >
+        {this.props.children}
+      </Dropzone>
+    );
   }
 }
 

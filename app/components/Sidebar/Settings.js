@@ -7,6 +7,7 @@ import {
   CodeIcon,
   UserIcon,
   LinkIcon,
+  TeamIcon,
 } from 'outline-icons';
 
 import Flex from 'shared/components/Flex';
@@ -29,8 +30,8 @@ class SettingsSidebar extends React.Component<Props> {
   };
 
   render() {
-    const { team } = this.props.auth;
-    if (!team) return;
+    const { team, user } = this.props.auth;
+    if (!team || !user) return;
 
     return (
       <Sidebar>
@@ -54,18 +55,25 @@ class SettingsSidebar extends React.Component<Props> {
             </Section>
             <Section>
               <Header>Team</Header>
-              <SidebarLink to="/settings/members" icon={<UserIcon />}>
-                Members
+              {user.isAdmin && (
+                <SidebarLink to="/settings/details" icon={<TeamIcon />}>
+                  Details
+                </SidebarLink>
+              )}
+              <SidebarLink to="/settings/people" icon={<UserIcon />}>
+                People
               </SidebarLink>
               <SidebarLink to="/settings/shares" icon={<LinkIcon />}>
                 Share Links
               </SidebarLink>
-              <SidebarLink
-                to="/settings/integrations/slack"
-                icon={<SettingsIcon />}
-              >
-                Integrations
-              </SidebarLink>
+              {user.isAdmin && (
+                <SidebarLink
+                  to="/settings/integrations/slack"
+                  icon={<SettingsIcon />}
+                >
+                  Integrations
+                </SidebarLink>
+              )}
             </Section>
           </Scrollable>
         </Flex>

@@ -28,22 +28,5 @@ describe('Collection model', () => {
       expect(client.post).toHaveBeenCalledWith('/collections.info', { id: 123 });
       expect(collection.name).toBe('New collection');
     });
-
-    test('should report errors', async () => {
-      client.post = jest.fn(() => Promise.reject())
-
-      const collection = new Collection({
-        id: 123,
-      });
-      collection.errors = {
-        add: jest.fn(),
-      };
-
-      await collection.fetch();
-
-      expect(collection.errors.add).toHaveBeenCalledWith(
-        'Collection failed loading'
-      );
-    });
   });
 });

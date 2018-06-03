@@ -4,7 +4,7 @@ import { extendObservable, action } from 'mobx';
 import BaseModel from 'models/BaseModel';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
-import ErrorsStore from 'stores/ErrorsStore';
+import UiStore from 'stores/UiStore';
 
 type Settings = {
   url: string,
@@ -15,10 +15,10 @@ type Settings = {
 type Events = 'documents.create' | 'collections.create';
 
 class Integration extends BaseModel {
-  errors: ErrorsStore;
+  ui: UiStore;
 
   id: string;
-  serviceId: string;
+  service: string;
   collectionId: string;
   events: Events;
   settings: Settings;
@@ -29,7 +29,7 @@ class Integration extends BaseModel {
       await client.post('/integrations.update', { id: this.id, ...data });
       extendObservable(this, data);
     } catch (e) {
-      this.errors.add('Integration failed to update');
+      this.ui.showToast('Integration failed to update');
     }
     return false;
   };
@@ -41,7 +41,7 @@ class Integration extends BaseModel {
       this.emit('integrations.delete', { id: this.id });
       return true;
     } catch (e) {
-      this.errors.add('Integration failed to delete');
+      this.ui.showToast('Integration failed to delete');
     }
     return false;
   };
@@ -50,7 +50,7 @@ class Integration extends BaseModel {
     super();
 
     extendObservable(this, data);
-    this.errors = stores.errors;
+    this.ui = stores.ui;
   }
 }
 

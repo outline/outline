@@ -1,5 +1,7 @@
 // @flow
+import uuid from 'uuid';
 import { DataTypes, sequelize, Op } from '../sequelize';
+import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import Collection from './Collection';
 import User from './User';
 
@@ -13,6 +15,8 @@ const Team = sequelize.define(
     },
     name: DataTypes.STRING,
     slackId: { type: DataTypes.STRING, allowNull: true },
+    googleId: { type: DataTypes.STRING, allowNull: true },
+    avatarUrl: { type: DataTypes.STRING, allowNull: true },
     slackData: DataTypes.JSONB,
   },
   {
@@ -29,6 +33,18 @@ Team.associate = models => {
   Team.hasMany(models.Collection, { as: 'collections' });
   Team.hasMany(models.Document, { as: 'documents' });
   Team.hasMany(models.User, { as: 'users' });
+};
+
+const uploadAvatar = async model => {
+  const endpoint = publicS3Endpoint();
+
+  if (model.avatarUrl && !model.avatarUrl.startsWith(endpoint)) {
+    const newUrl = await uploadToS3FromUrl(
+      model.avatarUrl,
+      `avatars/${model.id}/${uuid.v4()}`
+    );
+    if (newUrl) model.avatarUrl = newUrl;
+  }
 };
 
 Team.prototype.createFirstCollection = async function(userId) {
@@ -79,5 +95,7 @@ Team.prototype.activateUser = async function(user: User, admin: User) {
     suspendedAt: null,
   });
 };
+
+Team.beforeSave(uploadAvatar);
 
 export default Team;

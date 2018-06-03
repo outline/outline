@@ -1,8 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
-
 import app from '..';
-import { User } from '../models';
 
 import { flushdb, seed } from '../test/support';
 
@@ -13,13 +11,7 @@ afterAll(server.close);
 
 describe('#user.info', async () => {
   it('should return known user', async () => {
-    await seed();
-    const user = await User.findOne({
-      where: {
-        email: 'user1@example.com',
-      },
-    });
-
+    const { user } = await seed();
     const res = await server.post('/api/user.info', {
       body: { token: user.getJwtToken() },
     });
@@ -41,13 +33,7 @@ describe('#user.info', async () => {
 
 describe('#user.update', async () => {
   it('should update user profile information', async () => {
-    await seed();
-    const user = await User.findOne({
-      where: {
-        email: 'user1@example.com',
-      },
-    });
-
+    const { user } = await seed();
     const res = await server.post('/api/user.update', {
       body: { token: user.getJwtToken(), name: 'New name' },
     });

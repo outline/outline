@@ -6,13 +6,13 @@ import BaseModel from 'models/BaseModel';
 import Document from 'models/Document';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
-import ErrorsStore from 'stores/ErrorsStore';
+import UiStore from 'stores/UiStore';
 import type { NavigationNode } from 'types';
 
 class Collection extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
-  errors: ErrorsStore;
+  ui: UiStore;
   data: Object;
 
   createdAt: string;
@@ -79,7 +79,7 @@ class Collection extends BaseModel {
         this.updateData(data);
       });
     } catch (e) {
-      this.errors.add('Collection failed loading');
+      this.ui.showToast('Collection failed loading');
     }
 
     return this;
@@ -112,7 +112,7 @@ class Collection extends BaseModel {
         this.hasPendingChanges = false;
       });
     } catch (e) {
-      this.errors.add('Collection failed saving');
+      this.ui.showToast('Collection failed saving');
       return false;
     } finally {
       this.isSaving = false;
@@ -128,7 +128,7 @@ class Collection extends BaseModel {
       this.emit('collections.delete', { id: this.id });
       return true;
     } catch (e) {
-      this.errors.add('Collection failed to delete');
+      this.ui.showToast('Collection failed to delete');
     }
     return false;
   };
@@ -143,7 +143,7 @@ class Collection extends BaseModel {
     super();
 
     this.updateData(collection);
-    this.errors = stores.errors;
+    this.ui = stores.ui;
 
     this.on('documents.delete', (data: { collectionId: string }) => {
       if (data.collectionId === this.id) this.fetch();

@@ -7,7 +7,7 @@ const Authentication = sequelize.define('authentication', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  serviceId: DataTypes.STRING,
+  service: DataTypes.STRING,
   scopes: DataTypes.ARRAY(DataTypes.STRING),
   token: encryptedFields.vault('token'),
 });

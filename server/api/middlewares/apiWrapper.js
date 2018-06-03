@@ -4,7 +4,7 @@ import { type Context } from 'koa';
 export default function apiWrapper() {
   return async function apiWrapperMiddleware(
     ctx: Context,
-    next: () => Promise<void>
+    next: () => Promise<*>
   ) {
     await next();
 

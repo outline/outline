@@ -14,8 +14,8 @@ const Slack = {
     const integration = await Integration.findOne({
       where: {
         teamId: document.teamId,
-        serviceId: 'slack',
         collectionId: document.atlasId,
+        service: 'slack',
         type: 'post',
       },
     });

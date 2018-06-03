@@ -5,11 +5,18 @@ import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import breakpoint from 'styled-components-breakpoint';
 import Hero from './components/Hero';
-import SignupButton from './components/SignupButton';
+import SigninButtons from './components/SigninButtons';
 import { developers, githubUrl } from '../../shared/utils/routeHelpers';
 import { color } from '../../shared/styles/constants';
 
-function Home() {
+type Props = {
+  notice?: 'google-hd' | 'auth-error',
+  lastSignedIn: string,
+  googleSigninEnabled: boolean,
+  slackSigninEnabled: boolean,
+};
+
+function Home(props: Props) {
   return (
     <span>
       <Helmet>
@@ -23,8 +30,20 @@ function Home() {
             logs, brainstorming, & more…
           </HeroText>
           <p>
-            <SignupButton />
+            <SigninButtons {...props} />
           </p>
+          {props.notice === 'google-hd' && (
+            <Notice>
+              Sorry, Google sign in cannot be used with a personal email. Please
+              try signing in with your company Google account.
+            </Notice>
+          )}
+          {props.notice === 'auth-error' && (
+            <Notice>
+              Authentication failed - we were unable to sign you in at this
+              time. Please try again.
+            </Notice>
+          )}
         </Hero>
         <Features reverse={{ mobile: true, tablet: false, desktop: false }}>
           <Grid.Unit size={{ desktop: 1 / 3, tablet: 1 / 2 }}>
@@ -90,16 +109,23 @@ function Home() {
         <Footer>
           <h2>Create an account</h2>
           <p>
-            On the same page as us? Create a beta account to give Outline a try.
+            On the same page as us? Create a free account to give Outline a try.
           </p>
           <FooterCTA>
-            <SignupButton />
+            <SigninButtons {...props} />
           </FooterCTA>
         </Footer>
       </Grid>
     </span>
   );
 }
+
+const Notice = styled.p`
+  background: #ffd95c;
+  color: hsla(46, 100%, 20%, 1);
+  padding: 10px;
+  border-radius: 4px;
+`;
 
 const Screenshot = styled.img`
   width: 100%;

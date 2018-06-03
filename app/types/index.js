@@ -9,6 +9,11 @@ export type User = {
   isSuspended?: boolean,
 };
 
+export type Toast = {
+  message: string,
+  type: 'warning' | 'error' | 'info' | 'success',
+};
+
 export type Share = {
   id: string,
   url: string,
@@ -23,6 +28,8 @@ export type Team = {
   id: string,
   name: string,
   avatarUrl: string,
+  slackConnected: boolean,
+  googleConnected: boolean,
 };
 
 export type NavigationNode = {

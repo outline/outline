@@ -7,6 +7,7 @@ import AuthStore from 'stores/AuthStore';
 import UsersStore from 'stores/UsersStore';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
+import HelpText from 'components/HelpText';
 import UserListItem from './components/UserListItem';
 import List from 'components/List';
 
@@ -16,7 +17,7 @@ type Props = {
 };
 
 @observer
-class Members extends React.Component<Props> {
+class People extends React.Component<Props> {
   componentDidMount() {
     this.props.users.fetchPage({ limit: 100 });
   }
@@ -28,8 +29,13 @@ class Members extends React.Component<Props> {
 
     return (
       <CenteredContent>
-        <PageTitle title="Members" />
-        <h1>Members</h1>
+        <PageTitle title="People" />
+        <h1>People</h1>
+        <HelpText>
+          Everyone that has signed in to your Outline appears here. It's
+          possible that there are other people who have access but haven't
+          signed in yet.
+        </HelpText>
 
         <List>
           {users.data.map(user => (
@@ -45,4 +51,4 @@ class Members extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'users')(Members);
+export default inject('auth', 'users')(People);

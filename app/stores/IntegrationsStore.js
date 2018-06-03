@@ -3,8 +3,7 @@ import { observable, computed, action, runInAction, ObservableMap } from 'mobx';
 import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
-import stores from './';
-import ErrorsStore from './ErrorsStore';
+import UiStore from './UiStore';
 import BaseStore from './BaseStore';
 
 import Integration from 'models/Integration';
@@ -15,7 +14,7 @@ class IntegrationsStore extends BaseStore {
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
 
-  errors: ErrorsStore;
+  ui: UiStore;
 
   @computed
   get orderedData(): Integration[] {
@@ -24,7 +23,7 @@ class IntegrationsStore extends BaseStore {
 
   @computed
   get slackIntegrations(): Integration[] {
-    return _.filter(this.orderedData, { serviceId: 'slack' });
+    return _.filter(this.orderedData, { service: 'slack' });
   }
 
   @action
@@ -43,7 +42,7 @@ class IntegrationsStore extends BaseStore {
       });
       return res;
     } catch (e) {
-      this.errors.add('Failed to load integrations');
+      this.ui.showToast('Failed to load integrations');
     } finally {
       this.isFetching = false;
     }
@@ -63,9 +62,9 @@ class IntegrationsStore extends BaseStore {
     return this.data.get(id);
   };
 
-  constructor() {
+  constructor(options: { ui: UiStore }) {
     super();
-    this.errors = stores.errors;
+    this.ui = options.ui;
 
     this.on('integrations.delete', (data: { id: string }) => {
       this.remove(data.id);

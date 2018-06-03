@@ -4,12 +4,12 @@ import styled from 'styled-components';
 import { darken } from 'polished';
 import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
+import type { Toast as TToast } from '../../../types';
 
 type Props = {
   onRequestClose: () => void,
   closeAfterMs: number,
-  message: string,
-  type: 'warning' | 'error' | 'info',
+  toast: TToast,
 };
 
 class Toast extends React.Component<Props> {
@@ -17,7 +17,6 @@ class Toast extends React.Component<Props> {
 
   static defaultProps = {
     closeAfterMs: 3000,
-    type: 'warning',
   };
 
   componentDidMount() {
@@ -32,14 +31,14 @@ class Toast extends React.Component<Props> {
   }
 
   render() {
-    const { type, onRequestClose } = this.props;
+    const { toast, onRequestClose } = this.props;
     const message =
-      typeof this.props.message === 'string'
-        ? this.props.message
-        : this.props.message.toString();
+      typeof toast.message === 'string'
+        ? toast.message
+        : toast.message.toString();
 
     return (
-      <Container onClick={onRequestClose} type={type}>
+      <Container onClick={onRequestClose} type={toast.type}>
         <Message>{message}</Message>
       </Container>
     );

@@ -1,14 +1,11 @@
 // @flow
 import JWT from 'jsonwebtoken';
 import { type Context } from 'koa';
-import { User, ApiKey } from '../../models';
-import { AuthenticationError, UserSuspendedError } from '../../errors';
+import { User, ApiKey } from '../models';
+import { AuthenticationError, UserSuspendedError } from '../errors';
 
 export default function auth(options?: { required?: boolean } = {}) {
-  return async function authMiddleware(
-    ctx: Context,
-    next: () => Promise<void>
-  ) {
+  return async function authMiddleware(ctx: Context, next: () => Promise<*>) {
     let token;
 
     const authorizationHeader = ctx.request.get('authorization');

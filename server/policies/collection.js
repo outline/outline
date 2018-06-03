@@ -17,5 +17,6 @@ allow(
 allow(User, 'delete', Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
   if (user.id === collection.creatorId) return true;
-  if (!user.isAdmin) throw new AdminRequiredError();
+  if (user.isAdmin) return true;
+  throw new AdminRequiredError();
 });

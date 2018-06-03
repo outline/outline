@@ -30,7 +30,9 @@ const RealInput = styled.input`
   }
 `;
 
-const Wrapper = styled.div``;
+const Wrapper = styled.div`
+  max-width: ${props => (props.short ? '350px' : '100%')};
+`;
 
 export const Outline = styled(Flex)`
   display: flex;
@@ -58,18 +60,20 @@ export type Props = {
   value?: string,
   label?: string,
   className?: string,
+  short?: boolean,
 };
 
 export default function Input({
   type = 'text',
   label,
   className,
+  short,
   ...rest
 }: Props) {
   const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
 
   return (
-    <Wrapper className={className}>
+    <Wrapper className={className} short={short}>
       <label>
         {label && <LabelText>{label}</LabelText>}
         <Outline>

@@ -6,5 +6,6 @@ import './document';
 import './integration';
 import './share';
 import './user';
+import './team';
 
 export default policy;

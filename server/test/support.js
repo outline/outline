@@ -30,7 +30,8 @@ const seed = async () => {
     name: 'User 1',
     password: 'test123!',
     teamId: team.id,
-    slackId: 'U2399UF2P',
+    service: 'slack',
+    serviceId: 'U2399UF2P',
     slackData: {
       id: 'U2399UF2P',
       image_192: 'http://example.com/avatar.png',
@@ -45,7 +46,8 @@ const seed = async () => {
     password: 'test123!',
     teamId: team.id,
     isAdmin: true,
-    slackId: 'U2399UF1P',
+    service: 'slack',
+    serviceId: 'U2399UF1P',
     slackData: {
       id: 'U2399UF1P',
       image_192: 'http://example.com/avatar.png',

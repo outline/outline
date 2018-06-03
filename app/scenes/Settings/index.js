@@ -1,3 +1,3 @@
 // @flow
-import Settings from './Settings';
-export default Settings;
+import Profile from './Profile';
+export default Profile;

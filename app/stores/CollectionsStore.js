@@ -4,9 +4,7 @@ import { client } from 'utils/ApiClient';
 import _ from 'lodash';
 import invariant from 'invariant';
 
-import stores from 'stores';
 import BaseStore from './BaseStore';
-import ErrorsStore from './ErrorsStore';
 import UiStore from './UiStore';
 import Collection from 'models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
@@ -32,7 +30,6 @@ class CollectionsStore extends BaseStore {
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
 
-  errors: ErrorsStore;
   ui: UiStore;
 
   @computed
@@ -106,7 +103,7 @@ class CollectionsStore extends BaseStore {
       });
       return res;
     } catch (e) {
-      this.errors.add('Failed to load collections');
+      this.ui.showToast('Failed to load collections');
     } finally {
       this.isFetching = false;
     }
@@ -134,7 +131,7 @@ class CollectionsStore extends BaseStore {
 
       return collection;
     } catch (e) {
-      this.errors.add('Something went wrong');
+      this.ui.showToast('Something went wrong');
     } finally {
       this.isFetching = false;
     }
@@ -156,7 +153,6 @@ class CollectionsStore extends BaseStore {
 
   constructor(options: Options) {
     super();
-    this.errors = stores.errors;
     this.ui = options.ui;
 
     this.on('collections.delete', (data: { id: string }) => {

@@ -37,15 +37,18 @@ export const signPolicy = (policy: any) => {
   return signature;
 };
 
-export const publicS3Endpoint = () => {
+export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // lose trailing slash if there is one and convert fake-s3 url to localhost
   // for access outside of docker containers in local development
+  const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
   const host = process.env.AWS_S3_UPLOAD_BUCKET_URL.replace(
     's3:',
     'localhost:'
   ).replace(/\/$/, '');
 
-  return `${host}/${process.env.AWS_S3_UPLOAD_BUCKET_NAME}`;
+  return `${host}/${isServerUpload && isDocker ? 's3/' : ''}${
+    process.env.AWS_S3_UPLOAD_BUCKET_NAME
+  }`;
 };
 
 export const uploadToS3FromUrl = async (url: string, key: string) => {
@@ -68,11 +71,12 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
         Key: key,
         ContentType: res.headers['content-type'],
         ContentLength: res.headers['content-length'],
+        ServerSideEncryption: 'AES256',
         Body: buffer,
       })
       .promise();
 
-    const endpoint = publicS3Endpoint();
+    const endpoint = publicS3Endpoint(true);
     return `${endpoint}/${key}`;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {

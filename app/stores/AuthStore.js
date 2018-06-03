@@ -12,7 +12,7 @@ class AuthStore {
   @observable user: ?User;
   @observable team: ?Team;
   @observable token: ?string;
-  @observable oauthState: string;
+  @observable isSaving: boolean = false;
   @observable isLoading: boolean = false;
   @observable isSuspended: boolean = false;
   @observable suspendedContactEmail: ?string;
@@ -29,8 +29,6 @@ class AuthStore {
     return JSON.stringify({
       user: this.user,
       team: this.team,
-      token: this.token,
-      oauthState: this.oauthState,
     });
   }
 
@@ -53,64 +51,47 @@ class AuthStore {
   };
 
   @action
+  updateUser = async (params: { name: string, avatarUrl: ?string }) => {
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/user.update`, params);
+      invariant(res && res.data, 'User response not available');
+
+      runInAction('AuthStore#updateUser', () => {
+        this.user = res.data;
+      });
+    } finally {
+      this.isSaving = false;
+    }
+  };
+
+  @action
+  updateTeam = async (params: { name: string, avatarUrl: ?string }) => {
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/team.update`, params);
+      invariant(res && res.data, 'Team response not available');
+
+      runInAction('AuthStore#updateTeam', () => {
+        this.team = res.data;
+      });
+    } finally {
+      this.isSaving = false;
+    }
+  };
+
+  @action
   logout = async () => {
     this.user = null;
     this.token = null;
 
-    Cookie.remove('loggedIn', { path: '/' });
+    Cookie.remove('accessToken', { path: '/' });
     await localForage.clear();
-    window.location.href = BASE_URL;
-  };
 
-  @action
-  genOauthState = () => {
-    const state = Math.random()
-      .toString(36)
-      .substring(7);
-    this.oauthState = state;
-    return this.oauthState;
-  };
-
-  @action
-  saveOauthState = (state: string) => {
-    this.oauthState = state;
-    return this.oauthState;
-  };
-
-  @action
-  authWithSlack = async (code: string, state: string) => {
-    // in the case of direct install from the Slack app store the state is
-    // created on the server and set as a cookie
-    const serverState = Cookie.get('state');
-    if (state !== this.oauthState && state !== serverState) {
-      return {
-        success: false,
-      };
-    }
-
-    let res;
-    try {
-      res = await client.post('/auth.slack', { code });
-    } catch (e) {
-      return {
-        success: false,
-      };
-    }
-
-    // State can only ever be used once so now's the time to remove it.
-    Cookie.remove('state', { path: '/' });
-
-    invariant(
-      res && res.data && res.data.user && res.data.team && res.data.accessToken,
-      'All values should be available'
-    );
-    this.user = res.data.user;
-    this.team = res.data.team;
-    this.token = res.data.accessToken;
-
-    return {
-      success: true,
-    };
+    // add a timestamp to force reload from server
+    window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
   };
 
   constructor() {
@@ -123,8 +104,12 @@ class AuthStore {
     }
     this.user = data.user;
     this.team = data.team;
-    this.token = data.token;
-    this.oauthState = data.oauthState;
+
+    // load token from state for backwards compatability with
+    // sessions created pre-google auth
+    this.token = Cookie.get('accessToken') || data.token;
+
+    if (this.token) setImmediate(() => this.fetch());
 
     autorun(() => {
       try {

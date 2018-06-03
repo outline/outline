@@ -1,7 +1,7 @@
 // @flow
 import Router from 'koa-router';
 
-import auth from './middlewares/authentication';
+import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection } from '../presenters';
 import { Collection } from '../models';

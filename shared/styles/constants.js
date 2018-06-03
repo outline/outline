@@ -47,9 +47,9 @@ export const color = {
   /* Brand */
   primary: '#1AB6FF',
   danger: '#D0021B',
-  warning: '#f08a24' /* replace */,
-  success: '#43AC6A' /* replace */,
-  info: '#a0d3e8' /* replace */,
+  warning: '#f08a24',
+  success: '#1AB6FF',
+  info: '#a0d3e8',
   offline: '#000000',
 
   /* Dark Grays */
