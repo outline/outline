@@ -9,7 +9,7 @@ export default function parseTitle(text: string = '') {
   const trimmedTitle = firstLine.replace(/^#/, '').trim();
 
   // remove any escape characters
-  const title = trimmedTitle.replace(/\\([\\`*{}[\]()#+\-.!_>])/g, '$&');
+  const title = trimmedTitle.replace(/\\([\\`*{}[\]()#+\-.!_>])/g, '$1');
 
   // find and extract first emoji
   const matches = regex.exec(title);
