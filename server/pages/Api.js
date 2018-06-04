@@ -327,7 +327,7 @@ export default function Pricing() {
             <Description>
               <p>
                 This method returns information for a document with a specific
-                ID. Following identifiers are allowed:
+                ID. The following identifiers are allowed:
               </p>
               <ul>
                 <li>
@@ -340,11 +340,8 @@ export default function Pricing() {
               </ul>
             </Description>
             <Arguments>
-              <Argument
-                id="id"
-                description="Document ID or URI identifier"
-                required
-              />
+              <Argument id="id" description="Document ID or URI identifier" />
+              <Argument id="shareId" description="An active shareId" />
             </Arguments>
           </Method>
 
@@ -596,6 +593,34 @@ export default function Pricing() {
               users.
             </Description>
             <Arguments pagination />
+          </Method>
+
+          <Method method="shares.list" label="List shared document links">
+            <Description>
+              List all your currently shared document links.
+            </Description>
+            <Arguments pagination />
+          </Method>
+
+          <Method method="shares.create" label="Create a share link">
+            <Description>
+              Creates a new share link that can be used by anyone to access a
+              document. If you request multiple shares for the same document
+              with the same user the same share will be returned.
+            </Description>
+            <Arguments>
+              <Argument id="documentId" description="Document ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="shares.revoke" label="Revoke a share link">
+            <Description>
+              Makes the share link inactive so that it can no longer be used to
+              access the document.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Share ID" required />
+            </Arguments>
           </Method>
         </Methods>
       </Container>
