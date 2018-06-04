@@ -10,8 +10,9 @@ it('should extract first title', () => {
 });
 
 it('should remove escape characters', () => {
-  expect(parseTitle(`# Thing \- one`).title).toBe('Thing - one');
-  expect(parseTitle(`# \[wip\] Title`).title).toBe('[wip] Title');
+  expect(parseTitle(`# Thing \\- one`).title).toBe('Thing - one');
+  expect(parseTitle(`# \\[wip\\] Title`).title).toBe('[wip] Title');
+  expect(parseTitle(`# \\> Title`).title).toBe('> Title');
 });
 
 it('should parse emoji if first character', () => {
