@@ -31,7 +31,8 @@
   "jest": {
     "verbose": false,
     "roots": [
-      "app"
+      "app",
+      "shared"
     ],
     "moduleNameMapper": {
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
