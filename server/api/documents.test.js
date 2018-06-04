@@ -66,7 +66,7 @@ describe('#documents.info', async () => {
     const res = await server.post('/api/documents.info', {
       body: { shareId: share.id },
     });
-    expect(res.status).toEqual(403);
+    expect(res.status).toEqual(400);
   });
 
   it('should return documents from shareId with token', async () => {
