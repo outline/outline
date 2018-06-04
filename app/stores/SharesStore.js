@@ -38,7 +38,7 @@ class SharesStore {
   @action
   revoke = async (share: Share) => {
     try {
-      await client.post('/shares.delete', { id: share.id });
+      await client.post('/shares.revoke', { id: share.id });
       runInAction('revoke', () => {
         this.data.delete(share.id);
       });
