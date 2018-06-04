@@ -34,6 +34,7 @@ import Search from 'scenes/Search';
 import Error404 from 'scenes/Error404';
 
 const AUTOSAVE_INTERVAL = 3000;
+const MARK_AS_VIEWED_AFTER = 3000;
 const DISCARD_CHANGES = `
 You have unsaved changes.
 Are you sure you want to discard them?
@@ -52,6 +53,7 @@ type Props = {
 @observer
 class DocumentScene extends React.Component<Props> {
   savedTimeout: TimeoutID;
+  viewTimeout: TimeoutID;
 
   @observable editorComponent;
   @observable editCache: ?string;
@@ -80,6 +82,8 @@ class DocumentScene extends React.Component<Props> {
 
   componentWillUnmount() {
     clearTimeout(this.savedTimeout);
+    clearTimeout(this.viewTimeout);
+
     this.props.ui.clearActiveDocument();
   }
 
@@ -115,7 +119,7 @@ class DocumentScene extends React.Component<Props> {
 
         if (this.props.auth.user) {
           if (!this.isEditing && document.publishedAt) {
-            document.view();
+            this.viewTimeout = setTimeout(document.view, MARK_AS_VIEWED_AFTER);
           }
 
           // Update url to match the current one
