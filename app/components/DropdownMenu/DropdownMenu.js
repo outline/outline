@@ -93,6 +93,7 @@ const Menu = styled.div`
   border: ${color.slateLight};
   background: ${color.white};
   border-radius: 2px;
+  padding: 0.5em 0;
   min-width: 160px;
   overflow: hidden;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08),
