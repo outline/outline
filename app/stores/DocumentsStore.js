@@ -204,6 +204,26 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
+  duplicate = async (document: Document): * => {
+    const res = await client.post('/documents.create', {
+      publish: true,
+      parentDocument: document.parentDocumentId,
+      collection: document.collection.id,
+      title: `${document.title} (duplicate)`,
+      text: document.text,
+    });
+
+    if (res && res.data) {
+      const duped = res.data;
+      this.emit('documents.create', duped);
+      this.emit('documents.publish', {
+        id: duped.id,
+        collectionId: duped.collection.id,
+      });
+    }
+  };
+
+  @action
   add = (document: Document): void => {
     this.data.set(document.id, document);
   };
@@ -234,6 +254,9 @@ class DocumentsStore extends BaseStore {
     });
     this.on('documents.create', (data: Document) => {
       this.add(new Document(data));
+    });
+    this.on('documents.duplicate', (data: Document) => {
+      this.duplicate(data);
     });
 
     // Re-fetch dashboard content so that we don't show deleted documents

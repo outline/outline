@@ -36,6 +36,10 @@ class DocumentMenu extends React.Component<Props> {
     this.props.history.push(documentMoveUrl(this.props.document));
   };
 
+  handleDuplicate = async (ev: SyntheticEvent<*>) => {
+    this.props.document.duplicate();
+  };
+
   handlePin = (ev: SyntheticEvent<*>) => {
     this.props.document.pin();
   };
@@ -99,6 +103,9 @@ class DocumentMenu extends React.Component<Props> {
               title="Create a new child document for the current document"
             >
               New child document
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleDuplicate}>
+              Duplicate
             </DropdownMenuItem>
             <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
           </React.Fragment>
