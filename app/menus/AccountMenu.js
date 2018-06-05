@@ -7,6 +7,7 @@ import AuthStore from 'stores/AuthStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import {
   developers,
+  changelog,
   githubIssuesUrl,
   mailToUrl,
   spectrumUrl,
@@ -49,6 +50,9 @@ class AccountMenu extends React.Component<Props> {
           API documentation
         </DropdownMenuItem>
         <hr />
+        <DropdownMenuItem href={changelog()} target="_blank">
+          Changelog
+        </DropdownMenuItem>
         <DropdownMenuItem href={spectrumUrl()} target="_blank">
           Community
         </DropdownMenuItem>

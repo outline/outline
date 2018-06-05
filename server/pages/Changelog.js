@@ -30,7 +30,9 @@ function Changelog({ releases }: { releases: Release[] }) {
       <Container>
         {releases.map(release => (
           <Article key={release.id}>
-            <h1>{release.name}</h1>
+            <Heading id={release.name}>
+              <a href={`#${release.name}`}>{release.name}</a>
+            </Heading>
             <Time datetime={release.created_at}>
               {format(new Date(release.created_at), 'MMMM Do, YYYY')}
             </Time>
@@ -41,6 +43,15 @@ function Changelog({ releases }: { releases: Release[] }) {
     </Grid>
   );
 }
+
+const Heading = styled.h1`
+  a {
+    color: ${color.text};
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+`;
 
 const Time = styled.time`
   color: ${color.slateDark};
