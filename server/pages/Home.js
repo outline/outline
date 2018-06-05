@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import breakpoint from 'styled-components-breakpoint';
+import Notice from '../../shared/components/Notice';
 import Hero from './components/Hero';
 import SigninButtons from './components/SigninButtons';
 import { developers, githubUrl } from '../../shared/utils/routeHelpers';
@@ -119,13 +120,6 @@ function Home(props: Props) {
     </span>
   );
 }
-
-const Notice = styled.p`
-  background: #ffd95c;
-  color: hsla(46, 100%, 20%, 1);
-  padding: 10px;
-  border-radius: 4px;
-`;
 
 const Screenshot = styled.img`
   width: 100%;

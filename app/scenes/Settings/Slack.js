@@ -11,6 +11,8 @@ import HelpText from 'components/HelpText';
 import SlackButton from './components/SlackButton';
 import CollectionsStore from 'stores/CollectionsStore';
 import IntegrationsStore from 'stores/IntegrationsStore';
+import Notice from 'shared/components/Notice';
+import getQueryVariable from 'shared/utils/getQueryVariable';
 
 type Props = {
   collections: CollectionsStore,
@@ -19,7 +21,10 @@ type Props = {
 
 @observer
 class Slack extends React.Component<Props> {
+  error: ?string;
+
   componentDidMount() {
+    this.error = getQueryVariable('error');
     this.props.integrations.fetchPage();
   }
 
@@ -36,6 +41,12 @@ class Slack extends React.Component<Props> {
       <CenteredContent>
         <PageTitle title="Slack" />
         <h1>Slack</h1>
+        {this.error === 'access_denied' && (
+          <Notice>
+            Whoops, you need to accept the permissions in Slack to connect
+            Outline to your team. Try again?
+          </Notice>
+        )}
         <HelpText>
           Preview Outline links your team mates share and use the{' '}
           <Code>/outline</Code> slash command in Slack to search for documents

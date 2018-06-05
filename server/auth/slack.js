@@ -78,8 +78,13 @@ router.get('slack.callback', async ctx => {
 });
 
 router.get('slack.commands', async ctx => {
-  const { code } = ctx.request.query;
-  ctx.assertPresent(code, 'code is required');
+  const { code, error } = ctx.request.query;
+  ctx.assertPresent(code || error, 'code is required');
+
+  if (error) {
+    ctx.redirect(`/settings/integrations/slack?error=${error}`);
+    return;
+  }
 
   const endpoint = `${process.env.URL || ''}/auth/slack.commands`;
   const data = await Slack.oauthAccess(code, endpoint);
@@ -108,8 +113,13 @@ router.get('slack.commands', async ctx => {
 });
 
 router.get('slack.post', async ctx => {
-  const { code, state } = ctx.request.query;
-  ctx.assertPresent(code, 'code is required');
+  const { code, error, state } = ctx.request.query;
+  ctx.assertPresent(code || error, 'code is required');
+
+  if (error) {
+    ctx.redirect(`/settings/integrations/slack?error=${error}`);
+    return;
+  }
 
   const collectionId = state;
   ctx.assertUuid(collectionId, 'collectionId must be an uuid');
