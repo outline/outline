@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import uuid from 'uuid';
 import JWT from 'jsonwebtoken';
+import subMinutes from 'date-fns/sub_minutes';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
@@ -28,6 +29,10 @@ const User = sequelize.define(
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
     slackData: DataTypes.JSONB,
     jwtSecret: encryptedFields.vault('jwtSecret'),
+    lastActiveAt: DataTypes.DATE,
+    lastActiveIp: DataTypes.STRING,
+    lastSignedInAt: DataTypes.DATE,
+    lastSignedInIp: DataTypes.STRING,
     suspendedAt: DataTypes.DATE,
     suspendedById: DataTypes.UUID,
   },
@@ -53,6 +58,24 @@ User.associate = models => {
 };
 
 // Instance methods
+User.prototype.updateActiveAt = function(ip) {
+  const fiveMinutesAgo = subMinutes(new Date(), 5);
+
+  // ensure this is updated only every few minutes otherwise
+  // we'll be constantly writing to the DB as API requests happen
+  if (this.lastActiveAt < fiveMinutesAgo) {
+    this.lastActiveAt = new Date();
+    this.lastActiveIp = ip;
+    return this.save({ hooks: false });
+  }
+};
+
+User.prototype.updateSignedIn = function(ip) {
+  this.lastSignedInAt = new Date();
+  this.lastSignedInIp = ip;
+  return this.save({ hooks: false });
+};
+
 User.prototype.getJwtToken = function() {
   return JWT.sign({ id: this.id }, this.jwtSecret);
 };

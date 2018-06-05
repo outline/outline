@@ -79,6 +79,9 @@ export default function auth(options?: { required?: boolean } = {}) {
         throw new UserSuspendedError({ adminEmail: suspendingAdmin.email });
       }
 
+      // not awaiting the promise here so that the request is not blocked
+      user.updateActiveAt(ctx.request.ip);
+
       ctx.state.token = token;
       ctx.state.user = user;
       // $FlowFixMe

@@ -62,6 +62,9 @@ router.get('slack.callback', async ctx => {
     await team.createFirstCollection(user.id);
   }
 
+  // not awaiting the promise here so that the request is not blocked
+  user.updateSignedIn(ctx.request.ip);
+
   ctx.cookies.set('lastSignedIn', 'slack', {
     httpOnly: false,
     expires: new Date('2100'),
