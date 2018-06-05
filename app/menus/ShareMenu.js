@@ -7,6 +7,7 @@ import { MoreIcon } from 'outline-icons';
 import type { Share } from 'types';
 import CopyToClipboard from 'components/CopyToClipboard';
 import SharesStore from 'stores/SharesStore';
+import UiStore from 'stores/UiStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
@@ -15,18 +16,24 @@ type Props = {
   onClose: () => *,
   history: Object,
   shares: SharesStore,
+  ui: UiStore,
   share: Share,
 };
 
 class ShareMenu extends React.Component<Props> {
-  onGoToDocument = (ev: SyntheticEvent<*>) => {
+  handleGoToDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.props.history.push(this.props.share.documentUrl);
   };
 
-  onRevoke = (ev: SyntheticEvent<*>) => {
+  handleRevoke = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.props.shares.revoke(this.props.share);
+    this.props.ui.showToast('Share link revoked', 'success');
+  };
+
+  handleCopy = () => {
+    this.props.ui.showToast('Share link copied', 'success');
   };
 
   render() {
@@ -38,17 +45,19 @@ class ShareMenu extends React.Component<Props> {
         onOpen={onOpen}
         onClose={onClose}
       >
-        <CopyToClipboard text={share.url} onCopy={onClose}>
+        <CopyToClipboard text={share.url} onCopy={this.handleCopy}>
           <DropdownMenuItem>Copy link</DropdownMenuItem>
         </CopyToClipboard>
-        <DropdownMenuItem onClick={this.onGoToDocument}>
+        <DropdownMenuItem onClick={this.handleGoToDocument}>
           Go to document
         </DropdownMenuItem>
         <hr />
-        <DropdownMenuItem onClick={this.onRevoke}>Revoke link</DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleRevoke}>
+          Revoke link
+        </DropdownMenuItem>
       </DropdownMenu>
     );
   }
 }
 
-export default withRouter(inject('shares')(ShareMenu));
+export default withRouter(inject('shares', 'ui')(ShareMenu));
