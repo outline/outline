@@ -33,7 +33,7 @@ const StyledNavLink = styled(NavLink)`
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 4px 0;
-  margin-left: ${({ iconVisible }) => (iconVisible ? '-20px;' : '0')};
+  margin-left: ${({ icon }) => (icon ? '-20px;' : '0')};
   color: ${color.slateDark};
   font-size: 15px;
   cursor: pointer;
@@ -97,12 +97,13 @@ class SidebarLink extends React.Component<Props> {
       hideExpandToggle,
     } = this.props;
     const Component = to ? StyledNavLink : StyledDiv;
-    const showExpandIcon = expandedContent && !hideExpandToggle;
+    const showExpandIcon =
+      expandedContent && !hideExpandToggle ? true : undefined;
 
     return (
       <Wrapper menuOpen={menuOpen} column>
         <Component
-          iconVisible={showExpandIcon}
+          icon={showExpandIcon}
           activeStyle={activeStyle}
           style={active ? activeStyle : undefined}
           onClick={onClick}
