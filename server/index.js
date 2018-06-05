@@ -70,6 +70,10 @@ if (process.env.NODE_ENV === 'development') {
 
   app.use(mount('/emails', emails));
 } else if (process.env.NODE_ENV === 'production') {
+  // trust header fields set by our proxy. eg X-Forwarded-For
+  app.proxy = true;
+
+  // catch errors in one place, automatically set status and response headers
   onerror(app);
 
   if (process.env.BUGSNAG_KEY) {
