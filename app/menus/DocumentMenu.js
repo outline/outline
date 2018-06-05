@@ -91,7 +91,7 @@ class DocumentMenu extends React.Component<Props> {
               onClick={this.handleShareLink}
               title="Create a public share link"
             >
-              Share link
+              Share link…
             </DropdownMenuItem>
             <hr />
             <DropdownMenuItem
