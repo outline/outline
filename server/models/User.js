@@ -8,7 +8,7 @@ import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
 
-const BCRYPT_COST = process.env.NODE_ENV !== 'production' ? 4 : 12;
+const BCRYPT_COST = process.env.NODE_ENV === 'production' ? 12 : 4;
 
 const User = sequelize.define(
   'user',
@@ -25,8 +25,7 @@ const User = sequelize.define(
     password: DataTypes.VIRTUAL,
     passwordDigest: DataTypes.STRING,
     isAdmin: DataTypes.BOOLEAN,
-    slackAccessToken: encryptedFields.vault('slackAccessToken'),
-    service: { type: DataTypes.STRING, allowNull: true, unique: true },
+    service: { type: DataTypes.STRING, allowNull: true },
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
     slackData: DataTypes.JSONB,
     jwtSecret: encryptedFields.vault('jwtSecret'),
@@ -114,6 +113,7 @@ const uploadAvatar = async model => {
 const setRandomJwtSecret = model => {
   model.jwtSecret = crypto.randomBytes(64).toString('hex');
 };
+
 const hashPassword = model => {
   if (!model.password) {
     return null;
@@ -131,6 +131,7 @@ const hashPassword = model => {
     });
   });
 };
+
 User.beforeCreate(hashPassword);
 User.beforeUpdate(hashPassword);
 User.beforeSave(uploadAvatar);

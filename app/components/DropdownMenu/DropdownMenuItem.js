@@ -19,7 +19,7 @@ const DropdownMenuItem = ({ onClick, children, ...rest }: Props) => {
 const MenuItem = styled.a`
   display: flex;
   margin: 0;
-  padding: 5px 10px;
+  padding: 6px 12px;
   height: 32px;
 
   color: ${color.slateDark};
