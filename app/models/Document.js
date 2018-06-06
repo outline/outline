@@ -270,6 +270,10 @@ class Document extends BaseModel {
     return false;
   };
 
+  duplicate = () => {
+    this.emit('documents.duplicate', this);
+  };
+
   download() {
     const a = window.document.createElement('a');
     a.textContent = 'download';
