@@ -289,6 +289,7 @@ class DocumentScene extends React.Component<Props> {
                 onSave={this.onSave}
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing}
+                toc
               />
             </MaxWidth>
             {document &&
