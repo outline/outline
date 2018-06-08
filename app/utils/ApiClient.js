@@ -16,7 +16,7 @@ class ApiClient {
     this.userAgent = 'OutlineFrontend';
   }
 
-  fetch = (
+  fetch = async (
     path: string,
     method: string,
     data: ?Object,
@@ -45,9 +45,8 @@ class ApiClient {
       headers.set('Authorization', `Bearer ${stores.auth.token}`);
     }
 
-    // Construct request
     // $FlowFixMe don't care much about this right now
-    const request = fetch(this.baseUrl + (modifiedPath || path), {
+    const response = await fetch(this.baseUrl + (modifiedPath || path), {
       method,
       body,
       headers,
@@ -55,40 +54,21 @@ class ApiClient {
       credentials: 'include',
     });
 
-    // Handle request promises and return a new promise
-    return new Promise((resolve, reject) => {
-      request
-        .then(response => {
-          // Handle successful responses
-          if (response.status >= 200 && response.status < 300) {
-            return response;
-          }
+    if (response.status >= 200 && response.status < 300) {
+      return response.json();
+    }
 
-          // Handle 401, log out user
-          if (response.status === 401) {
-            stores.auth.logout();
-            return;
-          }
+    // Handle 401, log out user
+    if (response.status === 401) {
+      stores.auth.logout();
+      return;
+    }
 
-          // Handle failed responses
-          const error = {};
-          error.statusCode = response.status;
-          error.response = response;
-          throw error;
-        })
-        .then(response => {
-          return response && response.json();
-        })
-        .then(json => {
-          resolve(json);
-        })
-        .catch(error => {
-          error.response.json().then(json => {
-            error.error = json;
-            reject(error);
-          });
-        });
-    });
+    // Handle failed responses
+    const error = {};
+    error.statusCode = response.status;
+    error.response = response;
+    throw error;
   };
 
   get = (path: string, data: ?Object, options?: Object) => {

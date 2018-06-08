@@ -186,7 +186,7 @@ class Search extends React.Component<Props> {
         {notFound && (
           <div>
             <h1>Not Found</h1>
-            <p>We’re unable to find the page you’re accessing.</p>
+            <Empty>We were unable to find the page you’re looking for.</Empty>
           </div>
         )}
         <ResultsWrapper pinToTop={this.pinToTop} column auto>

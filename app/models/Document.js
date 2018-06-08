@@ -158,11 +158,7 @@ class Document extends BaseModel {
   @action
   view = async () => {
     this.views++;
-    try {
-      await client.post('/views.create', { id: this.id });
-    } catch (e) {
-      this.ui.showToast('Document failed to record view');
-    }
+    await client.post('/views.create', { id: this.id });
   };
 
   @action

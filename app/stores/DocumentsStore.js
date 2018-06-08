@@ -196,8 +196,10 @@ class DocumentsStore extends BaseStore {
       });
 
       return document;
-    } catch (e) {
-      this.ui.showToast('Failed to load document');
+    } catch (_err) {
+      if (!options.prefetch && navigator.onLine) {
+        this.ui.showToast('Failed to load document');
+      }
     } finally {
       this.isFetching = false;
     }

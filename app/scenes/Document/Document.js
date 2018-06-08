@@ -32,6 +32,7 @@ import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Search from 'scenes/Search';
 import Error404 from 'scenes/Error404';
+import ErrorOffline from 'scenes/ErrorOffline';
 
 const AUTOSAVE_INTERVAL = 3000;
 const MARK_AS_VIEWED_AFTER = 3000;
@@ -245,7 +246,15 @@ class DocumentScene extends React.Component<Props> {
     const isShare = match.params.shareId;
 
     if (this.notFound) {
-      return isShare ? <Error404 /> : <Search notFound />;
+      return navigator.onLine ? (
+        isShare ? (
+          <Error404 />
+        ) : (
+          <Search notFound />
+        )
+      ) : (
+        <ErrorOffline />
+      );
     }
 
     return (
