@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react';
-import styled from 'styled-components';
+import styled, { withTheme } from 'styled-components';
 import { SearchIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 
 type Props = {
   onChange: string => *,
+  theme: Object,
 };
 
 class SearchField extends React.Component<Props> {
@@ -29,7 +30,7 @@ class SearchField extends React.Component<Props> {
         <StyledIcon
           type="Search"
           size={46}
-          color={color.slateLight}
+          color={this.props.theme.slateLight}
           onClick={this.focusInput}
         />
         <StyledInput
@@ -53,9 +54,15 @@ const StyledInput = styled.input`
   outline: none;
   border: 0;
 
-  ::-webkit-input-placeholder,
-  :-moz-placeholder,
-  ::-moz-placeholder,
+  ::-webkit-input-placeholder {
+    color: ${props => props.theme.slateLight};
+  }
+  :-moz-placeholder {
+    color: ${props => props.theme.slateLight};
+  }
+  ::-moz-placeholder {
+    color: ${props => props.theme.slateLight};
+  }
   :-ms-input-placeholder {
     color: ${props => props.theme.slateLight};
   }
@@ -66,4 +73,4 @@ const StyledIcon = styled(SearchIcon)`
   top: 4px;
 `;
 
-export default SearchField;
+export default withTheme(SearchField);
