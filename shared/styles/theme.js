@@ -9,6 +9,10 @@ const theme = {
   link: '#1AB6FF',
   primary: '#1AB6FF',
   placeholder: '#b1becc',
+  danger: '#D0021B',
+  warning: '#f08a24',
+  success: '#1AB6FF',
+  info: '#a0d3e8',
 
   slate: '#9BA6B2',
   slateLight: '#DAE1E9',
