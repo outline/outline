@@ -64,16 +64,16 @@ function BottomNavigation() {
   );
 }
 
-const MenuLinkStyle = `
+const MenuLinkStyle = props => `
   font-size: 15px;
   font-weight: 500;
 
   a {
-    color: ${props => props.theme.slate};
+    color: ${props.theme.slate};
   }
 
   a:hover {
-    color: ${props => props.theme.slateDark};
+    color: ${props.theme.slateDark};
     text-decoration: underline;
   }
 `;
