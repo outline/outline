@@ -81,18 +81,6 @@ class Layout extends React.Component<Props> {
             name="viewport"
             content="width=device-width, initial-scale=1.0"
           />
-          <link
-            rel="shortcut icon"
-            type="image/png"
-            href="/favicon-16.png"
-            sizes="16x16"
-          />
-          <link
-            rel="shortcut icon"
-            type="image/png"
-            href="/favicon-32.png"
-            sizes="32x32"
-          />
         </Helmet>
         <Analytics />
 

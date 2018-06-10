@@ -51,6 +51,25 @@ type Props = {
   ui: UiStore,
 };
 
+function toCodePoint(unicodeSurrogates, sep) {
+  var r = [],
+    c = 0,
+    p = 0,
+    i = 0;
+  while (i < unicodeSurrogates.length) {
+    c = unicodeSurrogates.charCodeAt(i++);
+    if (p) {
+      r.push((0x10000 + ((p - 0xd800) << 10) + (c - 0xdc00)).toString(16));
+      p = 0;
+    } else if (0xd800 <= c && c <= 0xdbff) {
+      p = c;
+    } else {
+      r.push(c.toString(16));
+    }
+  }
+  return r.join(sep || '-');
+}
+
 @observer
 class DocumentScene extends React.Component<Props> {
   savedTimeout: TimeoutID;
@@ -257,10 +276,22 @@ class DocumentScene extends React.Component<Props> {
       );
     }
 
+    let favicon;
+    if (document && document.emoji) {
+      favicon = `https://twemoji.maxcdn.com/2/72x72/${toCodePoint(
+        document.emoji
+      )}.png`;
+    }
+
     return (
       <Container key={document ? document.id : undefined} column auto>
         {isMoving && document && <DocumentMove document={document} />}
-        {titleText && <PageTitle title={titleText} />}
+        {titleText && (
+          <PageTitle
+            title={titleText.replace(document.emoji, '')}
+            favicon={favicon}
+          />
+        )}
         {(this.isLoading || this.isSaving) && <LoadingIndicator />}
         {!document || !Editor ? (
           <CenteredContent>
