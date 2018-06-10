@@ -330,7 +330,7 @@ const Container = styled(Flex)`
 `;
 
 const LoadingState = styled(LoadingPlaceholder)`
-  margin: 90px 0;
+  margin: 40px 0;
 `;
 
 export default withRouter(inject('ui', 'auth', 'documents')(DocumentScene));

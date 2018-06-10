@@ -19,6 +19,7 @@ const theme = {
   smokeDark: '#E8EBED',
 
   white: '#FFFFFF',
+  blue: '#1AB6FF',
   black: '#000000',
   blackLight: '#2f3336',
 
