@@ -55,7 +55,7 @@ class CardInputForm extends React.Component<{
     const style = {
       base: {
         color: theme.text,
-        fontSize: '18px',
+        fontSize: '15px',
         fontFamily: 'monospace',
         '::placeholder': {
           color: theme.slate,
@@ -78,6 +78,7 @@ const StyledCardElement = styled(CardElement)`
   border-style: solid;
   border-color: ${props => props.theme.slateLight};
   border-radius: 4px;
+  margin: 0 0 16px;
 `;
 
 export default withTheme(StripeForm);

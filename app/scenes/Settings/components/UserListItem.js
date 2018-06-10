@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import UserMenu from 'menus/UserMenu';
 import Avatar from 'components/Avatar';
 import ListItem from 'components/List/Item';
-import type { User } from '../../../types';
+import type { User } from 'shared/types';
 
 type Props = {
   user: User,

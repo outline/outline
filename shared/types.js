@@ -30,6 +30,7 @@ export type Team = {
   avatarUrl: string,
   slackConnected: boolean,
   googleConnected: boolean,
+  isSuspended: boolean,
 };
 
 export type NavigationNode = {

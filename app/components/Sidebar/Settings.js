@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import {
+  BillingIcon,
   ProfileIcon,
   SettingsIcon,
   CodeIcon,
@@ -66,7 +67,7 @@ class SettingsSidebar extends React.Component<Props> {
                 People
               </SidebarLink>
               {BILLING_ENABLED && (
-                <SidebarLink to="/settings/billing" icon={<UserIcon />}>
+                <SidebarLink to="/settings/billing" icon={<BillingIcon />}>
                   Billing
                 </SidebarLink>
               )}

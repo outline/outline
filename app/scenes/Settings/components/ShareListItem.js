@@ -3,7 +3,7 @@ import * as React from 'react';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import ShareMenu from 'menus/ShareMenu';
 import ListItem from 'components/List/Item';
-import type { Share } from '../../../types';
+import type { Share } from 'shared/types';
 
 type Props = {
   share: Share,

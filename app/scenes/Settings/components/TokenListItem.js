@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Button from 'components/Button';
 import ListItem from 'components/List/Item';
-import type { ApiKey } from '../../../types';
+import type { ApiKey } from 'shared/types';
 
 type Props = {
   token: ApiKey,
