@@ -9,7 +9,6 @@ import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import Analytics from 'shared/components/Analytics';
 import Flex from 'shared/components/Flex';
-import { layout } from 'shared/styles/constants';
 import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
@@ -133,7 +132,7 @@ const Content = styled(Flex)`
   }
 
   ${breakpoint('tablet')`
-    margin-left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
+    margin-left: ${props => (props.editMode ? 0 : props.theme.sidebarWidth)};
   `};
 `;
 

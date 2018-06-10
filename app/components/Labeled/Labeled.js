@@ -3,7 +3,6 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
-import { size } from 'shared/styles/constants';
 
 type Props = {
   label: React.Node | string,
@@ -18,7 +17,7 @@ const Labeled = ({ label, children, ...props }: Props) => (
 );
 
 export const Label = styled(Flex)`
-  margin-bottom: ${size.medium};
+  margin-bottom: 8px;
   font-size: 13px;
   font-weight: 500;
   text-transform: uppercase;

@@ -2,8 +2,6 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { NewDocumentIcon } from 'outline-icons';
-
-import { color } from 'shared/styles/constants';
 import Document from 'models/Document';
 import { documentEditUrl, documentNewUrl } from 'utils/routeHelpers';
 
@@ -123,7 +121,7 @@ const Link = styled.a`
   align-items: center;
   font-weight: ${props => (props.highlight ? 500 : 'inherit')};
   color: ${props =>
-    props.highlight ? `${color.primary} !important` : 'inherit'};
+    props.highlight ? `${props.theme.primary} !important` : 'inherit'};
   opacity: ${props => (props.disabled ? 0.5 : 1)};
   pointer-events: ${props => (props.disabled ? 'none' : 'auto')};
   cursor: ${props => (props.disabled ? 'default' : 'pointer')};

@@ -4,14 +4,8 @@ import { observable, action } from 'mobx';
 import { observer } from 'mobx-react';
 import { withRouter, NavLink } from 'react-router-dom';
 import { CollapsedIcon } from 'outline-icons';
-import { color, fontWeight } from 'shared/styles/constants';
-import styled from 'styled-components';
+import styled, { withTheme } from 'styled-components';
 import Flex from 'shared/components/Flex';
-
-const activeStyle = {
-  color: color.black,
-  fontWeight: fontWeight.medium,
-};
 
 const StyledGoTo = styled(CollapsedIcon)`
   margin-bottom: -4px;
@@ -34,12 +28,12 @@ const StyledNavLink = styled(NavLink)`
   text-overflow: ellipsis;
   padding: 4px 0;
   margin-left: ${({ icon }) => (icon ? '-20px;' : '0')};
-  color: ${color.slateDark};
+  color: ${props => props.theme.slateDark};
   font-size: 15px;
   cursor: pointer;
 
   &:hover {
-    color: ${color.text};
+    color: ${props => props.theme.text};
   }
 `;
 
@@ -57,11 +51,22 @@ type Props = {
   hideExpandToggle?: boolean,
   iconColor?: string,
   active?: boolean,
+  theme: Object,
 };
 
 @observer
 class SidebarLink extends React.Component<Props> {
   @observable expanded: boolean = false;
+  activeStyle: Object;
+
+  constructor(props) {
+    super(props);
+
+    this.activeStyle = {
+      color: props.theme.black,
+      fontWeight: 500,
+    };
+  }
 
   componentDidMount() {
     if (this.props.expand) this.handleExpand();
@@ -104,8 +109,8 @@ class SidebarLink extends React.Component<Props> {
       <Wrapper menuOpen={menuOpen} column>
         <Component
           icon={showExpandIcon}
-          activeStyle={activeStyle}
-          style={active ? activeStyle : undefined}
+          activeStyle={this.activeStyle}
+          style={active ? this.activeStyle : undefined}
           onClick={onClick}
           to={to}
           exact
@@ -128,7 +133,7 @@ const Action = styled.span`
   position: absolute;
   right: 0;
   top: 2px;
-  color: ${color.slate};
+  color: ${props => props.theme.slate};
   svg {
     opacity: 0.75;
   }
@@ -158,4 +163,4 @@ const Content = styled.div`
   width: 100%;
 `;
 
-export default withRouter(SidebarLink);
+export default withRouter(withTheme(SidebarLink));

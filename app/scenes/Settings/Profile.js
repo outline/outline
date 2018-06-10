@@ -3,7 +3,6 @@ import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
-import { color, size } from 'shared/styles/constants';
 
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
@@ -104,7 +103,7 @@ class Profile extends React.Component<Props> {
 }
 
 const ProfilePicture = styled(Flex)`
-  margin-bottom: ${size.huge};
+  margin-bottom: 24px;
 `;
 
 const avatarStyles = `
@@ -132,7 +131,7 @@ const AvatarContainer = styled(Flex)`
   &:hover div {
     opacity: 1;
     background: rgba(0, 0, 0, 0.75);
-    color: ${color.white};
+    color: ${props => props.theme.white};
   }
 `;
 

@@ -2,7 +2,6 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { pulsate } from 'shared/styles/animations';
-import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
 import Fade from 'components/Fade';
 
@@ -29,7 +28,7 @@ const LoadingPlaceholder = (props: Object) => {
 const Mask = styled(Flex)`
   height: ${props => (props.header ? 28 : 18)}px;
   margin-bottom: ${props => (props.header ? 32 : 14)}px;
-  background-color: ${color.smoke};
+  background-color: ${props => props.theme.smoke};
   animation: ${pulsate} 1.3s infinite;
 `;
 

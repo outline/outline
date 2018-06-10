@@ -1,6 +1,5 @@
 // @flow
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 
 const Key = styled.kbd`
   display: inline-block;
@@ -8,13 +7,13 @@ const Key = styled.kbd`
   font: 11px 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier,
     monospace;
   line-height: 10px;
-  color: ${color.text};
+  color: ${props => props.theme.text};
   vertical-align: middle;
-  background-color: ${color.smokeLight};
-  border: solid 1px ${color.slateLight};
-  border-bottom-color: ${color.slate};
+  background-color: ${props => props.theme.smokeLight};
+  border: solid 1px ${props => props.theme.slateLight};
+  border-bottom-color: ${props => props.theme.slate};
   border-radius: 3px;
-  box-shadow: inset 0 -1px 0 ${color.slate};
+  box-shadow: inset 0 -1px 0 ${props => props.theme.slate};
 `;
 
 export default Key;

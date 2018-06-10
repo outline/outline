@@ -1,12 +1,11 @@
 // @flow
 import styled from 'styled-components';
-import { color } from '../../../shared/styles/constants';
 
 const Header = styled.div`
   width: 100%;
   padding: 0 2em 2em;
   text-align: center;
-  background: ${color.slateLight};
+  background: ${props => props.theme.slateLight};
   margin-bottom: 2em;
 
   p {

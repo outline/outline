@@ -5,7 +5,6 @@ import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import { LabelText, Outline } from 'components/Input';
-import { color, fonts, fontWeight } from 'shared/styles/constants';
 import { validateColorHex } from 'shared/utils/color';
 
 const colors = [
@@ -165,7 +164,7 @@ const StyledOutline = styled(Outline)`
 const HexHash = styled.div`
   margin-left: 12px;
   padding-bottom: 0;
-  font-weight: ${fontWeight.medium};
+  font-weight: 500;
   user-select: none;
 `;
 
@@ -177,13 +176,13 @@ const CustomColorInput = styled.input`
   padding-bottom: 0;
   outline: none;
   background: none;
-  font-family: ${fonts.monospace};
-  font-weight: ${fontWeight.medium};
+  font-family: ${props => props.theme.monospaceFontFamily};
+  font-weight: 500;
 
   &::placeholder {
-    color: ${color.slate};
-    font-family: ${fonts.monospace};
-    font-weight: ${fontWeight.medium};
+    color: ${props => props.theme.slate};
+    font-family: ${props => props.theme.monospaceFontFamily};
+    font-weight: 500;
   }
 `;
 

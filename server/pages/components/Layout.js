@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet';
 import { TopNavigation, BottomNavigation } from './Navigation';
 import Analytics from '../../../shared/components/Analytics';
 import globalStyles from '../../../shared/styles/globals';
-import { color } from '../../../shared/styles/constants';
 import prefetchTags from '../../utils/prefetchTags';
 
 export const title = 'Outline';
@@ -43,7 +42,6 @@ export default function Layout({ children }: Props) {
           <meta name="twitter:image" content={screenshotUrl} />
           <meta name="twitter:url" value={process.env.URL} />
 
-          <meta name="theme-color" content={color.primary} />
           <link
             rel="shortcut icon"
             type="image/png"

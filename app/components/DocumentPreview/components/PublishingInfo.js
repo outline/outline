@@ -2,18 +2,18 @@
 import * as React from 'react';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 import Collection from 'models/Collection';
 import Document from 'models/Document';
 import Flex from 'shared/components/Flex';
 
 const Container = styled(Flex)`
-  color: ${color.slate};
+  color: ${props => props.theme.slate};
   font-size: 13px;
 `;
 
 const Modified = styled.span`
-  color: ${props => (props.highlight ? color.slateDark : color.slate)};
+  color: ${props =>
+    props.highlight ? props.theme.slateDark : props.theme.slate};
   font-weight: ${props => (props.highlight ? '600' : '400')};
 `;
 

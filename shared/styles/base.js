@@ -1,5 +1,5 @@
 // @flow
-import { color } from './constants';
+import theme from './theme';
 
 export default `
   * {
@@ -27,7 +27,7 @@ export default `
   body {
     font-size: 16px;
     line-height: 1.5;
-    color: ${color.text};
+    color: ${theme.text};
 
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
@@ -35,7 +35,7 @@ export default `
   }
 
   a {
-    color: ${color.blue};
+    color: ${theme.blue};
     text-decoration: none;
     cursor: pointer;
   }
@@ -50,7 +50,7 @@ export default `
     line-height: 1.25;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    color: ${color.text};
+    color: ${theme.text};
   }
   h1 { font-size: 2em; }
   h2 { font-size: 1.5em; }

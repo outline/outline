@@ -3,7 +3,6 @@ import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { injectGlobal } from 'styled-components';
-import { color } from 'shared/styles/constants';
 import importFile from 'utils/importFile';
 import invariant from 'invariant';
 import _ from 'lodash';
@@ -25,12 +24,12 @@ type Props = {
 // eslint-disable-next-line
 injectGlobal`
   .activeDropZone {
-    background: ${color.slateDark};
-    svg { fill: ${color.white}; }
+    background: ${props => props.theme.slateDark};
+    svg { fill: ${props => props.theme.white}; }
   }
 
   .activeDropZone a {
-    color: ${color.white} !important;
+    color: ${props => props.theme.white} !important;
   }
 `;
 

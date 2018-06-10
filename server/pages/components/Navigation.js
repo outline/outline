@@ -13,7 +13,6 @@ import {
   spectrumUrl,
   blogUrl,
 } from '../../../shared/utils/routeHelpers';
-import { color } from '../../../shared/styles/constants';
 
 function TopNavigation() {
   return (
@@ -65,16 +64,16 @@ function BottomNavigation() {
   );
 }
 
-const MenuLinkStyle = `
+const MenuLinkStyle = props => `
   font-size: 15px;
   font-weight: 500;
 
   a {
-    color: ${color.slate};
+    color: ${props.theme.slate};
   }
 
   a:hover {
-    color: ${color.slateDark};
+    color: ${props.theme.slateDark};
     text-decoration: underline;
   }
 `;
@@ -141,7 +140,7 @@ const Brand = styled.a`
   font-weight: 600;
   font-size: 20px;
   text-decoration: none;
-  color: ${color.black};
+  color: ${props => props.theme.black};
 `;
 
 export { TopNavigation, BottomNavigation };

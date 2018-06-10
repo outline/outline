@@ -3,8 +3,7 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import Document from 'models/Document';
-import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
+import styled, { withTheme } from 'styled-components';
 import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
 import { StarredIcon } from 'outline-icons';
@@ -15,11 +14,11 @@ type Props = {
   document: Document,
   highlight?: ?string,
   showCollection?: boolean,
-  innerRef?: Function,
+  innerRef?: *,
 };
 
-const StyledStar = styled(({ solid, ...props }) => (
-  <StarredIcon color={solid ? color.black : color.text} {...props} />
+const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
+  <StarredIcon color={solid ? theme.black : theme.text} {...props} />
 ))`
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: all 100ms ease-in-out;
@@ -30,7 +29,7 @@ const StyledStar = styled(({ solid, ...props }) => (
   &:active {
     transform: scale(0.95);
   }
-`;
+`);
 
 const StyledDocumentMenu = styled(DocumentMenu)`
   position: absolute;
@@ -57,8 +56,8 @@ const DocumentLink = styled(Link)`
   &:hover,
   &:active,
   &:focus {
-    background: ${color.smokeLight};
-    border: 2px solid ${color.smoke};
+    background: ${props => props.theme.smokeLight};
+    border: 2px solid ${props => props.theme.smoke};
     outline: none;
 
     ${StyledStar}, ${StyledDocumentMenu} {
@@ -71,7 +70,7 @@ const DocumentLink = styled(Link)`
   }
 
   &:focus {
-    border: 2px solid ${color.slateDark};
+    border: 2px solid ${props => props.theme.slateDark};
   }
 `;
 
