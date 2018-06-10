@@ -5,9 +5,8 @@ import { TeamSuspendedError } from '../errors';
 
 const { allow } = policy;
 
-allow(User, 'create', Document, (user, document) => {
-  if (user.teamId !== document.teamId) return false;
-  if (!user.team.suspended) return true;
+allow(User, 'create', Document, user => {
+  if (!user.getTeam().suspended) return true;
   throw new TeamSuspendedError();
 });
 

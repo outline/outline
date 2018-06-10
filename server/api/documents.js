@@ -4,7 +4,7 @@ import Sequelize from 'sequelize';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
-import { Document, Collection, Star, View, Revision } from '../models';
+import { Document, Collection, Star, Share, View, Revision } from '../models';
 import { InvalidRequestError } from '../errors';
 import policy from '../policies';
 
