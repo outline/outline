@@ -2,7 +2,6 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
-import { size, color } from 'shared/styles/constants';
 
 const RealTextarea = styled.textarea`
   border: 0;
@@ -13,7 +12,7 @@ const RealTextarea = styled.textarea`
 
   &:disabled,
   &::placeholder {
-    color: ${color.slate};
+    color: ${props => props.theme.slate};
   }
 `;
 
@@ -26,7 +25,7 @@ const RealInput = styled.input`
 
   &:disabled,
   &::placeholder {
-    color: ${color.slate};
+    color: ${props => props.theme.slate};
   }
 `;
 
@@ -37,16 +36,16 @@ const Wrapper = styled.div`
 export const Outline = styled(Flex)`
   display: flex;
   flex: 1;
-  margin: 0 0 ${size.large};
+  margin: 0 0 16px;
   color: inherit;
   border-width: 1px;
   border-style: solid;
-  border-color: ${props => (props.hasError ? 'red' : color.slateLight)};
+  border-color: ${props => (props.hasError ? 'red' : props.theme.slateLight)};
   border-radius: 4px;
   font-weight: normal;
 
   &:focus {
-    border-color: ${color.slate};
+    border-color: ${props => props.theme.slate};
   }
 `;
 

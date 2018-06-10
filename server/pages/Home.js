@@ -8,7 +8,6 @@ import Notice from '../../shared/components/Notice';
 import Hero from './components/Hero';
 import SigninButtons from './components/SigninButtons';
 import { developers, githubUrl } from '../../shared/utils/routeHelpers';
-import { color } from '../../shared/styles/constants';
 
 type Props = {
   notice?: 'google-hd' | 'auth-error',
@@ -133,7 +132,7 @@ const Screenshot = styled.img`
 `;
 
 const Highlights = styled(Grid)`
-  background: ${color.yellow};
+  background: ${props => props.theme.yellow};
   margin: 0 1em;
   padding: 0 1em;
 `;
@@ -151,7 +150,7 @@ const Feature = styled(Grid.Unit)`
   }
 
   a {
-    color: ${color.black};
+    color: ${props => props.theme.black};
     text-decoration: underline;
     text-transform: uppercase;
     font-weight: 500;

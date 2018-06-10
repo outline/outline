@@ -2,7 +2,6 @@
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import Flex from 'shared/components/Flex';
-import { layout, color } from 'shared/styles/constants';
 
 export const Action = styled(Flex)`
   justify-content: center;
@@ -10,7 +9,7 @@ export const Action = styled(Flex)`
   padding: 0 0 0 12px;
 
   a {
-    color: ${color.text};
+    color: ${props => props.theme.text};
     height: 24px;
   }
 `;
@@ -19,7 +18,7 @@ export const Separator = styled.div`
   margin-left: 12px;
   width: 1px;
   height: 20px;
-  background: ${color.slateLight};
+  background: ${props => props.theme.slateLight};
 `;
 
 const Actions = styled(Flex)`
@@ -38,7 +37,8 @@ const Actions = styled(Flex)`
 
   ${breakpoint('tablet')`
     left: auto;
-    padding: ${layout.vpadding} ${layout.hpadding} 8px 8px;
+    padding: ${props => props.theme.vpadding} ${props =>
+    props.theme.hpadding} 8px 8px;
   `};
 `;
 

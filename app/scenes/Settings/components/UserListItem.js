@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 
 import UserMenu from 'menus/UserMenu';
 import Avatar from 'components/Avatar';
@@ -34,8 +33,9 @@ const UserListItem = ({ user, isCurrentUser }: Props) => {
 const Badge = styled.span`
   margin-left: 10px;
   padding: 2px 6px 3px;
-  background-color: ${({ admin }) => (admin ? color.primary : color.smokeDark)};
-  color: ${({ admin }) => (admin ? color.white : color.text)};
+  background-color: ${({ admin, theme }) =>
+    admin ? theme.primary : theme.smokeDark};
+  color: ${({ admin, theme }) => (admin ? theme.white : theme.text)};
   border-radius: 2px;
   font-size: 11px;
   text-transform: uppercase;

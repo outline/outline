@@ -2,7 +2,6 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { pulsate } from 'shared/styles/animations';
-import { color } from 'shared/styles/constants';
 import { randomInteger } from 'shared/random';
 import Flex from 'shared/components/Flex';
 
@@ -26,7 +25,7 @@ const Redacted = styled(Flex)`
   width: ${props => (props.header ? props.width / 2 : props.width)}%;
   height: ${props => (props.header ? 28 : 18)}px;
   margin-bottom: ${props => (props.header ? 18 : 12)}px;
-  background-color: ${color.smokeDark};
+  background-color: ${props => props.theme.smokeDark};
   animation: ${pulsate} 1.3s infinite;
 
   &:last-child {

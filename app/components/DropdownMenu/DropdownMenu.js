@@ -6,7 +6,6 @@ import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { PortalWithState } from 'react-portal';
 import Flex from 'shared/components/Flex';
-import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 
 type Props = {
@@ -90,8 +89,8 @@ const Menu = styled.div`
   right: ${({ right }) => right}px;
   top: ${({ top }) => top}px;
   z-index: 1000;
-  border: ${color.slateLight};
-  background: ${color.white};
+  border: ${props => props.theme.slateLight};
+  background: ${props => props.theme.white};
   border-radius: 2px;
   padding: 0.5em 0;
   min-width: 160px;

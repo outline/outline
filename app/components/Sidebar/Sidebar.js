@@ -7,7 +7,6 @@ import breakpoint from 'styled-components-breakpoint';
 import { observer, inject } from 'mobx-react';
 import { CloseIcon, MenuIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
-import { color, layout } from 'shared/styles/constants';
 
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -59,9 +58,9 @@ const Container = styled(Flex)`
   position: fixed;
   top: 0;
   bottom: 0;
-  left: ${props => (props.editMode ? `-${layout.sidebarWidth}` : 0)};
+  left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
   width: 100%;
-  background: ${color.smoke};
+  background: ${props => props.theme.smoke};
   transition: left 200ms ease-in-out;
   margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
   z-index: 1;
@@ -72,7 +71,7 @@ const Container = styled(Flex)`
   }
 
   ${breakpoint('tablet')`
-    width: ${layout.sidebarWidth};
+    width: ${props => props.theme.sidebarWidth};
     margin: 0;
   `};
 `;

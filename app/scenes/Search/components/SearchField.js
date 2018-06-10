@@ -2,9 +2,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { SearchIcon } from 'outline-icons';
-
 import Flex from 'shared/components/Flex';
-import { color } from 'shared/styles/constants';
 
 type Props = {
   onChange: string => *,
@@ -55,17 +53,11 @@ const StyledInput = styled.input`
   outline: none;
   border: 0;
 
-  ::-webkit-input-placeholder {
-    color: ${color.slateLight};
-  }
-  :-moz-placeholder {
-    color: ${color.slateLight};
-  }
-  ::-moz-placeholder {
-    color: ${color.slateLight};
-  }
+  ::-webkit-input-placeholder,
+  :-moz-placeholder,
+  ::-moz-placeholder,
   :-ms-input-placeholder {
-    color: ${color.slateLight};
+    color: ${props => props.theme.slateLight};
   }
 `;
 

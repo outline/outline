@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { color, fontSize } from 'shared/styles/constants';
 
 type Props = {
   image?: React.Node,
@@ -27,7 +26,7 @@ const Wrapper = styled.li`
   display: flex;
   padding: 12px 0;
   margin: 0;
-  border-bottom: 1px solid ${color.smokeDark};
+  border-bottom: 1px solid ${props => props.theme.smokeDark};
 `;
 
 const Image = styled.div`
@@ -36,7 +35,7 @@ const Image = styled.div`
 `;
 
 const Heading = styled.h2`
-  font-size: ${fontSize.medium};
+  font-size: 16px;
   margin: 0;
 `;
 
@@ -46,8 +45,8 @@ const Content = styled.div`
 
 const Subtitle = styled.p`
   margin: 0;
-  font-size: ${fontSize.small};
-  color: ${color.slate};
+  font-size: 14px;
+  color: ${props => props.theme.slate};
 `;
 
 const Actions = styled.div`

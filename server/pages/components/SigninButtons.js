@@ -5,7 +5,6 @@ import { signin } from '../../../shared/utils/routeHelpers';
 import Flex from '../../../shared/components/Flex';
 import GoogleLogo from '../../../shared/components/GoogleLogo';
 import SlackLogo from '../../../shared/components/SlackLogo';
-import { color } from '../../../shared/styles/constants';
 
 type Props = {
   lastSignedIn: string,
@@ -56,8 +55,8 @@ const Button = styled.a`
   display: inline-flex;
   align-items: center;
   padding: 10px 20px;
-  color: ${color.white};
-  background: ${color.black};
+  color: ${props => props.theme.white};
+  background: ${props => props.theme.black};
   border-radius: 4px;
   font-weight: 600;
   height: 56px;
@@ -65,7 +64,7 @@ const Button = styled.a`
 
 const LastLogin = styled.p`
   font-size: 12px;
-  color: ${color.slate};
+  color: ${props => props.theme.slate};
   padding-top: 4px;
 `;
 

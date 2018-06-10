@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 
 type Props = {
   onClick?: (SyntheticEvent<*>) => *,
@@ -22,7 +21,7 @@ const MenuItem = styled.a`
   padding: 6px 12px;
   height: 32px;
 
-  color: ${color.slateDark};
+  color: ${props => props.theme.slateDark};
   justify-content: left;
   align-items: center;
   cursor: pointer;
@@ -33,11 +32,11 @@ const MenuItem = styled.a`
   }
 
   &:hover {
-    color: ${color.white};
-    background: ${color.primary};
+    color: ${props => props.theme.white};
+    background: ${props => props.theme.primary};
 
     svg {
-      fill: ${color.white};
+      fill: ${props => props.theme.white};
     }
   }
 `;

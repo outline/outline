@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
-import { layout } from 'shared/styles/constants';
 import Toast from './components/Toast';
 import UiStore from '../../stores/UiStore';
 
@@ -34,8 +33,8 @@ class Toasts extends React.Component<Props> {
 
 const List = styled.ol`
   position: fixed;
-  left: ${layout.hpadding};
-  bottom: ${layout.vpadding};
+  left: ${props => props.theme.hpadding};
+  bottom: ${props => props.theme.vpadding};
   list-style: none;
   margin: 0;
   padding: 0;

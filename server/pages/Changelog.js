@@ -6,7 +6,6 @@ import Grid from 'styled-components-grid';
 import ReactMarkdown from 'react-markdown';
 import { Helmet } from 'react-helmet';
 import Header from './components/Header';
-import { color } from '../../shared/styles/constants';
 
 type Release = {
   id: string,
@@ -46,7 +45,7 @@ function Changelog({ releases }: { releases: Release[] }) {
 
 const Heading = styled.h1`
   a {
-    color: ${color.text};
+    color: ${props => props.theme.text};
   }
   a:hover {
     text-decoration: underline;
@@ -54,7 +53,7 @@ const Heading = styled.h1`
 `;
 
 const Time = styled.time`
-  color: ${color.slateDark};
+  color: ${props => props.theme.slateDark};
   margin-top: -16px;
   display: block;
 `;
@@ -67,7 +66,7 @@ const Container = styled.div`
 `;
 
 const Article = styled.div`
-  border-bottom: 1px solid ${color.slateLight};
+  border-bottom: 1px solid ${props => props.theme.slateLight};
   padding-bottom: 2em;
 
   &:last-child {
