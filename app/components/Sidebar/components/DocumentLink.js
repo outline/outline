@@ -6,7 +6,7 @@ import Document from 'models/Document';
 import SidebarLink from './SidebarLink';
 import DropToImport from 'components/DropToImport';
 import Flex from 'shared/components/Flex';
-import { type NavigationNode } from 'types';
+import type { NavigationNode } from 'shared/types';
 
 type Props = {
   document: NavigationNode,

@@ -4,7 +4,7 @@ import invariant from 'invariant';
 import Cookie from 'js-cookie';
 import localForage from 'localforage';
 import { client } from 'utils/ApiClient';
-import type { User, Team } from 'types';
+import type { User, Team } from 'shared/types';
 
 const AUTH_STORE = 'AUTH_STORE';
 

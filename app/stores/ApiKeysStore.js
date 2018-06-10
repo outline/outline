@@ -2,7 +2,7 @@
 import { observable, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { ApiKey, PaginationParams } from 'types';
+import type { ApiKey, PaginationParams } from 'shared/types';
 
 class ApiKeysStore {
   @observable data: ApiKey[] = [];

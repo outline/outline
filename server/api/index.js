@@ -13,6 +13,7 @@ import apiKeys from './apiKeys';
 import shares from './shares';
 import team from './team';
 import integrations from './integrations';
+import subscription from './subscription';
 
 import errorHandling from './middlewares/errorHandling';
 import validation from '../middlewares/validation';
@@ -42,6 +43,7 @@ router.use('/', apiKeys.routes());
 router.use('/', shares.routes());
 router.use('/', team.routes());
 router.use('/', integrations.routes());
+router.use('/', subscription.routes());
 
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.

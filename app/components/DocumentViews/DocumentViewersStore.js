@@ -2,7 +2,7 @@
 import { observable, action } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { User } from 'types';
+import type { User } from 'shared/types';
 
 type View = {
   user: User,

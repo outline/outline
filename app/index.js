@@ -25,6 +25,7 @@ import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import Details from 'scenes/Settings/Details';
 import People from 'scenes/Settings/People';
+import Billing from 'scenes/Settings/Billing';
 import Slack from 'scenes/Settings/Slack';
 import Shares from 'scenes/Settings/Shares';
 import Tokens from 'scenes/Settings/Tokens';
@@ -37,6 +38,7 @@ import Auth from 'components/Auth';
 import RouteSidebarHidden from 'components/RouteSidebarHidden';
 
 import { matchDocumentSlug } from 'utils/routeHelpers';
+import { BILLING_ENABLED } from 'shared/environment';
 
 let DevTools;
 if (__DEV__) {
@@ -96,6 +98,13 @@ if (element) {
                           path="/settings/integrations/slack"
                           component={Slack}
                         />
+                        {BILLING_ENABLED && (
+                          <Route
+                            exact
+                            path="/settings/billing"
+                            component={Billing}
+                          />
+                        )}
                         <Route
                           exact
                           path="/collections/:id"

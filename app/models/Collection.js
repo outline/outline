@@ -7,7 +7,7 @@ import Document from 'models/Document';
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import UiStore from 'stores/UiStore';
-import type { NavigationNode } from 'types';
+import type { NavigationNode } from 'shared/types';
 
 class Collection extends BaseModel {
   isSaving: boolean = false;

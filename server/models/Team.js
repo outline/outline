@@ -4,6 +4,8 @@ import { DataTypes, sequelize, Op } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import Collection from './Collection';
 import User from './User';
+import { subscriptionsQueue } from '../jobs/subscriptions';
+import { FREE_USER_LIMIT, BILLING_ENABLED } from '../../shared/environment';
 
 const Team = sequelize.define(
   'team',
@@ -18,6 +20,13 @@ const Team = sequelize.define(
     googleId: { type: DataTypes.STRING, allowNull: true },
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
     slackData: DataTypes.JSONB,
+
+    /* Billing related */
+    userCount: DataTypes.INTEGER, // Only counts active users
+    billingEmail: { type: DataTypes.STRING, allowNull: true },
+    stripeCustomerId: { type: DataTypes.STRING, allowNull: true },
+    stripeSubscriptionId: { type: DataTypes.STRING, allowNull: true },
+    stripeSubscriptionStatus: { type: DataTypes.STRING, allowNull: true },
   },
   {
     indexes: [
@@ -26,6 +35,15 @@ const Team = sequelize.define(
         fields: ['slackId'],
       },
     ],
+    getterMethods: {
+      isSuspended() {
+        return (
+          BILLING_ENABLED &&
+          this.userCount > FREE_USER_LIMIT &&
+          this.stripeSubscriptionStatus !== 'active'
+        );
+      },
+    },
   }
 );
 
@@ -39,11 +57,13 @@ const uploadAvatar = async model => {
   const endpoint = publicS3Endpoint();
 
   if (model.avatarUrl && !model.avatarUrl.startsWith(endpoint)) {
-    const newUrl = await uploadToS3FromUrl(
-      model.avatarUrl,
-      `avatars/${model.id}/${uuid.v4()}`
-    );
-    if (newUrl) model.avatarUrl = newUrl;
+    try {
+      const newUrl = await uploadToS3FromUrl(
+        model.avatarUrl,
+        `avatars/${model.id}/${uuid.v4()}`
+      );
+      if (newUrl) model.avatarUrl = newUrl;
+    } catch (_err) {}
   }
 };
 
@@ -80,20 +100,72 @@ Team.prototype.removeAdmin = async function(user: User) {
   }
 };
 
+Team.prototype.addUser = async function(userProps: {
+  slackId: string,
+  name: string,
+  email: string,
+  slackData: Object,
+  slackAccessToken: string,
+}) {
+  const res = await User.findAndCountAll({
+    where: {
+      teamId: this.id,
+      isAdmin: true,
+    },
+  });
+  const adminCount = res.count;
+  const user = await User.create({
+    ...userProps,
+    teamId: this.id,
+    isAdmin: adminCount === 0,
+  });
+
+  // Set initial avatar
+  await user.updateAvatar();
+  await user.save();
+
+  await this.createFirstCollection(user.id);
+
+  await updateSubscriptions(this);
+};
+
 Team.prototype.suspendUser = async function(user: User, admin: User) {
   if (user.id === admin.id)
     throw new Error('Unable to suspend the current user');
-  return user.update({
+  await user.update({
     suspendedById: admin.id,
     suspendedAt: new Date(),
   });
+
+  await updateSubscriptions(this);
 };
 
 Team.prototype.activateUser = async function(user: User, admin: User) {
-  return user.update({
+  await user.update({
     suspendedById: null,
     suspendedAt: null,
   });
+
+  await updateSubscriptions(this);
+};
+
+const updateSubscriptions = async (team: Team) => {
+  const { count } = await User.findAndCountAll({
+    where: {
+      teamId: team.id,
+      suspendedAt: null,
+    },
+  });
+  await team.update({
+    userCount: count,
+  });
+
+  if (BILLING_ENABLED) {
+    subscriptionsQueue.add({
+      type: 'updateSubscription',
+      teamId: team.id,
+    });
+  }
 };
 
 Team.beforeSave(uploadAvatar);

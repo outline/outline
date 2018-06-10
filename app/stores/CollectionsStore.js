@@ -8,7 +8,7 @@ import BaseStore from './BaseStore';
 import UiStore from './UiStore';
 import Collection from 'models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
-import type { PaginationParams } from 'types';
+import type { PaginationParams } from 'shared/types';
 
 type Options = {
   ui: UiStore,

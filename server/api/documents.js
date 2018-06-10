@@ -4,9 +4,8 @@ import Sequelize from 'sequelize';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
-import { Document, Collection, Share, Star, View, Revision } from '../models';
+import { Document, Collection, Star, View, Revision } from '../models';
 import { InvalidRequestError } from '../errors';
-import events from '../events';
 import policy from '../policies';
 
 const Op = Sequelize.Op;

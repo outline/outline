@@ -65,6 +65,7 @@ router.get('google.callback', async ctx => {
     defaults: {
       name: teamName,
       avatarUrl,
+      billingEmail: profile.data.email,
     },
   });
 

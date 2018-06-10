@@ -12,6 +12,7 @@ import CollectionLink from './CollectionLink';
 import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import type { NavigationNode } from 'shared/types';
 
 type Props = {
   history: Object,

@@ -55,6 +55,7 @@ User.associate = models => {
   User.hasMany(models.ApiKey, { as: 'apiKeys' });
   User.hasMany(models.Document, { as: 'documents' });
   User.hasMany(models.View, { as: 'views' });
+  User.belongsTo(models.Team);
 };
 
 // Instance methods

@@ -7,7 +7,7 @@ import invariant from 'invariant';
 import BaseStore from 'stores/BaseStore';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
-import type { PaginationParams } from 'types';
+import type { PaginationParams } from 'shared/types';
 
 export const DEFAULT_PAGINATION_LIMIT = 25;
 

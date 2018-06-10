@@ -41,6 +41,7 @@ router.get('slack.callback', async ctx => {
     defaults: {
       name: data.team.name,
       avatarUrl: data.team.image_88,
+      billingEmail: data.user.email,
     },
   });
 

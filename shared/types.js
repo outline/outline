@@ -77,3 +77,13 @@ export type ApiKey = {
   name: string,
   secret: string,
 };
+
+export type Subscription = {
+  userCount: number,
+  freeUserLimit: number,
+  plan: 'free' | 'monthly' | 'yearly',
+  planName?: string,
+  status?: 'active' | 'canceled',
+  unitAmount?: number,
+  periodAmount?: number,
+};

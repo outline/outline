@@ -5,7 +5,7 @@ import { MoreIcon } from 'outline-icons';
 
 import UsersStore from 'stores/UsersStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import type { User } from 'types';
+import type { User } from 'shared/types';
 
 type Props = {
   user: User,
