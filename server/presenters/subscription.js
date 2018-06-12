@@ -1,12 +1,9 @@
 // @flow
 import { Team } from '../models';
 import { FREE_USER_LIMIT } from '../../shared/environment';
-import { type Subscription } from '../../shared/types';
+import type { Subscription } from '../../shared/types';
 
-export const presentSubscription = (
-  team: Team,
-  subscription?: Object
-): Subscription => {
+function present(team: Team, subscription?: Object): Subscription {
   const shared = {
     userCount: team.userCount,
     freeUserLimit: FREE_USER_LIMIT,
@@ -14,6 +11,7 @@ export const presentSubscription = (
 
   if (team.stripeSubscriptionId && subscription) {
     const { status, plan } = subscription;
+
     return {
       ...shared,
       status,
@@ -28,4 +26,6 @@ export const presentSubscription = (
     ...shared,
     plan: 'free',
   };
-};
+}
+
+export default present;

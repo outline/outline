@@ -3,13 +3,7 @@ import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import { InvalidRequestError } from '../errors';
 import policy from '../policies';
-import {
-  createSubscription,
-  subscriptionStatus,
-  cancelSubscription,
-  updateSubscription,
-  linkToStripe,
-} from '../subscriptions/stripe';
+import * as Stripe from '../stripe';
 import { BILLING_ENABLED } from '../../shared/environment';
 
 const { authorize } = policy;
@@ -28,7 +22,7 @@ function subscriptionMiddleware() {
     const team = await user.getTeam();
     if (!BILLING_ENABLED)
       throw new InvalidRequestError('Endpoint not available');
-    if (!team.stripeCustomerId) await linkToStripe({ user, team });
+    if (!team.stripeCustomerId) await Stripe.linkToStripe({ user, team });
     return next();
   };
 }
@@ -55,7 +49,7 @@ router.post('subscription.create', async ctx => {
   authorize(user, 'createPlanSubscription', team);
 
   try {
-    const subscriptionResponse = await createSubscription({
+    const subscriptionResponse = await Stripe.createSubscription({
       user,
       team,
       plan,
@@ -76,7 +70,7 @@ router.post('subscription.status', async ctx => {
   authorize(user, 'readPlanSubscription', team);
 
   try {
-    const subscriptionResponse = await subscriptionStatus({
+    const subscriptionResponse = await Stripe.subscriptionStatus({
       team,
     });
     ctx.body = {
@@ -93,7 +87,7 @@ router.post('subscription.cancel', async ctx => {
   authorize(user, 'cancelPlanSubscription', team);
 
   try {
-    const subscriptionResponse = await cancelSubscription({
+    const subscriptionResponse = await Stripe.cancelSubscription({
       team,
     });
     ctx.body = {
@@ -113,7 +107,7 @@ router.post('subscription.update', async ctx => {
   authorize(user, 'updatePlanSubscription', team);
 
   try {
-    const subscriptionResponse = await updateSubscription({
+    const subscriptionResponse = await Stripe.updateSubscription({
       team,
       stripeToken,
     });

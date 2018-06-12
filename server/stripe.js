@@ -1,8 +1,6 @@
 // @flow
 import Stripe from 'stripe';
-import { User, Team } from '../models';
-
-// Proprioritary
+import { User, Team } from './models';
 import { presentSubscription } from './presenters';
 
 export const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
