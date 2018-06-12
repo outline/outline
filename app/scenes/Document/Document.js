@@ -23,6 +23,7 @@ import isInternalUrl from 'utils/isInternalUrl';
 import Document from 'models/Document';
 import Actions from './components/Actions';
 import DocumentMove from './components/DocumentMove';
+import Link from './components/Link';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -236,6 +237,13 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  renderNode = props => {
+    // overriding the Link component allows us to inject plugins
+    if (props.node.type === 'link') {
+      return <Link {...props} />;
+    }
+  };
+
   render() {
     const { location, match } = this.props;
     const Editor = this.editorComponent;
@@ -289,6 +297,7 @@ class DocumentScene extends React.Component<Props> {
                 onSave={this.onSave}
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing}
+                renderNode={this.renderNode}
                 toc
               />
             </MaxWidth>

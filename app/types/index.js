@@ -1,4 +1,17 @@
 // @flow
+import { Value, Node } from 'slate';
+import { Editor } from 'slate-react';
+
+export type SlateNodeProps = {
+  children: React.Node,
+  readOnly: boolean,
+  attributes: Object,
+  value: Value,
+  editor: Editor,
+  node: Node,
+  parent: Node,
+};
+
 export type User = {
   avatarUrl: string,
   id: string,
