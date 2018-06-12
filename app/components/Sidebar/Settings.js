@@ -66,11 +66,12 @@ class SettingsSidebar extends React.Component<Props> {
               <SidebarLink to="/settings/people" icon={<UserIcon />}>
                 People
               </SidebarLink>
-              {BILLING_ENABLED && (
-                <SidebarLink to="/settings/billing" icon={<BillingIcon />}>
-                  Billing
-                </SidebarLink>
-              )}
+              {user.isAdmin &&
+                BILLING_ENABLED && (
+                  <SidebarLink to="/settings/billing" icon={<BillingIcon />}>
+                    Billing
+                  </SidebarLink>
+                )}
               <SidebarLink to="/settings/shares" icon={<LinkIcon />}>
                 Share Links
               </SidebarLink>

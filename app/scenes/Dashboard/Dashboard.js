@@ -11,7 +11,8 @@ import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import Subheading from 'components/Subheading';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
-import TeamSuspended from 'components/TeamSuspended';
+import BannerSuspended from './components/BannerSuspended';
+import BannerFreeLimit from './components/BannerFreeLimit';
 
 type Props = {
   documents: DocumentsStore,
@@ -41,11 +42,13 @@ class Dashboard extends React.Component<Props> {
     const showContent =
       this.isLoaded || (hasRecentlyViewed && hasRecentlyEdited);
     const showTeamSuspended = auth.team && auth.team.isSuspended;
+    const showFreeLimit = auth.team && auth.team.isNearFreeLimit;
 
     return (
       <CenteredContent>
         <PageTitle title="Home" />
-        {showTeamSuspended && <TeamSuspended />}
+        {showTeamSuspended && <BannerSuspended />}
+        {showFreeLimit && <BannerFreeLimit />}
 
         <h1>Home</h1>
         {showContent ? (

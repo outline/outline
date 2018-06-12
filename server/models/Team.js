@@ -43,6 +43,13 @@ const Team = sequelize.define(
           this.stripeSubscriptionStatus !== 'active'
         );
       },
+      isAtFreeLimit() {
+        return (
+          BILLING_ENABLED &&
+          this.userCount === FREE_USER_LIMIT &&
+          this.stripeSubscriptionStatus !== 'active'
+        );
+      },
     },
   }
 );

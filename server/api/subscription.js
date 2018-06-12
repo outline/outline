@@ -5,6 +5,7 @@ import { InvalidRequestError } from '../errors';
 import policy from '../policies';
 import * as Stripe from '../stripe';
 import { BILLING_ENABLED } from '../../shared/environment';
+import type { Context } from 'koa';
 
 const { authorize } = policy;
 const router = new Router();
@@ -17,22 +18,28 @@ const router = new Router();
  */
 
 function subscriptionMiddleware() {
-  return async function subscriptionMiddleware(ctx: Object, next: Function) {
+  return async function subscriptionMiddleware(
+    ctx: Context,
+    next: () => Promise<*>
+  ) {
+    if (!BILLING_ENABLED) {
+      throw new InvalidRequestError(
+        'Endpoint not available when billing is disabled'
+      );
+    }
+
     const user = ctx.state.user;
     const team = await user.getTeam();
-    if (!BILLING_ENABLED)
-      throw new InvalidRequestError('Endpoint not available');
-    if (!team.stripeCustomerId) await Stripe.linkToStripe({ user, team });
+
+    if (!team.stripeCustomerId) {
+      await Stripe.linkToStripe({ user, team });
+    }
     return next();
   };
 }
 
 router.use(auth());
 router.use(subscriptionMiddleware());
-
-/**
- * Customer facing endpoints
- */
 
 router.post('subscription.create', async ctx => {
   const { plan, stripeToken, coupon } = ctx.body;

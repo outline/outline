@@ -14,6 +14,7 @@ function present(ctx: Object, team: Team) {
     googleConnected: !!team.googleId,
     userCount: team.userCount,
     isSuspended: BILLING_ENABLED ? team.isSuspended : undefined,
+    isAtFreeLimit: BILLING_ENABLED ? team.isAtFreeLimit : undefined,
   };
 }
 
