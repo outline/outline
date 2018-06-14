@@ -33,7 +33,11 @@ const MediaBlock = ({
         </Heading>
         <Subtitle>{subtitle}</Subtitle>
       </Content>
-      <Image style={image ? { backgroundImage: `url(${image})` } : undefined} />
+      <Link href={url} target="_blank">
+        <Image
+          style={image ? { backgroundImage: `url(${image})` } : undefined}
+        />
+      </Link>
     </React.Fragment>
   );
 };
@@ -43,6 +47,7 @@ const Image = styled.div`
   background-size: cover;
   background-position: center;
   width: 100px;
+  height: 100%;
 `;
 
 const Link = styled.a`

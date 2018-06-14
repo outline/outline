@@ -60,12 +60,12 @@ class EmbedWrapper extends React.Component<Props, State> {
   }
 
   render() {
-    const embed = this.matchingEmbed;
-    if (!embed) return null;
+    const EmbedComponent = this.matchingEmbed;
+    if (!EmbedComponent) return null;
 
     return (
       <Wrapper contentEditable={false}>
-        {embed.render({ url: this.props.url, metadata: this.state.metadata })}
+        <EmbedComponent url={this.props.url} metadata={this.state.metadata} />
       </Wrapper>
     );
   }
