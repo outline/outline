@@ -1,6 +1,8 @@
 // @flow
 import * as React from 'react';
+import styled from 'styled-components';
 import embeds from '../embeds';
+import { client } from 'utils/ApiClient';
 
 type Props = {
   url: string,
@@ -8,16 +10,33 @@ type Props = {
 
 type State = {
   expanded: boolean,
+  metadata?: Object,
 };
 
-export default class EmbedWrapper extends React.Component<Props, State> {
+class EmbedWrapper extends React.Component<Props, State> {
   state = {
-    expanded: false,
+    expanded: true,
   };
+
+  componentDidMount() {
+    const embed = this.matchingEmbed;
+
+    if (embed && embed.requestData !== false) {
+      this.requestData(this.props.url);
+    }
+  }
 
   toggleExpanded = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.setState(state => ({ expanded: !state.expanded }));
+  };
+
+  requestData = async (url: string) => {
+    const response = await client.post('/embeds.metadata', { url });
+
+    if (response.data) {
+      this.setState({ metadata: response.data.metadata });
+    }
   };
 
   get hostname() {
@@ -44,19 +63,20 @@ export default class EmbedWrapper extends React.Component<Props, State> {
     const embed = this.matchingEmbed;
     if (!embed) return null;
 
-    if (!this.state.expanded) {
-      return (
-        <a contentEditable={false} onClick={this.toggleExpanded}>
-          Expand
-        </a>
-      );
-    }
-
     return (
-      <div contentEditable={false}>
-        <a onClick={this.toggleExpanded}>Collapse</a>
-        {embed.render({ url: this.props.url })}
-      </div>
+      <Wrapper contentEditable={false}>
+        {embed.render({ url: this.props.url, metadata: this.state.metadata })}
+      </Wrapper>
     );
   }
 }
+
+const Wrapper = styled.div`
+  display: flex;
+  margin: 0;
+  border: 2px solid ${props => props.theme.smokeDark};
+  border-radius: 4px;
+  overflow: hidden;
+`;
+
+export default EmbedWrapper;

@@ -15,6 +15,7 @@ type Props = {
   children?: React.Node,
   className?: string,
   style?: Object,
+  inline?: boolean,
 };
 
 @observer
@@ -39,10 +40,10 @@ class DropdownMenu extends React.Component<Props> {
   };
 
   render() {
-    const { className, label, children } = this.props;
+    const { className, inline, label, children } = this.props;
 
     return (
-      <div className={className}>
+      <Wrapper className={className} inline={inline} contentEditable={false}>
         <PortalWithState
           onOpen={this.props.onOpen}
           onClose={this.props.onClose}
@@ -68,10 +69,17 @@ class DropdownMenu extends React.Component<Props> {
             </React.Fragment>
           )}
         </PortalWithState>
-      </div>
+      </Wrapper>
     );
   }
 }
+
+const Wrapper = styled.div`
+  display: ${props => (props.inline ? 'inline-block' : 'block')};
+  position: relative;
+  top: 6px;
+  left: 4px;
+`;
 
 const Label = styled(Flex).attrs({
   justify: 'center',

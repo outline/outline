@@ -1,28 +1,27 @@
 // @flow
 import * as React from 'react';
-
-const urlRegex = /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)&?/i;
+import MediaBlock from 'components/MediaBlock';
 
 type Props = {
   url: string,
+  metadata: Object,
 };
 
 export default {
+  requestData: true,
   hostnames: ['youtube.com', 'youtu.be'],
 
-  render: ({ url }: Props) => {
-    const matches = url.match(urlRegex);
-    const videoId = matches[1];
+  render: ({ url, metadata }: Props) => {
+    if (!metadata || !metadata.openGraph) {
+      return <MediaBlock url={url} subtitle="YouTube" isLoading />;
+    }
 
     return (
-      <iframe
-        id="player"
-        type="text/html"
-        width="320"
-        height="140"
-        src={`http://www.youtube.com/embed/${videoId}`}
-        frameBorder="0"
-        title={`youtube-${videoId}`}
+      <MediaBlock
+        url={url}
+        title={metadata.openGraph.title}
+        subtitle={metadata.openGraph.description}
+        image={metadata.openGraph.image.url}
       />
     );
   },

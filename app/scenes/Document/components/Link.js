@@ -8,7 +8,12 @@ export default class Link extends React.Component<Props> {
     const { attributes, node, children, editor, readOnly } = this.props;
     const href = node.data.get('href');
 
-    return (
+    // $embed$ is a special string that's stored in the Markdown for the link text
+    const showEmbed = node.text === '$embed$' || node.text === href;
+
+    return showEmbed ? (
+      <Embed url={href} />
+    ) : (
       <React.Fragment>
         <a
           {...attributes}
@@ -27,7 +32,6 @@ export default class Link extends React.Component<Props> {
         >
           {children}
         </a>
-        <Embed url={href} />
       </React.Fragment>
     );
   }
