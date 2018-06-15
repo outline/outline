@@ -64,19 +64,9 @@ class EmbedWrapper extends React.Component<Props, State> {
     if (!EmbedComponent) return null;
 
     return (
-      <Wrapper contentEditable={false}>
-        <EmbedComponent url={this.props.url} metadata={this.state.metadata} />
-      </Wrapper>
+      <EmbedComponent url={this.props.url} metadata={this.state.metadata} />
     );
   }
 }
-
-const Wrapper = styled.div`
-  display: flex;
-  margin: 0;
-  border: 2px solid ${props => props.theme.smokeDark};
-  border-radius: 4px;
-  overflow: hidden;
-`;
 
 export default EmbedWrapper;

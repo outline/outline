@@ -1,6 +1,8 @@
 // @flow
-import Youtube from './Youtube';
+import Gist from './Gist';
+import YouTube from './YouTube';
 
 export default {
-  Youtube,
+  Gist,
+  YouTube,
 };

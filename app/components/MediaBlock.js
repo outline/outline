@@ -8,39 +8,59 @@ type Props = {
   title?: string,
   url: string,
   subtitle: React.Node,
-  actions?: React.Node,
+  children?: React.Node,
 };
 
-const MediaBlock = ({
-  isLoading,
-  image,
-  title,
-  url,
-  subtitle,
-  actions,
-}: Props) => {
-  return (
-    <React.Fragment>
-      <Content>
-        <Heading>
-          {isLoading ? (
-            'Loading…'
-          ) : (
-            <Link href={url} target="_blank">
-              {title}
-            </Link>
-          )}
-        </Heading>
-        <Subtitle>{subtitle}</Subtitle>
-      </Content>
-      <Link href={url} target="_blank">
-        <Image
-          style={image ? { backgroundImage: `url(${image})` } : undefined}
-        />
-      </Link>
-    </React.Fragment>
-  );
+type State = {
+  expanded: boolean,
 };
+
+class MediaBlock extends React.Component<Props, State> {
+  state = {
+    expanded: false,
+  };
+
+  toggleExpanded = () => {
+    this.setState({ expanded: !this.state.expanded });
+  };
+
+  render() {
+    const { isLoading, image, title, url, subtitle, children } = this.props;
+    const hasToggle = !!children;
+
+    return (
+      <Wrapper contentEditable={false}>
+        {hasToggle && <a onClick={this.toggleExpanded}>Toggle</a>}
+        <Content>
+          <Heading>
+            {isLoading ? (
+              'Loading…'
+            ) : (
+              <Link href={url} target="_blank">
+                {title}
+              </Link>
+            )}
+          </Heading>
+          <Subtitle>{subtitle}</Subtitle>
+        </Content>
+        <Link href={url} target="_blank">
+          <Image
+            style={image ? { backgroundImage: `url(${image})` } : undefined}
+          />
+        </Link>
+        {this.state.expanded && children}
+      </Wrapper>
+    );
+  }
+}
+
+const Wrapper = styled.div`
+  display: flex;
+  margin: 0;
+  border: 2px solid ${props => props.theme.smokeDark};
+  border-radius: 4px;
+  overflow: hidden;
+`;
 
 const Image = styled.div`
   background-color: ${props => props.theme.smokeDark};
