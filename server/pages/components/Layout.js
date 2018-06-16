@@ -43,6 +43,7 @@ export default function Layout({ children }: Props) {
           <meta name="twitter:image" content={screenshotUrl} />
           <meta name="twitter:url" value={process.env.URL} />
 
+          <link rel="manifest" href="/manifest.json" />
           <link
             rel="shortcut icon"
             type="image/png"
