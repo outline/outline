@@ -165,7 +165,12 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   let document;
 
   if (shareId) {
-    const share = await Share.findById(shareId, {
+    const share = await Share.find({
+      where: {
+        // $FlowFixMe
+        revokedAt: { [Op.eq]: null },
+        id: shareId,
+      },
       include: [
         {
           model: Document,
