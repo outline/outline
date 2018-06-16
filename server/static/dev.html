@@ -1,33 +1,30 @@
 <!doctype html>
-<html>
+<html lang="en">
+  <head>
+    <title>Outline</title>
+    <link href="/static/styles.css" rel="stylesheet">
+  </head>
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+    }
 
-<head>
-  <title>Outline</title>
-  <link href="/static/styles.css" rel="stylesheet">
-</head>
-<style>
-  body,
-  html {
-    margin: 0;
-    padding: 0;
-  }
+    body {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
 
-  body {
-    display: flex;
-    width: 100%;
-    height: 100%;
-  }
-
-  #root {
-    flex: 1;
-    min-height: 100vh;
-  }
-</style>
-</head>
-
-<body>
-  <div id="root"></div>
-  <script src="/static/bundle.js"></script>
-</body>
-
+    #root {
+      flex: 1;
+      min-height: 100vh;
+    }
+  </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="/static/bundle.js"></script>
+  </body>
 </html>
