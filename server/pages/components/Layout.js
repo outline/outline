@@ -28,7 +28,7 @@ export default function Layout({ children }: Props) {
           <meta name="referrer" content="origin" />
           <meta name="slack-app-id" content="A0W3UMKBQ" />
           <meta name="description" content={description} />
-          <meta name="theme-color" content="#FFFFFF">
+          <meta name="theme-color" content="#FFFFFF" />
 
           <meta name="og:site_name" content={title} />
           <meta name="og:type" content="website" />
