@@ -10,7 +10,7 @@ import SigninButtons from './components/SigninButtons';
 import { developers, githubUrl } from '../../shared/utils/routeHelpers';
 
 type Props = {
-  notice?: 'google-hd' | 'auth-error',
+  notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed',
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
@@ -36,6 +36,12 @@ function Home(props: Props) {
             <Notice>
               Sorry, Google sign in cannot be used with a personal email. Please
               try signing in with your company Google account.
+            </Notice>
+          )}
+          {props.notice === 'hd-not-allowed' && (
+            <Notice>
+              Sorry, your Google apps domain is not allowed. Please try again
+              with an allowed company domain.
             </Notice>
           )}
           {props.notice === 'auth-error' && (
