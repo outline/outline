@@ -46,7 +46,7 @@ router.get('google.callback', async ctx => {
 
   // allow all domains by default if the env is not set
   const allowedDomains = allowedDomainsEnv && allowedDomainsEnv.split(',');
-  if (allowedDomains && allowedDomains.indexOf(profile.data.hd) < 0) {
+  if (allowedDomains && !allowedDomains.includes(profile.data.hd)) {
     ctx.redirect('/?notice=hd-not-allowed');
     return;
   }
