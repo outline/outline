@@ -1,5 +1,6 @@
 // @flow
 import emojiRegex from 'emoji-regex';
+import unescape from './unescape';
 
 export default function parseTitle(text: string = '') {
   const regex = emojiRegex();
@@ -9,7 +10,7 @@ export default function parseTitle(text: string = '') {
   const trimmedTitle = firstLine.replace(/^#/, '').trim();
 
   // remove any escape characters
-  const title = trimmedTitle.replace(/\\([\\`*{}[\]()#+\-.!_>])/g, '$1');
+  const title = unescape(trimmedTitle);
 
   // find and extract first emoji
   const matches = regex.exec(title);

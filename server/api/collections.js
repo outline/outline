@@ -6,6 +6,7 @@ import pagination from './middlewares/pagination';
 import { presentCollection } from '../presenters';
 import { Collection } from '../models';
 import { ValidationError } from '../errors';
+import { exportCollection } from '../logistics';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -43,6 +44,22 @@ router.post('collections.info', auth(), async ctx => {
 
   ctx.body = {
     data: await presentCollection(ctx, collection),
+  };
+});
+
+router.post('collections.export', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const user = ctx.state.user;
+  const collection = await Collection.findById(id);
+  authorize(user, 'read', collection);
+
+  // async operation to zip and send collection
+  exportCollection(id, user.email);
+
+  ctx.body = {
+    success: true,
   };
 });
 

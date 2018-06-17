@@ -108,6 +108,7 @@
     "imports-loader": "0.6.5",
     "invariant": "^2.2.2",
     "isomorphic-fetch": "2.2.1",
+    "jszip": "3.1.5",
     "js-cookie": "^2.1.4",
     "js-search": "^1.4.2",
     "json-loader": "0.5.4",
