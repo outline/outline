@@ -42,7 +42,7 @@ type EmailJob = {
  * HTML: http://localhost:3000/email/:email_type/html
  * TEXT: http://localhost:3000/email/:email_type/text
  */
-export class Mailer {
+export default class Mailer {
   transporter: ?any;
 
   /**
@@ -88,7 +88,6 @@ export class Mailer {
   };
 
   export = async (opts: { to: string, attachments: Object[] }) => {
-    log(opts.attachments);
     this.sendMail({
       to: opts.to,
       attachments: opts.attachments,
