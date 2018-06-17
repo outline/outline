@@ -64,7 +64,7 @@ class CollectionMenu extends React.Component<Props> {
   onExport = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { collection } = this.props;
-    collection.export();
+    this.props.ui.setActiveModal('collection-export', { collection });
   };
 
   render() {
@@ -94,7 +94,7 @@ class CollectionMenu extends React.Component<Props> {
               <hr />
               <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
               <DropdownMenuItem onClick={this.onExport}>
-                Export
+                Export…
               </DropdownMenuItem>
             </React.Fragment>
           )}
