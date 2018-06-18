@@ -2,32 +2,65 @@
 import Queue from 'bull';
 import debug from 'debug';
 import Mailer from './mailer';
-import { Collection } from './models';
-import { archiveCollection } from './utils/zip';
+import { Collection, Team } from './models';
+import { archiveCollection, archiveCollections } from './utils/zip';
 
 const log = debug('logistics');
 const logisticsQueue = new Queue('logistics', process.env.REDIS_URL);
 const mailer = new Mailer();
 
+async function exportAndEmailCollection(collectionId: string, email: string) {
+  log('Archiving collection', collectionId);
+  const collection = await Collection.findById(collectionId);
+  const filePath = await archiveCollection(collection);
+
+  log('Archive path', filePath);
+
+  mailer.export({
+    to: email,
+    attachments: [
+      {
+        filename: `${collection.name} Export.zip`,
+        path: filePath,
+      },
+    ],
+  });
+}
+
+async function exportAndEmailCollections(teamId: string, email: string) {
+  log('Archiving team', teamId);
+  const team = await Team.findById(teamId);
+  const collections = await Collection.findAll({
+    where: { teamId },
+    order: [['name', 'ASC']],
+  });
+  const filePath = await archiveCollections(collections);
+
+  log('Archive path', filePath);
+
+  mailer.export({
+    to: email,
+    attachments: [
+      {
+        filename: `${team.name} Export.zip`,
+        path: filePath,
+      },
+    ],
+  });
+}
+
 logisticsQueue.process(async job => {
-  log('process', job.data);
+  log('Process', job.data);
 
-  if (job.data.type === 'export-collection') {
-    log('Archiving', job.data.collectionId);
-    const collection = await Collection.findById(job.data.collectionId);
-    const filePath = await archiveCollection(collection);
-
-    log('Archive path', filePath);
-
-    mailer.export({
-      to: job.data.email,
-      attachments: [
-        {
-          filename: `${collection.name}.zip`,
-          path: filePath,
-        },
-      ],
-    });
+  switch (job.data.type) {
+    case 'export-collection':
+      return await exportAndEmailCollection(
+        job.data.collectionId,
+        job.data.email
+      );
+    case 'export-collections':
+      return await exportAndEmailCollections(job.data.teamId, job.data.email);
+    default:
   }
 });
 

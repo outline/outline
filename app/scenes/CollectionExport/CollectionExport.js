@@ -20,7 +20,10 @@ class CollectionExport extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     await this.props.collection.export();
-    this.props.ui.showToast('Export in progress…', 'success');
+    this.props.ui.showToast(
+      'Export in progress (check your email)…',
+      'success'
+    );
     this.props.onSubmit();
   };
 

@@ -28,6 +28,7 @@ import People from 'scenes/Settings/People';
 import Slack from 'scenes/Settings/Slack';
 import Shares from 'scenes/Settings/Shares';
 import Tokens from 'scenes/Settings/Tokens';
+import Export from 'scenes/Settings/Export';
 import Error404 from 'scenes/Error404';
 
 import ErrorBoundary from 'components/ErrorBoundary';
@@ -95,6 +96,11 @@ if (element) {
                           exact
                           path="/settings/integrations/slack"
                           component={Slack}
+                        />
+                        <Route
+                          exact
+                          path="/settings/export"
+                          component={Export}
                         />
                         <Route
                           exact
