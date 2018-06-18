@@ -77,7 +77,7 @@ class SettingsSidebar extends React.Component<Props> {
               )}
               {user.isAdmin && (
                 <SidebarLink to="/settings/export" icon={<DocumentIcon />}>
-                  Export
+                  Export Data
                 </SidebarLink>
               )}
             </Section>

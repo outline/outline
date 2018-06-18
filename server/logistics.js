@@ -8,6 +8,13 @@ import { archiveCollection, archiveCollections } from './utils/zip';
 const log = debug('logistics');
 const logisticsQueue = new Queue('logistics', process.env.REDIS_URL);
 const mailer = new Mailer();
+const queueOptions = {
+  attempts: 2,
+  backoff: {
+    type: 'exponential',
+    delay: 60 * 1000,
+  },
+};
 
 async function exportAndEmailCollection(collectionId: string, email: string) {
   log('Archiving collection', collectionId);
@@ -71,12 +78,17 @@ export const exportCollection = (collectionId: string, email: string) => {
       collectionId,
       email,
     },
+    queueOptions
+  );
+};
+
+export const exportCollections = (teamId: string, email: string) => {
+  logisticsQueue.add(
     {
-      attempts: 2,
-      backoff: {
-        type: 'exponential',
-        delay: 60 * 1000,
-      },
-    }
+      type: 'export-collections',
+      teamId,
+      email,
+    },
+    queueOptions
   );
 };

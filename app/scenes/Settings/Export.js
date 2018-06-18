@@ -44,8 +44,8 @@ class Export extends React.Component<Props> {
 
     return (
       <CenteredContent>
-        <PageTitle title="Export" />
-        <h1>Export</h1>
+        <PageTitle title="Export Data" />
+        <h1>Export Data</h1>
         <HelpText>
           Exporting your teams documents may take a little time depending on the
           size of your knowledgebase. Consider exporting a single document or

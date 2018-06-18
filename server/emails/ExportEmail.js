@@ -9,9 +9,9 @@ import Footer from './components/Footer';
 import EmptySpace from './components/EmptySpace';
 
 export const exportEmailText = `
-Your data export
+Your Data Export
 
-You requested a data export from Outline, here it is.
+Your requested data export is attached as a zip file to this email.
 `;
 
 export const ExportEmail = () => {
@@ -20,9 +20,14 @@ export const ExportEmail = () => {
       <Header />
 
       <Body>
-        <Heading>Your data export</Heading>
-
-        <p>You requested a data export from Outline, here it is.</p>
+        <Heading>Your Data Export</Heading>
+        <p>
+          Your requested data export is attached as a zip file to this email.
+        </p>
+        <EmptySpace height={10} />
+        <p>
+          <Button href={`${process.env.URL}/dashboard`}>Go to dashboard</Button>
+        </p>
       </Body>
 
       <Footer />

@@ -140,7 +140,7 @@ class CollectionsStore extends BaseStore {
   @action
   export = async () => {
     try {
-      await client.post('/collections.export');
+      await client.post('/collections.exportAll');
       return true;
     } catch (err) {
       throw err;
