@@ -36,7 +36,7 @@ class CollectionExport extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Exporting the collection <strong>{collection.name}</strong> may take
-            a few minutes. We'll put together a zip file of your documents in
+            a few minutes. We’ll put together a zip file of your documents in
             Markdown format and email it to <strong>{auth.user.email}</strong>.
           </HelpText>
           <Button type="submit" primary>
