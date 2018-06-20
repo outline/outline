@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
 import Flex from 'shared/components/Flex';
@@ -17,13 +18,16 @@ type Props = {
 
 @observer
 class CollectionExport extends React.Component<Props> {
+  @observable isLoading: boolean = false;
+
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
+
+    this.isLoading = true;
     await this.props.collection.export();
-    this.props.ui.showToast(
-      'Export in progress (check your email)…',
-      'success'
-    );
+    this.isLoading = false;
+
+    this.props.ui.showToast('Export in progress…', 'success');
     this.props.onSubmit();
   };
 
@@ -39,8 +43,8 @@ class CollectionExport extends React.Component<Props> {
             a few minutes. We’ll put together a zip file of your documents in
             Markdown format and email it to <strong>{auth.user.email}</strong>.
           </HelpText>
-          <Button type="submit" primary>
-            Export Collection
+          <Button type="submit" disabled={this.isLoading} primary>
+            {this.isLoading ? 'Requesting Export…' : 'Export Collection'}
           </Button>
         </form>
       </Flex>

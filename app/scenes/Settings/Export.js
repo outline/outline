@@ -30,10 +30,7 @@ class Export extends React.Component<Props> {
 
     if (success) {
       this.isExporting = true;
-      this.props.ui.showToast(
-        'Export in progress (check your email)…',
-        'success'
-      );
+      this.props.ui.showToast('Export in progress…', 'success');
     }
     this.isLoading = false;
   };
