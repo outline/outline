@@ -18,6 +18,24 @@ Object {
 }
 `;
 
+exports[`#collections.export should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.exportAll should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#collections.info should require authentication 1`] = `
 Object {
   "error": "authentication_required",
