@@ -1,5 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { Mailer } from './mailer';
+import Mailer from './mailer';
 
 describe('Mailer', () => {
   let fakeMailer;

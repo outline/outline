@@ -2,7 +2,7 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import { NotFoundError } from '../errors';
-import { Mailer } from '../mailer';
+import Mailer from '../mailer';
 
 const emailPreviews = new Koa();
 const router = new Router();

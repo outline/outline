@@ -134,6 +134,11 @@ class Collection extends BaseModel {
   };
 
   @action
+  export = async () => {
+    await client.post('/collections.export', { id: this.id });
+  };
+
+  @action
   updateData(data: Object = {}) {
     this.data = data;
     extendObservable(this, data);
