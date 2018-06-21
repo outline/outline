@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import styled from 'styled-components';
 
 import UserMenu from 'menus/UserMenu';
@@ -9,10 +10,10 @@ import type { User } from '../../../types';
 
 type Props = {
   user: User,
-  isCurrentUser: boolean,
+  showMenu: boolean,
 };
 
-const UserListItem = ({ user, isCurrentUser }: Props) => {
+const UserListItem = ({ user, showMenu }: Props) => {
   return (
     <ListItem
       key={user.id}
@@ -20,12 +21,13 @@ const UserListItem = ({ user, isCurrentUser }: Props) => {
       image={<Avatar src={user.avatarUrl} size={40} />}
       subtitle={
         <React.Fragment>
-          {user.username ? user.username : user.email}
+          {user.email ? `${user.email} · ` : undefined}
+          {`Joined ${distanceInWordsToNow(user.createdAt)} ago`}
           {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
           {user.isSuspended && <Badge>Suspended</Badge>}
         </React.Fragment>
       }
-      actions={isCurrentUser ? undefined : <UserMenu user={user} />}
+      actions={showMenu ? <UserMenu user={user} /> : undefined}
     />
   );
 };

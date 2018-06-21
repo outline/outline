@@ -36,6 +36,7 @@ const seed = async () => {
       id: 'U2399UF2P',
       image_192: 'http://example.com/avatar.png',
     },
+    createdAt: new Date('2018-01-01T00:00:00.000Z'),
   });
 
   const admin = await User.create({
@@ -52,6 +53,7 @@ const seed = async () => {
       id: 'U2399UF1P',
       image_192: 'http://example.com/avatar.png',
     },
+    createdAt: new Date('2018-01-01T00:00:00.000Z'),
   });
 
   const collection = await Collection.create({

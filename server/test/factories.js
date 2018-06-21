@@ -42,6 +42,7 @@ export async function buildUser(overrides: Object = {}) {
     password: 'test123!',
     service: 'slack',
     serviceId: uuid.v4(),
+    createdAt: new Date('2018-01-01T00:00:00.000Z'),
     ...overrides,
   });
 }

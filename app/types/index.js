@@ -7,6 +7,7 @@ export type User = {
   username: string,
   isAdmin?: boolean,
   isSuspended?: boolean,
+  createdAt: string,
 };
 
 export type Toast = {
