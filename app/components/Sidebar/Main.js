@@ -12,6 +12,7 @@ import Scrollable from 'components/Scrollable';
 import Collections from './components/Collections';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
+import Bubble from './components/Bubble';
 
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -27,6 +28,10 @@ type Props = {
 
 @observer
 class MainSidebar extends React.Component<Props> {
+  componentDidMount() {
+    this.props.documents.fetchDrafts();
+  }
+
   handleCreateCollection = () => {
     this.props.ui.setActiveModal('collection-new');
   };
@@ -67,7 +72,7 @@ class MainSidebar extends React.Component<Props> {
                   documents.active ? !documents.active.publishedAt : undefined
                 }
               >
-                Drafts
+                Drafts <Bubble count={documents.drafts.length} />
               </SidebarLink>
             </Section>
             <Section>
