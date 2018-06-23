@@ -6,6 +6,7 @@ import { client } from 'utils/ApiClient';
 import stores from 'stores';
 import UiStore from 'stores/UiStore';
 import parseTitle from '../../shared/utils/parseTitle';
+import unescape from '../../shared/utils/unescape';
 
 import type { User } from 'types';
 import BaseModel from './BaseModel';
@@ -270,15 +271,16 @@ class Document extends BaseModel {
     this.emit('documents.duplicate', this);
   };
 
-  download() {
-    const a = window.document.createElement('a');
-    a.textContent = 'download';
+  download = async () => {
+    await this.fetch();
+
+    const blob = new Blob([unescape(this.text)], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
     a.download = `${this.title}.md`;
-    a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(
-      this.text
-    )}`;
     a.click();
-  }
+  };
 
   updateData(data: Object = {}, dirty: boolean = false) {
     if (data.text) {
