@@ -8,16 +8,12 @@ import { observer, inject } from 'mobx-react';
 import { CloseIcon, MenuIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 
-import AuthStore from 'stores/AuthStore';
-import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
   children: React.Node,
   history: Object,
   location: Location,
-  auth: AuthStore,
-  documents: DocumentsStore,
   ui: UiStore,
 };
 
@@ -61,7 +57,7 @@ const Container = styled(Flex)`
   left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
   width: 100%;
   background: ${props => props.theme.smoke};
-  transition: left 200ms ease-in-out;
+  transition: left 100ms ease-out;
   margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
   z-index: 1;
 
