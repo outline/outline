@@ -38,7 +38,7 @@ type Props = {
 class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
 
-  @keydown(['/', 't'])
+  @keydown(['/', 't', 'meta+k'])
   goToSearch(ev) {
     ev.preventDefault();
     ev.stopPropagation();
