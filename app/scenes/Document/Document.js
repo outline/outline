@@ -40,6 +40,10 @@ const DISCARD_CHANGES = `
 You have unsaved changes.
 Are you sure you want to discard them?
 `;
+const UPLOADING_WARNING = `
+Image are still uploading.
+Are you sure you want to discard them?
+`;
 
 type Props = {
   match: Object,
@@ -60,7 +64,7 @@ class DocumentScene extends React.Component<Props> {
   @observable editCache: ?string;
   @observable document: ?Document;
   @observable newDocument: ?Document;
-  @observable isLoading = false;
+  @observable isUploading = false;
   @observable isSaving = false;
   @observable isPublishing = false;
   @observable notFound = false;
@@ -180,11 +184,11 @@ class DocumentScene extends React.Component<Props> {
   }, AUTOSAVE_INTERVAL);
 
   onImageUploadStart = () => {
-    this.isLoading = true;
+    this.isUploading = true;
   };
 
   onImageUploadStop = () => {
-    this.isLoading = false;
+    this.isUploading = false;
   };
 
   onChange = text => {
@@ -261,7 +265,7 @@ class DocumentScene extends React.Component<Props> {
       <Container key={document ? document.id : undefined} column auto>
         {isMoving && document && <DocumentMove document={document} />}
         {titleText && <PageTitle title={titleText} />}
-        {(this.isLoading || this.isSaving) && <LoadingIndicator />}
+        {(this.isUploading || this.isSaving) && <LoadingIndicator />}
         {!document || !Editor ? (
           <CenteredContent>
             <LoadingState />
@@ -269,10 +273,13 @@ class DocumentScene extends React.Component<Props> {
         ) : (
           <Flex justify="center" auto>
             {this.isEditing && (
-              <Prompt
-                when={document.hasPendingChanges}
-                message={DISCARD_CHANGES}
-              />
+              <React.Fragment>
+                <Prompt
+                  when={document.hasPendingChanges}
+                  message={DISCARD_CHANGES}
+                />
+                <Prompt when={this.isUploading} message={UPLOADING_WARNING} />
+              </React.Fragment>
             )}
             <MaxWidth column auto>
               <Editor
