@@ -5,6 +5,7 @@ import { signin } from '../../../shared/utils/routeHelpers';
 import Flex from '../../../shared/components/Flex';
 import GoogleLogo from '../../../shared/components/GoogleLogo';
 import SlackLogo from '../../../shared/components/SlackLogo';
+import breakpoint from 'styled-components-breakpoint';
 
 type Props = {
   lastSignedIn: string,
@@ -18,7 +19,7 @@ const SigninButtons = ({
   googleSigninEnabled,
 }: Props) => {
   return (
-    <Flex justify="center">
+    <Wrapper>
       {slackSigninEnabled && (
         <Flex column>
           <Button href={signin('slack')}>
@@ -43,9 +44,18 @@ const SigninButtons = ({
           </LastLogin>
         </Flex>
       )}
-    </Flex>
+    </Wrapper>
   );
 };
+
+const Wrapper = styled(Flex)`
+  display: block;
+  justify-content: center;
+
+  ${breakpoint('tablet')`
+    display: flex;
+  `};
+`;
 
 const Spacer = styled.span`
   padding-left: 10px;

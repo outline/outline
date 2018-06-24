@@ -7,7 +7,11 @@ import breakpoint from 'styled-components-breakpoint';
 import Notice from '../../shared/components/Notice';
 import Hero from './components/Hero';
 import SigninButtons from './components/SigninButtons';
-import { developers, githubUrl } from '../../shared/utils/routeHelpers';
+import {
+  developers,
+  githubUrl,
+  slackAppStoreUrl,
+} from '../../shared/utils/routeHelpers';
 
 type Props = {
   notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed',
@@ -20,7 +24,7 @@ function Home(props: Props) {
   return (
     <span>
       <Helmet>
-        <title>Outline - Team wiki & documentation</title>
+        <title>Outline - Team wiki & knowledge base</title>
       </Helmet>
       <Grid>
         <Hero>
@@ -64,10 +68,10 @@ function Home(props: Props) {
             <Feature>
               <h2># Markdown Support</h2>
               <p>
-                Outline stores, imports and exports all documents in plain
-                Markdown. Shortcuts are also built right into the editor so you
-                can easily format using <strong>**markdown syntax**</strong> if
-                you like.
+                Documents are stored in plain Markdown making editing, import
+                and export painless. Shortcuts are also built right into the
+                editor so you can easily format using{' '}
+                <strong>**markdown syntax**</strong> if you like.
               </p>
             </Feature>
           </Grid.Unit>
@@ -81,20 +85,22 @@ function Home(props: Props) {
         </Features>
         <Highlights id="features">
           <Feature size={{ desktop: 1 / 3 }}>
-            <h2>Slack integration</h2>
+            <h2>Slack Integration</h2>
             <p>
-              Keep your team up to date and informed with Slack notifications
-              about newly published documents. You can also search Outline
-              directly within Slack using <code>/outline &lt;keyword&gt;</code>{' '}
-              command.
+              Get Slack notifications about newly updated documents. You can
+              also search Outline directly within Slack using{' '}
+              <code>/outline &lt;keyword&gt;</code> command.
+            </p>
+            <p>
+              <a href={slackAppStoreUrl()}>Slack App</a>
             </p>
           </Feature>
           <Feature size={{ desktop: 1 / 3 }}>
             <h2>Open Source</h2>
             <p>
               Outline is open source, so the community can help improve it too.
-              You get new features, interface improvements, and bug fixes for
-              free.
+              You get new features, interface improvements, bug fixes, and a
+              transparent roadmap for free.
             </p>
             <p>
               <a href={githubUrl()}>GitHub</a>
@@ -138,7 +144,7 @@ const Screenshot = styled.img`
 `;
 
 const Highlights = styled(Grid)`
-  background: ${props => props.theme.yellow};
+  background: ${props => props.theme.primary};
   margin: 0 1em;
   padding: 0 1em;
 `;
@@ -149,7 +155,7 @@ const Features = styled(Grid)`
 `;
 
 const Feature = styled(Grid.Unit)`
-  padding: 4em 3em;
+  padding: 3em 0;
 
   h2 {
     margin-top: 0;
@@ -162,12 +168,20 @@ const Feature = styled(Grid.Unit)`
     font-weight: 500;
     font-size: 14px;
   }
+
+  ${breakpoint('tablet')`
+    padding: 4em 3em;
+  `};
 `;
 
 const Footer = styled.div`
   text-align: center;
   width: 100%;
-  padding: 6em 4em;
+  padding: 4em 2em;
+
+  ${breakpoint('tablet')`
+    padding: 6em 4em;
+  `};
 `;
 
 const FooterCTA = styled.p`

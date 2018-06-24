@@ -20,11 +20,21 @@ try {
     if (typeof filename !== 'string') return;
     if (filename.endsWith('.js')) {
       prefetchTags.push(
-        <link rel="prefetch" href={`${PUBLIC_PATH}${filename}`} as="script" />
+        <link
+          rel="prefetch"
+          href={`${PUBLIC_PATH}${filename}`}
+          key={filename}
+          as="script"
+        />
       );
     } else if (filename.endsWith('.css')) {
       prefetchTags.push(
-        <link rel="prefetch" href={`${PUBLIC_PATH}${filename}`} as="style" />
+        <link
+          rel="prefetch"
+          href={`${PUBLIC_PATH}${filename}`}
+          key={filename}
+          as="style"
+        />
       );
     }
   });
