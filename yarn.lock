@@ -8859,9 +8859,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@1.4.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-1.4.1.tgz#c339e216009e44a17427843f80847f8cfcb815c7"
+rich-markdown-editor@1.4.3-0:
+  version "1.4.3-0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-1.4.3-0.tgz#2b90e185b35821463c138ad36f2eb209c990c05a"
   dependencies:
     "@tommoor/slate-drop-or-paste-images" "^0.8.1"
     boundless-arrow-key-navigation "^1.1.0"
