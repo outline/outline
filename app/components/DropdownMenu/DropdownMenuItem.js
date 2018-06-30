@@ -5,6 +5,7 @@ import styled from 'styled-components';
 type Props = {
   onClick?: (SyntheticEvent<*>) => *,
   children?: React.Node,
+  disabled?: boolean,
 };
 
 const DropdownMenuItem = ({ onClick, children, ...rest }: Props) => {
@@ -21,24 +22,32 @@ const MenuItem = styled.a`
   padding: 6px 12px;
   height: 32px;
 
-  color: ${props => props.theme.slateDark};
+  color: ${props =>
+    props.disabled ? props.theme.slate : props.theme.slateDark};
   justify-content: left;
   align-items: center;
-  cursor: pointer;
   font-size: 15px;
+  cursor: default;
 
   svg {
     margin-right: 8px;
   }
 
+  ${props =>
+    props.disabled
+      ? ''
+      : `
+
   &:hover {
-    color: ${props => props.theme.white};
-    background: ${props => props.theme.primary};
+    color: ${props.theme.white};
+    background: ${props.theme.primary};
+    cursor: pointer;
 
     svg {
-      fill: ${props => props.theme.white};
+      fill: ${props.theme.white};
     }
   }
+  `};
 `;
 
 export default DropdownMenuItem;

@@ -2,8 +2,11 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { NewDocumentIcon } from 'outline-icons';
 
+import NewDocumentMenu from 'menus/NewDocumentMenu';
 import DocumentsStore from 'stores/DocumentsStore';
+import Actions, { Action } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
@@ -42,22 +45,31 @@ class Dashboard extends React.Component<Props> {
         <PageTitle title="Home" />
         <h1>Home</h1>
         {showContent ? (
-          <span>
-            {hasRecentlyViewed && [
-              <Subheading key="viewed">Recently viewed</Subheading>,
-              <DocumentList
-                key="viewedDocuments"
-                documents={documents.recentlyViewed}
-              />,
-            ]}
-            {hasRecentlyEdited && [
-              <Subheading key="edited">Recently edited</Subheading>,
-              <DocumentList
-                key="editedDocuments"
-                documents={documents.recentlyEdited}
-              />,
-            ]}
-          </span>
+          <React.Fragment>
+            {hasRecentlyViewed && (
+              <React.Fragment>
+                <Subheading key="viewed">Recently viewed</Subheading>
+                <DocumentList
+                  key="viewedDocuments"
+                  documents={documents.recentlyViewed}
+                />
+              </React.Fragment>
+            )}
+            {hasRecentlyEdited && (
+              <React.Fragment>
+                <Subheading key="edited">Recently edited</Subheading>
+                <DocumentList
+                  key="editedDocuments"
+                  documents={documents.recentlyEdited}
+                />
+              </React.Fragment>
+            )}
+            <Actions align="center" justify="flex-end">
+              <Action>
+                <NewDocumentMenu label={<NewDocumentIcon />} />
+              </Action>
+            </Actions>
+          </React.Fragment>
         ) : (
           <ListPlaceholder count={5} />
         )}
