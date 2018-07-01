@@ -95,6 +95,12 @@ class Header extends React.Component<Props> {
         </Title>
         <Wrapper align="center" justify="flex-end">
           {!isDraft && !isEditing && <Collaborators document={document} />}
+          {isSaving &&
+            !isPublishing && (
+              <Action>
+                <Status>Saving…</Status>
+              </Action>
+            )}
           {isDraft && (
             <Action>
               <Link
@@ -110,7 +116,6 @@ class Header extends React.Component<Props> {
           {isEditing && (
             <React.Fragment>
               <Action>
-                {isSaving && !isPublishing && <Status>Saving…</Status>}
                 <Link
                   onClick={this.handleSave}
                   title="Save changes (Cmd+Enter)"
@@ -118,10 +123,9 @@ class Header extends React.Component<Props> {
                   isSaving={isSaving}
                   highlight={!isDraft}
                 >
-                  Done
+                  {isDraft ? 'Save Draft' : 'Done'}
                 </Link>
               </Action>
-              {isDraft && <Separator />}
             </React.Fragment>
           )}
           {!isEditing && (
@@ -160,7 +164,6 @@ class Header extends React.Component<Props> {
 
 const Status = styled.div`
   color: ${props => props.theme.slate};
-  margin-right: 12px;
 `;
 
 const Wrapper = styled(Flex)`

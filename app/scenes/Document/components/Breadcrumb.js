@@ -1,26 +1,31 @@
 // @flow
 import * as React from 'react';
+import { observer, inject } from 'mobx-react';
 import breakpoint from 'styled-components-breakpoint';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { CollectionIcon, GoToIcon } from 'outline-icons';
 
+import Document from 'models/Document';
+import CollectionsStore from 'stores/CollectionsStore';
 import { collectionUrl } from 'utils/routeHelpers';
 import Flex from 'shared/components/Flex';
-import Document from 'models/Document';
 
 type Props = {
   document: Document,
+  collections: CollectionsStore,
 };
 
-const Breadcrumb = ({ document }: Props) => {
+const Breadcrumb = observer(({ document, collections }: Props) => {
   const path = document.pathToDocument.slice(0, -1);
+  const collection =
+    collections.getById(document.collection.id) || document.collection;
 
   return (
     <Wrapper justify="flex-start" align="center">
-      <CollectionName to={collectionUrl(document.collectionId)}>
-        <CollectionIcon color={document.collection.color} />{' '}
-        <span>{document.collection.name}</span>
+      <CollectionName to={collectionUrl(collection.id)}>
+        <CollectionIcon color={collection.color} />{' '}
+        <span>{collection.name}</span>
       </CollectionName>
       {path.map(n => (
         <React.Fragment>
@@ -29,7 +34,7 @@ const Breadcrumb = ({ document }: Props) => {
       ))}
     </Wrapper>
   );
-};
+});
 
 const Wrapper = styled(Flex)`
   width: 33.3%;
@@ -41,6 +46,7 @@ const Wrapper = styled(Flex)`
 `;
 
 const Slash = styled(GoToIcon)`
+  flex-shrink: 0;
   opacity: 0.25;
 `;
 
@@ -58,10 +64,13 @@ const Crumb = styled(Link)`
 `;
 
 const CollectionName = styled(Link)`
+  display: flex;
+  flex-shrink: 0;
   color: ${props => props.theme.text};
   font-size: 15px;
-  display: flex;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
 `;
 
-export default Breadcrumb;
+export default inject('collections')(Breadcrumb);
