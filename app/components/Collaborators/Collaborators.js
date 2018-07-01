@@ -31,21 +31,20 @@ const Collaborators = ({ document }: Props) => {
 
   return (
     <Avatars>
-      <StyledTooltip tooltip={tooltip} placement="bottom">
-        {collaborators.map(user => (
-          <AvatarWrapper key={user.id}>
+      {collaborators.map(user => (
+        <Tooltip
+          tooltip={collaborators.length > 1 ? user.name : tooltip}
+          placement="bottom"
+          key={user.id}
+        >
+          <AvatarWrapper>
             <Avatar src={user.avatarUrl} />
           </AvatarWrapper>
-        ))}
-      </StyledTooltip>
+        </Tooltip>
+      ))}
     </Avatars>
   );
 };
-
-const StyledTooltip = styled(Tooltip)`
-  display: flex;
-  flex-direction: row-reverse;
-`;
 
 const AvatarWrapper = styled.div`
   width: 24px;

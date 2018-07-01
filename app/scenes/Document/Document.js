@@ -21,7 +21,7 @@ import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
 
 import Document from 'models/Document';
-import Actions from './components/Actions';
+import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -248,7 +248,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    const { location, match } = this.props;
+    const { location, match, ui } = this.props;
     const Editor = this.editorComponent;
     const isMoving = match.path === matchDocumentMove;
     const document = this.document;
@@ -269,7 +269,7 @@ class DocumentScene extends React.Component<Props> {
     }
 
     return (
-      <Container key={document ? document.id : undefined} column auto>
+      <Container column auto>
         {isMoving && document && <DocumentMove document={document} />}
         {titleText && <PageTitle title={titleText} />}
         {(this.isUploading || this.isSaving) && <LoadingIndicator />}
@@ -290,6 +290,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth column auto>
               <Editor
+                key={document ? document.id : undefined}
                 titlePlaceholder="Start with a title…"
                 bodyPlaceholder="…the rest is your canvas"
                 defaultValue={document.text}
@@ -308,7 +309,7 @@ class DocumentScene extends React.Component<Props> {
             </MaxWidth>
             {document &&
               !isShare && (
-                <Actions
+                <Header
                   document={document}
                   isDraft={!document.publishedAt}
                   isEditing={this.isEditing}
@@ -318,6 +319,7 @@ class DocumentScene extends React.Component<Props> {
                   history={this.props.history}
                   onDiscard={this.onDiscard}
                   onSave={this.onSave}
+                  editMode={ui.editMode}
                 />
               )}
           </Flex>

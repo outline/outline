@@ -7,6 +7,7 @@ export const Action = styled(Flex)`
   justify-content: center;
   align-items: center;
   padding: 0 0 0 12px;
+  font-size: 15px;
 
   a {
     color: ${props => props.theme.text};
@@ -37,8 +38,7 @@ const Actions = styled(Flex)`
 
   ${breakpoint('tablet')`
     left: auto;
-    padding: ${props => props.theme.vpadding} ${props =>
-    props.theme.hpadding} 8px 8px;
+    padding: ${props => props.theme.vpadding} ${props => props.theme.hpadding};
   `};
 `;
 
