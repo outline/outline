@@ -26,7 +26,6 @@ import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
-import CollectionsStore from 'stores/CollectionsStore';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
@@ -51,7 +50,6 @@ type Props = {
   history: Object,
   location: Location,
   documents: DocumentsStore,
-  collections: CollectionsStore,
   newDocument?: boolean,
   auth: AuthStore,
   ui: UiStore,

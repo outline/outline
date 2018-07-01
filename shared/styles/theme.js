@@ -27,8 +27,8 @@ const theme = {
   black: '#000000',
   blackLight: '#2f3336',
 
-  padding: '1.6vw 1.875vw',
-  vpadding: '1.6vw',
+  padding: '1.5vw 1.875vw',
+  vpadding: '1.5vw',
   hpadding: '1.875vw',
   sidebarWidth: '280px',
   sidebarMinWidth: '250px',

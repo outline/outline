@@ -29,7 +29,7 @@ const Actions = styled(Flex)`
   left: 0;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.9);
-  padding: 16px;
+  padding: 12px;
   -webkit-backdrop-filter: blur(20px);
 
   @media print {
@@ -38,7 +38,7 @@ const Actions = styled(Flex)`
 
   ${breakpoint('tablet')`
     left: auto;
-    padding: ${props => props.theme.vpadding} ${props => props.theme.hpadding};
+    padding: 24px;
   `};
 `;
 
