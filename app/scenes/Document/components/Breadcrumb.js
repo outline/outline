@@ -24,7 +24,7 @@ const Breadcrumb = observer(({ document, collections }: Props) => {
   return (
     <Wrapper justify="flex-start" align="center">
       <CollectionName to={collectionUrl(collection.id)}>
-        <CollectionIcon color={collection.color} />{' '}
+        <CollectionIcon color={collection.color} expanded />{' '}
         <span>{collection.name}</span>
       </CollectionName>
       {path.map(n => (

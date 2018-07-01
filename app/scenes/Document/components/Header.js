@@ -185,7 +185,8 @@ const Actions = styled(Flex)`
   border-bottom: 1px solid
     ${props => (props.isCompact ? props.theme.smoke : 'transparent')};
   padding: 12px;
-  transition: padding 100ms ease-out;
+  transition: all 100ms ease-out;
+  transform: translate3d(0, 0, 0);
   -webkit-backdrop-filter: blur(20px);
 
   @media print {
