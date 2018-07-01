@@ -8,7 +8,7 @@ import UiStore from 'stores/UiStore';
 import parseTitle from '../../shared/utils/parseTitle';
 import unescape from '../../shared/utils/unescape';
 
-import type { User } from 'types';
+import type { NavigationNode, User } from 'types';
 import BaseModel from './BaseModel';
 import Collection from './Collection';
 
@@ -52,17 +52,11 @@ class Document extends BaseModel {
   }
 
   @computed
-  get pathToDocument(): Array<{ id: string, title: string }> {
+  get pathToDocument(): NavigationNode[] {
     let path;
     const traveler = (nodes, previousPath) => {
       nodes.forEach(childNode => {
-        const newPath = [
-          ...previousPath,
-          {
-            id: childNode.id,
-            title: childNode.title,
-          },
-        ];
+        const newPath = [...previousPath, childNode];
         if (childNode.id === this.id) {
           path = newPath;
           return;

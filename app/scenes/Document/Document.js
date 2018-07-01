@@ -21,7 +21,7 @@ import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
 
 import Document from 'models/Document';
-import Actions from './components/Actions';
+import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -278,7 +278,7 @@ class DocumentScene extends React.Component<Props> {
             <LoadingState />
           </CenteredContent>
         ) : (
-          <Flex justify="center" auto>
+          <Container justify="center" column auto>
             {this.isEditing && (
               <React.Fragment>
                 <Prompt
@@ -288,6 +288,20 @@ class DocumentScene extends React.Component<Props> {
                 <Prompt when={this.isUploading} message={UPLOADING_WARNING} />
               </React.Fragment>
             )}
+            {document &&
+              !isShare && (
+                <Header
+                  document={document}
+                  isDraft={!document.publishedAt}
+                  isEditing={this.isEditing}
+                  isSaving={this.isSaving}
+                  isPublishing={this.isPublishing}
+                  savingIsDisabled={!document.allowSave}
+                  history={this.props.history}
+                  onDiscard={this.onDiscard}
+                  onSave={this.onSave}
+                />
+              )}
             <MaxWidth column auto>
               <Editor
                 titlePlaceholder="Start with a title…"
@@ -306,21 +320,7 @@ class DocumentScene extends React.Component<Props> {
                 toc
               />
             </MaxWidth>
-            {document &&
-              !isShare && (
-                <Actions
-                  document={document}
-                  isDraft={!document.publishedAt}
-                  isEditing={this.isEditing}
-                  isSaving={this.isSaving}
-                  isPublishing={this.isPublishing}
-                  savingIsDisabled={!document.allowSave}
-                  history={this.props.history}
-                  onDiscard={this.onDiscard}
-                  onSave={this.onSave}
-                />
-              )}
-          </Flex>
+          </Container>
         )}
       </Container>
     );
@@ -328,13 +328,14 @@ class DocumentScene extends React.Component<Props> {
 }
 
 const MaxWidth = styled(Flex)`
-  padding: 0 20px;
+  padding: 0 16px;
   max-width: 100vw;
+  width: 100%;
   height: 100%;
 
   ${breakpoint('tablet')`	
-    padding: 0;
-    margin: 60px;
+    padding: 0 24px;
+    margin: 60px auto;
     max-width: 46em;
   `};
 `;
