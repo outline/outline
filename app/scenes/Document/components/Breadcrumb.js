@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import breakpoint from 'styled-components-breakpoint';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { CollectionIcon, GoToIcon } from 'outline-icons';
@@ -32,6 +33,11 @@ const Breadcrumb = ({ document }: Props) => {
 
 const Wrapper = styled(Flex)`
   width: 33.3%;
+  display: none;
+
+  ${breakpoint('tablet')`	
+    display: flex;
+  `};
 `;
 
 const Slash = styled(GoToIcon)`

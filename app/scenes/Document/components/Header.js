@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
+import { throttle } from 'lodash';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
@@ -22,7 +22,6 @@ type Props = {
   isSaving: boolean,
   isPublishing: boolean,
   savingIsDisabled: boolean,
-  editMode: boolean,
   onDiscard: () => *,
   onSave: ({
     done?: boolean,
@@ -36,10 +35,6 @@ type Props = {
 class Header extends React.Component<Props> {
   @observable isScrolled = false;
 
-  componentWillMount() {
-    this.handleScroll();
-  }
-
   componentDidMount() {
     window.addEventListener('scroll', this.handleScroll);
   }
@@ -48,9 +43,11 @@ class Header extends React.Component<Props> {
     window.removeEventListener('scroll', this.handleScroll);
   }
 
-  handleScroll = () => {
+  updateIsScrolled = () => {
     this.isScrolled = window.scrollY > 75;
   };
+
+  handleScroll = throttle(this.updateIsScrolled, 50);
 
   handleNewDocument = () => {
     this.props.history.push(documentNewUrl(this.props.document));
@@ -68,6 +65,13 @@ class Header extends React.Component<Props> {
     this.props.onSave({ done: true, publish: true });
   };
 
+  handleClickTitle = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
   render() {
     const {
       document,
@@ -76,19 +80,19 @@ class Header extends React.Component<Props> {
       isPublishing,
       isSaving,
       savingIsDisabled,
-      editMode,
     } = this.props;
 
     return (
       <Actions
         align="center"
         justify="space-between"
-        editMode={editMode}
         readOnly={!isEditing}
         isCompact={this.isScrolled}
       >
         <Breadcrumb document={document} />
-        <Title isHidden={!this.isScrolled}>{document.title}</Title>
+        <Title isHidden={!this.isScrolled} onClick={this.handleClickTitle}>
+          {document.title}
+        </Title>
         <Wrapper align="center" justify="flex-end">
           {!isDraft && !isEditing && <Collaborators document={document} />}
           {isDraft && (
@@ -160,19 +164,25 @@ const Status = styled.div`
 `;
 
 const Wrapper = styled(Flex)`
-  width: 33.3%;
+  width: 100%;
+  align-self: flex-end;
+
+  ${breakpoint('tablet')`	
+    width: 33.3%;
+  `};
 `;
 
 const Actions = styled(Flex)`
-  position: fixed;
+  position: sticky;
   top: 0;
   right: 0;
-  left: ${props => (props.editMode ? '0' : props.theme.sidebarWidth)};
+  left: 0;
+  z-index: 1;
   background: rgba(255, 255, 255, 0.9);
   border-bottom: 1px solid
     ${props => (props.isCompact ? props.theme.smoke : 'transparent')};
   padding: 12px;
-  transition: all 100ms ease-out;
+  transition: padding 100ms ease-out;
   -webkit-backdrop-filter: blur(20px);
 
   @media print {
@@ -180,13 +190,11 @@ const Actions = styled(Flex)`
   }
 
   ${breakpoint('tablet')`
-    padding: ${props =>
-      props.isCompact ? '12px' : `${props.theme.padding} 0`};
+    padding: ${props => (props.isCompact ? '12px' : `24px 24px 0`)};
   `};
 `;
 
 const Title = styled.div`
-  width: 33.3%;
   font-size: 16px;
   font-weight: 600;
   text-align: center;
@@ -196,6 +204,14 @@ const Title = styled.div`
   overflow: hidden;
   transition: opacity 100ms ease-in-out;
   opacity: ${props => (props.isHidden ? '0' : '1')};
+  cursor: ${props => (props.isHidden ? 'default' : 'pointer')};
+  display: none;
+  width: 0;
+
+  ${breakpoint('tablet')`	
+    display: block;
+    width: 33.3%;
+  `};
 `;
 
 const Link = styled.a`

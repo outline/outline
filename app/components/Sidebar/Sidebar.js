@@ -59,7 +59,7 @@ const Container = styled(Flex)`
   background: ${props => props.theme.smoke};
   transition: left 100ms ease-out;
   margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
-  z-index: 1;
+  z-index: 2;
 
   @media print {
     display: none;
@@ -101,7 +101,7 @@ const Toggle = styled.a`
   left: ${props => (props.mobileSidebarVisible ? 'auto' : 0)};
   right: ${props => (props.mobileSidebarVisible ? 0 : 'auto')};
   z-index: 1;
-  margin: 16px;
+  margin: 12px;
 
   ${breakpoint('tablet')`
     display: none;
