@@ -37,11 +37,11 @@ export type NavigationNode = {
   id: string,
   title: string,
   url: string,
-  children: Array<NavigationNode>,
+  children: NavigationNode[],
 };
 
 export type Document = {
-  collaborators: Array<User>,
+  collaborators: User[],
   collection: Object,
   createdAt: string,
   createdBy: User,

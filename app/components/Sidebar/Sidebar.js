@@ -66,6 +66,22 @@ const Container = styled(Flex)`
     left: 0;
   }
 
+  &:before,
+  &:after {
+    content: '';
+    background: ${props => props.theme.smoke};
+    position: absolute;
+    top: -50vh;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+  }
+
+  &:after {
+    top: auto;
+    bottom: -50vh;
+  }
+
   ${breakpoint('tablet')`
     width: ${props => props.theme.sidebarWidth};
     margin: 0;
