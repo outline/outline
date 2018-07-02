@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react';
-import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import ShareMenu from 'menus/ShareMenu';
 import ListItem from 'components/List/Item';
+import Time from 'shared/components/Time';
 import type { Share } from '../../../types';
 
 type Props = {
@@ -16,11 +16,8 @@ const ShareListItem = ({ share }: Props) => {
       title={share.documentTitle}
       subtitle={
         <React.Fragment>
-          Shared{' '}
-          <time dateTime={share.createdAt}>
-            {distanceInWordsToNow(new Date(share.createdAt))}
-          </time>{' '}
-          ago by {share.createdBy.name}
+          Shared <Time dateTime={share.createdAt} /> ago by{' '}
+          {share.createdBy.name}
         </React.Fragment>
       }
       actions={<ShareMenu share={share} />}

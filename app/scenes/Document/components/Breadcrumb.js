@@ -28,7 +28,7 @@ const Breadcrumb = observer(({ document, collections }: Props) => {
         <span>{collection.name}</span>
       </CollectionName>
       {path.map(n => (
-        <React.Fragment>
+        <React.Fragment key={n.id}>
           <Slash /> <Crumb to={n.url}>{n.title}</Crumb>
         </React.Fragment>
       ))}
