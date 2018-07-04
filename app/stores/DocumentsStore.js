@@ -217,7 +217,7 @@ class DocumentsStore extends BaseStore {
 
     if (res && res.data) {
       const duped = res.data;
-      this.emit('documents.create', duped);
+      this.emit('documents.create', new Document(duped));
       this.emit('documents.publish', {
         id: duped.id,
         collectionId: duped.collection.id,
@@ -255,7 +255,7 @@ class DocumentsStore extends BaseStore {
       this.remove(data.id);
     });
     this.on('documents.create', (data: Document) => {
-      this.add(new Document(data));
+      this.add(data);
     });
     this.on('documents.duplicate', (data: Document) => {
       this.duplicate(data);

@@ -175,19 +175,12 @@ class Document extends BaseModel {
     if (this.isSaving) return this;
 
     const wasDraft = !this.publishedAt;
+    const isCreating = !this.id;
     this.isSaving = true;
 
     try {
       let res;
-      if (this.id) {
-        res = await client.post('/documents.update', {
-          id: this.id,
-          title: this.title,
-          text: this.text,
-          lastRevision: this.revision,
-          ...options,
-        });
-      } else {
+      if (isCreating) {
         const data = {
           parentDocument: undefined,
           collection: this.collection.id,
@@ -199,25 +192,36 @@ class Document extends BaseModel {
           data.parentDocument = this.parentDocument;
         }
         res = await client.post('/documents.create', data);
-        if (res && res.data) this.emit('documents.create', res.data);
+      } else {
+        res = await client.post('/documents.update', {
+          id: this.id,
+          title: this.title,
+          text: this.text,
+          lastRevision: this.revision,
+          ...options,
+        });
       }
       runInAction('Document#save', () => {
         invariant(res && res.data, 'Data should be available');
         this.updateData(res.data);
         this.hasPendingChanges = false;
-      });
 
-      this.emit('documents.update', {
-        document: this,
-        collectionId: this.collection.id,
-      });
+        if (isCreating) {
+          this.emit('documents.create', this);
+        }
 
-      if (wasDraft && this.publishedAt) {
-        this.emit('documents.publish', {
-          id: this.id,
+        this.emit('documents.update', {
+          document: this,
           collectionId: this.collection.id,
         });
-      }
+
+        if (wasDraft && this.publishedAt) {
+          this.emit('documents.publish', {
+            id: this.id,
+            collectionId: this.collection.id,
+          });
+        }
+      });
     } catch (e) {
       this.ui.showToast('Document failed to save');
     } finally {
