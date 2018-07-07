@@ -11,6 +11,7 @@ import Input, { LabelText } from 'components/Input';
 import Button from 'components/Button';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
+import UserDelete from 'scenes/UserDelete';
 import Flex from 'shared/components/Flex';
 
 type Props = {
@@ -25,6 +26,7 @@ class Profile extends React.Component<Props> {
 
   @observable name: string;
   @observable avatarUrl: ?string;
+  @observable showDeleteModal: boolean = false;
 
   componentDidMount() {
     if (this.props.auth.user) {
@@ -56,6 +58,10 @@ class Profile extends React.Component<Props> {
 
   handleAvatarError = (error: ?string) => {
     this.props.ui.showToast(error || 'Unable to upload new avatar');
+  };
+
+  toggleDeleteAccount = () => {
+    this.showDeleteModal = !this.showDeleteModal;
   };
 
   get isValid() {
@@ -97,6 +103,17 @@ class Profile extends React.Component<Props> {
             {isSaving ? 'Saving…' : 'Save'}
           </Button>
         </form>
+        <p>&nbsp;</p>
+
+        <h2>Delete Account</h2>
+        <p>
+          You may delete your account at any time, note that this is
+          unrecoverable.{' '}
+          <a onClick={this.toggleDeleteAccount}>Delete account</a>.
+        </p>
+        {this.showDeleteModal && (
+          <UserDelete onRequestClose={this.toggleDeleteAccount} />
+        )}
       </CenteredContent>
     );
   }

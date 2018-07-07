@@ -10,6 +10,7 @@ import AuthStore from 'stores/AuthStore';
 
 type Props = {
   auth: AuthStore,
+  onRequestClose: () => *,
 };
 
 @observer
@@ -19,7 +20,7 @@ class UserDelete extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isDeleting = true;
-    const success = await this.props.auth.delete();
+    const success = await this.props.auth.deleteUser();
 
     if (success) {
       this.props.auth.logout();
@@ -40,8 +41,13 @@ class UserDelete extends React.Component<Props> {
               associated with your user and cannot be undone. You will be
               immediately logged out of Outline.
             </HelpText>
+
+            <HelpText>
+              <strong>Note:</strong> Signing back in will cause your account to
+              be automatically reprovisioned.
+            </HelpText>
             <Button type="submit" danger>
-              {this.isDeleting ? 'Deleting…' : 'Delete'}
+              {this.isDeleting ? 'Deleting…' : 'Delete My Account'}
             </Button>
           </form>
         </Flex>
