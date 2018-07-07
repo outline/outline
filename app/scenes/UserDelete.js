@@ -5,6 +5,7 @@ import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
 import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
+import Modal from 'components/Modal';
 import AuthStore from 'stores/AuthStore';
 
 type Props = {
@@ -28,19 +29,23 @@ class UserDelete extends React.Component<Props> {
   };
 
   render() {
+    const { auth, ...rest } = this.props;
+
     return (
-      <Flex column>
-        <form onSubmit={this.handleSubmit}>
-          <HelpText>
-            Are you sure? Deleting your account will destory identifying data
-            associated with your user and cannot be undone. You will be
-            immediately logged out of Outline.
-          </HelpText>
-          <Button type="submit" danger>
-            {this.isDeleting ? 'Deleting…' : 'Delete'}
-          </Button>
-        </form>
-      </Flex>
+      <Modal isOpen title="Delete Account" {...rest}>
+        <Flex column>
+          <form onSubmit={this.handleSubmit}>
+            <HelpText>
+              Are you sure? Deleting your account will destory identifying data
+              associated with your user and cannot be undone. You will be
+              immediately logged out of Outline.
+            </HelpText>
+            <Button type="submit" danger>
+              {this.isDeleting ? 'Deleting…' : 'Delete'}
+            </Button>
+          </form>
+        </Flex>
+      </Modal>
     );
   }
 }
