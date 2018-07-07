@@ -1,14 +1,11 @@
 // @flow
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
 import uuid from 'uuid';
 import JWT from 'jsonwebtoken';
 import subMinutes from 'date-fns/sub_minutes';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
-
-const BCRYPT_COST = process.env.NODE_ENV === 'production' ? 12 : 4;
 
 const User = sequelize.define(
   'user',
@@ -22,8 +19,6 @@ const User = sequelize.define(
     username: { type: DataTypes.STRING },
     name: DataTypes.STRING,
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
-    password: DataTypes.VIRTUAL,
-    passwordDigest: DataTypes.STRING,
     isAdmin: DataTypes.BOOLEAN,
     service: { type: DataTypes.STRING, allowNull: true },
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
@@ -80,24 +75,6 @@ User.prototype.getJwtToken = function() {
   return JWT.sign({ id: this.id }, this.jwtSecret);
 };
 
-User.prototype.verifyPassword = function(password) {
-  return new Promise((resolve, reject) => {
-    if (!this.passwordDigest) {
-      resolve(false);
-      return;
-    }
-
-    bcrypt.compare(password, this.passwordDigest, (err, ok) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      resolve(ok);
-    });
-  });
-};
-
 const uploadAvatar = async model => {
   const endpoint = publicS3Endpoint();
 
@@ -114,26 +91,6 @@ const setRandomJwtSecret = model => {
   model.jwtSecret = crypto.randomBytes(64).toString('hex');
 };
 
-const hashPassword = model => {
-  if (!model.password) {
-    return null;
-  }
-
-  return new Promise((resolve, reject) => {
-    bcrypt.hash(model.password, BCRYPT_COST, (err, digest) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      model.passwordDigest = digest;
-      resolve();
-    });
-  });
-};
-
-User.beforeCreate(hashPassword);
-User.beforeUpdate(hashPassword);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(user => sendEmail('welcome', user.email));
