@@ -26,6 +26,15 @@ Object {
 }
 `;
 
+exports[`#user.delete should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#user.demote should demote an admin 1`] = `
 Object {
   "data": Object {

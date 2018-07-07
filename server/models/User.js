@@ -37,6 +37,7 @@ const User = sequelize.define(
     suspendedById: DataTypes.UUID,
   },
   {
+    paranoid: true,
     getterMethods: {
       isSuspended() {
         return !!this.suspendedAt;
@@ -132,8 +133,33 @@ const hashPassword = model => {
   });
 };
 
+const removeIdentifyingInfo = model => {
+  model.email = '';
+  model.username = '';
+  model.slackData = null;
+  model.serviceId = null;
+  model.isAdmin = false;
+};
+
+const checkLastAdmin = async model => {
+  const teamId = model.teamId;
+
+  if (model.isAdmin) {
+    const userCount = await User.count({ where: { teamId } });
+    const adminCount = await User.count({ where: { isAdmin: true, teamId } });
+
+    if (userCount > 1 && adminCount <= 1) {
+      throw new Error(
+        'Cannot delete account as only admin. Please transfer admin permissions to another user and try again.'
+      );
+    }
+  }
+};
+
 User.beforeCreate(hashPassword);
 User.beforeUpdate(hashPassword);
+User.beforeDestroy(checkLastAdmin);
+User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(user => sendEmail('welcome', user.email));
