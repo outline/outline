@@ -82,11 +82,11 @@ Object {
 exports[`#user.info should return known user 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
+    "avatarUrl": null,
     "createdAt": "2018-01-01T00:00:00.000Z",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "name": "User 1",
-    "username": "user1",
+    "id": "e998a8ab-0d45-4920-912b-9df93d281cb9",
+    "name": "User 2",
+    "username": "user2",
   },
   "ok": true,
   "status": 200,
