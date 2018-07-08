@@ -1,21 +1,18 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { inject } from 'mobx-react';
 import { slackAuth } from 'shared/utils/routeHelpers';
-import Button from 'components/Button';
 import SlackLogo from 'shared/components/SlackLogo';
-import AuthStore from 'stores/AuthStore';
+import Button from 'components/Button';
 
 type Props = {
-  auth: AuthStore,
   scopes?: string[],
-  redirectUri?: string,
+  redirectUri: string,
   state: string,
   label?: string,
 };
 
-function SlackButton({ auth, state, label, scopes, redirectUri }: Props) {
+function SlackButton({ state, scopes, redirectUri, label }: Props) {
   const handleClick = () =>
     (window.location.href = slackAuth(state, scopes, redirectUri));
 
@@ -36,4 +33,4 @@ const SpacedSlackLogo = styled(SlackLogo)`
   padding-right: 4px;
 `;
 
-export default inject('auth')(SlackButton);
+export default SlackButton;
