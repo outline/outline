@@ -49,7 +49,7 @@ const User = sequelize.define(
 
 // Class methods
 User.associate = models => {
-  User.hasMany(models.ApiKey, { as: 'apiKeys', onDelete: 'cascade' });
+  User.hasMany(models.ApiKey, { as: 'apiKeys' });
   User.hasMany(models.Document, { as: 'documents' });
   User.hasMany(models.View, { as: 'views' });
 };
