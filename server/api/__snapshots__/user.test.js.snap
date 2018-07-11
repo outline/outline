@@ -70,29 +70,6 @@ Object {
 }
 `;
 
-exports[`#user.info should require authentication 1`] = `
-Object {
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`#user.info should return known user 1`] = `
-Object {
-  "data": Object {
-    "avatarUrl": null,
-    "createdAt": "2018-01-01T00:00:00.000Z",
-    "id": "e998a8ab-0d45-4920-912b-9df93d281cb9",
-    "name": "User 2",
-    "username": "user2",
-  },
-  "ok": true,
-  "status": 200,
-}
-`;
-
 exports[`#user.promote should promote a new admin 1`] = `
 Object {
   "data": Object {

@@ -19,15 +19,13 @@ describe('#user.info', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
+    expect(body.data.id).toEqual(user.id);
+    expect(body.data.name).toEqual(user.name);
   });
 
   it('should require authentication', async () => {
     const res = await server.post('/api/user.info');
-    const body = await res.json();
-
     expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
   });
 });
 
