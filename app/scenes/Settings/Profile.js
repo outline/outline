@@ -103,14 +103,15 @@ class Profile extends React.Component<Props> {
             {isSaving ? 'Saving…' : 'Save'}
           </Button>
         </form>
-        <p>&nbsp;</p>
 
-        <h2>Delete Account</h2>
-        <p>
-          You may delete your account at any time, note that this is
-          unrecoverable.{' '}
-          <a onClick={this.toggleDeleteAccount}>Delete account</a>.
-        </p>
+        <DangerZone>
+          <LabelText>Delete Account</LabelText>
+          <p>
+            You may delete your account at any time, note that this is
+            unrecoverable.{' '}
+            <a onClick={this.toggleDeleteAccount}>Delete account</a>.
+          </p>
+        </DangerZone>
         {this.showDeleteModal && (
           <UserDelete onRequestClose={this.toggleDeleteAccount} />
         )}
@@ -118,6 +119,11 @@ class Profile extends React.Component<Props> {
     );
   }
 }
+
+const DangerZone = styled.div`
+  position: absolute;
+  bottom: 16px;
+`;
 
 const ProfilePicture = styled(Flex)`
   margin-bottom: 24px;
