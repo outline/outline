@@ -31,4 +31,11 @@ const ApiKey = sequelize.define(
   }
 );
 
+ApiKey.associate = models => {
+  ApiKey.belongsTo(models.User, {
+    as: 'user',
+    foreignKey: 'userId',
+  });
+};
+
 export default ApiKey;

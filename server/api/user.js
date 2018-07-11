@@ -164,4 +164,22 @@ router.post('user.activate', auth(), async ctx => {
   };
 });
 
+router.post('user.delete', auth(), async ctx => {
+  const { confirmation } = ctx.body;
+  ctx.assertPresent(confirmation, 'confirmation is required');
+
+  const user = ctx.state.user;
+  authorize(user, 'delete', user);
+
+  try {
+    await user.destroy();
+  } catch (err) {
+    throw new ValidationError(err.message);
+  }
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 export default router;

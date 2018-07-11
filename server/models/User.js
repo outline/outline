@@ -6,6 +6,7 @@ import subMinutes from 'date-fns/sub_minutes';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
+import { Star, ApiKey } from '.';
 
 const User = sequelize.define(
   'user',
@@ -25,13 +26,14 @@ const User = sequelize.define(
     slackData: DataTypes.JSONB,
     jwtSecret: encryptedFields.vault('jwtSecret'),
     lastActiveAt: DataTypes.DATE,
-    lastActiveIp: DataTypes.STRING,
+    lastActiveIp: { type: DataTypes.STRING, allowNull: true },
     lastSignedInAt: DataTypes.DATE,
-    lastSignedInIp: DataTypes.STRING,
+    lastSignedInIp: { type: DataTypes.STRING, allowNull: true },
     suspendedAt: DataTypes.DATE,
     suspendedById: DataTypes.UUID,
   },
   {
+    paranoid: true,
     getterMethods: {
       isSuspended() {
         return !!this.suspendedAt;
@@ -91,6 +93,41 @@ const setRandomJwtSecret = model => {
   model.jwtSecret = crypto.randomBytes(64).toString('hex');
 };
 
+const removeIdentifyingInfo = async model => {
+  await ApiKey.destroy({ where: { userId: model.id } });
+  await Star.destroy({ where: { userId: model.id } });
+
+  model.email = '';
+  model.name = 'Unknown';
+  model.avatarUrl = '';
+  model.serviceId = null;
+  model.username = null;
+  model.slackData = null;
+  model.lastActiveIp = null;
+  model.lastSignedInIp = null;
+
+  // this shouldn't be needed once this issue is resolved:
+  // https://github.com/sequelize/sequelize/issues/9318
+  await model.save({ hooks: false });
+};
+
+const checkLastAdmin = async model => {
+  const teamId = model.teamId;
+
+  if (model.isAdmin) {
+    const userCount = await User.count({ where: { teamId } });
+    const adminCount = await User.count({ where: { isAdmin: true, teamId } });
+
+    if (userCount > 1 && adminCount <= 1) {
+      throw new Error(
+        'Cannot delete account as only admin. Please transfer admin permissions to another user and try again.'
+      );
+    }
+  }
+};
+
+User.beforeDestroy(checkLastAdmin);
+User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(user => sendEmail('welcome', user.email));

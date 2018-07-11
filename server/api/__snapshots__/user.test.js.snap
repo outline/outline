@@ -26,6 +26,15 @@ Object {
 }
 `;
 
+exports[`#user.delete should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#user.demote should demote an admin 1`] = `
 Object {
   "data": Object {
@@ -58,29 +67,6 @@ Object {
   "message": "At least one admin is required",
   "ok": false,
   "status": 400,
-}
-`;
-
-exports[`#user.info should require authentication 1`] = `
-Object {
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`#user.info should return known user 1`] = `
-Object {
-  "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
-    "createdAt": "2018-01-01T00:00:00.000Z",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "name": "User 1",
-    "username": "user1",
-  },
-  "ok": true,
-  "status": 200,
 }
 `;
 
