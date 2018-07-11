@@ -6,6 +6,7 @@ import subMinutes from 'date-fns/sub_minutes';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
+import { Star, ApiKey } from '.';
 
 const User = sequelize.define(
   'user',
@@ -27,7 +28,7 @@ const User = sequelize.define(
     lastActiveAt: DataTypes.DATE,
     lastActiveIp: { type: DataTypes.STRING, allowNull: true },
     lastSignedInAt: DataTypes.DATE,
-    lastSignedInIp: DataTypes.STRING,
+    lastSignedInIp: { type: DataTypes.STRING, allowNull: true },
     suspendedAt: DataTypes.DATE,
     suspendedById: DataTypes.UUID,
   },
@@ -48,7 +49,7 @@ const User = sequelize.define(
 
 // Class methods
 User.associate = models => {
-  User.hasMany(models.ApiKey, { as: 'apiKeys' });
+  User.hasMany(models.ApiKey, { as: 'apiKeys', onDelete: 'cascade' });
   User.hasMany(models.Document, { as: 'documents' });
   User.hasMany(models.View, { as: 'views' });
 };
@@ -93,13 +94,17 @@ const setRandomJwtSecret = model => {
 };
 
 const removeIdentifyingInfo = async model => {
+  await ApiKey.destroy({ where: { userId: model.id } });
+  await Star.destroy({ where: { userId: model.id } });
+
   model.email = '';
   model.name = 'Unknown';
   model.avatarUrl = '';
-  model.serviceId = '';
+  model.serviceId = null;
   model.username = null;
   model.slackData = null;
   model.lastActiveIp = null;
+  model.lastSignedInIp = null;
 
   // this shouldn't be needed once this issue is resolved:
   // https://github.com/sequelize/sequelize/issues/9318

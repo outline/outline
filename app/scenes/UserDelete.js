@@ -20,13 +20,16 @@ class UserDelete extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isDeleting = true;
-    const success = await this.props.auth.deleteUser();
 
-    if (success) {
-      this.props.auth.logout();
+    try {
+      const success = await this.props.auth.deleteUser();
+
+      if (success) {
+        this.props.auth.logout();
+      }
+    } finally {
+      this.isDeleting = false;
     }
-
-    this.isDeleting = false;
   };
 
   render() {
