@@ -33,7 +33,7 @@ function Home(props: Props) {
             Team wiki, documentation, meeting notes, playbooks, onboarding, work
             logs, brainstorming, & more…
           </HeroText>
-          <p>
+          <p id="signin">
             <SigninButtons {...props} />
           </p>
           {props.notice === 'google-hd' && (

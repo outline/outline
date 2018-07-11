@@ -35,7 +35,7 @@ function TopNavigation() {
           <a href={developers()}>API</a>
         </MenuItem>
         <MenuItem>
-          <a href={signin()}>Sign In</a>
+          <a href="/#signin">Sign In</a>
         </MenuItem>
       </Menu>
     </Nav>
