@@ -25,7 +25,7 @@ const User = sequelize.define(
     slackData: DataTypes.JSONB,
     jwtSecret: encryptedFields.vault('jwtSecret'),
     lastActiveAt: DataTypes.DATE,
-    lastActiveIp: DataTypes.STRING,
+    lastActiveIp: { type: DataTypes.STRING, allowNull: true },
     lastSignedInAt: DataTypes.DATE,
     lastSignedInIp: DataTypes.STRING,
     suspendedAt: DataTypes.DATE,
@@ -92,12 +92,18 @@ const setRandomJwtSecret = model => {
   model.jwtSecret = crypto.randomBytes(64).toString('hex');
 };
 
-const removeIdentifyingInfo = model => {
+const removeIdentifyingInfo = async model => {
   model.email = '';
-  model.username = '';
+  model.name = 'Unknown';
+  model.avatarUrl = '';
+  model.serviceId = '';
+  model.username = null;
   model.slackData = null;
-  model.serviceId = null;
-  model.isAdmin = false;
+  model.lastActiveIp = null;
+
+  // this shouldn't be needed once this issue is resolved:
+  // https://github.com/sequelize/sequelize/issues/9318
+  await model.save({ hooks: false });
 };
 
 const checkLastAdmin = async model => {
