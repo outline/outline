@@ -52,6 +52,7 @@ class Dashboard extends React.Component<Props> {
                 <DocumentList
                   key="viewedDocuments"
                   documents={documents.recentlyViewed}
+                  showCollection
                 />
               </React.Fragment>
             )}
@@ -61,6 +62,7 @@ class Dashboard extends React.Component<Props> {
                 <DocumentList
                   key="editedDocuments"
                   documents={documents.recentlyEdited}
+                  showCollection
                 />
               </React.Fragment>
             )}
