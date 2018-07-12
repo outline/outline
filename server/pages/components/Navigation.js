@@ -11,7 +11,6 @@ import {
   githubUrl,
   twitterUrl,
   spectrumUrl,
-  blogUrl,
 } from '../../../shared/utils/routeHelpers';
 
 function TopNavigation() {
