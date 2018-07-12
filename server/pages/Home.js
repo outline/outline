@@ -27,13 +27,13 @@ function Home(props: Props) {
         <title>Outline - Team wiki & knowledge base</title>
       </Helmet>
       <Grid>
-        <Hero>
+        <Hero id="signin">
           <h1>Your team’s knowledge base</h1>
           <HeroText>
             Team wiki, documentation, meeting notes, playbooks, onboarding, work
             logs, brainstorming, & more…
           </HeroText>
-          <p id="signin">
+          <p>
             <SigninButtons {...props} />
           </p>
           {props.notice === 'google-hd' && (
@@ -73,7 +73,7 @@ function Home(props: Props) {
                     <p>
                       Outline provides a secure place for your teams
                       documentation on our hosted platform, stored in portable
-                      Markdown format. Or, you can run your own copy – it's open
+                      Markdown format. Or, you can run your own copy – it’s open
                       source!
                     </p>
                   </Feature>
@@ -89,7 +89,7 @@ function Home(props: Props) {
             </Centered>
           </Features>
         </Mask>
-        <Centered>
+        <Centered id="features">
           <Grid>
             <Feature size={{ desktop: 1 / 3 }}>
               <h2>Blazing Fast</h2>

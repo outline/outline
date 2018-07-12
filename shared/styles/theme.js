@@ -33,6 +33,8 @@ const theme = {
   sidebarWidth: '280px',
   sidebarMinWidth: '250px',
   sidebarMaxWidth: '350px',
+
+  contentHeaderBackground: 'hsl(180, 58%, 85%)',
 };
 
 export default theme;

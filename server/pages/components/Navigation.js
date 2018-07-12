@@ -26,10 +26,10 @@ function TopNavigation() {
           <a href={about()}>About</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
-          <a href={twitterUrl()}>Twitter</a>
+          <a href={changelog()}>Changelog</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
-          <a href={changelog()}>Changelog</a>
+          <a href={twitterUrl()}>Twitter</a>
         </MenuItemDesktop>
         <MenuItem>
           <a href={developers()}>API</a>
@@ -53,9 +53,6 @@ function BottomNavigation() {
       </div>
       <div>
         <a href={spectrumUrl()}>Spectrum</a>
-      </div>
-      <div>
-        <a href={blogUrl()}>Medium</a>
       </div>
       <div>
         <a href={privacy()}>Privacy</a>
