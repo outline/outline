@@ -1,16 +1,15 @@
 // @flow
 import styled from 'styled-components';
+import Centered from './Centered';
 
-const Hero = styled.div`
+const Hero = styled(Centered)`
   width: 100%;
-  height: 70vh;
-  min-height: 400px;
-  max-height: 600px;
-  padding: 6em 2em 0;
-  text-align: center;
+  min-height: 500px;
+  padding: 4em 0 0;
 
   h1 {
-    font-size: 2.5em;
+    font-size: 3.5em;
+    line-height: 1em;
   }
 `;
 

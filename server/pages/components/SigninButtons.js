@@ -21,7 +21,7 @@ const SigninButtons = ({
   return (
     <Wrapper>
       {slackSigninEnabled && (
-        <Flex column>
+        <Column column>
           <Button href={signin('slack')}>
             <SlackLogo />
             <Spacer>Sign In with Slack</Spacer>
@@ -29,11 +29,10 @@ const SigninButtons = ({
           <LastLogin>
             {lastSignedIn === 'slack' && 'You signed in with Slack previously'}
           </LastLogin>
-        </Flex>
+        </Column>
       )}
-      &nbsp;
       {googleSigninEnabled && (
-        <Flex column>
+        <Column column>
           <Button href={signin('google')}>
             <GoogleLogo />
             <Spacer>Sign In with Google</Spacer>
@@ -42,11 +41,19 @@ const SigninButtons = ({
             {lastSignedIn === 'google' &&
               'You signed in with Google previously'}
           </LastLogin>
-        </Flex>
+        </Column>
       )}
     </Wrapper>
   );
 };
+
+const Column = styled(Flex)`
+  text-align: center;
+
+  &:first-child {
+    margin-right: 8px;
+  }
+`;
 
 const Wrapper = styled(Flex)`
   display: block;
@@ -54,7 +61,8 @@ const Wrapper = styled(Flex)`
 
   ${breakpoint('tablet')`
     display: flex;
-  `};
+    justify-content: flex-start;
+    `};
 `;
 
 const Spacer = styled.span`
@@ -73,8 +81,9 @@ const Button = styled.a`
 `;
 
 const LastLogin = styled.p`
-  font-size: 12px;
-  color: ${props => props.theme.slate};
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(20, 23, 26, 0.5);
   padding-top: 4px;
 `;
 
