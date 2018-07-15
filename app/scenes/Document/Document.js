@@ -140,7 +140,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   loadEditor = async () => {
-    const EditorImport = await import('rich-markdown-editor');
+    const EditorImport = await import('./components/Editor');
     this.editorComponent = EditorImport.default;
   };
 
