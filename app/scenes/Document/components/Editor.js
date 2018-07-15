@@ -46,7 +46,6 @@ class Editor extends React.Component<Props> {
   };
 
   focusAtEnd = () => {
-    console.log(this.editor);
     if (this.editor) this.editor.focusAtEnd();
   };
 

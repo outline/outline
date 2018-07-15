@@ -1,19 +1,8 @@
 // @flow
-import React from 'react';
 import styled from 'styled-components';
 
-type Props = {
-  onClick?: ?Function,
-  grow?: boolean,
-};
-
-const ClickablePadding = (props: Props) => {
-  return <Container grow={props.grow} onClick={props.onClick} />;
-};
-
-const Container = styled.div`
+const ClickablePadding = styled.div`
   min-height: 50vh;
-  padding-top: 50px;
   cursor: ${({ onClick }) => (onClick ? 'text' : 'default')};
   ${({ grow }) => grow && `flex-grow: 1;`};
 `;
