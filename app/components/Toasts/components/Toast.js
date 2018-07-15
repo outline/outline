@@ -2,7 +2,6 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { darken } from 'polished';
-import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 import type { Toast as TToast } from '../../../types';
 
@@ -51,14 +50,14 @@ const Container = styled.li`
   animation: ${fadeAndScaleIn} 100ms ease;
   margin: 8px 0;
   padding: 8px;
-  color: ${color.white};
-  background: ${props => color[props.type]};
+  color: ${props => props.theme.white};
+  background: ${props => props.theme[props.type]};
   font-size: 15px;
   border-radius: 5px;
   cursor: default;
 
   &:hover {
-    background: ${props => darken(0.05, color[props.type])};
+    background: ${props => darken(0.05, props.theme[props.type])};
   }
 `;
 

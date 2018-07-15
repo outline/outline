@@ -3,7 +3,6 @@ import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
-import { color, size } from 'shared/styles/constants';
 
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
@@ -12,6 +11,7 @@ import Input, { LabelText } from 'components/Input';
 import Button from 'components/Button';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
+import UserDelete from 'scenes/UserDelete';
 import Flex from 'shared/components/Flex';
 
 type Props = {
@@ -26,6 +26,7 @@ class Profile extends React.Component<Props> {
 
   @observable name: string;
   @observable avatarUrl: ?string;
+  @observable showDeleteModal: boolean = false;
 
   componentDidMount() {
     if (this.props.auth.user) {
@@ -57,6 +58,10 @@ class Profile extends React.Component<Props> {
 
   handleAvatarError = (error: ?string) => {
     this.props.ui.showToast(error || 'Unable to upload new avatar');
+  };
+
+  toggleDeleteAccount = () => {
+    this.showDeleteModal = !this.showDeleteModal;
   };
 
   get isValid() {
@@ -98,13 +103,30 @@ class Profile extends React.Component<Props> {
             {isSaving ? 'Saving…' : 'Save'}
           </Button>
         </form>
+
+        <DangerZone>
+          <LabelText>Delete Account</LabelText>
+          <p>
+            You may delete your account at any time, note that this is
+            unrecoverable.{' '}
+            <a onClick={this.toggleDeleteAccount}>Delete account</a>.
+          </p>
+        </DangerZone>
+        {this.showDeleteModal && (
+          <UserDelete onRequestClose={this.toggleDeleteAccount} />
+        )}
       </CenteredContent>
     );
   }
 }
 
+const DangerZone = styled.div`
+  position: absolute;
+  bottom: 16px;
+`;
+
 const ProfilePicture = styled(Flex)`
-  margin-bottom: ${size.huge};
+  margin-bottom: 24px;
 `;
 
 const avatarStyles = `
@@ -132,7 +154,7 @@ const AvatarContainer = styled(Flex)`
   &:hover div {
     opacity: 1;
     background: rgba(0, 0, 0, 0.75);
-    color: ${color.white};
+    color: ${props => props.theme.white};
   }
 `;
 

@@ -12,6 +12,7 @@ const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_SECRET,
   `${process.env.URL}/auth/google.callback`
 );
+const allowedDomainsEnv = process.env.GOOGLE_ALLOWED_DOMAINS;
 
 // start the oauth process and redirect user to Google
 router.get('google', async ctx => {
@@ -40,6 +41,13 @@ router.get('google.callback', async ctx => {
 
   if (!profile.data.hd) {
     ctx.redirect('/?notice=google-hd');
+    return;
+  }
+
+  // allow all domains by default if the env is not set
+  const allowedDomains = allowedDomainsEnv && allowedDomainsEnv.split(',');
+  if (allowedDomains && !allowedDomains.includes(profile.data.hd)) {
+    ctx.redirect('/?notice=hd-not-allowed');
     return;
   }
 

@@ -4,8 +4,6 @@ import { observer } from 'mobx-react';
 import invariant from 'invariant';
 import styled from 'styled-components';
 import { GoToIcon } from 'outline-icons';
-
-import { color } from 'shared/styles/constants';
 import Flex from 'shared/components/Flex';
 
 import Document from 'models/Document';
@@ -14,7 +12,7 @@ const ResultWrapper = styled.div`
   display: flex;
   margin-bottom: 10px;
 
-  color: ${color.text};
+  color: ${props => props.theme.text};
   cursor: default;
 `;
 
@@ -30,13 +28,13 @@ const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
   &:focus {
     margin-left: 0px;
     border-radius: 2px;
-    background: ${color.black};
-    color: ${color.smokeLight};
+    background: ${props => props.theme.black};
+    color: ${props => props.theme.smokeLight};
     outline: none;
     cursor: pointer;
 
     ${StyledGoToIcon} {
-      fill: ${color.white};
+      fill: ${props => props.theme.white};
     }
   }
 `;

@@ -27,7 +27,6 @@ export const WelcomeEmail = () => {
 
       <Body>
         <Heading>Welcome to Outline!</Heading>
-
         <p>Outline is a place for your team to build and share knowledge.</p>
         <p>
           To get started, head to your dashboard and try creating a collection
@@ -38,9 +37,7 @@ export const WelcomeEmail = () => {
           You can also import existing Markdown document by drag and dropping
           them to your collections
         </p>
-
         <EmptySpace height={10} />
-
         <p>
           <Button href={`${process.env.URL}/dashboard`}>
             View my dashboard

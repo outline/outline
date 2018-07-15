@@ -1,19 +1,19 @@
 // @flow
 import * as React from 'react';
-import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 import Collection from 'models/Collection';
 import Document from 'models/Document';
 import Flex from 'shared/components/Flex';
+import Time from 'shared/components/Time';
 
 const Container = styled(Flex)`
-  color: ${color.slate};
+  color: ${props => props.theme.slate};
   font-size: 13px;
 `;
 
 const Modified = styled.span`
-  color: ${props => (props.highlight ? color.slateDark : color.slate)};
+  color: ${props =>
+    props.highlight ? props.theme.slateDark : props.theme.slate};
   font-weight: ${props => (props.highlight ? '600' : '400')};
 `;
 
@@ -23,46 +23,36 @@ type Props = {
   views?: number,
 };
 
-class PublishingInfo extends React.Component<Props> {
-  render() {
-    const { collection, document } = this.props;
-    const {
-      modifiedSinceViewed,
-      createdAt,
-      updatedAt,
-      createdBy,
-      updatedBy,
-      publishedAt,
-    } = document;
+function PublishingInfo({ collection, document }: Props) {
+  const { modifiedSinceViewed, updatedAt, updatedBy, publishedAt } = document;
 
-    const timeAgo = `${distanceInWordsToNow(new Date(createdAt))} ago`;
-
-    return (
-      <Container align="center">
-        {publishedAt === updatedAt ? (
-          <span>
-            {createdBy.name} published {timeAgo}
-          </span>
-        ) : (
-          <React.Fragment>
-            {updatedBy.name}
-            {publishedAt ? (
-              <Modified highlight={modifiedSinceViewed}>
-                &nbsp;modified {timeAgo}
-              </Modified>
-            ) : (
-              <span>&nbsp;saved {timeAgo}</span>
-            )}
-          </React.Fragment>
-        )}
-        {collection && (
-          <span>
-            &nbsp;in <strong>{collection.name}</strong>
-          </span>
-        )}
-      </Container>
-    );
-  }
+  return (
+    <Container align="center">
+      {publishedAt && publishedAt === updatedAt ? (
+        <span>
+          {updatedBy.name} published <Time dateTime={publishedAt} /> ago
+        </span>
+      ) : (
+        <React.Fragment>
+          {updatedBy.name}
+          {publishedAt ? (
+            <Modified highlight={modifiedSinceViewed}>
+              &nbsp;modified <Time dateTime={updatedAt} /> ago
+            </Modified>
+          ) : (
+            <span>
+              &nbsp;saved <Time dateTime={updatedAt} /> ago
+            </span>
+          )}
+        </React.Fragment>
+      )}
+      {collection && (
+        <span>
+          &nbsp;in <strong>{collection.name}</strong>
+        </span>
+      )}
+    </Container>
+  );
 }
 
 export default PublishingInfo;

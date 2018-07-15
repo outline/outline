@@ -51,6 +51,17 @@ class AuthStore {
   };
 
   @action
+  deleteUser = async () => {
+    await client.post(`/user.delete`, { confirmation: true });
+
+    runInAction('AuthStore#updateUser', () => {
+      this.user = null;
+      this.team = null;
+      this.token = null;
+    });
+  };
+
+  @action
   updateUser = async (params: { name: string, avatarUrl: ?string }) => {
     this.isSaving = true;
 

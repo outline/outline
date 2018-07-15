@@ -9,10 +9,11 @@ export default function Privacy() {
   return (
     <Grid>
       <Helmet>
-        <title>Privacy policy</title>
+        <title>Privacy Policy</title>
       </Helmet>
       <Header>
-        <h1>Privacy policy</h1>
+        <h1>Privacy Policy</h1>
+        <p>How we collect and use your information</p>
       </Header>
       <Content>
         <p>

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { Table, TBody, TR, TD } from 'oy-vey';
-import { fonts } from '../../../shared/styles/constants';
+import theme from '../../../shared/styles/theme';
 
 type Props = {
   children: React.Node,
@@ -19,7 +19,7 @@ export default (props: Props) => (
 
 export const baseStyles = `
   #__bodyTable__ {
-    font-family: ${fonts.regular};
+    font-family: ${theme.fontFamily};
     font-size: 16px;
     line-height: 1.5;
   }

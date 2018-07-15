@@ -61,6 +61,12 @@ class CollectionMenu extends React.Component<Props> {
     this.props.ui.setActiveModal('collection-delete', { collection });
   };
 
+  onExport = (ev: SyntheticEvent<*>) => {
+    ev.preventDefault();
+    const { collection } = this.props;
+    this.props.ui.setActiveModal('collection-export', { collection });
+  };
+
   render() {
     const { collection, label, onOpen, onClose } = this.props;
 
@@ -87,6 +93,9 @@ class CollectionMenu extends React.Component<Props> {
               </DropdownMenuItem>
               <hr />
               <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
+              <DropdownMenuItem onClick={this.onExport}>
+                Export…
+              </DropdownMenuItem>
             </React.Fragment>
           )}
           <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>

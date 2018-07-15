@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 import { darken } from 'polished';
 
 const RealButton = styled.button`
@@ -9,8 +8,8 @@ const RealButton = styled.button`
   margin: 0;
   padding: 0;
   border: 0;
-  background: ${color.primary};
-  color: ${color.white};
+  background: ${props => props.theme.primary};
+  color: ${props => props.theme.white};
   border-radius: 4px;
   font-size: 15px;
   height: 36px;
@@ -24,7 +23,7 @@ const RealButton = styled.button`
     border: 0;
   }
   &:hover {
-    background: ${darken(0.05, color.primary)};
+    background: ${props => darken(0.05, props.theme.primary)};
   }
 
   svg {
@@ -40,30 +39,30 @@ const RealButton = styled.button`
   ${props =>
     props.light &&
     `
-    color: ${color.slate};
+    color: ${props.theme.slate};
     background: transparent;
-    border: 1px solid ${color.slate};
+    border: 1px solid ${props.theme.slate};
 
     &:hover {
       background: transparent;
-      color: ${color.slateDark};
-      border: 1px solid ${color.slateDark};
+      color: ${props.theme.slateDark};
+      border: 1px solid ${props.theme.slateDark};
     }
   `} ${props =>
       props.neutral &&
       `
-    background: ${color.slate};
+    background: ${props.theme.slate};
 
     &:hover {
-      background: ${darken(0.05, color.slate)};
+      background: ${darken(0.05, props.theme.slate)};
     }
   `} ${props =>
       props.danger &&
       `
-    background: ${color.danger};
+    background: ${props.theme.danger};
 
     &:hover {
-      background: ${darken(0.05, color.danger)};
+      background: ${darken(0.05, props.theme.danger)};
     }
   `};
 `;

@@ -762,7 +762,7 @@ babel-plugin-syntax-trailing-function-commas@^6.22.0:
   version "6.22.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-syntax-trailing-function-commas/-/babel-plugin-syntax-trailing-function-commas-6.22.0.tgz#ba0360937f8d06e40180a43fe0d5616fff532cf3"
 
-babel-plugin-transform-async-to-generator@^6.22.0:
+babel-plugin-transform-async-to-generator@^6.22.0, babel-plugin-transform-async-to-generator@^6.24.1:
   version "6.24.1"
   resolved "https://registry.yarnpkg.com/babel-plugin-transform-async-to-generator/-/babel-plugin-transform-async-to-generator-6.24.1.tgz#6536e378aff6cb1d5517ac0e40eb3e9fc8d08761"
   dependencies:
@@ -1011,6 +1011,12 @@ babel-plugin-transform-regenerator@^6.22.0, babel-plugin-transform-regenerator@^
   dependencies:
     regenerator-transform "^0.10.0"
 
+babel-plugin-transform-runtime@^6.23.0:
+  version "6.23.0"
+  resolved "https://registry.yarnpkg.com/babel-plugin-transform-runtime/-/babel-plugin-transform-runtime-6.23.0.tgz#88490d446502ea9b8e7efb0fe09ec4d99479b1ee"
+  dependencies:
+    babel-runtime "^6.22.0"
+
 babel-plugin-transform-strict-mode@^6.24.1:
   version "6.24.1"
   resolved "https://registry.yarnpkg.com/babel-plugin-transform-strict-mode/-/babel-plugin-transform-strict-mode-6.24.1.tgz#d5faf7aa578a65bbe591cf5edae04a0c67020758"
@@ -1198,13 +1204,6 @@ bcrypt-pbkdf@^1.0.0:
   resolved "https://registry.yarnpkg.com/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.1.tgz#63bc5dcb61331b92bc05fd528953c33462a06f8d"
   dependencies:
     tweetnacl "^0.14.3"
-
-bcrypt@1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/bcrypt/-/bcrypt-1.0.3.tgz#b02ddc6c0b52ea16b8d3cf375d5a32e780dab548"
-  dependencies:
-    nan "2.6.2"
-    node-pre-gyp "0.6.36"
 
 beeper@^1.0.0:
   version "1.1.1"
@@ -2211,6 +2210,10 @@ core-js@^2.4.0, core-js@^2.5.0:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.1.tgz#ae6874dc66937789b80754ff5428df66819ca50b"
 
+core-js@~2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.3.0.tgz#fab83fbb0b2d8dc85fa636c4b9d34c75420c6d65"
+
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
@@ -3072,6 +3075,10 @@ es6-promise@^3.0.2:
 es6-promise@^4.0.5:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-4.1.1.tgz#8811e90915d9a0dba36274f0b242dbda78f9c92a"
+
+es6-promise@~3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-3.0.2.tgz#010d5858423a5f118979665f46486a95c6ee2bb6"
 
 es6-set@~0.1.5:
   version "0.1.5"
@@ -5718,6 +5725,16 @@ jsx-ast-utils@^2.0.0:
   dependencies:
     array-includes "^3.0.3"
 
+jszip@3.1.5:
+  version "3.1.5"
+  resolved "https://registry.yarnpkg.com/jszip/-/jszip-3.1.5.tgz#e3c2a6c6d706ac6e603314036d43cd40beefdf37"
+  dependencies:
+    core-js "~2.3.0"
+    es6-promise "~3.0.2"
+    lie "~3.1.0"
+    pako "~1.0.2"
+    readable-stream "~2.0.6"
+
 jwa@^1.1.4:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/jwa/-/jwa-1.1.5.tgz#a0552ce0220742cd52e153774a32905c30e756e5"
@@ -5955,6 +5972,12 @@ lie@3.0.2:
     immediate "~3.0.5"
     inline-process-browser "^1.0.0"
     unreachable-branch-transform "^0.3.0"
+
+lie@~3.1.0:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/lie/-/lie-3.1.1.tgz#9a436b2cc7746ca59de7a41fa469b3efb76bd87e"
+  dependencies:
+    immediate "~3.0.5"
 
 liftoff@^2.1.0:
   version "2.3.0"
@@ -6827,10 +6850,6 @@ mz@^2.6.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@2.6.2:
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-2.6.2.tgz#e4ff34e6c95fdfb5aecc08de6596f43605a7db45"
-
 nan@^2.0.5:
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.8.0.tgz#ed715f3fe9de02b57a5e6252d90a96675e1f085a"
@@ -6966,7 +6985,7 @@ node-notifier@^5.1.2:
     shellwords "^0.1.0"
     which "^1.2.12"
 
-node-pre-gyp@0.6.36, node-pre-gyp@^0.6.36:
+node-pre-gyp@^0.6.36:
   version "0.6.36"
   resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.6.36.tgz#db604112cb74e0d477554e9b505b17abddfab786"
   dependencies:
@@ -7326,9 +7345,9 @@ outline-icons@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.0.3.tgz#f0928a8bbc7e7ff4ea6762eee8fb2995d477941e"
 
-outline-icons@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.2.0.tgz#8a0e0e9e9b98336470228837c4933ba10297fcf5"
+outline-icons@^1.3.2:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.3.2.tgz#6c79a55081cd33925b324e2ad8bbf17a24ba2655"
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -7377,7 +7396,7 @@ packet-reader@0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/packet-reader/-/packet-reader-0.3.1.tgz#cd62e60af8d7fea8a705ec4ff990871c46871f27"
 
-pako@~1.0.5:
+pako@~1.0.2, pako@~1.0.5:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.6.tgz#0101211baa70c4bca4a0f63f2206e97b7dfaf258"
 
@@ -8443,6 +8462,17 @@ readable-stream@~1.1.8, readable-stream@~1.1.9:
     isarray "0.0.1"
     string_decoder "~0.10.x"
 
+readable-stream@~2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.0.6.tgz#8f90341e68a53ccc928788dacfcd11b36eb9b78e"
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "~1.0.0"
+    process-nextick-args "~1.0.6"
+    string_decoder "~0.10.x"
+    util-deprecate "~1.0.1"
+
 readable-stream@~2.1.5:
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.1.5.tgz#66fa8b720e1438b364681f2ad1a63c618448c9d0"
@@ -8824,11 +8854,13 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-1.2.0.tgz#a04b7e8e9eb8d40b47cf7fa5bede27369779eab2"
+rich-markdown-editor@2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-2.0.4.tgz#6cd317e213a0b574a2ed905ea710eba2d27aab21"
   dependencies:
     "@tommoor/slate-drop-or-paste-images" "^0.8.1"
+    babel-plugin-transform-async-to-generator "^6.24.1"
+    babel-plugin-transform-runtime "^6.23.0"
     boundless-arrow-key-navigation "^1.1.0"
     copy-to-clipboard "^3.0.8"
     eslint-plugin-flowtype "^2.46.1"
@@ -8844,13 +8876,13 @@ rich-markdown-editor@1.2.0:
     slate-collapse-on-escape "^0.6.0"
     slate-edit-code "^0.14.0"
     slate-edit-list "^0.11.2"
-    slate-md-serializer "3.1.1"
+    slate-md-serializer "3.1.2"
     slate-paste-linkify "^0.5.0"
     slate-plain-serializer "0.5.4"
     slate-prism "^0.5.0"
     slate-react "^0.12.3"
     slate-trailing-block "^0.5.0"
-    slug "^0.9.1"
+    slugify "^1.3.0"
     styled-components "^3.2.3"
 
 right-align@^0.1.1:
@@ -9205,9 +9237,9 @@ slate-edit-list@^0.11.2:
   version "0.11.2"
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.11.2.tgz#c67b961d98435f9f7747d20b870cbc51d25af7a8"
 
-slate-md-serializer@3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-3.1.1.tgz#65cc9659baeeeee060afe2b029a1b619627d758d"
+slate-md-serializer@3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-3.1.2.tgz#32e934ec298b99fefe19f84f632ee9f7c8f60590"
 
 slate-paste-linkify@^0.5.0:
   version "0.5.0"
@@ -9296,11 +9328,15 @@ slide@^1.1.5:
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/slide/-/slide-1.1.6.tgz#56eb027d65b4d2dce6cb2e2d32c4d4afc9e1d707"
 
-slug@0.9.1, slug@^0.9.1:
+slug@0.9.1:
   version "0.9.1"
   resolved "https://registry.yarnpkg.com/slug/-/slug-0.9.1.tgz#af08f608a7c11516b61778aa800dce84c518cfda"
   dependencies:
     unicode ">= 0.3.1"
+
+slugify@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/slugify/-/slugify-1.3.0.tgz#787919259d28c825fbcae6da2e01c77a109793f6"
 
 snake-case@^2.1.0:
   version "2.1.0"
@@ -9881,7 +9917,7 @@ title-case@^2.1.0:
     no-case "^2.2.0"
     upper-case "^1.0.3"
 
-tmp@^0.0.33:
+tmp@0.0.33, tmp@^0.0.33:
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
   dependencies:
@@ -10128,8 +10164,8 @@ unherit@^1.0.4:
     xtend "^4.0.1"
 
 "unicode@>= 0.3.1":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/unicode/-/unicode-10.0.0.tgz#e5d51c1db93b6c71a0b879e0b0c4af7e6fdf688e"
+  version "11.0.1"
+  resolved "https://registry.yarnpkg.com/unicode/-/unicode-11.0.1.tgz#735bd422ec75cf28d396eb224d535d168d5f1db6"
 
 unified@^6.1.5:
   version "6.1.6"

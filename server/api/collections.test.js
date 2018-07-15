@@ -31,6 +31,52 @@ describe('#collections.list', async () => {
   });
 });
 
+describe('#collections.export', async () => {
+  it('should require authentication', async () => {
+    const res = await server.post('/api/collections.export');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should return success', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/collections.export', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+});
+
+describe('#collections.exportAll', async () => {
+  it('should require authentication', async () => {
+    const res = await server.post('/api/collections.exportAll');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const user = await buildUser();
+    const res = await server.post('/api/collections.exportAll', {
+      body: { token: user.getJwtToken() },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it('should return success', async () => {
+    const { admin } = await seed();
+    const res = await server.post('/api/collections.exportAll', {
+      body: { token: admin.getJwtToken() },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+});
+
 describe('#collections.info', async () => {
   it('should return collection', async () => {
     const { user, collection } = await seed();

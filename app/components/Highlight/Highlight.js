@@ -2,7 +2,6 @@
 import * as React from 'react';
 import replace from 'string-replace-to-array';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 
 type Props = {
   highlight: ?string,
@@ -28,7 +27,7 @@ function Highlight({ highlight, caseSensitive, text, ...rest }: Props) {
 }
 
 const Mark = styled.mark`
-  background: ${color.yellow};
+  background: ${props => props.theme.yellow};
 `;
 
 export default Highlight;

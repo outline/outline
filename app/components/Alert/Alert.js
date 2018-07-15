@@ -3,7 +3,6 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import Flex from 'shared/components/Flex';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 
 type Props = {
   children: React.Node,
@@ -31,7 +30,7 @@ const Container = styled(Flex)`
   font-size: 14px;
   line-height: 1;
 
-  background-color: ${({ type }) => color[type]};
+  background-color: ${({ theme, type }) => theme.color[type]};
 `;
 
 export default Alert;

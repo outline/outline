@@ -5,7 +5,6 @@ import styled, { injectGlobal } from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import ReactModal from 'react-modal';
 import { CloseIcon } from 'outline-icons';
-import { color } from 'shared/styles/constants';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 import Flex from 'shared/components/Flex';
 
@@ -84,7 +83,7 @@ const Close = styled.a`
   top: 16px;
   right: 16px;
   opacity: 0.5;
-  color: ${color.text};
+  color: ${props => props.theme.text};
 
   &:hover {
     opacity: 1;

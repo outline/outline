@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
-import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
+import styled, { withTheme } from 'styled-components';
 import { ExpandedIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 import TeamLogo from './TeamLogo';
@@ -11,6 +10,7 @@ type Props = {
   subheading: string,
   showDisclosure?: boolean,
   logoUrl: string,
+  theme: Object,
 };
 
 function HeaderBlock({
@@ -18,15 +18,16 @@ function HeaderBlock({
   teamName,
   subheading,
   logoUrl,
+  theme,
   ...rest
 }: Props) {
   return (
     <Header justify="flex-start" align="center" {...rest}>
-      <TeamLogo src={logoUrl} />
+      <TeamLogo alt={`${teamName} logo`} src={logoUrl} />
       <Flex align="flex-start" column>
         <TeamName showDisclosure>
           {teamName}{' '}
-          {showDisclosure && <StyledExpandedIcon color={color.text} />}
+          {showDisclosure && <StyledExpandedIcon color={theme.text} />}
         </TeamName>
         <Subheading>{subheading}</Subheading>
       </Flex>
@@ -45,7 +46,7 @@ const Subheading = styled.div`
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 500;
-  color: ${color.slateDark};
+  color: ${props => props.theme.slateDark};
 `;
 
 const TeamName = styled.div`
@@ -53,7 +54,7 @@ const TeamName = styled.div`
   padding-left: 10px;
   padding-right: 24px;
   font-weight: 600;
-  color: ${color.text};
+  color: ${props => props.theme.text};
   text-decoration: none;
   font-size: 16px;
 `;
@@ -72,4 +73,4 @@ const Header = styled(Flex)`
   }
 `;
 
-export default HeaderBlock;
+export default withTheme(HeaderBlock);

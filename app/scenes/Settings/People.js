@@ -32,9 +32,8 @@ class People extends React.Component<Props> {
         <PageTitle title="People" />
         <h1>People</h1>
         <HelpText>
-          Everyone that has signed in to your Outline appears here. It's
-          possible that there are other people who have access but haven't
-          signed in yet.
+          Everyone that has signed in to your Outline appear here. It’s possible
+          that there are other people who have access but haven’t signed in yet.
         </HelpText>
 
         <List>
@@ -42,7 +41,7 @@ class People extends React.Component<Props> {
             <UserListItem
               key={user.id}
               user={user}
-              isCurrentUser={currentUser.id === user.id}
+              showMenu={!!currentUser.isAdmin && currentUser.id !== user.id}
             />
           ))}
         </List>

@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 
 type Props = {
   children: string,
@@ -14,7 +13,7 @@ const Empty = (props: Props) => {
 
 const Container = styled.div`
   display: flex;
-  color: ${color.slate};
+  color: ${props => props.theme.slate};
   text-align: center;
 `;
 

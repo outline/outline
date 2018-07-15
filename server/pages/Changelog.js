@@ -6,7 +6,7 @@ import Grid from 'styled-components-grid';
 import ReactMarkdown from 'react-markdown';
 import { Helmet } from 'react-helmet';
 import Header from './components/Header';
-import { color } from '../../shared/styles/constants';
+import Content from './components/Content';
 
 type Release = {
   id: string,
@@ -27,7 +27,7 @@ function Changelog({ releases }: { releases: Release[] }) {
           We’re building in public. Here’s what we’ve been changing recently.
         </p>
       </Header>
-      <Container>
+      <Content>
         {releases.map(release => (
           <Article key={release.id}>
             <Heading id={release.name}>
@@ -39,14 +39,14 @@ function Changelog({ releases }: { releases: Release[] }) {
             <ReactMarkdown source={release.body} />
           </Article>
         ))}
-      </Container>
+      </Content>
     </Grid>
   );
 }
 
 const Heading = styled.h1`
   a {
-    color: ${color.text};
+    color: ${props => props.theme.text};
   }
   a:hover {
     text-decoration: underline;
@@ -54,20 +54,13 @@ const Heading = styled.h1`
 `;
 
 const Time = styled.time`
-  color: ${color.slateDark};
+  color: ${props => props.theme.slateDark};
   margin-top: -16px;
   display: block;
 `;
 
-const Container = styled.div`
-  width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 0 2em;
-`;
-
 const Article = styled.div`
-  border-bottom: 1px solid ${color.slateLight};
+  border-bottom: 1px solid ${props => props.theme.slateLight};
   padding-bottom: 2em;
 
   &:last-child {

@@ -4,6 +4,7 @@ exports[`#user.activate should activate a suspended user 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
+    "createdAt": "2018-01-01T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
@@ -25,10 +26,20 @@ Object {
 }
 `;
 
+exports[`#user.delete should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#user.demote should demote an admin 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
+    "createdAt": "2018-01-01T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
@@ -59,32 +70,11 @@ Object {
 }
 `;
 
-exports[`#user.info should require authentication 1`] = `
-Object {
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`#user.info should return known user 1`] = `
-Object {
-  "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "name": "User 1",
-    "username": "user1",
-  },
-  "ok": true,
-  "status": 200,
-}
-`;
-
 exports[`#user.promote should promote a new admin 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
+    "createdAt": "2018-01-01T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": true,
@@ -119,6 +109,7 @@ exports[`#user.suspend should suspend an user 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
+    "createdAt": "2018-01-01T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
@@ -153,6 +144,7 @@ exports[`#user.update should update user profile information 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
+    "createdAt": "2018-01-01T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,

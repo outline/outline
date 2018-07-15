@@ -1,19 +1,19 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { color } from 'shared/styles/constants';
 
 import UserMenu from 'menus/UserMenu';
 import Avatar from 'components/Avatar';
 import ListItem from 'components/List/Item';
+import Time from 'shared/components/Time';
 import type { User } from '../../../types';
 
 type Props = {
   user: User,
-  isCurrentUser: boolean,
+  showMenu: boolean,
 };
 
-const UserListItem = ({ user, isCurrentUser }: Props) => {
+const UserListItem = ({ user, showMenu }: Props) => {
   return (
     <ListItem
       key={user.id}
@@ -21,12 +21,13 @@ const UserListItem = ({ user, isCurrentUser }: Props) => {
       image={<Avatar src={user.avatarUrl} size={40} />}
       subtitle={
         <React.Fragment>
-          {user.username ? user.username : user.email}
+          {user.email ? `${user.email} · ` : undefined}
+          Joined <Time dateTime={user.createdAt} /> ago
           {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
           {user.isSuspended && <Badge>Suspended</Badge>}
         </React.Fragment>
       }
-      actions={isCurrentUser ? undefined : <UserMenu user={user} />}
+      actions={showMenu ? <UserMenu user={user} /> : undefined}
     />
   );
 };
@@ -34,8 +35,9 @@ const UserListItem = ({ user, isCurrentUser }: Props) => {
 const Badge = styled.span`
   margin-left: 10px;
   padding: 2px 6px 3px;
-  background-color: ${({ admin }) => (admin ? color.primary : color.smokeDark)};
-  color: ${({ admin }) => (admin ? color.white : color.text)};
+  background-color: ${({ admin, theme }) =>
+    admin ? theme.primary : theme.smokeDark};
+  color: ${({ admin, theme }) => (admin ? theme.white : theme.text)};
   border-radius: 2px;
   font-size: 11px;
   text-transform: uppercase;

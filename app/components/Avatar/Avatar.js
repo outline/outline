@@ -3,7 +3,6 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { color } from 'shared/styles/constants';
 import placeholder from './placeholder.png';
 
 type Props = {
@@ -38,7 +37,7 @@ const CircleImg = styled.img`
   width: ${props => props.size}px;
   height: ${props => props.size}px;
   border-radius: 50%;
-  border: 2px solid ${color.white};
+  border: 2px solid ${props => props.theme.white};
   flex-shrink: 0;
 `;
 

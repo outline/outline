@@ -28,7 +28,6 @@ const seed = async () => {
     email: 'user1@example.com',
     username: 'user1',
     name: 'User 1',
-    password: 'test123!',
     teamId: team.id,
     service: 'slack',
     serviceId: 'U2399UF2P',
@@ -36,6 +35,7 @@ const seed = async () => {
       id: 'U2399UF2P',
       image_192: 'http://example.com/avatar.png',
     },
+    createdAt: new Date('2018-01-01T00:00:00.000Z'),
   });
 
   const admin = await User.create({
@@ -43,7 +43,6 @@ const seed = async () => {
     email: 'admin@example.com',
     username: 'admin',
     name: 'Admin User',
-    password: 'test123!',
     teamId: team.id,
     isAdmin: true,
     service: 'slack',
@@ -52,6 +51,7 @@ const seed = async () => {
       id: 'U2399UF1P',
       image_192: 'http://example.com/avatar.png',
     },
+    createdAt: new Date('2018-01-01T00:00:00.000Z'),
   });
 
   const collection = await Collection.create({

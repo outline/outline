@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
+import { ThemeProvider } from 'styled-components';
 import {
   BrowserRouter as Router,
   Switch,
@@ -10,6 +11,7 @@ import {
 } from 'react-router-dom';
 
 import stores from 'stores';
+import theme from 'shared/styles/theme';
 import globalStyles from 'shared/styles/globals';
 import 'shared/styles/prism.css';
 
@@ -26,6 +28,7 @@ import People from 'scenes/Settings/People';
 import Slack from 'scenes/Settings/Slack';
 import Shares from 'scenes/Settings/Shares';
 import Tokens from 'scenes/Settings/Tokens';
+import Export from 'scenes/Settings/Export';
 import Error404 from 'scenes/Error404';
 
 import ErrorBoundary from 'components/ErrorBoundary';
@@ -55,73 +58,92 @@ if (element) {
   render(
     <React.Fragment>
       <ErrorBoundary>
-        <Provider {...stores}>
-          <Router>
-            <ScrollToTop>
-              <Switch>
-                <Route exact path="/" component={Home} />
-                <Route exact path="/share/:shareId" component={Document} />
-                <Auth>
-                  <Layout>
-                    <Switch>
-                      <Route exact path="/dashboard" component={Dashboard} />
-                      <Route exact path="/starred" component={Starred} />
-                      <Route exact path="/drafts" component={Drafts} />
-                      <Route exact path="/settings" component={Settings} />
-                      <Route
-                        exact
-                        path="/settings/details"
-                        component={Details}
-                      />
-                      <Route exact path="/settings/people" component={People} />
-                      <Route exact path="/settings/shares" component={Shares} />
-                      <Route exact path="/settings/tokens" component={Tokens} />
-                      <Route
-                        exact
-                        path="/settings/integrations/slack"
-                        component={Slack}
-                      />
-                      <Route
-                        exact
-                        path="/collections/:id"
-                        component={Collection}
-                      />
-                      <Route
-                        exact
-                        path={`/d/${matchDocumentSlug}`}
-                        component={RedirectDocument}
-                      />
-                      <Route
-                        exact
-                        path={`/doc/${matchDocumentSlug}`}
-                        component={Document}
-                      />
-                      <Route
-                        exact
-                        path={`/doc/${matchDocumentSlug}/move`}
-                        component={Document}
-                      />
-                      <Route exact path="/search" component={Search} />
-                      <Route exact path="/search/:query" component={Search} />
-                      <Route path="/404" component={Error404} />
-                      <RouteSidebarHidden
-                        exact
-                        path={`/doc/${matchDocumentSlug}/edit`}
-                        component={Document}
-                      />
-                      <RouteSidebarHidden
-                        exact
-                        path="/collections/:id/new"
-                        component={DocumentNew}
-                      />
-                      <Route component={notFoundSearch} />
-                    </Switch>
-                  </Layout>
-                </Auth>
-              </Switch>
-            </ScrollToTop>
-          </Router>
-        </Provider>
+        <ThemeProvider theme={theme}>
+          <Provider {...stores}>
+            <Router>
+              <ScrollToTop>
+                <Switch>
+                  <Route exact path="/" component={Home} />
+                  <Route exact path="/share/:shareId" component={Document} />
+                  <Auth>
+                    <Layout>
+                      <Switch>
+                        <Route exact path="/dashboard" component={Dashboard} />
+                        <Route exact path="/starred" component={Starred} />
+                        <Route exact path="/drafts" component={Drafts} />
+                        <Route exact path="/settings" component={Settings} />
+                        <Route
+                          exact
+                          path="/settings/details"
+                          component={Details}
+                        />
+                        <Route
+                          exact
+                          path="/settings/people"
+                          component={People}
+                        />
+                        <Route
+                          exact
+                          path="/settings/shares"
+                          component={Shares}
+                        />
+                        <Route
+                          exact
+                          path="/settings/tokens"
+                          component={Tokens}
+                        />
+                        <Route
+                          exact
+                          path="/settings/integrations/slack"
+                          component={Slack}
+                        />
+                        <Route
+                          exact
+                          path="/settings/export"
+                          component={Export}
+                        />
+                        <Route
+                          exact
+                          path="/collections/:id"
+                          component={Collection}
+                        />
+                        <Route
+                          exact
+                          path={`/d/${matchDocumentSlug}`}
+                          component={RedirectDocument}
+                        />
+                        <Route
+                          exact
+                          path={`/doc/${matchDocumentSlug}`}
+                          component={Document}
+                        />
+                        <Route
+                          exact
+                          path={`/doc/${matchDocumentSlug}/move`}
+                          component={Document}
+                        />
+                        <Route exact path="/search" component={Search} />
+                        <Route exact path="/search/:query" component={Search} />
+                        <Route path="/404" component={Error404} />
+                        <RouteSidebarHidden
+                          exact
+                          path={`/doc/${matchDocumentSlug}/edit`}
+                          component={Document}
+                        />
+                        <RouteSidebarHidden
+                          exact
+                          path="/collections/:id/new"
+                          component={DocumentNew}
+                        />
+                        <Route component={notFoundSearch} />
+                      </Switch>
+                    </Layout>
+                  </Auth>
+                </Switch>
+              </ScrollToTop>
+            </Router>
+          </Provider>
+        </ThemeProvider>
       </ErrorBoundary>
       {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}
     </React.Fragment>,

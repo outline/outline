@@ -8,7 +8,6 @@ import { Search } from 'js-search';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import _ from 'lodash';
 import styled from 'styled-components';
-import { size } from 'shared/styles/constants';
 
 import Modal from 'components/Modal';
 import Input from 'components/Input';
@@ -181,7 +180,7 @@ class DocumentMove extends React.Component<Props> {
 }
 
 const Section = styled(Flex)`
-  margin-bottom: ${size.huge};
+  margin-bottom: 24px;
 `;
 
 const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`

@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import {
+  DocumentIcon,
   ProfileIcon,
   SettingsIcon,
   CodeIcon,
@@ -72,6 +73,11 @@ class SettingsSidebar extends React.Component<Props> {
                   icon={<SettingsIcon />}
                 >
                   Integrations
+                </SidebarLink>
+              )}
+              {user.isAdmin && (
+                <SidebarLink to="/settings/export" icon={<DocumentIcon />}>
+                  Export Data
                 </SidebarLink>
               )}
             </Section>

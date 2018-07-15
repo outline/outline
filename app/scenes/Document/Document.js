@@ -18,10 +18,11 @@ import {
   matchDocumentMove,
 } from 'utils/routeHelpers';
 import { uploadFile } from 'utils/uploadFile';
+import { emojiToUrl } from 'utils/emoji';
 import isInternalUrl from 'utils/isInternalUrl';
 
 import Document from 'models/Document';
-import Actions from './components/Actions';
+import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -40,6 +41,10 @@ const DISCARD_CHANGES = `
 You have unsaved changes.
 Are you sure you want to discard them?
 `;
+const UPLOADING_WARNING = `
+Image are still uploading.
+Are you sure you want to discard them?
+`;
 
 type Props = {
   match: Object,
@@ -51,25 +56,6 @@ type Props = {
   ui: UiStore,
 };
 
-function toCodePoint(unicodeSurrogates, sep) {
-  var r = [],
-    c = 0,
-    p = 0,
-    i = 0;
-  while (i < unicodeSurrogates.length) {
-    c = unicodeSurrogates.charCodeAt(i++);
-    if (p) {
-      r.push((0x10000 + ((p - 0xd800) << 10) + (c - 0xdc00)).toString(16));
-      p = 0;
-    } else if (0xd800 <= c && c <= 0xdbff) {
-      p = c;
-    } else {
-      r.push(c.toString(16));
-    }
-  }
-  return r.join(sep || '-');
-}
-
 @observer
 class DocumentScene extends React.Component<Props> {
   savedTimeout: TimeoutID;
@@ -79,7 +65,7 @@ class DocumentScene extends React.Component<Props> {
   @observable editCache: ?string;
   @observable document: ?Document;
   @observable newDocument: ?Document;
-  @observable isLoading = false;
+  @observable isUploading = false;
   @observable isSaving = false;
   @observable isPublishing = false;
   @observable notFound = false;
@@ -155,7 +141,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   loadEditor = async () => {
-    const EditorImport = await import('rich-markdown-editor');
+    const EditorImport = await import('./components/Editor');
     this.editorComponent = EditorImport.default;
   };
 
@@ -199,11 +185,11 @@ class DocumentScene extends React.Component<Props> {
   }, AUTOSAVE_INTERVAL);
 
   onImageUploadStart = () => {
-    this.isLoading = true;
+    this.isUploading = true;
   };
 
   onImageUploadStop = () => {
-    this.isLoading = false;
+    this.isUploading = false;
   };
 
   onChange = text => {
@@ -249,7 +235,14 @@ class DocumentScene extends React.Component<Props> {
 
   onClickLink = (href: string) => {
     if (isInternalUrl(href)) {
-      this.props.history.push(href);
+      // relative
+      if (href[0] === '/') {
+        this.props.history.push(href);
+      }
+
+      // absolute
+      const url = new URL(href);
+      this.props.history.push(url.pathname);
     } else {
       window.open(href, '_blank');
     }
@@ -260,8 +253,6 @@ class DocumentScene extends React.Component<Props> {
     const Editor = this.editorComponent;
     const isMoving = match.path === matchDocumentMove;
     const document = this.document;
-    const titleFromState = location.state ? location.state.title : '';
-    const titleText = document ? document.title : titleFromState;
     const isShare = match.params.shareId;
 
     if (this.notFound) {
@@ -276,82 +267,82 @@ class DocumentScene extends React.Component<Props> {
       );
     }
 
-    let favicon;
-    if (document && document.emoji) {
-      favicon = `https://twemoji.maxcdn.com/2/72x72/${toCodePoint(
-        document.emoji
-      )}.png`;
-    }
-
-    return (
-      <Container key={document ? document.id : undefined} column auto>
-        {isMoving && document && <DocumentMove document={document} />}
-        {titleText && (
-          <PageTitle
-            title={titleText.replace(document.emoji, '')}
-            favicon={favicon}
-          />
-        )}
-        {(this.isLoading || this.isSaving) && <LoadingIndicator />}
-        {!document || !Editor ? (
+    if (!document || !Editor) {
+      return (
+        <Container column auto>
+          <PageTitle title={location.state ? location.state.title : ''} />
           <CenteredContent>
             <LoadingState />
           </CenteredContent>
-        ) : (
-          <Flex justify="center" auto>
-            {this.isEditing && (
+        </Container>
+      );
+    }
+
+    return (
+      <Container key={document.id} column auto>
+        {isMoving && <DocumentMove document={document} />}
+        <PageTitle
+          title={document.title.replace(document.emoji, '')}
+          favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
+        />
+        {(this.isUploading || this.isSaving) && <LoadingIndicator />}
+
+        <Container justify="center" column auto>
+          {this.isEditing && (
+            <React.Fragment>
               <Prompt
                 when={document.hasPendingChanges}
                 message={DISCARD_CHANGES}
               />
-            )}
-            <MaxWidth column auto>
-              <Editor
-                titlePlaceholder="Start with a title…"
-                bodyPlaceholder="…the rest is your canvas"
-                defaultValue={document.text}
-                pretitle={document.emoji}
-                uploadImage={this.onUploadImage}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onSearchLink={this.onSearchLink}
-                onClickLink={this.onClickLink}
-                onChange={this.onChange}
-                onSave={this.onSave}
-                onCancel={this.onDiscard}
-                readOnly={!this.isEditing}
-                toc
-              />
-            </MaxWidth>
-            {document &&
-              !isShare && (
-                <Actions
-                  document={document}
-                  isDraft={!document.publishedAt}
-                  isEditing={this.isEditing}
-                  isSaving={this.isSaving}
-                  isPublishing={this.isPublishing}
-                  savingIsDisabled={!document.allowSave}
-                  history={this.props.history}
-                  onDiscard={this.onDiscard}
-                  onSave={this.onSave}
-                />
-              )}
-          </Flex>
-        )}
+              <Prompt when={this.isUploading} message={UPLOADING_WARNING} />
+            </React.Fragment>
+          )}
+          {!isShare && (
+            <Header
+              document={document}
+              isDraft={!document.publishedAt}
+              isEditing={this.isEditing}
+              isSaving={this.isSaving}
+              isPublishing={this.isPublishing}
+              savingIsDisabled={!document.allowSave}
+              history={this.props.history}
+              onDiscard={this.onDiscard}
+              onSave={this.onSave}
+            />
+          )}
+          <MaxWidth column auto>
+            <Editor
+              titlePlaceholder="Start with a title…"
+              bodyPlaceholder="…the rest is your canvas"
+              defaultValue={document.text}
+              pretitle={document.emoji}
+              uploadImage={this.onUploadImage}
+              onImageUploadStart={this.onImageUploadStart}
+              onImageUploadStop={this.onImageUploadStop}
+              onSearchLink={this.onSearchLink}
+              onClickLink={this.onClickLink}
+              onChange={this.onChange}
+              onSave={this.onSave}
+              onCancel={this.onDiscard}
+              readOnly={!this.isEditing}
+              toc
+            />
+          </MaxWidth>
+        </Container>
       </Container>
     );
   }
 }
 
 const MaxWidth = styled(Flex)`
-  padding: 0 20px;
+  padding: 0 16px;
   max-width: 100vw;
+  width: 100%;
   height: 100%;
 
   ${breakpoint('tablet')`	
     padding: 0;
-    margin: 60px;
+    margin: 12px auto;
     max-width: 46em;
   `};
 `;
@@ -361,7 +352,7 @@ const Container = styled(Flex)`
 `;
 
 const LoadingState = styled(LoadingPlaceholder)`
-  margin: 90px 0;
+  margin: 40px 0;
 `;
 
 export default withRouter(inject('ui', 'auth', 'documents')(DocumentScene));

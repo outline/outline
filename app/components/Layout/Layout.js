@@ -9,7 +9,6 @@ import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import Analytics from 'shared/components/Analytics';
 import Flex from 'shared/components/Flex';
-import { layout } from 'shared/styles/constants';
 import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
@@ -39,7 +38,7 @@ type Props = {
 class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
 
-  @keydown(['/', 't'])
+  @keydown(['/', 't', 'meta+k'])
   goToSearch(ev) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -114,14 +113,14 @@ const Container = styled(Flex)`
 
 const Content = styled(Flex)`
   margin: 0;
-  transition: margin-left 200ms ease-in-out;
+  transition: margin-left 100ms ease-out;
 
   @media print {
     margin: 0;
   }
 
   ${breakpoint('tablet')`
-    margin-left: ${props => (props.editMode ? 0 : layout.sidebarWidth)};
+    margin-left: ${props => (props.editMode ? 0 : props.theme.sidebarWidth)};
   `};
 `;
 
