@@ -37,7 +37,8 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   handleDuplicate = async (ev: SyntheticEvent<*>) => {
-    this.props.document.duplicate();
+    const duped = await this.props.document.duplicate();
+    this.props.history.push(duped.url);
   };
 
   handlePin = (ev: SyntheticEvent<*>) => {

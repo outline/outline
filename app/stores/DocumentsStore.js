@@ -222,6 +222,7 @@ class DocumentsStore extends BaseStore {
         id: duped.id,
         collectionId: duped.collection.id,
       });
+      return duped;
     }
   };
 
@@ -256,9 +257,6 @@ class DocumentsStore extends BaseStore {
     });
     this.on('documents.create', (data: Document) => {
       this.add(data);
-    });
-    this.on('documents.duplicate', (data: Document) => {
-      this.duplicate(data);
     });
 
     // Re-fetch dashboard content so that we don't show deleted documents

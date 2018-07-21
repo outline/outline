@@ -4,7 +4,6 @@ import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
-import UiStore from 'stores/UiStore';
 import parseTitle from '../../shared/utils/parseTitle';
 import unescape from '../../shared/utils/unescape';
 
@@ -17,7 +16,8 @@ type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 class Document extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
-  ui: UiStore;
+  ui: *;
+  store: *;
 
   collaborators: User[];
   collection: $Shape<Collection>;
@@ -266,7 +266,7 @@ class Document extends BaseModel {
   };
 
   duplicate = () => {
-    this.emit('documents.duplicate', this);
+    return this.store.duplicate(this);
   };
 
   download = async () => {
@@ -298,6 +298,7 @@ class Document extends BaseModel {
 
     this.updateData(data);
     this.ui = stores.ui;
+    this.store = stores.documents;
   }
 }
 
