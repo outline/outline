@@ -66,7 +66,7 @@ class Document extends BaseModel {
       });
     };
 
-    if (this.collection.documents) {
+    if (this.collection && this.collection.documents) {
       traveler(this.collection.documents, []);
       if (path) return path;
     }

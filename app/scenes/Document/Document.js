@@ -110,9 +110,10 @@ class DocumentScene extends React.Component<Props> {
         text: '',
       });
     } else {
+      const { shareId } = props.match.params;
       this.document = await this.props.documents.fetch(
         props.match.params.documentSlug,
-        { shareId: props.match.params.shareId }
+        { shareId }
       );
 
       const document = this.document;
@@ -123,7 +124,7 @@ class DocumentScene extends React.Component<Props> {
         // Cache data if user enters edit mode and cancels
         this.editCache = document.text;
 
-        if (this.props.auth.user) {
+        if (this.props.auth.user && !shareId) {
           if (!this.isEditing && document.publishedAt) {
             this.viewTimeout = setTimeout(document.view, MARK_AS_VIEWED_AFTER);
           }
