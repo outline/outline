@@ -16,6 +16,7 @@ const PageTitle = ({ title, favicon }: Props) => (
       href={favicon || '/favicon-32.png'}
       sizes="32x32"
     />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </Helmet>
 );
 

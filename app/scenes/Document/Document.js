@@ -279,7 +279,7 @@ class DocumentScene extends React.Component<Props> {
     }
 
     return (
-      <Container key={document.id} column auto>
+      <Container key={document.id} isShare={isShare} column auto>
         {isMoving && <DocumentMove document={document} />}
         <PageTitle
           title={document.title.replace(document.emoji, '')}
@@ -349,6 +349,7 @@ const MaxWidth = styled(Flex)`
 
 const Container = styled(Flex)`
   position: relative;
+  margin-top: ${props => (props.isShare ? '50px' : '0')};
 `;
 
 const LoadingState = styled(LoadingPlaceholder)`
