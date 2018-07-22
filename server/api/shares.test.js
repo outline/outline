@@ -32,6 +32,24 @@ describe('#shares.list', async () => {
     expect(body.data[0].documentTitle).toBe(document.title);
   });
 
+  it('should not return revoked shares', async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await share.revoke(user.id);
+
+    const res = await server.post('/api/shares.list', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it('admins should only return shares created by all users', async () => {
     const { admin, document } = await seed();
     const share = await buildShare({
@@ -90,6 +108,61 @@ describe('#shares.create', async () => {
     const { document } = await seed();
     const res = await server.post('/api/shares.create', {
       body: { documentId: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/shares.create', {
+      body: { token: user.getJwtToken(), documentId: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe('#shares.revoke', async () => {
+  it('should allow author to revoke a share', async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post('/api/shares.revoke', {
+      body: { token: user.getJwtToken(), id: share.id },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it('should allow admin to revoke a share', async () => {
+    const { user, admin, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post('/api/shares.revoke', {
+      body: { token: admin.getJwtToken(), id: share.id },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it('should require authentication', async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post('/api/shares.revoke', {
+      body: { id: share.id },
     });
     const body = await res.json();
 

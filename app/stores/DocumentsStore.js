@@ -217,11 +217,12 @@ class DocumentsStore extends BaseStore {
 
     if (res && res.data) {
       const duped = res.data;
-      this.emit('documents.create', duped);
+      this.emit('documents.create', new Document(duped));
       this.emit('documents.publish', {
         id: duped.id,
         collectionId: duped.collection.id,
       });
+      return duped;
     }
   };
 
@@ -255,10 +256,7 @@ class DocumentsStore extends BaseStore {
       this.remove(data.id);
     });
     this.on('documents.create', (data: Document) => {
-      this.add(new Document(data));
-    });
-    this.on('documents.duplicate', (data: Document) => {
-      this.duplicate(data);
+      this.add(data);
     });
 
     // Re-fetch dashboard content so that we don't show deleted documents

@@ -4,10 +4,9 @@ import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
-import UiStore from 'stores/UiStore';
 import parseTitle from '../../shared/utils/parseTitle';
-
-import type { User } from 'shared/types';
+import unescape from '../../shared/utils/unescape';
+import type { NavigationNode, User } from 'shared/types';
 import BaseModel from './BaseModel';
 import Collection from './Collection';
 
@@ -16,7 +15,8 @@ type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 class Document extends BaseModel {
   isSaving: boolean = false;
   hasPendingChanges: boolean = false;
-  ui: UiStore;
+  ui: *;
+  store: *;
 
   collaborators: User[];
   collection: $Shape<Collection>;
@@ -51,17 +51,11 @@ class Document extends BaseModel {
   }
 
   @computed
-  get pathToDocument(): Array<{ id: string, title: string }> {
+  get pathToDocument(): NavigationNode[] {
     let path;
     const traveler = (nodes, previousPath) => {
       nodes.forEach(childNode => {
-        const newPath = [
-          ...previousPath,
-          {
-            id: childNode.id,
-            title: childNode.title,
-          },
-        ];
+        const newPath = [...previousPath, childNode];
         if (childNode.id === this.id) {
           path = newPath;
           return;
@@ -71,7 +65,7 @@ class Document extends BaseModel {
       });
     };
 
-    if (this.collection.documents) {
+    if (this.collection && this.collection.documents) {
       traveler(this.collection.documents, []);
       if (path) return path;
     }
@@ -180,19 +174,12 @@ class Document extends BaseModel {
     if (this.isSaving) return this;
 
     const wasDraft = !this.publishedAt;
+    const isCreating = !this.id;
     this.isSaving = true;
 
     try {
       let res;
-      if (this.id) {
-        res = await client.post('/documents.update', {
-          id: this.id,
-          title: this.title,
-          text: this.text,
-          lastRevision: this.revision,
-          ...options,
-        });
-      } else {
+      if (isCreating) {
         const data = {
           parentDocument: undefined,
           collection: this.collection.id,
@@ -204,25 +191,36 @@ class Document extends BaseModel {
           data.parentDocument = this.parentDocument;
         }
         res = await client.post('/documents.create', data);
-        if (res && res.data) this.emit('documents.create', res.data);
+      } else {
+        res = await client.post('/documents.update', {
+          id: this.id,
+          title: this.title,
+          text: this.text,
+          lastRevision: this.revision,
+          ...options,
+        });
       }
       runInAction('Document#save', () => {
         invariant(res && res.data, 'Data should be available');
         this.updateData(res.data);
         this.hasPendingChanges = false;
-      });
 
-      this.emit('documents.update', {
-        document: this,
-        collectionId: this.collection.id,
-      });
+        if (isCreating) {
+          this.emit('documents.create', this);
+        }
 
-      if (wasDraft && this.publishedAt) {
-        this.emit('documents.publish', {
-          id: this.id,
+        this.emit('documents.update', {
+          document: this,
           collectionId: this.collection.id,
         });
-      }
+
+        if (wasDraft && this.publishedAt) {
+          this.emit('documents.publish', {
+            id: this.id,
+            collectionId: this.collection.id,
+          });
+        }
+      });
     } catch (e) {
       this.ui.showToast('Document failed to save');
     } finally {
@@ -267,18 +265,22 @@ class Document extends BaseModel {
   };
 
   duplicate = () => {
-    this.emit('documents.duplicate', this);
+    return this.store.duplicate(this);
   };
 
-  download() {
-    const a = window.document.createElement('a');
-    a.textContent = 'download';
+  download = async () => {
+    await this.fetch();
+
+    const blob = new Blob([unescape(this.text)], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    // Firefox support requires the anchor tag be in the DOM to trigger the dl
+    if (document.body) document.body.appendChild(a);
+    a.href = url;
     a.download = `${this.title}.md`;
-    a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(
-      this.text
-    )}`;
     a.click();
-  }
+  };
 
   updateData(data: Object = {}, dirty: boolean = false) {
     if (data.text) {
@@ -295,6 +297,7 @@ class Document extends BaseModel {
 
     this.updateData(data);
     this.ui = stores.ui;
+    this.store = stores.documents;
   }
 }
 

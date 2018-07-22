@@ -1,6 +1,5 @@
 // @flow
 import { Team } from '../models';
-import { BILLING_ENABLED } from '../../shared/environment';
 
 function present(ctx: Object, team: Team) {
   ctx.cache.set(team.id, team);
@@ -13,8 +12,8 @@ function present(ctx: Object, team: Team) {
     slackConnected: !!team.slackId,
     googleConnected: !!team.googleId,
     userCount: team.userCount,
-    isSuspended: BILLING_ENABLED ? team.isSuspended : undefined,
-    isAtFreeLimit: BILLING_ENABLED ? team.isAtFreeLimit : undefined,
+    isSuspended: process.env.BILLING_ENABLED ? team.isSuspended : undefined,
+    isAtFreeLimit: process.env.BILLING_ENABLED ? team.isAtFreeLimit : undefined,
   };
 }
 

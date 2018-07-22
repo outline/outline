@@ -1,8 +1,9 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <title>Outline</title>
     <meta name="slack-app-id" content="<%= SLACK_APP_ID %>" />
+    <link rel="manifest" href="/manifest.json" />
     <style>
       body,
       html {
@@ -21,7 +22,7 @@
         min-height: 100vh;
       }
     </style>
-    <%= BILLING_ENABLED %% '<script id="stripe-js" src="https://js.stripe.com/v3/" async></script>' %>
+    <%= process.env.BILLING_ENABLED %% '<script id="stripe-js" src="https://js.stripe.com/v3/" async></script>' %>
   </head>
   <body>
     <div id="root"></div>

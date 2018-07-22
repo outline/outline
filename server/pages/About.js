@@ -57,8 +57,8 @@ export default function About() {
         <p>
           <i>
             Outline is currently in public beta. The hosted service will stay
-            free during this period. After that we will offer Outline free for
-            teams up to 5 people and have reasonable plans for larger teams.
+            free during this period. After that we will offer Outline free to
+            get started and have reasonable plans for larger teams.
           </i>
         </p>
         <Authors>
@@ -143,10 +143,10 @@ export default function About() {
           by supporting us financially.
         </p>
         <p>
-          <h3>Can I use Google/GitHub/etc to signup for Outline?</h3>
-          We started with Slack as many teams are already using it and benefit
-          from the integrations. We’ll be adding more login methods soon. Please
-          let us know which one you would like to see next{' '}
+          <h3>Can I use X to signup for Outline?</h3>
+          We started with Slack and Google as many teams are already using these
+          services for team identity. We’ll consider adding more login methods
+          soon. Please let us know which one you would like to see next{' '}
           <a
             href="https://spectrum.chat/outline/feature-requests?thread=a851c20d-251a-4c7b-8977-e1438894db51"
             target="_blank"
@@ -157,10 +157,11 @@ export default function About() {
         </p>
         <p>
           <h3>How can I export my data if you go away?</h3>
-          We’re committed on making your data portable. We’ll soon add better
-          import and export options so you which will let you take your data and
-          view it in HTML form or upload to self-hosted Outline. Until then, you
-          can do this through our <a href="/developers">API</a>.
+          Outline includes the ability to export individual documents,
+          collections or your entire knowledge base to markdown with a single
+          click so you’re never locked in. We also have an extensive{' '}
+          <a href="/developers">API</a> that can be used for accessing documents
+          programatically.
         </p>
         <p>
           <h3>How can I get in touch with you?</h3>

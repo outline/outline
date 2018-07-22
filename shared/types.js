@@ -7,6 +7,7 @@ export type User = {
   username: string,
   isAdmin?: boolean,
   isSuspended?: boolean,
+  createdAt: string,
 };
 
 export type Toast = {
@@ -31,17 +32,19 @@ export type Team = {
   slackConnected: boolean,
   googleConnected: boolean,
   isSuspended: boolean,
+  isAtFreeLimit: boolean,
+  userCount: number,
 };
 
 export type NavigationNode = {
   id: string,
   title: string,
   url: string,
-  children: Array<NavigationNode>,
+  children: NavigationNode[],
 };
 
 export type Document = {
-  collaborators: Array<User>,
+  collaborators: User[],
   collection: Object,
   createdAt: string,
   createdBy: User,
@@ -81,7 +84,6 @@ export type ApiKey = {
 
 export type Subscription = {
   userCount: number,
-  freeUserLimit: number,
   plan: 'free' | 'monthly' | 'yearly',
   planName?: string,
   status?: 'active' | 'canceled',

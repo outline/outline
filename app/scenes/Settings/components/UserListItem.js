@@ -5,14 +5,15 @@ import styled from 'styled-components';
 import UserMenu from 'menus/UserMenu';
 import Avatar from 'components/Avatar';
 import ListItem from 'components/List/Item';
+import Time from 'shared/components/Time';
 import type { User } from 'shared/types';
 
 type Props = {
   user: User,
-  isCurrentUser: boolean,
+  showMenu: boolean,
 };
 
-const UserListItem = ({ user, isCurrentUser }: Props) => {
+const UserListItem = ({ user, showMenu }: Props) => {
   return (
     <ListItem
       key={user.id}
@@ -20,12 +21,13 @@ const UserListItem = ({ user, isCurrentUser }: Props) => {
       image={<Avatar src={user.avatarUrl} size={40} />}
       subtitle={
         <React.Fragment>
-          {user.username ? user.username : user.email}
+          {user.email ? `${user.email} · ` : undefined}
+          Joined <Time dateTime={user.createdAt} /> ago
           {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
           {user.isSuspended && <Badge>Suspended</Badge>}
         </React.Fragment>
       }
-      actions={isCurrentUser ? undefined : <UserMenu user={user} />}
+      actions={showMenu ? <UserMenu user={user} /> : undefined}
     />
   );
 };

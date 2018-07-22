@@ -21,6 +21,7 @@ export default (
 ): UserPresentation => {
   const userData = {};
   userData.id = user.id;
+  userData.createdAt = user.createdAt;
   userData.username = user.username;
   userData.name = user.name;
   userData.avatarUrl =

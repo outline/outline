@@ -11,7 +11,6 @@ const definePlugin = new webpack.DefinePlugin({
     JSON.parse(process.env.BUILD_PRERELEASE || 'false')
   ),
   SLACK_APP_ID: JSON.stringify(process.env.SLACK_APP_ID),
-  BILLING_ENABLED: JSON.stringify(process.env.DEPLOYMENT === 'hosted'),
   BASE_URL: JSON.stringify(process.env.URL),
   BUGSNAG_KEY: JSON.stringify(process.env.BUGSNAG_KEY),
   'process.env': {
@@ -19,6 +18,8 @@ const definePlugin = new webpack.DefinePlugin({
     SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
     DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT || 'hosted'),
     STRIPE_PUBLIC_KEY: JSON.stringify(process.env.STRIPE_PUBLIC_KEY),
+    BILLING_ENABLED: JSON.stringify(process.env.DEPLOYMENT === 'hosted'),
+    FREE_USER_LIMIT: JSON.stringify(process.env.FREE_USER_LIMIT),
   }
 });
 

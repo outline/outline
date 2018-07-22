@@ -33,6 +33,10 @@ export function githubIssuesUrl(): string {
   return 'https://www.github.com/outline/outline/issues';
 }
 
+export function slackAppStoreUrl(): string {
+  return 'https://goabstract.slack.com/apps/A0W3UMKBQ-outline';
+}
+
 export function blogUrl(): string {
   return 'https://medium.com/getoutline';
 }

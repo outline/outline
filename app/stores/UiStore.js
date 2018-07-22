@@ -2,7 +2,7 @@
 import { observable, action } from 'mobx';
 import Document from 'models/Document';
 import Collection from 'models/Collection';
-import type { Toast } from '../types';
+import type { Toast } from 'shared/types';
 
 class UiStore {
   @observable activeModalName: ?string;

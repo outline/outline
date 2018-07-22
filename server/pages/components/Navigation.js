@@ -2,8 +2,8 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
+import Centered from './Centered';
 import {
-  signin,
   developers,
   changelog,
   about,
@@ -11,7 +11,6 @@ import {
   githubUrl,
   twitterUrl,
   spectrumUrl,
-  blogUrl,
 } from '../../../shared/utils/routeHelpers';
 
 function TopNavigation() {
@@ -26,16 +25,16 @@ function TopNavigation() {
           <a href={about()}>About</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
-          <a href={twitterUrl()}>Twitter</a>
+          <a href={changelog()}>Changelog</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
-          <a href={changelog()}>Changelog</a>
+          <a href={twitterUrl()}>Twitter</a>
         </MenuItemDesktop>
         <MenuItem>
           <a href={developers()}>API</a>
         </MenuItem>
         <MenuItem>
-          <a href={signin()}>Sign In</a>
+          <a href="/#signin">Sign In</a>
         </MenuItem>
       </Menu>
     </Nav>
@@ -53,9 +52,6 @@ function BottomNavigation() {
       </div>
       <div>
         <a href={spectrumUrl()}>Spectrum</a>
-      </div>
-      <div>
-        <a href={blogUrl()}>Medium</a>
       </div>
       <div>
         <a href={privacy()}>Privacy</a>
@@ -103,9 +99,9 @@ const MenuItemDesktop = styled(MenuItem)`
   `};
 `;
 
-const Nav = styled.nav`
+const Nav = styled(Centered)`
   display: flex;
-  padding: 20px 30px;
+  padding: 20px 0;
   align-items: center;
   justify-content: space-between;
 `;
@@ -115,7 +111,7 @@ const BottomNav = styled.nav`
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  margin-bottom: 40px;
+  margin: 4em 0;
 
   > div {
     display: flex;
@@ -125,6 +121,7 @@ const BottomNav = styled.nav`
 
   ${breakpoint('tablet')`
     flex-direction: row;
+    margin: 0 0 4em;
 
     > div {
       margin: 0 0 0 40px;

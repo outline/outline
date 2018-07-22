@@ -29,6 +29,7 @@ import Billing from 'scenes/Settings/Billing';
 import Slack from 'scenes/Settings/Slack';
 import Shares from 'scenes/Settings/Shares';
 import Tokens from 'scenes/Settings/Tokens';
+import Export from 'scenes/Settings/Export';
 import Error404 from 'scenes/Error404';
 
 import ErrorBoundary from 'components/ErrorBoundary';
@@ -38,7 +39,6 @@ import Auth from 'components/Auth';
 import RouteSidebarHidden from 'components/RouteSidebarHidden';
 
 import { matchDocumentSlug } from 'utils/routeHelpers';
-import { BILLING_ENABLED } from 'shared/environment';
 
 let DevTools;
 if (__DEV__) {
@@ -98,13 +98,18 @@ if (element) {
                           path="/settings/integrations/slack"
                           component={Slack}
                         />
-                        {BILLING_ENABLED && (
+                        {process.env.BILLING_ENABLED && (
                           <Route
                             exact
                             path="/settings/billing"
                             component={Billing}
                           />
                         )}
+                        <Route
+                          exact
+                          path="/settings/export"
+                          component={Export}
+                        />
                         <Route
                           exact
                           path="/collections/:id"

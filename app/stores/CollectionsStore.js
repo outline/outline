@@ -138,6 +138,16 @@ class CollectionsStore extends BaseStore {
   };
 
   @action
+  export = async () => {
+    try {
+      await client.post('/collections.exportAll');
+      return true;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  @action
   add = (collection: Collection): void => {
     this.data.set(collection.id, collection);
   };

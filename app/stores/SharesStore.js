@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { observable, action, runInAction, ObservableMap, computed } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
-import type { Share, PaginationParams } from 'types';
+import type { Share, PaginationParams } from 'shared/types';
 
 class SharesStore {
   @observable data: Map<string, Share> = new ObservableMap([]);
@@ -38,7 +38,7 @@ class SharesStore {
   @action
   revoke = async (share: Share) => {
     try {
-      await client.post('/shares.delete', { id: share.id });
+      await client.post('/shares.revoke', { id: share.id });
       runInAction('revoke', () => {
         this.data.delete(share.id);
       });

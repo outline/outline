@@ -4,8 +4,9 @@ import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection } from '../presenters';
-import { Collection } from '../models';
+import { Collection, Team } from '../models';
 import { ValidationError } from '../errors';
+import { exportCollection, exportCollections } from '../logistics';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -43,6 +44,35 @@ router.post('collections.info', auth(), async ctx => {
 
   ctx.body = {
     data: await presentCollection(ctx, collection),
+  };
+});
+
+router.post('collections.export', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const user = ctx.state.user;
+  const collection = await Collection.findById(id);
+  authorize(user, 'export', collection);
+
+  // async operation to create zip archive and email user
+  exportCollection(id, user.email);
+
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.post('collections.exportAll', auth(), async ctx => {
+  const user = ctx.state.user;
+  const team = await Team.findById(user.teamId);
+  authorize(user, 'export', team);
+
+  // async operation to create zip archive and email user
+  exportCollections(user.teamId, user.email);
+
+  ctx.body = {
+    success: true,
   };
 });
 

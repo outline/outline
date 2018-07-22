@@ -5,7 +5,6 @@ import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import Collection from './Collection';
 import User from './User';
 import { subscriptionsQueue } from '../jobs/subscriptions';
-import { FREE_USER_LIMIT, BILLING_ENABLED } from '../../shared/environment';
 
 const Team = sequelize.define(
   'team',
@@ -38,15 +37,15 @@ const Team = sequelize.define(
     getterMethods: {
       isSuspended() {
         return (
-          BILLING_ENABLED &&
-          this.userCount > FREE_USER_LIMIT &&
+          process.env.BILLING_ENABLED &&
+          this.userCount > process.env.FREE_USER_LIMIT &&
           this.stripeSubscriptionStatus !== 'active'
         );
       },
       isAtFreeLimit() {
         return (
-          BILLING_ENABLED &&
-          this.userCount === FREE_USER_LIMIT &&
+          process.env.BILLING_ENABLED &&
+          this.userCount === process.env.FREE_USER_LIMIT &&
           this.stripeSubscriptionStatus !== 'active'
         );
       },
@@ -167,7 +166,7 @@ const updateSubscriptions = async (team: Team) => {
     userCount: count,
   });
 
-  if (BILLING_ENABLED) {
+  if (process.env.BILLING_ENABLED) {
     subscriptionsQueue.add({
       type: 'updateSubscription',
       teamId: team.id,

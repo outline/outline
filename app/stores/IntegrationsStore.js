@@ -7,7 +7,7 @@ import UiStore from './UiStore';
 import BaseStore from './BaseStore';
 
 import Integration from 'models/Integration';
-import type { PaginationParams } from 'types';
+import type { PaginationParams } from 'shared/types';
 
 class IntegrationsStore extends BaseStore {
   @observable data: Map<string, Integration> = new ObservableMap([]);

@@ -141,8 +141,8 @@ Document.associate = models => {
     {
       include: [
         { model: models.Collection, as: 'collection' },
-        { model: models.User, as: 'createdBy' },
-        { model: models.User, as: 'updatedBy' },
+        { model: models.User, as: 'createdBy', paranoid: false },
+        { model: models.User, as: 'updatedBy', paranoid: false },
       ],
       where: {
         publishedAt: {
@@ -156,8 +156,8 @@ Document.associate = models => {
   Document.addScope('withUnpublished', {
     include: [
       { model: models.Collection, as: 'collection' },
-      { model: models.User, as: 'createdBy' },
-      { model: models.User, as: 'updatedBy' },
+      { model: models.User, as: 'createdBy', paranoid: false },
+      { model: models.User, as: 'updatedBy', paranoid: false },
     ],
   });
   Document.addScope('withViews', userId => ({

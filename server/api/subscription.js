@@ -4,7 +4,6 @@ import auth from '../middlewares/authentication';
 import { InvalidRequestError } from '../errors';
 import policy from '../policies';
 import * as Stripe from '../stripe';
-import { BILLING_ENABLED } from '../../shared/environment';
 import type { Context } from 'koa';
 
 const { authorize } = policy;
@@ -22,7 +21,7 @@ function subscriptionMiddleware() {
     ctx: Context,
     next: () => Promise<*>
   ) {
-    if (!BILLING_ENABLED) {
+    if (!process.env.BILLING_ENABLED) {
       throw new InvalidRequestError(
         'Endpoint not available when billing is disabled'
       );

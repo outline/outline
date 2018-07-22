@@ -23,7 +23,9 @@ class BillingStore {
 
   @computed
   get qualifiesForFree(): boolean {
-    return this.data ? this.data.userCount <= this.data.freeUserLimit : false;
+    return this.data
+      ? this.data.userCount <= parseInt(process.env.FREE_USER_LIMIT, 10)
+      : false;
   }
 
   @computed

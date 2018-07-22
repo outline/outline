@@ -3,6 +3,7 @@ import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import {
   BillingIcon,
+  DocumentIcon,
   ProfileIcon,
   SettingsIcon,
   CodeIcon,
@@ -18,8 +19,6 @@ import Header from './components/Header';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
 import AuthStore from 'stores/AuthStore';
-
-import { BILLING_ENABLED } from 'shared/environment';
 
 type Props = {
   history: Object,
@@ -67,7 +66,7 @@ class SettingsSidebar extends React.Component<Props> {
                 People
               </SidebarLink>
               {user.isAdmin &&
-                BILLING_ENABLED && (
+                process.env.BILLING_ENABLED && (
                   <SidebarLink to="/settings/billing" icon={<BillingIcon />}>
                     Billing
                   </SidebarLink>
@@ -81,6 +80,11 @@ class SettingsSidebar extends React.Component<Props> {
                   icon={<SettingsIcon />}
                 >
                   Integrations
+                </SidebarLink>
+              )}
+              {user.isAdmin && (
+                <SidebarLink to="/settings/export" icon={<DocumentIcon />}>
+                  Export Data
                 </SidebarLink>
               )}
             </Section>
