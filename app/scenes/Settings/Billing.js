@@ -61,8 +61,8 @@ class Billing extends React.Component<Props> {
               </p>
               {billing.data.plan === 'free' ? (
                 <p>
-                  You`re on Outline`s free plan. Once have more than{' '}
-                  {process.env.FREE_USER_LIMIT} users, you're asked to upgrade
+                  This team is on Outline`s free plan. Once have more than{' '}
+                  {process.env.FREE_USER_LIMIT} users, you`re asked to upgrade
                   to a paid plan.
                 </p>
               ) : (
