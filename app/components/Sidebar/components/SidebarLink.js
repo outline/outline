@@ -161,6 +161,7 @@ const Wrapper = styled(Flex)`
 
 const Content = styled.div`
   width: 100%;
+  max-height: 4em;
 `;
 
 export default withRouter(withTheme(SidebarLink));

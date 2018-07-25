@@ -20,6 +20,7 @@ type Props = {
 const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
   <StarredIcon color={solid ? theme.black : theme.text} {...props} />
 ))`
+  flex-shrink: 0;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: all 100ms ease-in-out;
 
@@ -80,11 +81,19 @@ const Heading = styled.h3`
   height: 24px;
   margin-top: 0;
   margin-bottom: 0.25em;
+  overflow: hidden;
+  white-space: nowrap;
 `;
 
 const Actions = styled(Flex)`
   margin-left: 4px;
   align-items: center;
+`;
+
+const Title = styled(Highlight)`
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 @observer
@@ -120,7 +129,7 @@ class DocumentPreview extends React.Component<Props> {
         {...rest}
       >
         <Heading>
-          <Highlight text={document.title} highlight={highlight} />
+          <Title text={document.title} highlight={highlight} />
           {document.publishedAt && (
             <Actions>
               {document.starred ? (

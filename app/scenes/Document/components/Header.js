@@ -214,7 +214,7 @@ const Title = styled.div`
 
   ${breakpoint('tablet')`	
     display: block;
-    width: 33.3%;
+    flex-grow: 1;
   `};
 `;
 
