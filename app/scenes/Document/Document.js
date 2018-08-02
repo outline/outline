@@ -237,13 +237,19 @@ class DocumentScene extends React.Component<Props> {
   onClickLink = (href: string) => {
     if (isInternalUrl(href)) {
       // relative
-      if (href[0] === '/') {
-        this.props.history.push(href);
+      let navigateTo = href;
+
+      // probably absolute
+      if (href[0] !== '/') {
+        try {
+          const url = new URL(href);
+          navigateTo = url.pathname;
+        } catch (err) {
+          navigateTo = href;
+        }
       }
 
-      // absolute
-      const url = new URL(href);
-      this.props.history.push(url.pathname);
+      this.props.history.push(navigateTo);
     } else {
       window.open(href, '_blank');
     }
