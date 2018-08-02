@@ -89,8 +89,10 @@ router.get('slack.commands', async ctx => {
   const endpoint = `${process.env.URL || ''}/auth/slack.commands`;
   const data = await Slack.oauthAccess(code, endpoint);
   const user = await User.find({
-    service: 'slack',
-    serviceId: data.user_id,
+    where: {
+      service: 'slack',
+      serviceId: data.user_id,
+    },
   });
 
   const authentication = await Authentication.create({
@@ -128,8 +130,10 @@ router.get('slack.post', async ctx => {
   const data = await Slack.oauthAccess(code, endpoint);
 
   const user = await User.find({
-    service: 'slack',
-    serviceId: data.user_id,
+    where: {
+      service: 'slack',
+      serviceId: data.user_id,
+    },
   });
 
   const authentication = await Authentication.create({
