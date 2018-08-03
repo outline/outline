@@ -64,6 +64,7 @@ router.post('shares.create', auth(), async ctx => {
       documentId,
       userId: user.id,
       teamId: user.teamId,
+      revokedAt: null,
     },
   });
 

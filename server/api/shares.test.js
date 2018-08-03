@@ -88,6 +88,24 @@ describe('#shares.create', async () => {
     expect(body.data.documentTitle).toBe(document.title);
   });
 
+  it('should allow creating a share record if link previously revoked', async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await share.revoke();
+    const res = await server.post('/api/shares.create', {
+      body: { token: user.getJwtToken(), documentId: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).not.toEqual(share.id);
+    expect(body.data.documentTitle).toBe(document.title);
+  });
+
   it('should return existing share link for document and user', async () => {
     const { user, document } = await seed();
     const share = await buildShare({
