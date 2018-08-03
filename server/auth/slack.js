@@ -1,5 +1,6 @@
 // @flow
 import Router from 'koa-router';
+import auth from '../middlewares/authentication';
 import addHours from 'date-fns/add_hours';
 import addMonths from 'date-fns/add_months';
 import { slackAuth } from '../../shared/utils/routeHelpers';
@@ -77,7 +78,7 @@ router.get('slack.callback', async ctx => {
   ctx.redirect('/');
 });
 
-router.get('slack.commands', async ctx => {
+router.get('slack.commands', auth(), async ctx => {
   const { code, error } = ctx.request.query;
   ctx.assertPresent(code || error, 'code is required');
 
@@ -88,12 +89,7 @@ router.get('slack.commands', async ctx => {
 
   const endpoint = `${process.env.URL || ''}/auth/slack.commands`;
   const data = await Slack.oauthAccess(code, endpoint);
-  const user = await User.find({
-    where: {
-      service: 'slack',
-      serviceId: data.user_id,
-    },
-  });
+  const user = ctx.state.user;
 
   const authentication = await Authentication.create({
     service: 'slack',
@@ -114,7 +110,7 @@ router.get('slack.commands', async ctx => {
   ctx.redirect('/settings/integrations/slack');
 });
 
-router.get('slack.post', async ctx => {
+router.get('slack.post', auth(), async ctx => {
   const { code, error, state } = ctx.request.query;
   ctx.assertPresent(code || error, 'code is required');
 
@@ -128,13 +124,7 @@ router.get('slack.post', async ctx => {
 
   const endpoint = `${process.env.URL || ''}/auth/slack.post`;
   const data = await Slack.oauthAccess(code, endpoint);
-
-  const user = await User.find({
-    where: {
-      service: 'slack',
-      serviceId: data.user_id,
-    },
-  });
+  const user = ctx.state.user;
 
   const authentication = await Authentication.create({
     service: 'slack',

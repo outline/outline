@@ -24,10 +24,12 @@ export default function auth(options?: { required?: boolean } = {}) {
         );
       }
       // $FlowFixMe
-    } else if (ctx.body.token) {
+    } else if (ctx.body && ctx.body.token) {
       token = ctx.body.token;
     } else if (ctx.request.query.token) {
       token = ctx.request.query.token;
+    } else if (ctx.cookies.get('accessToken')) {
+      token = ctx.cookies.get('accessToken');
     }
 
     if (!token && options.required !== false) {
@@ -84,7 +86,7 @@ export default function auth(options?: { required?: boolean } = {}) {
 
       ctx.state.token = token;
       ctx.state.user = user;
-      // $FlowFixMe
+      if (!ctx.cache) ctx.cache = {};
       ctx.cache[user.id] = user;
     }
 
