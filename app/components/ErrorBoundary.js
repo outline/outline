@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import styled from 'styled-components';
 import { observer } from 'mobx-react';
 import { observable } from 'mobx';
 import HelpText from 'components/HelpText';
@@ -14,10 +15,11 @@ type Props = {
 
 @observer
 class ErrorBoundary extends React.Component<Props> {
-  @observable error: boolean = false;
+  @observable error: ?Error;
+  @observable showDetails: boolean = false;
 
   componentDidCatch(error: Error, info: Object) {
-    this.error = true;
+    this.error = error;
 
     // Error handler is often blocked by the browser
     if (window.Bugsnag) {
@@ -29,7 +31,11 @@ class ErrorBoundary extends React.Component<Props> {
     window.location.reload();
   };
 
-  contactSupport = () => {
+  handleShowDetails = () => {
+    this.showDetails = true;
+  };
+
+  handleReportBug = () => {
     window.open(githubIssuesUrl());
   };
 
@@ -46,11 +52,16 @@ class ErrorBoundary extends React.Component<Props> {
               ' – our engineers have been notified'}. Please try reloading the
             page, it may have been a temporary glitch.
           </HelpText>
+          {this.showDetails && <Pre>{this.error.toString()}</Pre>}
           <p>
             <Button onClick={this.handleReload}>Reload</Button>{' '}
-            {DEPLOYMENT === 'hosted' && (
-              <Button onClick={this.contactSupport} light>
-                Report Bug…
+            {this.showDetails ? (
+              <Button onClick={this.handleReportBug} light>
+                Report a Bug…
+              </Button>
+            ) : (
+              <Button onClick={this.handleShowDetails} light>
+                Show Details…
               </Button>
             )}
           </p>
@@ -60,5 +71,12 @@ class ErrorBoundary extends React.Component<Props> {
     return this.props.children;
   }
 }
+
+const Pre = styled.pre`
+  background: ${props => props.theme.smoke};
+  padding: 16px;
+  border-radius: 4px;
+  font-size: 12px;
+`;
 
 export default ErrorBoundary;
