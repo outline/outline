@@ -57,8 +57,8 @@ const element = document.getElementById('root');
 if (element) {
   render(
     <React.Fragment>
-      <ErrorBoundary>
-        <ThemeProvider theme={theme}>
+      <ThemeProvider theme={theme}>
+        <ErrorBoundary>
           <Provider {...stores}>
             <Router>
               <ScrollToTop>
@@ -143,8 +143,8 @@ if (element) {
               </ScrollToTop>
             </Router>
           </Provider>
-        </ThemeProvider>
-      </ErrorBoundary>
+        </ErrorBoundary>
+      </ThemeProvider>
       {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}
     </React.Fragment>,
     element
