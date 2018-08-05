@@ -3,7 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '..';
 import { Document, View, Star, Revision } from '../models';
 import { flushdb, seed } from '../test/support';
-import { buildShare, buildUser } from '../test/factories';
+import { buildShare, buildUser, buildDocument } from '../test/factories';
 
 const server = new TestServer(app.callback());
 
@@ -229,6 +229,68 @@ describe('#documents.search', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.text).toEqual('# Much guidance');
+  });
+
+  it('should return results in ranked order', async () => {
+    const { user } = await seed();
+    const firstResult = await buildDocument({
+      title: 'search term',
+      text: 'random text',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const secondResult = await buildDocument({
+      title: 'random text',
+      text: 'search term',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post('/api/documents.search', {
+      body: { token: user.getJwtToken(), query: 'search term' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+    expect(body.data[0].document.id).toEqual(firstResult.id);
+    expect(body.data[1].document.id).toEqual(secondResult.id);
+  });
+
+  it('should return draft documents created by user', async () => {
+    const { user } = await seed();
+    await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      publishedAt: null,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post('/api/documents.search', {
+      body: { token: user.getJwtToken(), query: 'search term' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.text).toEqual('search term');
+  });
+
+  it('should not return draft documents created by other users', async () => {
+    const { user } = await seed();
+    await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      publishedAt: null,
+      teamId: user.teamId,
+    });
+    const res = await server.post('/api/documents.search', {
+      body: { token: user.getJwtToken(), query: 'search term' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
   });
 
   it('should require authentication', async () => {
