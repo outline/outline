@@ -4,23 +4,34 @@ import replace from 'string-replace-to-array';
 import styled from 'styled-components';
 
 type Props = {
-  highlight: ?string,
+  highlight: ?string | RegExp,
+  processResult?: (tag: string) => string,
   text: string,
   caseSensitive?: boolean,
 };
 
-function Highlight({ highlight, caseSensitive, text, ...rest }: Props) {
+function Highlight({
+  highlight,
+  processResult,
+  caseSensitive,
+  text,
+  ...rest
+}: Props) {
+  let regex;
+  if (highlight instanceof RegExp) {
+    regex = highlight;
+  } else {
+    regex = new RegExp(
+      (highlight || '').replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'),
+      caseSensitive ? 'g' : 'gi'
+    );
+  }
   return (
     <span {...rest}>
       {highlight
-        ? replace(
-            text,
-            new RegExp(
-              (highlight || '').replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'),
-              caseSensitive ? 'g' : 'gi'
-            ),
-            (tag, index) => <Mark key={index}>{tag}</Mark>
-          )
+        ? replace(text, regex, (tag, index) => (
+            <Mark key={index}>{processResult ? processResult(tag) : tag}</Mark>
+          ))
         : text}
     </span>
   );

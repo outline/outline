@@ -78,3 +78,9 @@ export type ApiKey = {
   name: string,
   secret: string,
 };
+
+export type SearchResult = {
+  ranking: number,
+  context: string,
+  document: Document,
+};
