@@ -71,7 +71,7 @@ router.post('hooks.slack', async ctx => {
   if (results.length) {
     const attachments = [];
     for (const result of results) {
-      attachments.push(presentSlackAttachment(result.document));
+      attachments.push(presentSlackAttachment(result.document, result.context));
     }
 
     ctx.body = {

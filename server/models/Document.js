@@ -208,7 +208,7 @@ Document.searchForUser = async (
     SELECT
       id,
       ts_rank(documents."searchVector", plainto_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", plainto_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=35') as "searchContext"
+      ts_headline('english', "text", plainto_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
     FROM documents
     WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
       "teamId" = '${user.teamId}'::uuid AND
