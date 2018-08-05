@@ -7,7 +7,7 @@ import Plain from 'slate-plain-serializer';
 import Sequelize from 'sequelize';
 
 import isUUID from 'validator/lib/isUUID';
-import { Collection } from '../models';
+import { Collection, User } from '../models';
 import { DataTypes, sequelize } from '../sequelize';
 import events from '../events';
 import parseTitle from '../../shared/utils/parseTitle';
@@ -211,8 +211,11 @@ Document.searchForUser = async (
     FROM documents
     WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
       "teamId" = '${user.teamId}'::uuid AND
-      "deletedAt" IS NULL
-    ORDER BY "searchRanking", "updatedAt" DESC
+      "deletedAt" IS NULL AND
+      ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
+    ORDER BY 
+      "searchRanking" DESC,
+      "updatedAt" DESC
     LIMIT :limit
     OFFSET :offset;
   `;
@@ -227,12 +230,15 @@ Document.searchForUser = async (
   });
 
   // Second query to get associated document data
-  const withViewsScope = { method: ['withViews', user.id] };
-  const documents = await Document.scope(
-    'defaultScope',
-    withViewsScope
-  ).findAll({
+  const documents = await Document.scope({
+    method: ['withViews', user.id],
+  }).findAll({
     where: { id: map(results, 'id') },
+    include: [
+      { model: Collection, as: 'collection' },
+      { model: User, as: 'createdBy', paranoid: false },
+      { model: User, as: 'updatedBy', paranoid: false },
+    ],
   });
 
   return map(results, result => ({

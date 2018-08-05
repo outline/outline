@@ -1,5 +1,5 @@
 // @flow
-import { Share, Team, User } from '../models';
+import { Share, Team, User, Document, Collection } from '../models';
 import uuid from 'uuid';
 
 let count = 0;
@@ -42,6 +42,56 @@ export async function buildUser(overrides: Object = {}) {
     service: 'slack',
     serviceId: uuid.v4(),
     createdAt: new Date('2018-01-01T00:00:00.000Z'),
+    ...overrides,
+  });
+}
+
+export async function buildCollection(overrides: Object = {}) {
+  count++;
+
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  return Collection.create({
+    name: 'Test Collection',
+    description: 'Test collection description',
+    creatorId: overrides.userId,
+    type: 'atlas',
+    ...overrides,
+  });
+}
+
+export async function buildDocument(overrides: Object = {}) {
+  count++;
+
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.atlasId) {
+    const collection = await buildCollection(overrides);
+    overrides.atlasId = collection.id;
+  }
+
+  return Document.create({
+    title: `Document ${count}`,
+    text: 'This is the text in an example document',
+    publishedAt: new Date(),
+    lastModifiedById: overrides.userId,
+    createdById: overrides.userId,
     ...overrides,
   });
 }

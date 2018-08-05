@@ -5,7 +5,7 @@ import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { SearchResult } from 'types';
+import type { SearchResult } from 'types';
 import _ from 'lodash';
 import DocumentsStore, {
   DEFAULT_PAGINATION_LIMIT,
