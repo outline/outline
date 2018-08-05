@@ -63,6 +63,10 @@
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
 
+"@tommoor/remove-markdown@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@tommoor/remove-markdown/-/remove-markdown-0.3.1.tgz#25e7b845d52fcfadf149a3a6a468a931fee7619b"
+
 "@tommoor/slate-drop-or-paste-images@^0.8.1":
   version "0.8.1"
   resolved "https://registry.npmjs.org/@tommoor/slate-drop-or-paste-images/-/slate-drop-or-paste-images-0.8.1.tgz#4d94b5c1dd2de109546ee1f38a1e4a18df078c1e"

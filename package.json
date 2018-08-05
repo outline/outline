@@ -63,6 +63,7 @@
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "dependencies": {
+    "@tommoor/remove-markdown": "0.3.1",
     "@tommoor/slate-drop-or-paste-images": "^0.8.1",
     "autotrack": "^2.4.1",
     "aws-sdk": "^2.135.0",

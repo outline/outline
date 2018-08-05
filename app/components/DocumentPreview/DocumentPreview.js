@@ -98,9 +98,10 @@ const Title = styled(Highlight)`
 `;
 
 const ResultContext = styled(Highlight)`
+  display: block;
   color: ${props => props.theme.slateDark};
   font-size: 14px;
-  margin-top: 0;
+  margin-top: -0.25em;
   margin-bottom: 0.25em;
 `;
 

@@ -5,6 +5,7 @@ import randomstring from 'randomstring';
 import MarkdownSerializer from 'slate-md-serializer';
 import Plain from 'slate-plain-serializer';
 import Sequelize from 'sequelize';
+import removeMarkdown from '@tommoor/remove-markdown';
 
 import isUUID from 'validator/lib/isUUID';
 import { Collection, User } from '../models';
@@ -207,7 +208,7 @@ Document.searchForUser = async (
     SELECT
       id,
       ts_rank(documents."searchVector", plainto_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", plainto_tsquery('english', :query), 'MaxFragments=0, MinWords=10, MaxWords=30') as "searchContext"
+      ts_headline('english', "text", plainto_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=35') as "searchContext"
     FROM documents
     WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
       "teamId" = '${user.teamId}'::uuid AND
@@ -243,7 +244,9 @@ Document.searchForUser = async (
 
   return map(results, result => ({
     ranking: result.searchRanking,
-    context: unescape(result.searchContext),
+    context: removeMarkdown(unescape(result.searchContext), {
+      stripHTML: false,
+    }),
     document: find(documents, { id: result.id }),
   }));
 };
