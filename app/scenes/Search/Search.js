@@ -5,6 +5,7 @@ import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { SearchResult } from 'types';
 import _ from 'lodash';
 import DocumentsStore, {
   DEFAULT_PAGINATION_LIMIT,
@@ -62,7 +63,7 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 class Search extends React.Component<Props> {
   firstDocument: HTMLElement;
 
-  @observable resultIds: string[] = []; // Document IDs
+  @observable results: SearchResult[] = [];
   @observable query: string = '';
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
@@ -104,7 +105,7 @@ class Search extends React.Component<Props> {
   handleQueryChange = () => {
     const query = this.props.match.params.query;
     this.query = query ? query : '';
-    this.resultIds = [];
+    this.results = [];
     this.offset = 0;
     this.allowLoadMore = true;
 
@@ -134,16 +135,14 @@ class Search extends React.Component<Props> {
 
     if (this.query) {
       try {
-        const newResults = await this.props.documents.search(this.query, {
+        const results = await this.props.documents.search(this.query, {
           offset: this.offset,
           limit: DEFAULT_PAGINATION_LIMIT,
         });
-        this.resultIds = this.resultIds.concat(newResults);
-        if (this.resultIds.length > 0) this.pinToTop = true;
-        if (
-          newResults.length === 0 ||
-          newResults.length < DEFAULT_PAGINATION_LIMIT
-        ) {
+        this.results = this.results.concat(results);
+
+        if (this.results.length > 0) this.pinToTop = true;
+        if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
           this.allowLoadMore = false;
         } else {
           this.offset += DEFAULT_PAGINATION_LIMIT;
@@ -152,7 +151,7 @@ class Search extends React.Component<Props> {
         console.error('Something went wrong');
       }
     } else {
-      this.resultIds = [];
+      this.results = [];
       this.pinToTop = false;
     }
 
@@ -177,7 +176,7 @@ class Search extends React.Component<Props> {
   render() {
     const { documents, notFound } = this.props;
     const showEmpty =
-      !this.isFetching && this.query && this.resultIds.length === 0;
+      !this.isFetching && this.query && this.results.length === 0;
 
     return (
       <Container auto>
@@ -201,17 +200,19 @@ class Search extends React.Component<Props> {
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
-              {this.resultIds.map((documentId, index) => {
-                const document = documents.getById(documentId);
+              {this.results.map((result, index) => {
+                const document = documents.getById(result.document.id);
                 if (!document) return null;
+
                 return (
                   <DocumentPreview
                     innerRef={ref =>
                       index === 0 && this.setFirstDocumentRef(ref)
                     }
-                    key={documentId}
+                    key={document.id}
                     document={document}
                     highlight={this.query}
+                    context={result.context}
                     showCollection
                   />
                 );

@@ -222,17 +222,12 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onSearchLink = async (term: string) => {
-    const resultIds = await this.props.documents.search(term);
+    const results = await this.props.documents.search(term);
 
-    return resultIds.map((id, index) => {
-      const document = this.props.documents.getById(id);
-      if (!document) return {};
-
-      return {
-        title: document.title,
-        url: document.url,
-      };
-    });
+    return results.map((result, index) => ({
+      title: result.document.title,
+      url: result.document.url,
+    }));
   };
 
   onClickLink = (href: string) => {

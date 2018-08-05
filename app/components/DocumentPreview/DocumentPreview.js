@@ -13,6 +13,7 @@ import DocumentMenu from 'menus/DocumentMenu';
 type Props = {
   document: Document,
   highlight?: ?string,
+  context?: ?string,
   showCollection?: boolean,
   innerRef?: *,
 };
@@ -96,6 +97,15 @@ const Title = styled(Highlight)`
   text-overflow: ellipsis;
 `;
 
+const ResultContext = styled(Highlight)`
+  color: ${props => props.theme.slateDark};
+  font-size: 14px;
+  margin-top: 0;
+  margin-bottom: 0.25em;
+`;
+
+const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
+
 @observer
 class DocumentPreview extends React.Component<Props> {
   star = (ev: SyntheticEvent<*>) => {
@@ -110,14 +120,25 @@ class DocumentPreview extends React.Component<Props> {
     this.props.document.unstar();
   };
 
+  replaceResultMarks = (tag: string) => {
+    // don't use SEARCH_RESULT_REGEX here as it causes
+    // an infinite loop to trigger a regex inside it's own callback
+    return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, '$1');
+  };
+
   render() {
     const {
       document,
       showCollection,
       innerRef,
       highlight,
+      context,
       ...rest
     } = this.props;
+
+    const queryIsInTitle =
+      !!highlight &&
+      !!document.title.toLowerCase().match(highlight.toLowerCase());
 
     return (
       <DocumentLink
@@ -141,6 +162,13 @@ class DocumentPreview extends React.Component<Props> {
           )}
           <StyledDocumentMenu document={document} />
         </Heading>
+        {!queryIsInTitle && (
+          <ResultContext
+            text={context}
+            highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+            processResult={this.replaceResultMarks}
+          />
+        )}
         <PublishingInfo
           document={document}
           collection={showCollection ? document.collection : undefined}

@@ -228,7 +228,7 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].text).toEqual('# Much guidance');
+    expect(body.data[0].document.text).toEqual('# Much guidance');
   });
 
   it('should require authentication', async () => {

@@ -7,7 +7,7 @@ import invariant from 'invariant';
 import BaseStore from 'stores/BaseStore';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
-import type { PaginationParams } from 'types';
+import type { PaginationParams, SearchResult } from 'types';
 
 export const DEFAULT_PAGINATION_LIMIT = 25;
 
@@ -156,15 +156,15 @@ class DocumentsStore extends BaseStore {
   search = async (
     query: string,
     options: ?PaginationParams
-  ): Promise<string[]> => {
+  ): Promise<SearchResult[]> => {
     const res = await client.get('/documents.search', {
       ...options,
       query,
     });
-    invariant(res && res.data, 'res or res.data missing');
+    invariant(res && res.data, 'Search API response should be available');
     const { data } = res;
-    data.forEach(documentData => this.add(new Document(documentData)));
-    return data.map(documentData => documentData.id);
+    data.forEach(result => this.add(new Document(result.document)));
+    return data;
   };
 
   @action
