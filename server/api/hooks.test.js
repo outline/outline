@@ -3,7 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '..';
 import { Authentication } from '../models';
 import { flushdb, seed } from '../test/support';
-import { buildDocument } from '../test/factories';
+import { buildDocument, buildUser } from '../test/factories';
 import * as Slack from '../slack';
 
 const server = new TestServer(app.callback());
@@ -65,10 +65,31 @@ describe('#hooks.slack', async () => {
     expect(body.attachments).toEqual(undefined);
   });
 
-  it('should return search results', async () => {
-    const { user, collection } = await seed();
+  it('should return search results with summary if query is in title', async () => {
+    const user = await buildUser();
     const document = await buildDocument({
       title: 'This title contains a search term',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post('/api/hooks.slack', {
+      body: {
+        token: process.env.SLACK_VERIFICATION_TOKEN,
+        user_id: user.serviceId,
+        text: 'contains',
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.attachments.length).toEqual(1);
+    expect(body.attachments[0].title).toEqual(document.title);
+    expect(body.attachments[0].text).toEqual(document.getSummary());
+  });
+
+  it('should return search results with snippet if query is in text', async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      text: 'This title contains a search term',
       userId: user.id,
       teamId: user.teamId,
     });
@@ -86,7 +107,6 @@ describe('#hooks.slack', async () => {
     expect(body.attachments[0].text).toEqual(
       'This title *contains* a search term'
     );
-    expect(body.attachments[0].footer).toEqual(collection.name);
   });
 
   it('should error if unknown user', async () => {

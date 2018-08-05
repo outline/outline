@@ -71,7 +71,16 @@ router.post('hooks.slack', async ctx => {
   if (results.length) {
     const attachments = [];
     for (const result of results) {
-      attachments.push(presentSlackAttachment(result.document, result.context));
+      const queryIsInTitle = !!result.document.title
+        .toLowerCase()
+        .match(text.toLowerCase());
+
+      attachments.push(
+        presentSlackAttachment(
+          result.document,
+          queryIsInTitle ? undefined : result.context
+        )
+      );
     }
 
     ctx.body = {
