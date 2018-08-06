@@ -231,6 +231,12 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onClickLink = (href: string) => {
+    // on page hash
+    if (href[0] === '#') {
+      window.location.href = href;
+      return;
+    }
+
     if (isInternalUrl(href)) {
       // relative
       let navigateTo = href;
@@ -239,7 +245,7 @@ class DocumentScene extends React.Component<Props> {
       if (href[0] !== '/') {
         try {
           const url = new URL(href);
-          navigateTo = url.pathname;
+          navigateTo = url.pathname + url.hash;
         } catch (err) {
           navigateTo = href;
         }
@@ -249,6 +255,10 @@ class DocumentScene extends React.Component<Props> {
     } else {
       window.open(href, '_blank');
     }
+  };
+
+  onShowToast = (message: string) => {
+    this.props.ui.showToast(message, 'success');
   };
 
   render() {
@@ -328,6 +338,7 @@ class DocumentScene extends React.Component<Props> {
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onCancel={this.onDiscard}
+                onShowToast={this.onShowToast}
                 readOnly={!this.isEditing}
                 toc
               />
