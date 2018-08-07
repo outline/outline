@@ -545,6 +545,20 @@ describe('#documents.create', async () => {
     expect(body.data.text).toBe('# Untitled document');
   });
 
+  it('should not allow very long titles', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/documents.create', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+        title:
+          'This is a really long title that is not acceptable to Outline because it is so ridiculously long that we need to have a limit somewhere',
+        text: ' ',
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it('should create as a child and add to collection if published', async () => {
     const { user, document, collection } = await seed();
     const res = await server.post('/api/documents.create', {

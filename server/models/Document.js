@@ -83,9 +83,19 @@ const Document = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    urlId: { type: DataTypes.STRING, primaryKey: true },
-    private: { type: DataTypes.BOOLEAN, defaultValue: true },
-    title: DataTypes.STRING,
+    urlId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    title: {
+      type: DataTypes.STRING,
+      validate: {
+        len: {
+          args: [0, 100],
+          msg: 'Document title must be less than 100 characters',
+        },
+      },
+    },
     text: DataTypes.TEXT,
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     publishedAt: DataTypes.DATE,
