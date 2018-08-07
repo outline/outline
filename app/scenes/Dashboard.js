@@ -4,8 +4,8 @@ import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { NewDocumentIcon } from 'outline-icons';
 
-import NewDocumentMenu from 'menus/NewDocumentMenu';
 import DocumentsStore from 'stores/DocumentsStore';
+import NewDocumentMenu from 'menus/NewDocumentMenu';
 import Actions, { Action } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
