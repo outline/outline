@@ -15,6 +15,7 @@ import Collection from 'models/Collection';
 import Search from 'scenes/Search';
 import CollectionMenu from 'menus/CollectionMenu';
 import Actions, { Action, Separator } from 'components/Actions';
+import Heading from 'components/Heading';
 import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Button from 'components/Button';
@@ -182,15 +183,6 @@ const TinyPinIcon = styled(PinIcon)`
   position: relative;
   top: 4px;
   opacity: 0.8;
-`;
-
-const Heading = styled.h1`
-  display: flex;
-
-  svg {
-    margin-left: -6px;
-    margin-right: 6px;
-  }
 `;
 
 const Wrapper = styled(Flex)`

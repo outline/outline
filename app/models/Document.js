@@ -75,6 +75,11 @@ class Document extends BaseModel {
   }
 
   @computed
+  get isDraft(): boolean {
+    return !this.publishedAt;
+  }
+
+  @computed
   get isEmpty(): boolean {
     // Check if the document title has been modified and user generated content exists
     return this.text.replace(new RegExp(`^#$`), '').trim().length === 0;

@@ -70,11 +70,10 @@ class DocumentMenu extends React.Component<Props> {
 
   render() {
     const { document, label, className, showPrint } = this.props;
-    const isDraft = !document.publishedAt;
 
     return (
       <DropdownMenu label={label || <MoreIcon />} className={className}>
-        {!isDraft && (
+        {!document.isDraft && (
           <React.Fragment>
             {document.pinned ? (
               <DropdownMenuItem onClick={this.handleUnpin}>

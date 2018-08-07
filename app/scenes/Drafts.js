@@ -3,6 +3,7 @@ import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { NewDocumentIcon } from 'outline-icons';
 
+import Heading from 'components/Heading';
 import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Empty from 'components/Empty';
@@ -30,9 +31,9 @@ class Drafts extends React.Component<Props> {
     return (
       <CenteredContent column auto>
         <PageTitle title="Drafts" />
-        <h1>Drafts</h1>
+        <Heading>Drafts</Heading>
         {showLoading && <ListPlaceholder />}
-        {showEmpty && <Empty>No drafts yet.</Empty>}
+        {showEmpty && <Empty>You’ve not got any drafts at the moment.</Empty>}
         <DocumentList documents={drafts} showCollection />
         <Actions align="center" justify="flex-end">
           <Action>

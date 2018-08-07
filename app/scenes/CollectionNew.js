@@ -56,7 +56,7 @@ class CollectionNew extends React.Component<Props> {
     return (
       <form onSubmit={this.handleSubmit}>
         <HelpText>
-          Collections are for grouping your Outline. They work best when
+          Collections are for grouping your knowledge base. They work best when
           organized around a topic or internal team — Product or Engineering for
           example.
         </HelpText>
