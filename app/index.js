@@ -33,6 +33,7 @@ import Error404 from 'scenes/Error404';
 
 import ErrorBoundary from 'components/ErrorBoundary';
 import ScrollToTop from 'components/ScrollToTop';
+import ScrollToAnchor from 'components/ScrollToAnchor';
 import Layout from 'components/Layout';
 import Auth from 'components/Auth';
 import RouteSidebarHidden from 'components/RouteSidebarHidden';
@@ -62,84 +63,94 @@ if (element) {
           <Provider {...stores}>
             <Router>
               <ScrollToTop>
-                <Switch>
-                  <Route exact path="/" component={Home} />
-                  <Route exact path="/share/:shareId" component={Document} />
-                  <Auth>
-                    <Layout>
-                      <Switch>
-                        <Route exact path="/dashboard" component={Dashboard} />
-                        <Route exact path="/starred" component={Starred} />
-                        <Route exact path="/drafts" component={Drafts} />
-                        <Route exact path="/settings" component={Settings} />
-                        <Route
-                          exact
-                          path="/settings/details"
-                          component={Details}
-                        />
-                        <Route
-                          exact
-                          path="/settings/people"
-                          component={People}
-                        />
-                        <Route
-                          exact
-                          path="/settings/shares"
-                          component={Shares}
-                        />
-                        <Route
-                          exact
-                          path="/settings/tokens"
-                          component={Tokens}
-                        />
-                        <Route
-                          exact
-                          path="/settings/integrations/slack"
-                          component={Slack}
-                        />
-                        <Route
-                          exact
-                          path="/settings/export"
-                          component={Export}
-                        />
-                        <Route
-                          exact
-                          path="/collections/:id"
-                          component={Collection}
-                        />
-                        <Route
-                          exact
-                          path={`/d/${matchDocumentSlug}`}
-                          component={RedirectDocument}
-                        />
-                        <Route
-                          exact
-                          path={`/doc/${matchDocumentSlug}`}
-                          component={Document}
-                        />
-                        <Route
-                          exact
-                          path={`/doc/${matchDocumentSlug}/move`}
-                          component={Document}
-                        />
-                        <Route exact path="/search" component={Search} />
-                        <Route exact path="/search/:query" component={Search} />
-                        <Route path="/404" component={Error404} />
-                        <RouteSidebarHidden
-                          exact
-                          path={`/doc/${matchDocumentSlug}/edit`}
-                          component={Document}
-                        />
-                        <RouteSidebarHidden
-                          exact
-                          path="/collections/:id/new"
-                          component={DocumentNew}
-                        />
-                        <Route component={notFoundSearch} />
-                      </Switch>
-                    </Layout>
-                  </Auth>
-                </Switch>
+                <ScrollToAnchor>
+                  <Switch>
+                    <Route exact path="/" component={Home} />
+                    <Route exact path="/share/:shareId" component={Document} />
+                    <Auth>
+                      <Layout>
+                        <Switch>
+                          <Route
+                            exact
+                            path="/dashboard"
+                            component={Dashboard}
+                          />
+                          <Route exact path="/starred" component={Starred} />
+                          <Route exact path="/drafts" component={Drafts} />
+                          <Route exact path="/settings" component={Settings} />
+                          <Route
+                            exact
+                            path="/settings/details"
+                            component={Details}
+                          />
+                          <Route
+                            exact
+                            path="/settings/people"
+                            component={People}
+                          />
+                          <Route
+                            exact
+                            path="/settings/shares"
+                            component={Shares}
+                          />
+                          <Route
+                            exact
+                            path="/settings/tokens"
+                            component={Tokens}
+                          />
+                          <Route
+                            exact
+                            path="/settings/integrations/slack"
+                            component={Slack}
+                          />
+                          <Route
+                            exact
+                            path="/settings/export"
+                            component={Export}
+                          />
+                          <Route
+                            exact
+                            path="/collections/:id"
+                            component={Collection}
+                          />
+                          <Route
+                            exact
+                            path={`/d/${matchDocumentSlug}`}
+                            component={RedirectDocument}
+                          />
+                          <Route
+                            exact
+                            path={`/doc/${matchDocumentSlug}`}
+                            component={Document}
+                          />
+                          <Route
+                            exact
+                            path={`/doc/${matchDocumentSlug}/move`}
+                            component={Document}
+                          />
+                          <Route exact path="/search" component={Search} />
+                          <Route
+                            exact
+                            path="/search/:query"
+                            component={Search}
+                          />
+                          <Route path="/404" component={Error404} />
+                          <RouteSidebarHidden
+                            exact
+                            path={`/doc/${matchDocumentSlug}/edit`}
+                            component={Document}
+                          />
+                          <RouteSidebarHidden
+                            exact
+                            path="/collections/:id/new"
+                            component={DocumentNew}
+                          />
+                          <Route component={notFoundSearch} />
+                        </Switch>
+                      </Layout>
+                    </Auth>
+                  </Switch>
+                </ScrollToAnchor>
               </ScrollToTop>
             </Router>
           </Provider>
