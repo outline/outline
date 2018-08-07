@@ -10,7 +10,7 @@ import HelpText from 'components/HelpText';
 import Document from 'models/Document';
 
 type Props = {
-  document?: Document,
+  document: Document,
   onSubmit: () => *,
 };
 

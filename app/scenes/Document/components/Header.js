@@ -12,6 +12,8 @@ import { documentEditUrl, documentNewUrl } from 'utils/routeHelpers';
 import Flex from 'shared/components/Flex';
 import Breadcrumb from './Breadcrumb';
 import DocumentMenu from 'menus/DocumentMenu';
+import DocumentShare from 'scenes/DocumentShare';
+import Modal from 'components/Modal';
 import Collaborators from 'components/Collaborators';
 import { Action, Separator } from 'components/Actions';
 
@@ -34,6 +36,7 @@ type Props = {
 @observer
 class Header extends React.Component<Props> {
   @observable isScrolled = false;
+  @observable showShareModal = false;
 
   componentDidMount() {
     window.addEventListener('scroll', this.handleScroll);
@@ -65,6 +68,16 @@ class Header extends React.Component<Props> {
     this.props.onSave({ done: true, publish: true });
   };
 
+  handleShareLink = async (ev: SyntheticEvent<*>) => {
+    const { document } = this.props;
+    if (!document.shareUrl) await document.share();
+    this.showShareModal = true;
+  };
+
+  handleCloseShareModal = () => {
+    this.showShareModal = false;
+  };
+
   handleClickTitle = () => {
     window.scrollTo({
       top: 0,
@@ -89,6 +102,16 @@ class Header extends React.Component<Props> {
         readOnly={!isEditing}
         isCompact={this.isScrolled}
       >
+        <Modal
+          isOpen={this.showShareModal}
+          onRequestClose={this.handleCloseShareModal}
+          title="Share document"
+        >
+          <DocumentShare
+            document={document}
+            onSubmit={this.handleCloseShareModal}
+          />
+        </Modal>
         <Breadcrumb document={document} />
         <Title isHidden={!this.isScrolled} onClick={this.handleClickTitle}>
           {document.title}
@@ -113,6 +136,14 @@ class Header extends React.Component<Props> {
               </Link>
             </Action>
           )}
+          {!isDraft &&
+            !isEditing && (
+              <Action>
+                <Link onClick={this.handleShareLink} title="Share document">
+                  Share
+                </Link>
+              </Action>
+            )}
           {isEditing && (
             <React.Fragment>
               <Action>
