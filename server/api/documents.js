@@ -19,7 +19,7 @@ router.post('documents.list', auth(), pagination(), async ctx => {
 
   const user = ctx.state.user;
   let where = { teamId: user.teamId };
-  if (collection) where = { ...where, atlasId: collection };
+  if (collection) where = { ...where, collectionId: collection };
 
   const starredScope = { method: ['withStarred', user.id] };
   const documents = await Document.scope('defaultScope', starredScope).findAll({
@@ -49,7 +49,7 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   const documents = await Document.scope('defaultScope', starredScope).findAll({
     where: {
       teamId: user.teamId,
-      atlasId: collection,
+      collectionId: collection,
       pinnedById: {
         // $FlowFixMe
         [Op.ne]: null,
@@ -329,7 +329,7 @@ router.post('documents.create', auth(), async ctx => {
     parentDocumentObj = await Document.findOne({
       where: {
         id: parentDocument,
-        atlasId: collection.id,
+        collectionId: collection.id,
       },
     });
     authorize(user, 'read', parentDocumentObj);
@@ -337,7 +337,7 @@ router.post('documents.create', auth(), async ctx => {
 
   let document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
-    atlasId: collection.id,
+    collectionId: collection.id,
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,

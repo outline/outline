@@ -155,7 +155,10 @@ describe('#documents.list', async () => {
   it('should allow filtering by collection', async () => {
     const { user, document } = await seed();
     const res = await server.post('/api/documents.list', {
-      body: { token: user.getJwtToken(), collection: document.atlasId },
+      body: {
+        token: user.getJwtToken(),
+        collection: document.collectionId,
+      },
     });
     const body = await res.json();
 

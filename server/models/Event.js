@@ -20,6 +20,10 @@ Event.associate = models => {
     as: 'collection',
     foreignKey: 'collectionId',
   });
+  Event.belongsTo(models.Collection, {
+    as: 'document',
+    foreignKey: 'documentId',
+  });
   Event.belongsTo(models.Team, {
     as: 'team',
     foreignKey: 'teamId',
