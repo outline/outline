@@ -50,7 +50,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
 
   if (!options.isPublic) {
     data.pinned = !!document.pinnedById;
-    data.collectionId = document.atlasId;
+    data.collectionId = document.collectionId;
     data.createdBy = presentUser(ctx, document.createdBy);
     data.updatedBy = presentUser(ctx, document.updatedBy);
 

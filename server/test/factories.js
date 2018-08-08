@@ -81,9 +81,9 @@ export async function buildDocument(overrides: Object = {}) {
     overrides.userId = user.id;
   }
 
-  if (!overrides.atlasId) {
+  if (!overrides.collectionId) {
     const collection = await buildCollection(overrides);
-    overrides.atlasId = collection.id;
+    overrides.collectionId = collection.id;
   }
 
   return Document.create({
