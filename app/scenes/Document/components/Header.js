@@ -7,11 +7,12 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { NewDocumentIcon } from 'outline-icons';
 import Document from 'models/Document';
-import { documentEditUrl, documentNewUrl } from 'utils/routeHelpers';
+import { documentEditUrl } from 'utils/routeHelpers';
 
 import Flex from 'shared/components/Flex';
 import Breadcrumb from './Breadcrumb';
 import DocumentMenu from 'menus/DocumentMenu';
+import NewChildDocumentMenu from 'menus/NewChildDocumentMenu';
 import DocumentShare from 'scenes/DocumentShare';
 import Modal from 'components/Modal';
 import Collaborators from 'components/Collaborators';
@@ -51,10 +52,6 @@ class Header extends React.Component<Props> {
   };
 
   handleScroll = throttle(this.updateIsScrolled, 50);
-
-  handleNewDocument = () => {
-    this.props.history.push(documentNewUrl(this.props.document));
-  };
 
   handleEdit = () => {
     this.props.history.push(documentEditUrl(this.props.document));
@@ -181,9 +178,10 @@ class Header extends React.Component<Props> {
               <React.Fragment>
                 <Separator />
                 <Action>
-                  <a onClick={this.handleNewDocument}>
-                    <NewDocumentIcon />
-                  </a>
+                  <NewChildDocumentMenu
+                    document={document}
+                    label={<NewDocumentIcon />}
+                  />
                 </Action>
               </React.Fragment>
             )}
