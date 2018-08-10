@@ -29,10 +29,8 @@ class DocumentsStore extends BaseStore {
 
   ui: UiStore;
 
-  /* Computed */
-
   @computed
-  get recentlyViewed(): Array<Document> {
+  get recentlyViewed(): Document[] {
     const docs = [];
     this.recentlyViewedIds.forEach(id => {
       const doc = this.getById(id);
@@ -49,6 +47,17 @@ class DocumentsStore extends BaseStore {
       if (doc) docs.push(doc);
     });
     return docs;
+  }
+
+  owned(userId: string): Document[] {
+    return _.orderBy(
+      _.filter(
+        this.data.values(),
+        document => document.createdBy.id === userId
+      ),
+      'updatedAt',
+      'desc'
+    );
   }
 
   pinnedInCollection(collectionId: string): Document[] {
@@ -150,6 +159,11 @@ class DocumentsStore extends BaseStore {
   @action
   fetchPinned = async (options: ?PaginationParams): Promise<*> => {
     await this.fetchPage('pinned', options);
+  };
+
+  @action
+  fetchOwned = async (options: ?PaginationParams): Promise<*> => {
+    await this.fetchPage('owned', options);
   };
 
   @action

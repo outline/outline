@@ -24,7 +24,13 @@ type Props = {
 };
 
 function PublishingInfo({ collection, document }: Props) {
-  const { modifiedSinceViewed, updatedAt, updatedBy, publishedAt } = document;
+  const {
+    modifiedSinceViewed,
+    updatedAt,
+    updatedBy,
+    publishedAt,
+    isDraft,
+  } = document;
 
   return (
     <Container align="center">
@@ -35,20 +41,20 @@ function PublishingInfo({ collection, document }: Props) {
       ) : (
         <React.Fragment>
           {updatedBy.name}
-          {publishedAt ? (
-            <Modified highlight={modifiedSinceViewed}>
-              &nbsp;modified <Time dateTime={updatedAt} /> ago
-            </Modified>
-          ) : (
+          {isDraft ? (
             <span>
               &nbsp;saved <Time dateTime={updatedAt} /> ago
             </span>
+          ) : (
+            <Modified highlight={modifiedSinceViewed}>
+              &nbsp;modified <Time dateTime={updatedAt} /> ago
+            </Modified>
           )}
         </React.Fragment>
       )}
       {collection && (
         <span>
-          &nbsp;in <strong>{collection.name}</strong>
+          &nbsp;in <strong>{isDraft ? 'Drafts' : collection.name}</strong>
         </span>
       )}
     </Container>

@@ -1,20 +1,25 @@
 // @flow
 import * as React from 'react';
+import { Switch, Route } from 'react-router-dom';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { NewDocumentIcon } from 'outline-icons';
 
 import DocumentsStore from 'stores/DocumentsStore';
+import AuthStore from 'stores/AuthStore';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
 import Actions, { Action } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
 import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import Subheading from 'components/Subheading';
+import Tabs from 'components/Tabs';
+import Tab from 'components/Tab';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 type Props = {
   documents: DocumentsStore,
+  auth: AuthStore,
 };
 
 @observer
@@ -27,16 +32,20 @@ class Dashboard extends React.Component<Props> {
 
   loadContent = async () => {
     await Promise.all([
-      this.props.documents.fetchRecentlyModified({ limit: 5 }),
-      this.props.documents.fetchRecentlyViewed({ limit: 5 }),
+      this.props.documents.fetchRecentlyModified({ limit: 15 }),
+      this.props.documents.fetchRecentlyViewed({ limit: 15 }),
     ]);
     this.isLoaded = true;
   };
 
   render() {
-    const { documents } = this.props;
+    const { documents, auth } = this.props;
+    if (!auth.user) return;
+
     const hasRecentlyViewed = documents.recentlyViewed.length > 0;
     const hasRecentlyEdited = documents.recentlyEdited.length > 0;
+
+    const owned = documents.owned(auth.user.id);
     const showContent =
       this.isLoaded || (hasRecentlyViewed && hasRecentlyEdited);
 
@@ -44,28 +53,34 @@ class Dashboard extends React.Component<Props> {
       <CenteredContent>
         <PageTitle title="Home" />
         <h1>Home</h1>
+        <Tabs>
+          <Tab to="/dashboard" exact>
+            Recently edited
+          </Tab>
+          <Tab to="/dashboard/recent" exact>
+            Recently viewed
+          </Tab>
+          <Tab to="/dashboard/owned">Created by me</Tab>
+        </Tabs>
         {showContent ? (
           <React.Fragment>
-            {hasRecentlyViewed && (
-              <React.Fragment>
-                <Subheading key="viewed">Recently viewed</Subheading>
+            <Switch>
+              <Route path="/dashboard/recent">
                 <DocumentList
-                  key="viewedDocuments"
                   documents={documents.recentlyViewed}
                   showCollection
                 />
-              </React.Fragment>
-            )}
-            {hasRecentlyEdited && (
-              <React.Fragment>
-                <Subheading key="edited">Recently edited</Subheading>
+              </Route>
+              <Route path="/dashboard/owned">
+                <DocumentList documents={owned} showCollection />
+              </Route>
+              <Route path="/dashboard">
                 <DocumentList
-                  key="editedDocuments"
                   documents={documents.recentlyEdited}
                   showCollection
                 />
-              </React.Fragment>
-            )}
+              </Route>
+            </Switch>
             <Actions align="center" justify="flex-end">
               <Action>
                 <NewDocumentMenu label={<NewDocumentIcon />} />
@@ -80,4 +95,4 @@ class Dashboard extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(Dashboard);
+export default inject('documents', 'auth')(Dashboard);
