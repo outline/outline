@@ -31,10 +31,11 @@ function PublishingInfo({ collection, document }: Props) {
     publishedAt,
     isDraft,
   } = document;
+  const neverUpdated = publishedAt === updatedAt;
 
   return (
     <Container align="center">
-      {publishedAt && publishedAt === updatedAt ? (
+      {publishedAt && neverUpdated ? (
         <span>
           {updatedBy.name} published <Time dateTime={publishedAt} /> ago
         </span>

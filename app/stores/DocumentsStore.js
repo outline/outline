@@ -163,7 +163,7 @@ class DocumentsStore extends BaseStore {
 
   @action
   fetchOwned = async (options: ?PaginationParams): Promise<*> => {
-    await this.fetchPage('owned', options);
+    await this.fetchPage('list', options);
   };
 
   @action
