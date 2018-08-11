@@ -59,6 +59,7 @@ class Slack extends React.Component<Props> {
             <SlackButton
               scopes={['commands', 'links:read', 'links:write']}
               redirectUri={`${BASE_URL}/auth/slack.commands`}
+              state=""
             />
           )}
         </p>

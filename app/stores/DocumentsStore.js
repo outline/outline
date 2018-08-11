@@ -1,7 +1,7 @@
 // @flow
 import { observable, action, computed, ObservableMap, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
-import _ from 'lodash';
+import { map, find, orderBy, filter, uniq } from 'lodash';
 import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
@@ -50,26 +50,23 @@ class DocumentsStore extends BaseStore {
   }
 
   createdByUser(userId: string): Document[] {
-    return _.orderBy(
-      _.filter(
-        this.data.values(),
-        document => document.createdBy.id === userId
-      ),
+    return orderBy(
+      filter(this.data.values(), document => document.createdBy.id === userId),
       'updatedAt',
       'desc'
     );
   }
 
   pinnedInCollection(collectionId: string): Document[] {
-    return _.filter(
+    return filter(
       this.recentlyEditedInCollection(collectionId),
       document => document.pinned
     );
   }
 
   recentlyEditedInCollection(collectionId: string): Document[] {
-    return _.orderBy(
-      _.filter(
+    return orderBy(
+      filter(
         this.data.values(),
         document =>
           document.collectionId === collectionId && !!document.publishedAt
@@ -81,13 +78,13 @@ class DocumentsStore extends BaseStore {
 
   @computed
   get starred(): Document[] {
-    return _.filter(this.data.values(), 'starred');
+    return filter(this.data.values(), 'starred');
   }
 
   @computed
   get drafts(): Document[] {
-    return _.filter(
-      _.orderBy(this.data.values(), 'updatedAt', 'desc'),
+    return filter(
+      orderBy(this.data.values(), 'updatedAt', 'desc'),
       doc => !doc.publishedAt
     );
   }
@@ -131,7 +128,9 @@ class DocumentsStore extends BaseStore {
     const data = await this.fetchPage('list', options);
 
     runInAction('DocumentsStore#fetchRecentlyEdited', () => {
-      this.recentlyEditedIds = _.map(data, 'id');
+      this.recentlyEditedIds = uniq(
+        map(data, 'id').concat(this.recentlyEditedIds)
+      );
     });
     return data;
   };
@@ -141,7 +140,9 @@ class DocumentsStore extends BaseStore {
     const data = await this.fetchPage('viewed', options);
 
     runInAction('DocumentsStore#fetchRecentlyViewed', () => {
-      this.recentlyViewedIds = _.map(data, 'id');
+      this.recentlyViewedIds = uniq(
+        map(data, 'id').concat(this.recentlyViewedIds)
+      );
     });
     return data;
   };
@@ -258,7 +259,7 @@ class DocumentsStore extends BaseStore {
    * Match documents by the url ID as the title slug can change
    */
   getByUrl = (url: string): ?Document => {
-    return _.find(this.data.values(), doc => url.endsWith(doc.urlId));
+    return find(this.data.values(), doc => url.endsWith(doc.urlId));
   };
 
   constructor(options: Options) {

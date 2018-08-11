@@ -1,6 +1,5 @@
 // @flow
-
-export function toCodePoint(unicodeSurrogates, sep) {
+export function toCodePoint(unicodeSurrogates: string, sep: ?string) {
   var r = [],
     c = 0,
     p = 0,
@@ -19,6 +18,6 @@ export function toCodePoint(unicodeSurrogates, sep) {
   return r.join(sep || '-');
 }
 
-export function emojiToUrl(string: text) {
-  return `https://twemoji.maxcdn.com/2/72x72/${toCodePoint(string)}.png`;
+export function emojiToUrl(text: string) {
+  return `https://twemoji.maxcdn.com/2/72x72/${toCodePoint(text)}.png`;
 }
