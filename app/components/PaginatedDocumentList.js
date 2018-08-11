@@ -37,7 +37,11 @@ class PaginatedDocumentList extends React.Component<Props> {
     this.isFetching = true;
 
     const limit = DEFAULT_PAGINATION_LIMIT;
-    const results = await this.props.fetch({ limit, ...this.props.options });
+    const results = await this.props.fetch({
+      limit,
+      offset: this.offset,
+      ...this.props.options,
+    });
 
     if (
       results &&
