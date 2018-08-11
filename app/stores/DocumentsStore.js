@@ -21,18 +21,16 @@ type FetchOptions = {
 };
 
 class DocumentsStore extends BaseStore {
-  @observable recentlyViewedIds: Array<string> = [];
-  @observable recentlyEditedIds: Array<string> = [];
+  @observable recentlyViewedIds: string[] = [];
+  @observable recentlyEditedIds: string[] = [];
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
 
   ui: UiStore;
 
-  /* Computed */
-
   @computed
-  get recentlyViewed(): Array<Document> {
+  get recentlyViewed(): Document[] {
     const docs = [];
     this.recentlyViewedIds.forEach(id => {
       const doc = this.getById(id);
@@ -49,6 +47,17 @@ class DocumentsStore extends BaseStore {
       if (doc) docs.push(doc);
     });
     return docs;
+  }
+
+  createdByUser(userId: string): Document[] {
+    return _.orderBy(
+      _.filter(
+        this.data.values(),
+        document => document.createdBy.id === userId
+      ),
+      'updatedAt',
+      'desc'
+    );
   }
 
   pinnedInCollection(collectionId: string): Document[] {
@@ -118,10 +127,10 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
-  fetchRecentlyModified = async (options: ?PaginationParams): Promise<*> => {
+  fetchRecentlyEdited = async (options: ?PaginationParams): Promise<*> => {
     const data = await this.fetchPage('list', options);
 
-    runInAction('DocumentsStore#fetchRecentlyModified', () => {
+    runInAction('DocumentsStore#fetchRecentlyEdited', () => {
       this.recentlyEditedIds = _.map(data, 'id');
     });
     return data;
@@ -138,18 +147,23 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
-  fetchStarred = async (options: ?PaginationParams): Promise<*> => {
-    await this.fetchPage('starred', options);
+  fetchStarred = (options: ?PaginationParams): Promise<*> => {
+    return this.fetchPage('starred', options);
   };
 
   @action
-  fetchDrafts = async (options: ?PaginationParams): Promise<*> => {
-    await this.fetchPage('drafts', options);
+  fetchDrafts = (options: ?PaginationParams): Promise<*> => {
+    return this.fetchPage('drafts', options);
   };
 
   @action
-  fetchPinned = async (options: ?PaginationParams): Promise<*> => {
-    await this.fetchPage('pinned', options);
+  fetchPinned = (options: ?PaginationParams): Promise<*> => {
+    return this.fetchPage('pinned', options);
+  };
+
+  @action
+  fetchOwned = (options: ?PaginationParams): Promise<*> => {
+    return this.fetchPage('list', options);
   };
 
   @action
@@ -261,11 +275,11 @@ class DocumentsStore extends BaseStore {
 
     // Re-fetch dashboard content so that we don't show deleted documents
     this.on('collections.delete', () => {
-      this.fetchRecentlyModified();
+      this.fetchRecentlyEdited();
       this.fetchRecentlyViewed();
     });
     this.on('documents.delete', () => {
-      this.fetchRecentlyModified();
+      this.fetchRecentlyEdited();
       this.fetchRecentlyViewed();
     });
   }

@@ -14,14 +14,14 @@ const { authorize, cannot } = policy;
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction, collection } = ctx.body;
+  let { sort = 'updatedAt', direction, collection, user } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
 
-  const user = ctx.state.user;
-  let where = { teamId: user.teamId };
+  let where = { teamId: ctx.state.user.teamId };
   if (collection) where = { ...where, collectionId: collection };
+  if (user) where = { ...where, createdById: user };
 
-  const starredScope = { method: ['withStarred', user.id] };
+  const starredScope = { method: ['withStarred', ctx.state.user.id] };
   const documents = await Document.scope('defaultScope', starredScope).findAll({
     where,
     order: [[sort, direction]],

@@ -52,6 +52,7 @@ type Props = {
   iconColor?: string,
   active?: boolean,
   theme: Object,
+  exact?: boolean,
 };
 
 @observer
@@ -100,6 +101,7 @@ class SidebarLink extends React.Component<Props> {
       menu,
       menuOpen,
       hideExpandToggle,
+      exact,
     } = this.props;
     const Component = to ? StyledNavLink : StyledDiv;
     const showExpandIcon =
@@ -113,7 +115,7 @@ class SidebarLink extends React.Component<Props> {
           style={active ? this.activeStyle : undefined}
           onClick={onClick}
           to={to}
-          exact
+          exact={exact !== false}
         >
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {showExpandIcon && (

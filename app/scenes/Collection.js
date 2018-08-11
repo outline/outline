@@ -61,7 +61,7 @@ class CollectionScene extends React.Component<Props> {
       this.collection = collection;
 
       await Promise.all([
-        this.props.documents.fetchRecentlyModified({
+        this.props.documents.fetchRecentlyEdited({
           limit: 10,
           collection: id,
         }),
