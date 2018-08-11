@@ -91,7 +91,7 @@
     "copy-to-clipboard": "^3.0.6",
     "css-loader": "^0.28.7",
     "date-fns": "1.29.0",
-    "debug": "2.2.0",
+    "debug": "2.6.9",
     "dotenv": "^4.0.0",
     "emoji-regex": "^6.5.1",
     "exports-loader": "^0.6.4",
