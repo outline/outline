@@ -102,7 +102,7 @@ class DocumentsStore extends BaseStore {
   fetchPage = async (
     request: string = 'list',
     options: ?PaginationParams
-  ): Promise<*> => {
+  ): Promise<?(Document[])> => {
     this.isFetching = true;
 
     try {
@@ -128,8 +128,8 @@ class DocumentsStore extends BaseStore {
     const data = await this.fetchPage('list', options);
 
     runInAction('DocumentsStore#fetchRecentlyEdited', () => {
-      this.recentlyEditedIds = uniq(
-        map(data, 'id').concat(this.recentlyEditedIds)
+      this.recentlyEditedIds.replace(
+        uniq(this.recentlyEditedIds.concat(map(data, 'id')))
       );
     });
     return data;
@@ -140,8 +140,8 @@ class DocumentsStore extends BaseStore {
     const data = await this.fetchPage('viewed', options);
 
     runInAction('DocumentsStore#fetchRecentlyViewed', () => {
-      this.recentlyViewedIds = uniq(
-        map(data, 'id').concat(this.recentlyViewedIds)
+      this.recentlyViewedIds.replace(
+        uniq(this.recentlyViewedIds.concat(map(data, 'id')))
       );
     });
     return data;
