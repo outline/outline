@@ -21,8 +21,8 @@ type FetchOptions = {
 };
 
 class DocumentsStore extends BaseStore {
-  @observable recentlyViewedIds: Array<string> = [];
-  @observable recentlyEditedIds: Array<string> = [];
+  @observable recentlyViewedIds: string[] = [];
+  @observable recentlyEditedIds: string[] = [];
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
@@ -49,7 +49,7 @@ class DocumentsStore extends BaseStore {
     return docs;
   }
 
-  owned(userId: string): Document[] {
+  createdByUser(userId: string): Document[] {
     return _.orderBy(
       _.filter(
         this.data.values(),
@@ -127,10 +127,10 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
-  fetchRecentlyModified = async (options: ?PaginationParams): Promise<*> => {
+  fetchRecentlyEdited = async (options: ?PaginationParams): Promise<*> => {
     const data = await this.fetchPage('list', options);
 
-    runInAction('DocumentsStore#fetchRecentlyModified', () => {
+    runInAction('DocumentsStore#fetchRecentlyEdited', () => {
       this.recentlyEditedIds = _.map(data, 'id');
     });
     return data;
@@ -147,23 +147,23 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
-  fetchStarred = async (options: ?PaginationParams): Promise<*> => {
-    await this.fetchPage('starred', options);
+  fetchStarred = (options: ?PaginationParams): Promise<*> => {
+    return this.fetchPage('starred', options);
   };
 
   @action
-  fetchDrafts = async (options: ?PaginationParams): Promise<*> => {
-    await this.fetchPage('drafts', options);
+  fetchDrafts = (options: ?PaginationParams): Promise<*> => {
+    return this.fetchPage('drafts', options);
   };
 
   @action
-  fetchPinned = async (options: ?PaginationParams): Promise<*> => {
-    await this.fetchPage('pinned', options);
+  fetchPinned = (options: ?PaginationParams): Promise<*> => {
+    return this.fetchPage('pinned', options);
   };
 
   @action
-  fetchOwned = async (options: ?PaginationParams): Promise<*> => {
-    await this.fetchPage('list', options);
+  fetchOwned = (options: ?PaginationParams): Promise<*> => {
+    return this.fetchPage('list', options);
   };
 
   @action
@@ -275,11 +275,11 @@ class DocumentsStore extends BaseStore {
 
     // Re-fetch dashboard content so that we don't show deleted documents
     this.on('collections.delete', () => {
-      this.fetchRecentlyModified();
+      this.fetchRecentlyEdited();
       this.fetchRecentlyViewed();
     });
     this.on('documents.delete', () => {
-      this.fetchRecentlyModified();
+      this.fetchRecentlyEdited();
       this.fetchRecentlyViewed();
     });
   }

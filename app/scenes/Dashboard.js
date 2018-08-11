@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import { Switch, Route } from 'react-router-dom';
-import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { NewDocumentIcon } from 'outline-icons';
 
@@ -10,11 +9,10 @@ import AuthStore from 'stores/AuthStore';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
 import Actions, { Action } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
-import DocumentList from 'components/DocumentList';
 import PageTitle from 'components/PageTitle';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
-import { ListPlaceholder } from 'components/LoadingPlaceholder';
+import PaginatedDocumentList from '../components/PaginatedDocumentList';
 
 type Props = {
   documents: DocumentsStore,
@@ -23,41 +21,10 @@ type Props = {
 
 @observer
 class Dashboard extends React.Component<Props> {
-  @observable isLoaded: boolean = false;
-
-  componentDidMount() {
-    this.loadContent();
-  }
-
-  loadContent = async () => {
-    const { auth } = this.props;
-    const user = auth.user ? auth.user.id : undefined;
-
-    await Promise.all([
-      this.props.documents.fetchRecentlyModified({ limit: 15 }),
-      this.props.documents.fetchRecentlyViewed({ limit: 15 }),
-      this.props.documents.fetchOwned({ limit: 15, user }),
-    ]);
-    this.isLoaded = true;
-  };
-
-  renderTab = (path, documents) => {
-    return (
-      <Route path={path}>
-        {this.isLoaded || documents.length ? (
-          <DocumentList documents={documents} showCollection />
-        ) : (
-          <ListPlaceholder count={5} />
-        )}
-      </Route>
-    );
-  };
-
   render() {
     const { documents, auth } = this.props;
     if (!auth.user) return;
-
-    const createdDocuments = documents.owned(auth.user.id);
+    const user = auth.user.id;
 
     return (
       <CenteredContent>
@@ -73,9 +40,27 @@ class Dashboard extends React.Component<Props> {
           <Tab to="/dashboard/created">Created by me</Tab>
         </Tabs>
         <Switch>
-          {this.renderTab('/dashboard/recent', documents.recentlyViewed)}
-          {this.renderTab('/dashboard/created', createdDocuments)}
-          {this.renderTab('/dashboard', documents.recentlyEdited)}
+          <Route path="/dashboard/recent">
+            <PaginatedDocumentList
+              key="recent"
+              documents={documents.recentlyViewed}
+              fetch={documents.fetchRecentlyViewed}
+            />
+          </Route>
+          <Route path="/dashboard/created">
+            <PaginatedDocumentList
+              key="created"
+              documents={documents.createdByUser(user)}
+              fetch={documents.fetchOwned}
+              options={{ user }}
+            />
+          </Route>
+          <Route path="/dashboard">
+            <PaginatedDocumentList
+              documents={documents.recentlyEdited}
+              fetch={documents.fetchRecentlyEdited}
+            />
+          </Route>
         </Switch>
         <Actions align="center" justify="flex-end">
           <Action>

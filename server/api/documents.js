@@ -19,7 +19,7 @@ router.post('documents.list', auth(), pagination(), async ctx => {
 
   let where = { teamId: ctx.state.user.teamId };
   if (collection) where = { ...where, collectionId: collection };
-  if (user) where = { ...where, userId: collection };
+  if (user) where = { ...where, createdById: user };
 
   const starredScope = { method: ['withStarred', ctx.state.user.id] };
   const documents = await Document.scope('defaultScope', starredScope).findAll({
