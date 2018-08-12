@@ -9,10 +9,11 @@ const RealTextarea = styled.textarea`
   padding: 8px 12px;
   outline: none;
   background: none;
+  color: ${props => props.theme.text};
 
   &:disabled,
   &::placeholder {
-    color: ${props => props.theme.slate};
+    color: ${props => props.theme.placeholder};
   }
 `;
 
@@ -22,10 +23,11 @@ const RealInput = styled.input`
   padding: 8px 12px;
   outline: none;
   background: none;
+  color: ${props => props.theme.text};
 
   &:disabled,
   &::placeholder {
-    color: ${props => props.theme.slate};
+    color: ${props => props.theme.placeholder};
   }
 `;
 

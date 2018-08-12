@@ -73,7 +73,7 @@ const StyledModal = styled(ReactModal)`
   align-items: flex-start;
   overflow-x: hidden;
   overflow-y: auto;
-  background: white;
+  background: ${props => props.theme.background};
   padding: 13vh 2rem 2rem;
   outline: none;
 `;

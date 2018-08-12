@@ -99,7 +99,7 @@ const Title = styled(Highlight)`
 
 const ResultContext = styled(Highlight)`
   display: block;
-  color: ${props => props.theme.slateDark};
+  color: ${props => props.theme.textSecondary};
   font-size: 14px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;

@@ -56,7 +56,7 @@ const Container = styled(Flex)`
   bottom: 0;
   left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
   width: 100%;
-  background: ${props => props.theme.smoke};
+  background: ${props => props.theme.sidebarBackground};
   transition: left 100ms ease-out;
   margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
   z-index: 2;
@@ -69,7 +69,7 @@ const Container = styled(Flex)`
   &:before,
   &:after {
     content: '';
-    background: ${props => props.theme.smoke};
+    background: ${props => props.theme.sidebarBackground};
     position: absolute;
     top: -50vh;
     left: 0;

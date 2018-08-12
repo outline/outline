@@ -28,7 +28,7 @@ const StyledNavLink = styled(NavLink)`
   text-overflow: ellipsis;
   padding: 4px 0;
   margin-left: ${({ icon }) => (icon ? '-20px;' : '0')};
-  color: ${props => props.theme.slateDark};
+  color: ${props => props.theme.text};
   font-size: 15px;
   cursor: pointer;
 
@@ -64,7 +64,7 @@ class SidebarLink extends React.Component<Props> {
     super(props);
 
     this.activeStyle = {
-      color: props.theme.black,
+      color: props.theme.text,
       fontWeight: 500,
     };
   }
@@ -135,7 +135,7 @@ const Action = styled.span`
   position: absolute;
   right: 0;
   top: 2px;
-  color: ${props => props.theme.slate};
+  color: ${props => props.theme.textSecondary};
   svg {
     opacity: 0.75;
   }

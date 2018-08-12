@@ -35,7 +35,7 @@ export default `
   }
 
   a {
-    color: ${theme.blue};
+    color: ${theme.primary};
     text-decoration: none;
     cursor: pointer;
   }

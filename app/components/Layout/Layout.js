@@ -106,6 +106,7 @@ class Layout extends React.Component<Props> {
 }
 
 const Container = styled(Flex)`
+  background: ${props => props.theme.background};
   position: relative;
   width: 100%;
   height: 100%;

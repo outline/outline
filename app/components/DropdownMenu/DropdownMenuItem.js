@@ -22,8 +22,7 @@ const MenuItem = styled.a`
   padding: 6px 12px;
   height: 32px;
 
-  color: ${props =>
-    props.disabled ? props.theme.slate : props.theme.slateDark};
+  color: ${props => (props.disabled ? props.theme.greyMid : props.theme.text)};
   justify-content: left;
   align-items: center;
   font-size: 15px;

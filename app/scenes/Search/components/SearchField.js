@@ -30,7 +30,7 @@ class SearchField extends React.Component<Props> {
         <StyledIcon
           type="Search"
           size={46}
-          color={this.props.theme.slateLight}
+          color={this.props.theme.textSecondary}
           onClick={this.focusInput}
         />
         <StyledInput
@@ -53,18 +53,20 @@ const StyledInput = styled.input`
   font-weight: 400;
   outline: none;
   border: 0;
+  background: none;
+  color: ${props => props.theme.text};
 
   ::-webkit-input-placeholder {
-    color: ${props => props.theme.slateLight};
+    color: ${props => props.theme.placeholder};
   }
   :-moz-placeholder {
-    color: ${props => props.theme.slateLight};
+    color: ${props => props.theme.placeholder};
   }
   ::-moz-placeholder {
-    color: ${props => props.theme.slateLight};
+    color: ${props => props.theme.placeholder};
   }
   :-ms-input-placeholder {
-    color: ${props => props.theme.slateLight};
+    color: ${props => props.theme.placeholder};
   }
 `;
 

@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { Block, Change, Node, Mark, Text } from 'slate';
 import RichMarkdownEditor, { Placeholder, schema } from 'rich-markdown-editor';
 import ClickablePadding from 'components/ClickablePadding';
+import theme from 'shared/styles/theme';
 
 type Props = {
   titlePlaceholder: string,
@@ -75,6 +76,7 @@ class Editor extends React.Component<Props> {
           innerRef={this.setEditorRef}
           renderPlaceholder={this.renderPlaceholder}
           schema={schema}
+          theme={theme}
           {...this.props}
         />
         <ClickablePadding
