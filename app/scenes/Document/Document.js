@@ -194,16 +194,18 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  onChange = text => {
+  onChange = debounce(getText => {
     let document = this.document;
     if (!document) return;
+
+    const text = getText();
     if (document.text.trim() === text.trim()) return;
     document.updateData({ text }, true);
 
     // prevent autosave before anything has been written
     if (!document.title && !document.id) return;
     this.autosave();
-  };
+  }, 250);
 
   onDiscard = () => {
     let url;
