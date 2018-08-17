@@ -347,7 +347,6 @@ class DocumentScene extends React.Component<Props> {
                 onCancel={this.onDiscard}
                 onShowToast={this.onShowToast}
                 readOnly={!this.isEditing}
-                autoFocus={!document.text}
                 toc
               />
             </MaxWidth>
