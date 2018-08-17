@@ -165,7 +165,7 @@ class DocumentScene extends React.Component<Props> {
   ) => {
     let document = this.document;
     if (!document) return;
-    
+
     // get the latest version of the editor text value
     const text = this.getEditorText();
 
