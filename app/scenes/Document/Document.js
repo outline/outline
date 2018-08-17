@@ -61,6 +61,7 @@ type Props = {
 class DocumentScene extends React.Component<Props> {
   savedTimeout: TimeoutID;
   viewTimeout: TimeoutID;
+  getEditorText: () => string;
 
   @observable editorComponent;
   @observable editCache: ?string;
@@ -163,7 +164,19 @@ class DocumentScene extends React.Component<Props> {
     options: { done?: boolean, publish?: boolean, autosave?: boolean } = {}
   ) => {
     let document = this.document;
-    if (!document || !document.allowSave) return;
+    if (!document) return;
+    
+    // get the latest version of the editor text value
+    const text = this.getEditorText();
+
+    // prevent autosave if nothing has changed
+    if (options.autosave && document.text.trim() === text.trim()) return;
+
+    document.updateData({ text }, true);
+    if (!document.allowSave) return;
+
+    // prevent autosave before anything has been written
+    if (options.autosave && !document.title && !document.id) return;
 
     let isNew = !document.id;
     this.editCache = null;
@@ -182,7 +195,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  autosave = debounce(async () => {
+  autosave = debounce(() => {
     this.onSave({ done: false, autosave: true });
   }, AUTOSAVE_INTERVAL);
 
@@ -194,18 +207,10 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  onChange = debounce(getText => {
-    let document = this.document;
-    if (!document) return;
-
-    const text = getText();
-    if (document.text.trim() === text.trim()) return;
-    document.updateData({ text }, true);
-
-    // prevent autosave before anything has been written
-    if (!document.title && !document.id) return;
+  onChange = getEditorText => {
+    this.getEditorText = getEditorText;
     this.autosave();
-  }, 250);
+  };
 
   onDiscard = () => {
     let url;
@@ -342,6 +347,7 @@ class DocumentScene extends React.Component<Props> {
                 onCancel={this.onDiscard}
                 onShowToast={this.onShowToast}
                 readOnly={!this.isEditing}
+                autoFocus={!document.text}
                 toc
               />
             </MaxWidth>
