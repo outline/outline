@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
+import { Link } from 'react-router-dom';
 import SharesStore from 'stores/SharesStore';
+import AuthStore from 'stores/AuthStore';
 
 import ShareListItem from './components/ShareListItem';
 import List from 'components/List';
@@ -11,6 +13,7 @@ import HelpText from 'components/HelpText';
 
 type Props = {
   shares: SharesStore,
+  auth: AuthStore,
 };
 
 @observer
@@ -20,7 +23,9 @@ class Shares extends React.Component<Props> {
   }
 
   render() {
-    const { shares } = this.props;
+    const { shares, auth } = this.props;
+    const { user } = auth;
+    const canShareDocuments = auth.team && auth.team.sharing;
 
     return (
       <CenteredContent>
@@ -31,7 +36,16 @@ class Shares extends React.Component<Props> {
           can access a read-only version of the document until the link has been
           revoked.
         </HelpText>
-
+        {user &&
+          user.isAdmin && (
+            <HelpText>
+              {!canShareDocuments && (
+                <strong>Sharing is currently disabled.</strong>
+              )}{' '}
+              You can turn {canShareDocuments ? 'off' : 'on'} public document
+              sharing in <Link to="/settings/security">security settings</Link>.
+            </HelpText>
+          )}
         <List>
           {shares.orderedData.map(share => (
             <ShareListItem key={share.id} share={share} />
@@ -42,4 +56,4 @@ class Shares extends React.Component<Props> {
   }
 }
 
-export default inject('shares')(Shares);
+export default inject('shares', 'auth')(Shares);

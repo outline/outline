@@ -6,11 +6,13 @@ import { MoreIcon } from 'outline-icons';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
+import AuthStore from 'stores/AuthStore';
 import { documentMoveUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
   ui: UiStore,
+  auth: AuthStore,
   label?: React.Node,
   history: Object,
   document: Document,
@@ -69,7 +71,8 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    const { document, label, className, showPrint } = this.props;
+    const { document, label, className, showPrint, auth } = this.props;
+    const canShareDocuments = auth.team && auth.team.sharing;
 
     return (
       <DropdownMenu label={label || <MoreIcon />} className={className}>
@@ -91,12 +94,14 @@ class DocumentMenu extends React.Component<Props> {
                 Star
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem
-              onClick={this.handleShareLink}
-              title="Create a public share link"
-            >
-              Share link…
-            </DropdownMenuItem>
+            {canShareDocuments && (
+              <DropdownMenuItem
+                onClick={this.handleShareLink}
+                title="Create a public share link"
+              >
+                Share link…
+              </DropdownMenuItem>
+            )}
             <hr />
             <DropdownMenuItem
               onClick={this.handleNewChild}
@@ -123,4 +128,4 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('ui')(DocumentMenu));
+export default withRouter(inject('ui', 'auth')(DocumentMenu));

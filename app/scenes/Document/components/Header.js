@@ -2,11 +2,12 @@
 import * as React from 'react';
 import { throttle } from 'lodash';
 import { observable } from 'mobx';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { NewDocumentIcon } from 'outline-icons';
 import Document from 'models/Document';
+import AuthStore from 'stores/AuthStore';
 import { documentEditUrl } from 'utils/routeHelpers';
 
 import Flex from 'shared/components/Flex';
@@ -32,6 +33,7 @@ type Props = {
     autosave?: boolean,
   }) => *,
   history: Object,
+  auth: AuthStore,
 };
 
 @observer
@@ -90,7 +92,9 @@ class Header extends React.Component<Props> {
       isPublishing,
       isSaving,
       savingIsDisabled,
+      auth,
     } = this.props;
+    const canShareDocuments = auth.team && auth.team.sharing;
 
     return (
       <Actions
@@ -134,7 +138,8 @@ class Header extends React.Component<Props> {
             </Action>
           )}
           {!isDraft &&
-            !isEditing && (
+            !isEditing &&
+            canShareDocuments && (
               <Action>
                 <Link onClick={this.handleShareLink} title="Share document">
                   Share
@@ -251,4 +256,4 @@ const Link = styled.a`
   cursor: ${props => (props.disabled ? 'default' : 'pointer')};
 `;
 
-export default Header;
+export default inject('auth')(Header);

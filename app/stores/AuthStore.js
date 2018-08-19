@@ -78,7 +78,11 @@ class AuthStore {
   };
 
   @action
-  updateTeam = async (params: { name: string, avatarUrl: ?string }) => {
+  updateTeam = async (params: {
+    name?: string,
+    avatarUrl?: ?string,
+    sharing?: boolean,
+  }) => {
     this.isSaving = true;
 
     try {

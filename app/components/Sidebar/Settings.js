@@ -5,6 +5,7 @@ import {
   DocumentIcon,
   ProfileIcon,
   SettingsIcon,
+  PadlockIcon,
   CodeIcon,
   UserIcon,
   LinkIcon,
@@ -59,6 +60,11 @@ class SettingsSidebar extends React.Component<Props> {
               {user.isAdmin && (
                 <SidebarLink to="/settings/details" icon={<TeamIcon />}>
                   Details
+                </SidebarLink>
+              )}
+              {user.isAdmin && (
+                <SidebarLink to="/settings/security" icon={<PadlockIcon />}>
+                  Security
                 </SidebarLink>
               )}
               <SidebarLink to="/settings/people" icon={<UserIcon />}>
