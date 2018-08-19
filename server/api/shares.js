@@ -18,12 +18,13 @@ router.post('shares.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
   const where = {
     teamId: user.teamId,
-    userId: user.id,
     // $FlowFixMe
     revokedAt: { [Op.eq]: null },
   };
 
-  if (user.isAdmin) delete where.userId;
+  if (!user.isAdmin) {
+    where.userId = user.id;
+  }
 
   const shares = await Share.findAll({
     where,

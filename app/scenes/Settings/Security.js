@@ -62,11 +62,11 @@ class Security extends React.Component<Props> {
 
         <form onSubmit={this.handleSubmit} ref={ref => (this.form = ref)}>
           <Checkbox
-            label="Allow public document sharing"
+            label="Allow sharing documents"
             name="sharing"
             checked={this.sharing}
             onChange={this.handleChange}
-            note="When enabled all documents can be publicly shared by any team member"
+            note="When enabled documents can be shared publicly by any team member"
           />
           <Button type="submit" disabled={isSaving || !this.isValid}>
             {isSaving ? 'Saving…' : 'Save'}

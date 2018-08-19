@@ -11,7 +11,7 @@ const theme = {
   placeholder: '#b1becc',
   danger: '#D0021B',
   warning: '#f08a24',
-  success: '#1AB6FF',
+  success: '#2f3336',
   info: '#a0d3e8',
 
   slate: '#9BA6B2',
