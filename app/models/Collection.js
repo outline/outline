@@ -11,7 +11,6 @@ import type { NavigationNode } from 'types';
 
 class Collection extends BaseModel {
   isSaving: boolean = false;
-  hasPendingChanges: boolean = false;
   ui: UiStore;
   data: Object;
 
@@ -109,7 +108,6 @@ class Collection extends BaseModel {
       runInAction('Collection#save', () => {
         invariant(res && res.data, 'Data should be available');
         this.updateData(res.data);
-        this.hasPendingChanges = false;
       });
     } catch (e) {
       this.ui.showToast('Collection failed saving');

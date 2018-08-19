@@ -20,6 +20,7 @@ import { Action, Separator } from 'components/Actions';
 
 type Props = {
   document: Document,
+  isDirty: boolean,
   isDraft: boolean,
   isEditing: boolean,
   isSaving: boolean,
@@ -87,6 +88,7 @@ class Header extends React.Component<Props> {
       document,
       isEditing,
       isDraft,
+      isDirty,
       isPublishing,
       isSaving,
       savingIsDisabled,
@@ -161,13 +163,6 @@ class Header extends React.Component<Props> {
               <Link onClick={this.handleEdit}>Edit</Link>
             </Action>
           )}
-          {isEditing &&
-            !isSaving &&
-            document.hasPendingChanges && (
-              <Action>
-                <Link onClick={this.props.onDiscard}>Discard</Link>
-              </Action>
-            )}
           {!isEditing && (
             <Action>
               <DocumentMenu document={document} showPrint />

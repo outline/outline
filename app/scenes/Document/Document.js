@@ -70,6 +70,7 @@ class DocumentScene extends React.Component<Props> {
   @observable isUploading = false;
   @observable isSaving = false;
   @observable isPublishing = false;
+  @observable isDirty = false;
   @observable notFound = false;
   @observable moveModalOpen: boolean = false;
 
@@ -117,6 +118,7 @@ class DocumentScene extends React.Component<Props> {
         props.match.params.documentSlug,
         { shareId }
       );
+      this.isDirty = false;
 
       const document = this.document;
 
@@ -167,7 +169,7 @@ class DocumentScene extends React.Component<Props> {
     if (!document) return;
 
     // get the latest version of the editor text value
-    const text = this.getEditorText();
+    const text = this.getEditorText ? this.getEditorText() : document.text;
 
     // prevent autosave if nothing has changed
     if (options.autosave && document.text.trim() === text.trim()) return;
@@ -183,6 +185,7 @@ class DocumentScene extends React.Component<Props> {
     this.isSaving = true;
     this.isPublishing = !!options.publish;
     document = await document.save(options);
+    this.isDirty = false;
     this.isSaving = false;
     this.isPublishing = false;
 
@@ -199,6 +202,10 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ done: false, autosave: true });
   }, AUTOSAVE_INTERVAL);
 
+  updateIsDirty = debounce(() => {
+    this.isDirty = this.getEditorText().trim() !== this.document.text.trim();
+  }, 500);
+
   onImageUploadStart = () => {
     this.isUploading = true;
   };
@@ -209,6 +216,7 @@ class DocumentScene extends React.Component<Props> {
 
   onChange = getEditorText => {
     this.getEditorText = getEditorText;
+    this.updateIsDirty();
     this.autosave();
   };
 
@@ -312,7 +320,7 @@ class DocumentScene extends React.Component<Props> {
             {this.isEditing && (
               <React.Fragment>
                 <Prompt
-                  when={document.hasPendingChanges}
+                  when={this.isDirty}
                   message={DISCARD_CHANGES}
                 />
                 <Prompt when={this.isUploading} message={UPLOADING_WARNING} />
@@ -322,6 +330,7 @@ class DocumentScene extends React.Component<Props> {
               <Header
                 document={document}
                 isDraft={document.isDraft}
+                isDirty={this.isDirty}
                 isEditing={this.isEditing}
                 isSaving={this.isSaving}
                 isPublishing={this.isPublishing}
