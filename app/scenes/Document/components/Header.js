@@ -20,7 +20,6 @@ import { Action, Separator } from 'components/Actions';
 
 type Props = {
   document: Document,
-  isDirty: boolean,
   isDraft: boolean,
   isEditing: boolean,
   isSaving: boolean,
@@ -88,7 +87,6 @@ class Header extends React.Component<Props> {
       document,
       isEditing,
       isDraft,
-      isDirty,
       isPublishing,
       isSaving,
       savingIsDisabled,

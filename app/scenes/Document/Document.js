@@ -36,7 +36,8 @@ import Search from 'scenes/Search';
 import Error404 from 'scenes/Error404';
 import ErrorOffline from 'scenes/ErrorOffline';
 
-const AUTOSAVE_INTERVAL = 3000;
+const AUTOSAVE_DELAY = 3000;
+const IS_DIRTY_DELAY = 500;
 const MARK_AS_VIEWED_AFTER = 3000;
 const DISCARD_CHANGES = `
 You have unsaved changes.
@@ -59,7 +60,6 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  savedTimeout: TimeoutID;
   viewTimeout: TimeoutID;
   getEditorText: () => string;
 
@@ -85,14 +85,13 @@ class DocumentScene extends React.Component<Props> {
       this.props.match.params.documentSlug
     ) {
       this.notFound = false;
+      clearTimeout(this.viewTimeout);
       this.loadDocument(nextProps);
     }
   }
 
   componentWillUnmount() {
-    clearTimeout(this.savedTimeout);
     clearTimeout(this.viewTimeout);
-
     this.props.ui.clearActiveDocument();
   }
 
@@ -200,11 +199,11 @@ class DocumentScene extends React.Component<Props> {
 
   autosave = debounce(() => {
     this.onSave({ done: false, autosave: true });
-  }, AUTOSAVE_INTERVAL);
+  }, AUTOSAVE_DELAY);
 
   updateIsDirty = debounce(() => {
     this.isDirty = this.getEditorText().trim() !== this.document.text.trim();
-  }, 500);
+  }, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
     this.isUploading = true;
@@ -319,10 +318,7 @@ class DocumentScene extends React.Component<Props> {
           <Container justify="center" column auto>
             {this.isEditing && (
               <React.Fragment>
-                <Prompt
-                  when={this.isDirty}
-                  message={DISCARD_CHANGES}
-                />
+                <Prompt when={this.isDirty} message={DISCARD_CHANGES} />
                 <Prompt when={this.isUploading} message={UPLOADING_WARNING} />
               </React.Fragment>
             )}
@@ -330,7 +326,6 @@ class DocumentScene extends React.Component<Props> {
               <Header
                 document={document}
                 isDraft={document.isDraft}
-                isDirty={this.isDirty}
                 isEditing={this.isEditing}
                 isSaving={this.isSaving}
                 isPublishing={this.isPublishing}
