@@ -64,7 +64,6 @@ class DocumentScene extends React.Component<Props> {
   getEditorText: () => string;
 
   @observable editorComponent;
-  @observable editCache: ?string;
   @observable document: ?Document;
   @observable newDocument: ?Document;
   @observable isUploading = false;
@@ -124,9 +123,6 @@ class DocumentScene extends React.Component<Props> {
       if (document) {
         this.props.ui.setActiveDocument(document);
 
-        // Cache data if user enters edit mode and cancels
-        this.editCache = document.text;
-
         if (this.props.auth.user && !shareId) {
           if (!this.isEditing && document.publishedAt) {
             this.viewTimeout = setTimeout(document.view, MARK_AS_VIEWED_AFTER);
@@ -180,7 +176,6 @@ class DocumentScene extends React.Component<Props> {
     if (options.autosave && !document.title && !document.id) return;
 
     let isNew = !document.id;
-    this.editCache = null;
     this.isSaving = true;
     this.isPublishing = !!options.publish;
     document = await document.save(options);
@@ -223,7 +218,6 @@ class DocumentScene extends React.Component<Props> {
     let url;
     if (this.document && this.document.url) {
       url = this.document.url;
-      if (this.editCache) this.document.updateData({ text: this.editCache });
     } else {
       url = collectionUrl(this.props.match.params.id);
     }
