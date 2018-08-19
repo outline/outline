@@ -41,8 +41,18 @@ schema.document.normalize = (
 class Editor extends React.Component<Props> {
   editor: *;
 
+  componentDidMount() {
+    if (!this.props.defaultValue) {
+      this.focusAtStart();
+    }
+  }
+
   setEditorRef = (ref: RichMarkdownEditor) => {
     this.editor = ref;
+  };
+
+  focusAtStart = () => {
+    if (this.editor) this.editor.focusAtStart();
   };
 
   focusAtEnd = () => {

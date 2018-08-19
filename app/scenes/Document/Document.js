@@ -36,7 +36,8 @@ import Search from 'scenes/Search';
 import Error404 from 'scenes/Error404';
 import ErrorOffline from 'scenes/ErrorOffline';
 
-const AUTOSAVE_INTERVAL = 3000;
+const AUTOSAVE_DELAY = 3000;
+const IS_DIRTY_DELAY = 500;
 const MARK_AS_VIEWED_AFTER = 3000;
 const DISCARD_CHANGES = `
 You have unsaved changes.
@@ -59,16 +60,16 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  savedTimeout: TimeoutID;
   viewTimeout: TimeoutID;
+  getEditorText: () => string;
 
   @observable editorComponent;
-  @observable editCache: ?string;
   @observable document: ?Document;
   @observable newDocument: ?Document;
   @observable isUploading = false;
   @observable isSaving = false;
   @observable isPublishing = false;
+  @observable isDirty = false;
   @observable notFound = false;
   @observable moveModalOpen: boolean = false;
 
@@ -83,14 +84,13 @@ class DocumentScene extends React.Component<Props> {
       this.props.match.params.documentSlug
     ) {
       this.notFound = false;
+      clearTimeout(this.viewTimeout);
       this.loadDocument(nextProps);
     }
   }
 
   componentWillUnmount() {
-    clearTimeout(this.savedTimeout);
     clearTimeout(this.viewTimeout);
-
     this.props.ui.clearActiveDocument();
   }
 
@@ -116,14 +116,12 @@ class DocumentScene extends React.Component<Props> {
         props.match.params.documentSlug,
         { shareId }
       );
+      this.isDirty = false;
 
       const document = this.document;
 
       if (document) {
         this.props.ui.setActiveDocument(document);
-
-        // Cache data if user enters edit mode and cancels
-        this.editCache = document.text;
 
         if (this.props.auth.user && !shareId) {
           if (!this.isEditing && document.publishedAt) {
@@ -163,13 +161,25 @@ class DocumentScene extends React.Component<Props> {
     options: { done?: boolean, publish?: boolean, autosave?: boolean } = {}
   ) => {
     let document = this.document;
-    if (!document || !document.allowSave) return;
+    if (!document) return;
+
+    // get the latest version of the editor text value
+    const text = this.getEditorText ? this.getEditorText() : document.text;
+
+    // prevent autosave if nothing has changed
+    if (options.autosave && document.text.trim() === text.trim()) return;
+
+    document.updateData({ text }, true);
+    if (!document.allowSave) return;
+
+    // prevent autosave before anything has been written
+    if (options.autosave && !document.title && !document.id) return;
 
     let isNew = !document.id;
-    this.editCache = null;
     this.isSaving = true;
     this.isPublishing = !!options.publish;
     document = await document.save(options);
+    this.isDirty = false;
     this.isSaving = false;
     this.isPublishing = false;
 
@@ -182,9 +192,13 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  autosave = debounce(async () => {
+  autosave = debounce(() => {
     this.onSave({ done: false, autosave: true });
-  }, AUTOSAVE_INTERVAL);
+  }, AUTOSAVE_DELAY);
+
+  updateIsDirty = debounce(() => {
+    this.isDirty = this.getEditorText().trim() !== this.document.text.trim();
+  }, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
     this.isUploading = true;
@@ -194,14 +208,9 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  onChange = text => {
-    let document = this.document;
-    if (!document) return;
-    if (document.text.trim() === text.trim()) return;
-    document.updateData({ text }, true);
-
-    // prevent autosave before anything has been written
-    if (!document.title && !document.id) return;
+  onChange = getEditorText => {
+    this.getEditorText = getEditorText;
+    this.updateIsDirty();
     this.autosave();
   };
 
@@ -209,7 +218,6 @@ class DocumentScene extends React.Component<Props> {
     let url;
     if (this.document && this.document.url) {
       url = this.document.url;
-      if (this.editCache) this.document.updateData({ text: this.editCache });
     } else {
       url = collectionUrl(this.props.match.params.id);
     }
@@ -304,10 +312,7 @@ class DocumentScene extends React.Component<Props> {
           <Container justify="center" column auto>
             {this.isEditing && (
               <React.Fragment>
-                <Prompt
-                  when={document.hasPendingChanges}
-                  message={DISCARD_CHANGES}
-                />
+                <Prompt when={this.isDirty} message={DISCARD_CHANGES} />
                 <Prompt when={this.isUploading} message={UPLOADING_WARNING} />
               </React.Fragment>
             )}

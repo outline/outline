@@ -161,13 +161,6 @@ class Header extends React.Component<Props> {
               <Link onClick={this.handleEdit}>Edit</Link>
             </Action>
           )}
-          {isEditing &&
-            !isSaving &&
-            document.hasPendingChanges && (
-              <Action>
-                <Link onClick={this.props.onDiscard}>Discard</Link>
-              </Action>
-            )}
           {!isEditing && (
             <Action>
               <DocumentMenu document={document} showPrint />

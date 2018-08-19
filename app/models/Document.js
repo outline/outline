@@ -15,7 +15,6 @@ type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
 class Document extends BaseModel {
   isSaving: boolean = false;
-  hasPendingChanges: boolean = false;
   ui: *;
   store: *;
 
@@ -209,7 +208,6 @@ class Document extends BaseModel {
       runInAction('Document#save', () => {
         invariant(res && res.data, 'Data should be available');
         this.updateData(res.data);
-        this.hasPendingChanges = false;
 
         if (isCreating) {
           this.emit('documents.create', this);
@@ -288,13 +286,12 @@ class Document extends BaseModel {
     a.click();
   };
 
-  updateData(data: Object = {}, dirty: boolean = false) {
+  updateData(data: Object = {}) {
     if (data.text) {
       const { title, emoji } = parseTitle(data.text);
       data.title = title;
       data.emoji = emoji;
     }
-    if (dirty) this.hasPendingChanges = true;
     extendObservable(this, data);
   }
 
