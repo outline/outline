@@ -18,6 +18,7 @@ router.post('shares.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
   const where = {
     teamId: user.teamId,
+    userId: undefined,
     // $FlowFixMe
     revokedAt: { [Op.eq]: null },
   };

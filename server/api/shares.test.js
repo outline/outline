@@ -128,7 +128,6 @@ describe('#shares.create', async () => {
     const res = await server.post('/api/shares.create', {
       body: { token: user.getJwtToken(), documentId: document.id },
     });
-    const body = await res.json();
     expect(res.status).toEqual(403);
   });
 
