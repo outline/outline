@@ -44,7 +44,7 @@ class Details extends React.Component<Props> {
       name: this.name,
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast('Details saved', 'success');
+    this.props.ui.showToast('Settings saved', 'success');
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {

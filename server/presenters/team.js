@@ -11,6 +11,7 @@ function present(ctx: Object, team: Team) {
       team.avatarUrl || (team.slackData ? team.slackData.image_88 : null),
     slackConnected: !!team.slackId,
     googleConnected: !!team.googleId,
+    sharing: team.sharing,
   };
 }
 
