@@ -39,7 +39,10 @@ class Shares extends React.Component<Props> {
         {user &&
           user.isAdmin && (
             <HelpText>
-              {!canShareDocuments && <strong>Sharing is currently disabled.</strong>} You can turn {canShareDocuments ? 'off' : 'on'} public document
+              {!canShareDocuments && (
+                <strong>Sharing is currently disabled.</strong>
+              )}{' '}
+              You can turn {canShareDocuments ? 'off' : 'on'} public document
               sharing in <Link to="/settings/security">security settings</Link>.
             </HelpText>
           )}

@@ -94,12 +94,14 @@ class DocumentMenu extends React.Component<Props> {
                 Star
               </DropdownMenuItem>
             )}
-            {canShareDocuments && <DropdownMenuItem
-              onClick={this.handleShareLink}
-              title="Create a public share link"
-            >
-              Share link…
-            </DropdownMenuItem>}
+            {canShareDocuments && (
+              <DropdownMenuItem
+                onClick={this.handleShareLink}
+                title="Create a public share link"
+              >
+                Share link…
+              </DropdownMenuItem>
+            )}
             <hr />
             <DropdownMenuItem
               onClick={this.handleNewChild}
