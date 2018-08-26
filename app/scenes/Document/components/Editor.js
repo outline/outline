@@ -8,6 +8,7 @@ import ClickablePadding from 'components/ClickablePadding';
 type Props = {
   titlePlaceholder: string,
   bodyPlaceholder: string,
+  defaultValue?: string,
   readOnly: boolean,
 };
 

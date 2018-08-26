@@ -128,6 +128,7 @@ class DocumentsStore extends BaseStore {
     const data = await this.fetchPage('list', options);
 
     runInAction('DocumentsStore#fetchRecentlyEdited', () => {
+      // $FlowFixMe
       this.recentlyEditedIds.replace(
         uniq(this.recentlyEditedIds.concat(map(data, 'id')))
       );
@@ -140,6 +141,7 @@ class DocumentsStore extends BaseStore {
     const data = await this.fetchPage('viewed', options);
 
     runInAction('DocumentsStore#fetchRecentlyViewed', () => {
+      // $FlowFixMe
       this.recentlyViewedIds.replace(
         uniq(this.recentlyViewedIds.concat(map(data, 'id')))
       );

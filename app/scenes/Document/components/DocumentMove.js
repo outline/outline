@@ -12,8 +12,8 @@ import styled from 'styled-components';
 import Modal from 'components/Modal';
 import Input from 'components/Input';
 import Labeled from 'components/Labeled';
+import PathToDocument from 'components/PathToDocument';
 import Flex from 'shared/components/Flex';
-import PathToDocument from './components/PathToDocument';
 
 import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';

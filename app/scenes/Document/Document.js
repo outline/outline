@@ -169,7 +169,7 @@ class DocumentScene extends React.Component<Props> {
     // prevent autosave if nothing has changed
     if (options.autosave && document.text.trim() === text.trim()) return;
 
-    document.updateData({ text }, true);
+    document.updateData({ text });
     if (!document.allowSave) return;
 
     // prevent autosave before anything has been written
@@ -197,7 +197,10 @@ class DocumentScene extends React.Component<Props> {
   }, AUTOSAVE_DELAY);
 
   updateIsDirty = debounce(() => {
-    this.isDirty = this.getEditorText().trim() !== this.document.text.trim();
+    const document = this.document;
+
+    this.isDirty =
+      document && this.getEditorText().trim() !== document.text.trim();
   }, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
