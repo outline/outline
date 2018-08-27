@@ -45,6 +45,7 @@ class Dashboard extends React.Component<Props> {
               key="recent"
               documents={documents.recentlyViewed}
               fetch={documents.fetchRecentlyViewed}
+              showCollection
             />
           </Route>
           <Route path="/dashboard/created">
@@ -53,12 +54,14 @@ class Dashboard extends React.Component<Props> {
               documents={documents.createdByUser(user)}
               fetch={documents.fetchOwned}
               options={{ user }}
+              showCollection
             />
           </Route>
           <Route path="/dashboard">
             <PaginatedDocumentList
               documents={documents.recentlyEdited}
               fetch={documents.fetchRecentlyEdited}
+              showCollection
             />
           </Route>
         </Switch>
