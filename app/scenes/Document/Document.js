@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Prompt } from 'react-router-dom';
+import { withRouter, Prompt, Route } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
@@ -13,9 +13,10 @@ import {
   collectionUrl,
   updateDocumentUrl,
   documentMoveUrl,
+  documentHistoryUrl,
   documentEditUrl,
   matchDocumentEdit,
-  matchDocumentMove,
+  matchDocumentSlug,
 } from 'utils/routeHelpers';
 import { uploadFile } from 'utils/uploadFile';
 import { emojiToUrl } from 'utils/emoji';
@@ -23,11 +24,12 @@ import isInternalUrl from 'utils/isInternalUrl';
 
 import Document from 'models/Document';
 import Header from './components/Header';
-import DocumentMove from './components/DocumentMove';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import ErrorBoundary from 'components/ErrorBoundary';
+import DocumentMove from './components/DocumentMove';
+import DocumentHistory from './components/DocumentHistory';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
@@ -65,6 +67,7 @@ class DocumentScene extends React.Component<Props> {
 
   @observable editorComponent;
   @observable document: ?Document;
+  @observable revision: ?Document;
   @observable newDocument: ?Document;
   @observable isUploading = false;
   @observable isSaving = false;
@@ -81,7 +84,8 @@ class DocumentScene extends React.Component<Props> {
   componentWillReceiveProps(nextProps) {
     if (
       nextProps.match.params.documentSlug !==
-      this.props.match.params.documentSlug
+        this.props.match.params.documentSlug ||
+      this.props.match.params.revisionId !== nextProps.match.params.revisionId
     ) {
       this.notFound = false;
       clearTimeout(this.viewTimeout);
@@ -100,6 +104,13 @@ class DocumentScene extends React.Component<Props> {
     if (this.document) this.props.history.push(documentMoveUrl(this.document));
   }
 
+  @keydown('h')
+  goToHistory(ev) {
+    ev.preventDefault();
+    if (this.document)
+      this.props.history.push(documentHistoryUrl(this.document));
+  }
+
   loadDocument = async props => {
     if (props.newDocument) {
       this.document = new Document({
@@ -111,11 +122,17 @@ class DocumentScene extends React.Component<Props> {
         text: '',
       });
     } else {
-      const { shareId } = props.match.params;
+      const { shareId, revisionId } = props.match.params;
+
       this.document = await this.props.documents.fetch(
         props.match.params.documentSlug,
         { shareId }
       );
+
+      if (revisionId) {
+        this.revision = await this.props.revisions.getById(revisionId);
+      }
+
       this.isDirty = false;
 
       const document = this.document;
@@ -129,9 +146,9 @@ class DocumentScene extends React.Component<Props> {
           }
 
           // Update url to match the current one
-          this.props.history.replace(
-            updateDocumentUrl(props.match.url, document.url)
-          );
+          // this.props.history.replace(
+          //   updateDocumentUrl(props.match.url, document.url)
+          // );
         }
       } else {
         // Render 404 with search
@@ -275,8 +292,8 @@ class DocumentScene extends React.Component<Props> {
   render() {
     const { location, match } = this.props;
     const Editor = this.editorComponent;
-    const isMoving = match.path === matchDocumentMove;
     const document = this.document;
+    const revision = this.revision;
     const isShare = match.params.shareId;
 
     if (this.notFound) {
@@ -304,8 +321,15 @@ class DocumentScene extends React.Component<Props> {
 
     return (
       <ErrorBoundary>
-        <Container key={document.id} isShare={isShare} column auto>
-          {isMoving && <DocumentMove document={document} />}
+        <Container
+          key={revision ? revision.id : document.id}
+          isShare={isShare}
+          auto
+        >
+          <Route
+            path={`${match.url}/move`}
+            component={() => <DocumentMove document={document} />}
+          />
           <PageTitle
             title={document.title.replace(document.emoji, '')}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
@@ -336,7 +360,7 @@ class DocumentScene extends React.Component<Props> {
               <Editor
                 titlePlaceholder="Start with a title…"
                 bodyPlaceholder="…the rest is your canvas"
-                defaultValue={document.text}
+                defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
                 uploadImage={this.onUploadImage}
                 onImageUploadStart={this.onImageUploadStart}
@@ -352,6 +376,11 @@ class DocumentScene extends React.Component<Props> {
               />
             </MaxWidth>
           </Container>
+
+          <Route
+            path={`/doc/${matchDocumentSlug}/history`}
+            component={() => <DocumentHistory document={document} />}
+          />
         </Container>
       </ErrorBoundary>
     );
@@ -380,4 +409,6 @@ const LoadingState = styled(LoadingPlaceholder)`
   margin: 40px 0;
 `;
 
-export default withRouter(inject('ui', 'auth', 'documents')(DocumentScene));
+export default withRouter(
+  inject('ui', 'auth', 'documents', 'revisions')(DocumentScene)
+);

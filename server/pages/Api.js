@@ -584,7 +584,13 @@ export default function Pricing() {
               Return revisions for a document. Upon each edit, a new revision is
               stored.
             </Description>
-            <Arguments pagination />
+            <Arguments pagination>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+            </Arguments>
           </Method>
 
           <Method method="team.users" label="List team's users">
