@@ -24,12 +24,9 @@ import isInternalUrl from 'utils/isInternalUrl';
 
 import Document from 'models/Document';
 import Header from './components/Header';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import ErrorBoundary from 'components/ErrorBoundary';
 import DocumentMove from './components/DocumentMove';
-import DocumentHistory from './components/DocumentHistory';
+import ErrorBoundary from 'components/ErrorBoundary';
+import DocumentHistory from 'components/DocumentHistory';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
@@ -37,6 +34,10 @@ import PageTitle from 'components/PageTitle';
 import Search from 'scenes/Search';
 import Error404 from 'scenes/Error404';
 import ErrorOffline from 'scenes/ErrorOffline';
+
+import UiStore from 'stores/UiStore';
+import AuthStore from 'stores/AuthStore';
+import DocumentsStore from 'stores/DocumentsStore';
 
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
@@ -323,7 +324,9 @@ class DocumentScene extends React.Component<Props> {
       <ErrorBoundary>
         <Container
           key={revision ? revision.id : document.id}
+          sidebar={match.url.match(/history/)}
           isShare={isShare}
+          column
           auto
         >
           <Route
@@ -372,14 +375,16 @@ class DocumentScene extends React.Component<Props> {
                 onCancel={this.onDiscard}
                 onShowToast={this.onShowToast}
                 readOnly={!this.isEditing}
-                toc
+                toc={!revision}
               />
             </MaxWidth>
           </Container>
 
           <Route
             path={`/doc/${matchDocumentSlug}/history`}
-            component={() => <DocumentHistory document={document} />}
+            component={() => (
+              <DocumentHistory revision={revision} document={document} />
+            )}
           />
         </Container>
       </ErrorBoundary>
@@ -403,6 +408,7 @@ const MaxWidth = styled(Flex)`
 const Container = styled(Flex)`
   position: relative;
   margin-top: ${props => (props.isShare ? '50px' : '0')};
+  margin-right: ${props => (props.sidebar ? props.theme.sidebarWidth : 0)};
 `;
 
 const LoadingState = styled(LoadingPlaceholder)`
