@@ -418,6 +418,63 @@ describe('#documents.pin', async () => {
   });
 });
 
+describe('#documents.restore', async () => {
+  it('should restore the document to a previous version', async () => {
+    const { user, document } = await seed();
+    const revision = await Revision.findOne({
+      where: { documentId: document.id },
+    });
+    const previousText = revision.text;
+    const revisionId = revision.id;
+
+    // update the document contents
+    document.text = 'UPDATED';
+    await document.save();
+
+    const res = await server.post('/api/documents.restore', {
+      body: { token: user.getJwtToken(), id: document.id, revisionId },
+    });
+    const body = await res.json();
+    expect(body.data.text).toEqual(previousText);
+  });
+
+  it('should not allow restoring a revision in another document', async () => {
+    const { user, document } = await seed();
+    const anotherDoc = await buildDocument();
+    const revision = await Revision.findOne({
+      where: { documentId: anotherDoc.id },
+    });
+    const revisionId = revision.id;
+
+    const res = await server.post('/api/documents.restore', {
+      body: { token: user.getJwtToken(), id: document.id, revisionId },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.restore');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const revision = await Revision.findOne({
+      where: { documentId: document.id },
+    });
+    const revisionId = revision.id;
+
+    const user = await buildUser();
+    const res = await server.post('/api/documents.restore', {
+      body: { token: user.getJwtToken(), id: document.id, revisionId },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe('#documents.unpin', async () => {
   it('should unpin the document', async () => {
     const { user, document } = await seed();
