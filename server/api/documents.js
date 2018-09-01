@@ -220,6 +220,27 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('documents.restore', auth(), async ctx => {
+  const { id, revisionId } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(revisionId, 'revisionId is required');
+
+  const user = ctx.state.user;
+  const document = await Document.findById(id);
+  authorize(user, 'update', document);
+
+  const revision = await Revision.findById(revisionId);
+  authorize(document, 'restore', revision);
+
+  document.text = revision.text;
+  document.title = revision.title;
+  await document.save();
+
+  ctx.body = {
+    data: await presentDocument(ctx, document),
+  };
+});
+
 router.post('documents.search', auth(), pagination(), async ctx => {
   const { query } = ctx.body;
   const { offset, limit } = ctx.state.pagination;

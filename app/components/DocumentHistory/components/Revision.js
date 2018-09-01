@@ -30,6 +30,7 @@ export default class Revision extends React.Component<*> {
 }
 
 const StyledNavLink = styled(NavLink)`
+  display: block;
   padding: 16px;
   font-size: 15px;
 `;

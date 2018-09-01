@@ -28,7 +28,11 @@ const slugify = text =>
   });
 
 const createRevision = (doc, options = {}) => {
+  // we don't create revisions for autosaves
   if (options.autosave) return;
+
+  // we don't create revisions if identical to previous
+  if (doc.text === doc.previous('text')) return;
 
   return Revision.create({
     title: doc.title,
@@ -54,20 +58,9 @@ const beforeSave = async doc => {
     doc.text = doc.text.replace(/^.*$/m, `# ${DEFAULT_TITLE}`);
   }
 
-  // calculate collaborators
-  let ids = [];
-  if (doc.id) {
-    ids = await Revision.findAll({
-      attributes: [[DataTypes.literal('DISTINCT "userId"'), 'userId']],
-      where: {
-        documentId: doc.id,
-      },
-    }).map(rev => rev.userId);
-  }
-
-  // add the current user as revision hasn't been generated yet
-  ids.push(doc.lastModifiedById);
-  doc.collaboratorIds = uniq(ids);
+  // add the current user as a collaborator on this doc
+  if (!doc.collaboratorIds) doc.collaboratorIds = [];
+  doc.collaboratorIds = uniq(doc.collaboratorIds.concat(doc.lastModifiedById));
 
   // increment revision
   doc.revisionCount += 1;

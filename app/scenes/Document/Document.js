@@ -38,6 +38,7 @@ import ErrorOffline from 'scenes/ErrorOffline';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import RevisionsStore from 'stores/RevisionsStore';
 
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
@@ -56,6 +57,7 @@ type Props = {
   history: Object,
   location: Location,
   documents: DocumentsStore,
+  revisions: RevisionsStore,
   newDocument?: boolean,
   auth: AuthStore,
   ui: UiStore,
@@ -108,8 +110,13 @@ class DocumentScene extends React.Component<Props> {
   @keydown('h')
   goToHistory(ev) {
     ev.preventDefault();
-    if (this.document)
+    if (!this.document) return;
+
+    if (this.revision) {
+      this.props.history.push(this.document.url);
+    } else {
       this.props.history.push(documentHistoryUrl(this.document));
+    }
   }
 
   loadDocument = async props => {
@@ -132,6 +139,8 @@ class DocumentScene extends React.Component<Props> {
 
       if (revisionId) {
         this.revision = await this.props.revisions.getById(revisionId);
+      } else {
+        this.revision = undefined;
       }
 
       this.isDirty = false;

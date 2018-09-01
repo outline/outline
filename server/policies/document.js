@@ -1,6 +1,6 @@
 // @flow
 import policy from './policy';
-import { Document, User } from '../models';
+import { Document, Revision, User } from '../models';
 
 const { allow } = policy;
 
@@ -11,4 +11,11 @@ allow(
   ['read', 'update', 'delete', 'share'],
   Document,
   (user, document) => user.teamId === document.teamId
+);
+
+allow(
+  Document,
+  'restore',
+  Revision,
+  (document, revision) => document.id === revision.documentId
 );

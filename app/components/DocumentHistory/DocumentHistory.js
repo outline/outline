@@ -1,10 +1,13 @@
 // @flow
 import * as React from 'react';
+import { withRouter } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
+import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import Flex from 'shared/components/Flex';
 import Revision from './components/Revision';
+import { documentHistoryUrl } from 'utils/routeHelpers';
 
 import Document from 'models/Document';
 import RevisionsStore from 'stores/RevisionsStore';
@@ -14,28 +17,44 @@ type Props = {
   document: Document,
   revisions: RevisionsStore,
   revision?: Object,
+  history: Object,
 };
 
 @observer
 class DocumentHistory extends React.Component<Props> {
-  componentDidMount() {
-    this.props.revisions.fetchPage({ id: this.props.document.id });
+  async componentDidMount() {
+    await this.props.revisions.fetchPage({ id: this.props.document.id });
+    this.selectFirstRevision();
+  }
+
+  selectFirstRevision = () => {
+    const revisions = this.revisions;
+    if (revisions.length && !this.props.revision) {
+      this.props.history.replace(
+        documentHistoryUrl(this.props.document, this.revisions[0].id)
+      );
+    }
+  };
+
+  get revisions() {
+    return this.props.revisions.getDocumentRevisions(this.props.document.id);
   }
 
   render() {
-    const revisions = this.props.revisions.getDocumentRevisions(
-      this.props.document.id
-    );
-
     return (
       <Wrapper column>
-        {revisions.map(revision => (
-          <Revision
-            key={revision.id}
-            revision={revision}
-            document={this.props.document}
-          />
-        ))}
+        <ArrowKeyNavigation
+          mode={ArrowKeyNavigation.mode.VERTICAL}
+          defaultActiveChildIndex={0}
+        >
+          {this.revisions.map(revision => (
+            <Revision
+              key={revision.id}
+              revision={revision}
+              document={this.props.document}
+            />
+          ))}
+        </ArrowKeyNavigation>
       </Wrapper>
     );
   }
@@ -52,4 +71,4 @@ const Wrapper = styled(Flex)`
   overflow: scroll;
 `;
 
-export default inject('documents', 'revisions')(DocumentHistory);
+export default withRouter(inject('documents', 'revisions')(DocumentHistory));
