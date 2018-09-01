@@ -494,6 +494,28 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
+          <Method
+            method="documents.restore"
+            label="Restore a previous revision"
+          >
+            <Description>
+              Restores a document to a previous revision by creating a new
+              revision with the contents of the given revisionId.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+              <Argument
+                id="revisionId"
+                description="Revision ID to restore to"
+                required
+              />
+            </Arguments>
+          </Method>
+
           <Method method="documents.pin" label="Pin a document">
             <Description>
               Pins a document to the collection home. The pinned document is
