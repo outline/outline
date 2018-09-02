@@ -5,8 +5,6 @@ import { orderBy, filter } from 'lodash';
 import invariant from 'invariant';
 import BaseStore from './BaseStore';
 import UiStore from './UiStore';
-
-import Document from 'models/Document';
 import type { Revision, PaginationParams } from 'types';
 
 class RevisionsStore extends BaseStore {
@@ -35,7 +33,7 @@ class RevisionsStore extends BaseStore {
       const { data } = res;
       runInAction('RevisionsStore#fetchPage', () => {
         data.forEach(revision => {
-          this.data.set(revision.id, new Document(revision));
+          this.data.set(revision.id, revision);
         });
         this.isLoaded = true;
       });

@@ -5,6 +5,7 @@ import styled from 'styled-components';
 
 import Time from 'shared/components/Time';
 import Avatar from 'components/Avatar';
+import RevisionMenu from 'menus/RevisionMenu';
 
 import { documentHistoryUrl } from 'utils/routeHelpers';
 
@@ -24,6 +25,7 @@ export default class Revision extends React.Component<*> {
         <Meta>
           <Time dateTime={revision.createdAt} /> ago
         </Meta>
+        <RevisionMenu document={document} revision={revision} />
       </StyledNavLink>
     );
   }

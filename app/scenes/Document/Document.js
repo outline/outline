@@ -16,11 +16,11 @@ import {
   documentHistoryUrl,
   documentEditUrl,
   matchDocumentEdit,
-  matchDocumentSlug,
 } from 'utils/routeHelpers';
 import { uploadFile } from 'utils/uploadFile';
 import { emojiToUrl } from 'utils/emoji';
 import isInternalUrl from 'utils/isInternalUrl';
+import type { Revision } from 'types';
 
 import Document from 'models/Document';
 import Header from './components/Header';
@@ -70,7 +70,7 @@ class DocumentScene extends React.Component<Props> {
 
   @observable editorComponent;
   @observable document: ?Document;
-  @observable revision: ?Document;
+  @observable revision: ?Revision;
   @observable newDocument: ?Document;
   @observable isUploading = false;
   @observable isSaving = false;
@@ -138,7 +138,7 @@ class DocumentScene extends React.Component<Props> {
       );
 
       if (revisionId) {
-        this.revision = await this.props.revisions.getById(revisionId);
+        this.revision = this.props.revisions.getById(revisionId);
       } else {
         this.revision = undefined;
       }
@@ -155,10 +155,12 @@ class DocumentScene extends React.Component<Props> {
             this.viewTimeout = setTimeout(document.view, MARK_AS_VIEWED_AFTER);
           }
 
-          // Update url to match the current one
-          // this.props.history.replace(
-          //   updateDocumentUrl(props.match.url, document.url)
-          // );
+          if (!this.revision) {
+            // Update url to match the current one
+            this.props.history.replace(
+              updateDocumentUrl(props.match.url, document.url)
+            );
+          }
         }
       } else {
         // Render 404 with search
@@ -305,6 +307,7 @@ class DocumentScene extends React.Component<Props> {
     const document = this.document;
     const revision = this.revision;
     const isShare = match.params.shareId;
+    const isHistory = match.url.match(/history/);
 
     if (this.notFound) {
       return navigator.onLine ? (
@@ -333,7 +336,7 @@ class DocumentScene extends React.Component<Props> {
       <ErrorBoundary>
         <Container
           key={revision ? revision.id : document.id}
-          sidebar={match.url.match(/history/)}
+          sidebar={isHistory}
           isShare={isShare}
           column
           auto
@@ -388,14 +391,10 @@ class DocumentScene extends React.Component<Props> {
               />
             </MaxWidth>
           </Container>
-
-          <Route
-            path={`/doc/${matchDocumentSlug}/history`}
-            component={() => (
-              <DocumentHistory revision={revision} document={document} />
-            )}
-          />
         </Container>
+        {isHistory && (
+          <DocumentHistory revision={revision} document={document} />
+        )}
       </ErrorBoundary>
     );
   }
