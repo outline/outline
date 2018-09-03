@@ -31,6 +31,7 @@ class DocumentHistory extends React.Component<Props> {
   @observable allowLoadMore: boolean = true;
 
   async componentDidMount() {
+    this.selectFirstRevision();
     await this.loadMoreResults();
     this.selectFirstRevision();
   }
@@ -112,4 +113,4 @@ const Wrapper = styled(Flex)`
   overflow: scroll;
 `;
 
-export default withRouter(inject('documents', 'revisions')(DocumentHistory));
+export default withRouter(inject('revisions')(DocumentHistory));

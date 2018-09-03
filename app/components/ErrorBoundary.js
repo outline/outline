@@ -77,6 +77,7 @@ const Pre = styled.pre`
   padding: 16px;
   border-radius: 4px;
   font-size: 12px;
+  white-space: pre-wrap;
 `;
 
 export default ErrorBoundary;
