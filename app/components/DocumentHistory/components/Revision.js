@@ -1,22 +1,23 @@
 // @flow
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { withTheme } from 'styled-components';
 
+import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
 import Avatar from 'components/Avatar';
 import RevisionMenu from 'menus/RevisionMenu';
 
 import { documentHistoryUrl } from 'utils/routeHelpers';
 
-export default class Revision extends React.Component<*> {
+class Revision extends React.Component<*> {
   render() {
-    const { revision, document } = this.props;
+    const { revision, document, theme } = this.props;
 
     return (
       <StyledNavLink
         to={documentHistoryUrl(document, revision.id)}
-        activeStyle={{ background: 'lightblue' }}
+        activeStyle={{ background: theme.primary, color: theme.white }}
       >
         <Author>
           <Avatar src={revision.createdBy.avatarUrl} />{' '}
@@ -25,25 +26,33 @@ export default class Revision extends React.Component<*> {
         <Meta>
           <Time dateTime={revision.createdAt} /> ago
         </Meta>
-        <RevisionMenu document={document} revision={revision} />
+        <StyledRevisionMenu document={document} revision={revision} />
       </StyledNavLink>
     );
   }
 }
 
+const StyledRevisionMenu = styled(RevisionMenu)`
+  position: absolute;
+  right: 0;
+`;
+
 const StyledNavLink = styled(NavLink)`
+  color: ${props => props.theme.text};
   display: block;
   padding: 16px;
   font-size: 15px;
+  position: relative;
 `;
 
-const Author = styled.p`
-  color: ${props => props.theme.text};
+const Author = styled(Flex)`
   padding: 0;
   margin: 0;
 `;
 
 const Meta = styled.span`
   font-size: 14px;
-  color: ${props => props.theme.slate};
+  opacity: 0.5;
 `;
+
+export default withTheme(Revision);
