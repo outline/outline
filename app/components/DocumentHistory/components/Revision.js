@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
 import styled, { withTheme } from 'styled-components';
+import format from 'date-fns/format';
 
 import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
@@ -24,7 +25,9 @@ class Revision extends React.Component<*> {
           {revision.createdBy.name}
         </Author>
         <Meta>
-          <Time dateTime={revision.createdAt} /> ago
+          <Time dateTime={revision.createdAt}>
+            {format(revision.createdAt, 'MMMM Do, YYYY h:mm a')}
+          </Time>
         </Meta>
         <StyledRevisionMenu document={document} revision={revision} />
       </StyledNavLink>

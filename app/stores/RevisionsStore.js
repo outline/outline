@@ -37,7 +37,7 @@ class RevisionsStore extends BaseStore {
         });
         this.isLoaded = true;
       });
-      return res;
+      return data;
     } catch (e) {
       this.ui.showToast('Failed to load document revisions');
     } finally {
