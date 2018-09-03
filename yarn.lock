@@ -8858,9 +8858,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-5.0.0.tgz#7c581f5ec3a52f749bc7633ea46b9f3d5b113935"
+rich-markdown-editor@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-5.0.1.tgz#0b13ddde1d215a330d01973cf50da493ae3901bc"
   dependencies:
     "@tommoor/slate-drop-or-paste-images" "^0.8.1"
     babel-plugin-transform-async-to-generator "^6.24.1"
