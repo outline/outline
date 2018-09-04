@@ -80,6 +80,13 @@ class DocumentHistory extends React.Component<Props> {
   }
 
   render() {
+    const maxChanges = this.revisions.reduce((acc, change) => {
+      if (acc < change.diff.added + change.diff.removed) {
+        return change.diff.added + change.diff.removed;
+      }
+      return acc;
+    }, 0);
+
     return (
       <Wrapper column>
         <ArrowKeyNavigation
@@ -91,6 +98,7 @@ class DocumentHistory extends React.Component<Props> {
               key={revision.id}
               revision={revision}
               document={this.props.document}
+              maxChanges={maxChanges}
             />
           ))}
         </ArrowKeyNavigation>

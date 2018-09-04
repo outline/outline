@@ -3,17 +3,19 @@ import * as React from 'react';
 import { NavLink } from 'react-router-dom';
 import styled, { withTheme } from 'styled-components';
 import format from 'date-fns/format';
+import { MoreIcon } from 'outline-icons';
 
 import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
 import Avatar from 'components/Avatar';
 import RevisionMenu from 'menus/RevisionMenu';
+import DiffSummary from './DiffSummary';
 
 import { documentHistoryUrl } from 'utils/routeHelpers';
 
 class Revision extends React.Component<*> {
   render() {
-    const { revision, document, theme } = this.props;
+    const { revision, document, maxChanges, theme } = this.props;
 
     return (
       <StyledNavLink
@@ -21,7 +23,7 @@ class Revision extends React.Component<*> {
         activeStyle={{ background: theme.primary, color: theme.white }}
       >
         <Author>
-          <Avatar src={revision.createdBy.avatarUrl} />{' '}
+          <StyledAvatar src={revision.createdBy.avatarUrl} />{' '}
           {revision.createdBy.name}
         </Author>
         <Meta>
@@ -29,15 +31,26 @@ class Revision extends React.Component<*> {
             {format(revision.createdAt, 'MMMM Do, YYYY h:mm a')}
           </Time>
         </Meta>
-        <StyledRevisionMenu document={document} revision={revision} />
+        <DiffSummary {...revision.diff} max={maxChanges} />
+        <StyledRevisionMenu
+          document={document}
+          revision={revision}
+          label={<MoreIcon color={theme.white} />}
+        />
       </StyledNavLink>
     );
   }
 }
 
+const StyledAvatar = styled(Avatar)`
+  border-color: transparent;
+  margin-right: 4px;
+`;
+
 const StyledRevisionMenu = styled(RevisionMenu)`
   position: absolute;
-  right: 0;
+  right: 16px;
+  top: 16px;
 `;
 
 const StyledNavLink = styled(NavLink)`
@@ -46,16 +59,20 @@ const StyledNavLink = styled(NavLink)`
   padding: 16px;
   font-size: 15px;
   position: relative;
+  height: 100px;
 `;
 
 const Author = styled(Flex)`
+  font-weight: 500;
   padding: 0;
   margin: 0;
 `;
 
-const Meta = styled.span`
+const Meta = styled.p`
   font-size: 14px;
-  opacity: 0.5;
+  opacity: 0.75;
+  margin: 0 0 2px;
+  padding: 0;
 `;
 
 export default withTheme(Revision);

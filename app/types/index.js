@@ -18,6 +18,10 @@ export type Revision = {
   text: string,
   createdAt: string,
   createdBy: User,
+  diff: {
+    added: number,
+    removed: number,
+  },
 };
 
 export type Toast = {

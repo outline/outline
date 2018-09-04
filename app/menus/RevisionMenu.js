@@ -7,6 +7,7 @@ import { MoreIcon } from 'outline-icons';
 import CopyToClipboard from 'components/CopyToClipboard';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import { documentHistoryUrl } from 'utils/routeHelpers';
+import { Revision } from 'types';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 
@@ -16,7 +17,8 @@ type Props = {
   onClose: () => *,
   history: Object,
   document: Document,
-  revision: Object,
+  revision: Revision,
+  className?: string,
   ui: UiStore,
 };
 
@@ -33,7 +35,7 @@ class RevisionMenu extends React.Component<Props> {
   };
 
   render() {
-    const { label, onOpen, onClose } = this.props;
+    const { label, className, onOpen, onClose } = this.props;
     const url = `${process.env.URL}${documentHistoryUrl(
       this.props.document,
       this.props.revision.id
@@ -44,6 +46,7 @@ class RevisionMenu extends React.Component<Props> {
         label={label || <MoreIcon />}
         onOpen={onOpen}
         onClose={onClose}
+        className={className}
       >
         <DropdownMenuItem onClick={this.handleRestore}>
           Restore version
