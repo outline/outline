@@ -1,9 +1,7 @@
 // @flow
 import Router from 'koa-router';
-import auth from '../middlewares/authentication';
 import addMonths from 'date-fns/add_months';
-import { Authentication, Integration, User, Team } from '../models';
-import * as Slack from '../slack';
+import { User, Team } from '../models';
 
 const router = new Router();
 
