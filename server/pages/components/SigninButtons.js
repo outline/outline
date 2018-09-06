@@ -11,12 +11,14 @@ type Props = {
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
+  localSigninEnabled: boolean,
 };
 
 const SigninButtons = ({
   lastSignedIn,
   slackSigninEnabled,
   googleSigninEnabled,
+  localSigninEnabled,
 }: Props) => {
   return (
     <Wrapper>
@@ -40,6 +42,17 @@ const SigninButtons = ({
           <LastLogin>
             {lastSignedIn === 'google' &&
               'You signed in with Google previously'}
+          </LastLogin>
+        </Column>
+      )}
+      {localSigninEnabled && (
+        <Column column>
+          <Button href={signin('local')}>
+            <Spacer>Sign In with local authentication</Spacer>
+          </Button>
+          <LastLogin>
+            {lastSignedIn === 'local' &&
+              'You signed in with local authentication previously'}
           </LastLogin>
         </Column>
       )}
