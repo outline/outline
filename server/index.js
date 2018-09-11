@@ -4,6 +4,7 @@ import { contentSecurityPolicy } from 'koa-helmet';
 import logger from 'koa-logger';
 import mount from 'koa-mount';
 import Koa from 'koa';
+import cors from '@koa/cors';
 import bugsnag from 'bugsnag';
 import onerror from 'koa-onerror';
 import updates from './utils/updates';
@@ -15,6 +16,7 @@ import routes from './routes';
 
 const app = new Koa();
 
+app.use(cors());
 app.use(compress());
 
 if (process.env.NODE_ENV === 'development') {

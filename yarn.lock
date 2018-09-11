@@ -63,6 +63,10 @@
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
 
+"@koa/cors@2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@koa/cors/-/cors-2.2.2.tgz#9084ab7f58107734e6b19d602d99538eda73f2d0"
+
 "@tommoor/remove-markdown@0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@tommoor/remove-markdown/-/remove-markdown-0.3.1.tgz#25e7b845d52fcfadf149a3a6a468a931fee7619b"
