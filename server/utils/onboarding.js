@@ -39,5 +39,5 @@ fetch('https://www.getoutline.com/api/documents.create', {
 
 ## 👋 Say hi to the team
 
-Outline is build by a small team and we would love to get to get to know our users. Drop by at [our Spectrum community](https://spectrum.chat/outline) or [drop us an email](mailto:hello@getoutline.com).
+Outline is built by a small team and we would love to get to know our users. Drop by at [our Spectrum community](https://spectrum.chat/outline) or [drop us an email](mailto:hello@getoutline.com).
 `;
