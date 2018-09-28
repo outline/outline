@@ -15,7 +15,7 @@ Outline is a place for your team to build and share knowledge.
 
 To get started, head to your dashboard and try creating a collection to help document your workflow, create playbooks or help with team onboarding.
 
-You can also import existing Markdown document by drag and dropping them to your collections
+You can also import existing Markdown documents by dragging and dropping them to your collections.
 
 ${process.env.URL}/dashboard
 `;
@@ -34,8 +34,8 @@ export const WelcomeEmail = () => {
           onboarding.
         </p>
         <p>
-          You can also import existing Markdown document by drag and dropping
-          them to your collections
+          You can also import existing Markdown documents by dragging and dropping
+          them to your collections.
         </p>
         <EmptySpace height={10} />
         <p>
