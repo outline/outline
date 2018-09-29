@@ -15,7 +15,7 @@ import { documentHistoryUrl } from 'utils/routeHelpers';
 
 class Revision extends React.Component<*> {
   render() {
-    const { revision, document, maxChanges, theme } = this.props;
+    const { revision, document, maxChanges, showMenu, theme } = this.props;
 
     return (
       <StyledNavLink
@@ -32,11 +32,13 @@ class Revision extends React.Component<*> {
           </Time>
         </Meta>
         <DiffSummary {...revision.diff} max={maxChanges} />
-        <StyledRevisionMenu
-          document={document}
-          revision={revision}
-          label={<MoreIcon color={theme.white} />}
-        />
+        {showMenu && (
+          <StyledRevisionMenu
+            document={document}
+            revision={revision}
+            label={<MoreIcon color={theme.white} />}
+          />
+        )}
       </StyledNavLink>
     );
   }

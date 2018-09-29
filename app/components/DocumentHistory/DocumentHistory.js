@@ -12,6 +12,7 @@ import Document from 'models/Document';
 import RevisionsStore from 'stores/RevisionsStore';
 
 import Flex from 'shared/components/Flex';
+import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Revision from './components/Revision';
 import { documentHistoryUrl } from 'utils/routeHelpers';
 
@@ -80,6 +81,7 @@ class DocumentHistory extends React.Component<Props> {
   }
 
   render() {
+    const showLoading = !this.isLoaded && this.isFetching;
     const maxChanges = this.revisions.reduce((acc, change) => {
       if (acc < change.diff.added + change.diff.removed) {
         return change.diff.added + change.diff.removed;
@@ -89,19 +91,26 @@ class DocumentHistory extends React.Component<Props> {
 
     return (
       <Wrapper column>
-        <ArrowKeyNavigation
-          mode={ArrowKeyNavigation.mode.VERTICAL}
-          defaultActiveChildIndex={0}
-        >
-          {this.revisions.map(revision => (
-            <Revision
-              key={revision.id}
-              revision={revision}
-              document={this.props.document}
-              maxChanges={maxChanges}
-            />
-          ))}
-        </ArrowKeyNavigation>
+        {showLoading ? (
+          <Loading>
+            <ListPlaceholder count={5} />
+          </Loading>
+        ) : (
+          <ArrowKeyNavigation
+            mode={ArrowKeyNavigation.mode.VERTICAL}
+            defaultActiveChildIndex={0}
+          >
+            {this.revisions.map((revision, index) => (
+              <Revision
+                key={revision.id}
+                revision={revision}
+                document={this.props.document}
+                maxChanges={maxChanges}
+                showMenu={index !== 0}
+              />
+            ))}
+          </ArrowKeyNavigation>
+        )}
         {this.allowLoadMore && (
           <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
         )}
@@ -109,6 +118,10 @@ class DocumentHistory extends React.Component<Props> {
     );
   }
 }
+
+const Loading = styled.div`
+  margin: 0 16px;
+`;
 
 const Wrapper = styled(Flex)`
   position: fixed;
@@ -119,6 +132,7 @@ const Wrapper = styled(Flex)`
   min-width: ${props => props.theme.sidebarWidth};
   border-left: 1px solid ${props => props.theme.slateLight};
   overflow: scroll;
+  overscroll-behavior: none;
 `;
 
 export default withRouter(inject('revisions')(DocumentHistory));
