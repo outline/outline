@@ -7,7 +7,7 @@ import { MoreIcon } from 'outline-icons';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
-import { documentMoveUrl } from 'utils/routeHelpers';
+import { documentMoveUrl, documentHistoryUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
@@ -32,6 +32,10 @@ class DocumentMenu extends React.Component<Props> {
   handleDelete = (ev: SyntheticEvent<*>) => {
     const { document } = this.props;
     this.props.ui.setActiveModal('document-delete', { document });
+  };
+
+  handleDocumentHistory = () => {
+    this.props.history.push(documentHistoryUrl(this.props.document));
   };
 
   handleMove = (ev: SyntheticEvent<*>) => {
@@ -103,6 +107,9 @@ class DocumentMenu extends React.Component<Props> {
               </DropdownMenuItem>
             )}
             <hr />
+            <DropdownMenuItem onClick={this.handleDocumentHistory}>
+              Document history
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={this.handleNewChild}
               title="Create a new child document for the current document"

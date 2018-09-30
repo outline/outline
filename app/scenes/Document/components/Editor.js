@@ -6,8 +6,8 @@ import RichMarkdownEditor, { Placeholder, schema } from 'rich-markdown-editor';
 import ClickablePadding from 'components/ClickablePadding';
 
 type Props = {
-  titlePlaceholder: string,
-  bodyPlaceholder: string,
+  titlePlaceholder?: string,
+  bodyPlaceholder?: string,
   defaultValue?: string,
   readOnly: boolean,
 };

@@ -1,4 +1,5 @@
 // @flow
+
 export type User = {
   avatarUrl: string,
   id: string,
@@ -8,6 +9,19 @@ export type User = {
   isAdmin?: boolean,
   isSuspended?: boolean,
   createdAt: string,
+};
+
+export type Revision = {
+  id: string,
+  documentId: string,
+  title: string,
+  text: string,
+  createdAt: string,
+  createdBy: User,
+  diff: {
+    added: number,
+    removed: number,
+  },
 };
 
 export type Toast = {

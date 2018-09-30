@@ -7,7 +7,6 @@ import ApiKeysStore from 'stores/ApiKeysStore';
 import UsersStore from 'stores/UsersStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import IntegrationsStore from 'stores/IntegrationsStore';
-import CacheStore from 'stores/CacheStore';
 import LoadingIndicator from 'components/LoadingIndicator';
 
 type Props = {
@@ -29,7 +28,6 @@ const Auth = observer(({ auth, children }: Props) => {
     // will get overridden on route change
     if (!authenticatedStores) {
       // Stores for authenticated user
-      const cache = new CacheStore(user.id);
       authenticatedStores = {
         integrations: new IntegrationsStore({
           ui: stores.ui,
@@ -39,7 +37,6 @@ const Auth = observer(({ auth, children }: Props) => {
         collections: new CollectionsStore({
           ui: stores.ui,
           teamId: team.id,
-          cache,
         }),
       };
 

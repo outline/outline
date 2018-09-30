@@ -494,6 +494,28 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
+          <Method
+            method="documents.restore"
+            label="Restore a previous revision"
+          >
+            <Description>
+              Restores a document to a previous revision by creating a new
+              revision with the contents of the given revisionId.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+              <Argument
+                id="revisionId"
+                description="Revision ID to restore to"
+                required
+              />
+            </Arguments>
+          </Method>
+
           <Method method="documents.pin" label="Pin a document">
             <Description>
               Pins a document to the collection home. The pinned document is
@@ -577,6 +599,21 @@ export default function Pricing() {
           </Method>
 
           <Method
+            method="documents.revision"
+            label="Get revision for a document"
+          >
+            <Description>Return a specific revision of a document.</Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+              <Argument id="revisionId" description="Revision ID" required />
+            </Arguments>
+          </Method>
+
+          <Method
             method="documents.revisions"
             label="Get revisions for a document"
           >
@@ -584,7 +621,13 @@ export default function Pricing() {
               Return revisions for a document. Upon each edit, a new revision is
               stored.
             </Description>
-            <Arguments pagination />
+            <Arguments pagination>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+            </Arguments>
           </Method>
 
           <Method method="team.users" label="List team's users">

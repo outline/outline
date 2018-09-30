@@ -38,6 +38,12 @@ export function documentMoveUrl(doc: Document): string {
   return `${doc.url}/move`;
 }
 
+export function documentHistoryUrl(doc: Document, revisionId?: string): string {
+  let base = `${doc.url}/history`;
+  if (revisionId) base += `/${revisionId}`;
+  return base;
+}
+
 /**
  * Replace full url's document part with the new one in case
  * the document slug has been updated
@@ -69,4 +75,3 @@ export const matchDocumentSlug =
   ':documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})';
 
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
-export const matchDocumentMove = `/doc/${matchDocumentSlug}/move`;

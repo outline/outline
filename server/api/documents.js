@@ -195,6 +195,26 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   };
 });
 
+router.post('documents.revision', auth(), async ctx => {
+  let { id, revisionId } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(revisionId, 'revisionId is required');
+  const document = await Document.findById(id);
+  authorize(ctx.state.user, 'read', document);
+
+  const revision = await Revision.findOne({
+    where: {
+      id: revisionId,
+      documentId: document.id,
+    },
+  });
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: presentRevision(ctx, revision),
+  };
+});
+
 router.post('documents.revisions', auth(), pagination(), async ctx => {
   let { id, sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
@@ -211,12 +231,35 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    revisions.map(revision => presentRevision(ctx, revision))
+    revisions.map((revision, index) =>
+      presentRevision(ctx, revision, revisions[index + 1])
+    )
   );
 
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+  };
+});
+
+router.post('documents.restore', auth(), async ctx => {
+  const { id, revisionId } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(revisionId, 'revisionId is required');
+
+  const user = ctx.state.user;
+  const document = await Document.findById(id);
+  authorize(user, 'update', document);
+
+  const revision = await Revision.findById(revisionId);
+  authorize(document, 'restore', revision);
+
+  document.text = revision.text;
+  document.title = revision.title;
+  await document.save();
+
+  ctx.body = {
+    data: await presentDocument(ctx, document),
   };
 });
 

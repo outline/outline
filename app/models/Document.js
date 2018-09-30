@@ -7,7 +7,7 @@ import stores from 'stores';
 import parseTitle from '../../shared/utils/parseTitle';
 import unescape from '../../shared/utils/unescape';
 
-import type { NavigationNode, User } from 'types';
+import type { NavigationNode, Revision, User } from 'types';
 import BaseModel from './BaseModel';
 import Collection from './Collection';
 
@@ -107,6 +107,22 @@ class Document extends BaseModel {
       this.shareUrl = res.data.url;
     } catch (e) {
       this.ui.showToast('Document failed to share');
+    }
+  };
+
+  @action
+  restore = async (revision: Revision) => {
+    try {
+      const res = await client.post('/documents.restore', {
+        id: this.id,
+        revisionId: revision.id,
+      });
+      runInAction('Document#save', () => {
+        invariant(res && res.data, 'Data should be available');
+        this.updateData(res.data);
+      });
+    } catch (e) {
+      this.ui.showToast('Document failed to restore');
     }
   };
 
