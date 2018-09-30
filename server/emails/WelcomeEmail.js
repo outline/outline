@@ -34,8 +34,8 @@ export const WelcomeEmail = () => {
           onboarding.
         </p>
         <p>
-          You can also import existing Markdown documents by dragging and dropping
-          them to your collections.
+          You can also import existing Markdown documents by dragging and
+          dropping them to your collections.
         </p>
         <EmptySpace height={10} />
         <p>
