@@ -21,14 +21,17 @@ export default function DiffSummary({
   const summary = [];
   if (added) summary.push(`+${added}`);
   if (removed) summary.push(`-${removed}`);
+  const hasChanges = !!summary.length;
 
   return (
     <Flex align="center">
-      <Diff>
-        <Bar color={color} style={{ width: `${added / max * width}px` }} />
-        <Bar color={color} style={{ width: `${removed / max * width}px` }} />
-      </Diff>
-      <Summary>{summary.join(', ')}</Summary>
+      {hasChanges && (
+        <Diff>
+          <Bar color={color} style={{ width: `${added / max * width}px` }} />
+          <Bar color={color} style={{ width: `${removed / max * width}px` }} />
+        </Diff>
+      )}
+      <Summary>{hasChanges ? summary.join(', ') : 'No changes'}</Summary>
     </Flex>
   );
 }
@@ -36,13 +39,14 @@ export default function DiffSummary({
 const Summary = styled.div`
   display: inline-block;
   font-size: 10px;
-  margin-left: 2px;
   opacity: 0.5;
   flex-grow: 100;
+  text-transform: uppercase;
 `;
 
 const Diff = styled(Flex)`
   height: 6px;
+  margin-right: 2px;
 `;
 
 const Bar = styled.div`
