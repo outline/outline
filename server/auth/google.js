@@ -40,8 +40,7 @@ router.get('google.callback', async ctx => {
   });
 
   if (!profile.data.hd) {
-    ctx.redirect('/?notice=google-hd');
-    return;
+    profile.data.hd = profile.data.email;
   }
 
   // allow all domains by default if the env is not set
