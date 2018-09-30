@@ -599,6 +599,21 @@ export default function Pricing() {
           </Method>
 
           <Method
+            method="documents.revision"
+            label="Get revision for a document"
+          >
+            <Description>Return a specific revision of a document.</Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+              <Argument id="revisionId" description="Revision ID" required />
+            </Arguments>
+          </Method>
+
+          <Method
             method="documents.revisions"
             label="Get revisions for a document"
           >
