@@ -195,6 +195,26 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   };
 });
 
+router.post('documents.revision', auth(), async ctx => {
+  let { id, revisionId } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(revisionId, 'revisionId is required');
+  const document = await Document.findById(id);
+  authorize(ctx.state.user, 'read', document);
+
+  const revision = await Revision.findOne({
+    where: {
+      id: revisionId,
+      documentId: document.id,
+    },
+  });
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: presentRevision(ctx, revision),
+  };
+});
+
 router.post('documents.revisions', auth(), pagination(), async ctx => {
   let { id, sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';

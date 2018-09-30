@@ -24,6 +24,34 @@ class RevisionsStore extends BaseStore {
   }
 
   @action
+  fetch = async (documentId: string, id: string): Promise<*> => {
+    this.isFetching = true;
+
+    try {
+      const rev = this.getById(id);
+      if (rev) return rev;
+
+      const res = await client.post('/documents.revision', {
+        id: documentId,
+        revisionId: id,
+      });
+      invariant(res && res.data, 'Revision not available');
+      const { data } = res;
+
+      runInAction('RevisionsStore#fetch', () => {
+        this.data.set(data.id, data);
+        this.isLoaded = true;
+      });
+
+      return data;
+    } catch (e) {
+      this.ui.showToast('Failed to load document revision');
+    } finally {
+      this.isFetching = false;
+    }
+  };
+
+  @action
   fetchPage = async (options: ?PaginationParams): Promise<*> => {
     this.isFetching = true;
 

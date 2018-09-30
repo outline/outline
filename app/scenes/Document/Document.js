@@ -138,7 +138,10 @@ class DocumentScene extends React.Component<Props> {
       );
 
       if (revisionId) {
-        this.revision = this.props.revisions.getById(revisionId);
+        this.revision = await this.props.revisions.fetch(
+          props.match.params.documentSlug,
+          revisionId
+        );
       } else {
         this.revision = undefined;
       }
