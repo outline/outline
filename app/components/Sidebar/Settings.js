@@ -74,19 +74,22 @@ class SettingsSidebar extends React.Component<Props> {
                 Share Links
               </SidebarLink>
               {user.isAdmin && (
-                <SidebarLink
-                  to="/settings/integrations/slack"
-                  icon={<SettingsIcon />}
-                >
-                  Integrations
-                </SidebarLink>
-              )}
-              {user.isAdmin && (
                 <SidebarLink to="/settings/export" icon={<DocumentIcon />}>
                   Export Data
                 </SidebarLink>
               )}
             </Section>
+            {user.isAdmin && (
+              <Section>
+                <Header>Integrations</Header>
+                <SidebarLink to="/settings/integrations/slack">
+                  Slack
+                </SidebarLink>
+                <SidebarLink to="/settings/integrations/zapier">
+                  Zapier
+                </SidebarLink>
+              </Section>
+            )}
           </Scrollable>
         </Flex>
       </Sidebar>
