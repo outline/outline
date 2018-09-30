@@ -192,7 +192,7 @@ class Search extends React.Component<Props> {
           <SearchField
             onKeyDown={this.handleKeyDown}
             onChange={this.updateLocation}
-            value={this.query}
+            defaultValue={this.query}
           />
           {showEmpty && <Empty>No matching documents.</Empty>}
           <ResultList column visible={this.pinToTop}>
