@@ -14,6 +14,7 @@ import Details from 'scenes/Settings/Details';
 import Security from 'scenes/Settings/Security';
 import People from 'scenes/Settings/People';
 import Slack from 'scenes/Settings/Slack';
+import Zapier from 'scenes/Settings/Zapier';
 import Shares from 'scenes/Settings/Shares';
 import Tokens from 'scenes/Settings/Tokens';
 import Export from 'scenes/Settings/Export';
@@ -52,6 +53,11 @@ export default function Routes() {
               exact
               path="/settings/integrations/slack"
               component={Slack}
+            />
+            <Route
+              exact
+              path="/settings/integrations/zapier"
+              component={Zapier}
             />
             <Route exact path="/settings/export" component={Export} />
             <Route exact path="/collections/:id" component={Collection} />

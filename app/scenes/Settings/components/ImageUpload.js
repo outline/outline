@@ -39,6 +39,7 @@ class DropToImport extends React.Component<Props> {
   };
 
   handleCrop = async () => {
+    this.isUploading = true;
     const canvas = this.avatarEditorRef.getImage();
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
     try {
@@ -70,6 +71,7 @@ class DropToImport extends React.Component<Props> {
     return (
       <Modal isOpen onRequestClose={this.handleClose} title="">
         <Flex auto column align="center" justify="center">
+          {this.isUploading && <LoadingIndicator />}
           <AvatarEditorContainer>
             <AvatarEditor
               ref={ref => (this.avatarEditorRef = ref)}
@@ -91,9 +93,8 @@ class DropToImport extends React.Component<Props> {
             defaultValue="1"
             onChange={this.handleZoom}
           />
-          {this.isUploading && <LoadingIndicator />}
           <CropButton onClick={this.handleCrop} disabled={this.isUploading}>
-            {submitText}
+            {this.isUploading ? 'Uploading…' : submitText}
           </CropButton>
         </Flex>
       </Modal>

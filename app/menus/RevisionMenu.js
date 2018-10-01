@@ -7,7 +7,7 @@ import { MoreIcon } from 'outline-icons';
 import CopyToClipboard from 'components/CopyToClipboard';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import { documentHistoryUrl } from 'utils/routeHelpers';
-import { Revision } from 'types';
+import type { Revision } from 'types';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 
