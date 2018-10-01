@@ -297,7 +297,7 @@ Collection.prototype.removeDocument = async function(
       if (options.deleteDocument) {
         const childDocument = await Document.findById(id);
         // Delete the actual document
-        await childDocument.destroy();
+        if (childDocument) await childDocument.destroy();
         // Delete all child documents
         await deleteChildren(id);
       }
