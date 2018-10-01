@@ -4,13 +4,14 @@ import { observer, inject } from 'mobx-react';
 import {
   DocumentIcon,
   ProfileIcon,
-  SettingsIcon,
   PadlockIcon,
   CodeIcon,
   UserIcon,
   LinkIcon,
   TeamIcon,
 } from 'outline-icons';
+import ZapierIcon from './icons/Zapier';
+import SlackIcon from './icons/Slack';
 
 import Flex from 'shared/components/Flex';
 import Sidebar, { Section } from './Sidebar';
@@ -82,10 +83,16 @@ class SettingsSidebar extends React.Component<Props> {
             {user.isAdmin && (
               <Section>
                 <Header>Integrations</Header>
-                <SidebarLink to="/settings/integrations/slack">
+                <SidebarLink
+                  to="/settings/integrations/slack"
+                  icon={<SlackIcon />}
+                >
                   Slack
                 </SidebarLink>
-                <SidebarLink to="/settings/integrations/zapier">
+                <SidebarLink
+                  to="/settings/integrations/zapier"
+                  icon={<ZapierIcon />}
+                >
                   Zapier
                 </SidebarLink>
               </Section>
