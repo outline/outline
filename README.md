@@ -35,6 +35,20 @@ In development you can quickly get an environment running using Docker by follow
 
 ## Development
 
+Provided you have Docker installed, this is the bare minimum to get the application up and running for development:
+
+    sed -e "s/SECRET_KEY.*/SECRET_KEY=$(openssl rand -hex 32)/" .env.sample > .env
+    docker-compose up
+
+    # in another terminal
+    docker-compose exec outline yarn sequelize db:migrate
+
+Once you see this message
+
+    outline_1   | > Listening on http://localhost:3000
+
+you should be able to access the service at http://localhost:3000.
+
 ### Server
 
 To enable debugging statements, set the following env vars:
