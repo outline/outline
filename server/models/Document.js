@@ -12,6 +12,7 @@ import { Collection, User } from '../models';
 import { DataTypes, sequelize } from '../sequelize';
 import events from '../events';
 import parseTitle from '../../shared/utils/parseTitle';
+import parseHashtags from '../../shared/utils/parseHashtags';
 import unescape from '../../shared/utils/unescape';
 import Revision from './Revision';
 
@@ -65,6 +66,11 @@ const beforeSave = async doc => {
   // increment revision
   doc.revisionCount += 1;
 
+  // TODO: sync tags
+  const tags = parseHashtags(doc.text);
+  doc.tags = tags.map(name => ({ name }));
+  console.log('tags', tags);
+
   return doc;
 };
 
@@ -110,6 +116,11 @@ const Document = sequelize.define(
 // Class methods
 
 Document.associate = models => {
+  Document.belongsToMany(models.Tag, {
+    through: 'document_tags',
+    foreignKey: 'documentId',
+    as: 'tags',
+  });
   Document.belongsTo(models.Collection, {
     as: 'collection',
     foreignKey: 'collectionId',
@@ -146,6 +157,7 @@ Document.associate = models => {
     {
       include: [
         { model: models.Collection, as: 'collection' },
+        { model: models.Tag, as: 'tags', paranoid: false },
         { model: models.User, as: 'createdBy', paranoid: false },
         { model: models.User, as: 'updatedBy', paranoid: false },
       ],

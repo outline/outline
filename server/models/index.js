@@ -8,6 +8,7 @@ import Integration from './Integration';
 import Revision from './Revision';
 import Share from './Share';
 import Star from './Star';
+import Tag from './Tag';
 import Team from './Team';
 import User from './User';
 import View from './View';
@@ -22,6 +23,7 @@ const models = {
   Revision,
   Share,
   Star,
+  Tag,
   Team,
   User,
   View,
@@ -44,6 +46,7 @@ export {
   Revision,
   Share,
   Star,
+  Tag,
   Team,
   User,
   View,
