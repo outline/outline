@@ -66,10 +66,9 @@ const beforeSave = async doc => {
   // increment revision
   doc.revisionCount += 1;
 
-  // TODO: sync tags
+  // sync hashtags within the document as tag relationships
   const tags = parseHashtags(doc.text);
   doc.tags = tags.map(name => ({ name }));
-  console.log('tags', tags);
 
   return doc;
 };

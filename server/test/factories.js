@@ -70,15 +70,20 @@ export async function buildCollection(overrides: Object = {}) {
 
 export async function buildDocument(overrides: Object = {}) {
   count++;
-
-  if (!overrides.teamId) {
-    const team = await buildTeam();
-    overrides.teamId = team.id;
-  }
+  let user;
 
   if (!overrides.userId) {
-    const user = await buildUser();
+    user = await buildUser();
     overrides.userId = user.id;
+  }
+
+  if (!overrides.teamId) {
+    if (user) {
+      overrides.teamId = user.teamId;
+    } else {
+      const team = await buildTeam();
+      overrides.teamId = team.id;
+    }
   }
 
   if (!overrides.collectionId) {
