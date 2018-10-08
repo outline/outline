@@ -8,7 +8,7 @@ import Sequelize from 'sequelize';
 import removeMarkdown from '@tommoor/remove-markdown';
 
 import isUUID from 'validator/lib/isUUID';
-import { Collection, User } from '../models';
+import { Collection, User, Tag } from '../models';
 import { DataTypes, sequelize } from '../sequelize';
 import events from '../events';
 import parseTitle from '../../shared/utils/parseTitle';
@@ -67,8 +67,17 @@ const beforeSave = async doc => {
   doc.revisionCount += 1;
 
   // sync hashtags within the document as tag relationships
-  const tags = parseHashtags(doc.text);
-  doc.tags = tags.map(name => ({ name }));
+  if (doc.publishedAt) {
+    const hashtags = parseHashtags(doc.text);
+    doc.tags = await Promise.all(
+      hashtags.map(async hashtag => {
+        const results = await Tag.findOrCreate({
+          where: { name: hashtag.substr(1), teamId: doc.teamId },
+        });
+        return results[0];
+      })
+    );
+  }
 
   return doc;
 };
@@ -118,7 +127,6 @@ Document.associate = models => {
   Document.belongsToMany(models.Tag, {
     through: 'document_tags',
     foreignKey: 'documentId',
-    as: 'tags',
   });
   Document.belongsTo(models.Collection, {
     as: 'collection',

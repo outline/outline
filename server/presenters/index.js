@@ -9,6 +9,7 @@ import presentShare from './share';
 import presentTeam from './team';
 import presentIntegration from './integration';
 import presentSlackAttachment from './slackAttachment';
+import presentTag from './tag';
 
 export {
   presentUser,
@@ -21,4 +22,5 @@ export {
   presentTeam,
   presentIntegration,
   presentSlackAttachment,
+  presentTag,
 };

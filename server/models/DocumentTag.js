@@ -1,18 +1,28 @@
 // @flow
 import { DataTypes, sequelize } from '../sequelize';
 
-const Tag = sequelize.define('tag', {
+const DocumentTag = sequelize.define('document_tag', {
   id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    allowNull: false,
     primaryKey: true,
   },
-  name: {
-    type: DataTypes.STRING,
+  tagId: {
+    type: DataTypes.UUID,
     allowNull: false,
+    references: {
+      model: 'tags',
+    },
+  },
+  documentId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'documents',
+    },
   },
   teamId: {
-    type: DataTypes.STRING,
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'teams',
@@ -28,11 +38,4 @@ const Tag = sequelize.define('tag', {
   },
 });
 
-Tag.associate = models => {
-  Tag.belongsToMany(models.Document, {
-    through: 'document_tags',
-    foreignKey: 'tagId',
-  });
-};
-
-export default Tag;
+export default DocumentTag;

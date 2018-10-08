@@ -1,5 +1,5 @@
 // @flow
-import { Share, Team, User, Document, Collection } from '../models';
+import { Share, Team, Tag, User, Document, Collection } from '../models';
 import uuid from 'uuid';
 
 let count = 0;
@@ -91,12 +91,17 @@ export async function buildDocument(overrides: Object = {}) {
     overrides.collectionId = collection.id;
   }
 
-  return Document.create({
-    title: `Document ${count}`,
-    text: 'This is the text in an example document',
-    publishedAt: new Date(),
-    lastModifiedById: overrides.userId,
-    createdById: overrides.userId,
-    ...overrides,
-  });
+  return Document.create(
+    {
+      title: `Document ${count}`,
+      text: 'This is the text in an example document',
+      publishedAt: new Date(),
+      lastModifiedById: overrides.userId,
+      createdById: overrides.userId,
+      ...overrides,
+    },
+    {
+      include: [Tag],
+    }
+  );
 }

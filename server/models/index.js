@@ -3,6 +3,7 @@ import ApiKey from './ApiKey';
 import Authentication from './Authentication';
 import Collection from './Collection';
 import Document from './Document';
+import DocumentTag from './DocumentTag';
 import Event from './Event';
 import Integration from './Integration';
 import Revision from './Revision';
@@ -18,6 +19,7 @@ const models = {
   Authentication,
   Collection,
   Document,
+  DocumentTag,
   Event,
   Integration,
   Revision,
@@ -41,6 +43,7 @@ export {
   Authentication,
   Collection,
   Document,
+  DocumentTag,
   Event,
   Integration,
   Revision,
