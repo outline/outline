@@ -10,6 +10,13 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      teamId: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'teams',
+        },
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -39,13 +46,6 @@ module.exports = {
           model: 'documents',
         },
       },
-      teamId: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: 'teams',
-        },
-      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -55,10 +55,14 @@ module.exports = {
         allowNull: false,
       },
     });
-    await queryInterface.addIndex('document_tags', ['teamId', 'documentId']);
+    await queryInterface.addIndex('tags', ['teamId']);
+    await queryInterface.addIndex('document_tags', ['documentId']);
+    await queryInterface.addIndex('document_tags', ['tagId']);
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeIndex('document_tags', ['teamId', 'documentId']);
+    await queryInterface.removeIndex('document_tags', ['tagId']);
+    await queryInterface.removeIndex('document_tags', ['documentId']);
+    await queryInterface.removeIndex('tags', ['teamId']);
     await queryInterface.dropTable('document_tags');
     await queryInterface.dropTable('tags');
   }
