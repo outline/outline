@@ -38,4 +38,9 @@ const DocumentTag = sequelize.define('document_tag', {
   },
 });
 
+DocumentTag.associate = models => {
+  DocumentTag.belongsTo(models.Document);
+  DocumentTag.belongsTo(models.Tag);
+};
+
 export default DocumentTag;

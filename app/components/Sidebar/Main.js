@@ -3,7 +3,13 @@ import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
-import { HomeIcon, EditIcon, SearchIcon, StarredIcon } from 'outline-icons';
+import {
+  HomeIcon,
+  HashtagIcon,
+  EditIcon,
+  SearchIcon,
+  StarredIcon,
+} from 'outline-icons';
 
 import Flex from 'shared/components/Flex';
 import AccountMenu from 'menus/AccountMenu';
@@ -64,6 +70,9 @@ class MainSidebar extends React.Component<Props> {
               </SidebarLink>
               <SidebarLink to="/starred" icon={<StarredIcon />}>
                 Starred
+              </SidebarLink>
+              <SidebarLink to="/tags" icon={<HashtagIcon />}>
+                Tags
               </SidebarLink>
               <SidebarLink
                 to="/drafts"

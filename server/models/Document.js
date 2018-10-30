@@ -125,8 +125,8 @@ const Document = sequelize.define(
 
 Document.associate = models => {
   Document.belongsToMany(models.Tag, {
+    as: 'tags',
     through: 'document_tags',
-    foreignKey: 'documentId',
   });
   Document.belongsTo(models.Collection, {
     as: 'collection',
@@ -164,7 +164,6 @@ Document.associate = models => {
     {
       include: [
         { model: models.Collection, as: 'collection' },
-        { model: models.Tag, as: 'tags', paranoid: false },
         { model: models.User, as: 'createdBy', paranoid: false },
         { model: models.User, as: 'updatedBy', paranoid: false },
       ],
@@ -305,15 +304,19 @@ Document.addHook('afterDestroy', model =>
 // Instance methods
 
 Document.prototype.publish = async function() {
-  if (this.publishedAt) return this.save();
+  const options = {
+    include: [Tag],
+  };
+
+  if (this.publishedAt) return this.save(options);
 
   const collection = await Collection.findById(this.collectionId);
-  if (collection.type !== 'atlas') return this.save();
+  if (collection.type !== 'atlas') return this.save(options);
 
   await collection.addDocumentToStructure(this);
 
   this.publishedAt = new Date();
-  await this.save();
+  await this.save(options);
   this.collection = collection;
 
   events.add({ name: 'documents.publish', model: this });

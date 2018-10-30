@@ -5,6 +5,8 @@ import { Switch, Route, Redirect } from 'react-router-dom';
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
 import Starred from 'scenes/Starred';
+import Tags from 'scenes/Tags';
+import Tag from 'scenes/Tag';
 import Drafts from 'scenes/Drafts';
 import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
@@ -42,6 +44,8 @@ export default function Routes() {
             <Route path="/dashboard/:tab" component={Dashboard} />
             <Route path="/dashboard" component={Dashboard} />
             <Route exact path="/starred" component={Starred} />
+            <Route exact path="/tags" component={Tags} />
+            <Route exact path="/tags/:name" component={Tag} />
             <Route exact path="/drafts" component={Drafts} />
             <Route exact path="/settings" component={Settings} />
             <Route exact path="/settings/details" component={Details} />

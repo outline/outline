@@ -4,7 +4,16 @@ import Sequelize from 'sequelize';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentDocument, presentRevision } from '../presenters';
-import { Document, Collection, Share, Star, View, Revision } from '../models';
+import {
+  Document,
+  DocumentTag,
+  Tag,
+  Collection,
+  Share,
+  Star,
+  View,
+  Revision,
+} from '../models';
 import { InvalidRequestError } from '../errors';
 import events from '../events';
 import policy from '../policies';
@@ -14,15 +23,30 @@ const { authorize, cannot } = policy;
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction, collection, user } = ctx.body;
+  let { sort = 'updatedAt', direction, collection, user, tag } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
 
   let where = { teamId: ctx.state.user.teamId };
+  let scopes = ['defaultScope'];
+
   if (collection) where = { ...where, collectionId: collection };
   if (user) where = { ...where, createdById: user };
+  if (tag) {
+    const tags = await DocumentTag.findAll({
+      attributes: ['documentId'],
+      include: [
+        {
+          model: Tag,
+          where: { name: tag },
+        },
+      ],
+    });
+    const documentIds = tags.map(t => t.documentId);
+    where = { ...where, documentId: documentIds };
+  }
 
-  const starredScope = { method: ['withStarred', ctx.state.user.id] };
-  const documents = await Document.scope('defaultScope', starredScope).findAll({
+  scopes.push({ method: ['withStarred', ctx.state.user.id] });
+  const documents = await Document.scope(...scopes).findAll({
     where,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
@@ -427,7 +451,10 @@ router.post('documents.update', auth(), async ctx => {
   if (publish) {
     await document.publish();
   } else {
-    await document.save({ autosave });
+    await document.save({
+      autosave,
+      include: [Tag],
+    });
 
     if (document.publishedAt && done) {
       events.add({ name: 'documents.update', model: document });

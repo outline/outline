@@ -23,6 +23,7 @@ type FetchOptions = {
 class DocumentsStore extends BaseStore {
   @observable recentlyViewedIds: string[] = [];
   @observable recentlyEditedIds: string[] = [];
+  @observable tagged: Map<string, string[]> = new ObservableMap([]);
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;

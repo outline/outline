@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
 import { NewDocumentIcon } from 'outline-icons';
 
@@ -8,35 +9,39 @@ import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Empty from 'components/Empty';
 import PageTitle from 'components/PageTitle';
 import Heading from 'components/Heading';
-import Subheading from 'components/Subheading';
-import DocumentList from 'components/DocumentList';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
 import Actions, { Action } from 'components/Actions';
-import DocumentsStore from 'stores/DocumentsStore';
+import TagsStore from 'stores/TagsStore';
 
 type Props = {
-  documents: DocumentsStore,
+  tags: TagsStore,
 };
 
 @observer
-class Starred extends React.Component<Props> {
+class Tags extends React.Component<Props> {
   componentDidMount() {
-    this.props.documents.fetchStarred();
+    this.props.tags.fetchPage();
   }
 
   render() {
-    const { isLoaded, isFetching, starred } = this.props.documents;
+    const { tags } = this.props;
+    const { isLoaded, isFetching } = tags;
     const showLoading = !isLoaded && isFetching;
-    const showEmpty = isLoaded && !starred.length;
+    const showEmpty = isLoaded && !tags.orderedData.length;
 
     return (
       <CenteredContent column auto>
-        <PageTitle title="Starred" />
-        <Heading>Starred</Heading>
-        <Subheading>Documents</Subheading>
+        <PageTitle title="Tags" />
+        <Heading>Tags</Heading>
         {showLoading && <ListPlaceholder />}
-        {showEmpty && <Empty>You’ve not starred any documents yet.</Empty>}
-        <DocumentList documents={starred} />
+        {showEmpty && <Empty>You’ve not got any tagged documents yet.</Empty>}
+        <ol>
+          {tags.orderedData.map(tag => (
+            <li key={tag.id}>
+              <Link to={`/tags/${tag.name}`}>#{tag.name}</Link>
+            </li>
+          ))}
+        </ol>
         <Actions align="center" justify="flex-end">
           <Action>
             <NewDocumentMenu label={<NewDocumentIcon />} />
@@ -47,4 +52,4 @@ class Starred extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(Starred);
+export default inject('tags')(Tags);

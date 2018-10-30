@@ -11,6 +11,11 @@ export type User = {
   createdAt: string,
 };
 
+export type Tag = {
+  id: string,
+  name: string,
+};
+
 export type Revision = {
   id: string,
   documentId: string,

@@ -6,7 +6,7 @@ import Waypoint from 'react-waypoint';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import type { SearchResult } from 'types';
-import _ from 'lodash';
+import { debounce } from 'lodash';
 import DocumentsStore, {
   DEFAULT_PAGINATION_LIMIT,
 } from 'stores/DocumentsStore';
@@ -31,33 +31,6 @@ type Props = {
   documents: DocumentsStore,
   notFound: ?boolean,
 };
-
-const Container = styled(CenteredContent)`
-  > div {
-    position: relative;
-    height: 100%;
-  }
-`;
-
-const ResultsWrapper = styled(Flex)`
-  position: absolute;
-  transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
-  top: ${props => (props.pinToTop ? '0%' : '50%')};
-  margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
-  width: 100%;
-`;
-
-const ResultList = styled(Flex)`
-  margin-bottom: 150px;
-  opacity: ${props => (props.visible ? '1' : '0')};
-  transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
-`;
-
-const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-`;
 
 @observer
 class Search extends React.Component<Props> {
@@ -115,7 +88,7 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
-  fetchResultsDebounced = _.debounce(this.fetchResults, 350, {
+  fetchResultsDebounced = debounce(this.fetchResults, 350, {
     leading: false,
     trailing: true,
   });
@@ -139,7 +112,7 @@ class Search extends React.Component<Props> {
           offset: this.offset,
           limit: DEFAULT_PAGINATION_LIMIT,
         });
-        this.results = this.results.concat(results);
+        this.results = results;
 
         if (this.results.length > 0) this.pinToTop = true;
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
@@ -227,5 +200,32 @@ class Search extends React.Component<Props> {
     );
   }
 }
+
+const Container = styled(CenteredContent)`
+  > div {
+    position: relative;
+    height: 100%;
+  }
+`;
+
+const ResultsWrapper = styled(Flex)`
+  position: absolute;
+  transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
+  top: ${props => (props.pinToTop ? '0%' : '50%')};
+  margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
+  width: 100%;
+`;
+
+const ResultList = styled(Flex)`
+  margin-bottom: 150px;
+  opacity: ${props => (props.visible ? '1' : '0')};
+  transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
+`;
+
+const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+`;
 
 export default withRouter(inject('documents')(Search));
