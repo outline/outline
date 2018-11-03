@@ -2,33 +2,34 @@
 import uuid from 'uuid';
 import { DataTypes, sequelize, Op } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
+import { RESERVED_SUBDOMAINS } from '../domains';
 import Collection from './Collection';
 import User from './User';
 
-const Team = sequelize.define(
-  'team',
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    name: DataTypes.STRING,
-    slackId: { type: DataTypes.STRING, allowNull: true },
-    googleId: { type: DataTypes.STRING, allowNull: true },
-    avatarUrl: { type: DataTypes.STRING, allowNull: true },
-    sharing: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-    slackData: DataTypes.JSONB,
+const Team = sequelize.define('team', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
   },
-  {
-    indexes: [
-      {
-        unique: true,
-        fields: ['slackId'],
-      },
-    ],
-  }
-);
+  name: DataTypes.STRING,
+  subdomain: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      isLowercase: true,
+      isAlphanumeric: true,
+      len: [4, 32],
+      notIn: [RESERVED_SUBDOMAINS],
+    },
+    unique: true,
+  },
+  slackId: { type: DataTypes.STRING, allowNull: true },
+  googleId: { type: DataTypes.STRING, allowNull: true },
+  avatarUrl: { type: DataTypes.STRING, allowNull: true },
+  sharing: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+  slackData: DataTypes.JSONB,
+});
 
 Team.associate = models => {
   Team.hasMany(models.Collection, { as: 'collections' });

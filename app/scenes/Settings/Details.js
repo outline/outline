@@ -25,6 +25,7 @@ class Details extends React.Component<Props> {
   form: ?HTMLFormElement;
 
   @observable name: string;
+  @observable subdomain: string;
   @observable avatarUrl: ?string;
 
   componentDidMount() {
@@ -51,12 +52,16 @@ class Details extends React.Component<Props> {
     this.name = ev.target.value;
   };
 
+  handleSubdomainChange = (ev: SyntheticInputEvent<*>) => {
+    this.subdomain = ev.target.value.toLowerCase();
+  };
+
   handleAvatarUpload = (avatarUrl: string) => {
     this.avatarUrl = avatarUrl;
   };
 
   handleAvatarError = (error: ?string) => {
-    this.props.ui.showToast(error || 'Unable to upload new avatar');
+    this.props.ui.showToast(error || 'Unable to upload new logo');
   };
 
   get isValid() {
@@ -104,11 +109,28 @@ class Details extends React.Component<Props> {
         <form onSubmit={this.handleSubmit} ref={ref => (this.form = ref)}>
           <Input
             label="Name"
+            name="name"
             value={this.name}
             onChange={this.handleNameChange}
             required
             short
           />
+          <Input
+            label="Subdomain"
+            name="subdomain"
+            value={this.subdomain}
+            onChange={this.handleSubdomainChange}
+            placeholder="Optional"
+            short
+          />
+
+          {this.subdomain && (
+            <HelpText small>
+              You will be able to access your wiki at{' '}
+              <strong>{this.subdomain}.getoutline.com</strong>
+            </HelpText>
+          )}
+
           <Button type="submit" disabled={isSaving || !this.isValid}>
             {isSaving ? 'Saving…' : 'Save'}
           </Button>

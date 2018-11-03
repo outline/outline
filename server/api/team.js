@@ -12,7 +12,7 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post('team.update', auth(), async ctx => {
-  const { name, avatarUrl, sharing } = ctx.body;
+  const { name, avatarUrl, subdomain, sharing } = ctx.body;
   const endpoint = publicS3Endpoint();
 
   const user = ctx.state.user;
@@ -20,6 +20,7 @@ router.post('team.update', auth(), async ctx => {
   authorize(user, 'update', team);
 
   if (name) team.name = name;
+  if (subdomain) team.subdomain = subdomain;
   if (sharing !== undefined) team.sharing = sharing;
   if (avatarUrl && avatarUrl.startsWith(`${endpoint}/uploads/${user.id}`)) {
     team.avatarUrl = avatarUrl;
