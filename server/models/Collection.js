@@ -70,6 +70,11 @@ const Collection = sequelize.define(
         await collection.save();
       },
     },
+    getterMethods: {
+      url() {
+        return `/collections/${this.id}`;
+      },
+    },
   }
 );
 
@@ -119,10 +124,6 @@ Collection.addHook('afterUpdate', model =>
 );
 
 // Instance methods
-
-Collection.prototype.getUrl = function() {
-  return `/collections/${this.id}`;
-};
 
 Collection.prototype.addDocumentToStructure = async function(
   document,

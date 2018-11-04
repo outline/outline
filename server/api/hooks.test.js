@@ -38,7 +38,7 @@ describe('#hooks.unfurl', async () => {
           links: [
             {
               domain: 'getoutline.com',
-              url: document.getUrl(),
+              url: document.url,
             },
           ],
         },

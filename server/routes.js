@@ -92,7 +92,7 @@ router.get('/', async ctx => {
       );
     }
 
-    ctx.redirect(process.env.URL);
+    ctx.redirect(`${process.env.URL}?notice=invalid-auth`);
     return;
   }
 

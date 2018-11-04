@@ -19,7 +19,10 @@ router.post('team.update', auth(), async ctx => {
   const team = await Team.findById(user.teamId);
   authorize(user, 'update', team);
 
-  team.subdomain = subdomain === '' ? null : subdomain;
+  if (process.env.SUBDOMAINS_ENABLED) {
+    team.subdomain = subdomain === '' ? null : subdomain;
+  }
+
   if (name) team.name = name;
   if (sharing !== undefined) team.sharing = sharing;
   if (avatarUrl && avatarUrl.startsWith(`${endpoint}/uploads/${user.id}`)) {

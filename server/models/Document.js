@@ -104,6 +104,12 @@ const Document = sequelize.define(
       afterCreate: createRevision,
       afterUpdate: createRevision,
     },
+    getterMethods: {
+      url: function() {
+        const slugifiedTitle = slugify(this.title);
+        return `/doc/${slugifiedTitle}-${this.urlId}`;
+      },
+    },
   }
 );
 
@@ -312,18 +318,13 @@ Document.prototype.getSummary = function() {
   return lines.length >= 1 ? lines[1] : '';
 };
 
-Document.prototype.getUrl = function() {
-  const slugifiedTitle = slugify(this.title);
-  return `/doc/${slugifiedTitle}-${this.urlId}`;
-};
-
 Document.prototype.toJSON = function() {
   // Warning: only use for new documents as order of children is
   // handled in the collection's documentStructure
   return {
     id: this.id,
     title: this.title,
-    url: this.getUrl(),
+    url: this.url,
     children: [],
   };
 };

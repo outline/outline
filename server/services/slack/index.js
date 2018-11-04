@@ -48,7 +48,7 @@ class Slack {
           {
             color: collection.color,
             title: collection.name,
-            title_link: `${process.env.URL}${collection.getUrl()}`,
+            title_link: `${process.env.URL}${collection.url}`,
             text: collection.description,
           },
         ],

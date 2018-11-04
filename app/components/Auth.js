@@ -24,6 +24,8 @@ const Auth = observer(({ auth, children }: Props) => {
       return <LoadingIndicator />;
     }
 
+    // Check the current origin against the teams url, if they differ we need to
+    // redirect to the canonical subdomain for this team
     if (window.location.origin !== team.url) {
       window.location.href = `${team.url}${window.location.pathname}`;
       return <LoadingIndicator />;

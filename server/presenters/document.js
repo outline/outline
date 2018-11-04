@@ -25,7 +25,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
 
   const data = {
     id: document.id,
-    url: document.getUrl(),
+    url: document.url,
     urlId: document.urlId,
     title: document.title,
     text: document.text,
