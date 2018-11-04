@@ -3,7 +3,7 @@ import uuid from 'uuid';
 import { URL } from 'url';
 import { DataTypes, sequelize, Op } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
-import { RESERVED_SUBDOMAINS } from '../utils/domains';
+import { RESERVED_SUBDOMAINS } from '../../shared/utils/domains';
 import Collection from './Collection';
 import User from './User';
 

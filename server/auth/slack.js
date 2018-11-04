@@ -4,8 +4,8 @@ import auth from '../middlewares/authentication';
 import addHours from 'date-fns/add_hours';
 import addMonths from 'date-fns/add_months';
 import { slackAuth } from '../../shared/utils/routeHelpers';
+import { stripSubdomain } from '../../shared/utils/domains';
 import { Authentication, Integration, User, Team } from '../models';
-import { stripSubdomain } from '../utils/domains';
 import * as Slack from '../slack';
 
 const router = new Router();
@@ -63,6 +63,13 @@ router.get('slack.callback', async ctx => {
 
   if (isFirstUser) {
     await team.createFirstCollection(user.id);
+
+    // attempt to give the new team the same subdomain as they use on slack
+    try {
+      await team.update({ subdomain: data.team.domain });
+    } catch (err) {
+      // subdomain was invalid or already used
+    }
   }
 
   // not awaiting the promise here so that the request is not blocked

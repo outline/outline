@@ -2,7 +2,7 @@
 import crypto from 'crypto';
 import Router from 'koa-router';
 import addMonths from 'date-fns/add_months';
-import { stripSubdomain } from '../utils/domains';
+import { stripSubdomain } from '../../shared/utils/domains';
 import { capitalize } from 'lodash';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Team } from '../models';
@@ -53,7 +53,8 @@ router.get('google.callback', async ctx => {
   }
 
   const googleId = profile.data.hd;
-  const teamName = capitalize(profile.data.hd.split('.')[0]);
+  const hostname = profile.data.hd.split('.')[0];
+  const teamName = capitalize(hostname);
 
   // attempt to get logo from Clearbit API. If one doesn't exist then
   // fall back to using tiley to generate a placeholder logo
@@ -93,6 +94,13 @@ router.get('google.callback', async ctx => {
 
   if (isFirstUser) {
     await team.createFirstCollection(user.id);
+
+    // attempt to give the new team a subdomain based on google hosted domain
+    try {
+      await team.update({ subdomain: hostname });
+    } catch (err) {
+      // subdomain was invalid or already used
+    }
   }
 
   // not awaiting the promise here so that the request is not blocked
