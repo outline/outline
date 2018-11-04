@@ -1,5 +1,5 @@
 // @flow
-import _ from 'lodash';
+import { map } from 'lodash';
 import invariant from 'invariant';
 import stores from 'stores';
 
@@ -51,7 +51,7 @@ class ApiClient {
       body,
       headers,
       redirect: 'follow',
-      credentials: 'include',
+      credentials: 'omit',
     });
 
     if (response.status >= 200 && response.status < 300) {
@@ -89,7 +89,7 @@ class ApiClient {
 
   // Helpers
   constructQueryString = (data: Object) => {
-    return _.map(data, (v, k) => {
+    return map(data, (v, k) => {
       return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
     }).join('&');
   };

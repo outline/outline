@@ -1,6 +1,6 @@
 // @flow
 import uuid from 'uuid';
-import url from 'url';
+import { URL } from 'url';
 import { DataTypes, sequelize, Op } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { RESERVED_SUBDOMAINS } from '../utils/domains';
@@ -47,11 +47,9 @@ const Team = sequelize.define(
       url() {
         if (!this.subdomain) return process.env.URL;
 
-        const u = url.parse(process.env.URL);
-        if (u.hostname) {
-          u.hostname = `${this.subdomain}.${u.hostname}`;
-          return u.href;
-        }
+        const url = new URL(process.env.URL);
+        url.host = `${this.subdomain}.${url.host}`;
+        return url.href.replace(/\/$/, '');
       },
     },
   }

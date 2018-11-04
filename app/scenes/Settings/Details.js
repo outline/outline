@@ -84,18 +84,10 @@ class Details extends React.Component<Props> {
       <CenteredContent>
         <PageTitle title="Details" />
         <h1>Details</h1>
-        {team.slackConnected && (
-          <HelpText>
-            This team is connected to a <strong>Slack</strong> team. Your
-            colleagues can join by signing in with their Slack account details.
-          </HelpText>
-        )}
-        {team.googleConnected && (
-          <HelpText>
-            This team is connected to a <strong>Google</strong> domain. Your
-            colleagues can join by signing in with their Google account.
-          </HelpText>
-        )}
+        <HelpText>
+          These details affect the way that your Outline appears to everyone on
+          the team.
+        </HelpText>
 
         <ProfilePicture column>
           <LabelText>Logo</LabelText>
@@ -129,13 +121,14 @@ class Details extends React.Component<Props> {
                 name="subdomain"
                 value={this.subdomain || ''}
                 onChange={this.handleSubdomainChange}
-                placeholder="Optional"
-                autocomplete={false}
+                autocomplete="off"
+                minLength={4}
+                maxLength={32}
                 short
               />
               {this.subdomain && (
                 <HelpText small>
-                  You will access your knowledgebase at{' '}
+                  Your knowledgebase will be accessed at{' '}
                   <strong>{this.subdomain}.getoutline.com</strong>
                 </HelpText>
               )}

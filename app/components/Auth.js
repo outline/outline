@@ -24,6 +24,14 @@ const Auth = observer(({ auth, children }: Props) => {
       return <LoadingIndicator />;
     }
 
+    if (
+      team.subdomain &&
+      !window.location.hostname.startsWith(team.subdomain)
+    ) {
+      window.location.href = `${team.url}${window.location.pathname}`;
+      return <LoadingIndicator />;
+    }
+
     // Only initialize stores once. Kept in global scope because otherwise they
     // will get overridden on route change
     if (!authenticatedStores) {

@@ -67,8 +67,8 @@ router.get('/changelog', async ctx => {
 router.get('/', async ctx => {
   const lastSignedIn = ctx.cookies.get('lastSignedIn');
   const accessToken = ctx.cookies.get('accessToken');
-  const subdomain = parseDomain(ctx.request.hostname).subdomain;
-  console.log('subdomain', subdomain);
+  const domain = parseDomain(ctx.request.hostname);
+  const subdomain = domain ? domain.subdomain : false;
 
   if (accessToken) {
     return renderapp(ctx);
