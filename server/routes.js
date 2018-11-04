@@ -5,10 +5,12 @@ import Koa from 'koa';
 import Router from 'koa-router';
 import sendfile from 'koa-sendfile';
 import serve from 'koa-static';
-import subdomainRedirect from './middlewares/subdomainRedirect';
+import parseDomain from 'parse-domain';
+import apexRedirect from './middlewares/apexRedirect';
 import renderpage from './utils/renderpage';
 import { robotsResponse } from './utils/robots';
 import { NotFoundError } from './errors';
+import { Team } from './models';
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -16,6 +18,7 @@ import Changelog from './pages/Changelog';
 import Privacy from './pages/Privacy';
 import Pricing from './pages/Pricing';
 import Api from './pages/Api';
+import SubdomainSignin from './pages/SubdomainSignin';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const koa = new Koa();
@@ -64,20 +67,44 @@ router.get('/changelog', async ctx => {
 router.get('/', async ctx => {
   const lastSignedIn = ctx.cookies.get('lastSignedIn');
   const accessToken = ctx.cookies.get('accessToken');
+  const subdomain = parseDomain(ctx.request.hostname).subdomain;
+  console.log('subdomain', subdomain);
 
   if (accessToken) {
-    await renderapp(ctx);
-  } else {
-    await renderpage(
-      ctx,
-      <Home
-        notice={ctx.request.query.notice}
-        lastSignedIn={lastSignedIn}
-        googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}
-        slackSigninEnabled={!!process.env.SLACK_KEY}
-      />
-    );
+    return renderapp(ctx);
   }
+
+  if (subdomain) {
+    const team = await Team.find({
+      where: { subdomain },
+    });
+    if (team && process.env.SUBDOMAINS_ENABLED) {
+      return renderpage(
+        ctx,
+        <SubdomainSignin
+          team={team}
+          notice={ctx.request.query.notice}
+          lastSignedIn={lastSignedIn}
+          googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}
+          slackSigninEnabled={!!process.env.SLACK_KEY}
+          hostname={ctx.request.hostname}
+        />
+      );
+    }
+
+    ctx.redirect(process.env.URL);
+    return;
+  }
+
+  return renderpage(
+    ctx,
+    <Home
+      notice={ctx.request.query.notice}
+      lastSignedIn={lastSignedIn}
+      googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}
+      slackSigninEnabled={!!process.env.SLACK_KEY}
+    />
+  );
 });
 
 // Other
@@ -90,7 +117,7 @@ router.get('*', async ctx => {
 });
 
 // middleware
-koa.use(subdomainRedirect());
+koa.use(apexRedirect());
 koa.use(router.routes());
 
 export default koa;

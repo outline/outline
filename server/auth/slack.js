@@ -5,6 +5,7 @@ import addHours from 'date-fns/add_hours';
 import addMonths from 'date-fns/add_months';
 import { slackAuth } from '../../shared/utils/routeHelpers';
 import { Authentication, Integration, User, Team } from '../models';
+import { stripSubdomain } from '../utils/domains';
 import * as Slack from '../slack';
 
 const router = new Router();
@@ -18,6 +19,7 @@ router.get('slack', async ctx => {
   ctx.cookies.set('state', state, {
     httpOnly: false,
     expires: addHours(new Date(), 1),
+    domain: stripSubdomain(ctx.request.hostname),
   });
   ctx.redirect(slackAuth(state));
 });
@@ -29,7 +31,7 @@ router.get('slack.callback', async ctx => {
   ctx.assertPresent(state, 'state is required');
 
   if (state !== ctx.cookies.get('state') || error) {
-    ctx.redirect('/?notice=auth-error');
+    ctx.redirect(`/?notice=auth-error`);
     return;
   }
 
@@ -69,13 +71,15 @@ router.get('slack.callback', async ctx => {
   ctx.cookies.set('lastSignedIn', 'slack', {
     httpOnly: false,
     expires: new Date('2100'),
+    domain: stripSubdomain(ctx.request.hostname),
   });
   ctx.cookies.set('accessToken', user.getJwtToken(), {
     httpOnly: false,
     expires: addMonths(new Date(), 1),
+    domain: stripSubdomain(ctx.request.hostname),
   });
 
-  ctx.redirect('/');
+  ctx.redirect(team.url);
 });
 
 router.get('slack.commands', auth(), async ctx => {

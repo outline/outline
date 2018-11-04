@@ -1,35 +1,52 @@
 // @flow
 import uuid from 'uuid';
+import url from 'url';
 import { DataTypes, sequelize, Op } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
-import { RESERVED_SUBDOMAINS } from '../domains';
+import { RESERVED_SUBDOMAINS } from '../utils/domains';
 import Collection from './Collection';
 import User from './User';
 
-const Team = sequelize.define('team', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  name: DataTypes.STRING,
-  subdomain: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    validate: {
-      isLowercase: true,
-      isAlphanumeric: true,
-      len: [4, 32],
-      notIn: [RESERVED_SUBDOMAINS],
+const Team = sequelize.define(
+  'team',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-    unique: true,
+    name: DataTypes.STRING,
+    subdomain: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isLowercase: true,
+        is: [/^[a-z\d-]+$/, 'i'],
+        len: [4, 32],
+        notIn: [RESERVED_SUBDOMAINS],
+      },
+      unique: true,
+    },
+    slackId: { type: DataTypes.STRING, allowNull: true },
+    googleId: { type: DataTypes.STRING, allowNull: true },
+    avatarUrl: { type: DataTypes.STRING, allowNull: true },
+    sharing: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    slackData: DataTypes.JSONB,
   },
-  slackId: { type: DataTypes.STRING, allowNull: true },
-  googleId: { type: DataTypes.STRING, allowNull: true },
-  avatarUrl: { type: DataTypes.STRING, allowNull: true },
-  sharing: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-  slackData: DataTypes.JSONB,
-});
+  {
+    getterMethods: {
+      url() {
+        if (!this.subdomain) return process.env.URL;
+
+        const u = url.parse(process.env.URL);
+        if (u.hostname) {
+          u.hostname = `${this.subdomain}.${u.hostname}`;
+          return u.href;
+        }
+      },
+    },
+  }
+);
 
 Team.associate = models => {
   Team.hasMany(models.Collection, { as: 'collections' });

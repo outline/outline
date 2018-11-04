@@ -16,7 +16,7 @@ import {
 function TopNavigation() {
   return (
     <Nav>
-      <Brand href="/">Outline</Brand>
+      <Brand href={process.env.URL}>Outline</Brand>
       <Menu>
         <MenuItemDesktop>
           <a href="/#features">Features</a>

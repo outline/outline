@@ -8,7 +8,7 @@ import SlackLogo from '../../../shared/components/SlackLogo';
 import breakpoint from 'styled-components-breakpoint';
 
 type Props = {
-  lastSignedIn: string,
+  lastSignedIn?: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
 };

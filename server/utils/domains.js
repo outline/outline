@@ -1,4 +1,12 @@
 // @flow
+import parseDomain from 'parse-domain';
+
+export function stripSubdomain(hostname) {
+  const parsed = parseDomain(hostname);
+  if (parsed.tld) return `${parsed.domain}.${parsed.tld}`;
+  return parsed.domain;
+}
+
 export const RESERVED_SUBDOMAINS = [
   'admin',
   'api',

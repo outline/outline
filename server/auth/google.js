@@ -2,6 +2,7 @@
 import crypto from 'crypto';
 import Router from 'koa-router';
 import addMonths from 'date-fns/add_months';
+import { stripSubdomain } from '../utils/domains';
 import { capitalize } from 'lodash';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Team } from '../models';
@@ -100,13 +101,15 @@ router.get('google.callback', async ctx => {
   ctx.cookies.set('lastSignedIn', 'google', {
     httpOnly: false,
     expires: new Date('2100'),
+    domain: stripSubdomain(ctx.request.hostname),
   });
   ctx.cookies.set('accessToken', user.getJwtToken(), {
     httpOnly: false,
     expires: addMonths(new Date(), 1),
+    domain: stripSubdomain(ctx.request.hostname),
   });
 
-  ctx.redirect('/');
+  ctx.redirect(team.url);
 });
 
 export default router;

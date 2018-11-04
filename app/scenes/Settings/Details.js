@@ -25,12 +25,14 @@ class Details extends React.Component<Props> {
   form: ?HTMLFormElement;
 
   @observable name: string;
-  @observable subdomain: string;
+  @observable subdomain: ?string;
   @observable avatarUrl: ?string;
 
   componentDidMount() {
-    if (this.props.auth.team) {
-      this.name = this.props.auth.team.name;
+    const { team } = this.props.auth;
+    if (team) {
+      this.name = team.name;
+      this.subdomain = team.subdomain;
     }
   }
 
@@ -41,11 +43,16 @@ class Details extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
 
-    await this.props.auth.updateTeam({
-      name: this.name,
-      avatarUrl: this.avatarUrl,
-    });
-    this.props.ui.showToast('Settings saved', 'success');
+    try {
+      await this.props.auth.updateTeam({
+        name: this.name,
+        avatarUrl: this.avatarUrl,
+        subdomain: this.subdomain,
+      });
+      this.props.ui.showToast('Settings saved', 'success');
+    } catch (err) {
+      this.props.ui.showToast('Could not save');
+    }
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -115,22 +122,24 @@ class Details extends React.Component<Props> {
             required
             short
           />
-          <Input
-            label="Subdomain"
-            name="subdomain"
-            value={this.subdomain}
-            onChange={this.handleSubdomainChange}
-            placeholder="Optional"
-            short
-          />
-
-          {this.subdomain && (
-            <HelpText small>
-              You will be able to access your wiki at{' '}
-              <strong>{this.subdomain}.getoutline.com</strong>
-            </HelpText>
+          {process.env.SUBDOMAINS_ENABLED && (
+            <React.Fragment>
+              <Input
+                label="Subdomain"
+                name="subdomain"
+                value={this.subdomain}
+                onChange={this.handleSubdomainChange}
+                placeholder="Optional"
+                short
+              />
+              {this.subdomain && (
+                <HelpText small>
+                  You will be able to access your wiki at{' '}
+                  <strong>{this.subdomain}.getoutline.com</strong>
+                </HelpText>
+              )}
+            </React.Fragment>
           )}
-
           <Button type="submit" disabled={isSaving || !this.isValid}>
             {isSaving ? 'Saving…' : 'Save'}
           </Button>

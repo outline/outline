@@ -12,6 +12,8 @@ function present(ctx: Object, team: Team) {
     slackConnected: !!team.slackId,
     googleConnected: !!team.googleId,
     sharing: team.sharing,
+    subdomain: team.subdomain,
+    url: team.url,
   };
 }
 
