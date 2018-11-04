@@ -39,6 +39,8 @@ class ApiClient {
     const headers = new Headers({
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      'cache-control': 'no-cache',
+      pragma: 'no-cache',
     });
     if (stores.auth.authenticated) {
       invariant(stores.auth.token, 'JWT token not set properly');
@@ -52,6 +54,7 @@ class ApiClient {
       headers,
       redirect: 'follow',
       credentials: 'omit',
+      cache: 'no-cache',
     });
 
     if (response.status >= 200 && response.status < 300) {

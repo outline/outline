@@ -24,10 +24,7 @@ const Auth = observer(({ auth, children }: Props) => {
       return <LoadingIndicator />;
     }
 
-    if (
-      team.subdomain &&
-      !window.location.hostname.startsWith(team.subdomain)
-    ) {
+    if (window.location.origin !== team.url) {
       window.location.href = `${team.url}${window.location.pathname}`;
       return <LoadingIndicator />;
     }
