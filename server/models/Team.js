@@ -21,9 +21,18 @@ const Team = sequelize.define(
       allowNull: true,
       validate: {
         isLowercase: true,
-        is: [/^[a-z\d-]+$/, 'i'],
-        len: [4, 32],
-        notIn: [RESERVED_SUBDOMAINS],
+        is: {
+          args: [/^[a-z\d-]+$/, 'i'],
+          msg: 'Must be only alphanumeric and dashes',
+        },
+        len: {
+          args: [4, 32],
+          msg: 'Must be between 4 and 32 characters',
+        },
+        notIn: {
+          args: [RESERVED_SUBDOMAINS],
+          msg: 'You chose a restricted word, please try another.',
+        },
       },
       unique: true,
     },

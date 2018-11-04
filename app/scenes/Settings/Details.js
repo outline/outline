@@ -51,7 +51,7 @@ class Details extends React.Component<Props> {
       });
       this.props.ui.showToast('Settings saved', 'success');
     } catch (err) {
-      this.props.ui.showToast('Could not save');
+      this.props.ui.showToast(err.message);
     }
   };
 
@@ -127,14 +127,15 @@ class Details extends React.Component<Props> {
               <Input
                 label="Subdomain"
                 name="subdomain"
-                value={this.subdomain}
+                value={this.subdomain || ''}
                 onChange={this.handleSubdomainChange}
                 placeholder="Optional"
+                autocomplete={false}
                 short
               />
               {this.subdomain && (
                 <HelpText small>
-                  You will be able to access your wiki at{' '}
+                  You will access your knowledgebase at{' '}
                   <strong>{this.subdomain}.getoutline.com</strong>
                 </HelpText>
               )}

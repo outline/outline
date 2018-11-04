@@ -1,7 +1,7 @@
 // @flow
 import parseDomain from 'parse-domain';
 
-export function stripSubdomain(hostname) {
+export function stripSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
   if (parsed.tld) return `${parsed.domain}.${parsed.tld}`;
   return parsed.domain;
