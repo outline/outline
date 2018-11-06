@@ -310,7 +310,7 @@ class DocumentScene extends React.Component<Props> {
     const document = this.document;
     const revision = this.revision;
     const isShare = match.params.shareId;
-    const isHistory = match.url.match(/\/history\//); // Can't match on history alone as that can be in the user-generated slug
+    const isHistory = match.url.match(/\/history(\/|$)/); // Can't match on history alone as that can be in the user-generated slug
 
     if (this.notFound) {
       return navigator.onLine ? (
