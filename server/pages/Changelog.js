@@ -33,7 +33,7 @@ function Changelog({ releases }: { releases: Release[] }) {
             <Heading id={release.name}>
               <a href={`#${release.name}`}>{release.name}</a>
             </Heading>
-            <Time datetime={release.created_at}>
+            <Time dateTime={release.created_at}>
               {format(new Date(release.created_at), 'MMMM Do, YYYY')}
             </Time>
             <ReactMarkdown source={release.body} />
