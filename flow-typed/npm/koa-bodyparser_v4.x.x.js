@@ -1,5 +1,5 @@
-// flow-typed signature: 89e31dc3d71df377b34d408f5725e57a
-// flow-typed version: 60fd29d2cf/koa-bodyparser_v4.x.x/flow_>=v0.56.x
+// flow-typed signature: db2ab32952e719c6656cef681be04c96
+// flow-typed version: e969a7af52/koa-bodyparser_v4.x.x/flow_>=v0.56.x
 
 declare module "koa-bodyparser" {
   declare type Context = Object;
@@ -24,5 +24,5 @@ declare module "koa-bodyparser" {
     onerror?: (err: Error, ctx: Context) => void
   |};
 
-  declare export default function bodyParser(opts?: Options): Middleware;
+  declare module.exports: (opts?: Options) => Middleware;
 }

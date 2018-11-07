@@ -1,5 +1,5 @@
-// flow-typed signature: e8c17d9b50ca24293a9bd00a8aa54f9e
-// flow-typed version: a80cb215a2/redis_v2.x.x/flow_>=v0.34.x
+// flow-typed signature: 1b39d667486345a987ed0a37e2ce3601
+// flow-typed version: 79f2090f89/redis_v2.x.x/flow_>=v0.34.x
 
 /* This module definition is by no means complete. A lot of methods of the RedisClient class are missing */
 
@@ -108,6 +108,7 @@ declare type $npm$redis$DelF = $npm$redis$DelWithArrayKeys
 
 declare module "redis" {
   declare class RedisClient extends events$EventEmitter mixins RedisClientPromisified {
+    connected: boolean,
     hmset: (
       key: string,
       map: {[key: string]: string},
@@ -213,6 +214,41 @@ declare module "redis" {
       timeout: number,
       callback?: (error: ?Error, timeoutWasSet: number) => void
     ) => void;
+    incr: (
+      key: string,
+      callback: (error: ?Error, result: ?number) => void
+    ) => void;
+    incrby: (
+      key: string,
+      increment: number,
+      callback: (error: ?Error, result: ?number) => void
+    ) => void;
+    incrbyfloat: (
+      key: string,
+      increment: number,
+      callback: (error: ?Error, result: ?string) => void
+    ) => void;
+    decr: (
+      key: string,
+      callback: (error: ?Error, result: ?number) => void
+    ) => void;
+    decrby: (
+      key: string,
+      decrement: number,
+      callback: (error: ?Error, result: ?number) => void
+    ) => void;
+    hincrby: (
+      key: string,
+      field: string,
+      increment: number,
+      callback: (error: ?Error, result: ?number) => void
+    ) => void;
+    hincrbyfloat: (
+      key: string,
+      field: string,
+      increment: number,
+      callback: (error: ?Error, result: ?string) => void
+    ) => void;
   }
 
   declare class RedisClientPromisified extends RedisClient {
@@ -256,6 +292,7 @@ declare module "redis" {
       source: string,
       destination: string
     ) => Promise<string> | Promise<void>;
+    flushallAsync: () => Promise<void>;
     publishAsync: (topic: string, value: any) => Promise<void>;
     subscribeAsync: (topic: string) => Promise<void>;
     unsubscribeAsync: (topic: string) => Promise<void>;

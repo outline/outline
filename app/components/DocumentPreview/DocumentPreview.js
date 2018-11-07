@@ -15,7 +15,7 @@ type Props = {
   highlight?: ?string,
   context?: ?string,
   showCollection?: boolean,
-  innerRef?: *,
+  ref?: *,
 };
 
 const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
@@ -131,7 +131,6 @@ class DocumentPreview extends React.Component<Props> {
     const {
       document,
       showCollection,
-      innerRef,
       highlight,
       context,
       ...rest
@@ -147,7 +146,6 @@ class DocumentPreview extends React.Component<Props> {
           pathname: document.url,
           state: { title: document.title },
         }}
-        innerRef={innerRef}
         {...rest}
       >
         <Heading>

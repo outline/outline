@@ -18,6 +18,12 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
+"@babel/helper-annotate-as-pure@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@babel/helper-annotate-as-pure/-/helper-annotate-as-pure-7.0.0.tgz#323d39dd0b50e10c7c06ca7d7638e6864d8c5c32"
+  dependencies:
+    "@babel/types" "^7.0.0"
+
 "@babel/helper-function-name@7.0.0-beta.31":
   version "7.0.0-beta.31"
   resolved "https://registry.yarnpkg.com/@babel/helper-function-name/-/helper-function-name-7.0.0-beta.31.tgz#afe63ad799209989348b1109b44feb66aa245f57"
@@ -62,6 +68,24 @@
     esutils "^2.0.2"
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
+
+"@babel/types@^7.0.0":
+  version "7.1.5"
+  resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.1.5.tgz#12fe64e91a431234b7017b4227a78cc0eec4e081"
+  dependencies:
+    esutils "^2.0.2"
+    lodash "^4.17.10"
+    to-fast-properties "^2.0.0"
+
+"@emotion/is-prop-valid@^0.6.8":
+  version "0.6.8"
+  resolved "https://registry.yarnpkg.com/@emotion/is-prop-valid/-/is-prop-valid-0.6.8.tgz#68ad02831da41213a2089d2cab4e8ac8b30cbd85"
+  dependencies:
+    "@emotion/memoize" "^0.6.6"
+
+"@emotion/memoize@^0.6.6":
+  version "0.6.6"
+  resolved "https://registry.yarnpkg.com/@emotion/memoize/-/memoize-0.6.6.tgz#004b98298d04c7ca3b4f50ca2035d4f60d2eed1b"
 
 "@tommoor/remove-markdown@0.3.1":
   version "0.3.1"
@@ -723,6 +747,13 @@ babel-plugin-react-transform@^2.0.2:
   resolved "https://registry.yarnpkg.com/babel-plugin-react-transform/-/babel-plugin-react-transform-2.0.2.tgz#515bbfa996893981142d90b1f9b1635de2995109"
   dependencies:
     lodash "^4.6.1"
+
+"babel-plugin-styled-components@>= 1":
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/babel-plugin-styled-components/-/babel-plugin-styled-components-1.8.0.tgz#9dd054c8e86825203449a852a5746f29f2dab857"
+  dependencies:
+    "@babel/helper-annotate-as-pure" "^7.0.0"
+    lodash "^4.17.10"
 
 babel-plugin-styled-components@^1.1.7:
   version "1.2.0"
@@ -1470,13 +1501,6 @@ buffer@4.9.1, buffer@^4.3.0:
     base64-js "^1.0.2"
     ieee754 "^1.1.4"
     isarray "^1.0.0"
-
-buffer@^5.0.3:
-  version "5.0.7"
-  resolved "https://registry.yarnpkg.com/buffer/-/buffer-5.0.7.tgz#570a290b625cf2603290c1149223d27ccf04db97"
-  dependencies:
-    base64-js "^1.0.2"
-    ieee754 "^1.1.4"
 
 buffers@~0.1.1:
   version "0.1.1"
@@ -2368,9 +2392,9 @@ css-selector-tokenizer@^0.7.0:
     fastparse "^1.1.1"
     regexpu-core "^1.0.0"
 
-css-to-react-native@^2.0.3:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/css-to-react-native/-/css-to-react-native-2.0.4.tgz#cf4cc407558b3474d4ba8be1a2cd3b6ce713101b"
+css-to-react-native@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/css-to-react-native/-/css-to-react-native-2.2.2.tgz#c077d0f7bf3e6c915a539e7325821c9dd01f9965"
   dependencies:
     css-color-keywords "^1.0.0"
     fbjs "^0.8.5"
@@ -4330,6 +4354,10 @@ has-flag@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-2.0.0.tgz#e8207af1cc7b30d446cc70b734b5e8be18f88d51"
 
+has-flag@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-3.0.0.tgz#b5d454dc2199ae225699f3467e5a07f3b955bafd"
+
 has-gulplog@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/has-gulplog/-/has-gulplog-0.1.0.tgz#6414c82913697da51590397dafb12f22967811ce"
@@ -4478,10 +4506,6 @@ hoist-non-react-statics@^1.2.0:
 hoist-non-react-statics@^2.3.0:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.3.1.tgz#343db84c6018c650778898240135a1420ee22ce0"
-
-hoist-non-react-statics@^2.5.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.5.0.tgz#d2ca2dfc19c5a91c5a6615ce8e564ef0347e2a40"
 
 home-or-tmp@^2.0.0:
   version "2.0.0"
@@ -5036,7 +5060,7 @@ is-plain-obj@^1.0.0, is-plain-obj@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/is-plain-obj/-/is-plain-obj-1.1.0.tgz#71a50c8429dfca773c92a390a4a03b39fcd51d3e"
 
-is-plain-object@^2.0.1, is-plain-object@^2.0.3, is-plain-object@^2.0.4:
+is-plain-object@^2.0.3, is-plain-object@^2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/is-plain-object/-/is-plain-object-2.0.4.tgz#2c163b3fafb1b606d9d17928f05c2a1c38e07677"
   dependencies:
@@ -6418,6 +6442,10 @@ lodash@^4.1.1:
   version "4.17.5"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.5.tgz#99a92d65c0272debe8c96b6057bc8fbfa3bed511"
 
+lodash@^4.17.10:
+  version "4.17.11"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
+
 lodash@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-1.0.2.tgz#8f57560c83b59fc270bd3d561b690043430e2551"
@@ -6570,6 +6598,10 @@ mem@^1.1.0:
   resolved "https://registry.yarnpkg.com/mem/-/mem-1.1.0.tgz#5edd52b485ca1d900fe64895505399a0dfa45f76"
   dependencies:
     mimic-fn "^1.0.0"
+
+memoize-one@^4.0.0:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-4.0.3.tgz#cdfdd942853f1a1b4c71c5336b8c49da0bf0273c"
 
 memoizee@^0.4.3:
   version "0.4.9"
@@ -8025,6 +8057,13 @@ prop-types@^15.0.0, prop-types@^15.5.7, prop-types@^15.6.0:
     loose-envify "^1.3.1"
     object-assign "^4.1.1"
 
+prop-types@^15.6.2:
+  version "15.6.2"
+  resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.2.tgz#05d5ca77b4453e985d60fc7ff8c859094a497102"
+  dependencies:
+    loose-envify "^1.3.1"
+    object-assign "^4.1.1"
+
 proto-list@~1.2.1:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/proto-list/-/proto-list-1.2.4.tgz#212d5bfe1318306a420f6402b8e26ff39647a849"
@@ -8209,23 +8248,14 @@ react-deep-force-update@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/react-deep-force-update/-/react-deep-force-update-1.1.1.tgz#bcd31478027b64b3339f108921ab520b4313dc2c"
 
-react-dom@^16.2.0:
-  version "16.3.2"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.3.2.tgz#cb90f107e09536d683d84ed5d4888e9640e0e4df"
+react-dom@^16.6.0:
+  version "16.6.1"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.6.1.tgz#5476e08694ae504ae385a28b62ecc4fe3a29add9"
   dependencies:
-    fbjs "^0.8.16"
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
-    prop-types "^15.6.0"
-
-react-dom@^16.4.0:
-  version "16.4.2"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.4.2.tgz#4afed569689f2c561d2b8da0b819669c38a0bda4"
-  dependencies:
-    fbjs "^0.8.16"
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    prop-types "^15.6.0"
+    prop-types "^15.6.2"
+    scheduler "^0.11.0"
 
 react-dropzone@4.2.1:
   version "4.2.1"
@@ -8247,9 +8277,9 @@ react-immutable-proptypes@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/react-immutable-proptypes/-/react-immutable-proptypes-2.1.0.tgz#023d6f39bb15c97c071e9e60d00d136eac5fa0b4"
 
-react-is@^16.3.1:
-  version "16.3.2"
-  resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.3.2.tgz#f4d3d0e2f5fbb6ac46450641eb2e25bf05d36b22"
+react-is@^16.6.0:
+  version "16.6.1"
+  resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.6.1.tgz#f77b1c3d901be300abe8d58645b7a59e794e5982"
 
 react-keydown@^1.7.3:
   version "1.9.4"
@@ -8365,23 +8395,14 @@ react-waypoint@^7.3.1:
     consolidated-events "^1.1.0"
     prop-types "^15.0.0"
 
-react@^16.2.0:
-  version "16.2.0"
-  resolved "https://registry.yarnpkg.com/react/-/react-16.2.0.tgz#a31bd2dab89bff65d42134fa187f24d054c273ba"
+react@^16.6.0:
+  version "16.6.1"
+  resolved "https://registry.yarnpkg.com/react/-/react-16.6.1.tgz#ee2aef4f0a09e494594882029821049772f915fe"
   dependencies:
-    fbjs "^0.8.16"
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
-    prop-types "^15.6.0"
-
-react@^16.4.0:
-  version "16.4.2"
-  resolved "https://registry.yarnpkg.com/react/-/react-16.4.2.tgz#2cd90154e3a9d9dd8da2991149fdca3c260e129f"
-  dependencies:
-    fbjs "^0.8.16"
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    prop-types "^15.6.0"
+    prop-types "^15.6.2"
+    scheduler "^0.11.0"
 
 read-all-stream@^3.0.0:
   version "3.1.0"
@@ -8854,9 +8875,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@5.0.5:
-  version "5.0.5"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-5.0.5.tgz#b44d8aefa17f83e9dadfe28e121a63ff236b557b"
+rich-markdown-editor@6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-6.0.1.tgz#a2f36f4596d2ba7757dd1f9dfa9e9976fbc99911"
   dependencies:
     "@tommoor/slate-drop-or-paste-images" "^0.8.1"
     babel-plugin-transform-async-to-generator "^6.24.1"
@@ -8867,8 +8888,8 @@ rich-markdown-editor@5.0.5:
     eslint-plugin-prettier "^2.6.0"
     immutable "^3.8.2"
     outline-icons "^1.0.0"
-    react "^16.2.0"
-    react-dom "^16.2.0"
+    react "^16.6.0"
+    react-dom "^16.6.0"
     react-keydown "^1.9.7"
     react-medium-image-zoom "^3.0.10"
     react-portal "^4.1.4"
@@ -8876,14 +8897,14 @@ rich-markdown-editor@5.0.5:
     slate-collapse-on-escape "^0.6.1"
     slate-edit-code "^0.15.5"
     slate-edit-list "^0.11.3"
-    slate-md-serializer "4.1.1"
+    slate-md-serializer "5.1.0"
     slate-paste-linkify "^0.5.1"
     slate-plain-serializer "0.5.4"
     slate-prism "^0.5.0"
     slate-react "^0.12.3"
     slate-trailing-block "^0.5.0"
     slugify "^1.3.0"
-    styled-components "^3.2.3"
+    styled-components "4.0.3"
 
 right-align@^0.1.1:
   version "0.1.3"
@@ -8996,6 +9017,13 @@ sax@1.2.1:
 sax@>=0.6.0, sax@^1.2.1, sax@~1.2.1:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
+
+scheduler@^0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.11.0.tgz#def1f1bfa6550cc57981a87106e65e8aea41a6b5"
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
 
 schema-utils@^0.3.0:
   version "0.3.0"
@@ -9237,9 +9265,9 @@ slate-edit-list@^0.11.3:
   version "0.11.3"
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.11.3.tgz#d27ff2ff93a83bef49131a6a44b87a9558c9d44c"
 
-slate-md-serializer@4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-4.1.1.tgz#0b6f569a2018feff50d2258934fa8044d3d130a5"
+slate-md-serializer@5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.1.0.tgz#07b01fec49fa5bd47619bbccafb477712d30f848"
 
 slate-paste-linkify@^0.5.1:
   version "0.5.1"
@@ -9687,34 +9715,19 @@ styled-components-grid@^2.2.0:
     react-create-component-from-tag-prop "^1.4.0"
     styled-components-breakpoint "^2.0.2"
 
-styled-components@^3.2.3:
-  version "3.2.6"
-  resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-3.2.6.tgz#99e6e75a746bdedd295a17e03dd1493055a1cc3b"
+styled-components@4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-4.0.3.tgz#6c1a95a93857aa613fdfc26ad40899217100d8c3"
   dependencies:
-    buffer "^5.0.3"
-    css-to-react-native "^2.0.3"
-    fbjs "^0.8.16"
-    hoist-non-react-statics "^2.5.0"
-    is-plain-object "^2.0.1"
+    "@emotion/is-prop-valid" "^0.6.8"
+    babel-plugin-styled-components ">= 1"
+    css-to-react-native "^2.2.2"
+    memoize-one "^4.0.0"
     prop-types "^15.5.4"
-    react-is "^16.3.1"
+    react-is "^16.6.0"
     stylis "^3.5.0"
     stylis-rule-sheet "^0.0.10"
-    supports-color "^3.2.3"
-
-styled-components@^3.4.8:
-  version "3.4.9"
-  resolved "https://registry.yarnpkg.com/styled-components/-/styled-components-3.4.9.tgz#519abeb351b37be5b7de6a15ff9e4efeb9d772da"
-  dependencies:
-    buffer "^5.0.3"
-    css-to-react-native "^2.0.3"
-    fbjs "^0.8.16"
-    hoist-non-react-statics "^2.5.0"
-    prop-types "^15.5.4"
-    react-is "^16.3.1"
-    stylis "^3.5.0"
-    stylis-rule-sheet "^0.0.10"
-    supports-color "^3.2.3"
+    supports-color "^5.5.0"
 
 styled-normalize@^2.2.1:
   version "2.2.1"
@@ -9753,6 +9766,12 @@ supports-color@^4.2.1:
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-4.5.0.tgz#be7a0de484dec5c5cddf8b3d59125044912f635b"
   dependencies:
     has-flag "^2.0.0"
+
+supports-color@^5.5.0:
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-5.5.0.tgz#e2e69a44ac8772f78a1ec0b35b689df6530efc8f"
+  dependencies:
+    has-flag "^3.0.0"
 
 svgo@^0.7.0:
   version "0.7.2"

@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { TopNavigation, BottomNavigation } from './Navigation';
 import Analytics from '../../../shared/components/Analytics';
-import globalStyles from '../../../shared/styles/globals';
+import GlobalStyles from '../../../shared/styles/globals';
 import prefetchTags from '../../utils/prefetchTags';
 
 export const title = 'Outline';
@@ -18,11 +18,10 @@ type Props = {
 };
 
 function Layout({ children }: Props) {
-  globalStyles();
-
   return (
     <html lang="en">
       <head>
+        <GlobalStyles />
         <Helmet>
           <title>{title}</title>
           <meta charset="utf-8" />

@@ -1,5 +1,5 @@
-// flow-typed signature: 3ec9bf9b258f375a8abeff95acd8b2ad
-// flow-typed version: cd78efc61a/js-cookie_v2.x.x/flow_>=v0.38.x
+// flow-typed signature: 09c1fe82fbc9e980fc0fd1c8dee0628b
+// flow-typed version: 91c31c78d9/js-cookie_v2.x.x/flow_>=v0.38.x
 
 declare module 'js-cookie' {
     declare type CookieOptions = {
@@ -19,7 +19,7 @@ declare module 'js-cookie' {
         get(...args: Array<void>): { [key: string]: string };
         get(name: string, ...args: Array<void>): string | void;
         remove(name: string, options?: CookieOptions): void;
-        getJSON(name: string): mixed;
+        getJSON(name: string): Object;
         withConverter(converter: ConverterFunc | ConverterObj): this;
         noConflict(): this;
     }

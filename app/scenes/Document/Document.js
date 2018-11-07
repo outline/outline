@@ -357,8 +357,14 @@ class DocumentScene extends React.Component<Props> {
           <Container justify="center" column auto>
             {this.isEditing && (
               <React.Fragment>
-                <Prompt when={this.isDirty} message={DISCARD_CHANGES} />
-                <Prompt when={this.isUploading} message={UPLOADING_WARNING} />
+                <Prompt
+                  when={this.isDirty || false}
+                  message={DISCARD_CHANGES}
+                />
+                <Prompt
+                  when={this.isUploading || false}
+                  message={UPLOADING_WARNING}
+                />
               </React.Fragment>
             )}
             {!isShare && (
