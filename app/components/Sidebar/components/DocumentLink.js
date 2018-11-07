@@ -12,7 +12,7 @@ type Props = {
   document: NavigationNode,
   history: Object,
   activeDocument: ?Document,
-  activeDocumentRef?: HTMLElement => void,
+  activeDocumentRef?: (?HTMLElement) => *,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
 };
@@ -51,7 +51,7 @@ class DocumentLink extends React.Component<Props> {
       <Flex
         column
         key={document.id}
-        innerRef={isActiveDocument ? activeDocumentRef : undefined}
+        ref={isActiveDocument ? activeDocumentRef : undefined}
         onMouseEnter={this.handleMouseEnter}
       >
         <DropToImport

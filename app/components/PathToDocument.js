@@ -18,7 +18,7 @@ const ResultWrapper = styled.div`
 
 const StyledGoToIcon = styled(GoToIcon)``;
 
-const ResultWrapperLink = ResultWrapper.withComponent('a').extend`
+const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
   height: 32px;
   padding-top: 3px;
   padding-left: 5px;
@@ -74,7 +74,7 @@ class PathToDocument extends React.Component<Props> {
     if (!result) return <div />;
 
     return (
-      <Component innerRef={ref} onClick={this.handleClick} selectable href>
+      <Component ref={ref} onClick={this.handleClick} selectable href>
         {result.path
           .map(doc => <span key={doc.id}>{doc.title}</span>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}

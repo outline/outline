@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { injectGlobal } from 'styled-components';
+import { createGlobalStyle } from 'styled-components';
 import importFile from 'utils/importFile';
 import invariant from 'invariant';
 import _ from 'lodash';
@@ -21,8 +21,7 @@ type Props = {
   history: Object,
 };
 
-// eslint-disable-next-line
-injectGlobal`
+const GlobalStyles = createGlobalStyle`
   .activeDropZone {
     background: ${props => props.theme.slateDark};
     svg { fill: ${props => props.theme.white}; }
@@ -93,6 +92,7 @@ class DropToImport extends React.Component<Props> {
         multiple
         {...props}
       >
+        <GlobalStyles />
         {this.isImporting && <LoadingIndicator />}
         {this.props.children}
       </Dropzone>

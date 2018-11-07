@@ -19,7 +19,7 @@ class RouteSidebarHidden extends React.Component<Props> {
   }
 
   render() {
-    const { component, ...rest } = this.props;
+    const { component, ui, ...rest } = this.props;
     const Component = component;
     return <Route {...rest} render={props => <Component {...props} />} />;
   }

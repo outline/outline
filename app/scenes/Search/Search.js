@@ -61,7 +61,7 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: HTMLElement;
+  firstDocument: ?DocumentPreview;
 
   @observable results: SearchResult[] = [];
   @observable query: string = '';
@@ -206,9 +206,7 @@ class Search extends React.Component<Props> {
 
                 return (
                   <DocumentPreview
-                    innerRef={ref =>
-                      index === 0 && this.setFirstDocumentRef(ref)
-                    }
+                    ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
                     key={document.id}
                     document={document}
                     highlight={this.query}

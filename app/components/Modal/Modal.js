@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import styled, { injectGlobal } from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import ReactModal from 'react-modal';
 import { CloseIcon } from 'outline-icons';
@@ -15,8 +15,7 @@ type Props = {
   onRequestClose: () => *,
 };
 
-// eslint-disable-next-line
-injectGlobal`
+const GlobalStyles = createGlobalStyle`
   .ReactModal__Overlay {
     z-index: 100;
   }
@@ -36,20 +35,23 @@ const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <StyledModal
-      contentLabel={title}
-      onRequestClose={onRequestClose}
-      isOpen={isOpen}
-      {...rest}
-    >
-      <Content column>
-        {title && <h1>{title}</h1>}
-        <Close onClick={onRequestClose}>
-          <CloseIcon size={32} />
-        </Close>
-        {children}
-      </Content>
-    </StyledModal>
+    <React.Fragment>
+      <GlobalStyles />
+      <StyledModal
+        contentLabel={title}
+        onRequestClose={onRequestClose}
+        isOpen={isOpen}
+        {...rest}
+      >
+        <Content column>
+          {title && <h1>{title}</h1>}
+          <Close onClick={onRequestClose}>
+            <CloseIcon size={32} />
+          </Close>
+          {children}
+        </Content>
+      </StyledModal>
+    </React.Fragment>
   );
 };
 

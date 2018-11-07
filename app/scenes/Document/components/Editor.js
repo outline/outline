@@ -83,7 +83,7 @@ class Editor extends React.Component<Props> {
     return (
       <React.Fragment>
         <StyledEditor
-          innerRef={this.setEditorRef}
+          ref={this.setEditorRef}
           renderPlaceholder={this.renderPlaceholder}
           schema={schema}
           {...this.props}

@@ -1,17 +1,17 @@
-// flow-typed signature: 1a33220ead1c6b6e3205a55b2a2ec3a0
-// flow-typed version: 18b7d8b101/koa_v2.x.x/flow_>=v0.47.x
+// flow-typed signature: 225656ba2479b8c1dd8b10776913e73f
+// flow-typed version: b7d0245d00/koa_v2.x.x/flow_>=v0.47.x
 
 /*
  * Type def from from source code of koa.
  * this: https://github.com/koajs/koa/commit/08eb1a20c3975230aa1fe1c693b0cd1ac7a0752b
  * previous: https://github.com/koajs/koa/commit/fabf5864c6a5dca0782b867a263b1b0825a05bf9
- * 
+ *
  * Changelog
  * breaking: remove unused app.name
  * breaking: ctx.throw([status], [msg], [properties]) (caused by http-errors (#957) )
 **/
 declare module 'koa' {
-  // Currently, import type doesnt work well ?
+  // Currently, import type doesn't work well ?
   // so copy `Server` from flow/lib/node.js#L820
   declare class Server extends net$Server {
     listen(port?: number, hostname?: string, backlog?: number, callback?: Function): Server,
@@ -196,15 +196,15 @@ declare module 'koa' {
   };
   // https://github.com/pillarjs/cookies
   declare type CookiesSetOptions = {
-    maxAge: number, // milliseconds from Date.now() for expiry
-    expires: Date, //cookie's expiration date (expires at the end of session by default).
-    path: string, //  the path of the cookie (/ by default).
     domain: string, // domain of the cookie (no default).
-    secure: boolean, // false by default for HTTP, true by default for HTTPS
-    httpOnly: boolean, //  a boolean indicating whether the cookie is only to be sent over HTTP(S),
+    maxAge: number, // milliseconds from Date.now() for expiry
+    expires?: Date, //cookie's expiration date (expires at the end of session by default).
+    path?: string, //  the path of the cookie (/ by default).
+    secure?: boolean, // false by default for HTTP, true by default for HTTPS
+    httpOnly?: boolean, //  a boolean indicating whether the cookie is only to be sent over HTTP(S),
     // and not made available to client JavaScript (true by default).
-    signed: boolean, // whether the cookie is to be signed (false by default)
-    overwrite: boolean, //  whether to overwrite previously set cookies of the same name (false by default).
+    signed?: boolean, // whether the cookie is to be signed (false by default)
+    overwrite?: boolean, //  whether to overwrite previously set cookies of the same name (false by default).
   };
   declare type Cookies = {
     get: (name: string, options?: {signed: boolean}) => string|void,
