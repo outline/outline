@@ -128,7 +128,6 @@
     "koa-sendfile": "2.0.0",
     "koa-static": "^4.0.1",
     "koa-sslify": "2.1.2",
-    "localforage": "^1.5.0",
     "lodash": "^4.17.4",
     "mobx": "^3.1.9",
     "mobx-react": "^4.1.8",

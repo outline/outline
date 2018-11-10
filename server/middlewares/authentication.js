@@ -3,6 +3,8 @@ import JWT from 'jsonwebtoken';
 import { type Context } from 'koa';
 import { User, ApiKey } from '../models';
 import { AuthenticationError, UserSuspendedError } from '../errors';
+import addMonths from 'date-fns/add_months';
+import { stripSubdomain } from '../../shared/utils/domains';
 
 export default function auth(options?: { required?: boolean } = {}) {
   return async function authMiddleware(ctx: Context, next: () => Promise<*>) {
@@ -28,8 +30,6 @@ export default function auth(options?: { required?: boolean } = {}) {
       token = ctx.body.token;
     } else if (ctx.request.query.token) {
       token = ctx.request.query.token;
-    } else if (ctx.cookies.get('accessToken')) {
-      token = ctx.cookies.get('accessToken');
     }
 
     if (!token && options.required !== false) {
@@ -89,6 +89,33 @@ export default function auth(options?: { required?: boolean } = {}) {
       if (!ctx.cache) ctx.cache = {};
       ctx.cache[user.id] = user;
     }
+
+    ctx.signIn = (user, team, service) => {
+      // not awaiting the promise here so that the request is not blocked
+      user.updateSignedIn(ctx.request.ip);
+
+      const existing = JSON.parse(ctx.cookies.get('sessions') || '{}');
+      const domain = stripSubdomain(ctx.request.hostname);
+      const sessions = JSON.stringify({
+        ...existing,
+        [team.subdomain || 'root']: {
+          name: team.name,
+          logo: team.logo,
+          accessToken: user.getJwtToken(),
+        },
+      });
+      ctx.cookies.set('lastSignedIn', service, {
+        httpOnly: false,
+        expires: new Date('2100'),
+        domain,
+      });
+      ctx.cookies.set('sessions', sessions, {
+        httpOnly: false,
+        expires: addMonths(new Date(), 3),
+        domain,
+      });
+      ctx.redirect(team.url);
+    };
 
     return next();
   };

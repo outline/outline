@@ -51,6 +51,11 @@ const Team = sequelize.define(
         url.host = `${this.subdomain}.${url.host}`;
         return url.href.replace(/\/$/, '');
       },
+      logo() {
+        return (
+          this.avatarUrl || (this.slackData ? this.slackData.image_88 : null)
+        );
+      },
     },
   }
 );

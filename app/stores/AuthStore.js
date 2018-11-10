@@ -2,8 +2,8 @@
 import { observable, action, computed, autorun, runInAction } from 'mobx';
 import invariant from 'invariant';
 import Cookie from 'js-cookie';
-import localForage from 'localforage';
 import { client } from 'utils/ApiClient';
+import { stripSubdomain } from 'shared/utils/domains';
 import type { User, Team } from 'types';
 
 const AUTH_STORE = 'AUTH_STORE';
@@ -102,8 +102,18 @@ class AuthStore {
     this.user = null;
     this.token = null;
 
+    // remove deprecated authentication if it exists
     Cookie.remove('accessToken', { path: '/' });
-    await localForage.clear();
+
+    if (this.team) {
+      const sessions = Cookie.getJSON('sessions') || {};
+      delete sessions[this.team.subdomain || 'root'];
+
+      Cookie.set('sessions', sessions, {
+        domain: stripSubdomain(window.location.hostname),
+      });
+      this.team = null;
+    }
 
     // add a timestamp to force reload from server
     window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
@@ -120,9 +130,15 @@ class AuthStore {
     this.user = data.user;
     this.team = data.team;
 
-    // load token from state for backwards compatability with
-    // sessions created pre-google auth
-    this.token = Cookie.get('accessToken') || data.token;
+    const sessions = Cookie.getJSON('sessions') || {};
+    const subdomain = window.location.hostname.split('.')[0];
+    console.log({ sessions });
+    const accessToken = sessions[subdomain || 'root']
+      ? sessions[subdomain || 'root'].accessToken
+      : Cookie.get('accessToken');
+
+    console.log({ accessToken });
+    this.token = accessToken;
 
     if (this.token) setImmediate(() => this.fetch());
 

@@ -1,11 +1,10 @@
 // @flow
 import crypto from 'crypto';
 import Router from 'koa-router';
-import addMonths from 'date-fns/add_months';
-import { stripSubdomain } from '../../shared/utils/domains';
 import { capitalize } from 'lodash';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Team } from '../models';
+import auth from '../middlewares/authentication';
 
 const router = new Router();
 const client = new OAuth2Client(
@@ -30,7 +29,7 @@ router.get('google', async ctx => {
 });
 
 // signin callback from Google
-router.get('google.callback', async ctx => {
+router.get('google.callback', auth({ required: false }), async ctx => {
   const { code } = ctx.request.query;
   ctx.assertPresent(code, 'code is required');
   const response = await client.getToken(code);
@@ -103,21 +102,8 @@ router.get('google.callback', async ctx => {
     }
   }
 
-  // not awaiting the promise here so that the request is not blocked
-  user.updateSignedIn(ctx.request.ip);
-
-  ctx.cookies.set('lastSignedIn', 'google', {
-    httpOnly: false,
-    expires: new Date('2100'),
-    domain: stripSubdomain(ctx.request.hostname),
-  });
-  ctx.cookies.set('accessToken', user.getJwtToken(), {
-    httpOnly: false,
-    expires: addMonths(new Date(), 1),
-    domain: stripSubdomain(ctx.request.hostname),
-  });
-
-  ctx.redirect(team.url);
+  // set cookies on response and redirect to team subdomain
+  ctx.signIn(user, team, 'google');
 });
 
 export default router;

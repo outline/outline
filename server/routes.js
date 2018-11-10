@@ -66,9 +66,21 @@ router.get('/changelog', async ctx => {
 // home page
 router.get('/', async ctx => {
   const lastSignedIn = ctx.cookies.get('lastSignedIn');
-  const accessToken = ctx.cookies.get('accessToken');
+  const sessions = JSON.parse(ctx.cookies.get('sessions') || '{}');
   const domain = parseDomain(ctx.request.hostname);
-  const subdomain = domain ? domain.subdomain : false;
+  const subdomain = domain ? domain.subdomain : undefined;
+  console.log('domain', domain);
+  console.log('subdomain', subdomain);
+
+  let accessToken;
+  if (subdomain) {
+    accessToken = sessions[subdomain] && sessions[subdomain].accessToken;
+  } else {
+    accessToken = sessions.root
+      ? sessions.root.accessToken
+      : ctx.cookies.get('accessToken');
+  }
+  console.log('accessToken', accessToken);
 
   if (accessToken) {
     return renderapp(ctx);

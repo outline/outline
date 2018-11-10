@@ -64,7 +64,7 @@ function Home(props: Props) {
                 </Grid.Unit>
                 <Feature size={{ tablet: 2 / 3 }}>
                   <Screenshot
-                    srcset="screenshot.png, screenshot@2x.png 2x"
+                    srcSet="screenshot.png, screenshot@2x.png 2x"
                     src="/screenshot@2x.png"
                     alt="Outline Screenshot"
                   />
