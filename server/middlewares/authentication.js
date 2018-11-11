@@ -4,6 +4,7 @@ import { type Context } from 'koa';
 import { User, ApiKey } from '../models';
 import { AuthenticationError, UserSuspendedError } from '../errors';
 import addMonths from 'date-fns/add_months';
+import addMinutes from 'date-fns/add_minutes';
 import { stripSubdomain } from '../../shared/utils/domains';
 
 export default function auth(options?: { required?: boolean } = {}) {
@@ -30,6 +31,8 @@ export default function auth(options?: { required?: boolean } = {}) {
       token = ctx.body.token;
     } else if (ctx.request.query.token) {
       token = ctx.request.query.token;
+    } else {
+      token = ctx.cookies.get('accessToken');
     }
 
     if (!token && options.required !== false) {
@@ -91,30 +94,53 @@ export default function auth(options?: { required?: boolean } = {}) {
     }
 
     ctx.signIn = (user, team, service) => {
-      // not awaiting the promise here so that the request is not blocked
+      // update the database when the user last signed in
       user.updateSignedIn(ctx.request.ip);
 
-      const existing = JSON.parse(ctx.cookies.get('sessions') || '{}');
       const domain = stripSubdomain(ctx.request.hostname);
-      const sessions = JSON.stringify({
-        ...existing,
-        [team.subdomain || 'root']: {
-          name: team.name,
-          logo: team.logo,
-          accessToken: user.getJwtToken(),
-        },
-      });
+      const expires = addMonths(new Date(), 3);
+
+      // set a cookie for which service we last signed in with. This is
+      // only used to display a UI hint for the user for next time
       ctx.cookies.set('lastSignedIn', service, {
         httpOnly: false,
         expires: new Date('2100'),
         domain,
       });
-      ctx.cookies.set('sessions', sessions, {
-        httpOnly: false,
-        expires: addMonths(new Date(), 3),
-        domain,
-      });
-      ctx.redirect(team.url);
+
+      // set a transfer cookie for the access token itself and redirect
+      // to the teams subdomain if subdomains are enabled
+      if (process.env.SUBDOMAINS_ENABLED && team.subdomain) {
+        // get any existing sessions (teams signed in) and add this team
+        const existing = JSON.parse(ctx.cookies.get('sessions') || '{}');
+        const sessions = JSON.stringify({
+          ...existing,
+          [team.subdomain]: {
+            name: team.name,
+            logo: team.logo,
+            expires,
+          },
+        });
+        ctx.cookies.set('sessions', sessions, {
+          httpOnly: false,
+          expires,
+          domain,
+        });
+
+        ctx.cookies.set('accessToken', user.getJwtToken(), {
+          httpOnly: true,
+          expires: addMinutes(new Date(), 1),
+          domain,
+        });
+        console.log(`redirecting: ${team.url}/auth/redirect`);
+        ctx.redirect(`${team.url}/auth/redirect`);
+      } else {
+        ctx.cookies.set('accessToken', user.getJwtToken(), {
+          httpOnly: false,
+          expires,
+        });
+        ctx.redirect(team.url);
+      }
     };
 
     return next();

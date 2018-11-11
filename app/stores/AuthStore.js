@@ -102,12 +102,14 @@ class AuthStore {
     this.user = null;
     this.token = null;
 
-    // remove deprecated authentication if it exists
+    // remove authentication token itself
     Cookie.remove('accessToken', { path: '/' });
 
-    if (this.team) {
+    // remove session record on apex cookie
+    const team = this.team;
+    if (team) {
       const sessions = Cookie.getJSON('sessions') || {};
-      delete sessions[this.team.subdomain || 'root'];
+      delete sessions[team.subdomain || 'root'];
 
       Cookie.set('sessions', sessions, {
         domain: stripSubdomain(window.location.hostname),
@@ -129,16 +131,8 @@ class AuthStore {
     }
     this.user = data.user;
     this.team = data.team;
-
-    const sessions = Cookie.getJSON('sessions') || {};
-    const subdomain = window.location.hostname.split('.')[0];
-    console.log({ sessions });
-    const accessToken = sessions[subdomain || 'root']
-      ? sessions[subdomain || 'root'].accessToken
-      : Cookie.get('accessToken');
-
-    console.log({ accessToken });
-    this.token = accessToken;
+    this.token = Cookie.get('accessToken');
+    console.log('token', this.token);
 
     if (this.token) setImmediate(() => this.fetch());
 
