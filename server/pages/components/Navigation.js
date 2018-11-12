@@ -25,7 +25,12 @@ type Sessions = {
   },
 };
 
-function TopNavigation({ sessions }: { sessions: ?Sessions }) {
+type Props = {
+  sessions: ?Sessions,
+  loggedIn: boolean,
+};
+
+function TopNavigation({ sessions, loggedIn }: Props) {
   const orderedSessions = sortBy(sessions, 'name');
 
   return (
@@ -47,20 +52,32 @@ function TopNavigation({ sessions }: { sessions: ?Sessions }) {
         <MenuItem>
           <a href={developers()}>API</a>
         </MenuItem>
-        {orderedSessions.length ? (
-          <MenuItem highlighted>
-            <a href={developers()}>Your Teams</a>
-            <ol>
-              {orderedSessions.map(session => (
-                <MenuItem key={session.url}>
-                  <a href={`${session.url}/dashboard`}>
-                    <TeamLogo src={session.logoUrl} width={20} height={20} />
-                    {session.name}
-                  </a>
-                </MenuItem>
-              ))}
-            </ol>
-          </MenuItem>
+        {loggedIn ? (
+          <React.Fragment>
+            {process.env.SUBDOMAINS_ENABLED === 'true' ? (
+              <MenuItem highlighted>
+                <a>Your Teams</a>
+                <ol>
+                  {orderedSessions.map(session => (
+                    <MenuItem key={session.url}>
+                      <a href={`${session.url}/dashboard`}>
+                        <TeamLogo
+                          src={session.logoUrl}
+                          width={20}
+                          height={20}
+                        />
+                        {session.name}
+                      </a>
+                    </MenuItem>
+                  ))}
+                </ol>
+              </MenuItem>
+            ) : (
+              <MenuItem highlighted>
+                <a href="/dashboard">Dashboard</a>
+              </MenuItem>
+            )}
+          </React.Fragment>
         ) : (
           <MenuItem>
             <a href="/#signin">Sign In</a>

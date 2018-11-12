@@ -110,7 +110,7 @@ export default function auth(options?: { required?: boolean } = {}) {
 
       // set a transfer cookie for the access token itself and redirect
       // to the teams subdomain if subdomains are enabled
-      if (process.env.SUBDOMAINS_ENABLED && team.subdomain) {
+      if (process.env.SUBDOMAINS_ENABLED === 'true' && team.subdomain) {
         // get any existing sessions (teams signed in) and add this team
         const existing = JSON.parse(ctx.cookies.get('sessions') || '{}');
         const sessions = JSON.stringify({

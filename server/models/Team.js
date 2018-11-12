@@ -45,7 +45,7 @@ const Team = sequelize.define(
   {
     getterMethods: {
       url() {
-        if (!this.subdomain || !process.env.SUBDOMAINS_ENABLED) {
+        if (!this.subdomain || process.env.SUBDOMAINS_ENABLED !== 'true') {
           return process.env.URL;
         }
 

@@ -19,7 +19,7 @@ router.post('team.update', auth(), async ctx => {
   const team = await Team.findById(user.teamId);
   authorize(user, 'update', team);
 
-  if (process.env.SUBDOMAINS_ENABLED) {
+  if (process.env.SUBDOMAINS_ENABLED === 'true') {
     team.subdomain = subdomain === '' ? null : subdomain;
   }
 
