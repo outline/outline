@@ -12,8 +12,17 @@ it('should set subdomain if available', async () => {
 });
 
 it('should set subdomain with append if unavailable', async () => {
-  const team = await buildTeam({ subdomain: 'myteam' });
+  await buildTeam({ subdomain: 'myteam' });
+
+  const team = await buildTeam();
   const subdomain = await team.provisionSubdomain('myteam');
   expect(subdomain).toEqual('myteam1');
   expect(team.subdomain).toEqual('myteam1');
+});
+
+it('should do nothing if subdomain already set', async () => {
+  const team = await buildTeam({ subdomain: 'example' });
+  const subdomain = await team.provisionSubdomain('myteam');
+  expect(subdomain).toEqual('example');
+  expect(team.subdomain).toEqual('example');
 });
