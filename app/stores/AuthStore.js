@@ -132,7 +132,6 @@ class AuthStore {
     this.user = data.user;
     this.team = data.team;
     this.token = Cookie.get('accessToken');
-    console.log('token', this.token);
 
     if (this.token) setImmediate(() => this.fetch());
 

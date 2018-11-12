@@ -45,13 +45,15 @@ const Team = sequelize.define(
   {
     getterMethods: {
       url() {
-        if (!this.subdomain) return process.env.URL;
+        if (!this.subdomain || !process.env.SUBDOMAINS_ENABLED) {
+          return process.env.URL;
+        }
 
         const url = new URL(process.env.URL);
         url.host = `${this.subdomain}.${url.host}`;
         return url.href.replace(/\/$/, '');
       },
-      logo() {
+      logoUrl() {
         return (
           this.avatarUrl || (this.slackData ? this.slackData.image_88 : null)
         );

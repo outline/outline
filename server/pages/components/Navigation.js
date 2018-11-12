@@ -19,7 +19,7 @@ import {
 type Sessions = {
   [subdomain: string]: {
     name: string,
-    logo: string,
+    logoUrl: string,
     expires: string,
     url: string,
   },
@@ -54,7 +54,7 @@ function TopNavigation({ sessions }: { sessions: ?Sessions }) {
               {orderedSessions.map(session => (
                 <MenuItem key={session.url}>
                   <a href={`${session.url}/dashboard`}>
-                    <TeamLogo src={session.logo} width={20} height={20} />
+                    <TeamLogo src={session.logoUrl} width={20} height={20} />
                     {session.name}
                   </a>
                 </MenuItem>

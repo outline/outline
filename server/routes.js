@@ -70,7 +70,6 @@ router.get('/', async ctx => {
   const subdomain = domain ? domain.subdomain : undefined;
   const accessToken = ctx.cookies.get('accessToken');
 
-  console.log('accessToken', accessToken);
   ctx.set('Cache-Control', 'no-cache');
 
   if (accessToken) {

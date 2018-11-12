@@ -32,8 +32,6 @@ router.get('/redirect', auth(), async ctx => {
   });
 
   const team = await Team.findById(user.teamId);
-
-  console.log(`redirecting: ${team.url}/dashboard`);
   ctx.redirect(`${team.url}/dashboard`);
 });
 

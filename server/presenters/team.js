@@ -7,7 +7,7 @@ function present(ctx: Object, team: Team) {
   return {
     id: team.id,
     name: team.name,
-    avatarUrl: team.logo,
+    avatarUrl: team.logoUrl,
     slackConnected: !!team.slackId,
     googleConnected: !!team.googleId,
     sharing: team.sharing,

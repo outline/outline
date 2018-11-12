@@ -117,7 +117,7 @@ export default function auth(options?: { required?: boolean } = {}) {
           ...existing,
           [team.subdomain]: {
             name: team.name,
-            logo: team.logo,
+            logoUrl: team.logoUrl,
             url: team.url,
             expires,
           },
@@ -133,14 +133,13 @@ export default function auth(options?: { required?: boolean } = {}) {
           expires: addMinutes(new Date(), 1),
           domain,
         });
-        console.log(`redirecting: ${team.url}/auth/redirect`);
         ctx.redirect(`${team.url}/auth/redirect`);
       } else {
         ctx.cookies.set('accessToken', user.getJwtToken(), {
           httpOnly: false,
           expires,
         });
-        ctx.redirect(team.url);
+        ctx.redirect(`${team.url}/dashboard`);
       }
     };
 
