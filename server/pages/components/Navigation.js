@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import Centered from './Centered';
 import TeamLogo from '../../../shared/components/TeamLogo';
+import { fadeAndScaleIn } from '../../../shared/styles/animations';
 import {
   developers,
   changelog,
@@ -138,6 +139,7 @@ const MenuItem = styled.li`
   `};
 
   &:hover ol {
+    animation: ${fadeAndScaleIn} 200ms ease;
     display: block;
   }
 `;
@@ -161,7 +163,7 @@ const Menu = styled.ul`
     margin: 0;
     padding: 0;
     right: 0;
-    top: 32px;
+    top: 34px;
 
     background: #fff;
     border-radius: 4px;
