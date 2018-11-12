@@ -92,14 +92,8 @@ router.get('google.callback', auth({ required: false }), async ctx => {
   });
 
   if (isFirstUser) {
-    await team.createFirstCollection(user.id);
-
-    // attempt to give the new team a subdomain based on google hosted domain
-    try {
-      await team.update({ subdomain: hostname });
-    } catch (err) {
-      // subdomain was invalid or already used
-    }
+    await team.provisionFirstCollection(user.id);
+    await team.provisionSubdomain(hostname);
   }
 
   // set cookies on response and redirect to team subdomain

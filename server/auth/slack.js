@@ -61,14 +61,8 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   });
 
   if (isFirstUser) {
-    await team.createFirstCollection(user.id);
-
-    // attempt to give the new team the same subdomain as they use on slack
-    try {
-      await team.update({ subdomain: data.team.domain });
-    } catch (err) {
-      // subdomain was invalid or already used
-    }
+    await team.provisionFirstCollection(user.id);
+    await team.provisionSubdomain(data.team.domain);
   }
 
   // set cookies on response and redirect to team subdomain

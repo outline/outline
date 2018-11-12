@@ -35,6 +35,7 @@
       "shared"
     ],
     "moduleNameMapper": {
+      "^shared/(.*)$": "<rootDir>/shared/$1",
       "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },

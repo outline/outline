@@ -85,7 +85,22 @@ const uploadAvatar = async model => {
   }
 };
 
-Team.prototype.createFirstCollection = async function(userId) {
+Team.prototype.provisionSubdomain = async function(subdomain) {
+  let append = 0;
+
+  while (true) {
+    try {
+      await this.update({ subdomain });
+      break;
+    } catch (err) {
+      // subdomain was invalid or already used, try again
+      subdomain = `${subdomain}${++append}`;
+    }
+  }
+  return subdomain;
+};
+
+Team.prototype.provisionFirstCollection = async function(userId) {
   return await Collection.create({
     name: 'General',
     description: 'Your first Collection',
