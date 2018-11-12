@@ -118,6 +118,7 @@ export default function auth(options?: { required?: boolean } = {}) {
           [team.subdomain]: {
             name: team.name,
             logo: team.logo,
+            url: team.url,
             expires,
           },
         });

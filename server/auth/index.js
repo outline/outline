@@ -20,7 +20,7 @@ router.use('/', google.routes());
 router.get('/redirect', auth(), async ctx => {
   const user = ctx.state.user;
 
-  // transfer cookie from root to subdomain specific
+  // transfer access token cookie from root to subdomain
   ctx.cookies.set('accessToken', undefined, {
     httpOnly: true,
     domain: stripSubdomain(ctx.request.hostname),
