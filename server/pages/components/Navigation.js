@@ -9,6 +9,7 @@ import { fadeAndScaleIn } from '../../../shared/styles/animations';
 import {
   developers,
   changelog,
+  features,
   about,
   privacy,
   githubUrl,
@@ -38,7 +39,7 @@ function TopNavigation({ sessions, loggedIn }: Props) {
       <Brand href={process.env.URL}>Outline</Brand>
       <Menu>
         <MenuItemDesktop>
-          <a href="/#features">Features</a>
+          <a href={features()}>Features</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
           <a href={about()}>About</a>

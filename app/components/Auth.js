@@ -24,15 +24,6 @@ const Auth = observer(({ auth, children }: Props) => {
       return <LoadingIndicator />;
     }
 
-    // Check the current origin against the teams url, if they differ we need to
-    // redirect to the canonical subdomain for this team
-    // if (window.location.origin !== team.url) {
-    //   const redirectTo = `${team.url}${window.location.pathname}`;
-    //   console.warn(`Redirecting to ${redirectTo}…`);
-    //   window.location.href = redirectTo;
-    //   return <LoadingIndicator />;
-    // }
-
     // Only initialize stores once. Kept in global scope because otherwise they
     // will get overridden on route change
     if (!authenticatedStores) {
