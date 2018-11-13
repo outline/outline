@@ -66,9 +66,9 @@ router.get('/changelog', async ctx => {
 // home page
 router.get('/', async ctx => {
   const lastSignedIn = ctx.cookies.get('lastSignedIn');
+  const accessToken = ctx.cookies.get('accessToken');
   const domain = parseDomain(ctx.request.hostname);
   const subdomain = domain ? domain.subdomain : undefined;
-  const accessToken = ctx.cookies.get('accessToken');
 
   // Because we render both the signed in and signed out views depending
   // on a cookie it's important that the browser does not render from cache.

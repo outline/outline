@@ -18,7 +18,7 @@ describe('#index', async () => {
 
   it('should render app if there is an accessToken', async () => {
     const res = await server.get('/', {
-      headers: { authorization: 'Bearer thisIsAnAccessToken' },
+      headers: { Cookie: ['accessToken=12345667'] },
     });
     const html = await res.text();
     expect(res.status).toEqual(200);
