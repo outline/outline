@@ -70,13 +70,19 @@ router.get('/', async ctx => {
   const subdomain = domain ? domain.subdomain : undefined;
   const accessToken = ctx.cookies.get('accessToken');
 
+  // Because we render both the signed in and signed out views depending
+  // on a cookie it's important that the browser does not render from cache.
   ctx.set('Cache-Control', 'no-cache');
 
+  // If we have an accessToken we can just go ahead and render the app – if
+  // the accessToken turns out to be invalid the user will be redirected.
   if (accessToken) {
     return renderapp(ctx);
   }
 
-  if (subdomain) {
+  // If we're on a custom subdomain then we display a slightly different signed
+  // out view that includes the teams basic information.
+  if (subdomain && subdomain !== 'www') {
     const team = await Team.find({
       where: { subdomain },
     });
@@ -98,6 +104,7 @@ router.get('/', async ctx => {
     return;
   }
 
+  // Otherwise, go ahead and render the homepage
   return renderpage(
     ctx,
     <Home
