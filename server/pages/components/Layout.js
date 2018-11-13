@@ -15,9 +15,11 @@ export const screenshotUrl = `${process.env.URL}/screenshot.png`;
 
 type Props = {
   children?: React.Node,
+  sessions: Object,
+  loggedIn: boolean,
 };
 
-function Layout({ children }: Props) {
+function Layout({ children, loggedIn, sessions }: Props) {
   return (
     <html lang="en">
       <head>
@@ -65,7 +67,7 @@ function Layout({ children }: Props) {
         {'{{CSS}}'}
       </head>
       <Body>
-        <TopNavigation />
+        <TopNavigation sessions={sessions} loggedIn={loggedIn} />
         {children}
         <BottomNavigation />
       </Body>

@@ -16,7 +16,8 @@ const definePlugin = new webpack.DefinePlugin({
   DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT || 'hosted'),
   'process.env': {
     URL: JSON.stringify(process.env.URL),
-    SLACK_KEY: JSON.stringify(process.env.SLACK_KEY)
+    SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
+    SUBDOMAINS_ENABLED: JSON.stringify(process.env.SUBDOMAINS_ENABLED)
   }
 });
 
@@ -31,6 +32,9 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader',
+        exclude: [
+          path.join(__dirname, 'node_modules')
+        ],
         include: [
           path.join(__dirname, 'app'),
           path.join(__dirname, 'shared'),
@@ -54,9 +58,7 @@ module.exports = {
         }),
       },
       { test: /\.md/, loader: 'raw-loader' },
-    ],
-    // Silence warning https://github.com/localForage/localForage/issues/599
-    noParse: [new RegExp('node_modules/localforage/dist/localforage.js')],
+    ]
   },
   resolve: {
     modules: [

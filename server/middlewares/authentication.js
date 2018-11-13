@@ -3,6 +3,9 @@ import JWT from 'jsonwebtoken';
 import { type Context } from 'koa';
 import { User, ApiKey } from '../models';
 import { AuthenticationError, UserSuspendedError } from '../errors';
+import addMonths from 'date-fns/add_months';
+import addMinutes from 'date-fns/add_minutes';
+import { stripSubdomain } from '../../shared/utils/domains';
 
 export default function auth(options?: { required?: boolean } = {}) {
   return async function authMiddleware(ctx: Context, next: () => Promise<*>) {
@@ -28,7 +31,7 @@ export default function auth(options?: { required?: boolean } = {}) {
       token = ctx.body.token;
     } else if (ctx.request.query.token) {
       token = ctx.request.query.token;
-    } else if (ctx.cookies.get('accessToken')) {
+    } else {
       token = ctx.cookies.get('accessToken');
     }
 
@@ -89,6 +92,56 @@ export default function auth(options?: { required?: boolean } = {}) {
       if (!ctx.cache) ctx.cache = {};
       ctx.cache[user.id] = user;
     }
+
+    ctx.signIn = (user, team, service) => {
+      // update the database when the user last signed in
+      user.updateSignedIn(ctx.request.ip);
+
+      const domain = stripSubdomain(ctx.request.hostname);
+      const expires = addMonths(new Date(), 3);
+
+      // set a cookie for which service we last signed in with. This is
+      // only used to display a UI hint for the user for next time
+      ctx.cookies.set('lastSignedIn', service, {
+        httpOnly: false,
+        expires: new Date('2100'),
+        domain,
+      });
+
+      // set a transfer cookie for the access token itself and redirect
+      // to the teams subdomain if subdomains are enabled
+      if (process.env.SUBDOMAINS_ENABLED === 'true' && team.subdomain) {
+        // get any existing sessions (teams signed in) and add this team
+        const existing = JSON.parse(ctx.cookies.get('sessions') || '{}');
+        const sessions = JSON.stringify({
+          ...existing,
+          [team.subdomain]: {
+            name: team.name,
+            logoUrl: team.logoUrl,
+            url: team.url,
+            expires,
+          },
+        });
+        ctx.cookies.set('sessions', sessions, {
+          httpOnly: false,
+          expires,
+          domain,
+        });
+
+        ctx.cookies.set('accessToken', user.getJwtToken(), {
+          httpOnly: true,
+          expires: addMinutes(new Date(), 1),
+          domain,
+        });
+        ctx.redirect(`${team.url}/auth/redirect`);
+      } else {
+        ctx.cookies.set('accessToken', user.getJwtToken(), {
+          httpOnly: false,
+          expires,
+        });
+        ctx.redirect(`${team.url}/dashboard`);
+      }
+    };
 
     return next();
   };

@@ -12,12 +12,16 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post('team.update', auth(), async ctx => {
-  const { name, avatarUrl, sharing } = ctx.body;
+  const { name, avatarUrl, subdomain, sharing } = ctx.body;
   const endpoint = publicS3Endpoint();
 
   const user = ctx.state.user;
   const team = await Team.findById(user.teamId);
   authorize(user, 'update', team);
+
+  if (process.env.SUBDOMAINS_ENABLED === 'true') {
+    team.subdomain = subdomain === '' ? null : subdomain;
+  }
 
   if (name) team.name = name;
   if (sharing !== undefined) team.sharing = sharing;

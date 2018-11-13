@@ -7,11 +7,12 @@ function present(ctx: Object, team: Team) {
   return {
     id: team.id,
     name: team.name,
-    avatarUrl:
-      team.avatarUrl || (team.slackData ? team.slackData.image_88 : null),
+    avatarUrl: team.logoUrl,
     slackConnected: !!team.slackId,
     googleConnected: !!team.googleId,
     sharing: team.sharing,
+    subdomain: team.subdomain,
+    url: team.url,
   };
 }
 

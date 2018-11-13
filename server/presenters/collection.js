@@ -23,7 +23,7 @@ async function present(ctx: Object, collection: Collection) {
 
   const data = {
     id: collection.id,
-    url: collection.getUrl(),
+    url: collection.url,
     name: collection.name,
     description: collection.description,
     color: collection.color || '#4E5C6E',

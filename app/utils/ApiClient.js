@@ -1,5 +1,5 @@
 // @flow
-import _ from 'lodash';
+import { map } from 'lodash';
 import invariant from 'invariant';
 import stores from 'stores';
 
@@ -39,6 +39,8 @@ class ApiClient {
     const headers = new Headers({
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      'cache-control': 'no-cache',
+      pragma: 'no-cache',
     });
     if (stores.auth.authenticated) {
       invariant(stores.auth.token, 'JWT token not set properly');
@@ -51,7 +53,8 @@ class ApiClient {
       body,
       headers,
       redirect: 'follow',
-      credentials: 'include',
+      credentials: 'omit',
+      cache: 'no-cache',
     });
 
     if (response.status >= 200 && response.status < 300) {
@@ -68,6 +71,14 @@ class ApiClient {
     const error = {};
     error.statusCode = response.status;
     error.response = response;
+
+    try {
+      const data = await response.json();
+      error.message = data.message || '';
+    } catch (_err) {
+      // we're trying to parse an error so JSON may not be valid
+    }
+
     throw error;
   };
 
@@ -81,7 +92,7 @@ class ApiClient {
 
   // Helpers
   constructQueryString = (data: Object) => {
-    return _.map(data, (v, k) => {
+    return map(data, (v, k) => {
       return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
     }).join('&');
   };

@@ -36,7 +36,7 @@ class RevisionMenu extends React.Component<Props> {
 
   render() {
     const { label, className, onOpen, onClose } = this.props;
-    const url = `${process.env.URL}${documentHistoryUrl(
+    const url = `${window.location.origin}${documentHistoryUrl(
       this.props.document,
       this.props.revision.id
     )}`;

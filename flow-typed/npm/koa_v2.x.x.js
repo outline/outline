@@ -14,17 +14,22 @@ declare module 'koa' {
   // Currently, import type doesn't work well ?
   // so copy `Server` from flow/lib/node.js#L820
   declare class Server extends net$Server {
-    listen(port?: number, hostname?: string, backlog?: number, callback?: Function): Server,
-    listen(path: string, callback?: Function): Server,
-    listen(handle: Object, callback?: Function): Server,
-    close(callback?: Function): Server,
-    maxHeadersCount: number,
-    setTimeout(msecs: number, callback: Function): Server,
-    timeout: number,
+    listen(
+      port?: number,
+      hostname?: string,
+      backlog?: number,
+      callback?: Function
+    ): Server;
+    listen(path: string, callback?: Function): Server;
+    listen(handle: Object, callback?: Function): Server;
+    close(callback?: Function): Server;
+    maxHeadersCount: number;
+    setTimeout(msecs: number, callback: Function): Server;
+    timeout: number;
   }
   declare type ServerType = Server;
 
-  declare type JSON = | string | number | boolean | null | JSONObject | JSONArray;
+  declare type JSON = string | number | boolean | null | JSONObject | JSONArray;
   declare type JSONObject = { [key: string]: JSON };
   declare type JSONArray = Array<JSON>;
 
@@ -34,11 +39,11 @@ declare module 'koa' {
   };
 
   declare type RequestJSON = {
-    'method': string,
-    'url': string,
-    'header': SimpleHeader,
+    method: string,
+    url: string,
+    header: SimpleHeader,
   };
-  declare type RequestInspect = void|RequestJSON;
+  declare type RequestInspect = void |  RequestJSON;
   declare type Request = {
     app: Application,
     req: http$IncomingMessage,
@@ -60,7 +65,7 @@ declare module 'koa' {
     originalUrl: string,
     path: string,
     protocol: string,
-    query: {[key: string]: string}, // always string
+    query: { [key: string]: string }, // always string
     querystring: string,
     search: string,
     secure: boolean, // Shorthand for ctx.protocol == "https" to check if a request was issued via TLS.
@@ -70,55 +75,55 @@ declare module 'koa' {
     type: string,
     url: string,
 
-    charset: string|void,
-    length: number|void,
+    charset: string |  void,
+    length: number  | void,
 
-//  Those functions comes from https://github.com/jshttp/accepts/blob/master/index.js
-//  request.js$L445
-//  https://github.com/jshttp/accepts/blob/master/test/type.js
-    accepts: ((args: string[]) => string|false)&
-    // ToDo: There is an issue https://github.com/facebook/flow/issues/3009
-    // if you meet some error here, temporarily add an additional annotation
-    // like: `request.accepts((['json', 'text']:Array<string>))` to fix it.
-    ((arg: string, ...args: string[]) => string|false) &
-    ( () => string[] ) , // return the old value.
+    //  Those functions comes from https://github.com/jshttp/accepts/blob/master/index.js
+    //  request.js$L445
+    //  https://github.com/jshttp/accepts/blob/master/test/type.js
+    accepts: ((args: string[]) => string  | false)  &
+      // ToDo: There is an issue https://github.com/facebook/flow/issues/3009
+      // if you meet some error here, temporarily add an additional annotation
+      // like: `request.accepts((['json', 'text']:Array<string>))` to fix it.
+      ((arg: string, ...args: string[]) => string | false) &
+      (() => string[]), // return the old value.
 
-//  https://github.com/jshttp/accepts/blob/master/index.js#L153
-//  https://github.com/jshttp/accepts/blob/master/test/charset.js
-    acceptsCharsets: ( (args: string[]) => buffer$Encoding|false)&
-    // ToDo: https://github.com/facebook/flow/issues/3009
-    // if you meet some error here, see L70.
-    ( (arg: string, ...args: string[]) => buffer$Encoding|false ) &
-    ( () => string[] ),
+    //  https://github.com/jshttp/accepts/blob/master/index.js#L153
+    //  https://github.com/jshttp/accepts/blob/master/test/charset.js
+    acceptsCharsets: ((args: string[]) => buffer$Encoding | false)  &
+      // ToDo: https://github.com/facebook/flow/issues/3009
+      // if you meet some error here, see L70.
+      ((arg: string, ...args: string[]) => buffer$Encoding | false) &
+      (() => string[]),
 
-//  https://github.com/jshttp/accepts/blob/master/index.js#L119
-//  https://github.com/jshttp/accepts/blob/master/test/encoding.js
-    acceptsEncodings: ( (args: string[]) => string|false)&
-    // ToDo: https://github.com/facebook/flow/issues/3009
-    // if you meet some error here, see L70.
-    ( (arg: string, ...args: string[]) => string|false ) &
-    ( () => string[] ),
+    //  https://github.com/jshttp/accepts/blob/master/index.js#L119
+    //  https://github.com/jshttp/accepts/blob/master/test/encoding.js
+    acceptsEncodings: ((args: string[]) => string | false)  &
+      // ToDo: https://github.com/facebook/flow/issues/3009
+      // if you meet some error here, see L70.
+      ((arg: string, ...args: string[]) => string | false) &
+      (() => string[]),
 
-//  https://github.com/jshttp/accepts/blob/master/index.js#L185
-//  https://github.com/jshttp/accepts/blob/master/test/language.js
-    acceptsLanguages: ( (args: string[]) => string|false) &
-    // ToDo: https://github.com/facebook/flow/issues/3009
-    // if you meet some error here, see L70.
-    ( (arg: string, ...args: string[]) => string|false ) &
-    ( () => string[] ),
+    //  https://github.com/jshttp/accepts/blob/master/index.js#L185
+    //  https://github.com/jshttp/accepts/blob/master/test/language.js
+    acceptsLanguages: ((args: string[]) => string | false) &
+      // ToDo: https://github.com/facebook/flow/issues/3009
+      // if you meet some error here, see L70.
+      ((arg: string, ...args: string[]) => string | false) &
+      (() => string[]),
 
     get: (field: string) => string,
 
-/* https://github.com/jshttp/type-is/blob/master/test/test.js
+    /* https://github.com/jshttp/type-is/blob/master/test/test.js
 * Check if the incoming request contains the "Content-Type"
 * header field, and it contains any of the give mime `type`s.
 * If there is no request body, `null` is returned.
 * If there is no content type, `false` is returned.
 * Otherwise, it returns the first `type` that matches.
 */
-    is: ( (args: string[]) => null|false|string)&
-    ( (arg: string, ...args: string[]) => null|false|string ) &
-    ( () => string ), // should return the mime type
+    is: ((args: string[]) => null | false | string)  &
+      ((arg: string, ...args: string[]) => null | false | string) &
+      (() => string), // should return the mime type
 
     toJSON: () => RequestJSON,
     inspect: () => RequestInspect,
@@ -127,15 +132,15 @@ declare module 'koa' {
   };
 
   declare type ResponseJSON = {
-    'status': mixed,
-    'message': mixed,
-    'header': mixed,
+    status: mixed,
+    message: mixed,
+    header: mixed,
   };
   declare type ResponseInspect = {
-    'status': mixed,
-    'message': mixed,
-    'header': mixed,
-    'body': mixed,
+    status: mixed,
+    message: mixed,
+    header: mixed,
+    body: mixed,
   };
   declare type Response = {
     app: Application,
@@ -145,7 +150,7 @@ declare module 'koa' {
     request: Request,
 
     // docs/api/response.md#L113.
-    body: string|Buffer|stream$Stream|Object|Array<mixed>|null, // JSON contains null
+    body: string | Buffer | stream$Stream | Object | Array<mixed> | null, // JSON contains null
     etag: string,
     header: SimpleHeader,
     headers: SimpleHeader, // alias as header
@@ -160,21 +165,21 @@ declare module 'koa' {
     writable: boolean,
 
     // charset: string,  // doesn't find in response.js
-    length: number|void,
+    length: number |  void,
 
     append: (field: string, val: string | string[]) => void,
     attachment: (filename?: string) => void,
     get: (field: string) => string,
     // https://github.com/jshttp/type-is/blob/master/test/test.js
     // https://github.com/koajs/koa/blob/v2.x/lib/response.js#L382
-    is: ( (arg: string[]) => false|string) &
-    ( (arg: string, ...args: string[]) => false|string ) &
-    ( () => string ), // should return the mime type
+    is: ((arg: string[]) => false | string) &
+      ((arg: string, ...args: string[]) => false | string) &
+      (() => string), // should return the mime type
     redirect: (url: string, alt?: string) => void,
     remove: (field: string) => void,
     // https://github.com/koajs/koa/blob/v2.x/lib/response.js#L418
-    set: ((field: string, val: string | string[]) => void)&
-      ((field: {[key: string]: string | string[]}) => void),
+    set: ((field: string, val: string | string[]) => void)  &
+      ((field: { [key: string]: string | string[] }) => void),
 
     vary: (field: string) => void,
 
@@ -183,7 +188,7 @@ declare module 'koa' {
     inspect(): ResponseInspect,
 
     [key: string]: mixed, // props added by middlewares.
-  }
+  };
 
   declare type ContextJSON = {
     request: RequestJSON,
@@ -197,7 +202,7 @@ declare module 'koa' {
   // https://github.com/pillarjs/cookies
   declare type CookiesSetOptions = {
     domain: string, // domain of the cookie (no default).
-    maxAge: number, // milliseconds from Date.now() for expiry
+    maxAge?: number, // milliseconds from Date.now() for expiry
     expires?: Date, //cookie's expiration date (expires at the end of session by default).
     path?: string, //  the path of the cookie (/ by default).
     secure?: boolean, // false by default for HTTP, true by default for HTTPS
@@ -207,10 +212,14 @@ declare module 'koa' {
     overwrite?: boolean, //  whether to overwrite previously set cookies of the same name (false by default).
   };
   declare type Cookies = {
-    get: (name: string, options?: {signed: boolean}) => string|void,
-    set: ((name: string, value: string, options?: CookiesSetOptions) => Context)&
-    // delete cookie (an outbound header with an expired date is used.)
-    ( (name: string) => Context),
+    get: (name: string, options?: { signed: boolean }) => string | void,
+    set: ((
+      name: string,
+      value: string,
+      options?: CookiesSetOptions
+    ) => Context)  &
+      // delete cookie (an outbound header with an expired date is used.)
+      ((name: string) => Context),
   };
   // The default props of context come from two files
   // `application.createContext` & `context.js`
@@ -228,12 +237,17 @@ declare module 'koa' {
     state: Object,
 
     // context.js#L55
-    assert: (test: mixed, status: number, message?: string, opts?: mixed) => void,
+    assert: (
+      test: mixed,
+      status: number,
+      message?: string,
+      opts?: mixed
+    ) => void,
     // context.js#L107
     // if (!(err instanceof Error)) err = new Error(`non-error thrown: ${err}`);
     onerror: (err?: mixed) => void,
     // context.md#L88
-    throw: ( status: number, msg?: string, opts?: Object) => void,
+    throw: (status: number, msg?: string, opts?: Object) => void,
     toJSON(): ContextJSON,
     inspect(): ContextJSON,
 
@@ -287,32 +301,37 @@ declare module 'koa' {
     ip: $PropertyType<Request, 'ip'>,
 
     [key: string]: any, // props added by middlewares.
-  }
+  };
 
-  declare type Middleware =
-    (ctx: Context, next: () => Promise<void>) => Promise<void>|void;
+  declare type Middleware = (
+    ctx: Context,
+    next: () => Promise<void>
+  ) => Promise<void> | void;
   declare type ApplicationJSON = {
-    'subdomainOffset': mixed,
-    'proxy': mixed,
-    'env': string,
+    subdomainOffset: mixed,
+    proxy: mixed,
+    env: string,
   };
   declare class Application extends events$EventEmitter {
-    context: Context,
+    context: Context;
     // request handler for node's native http server.
-    callback: () => (req: http$IncomingMessage, res: http$ServerResponse) => void,
-    env: string,
-    keys?: Array<string>|Object, // https://github.com/crypto-utils/keygrip
-    middleware: Array<Middleware>,
-    proxy: boolean, // when true proxy header fields will be trusted
-    request: Request,
-    response: Response,
-    server: Server,
-    subdomainOffset: number,
+    callback: () => (
+      req: http$IncomingMessage,
+      res: http$ServerResponse
+    ) => void;
+    env: string;
+    keys?: Array<string>  | Object; // https://github.com/crypto-utils/keygrip
+    middleware: Array<Middleware>;
+    proxy: boolean; // when true proxy header fields will be trusted
+    request: Request;
+    response: Response;
+    server: Server;
+    subdomainOffset: number;
 
-    listen: $PropertyType<Server, 'listen'>,
-    toJSON(): ApplicationJSON,
-    inspect(): ApplicationJSON,
-    use(fn: Middleware): this,
+    listen: $PropertyType<Server, 'listen'>;
+    toJSON(): ApplicationJSON;
+    inspect(): ApplicationJSON;
+    use(fn: Middleware): this;
   }
 
   declare module.exports: Class<Application>;

@@ -2,8 +2,8 @@
 import { observable, action, computed, autorun, runInAction } from 'mobx';
 import invariant from 'invariant';
 import Cookie from 'js-cookie';
-import localForage from 'localforage';
 import { client } from 'utils/ApiClient';
+import { stripSubdomain } from 'shared/utils/domains';
 import type { User, Team } from 'types';
 
 const AUTH_STORE = 'AUTH_STORE';
@@ -102,8 +102,20 @@ class AuthStore {
     this.user = null;
     this.token = null;
 
+    // remove authentication token itself
     Cookie.remove('accessToken', { path: '/' });
-    await localForage.clear();
+
+    // remove session record on apex cookie
+    const team = this.team;
+    if (team) {
+      const sessions = Cookie.getJSON('sessions') || {};
+      delete sessions[team.subdomain || 'root'];
+
+      Cookie.set('sessions', sessions, {
+        domain: stripSubdomain(window.location.hostname),
+      });
+      this.team = null;
+    }
 
     // add a timestamp to force reload from server
     window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
@@ -119,10 +131,7 @@ class AuthStore {
     }
     this.user = data.user;
     this.team = data.team;
-
-    // load token from state for backwards compatability with
-    // sessions created pre-google auth
-    this.token = Cookie.get('accessToken') || data.token;
+    this.token = Cookie.get('accessToken');
 
     if (this.token) setImmediate(() => this.fetch());
 

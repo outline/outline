@@ -46,6 +46,8 @@ export type Team = {
   slackConnected: boolean,
   googleConnected: boolean,
   sharing: boolean,
+  subdomain?: string,
+  url: string,
 };
 
 export type NavigationNode = {

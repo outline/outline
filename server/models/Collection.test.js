@@ -6,10 +6,10 @@ import uuid from 'uuid';
 beforeEach(flushdb);
 beforeEach(jest.resetAllMocks);
 
-describe('#getUrl', () => {
+describe('#url', () => {
   test('should return correct url for the collection', () => {
     const collection = new Collection({ id: '1234' });
-    expect(collection.getUrl()).toBe('/collections/1234');
+    expect(collection.url).toBe('/collections/1234');
   });
 });
 

@@ -29,7 +29,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - .:/opt/outline
+      - .:/opt/outline:cached
     depends_on:
       - postgres
       - redis

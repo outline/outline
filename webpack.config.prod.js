@@ -37,6 +37,7 @@ productionWebpackConfig.plugins = [
       URL: JSON.stringify(process.env.URL),
       NODE_ENV: JSON.stringify('production'),
       GOOGLE_ANALYTICS_ID: JSON.stringify(process.env.GOOGLE_ANALYTICS_ID),
+      SUBDOMAINS_ENABLED: JSON.stringify(process.env.SUBDOMAINS_ENABLED)
     },
   }),
 ];
