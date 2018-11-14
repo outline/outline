@@ -3,7 +3,11 @@ import uuid from 'uuid';
 import { URL } from 'url';
 import { DataTypes, sequelize, Op } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
-import { RESERVED_SUBDOMAINS } from '../../shared/utils/domains';
+import {
+  stripSubdomain,
+  RESERVED_SUBDOMAINS,
+} from '../../shared/utils/domains';
+
 import Collection from './Collection';
 import User from './User';
 
@@ -50,7 +54,7 @@ const Team = sequelize.define(
         }
 
         const url = new URL(process.env.URL);
-        url.host = `${this.subdomain}.${url.host}`;
+        url.host = `${this.subdomain}.${stripSubdomain(url.host)}`;
         return url.href.replace(/\/$/, '');
       },
       logoUrl() {

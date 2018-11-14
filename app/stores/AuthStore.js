@@ -109,7 +109,7 @@ class AuthStore {
     const team = this.team;
     if (team) {
       const sessions = Cookie.getJSON('sessions') || {};
-      delete sessions[team.subdomain || 'root'];
+      delete sessions[team.id];
 
       Cookie.set('sessions', sessions, {
         domain: stripSubdomain(window.location.hostname),

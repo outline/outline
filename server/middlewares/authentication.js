@@ -115,11 +115,10 @@ export default function auth(options?: { required?: boolean } = {}) {
         const existing = JSON.parse(ctx.cookies.get('sessions') || '{}');
         const sessions = JSON.stringify({
           ...existing,
-          [team.subdomain]: {
+          [team.id]: {
             name: team.name,
             logoUrl: team.logoUrl,
             url: team.url,
-            expires,
           },
         });
         ctx.cookies.set('sessions', sessions, {
