@@ -151,15 +151,17 @@ const List = styled.dl`
 const Keys = styled.dt`
   float: left;
   width: 25%;
-  padding: 0 0 4px;
+  height: 30px;
   margin: 0;
 `;
 
 const Label = styled.dd`
   float: left;
   width: 75%;
-  padding: 0 0 4px;
+  height: 30px;
   margin: 0;
+  display: flex;
+  align-items: center;
 `;
 
 export default KeyboardShortcuts;
