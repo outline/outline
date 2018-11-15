@@ -34,7 +34,7 @@ export default function renderpage(ctx: Object, children: React.Node) {
   // $FlowFixMe
   Object.keys(helmet).forEach(key => (head += helmet[key].toString()));
 
-  ctx.body = html
+  ctx.body = `<!DOCTYPE html>\n${html}`
     .replace('{{CSS}}', sheet.getStyleTags())
     .replace('{{HEAD}}', head);
 }
