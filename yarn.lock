@@ -4456,6 +4456,10 @@ hash.js@^1.0.0, hash.js@^1.0.3:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.0"
 
+hashtag-regex@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/hashtag-regex/-/hashtag-regex-2.0.0.tgz#9b32413529e9ca28b41e7c6378e35677b178d5ad"
+
 hawk@3.1.3, hawk@~3.1.3:
   version "3.1.3"
   resolved "https://registry.yarnpkg.com/hawk/-/hawk-3.1.3.tgz#078444bd7c1640b0fe540d2c9b73d59678e8e1c4"
@@ -8977,9 +8981,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@6.0.1:
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-6.0.1.tgz#a2f36f4596d2ba7757dd1f9dfa9e9976fbc99911"
+rich-markdown-editor@^6.0.2:
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-6.0.2.tgz#580a86eba738a258e16bcbfef383adca781bbdba"
   dependencies:
     "@tommoor/slate-drop-or-paste-images" "^0.8.1"
     babel-plugin-transform-async-to-generator "^6.24.1"
@@ -8999,7 +9003,7 @@ rich-markdown-editor@6.0.1:
     slate-collapse-on-escape "^0.6.1"
     slate-edit-code "^0.15.5"
     slate-edit-list "^0.11.3"
-    slate-md-serializer "5.1.0"
+    slate-md-serializer "^5.1.1"
     slate-paste-linkify "^0.5.1"
     slate-plain-serializer "0.5.4"
     slate-prism "^0.5.0"
@@ -9367,9 +9371,11 @@ slate-edit-list@^0.11.3:
   version "0.11.3"
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.11.3.tgz#d27ff2ff93a83bef49131a6a44b87a9558c9d44c"
 
-slate-md-serializer@5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.1.0.tgz#07b01fec49fa5bd47619bbccafb477712d30f848"
+slate-md-serializer@^5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.1.1.tgz#3b82bde03d499d851c44b5895d0d80884aa291af"
+  dependencies:
+    hashtag-regex "^2.0.0"
 
 slate-paste-linkify@^0.5.1:
   version "0.5.1"
