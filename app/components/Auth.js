@@ -19,15 +19,28 @@ let authenticatedStores;
 const Auth = observer(({ auth, children }: Props) => {
   if (auth.authenticated) {
     const { user, team } = auth;
+    const { hostname } = window.location;
 
     if (!team || !user) {
+      return <LoadingIndicator />;
+    }
+
+    // If we're authenticated but viewing a subdomain that doesn't match the
+    // authenticated team then kick the user to the teams subdomain.
+    // www is a special case, as always
+    if (
+      process.env.SUBDOMAINS_ENABLED &&
+      team.subdomain &&
+      !hostname.startsWith(`${team.subdomain}.`) &&
+      !hostname.startsWith('www.')
+    ) {
+      window.location.href = `${team.url}${window.location.pathname}`;
       return <LoadingIndicator />;
     }
 
     // Only initialize stores once. Kept in global scope because otherwise they
     // will get overridden on route change
     if (!authenticatedStores) {
-      // Stores for authenticated user
       authenticatedStores = {
         integrations: new IntegrationsStore({
           ui: stores.ui,

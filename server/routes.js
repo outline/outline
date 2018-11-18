@@ -86,7 +86,7 @@ router.get('/', async ctx => {
     const team = await Team.find({
       where: { subdomain },
     });
-    if (team && process.env.SUBDOMAINS_ENABLED) {
+    if (team && process.env.SUBDOMAINS_ENABLED === 'true') {
       return renderpage(
         ctx,
         <SubdomainSignin
