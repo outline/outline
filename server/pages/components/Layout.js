@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { TopNavigation, BottomNavigation } from './Navigation';
-import Analytics from '../../../shared/components/Analytics';
+import Analytics from './Analytics';
 import GlobalStyles from '../../../shared/styles/globals';
 import prefetchTags from '../../utils/prefetchTags';
 

@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
-import Analytics from 'shared/components/Analytics';
+import Analytics from 'components/Analytics';
 import Flex from 'shared/components/Flex';
 import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 
