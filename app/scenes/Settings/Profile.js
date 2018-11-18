@@ -52,8 +52,13 @@ class Profile extends React.Component<Props> {
     this.name = ev.target.value;
   };
 
-  handleAvatarUpload = (avatarUrl: string) => {
+  handleAvatarUpload = async (avatarUrl: string) => {
     this.avatarUrl = avatarUrl;
+
+    await this.props.auth.updateUser({
+      avatarUrl: this.avatarUrl,
+    });
+    this.props.ui.showToast('Profile picture updated', 'success');
   };
 
   handleAvatarError = (error: ?string) => {
