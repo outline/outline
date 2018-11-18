@@ -8,6 +8,7 @@ import serve from 'koa-static';
 import parseDomain from 'parse-domain';
 import apexRedirect from './middlewares/apexRedirect';
 import renderpage from './utils/renderpage';
+import { isCustomSubdomain } from '../shared/utils/domains';
 import { robotsResponse } from './utils/robots';
 import { NotFoundError } from './errors';
 import { Team } from './models';
@@ -67,8 +68,6 @@ router.get('/changelog', async ctx => {
 router.get('/', async ctx => {
   const lastSignedIn = ctx.cookies.get('lastSignedIn');
   const accessToken = ctx.cookies.get('accessToken');
-  const domain = parseDomain(ctx.request.hostname);
-  const subdomain = domain ? domain.subdomain : undefined;
 
   // Because we render both the signed in and signed out views depending
   // on a cookie it's important that the browser does not render from cache.
@@ -82,11 +81,16 @@ router.get('/', async ctx => {
 
   // If we're on a custom subdomain then we display a slightly different signed
   // out view that includes the teams basic information.
-  if (subdomain && subdomain !== 'www') {
+  if (
+    process.env.SUBDOMAINS_ENABLED === 'true' &&
+    isCustomSubdomain(ctx.request.hostname)
+  ) {
+    const domain = parseDomain(ctx.request.hostname);
+    const subdomain = domain ? domain.subdomain : undefined;
     const team = await Team.find({
       where: { subdomain },
     });
-    if (team && process.env.SUBDOMAINS_ENABLED === 'true') {
+    if (team) {
       return renderpage(
         ctx,
         <SubdomainSignin

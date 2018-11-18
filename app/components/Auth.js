@@ -8,6 +8,7 @@ import UsersStore from 'stores/UsersStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import IntegrationsStore from 'stores/IntegrationsStore';
 import LoadingIndicator from 'components/LoadingIndicator';
+import { isCustomSubdomain } from 'shared/utils/domains';
 
 type Props = {
   auth: AuthStore,
@@ -26,13 +27,12 @@ const Auth = observer(({ auth, children }: Props) => {
     }
 
     // If we're authenticated but viewing a subdomain that doesn't match the
-    // authenticated team then kick the user to the teams subdomain.
-    // www is a special case, as always
+    // currently authenticated team then kick the user to the teams subdomain.
     if (
       process.env.SUBDOMAINS_ENABLED &&
       team.subdomain &&
-      !hostname.startsWith(`${team.subdomain}.`) &&
-      !hostname.startsWith('www.')
+      isCustomSubdomain(hostname) &&
+      !hostname.startsWith(`${team.subdomain}.`)
     ) {
       window.location.href = `${team.url}${window.location.pathname}`;
       return <LoadingIndicator />;
