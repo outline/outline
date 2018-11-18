@@ -87,7 +87,7 @@
     "boundless-arrow-key-navigation": "^1.0.4",
     "boundless-popover": "^1.0.4",
     "bugsnag": "^1.7.0",
-    "bull": "^3.3.7",
+    "bull": "^3.5.2",
     "cancan": "3.1.0",
     "copy-to-clipboard": "^3.0.6",
     "css-loader": "^0.28.7",

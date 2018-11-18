@@ -10,6 +10,7 @@ const logisticsQueue = new Queue('logistics', process.env.REDIS_URL);
 const mailer = new Mailer();
 const queueOptions = {
   attempts: 2,
+  removeOnComplete: true,
   backoff: {
     type: 'exponential',
     delay: 60 * 1000,

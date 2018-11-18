@@ -138,6 +138,7 @@ export const sendEmail = (type: Emails, to: string, options?: Object = {}) => {
     },
     {
       attempts: 5,
+      removeOnComplete: true,
       backoff: {
         type: 'exponential',
         delay: 60 * 1000,
