@@ -40,8 +40,9 @@ const Badge = styled.span`
   color: ${({ admin, theme }) => (admin ? theme.white : theme.text)};
   border-radius: 2px;
   font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  font-weight: normal;
+  user-select: none;
 `;
 
 export default UserListItem;

@@ -47,6 +47,7 @@ export default function Routes() {
             <Route exact path="/settings/details" component={Details} />
             <Route exact path="/settings/security" component={Security} />
             <Route exact path="/settings/people" component={People} />
+            <Route exact path="/settings/people/:filter" component={People} />
             <Route exact path="/settings/shares" component={Shares} />
             <Route exact path="/settings/tokens" component={Tokens} />
             <Route

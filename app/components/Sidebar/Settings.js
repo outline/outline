@@ -68,7 +68,11 @@ class SettingsSidebar extends React.Component<Props> {
                   Security
                 </SidebarLink>
               )}
-              <SidebarLink to="/settings/people" icon={<UserIcon />}>
+              <SidebarLink
+                to="/settings/people"
+                icon={<UserIcon />}
+                exact={false}
+              >
                 People
               </SidebarLink>
               <SidebarLink to="/settings/shares" icon={<LinkIcon />}>

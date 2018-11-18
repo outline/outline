@@ -1,5 +1,5 @@
 // @flow
-import { observable, action, runInAction } from 'mobx';
+import { observable, computed, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import type { User, PaginationParams } from 'types';
@@ -7,6 +7,16 @@ import type { User, PaginationParams } from 'types';
 class UsersStore {
   @observable data: User[] = [];
   @observable isSaving: boolean = false;
+
+  @computed
+  get active(): User[] {
+    return this.data.filter(user => !user.isSuspended);
+  }
+
+  @computed
+  get admins(): User[] {
+    return this.data.filter(user => user.isAdmin);
+  }
 
   @action
   fetchPage = async (options: ?PaginationParams): Promise<*> => {
