@@ -65,7 +65,7 @@ class CollectionEdit extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             You can edit a collection’s details at any time, however doing so
-            might confuse your team mates.
+            often might confuse your team mates.
           </HelpText>
           <Input
             type="text"

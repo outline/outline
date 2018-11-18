@@ -17,9 +17,7 @@ import {
   documentEditUrl,
   matchDocumentEdit,
 } from 'utils/routeHelpers';
-import { uploadFile } from 'utils/uploadFile';
 import { emojiToUrl } from 'utils/emoji';
-import isInternalUrl from 'utils/isInternalUrl';
 import type { Revision } from 'types';
 
 import Document from 'models/Document';
@@ -39,6 +37,7 @@ import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import RevisionsStore from 'stores/RevisionsStore';
+import schema from './schema';
 
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
@@ -173,7 +172,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   loadEditor = async () => {
-    const EditorImport = await import('./components/Editor');
+    const EditorImport = await import('components/Editor');
     this.editorComponent = EditorImport.default;
   };
 
@@ -259,11 +258,6 @@ class DocumentScene extends React.Component<Props> {
     this.props.history.push(url);
   };
 
-  onUploadImage = async (file: File) => {
-    const result = await uploadFile(file);
-    return result.url;
-  };
-
   onSearchLink = async (term: string) => {
     const results = await this.props.documents.search(term);
 
@@ -271,37 +265,6 @@ class DocumentScene extends React.Component<Props> {
       title: result.document.title,
       url: result.document.url,
     }));
-  };
-
-  onClickLink = (href: string) => {
-    // on page hash
-    if (href[0] === '#') {
-      window.location.href = href;
-      return;
-    }
-
-    if (isInternalUrl(href)) {
-      // relative
-      let navigateTo = href;
-
-      // probably absolute
-      if (href[0] !== '/') {
-        try {
-          const url = new URL(href);
-          navigateTo = url.pathname + url.hash;
-        } catch (err) {
-          navigateTo = href;
-        }
-      }
-
-      this.props.history.push(navigateTo);
-    } else {
-      window.open(href, '_blank');
-    }
-  };
-
-  onShowToast = (message: string) => {
-    this.props.ui.showToast(message, 'success');
   };
 
   render() {
@@ -386,17 +349,18 @@ class DocumentScene extends React.Component<Props> {
                 bodyPlaceholder="…the rest is your canvas"
                 defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
-                uploadImage={this.onUploadImage}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.onSearchLink}
-                onClickLink={this.onClickLink}
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onCancel={this.onDiscard}
-                onShowToast={this.onShowToast}
                 readOnly={!this.isEditing}
                 toc={!revision}
+                history={this.props.history}
+                ui={this.props.ui}
+                schema={schema}
+                expandToFit
               />
             </MaxWidth>
           </Container>

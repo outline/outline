@@ -1,29 +1,46 @@
 // @flow
 import * as React from 'react';
+import { observable } from 'mobx';
+import { observer, inject } from 'mobx-react';
+import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
-import RichMarkdownEditor from 'rich-markdown-editor';
 import { LabelText, Outline } from 'components/Input';
 
 type Props = {
   label: string,
   minHeight?: number,
   maxHeight?: number,
+  readOnly?: boolean,
+  history: *,
+  ui: *,
 };
 
-export default function InputRich({
-  label,
-  minHeight,
-  maxHeight,
-  ...rest
-}: Props) {
-  return (
-    <React.Fragment>
-      <LabelText>{label}</LabelText>
-      <StyledOutline maxHeight={maxHeight} minHeight={minHeight}>
-        <RichMarkdownEditor {...rest} />
-      </StyledOutline>
-    </React.Fragment>
-  );
+@observer
+class InputRich extends React.Component<Props> {
+  @observable editorComponent;
+
+  componentDidMount() {
+    this.loadEditor();
+  }
+
+  loadEditor = async () => {
+    const EditorImport = await import('./Editor');
+    this.editorComponent = EditorImport.default;
+  };
+
+  render() {
+    const { label, minHeight, maxHeight, ...rest } = this.props;
+    const Editor = this.editorComponent;
+
+    return (
+      <React.Fragment>
+        <LabelText>{label}</LabelText>
+        <StyledOutline maxHeight={maxHeight} minHeight={minHeight}>
+          {Editor && <Editor {...rest} />}
+        </StyledOutline>
+      </React.Fragment>
+    );
+  }
 }
 
 const StyledOutline = styled(Outline)`
@@ -36,3 +53,5 @@ const StyledOutline = styled(Outline)`
     display: block;
   }
 `;
+
+export default inject('ui')(withRouter(InputRich));
