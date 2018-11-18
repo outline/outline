@@ -5,6 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { CollectionIcon, NewDocumentIcon, PinIcon } from 'outline-icons';
+import RichMarkdownEditor from 'rich-markdown-editor';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
@@ -157,6 +158,13 @@ class CollectionScene extends React.Component<Props> {
               />{' '}
               {this.collection.name}
             </Heading>
+            {this.collection.description && (
+              <RichMarkdownEditor
+                key={this.collection.description}
+                defaultValue={this.collection.description}
+                readOnly
+              />
+            )}
 
             {hasPinnedDocuments && (
               <React.Fragment>

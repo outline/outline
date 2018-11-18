@@ -12,10 +12,9 @@ import type { NavigationNode } from 'types';
 class Collection extends BaseModel {
   isSaving: boolean = false;
   ui: UiStore;
-  data: Object;
 
   createdAt: string;
-  description: ?string;
+  description: string;
   id: string;
   name: string;
   color: string;
@@ -23,15 +22,6 @@ class Collection extends BaseModel {
   documents: NavigationNode[];
   updatedAt: string;
   url: string;
-
-  /* Computed */
-
-  @computed
-  get entryUrl(): string {
-    return this.type === 'atlas' && this.documents.length > 0
-      ? this.documents[0].url
-      : this.url;
-  }
 
   @computed
   get isEmpty(): boolean {
@@ -65,8 +55,6 @@ class Collection extends BaseModel {
 
     travelDocuments(this.documents);
   }
-
-  /* Actions */
 
   @action
   fetch = async () => {
@@ -138,7 +126,6 @@ class Collection extends BaseModel {
 
   @action
   updateData(data: Object = {}) {
-    this.data = data;
     extendObservable(this, data);
   }
 
