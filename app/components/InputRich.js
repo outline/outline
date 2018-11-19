@@ -4,7 +4,7 @@ import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
-import { LabelText, Outline } from 'components/Input';
+import Input, { LabelText, Outline } from 'components/Input';
 
 type Props = {
   label: string,
@@ -35,9 +35,18 @@ class InputRich extends React.Component<Props> {
     return (
       <React.Fragment>
         <LabelText>{label}</LabelText>
-        <StyledOutline maxHeight={maxHeight} minHeight={minHeight}>
-          {Editor && <Editor {...rest} />}
-        </StyledOutline>
+        {Editor ? (
+          <StyledOutline maxHeight={maxHeight} minHeight={minHeight}>
+            <Editor {...rest} />
+          </StyledOutline>
+        ) : (
+          <Input
+            maxHeight={maxHeight}
+            minHeight={minHeight}
+            placeholder="Loading…"
+            disabled
+          />
+        )}
       </React.Fragment>
     );
   }
