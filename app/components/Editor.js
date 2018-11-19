@@ -9,6 +9,7 @@ type Props = {
   bodyPlaceholder?: string,
   defaultValue?: string,
   readOnly?: boolean,
+  forwardedRef: *,
   history: *,
   ui: *,
 };
@@ -53,6 +54,7 @@ class Editor extends React.Component<Props> {
   render() {
     return (
       <RichMarkdownEditor
+        ref={this.props.forwardedRef}
         uploadImage={this.onUploadImage}
         onClickLink={this.onClickLink}
         onShowToast={this.onShowToast}
@@ -62,4 +64,7 @@ class Editor extends React.Component<Props> {
   }
 }
 
-export default Editor;
+// $FlowIssue - https://github.com/facebook/flow/issues/6103
+export default React.forwardRef((props, ref) => (
+  <Editor {...props} forwardedRef={ref} />
+));
