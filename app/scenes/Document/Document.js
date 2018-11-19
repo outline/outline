@@ -172,7 +172,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   loadEditor = async () => {
-    const EditorImport = await import('components/Editor');
+    const EditorImport = await import('./components/Editor');
     this.editorComponent = EditorImport.default;
   };
 
@@ -360,7 +360,6 @@ class DocumentScene extends React.Component<Props> {
                 history={this.props.history}
                 ui={this.props.ui}
                 schema={schema}
-                expandToFit
               />
             </MaxWidth>
           </Container>
