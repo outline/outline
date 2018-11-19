@@ -109,7 +109,7 @@ Team.prototype.provisionSubdomain = async function(subdomain) {
 Team.prototype.provisionFirstCollection = async function(userId) {
   return await Collection.create({
     name: 'General',
-    description: 'Your first Collection',
+    description: '',
     type: 'atlas',
     teamId: this.id,
     creatorId: userId,

@@ -31,6 +31,8 @@ const RealInput = styled.input`
 
 const Wrapper = styled.div`
   max-width: ${props => (props.short ? '350px' : '100%')};
+  min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : '0')};
+  max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : 'auto')};
 `;
 
 export const Outline = styled(Flex)`

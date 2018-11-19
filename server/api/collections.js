@@ -77,7 +77,7 @@ router.post('collections.exportAll', auth(), async ctx => {
 });
 
 router.post('collections.update', auth(), async ctx => {
-  const { id, name, color } = ctx.body;
+  const { id, name, description, color } = ctx.body;
   ctx.assertPresent(name, 'name is required');
   if (color)
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
@@ -86,6 +86,7 @@ router.post('collections.update', auth(), async ctx => {
   authorize(ctx.state.user, 'update', collection);
 
   collection.name = name;
+  collection.description = description;
   collection.color = color;
   await collection.save();
 

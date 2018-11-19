@@ -1,45 +1,19 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { Block, Change, Node, Mark, Text } from 'slate';
-import RichMarkdownEditor, { Placeholder, schema } from 'rich-markdown-editor';
+import { Text } from 'slate';
+import { Placeholder } from 'rich-markdown-editor';
+import Editor from 'components/Editor';
 import ClickablePadding from 'components/ClickablePadding';
 
 type Props = {
   titlePlaceholder?: string,
   bodyPlaceholder?: string,
   defaultValue?: string,
-  readOnly: boolean,
+  readOnly?: boolean,
 };
 
-// add rules to the schema to ensure the first node is a heading
-schema.document.nodes.unshift({ types: ['heading1'], min: 1, max: 1 });
-schema.document.normalize = (
-  change: Change,
-  reason: string,
-  {
-    node,
-    child,
-    mark,
-    index,
-  }: { node: Node, mark?: Mark, child: Node, index: number }
-) => {
-  switch (reason) {
-    case 'child_type_invalid': {
-      return change.setNodeByKey(
-        child.key,
-        index === 0 ? 'heading1' : 'paragraph'
-      );
-    }
-    case 'child_required': {
-      const block = Block.create(index === 0 ? 'heading1' : 'paragraph');
-      return change.insertNodeByKey(node.key, index, block);
-    }
-    default:
-  }
-};
-
-class Editor extends React.Component<Props> {
+class DocumentEditor extends React.Component<Props> {
   editor: *;
 
   componentDidMount() {
@@ -47,10 +21,6 @@ class Editor extends React.Component<Props> {
       this.focusAtStart();
     }
   }
-
-  setEditorRef = (ref: RichMarkdownEditor) => {
-    this.editor = ref;
-  };
 
   focusAtStart = () => {
     if (this.editor) this.editor.focusAtStart();
@@ -83,9 +53,8 @@ class Editor extends React.Component<Props> {
     return (
       <React.Fragment>
         <StyledEditor
-          ref={this.setEditorRef}
+          ref={ref => (this.editor = ref)}
           renderPlaceholder={this.renderPlaceholder}
-          schema={schema}
           {...this.props}
         />
         <ClickablePadding
@@ -98,7 +67,7 @@ class Editor extends React.Component<Props> {
 }
 
 // additional styles account for placeholder nodes not always re-rendering
-const StyledEditor = styled(RichMarkdownEditor)`
+const StyledEditor = styled(Editor)`
   display: flex;
   flex: 0;
 
@@ -119,4 +88,4 @@ const StyledEditor = styled(RichMarkdownEditor)`
   }
 `;
 
-export default Editor;
+export default DocumentEditor;
