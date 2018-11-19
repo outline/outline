@@ -9,7 +9,6 @@ type Props = {
   bodyPlaceholder?: string,
   defaultValue?: string,
   readOnly?: boolean,
-  expandToFit?: boolean,
   history: *,
   ui: *,
 };
