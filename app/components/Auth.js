@@ -62,6 +62,11 @@ const Auth = observer(({ auth, children }: Props) => {
         };
       }
 
+      // Session custom dimension separates logged in from logged out users
+      if (window.ga) {
+        window.ga('set', { dimension1: true });
+      }
+
       authenticatedStores.collections.fetchPage({ limit: 100 });
     }
 
