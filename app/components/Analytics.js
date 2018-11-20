@@ -17,6 +17,7 @@ export default class Analytics extends React.Component<*> {
     // $FlowIssue
     ga.l = +new Date();
     ga('create', process.env.GOOGLE_ANALYTICS_ID, 'auto');
+    ga('set', { dimension1: 'true' });
     ga('send', 'pageview');
 
     const script = document.createElement('script');
