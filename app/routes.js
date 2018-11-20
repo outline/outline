@@ -42,6 +42,7 @@ export default function Routes() {
             <Route path="/dashboard/:tab" component={Dashboard} />
             <Route path="/dashboard" component={Dashboard} />
             <Route exact path="/starred" component={Starred} />
+            <Route exact path="/starred/:sort" component={Starred} />
             <Route exact path="/drafts" component={Drafts} />
             <Route exact path="/settings" component={Settings} />
             <Route exact path="/settings/details" component={Details} />

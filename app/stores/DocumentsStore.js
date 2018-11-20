@@ -1,7 +1,7 @@
 // @flow
 import { observable, action, computed, ObservableMap, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
-import { map, find, orderBy, filter, uniq } from 'lodash';
+import { map, find, orderBy, filter, uniq, sortBy } from 'lodash';
 import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
@@ -79,6 +79,11 @@ class DocumentsStore extends BaseStore {
   @computed
   get starred(): Document[] {
     return filter(this.data.values(), 'starred');
+  }
+
+  @computed
+  get starredAlphabetical(): Document[] {
+    return sortBy(this.starred, doc => doc.title.toLowerCase());
   }
 
   @computed
