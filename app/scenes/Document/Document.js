@@ -23,6 +23,7 @@ import type { Revision } from 'types';
 import Document from 'models/Document';
 import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
+import Branding from './components/Branding';
 import ErrorBoundary from 'components/ErrorBoundary';
 import DocumentHistory from 'components/DocumentHistory';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
@@ -367,6 +368,7 @@ class DocumentScene extends React.Component<Props> {
         {isHistory && (
           <DocumentHistory revision={revision} document={document} />
         )}
+        {isShare && <Branding />}
       </ErrorBoundary>
     );
   }
