@@ -62,7 +62,7 @@ class CollectionScene extends React.Component<Props> {
       this.collection = collection;
 
       await Promise.all([
-        this.props.documents.fetchRecentlyEdited({
+        this.props.documents.fetchRecentlyUpdated({
           limit: 10,
           collection: id,
         }),
@@ -141,7 +141,7 @@ class CollectionScene extends React.Component<Props> {
       ? this.props.documents.pinnedInCollection(this.collection.id)
       : [];
     const recentDocuments = this.collection
-      ? this.props.documents.recentlyEditedInCollection(this.collection.id)
+      ? this.props.documents.recentlyUpdatedInCollection(this.collection.id)
       : [];
     const hasPinnedDocuments = !!pinnedDocuments.length;
 

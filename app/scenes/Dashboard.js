@@ -59,8 +59,8 @@ class Dashboard extends React.Component<Props> {
           </Route>
           <Route path="/dashboard">
             <PaginatedDocumentList
-              documents={documents.recentlyEdited}
-              fetch={documents.fetchRecentlyEdited}
+              documents={documents.recentlyUpdated}
+              fetch={documents.fetchRecentlyUpdated}
               showCollection
             />
           </Route>

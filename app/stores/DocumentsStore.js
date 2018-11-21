@@ -1,7 +1,7 @@
 // @flow
 import { observable, action, computed, ObservableMap, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
-import { map, find, orderBy, filter, uniq, sortBy } from 'lodash';
+import { map, find, orderBy, filter, compact, uniq, sortBy } from 'lodash';
 import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
@@ -22,7 +22,7 @@ type FetchOptions = {
 
 class DocumentsStore extends BaseStore {
   @observable recentlyViewedIds: string[] = [];
-  @observable recentlyEditedIds: string[] = [];
+  @observable recentlyUpdatedIds: string[] = [];
   @observable data: Map<string, Document> = new ObservableMap([]);
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
@@ -31,22 +31,20 @@ class DocumentsStore extends BaseStore {
 
   @computed
   get recentlyViewed(): Document[] {
-    const docs = [];
-    this.recentlyViewedIds.forEach(id => {
-      const doc = this.getById(id);
-      if (doc) docs.push(doc);
-    });
-    return docs;
+    return orderBy(
+      compact(this.recentlyViewedIds.map(id => this.getById(id))),
+      'updatedAt',
+      'desc'
+    );
   }
 
   @computed
-  get recentlyEdited(): Document[] {
-    const docs = [];
-    this.recentlyEditedIds.forEach(id => {
-      const doc = this.getById(id);
-      if (doc) docs.push(doc);
-    });
-    return docs;
+  get recentlyUpdated(): Document[] {
+    return orderBy(
+      compact(this.recentlyUpdatedIds.map(id => this.getById(id))),
+      'updatedAt',
+      'desc'
+    );
   }
 
   createdByUser(userId: string): Document[] {
@@ -59,12 +57,12 @@ class DocumentsStore extends BaseStore {
 
   pinnedInCollection(collectionId: string): Document[] {
     return filter(
-      this.recentlyEditedInCollection(collectionId),
+      this.recentlyUpdatedInCollection(collectionId),
       document => document.pinned
     );
   }
 
-  recentlyEditedInCollection(collectionId: string): Document[] {
+  recentlyUpdatedInCollection(collectionId: string): Document[] {
     return orderBy(
       filter(
         this.data.values(),
@@ -129,13 +127,13 @@ class DocumentsStore extends BaseStore {
   };
 
   @action
-  fetchRecentlyEdited = async (options: ?PaginationParams): Promise<*> => {
+  fetchRecentlyUpdated = async (options: ?PaginationParams): Promise<*> => {
     const data = await this.fetchPage('list', options);
 
-    runInAction('DocumentsStore#fetchRecentlyEdited', () => {
+    runInAction('DocumentsStore#fetchRecentlyUpdated', () => {
       // $FlowFixMe
-      this.recentlyEditedIds.replace(
-        uniq(this.recentlyEditedIds.concat(map(data, 'id')))
+      this.recentlyUpdatedIds.replace(
+        uniq(this.recentlyUpdatedIds.concat(map(data, 'id')))
       );
     });
     return data;
@@ -283,11 +281,11 @@ class DocumentsStore extends BaseStore {
 
     // Re-fetch dashboard content so that we don't show deleted documents
     this.on('collections.delete', () => {
-      this.fetchRecentlyEdited();
+      this.fetchRecentlyUpdated();
       this.fetchRecentlyViewed();
     });
     this.on('documents.delete', () => {
-      this.fetchRecentlyEdited();
+      this.fetchRecentlyUpdated();
       this.fetchRecentlyViewed();
     });
   }
