@@ -93,7 +93,6 @@
     "css-loader": "^0.28.7",
     "date-fns": "1.29.0",
     "debug": "2.6.9",
-    "diff": "3.5.0",
     "dotenv": "^4.0.0",
     "emoji-regex": "^6.5.1",
     "exports-loader": "^0.6.4",
