@@ -66,6 +66,13 @@ const Article = styled.div`
   &:last-child {
     border-bottom: 0;
   }
+
+  img {
+    max-width: 100%;
+    zoom: 50%;
+    box-shadow: 0 10px 80px rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
 `;
 
 export default Changelog;
