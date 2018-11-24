@@ -18,9 +18,7 @@ import {
   matchDocumentEdit,
 } from 'utils/routeHelpers';
 import { emojiToUrl } from 'utils/emoji';
-import type { Revision } from 'types';
 
-import Document from 'models/Document';
 import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
@@ -38,6 +36,9 @@ import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import RevisionsStore from 'stores/RevisionsStore';
+import Document from 'models/Document';
+import Revision from 'models/Revision';
+
 import schema from './schema';
 
 const AUTOSAVE_DELAY = 3000;

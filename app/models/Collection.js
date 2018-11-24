@@ -130,10 +130,9 @@ class Collection extends BaseModel {
   }
 
   constructor(collection: $Shape<Collection>) {
-    super();
+    super(collection);
 
-    this.updateData(collection);
-    this.ui = stores.ui;
+    this.ui = stores.uiStore;
 
     this.on('documents.delete', (data: { collectionId: string }) => {
       if (data.collectionId === this.id) this.fetch();

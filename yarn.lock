@@ -3768,9 +3768,9 @@ flexbuffer@0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/flexbuffer/-/flexbuffer-0.0.6.tgz#039fdf23f8823e440c38f3277e6fef1174215b30"
 
-flow-bin@^0.71.0:
-  version "0.71.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.71.0.tgz#fd1b27a6458c3ebaa5cb811853182ed631918b70"
+flow-bin@0.86.0:
+  version "0.86.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.86.0.tgz#153a28722b4dc13b7200c74b644dd4d9f4969a11"
 
 flow-typed@^2.4.0:
   version "2.4.0"
@@ -4555,13 +4555,15 @@ hoek@4.x.x:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/hoek/-/hoek-4.2.0.tgz#72d9d0754f7fe25ca2d01ad8f8f9a9449a89526d"
 
-hoist-non-react-statics@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-1.2.0.tgz#aa448cf0986d55cc40773b17174b7dd066cb7cfb"
-
 hoist-non-react-statics@^2.3.0:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.3.1.tgz#343db84c6018c650778898240135a1420ee22ce0"
+
+hoist-non-react-statics@^3.0.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-3.1.0.tgz#42414ccdfff019cd2168168be998c7b3bd5245c0"
+  dependencies:
+    react-is "^16.3.2"
 
 home-or-tmp@^2.0.0:
   version "2.0.0"
@@ -6837,15 +6839,16 @@ mobx-react-devtools@^4.2.11:
   version "4.2.15"
   resolved "https://registry.yarnpkg.com/mobx-react-devtools/-/mobx-react-devtools-4.2.15.tgz#881c038fb83db4dffd1e72bbaf5374d26b2fdebb"
 
-mobx-react@^4.1.8:
-  version "4.2.2"
-  resolved "https://registry.yarnpkg.com/mobx-react/-/mobx-react-4.2.2.tgz#db9cc3cafefbd830d0584c1149af5aae67829201"
+mobx-react@^5.4.2:
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/mobx-react/-/mobx-react-5.4.2.tgz#53db594dbb44752c15b53c355babaa94a6af5934"
   dependencies:
-    hoist-non-react-statics "^1.2.0"
+    hoist-non-react-statics "^3.0.0"
+    react-lifecycles-compat "^3.0.2"
 
-mobx@^3.1.9:
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/mobx/-/mobx-3.2.2.tgz#aa671459bededfd9880c948889a3f62bce09279c"
+mobx@^5.6.0:
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/mobx/-/mobx-5.6.0.tgz#e381c357e0ed7685a99a896455ecc66ff5ab84ee"
 
 mocha@^4.0.1:
   version "4.1.0"
@@ -7451,9 +7454,9 @@ outline-icons@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.0.3.tgz#f0928a8bbc7e7ff4ea6762eee8fb2995d477941e"
 
-outline-icons@^1.3.2:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.3.2.tgz#6c79a55081cd33925b324e2ad8bbf17a24ba2655"
+outline-icons@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.5.0.tgz#fc2f9cacba42af6eb4a98c7454493d7445c97c8f"
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -8386,6 +8389,10 @@ react-immutable-proptypes@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/react-immutable-proptypes/-/react-immutable-proptypes-2.1.0.tgz#023d6f39bb15c97c071e9e60d00d136eac5fa0b4"
 
+react-is@^16.3.2:
+  version "16.6.3"
+  resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.6.3.tgz#d2d7462fcfcbe6ec0da56ad69047e47e56e7eac0"
+
 react-is@^16.6.0:
   version "16.6.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.6.1.tgz#f77b1c3d901be300abe8d58645b7a59e794e5982"
@@ -8401,6 +8408,10 @@ react-keydown@^1.9.7:
   resolved "https://registry.yarnpkg.com/react-keydown/-/react-keydown-1.9.7.tgz#cd168d4b0194b6ef71bca47e5c1cbc5d24ab5498"
   dependencies:
     core-js "^2.5.0"
+
+react-lifecycles-compat@^3.0.2:
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
 
 react-markdown@^3.0.2:
   version "3.0.2"

@@ -1,5 +1,5 @@
-// flow-typed signature: 53be1849af6037db65e90a7abc558afe
-// flow-typed version: f4e99ca1ed/react-router-dom_v4.x.x/flow_>=v0.63.x
+// flow-typed signature: e536f4b8192631923c57c19f39ba2b84
+// flow-typed version: 631e6dae97/react-router-dom_v4.x.x/flow_>=v0.63.x
 
 declare module "react-router-dom" {
   import type { ComponentType, ElementConfig, Node, Component } from 'react';
@@ -145,7 +145,7 @@ declare module "react-router-dom" {
     component?: ComponentType<*>,
     render?: (router: ContextRouter) => Node,
     children?: ComponentType<ContextRouter> | Node,
-    path?: string,
+    path?: string | Array<string>,
     exact?: boolean,
     strict?: boolean,
     location?: LocationShape,

@@ -37,7 +37,7 @@ class Export extends React.Component<Props> {
 
   render() {
     const { auth } = this.props;
-    if (!auth.user) return;
+    if (!auth.user) return null;
 
     return (
       <CenteredContent>

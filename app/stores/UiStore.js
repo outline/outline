@@ -12,7 +12,7 @@ class UiStore {
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
-  @observable toasts: Toast[] = observable.array([]);
+  @observable toasts: Toast[] = [];
 
   /* Actions */
   @action

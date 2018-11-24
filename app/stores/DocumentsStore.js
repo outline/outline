@@ -1,38 +1,52 @@
 // @flow
-import { observable, action, computed, ObservableMap, runInAction } from 'mobx';
+import { observable, action, computed, runInAction } from 'mobx';
+import { map, find, orderBy, filter, compact, uniq } from 'lodash';
 import { client } from 'utils/ApiClient';
-import { map, find, orderBy, filter, compact, uniq, sortBy } from 'lodash';
+import naturalSort from 'shared/utils/naturalSort';
 import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
+import RootStore from 'stores/RootStore';
 import Document from 'models/Document';
-import UiStore from 'stores/UiStore';
 import type { PaginationParams, SearchResult } from 'types';
-
-export const DEFAULT_PAGINATION_LIMIT = 25;
-
-type Options = {
-  ui: UiStore,
-};
 
 type FetchOptions = {
   prefetch?: boolean,
   shareId?: string,
 };
 
-class DocumentsStore extends BaseStore {
+class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
   @observable recentlyUpdatedIds: string[] = [];
-  @observable data: Map<string, Document> = new ObservableMap([]);
-  @observable isLoaded: boolean = false;
-  @observable isFetching: boolean = false;
 
-  ui: UiStore;
+  constructor(rootStore: RootStore) {
+    super({
+      model: Document,
+      rootStore,
+    });
+
+    this.on('documents.delete', (data: { id: string }) => {
+      this.remove(data.id);
+    });
+    this.on('documents.create', (data: Document) => {
+      this.add(data);
+    });
+
+    // Re-fetch dashboard content so that we don't show deleted documents
+    this.on('collections.delete', () => {
+      this.fetchRecentlyUpdated();
+      this.fetchRecentlyViewed();
+    });
+    this.on('documents.delete', () => {
+      this.fetchRecentlyUpdated();
+      this.fetchRecentlyViewed();
+    });
+  }
 
   @computed
   get recentlyViewed(): Document[] {
     return orderBy(
-      compact(this.recentlyViewedIds.map(id => this.getById(id))),
+      compact(this.recentlyViewedIds.map(this.getById)),
       'updatedAt',
       'desc'
     );
@@ -41,7 +55,7 @@ class DocumentsStore extends BaseStore {
   @computed
   get recentlyUpdated(): Document[] {
     return orderBy(
-      compact(this.recentlyUpdatedIds.map(id => this.getById(id))),
+      compact(this.recentlyUpdatedIds.map(this.getById)),
       'updatedAt',
       'desc'
     );
@@ -81,7 +95,7 @@ class DocumentsStore extends BaseStore {
 
   @computed
   get starredAlphabetical(): Document[] {
-    return sortBy(this.starred, doc => doc.title.toLowerCase());
+    return naturalSort(this.starred, 'title');
   }
 
   @computed
@@ -99,10 +113,8 @@ class DocumentsStore extends BaseStore {
       : undefined;
   }
 
-  /* Actions */
-
   @action
-  fetchPage = async (
+  fetchNamedPage = async (
     request: string = 'list',
     options: ?PaginationParams
   ): Promise<?(Document[])> => {
@@ -112,15 +124,13 @@ class DocumentsStore extends BaseStore {
       const res = await client.post(`/documents.${request}`, options);
       invariant(res && res.data, 'Document list not available');
       const { data } = res;
-      runInAction('DocumentsStore#fetchPage', () => {
+      runInAction('DocumentsStore#fetchNamedPage', () => {
         data.forEach(document => {
           this.data.set(document.id, new Document(document));
         });
         this.isLoaded = true;
       });
       return data;
-    } catch (e) {
-      this.ui.showToast('Failed to load documents');
     } finally {
       this.isFetching = false;
     }
@@ -128,7 +138,7 @@ class DocumentsStore extends BaseStore {
 
   @action
   fetchRecentlyUpdated = async (options: ?PaginationParams): Promise<*> => {
-    const data = await this.fetchPage('list', options);
+    const data = await this.fetchNamedPage('list', options);
 
     runInAction('DocumentsStore#fetchRecentlyUpdated', () => {
       // $FlowFixMe
@@ -141,7 +151,7 @@ class DocumentsStore extends BaseStore {
 
   @action
   fetchRecentlyViewed = async (options: ?PaginationParams): Promise<*> => {
-    const data = await this.fetchPage('viewed', options);
+    const data = await this.fetchNamedPage('viewed', options);
 
     runInAction('DocumentsStore#fetchRecentlyViewed', () => {
       // $FlowFixMe
@@ -154,22 +164,22 @@ class DocumentsStore extends BaseStore {
 
   @action
   fetchStarred = (options: ?PaginationParams): Promise<*> => {
-    return this.fetchPage('starred', options);
+    return this.fetchNamedPage('starred', options);
   };
 
   @action
   fetchDrafts = (options: ?PaginationParams): Promise<*> => {
-    return this.fetchPage('drafts', options);
+    return this.fetchNamedPage('drafts', options);
   };
 
   @action
   fetchPinned = (options: ?PaginationParams): Promise<*> => {
-    return this.fetchPage('pinned', options);
+    return this.fetchNamedPage('pinned', options);
   };
 
   @action
   fetchOwned = (options: ?PaginationParams): Promise<*> => {
-    return this.fetchPage('list', options);
+    return this.fetchNamedPage('list', options);
   };
 
   @action
@@ -183,7 +193,7 @@ class DocumentsStore extends BaseStore {
     });
     invariant(res && res.data, 'Search API response should be available');
     const { data } = res;
-    data.forEach(result => this.add(new Document(result.document)));
+    data.forEach(result => this.add(result.document));
     return data;
   };
 
@@ -246,49 +256,9 @@ class DocumentsStore extends BaseStore {
     }
   };
 
-  @action
-  add = (document: Document): void => {
-    this.data.set(document.id, document);
-  };
-
-  @action
-  remove = (id: string): void => {
-    this.data.delete(id);
-  };
-
-  getById = (id: string): ?Document => {
-    return this.data.get(id);
-  };
-
-  /**
-   * Match documents by the url ID as the title slug can change
-   */
   getByUrl = (url: string): ?Document => {
     return find(this.data.values(), doc => url.endsWith(doc.urlId));
   };
-
-  constructor(options: Options) {
-    super();
-
-    this.ui = options.ui;
-
-    this.on('documents.delete', (data: { id: string }) => {
-      this.remove(data.id);
-    });
-    this.on('documents.create', (data: Document) => {
-      this.add(data);
-    });
-
-    // Re-fetch dashboard content so that we don't show deleted documents
-    this.on('collections.delete', () => {
-      this.fetchRecentlyUpdated();
-      this.fetchRecentlyViewed();
-    });
-    this.on('documents.delete', () => {
-      this.fetchRecentlyUpdated();
-      this.fetchRecentlyViewed();
-    });
-  }
 }
 
 export default DocumentsStore;

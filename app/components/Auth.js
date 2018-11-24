@@ -1,12 +1,7 @@
 // @flow
 import * as React from 'react';
-import { Provider, observer, inject } from 'mobx-react';
-import stores from 'stores';
+import { observer, inject } from 'mobx-react';
 import AuthStore from 'stores/AuthStore';
-import ApiKeysStore from 'stores/ApiKeysStore';
-import UsersStore from 'stores/UsersStore';
-import CollectionsStore from 'stores/CollectionsStore';
-import IntegrationsStore from 'stores/IntegrationsStore';
 import LoadingIndicator from 'components/LoadingIndicator';
 import { isCustomSubdomain } from 'shared/utils/domains';
 
@@ -38,34 +33,19 @@ const Auth = observer(({ auth, children }: Props) => {
       return <LoadingIndicator />;
     }
 
-    // Only initialize stores once. Kept in global scope because otherwise they
-    // will get overridden on route change
-    if (!authenticatedStores) {
-      authenticatedStores = {
-        integrations: new IntegrationsStore({
-          ui: stores.ui,
-        }),
-        apiKeys: new ApiKeysStore(),
-        users: new UsersStore(),
-        collections: new CollectionsStore({
-          ui: stores.ui,
-          teamId: team.id,
-        }),
+    if (window.Bugsnag) {
+      Bugsnag.user = {
+        id: user.id,
+        name: user.name,
+        teamId: team.id,
+        team: team.name,
       };
-
-      if (window.Bugsnag) {
-        Bugsnag.user = {
-          id: user.id,
-          name: user.name,
-          teamId: team.id,
-          team: team.name,
-        };
-      }
-
-      authenticatedStores.collections.fetchPage({ limit: 100 });
     }
 
-    return <Provider {...authenticatedStores}>{children}</Provider>;
+    // TODO:
+    authenticatedStores.collections.fetchPage({ limit: 100 });
+
+    return children;
   }
 
   auth.logout();

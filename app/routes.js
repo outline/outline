@@ -11,6 +11,7 @@ import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import Details from 'scenes/Settings/Details';
+import Notifications from 'scenes/Settings/Notifications';
 import Security from 'scenes/Settings/Security';
 import People from 'scenes/Settings/People';
 import Slack from 'scenes/Settings/Slack';
@@ -51,6 +52,11 @@ export default function Routes() {
             <Route exact path="/settings/people/:filter" component={People} />
             <Route exact path="/settings/shares" component={Shares} />
             <Route exact path="/settings/tokens" component={Tokens} />
+            <Route
+              exact
+              path="/settings/notifications"
+              component={Notifications}
+            />
             <Route
               exact
               path="/settings/integrations/slack"

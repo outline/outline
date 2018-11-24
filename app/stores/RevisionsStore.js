@@ -1,22 +1,20 @@
 // @flow
-import { observable, computed, action, runInAction, ObservableMap } from 'mobx';
-import { client } from 'utils/ApiClient';
-import { orderBy, filter } from 'lodash';
+import { action, runInAction } from 'mobx';
+import { filter } from 'lodash';
 import invariant from 'invariant';
-import BaseStore from './BaseStore';
-import UiStore from './UiStore';
-import type { Revision, PaginationParams } from 'types';
+import { client } from 'utils/ApiClient';
+import BaseStore from 'stores/BaseStore';
+import RootStore from 'stores/RootStore';
+import Revision from 'models/Revision';
+import type { PaginationParams } from 'types';
 
-class RevisionsStore extends BaseStore {
-  @observable data: Map<string, Revision> = new ObservableMap([]);
-  @observable isLoaded: boolean = false;
-  @observable isFetching: boolean = false;
-
-  ui: UiStore;
-
-  @computed
-  get orderedData(): Revision[] {
-    return orderBy(this.data.values(), 'createdAt', 'desc');
+export default class RevisionsStore extends BaseStore<Revision> {
+  constructor(rootStore: RootStore) {
+    super({
+      model: Revision,
+      actions: ['list'],
+      rootStore,
+    });
   }
 
   getDocumentRevisions(documentId: string): Revision[] {
@@ -58,39 +56,15 @@ class RevisionsStore extends BaseStore {
     try {
       const res = await client.post('/documents.revisions', options);
       invariant(res && res.data, 'Document revisions not available');
-      const { data } = res;
       runInAction('RevisionsStore#fetchPage', () => {
-        data.forEach(revision => {
+        res.data.forEach(revision => {
           this.data.set(revision.id, revision);
         });
         this.isLoaded = true;
       });
-      return data;
-    } catch (e) {
-      this.ui.showToast('Failed to load document revisions');
+      return res.data;
     } finally {
       this.isFetching = false;
     }
   };
-
-  @action
-  add = (data: Revision): void => {
-    this.data.set(data.id, data);
-  };
-
-  @action
-  remove = (id: string): void => {
-    this.data.delete(id);
-  };
-
-  getById = (id: string): ?Revision => {
-    return this.data.get(id);
-  };
-
-  constructor(options: { ui: UiStore }) {
-    super();
-    this.ui = options.ui;
-  }
 }
-
-export default RevisionsStore;

@@ -39,7 +39,7 @@ class MainSidebar extends React.Component<Props> {
   render() {
     const { auth, documents } = this.props;
     const { user, team } = auth;
-    if (!user || !team) return;
+    if (!user || !team) return null;
 
     return (
       <Sidebar>

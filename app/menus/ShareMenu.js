@@ -4,11 +4,12 @@ import { withRouter } from 'react-router-dom';
 import { inject } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
-import type { Share } from 'types';
 import CopyToClipboard from 'components/CopyToClipboard';
+import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+
 import SharesStore from 'stores/SharesStore';
 import UiStore from 'stores/UiStore';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import Share from 'models/Share';
 
 type Props = {
   label?: React.Node,

@@ -5,25 +5,23 @@ import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import type { SearchResult } from 'types';
-import _ from 'lodash';
-import DocumentsStore, {
-  DEFAULT_PAGINATION_LIMIT,
-} from 'stores/DocumentsStore';
-
+import { debounce } from 'lodash';
 import { withRouter } from 'react-router-dom';
-import { searchUrl } from 'utils/routeHelpers';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
-import Empty from 'components/Empty';
+import type { SearchResult } from 'types';
+import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
+import DocumentsStore from 'stores/DocumentsStore';
+import { searchUrl } from 'utils/routeHelpers';
+
 import Flex from 'shared/components/Flex';
+import Empty from 'components/Empty';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
-import SearchField from './components/SearchField';
-
 import DocumentPreview from 'components/DocumentPreview';
 import PageTitle from 'components/PageTitle';
+import SearchField from './components/SearchField';
 
 type Props = {
   history: Object,
@@ -115,7 +113,7 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
-  fetchResultsDebounced = _.debounce(this.fetchResults, 350, {
+  fetchResultsDebounced = debounce(this.fetchResults, 350, {
     leading: false,
     trailing: true,
   });

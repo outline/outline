@@ -1,18 +1,13 @@
 // @flow
-import { observable, computed, action, runInAction, ObservableMap } from 'mobx';
-import { client } from 'utils/ApiClient';
-import _ from 'lodash';
+import { computed, action, runInAction } from 'mobx';
+import { concat, last } from 'lodash';
 import invariant from 'invariant';
+import { client } from 'utils/ApiClient';
 
 import BaseStore from './BaseStore';
-import UiStore from './UiStore';
+import RootStore from './RootStore';
 import Collection from 'models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
-import type { PaginationParams } from 'types';
-
-type Options = {
-  ui: UiStore,
-};
 
 type DocumentPathItem = {
   id: string,
@@ -25,12 +20,14 @@ export type DocumentPath = DocumentPathItem & {
   path: DocumentPathItem[],
 };
 
-class CollectionsStore extends BaseStore {
-  @observable data: Map<string, Collection> = new ObservableMap([]);
-  @observable isLoaded: boolean = false;
-  @observable isFetching: boolean = false;
-
-  ui: UiStore;
+class CollectionsStore extends BaseStore<Collection> {
+  constructor(rootStore: RootStore) {
+    super({
+      model: Collection,
+      actions: ['list', 'create', 'update', 'delete'],
+      rootStore,
+    });
+  }
 
   @computed
   get active(): ?Collection {
@@ -41,7 +38,7 @@ class CollectionsStore extends BaseStore {
 
   @computed
   get orderedData(): Collection[] {
-    return naturalSort(Array.from(this.data.values()), 'name');
+    return naturalSort(this.data.values(), 'name');
   }
 
   /**
@@ -54,8 +51,8 @@ class CollectionsStore extends BaseStore {
       documentList.forEach(document => {
         const { id, title, url } = document;
         const node = { id, title, url, type: 'document' };
-        results.push(_.concat(path, node));
-        travelDocuments(document.children, _.concat(path, [node]));
+        results.push(concat(path, node));
+        travelDocuments(document.children, concat(path, [node]));
       });
 
     if (this.isLoaded) {
@@ -68,7 +65,7 @@ class CollectionsStore extends BaseStore {
     }
 
     return results.map(result => {
-      const tail = _.last(result);
+      const tail = last(result);
       return {
         ...tail,
         path: result,
@@ -84,30 +81,6 @@ class CollectionsStore extends BaseStore {
     const path = this.pathsToDocuments.find(path => path.url === documentUrl);
     if (path) return path.title;
   }
-
-  /* Actions */
-
-  @action
-  fetchPage = async (options: ?PaginationParams): Promise<*> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post('/collections.list', options);
-      invariant(res && res.data, 'Collection list not available');
-      const { data } = res;
-      runInAction('CollectionsStore#fetchPage', () => {
-        data.forEach(collection => {
-          this.data.set(collection.id, new Collection(collection));
-        });
-        this.isLoaded = true;
-      });
-      return res;
-    } catch (e) {
-      this.ui.showToast('Failed to load collections');
-    } finally {
-      this.isFetching = false;
-    }
-  };
 
   @action
   fetch = async (id: string): Promise<?Collection> => {
@@ -130,8 +103,6 @@ class CollectionsStore extends BaseStore {
       });
 
       return collection;
-    } catch (e) {
-      this.ui.showToast('Something went wrong');
     } finally {
       this.isFetching = false;
     }
@@ -139,36 +110,9 @@ class CollectionsStore extends BaseStore {
 
   @action
   export = async () => {
-    try {
-      await client.post('/collections.exportAll');
-      return true;
-    } catch (err) {
-      throw err;
-    }
+    await client.post('/collections.exportAll');
+    return true;
   };
-
-  @action
-  add = (collection: Collection): void => {
-    this.data.set(collection.id, collection);
-  };
-
-  @action
-  remove = (id: string): void => {
-    this.data.delete(id);
-  };
-
-  getById = (id: string): ?Collection => {
-    return this.data.get(id);
-  };
-
-  constructor(options: Options) {
-    super();
-    this.ui = options.ui;
-
-    this.on('collections.delete', (data: { id: string }) => {
-      this.remove(data.id);
-    });
-  }
 }
 
 export default CollectionsStore;

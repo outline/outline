@@ -4,12 +4,14 @@ import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
 import stores from 'stores';
-import parseTitle from '../../shared/utils/parseTitle';
-import unescape from '../../shared/utils/unescape';
+import parseTitle from 'shared/utils/parseTitle';
+import unescape from 'shared/utils/unescape';
 
-import type { NavigationNode, Revision, User } from 'types';
-import BaseModel from './BaseModel';
-import Collection from './Collection';
+import type { NavigationNode } from 'types';
+import BaseModel from 'models/BaseModel';
+import Revision from 'models/Revision';
+import User from 'models/User';
+import Collection from 'models/Collection';
 
 type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
@@ -19,11 +21,10 @@ class Document extends BaseModel {
   store: *;
 
   collaborators: User[];
-  collection: $Shape<Collection>;
+  collection: Collection;
   collectionId: string;
   firstViewedAt: ?string;
   lastViewedAt: ?string;
-  modifiedSinceViewed: ?boolean;
   createdAt: string;
   createdBy: User;
   updatedAt: string;
@@ -43,7 +44,18 @@ class Document extends BaseModel {
   views: number;
   revision: number;
 
-  /* Computed */
+  constructor(data?: Object = {}) {
+    super(data);
+
+    this.updateTitle(data);
+    this.ui = stores.uiStore;
+  }
+
+  updateTitle(data: Object = {}) {
+    if (data.text) {
+      extendObservable(this, parseTitle(data.text));
+    }
+  }
 
   @computed
   get modifiedSinceViewed(): boolean {
@@ -301,23 +313,6 @@ class Document extends BaseModel {
     a.download = `${this.title}.md`;
     a.click();
   };
-
-  updateData(data: Object = {}) {
-    if (data.text) {
-      const { title, emoji } = parseTitle(data.text);
-      data.title = title;
-      data.emoji = emoji;
-    }
-    extendObservable(this, data);
-  }
-
-  constructor(data?: Object = {}) {
-    super();
-
-    this.updateData(data);
-    this.ui = stores.ui;
-    this.store = stores.documents;
-  }
 }
 
 export default Document;

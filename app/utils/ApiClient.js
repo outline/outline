@@ -3,6 +3,8 @@ import { map } from 'lodash';
 import invariant from 'invariant';
 import stores from 'stores';
 
+const { authStore } = stores;
+
 type Options = {
   baseUrl?: string,
 };
@@ -42,9 +44,9 @@ class ApiClient {
       'cache-control': 'no-cache',
       pragma: 'no-cache',
     });
-    if (stores.auth.authenticated) {
-      invariant(stores.auth.token, 'JWT token not set properly');
-      headers.set('Authorization', `Bearer ${stores.auth.token}`);
+    if (authStore.authenticated) {
+      invariant(authStore.token, 'JWT token not set properly');
+      headers.set('Authorization', `Bearer ${authStore.token}`);
     }
 
     // $FlowFixMe don't care much about this right now
@@ -63,7 +65,7 @@ class ApiClient {
 
     // Handle 401, log out user
     if (response.status === 401) {
-      stores.auth.logout();
+      authStore.logout();
       return;
     }
 

@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import Waypoint from 'react-waypoint';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
-import { DEFAULT_PAGINATION_LIMIT } from 'stores/DocumentsStore';
+import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import Document from 'models/Document';
 import RevisionsStore from 'stores/RevisionsStore';
 

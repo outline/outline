@@ -5,17 +5,38 @@ import { makePolicy, signPolicy, publicS3Endpoint } from '../utils/s3';
 import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
+import pagination from './middlewares/pagination';
 import { presentUser } from '../presenters';
 import policy from '../policies';
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post('user.info', auth(), async ctx => {
+router.post('users.list', auth(), pagination(), async ctx => {
+  const user = ctx.state.user;
+
+  const users = await User.findAll({
+    where: {
+      teamId: user.teamId,
+    },
+    order: [['createdAt', 'DESC']],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: users.map(listUser =>
+      presentUser(ctx, listUser, { includeDetails: user.isAdmin })
+    ),
+  };
+});
+
+router.post('users.info', auth(), async ctx => {
   ctx.body = { data: await presentUser(ctx, ctx.state.user) };
 });
 
-router.post('user.update', auth(), async ctx => {
+router.post('users.update', auth(), async ctx => {
   const { user } = ctx.state;
   const { name, avatarUrl } = ctx.body;
   const endpoint = publicS3Endpoint();
@@ -30,7 +51,7 @@ router.post('user.update', auth(), async ctx => {
   ctx.body = { data: await presentUser(ctx, user, { includeDetails: true }) };
 });
 
-router.post('user.s3Upload', auth(), async ctx => {
+router.post('users.s3Upload', auth(), async ctx => {
   const { filename, kind, size } = ctx.body;
   ctx.assertPresent(filename, 'filename is required');
   ctx.assertPresent(kind, 'kind is required');
@@ -79,7 +100,7 @@ router.post('user.s3Upload', auth(), async ctx => {
 
 // Admin specific
 
-router.post('user.promote', auth(), async ctx => {
+router.post('users.promote', auth(), async ctx => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
@@ -95,7 +116,7 @@ router.post('user.promote', auth(), async ctx => {
   };
 });
 
-router.post('user.demote', auth(), async ctx => {
+router.post('users.demote', auth(), async ctx => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
@@ -120,7 +141,7 @@ router.post('user.demote', auth(), async ctx => {
  *
  * Admin can suspend users to reduce the number of accounts on their billing plan
  */
-router.post('user.suspend', auth(), async ctx => {
+router.post('users.suspend', auth(), async ctx => {
   const admin = ctx.state.user;
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
@@ -147,7 +168,7 @@ router.post('user.suspend', auth(), async ctx => {
  * Admin can activate users to let them access resources. These users will also
  * account towards the billing plan limits.
  */
-router.post('user.activate', auth(), async ctx => {
+router.post('users.activate', auth(), async ctx => {
   const admin = ctx.state.user;
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
@@ -164,7 +185,7 @@ router.post('user.activate', auth(), async ctx => {
   };
 });
 
-router.post('user.delete', auth(), async ctx => {
+router.post('users.delete', auth(), async ctx => {
   const { confirmation } = ctx.body;
   ctx.assertPresent(confirmation, 'confirmation is required');
 

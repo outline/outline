@@ -103,7 +103,7 @@ class CollectionScene extends React.Component<Props> {
   }
 
   renderEmptyCollection() {
-    if (!this.collection) return;
+    if (!this.collection) return null;
 
     return (
       <CenteredContent>
