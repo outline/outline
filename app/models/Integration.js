@@ -27,10 +27,8 @@ class Integration extends BaseModel {
   };
 
   @action
-  delete = async () => {
-    await client.post('/integrations.delete', { id: this.id });
-    this.emit('integrations.delete', { id: this.id });
-    return true;
+  delete = () => {
+    return this.store.delete(this);
   };
 }
 

@@ -26,19 +26,18 @@ class CollectionNew extends React.Component<Props> {
   @observable color: string = '';
   @observable isSaving: boolean;
 
-  constructor(props: Props) {
-    super(props);
-    this.collection = new Collection();
-  }
-
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isSaving = true;
-    this.collection.updateData({
-      name: this.name,
-      description: this.description,
-      color: this.color,
-    });
+    this.collection = new Collection(
+      {
+        name: this.name,
+        description: this.description,
+        color: this.color,
+      },
+      this.props.collections
+    );
+
     const success = await this.collection.save();
 
     if (success) {

@@ -64,8 +64,18 @@ export default class AuthStore {
       invariant(res && res.data, 'Auth not available');
 
       runInAction('AuthStore#fetch', () => {
-        this.user = res.data.user;
-        this.team = res.data.team;
+        const { user, team } = res.data;
+        this.user = user;
+        this.team = team;
+
+        if (window.Bugsnag) {
+          Bugsnag.user = {
+            id: user.id,
+            name: user.name,
+            teamId: team.id,
+            team: team.name,
+          };
+        }
       });
     } catch (err) {
       if (err.error.error === 'user_suspended') {

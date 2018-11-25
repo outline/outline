@@ -7,12 +7,9 @@ import BaseStore from './BaseStore';
 import RootStore from './RootStore';
 import User from 'models/User';
 
-class UsersStore extends BaseStore<User> {
+export default class UsersStore extends BaseStore<User> {
   constructor(rootStore: RootStore) {
-    super({
-      model: User,
-      rootStore,
-    });
+    super(rootStore, User);
   }
 
   @computed
@@ -57,5 +54,3 @@ class UsersStore extends BaseStore<User> {
     });
   };
 }
-
-export default UsersStore;

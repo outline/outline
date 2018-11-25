@@ -89,6 +89,4 @@ class MainSidebar extends React.Component<Props> {
   }
 }
 
-export default withRouter(
-  inject('user', 'documents', 'auth', 'ui')(MainSidebar)
-);
+export default withRouter(inject('documents', 'auth', 'ui')(MainSidebar));

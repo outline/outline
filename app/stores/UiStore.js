@@ -14,7 +14,6 @@ class UiStore {
   @observable mobileSidebarVisible: boolean = false;
   @observable toasts: Toast[] = [];
 
-  /* Actions */
   @action
   setActiveModal = (name: string, props: ?Object): void => {
     this.activeModalName = name;

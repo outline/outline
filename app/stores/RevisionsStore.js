@@ -9,12 +9,10 @@ import Revision from 'models/Revision';
 import type { PaginationParams } from 'types';
 
 export default class RevisionsStore extends BaseStore<Revision> {
+  actions = ['list'];
+
   constructor(rootStore: RootStore) {
-    super({
-      model: Revision,
-      actions: ['list'],
-      rootStore,
-    });
+    super(rootStore, Revision);
   }
 
   getDocumentRevisions(documentId: string): Revision[] {

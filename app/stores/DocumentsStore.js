@@ -20,11 +20,9 @@ class DocumentsStore extends BaseStore<Document> {
   @observable recentlyUpdatedIds: string[] = [];
 
   constructor(rootStore: RootStore) {
-    super({
-      model: Document,
-      rootStore,
-    });
+    super(rootStore, Document);
 
+    // TODO: REMOVE ALL
     this.on('documents.delete', (data: { id: string }) => {
       this.remove(data.id);
     });
@@ -44,7 +42,7 @@ class DocumentsStore extends BaseStore<Document> {
   }
 
   @computed
-  get recentlyViewed(): Document[] {
+  get recentlyViewed(): * {
     return orderBy(
       compact(this.recentlyViewedIds.map(this.getById)),
       'updatedAt',
@@ -53,7 +51,7 @@ class DocumentsStore extends BaseStore<Document> {
   }
 
   @computed
-  get recentlyUpdated(): Document[] {
+  get recentlyUpdated(): * {
     return orderBy(
       compact(this.recentlyUpdatedIds.map(this.getById)),
       'updatedAt',
@@ -61,9 +59,12 @@ class DocumentsStore extends BaseStore<Document> {
     );
   }
 
-  createdByUser(userId: string): Document[] {
+  createdByUser(userId: string): * {
     return orderBy(
-      filter(this.data.values(), document => document.createdBy.id === userId),
+      filter(
+        Array.from(this.data.values()),
+        document => document.createdBy.id === userId
+      ),
       'updatedAt',
       'desc'
     );
@@ -79,7 +80,7 @@ class DocumentsStore extends BaseStore<Document> {
   recentlyUpdatedInCollection(collectionId: string): Document[] {
     return orderBy(
       filter(
-        this.data.values(),
+        Array.from(this.data.values()),
         document =>
           document.collectionId === collectionId && !!document.publishedAt
       ),
@@ -90,7 +91,7 @@ class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get starred(): Document[] {
-    return filter(this.data.values(), 'starred');
+    return filter(this.orderedData, d => d.starred);
   }
 
   @computed
@@ -101,15 +102,15 @@ class DocumentsStore extends BaseStore<Document> {
   @computed
   get drafts(): Document[] {
     return filter(
-      orderBy(this.data.values(), 'updatedAt', 'desc'),
+      orderBy(Array.from(this.data.values()), 'updatedAt', 'desc'),
       doc => !doc.publishedAt
     );
   }
 
   @computed
   get active(): ?Document {
-    return this.ui.activeDocumentId
-      ? this.getById(this.ui.activeDocumentId)
+    return this.rootStore.ui.activeDocumentId
+      ? this.getById(this.rootStore.ui.activeDocumentId)
       : undefined;
   }
 
@@ -125,9 +126,7 @@ class DocumentsStore extends BaseStore<Document> {
       invariant(res && res.data, 'Document list not available');
       const { data } = res;
       runInAction('DocumentsStore#fetchNamedPage', () => {
-        data.forEach(document => {
-          this.data.set(document.id, new Document(document));
-        });
+        data.forEach(this.add);
         this.isLoaded = true;
       });
       return data;
@@ -209,7 +208,7 @@ class DocumentsStore extends BaseStore<Document> {
     if (!options.prefetch) this.isFetching = true;
 
     try {
-      const doc = this.getById(id) || this.getByUrl(id);
+      const doc: ?Document = this.getById(id) || this.getByUrl(id);
       if (doc) return doc;
 
       const res = await client.post('/documents.info', {
@@ -226,10 +225,6 @@ class DocumentsStore extends BaseStore<Document> {
       });
 
       return document;
-    } catch (_err) {
-      if (!options.prefetch && navigator.onLine) {
-        this.ui.showToast('Failed to load document');
-      }
     } finally {
       this.isFetching = false;
     }
@@ -257,7 +252,7 @@ class DocumentsStore extends BaseStore<Document> {
   };
 
   getByUrl = (url: string): ?Document => {
-    return find(this.data.values(), doc => url.endsWith(doc.urlId));
+    return find(Array.from(this.data.values()), doc => url.endsWith(doc.urlId));
   };
 }
 

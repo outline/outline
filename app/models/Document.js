@@ -1,5 +1,5 @@
 // @flow
-import { extendObservable, action, runInAction, computed } from 'mobx';
+import { action, runInAction, computed } from 'mobx';
 import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
@@ -15,7 +15,7 @@ import Collection from 'models/Collection';
 
 type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
-class Document extends BaseModel {
+export default class Document extends BaseModel {
   isSaving: boolean = false;
   ui: *;
   store: *;
@@ -44,16 +44,18 @@ class Document extends BaseModel {
   views: number;
   revision: number;
 
-  constructor(data?: Object = {}) {
-    super(data);
+  constructor(data?: Object = {}, store: *) {
+    super(data, store);
 
     this.updateTitle(data);
-    this.ui = stores.uiStore;
+    this.ui = stores.ui;
   }
 
   updateTitle(data: Object = {}) {
     if (data.text) {
-      extendObservable(this, parseTitle(data.text));
+      const { title, emoji } = parseTitle(data.text);
+      this.title = title;
+      if (emoji) this.emoji = emoji;
     }
   }
 
@@ -71,9 +73,8 @@ class Document extends BaseModel {
         if (childNode.id === this.id) {
           path = newPath;
           return;
-        } else {
-          return traveler(childNode.children, newPath);
         }
+        return traveler(childNode.children, newPath);
       });
     };
 
@@ -108,8 +109,6 @@ class Document extends BaseModel {
       : null;
   }
 
-  /* Actions */
-
   @action
   share = async () => {
     try {
@@ -131,7 +130,8 @@ class Document extends BaseModel {
       });
       runInAction('Document#save', () => {
         invariant(res && res.data, 'Data should be available');
-        this.updateData(res.data);
+        // TODO
+        //this.updateData(res.data);
       });
     } catch (e) {
       this.ui.showToast('Document failed to restore');
@@ -206,7 +206,8 @@ class Document extends BaseModel {
   save = async (options: SaveOptions) => {
     if (this.isSaving) return this;
 
-    const wasDraft = !this.publishedAt;
+    // TODO
+    //const wasDraft = !this.publishedAt;
     const isCreating = !this.id;
     this.isSaving = true;
 
@@ -235,23 +236,23 @@ class Document extends BaseModel {
       }
       runInAction('Document#save', () => {
         invariant(res && res.data, 'Data should be available');
-        this.updateData(res.data);
+        // this.updateData(res.data);
 
-        if (isCreating) {
-          this.emit('documents.create', this);
-        }
+        // if (isCreating) {
+        //   this.emit('documents.create', this);
+        // }
 
-        this.emit('documents.update', {
-          document: this,
-          collectionId: this.collection.id,
-        });
+        // this.emit('documents.update', {
+        //   document: this,
+        //   collectionId: this.collection.id,
+        // });
 
-        if (wasDraft && this.publishedAt) {
-          this.emit('documents.publish', {
-            id: this.id,
-            collectionId: this.collection.id,
-          });
-        }
+        // if (wasDraft && this.publishedAt) {
+        //   this.emit('documents.publish', {
+        //     id: this.id,
+        //     collectionId: this.collection.id,
+        //   });
+        // }
       });
     } catch (e) {
       this.ui.showToast('Document failed to save');
@@ -270,11 +271,12 @@ class Document extends BaseModel {
         parentDocument: parentDocumentId,
       });
       invariant(res && res.data, 'Data not available');
-      this.updateData(res.data);
-      this.emit('documents.move', {
-        id: this.id,
-        collectionId: this.collection.id,
-      });
+      // TODO
+      // this.updateData(res.data);
+      // this.emit('documents.move', {
+      //   id: this.id,
+      //   collectionId: this.collection.id,
+      // });
     } catch (e) {
       this.ui.showToast('Error while moving the document');
     }
@@ -285,10 +287,11 @@ class Document extends BaseModel {
   delete = async () => {
     try {
       await client.post('/documents.delete', { id: this.id });
-      this.emit('documents.delete', {
-        id: this.id,
-        collectionId: this.collection.id,
-      });
+      // TODO
+      // this.emit('documents.delete', {
+      //   id: this.id,
+      //   collectionId: this.collection.id,
+      // });
       return true;
     } catch (e) {
       this.ui.showToast('Error while deleting the document');
@@ -314,5 +317,3 @@ class Document extends BaseModel {
     a.click();
   };
 }
-
-export default Document;

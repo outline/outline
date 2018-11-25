@@ -20,25 +20,23 @@ export type DocumentPath = DocumentPathItem & {
   path: DocumentPathItem[],
 };
 
-class CollectionsStore extends BaseStore<Collection> {
+export default class CollectionsStore extends BaseStore<Collection> {
+  actions = ['list', 'create', 'update', 'delete'];
+
   constructor(rootStore: RootStore) {
-    super({
-      model: Collection,
-      actions: ['list', 'create', 'update', 'delete'],
-      rootStore,
-    });
+    super(rootStore, Collection);
   }
 
   @computed
   get active(): ?Collection {
-    return this.ui.activeCollectionId
-      ? this.getById(this.ui.activeCollectionId)
+    return this.rootStore.ui.activeCollectionId
+      ? this.getById(this.rootStore.ui.activeCollectionId)
       : undefined;
   }
 
   @computed
   get orderedData(): Collection[] {
-    return naturalSort(this.data.values(), 'name');
+    return naturalSort(Array.from(this.data.values()), 'name');
   }
 
   /**
@@ -84,7 +82,7 @@ class CollectionsStore extends BaseStore<Collection> {
 
   @action
   fetch = async (id: string): Promise<?Collection> => {
-    let collection = this.getById(id);
+    let collection: ?Collection = this.getById(id);
     if (collection) return collection;
 
     this.isFetching = true;
@@ -114,5 +112,3 @@ class CollectionsStore extends BaseStore<Collection> {
     return true;
   };
 }
-
-export default CollectionsStore;

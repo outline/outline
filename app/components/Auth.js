@@ -10,8 +10,6 @@ type Props = {
   children?: React.Node,
 };
 
-let authenticatedStores;
-
 const Auth = observer(({ auth, children }: Props) => {
   if (auth.authenticated) {
     const { user, team } = auth;
@@ -32,18 +30,6 @@ const Auth = observer(({ auth, children }: Props) => {
       window.location.href = `${team.url}${window.location.pathname}`;
       return <LoadingIndicator />;
     }
-
-    if (window.Bugsnag) {
-      Bugsnag.user = {
-        id: user.id,
-        name: user.name,
-        teamId: team.id,
-        team: team.name,
-      };
-    }
-
-    // TODO:
-    authenticatedStores.collections.fetchPage({ limit: 100 });
 
     return children;
   }

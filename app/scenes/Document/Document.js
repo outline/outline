@@ -202,7 +202,7 @@ class DocumentScene extends React.Component<Props> {
     // prevent autosave if nothing has changed
     if (options.autosave && document.text.trim() === text.trim()) return;
 
-    document.updateData({ text });
+    document.text = text;
     if (!document.allowSave) return;
 
     // prevent autosave before anything has been written

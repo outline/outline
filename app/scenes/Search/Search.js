@@ -113,11 +113,6 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
-  fetchResultsDebounced = debounce(this.fetchResults, 350, {
-    leading: false,
-    trailing: true,
-  });
-
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
@@ -155,6 +150,11 @@ class Search extends React.Component<Props> {
 
     this.isFetching = false;
   };
+
+  fetchResultsDebounced = debounce(this.fetchResults, 350, {
+    leading: false,
+    trailing: true,
+  });
 
   updateLocation = query => {
     this.props.history.replace(searchUrl(query));

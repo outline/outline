@@ -6,13 +6,11 @@ import BaseStore from './BaseStore';
 import RootStore from './RootStore';
 import Share from 'models/Share';
 
-class SharesStore extends BaseStore<Share> {
+export default class SharesStore extends BaseStore<Share> {
+  actions = ['list', 'create'];
+
   constructor(rootStore: RootStore) {
-    super({
-      model: Share,
-      actions: ['list', 'create'],
-      rootStore,
-    });
+    super(rootStore, Share);
   }
 
   @computed
@@ -28,5 +26,3 @@ class SharesStore extends BaseStore<Share> {
     });
   };
 }
-
-export default SharesStore;

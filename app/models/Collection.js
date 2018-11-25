@@ -9,19 +9,19 @@ import stores from 'stores';
 import UiStore from 'stores/UiStore';
 import type { NavigationNode } from 'types';
 
-class Collection extends BaseModel {
+export default class Collection extends BaseModel {
   isSaving: boolean = false;
   ui: UiStore;
 
-  createdAt: string;
-  description: string;
   id: string;
   name: string;
+  description: string;
   color: string;
-  type: 'atlas' | 'journal';
-  documents: NavigationNode[];
-  updatedAt: string;
-  url: string;
+  type: 'atlas' | 'journal' = 'atlas';
+  documents: NavigationNode[] = [];
+  createdAt: ?string;
+  updatedAt: ?string;
+  url: ?string;
 
   @computed
   get isEmpty(): boolean {
@@ -111,7 +111,7 @@ class Collection extends BaseModel {
   delete = async () => {
     try {
       await client.post('/collections.delete', { id: this.id });
-      this.emit('collections.delete', { id: this.id });
+      // this.emit('collections.delete', { id: this.id });
       return true;
     } catch (e) {
       this.ui.showToast('Collection failed to delete');
@@ -129,29 +129,28 @@ class Collection extends BaseModel {
     extendObservable(this, data);
   }
 
-  constructor(collection: $Shape<Collection>) {
-    super(collection);
+  constructor(collection: Collection, store: *) {
+    super(collection, store);
 
-    this.ui = stores.uiStore;
+    this.ui = stores.ui;
 
-    this.on('documents.delete', (data: { collectionId: string }) => {
-      if (data.collectionId === this.id) this.fetch();
-    });
-    this.on(
-      'documents.update',
-      (data: { collectionId: string, document: Document }) => {
-        if (data.collectionId === this.id) {
-          this.updateDocument(data.document);
-        }
-      }
-    );
-    this.on('documents.publish', (data: { collectionId: string }) => {
-      if (data.collectionId === this.id) this.fetch();
-    });
-    this.on('documents.move', (data: { collectionId: string }) => {
-      if (data.collectionId === this.id) this.fetch();
-    });
+    // TODO: Remove all
+    // this.on('documents.delete', (data: { collectionId: string }) => {
+    //   if (data.collectionId === this.id) this.fetch();
+    // });
+    // this.on(
+    //   'documents.update',
+    //   (data: { collectionId: string, document: Document }) => {
+    //     if (data.collectionId === this.id) {
+    //       this.updateDocument(data.document);
+    //     }
+    //   }
+    // );
+    // this.on('documents.publish', (data: { collectionId: string }) => {
+    //   if (data.collectionId === this.id) this.fetch();
+    // });
+    // this.on('documents.move', (data: { collectionId: string }) => {
+    //   if (data.collectionId === this.id) this.fetch();
+    // });
   }
 }
-
-export default Collection;

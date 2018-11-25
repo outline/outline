@@ -121,7 +121,7 @@ class Details extends React.Component<Props> {
                 name="subdomain"
                 value={this.subdomain || ''}
                 onChange={this.handleSubdomainChange}
-                autocomplete="off"
+                autoComplete="off"
                 minLength={4}
                 maxLength={32}
                 short

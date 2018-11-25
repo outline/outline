@@ -1,16 +1,12 @@
 // @flow
 import BaseStore from './BaseStore';
+import RootStore from './RootStore';
 import ApiKey from 'models/ApiKey';
-import RootStore from 'stores/RootStore';
 
-class ApiKeysStore extends BaseStore<ApiKey> {
+export default class ApiKeysStore extends BaseStore<ApiKey> {
+  actions = ['list', 'create', 'delete'];
+
   constructor(rootStore: RootStore) {
-    super({
-      model: ApiKey,
-      actions: ['list', 'create', 'delete'],
-      rootStore,
-    });
+    super(rootStore, ApiKey);
   }
 }
-
-export default ApiKeysStore;
