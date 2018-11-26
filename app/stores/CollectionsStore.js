@@ -30,7 +30,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
   @computed
   get active(): ?Collection {
     return this.rootStore.ui.activeCollectionId
-      ? this.getById(this.rootStore.ui.activeCollectionId)
+      ? this.data.get(this.rootStore.ui.activeCollectionId)
       : undefined;
   }
 
@@ -43,7 +43,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
    * List of paths to each of the documents, where paths are composed of id and title/name pairs
    */
   @computed
-  get pathsToDocuments(): Array<DocumentPath> {
+  get pathsToDocuments(): DocumentPath[] {
     let results = [];
     const travelDocuments = (documentList, path) =>
       documentList.forEach(document => {
@@ -80,9 +80,18 @@ export default class CollectionsStore extends BaseStore<Collection> {
     if (path) return path.title;
   }
 
+  delete = async (collection: Collection) => {
+    super.delete(collection);
+
+    runInAction(() => {
+      this.rootStore.documents.fetchRecentlyUpdated();
+      this.rootStore.documents.fetchRecentlyViewed();
+    });
+  };
+
   @action
-  fetch = async (id: string): Promise<?Collection> => {
-    let collection: ?Collection = this.getById(id);
+  fetch = async (id: string, options: Object): Promise<?Collection> => {
+    let collection: ?Collection = this.data.get(id);
     if (collection) return collection;
 
     this.isFetching = true;

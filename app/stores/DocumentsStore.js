@@ -1,6 +1,6 @@
 // @flow
 import { observable, action, computed, runInAction } from 'mobx';
-import { map, find, orderBy, filter, compact, uniq } from 'lodash';
+import { without, map, find, orderBy, filter, compact, uniq } from 'lodash';
 import { client } from 'utils/ApiClient';
 import naturalSort from 'shared/utils/naturalSort';
 import invariant from 'invariant';
@@ -8,6 +8,7 @@ import invariant from 'invariant';
 import BaseStore from 'stores/BaseStore';
 import RootStore from 'stores/RootStore';
 import Document from 'models/Document';
+import Revision from 'models/Revision';
 import type { PaginationParams, SearchResult } from 'types';
 
 type FetchOptions = {
@@ -15,36 +16,18 @@ type FetchOptions = {
   shareId?: string,
 };
 
-class DocumentsStore extends BaseStore<Document> {
+export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
   @observable recentlyUpdatedIds: string[] = [];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
-
-    // TODO: REMOVE ALL
-    this.on('documents.delete', (data: { id: string }) => {
-      this.remove(data.id);
-    });
-    this.on('documents.create', (data: Document) => {
-      this.add(data);
-    });
-
-    // Re-fetch dashboard content so that we don't show deleted documents
-    this.on('collections.delete', () => {
-      this.fetchRecentlyUpdated();
-      this.fetchRecentlyViewed();
-    });
-    this.on('documents.delete', () => {
-      this.fetchRecentlyUpdated();
-      this.fetchRecentlyViewed();
-    });
   }
 
   @computed
   get recentlyViewed(): * {
     return orderBy(
-      compact(this.recentlyViewedIds.map(this.getById)),
+      compact(this.recentlyViewedIds.map(id => this.data.get(id))),
       'updatedAt',
       'desc'
     );
@@ -53,7 +36,7 @@ class DocumentsStore extends BaseStore<Document> {
   @computed
   get recentlyUpdated(): * {
     return orderBy(
-      compact(this.recentlyUpdatedIds.map(this.getById)),
+      compact(this.recentlyUpdatedIds.map(id => this.data.get(id))),
       'updatedAt',
       'desc'
     );
@@ -110,7 +93,7 @@ class DocumentsStore extends BaseStore<Document> {
   @computed
   get active(): ?Document {
     return this.rootStore.ui.activeDocumentId
-      ? this.getById(this.rootStore.ui.activeDocumentId)
+      ? this.data.get(this.rootStore.ui.activeDocumentId)
       : undefined;
   }
 
@@ -197,18 +180,21 @@ class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  prefetchDocument = async (id: string) => {
-    if (!this.getById(id)) {
-      this.fetch(id, { prefetch: true });
+  prefetchDocument = (id: string) => {
+    if (!this.data.get(id)) {
+      return this.fetch(id, { prefetch: true });
     }
   };
 
   @action
-  fetch = async (id: string, options?: FetchOptions = {}): Promise<*> => {
+  fetch = async (
+    id: string,
+    options?: FetchOptions = {}
+  ): Promise<?Document> => {
     if (!options.prefetch) this.isFetching = true;
 
     try {
-      const doc: ?Document = this.getById(id) || this.getByUrl(id);
+      const doc: ?Document = this.data.get(id) || this.getByUrl(id);
       if (doc) return doc;
 
       const res = await client.post('/documents.info', {
@@ -216,18 +202,31 @@ class DocumentsStore extends BaseStore<Document> {
         shareId: options.shareId,
       });
       invariant(res && res.data, 'Document not available');
-      const { data } = res;
-      const document = new Document(data);
+      this.add(res.data);
 
       runInAction('DocumentsStore#fetch', () => {
-        this.data.set(data.id, document);
         this.isLoaded = true;
       });
 
-      return document;
+      return this.data.get(res.data.id);
     } finally {
       this.isFetching = false;
     }
+  };
+
+  @action
+  move = async (document: Document, parentDocumentId: ?string) => {
+    const res = await client.post('/documents.move', {
+      id: document.id,
+      parentDocument: parentDocumentId,
+    });
+    invariant(res && res.data, 'Data not available');
+    const collection = this.rootStore.collections.data.get(
+      document.collection.id
+    );
+    if (collection) collection.fetch();
+
+    return this.add(res.data);
   };
 
   @action
@@ -239,15 +238,81 @@ class DocumentsStore extends BaseStore<Document> {
       title: `${document.title} (duplicate)`,
       text: document.text,
     });
+    invariant(res && res.data, 'Data should be available');
+    return this.add(res.data);
+  };
 
-    if (res && res.data) {
-      const duped = res.data;
-      this.emit('documents.create', new Document(duped));
-      this.emit('documents.publish', {
-        id: duped.id,
-        collectionId: duped.collection.id,
-      });
-      return duped;
+  delete = async (document: Document) => {
+    super.delete(document);
+
+    runInAction(() => {
+      this.recentlyViewedIds = without(this.recentlyViewedIds, document.id);
+      this.recentlyUpdatedIds = without(this.recentlyUpdatedIds, document.id);
+    });
+
+    const collection = this.rootStore.collections.data.get(
+      document.collectionId
+    );
+    if (collection) collection.fetch();
+  };
+
+  @action
+  restore = async (document: Document, revision: Revision) => {
+    const res = await client.post('/documents.restore', {
+      id: document.id,
+      revisionId: revision.id,
+    });
+    runInAction('Document#restore', () => {
+      invariant(res && res.data, 'Data should be available');
+      document.updateFromJson(res.data);
+    });
+  };
+
+  @action
+  pin = async (document: Document) => {
+    if (document.pinned) return;
+
+    document.pinned = true;
+    try {
+      await client.post('/documents.pin', { id: document.id });
+    } finally {
+      document.pinned = false;
+    }
+  };
+
+  @action
+  unpin = async (document: Document) => {
+    if (!document.pinned) return;
+
+    document.pinned = false;
+    try {
+      await client.post('/documents.unpin', { id: document.id });
+    } finally {
+      document.pinned = true;
+    }
+  };
+
+  @action
+  star = async (document: Document) => {
+    if (document.starred) return;
+
+    document.starred = true;
+    try {
+      await client.post('/documents.star', { id: document.id });
+    } finally {
+      document.starred = false;
+    }
+  };
+
+  @action
+  unstar = async (document: Document) => {
+    if (!document.starred) return;
+
+    document.starred = false;
+    try {
+      await client.post('/documents.unstar', { id: document.id });
+    } finally {
+      document.starred = true;
     }
   };
 
@@ -255,5 +320,3 @@ class DocumentsStore extends BaseStore<Document> {
     return find(Array.from(this.data.values()), doc => url.endsWith(doc.urlId));
   };
 }
-
-export default DocumentsStore;

@@ -21,11 +21,8 @@ export default class RootStore {
   shares: SharesStore;
   ui: UiStore;
   users: UsersStore;
-  stores: Object;
 
   constructor() {
-    this.ui = new UiStore();
-
     this.apiKeys = new ApiKeysStore(this);
     this.auth = new AuthStore(this);
     this.collections = new CollectionsStore(this);
@@ -34,6 +31,7 @@ export default class RootStore {
     this.notificationSettings = new NotificationSettingsStore(this);
     this.revisions = new RevisionsStore(this);
     this.shares = new SharesStore(this);
+    this.ui = new UiStore();
     this.users = new UsersStore(this);
   }
 

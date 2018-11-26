@@ -1,10 +1,10 @@
 // @flow
-import { EventEmitter } from 'fbemitter';
 import invariant from 'invariant';
-import { observable, action, computed, ObservableMap, runInAction } from 'mobx';
+import { observable, set, action, computed, runInAction } from 'mobx';
 import { orderBy } from 'lodash';
 import { client } from 'utils/ApiClient';
 import RootStore from 'stores/RootStore';
+import BaseModel from '../models/BaseModel';
 import type { PaginationParams } from 'types';
 
 type Action = 'list' | 'info' | 'create' | 'update' | 'delete';
@@ -15,8 +15,8 @@ function modelNameFromClassName(string) {
 
 export const DEFAULT_PAGINATION_LIMIT = 25;
 
-export default class BaseStore<T: *> extends EventEmitter {
-  @observable data: ObservableMap<string, T> = new ObservableMap([]);
+export default class BaseStore<T: BaseModel> {
+  @observable data: Map<string, T> = new Map();
   @observable isFetching: boolean = false;
   @observable isSaving: boolean = false;
   @observable isLoaded: boolean = false;
@@ -27,12 +27,9 @@ export default class BaseStore<T: *> extends EventEmitter {
   actions: Action[] = ['list', 'info', 'create', 'update', 'delete'];
 
   constructor(rootStore: RootStore, model: Class<T>) {
-    super();
-
     this.rootStore = rootStore;
     this.model = model;
-    this.modelName = modelNameFromClassName(this.model.name);
-    this.on = this.addListener;
+    this.modelName = modelNameFromClassName(model.name);
   }
 
   @action
@@ -45,7 +42,13 @@ export default class BaseStore<T: *> extends EventEmitter {
     const Model = this.model;
 
     if (!(item instanceof Model)) {
-      item = new Model(item, this);
+      const existing: ?T = this.data.get(item.id);
+      if (existing) {
+        set(existing, item);
+        return existing;
+      } else {
+        item = new Model(item, this);
+      }
     }
 
     this.data.set(item.id, item);
@@ -55,6 +58,15 @@ export default class BaseStore<T: *> extends EventEmitter {
   @action
   remove = (id: string): void => {
     this.data.delete(id);
+  };
+
+  @action
+  save = async (params: Object) => {
+    if (params.id) {
+      return this.update(params);
+    }
+
+    return this.create(params);
   };
 
   @action
@@ -68,7 +80,24 @@ export default class BaseStore<T: *> extends EventEmitter {
       const res = await client.post(`/${this.modelName}s.create`, params);
 
       invariant(res && res.data, 'Data should be available');
-      runInAction(`create#${this.modelName}`, () => this.add(res.data));
+      return this.add(res.data);
+    } finally {
+      this.isSaving = false;
+    }
+  };
+
+  @action
+  update = async (params: Object) => {
+    if (!this.actions.includes('update')) {
+      throw new Error(`Cannot update ${this.modelName}`);
+    }
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/${this.modelName}s.update`, params);
+
+      invariant(res && res.data, 'Data should be available');
+      return this.add(res.data);
     } finally {
       this.isSaving = false;
     }
@@ -82,11 +111,22 @@ export default class BaseStore<T: *> extends EventEmitter {
     this.isSaving = true;
 
     try {
-      await client.post(`/${this.modelName}s.delete`, params);
-      runInAction(`delete#${this.modelName}`, () => this.remove(params.id));
+      await client.post(`/${this.modelName}s.delete`, { id: params.id });
+      return this.remove(params.id);
     } finally {
       this.isSaving = false;
     }
+  };
+
+  @action
+  fetch = async (id: string, options?: Object) => {
+    if (!this.actions.includes('info')) {
+      throw new Error(`Cannot fetch ${this.modelName}`);
+    }
+
+    const res = await client.post(`/${this.modelName}s.info`, { id });
+    invariant(res && res.data, 'Data should be available');
+    return this.add(res.data);
   };
 
   @action
@@ -114,8 +154,4 @@ export default class BaseStore<T: *> extends EventEmitter {
     // $FlowIssue
     return orderBy(Array.from(this.data.values()), 'createdAt', 'desc');
   }
-
-  getById = (id: string): * => {
-    return this.data.get(id);
-  };
 }

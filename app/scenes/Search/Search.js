@@ -199,7 +199,7 @@ class Search extends React.Component<Props> {
               defaultActiveChildIndex={0}
             >
               {this.results.map((result, index) => {
-                const document = documents.getById(result.document.id);
+                const document = documents.data.get(result.document.id);
                 if (!document) return null;
 
                 return (

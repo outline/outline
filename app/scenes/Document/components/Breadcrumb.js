@@ -21,7 +21,7 @@ const Breadcrumb = observer(({ document, collections }: Props) => {
   if (!document.collection) return null;
 
   const collection =
-    collections.getById(document.collection.id) || document.collection;
+    collections.data.get(document.collection.id) || document.collection;
 
   return (
     <Wrapper justify="flex-start" align="center">

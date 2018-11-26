@@ -14,7 +14,7 @@ class IntegrationsStore extends BaseStore<Integration> {
 
   @computed
   get orderedData(): Integration[] {
-    return naturalSort(this.data.values(), 'name');
+    return naturalSort(Array.from(this.data.values()), 'name');
   }
 
   @computed

@@ -62,8 +62,6 @@ class DropToImport extends React.Component<Props> {
           this.props.history.push(doc.url);
         }
       }
-    } catch (err) {
-      // TODO: show error alert.
     } finally {
       this.isImporting = false;
     }

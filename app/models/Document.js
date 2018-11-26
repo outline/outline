@@ -1,9 +1,8 @@
 // @flow
-import { action, runInAction, computed } from 'mobx';
+import { action, set, computed } from 'mobx';
 import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
-import stores from 'stores';
 import parseTitle from 'shared/utils/parseTitle';
 import unescape from 'shared/utils/unescape';
 
@@ -16,7 +15,7 @@ import Collection from 'models/Collection';
 type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
 export default class Document extends BaseModel {
-  isSaving: boolean = false;
+  isSaving: boolean;
   ui: *;
   store: *;
 
@@ -29,34 +28,29 @@ export default class Document extends BaseModel {
   createdBy: User;
   updatedAt: string;
   updatedBy: User;
-  html: string;
   id: string;
   team: string;
+  starred: boolean;
+  pinned: boolean;
+  text: string;
+  title: string;
   emoji: string;
-  starred: boolean = false;
-  pinned: boolean = false;
-  text: string = '';
-  title: string = '';
   parentDocument: ?string;
   publishedAt: ?string;
   url: string;
+  urlId: string;
   shareUrl: ?string;
   views: number;
   revision: number;
 
   constructor(data?: Object = {}, store: *) {
     super(data, store);
-
-    this.updateTitle(data);
-    this.ui = stores.ui;
+    this.updateTitle();
   }
 
-  updateTitle(data: Object = {}) {
-    if (data.text) {
-      const { title, emoji } = parseTitle(data.text);
-      this.title = title;
-      if (emoji) this.emoji = emoji;
-    }
+  @action
+  updateTitle() {
+    set(this, parseTitle(this.text));
   }
 
   @computed
@@ -111,75 +105,36 @@ export default class Document extends BaseModel {
 
   @action
   share = async () => {
-    try {
-      const res = await client.post('/shares.create', { documentId: this.id });
-      invariant(res && res.data, 'Document API response should be available');
-
-      this.shareUrl = res.data.url;
-    } catch (e) {
-      this.ui.showToast('Document failed to share');
-    }
+    const res = await client.post('/shares.create', { documentId: this.id });
+    invariant(res && res.data, 'Share data should be available');
+    this.shareUrl = res.data.url;
+    return this.shareUrl;
   };
 
   @action
-  restore = async (revision: Revision) => {
-    try {
-      const res = await client.post('/documents.restore', {
-        id: this.id,
-        revisionId: revision.id,
-      });
-      runInAction('Document#save', () => {
-        invariant(res && res.data, 'Data should be available');
-        // TODO
-        //this.updateData(res.data);
-      });
-    } catch (e) {
-      this.ui.showToast('Document failed to restore');
-    }
+  updateFromJson = data => {
+    set(this, data);
+    this.updateTitle();
   };
 
-  @action
-  pin = async () => {
-    this.pinned = true;
-    try {
-      await client.post('/documents.pin', { id: this.id });
-    } catch (e) {
-      this.pinned = false;
-      this.ui.showToast('Document failed to pin');
-    }
+  restore = (revision: Revision) => {
+    return this.store.restore(this, revision);
   };
 
-  @action
-  unpin = async () => {
-    this.pinned = false;
-    try {
-      await client.post('/documents.unpin', { id: this.id });
-    } catch (e) {
-      this.pinned = true;
-      this.ui.showToast('Document failed to unpin');
-    }
+  pin = () => {
+    return this.store.pin(this);
   };
 
-  @action
-  star = async () => {
-    this.starred = true;
-    try {
-      await client.post('/documents.star', { id: this.id });
-    } catch (e) {
-      this.starred = false;
-      this.ui.showToast('Document failed star');
-    }
+  unpin = () => {
+    return this.store.unpin(this);
   };
 
-  @action
-  unstar = async () => {
-    this.starred = false;
-    try {
-      await client.post('/documents.unstar', { id: this.id });
-    } catch (e) {
-      this.starred = false;
-      this.ui.showToast('Document failed unstar');
-    }
+  star = () => {
+    return this.store.star(this);
+  };
+
+  unstar = () => {
+    return this.store.unstar(this);
   };
 
   @action
@@ -190,29 +145,19 @@ export default class Document extends BaseModel {
 
   @action
   fetch = async () => {
-    try {
-      const res = await client.post('/documents.info', { id: this.id });
-      invariant(res && res.data, 'Document API response should be available');
-      const { data } = res;
-      runInAction('Document#update', () => {
-        this.updateData(data);
-      });
-    } catch (e) {
-      this.ui.showToast('Document failed loading');
-    }
+    const res = await client.post('/documents.info', { id: this.id });
+    invariant(res && res.data, 'Document API response should be available');
+    this.updateFromJson(res.data);
   };
 
   @action
   save = async (options: SaveOptions) => {
     if (this.isSaving) return this;
 
-    // TODO
-    //const wasDraft = !this.publishedAt;
     const isCreating = !this.id;
     this.isSaving = true;
 
     try {
-      let res;
       if (isCreating) {
         const data = {
           parentDocument: undefined,
@@ -224,9 +169,9 @@ export default class Document extends BaseModel {
         if (this.parentDocument) {
           data.parentDocument = this.parentDocument;
         }
-        res = await client.post('/documents.create', data);
+        this.store.create(data);
       } else {
-        res = await client.post('/documents.update', {
+        this.store.update({
           id: this.id,
           title: this.title,
           text: this.text,
@@ -234,28 +179,6 @@ export default class Document extends BaseModel {
           ...options,
         });
       }
-      runInAction('Document#save', () => {
-        invariant(res && res.data, 'Data should be available');
-        // this.updateData(res.data);
-
-        // if (isCreating) {
-        //   this.emit('documents.create', this);
-        // }
-
-        // this.emit('documents.update', {
-        //   document: this,
-        //   collectionId: this.collection.id,
-        // });
-
-        // if (wasDraft && this.publishedAt) {
-        //   this.emit('documents.publish', {
-        //     id: this.id,
-        //     collectionId: this.collection.id,
-        //   });
-        // }
-      });
-    } catch (e) {
-      this.ui.showToast('Document failed to save');
     } finally {
       this.isSaving = false;
     }
@@ -263,40 +186,8 @@ export default class Document extends BaseModel {
     return this;
   };
 
-  @action
-  move = async (parentDocumentId: ?string) => {
-    try {
-      const res = await client.post('/documents.move', {
-        id: this.id,
-        parentDocument: parentDocumentId,
-      });
-      invariant(res && res.data, 'Data not available');
-      // TODO
-      // this.updateData(res.data);
-      // this.emit('documents.move', {
-      //   id: this.id,
-      //   collectionId: this.collection.id,
-      // });
-    } catch (e) {
-      this.ui.showToast('Error while moving the document');
-    }
-    return;
-  };
-
-  @action
-  delete = async () => {
-    try {
-      await client.post('/documents.delete', { id: this.id });
-      // TODO
-      // this.emit('documents.delete', {
-      //   id: this.id,
-      //   collectionId: this.collection.id,
-      // });
-      return true;
-    } catch (e) {
-      this.ui.showToast('Error while deleting the document');
-    }
-    return false;
+  move = (parentDocumentId: ?string) => {
+    return this.store.move(this, parentDocumentId);
   };
 
   duplicate = () => {

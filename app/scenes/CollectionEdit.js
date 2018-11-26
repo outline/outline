@@ -33,17 +33,13 @@ class CollectionEdit extends React.Component<Props> {
     ev.preventDefault();
     this.isSaving = true;
 
-    this.props.collection.updateData({
+    await this.props.collection.save({
       name: this.name,
       description: this.description,
       color: this.color,
     });
-    const success = await this.props.collection.save();
 
-    if (success) {
-      this.props.onSubmit();
-    }
-
+    this.props.onSubmit();
     this.isSaving = false;
   };
 

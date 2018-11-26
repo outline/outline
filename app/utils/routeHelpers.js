@@ -23,7 +23,7 @@ export function documentUrl(doc: Document): string {
 }
 
 export function documentNewUrl(doc: Document): string {
-  const newUrl = `${doc.collection.url}/new`;
+  const newUrl = `${doc.collection.url || ''}/new`;
   if (doc.parentDocumentId) {
     return `${newUrl}?parentDocument=${doc.parentDocumentId}`;
   }
@@ -59,7 +59,7 @@ export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
 }
 
 export function newDocumentUrl(collection: Collection): string {
-  return `${collection.url}/new`;
+  return `${collection.url || ''}/new`;
 }
 
 export function searchUrl(query?: string): string {

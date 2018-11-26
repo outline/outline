@@ -1,27 +1,22 @@
 // @flow
-import { extendObservable, action, computed, runInAction } from 'mobx';
-import invariant from 'invariant';
-
+import { action, computed } from 'mobx';
 import BaseModel from 'models/BaseModel';
 import Document from 'models/Document';
 import { client } from 'utils/ApiClient';
-import stores from 'stores';
-import UiStore from 'stores/UiStore';
 import type { NavigationNode } from 'types';
 
 export default class Collection extends BaseModel {
-  isSaving: boolean = false;
-  ui: UiStore;
+  isSaving: boolean;
 
   id: string;
   name: string;
   description: string;
   color: string;
-  type: 'atlas' | 'journal' = 'atlas';
-  documents: NavigationNode[] = [];
+  type: 'atlas' | 'journal';
+  documents: NavigationNode[];
   createdAt: ?string;
   updatedAt: ?string;
-  url: ?string;
+  url: string;
 
   @computed
   get isEmpty(): boolean {
@@ -56,101 +51,16 @@ export default class Collection extends BaseModel {
     travelDocuments(this.documents);
   }
 
-  @action
-  fetch = async () => {
-    try {
-      const res = await client.post('/collections.info', { id: this.id });
-      invariant(res && res.data, 'API response should be available');
-      const { data } = res;
-      runInAction('Collection#fetch', () => {
-        this.updateData(data);
-      });
-    } catch (e) {
-      this.ui.showToast('Collection failed loading');
-    }
-
-    return this;
-  };
-
-  @action
-  save = async () => {
-    if (this.isSaving) return this;
-    this.isSaving = true;
-
-    const params = {
+  save = () => {
+    return super.save({
+      id: this.id,
       name: this.name,
       color: this.color,
       description: this.description,
-    };
-
-    try {
-      let res;
-      if (this.id) {
-        res = await client.post('/collections.update', {
-          id: this.id,
-          ...params,
-        });
-      } else {
-        res = await client.post('/collections.create', params);
-      }
-      runInAction('Collection#save', () => {
-        invariant(res && res.data, 'Data should be available');
-        this.updateData(res.data);
-      });
-    } catch (e) {
-      this.ui.showToast('Collection failed saving');
-      return false;
-    } finally {
-      this.isSaving = false;
-    }
-
-    return true;
+    });
   };
 
-  @action
-  delete = async () => {
-    try {
-      await client.post('/collections.delete', { id: this.id });
-      // this.emit('collections.delete', { id: this.id });
-      return true;
-    } catch (e) {
-      this.ui.showToast('Collection failed to delete');
-    }
-    return false;
+  export = () => {
+    return client.post('/collections.export', { id: this.id });
   };
-
-  @action
-  export = async () => {
-    await client.post('/collections.export', { id: this.id });
-  };
-
-  @action
-  updateData(data: Object = {}) {
-    extendObservable(this, data);
-  }
-
-  constructor(collection: Collection, store: *) {
-    super(collection, store);
-
-    this.ui = stores.ui;
-
-    // TODO: Remove all
-    // this.on('documents.delete', (data: { collectionId: string }) => {
-    //   if (data.collectionId === this.id) this.fetch();
-    // });
-    // this.on(
-    //   'documents.update',
-    //   (data: { collectionId: string, document: Document }) => {
-    //     if (data.collectionId === this.id) {
-    //       this.updateDocument(data.document);
-    //     }
-    //   }
-    // );
-    // this.on('documents.publish', (data: { collectionId: string }) => {
-    //   if (data.collectionId === this.id) this.fetch();
-    // });
-    // this.on('documents.move', (data: { collectionId: string }) => {
-    //   if (data.collectionId === this.id) this.fetch();
-    // });
-  }
 }

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { inject, observer } from 'mobx-react';
-import _ from 'lodash';
+import { find } from 'lodash';
 import styled from 'styled-components';
 
 import Button from 'components/Button';
@@ -29,7 +29,7 @@ class Slack extends React.Component<Props> {
   }
 
   get commandIntegration() {
-    return _.find(this.props.integrations.slackIntegrations, {
+    return find(this.props.integrations.slackIntegrations, {
       type: 'command',
     });
   }
@@ -73,7 +73,7 @@ class Slack extends React.Component<Props> {
 
         <List>
           {collections.orderedData.map(collection => {
-            const integration = _.find(integrations.slackIntegrations, {
+            const integration = find(integrations.slackIntegrations, {
               collectionId: collection.id,
             });
 

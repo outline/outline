@@ -55,7 +55,7 @@ class CollectionScene extends React.Component<Props> {
 
   loadContent = async (id: string) => {
     const { collections } = this.props;
-    const collection = collections.getById(id) || (await collections.fetch(id));
+    const collection = collections.data.get(id) || (await collections.fetch(id));
 
     if (collection) {
       this.props.ui.setActiveCollection(collection);

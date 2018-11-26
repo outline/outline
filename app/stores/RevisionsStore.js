@@ -20,11 +20,15 @@ export default class RevisionsStore extends BaseStore<Revision> {
   }
 
   @action
-  fetch = async (documentId: string, id: string): Promise<*> => {
+  fetch = async (
+    documentId: string,
+    options: { revisionId: string }
+  ): Promise<?Revision> => {
     this.isFetching = true;
+    const id = options.revisionId;
 
     try {
-      const rev = this.getById(id);
+      const rev = this.data.get(id);
       if (rev) return rev;
 
       const res = await client.post('/documents.revision', {
@@ -40,8 +44,6 @@ export default class RevisionsStore extends BaseStore<Revision> {
       });
 
       return data;
-    } catch (e) {
-      this.ui.showToast('Failed to load document revision');
     } finally {
       this.isFetching = false;
     }
@@ -60,7 +62,6 @@ export default class RevisionsStore extends BaseStore<Revision> {
         });
         this.isLoaded = true;
       });
-      return res.data;
     } finally {
       this.isFetching = false;
     }

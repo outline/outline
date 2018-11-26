@@ -1,11 +1,24 @@
 // @flow
-import { extendObservable } from 'mobx';
+import { set, observable } from 'mobx';
+
 export default class BaseModel {
-  id: string;
+  @observable id: string;
   store: *;
 
   constructor(fields: Object, store: *) {
-    extendObservable(this, fields);
+    set(this, fields);
     this.store = store;
   }
+
+  save = data => {
+    return this.store.save(this, data);
+  };
+
+  fetch = async () => {
+    return this.store.fetch(this);
+  };
+
+  delete = () => {
+    return this.store.delete(this);
+  };
 }

@@ -55,7 +55,7 @@ class Tokens extends React.Component<Props> {
               <TokenListItem
                 key={token.id}
                 token={token}
-                onDelete={() => apiKeys.delete(token)}
+                onDelete={token.delete}
               />
             ))}
           </List>
