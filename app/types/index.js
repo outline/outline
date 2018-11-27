@@ -6,6 +6,13 @@ export type Toast = {
   type: 'warning' | 'error' | 'info' | 'success',
 };
 
+export type FetchOptions = {
+  prefetch?: boolean,
+  revisionId?: string,
+  shareId?: string,
+  force?: boolean,
+};
+
 export type NavigationNode = {
   id: string,
   title: string,

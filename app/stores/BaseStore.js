@@ -38,7 +38,7 @@ export default class BaseStore<T: BaseModel> {
   };
 
   @action
-  add = (item: T | Object): T => {
+  add = (item: Object): T => {
     const Model = this.model;
 
     if (!(item instanceof Model)) {
@@ -60,12 +60,8 @@ export default class BaseStore<T: BaseModel> {
     this.data.delete(id);
   };
 
-  @action
-  save = async (params: Object) => {
-    if (params.id) {
-      return this.update(params);
-    }
-
+  save = (params: Object) => {
+    if (params.id) return this.update(params);
     return this.create(params);
   };
 
@@ -104,15 +100,15 @@ export default class BaseStore<T: BaseModel> {
   };
 
   @action
-  delete = async (params: Object) => {
+  delete = async (item: T) => {
     if (!this.actions.includes('delete')) {
       throw new Error(`Cannot delete ${this.modelName}`);
     }
     this.isSaving = true;
 
     try {
-      await client.post(`/${this.modelName}s.delete`, { id: params.id });
-      return this.remove(params.id);
+      await client.post(`/${this.modelName}s.delete`, { id: item.id });
+      return this.remove(item.id);
     } finally {
       this.isSaving = false;
     }

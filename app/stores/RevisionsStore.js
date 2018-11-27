@@ -6,7 +6,7 @@ import { client } from 'utils/ApiClient';
 import BaseStore from 'stores/BaseStore';
 import RootStore from 'stores/RootStore';
 import Revision from 'models/Revision';
-import type { PaginationParams } from 'types';
+import type { FetchOptions, PaginationParams } from 'types';
 
 export default class RevisionsStore extends BaseStore<Revision> {
   actions = ['list'];
@@ -22,10 +22,11 @@ export default class RevisionsStore extends BaseStore<Revision> {
   @action
   fetch = async (
     documentId: string,
-    options: { revisionId: string }
+    options?: FetchOptions
   ): Promise<?Revision> => {
     this.isFetching = true;
-    const id = options.revisionId;
+    const id = options && options.revisionId;
+    if (!id) throw new Error('revisionId is required');
 
     try {
       const rev = this.data.get(id);

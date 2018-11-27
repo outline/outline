@@ -155,7 +155,9 @@ export default class Document extends BaseModel {
     if (this.isSaving) return this;
 
     const isCreating = !this.id;
+    const wasDraft = !this.publishedAt;
     this.isSaving = true;
+    this.updateTitle();
 
     try {
       if (isCreating) {
@@ -169,21 +171,26 @@ export default class Document extends BaseModel {
         if (this.parentDocument) {
           data.parentDocument = this.parentDocument;
         }
-        this.store.create(data);
+        const document = await this.store.create(data);
+        return document;
       } else {
-        this.store.update({
+        const document = await this.store.update({
           id: this.id,
           title: this.title,
           text: this.text,
           lastRevision: this.revision,
           ...options,
         });
+        return document;
       }
     } finally {
+      if (wasDraft && options.publish) {
+        this.store.rootStore.collections.fetch(this.collection.id, {
+          force: true,
+        });
+      }
       this.isSaving = false;
     }
-
-    return this;
   };
 
   move = (parentDocumentId: ?string) => {

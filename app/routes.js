@@ -22,7 +22,7 @@ import Export from 'scenes/Settings/Export';
 import Error404 from 'scenes/Error404';
 
 import Layout from 'components/Layout';
-import Auth from 'components/Auth';
+import Authenticated from 'components/Authenticated';
 import RouteSidebarHidden from 'components/RouteSidebarHidden';
 import { matchDocumentSlug as slug } from 'utils/routeHelpers';
 
@@ -37,7 +37,7 @@ export default function Routes() {
     <Switch>
       <Route exact path="/" component={Home} />
       <Route exact path="/share/:shareId" component={Document} />
-      <Auth>
+      <Authenticated>
         <Layout>
           <Switch>
             <Route path="/dashboard/:tab" component={Dashboard} />
@@ -92,7 +92,7 @@ export default function Routes() {
             <Route component={NotFound} />
           </Switch>
         </Layout>
-      </Auth>
+      </Authenticated>
     </Switch>
   );
 }

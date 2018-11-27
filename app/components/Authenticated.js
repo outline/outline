@@ -10,7 +10,7 @@ type Props = {
   children?: React.Node,
 };
 
-const Auth = observer(({ auth, children }: Props) => {
+const Authenticated = observer(({ auth, children }: Props) => {
   if (auth.authenticated) {
     const { user, team } = auth;
     const { hostname } = window.location;
@@ -38,4 +38,4 @@ const Auth = observer(({ auth, children }: Props) => {
   return null;
 });
 
-export default inject('auth')(Auth);
+export default inject('auth')(Authenticated);

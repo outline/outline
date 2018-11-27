@@ -3,10 +3,9 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 import { observable, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter } from 'react-router-dom';
 import { Search } from 'js-search';
+import { first, last } from 'lodash';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
-import _ from 'lodash';
 import styled from 'styled-components';
 
 import Modal from 'components/Modal';
@@ -20,11 +19,10 @@ import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore, { type DocumentPath } from 'stores/CollectionsStore';
 
 type Props = {
-  match: Object,
-  history: Object,
   document: Document,
   documents: DocumentsStore,
   collections: CollectionsStore,
+  onRequestClose: *,
 };
 
 @observer
@@ -42,9 +40,9 @@ class DocumentMove extends React.Component<Props> {
 
     // Build index
     const indexeableDocuments = [];
-    paths.forEach(path => {
+    paths.slice().forEach(path => {
       // TMP: For now, exclude paths to other collections
-      if (_.first(path.path).id !== document.collection.id) return;
+      if (first(path.path).id !== document.collection.id) return;
 
       indexeableDocuments.push(path);
     });
@@ -91,7 +89,7 @@ class DocumentMove extends React.Component<Props> {
     results = results.filter(
       result =>
         !result.path.map(doc => doc.id).includes(document.id) &&
-        _.last(result.path.map(doc => doc.id)) !== document.parentDocumentId
+        last(result.path.map(doc => doc.id)) !== document.parentDocumentId
     );
 
     return results;
@@ -108,12 +106,8 @@ class DocumentMove extends React.Component<Props> {
     }
   };
 
-  handleClose = () => {
-    this.props.history.push(this.props.document.url);
-  };
-
-  handleFilter = (e: SyntheticInputEvent<*>) => {
-    this.searchTerm = e.target.value;
+  handleFilter = (ev: SyntheticInputEvent<*>) => {
+    this.searchTerm = ev.target.value;
   };
 
   setFirstDocumentRef = ref => {
@@ -129,10 +123,11 @@ class DocumentMove extends React.Component<Props> {
   }
 
   render() {
-    const { document, collections } = this.props;
+    const { document, collections, onRequestClose } = this.props;
+    console.log(collections.pathsToDocuments);
 
     return (
-      <Modal isOpen onRequestClose={this.handleClose} title="Move document">
+      <Modal isOpen onRequestClose={onRequestClose} title="Move document">
         {document &&
           collections.isLoaded && (
             <Flex column>
@@ -166,7 +161,7 @@ class DocumentMove extends React.Component<Props> {
                         ref={ref =>
                           index === 0 && this.setFirstDocumentRef(ref)
                         }
-                        onSuccess={this.handleClose}
+                        onSuccess={onRequestClose}
                       />
                     ))}
                   </StyledArrowKeyNavigation>
@@ -189,4 +184,4 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
-export default withRouter(inject('documents', 'collections')(DocumentMove));
+export default inject('documents', 'collections')(DocumentMove);

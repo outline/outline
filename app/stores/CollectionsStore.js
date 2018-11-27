@@ -8,6 +8,7 @@ import BaseStore from './BaseStore';
 import RootStore from './RootStore';
 import Collection from 'models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
+import type { FetchOptions } from 'types';
 
 type DocumentPathItem = {
   id: string,
@@ -90,9 +91,12 @@ export default class CollectionsStore extends BaseStore<Collection> {
   };
 
   @action
-  fetch = async (id: string, options: Object): Promise<?Collection> => {
+  fetch = async (
+    id: string,
+    options?: FetchOptions = {}
+  ): Promise<?Collection> => {
     let collection: ?Collection = this.data.get(id);
-    if (collection) return collection;
+    if (collection && !options.force) return collection;
 
     this.isFetching = true;
 
@@ -101,23 +105,19 @@ export default class CollectionsStore extends BaseStore<Collection> {
         id,
       });
       invariant(res && res.data, 'Collection not available');
-      const { data } = res;
-      const collection = new Collection(data);
+      this.add(res.data);
 
       runInAction('CollectionsStore#fetch', () => {
-        this.data.set(data.id, collection);
         this.isLoaded = true;
       });
 
-      return collection;
+      return this.data.get(res.data.id);
     } finally {
       this.isFetching = false;
     }
   };
 
-  @action
-  export = async () => {
-    await client.post('/collections.exportAll');
-    return true;
+  export = () => {
+    return client.post('/collections.exportAll');
   };
 }

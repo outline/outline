@@ -102,6 +102,10 @@ class DocumentScene extends React.Component<Props> {
     this.props.ui.clearActiveDocument();
   }
 
+  goToDocumentCanonical = () => {
+    if (this.document) this.props.history.push(this.document.url);
+  };
+
   @keydown('m')
   goToMove(ev) {
     ev.preventDefault();
@@ -122,14 +126,17 @@ class DocumentScene extends React.Component<Props> {
 
   loadDocument = async props => {
     if (props.newDocument) {
-      this.document = new Document({
-        collection: { id: props.match.params.id },
-        parentDocument: new URLSearchParams(props.location.search).get(
-          'parentDocument'
-        ),
-        title: '',
-        text: '',
-      });
+      this.document = new Document(
+        {
+          collection: { id: props.match.params.id },
+          parentDocument: new URLSearchParams(props.location.search).get(
+            'parentDocument'
+          ),
+          title: '',
+          text: '',
+        },
+        this.props.documents
+      );
     } else {
       const { shareId, revisionId } = props.match.params;
 
@@ -311,7 +318,12 @@ class DocumentScene extends React.Component<Props> {
         >
           <Route
             path={`${match.url}/move`}
-            component={() => <DocumentMove document={document} />}
+            component={() => (
+              <DocumentMove
+                document={document}
+                onRequestClose={this.goToDocumentCanonical}
+              />
+            )}
           />
           <PageTitle
             title={document.title.replace(document.emoji, '')}

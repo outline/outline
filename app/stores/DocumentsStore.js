@@ -9,12 +9,7 @@ import BaseStore from 'stores/BaseStore';
 import RootStore from 'stores/RootStore';
 import Document from 'models/Document';
 import Revision from 'models/Revision';
-import type { PaginationParams, SearchResult } from 'types';
-
-type FetchOptions = {
-  prefetch?: boolean,
-  shareId?: string,
-};
+import type { FetchOptions, PaginationParams, SearchResult } from 'types';
 
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];

@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react';
 import Checkbox from 'components/Checkbox';
+import NotificationSetting from 'models/NotificationSetting';
 
 type Props = {
-  setting: Object,
+  setting?: NotificationSetting,
   title: string,
   event: string,
   description: string,
-  enabled: boolean,
   onChange: *,
 };
 
@@ -23,7 +23,7 @@ const NotificationListItem = ({
     <Checkbox
       label={title}
       name={event}
-      checked={enabled}
+      checked={!!setting}
       onChange={onChange}
       note={description}
     />

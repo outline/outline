@@ -49,15 +49,15 @@ class Notifications extends React.Component<Props> {
   }
 
   handleChange = (ev: SyntheticInputEvent<*>) => {
-    if (ev.target.checked) {
-      this.props.notificationSettings.create({
-        event: [ev.target.name],
-      });
-    } else {
-      this.props.notificationSettings.delete({
-        event: [ev.target.name],
-      });
-    }
+    // if (ev.target.checked) {
+    //   this.props.notificationSettings.create({
+    //     event: [ev.target.name],
+    //   });
+    // } else {
+    //   this.props.notificationSettings.delete({
+    //     event: [ev.target.name],
+    //   });
+    // }
   };
 
   render() {

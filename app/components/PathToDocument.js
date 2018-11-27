@@ -8,6 +8,8 @@ import Flex from 'shared/components/Flex';
 
 import Document from 'models/Document';
 
+const StyledGoToIcon = styled(GoToIcon)``;
+
 const ResultWrapper = styled.div`
   display: flex;
   margin-bottom: 10px;
@@ -15,8 +17,6 @@ const ResultWrapper = styled.div`
   color: ${props => props.theme.text};
   cursor: default;
 `;
-
-const StyledGoToIcon = styled(GoToIcon)``;
 
 const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
   height: 32px;
@@ -42,8 +42,8 @@ const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
 type Props = {
   result: Object,
   document?: Document,
-  onSuccess?: Function,
-  ref?: Function,
+  onSuccess?: *,
+  ref?: *,
 };
 
 @observer
@@ -74,7 +74,7 @@ class PathToDocument extends React.Component<Props> {
     if (!result) return <div />;
 
     return (
-      <Component ref={ref} onClick={this.handleClick} selectable href>
+      <Component ref={ref} onClick={this.handleClick} href="" selectable>
         {result.path
           .map(doc => <span key={doc.id}>{doc.title}</span>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
