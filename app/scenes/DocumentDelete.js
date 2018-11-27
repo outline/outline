@@ -24,14 +24,14 @@ class DocumentDelete extends React.Component<Props> {
     ev.preventDefault();
     this.isDeleting = true;
     const { collection } = this.props.document;
-    const success = await this.props.document.delete();
 
-    if (success) {
+    try {
+      await this.props.document.delete();
       this.props.history.push(collection.url);
       this.props.onSubmit();
+    } finally {
+      this.isDeleting = false;
     }
-
-    this.isDeleting = false;
   };
 
   render() {

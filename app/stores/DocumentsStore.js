@@ -237,7 +237,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.add(res.data);
   };
 
-  delete = async (document: Document) => {
+  delete = (document: Document) => {
     super.delete(document);
 
     runInAction(() => {

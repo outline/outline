@@ -1,14 +1,12 @@
 // @flow
-import { computed, action, runInAction } from 'mobx';
+import { computed, runInAction } from 'mobx';
 import { concat, last } from 'lodash';
-import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 
 import BaseStore from './BaseStore';
 import RootStore from './RootStore';
 import Collection from 'models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
-import type { FetchOptions } from 'types';
 
 type DocumentPathItem = {
   id: string,
@@ -22,8 +20,6 @@ export type DocumentPath = DocumentPathItem & {
 };
 
 export default class CollectionsStore extends BaseStore<Collection> {
-  actions = ['list', 'create', 'update', 'delete'];
-
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);
   }
@@ -81,40 +77,13 @@ export default class CollectionsStore extends BaseStore<Collection> {
     if (path) return path.title;
   }
 
-  delete = async (collection: Collection) => {
+  delete = (collection: Collection) => {
     super.delete(collection);
 
     runInAction(() => {
       this.rootStore.documents.fetchRecentlyUpdated();
       this.rootStore.documents.fetchRecentlyViewed();
     });
-  };
-
-  @action
-  fetch = async (
-    id: string,
-    options?: FetchOptions = {}
-  ): Promise<?Collection> => {
-    let collection: ?Collection = this.data.get(id);
-    if (collection && !options.force) return collection;
-
-    this.isFetching = true;
-
-    try {
-      const res = await client.post('/collections.info', {
-        id,
-      });
-      invariant(res && res.data, 'Collection not available');
-      this.add(res.data);
-
-      runInAction('CollectionsStore#fetch', () => {
-        this.isLoaded = true;
-      });
-
-      return this.data.get(res.data.id);
-    } finally {
-      this.isFetching = false;
-    }
   };
 
   export = () => {

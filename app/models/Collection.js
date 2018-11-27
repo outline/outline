@@ -1,4 +1,5 @@
 // @flow
+import { pick } from 'lodash';
 import { action, computed } from 'mobx';
 import BaseModel from 'models/BaseModel';
 import Document from 'models/Document';
@@ -51,13 +52,8 @@ export default class Collection extends BaseModel {
     travelDocuments(this.documents);
   }
 
-  save = () => {
-    return super.save({
-      id: this.id,
-      name: this.name,
-      color: this.color,
-      description: this.description,
-    });
+  toJS = () => {
+    return pick(this, ['name', 'color', 'description']);
   };
 
   export = () => {

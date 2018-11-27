@@ -24,14 +24,14 @@ class CollectionDelete extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isDeleting = true;
-    const success = await this.props.collection.delete();
 
-    if (success) {
+    try {
+      await this.props.collection.delete();
       this.props.history.push(homeUrl());
       this.props.onSubmit();
+    } finally {
+      this.isDeleting = false;
     }
-
-    this.isDeleting = false;
   };
 
   render() {

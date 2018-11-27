@@ -38,15 +38,13 @@ class CollectionNew extends React.Component<Props> {
       this.props.collections
     );
 
-    const success = await this.collection.save();
-
-    if (success) {
-      this.props.collections.add(this.collection);
+    try {
+      await this.collection.save();
       this.props.onSubmit();
       this.props.history.push(this.collection.url);
+    } finally {
+      this.isSaving = false;
     }
-
-    this.isSaving = false;
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {

@@ -115,14 +115,23 @@ export default class BaseStore<T: BaseModel> {
   };
 
   @action
-  fetch = async (id: string, options?: Object) => {
+  fetch = async (id: string, options?: Object = {}) => {
     if (!this.actions.includes('info')) {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
 
-    const res = await client.post(`/${this.modelName}s.info`, { id });
-    invariant(res && res.data, 'Data should be available');
-    return this.add(res.data);
+    let item = this.data.get(id);
+    if (item && !options.force) return item;
+
+    this.isFetching = true;
+
+    try {
+      const res = await client.post(`/${this.modelName}s.info`, { id });
+      invariant(res && res.data, 'Data should be available');
+      return this.add(res.data);
+    } finally {
+      this.isFetching = false;
+    }
   };
 
   @action

@@ -10,8 +10,8 @@ export default class BaseModel {
     this.store = store;
   }
 
-  save = data => {
-    return this.store.save(this, data);
+  save = params => {
+    return this.store.save(params || this.toJS());
   };
 
   fetch = async () => {
@@ -20,5 +20,9 @@ export default class BaseModel {
 
   delete = () => {
     return this.store.delete(this);
+  };
+
+  toJS = () => {
+    return { ...this };
   };
 }
