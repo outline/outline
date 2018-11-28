@@ -237,7 +237,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.add(res.data);
   };
 
-  delete = (document: Document) => {
+  delete(document: Document) {
     super.delete(document);
 
     runInAction(() => {
@@ -249,7 +249,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       document.collectionId
     );
     if (collection) collection.fetch();
-  };
+  }
 
   @action
   restore = async (document: Document, revision: Revision) => {

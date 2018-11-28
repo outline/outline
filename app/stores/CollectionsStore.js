@@ -77,14 +77,14 @@ export default class CollectionsStore extends BaseStore<Collection> {
     if (path) return path.title;
   }
 
-  delete = (collection: Collection) => {
+  delete(collection: Collection) {
     super.delete(collection);
 
     runInAction(() => {
       this.rootStore.documents.fetchRecentlyUpdated();
       this.rootStore.documents.fetchRecentlyViewed();
     });
-  };
+  }
 
   export = () => {
     return client.post('/collections.exportAll');

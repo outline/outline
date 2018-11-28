@@ -15,7 +15,7 @@ export default class BaseModel {
   };
 
   fetch = async () => {
-    return this.store.fetch(this);
+    return this.store.fetch(this.id);
   };
 
   delete = () => {

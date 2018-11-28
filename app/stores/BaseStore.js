@@ -33,12 +33,12 @@ export default class BaseStore<T: BaseModel> {
   }
 
   @action
-  clear = () => {
+  clear() {
     this.data.clear();
-  };
+  }
 
   @action
-  add = (item: Object): T => {
+  add(item: Object): T {
     const Model = this.model;
 
     if (!(item instanceof Model)) {
@@ -53,20 +53,20 @@ export default class BaseStore<T: BaseModel> {
 
     this.data.set(item.id, item);
     return item;
-  };
+  }
 
   @action
-  remove = (id: string): void => {
+  remove(id: string): void {
     this.data.delete(id);
-  };
+  }
 
-  save = (params: Object) => {
+  save(params: Object) {
     if (params.id) return this.update(params);
     return this.create(params);
-  };
+  }
 
   @action
-  create = async (params: Object) => {
+  async create(params: Object) {
     if (!this.actions.includes('create')) {
       throw new Error(`Cannot create ${this.modelName}`);
     }
@@ -80,10 +80,10 @@ export default class BaseStore<T: BaseModel> {
     } finally {
       this.isSaving = false;
     }
-  };
+  }
 
   @action
-  update = async (params: Object) => {
+  async update(params: Object) {
     if (!this.actions.includes('update')) {
       throw new Error(`Cannot update ${this.modelName}`);
     }
@@ -97,10 +97,10 @@ export default class BaseStore<T: BaseModel> {
     } finally {
       this.isSaving = false;
     }
-  };
+  }
 
   @action
-  delete = async (item: T) => {
+  async delete(item: T) {
     if (!this.actions.includes('delete')) {
       throw new Error(`Cannot delete ${this.modelName}`);
     }
@@ -112,10 +112,10 @@ export default class BaseStore<T: BaseModel> {
     } finally {
       this.isSaving = false;
     }
-  };
+  }
 
   @action
-  fetch = async (id: string, options?: Object = {}) => {
+  async fetch(id: string, options?: Object = {}): Promise<?T> {
     if (!this.actions.includes('info')) {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
@@ -132,10 +132,10 @@ export default class BaseStore<T: BaseModel> {
     } finally {
       this.isFetching = false;
     }
-  };
+  }
 
   @action
-  fetchPage = async (params: ?PaginationParams): Promise<*> => {
+  async fetchPage(params: ?PaginationParams): Promise<*> {
     if (!this.actions.includes('list')) {
       throw new Error(`Cannot list ${this.modelName}`);
     }
@@ -152,7 +152,7 @@ export default class BaseStore<T: BaseModel> {
     } finally {
       this.isFetching = false;
     }
-  };
+  }
 
   @computed
   get orderedData(): T[] {
