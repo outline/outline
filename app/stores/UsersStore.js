@@ -43,7 +43,7 @@ export default class UsersStore extends BaseStore<User> {
   };
 
   actionOnUser = async (action: string, user: User) => {
-    const res = await client.post(`/user.${action}`, {
+    const res = await client.post(`/users.${action}`, {
       id: user.id,
     });
     invariant(res && res.data, 'Data should be available');

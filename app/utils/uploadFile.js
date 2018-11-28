@@ -11,7 +11,7 @@ export const uploadFile = async (
   option?: Options = { name: '' }
 ) => {
   const filename = file instanceof File ? file.name : option.name;
-  const response = await client.post('/user.s3Upload', {
+  const response = await client.post('/users.s3Upload', {
     kind: file.type,
     size: file.size,
     filename,

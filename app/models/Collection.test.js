@@ -1,10 +1,9 @@
 /* eslint-disable */
-import Collection from './Collection';
-const { client } = require('utils/ApiClient');
+import stores from '../stores';
 
 describe('Collection model', () => {
   test('should initialize with data', () => {
-    const collection = new Collection({
+    const collection = stores.collections.add({
       id: 123,
       name: 'Engineering',
     });

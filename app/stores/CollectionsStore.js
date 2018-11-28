@@ -5,7 +5,7 @@ import { client } from 'utils/ApiClient';
 
 import BaseStore from './BaseStore';
 import RootStore from './RootStore';
-import Collection from 'models/Collection';
+import Collection from '../models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
 
 type DocumentPathItem = {

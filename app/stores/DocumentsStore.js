@@ -7,8 +7,8 @@ import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
 import RootStore from 'stores/RootStore';
-import Document from 'models/Document';
-import Revision from 'models/Revision';
+import Document from '../models/Document';
+import Revision from '../models/Revision';
 import type { FetchOptions, PaginationParams, SearchResult } from 'types';
 
 export default class DocumentsStore extends BaseStore<Document> {

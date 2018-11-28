@@ -87,7 +87,7 @@ export default class AuthStore {
 
   @action
   deleteUser = async () => {
-    await client.post(`/user.delete`, { confirmation: true });
+    await client.post(`/users.delete`, { confirmation: true });
 
     runInAction('AuthStore#updateUser', () => {
       this.user = null;
@@ -101,7 +101,7 @@ export default class AuthStore {
     this.isSaving = true;
 
     try {
-      const res = await client.post(`/user.update`, params);
+      const res = await client.post(`/users.update`, params);
       invariant(res && res.data, 'User response not available');
 
       runInAction('AuthStore#updateUser', () => {

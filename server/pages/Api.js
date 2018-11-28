@@ -166,7 +166,7 @@ export default function Pricing() {
             <Arguments />
           </Method>
 
-          <Method method="user.info" label="Get current user">
+          <Method method="users.info" label="Get current user">
             <Description>
               This method returns the profile info for the user identified by
               the token.
@@ -176,7 +176,7 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
-          <Method method="user.s3Upload" label="Get S3 upload credentials">
+          <Method method="users.s3Upload" label="Get S3 upload credentials">
             <Description>
               You can upload small files and images as part of your documents.
               All files are stored using Amazon S3. Instead of uploading files
@@ -202,7 +202,7 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
-          <Method method="user.promote" label="Promote a new admin user">
+          <Method method="users.promote" label="Promote a new admin user">
             <Description>
               Promote a user to be a team admin. This endpoint is only available
               for admin users.
@@ -212,7 +212,7 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
-          <Method method="user.demote" label="Demote existing admin user">
+          <Method method="users.demote" label="Demote existing admin user">
             <Description>
               Demote existing team admin if there are more than one as one admin
               is always required. This endpoint is only available for admin
@@ -223,7 +223,7 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
-          <Method method="user.suspend" label="Suspend user account">
+          <Method method="users.suspend" label="Suspend user account">
             <Description>
               Admin can suspend users to reduce the number of accounts on their
               billing plan or prevent them from accessing documention.
@@ -238,7 +238,7 @@ export default function Pricing() {
           </Method>
 
           <Method
-            method="user.activate"
+            method="users.activate"
             label="Activate a suspended user account"
           >
             <Description>
