@@ -84,7 +84,7 @@ class UiStore {
   @action
   showToast = (
     message: string,
-    type?: 'warning' | 'error' | 'info' | 'success' = 'warning'
+    type?: 'warning' | 'error' | 'info' | 'success' = 'success'
   ): void => {
     this.toasts.push({ message, type });
   };

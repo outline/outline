@@ -13,7 +13,13 @@ import theme from '../../shared/styles/theme';
 const sheet = new ServerStyleSheet();
 
 export default function renderpage(ctx: Object, children: React.Node) {
-  const sessions = JSON.parse(ctx.cookies.get('sessions') || '{}');
+  let sessions = {};
+  try {
+    sessions = JSON.parse(ctx.cookies.get('sessions') || '{}');
+  } catch (err) {
+    console.error(`Sessions cookie could not be parsed: ${err}`);
+  }
+
   const loggedIn = !!(
     ctx.cookies.get('accessToken') || Object.keys(sessions).length
   );

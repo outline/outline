@@ -20,7 +20,6 @@ type Props = {
 
 @observer
 class CollectionNew extends React.Component<Props> {
-  @observable collection: Collection;
   @observable name: string = '';
   @observable description: string = '';
   @observable color: string = '';
@@ -29,7 +28,7 @@ class CollectionNew extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isSaving = true;
-    this.collection = new Collection(
+    const collection = new Collection(
       {
         name: this.name,
         description: this.description,
@@ -39,9 +38,9 @@ class CollectionNew extends React.Component<Props> {
     );
 
     try {
-      await this.collection.save();
+      await collection.save();
       this.props.onSubmit();
-      this.props.history.push(this.collection.url);
+      this.props.history.push(collection.url);
     } finally {
       this.isSaving = false;
     }

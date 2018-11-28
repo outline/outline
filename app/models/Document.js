@@ -121,20 +121,48 @@ export default class Document extends BaseModel {
     return this.store.restore(this, revision);
   };
 
-  pin = () => {
-    return this.store.pin(this);
+  @action
+  pin = async () => {
+    this.pinned = true;
+    try {
+      await this.store.pin(this);
+    } catch (err) {
+      this.pinned = false;
+      throw err;
+    }
   };
 
-  unpin = () => {
-    return this.store.unpin(this);
+  @action
+  unpin = async () => {
+    this.pinned = false;
+    try {
+      await this.store.unpin(this);
+    } catch (err) {
+      this.pinned = true;
+      throw err;
+    }
   };
 
-  star = () => {
-    return this.store.star(this);
+  @action
+  star = async () => {
+    this.starred = true;
+    try {
+      await this.store.star(this);
+    } catch (err) {
+      this.starred = false;
+      throw err;
+    }
   };
 
-  unstar = () => {
-    return this.store.unstar(this);
+  @action
+  unstar = async () => {
+    this.starred = false;
+    try {
+      await this.store.unstar(this);
+    } catch (err) {
+      this.starred = true;
+      throw err;
+    }
   };
 
   @action
@@ -146,7 +174,7 @@ export default class Document extends BaseModel {
   @action
   fetch = async () => {
     const res = await client.post('/documents.info', { id: this.id });
-    invariant(res && res.data, 'Document API response should be available');
+    invariant(res && res.data, 'Data should be available');
     this.updateFromJson(res.data);
   };
 
@@ -202,6 +230,7 @@ export default class Document extends BaseModel {
   };
 
   download = async () => {
+    // Ensure the document is upto date with latest server contents
     await this.fetch();
 
     const blob = new Blob([unescape(this.text)], { type: 'text/markdown' });

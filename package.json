@@ -199,7 +199,7 @@
     "koa-webpack-dev-middleware": "1.4.5",
     "koa-webpack-hot-middleware": "1.0.3",
     "lint-staged": "^3.4.0",
-    "mobx-react-devtools": "^4.2.11",
+    "mobx-react-devtools": "^6.0.3",
     "nodemon": "1.11.0",
     "prettier": "1.8.2",
     "raf": "^3.4.0",

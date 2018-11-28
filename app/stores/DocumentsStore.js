@@ -234,6 +234,11 @@ export default class DocumentsStore extends BaseStore<Document> {
       text: document.text,
     });
     invariant(res && res.data, 'Data should be available');
+    const collection = this.rootStore.collections.data.get(
+      document.collection.id
+    );
+    if (collection) collection.fetch();
+
     return this.add(res.data);
   };
 
@@ -263,52 +268,20 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
   };
 
-  @action
-  pin = async (document: Document) => {
-    if (document.pinned) return;
-
-    document.pinned = true;
-    try {
-      await client.post('/documents.pin', { id: document.id });
-    } finally {
-      document.pinned = false;
-    }
+  pin = (document: Document) => {
+    return client.post('/documents.pin', { id: document.id });
   };
 
-  @action
-  unpin = async (document: Document) => {
-    if (!document.pinned) return;
-
-    document.pinned = false;
-    try {
-      await client.post('/documents.unpin', { id: document.id });
-    } finally {
-      document.pinned = true;
-    }
+  unpin = (document: Document) => {
+    return client.post('/documents.unpin', { id: document.id });
   };
 
-  @action
-  star = async (document: Document) => {
-    if (document.starred) return;
-
-    document.starred = true;
-    try {
-      await client.post('/documents.star', { id: document.id });
-    } finally {
-      document.starred = false;
-    }
+  star = (document: Document) => {
+    return client.post('/documents.star', { id: document.id });
   };
 
-  @action
-  unstar = async (document: Document) => {
-    if (!document.starred) return;
-
-    document.starred = false;
-    try {
-      await client.post('/documents.unstar', { id: document.id });
-    } finally {
-      document.starred = true;
-    }
+  unstar = (document: Document) => {
+    return client.post('/documents.unstar', { id: document.id });
   };
 
   getByUrl = (url: string): ?Document => {

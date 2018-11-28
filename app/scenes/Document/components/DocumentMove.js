@@ -40,7 +40,7 @@ class DocumentMove extends React.Component<Props> {
 
     // Build index
     const indexeableDocuments = [];
-    paths.slice().forEach(path => {
+    paths.forEach(path => {
       // TMP: For now, exclude paths to other collections
       if (first(path.path).id !== document.collection.id) return;
 

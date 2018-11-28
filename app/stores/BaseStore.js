@@ -38,7 +38,7 @@ export default class BaseStore<T: BaseModel> {
   }
 
   @action
-  add(item: Object): T {
+  add = (item: Object): T => {
     const Model = this.model;
 
     if (!(item instanceof Model)) {
@@ -53,7 +53,7 @@ export default class BaseStore<T: BaseModel> {
 
     this.data.set(item.id, item);
     return item;
-  }
+  };
 
   @action
   remove(id: string): void {
@@ -115,7 +115,7 @@ export default class BaseStore<T: BaseModel> {
   }
 
   @action
-  async fetch(id: string, options?: Object = {}): Promise<?T> {
+  async fetch(id: string, options?: Object = {}): Promise<*> {
     if (!this.actions.includes('info')) {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }

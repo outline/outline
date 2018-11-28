@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
