@@ -1,14 +1,26 @@
 // @flow
 import { DataTypes, sequelize } from '../sequelize';
 
-const Notification = sequelize.define('notification', {
-  event: {
-    type: DataTypes.STRING,
+const Notification = sequelize.define(
+  'notification',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    event: {
+      type: DataTypes.STRING,
+    },
+    email: {
+      type: DataTypes.BOOLEAN,
+    },
   },
-  email: {
-    type: DataTypes.BOOLEAN,
-  },
-});
+  {
+    timestamps: true,
+    updatedAt: false,
+  }
+);
 
 Notification.associate = models => {
   Notification.belongsTo(models.User, {

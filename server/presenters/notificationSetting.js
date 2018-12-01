@@ -6,7 +6,6 @@ function present(ctx: Context, setting: NotificationSetting) {
   return {
     id: setting.id,
     event: setting.event,
-    email: setting.email,
   };
 }
 

@@ -9,17 +9,16 @@ import policy from '../policies';
 const { authorize } = policy;
 const router = new Router();
 
-router.post('notification_settings.create', auth(), async ctx => {
+router.post('notificationSettings.create', auth(), async ctx => {
   const { event } = ctx.body;
   ctx.assertPresent(event, 'event is required');
 
   const user = ctx.state.user;
   authorize(user, 'create', NotificationSetting);
 
-  const setting = await NotificationSetting.findOrCreate({
+  const [setting] = await NotificationSetting.findOrCreate({
     where: {
       userId: user.id,
-      email: true,
       event,
     },
   });
@@ -29,7 +28,7 @@ router.post('notification_settings.create', auth(), async ctx => {
   };
 });
 
-router.post('notification_settings.list', auth(), async ctx => {
+router.post('notificationSettings.list', auth(), async ctx => {
   const user = ctx.state.user;
   const settings = await NotificationSetting.findAll({
     where: {
@@ -42,7 +41,7 @@ router.post('notification_settings.list', auth(), async ctx => {
   };
 });
 
-router.post('notification_settings.delete', auth(), async ctx => {
+router.post('notificationSettings.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 

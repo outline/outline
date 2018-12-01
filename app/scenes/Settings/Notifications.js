@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { debounce } from 'lodash';
 import { observer, inject } from 'mobx-react';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
@@ -45,22 +46,31 @@ const options = [
 @observer
 class Notifications extends React.Component<Props> {
   componentDidMount() {
-    // TODO
+    this.props.notificationSettings.fetchPage();
   }
 
-  handleChange = (ev: SyntheticInputEvent<*>) => {
-    // if (ev.target.checked) {
-    //   this.props.notificationSettings.create({
-    //     event: [ev.target.name],
-    //   });
-    // } else {
-    //   this.props.notificationSettings.delete({
-    //     event: [ev.target.name],
-    //   });
-    // }
+  handleChange = async (ev: SyntheticInputEvent<*>) => {
+    const { notificationSettings } = this.props;
+    const setting = notificationSettings.getByEvent(ev.target.name);
+
+    if (ev.target.checked) {
+      await notificationSettings.save({
+        event: ev.target.name,
+      });
+    } else if (setting) {
+      await notificationSettings.delete(setting);
+    }
+
+    this.showSuccessMessage();
   };
 
+  showSuccessMessage = debounce(() => {
+    this.props.ui.showToast('Notifications updated');
+  }, 1000);
+
   render() {
+    const { notificationSettings } = this.props;
+
     return (
       <CenteredContent>
         <PageTitle title="Notifications" />
@@ -70,16 +80,22 @@ class Notifications extends React.Component<Props> {
           Manage when you receive email notifications from Outline.
         </HelpText>
 
-        {options.map(option => (
-          <NotificationListItem
-            key={option.event}
-            onChange={this.handleChange}
-            {...option}
-          />
-        ))}
+        {options.map(option => {
+          const setting = notificationSettings.getByEvent(option.event);
+
+          return (
+            <NotificationListItem
+              key={option.event}
+              onChange={this.handleChange}
+              setting={setting}
+              disabled={setting ? setting.isSaving : false}
+              {...option}
+            />
+          );
+        })}
       </CenteredContent>
     );
   }
 }
 
-export default inject('notificationSettings')(Notifications);
+export default inject('notificationSettings', 'ui')(Notifications);

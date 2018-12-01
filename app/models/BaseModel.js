@@ -3,6 +3,7 @@ import { set, observable } from 'mobx';
 
 export default class BaseModel {
   @observable id: string;
+  @observable isSaving: boolean;
   store: *;
 
   constructor(fields: Object, store: *) {
@@ -11,21 +12,32 @@ export default class BaseModel {
   }
 
   save = async params => {
-    // ensure that the id is passed if the document has one
-    if (params) params = { ...params, id: this.id };
-    await this.store.save(params || this.toJS());
+    this.isSaving = true;
 
-    // if saving is successful set the new values on the model itself
-    if (params) set(this, params);
-    return this;
+    try {
+      // ensure that the id is passed if the document has one
+      if (params) params = { ...params, id: this.id };
+      await this.store.save(params || this.toJS());
+
+      // if saving is successful set the new values on the model itself
+      if (params) set(this, params);
+      return this;
+    } finally {
+      this.isSaving = false;
+    }
   };
 
   fetch = async () => {
     return this.store.fetch(this.id);
   };
 
-  delete = () => {
-    return this.store.delete(this);
+  delete = async () => {
+    this.isSaving = true;
+    try {
+      return this.store.delete(this);
+    } finally {
+      this.isSaving = false;
+    }
   };
 
   toJS = () => {

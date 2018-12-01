@@ -46,6 +46,10 @@ module.exports = {
       },
       event: {
         type: Sequelize.STRING
+      },
+      createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
       }
     });
   },
