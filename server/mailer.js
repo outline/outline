@@ -8,6 +8,11 @@ import Queue from 'bull';
 import { baseStyles } from './emails/components/EmailLayout';
 import { WelcomeEmail, welcomeEmailText } from './emails/WelcomeEmail';
 import { ExportEmail, exportEmailText } from './emails/ExportEmail';
+import {
+  type Props as DocumentNotificationEmailT,
+  DocumentNotificationEmail,
+  documentNotificationEmailText,
+} from './emails/DocumentNotificationEmail';
 
 const log = debug('emails');
 
@@ -45,9 +50,6 @@ type EmailJob = {
 export default class Mailer {
   transporter: ?any;
 
-  /**
-   *
-   */
   sendMail = async (data: SendMailType): ?Promise<*> => {
     const { transporter } = this;
 
@@ -96,6 +98,27 @@ export default class Mailer {
       html: <ExportEmail />,
       text: exportEmailText,
     });
+  };
+
+  documentNotification = async (
+    opts: { to: string } & DocumentNotificationEmailT
+  ) => {
+    this.sendMail({
+      to: opts.to,
+      title: `"${opts.document.title}" ${opts.eventName}`,
+      html: <DocumentNotificationEmail {...opts} />,
+      text: documentNotificationEmailText(opts),
+    });
+  };
+
+  collectionNotification = async (opts: { to: string }) => {
+    // this.sendMail({
+    //   to: opts.to,
+    //   title: 'Notification',
+    //   previewText: "Here's your request data export from Outline",
+    //   html: <NotificationEmail {...rest} />,
+    //   text: notificationEmailText,
+    // });
   };
 
   constructor() {

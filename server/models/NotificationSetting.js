@@ -24,6 +24,10 @@ NotificationSetting.associate = models => {
     as: 'user',
     foreignKey: 'userId',
   });
+  NotificationSetting.belongsTo(models.Team, {
+    as: 'team',
+    foreignKey: 'teamId',
+  });
 };
 
 export default NotificationSetting;

@@ -44,6 +44,13 @@ module.exports = {
           model: 'users',
         },
       },
+      teamId: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'teams',
+        },
+      },
       event: {
         type: Sequelize.STRING
       },

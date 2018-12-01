@@ -12,7 +12,8 @@ fs
     // $FlowIssue
     const pkg = require(path.join(servicePath, 'package.json'));
     // $FlowIssue
-    const hooks = require(servicePath).default;
+    const Service = require(servicePath).default;
+    const hooks = new Service();
     services[pkg.name] = {
       ...pkg,
       ...hooks,
