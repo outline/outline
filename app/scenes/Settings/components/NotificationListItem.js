@@ -8,6 +8,7 @@ type Props = {
   title: string,
   event: string,
   description: string,
+  disabled: boolean,
   onChange: *,
 };
 
@@ -17,6 +18,7 @@ const NotificationListItem = ({
   event,
   enabled,
   onChange,
+  disabled,
   description,
 }: Props) => {
   return (
@@ -26,6 +28,7 @@ const NotificationListItem = ({
       checked={!!setting}
       onChange={onChange}
       note={description}
+      disabled={disabled}
     />
   );
 };

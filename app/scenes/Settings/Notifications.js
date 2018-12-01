@@ -66,7 +66,7 @@ class Notifications extends React.Component<Props> {
 
   showSuccessMessage = debounce(() => {
     this.props.ui.showToast('Notifications updated');
-  }, 1000);
+  }, 500);
 
   render() {
     const { notificationSettings } = this.props;
@@ -88,7 +88,9 @@ class Notifications extends React.Component<Props> {
               key={option.event}
               onChange={this.handleChange}
               setting={setting}
-              disabled={setting ? setting.isSaving : false}
+              disabled={
+                (setting && setting.isSaving) || notificationSettings.isFetching
+              }
               {...option}
             />
           );
