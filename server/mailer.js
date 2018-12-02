@@ -13,6 +13,11 @@ import {
   DocumentNotificationEmail,
   documentNotificationEmailText,
 } from './emails/DocumentNotificationEmail';
+import {
+  type Props as CollectionNotificationEmailT,
+  CollectionNotificationEmail,
+  collectionNotificationEmailText,
+} from './emails/CollectionNotificationEmail';
 
 const log = debug('emails');
 
@@ -112,14 +117,16 @@ export default class Mailer {
     });
   };
 
-  collectionNotification = async (opts: { to: string }) => {
-    // this.sendMail({
-    //   to: opts.to,
-    //   title: 'Notification',
-    //   previewText: "Here's your request data export from Outline",
-    //   html: <NotificationEmail {...rest} />,
-    //   text: notificationEmailText,
-    // });
+  collectionNotification = async (
+    opts: { to: string } & CollectionNotificationEmailT
+  ) => {
+    this.sendMail({
+      to: opts.to,
+      title: `"${opts.collection.name}" ${opts.eventName}`,
+      previewText: `${opts.actor.name} ${opts.eventName} a collection`,
+      html: <CollectionNotificationEmail {...opts} />,
+      text: collectionNotificationEmailText(opts),
+    });
   };
 
   constructor() {

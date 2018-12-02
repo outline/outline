@@ -1,4 +1,5 @@
 // @flow
+import { Op } from '../../sequelize';
 import type { Event } from '../../events';
 import { Document, Collection, User, NotificationSetting } from '../../models';
 import Mailer from '../../mailer';
@@ -26,6 +27,10 @@ export default class Notifications {
 
     const notificationSettings = await NotificationSetting.findAll({
       where: {
+        userId: {
+          // $FlowFixMe
+          [Op.ne]: document.updatedBy.id,
+        },
         teamId: document.teamId,
         event: event.name,
       },
@@ -58,6 +63,10 @@ export default class Notifications {
 
     const notificationSettings = await NotificationSetting.findAll({
       where: {
+        userId: {
+          // $FlowFixMe
+          [Op.ne]: collection.createdById,
+        },
         teamId: collection.teamId,
         event: event.name,
       },
@@ -65,16 +74,18 @@ export default class Notifications {
         {
           model: User,
           required: true,
+          as: 'user',
         },
       ],
     });
 
-    for (const setting of notificationSettings) {
+    notificationSettings.forEach(setting =>
       mailer.collectionNotification({
         to: setting.user.email,
+        eventName: 'created',
         collection,
         actor: collection.createdBy,
-      });
-    }
+      })
+    );
   }
 }

@@ -31,16 +31,6 @@ const options = [
     title: 'Collection created',
     description: 'Receive a notification whenever a new collection is created',
   },
-  {
-    event: 'summary.daily',
-    title: 'Daily summary',
-    description: 'Receive a daily summary of changes',
-  },
-  {
-    event: 'summary.weekly',
-    title: 'Weekly summary',
-    description: 'Receive a weekly summary of changes',
-  },
 ];
 
 @observer
