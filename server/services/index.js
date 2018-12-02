@@ -13,11 +13,7 @@ fs
     const pkg = require(path.join(servicePath, 'package.json'));
     // $FlowIssue
     const Service = require(servicePath).default;
-    const hooks = new Service();
-    services[pkg.name] = {
-      ...pkg,
-      ...hooks,
-    };
+    services[pkg.name] = new Service();
   });
 
 export default services;

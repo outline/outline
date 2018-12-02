@@ -19,6 +19,7 @@ router.post('notificationSettings.create', auth(), async ctx => {
   const [setting] = await NotificationSetting.findOrCreate({
     where: {
       userId: user.id,
+      teamId: user.teamId,
       event,
     },
   });

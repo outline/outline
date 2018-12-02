@@ -24,7 +24,7 @@ export default class Notifications {
     const { collection } = document;
     if (!collection) return;
 
-    const notificationSettings = await NotificationSetting.find({
+    const notificationSettings = await NotificationSetting.findAll({
       where: {
         teamId: document.teamId,
         event: event.name,
@@ -33,6 +33,7 @@ export default class Notifications {
         {
           model: User,
           required: true,
+          as: 'user',
         },
       ],
     });
@@ -40,22 +41,22 @@ export default class Notifications {
     const eventName =
       event.name === 'documents.publish' ? 'published' : 'updated';
 
-    for (const setting of notificationSettings) {
+    notificationSettings.forEach(setting =>
       mailer.documentNotification({
         to: setting.user.email,
         eventName,
         document,
         collection,
         actor: document.updatedBy,
-      });
-    }
+      })
+    );
   }
 
   async collectionCreated(event: Event) {
     const collection = await Collection.findById(event.model.id);
     if (!collection) return;
 
-    const notificationSettings = await NotificationSetting.find({
+    const notificationSettings = await NotificationSetting.findAll({
       where: {
         teamId: collection.teamId,
         event: event.name,

@@ -106,6 +106,7 @@ export default class Mailer {
     this.sendMail({
       to: opts.to,
       title: `"${opts.document.title}" ${opts.eventName}`,
+      previewText: `${opts.actor.name} ${opts.eventName} a new document`,
       html: <DocumentNotificationEmail {...opts} />,
       text: documentNotificationEmailText(opts),
     });
