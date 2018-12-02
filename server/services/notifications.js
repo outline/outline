@@ -29,7 +29,7 @@ export default class Notifications {
       where: {
         userId: {
           // $FlowFixMe
-          [Op.ne]: document.updatedBy.id,
+          [Op.ne]: document.lastModifiedById,
         },
         teamId: document.teamId,
         event: event.name,
@@ -46,15 +46,25 @@ export default class Notifications {
     const eventName =
       event.name === 'documents.publish' ? 'published' : 'updated';
 
-    notificationSettings.forEach(setting =>
+    notificationSettings.forEach(setting => {
+      // For document updates we only want to send notifications if
+      // the document creator matches the notification setting.
+      // This could be replaced with ability to "follow" in the future
+      if (
+        event.name === 'documents.update' &&
+        document.createdById !== setting.userId
+      ) {
+        return;
+      }
+
       mailer.documentNotification({
         to: setting.user.email,
         eventName,
         document,
         collection,
         actor: document.updatedBy,
-      })
-    );
+      });
+    });
   }
 
   async collectionCreated(event: Event) {

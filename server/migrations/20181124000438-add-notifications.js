@@ -59,10 +59,16 @@ module.exports = {
         allowNull: false,
       }
     });
+
+    await queryInterface.addIndex('notification_settings', ['teamId', 'userId']);
+    await queryInterface.addIndex('notification_settings', ['event']);
   },
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('notifications');
     await queryInterface.dropTable('notification_settings');
+
+    await queryInterface.removeIndex('notification_settings', ['teamId', 'userId']);
+    await queryInterface.removeIndex('notification_settings', ['event']);
   },
 };
