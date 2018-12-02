@@ -1,7 +1,7 @@
 // @flow
-import type { Event } from '../../events';
-import { Document, Integration, Collection } from '../../models';
-import { presentSlackAttachment } from '../../presenters';
+import type { Event } from '../events';
+import { Document, Integration, Collection } from '../models';
+import { presentSlackAttachment } from '../presenters';
 
 export default class Slack {
   async on(event: Event) {
