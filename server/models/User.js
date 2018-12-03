@@ -131,6 +131,9 @@ User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(user => sendEmail('welcome', user.email));
+
+// By default when a user signs up we subscribe them to email notifications
+// when documents they created are edited by other team members.
 User.afterCreate(user =>
   NotificationSetting.findOrCreate({
     where: {
