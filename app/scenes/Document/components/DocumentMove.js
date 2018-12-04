@@ -117,6 +117,7 @@ class DocumentMove extends React.Component<Props> {
   renderPathToCurrentDocument() {
     const { collections, document } = this.props;
     const result = collections.getPathForDocument(document.id);
+
     if (result) {
       return <PathToDocument result={result} />;
     }
@@ -124,7 +125,6 @@ class DocumentMove extends React.Component<Props> {
 
   render() {
     const { document, collections, onRequestClose } = this.props;
-    console.log(collections.pathsToDocuments);
 
     return (
       <Modal isOpen onRequestClose={onRequestClose} title="Move document">

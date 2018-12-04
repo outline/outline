@@ -27,8 +27,12 @@ export default class BaseModel {
     }
   };
 
-  fetch = async () => {
-    return this.store.fetch(this.id);
+  fetch = (options: *) => {
+    return this.store.fetch(this.id, options);
+  };
+
+  refresh = () => {
+    return this.fetch({ force: true });
   };
 
   delete = async () => {

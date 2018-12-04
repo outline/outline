@@ -217,9 +217,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     invariant(res && res.data, 'Data not available');
     const collection = this.rootStore.collections.data.get(
-      document.collection.id
+      document.collectionId
     );
-    if (collection) collection.fetch();
+    if (collection) collection.refresh();
 
     return this.add(res.data);
   };
@@ -235,9 +235,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     invariant(res && res.data, 'Data should be available');
     const collection = this.rootStore.collections.data.get(
-      document.collection.id
+      document.collectionId
     );
-    if (collection) collection.fetch();
+    if (collection) collection.refresh();
 
     return this.add(res.data);
   };
@@ -253,7 +253,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const collection = this.rootStore.collections.data.get(
       document.collectionId
     );
-    if (collection) collection.fetch();
+    if (collection) collection.refresh();
   }
 
   @action

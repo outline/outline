@@ -8,7 +8,7 @@ import RootStore from './RootStore';
 import Collection from '../models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
 
-type DocumentPathItem = {
+export type DocumentPathItem = {
   id: string,
   title: string,
   url: string,
