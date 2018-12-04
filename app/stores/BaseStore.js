@@ -83,7 +83,7 @@ export default class BaseStore<T: BaseModel> {
   }
 
   @action
-  async update(params: Object) {
+  async update(params: Object): * {
     if (!this.actions.includes('update')) {
       throw new Error(`Cannot update ${this.modelName}`);
     }

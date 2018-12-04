@@ -216,9 +216,8 @@ export default class DocumentsStore extends BaseStore<Document> {
       parentDocument: parentDocumentId,
     });
     invariant(res && res.data, 'Data not available');
-    const collection = this.rootStore.collections.data.get(
-      document.collectionId
-    );
+
+    const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
 
     return this.add(res.data);
@@ -234,13 +233,22 @@ export default class DocumentsStore extends BaseStore<Document> {
       text: document.text,
     });
     invariant(res && res.data, 'Data should be available');
-    const collection = this.rootStore.collections.data.get(
-      document.collectionId
-    );
+
+    const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
 
     return this.add(res.data);
   };
+
+  async update(params: *) {
+    const document = await super.update(params);
+
+    // Because the collection object contains the url and title
+    // we need to ensure they are updated there as well.
+    const collection = this.getCollectionForDocument(document);
+    if (collection) collection.updateDocument(document);
+    return document;
+  }
 
   delete(document: Document) {
     super.delete(document);
@@ -250,9 +258,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.recentlyUpdatedIds = without(this.recentlyUpdatedIds, document.id);
     });
 
-    const collection = this.rootStore.collections.data.get(
-      document.collectionId
-    );
+    const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
   }
 
@@ -287,4 +293,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   getByUrl = (url: string): ?Document => {
     return find(Array.from(this.data.values()), doc => url.endsWith(doc.urlId));
   };
+
+  getCollectionForDocument(document: Document) {
+    return this.rootStore.collections.data.get(document.collectionId);
+  }
 }
