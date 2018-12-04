@@ -134,13 +134,15 @@ User.afterCreate(user => sendEmail('welcome', user.email));
 
 // By default when a user signs up we subscribe them to email notifications
 // when documents they created are edited by other team members.
-User.afterCreate(user =>
+User.afterCreate((user, options) =>
   NotificationSetting.findOrCreate({
     where: {
       userId: user.id,
       teamId: user.teamId,
       event: 'documents.update',
     },
+    transaction: options.transaction,
   })
 );
+
 export default User;
