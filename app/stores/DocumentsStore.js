@@ -250,8 +250,8 @@ export default class DocumentsStore extends BaseStore<Document> {
     return document;
   }
 
-  delete(document: Document) {
-    super.delete(document);
+  async delete(document: Document) {
+    await super.delete(document);
 
     runInAction(() => {
       this.recentlyViewedIds = without(this.recentlyViewedIds, document.id);

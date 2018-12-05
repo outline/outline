@@ -9,11 +9,13 @@ import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 import Collection from 'models/Collection';
 import CollectionsStore from 'stores/CollectionsStore';
+import UiStore from 'stores/UiStore';
 
 type Props = {
   history: Object,
   collection: Collection,
   collections: CollectionsStore,
+  ui: UiStore,
   onSubmit: () => void,
 };
 
@@ -29,6 +31,8 @@ class CollectionDelete extends React.Component<Props> {
       await this.props.collection.delete();
       this.props.history.push(homeUrl());
       this.props.onSubmit();
+    } catch (err) {
+      this.props.ui.showToast(err.message);
     } finally {
       this.isDeleting = false;
     }
@@ -54,4 +58,4 @@ class CollectionDelete extends React.Component<Props> {
   }
 }
 
-export default inject('collections')(withRouter(CollectionDelete));
+export default inject('collections', 'ui')(withRouter(CollectionDelete));

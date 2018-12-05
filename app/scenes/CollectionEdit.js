@@ -10,10 +10,12 @@ import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 import ColorPicker from 'components/ColorPicker';
 import Collection from 'models/Collection';
+import UiStore from 'stores/UiStore';
 
 type Props = {
   history: Object,
   collection: Collection,
+  ui: UiStore,
   onSubmit: () => void,
 };
 
@@ -33,14 +35,18 @@ class CollectionEdit extends React.Component<Props> {
     ev.preventDefault();
     this.isSaving = true;
 
-    await this.props.collection.save({
-      name: this.name,
-      description: this.description,
-      color: this.color,
-    });
-
-    this.props.onSubmit();
-    this.isSaving = false;
+    try {
+      await this.props.collection.save({
+        name: this.name,
+        description: this.description,
+        color: this.color,
+      });
+      this.props.onSubmit();
+    } catch (err) {
+      this.props.ui.showToast(err.message);
+    } finally {
+      this.isSaving = false;
+    }
   };
 
   handleDescriptionChange = getValue => {
@@ -95,4 +101,4 @@ class CollectionEdit extends React.Component<Props> {
   }
 }
 
-export default inject('collections')(withRouter(CollectionEdit));
+export default inject('ui')(withRouter(CollectionEdit));

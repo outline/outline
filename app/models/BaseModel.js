@@ -38,7 +38,7 @@ export default class BaseModel {
   delete = async () => {
     this.isSaving = true;
     try {
-      return this.store.delete(this);
+      return await this.store.delete(this);
     } finally {
       this.isSaving = false;
     }

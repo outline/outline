@@ -11,9 +11,11 @@ import HelpText from 'components/HelpText';
 
 import Collection from 'models/Collection';
 import CollectionsStore from 'stores/CollectionsStore';
+import UiStore from 'stores/UiStore';
 
 type Props = {
   history: Object,
+  ui: UiStore,
   collections: CollectionsStore,
   onSubmit: () => void,
 };
@@ -41,6 +43,8 @@ class CollectionNew extends React.Component<Props> {
       await collection.save();
       this.props.onSubmit();
       this.props.history.push(collection.url);
+    } catch (err) {
+      this.props.ui.showToast(err.message);
     } finally {
       this.isSaving = false;
     }
@@ -91,4 +95,4 @@ class CollectionNew extends React.Component<Props> {
   }
 }
 
-export default inject('collections')(withRouter(CollectionNew));
+export default inject('collections', 'ui')(withRouter(CollectionNew));
