@@ -29,7 +29,8 @@ productionWebpackConfig.plugins = [
   new UglifyJsPlugin({
     sourceMap: true,
     uglifyOptions: {
-      compress: true
+      compress: true,
+      keep_fnames: true
     }
   }),
   new webpack.DefinePlugin({
