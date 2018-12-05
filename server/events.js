@@ -1,10 +1,7 @@
 // @flow
 import Queue from 'bull';
-import debug from 'debug';
 import services from './services';
 import { Collection, Document, Integration } from './models';
-
-const log = debug('events');
 
 type DocumentEvent = {
   name: 'documents.create' | 'documents.update' | 'documents.publish',
