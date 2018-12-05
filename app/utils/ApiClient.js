@@ -47,15 +47,23 @@ class ApiClient {
       headers.set('Authorization', `Bearer ${stores.auth.token}`);
     }
 
-    // $FlowFixMe don't care much about this right now
-    const response = await fetch(this.baseUrl + (modifiedPath || path), {
-      method,
-      body,
-      headers,
-      redirect: 'follow',
-      credentials: 'omit',
-      cache: 'no-cache',
-    });
+    let response;
+    try {
+      response = await fetch(this.baseUrl + (modifiedPath || path), {
+        method,
+        body,
+        headers,
+        redirect: 'follow',
+        credentials: 'omit',
+        cache: 'no-cache',
+      });
+    } catch (err) {
+      if (window.navigator.onLine) {
+        throw new Error('A network error occurred, try again?');
+      } else {
+        throw new Error('No internet connection available');
+      }
+    }
 
     if (response.status >= 200 && response.status < 300) {
       return response.json();
@@ -92,9 +100,10 @@ class ApiClient {
 
   // Helpers
   constructQueryString = (data: Object) => {
-    return map(data, (v, k) => {
-      return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
-    }).join('&');
+    return map(
+      data,
+      (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+    ).join('&');
   };
 }
 

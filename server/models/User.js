@@ -6,7 +6,7 @@ import subMinutes from 'date-fns/sub_minutes';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
-import { Star, ApiKey } from '.';
+import { Star, NotificationSetting, ApiKey } from '.';
 
 const User = sequelize.define(
   'user',
@@ -131,5 +131,18 @@ User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(user => sendEmail('welcome', user.email));
+
+// By default when a user signs up we subscribe them to email notifications
+// when documents they created are edited by other team members.
+User.afterCreate((user, options) =>
+  NotificationSetting.findOrCreate({
+    where: {
+      userId: user.id,
+      teamId: user.teamId,
+      event: 'documents.update',
+    },
+    transaction: options.transaction,
+  })
+);
 
 export default User;

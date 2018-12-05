@@ -8,6 +8,16 @@ import Queue from 'bull';
 import { baseStyles } from './emails/components/EmailLayout';
 import { WelcomeEmail, welcomeEmailText } from './emails/WelcomeEmail';
 import { ExportEmail, exportEmailText } from './emails/ExportEmail';
+import {
+  type Props as DocumentNotificationEmailT,
+  DocumentNotificationEmail,
+  documentNotificationEmailText,
+} from './emails/DocumentNotificationEmail';
+import {
+  type Props as CollectionNotificationEmailT,
+  CollectionNotificationEmail,
+  collectionNotificationEmailText,
+} from './emails/CollectionNotificationEmail';
 
 const log = debug('emails');
 
@@ -42,12 +52,9 @@ type EmailJob = {
  * HTML: http://localhost:3000/email/:email_type/html
  * TEXT: http://localhost:3000/email/:email_type/text
  */
-export default class Mailer {
+export class Mailer {
   transporter: ?any;
 
-  /**
-   *
-   */
   sendMail = async (data: SendMailType): ?Promise<*> => {
     const { transporter } = this;
 
@@ -98,6 +105,30 @@ export default class Mailer {
     });
   };
 
+  documentNotification = async (
+    opts: { to: string } & DocumentNotificationEmailT
+  ) => {
+    this.sendMail({
+      to: opts.to,
+      title: `"${opts.document.title}" ${opts.eventName}`,
+      previewText: `${opts.actor.name} ${opts.eventName} a new document`,
+      html: <DocumentNotificationEmail {...opts} />,
+      text: documentNotificationEmailText(opts),
+    });
+  };
+
+  collectionNotification = async (
+    opts: { to: string } & CollectionNotificationEmailT
+  ) => {
+    this.sendMail({
+      to: opts.to,
+      title: `"${opts.collection.name}" ${opts.eventName}`,
+      previewText: `${opts.actor.name} ${opts.eventName} a collection`,
+      html: <CollectionNotificationEmail {...opts} />,
+      text: collectionNotificationEmailText(opts),
+    });
+  };
+
   constructor() {
     if (process.env.SMTP_HOST) {
       let smtpConfig = {
@@ -120,6 +151,8 @@ export default class Mailer {
 }
 
 const mailer = new Mailer();
+export default mailer;
+
 export const mailerQueue = new Queue('email', process.env.REDIS_URL);
 
 mailerQueue.process(async (job: EmailJob) => {

@@ -6,7 +6,7 @@ import UserMenu from 'menus/UserMenu';
 import Avatar from 'components/Avatar';
 import ListItem from 'components/List/Item';
 import Time from 'shared/components/Time';
-import type { User } from '../../../types';
+import User from 'models/User';
 
 type Props = {
   user: User,

@@ -11,6 +11,7 @@ import Document from 'scenes/Document';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import Details from 'scenes/Settings/Details';
+import Notifications from 'scenes/Settings/Notifications';
 import Security from 'scenes/Settings/Security';
 import People from 'scenes/Settings/People';
 import Slack from 'scenes/Settings/Slack';
@@ -21,7 +22,7 @@ import Export from 'scenes/Settings/Export';
 import Error404 from 'scenes/Error404';
 
 import Layout from 'components/Layout';
-import Auth from 'components/Auth';
+import Authenticated from 'components/Authenticated';
 import RouteSidebarHidden from 'components/RouteSidebarHidden';
 import { matchDocumentSlug as slug } from 'utils/routeHelpers';
 
@@ -36,7 +37,7 @@ export default function Routes() {
     <Switch>
       <Route exact path="/" component={Home} />
       <Route exact path="/share/:shareId" component={Document} />
-      <Auth>
+      <Authenticated>
         <Layout>
           <Switch>
             <Route path="/dashboard/:tab" component={Dashboard} />
@@ -51,6 +52,11 @@ export default function Routes() {
             <Route exact path="/settings/people/:filter" component={People} />
             <Route exact path="/settings/shares" component={Shares} />
             <Route exact path="/settings/tokens" component={Tokens} />
+            <Route
+              exact
+              path="/settings/notifications"
+              component={Notifications}
+            />
             <Route
               exact
               path="/settings/integrations/slack"
@@ -86,7 +92,7 @@ export default function Routes() {
             <Route component={NotFound} />
           </Switch>
         </Layout>
-      </Auth>
+      </Authenticated>
     </Switch>
   );
 }

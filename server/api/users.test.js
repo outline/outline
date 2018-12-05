@@ -10,10 +10,35 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
-describe('#user.info', async () => {
+describe('#users.list', async () => {
+  it('should return teams paginated user list', async () => {
+    const { admin } = await seed();
+
+    const res = await server.post('/api/users.list', {
+      body: { token: admin.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require admin for detailed info', async () => {
+    const { user } = await seed();
+    const res = await server.post('/api/users.list', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#users.info', async () => {
   it('should return known user', async () => {
     const user = await buildUser();
-    const res = await server.post('/api/user.info', {
+    const res = await server.post('/api/users.info', {
       body: { token: user.getJwtToken() },
     });
     const body = await res.json();
@@ -24,15 +49,15 @@ describe('#user.info', async () => {
   });
 
   it('should require authentication', async () => {
-    const res = await server.post('/api/user.info');
+    const res = await server.post('/api/users.info');
     expect(res.status).toEqual(401);
   });
 });
 
-describe('#user.delete', async () => {
+describe('#users.delete', async () => {
   it('should not allow deleting without confirmation', async () => {
     const user = await buildUser();
-    const res = await server.post('/api/user.delete', {
+    const res = await server.post('/api/users.delete', {
       body: { token: user.getJwtToken() },
     });
     expect(res.status).toEqual(400);
@@ -40,7 +65,7 @@ describe('#user.delete', async () => {
 
   it('should allow deleting last admin if only user', async () => {
     const user = await buildUser({ isAdmin: true });
-    const res = await server.post('/api/user.delete', {
+    const res = await server.post('/api/users.delete', {
       body: { token: user.getJwtToken(), confirmation: true },
     });
     expect(res.status).toEqual(200);
@@ -50,7 +75,7 @@ describe('#user.delete', async () => {
     const user = await buildUser({ isAdmin: true });
     await buildUser({ teamId: user.teamId, isAdmin: false });
 
-    const res = await server.post('/api/user.delete', {
+    const res = await server.post('/api/users.delete', {
       body: { token: user.getJwtToken(), confirmation: true },
     });
     expect(res.status).toEqual(400);
@@ -58,14 +83,14 @@ describe('#user.delete', async () => {
 
   it('should allow deleting user account with confirmation', async () => {
     const user = await buildUser();
-    const res = await server.post('/api/user.delete', {
+    const res = await server.post('/api/users.delete', {
       body: { token: user.getJwtToken(), confirmation: true },
     });
     expect(res.status).toEqual(200);
   });
 
   it('should require authentication', async () => {
-    const res = await server.post('/api/user.delete');
+    const res = await server.post('/api/users.delete');
     const body = await res.json();
 
     expect(res.status).toEqual(401);
@@ -73,10 +98,10 @@ describe('#user.delete', async () => {
   });
 });
 
-describe('#user.update', async () => {
+describe('#users.update', async () => {
   it('should update user profile information', async () => {
     const { user } = await seed();
-    const res = await server.post('/api/user.update', {
+    const res = await server.post('/api/users.update', {
       body: { token: user.getJwtToken(), name: 'New name' },
     });
     const body = await res.json();
@@ -86,7 +111,7 @@ describe('#user.update', async () => {
   });
 
   it('should require authentication', async () => {
-    const res = await server.post('/api/user.update');
+    const res = await server.post('/api/users.update');
     const body = await res.json();
 
     expect(res.status).toEqual(401);
@@ -94,11 +119,11 @@ describe('#user.update', async () => {
   });
 });
 
-describe('#user.promote', async () => {
+describe('#users.promote', async () => {
   it('should promote a new admin', async () => {
     const { admin, user } = await seed();
 
-    const res = await server.post('/api/user.promote', {
+    const res = await server.post('/api/users.promote', {
       body: { token: admin.getJwtToken(), id: user.id },
     });
     const body = await res.json();
@@ -109,7 +134,7 @@ describe('#user.promote', async () => {
 
   it('should require admin', async () => {
     const user = await buildUser();
-    const res = await server.post('/api/user.promote', {
+    const res = await server.post('/api/users.promote', {
       body: { token: user.getJwtToken(), id: user.id },
     });
     const body = await res.json();
@@ -119,12 +144,12 @@ describe('#user.promote', async () => {
   });
 });
 
-describe('#user.demote', async () => {
+describe('#users.demote', async () => {
   it('should demote an admin', async () => {
     const { admin, user } = await seed();
     await user.update({ isAdmin: true }); // Make another admin
 
-    const res = await server.post('/api/user.demote', {
+    const res = await server.post('/api/users.demote', {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
@@ -139,7 +164,7 @@ describe('#user.demote', async () => {
   it("shouldn't demote admins if only one available ", async () => {
     const admin = await buildUser({ isAdmin: true });
 
-    const res = await server.post('/api/user.demote', {
+    const res = await server.post('/api/users.demote', {
       body: {
         token: admin.getJwtToken(),
         id: admin.id,
@@ -153,7 +178,7 @@ describe('#user.demote', async () => {
 
   it('should require admin', async () => {
     const user = await buildUser();
-    const res = await server.post('/api/user.promote', {
+    const res = await server.post('/api/users.promote', {
       body: { token: user.getJwtToken(), id: user.id },
     });
     const body = await res.json();
@@ -163,11 +188,11 @@ describe('#user.demote', async () => {
   });
 });
 
-describe('#user.suspend', async () => {
+describe('#users.suspend', async () => {
   it('should suspend an user', async () => {
     const { admin, user } = await seed();
 
-    const res = await server.post('/api/user.suspend', {
+    const res = await server.post('/api/users.suspend', {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
@@ -181,7 +206,7 @@ describe('#user.suspend', async () => {
 
   it("shouldn't allow suspending the user themselves", async () => {
     const admin = await buildUser({ isAdmin: true });
-    const res = await server.post('/api/user.suspend', {
+    const res = await server.post('/api/users.suspend', {
       body: {
         token: admin.getJwtToken(),
         id: admin.id,
@@ -195,7 +220,7 @@ describe('#user.suspend', async () => {
 
   it('should require admin', async () => {
     const user = await buildUser();
-    const res = await server.post('/api/user.suspend', {
+    const res = await server.post('/api/users.suspend', {
       body: { token: user.getJwtToken(), id: user.id },
     });
     const body = await res.json();
@@ -205,7 +230,7 @@ describe('#user.suspend', async () => {
   });
 });
 
-describe('#user.activate', async () => {
+describe('#users.activate', async () => {
   it('should activate a suspended user', async () => {
     const { admin, user } = await seed();
     await user.update({
@@ -214,7 +239,7 @@ describe('#user.activate', async () => {
     });
 
     expect(user.isSuspended).toBe(true);
-    const res = await server.post('/api/user.activate', {
+    const res = await server.post('/api/users.activate', {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
@@ -228,7 +253,7 @@ describe('#user.activate', async () => {
 
   it('should require admin', async () => {
     const user = await buildUser();
-    const res = await server.post('/api/user.activate', {
+    const res = await server.post('/api/users.activate', {
       body: { token: user.getJwtToken(), id: user.id },
     });
     const body = await res.json();

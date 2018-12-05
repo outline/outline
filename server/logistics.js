@@ -1,13 +1,12 @@
 // @flow
 import Queue from 'bull';
 import debug from 'debug';
-import Mailer from './mailer';
+import mailer from './mailer';
 import { Collection, Team } from './models';
 import { archiveCollection, archiveCollections } from './utils/zip';
 
 const log = debug('logistics');
 const logisticsQueue = new Queue('logistics', process.env.REDIS_URL);
-const mailer = new Mailer();
 const queueOptions = {
   attempts: 2,
   removeOnComplete: true,

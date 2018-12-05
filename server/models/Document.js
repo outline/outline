@@ -285,6 +285,10 @@ Document.addHook('afterCreate', async model => {
   return model;
 });
 
+Document.addHook('afterUpdate', model =>
+  events.add({ name: 'documents.update', model })
+);
+
 Document.addHook('afterDestroy', model =>
   events.add({ name: 'documents.delete', model })
 );

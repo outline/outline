@@ -2,26 +2,26 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import { NotFoundError } from '../errors';
-import Mailer from '../mailer';
+import { Mailer } from '../mailer';
 
 const emailPreviews = new Koa();
 const router = new Router();
 
 router.get('/:type/:format', async ctx => {
-  const previewMailer = new Mailer();
   let mailerOutput;
-  previewMailer.transporter = {
+  let mailer = new Mailer();
+  mailer.transporter = {
     sendMail: data => (mailerOutput = data),
   };
 
   switch (ctx.params.type) {
     // case 'emailWithProperties':
-    //   previewMailer.emailWithProperties('user@example.com', {...properties});
+    //   mailer.emailWithProperties('user@example.com', {...properties});
     //   break;
     default:
-      if (Object.getOwnPropertyNames(previewMailer).includes(ctx.params.type)) {
+      if (Object.getOwnPropertyNames(mailer).includes(ctx.params.type)) {
         // $FlowIssue flow doesn't like this but we're ok with it
-        previewMailer[ctx.params.type]('user@example.com');
+        mailer[ctx.params.type]('user@example.com');
       } else throw new NotFoundError('Email template could not be found');
   }
 

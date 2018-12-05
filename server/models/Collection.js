@@ -30,7 +30,6 @@ const Collection = sequelize.define(
       type: DataTypes.STRING,
       validate: { isIn: allowedCollectionTypes },
     },
-    creatorId: DataTypes.UUID,
 
     /* type: atlas */
     documentStructure: DataTypes.JSONB,
@@ -85,6 +84,10 @@ Collection.associate = models => {
     as: 'documents',
     foreignKey: 'collectionId',
     onDelete: 'cascade',
+  });
+  Collection.belongsTo(models.User, {
+    as: 'user',
+    foreignKey: 'creatorId',
   });
   Collection.belongsTo(models.Team, {
     as: 'team',

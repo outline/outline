@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`#user.activate should activate a suspended user 1`] = `
+exports[`#users.activate should activate a suspended user 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
@@ -17,7 +17,7 @@ Object {
 }
 `;
 
-exports[`#user.activate should require admin 1`] = `
+exports[`#users.activate should require admin 1`] = `
 Object {
   "error": "admin_required",
   "message": "An admin role is required to access this resource",
@@ -26,7 +26,7 @@ Object {
 }
 `;
 
-exports[`#user.delete should require authentication 1`] = `
+exports[`#users.delete should require authentication 1`] = `
 Object {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -35,7 +35,7 @@ Object {
 }
 `;
 
-exports[`#user.demote should demote an admin 1`] = `
+exports[`#users.demote should demote an admin 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
@@ -52,7 +52,7 @@ Object {
 }
 `;
 
-exports[`#user.demote should require admin 1`] = `
+exports[`#users.demote should require admin 1`] = `
 Object {
   "error": "admin_required",
   "message": "An admin role is required to access this resource",
@@ -61,7 +61,7 @@ Object {
 }
 `;
 
-exports[`#user.demote shouldn't demote admins if only one available  1`] = `
+exports[`#users.demote shouldn't demote admins if only one available  1`] = `
 Object {
   "error": "validation_error",
   "message": "At least one admin is required",
@@ -70,7 +70,69 @@ Object {
 }
 `;
 
-exports[`#user.promote should promote a new admin 1`] = `
+exports[`#users.list should require admin for detailed info 1`] = `
+Object {
+  "data": Array [
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "createdAt": "2018-01-01T00:00:00.000Z",
+      "id": "fa952cff-fa64-4d42-a6ea-6955c9689046",
+      "name": "Admin User",
+      "username": "admin",
+    },
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "createdAt": "2018-01-01T00:00:00.000Z",
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+      "name": "User 1",
+      "username": "user1",
+    },
+  ],
+  "ok": true,
+  "pagination": Object {
+    "limit": 15,
+    "nextPath": "/api/users.list?limit=15&offset=15",
+    "offset": 0,
+  },
+  "status": 200,
+}
+`;
+
+exports[`#users.list should return teams paginated user list 1`] = `
+Object {
+  "data": Array [
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "createdAt": "2018-01-01T00:00:00.000Z",
+      "email": "user1@example.com",
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+      "isAdmin": false,
+      "isSuspended": false,
+      "name": "User 1",
+      "username": "user1",
+    },
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
+      "createdAt": "2018-01-01T00:00:00.000Z",
+      "email": "admin@example.com",
+      "id": "fa952cff-fa64-4d42-a6ea-6955c9689046",
+      "isAdmin": true,
+      "isSuspended": false,
+      "name": "Admin User",
+      "username": "admin",
+    },
+  ],
+  "ok": true,
+  "pagination": Object {
+    "limit": 15,
+    "nextPath": "/api/users.list?limit=15&offset=15",
+    "offset": 0,
+  },
+  "status": 200,
+}
+`;
+
+exports[`#users.promote should promote a new admin 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
@@ -87,7 +149,7 @@ Object {
 }
 `;
 
-exports[`#user.promote should require admin 1`] = `
+exports[`#users.promote should require admin 1`] = `
 Object {
   "error": "admin_required",
   "message": "An admin role is required to access this resource",
@@ -96,7 +158,7 @@ Object {
 }
 `;
 
-exports[`#user.suspend should require admin 1`] = `
+exports[`#users.suspend should require admin 1`] = `
 Object {
   "error": "admin_required",
   "message": "An admin role is required to access this resource",
@@ -105,7 +167,7 @@ Object {
 }
 `;
 
-exports[`#user.suspend should suspend an user 1`] = `
+exports[`#users.suspend should suspend an user 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
@@ -122,7 +184,7 @@ Object {
 }
 `;
 
-exports[`#user.suspend shouldn't allow suspending the user themselves 1`] = `
+exports[`#users.suspend shouldn't allow suspending the user themselves 1`] = `
 Object {
   "error": "validation_error",
   "message": "Unable to suspend the current user",
@@ -131,7 +193,7 @@ Object {
 }
 `;
 
-exports[`#user.update should require authentication 1`] = `
+exports[`#users.update should require authentication 1`] = `
 Object {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -140,7 +202,7 @@ Object {
 }
 `;
 
-exports[`#user.update should update user profile information 1`] = `
+exports[`#users.update should update user profile information 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",

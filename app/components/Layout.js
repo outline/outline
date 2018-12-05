@@ -124,4 +124,4 @@ const Content = styled(Flex)`
   `};
 `;
 
-export default withRouter(inject('user', 'auth', 'ui', 'documents')(Layout));
+export default withRouter(inject('auth', 'ui', 'documents')(Layout));

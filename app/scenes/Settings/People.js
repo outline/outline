@@ -33,7 +33,7 @@ class People extends React.Component<Props> {
 
     let users = this.props.users.active;
     if (filter === 'all') {
-      users = this.props.users.data;
+      users = this.props.users.orderedData;
     } else if (filter === 'admins') {
       users = this.props.users.admins;
     }

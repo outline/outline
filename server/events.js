@@ -1,7 +1,7 @@
 // @flow
 import Queue from 'bull';
 import services from './services';
-import { Collection, Document } from './models';
+import { Collection, Document, Integration } from './models';
 
 type DocumentEvent = {
   name: 'documents.create' | 'documents.update' | 'documents.publish',
@@ -13,7 +13,12 @@ type CollectionEvent = {
   model: Collection,
 };
 
-export type Event = DocumentEvent | CollectionEvent;
+type IntegrationEvent = {
+  name: 'integrations.create' | 'integrations.update',
+  model: Integration,
+};
+
+export type Event = DocumentEvent | CollectionEvent | IntegrationEvent;
 
 const globalEventsQueue = new Queue('global events', process.env.REDIS_URL);
 const serviceEventsQueue = new Queue('service events', process.env.REDIS_URL);

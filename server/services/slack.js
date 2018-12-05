@@ -1,10 +1,10 @@
 // @flow
-import type { Event } from '../../events';
-import { Document, Integration, Collection } from '../../models';
-import { presentSlackAttachment } from '../../presenters';
+import type { Event } from '../events';
+import { Document, Integration, Collection } from '../models';
+import { presentSlackAttachment } from '../presenters';
 
-class Slack {
-  on = async (event: Event) => {
+export default class Slack {
+  async on(event: Event) {
     switch (event.name) {
       case 'documents.publish':
       case 'documents.update':
@@ -13,9 +13,9 @@ class Slack {
         return this.integrationCreated(event);
       default:
     }
-  };
+  }
 
-  integrationCreated = async (event: Event) => {
+  async integrationCreated(event: Event) {
     const integration = await Integration.findOne({
       where: {
         id: event.model.id,
@@ -54,9 +54,9 @@ class Slack {
         ],
       }),
     });
-  };
+  }
 
-  documentUpdated = async (event: Event) => {
+  async documentUpdated(event: Event) {
     const document = await Document.findById(event.model.id);
     if (!document) return;
 
@@ -86,7 +86,5 @@ class Slack {
         attachments: [presentSlackAttachment(document)],
       }),
     });
-  };
+  }
 }
-
-export default new Slack();

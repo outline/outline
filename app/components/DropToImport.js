@@ -3,15 +3,15 @@ import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { createGlobalStyle } from 'styled-components';
-import importFile from 'utils/importFile';
+import { omit } from 'lodash';
 import invariant from 'invariant';
-import _ from 'lodash';
+import importFile from 'utils/importFile';
 import Dropzone from 'react-dropzone';
 import DocumentsStore from 'stores/DocumentsStore';
 import LoadingIndicator from 'components/LoadingIndicator';
 
 type Props = {
-  children?: React.Node,
+  children: React.Node,
   collectionId: string,
   documentId?: string,
   activeClassName?: string,
@@ -62,15 +62,13 @@ class DropToImport extends React.Component<Props> {
           this.props.history.push(doc.url);
         }
       }
-    } catch (err) {
-      // TODO: show error alert.
     } finally {
       this.isImporting = false;
     }
   };
 
   render() {
-    const props = _.omit(
+    const props = omit(
       this.props,
       'history',
       'documentId',

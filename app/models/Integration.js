@@ -3,8 +3,6 @@ import { extendObservable, action } from 'mobx';
 
 import BaseModel from 'models/BaseModel';
 import { client } from 'utils/ApiClient';
-import stores from 'stores';
-import UiStore from 'stores/UiStore';
 
 type Settings = {
   url: string,
@@ -15,8 +13,6 @@ type Settings = {
 type Events = 'documents.create' | 'collections.create';
 
 class Integration extends BaseModel {
-  ui: UiStore;
-
   id: string;
   service: string;
   collectionId: string;
@@ -25,33 +21,15 @@ class Integration extends BaseModel {
 
   @action
   update = async (data: Object) => {
-    try {
-      await client.post('/integrations.update', { id: this.id, ...data });
-      extendObservable(this, data);
-    } catch (e) {
-      this.ui.showToast('Integration failed to update');
-    }
-    return false;
+    await client.post('/integrations.update', { id: this.id, ...data });
+    extendObservable(this, data);
+    return true;
   };
 
   @action
-  delete = async () => {
-    try {
-      await client.post('/integrations.delete', { id: this.id });
-      this.emit('integrations.delete', { id: this.id });
-      return true;
-    } catch (e) {
-      this.ui.showToast('Integration failed to delete');
-    }
-    return false;
+  delete = () => {
+    return this.store.delete(this);
   };
-
-  constructor(data?: Object = {}) {
-    super();
-
-    extendObservable(this, data);
-    this.ui = stores.ui;
-  }
 }
 
 export default Integration;

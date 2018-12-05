@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
@@ -18,9 +18,7 @@ import {
   matchDocumentEdit,
 } from 'utils/routeHelpers';
 import { emojiToUrl } from 'utils/emoji';
-import type { Revision } from 'types';
 
-import Document from 'models/Document';
 import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
@@ -38,6 +36,9 @@ import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import RevisionsStore from 'stores/RevisionsStore';
+import Document from 'models/Document';
+import Revision from 'models/Revision';
+
 import schema from './schema';
 
 const AUTOSAVE_DELAY = 3000;
@@ -101,6 +102,10 @@ class DocumentScene extends React.Component<Props> {
     this.props.ui.clearActiveDocument();
   }
 
+  goToDocumentCanonical = () => {
+    if (this.document) this.props.history.push(this.document.url);
+  };
+
   @keydown('m')
   goToMove(ev) {
     ev.preventDefault();
@@ -121,14 +126,17 @@ class DocumentScene extends React.Component<Props> {
 
   loadDocument = async props => {
     if (props.newDocument) {
-      this.document = new Document({
-        collection: { id: props.match.params.id },
-        parentDocument: new URLSearchParams(props.location.search).get(
-          'parentDocument'
-        ),
-        title: '',
-        text: '',
-      });
+      this.document = new Document(
+        {
+          collection: { id: props.match.params.id },
+          parentDocument: new URLSearchParams(props.location.search).get(
+            'parentDocument'
+          ),
+          title: '',
+          text: '',
+        },
+        this.props.documents
+      );
     } else {
       const { shareId, revisionId } = props.match.params;
 
@@ -140,7 +148,7 @@ class DocumentScene extends React.Component<Props> {
       if (revisionId) {
         this.revision = await this.props.revisions.fetch(
           props.match.params.documentSlug,
-          revisionId
+          { revisionId }
         );
       } else {
         this.revision = undefined;
@@ -201,7 +209,7 @@ class DocumentScene extends React.Component<Props> {
     // prevent autosave if nothing has changed
     if (options.autosave && document.text.trim() === text.trim()) return;
 
-    document.updateData({ text });
+    document.text = text;
     if (!document.allowSave) return;
 
     // prevent autosave before anything has been written
@@ -310,7 +318,12 @@ class DocumentScene extends React.Component<Props> {
         >
           <Route
             path={`${match.url}/move`}
-            component={() => <DocumentMove document={document} />}
+            component={() => (
+              <DocumentMove
+                document={document}
+                onRequestClose={this.goToDocumentCanonical}
+              />
+            )}
           />
           <PageTitle
             title={document.title.replace(document.emoji, '')}

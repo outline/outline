@@ -4,20 +4,45 @@ import invariant from 'invariant';
 import Cookie from 'js-cookie';
 import { client } from 'utils/ApiClient';
 import { stripSubdomain } from 'shared/utils/domains';
-import type { User, Team } from 'types';
+import RootStore from 'stores/RootStore';
+import User from 'models/User';
+import Team from 'models/Team';
 
 const AUTH_STORE = 'AUTH_STORE';
 
-class AuthStore {
+export default class AuthStore {
   @observable user: ?User;
   @observable team: ?Team;
   @observable token: ?string;
   @observable isSaving: boolean = false;
-  @observable isLoading: boolean = false;
   @observable isSuspended: boolean = false;
   @observable suspendedContactEmail: ?string;
+  rootStore: RootStore;
 
-  /* Computed */
+  constructor(rootStore: RootStore) {
+    // Rehydrate
+    let data = {};
+    try {
+      data = JSON.parse(localStorage.getItem(AUTH_STORE) || '{}');
+    } catch (_) {
+      // no-op Safari private mode
+    }
+
+    this.rootStore = rootStore;
+    this.user = data.user;
+    this.team = data.team;
+    this.token = Cookie.get('accessToken');
+
+    if (this.token) setImmediate(() => this.fetch());
+
+    autorun(() => {
+      try {
+        localStorage.setItem(AUTH_STORE, this.asJson);
+      } catch (_) {
+        // no-op Safari private mode
+      }
+    });
+  }
 
   @computed
   get authenticated(): boolean {
@@ -39,8 +64,18 @@ class AuthStore {
       invariant(res && res.data, 'Auth not available');
 
       runInAction('AuthStore#fetch', () => {
-        this.user = res.data.user;
-        this.team = res.data.team;
+        const { user, team } = res.data;
+        this.user = user;
+        this.team = team;
+
+        if (window.Bugsnag) {
+          Bugsnag.user = {
+            id: user.id,
+            name: user.name,
+            teamId: team.id,
+            team: team.name,
+          };
+        }
       });
     } catch (err) {
       if (err.error.error === 'user_suspended') {
@@ -52,7 +87,7 @@ class AuthStore {
 
   @action
   deleteUser = async () => {
-    await client.post(`/user.delete`, { confirmation: true });
+    await client.post(`/users.delete`, { confirmation: true });
 
     runInAction('AuthStore#updateUser', () => {
       this.user = null;
@@ -66,7 +101,7 @@ class AuthStore {
     this.isSaving = true;
 
     try {
-      const res = await client.post(`/user.update`, params);
+      const res = await client.post(`/users.update`, params);
       invariant(res && res.data, 'User response not available');
 
       runInAction('AuthStore#updateUser', () => {
@@ -120,29 +155,4 @@ class AuthStore {
     // add a timestamp to force reload from server
     window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
   };
-
-  constructor() {
-    // Rehydrate
-    let data = {};
-    try {
-      data = JSON.parse(localStorage.getItem(AUTH_STORE) || '{}');
-    } catch (_) {
-      // no-op Safari private mode
-    }
-    this.user = data.user;
-    this.team = data.team;
-    this.token = Cookie.get('accessToken');
-
-    if (this.token) setImmediate(() => this.fetch());
-
-    autorun(() => {
-      try {
-        localStorage.setItem(AUTH_STORE, this.asJson);
-      } catch (_) {
-        // no-op Safari private mode
-      }
-    });
-  }
 }
-
-export default AuthStore;

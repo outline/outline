@@ -39,7 +39,7 @@ class MainSidebar extends React.Component<Props> {
   render() {
     const { auth, documents } = this.props;
     const { user, team } = auth;
-    if (!user || !team) return;
+    if (!user || !team) return null;
 
     return (
       <Sidebar>
@@ -89,6 +89,4 @@ class MainSidebar extends React.Component<Props> {
   }
 }
 
-export default withRouter(
-  inject('user', 'documents', 'auth', 'ui')(MainSidebar)
-);
+export default withRouter(inject('documents', 'auth', 'ui')(MainSidebar));

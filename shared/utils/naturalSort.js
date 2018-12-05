@@ -2,7 +2,7 @@
 import { sortBy } from 'lodash';
 import naturalSort from 'natural-sort';
 
-export default (sortableArray: Object[], key: string) => {
+export default (sortableArray: *, key: string): * => {
   if (!sortableArray) return [];
 
   let keys = sortableArray.map(object => object[key]);

@@ -33,7 +33,7 @@ class CollectionExport extends React.Component<Props> {
 
   render() {
     const { collection, auth } = this.props;
-    if (!auth.user) return;
+    if (!auth.user) return null;
 
     return (
       <Flex column>

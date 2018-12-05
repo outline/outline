@@ -1,12 +1,14 @@
 // @flow
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import invariant from 'invariant';
 import styled from 'styled-components';
 import { GoToIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 
 import Document from 'models/Document';
+import type { DocumentPath } from 'stores/CollectionsStore';
+
+const StyledGoToIcon = styled(GoToIcon)``;
 
 const ResultWrapper = styled.div`
   display: flex;
@@ -15,8 +17,6 @@ const ResultWrapper = styled.div`
   color: ${props => props.theme.text};
   cursor: default;
 `;
-
-const StyledGoToIcon = styled(GoToIcon)``;
 
 const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
   height: 32px;
@@ -40,10 +40,10 @@ const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
 `;
 
 type Props = {
-  result: Object,
+  result: DocumentPath,
   document?: Document,
-  onSuccess?: Function,
-  ref?: Function,
+  onSuccess?: *,
+  ref?: *,
 };
 
 @observer
@@ -51,8 +51,7 @@ class PathToDocument extends React.Component<Props> {
   handleClick = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { document, result, onSuccess } = this.props;
-
-    invariant(onSuccess && document, 'onSuccess unavailable');
+    if (!document) return;
 
     if (result.type === 'document') {
       await document.move(result.id);
@@ -64,7 +63,8 @@ class PathToDocument extends React.Component<Props> {
     } else {
       throw new Error('Not implemented yet');
     }
-    onSuccess();
+
+    if (onSuccess) onSuccess();
   };
 
   render() {
@@ -74,7 +74,7 @@ class PathToDocument extends React.Component<Props> {
     if (!result) return <div />;
 
     return (
-      <Component ref={ref} onClick={this.handleClick} selectable href>
+      <Component ref={ref} onClick={this.handleClick} href="" selectable>
         {result.path
           .map(doc => <span key={doc.id}>{doc.title}</span>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}

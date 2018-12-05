@@ -54,8 +54,7 @@ class CollectionScene extends React.Component<Props> {
   }
 
   loadContent = async (id: string) => {
-    const { collections } = this.props;
-    const collection = collections.getById(id) || (await collections.fetch(id));
+    const collection = await this.props.collections.fetch(id);
 
     if (collection) {
       this.props.ui.setActiveCollection(collection);
@@ -103,7 +102,7 @@ class CollectionScene extends React.Component<Props> {
   }
 
   renderEmptyCollection() {
-    if (!this.collection) return;
+    if (!this.collection) return null;
 
     return (
       <CenteredContent>

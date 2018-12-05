@@ -201,7 +201,7 @@ declare module 'koa' {
   };
   // https://github.com/pillarjs/cookies
   declare type CookiesSetOptions = {
-    domain: string, // domain of the cookie (no default).
+    domain?: string, // domain of the cookie (no default).
     maxAge?: number, // milliseconds from Date.now() for expiry
     expires?: Date, //cookie's expiration date (expires at the end of session by default).
     path?: string, //  the path of the cookie (/ by default).

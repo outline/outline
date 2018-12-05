@@ -1,0 +1,60 @@
+// @flow
+import Router from 'koa-router';
+
+import auth from '../middlewares/authentication';
+import { NotificationSetting } from '../models';
+import { presentNotificationSetting } from '../presenters';
+import policy from '../policies';
+
+const { authorize } = policy;
+const router = new Router();
+
+router.post('notificationSettings.create', auth(), async ctx => {
+  const { event } = ctx.body;
+  ctx.assertPresent(event, 'event is required');
+
+  const user = ctx.state.user;
+  authorize(user, 'create', NotificationSetting);
+
+  const [setting] = await NotificationSetting.findOrCreate({
+    where: {
+      userId: user.id,
+      teamId: user.teamId,
+      event,
+    },
+  });
+
+  ctx.body = {
+    data: presentNotificationSetting(ctx, setting),
+  };
+});
+
+router.post('notificationSettings.list', auth(), async ctx => {
+  const user = ctx.state.user;
+  const settings = await NotificationSetting.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  ctx.body = {
+    data: settings.map(setting => presentNotificationSetting(ctx, setting)),
+  };
+});
+
+router.post('notificationSettings.delete', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const user = ctx.state.user;
+  const setting = await NotificationSetting.findById(id);
+  authorize(user, 'delete', setting);
+
+  await setting.destroy();
+
+  ctx.body = {
+    success: true,
+  };
+});
+
+export default router;

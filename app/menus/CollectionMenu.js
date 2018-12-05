@@ -40,13 +40,17 @@ class CollectionMenu extends React.Component<Props> {
 
   onFilePicked = async (ev: SyntheticEvent<*>) => {
     const files = getDataTransferFiles(ev);
-    const document = await importFile({
-      file: files[0],
-      documents: this.props.documents,
-      collectionId: this.props.collection.id,
-    });
 
-    this.props.history.push(document.url);
+    try {
+      const document = await importFile({
+        file: files[0],
+        documents: this.props.documents,
+        collectionId: this.props.collection.id,
+      });
+      this.props.history.push(document.url);
+    } catch (err) {
+      this.props.ui.showToast(err.message);
+    }
   };
 
   onEdit = (ev: SyntheticEvent<*>) => {

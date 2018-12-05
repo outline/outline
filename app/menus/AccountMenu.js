@@ -14,7 +14,7 @@ import {
 } from '../../shared/utils/routeHelpers';
 
 type Props = {
-  label?: React.Node,
+  label: React.Node,
   history: Object,
   ui: UiStore,
   auth: AuthStore,
