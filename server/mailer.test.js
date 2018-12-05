@@ -1,8 +1,8 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import Mailer from './mailer';
+import mailer from './mailer';
 
 describe('Mailer', () => {
-  let fakeMailer;
+  let fakeMailer = mailer;
   let sendMailOutput;
 
   beforeEach(() => {
@@ -10,7 +10,6 @@ describe('Mailer', () => {
     process.env.SMTP_FROM_EMAIL = 'hello@example.com';
     jest.resetModules();
 
-    fakeMailer = new Mailer();
     fakeMailer.transporter = {
       sendMail: output => (sendMailOutput = output),
     };

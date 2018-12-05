@@ -2,9 +2,7 @@
 import { Op } from '../sequelize';
 import type { Event } from '../events';
 import { Document, Collection, User, NotificationSetting } from '../models';
-import Mailer from '../mailer';
-
-const mailer = new Mailer();
+import mailer from '../mailer';
 
 export default class Notifications {
   async on(event: Event) {

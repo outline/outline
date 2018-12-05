@@ -52,7 +52,7 @@ type EmailJob = {
  * HTML: http://localhost:3000/email/:email_type/html
  * TEXT: http://localhost:3000/email/:email_type/text
  */
-export default class Mailer {
+export class Mailer {
   transporter: ?any;
 
   sendMail = async (data: SendMailType): ?Promise<*> => {
@@ -151,6 +151,8 @@ export default class Mailer {
 }
 
 const mailer = new Mailer();
+export default mailer;
+
 export const mailerQueue = new Queue('email', process.env.REDIS_URL);
 
 mailerQueue.process(async (job: EmailJob) => {
