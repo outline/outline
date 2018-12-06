@@ -33,7 +33,7 @@ function Changelog({ releases }: { releases: Release[] }) {
             <Heading id={release.name}>
               <a href={`#${release.name}`}>{release.name}</a>
             </Heading>
-            <Time datetime={release.created_at}>
+            <Time dateTime={release.created_at}>
               {format(new Date(release.created_at), 'MMMM Do, YYYY')}
             </Time>
             <ReactMarkdown source={release.body} />
@@ -65,6 +65,13 @@ const Article = styled.div`
 
   &:last-child {
     border-bottom: 0;
+  }
+
+  img {
+    max-width: 100%;
+    zoom: 50%;
+    box-shadow: 0 10px 80px rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
   }
 `;
 

@@ -9,13 +9,12 @@ import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
 import Avatar from 'components/Avatar';
 import RevisionMenu from 'menus/RevisionMenu';
-import DiffSummary from './DiffSummary';
 
 import { documentHistoryUrl } from 'utils/routeHelpers';
 
 class Revision extends React.Component<*> {
   render() {
-    const { revision, document, maxChanges, showMenu, theme } = this.props;
+    const { revision, document, showMenu, theme } = this.props;
 
     return (
       <StyledNavLink
@@ -31,7 +30,6 @@ class Revision extends React.Component<*> {
             {format(revision.createdAt, 'MMMM Do, YYYY h:mm a')}
           </Time>
         </Meta>
-        <DiffSummary {...revision.diff} max={maxChanges} />
         {showMenu && (
           <StyledRevisionMenu
             document={document}
@@ -58,10 +56,9 @@ const StyledRevisionMenu = styled(RevisionMenu)`
 const StyledNavLink = styled(NavLink)`
   color: ${props => props.theme.text};
   display: block;
-  padding: 16px;
+  padding: 8px 16px;
   font-size: 15px;
   position: relative;
-  height: 100px;
 `;
 
 const Author = styled(Flex)`

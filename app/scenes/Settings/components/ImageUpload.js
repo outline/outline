@@ -38,8 +38,15 @@ class DropToImport extends React.Component<Props> {
     this.file = files[0];
   };
 
-  handleCrop = async () => {
+  handleCrop = () => {
     this.isUploading = true;
+
+    // allow the UI to update before converting the canvas to a Blob
+    // for large images this can cause the page rendering to hang.
+    setImmediate(this.uploadImage);
+  };
+
+  uploadImage = async () => {
     const canvas = this.avatarEditorRef.getImage();
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
     try {

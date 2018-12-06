@@ -30,7 +30,6 @@ const Collection = sequelize.define(
       type: DataTypes.STRING,
       validate: { isIn: allowedCollectionTypes },
     },
-    creatorId: DataTypes.UUID,
 
     /* type: atlas */
     documentStructure: DataTypes.JSONB,
@@ -70,6 +69,11 @@ const Collection = sequelize.define(
         await collection.save();
       },
     },
+    getterMethods: {
+      url() {
+        return `/collections/${this.id}`;
+      },
+    },
   }
 );
 
@@ -80,6 +84,10 @@ Collection.associate = models => {
     as: 'documents',
     foreignKey: 'collectionId',
     onDelete: 'cascade',
+  });
+  Collection.belongsTo(models.User, {
+    as: 'user',
+    foreignKey: 'creatorId',
   });
   Collection.belongsTo(models.Team, {
     as: 'team',
@@ -119,10 +127,6 @@ Collection.addHook('afterUpdate', model =>
 );
 
 // Instance methods
-
-Collection.prototype.getUrl = function() {
-  return `/collections/${this.id}`;
-};
 
 Collection.prototype.addDocumentToStructure = async function(
   document,

@@ -15,7 +15,7 @@ const importFile = async ({
   documentId,
   collectionId,
 }: Options): Promise<Document> => {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
     reader.onload = async ev => {
@@ -28,10 +28,13 @@ const importFile = async ({
 
       if (documentId) data.parentDocument = documentId;
 
-      let document = new Document(data);
-      document = await document.save({ publish: true });
-      documents.add(document);
-      resolve(document);
+      const document = new Document(data, documents);
+      try {
+        await document.save({ publish: true });
+        resolve(document);
+      } catch (err) {
+        reject(err);
+      }
     };
     reader.readAsText(file);
   });

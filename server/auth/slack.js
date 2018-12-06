@@ -2,7 +2,7 @@
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import addHours from 'date-fns/add_hours';
-import addMonths from 'date-fns/add_months';
+import { stripSubdomain } from '../../shared/utils/domains';
 import { slackAuth } from '../../shared/utils/routeHelpers';
 import { Authentication, Integration, User, Team } from '../models';
 import * as Slack from '../slack';
@@ -18,18 +18,19 @@ router.get('slack', async ctx => {
   ctx.cookies.set('state', state, {
     httpOnly: false,
     expires: addHours(new Date(), 1),
+    domain: stripSubdomain(ctx.request.hostname),
   });
   ctx.redirect(slackAuth(state));
 });
 
 // signin callback from Slack
-router.get('slack.callback', async ctx => {
+router.get('slack.callback', auth({ required: false }), async ctx => {
   const { code, error, state } = ctx.request.query;
   ctx.assertPresent(code || error, 'code is required');
   ctx.assertPresent(state, 'state is required');
 
   if (state !== ctx.cookies.get('state') || error) {
-    ctx.redirect('/?notice=auth-error');
+    ctx.redirect(`/?notice=auth-error`);
     return;
   }
 
@@ -60,22 +61,12 @@ router.get('slack.callback', async ctx => {
   });
 
   if (isFirstUser) {
-    await team.createFirstCollection(user.id);
+    await team.provisionFirstCollection(user.id);
+    await team.provisionSubdomain(data.team.domain);
   }
 
-  // not awaiting the promise here so that the request is not blocked
-  user.updateSignedIn(ctx.request.ip);
-
-  ctx.cookies.set('lastSignedIn', 'slack', {
-    httpOnly: false,
-    expires: new Date('2100'),
-  });
-  ctx.cookies.set('accessToken', user.getJwtToken(), {
-    httpOnly: false,
-    expires: addMonths(new Date(), 1),
-  });
-
-  ctx.redirect('/');
+  // set cookies on response and redirect to team subdomain
+  ctx.signIn(user, team, 'slack');
 });
 
 router.get('slack.commands', auth(), async ctx => {

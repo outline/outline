@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import Waypoint from 'react-waypoint';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
-import { DEFAULT_PAGINATION_LIMIT } from 'stores/DocumentsStore';
+import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import Document from 'models/Document';
 import RevisionsStore from 'stores/RevisionsStore';
 
@@ -82,12 +82,6 @@ class DocumentHistory extends React.Component<Props> {
 
   render() {
     const showLoading = !this.isLoaded && this.isFetching;
-    const maxChanges = this.revisions.reduce((acc, change) => {
-      if (acc < change.diff.added + change.diff.removed) {
-        return change.diff.added + change.diff.removed;
-      }
-      return acc;
-    }, 0);
 
     return (
       <Wrapper column>
@@ -105,7 +99,6 @@ class DocumentHistory extends React.Component<Props> {
                 key={revision.id}
                 revision={revision}
                 document={this.props.document}
-                maxChanges={maxChanges}
                 showMenu={index !== 0}
               />
             ))}

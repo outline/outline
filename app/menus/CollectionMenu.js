@@ -23,7 +23,7 @@ type Props = {
 
 @observer
 class CollectionMenu extends React.Component<Props> {
-  file: HTMLInputElement;
+  file: ?HTMLInputElement;
 
   onNewDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
@@ -35,18 +35,22 @@ class CollectionMenu extends React.Component<Props> {
     ev.preventDefault();
 
     // simulate a click on the file upload input element
-    this.file.click();
+    if (this.file) this.file.click();
   };
 
   onFilePicked = async (ev: SyntheticEvent<*>) => {
     const files = getDataTransferFiles(ev);
-    const document = await importFile({
-      file: files[0],
-      documents: this.props.documents,
-      collectionId: this.props.collection.id,
-    });
 
-    this.props.history.push(document.url);
+    try {
+      const document = await importFile({
+        file: files[0],
+        documents: this.props.documents,
+        collectionId: this.props.collection.id,
+      });
+      this.props.history.push(document.url);
+    } catch (err) {
+      this.props.ui.showToast(err.message);
+    }
   };
 
   onEdit = (ev: SyntheticEvent<*>) => {
@@ -74,7 +78,7 @@ class CollectionMenu extends React.Component<Props> {
       <span>
         <HiddenInput
           type="file"
-          innerRef={ref => (this.file = ref)}
+          ref={ref => (this.file = ref)}
           onChange={this.onFilePicked}
           accept="text/markdown, text/plain"
         />

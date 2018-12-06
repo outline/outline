@@ -3,6 +3,7 @@ import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import {
   DocumentIcon,
+  EmailIcon,
   ProfileIcon,
   PadlockIcon,
   CodeIcon,
@@ -34,7 +35,7 @@ class SettingsSidebar extends React.Component<Props> {
 
   render() {
     const { team, user } = this.props.auth;
-    if (!team || !user) return;
+    if (!team || !user) return null;
 
     return (
       <Sidebar>
@@ -52,6 +53,9 @@ class SettingsSidebar extends React.Component<Props> {
               <SidebarLink to="/settings" icon={<ProfileIcon />}>
                 Profile
               </SidebarLink>
+              <SidebarLink to="/settings/notifications" icon={<EmailIcon />}>
+                Notifications
+              </SidebarLink>
               <SidebarLink to="/settings/tokens" icon={<CodeIcon />}>
                 API Tokens
               </SidebarLink>
@@ -68,7 +72,11 @@ class SettingsSidebar extends React.Component<Props> {
                   Security
                 </SidebarLink>
               )}
-              <SidebarLink to="/settings/people" icon={<UserIcon />}>
+              <SidebarLink
+                to="/settings/people"
+                icon={<UserIcon />}
+                exact={false}
+              >
                 People
               </SidebarLink>
               <SidebarLink to="/settings/shares" icon={<LinkIcon />}>

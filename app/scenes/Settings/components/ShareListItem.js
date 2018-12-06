@@ -3,7 +3,7 @@ import * as React from 'react';
 import ShareMenu from 'menus/ShareMenu';
 import ListItem from 'components/List/Item';
 import Time from 'shared/components/Time';
-import type { Share } from '../../../types';
+import Share from 'models/Share';
 
 type Props = {
   share: Share,

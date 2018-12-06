@@ -3,6 +3,7 @@ import compress from 'koa-compress';
 import { contentSecurityPolicy } from 'koa-helmet';
 import logger from 'koa-logger';
 import mount from 'koa-mount';
+import enforceHttps from 'koa-sslify';
 import Koa from 'koa';
 import bugsnag from 'bugsnag';
 import onerror from 'koa-onerror';
@@ -70,6 +71,13 @@ if (process.env.NODE_ENV === 'development') {
 
   app.use(mount('/emails', emails));
 } else if (process.env.NODE_ENV === 'production') {
+  // Force HTTPS on all pages
+  app.use(
+    enforceHttps({
+      trustProtoHeader: true,
+    })
+  );
+
   // trust header fields set by our proxy. eg X-Forwarded-For
   app.proxy = true;
 

@@ -5,25 +5,24 @@ import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import type { SearchResult } from 'types';
 import { debounce } from 'lodash';
-import DocumentsStore, {
-  DEFAULT_PAGINATION_LIMIT,
-} from 'stores/DocumentsStore';
 
 import { withRouter } from 'react-router-dom';
-import { searchUrl } from 'utils/routeHelpers';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
-import Empty from 'components/Empty';
+import type { SearchResult } from 'types';
+import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
+import DocumentsStore from 'stores/DocumentsStore';
+import { searchUrl } from 'utils/routeHelpers';
+
 import Flex from 'shared/components/Flex';
+import Empty from 'components/Empty';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
-import SearchField from './components/SearchField';
-
 import DocumentPreview from 'components/DocumentPreview';
 import PageTitle from 'components/PageTitle';
+import SearchField from './components/SearchField';
 
 type Props = {
   history: Object,
@@ -34,7 +33,7 @@ type Props = {
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: HTMLElement;
+  firstDocument: ?DocumentPreview;
 
   @observable results: SearchResult[] = [];
   @observable query: string = '';
@@ -88,11 +87,6 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
-  fetchResultsDebounced = debounce(this.fetchResults, 350, {
-    leading: false,
-    trailing: true,
-  });
-
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
@@ -130,6 +124,11 @@ class Search extends React.Component<Props> {
 
     this.isFetching = false;
   };
+
+  fetchResultsDebounced = debounce(this.fetchResults, 350, {
+    leading: false,
+    trailing: true,
+  });
 
   updateLocation = query => {
     this.props.history.replace(searchUrl(query));
@@ -174,14 +173,12 @@ class Search extends React.Component<Props> {
               defaultActiveChildIndex={0}
             >
               {this.results.map((result, index) => {
-                const document = documents.getById(result.document.id);
+                const document = documents.data.get(result.document.id);
                 if (!document) return null;
 
                 return (
                   <DocumentPreview
-                    innerRef={ref =>
-                      index === 0 && this.setFirstDocumentRef(ref)
-                    }
+                    ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
                     key={document.id}
                     document={document}
                     highlight={this.query}

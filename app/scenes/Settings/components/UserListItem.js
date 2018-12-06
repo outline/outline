@@ -6,7 +6,7 @@ import UserMenu from 'menus/UserMenu';
 import Avatar from 'components/Avatar';
 import ListItem from 'components/List/Item';
 import Time from 'shared/components/Time';
-import type { User } from '../../../types';
+import User from 'models/User';
 
 type Props = {
   user: User,
@@ -40,8 +40,9 @@ const Badge = styled.span`
   color: ${({ admin, theme }) => (admin ? theme.white : theme.text)};
   border-radius: 2px;
   font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  font-weight: normal;
+  user-select: none;
 `;
 
 export default UserListItem;

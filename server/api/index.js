@@ -4,7 +4,7 @@ import Koa from 'koa';
 import Router from 'koa-router';
 
 import auth from './auth';
-import user from './user';
+import users from './users';
 import collections from './collections';
 import documents from './documents';
 import views from './views';
@@ -14,6 +14,7 @@ import shares from './shares';
 import tags from './tags';
 import team from './team';
 import integrations from './integrations';
+import notificationSettings from './notificationSettings';
 
 import errorHandling from './middlewares/errorHandling';
 import validation from '../middlewares/validation';
@@ -34,7 +35,7 @@ api.use(apiWrapper());
 
 // routes
 router.use('/', auth.routes());
-router.use('/', user.routes());
+router.use('/', users.routes());
 router.use('/', collections.routes());
 router.use('/', documents.routes());
 router.use('/', views.routes());
@@ -44,6 +45,7 @@ router.use('/', shares.routes());
 router.use('/', tags.routes());
 router.use('/', team.routes());
 router.use('/', integrations.routes());
+router.use('/', notificationSettings.routes());
 
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.

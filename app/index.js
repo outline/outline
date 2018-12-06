@@ -7,7 +7,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 
 import stores from 'stores';
 import theme from 'shared/styles/theme';
-import globalStyles from 'shared/styles/globals';
+import GlobalStyles from 'shared/styles/globals';
 import 'shared/styles/prism.css';
 
 import ErrorBoundary from 'components/ErrorBoundary';
@@ -20,13 +20,12 @@ if (__DEV__) {
   DevTools = require('mobx-react-devtools').default; // eslint-disable-line global-require
 }
 
-globalStyles();
-
 const element = document.getElementById('root');
 
 if (element) {
   render(
     <React.Fragment>
+      <GlobalStyles />
       <ThemeProvider theme={theme}>
         <ErrorBoundary>
           <Provider {...stores}>

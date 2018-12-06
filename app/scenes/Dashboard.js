@@ -23,7 +23,7 @@ type Props = {
 class Dashboard extends React.Component<Props> {
   render() {
     const { documents, auth } = this.props;
-    if (!auth.user) return;
+    if (!auth.user) return null;
     const user = auth.user.id;
 
     return (
@@ -59,8 +59,8 @@ class Dashboard extends React.Component<Props> {
           </Route>
           <Route path="/dashboard">
             <PaginatedDocumentList
-              documents={documents.recentlyEdited}
-              fetch={documents.fetchRecentlyEdited}
+              documents={documents.recentlyUpdated}
+              fetch={documents.fetchRecentlyUpdated}
               showCollection
             />
           </Route>

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
@@ -17,14 +17,11 @@ import {
   documentEditUrl,
   matchDocumentEdit,
 } from 'utils/routeHelpers';
-import { uploadFile } from 'utils/uploadFile';
 import { emojiToUrl } from 'utils/emoji';
-import isInternalUrl from 'utils/isInternalUrl';
-import type { Revision } from 'types';
 
-import Document from 'models/Document';
 import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
+import Branding from './components/Branding';
 import ErrorBoundary from 'components/ErrorBoundary';
 import DocumentHistory from 'components/DocumentHistory';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
@@ -39,6 +36,10 @@ import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import RevisionsStore from 'stores/RevisionsStore';
+import Document from 'models/Document';
+import Revision from 'models/Revision';
+
+import schema from './schema';
 
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
@@ -101,6 +102,10 @@ class DocumentScene extends React.Component<Props> {
     this.props.ui.clearActiveDocument();
   }
 
+  goToDocumentCanonical = () => {
+    if (this.document) this.props.history.push(this.document.url);
+  };
+
   @keydown('m')
   goToMove(ev) {
     ev.preventDefault();
@@ -121,14 +126,17 @@ class DocumentScene extends React.Component<Props> {
 
   loadDocument = async props => {
     if (props.newDocument) {
-      this.document = new Document({
-        collection: { id: props.match.params.id },
-        parentDocument: new URLSearchParams(props.location.search).get(
-          'parentDocument'
-        ),
-        title: '',
-        text: '',
-      });
+      this.document = new Document(
+        {
+          collection: { id: props.match.params.id },
+          parentDocument: new URLSearchParams(props.location.search).get(
+            'parentDocument'
+          ),
+          title: '',
+          text: '',
+        },
+        this.props.documents
+      );
     } else {
       const { shareId, revisionId } = props.match.params;
 
@@ -140,7 +148,7 @@ class DocumentScene extends React.Component<Props> {
       if (revisionId) {
         this.revision = await this.props.revisions.fetch(
           props.match.params.documentSlug,
-          revisionId
+          { revisionId }
         );
       } else {
         this.revision = undefined;
@@ -201,7 +209,7 @@ class DocumentScene extends React.Component<Props> {
     // prevent autosave if nothing has changed
     if (options.autosave && document.text.trim() === text.trim()) return;
 
-    document.updateData({ text });
+    document.text = text;
     if (!document.allowSave) return;
 
     // prevent autosave before anything has been written
@@ -259,11 +267,6 @@ class DocumentScene extends React.Component<Props> {
     this.props.history.push(url);
   };
 
-  onUploadImage = async (file: File) => {
-    const result = await uploadFile(file);
-    return result.url;
-  };
-
   onSearchLink = async (term: string) => {
     const results = await this.props.documents.search(term);
 
@@ -273,44 +276,13 @@ class DocumentScene extends React.Component<Props> {
     }));
   };
 
-  onClickLink = (href: string) => {
-    // on page hash
-    if (href[0] === '#') {
-      window.location.href = href;
-      return;
-    }
-
-    if (isInternalUrl(href)) {
-      // relative
-      let navigateTo = href;
-
-      // probably absolute
-      if (href[0] !== '/') {
-        try {
-          const url = new URL(href);
-          navigateTo = url.pathname + url.hash;
-        } catch (err) {
-          navigateTo = href;
-        }
-      }
-
-      this.props.history.push(navigateTo);
-    } else {
-      window.open(href, '_blank');
-    }
-  };
-
-  onShowToast = (message: string) => {
-    this.props.ui.showToast(message, 'success');
-  };
-
   render() {
     const { location, match } = this.props;
     const Editor = this.editorComponent;
     const document = this.document;
     const revision = this.revision;
     const isShare = match.params.shareId;
-    const isHistory = match.url.match(/history/);
+    const isHistory = match.url.match(/\/history(\/|$)/); // Can't match on history alone as that can be in the user-generated slug
 
     if (this.notFound) {
       return navigator.onLine ? (
@@ -346,7 +318,12 @@ class DocumentScene extends React.Component<Props> {
         >
           <Route
             path={`${match.url}/move`}
-            component={() => <DocumentMove document={document} />}
+            component={() => (
+              <DocumentMove
+                document={document}
+                onRequestClose={this.goToDocumentCanonical}
+              />
+            )}
           />
           <PageTitle
             title={document.title.replace(document.emoji, '')}
@@ -357,8 +334,14 @@ class DocumentScene extends React.Component<Props> {
           <Container justify="center" column auto>
             {this.isEditing && (
               <React.Fragment>
-                <Prompt when={this.isDirty} message={DISCARD_CHANGES} />
-                <Prompt when={this.isUploading} message={UPLOADING_WARNING} />
+                <Prompt
+                  when={this.isDirty || false}
+                  message={DISCARD_CHANGES}
+                />
+                <Prompt
+                  when={this.isUploading || false}
+                  message={UPLOADING_WARNING}
+                />
               </React.Fragment>
             )}
             {!isShare && (
@@ -380,17 +363,17 @@ class DocumentScene extends React.Component<Props> {
                 bodyPlaceholder="…the rest is your canvas"
                 defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
-                uploadImage={this.onUploadImage}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.onSearchLink}
-                onClickLink={this.onClickLink}
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onCancel={this.onDiscard}
-                onShowToast={this.onShowToast}
                 readOnly={!this.isEditing}
                 toc={!revision}
+                history={this.props.history}
+                ui={this.props.ui}
+                schema={schema}
               />
             </MaxWidth>
           </Container>
@@ -398,6 +381,7 @@ class DocumentScene extends React.Component<Props> {
         {isHistory && (
           <DocumentHistory revision={revision} document={document} />
         )}
+        {isShare && <Branding />}
       </ErrorBoundary>
     );
   }

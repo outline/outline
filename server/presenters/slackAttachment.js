@@ -11,7 +11,7 @@ function present(document: Document, context?: string) {
   return {
     color: document.collection.color,
     title: document.title,
-    title_link: `${process.env.URL}${document.getUrl()}`,
+    title_link: `${process.env.URL}${document.url}`,
     footer: document.collection.name,
     text,
     ts: document.getTimestamp(),

@@ -11,6 +11,11 @@ const Hero = styled(Centered)`
     font-size: 3.5em;
     line-height: 1em;
   }
+
+  h2 {
+    font-size: 2.5em;
+    line-height: 1em;
+  }
 `;
 
 export default Hero;

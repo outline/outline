@@ -4,8 +4,8 @@ import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { TopNavigation, BottomNavigation } from './Navigation';
-import Analytics from '../../../shared/components/Analytics';
-import globalStyles from '../../../shared/styles/globals';
+import Analytics from './Analytics';
+import GlobalStyles from '../../../shared/styles/globals';
 import prefetchTags from '../../utils/prefetchTags';
 
 export const title = 'Outline';
@@ -15,14 +15,15 @@ export const screenshotUrl = `${process.env.URL}/screenshot.png`;
 
 type Props = {
   children?: React.Node,
+  sessions: Object,
+  loggedIn: boolean,
 };
 
-function Layout({ children }: Props) {
-  globalStyles();
-
+function Layout({ children, loggedIn, sessions }: Props) {
   return (
     <html lang="en">
       <head>
+        <GlobalStyles />
         <Helmet>
           <title>{title}</title>
           <meta charset="utf-8" />
@@ -66,7 +67,7 @@ function Layout({ children }: Props) {
         {'{{CSS}}'}
       </head>
       <Body>
-        <TopNavigation />
+        <TopNavigation sessions={sessions} loggedIn={loggedIn} />
         {children}
         <BottomNavigation />
       </Body>

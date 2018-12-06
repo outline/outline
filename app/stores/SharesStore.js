@@ -1,51 +1,26 @@
 // @flow
-import _ from 'lodash';
-import { observable, action, runInAction, ObservableMap, computed } from 'mobx';
-import invariant from 'invariant';
+import { sortBy } from 'lodash';
+import { action, computed } from 'mobx';
 import { client } from 'utils/ApiClient';
-import type { Share, PaginationParams } from 'types';
+import BaseStore from './BaseStore';
+import RootStore from './RootStore';
+import Share from 'models/Share';
 
-class SharesStore {
-  @observable data: Map<string, Share> = new ObservableMap([]);
-  @observable isFetching: boolean = false;
-  @observable isSaving: boolean = false;
+export default class SharesStore extends BaseStore<Share> {
+  actions = ['list', 'create'];
+
+  constructor(rootStore: RootStore) {
+    super(rootStore, Share);
+  }
 
   @computed
   get orderedData(): Share[] {
-    return _.sortBy(this.data.values(), 'createdAt').reverse();
+    return sortBy(Array.from(this.data.values()), 'createdAt').reverse();
   }
 
   @action
-  fetchPage = async (options: ?PaginationParams): Promise<*> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post('/shares.list', options);
-      invariant(res && res.data, 'Data should be available');
-      const { data } = res;
-
-      runInAction('fetchShares', () => {
-        data.forEach(share => {
-          this.data.set(share.id, share);
-        });
-      });
-    } catch (e) {
-      console.error('Something went wrong');
-    }
-    this.isFetching = false;
-  };
-
-  @action
   revoke = async (share: Share) => {
-    try {
-      await client.post('/shares.revoke', { id: share.id });
-      runInAction('revoke', () => {
-        this.data.delete(share.id);
-      });
-    } catch (e) {
-      console.error('Something went wrong');
-    }
+    await client.post('/shares.revoke', { id: share.id });
+    this.remove(share.id);
   };
 }
-
-export default SharesStore;

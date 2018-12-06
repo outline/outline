@@ -23,7 +23,7 @@ Outline requires the following dependencies:
 
 - Postgres >=9.5
 - Redis
-- Slack developer application
+- Slack or Google developer application for OAuth
 
 In development you can quickly get an environment running using Docker by following these steps:
 

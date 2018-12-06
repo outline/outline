@@ -1,10 +1,10 @@
 // @flow
 import crypto from 'crypto';
 import Router from 'koa-router';
-import addMonths from 'date-fns/add_months';
 import { capitalize } from 'lodash';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Team } from '../models';
+import auth from '../middlewares/authentication';
 
 const router = new Router();
 const client = new OAuth2Client(
@@ -29,7 +29,7 @@ router.get('google', async ctx => {
 });
 
 // signin callback from Google
-router.get('google.callback', async ctx => {
+router.get('google.callback', auth({ required: false }), async ctx => {
   const { code } = ctx.request.query;
   ctx.assertPresent(code, 'code is required');
   const response = await client.getToken(code);
@@ -52,7 +52,8 @@ router.get('google.callback', async ctx => {
   }
 
   const googleId = profile.data.hd;
-  const teamName = capitalize(profile.data.hd.split('.')[0]);
+  const hostname = profile.data.hd.split('.')[0];
+  const teamName = capitalize(hostname);
 
   // attempt to get logo from Clearbit API. If one doesn't exist then
   // fall back to using tiley to generate a placeholder logo
@@ -91,22 +92,12 @@ router.get('google.callback', async ctx => {
   });
 
   if (isFirstUser) {
-    await team.createFirstCollection(user.id);
+    await team.provisionFirstCollection(user.id);
+    await team.provisionSubdomain(hostname);
   }
 
-  // not awaiting the promise here so that the request is not blocked
-  user.updateSignedIn(ctx.request.ip);
-
-  ctx.cookies.set('lastSignedIn', 'google', {
-    httpOnly: false,
-    expires: new Date('2100'),
-  });
-  ctx.cookies.set('accessToken', user.getJwtToken(), {
-    httpOnly: false,
-    expires: addMonths(new Date(), 1),
-  });
-
-  ctx.redirect('/');
+  // set cookies on response and redirect to team subdomain
+  ctx.signIn(user, team, 'google');
 });
 
 export default router;
