@@ -13,6 +13,7 @@ export type Props = {
   actor: User,
   collection: Collection,
   eventName: string,
+  unsubscribeUrl: string,
 };
 
 export const collectionNotificationEmailText = ({
@@ -20,7 +21,7 @@ export const collectionNotificationEmailText = ({
   collection,
   eventName = 'created',
 }: Props) => `
-"${document.title}" ${eventName}
+${collection.name}
 
 ${actor.name} ${eventName} the collection "${collection.name}"
 
@@ -31,17 +32,16 @@ export const CollectionNotificationEmail = ({
   actor,
   collection,
   eventName = 'created',
+  unsubscribeUrl,
 }: Props) => {
   return (
     <EmailTemplate>
       <Header />
 
       <Body>
-        <Heading>
-          "{collection.name}" {eventName}
-        </Heading>
+        <Heading>{collection.name}</Heading>
         <p>
-          {actor.name} {eventName} the collection "{collection.title}".
+          {actor.name} {eventName} the collection "{collection.name}".
         </p>
         <EmptySpace height={10} />
         <p>
@@ -51,7 +51,7 @@ export const CollectionNotificationEmail = ({
         </p>
       </Body>
 
-      <Footer />
+      <Footer unsubscribeUrl={unsubscribeUrl} />
     </EmailTemplate>
   );
 };

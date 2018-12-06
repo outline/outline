@@ -14,6 +14,7 @@ export type Props = {
   document: Document,
   collection: Collection,
   eventName: string,
+  unsubscribeUrl: string,
 };
 
 export const documentNotificationEmailText = ({
@@ -36,6 +37,7 @@ export const DocumentNotificationEmail = ({
   document,
   collection,
   eventName = 'published',
+  unsubscribeUrl,
 }: Props) => {
   return (
     <EmailTemplate>
@@ -60,7 +62,7 @@ export const DocumentNotificationEmail = ({
         </p>
       </Body>
 
-      <Footer />
+      <Footer unsubscribeUrl={unsubscribeUrl} />
     </EmailTemplate>
   );
 };

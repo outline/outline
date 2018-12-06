@@ -61,12 +61,21 @@ export default class Notifications {
         document,
         collection,
         actor: document.updatedBy,
+        unsubscribeUrl: setting.unsubscribeUrl,
       });
     });
   }
 
   async collectionCreated(event: Event) {
-    const collection = await Collection.findById(event.model.id);
+    const collection = await Collection.findById(event.model.id, {
+      include: [
+        {
+          model: User,
+          required: true,
+          as: 'user',
+        },
+      ],
+    });
     if (!collection) return;
 
     const notificationSettings = await NotificationSetting.findAll({
@@ -92,7 +101,8 @@ export default class Notifications {
         to: setting.user.email,
         eventName: 'created',
         collection,
-        actor: collection.createdBy,
+        actor: collection.user,
+        unsubscribeUrl: setting.unsubscribeUrl,
       })
     );
   }

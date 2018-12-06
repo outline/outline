@@ -2,10 +2,12 @@
 import * as React from 'react';
 import { debounce } from 'lodash';
 import { observer, inject } from 'mobx-react';
+import styled from 'styled-components';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
 import NotificationListItem from './components/NotificationListItem';
+import Notice from 'shared/components/Notice';
 
 import UiStore from 'stores/UiStore';
 import NotificationSettingsStore from 'stores/NotificationSettingsStore';
@@ -30,6 +32,20 @@ const options = [
     event: 'collections.create',
     title: 'Collection created',
     description: 'Receive a notification whenever a new collection is created',
+  },
+  {
+    separator: true,
+  },
+  {
+    event: 'emails.onboarding',
+    title: 'Getting started',
+    description:
+      'Tips on getting started with Outline`s features and functionality',
+  },
+  {
+    event: 'emails.features',
+    title: 'New features',
+    description: 'Receive an email when new features of note are added',
   },
 ];
 
@@ -60,9 +76,16 @@ class Notifications extends React.Component<Props> {
 
   render() {
     const { notificationSettings } = this.props;
+    const showSuccessNotice = window.location.search === '?success';
 
     return (
       <CenteredContent>
+        {showSuccessNotice && (
+          <Notice>
+            Unsubscription successful. Your notification settings were updated
+          </Notice>
+        )}
+
         <PageTitle title="Notifications" />
         <h1>Notifications</h1>
 
@@ -71,6 +94,8 @@ class Notifications extends React.Component<Props> {
         </HelpText>
 
         {options.map(option => {
+          if (option.separator) return <Separator />;
+
           const setting = notificationSettings.getByEvent(option.event);
 
           return (
@@ -89,5 +114,9 @@ class Notifications extends React.Component<Props> {
     );
   }
 }
+
+const Separator = styled.hr`
+  padding-bottom: 12px;
+`;
 
 export default inject('notificationSettings', 'ui')(Notifications);

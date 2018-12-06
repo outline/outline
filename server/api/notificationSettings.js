@@ -57,4 +57,21 @@ router.post('notificationSettings.delete', auth(), async ctx => {
   };
 });
 
+router.post('notificationSettings.unsubscribe', async ctx => {
+  const { id, token } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(token, 'token is required');
+
+  const setting = await NotificationSetting.findById(id);
+  if (setting) {
+    if (token !== setting.unsubscribeToken) {
+      ctx.redirect(`${process.env.URL}?notice=invalid-auth`);
+    }
+
+    await setting.destroy();
+  }
+
+  ctx.redirect(`${process.env.URL}/settings/notifications?success`);
+});
+
 export default router;
