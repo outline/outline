@@ -25,6 +25,7 @@ class Slack extends React.Component<Props> {
 
   componentDidMount() {
     this.error = getQueryVariable('error');
+    this.props.collections.fetchPage({ limit: 100 });
     this.props.integrations.fetchPage();
   }
 
