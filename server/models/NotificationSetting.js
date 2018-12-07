@@ -52,6 +52,7 @@ NotificationSetting.associate = models => {
   NotificationSetting.belongsTo(models.User, {
     as: 'user',
     foreignKey: 'userId',
+    onDelete: 'cascade',
   });
   NotificationSetting.belongsTo(models.Team, {
     as: 'team',

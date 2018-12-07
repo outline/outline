@@ -9,29 +9,13 @@ const Revision = sequelize.define('revision', {
   },
   title: DataTypes.STRING,
   text: DataTypes.TEXT,
-
-  userId: {
-    type: 'UUID',
-    allowNull: false,
-    references: {
-      model: 'users',
-    },
-  },
-
-  documentId: {
-    type: 'UUID',
-    allowNull: false,
-    references: {
-      model: 'documents',
-      onDelete: 'CASCADE',
-    },
-  },
 });
 
 Revision.associate = models => {
   Revision.belongsTo(models.Document, {
     as: 'document',
     foreignKey: 'documentId',
+    onDelete: 'cascade',
   });
   Revision.belongsTo(models.User, {
     as: 'user',
