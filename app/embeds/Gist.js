@@ -3,20 +3,14 @@ import * as React from 'react';
 
 type Props = {
   url: string,
-  metadata: Object,
 };
 
 class Gist extends React.Component<Props> {
   iframeNode: ?HTMLIFrameElement;
 
-  static requestData = false;
   static hostnames = ['gist.github.com'];
 
   componentDidMount() {
-    this.updateIframeContent();
-  }
-
-  componentDidUpdate() {
     this.updateIframeContent();
   }
 
@@ -30,6 +24,7 @@ class Gist extends React.Component<Props> {
     const iframe = this.iframeNode;
     if (!iframe) return;
 
+    // $FlowFixMe
     let doc = iframe.document;
     if (iframe.contentDocument) doc = iframe.contentDocument;
     else if (iframe.contentWindow) doc = iframe.contentWindow.document;
@@ -61,7 +56,7 @@ class Gist extends React.Component<Props> {
         height="200px"
         frameBorder={0}
         id={`gist-${id}`}
-        title={`gist-${id}`}
+        title={`Github Gist (${id})`}
       />
     );
   }

@@ -1,43 +1,15 @@
 // @flow
 import * as React from 'react';
-import styled from 'styled-components';
 import embeds from '../embeds';
-import { client } from 'utils/ApiClient';
 
 type Props = {
   url: string,
 };
 
-type State = {
-  expanded: boolean,
-  metadata?: Object,
-};
-
-class EmbedWrapper extends React.Component<Props, State> {
-  state = {
-    expanded: true,
-  };
-
-  componentDidMount() {
-    const embed = this.matchingEmbed;
-
-    if (embed && embed.requestData !== false) {
-      this.requestData(this.props.url);
-    }
+class EmbedWrapper extends React.Component<Props> {
+  shouldComponentUpdate(nextProps: Props) {
+    return nextProps.url !== this.props.url;
   }
-
-  toggleExpanded = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    this.setState(state => ({ expanded: !state.expanded }));
-  };
-
-  requestData = async (url: string) => {
-    const response = await client.post('/embeds.metadata', { url });
-
-    if (response.data) {
-      this.setState({ metadata: response.data.metadata });
-    }
-  };
 
   get hostname() {
     try {
@@ -64,7 +36,9 @@ class EmbedWrapper extends React.Component<Props, State> {
     if (!EmbedComponent) return null;
 
     return (
-      <EmbedComponent url={this.props.url} metadata={this.state.metadata} />
+      <div contentEditable={false}>
+        <EmbedComponent url={this.props.url} />
+      </div>
     );
   }
 }
