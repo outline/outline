@@ -26,8 +26,13 @@ class EmbedWrapper extends React.Component<Props> {
 
     for (const key of keys) {
       const embed = embeds[key];
-      if (embed.hostnames.includes(this.hostname)) {
-        return embed;
+
+      for (const host of embed.hostnames) {
+        if (typeof host === 'object') {
+          if (this.props.url.match(host)) return embed;
+        } else {
+          if (host === this.hostname) return embed;
+        }
       }
     }
   }
