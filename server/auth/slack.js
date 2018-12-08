@@ -46,7 +46,7 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
     },
   });
 
-  const [user] = await User.findOrCreate({
+  const [user, isFirstSignin] = await User.findOrCreate({
     where: {
       service: 'slack',
       serviceId: data.user.id,
@@ -66,7 +66,7 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   }
 
   // set cookies on response and redirect to team subdomain
-  ctx.signIn(user, team, 'slack');
+  ctx.signIn(user, team, 'slack', isFirstSignin);
 });
 
 router.get('slack.commands', auth(), async ctx => {

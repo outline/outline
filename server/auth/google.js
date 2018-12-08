@@ -77,7 +77,7 @@ router.get('google.callback', auth({ required: false }), async ctx => {
     },
   });
 
-  const [user] = await User.findOrCreate({
+  const [user, isFirstSignin] = await User.findOrCreate({
     where: {
       service: 'google',
       serviceId: profile.data.id,
@@ -97,7 +97,7 @@ router.get('google.callback', auth({ required: false }), async ctx => {
   }
 
   // set cookies on response and redirect to team subdomain
-  ctx.signIn(user, team, 'google');
+  ctx.signIn(user, team, 'google', isFirstSignin);
 });
 
 export default router;
