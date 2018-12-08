@@ -5,6 +5,8 @@ import Collection from './Collection';
 import Document from './Document';
 import Event from './Event';
 import Integration from './Integration';
+import Notification from './Notification';
+import NotificationSetting from './NotificationSetting';
 import Revision from './Revision';
 import Share from './Share';
 import Star from './Star';
@@ -19,6 +21,8 @@ const models = {
   Document,
   Event,
   Integration,
+  Notification,
+  NotificationSetting,
   Revision,
   Share,
   Star,
@@ -41,6 +45,8 @@ export {
   Document,
   Event,
   Integration,
+  Notification,
+  NotificationSetting,
   Revision,
   Share,
   Star,

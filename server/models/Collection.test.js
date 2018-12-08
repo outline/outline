@@ -6,10 +6,10 @@ import uuid from 'uuid';
 beforeEach(flushdb);
 beforeEach(jest.resetAllMocks);
 
-describe('#getUrl', () => {
+describe('#url', () => {
   test('should return correct url for the collection', () => {
     const collection = new Collection({ id: '1234' });
-    expect(collection.getUrl()).toBe('/collections/1234');
+    expect(collection.url).toBe('/collections/1234');
   });
 });
 
@@ -124,7 +124,7 @@ describe('#updateDocument', () => {
     // Add a child for testing
     const newDocument = await Document.create({
       parentDocumentId: document.id,
-      atlasId: collection.id,
+      collectionId: collection.id,
       teamId: collection.teamId,
       userId: collection.creatorId,
       lastModifiedById: collection.creatorId,
@@ -160,7 +160,7 @@ describe('#moveDocument', () => {
     // Add a child for testing
     const newDocument = await Document.create({
       parentDocumentId: document.id,
-      atlasId: collection.id,
+      collectionId: collection.id,
       teamId: collection.teamId,
       userId: collection.creatorId,
       lastModifiedById: collection.creatorId,
@@ -195,7 +195,7 @@ describe('#removeDocument', () => {
     // Verify that the document was removed
     const collectionDocuments = await Document.findAndCountAll({
       where: {
-        atlasId: collection.id,
+        collectionId: collection.id,
       },
     });
     expect(collectionDocuments.count).toBe(1);
@@ -207,7 +207,7 @@ describe('#removeDocument', () => {
     // Add a child for testing
     const newDocument = await Document.create({
       parentDocumentId: document.id,
-      atlasId: collection.id,
+      collectionId: collection.id,
       teamId: collection.teamId,
       userId: collection.creatorId,
       lastModifiedById: collection.creatorId,
@@ -223,7 +223,7 @@ describe('#removeDocument', () => {
     expect(collection.documentStructure.length).toBe(1);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
-        atlasId: collection.id,
+        collectionId: collection.id,
       },
     });
     expect(collectionDocuments.count).toBe(1);
@@ -235,7 +235,7 @@ describe('#removeDocument', () => {
     // Add a child for testing
     const newDocument = await Document.create({
       parentDocumentId: document.id,
-      atlasId: collection.id,
+      collectionId: collection.id,
       teamId: collection.teamId,
       userId: collection.creatorId,
       lastModifiedById: collection.creatorId,
@@ -257,7 +257,7 @@ describe('#removeDocument', () => {
 
     const collectionDocuments = await Document.findAndCountAll({
       where: {
-        atlasId: collection.id,
+        collectionId: collection.id,
       },
     });
     expect(collectionDocuments.count).toBe(2);

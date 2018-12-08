@@ -23,7 +23,7 @@ export function documentUrl(doc: Document): string {
 }
 
 export function documentNewUrl(doc: Document): string {
-  const newUrl = `${doc.collection.url}/new`;
+  const newUrl = `${doc.collection.url || ''}/new`;
   if (doc.parentDocumentId) {
     return `${newUrl}?parentDocument=${doc.parentDocumentId}`;
   }
@@ -36,6 +36,12 @@ export function documentEditUrl(doc: Document): string {
 
 export function documentMoveUrl(doc: Document): string {
   return `${doc.url}/move`;
+}
+
+export function documentHistoryUrl(doc: Document, revisionId?: string): string {
+  let base = `${doc.url}/history`;
+  if (revisionId) base += `/${revisionId}`;
+  return base;
 }
 
 /**
@@ -53,7 +59,7 @@ export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
 }
 
 export function newDocumentUrl(collection: Collection): string {
-  return `${collection.url}/new`;
+  return `${collection.url || ''}/new`;
 }
 
 export function searchUrl(query?: string): string {
@@ -69,4 +75,3 @@ export const matchDocumentSlug =
   ':documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})';
 
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
-export const matchDocumentMove = `/doc/${matchDocumentSlug}/move`;

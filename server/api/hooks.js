@@ -64,14 +64,23 @@ router.post('hooks.slack', async ctx => {
 
   if (!user) throw new InvalidRequestError('Invalid user');
 
-  const documents = await Document.searchForUser(user, text, {
+  const results = await Document.searchForUser(user, text, {
     limit: 5,
   });
 
-  if (documents.length) {
+  if (results.length) {
     const attachments = [];
-    for (const document of documents) {
-      attachments.push(presentSlackAttachment(document));
+    for (const result of results) {
+      const queryIsInTitle = !!result.document.title
+        .toLowerCase()
+        .match(text.toLowerCase());
+
+      attachments.push(
+        presentSlackAttachment(
+          result.document,
+          queryIsInTitle ? undefined : result.context
+        )
+      );
     }
 
     ctx.body = {

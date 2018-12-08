@@ -1,9 +1,9 @@
 /* eslint-disable */
-import Document from './Document';
+import stores from '../stores';
 
 describe('Document model', () => {
   test('should initialize with data', () => {
-    const document = new Document({
+    const document = stores.documents.add({
       id: 123,
       text: '# Onboarding\nSome body text',
     });

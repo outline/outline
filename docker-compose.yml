@@ -29,11 +29,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - .:/opt/outline
+      - .:/opt/outline:cached
     depends_on:
       - postgres
       - redis
       - s3
-    environment:
-      NODE_PATH: "/opt/outline/node_modules:/opt/node_modules"
-      PATH: "/opt/outline/node_modules/.bin:/opt/node_modules/.bin:$PATH"

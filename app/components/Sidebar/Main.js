@@ -12,6 +12,7 @@ import Scrollable from 'components/Scrollable';
 import Collections from './components/Collections';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
+import Bubble from './components/Bubble';
 
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -27,6 +28,10 @@ type Props = {
 
 @observer
 class MainSidebar extends React.Component<Props> {
+  componentDidMount() {
+    this.props.documents.fetchDrafts();
+  }
+
   handleCreateCollection = () => {
     this.props.ui.setActiveModal('collection-new');
   };
@@ -34,7 +39,7 @@ class MainSidebar extends React.Component<Props> {
   render() {
     const { auth, documents } = this.props;
     const { user, team } = auth;
-    if (!user || !team) return;
+    if (!user || !team) return null;
 
     return (
       <Sidebar>
@@ -51,13 +56,13 @@ class MainSidebar extends React.Component<Props> {
         <Flex auto column>
           <Scrollable shadow>
             <Section>
-              <SidebarLink to="/dashboard" icon={<HomeIcon />}>
+              <SidebarLink to="/dashboard" icon={<HomeIcon />} exact={false}>
                 Home
               </SidebarLink>
               <SidebarLink to="/search" icon={<SearchIcon />}>
                 Search
               </SidebarLink>
-              <SidebarLink to="/starred" icon={<StarredIcon />}>
+              <SidebarLink to="/starred" icon={<StarredIcon />} exact={false}>
                 Starred
               </SidebarLink>
               <SidebarLink
@@ -67,7 +72,7 @@ class MainSidebar extends React.Component<Props> {
                   documents.active ? !documents.active.publishedAt : undefined
                 }
               >
-                Drafts
+                Drafts <Bubble count={documents.drafts.length} />
               </SidebarLink>
             </Section>
             <Section>
@@ -84,6 +89,4 @@ class MainSidebar extends React.Component<Props> {
   }
 }
 
-export default withRouter(
-  inject('user', 'documents', 'auth', 'ui')(MainSidebar)
-);
+export default withRouter(inject('documents', 'auth', 'ui')(MainSidebar));

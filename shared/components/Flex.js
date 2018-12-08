@@ -36,6 +36,8 @@ const Container = styled.div`
   flex-direction: ${({ column }) => (column ? 'column' : 'row')};
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
+  min-height: 0;
+  min-width: 0;
 `;
 
 export default Flex;

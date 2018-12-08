@@ -24,6 +24,10 @@ type Props = {
 
 @observer
 class Collections extends React.Component<Props> {
+  componentDidMount() {
+    this.props.collections.fetchPage({ limit: 100 });
+  }
+
   render() {
     const { history, location, collections, ui, documents } = this.props;
 

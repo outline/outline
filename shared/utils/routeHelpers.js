@@ -33,6 +33,10 @@ export function githubIssuesUrl(): string {
   return 'https://www.github.com/outline/outline/issues';
 }
 
+export function slackAppStoreUrl(): string {
+  return 'https://goabstract.slack.com/apps/A0W3UMKBQ-outline';
+}
+
 export function blogUrl(): string {
   return 'https://medium.com/getoutline';
 }
@@ -49,22 +53,26 @@ export function mailToUrl(): string {
   return 'mailto:hello@getoutline.com';
 }
 
+export function features(): string {
+  return `${process.env.URL}/#features`;
+}
+
 export function developers(): string {
-  return '/developers';
+  return `${process.env.URL}/developers`;
 }
 
 export function changelog(): string {
-  return '/changelog';
+  return `${process.env.URL}/changelog`;
 }
 
 export function signin(service: string = 'slack'): string {
-  return `/auth/${service}`;
+  return `${process.env.URL}/auth/${service}`;
 }
 
 export function about(): string {
-  return '/about';
+  return `${process.env.URL}/about`;
 }
 
 export function privacy(): string {
-  return '/privacy';
+  return `${process.env.URL}/privacy`;
 }

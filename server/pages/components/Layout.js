@@ -1,9 +1,11 @@
 // @flow
 import * as React from 'react';
 import { Helmet } from 'react-helmet';
+import styled from 'styled-components';
+import breakpoint from 'styled-components-breakpoint';
 import { TopNavigation, BottomNavigation } from './Navigation';
-import Analytics from '../../../shared/components/Analytics';
-import globalStyles from '../../../shared/styles/globals';
+import Analytics from './Analytics';
+import GlobalStyles from '../../../shared/styles/globals';
 import prefetchTags from '../../utils/prefetchTags';
 
 export const title = 'Outline';
@@ -13,14 +15,15 @@ export const screenshotUrl = `${process.env.URL}/screenshot.png`;
 
 type Props = {
   children?: React.Node,
+  sessions: Object,
+  loggedIn: boolean,
 };
 
-export default function Layout({ children }: Props) {
-  globalStyles();
-
+function Layout({ children, loggedIn, sessions }: Props) {
   return (
     <html lang="en">
       <head>
+        <GlobalStyles />
         <Helmet>
           <title>{title}</title>
           <meta charset="utf-8" />
@@ -28,6 +31,7 @@ export default function Layout({ children }: Props) {
           <meta name="referrer" content="origin" />
           <meta name="slack-app-id" content="A0W3UMKBQ" />
           <meta name="description" content={description} />
+          <meta name="theme-color" content="#FFFFFF" />
 
           <meta name="og:site_name" content={title} />
           <meta name="og:type" content="website" />
@@ -42,6 +46,7 @@ export default function Layout({ children }: Props) {
           <meta name="twitter:image" content={screenshotUrl} />
           <meta name="twitter:url" value={process.env.URL} />
 
+          <link rel="manifest" href="/manifest.json" />
           <link
             rel="shortcut icon"
             type="image/png"
@@ -61,11 +66,21 @@ export default function Layout({ children }: Props) {
         {'{{HEAD}}'}
         {'{{CSS}}'}
       </head>
-      <body>
-        <TopNavigation />
+      <Body>
+        <TopNavigation sessions={sessions} loggedIn={loggedIn} />
         {children}
         <BottomNavigation />
-      </body>
+      </Body>
     </html>
   );
 }
+
+const Body = styled.body`
+  padding: 0 30px;
+
+  ${breakpoint('tablet')`
+    padding: 0;
+  `};
+`;
+
+export default Layout;

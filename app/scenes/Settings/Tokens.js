@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { Link } from 'react-router-dom';
 import ApiKeysStore from 'stores/ApiKeysStore';
 
 import Button from 'components/Button';
@@ -31,13 +30,13 @@ class Tokens extends React.Component<Props> {
 
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
-    await this.props.apiKeys.createApiKey(this.name);
+    await this.props.apiKeys.create({ name: this.name });
     this.name = '';
   };
 
   render() {
     const { apiKeys } = this.props;
-    const hasApiKeys = apiKeys.data.length > 0;
+    const hasApiKeys = apiKeys.orderedData.length > 0;
 
     return (
       <CenteredContent>
@@ -47,16 +46,16 @@ class Tokens extends React.Component<Props> {
         <HelpText>
           You can create an unlimited amount of personal API tokens to hack on
           Outline. For more details about the API take a look at the{' '}
-          <Link to="/developers">developer documentation</Link>.
+          <a href="/developers">developer documentation</a>.
         </HelpText>
 
         {hasApiKeys && (
           <List>
-            {apiKeys.data.map(token => (
+            {apiKeys.orderedData.map(token => (
               <TokenListItem
                 key={token.id}
                 token={token}
-                onDelete={apiKeys.deleteApiKey}
+                onDelete={token.delete}
               />
             ))}
           </List>

@@ -8,16 +8,12 @@ import { observer, inject } from 'mobx-react';
 import { CloseIcon, MenuIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 
-import AuthStore from 'stores/AuthStore';
-import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
   children: React.Node,
   history: Object,
   location: Location,
-  auth: AuthStore,
-  documents: DocumentsStore,
   ui: UiStore,
 };
 
@@ -61,13 +57,29 @@ const Container = styled(Flex)`
   left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
   width: 100%;
   background: ${props => props.theme.smoke};
-  transition: left 200ms ease-in-out;
+  transition: left 100ms ease-out;
   margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
-  z-index: 1;
+  z-index: 2;
 
   @media print {
     display: none;
     left: 0;
+  }
+
+  &:before,
+  &:after {
+    content: '';
+    background: ${props => props.theme.smoke};
+    position: absolute;
+    top: -50vh;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+  }
+
+  &:after {
+    top: auto;
+    bottom: -50vh;
   }
 
   ${breakpoint('tablet')`
@@ -89,7 +101,7 @@ const Toggle = styled.a`
   left: ${props => (props.mobileSidebarVisible ? 'auto' : 0)};
   right: ${props => (props.mobileSidebarVisible ? 0 : 'auto')};
   z-index: 1;
-  margin: 16px;
+  margin: 12px;
 
   ${breakpoint('tablet')`
     display: none;

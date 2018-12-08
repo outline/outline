@@ -166,7 +166,7 @@ export default function Pricing() {
             <Arguments />
           </Method>
 
-          <Method method="user.info" label="Get current user">
+          <Method method="users.info" label="Get current user">
             <Description>
               This method returns the profile info for the user identified by
               the token.
@@ -176,7 +176,7 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
-          <Method method="user.s3Upload" label="Get S3 upload credentials">
+          <Method method="users.s3Upload" label="Get S3 upload credentials">
             <Description>
               You can upload small files and images as part of your documents.
               All files are stored using Amazon S3. Instead of uploading files
@@ -202,7 +202,7 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
-          <Method method="user.promote" label="Promote a new admin user">
+          <Method method="users.promote" label="Promote a new admin user">
             <Description>
               Promote a user to be a team admin. This endpoint is only available
               for admin users.
@@ -212,7 +212,7 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
-          <Method method="user.demote" label="Demote existing admin user">
+          <Method method="users.demote" label="Demote existing admin user">
             <Description>
               Demote existing team admin if there are more than one as one admin
               is always required. This endpoint is only available for admin
@@ -223,7 +223,7 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
-          <Method method="user.suspend" label="Suspend user account">
+          <Method method="users.suspend" label="Suspend user account">
             <Description>
               Admin can suspend users to reduce the number of accounts on their
               billing plan or prevent them from accessing documention.
@@ -238,7 +238,7 @@ export default function Pricing() {
           </Method>
 
           <Method
-            method="user.activate"
+            method="users.activate"
             label="Activate a suspended user account"
           >
             <Description>
@@ -327,7 +327,7 @@ export default function Pricing() {
             <Description>
               <p>
                 This method returns information for a document with a specific
-                ID. Following identifiers are allowed:
+                ID. The following identifiers are allowed:
               </p>
               <ul>
                 <li>
@@ -340,11 +340,8 @@ export default function Pricing() {
               </ul>
             </Description>
             <Arguments>
-              <Argument
-                id="id"
-                description="Document ID or URI identifier"
-                required
-              />
+              <Argument id="id" description="Document ID or URI identifier" />
+              <Argument id="shareId" description="An active shareId" />
             </Arguments>
           </Method>
 
@@ -497,6 +494,28 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
+          <Method
+            method="documents.restore"
+            label="Restore a previous revision"
+          >
+            <Description>
+              Restores a document to a previous revision by creating a new
+              revision with the contents of the given revisionId.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+              <Argument
+                id="revisionId"
+                description="Revision ID to restore to"
+                required
+              />
+            </Arguments>
+          </Method>
+
           <Method method="documents.pin" label="Pin a document">
             <Description>
               Pins a document to the collection home. The pinned document is
@@ -580,6 +599,21 @@ export default function Pricing() {
           </Method>
 
           <Method
+            method="documents.revision"
+            label="Get revision for a document"
+          >
+            <Description>Return a specific revision of a document.</Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+              <Argument id="revisionId" description="Revision ID" required />
+            </Arguments>
+          </Method>
+
+          <Method
             method="documents.revisions"
             label="Get revisions for a document"
           >
@@ -587,7 +621,13 @@ export default function Pricing() {
               Return revisions for a document. Upon each edit, a new revision is
               stored.
             </Description>
-            <Arguments pagination />
+            <Arguments pagination>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+            </Arguments>
           </Method>
 
           <Method method="team.users" label="List team's users">
@@ -596,6 +636,34 @@ export default function Pricing() {
               users.
             </Description>
             <Arguments pagination />
+          </Method>
+
+          <Method method="shares.list" label="List shared document links">
+            <Description>
+              List all your currently shared document links.
+            </Description>
+            <Arguments pagination />
+          </Method>
+
+          <Method method="shares.create" label="Create a share link">
+            <Description>
+              Creates a new share link that can be used by anyone to access a
+              document. If you request multiple shares for the same document
+              with the same user the same share will be returned.
+            </Description>
+            <Arguments>
+              <Argument id="documentId" description="Document ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="shares.revoke" label="Revoke a share link">
+            <Description>
+              Makes the share link inactive so that it can no longer be used to
+              access the document.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Share ID" required />
+            </Arguments>
           </Method>
         </Methods>
       </Container>

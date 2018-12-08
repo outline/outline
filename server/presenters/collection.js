@@ -10,8 +10,9 @@ type Document = {
   url: string,
 };
 
-const sortDocuments = (documents: Document[]) => {
+const sortDocuments = (documents: Document[]): Document[] => {
   const orderedDocs = naturalSort(documents, 'title');
+
   return orderedDocs.map(document => ({
     ...document,
     children: sortDocuments(document.children),
@@ -23,7 +24,7 @@ async function present(ctx: Object, collection: Collection) {
 
   const data = {
     id: collection.id,
-    url: collection.getUrl(),
+    url: collection.url,
     name: collection.name,
     description: collection.description,
     color: collection.color || '#4E5C6E',

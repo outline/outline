@@ -1,11 +1,13 @@
 // @flow
 import Router from 'koa-router';
+import Sequelize from 'sequelize';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentShare } from '../presenters';
-import { Document, User, Share } from '../models';
+import { Document, User, Share, Team } from '../models';
 import policy from '../policies';
 
+const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
 
@@ -14,7 +16,12 @@ router.post('shares.list', auth(), pagination(), async ctx => {
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
-  const where = { teamId: user.teamId, userId: user.id };
+  const where = {
+    teamId: user.teamId,
+    userId: user.id,
+    // $FlowFixMe
+    revokedAt: { [Op.eq]: null },
+  };
 
   if (user.isAdmin) delete where.userId;
 
@@ -50,13 +57,16 @@ router.post('shares.create', auth(), async ctx => {
 
   const user = ctx.state.user;
   const document = await Document.findById(documentId);
+  const team = await Team.findById(user.teamId);
   authorize(user, 'share', document);
+  authorize(user, 'share', team);
 
   const [share] = await Share.findOrCreate({
     where: {
       documentId,
       userId: user.id,
       teamId: user.teamId,
+      revokedAt: null,
     },
   });
 
@@ -68,15 +78,15 @@ router.post('shares.create', auth(), async ctx => {
   };
 });
 
-router.post('shares.delete', auth(), async ctx => {
+router.post('shares.revoke', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
   const share = await Share.findById(id);
-  authorize(user, 'delete', share);
+  authorize(user, 'revoke', share);
 
-  await share.destroy();
+  await share.revoke(user.id);
 
   ctx.body = {
     success: true,

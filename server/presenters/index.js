@@ -8,6 +8,7 @@ import presentApiKey from './apiKey';
 import presentShare from './share';
 import presentTeam from './team';
 import presentIntegration from './integration';
+import presentNotificationSetting from './notificationSetting';
 import presentSlackAttachment from './slackAttachment';
 
 export {
@@ -20,5 +21,6 @@ export {
   presentShare,
   presentTeam,
   presentIntegration,
+  presentNotificationSetting,
   presentSlackAttachment,
 };

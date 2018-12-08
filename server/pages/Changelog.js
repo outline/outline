@@ -6,6 +6,7 @@ import Grid from 'styled-components-grid';
 import ReactMarkdown from 'react-markdown';
 import { Helmet } from 'react-helmet';
 import Header from './components/Header';
+import Content from './components/Content';
 
 type Release = {
   id: string,
@@ -26,19 +27,19 @@ function Changelog({ releases }: { releases: Release[] }) {
           We’re building in public. Here’s what we’ve been changing recently.
         </p>
       </Header>
-      <Container>
+      <Content>
         {releases.map(release => (
           <Article key={release.id}>
             <Heading id={release.name}>
               <a href={`#${release.name}`}>{release.name}</a>
             </Heading>
-            <Time datetime={release.created_at}>
+            <Time dateTime={release.created_at}>
               {format(new Date(release.created_at), 'MMMM Do, YYYY')}
             </Time>
             <ReactMarkdown source={release.body} />
           </Article>
         ))}
-      </Container>
+      </Content>
     </Grid>
   );
 }
@@ -58,19 +59,19 @@ const Time = styled.time`
   display: block;
 `;
 
-const Container = styled.div`
-  width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 0 2em;
-`;
-
 const Article = styled.div`
   border-bottom: 1px solid ${props => props.theme.slateLight};
   padding-bottom: 2em;
 
   &:last-child {
     border-bottom: 0;
+  }
+
+  img {
+    max-width: 100%;
+    zoom: 50%;
+    box-shadow: 0 10px 80px rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
   }
 `;
 

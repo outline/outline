@@ -13,13 +13,15 @@ import DocumentMenu from 'menus/DocumentMenu';
 type Props = {
   document: Document,
   highlight?: ?string,
+  context?: ?string,
   showCollection?: boolean,
-  innerRef?: *,
+  ref?: *,
 };
 
 const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
   <StarredIcon color={solid ? theme.black : theme.text} {...props} />
 ))`
+  flex-shrink: 0;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
   transition: all 100ms ease-in-out;
 
@@ -80,12 +82,30 @@ const Heading = styled.h3`
   height: 24px;
   margin-top: 0;
   margin-bottom: 0.25em;
+  overflow: hidden;
+  white-space: nowrap;
 `;
 
 const Actions = styled(Flex)`
   margin-left: 4px;
   align-items: center;
 `;
+
+const Title = styled(Highlight)`
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ResultContext = styled(Highlight)`
+  display: block;
+  color: ${props => props.theme.slateDark};
+  font-size: 14px;
+  margin-top: -0.25em;
+  margin-bottom: 0.25em;
+`;
+
+const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 @observer
 class DocumentPreview extends React.Component<Props> {
@@ -101,14 +121,24 @@ class DocumentPreview extends React.Component<Props> {
     this.props.document.unstar();
   };
 
+  replaceResultMarks = (tag: string) => {
+    // don't use SEARCH_RESULT_REGEX here as it causes
+    // an infinite loop to trigger a regex inside it's own callback
+    return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, '$1');
+  };
+
   render() {
     const {
       document,
       showCollection,
-      innerRef,
       highlight,
+      context,
       ...rest
     } = this.props;
+
+    const queryIsInTitle =
+      !!highlight &&
+      !!document.title.toLowerCase().match(highlight.toLowerCase());
 
     return (
       <DocumentLink
@@ -116,12 +146,11 @@ class DocumentPreview extends React.Component<Props> {
           pathname: document.url,
           state: { title: document.title },
         }}
-        innerRef={innerRef}
         {...rest}
       >
         <Heading>
-          <Highlight text={document.title} highlight={highlight} />
-          {document.publishedAt && (
+          <Title text={document.title} highlight={highlight} />
+          {!document.isDraft && (
             <Actions>
               {document.starred ? (
                 <StyledStar onClick={this.unstar} solid />
@@ -132,6 +161,13 @@ class DocumentPreview extends React.Component<Props> {
           )}
           <StyledDocumentMenu document={document} />
         </Heading>
+        {!queryIsInTitle && (
+          <ResultContext
+            text={context}
+            highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+            processResult={this.replaceResultMarks}
+          />
+        )}
         <PublishingInfo
           document={document}
           collection={showCollection ? document.collection : undefined}

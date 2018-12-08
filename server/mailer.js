@@ -1,10 +1,27 @@
 // @flow
 import * as React from 'react';
+import debug from 'debug';
+import bugsnag from 'bugsnag';
 import nodemailer from 'nodemailer';
 import Oy from 'oy-vey';
 import Queue from 'bull';
 import { baseStyles } from './emails/components/EmailLayout';
 import { WelcomeEmail, welcomeEmailText } from './emails/WelcomeEmail';
+import { ExportEmail, exportEmailText } from './emails/ExportEmail';
+import {
+  type Props as DocumentNotificationEmailT,
+  DocumentNotificationEmail,
+  documentNotificationEmailText,
+} from './emails/DocumentNotificationEmail';
+import {
+  type Props as CollectionNotificationEmailT,
+  CollectionNotificationEmail,
+  collectionNotificationEmailText,
+} from './emails/CollectionNotificationEmail';
+
+const log = debug('emails');
+
+type Emails = 'welcome' | 'export';
 
 type SendMailType = {
   to: string,
@@ -14,6 +31,14 @@ type SendMailType = {
   text: string,
   html: React.Node,
   headCSS?: string,
+  attachments?: Object[],
+};
+
+type EmailJob = {
+  data: {
+    type: Emails,
+    opts: SendMailType,
+  },
 };
 
 /**
@@ -27,12 +52,9 @@ type SendMailType = {
  * HTML: http://localhost:3000/email/:email_type/html
  * TEXT: http://localhost:3000/email/:email_type/text
  */
-class Mailer {
+export class Mailer {
   transporter: ?any;
 
-  /**
-   *
-   */
   sendMail = async (data: SendMailType): ?Promise<*> => {
     const { transporter } = this;
 
@@ -44,6 +66,7 @@ class Mailer {
       });
 
       try {
+        log(`Sending email "${data.title}" to ${data.to}`);
         await transporter.sendMail({
           from: process.env.SMTP_FROM_EMAIL,
           replyTo: process.env.SMTP_REPLY_EMAIL || process.env.SMTP_FROM_EMAIL,
@@ -51,10 +74,11 @@ class Mailer {
           subject: data.title,
           html: html,
           text: data.text,
+          attachments: data.attachments,
         });
-      } catch (e) {
-        Bugsnag.notifyException(e);
-        throw e; // Re-throw for queue to re-try
+      } catch (err) {
+        bugsnag.notify(err);
+        throw err; // Re-throw for queue to re-try
       }
     }
   };
@@ -70,17 +94,56 @@ class Mailer {
     });
   };
 
+  export = async (opts: { to: string, attachments: Object[] }) => {
+    this.sendMail({
+      to: opts.to,
+      attachments: opts.attachments,
+      title: 'Your requested export',
+      previewText: "Here's your request data export from Outline",
+      html: <ExportEmail />,
+      text: exportEmailText,
+    });
+  };
+
+  documentNotification = async (
+    opts: { to: string } & DocumentNotificationEmailT
+  ) => {
+    this.sendMail({
+      to: opts.to,
+      title: `"${opts.document.title}" ${opts.eventName}`,
+      previewText: `${opts.actor.name} ${opts.eventName} a new document`,
+      html: <DocumentNotificationEmail {...opts} />,
+      text: documentNotificationEmailText(opts),
+    });
+  };
+
+  collectionNotification = async (
+    opts: { to: string } & CollectionNotificationEmailT
+  ) => {
+    this.sendMail({
+      to: opts.to,
+      title: `"${opts.collection.name}" ${opts.eventName}`,
+      previewText: `${opts.actor.name} ${opts.eventName} a collection`,
+      html: <CollectionNotificationEmail {...opts} />,
+      text: collectionNotificationEmailText(opts),
+    });
+  };
+
   constructor() {
     if (process.env.SMTP_HOST) {
       let smtpConfig = {
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT,
-        secure: true,
-        auth: {
+        secure: process.env.NODE_ENV === 'production',
+        auth: undefined,
+      };
+
+      if (process.env.SMTP_USERNAME) {
+        smtpConfig.auth = {
           user: process.env.SMTP_USERNAME,
           pass: process.env.SMTP_PASSWORD,
-        },
-      };
+        };
+      }
 
       this.transporter = nodemailer.createTransport(smtpConfig);
     }
@@ -88,14 +151,16 @@ class Mailer {
 }
 
 const mailer = new Mailer();
-const mailerQueue = new Queue('email', process.env.REDIS_URL);
+export default mailer;
 
-mailerQueue.process(async function(job) {
+export const mailerQueue = new Queue('email', process.env.REDIS_URL);
+
+mailerQueue.process(async (job: EmailJob) => {
   // $FlowIssue flow doesn't like dynamic values
   await mailer[job.data.type](job.data.opts);
 });
 
-const sendEmail = (type: string, to: string, options?: Object = {}) => {
+export const sendEmail = (type: Emails, to: string, options?: Object = {}) => {
   mailerQueue.add(
     {
       type,
@@ -106,6 +171,7 @@ const sendEmail = (type: string, to: string, options?: Object = {}) => {
     },
     {
       attempts: 5,
+      removeOnComplete: true,
       backoff: {
         type: 'exponential',
         delay: 60 * 1000,
@@ -113,5 +179,3 @@ const sendEmail = (type: string, to: string, options?: Object = {}) => {
     }
   );
 };
-
-export { Mailer, mailerQueue, sendEmail };

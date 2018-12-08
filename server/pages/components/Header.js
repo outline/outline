@@ -1,20 +1,36 @@
 // @flow
+import * as React from 'react';
 import styled from 'styled-components';
+import Centered from './Centered';
 
-const Header = styled.div`
+type Props = {
+  children: React.Node,
+};
+
+const Header = ({ children }: Props) => {
+  return (
+    <Wrapper>
+      <Centered>{children}</Centered>
+    </Wrapper>
+  );
+};
+
+const Wrapper = styled.div`
   width: 100%;
-  padding: 0 2em 2em;
-  text-align: center;
-  background: ${props => props.theme.slateLight};
+  padding: 2em;
+  background: ${props => props.theme.contentHeaderBackground};
   margin-bottom: 2em;
 
   p {
-    max-width: 720px;
-    margin: 0 auto;
+    font-size: 22px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 0;
   }
 
   h1 {
-    font-size: 2.5em;
+    font-size: 3.5em;
+    margin: 0 0 0.1em;
   }
 `;
 

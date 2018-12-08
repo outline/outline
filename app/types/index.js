@@ -1,73 +1,23 @@
 // @flow
-import { Value, Node } from 'slate';
-import { Editor } from 'slate-react';
-
-export type SlateNodeProps = {
-  children: React.Node,
-  readOnly: boolean,
-  attributes: Object,
-  value: Value,
-  editor: Editor,
-  node: Node,
-  parent: Node,
-};
-
-export type User = {
-  avatarUrl: string,
-  id: string,
-  name: string,
-  email: string,
-  username: string,
-  isAdmin?: boolean,
-  isSuspended?: boolean,
-};
+import Document from 'models/Document';
 
 export type Toast = {
   message: string,
   type: 'warning' | 'error' | 'info' | 'success',
 };
 
-export type Share = {
-  id: string,
-  url: string,
-  documentTitle: string,
-  documentUrl: string,
-  createdBy: User,
-  createdAt: string,
-  updatedAt: string,
-};
-
-export type Team = {
-  id: string,
-  name: string,
-  avatarUrl: string,
-  slackConnected: boolean,
-  googleConnected: boolean,
+export type FetchOptions = {
+  prefetch?: boolean,
+  revisionId?: string,
+  shareId?: string,
+  force?: boolean,
 };
 
 export type NavigationNode = {
   id: string,
   title: string,
   url: string,
-  children: Array<NavigationNode>,
-};
-
-export type Document = {
-  collaborators: Array<User>,
-  collection: Object,
-  createdAt: string,
-  createdBy: User,
-  html: string,
-  id: string,
-  starred: boolean,
-  views: number,
-  team: string,
-  text: string,
-  title: string,
-  updatedAt: string,
-  updatedBy: User,
-  url: string,
-  views: number,
+  children: NavigationNode[],
 };
 
 // Pagination response in an API call
@@ -85,8 +35,8 @@ export type PaginationParams = {
   direction?: 'ASC' | 'DESC',
 };
 
-export type ApiKey = {
-  id: string,
-  name: string,
-  secret: string,
+export type SearchResult = {
+  ranking: number,
+  context: string,
+  document: Document,
 };

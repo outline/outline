@@ -14,14 +14,14 @@ const { authorize, cannot } = policy;
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction, collection } = ctx.body;
+  let { sort = 'updatedAt', direction, collection, user } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
 
-  const user = ctx.state.user;
-  let where = { teamId: user.teamId };
-  if (collection) where = { ...where, atlasId: collection };
+  let where = { teamId: ctx.state.user.teamId };
+  if (collection) where = { ...where, collectionId: collection };
+  if (user) where = { ...where, createdById: user };
 
-  const starredScope = { method: ['withStarred', user.id] };
+  const starredScope = { method: ['withStarred', ctx.state.user.id] };
   const documents = await Document.scope('defaultScope', starredScope).findAll({
     where,
     order: [[sort, direction]],
@@ -49,7 +49,7 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   const documents = await Document.scope('defaultScope', starredScope).findAll({
     where: {
       teamId: user.teamId,
-      atlasId: collection,
+      collectionId: collection,
       pinnedById: {
         // $FlowFixMe
         [Op.ne]: null,
@@ -165,7 +165,12 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   let document;
 
   if (shareId) {
-    const share = await Share.findById(shareId, {
+    const share = await Share.find({
+      where: {
+        // $FlowFixMe
+        revokedAt: { [Op.eq]: null },
+        id: shareId,
+      },
       include: [
         {
           model: Document,
@@ -190,6 +195,26 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   };
 });
 
+router.post('documents.revision', auth(), async ctx => {
+  let { id, revisionId } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(revisionId, 'revisionId is required');
+  const document = await Document.findById(id);
+  authorize(ctx.state.user, 'read', document);
+
+  const revision = await Revision.findOne({
+    where: {
+      id: revisionId,
+      documentId: document.id,
+    },
+  });
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: presentRevision(ctx, revision),
+  };
+});
+
 router.post('documents.revisions', auth(), pagination(), async ctx => {
   let { id, sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
@@ -206,12 +231,33 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    revisions.map(revision => presentRevision(ctx, revision))
+    revisions.map((revision, index) => presentRevision(ctx, revision))
   );
 
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+  };
+});
+
+router.post('documents.restore', auth(), async ctx => {
+  const { id, revisionId } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(revisionId, 'revisionId is required');
+
+  const user = ctx.state.user;
+  const document = await Document.findById(id);
+  authorize(user, 'update', document);
+
+  const revision = await Revision.findById(revisionId);
+  authorize(document, 'restore', revision);
+
+  document.text = revision.text;
+  document.title = revision.title;
+  await document.save();
+
+  ctx.body = {
+    data: await presentDocument(ctx, document),
   };
 });
 
@@ -221,13 +267,16 @@ router.post('documents.search', auth(), pagination(), async ctx => {
   ctx.assertPresent(query, 'query is required');
 
   const user = ctx.state.user;
-  const documents = await Document.searchForUser(user, query, {
+  const results = await Document.searchForUser(user, query, {
     offset,
     limit,
   });
 
   const data = await Promise.all(
-    documents.map(async document => await presentDocument(ctx, document))
+    results.map(async result => {
+      const document = await presentDocument(ctx, result.document);
+      return { ...result, document };
+    })
   );
 
   ctx.body = {
@@ -321,7 +370,7 @@ router.post('documents.create', auth(), async ctx => {
     parentDocumentObj = await Document.findOne({
       where: {
         id: parentDocument,
-        atlasId: collection.id,
+        collectionId: collection.id,
       },
     });
     authorize(user, 'read', parentDocumentObj);
@@ -329,7 +378,7 @@ router.post('documents.create', auth(), async ctx => {
 
   let document = await Document.create({
     parentDocumentId: parentDocumentObj.id,
-    atlasId: collection.id,
+    collectionId: collection.id,
     teamId: user.teamId,
     userId: user.id,
     lastModifiedById: user.id,

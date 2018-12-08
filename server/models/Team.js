@@ -1,7 +1,13 @@
 // @flow
 import uuid from 'uuid';
+import { URL } from 'url';
 import { DataTypes, sequelize, Op } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
+import {
+  stripSubdomain,
+  RESERVED_SUBDOMAINS,
+} from '../../shared/utils/domains';
+
 import Collection from './Collection';
 import User from './User';
 
@@ -14,18 +20,49 @@ const Team = sequelize.define(
       primaryKey: true,
     },
     name: DataTypes.STRING,
+    subdomain: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isLowercase: true,
+        is: {
+          args: [/^[a-z\d-]+$/, 'i'],
+          msg: 'Must be only alphanumeric and dashes',
+        },
+        len: {
+          args: [4, 32],
+          msg: 'Must be between 4 and 32 characters',
+        },
+        notIn: {
+          args: [RESERVED_SUBDOMAINS],
+          msg: 'You chose a restricted word, please try another.',
+        },
+      },
+      unique: true,
+    },
     slackId: { type: DataTypes.STRING, allowNull: true },
     googleId: { type: DataTypes.STRING, allowNull: true },
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
+    sharing: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
     slackData: DataTypes.JSONB,
   },
   {
-    indexes: [
-      {
-        unique: true,
-        fields: ['slackId'],
+    getterMethods: {
+      url() {
+        if (!this.subdomain || process.env.SUBDOMAINS_ENABLED !== 'true') {
+          return process.env.URL;
+        }
+
+        const url = new URL(process.env.URL);
+        url.host = `${this.subdomain}.${stripSubdomain(url.host)}`;
+        return url.href.replace(/\/$/, '');
       },
-    ],
+      logoUrl() {
+        return (
+          this.avatarUrl || (this.slackData ? this.slackData.image_88 : null)
+        );
+      },
+    },
   }
 );
 
@@ -39,18 +76,40 @@ const uploadAvatar = async model => {
   const endpoint = publicS3Endpoint();
 
   if (model.avatarUrl && !model.avatarUrl.startsWith(endpoint)) {
-    const newUrl = await uploadToS3FromUrl(
-      model.avatarUrl,
-      `avatars/${model.id}/${uuid.v4()}`
-    );
-    if (newUrl) model.avatarUrl = newUrl;
+    try {
+      const newUrl = await uploadToS3FromUrl(
+        model.avatarUrl,
+        `avatars/${model.id}/${uuid.v4()}`
+      );
+      if (newUrl) model.avatarUrl = newUrl;
+    } catch (err) {
+      // we can try again next time
+      console.error(err);
+    }
   }
 };
 
-Team.prototype.createFirstCollection = async function(userId) {
+Team.prototype.provisionSubdomain = async function(subdomain) {
+  if (this.subdomain) return this.subdomain;
+
+  let append = 0;
+  while (true) {
+    try {
+      await this.update({ subdomain });
+      break;
+    } catch (err) {
+      // subdomain was invalid or already used, try again
+      subdomain = `${subdomain}${++append}`;
+    }
+  }
+
+  return subdomain;
+};
+
+Team.prototype.provisionFirstCollection = async function(userId) {
   return await Collection.create({
     name: 'General',
-    description: 'Your first Collection',
+    description: '',
     type: 'atlas',
     teamId: this.id,
     creatorId: userId,

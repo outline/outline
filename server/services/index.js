@@ -7,16 +7,12 @@ const services = {};
 fs
   .readdirSync(__dirname)
   .filter(file => file.indexOf('.') !== 0 && file !== path.basename(__filename))
-  .forEach(name => {
-    const servicePath = path.join(__dirname, name);
+  .forEach(fileName => {
+    const servicePath = path.join(__dirname, fileName);
+    const name = servicePath.replace(/\.js$/, '');
     // $FlowIssue
-    const pkg = require(path.join(servicePath, 'package.json'));
-    // $FlowIssue
-    const hooks = require(servicePath).default;
-    services[pkg.name] = {
-      ...pkg,
-      ...hooks,
-    };
+    const Service = require(servicePath).default;
+    services[name] = new Service();
   });
 
 export default services;

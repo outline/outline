@@ -1,7 +1,8 @@
 // @flow
 import Router from 'koa-router';
+import auth from '../middlewares/authentication';
 import addHours from 'date-fns/add_hours';
-import addMonths from 'date-fns/add_months';
+import { stripSubdomain } from '../../shared/utils/domains';
 import { slackAuth } from '../../shared/utils/routeHelpers';
 import { Authentication, Integration, User, Team } from '../models';
 import * as Slack from '../slack';
@@ -17,18 +18,19 @@ router.get('slack', async ctx => {
   ctx.cookies.set('state', state, {
     httpOnly: false,
     expires: addHours(new Date(), 1),
+    domain: stripSubdomain(ctx.request.hostname),
   });
   ctx.redirect(slackAuth(state));
 });
 
 // signin callback from Slack
-router.get('slack.callback', async ctx => {
+router.get('slack.callback', auth({ required: false }), async ctx => {
   const { code, error, state } = ctx.request.query;
   ctx.assertPresent(code || error, 'code is required');
   ctx.assertPresent(state, 'state is required');
 
   if (state !== ctx.cookies.get('state') || error) {
-    ctx.redirect('/?notice=auth-error');
+    ctx.redirect(`/?notice=auth-error`);
     return;
   }
 
@@ -44,7 +46,7 @@ router.get('slack.callback', async ctx => {
     },
   });
 
-  const [user] = await User.findOrCreate({
+  const [user, isFirstSignin] = await User.findOrCreate({
     where: {
       service: 'slack',
       serviceId: data.user.id,
@@ -59,25 +61,15 @@ router.get('slack.callback', async ctx => {
   });
 
   if (isFirstUser) {
-    await team.createFirstCollection(user.id);
+    await team.provisionFirstCollection(user.id);
+    await team.provisionSubdomain(data.team.domain);
   }
 
-  // not awaiting the promise here so that the request is not blocked
-  user.updateSignedIn(ctx.request.ip);
-
-  ctx.cookies.set('lastSignedIn', 'slack', {
-    httpOnly: false,
-    expires: new Date('2100'),
-  });
-  ctx.cookies.set('accessToken', user.getJwtToken(), {
-    httpOnly: false,
-    expires: addMonths(new Date(), 1),
-  });
-
-  ctx.redirect('/');
+  // set cookies on response and redirect to team subdomain
+  ctx.signIn(user, team, 'slack', isFirstSignin);
 });
 
-router.get('slack.commands', async ctx => {
+router.get('slack.commands', auth(), async ctx => {
   const { code, error } = ctx.request.query;
   ctx.assertPresent(code || error, 'code is required');
 
@@ -88,10 +80,7 @@ router.get('slack.commands', async ctx => {
 
   const endpoint = `${process.env.URL || ''}/auth/slack.commands`;
   const data = await Slack.oauthAccess(code, endpoint);
-  const user = await User.find({
-    service: 'slack',
-    serviceId: data.user_id,
-  });
+  const user = ctx.state.user;
 
   const authentication = await Authentication.create({
     service: 'slack',
@@ -112,7 +101,7 @@ router.get('slack.commands', async ctx => {
   ctx.redirect('/settings/integrations/slack');
 });
 
-router.get('slack.post', async ctx => {
+router.get('slack.post', auth(), async ctx => {
   const { code, error, state } = ctx.request.query;
   ctx.assertPresent(code || error, 'code is required');
 
@@ -126,11 +115,7 @@ router.get('slack.post', async ctx => {
 
   const endpoint = `${process.env.URL || ''}/auth/slack.post`;
   const data = await Slack.oauthAccess(code, endpoint);
-
-  const user = await User.find({
-    service: 'slack',
-    serviceId: data.user_id,
-  });
+  const user = ctx.state.user;
 
   const authentication = await Authentication.create({
     service: 'slack',

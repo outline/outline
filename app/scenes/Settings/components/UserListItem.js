@@ -5,14 +5,15 @@ import styled from 'styled-components';
 import UserMenu from 'menus/UserMenu';
 import Avatar from 'components/Avatar';
 import ListItem from 'components/List/Item';
-import type { User } from '../../../types';
+import Time from 'shared/components/Time';
+import User from 'models/User';
 
 type Props = {
   user: User,
-  isCurrentUser: boolean,
+  showMenu: boolean,
 };
 
-const UserListItem = ({ user, isCurrentUser }: Props) => {
+const UserListItem = ({ user, showMenu }: Props) => {
   return (
     <ListItem
       key={user.id}
@@ -20,12 +21,13 @@ const UserListItem = ({ user, isCurrentUser }: Props) => {
       image={<Avatar src={user.avatarUrl} size={40} />}
       subtitle={
         <React.Fragment>
-          {user.username ? user.username : user.email}
+          {user.email ? `${user.email} · ` : undefined}
+          Joined <Time dateTime={user.createdAt} /> ago
           {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
           {user.isSuspended && <Badge>Suspended</Badge>}
         </React.Fragment>
       }
-      actions={isCurrentUser ? undefined : <UserMenu user={user} />}
+      actions={showMenu ? <UserMenu user={user} /> : undefined}
     />
   );
 };
@@ -38,8 +40,9 @@ const Badge = styled.span`
   color: ${({ admin, theme }) => (admin ? theme.white : theme.text)};
   border-radius: 2px;
   font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  font-weight: normal;
+  user-select: none;
 `;
 
 export default UserListItem;

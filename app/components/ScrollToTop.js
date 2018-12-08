@@ -5,9 +5,16 @@ import { withRouter } from 'react-router-dom';
 
 class ScrollToTop extends React.Component<*> {
   componentDidUpdate(prevProps) {
-    if (this.props.location !== prevProps.location) {
-      window.scrollTo(0, 0);
-    }
+    if (this.props.location.pathname === prevProps.location.pathname) return;
+
+    // exception for when entering or exiting document edit, scroll postion should not reset
+    if (
+      this.props.location.pathname.match(/\/edit\/?$/) ||
+      prevProps.location.pathname.match(/\/edit\/?$/)
+    )
+      return;
+
+    window.scrollTo(0, 0);
   }
 
   render() {

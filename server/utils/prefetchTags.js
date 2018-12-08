@@ -7,7 +7,11 @@ import webpackConfig from '../../webpack.config';
 const PUBLIC_PATH = webpackConfig.output.publicPath;
 
 const prefetchTags = [
-  <link rel="dns-prefetch" href={process.env.AWS_S3_UPLOAD_BUCKET_URL} />,
+  <link
+    rel="dns-prefetch"
+    href={process.env.AWS_S3_UPLOAD_BUCKET_URL}
+    key="dns"
+  />,
 ];
 
 try {
@@ -20,11 +24,21 @@ try {
     if (typeof filename !== 'string') return;
     if (filename.endsWith('.js')) {
       prefetchTags.push(
-        <link rel="prefetch" href={`${PUBLIC_PATH}${filename}`} as="script" />
+        <link
+          rel="prefetch"
+          href={`${PUBLIC_PATH}${filename}`}
+          key={filename}
+          as="script"
+        />
       );
     } else if (filename.endsWith('.css')) {
       prefetchTags.push(
-        <link rel="prefetch" href={`${PUBLIC_PATH}${filename}`} as="style" />
+        <link
+          rel="prefetch"
+          href={`${PUBLIC_PATH}${filename}`}
+          key={filename}
+          as="style"
+        />
       );
     }
   });

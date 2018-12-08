@@ -25,7 +25,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
 
   const data = {
     id: document.id,
-    url: document.getUrl(),
+    url: document.url,
     urlId: document.urlId,
     title: document.title,
     text: document.text,
@@ -50,7 +50,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
 
   if (!options.isPublic) {
     data.pinned = !!document.pinnedById;
-    data.collectionId = document.atlasId;
+    data.collectionId = document.collectionId;
     data.createdBy = presentUser(ctx, document.createdBy);
     data.updatedBy = presentUser(ctx, document.updatedBy);
 

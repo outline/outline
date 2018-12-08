@@ -1,49 +1,57 @@
 // @flow
-import { extendObservable, action, runInAction, computed } from 'mobx';
+import { action, set, computed } from 'mobx';
 import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
-import stores from 'stores';
-import UiStore from 'stores/UiStore';
-import parseTitle from '../../shared/utils/parseTitle';
+import parseTitle from 'shared/utils/parseTitle';
+import unescape from 'shared/utils/unescape';
 
-import type { User } from 'types';
-import BaseModel from './BaseModel';
-import Collection from './Collection';
+import type { NavigationNode } from 'types';
+import BaseModel from 'models/BaseModel';
+import Revision from 'models/Revision';
+import User from 'models/User';
+import Collection from 'models/Collection';
 
 type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
-class Document extends BaseModel {
-  isSaving: boolean = false;
-  hasPendingChanges: boolean = false;
-  ui: UiStore;
+export default class Document extends BaseModel {
+  isSaving: boolean;
+  ui: *;
+  store: *;
 
   collaborators: User[];
-  collection: $Shape<Collection>;
+  collection: Collection;
   collectionId: string;
   firstViewedAt: ?string;
   lastViewedAt: ?string;
-  modifiedSinceViewed: ?boolean;
   createdAt: string;
   createdBy: User;
   updatedAt: string;
   updatedBy: User;
-  html: string;
   id: string;
   team: string;
+  starred: boolean;
+  pinned: boolean;
+  text: string;
+  title: string;
   emoji: string;
-  starred: boolean = false;
-  pinned: boolean = false;
-  text: string = '';
-  title: string = '';
   parentDocument: ?string;
   publishedAt: ?string;
   url: string;
+  urlId: string;
   shareUrl: ?string;
   views: number;
   revision: number;
 
-  /* Computed */
+  constructor(data?: Object = {}, store: *) {
+    super(data, store);
+    this.updateTitle();
+  }
+
+  @action
+  updateTitle() {
+    set(this, parseTitle(this.text));
+  }
 
   @computed
   get modifiedSinceViewed(): boolean {
@@ -51,32 +59,30 @@ class Document extends BaseModel {
   }
 
   @computed
-  get pathToDocument(): Array<{ id: string, title: string }> {
+  get pathToDocument(): NavigationNode[] {
     let path;
     const traveler = (nodes, previousPath) => {
       nodes.forEach(childNode => {
-        const newPath = [
-          ...previousPath,
-          {
-            id: childNode.id,
-            title: childNode.title,
-          },
-        ];
+        const newPath = [...previousPath, childNode];
         if (childNode.id === this.id) {
           path = newPath;
           return;
-        } else {
-          return traveler(childNode.children, newPath);
         }
+        return traveler(childNode.children, newPath);
       });
     };
 
-    if (this.collection.documents) {
+    if (this.collection && this.collection.documents) {
       traveler(this.collection.documents, []);
       if (path) return path;
     }
 
     return [];
+  }
+
+  @computed
+  get isDraft(): boolean {
+    return !this.publishedAt;
   }
 
   @computed
@@ -97,28 +103,32 @@ class Document extends BaseModel {
       : null;
   }
 
-  /* Actions */
-
   @action
   share = async () => {
-    try {
-      const res = await client.post('/shares.create', { documentId: this.id });
-      invariant(res && res.data, 'Document API response should be available');
+    const res = await client.post('/shares.create', { documentId: this.id });
+    invariant(res && res.data, 'Share data should be available');
+    this.shareUrl = res.data.url;
+    return this.shareUrl;
+  };
 
-      this.shareUrl = res.data.url;
-    } catch (e) {
-      this.ui.showToast('Document failed to share');
-    }
+  @action
+  updateFromJson = data => {
+    set(this, data);
+    this.updateTitle();
+  };
+
+  restore = (revision: Revision) => {
+    return this.store.restore(this, revision);
   };
 
   @action
   pin = async () => {
     this.pinned = true;
     try {
-      await client.post('/documents.pin', { id: this.id });
-    } catch (e) {
+      await this.store.pin(this);
+    } catch (err) {
       this.pinned = false;
-      this.ui.showToast('Document failed to pin');
+      throw err;
     }
   };
 
@@ -126,10 +136,10 @@ class Document extends BaseModel {
   unpin = async () => {
     this.pinned = false;
     try {
-      await client.post('/documents.unpin', { id: this.id });
-    } catch (e) {
+      await this.store.unpin(this);
+    } catch (err) {
       this.pinned = true;
-      this.ui.showToast('Document failed to unpin');
+      throw err;
     }
   };
 
@@ -137,10 +147,10 @@ class Document extends BaseModel {
   star = async () => {
     this.starred = true;
     try {
-      await client.post('/documents.star', { id: this.id });
-    } catch (e) {
+      await this.store.star(this);
+    } catch (err) {
       this.starred = false;
-      this.ui.showToast('Document failed star');
+      throw err;
     }
   };
 
@@ -148,10 +158,10 @@ class Document extends BaseModel {
   unstar = async () => {
     this.starred = false;
     try {
-      await client.post('/documents.unstar', { id: this.id });
-    } catch (e) {
-      this.starred = false;
-      this.ui.showToast('Document failed unstar');
+      await this.store.unstar(this);
+    } catch (err) {
+      this.starred = true;
+      throw err;
     }
   };
 
@@ -163,36 +173,22 @@ class Document extends BaseModel {
 
   @action
   fetch = async () => {
-    try {
-      const res = await client.post('/documents.info', { id: this.id });
-      invariant(res && res.data, 'Document API response should be available');
-      const { data } = res;
-      runInAction('Document#update', () => {
-        this.updateData(data);
-      });
-    } catch (e) {
-      this.ui.showToast('Document failed loading');
-    }
+    const res = await client.post('/documents.info', { id: this.id });
+    invariant(res && res.data, 'Data should be available');
+    this.updateFromJson(res.data);
   };
 
   @action
   save = async (options: SaveOptions) => {
     if (this.isSaving) return this;
 
+    const isCreating = !this.id;
     const wasDraft = !this.publishedAt;
     this.isSaving = true;
+    this.updateTitle();
 
     try {
-      let res;
-      if (this.id) {
-        res = await client.post('/documents.update', {
-          id: this.id,
-          title: this.title,
-          text: this.text,
-          lastRevision: this.revision,
-          ...options,
-        });
-      } else {
+      if (isCreating) {
         const data = {
           parentDocument: undefined,
           collection: this.collection.id,
@@ -203,99 +199,48 @@ class Document extends BaseModel {
         if (this.parentDocument) {
           data.parentDocument = this.parentDocument;
         }
-        res = await client.post('/documents.create', data);
-        if (res && res.data) this.emit('documents.create', res.data);
-      }
-      runInAction('Document#save', () => {
-        invariant(res && res.data, 'Data should be available');
-        this.updateData(res.data);
-        this.hasPendingChanges = false;
-      });
-
-      this.emit('documents.update', {
-        document: this,
-        collectionId: this.collection.id,
-      });
-
-      if (wasDraft && this.publishedAt) {
-        this.emit('documents.publish', {
+        const document = await this.store.create(data);
+        return document;
+      } else {
+        const document = await this.store.update({
           id: this.id,
-          collectionId: this.collection.id,
+          title: this.title,
+          text: this.text,
+          lastRevision: this.revision,
+          ...options,
+        });
+        return document;
+      }
+    } finally {
+      if (wasDraft && options.publish) {
+        this.store.rootStore.collections.fetch(this.collection.id, {
+          force: true,
         });
       }
-    } catch (e) {
-      this.ui.showToast('Document failed to save');
-    } finally {
       this.isSaving = false;
     }
-
-    return this;
   };
 
-  @action
-  move = async (parentDocumentId: ?string) => {
-    try {
-      const res = await client.post('/documents.move', {
-        id: this.id,
-        parentDocument: parentDocumentId,
-      });
-      invariant(res && res.data, 'Data not available');
-      this.updateData(res.data);
-      this.emit('documents.move', {
-        id: this.id,
-        collectionId: this.collection.id,
-      });
-    } catch (e) {
-      this.ui.showToast('Error while moving the document');
-    }
-    return;
-  };
-
-  @action
-  delete = async () => {
-    try {
-      await client.post('/documents.delete', { id: this.id });
-      this.emit('documents.delete', {
-        id: this.id,
-        collectionId: this.collection.id,
-      });
-      return true;
-    } catch (e) {
-      this.ui.showToast('Error while deleting the document');
-    }
-    return false;
+  move = (parentDocumentId: ?string) => {
+    return this.store.move(this, parentDocumentId);
   };
 
   duplicate = () => {
-    this.emit('documents.duplicate', this);
+    return this.store.duplicate(this);
   };
 
-  download() {
-    const a = window.document.createElement('a');
-    a.textContent = 'download';
+  download = async () => {
+    // Ensure the document is upto date with latest server contents
+    await this.fetch();
+
+    const blob = new Blob([unescape(this.text)], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    // Firefox support requires the anchor tag be in the DOM to trigger the dl
+    if (document.body) document.body.appendChild(a);
+    a.href = url;
     a.download = `${this.title}.md`;
-    a.href = `data:text/markdown;charset=UTF-8,${encodeURIComponent(
-      this.text
-    )}`;
     a.click();
-  }
-
-  updateData(data: Object = {}, dirty: boolean = false) {
-    if (data.text) {
-      const { title, emoji } = parseTitle(data.text);
-      data.title = title;
-      data.emoji = emoji;
-    }
-    if (dirty) this.hasPendingChanges = true;
-    extendObservable(this, data);
-  }
-
-  constructor(data?: Object = {}) {
-    super();
-
-    this.updateData(data);
-    this.ui = stores.ui;
-  }
+  };
 }
-
-export default Document;

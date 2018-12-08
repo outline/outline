@@ -1,5 +1,6 @@
 // @flow
 import { DataTypes, sequelize } from '../sequelize';
+import events from '../events';
 
 const Integration = sequelize.define('integration', {
   id: {
@@ -31,5 +32,17 @@ Integration.associate = models => {
     foreignKey: 'authenticationId',
   });
 };
+
+Integration.addHook('afterCreate', async model => {
+  events.add({ name: 'integrations.create', model });
+});
+
+Integration.addHook('afterUpdate', model =>
+  events.add({ name: 'integrations.update', model })
+);
+
+Integration.addHook('afterDestroy', model =>
+  events.add({ name: 'integrations.delete', model })
+);
 
 export default Integration;

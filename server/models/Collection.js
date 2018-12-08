@@ -30,7 +30,6 @@ const Collection = sequelize.define(
       type: DataTypes.STRING,
       validate: { isIn: allowedCollectionTypes },
     },
-    creatorId: DataTypes.UUID,
 
     /* type: atlas */
     documentStructure: DataTypes.JSONB,
@@ -53,7 +52,7 @@ const Collection = sequelize.define(
           // Create intro document if first collection for team
           const document = await Document.create({
             parentDocumentId: null,
-            atlasId: collection.id,
+            collectionId: collection.id,
             teamId: collection.teamId,
             userId: collection.creatorId,
             lastModifiedById: collection.creatorId,
@@ -70,6 +69,11 @@ const Collection = sequelize.define(
         await collection.save();
       },
     },
+    getterMethods: {
+      url() {
+        return `/collections/${this.id}`;
+      },
+    },
   }
 );
 
@@ -78,8 +82,12 @@ const Collection = sequelize.define(
 Collection.associate = models => {
   Collection.hasMany(models.Document, {
     as: 'documents',
-    foreignKey: 'atlasId',
+    foreignKey: 'collectionId',
     onDelete: 'cascade',
+  });
+  Collection.belongsTo(models.User, {
+    as: 'user',
+    foreignKey: 'creatorId',
   });
   Collection.belongsTo(models.Team, {
     as: 'team',
@@ -99,7 +107,7 @@ Collection.associate = models => {
 Collection.addHook('afterDestroy', async model => {
   await Document.destroy({
     where: {
-      atlasId: model.id,
+      collectionId: model.id,
     },
   });
 });
@@ -119,10 +127,6 @@ Collection.addHook('afterUpdate', model =>
 );
 
 // Instance methods
-
-Collection.prototype.getUrl = function() {
-  return `/collections/${this.id}`;
-};
 
 Collection.prototype.addDocumentToStructure = async function(
   document,
@@ -297,7 +301,7 @@ Collection.prototype.removeDocument = async function(
       if (options.deleteDocument) {
         const childDocument = await Document.findById(id);
         // Delete the actual document
-        await childDocument.destroy();
+        if (childDocument) await childDocument.destroy();
         // Delete all child documents
         await deleteChildren(id);
       }

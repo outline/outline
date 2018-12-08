@@ -12,9 +12,8 @@ class UiStore {
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
-  @observable toasts: Toast[] = observable.array([]);
+  @observable toasts: Toast[] = [];
 
-  /* Actions */
   @action
   setActiveModal = (name: string, props: ?Object): void => {
     this.activeModalName = name;
@@ -85,7 +84,7 @@ class UiStore {
   @action
   showToast = (
     message: string,
-    type?: 'warning' | 'error' | 'info' | 'success' = 'warning'
+    type?: 'warning' | 'error' | 'info' | 'success' = 'success'
   ): void => {
     this.toasts.push({ message, type });
   };

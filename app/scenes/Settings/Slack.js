@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { inject, observer } from 'mobx-react';
-import _ from 'lodash';
+import { find } from 'lodash';
 import styled from 'styled-components';
 
 import Button from 'components/Button';
@@ -25,11 +25,12 @@ class Slack extends React.Component<Props> {
 
   componentDidMount() {
     this.error = getQueryVariable('error');
+    this.props.collections.fetchPage({ limit: 100 });
     this.props.integrations.fetchPage();
   }
 
   get commandIntegration() {
-    return _.find(this.props.integrations.slackIntegrations, {
+    return find(this.props.integrations.slackIntegrations, {
       type: 'command',
     });
   }
@@ -59,6 +60,7 @@ class Slack extends React.Component<Props> {
             <SlackButton
               scopes={['commands', 'links:read', 'links:write']}
               redirectUri={`${BASE_URL}/auth/slack.commands`}
+              state=""
             />
           )}
         </p>
@@ -72,7 +74,7 @@ class Slack extends React.Component<Props> {
 
         <List>
           {collections.orderedData.map(collection => {
-            const integration = _.find(integrations.slackIntegrations, {
+            const integration = find(integrations.slackIntegrations, {
               collectionId: collection.id,
             });
 

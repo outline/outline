@@ -3,9 +3,9 @@ import * as React from 'react';
 import { inject, observer } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
-import UsersStore from 'stores/UsersStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import type { User } from 'types';
+import UsersStore from 'stores/UsersStore';
+import User from 'models/User';
 
 type Props = {
   user: User,

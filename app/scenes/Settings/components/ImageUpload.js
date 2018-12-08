@@ -38,7 +38,15 @@ class DropToImport extends React.Component<Props> {
     this.file = files[0];
   };
 
-  handleCrop = async () => {
+  handleCrop = () => {
+    this.isUploading = true;
+
+    // allow the UI to update before converting the canvas to a Blob
+    // for large images this can cause the page rendering to hang.
+    setImmediate(this.uploadImage);
+  };
+
+  uploadImage = async () => {
     const canvas = this.avatarEditorRef.getImage();
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
     try {
@@ -70,6 +78,7 @@ class DropToImport extends React.Component<Props> {
     return (
       <Modal isOpen onRequestClose={this.handleClose} title="">
         <Flex auto column align="center" justify="center">
+          {this.isUploading && <LoadingIndicator />}
           <AvatarEditorContainer>
             <AvatarEditor
               ref={ref => (this.avatarEditorRef = ref)}
@@ -91,9 +100,8 @@ class DropToImport extends React.Component<Props> {
             defaultValue="1"
             onChange={this.handleZoom}
           />
-          {this.isUploading && <LoadingIndicator />}
           <CropButton onClick={this.handleCrop} disabled={this.isUploading}>
-            {submitText}
+            {this.isUploading ? 'Uploading…' : submitText}
           </CropButton>
         </Flex>
       </Modal>
