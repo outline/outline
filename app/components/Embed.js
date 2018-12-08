@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import styled from 'styled-components';
 import embeds from '../embeds';
 
 type Props = {
@@ -36,11 +37,15 @@ class EmbedWrapper extends React.Component<Props> {
     if (!EmbedComponent) return null;
 
     return (
-      <div contentEditable={false}>
+      <Background contentEditable={false}>
         <EmbedComponent url={this.props.url} />
-      </div>
+      </Background>
     );
   }
 }
+
+const Background = styled.div`
+  line-height: 0;
+`;
 
 export default EmbedWrapper;

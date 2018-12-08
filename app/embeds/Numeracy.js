@@ -14,7 +14,7 @@ export default class Numeracy extends React.Component<Props> {
     const normalizedUrl = this.props.url.replace(/\.embed$/, '');
 
     return (
-      <NumeracyEmbed
+      <Iframe
         type="text/html"
         width="100%"
         height="400"
@@ -26,7 +26,7 @@ export default class Numeracy extends React.Component<Props> {
   }
 }
 
-const NumeracyEmbed = styled.iframe`
+const Iframe = styled.iframe`
   border: 1px solid;
   border-color: #ddd #ddd #ccc;
   border-radius: 3px;
