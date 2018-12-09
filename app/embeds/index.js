@@ -10,6 +10,7 @@ import Marvel from './Marvel';
 import ModeAnalytics from './ModeAnalytics';
 import Numeracy from './Numeracy';
 import RealtimeBoard from './RealtimeBoard';
+import Spotify from './Spotify';
 import Typeform from './Typeform';
 import Vimeo from './Vimeo';
 import YouTube from './YouTube';
@@ -26,6 +27,7 @@ export default {
   ModeAnalytics,
   Numeracy,
   RealtimeBoard,
+  Spotify,
   Typeform,
   Vimeo,
   YouTube,

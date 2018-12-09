@@ -17,15 +17,6 @@ export default class Link extends React.Component<*> {
     return this.props.node.data.get('href');
   }
 
-  get hostname() {
-    try {
-      const parsed = new URL(this.url);
-      return parsed.hostname.replace(/^www\./, '');
-    } catch (err) {
-      return '';
-    }
-  }
-
   getMatches(): ?{ component: *, matches: string[] } {
     const keys = Object.keys(embeds);
 
