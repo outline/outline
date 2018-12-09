@@ -6,16 +6,14 @@ const URL_REGEX = /^https:\/\/realtimeboard.com\/app\/board\/(.*)$/;
 
 type Props = {
   url: string,
+  matches: string[],
 };
 
 export default class RealtimeBoard extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
-    const { url } = this.props;
-    const matches = url.match(URL_REGEX);
-    if (!matches) return null;
-
+    const { matches } = this.props;
     const boardId = matches[1];
 
     return (

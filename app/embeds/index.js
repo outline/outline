@@ -12,6 +12,7 @@ import ModeAnalytics from './ModeAnalytics';
 import Numeracy from './Numeracy';
 import RealtimeBoard from './RealtimeBoard';
 import Spotify from './Spotify';
+import Trello from './Trello';
 import Typeform from './Typeform';
 import Vimeo from './Vimeo';
 import YouTube from './YouTube';
@@ -30,6 +31,7 @@ export default {
   Numeracy,
   RealtimeBoard,
   Spotify,
+  Trello,
   Typeform,
   Vimeo,
   YouTube,
