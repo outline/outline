@@ -1,5 +1,6 @@
 // @flow
 import Airtable from './Airtable';
+import Codepen from './Codepen';
 import Figma from './Figma';
 import Framer from './Framer';
 import Gist from './Gist';
@@ -17,6 +18,7 @@ import YouTube from './YouTube';
 
 export default {
   Airtable,
+  Codepen,
   Figma,
   Framer,
   Gist,
