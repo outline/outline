@@ -6,16 +6,14 @@ const URL_REGEX = new RegExp('https://airtable.com/(shr.*)$');
 
 type Props = {
   url: string,
+  matches: string[],
 };
 
 export default class Airtable extends React.Component<Props> {
-  static hostnames = [URL_REGEX];
+  static ENABLED = [URL_REGEX];
 
   render() {
-    const { url } = this.props;
-    const matches = url.match(URL_REGEX);
-    if (!matches) return null;
-
+    const { matches } = this.props;
     const shareId = matches[1];
 
     return (

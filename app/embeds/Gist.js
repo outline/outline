@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import Frame from './components/Frame';
 
 const URL_REGEX = new RegExp(
   '^https://gist.github.com/([a-zd](?:[a-zd]|-(?=[a-zd])){0,38})/(.*)$'
@@ -12,7 +13,7 @@ type Props = {
 class Gist extends React.Component<Props> {
   iframeNode: ?HTMLIFrameElement;
 
-  static hostnames = [URL_REGEX];
+  static ENABLED = [URL_REGEX];
 
   componentDidMount() {
     this.updateIframeContent();
@@ -52,13 +53,12 @@ class Gist extends React.Component<Props> {
     const id = this.id;
 
     return (
-      <iframe
+      <Frame
         ref={ref => {
           this.iframeNode = ref;
         }}
         width="100%"
         height="200px"
-        frameBorder={0}
         id={`gist-${id}`}
         title={`Github Gist (${id})`}
       />

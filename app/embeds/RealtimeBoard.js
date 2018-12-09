@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default class RealtimeBoard extends React.Component<Props> {
-  static hostnames = [URL_REGEX];
+  static ENABLED = [URL_REGEX];
 
   render() {
     const { url } = this.props;

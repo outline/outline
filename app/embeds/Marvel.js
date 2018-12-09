@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default class Marvel extends React.Component<Props> {
-  static hostnames = [URL_REGEX];
+  static ENABLED = [URL_REGEX];
 
   render() {
     return <Frame src={this.props.url} title="Marvel Embed" border />;

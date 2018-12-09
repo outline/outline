@@ -5,6 +5,13 @@ import OriginalLink from 'rich-markdown-editor/lib/components/Link';
 import embeds from '../../../embeds';
 import { fadeIn } from 'shared/styles/animations';
 
+export function canBeEmbedded(node: *, url: ?string) {
+  if (!url) return false;
+
+  // $embed$ is a special string that's stored in the Markdown for the link text
+  return node.text === '$embed$' || node.text === url;
+}
+
 export default class Link extends React.Component<*> {
   get url(): string {
     return this.props.node.data.get('href');
@@ -19,34 +26,28 @@ export default class Link extends React.Component<*> {
     }
   }
 
-  get matchingEmbed() {
+  getMatches(): ?{ component: *, matches: string[] } {
     const keys = Object.keys(embeds);
 
     for (const key of keys) {
-      const embed = embeds[key];
+      const component = embeds[key];
 
-      for (const host of embed.hostnames) {
-        if (typeof host === 'object') {
-          if (this.url.match(host)) return embed;
-        } else {
-          if (host === this.hostname) return embed;
-        }
+      for (const host of component.ENABLED) {
+        const matches = this.url.match(host);
+        if (matches) return { component, matches };
       }
     }
   }
 
   render() {
-    const { node } = this.props;
-
-    // $embed$ is a special string that's stored in the Markdown for the link text
     const url = this.url;
-    const canBeEmbed = node.text === '$embed$' || node.text === url;
-    const EmbedComponent = this.matchingEmbed;
-    const isEmbed = canBeEmbed && url;
+    const result = this.getMatches();
+    const EmbedComponent = result ? result.component : undefined;
+    const isEmbed = canBeEmbedded(this.props.node, url);
 
     return isEmbed && EmbedComponent ? (
       <Background contentEditable={false}>
-        <EmbedComponent url={url} />
+        <EmbedComponent matches={result ? result.matches : []} url={url} />
       </Background>
     ) : (
       <OriginalLink {...this.props} />

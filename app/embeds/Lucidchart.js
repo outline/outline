@@ -6,16 +6,14 @@ const URL_REGEX = /^https:\/\/(www\.)?lucidchart.com\/documents\/(embeddedchart|
 
 type Props = {
   url: string,
+  matches: string[],
 };
 
 export default class Lucidchart extends React.Component<Props> {
-  static hostnames = [URL_REGEX];
+  static ENABLED = [URL_REGEX];
 
   render() {
-    const { url } = this.props;
-    const matches = url.match(URL_REGEX);
-    if (!matches) return null;
-
+    const { matches } = this.props;
     const chartId = matches[3];
 
     return (

@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default class Loom extends React.Component<Props> {
-  static hostnames = [URL_REGEX];
+  static ENABLED = [URL_REGEX];
 
   render() {
     const normalizedUrl = this.props.url.replace('share', 'embed');

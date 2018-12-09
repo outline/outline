@@ -11,7 +11,7 @@ type Props = {
 };
 
 export default class ModeAnalytics extends React.Component<Props> {
-  static hostnames = [URL_REGEX];
+  static ENABLED = [URL_REGEX];
 
   render() {
     // Allow users to paste embed or standard urls and handle them the same

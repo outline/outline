@@ -6,16 +6,14 @@ const URL_REGEX = /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|e
 
 type Props = {
   url: string,
+  matches: string[],
 };
 
 export default class YouTube extends React.Component<Props> {
-  static hostnames = [URL_REGEX];
+  static ENABLED = [URL_REGEX];
 
   render() {
-    const { url } = this.props;
-    const matches = url.match(URL_REGEX);
-    if (!matches) return null;
-
+    const { matches } = this.props;
     const videoId = matches[1];
 
     return (

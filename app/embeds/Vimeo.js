@@ -6,16 +6,14 @@ const URL_REGEX = /(http|https)?:\/\/(www\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|
 
 type Props = {
   url: string,
+  matches: string[],
 };
 
 export default class Vimeo extends React.Component<Props> {
-  static hostnames = [URL_REGEX];
+  static ENABLED = [URL_REGEX];
 
   render() {
-    const { url } = this.props;
-    const matches = url.match(URL_REGEX);
-    if (!matches) return null;
-
+    const { matches } = this.props;
     const videoId = matches[4];
 
     return (
