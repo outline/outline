@@ -6,9 +6,11 @@ import Gist from './Gist';
 import InVision from './InVision';
 import Loom from './Loom';
 import Lucidchart from './Lucidchart';
+import Marvel from './Marvel';
 import ModeAnalytics from './ModeAnalytics';
 import Numeracy from './Numeracy';
 import RealtimeBoard from './RealtimeBoard';
+import Typeform from './Typeform';
 import Vimeo from './Vimeo';
 import YouTube from './YouTube';
 
@@ -20,9 +22,11 @@ export default {
   InVision,
   Loom,
   Lucidchart,
+  Marvel,
   ModeAnalytics,
   Numeracy,
   RealtimeBoard,
+  Typeform,
   Vimeo,
   YouTube,
 };
