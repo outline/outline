@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import Frame from './components/Frame';
 
 const URL_REGEX = new RegExp(
   'https://([w.-]+.)?modeanalytics.com/(.*)/reports/(.*)$'
@@ -17,14 +18,7 @@ export default class ModeAnalytics extends React.Component<Props> {
     const normalizedUrl = this.props.url.replace(/\/embed$/, '');
 
     return (
-      <iframe
-        type="text/html"
-        width="100%"
-        height="400"
-        src={`${normalizedUrl}/embed`}
-        frameBorder="0"
-        title="Mode Analytics Embed"
-      />
+      <Frame src={`${normalizedUrl}/embed`} title="Mode Analytics Embed" />
     );
   }
 }

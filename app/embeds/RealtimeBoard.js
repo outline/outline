@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import Frame from './components/Frame';
 
 const URL_REGEX = /^https:\/\/realtimeboard.com\/app\/board\/(.*)$/;
 
@@ -18,14 +19,9 @@ export default class RealtimeBoard extends React.Component<Props> {
     const boardId = matches[1];
 
     return (
-      <iframe
-        type="text/html"
-        width="100%"
-        height="400"
+      <Frame
         src={`http://realtimeboard.com/app/embed/${boardId}`}
-        frameBorder="0"
         title={`RealtimeBoard (${boardId})`}
-        allowFullScreen
       />
     );
   }

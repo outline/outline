@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import Frame from './components/Frame';
 
 const URL_REGEX = /(http|https)?:\/\/(www\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|)(\d+)(?:|\/\?)/;
 
@@ -18,14 +19,11 @@ export default class Vimeo extends React.Component<Props> {
     const videoId = matches[4];
 
     return (
-      <iframe
-        type="text/html"
+      <Frame
         width="420"
         height="235"
         src={`http://player.vimeo.com/video/${videoId}?byline=0`}
-        frameBorder="0"
         title={`Vimeo Embed (${videoId})`}
-        allowFullScreen
       />
     );
   }

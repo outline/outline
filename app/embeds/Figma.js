@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import styled from 'styled-components';
+import Frame from './components/Frame';
 
 const URL_REGEX = new RegExp(
   'https://([w.-]+.)?figma.com/(file|proto)/([0-9a-zA-Z]{22,128})(?:/.*)?$'
@@ -15,23 +15,13 @@ export default class Figma extends React.Component<Props> {
 
   render() {
     return (
-      <Iframe
-        type="text/html"
-        width="100%"
-        height="400"
+      <Frame
         src={`https://www.figma.com/embed?embed_host=outline&url=${
           this.props.url
         }`}
-        frameBorder="0"
         title="Figma Embed"
-        allowFullScreen
+        border
       />
     );
   }
 }
-
-const Iframe = styled.iframe`
-  border: 1px solid;
-  border-color: #ddd #ddd #ccc;
-  border-radius: 3px;
-`;

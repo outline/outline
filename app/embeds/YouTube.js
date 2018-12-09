@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import Frame from './components/Frame';
 
 const URL_REGEX = /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)&?/i;
 
@@ -18,12 +19,10 @@ export default class YouTube extends React.Component<Props> {
     const videoId = matches[1];
 
     return (
-      <iframe
-        type="text/html"
+      <Frame
         width="420"
         height="235"
         src={`http://www.youtube.com/embed/${videoId}?modestbranding=1`}
-        frameBorder="0"
         title={`YouTube (${videoId})`}
       />
     );
