@@ -3,12 +3,9 @@ import * as React from 'react';
 import styled from 'styled-components';
 import OriginalLink from 'rich-markdown-editor/lib/components/Link';
 import embeds from '../../../embeds';
+import { fadeIn } from 'shared/styles/animations';
 
 export default class Link extends React.Component<*> {
-  shouldComponentUpdate() {
-    return false;
-  }
-
   get url(): string {
     return this.props.node.data.get('href');
   }
@@ -58,5 +55,6 @@ export default class Link extends React.Component<*> {
 }
 
 const Background = styled.div`
+  animation: ${fadeIn} 150ms ease-in-out;
   line-height: 0;
 `;
