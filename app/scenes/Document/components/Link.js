@@ -55,6 +55,6 @@ export default class Link extends React.Component<*> {
 }
 
 const Background = styled.div`
-  animation: ${fadeIn} 150ms ease-in-out;
+  animation: ${fadeIn} 500ms ease-in-out;
   line-height: 0;
 `;

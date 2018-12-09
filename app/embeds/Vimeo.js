@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react';
 
-const URL_REGEX = /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)&?/i;
+const URL_REGEX = /(http|https)?:\/\/(www\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|)(\d+)(?:|\/\?)/;
 
 type Props = {
   url: string,
 };
 
-export default class YouTube extends React.Component<Props> {
+export default class Vimeo extends React.Component<Props> {
   static hostnames = [URL_REGEX];
 
   render() {
@@ -15,16 +15,17 @@ export default class YouTube extends React.Component<Props> {
     const matches = url.match(URL_REGEX);
     if (!matches) return null;
 
-    const videoId = matches[1];
+    const videoId = matches[4];
 
     return (
       <iframe
         type="text/html"
         width="420"
         height="235"
-        src={`http://www.youtube.com/embed/${videoId}?modestbranding=1`}
+        src={`http://player.vimeo.com/video/${videoId}?byline=0`}
         frameBorder="0"
-        title={`YouTube (${videoId})`}
+        title={`Vimeo Embed (${videoId})`}
+        allowFullScreen
       />
     );
   }

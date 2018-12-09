@@ -4,6 +4,7 @@ import Figma from './Figma';
 import Gist from './Gist';
 import ModeAnalytics from './ModeAnalytics';
 import Numeracy from './Numeracy';
+import Vimeo from './Vimeo';
 import YouTube from './YouTube';
 
 export default {
@@ -12,5 +13,6 @@ export default {
   Gist,
   ModeAnalytics,
   Numeracy,
+  Vimeo,
   YouTube,
 };
