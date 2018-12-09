@@ -42,22 +42,33 @@ class Frame extends React.Component<Props, State> {
       ...rest
     } = this.props;
     const Component = border ? Iframe : 'iframe';
-    if (!this.state.isLoaded) return <div style={{ width, height }} />;
 
     return (
-      <Component
-        ref={forwardedRef}
-        width={width}
-        height={height}
-        type="text/html"
-        frameBorder="0"
-        title="embed"
-        allowFullScreen
-        {...rest}
-      />
+      <Rounded width={width} height={height}>
+        {this.state.isLoaded && (
+          <Component
+            ref={forwardedRef}
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            width={width}
+            height={height}
+            type="text/html"
+            frameBorder="0"
+            title="embed"
+            allowFullScreen
+            {...rest}
+          />
+        )}
+      </Rounded>
     );
   }
 }
+
+const Rounded = styled.div`
+  border-radius: 3px;
+  overflow: hidden;
+  width: ${props => props.width};
+  height: ${props => props.height};
+`;
 
 const Iframe = styled.iframe`
   border: 1px solid;

@@ -46,16 +46,16 @@ export default class Link extends React.Component<*> {
     const isEmbed = canBeEmbedded(this.props.node, url);
 
     return isEmbed && EmbedComponent ? (
-      <Background contentEditable={false}>
+      <Fade contentEditable={false}>
         <EmbedComponent matches={result ? result.matches : []} url={url} />
-      </Background>
+      </Fade>
     ) : (
       <OriginalLink {...this.props} />
     );
   }
 }
 
-const Background = styled.div`
+const Fade = styled.div`
   animation: ${fadeIn} 500ms ease-in-out;
   line-height: 0;
 `;
