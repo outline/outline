@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Frame from './components/Frame';
 
-const URL_REGEX = new RegExp('https://airtable.com/(shr.*)$');
+const URL_REGEX = new RegExp('https://airtable.com/(embed/)?(shr.*)$');
 
 type Props = {
   url: string,

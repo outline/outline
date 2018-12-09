@@ -5,15 +5,15 @@ import styled from 'styled-components';
 type Props = {
   src?: string,
   border?: boolean,
-  innerRef: *,
+  forwardedRef: *,
 };
 
-function Frame({ border, innerRef, ...props }: Props) {
+function Frame({ border, forwardedRef, ...props }: Props) {
   const Component = border ? Iframe : 'iframe';
 
   return (
     <Component
-      ref={innerRef}
+      ref={forwardedRef}
       type="text/html"
       frameBorder="0"
       title="embed"
@@ -33,5 +33,5 @@ const Iframe = styled.iframe`
 
 // $FlowIssue - https://github.com/facebook/flow/issues/6103
 export default React.forwardRef((props, ref) => (
-  <Frame {...props} innerRef={ref} />
+  <Frame {...props} forwardedRef={ref} />
 ));

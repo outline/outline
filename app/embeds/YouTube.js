@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Frame from './components/Frame';
 
-const URL_REGEX = /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)&?/i;
+const URL_REGEX = /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([a-zA-Z0-9_-]{11})$/i;
 
 type Props = {
   url: string,
@@ -20,7 +20,7 @@ export default class YouTube extends React.Component<Props> {
       <Frame
         width="420"
         height="235"
-        src={`http://www.youtube.com/embed/${videoId}?modestbranding=1`}
+        src={`https://www.youtube.com/embed/${videoId}?modestbranding=1`}
         title={`YouTube (${videoId})`}
       />
     );
