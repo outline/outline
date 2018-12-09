@@ -6,23 +6,57 @@ type Props = {
   src?: string,
   border?: boolean,
   forwardedRef: *,
+  width?: string,
+  height?: string,
 };
 
-function Frame({ border, forwardedRef, ...props }: Props) {
-  const Component = border ? Iframe : 'iframe';
+type State = {
+  isLoaded: boolean,
+};
 
-  return (
-    <Component
-      ref={forwardedRef}
-      type="text/html"
-      frameBorder="0"
-      title="embed"
-      width="100%"
-      height="400"
-      allowFullScreen
-      {...props}
-    />
-  );
+class Frame extends React.Component<Props, State> {
+  mounted: boolean;
+
+  state = { isLoaded: false };
+
+  componentDidMount() {
+    this.mounted = true;
+    setImmediate(this.loadIframe);
+  }
+
+  componentWillUnmount() {
+    this.mounted = false;
+  }
+
+  loadIframe = () => {
+    if (!this.mounted) return;
+    this.setState({ isLoaded: true });
+  };
+
+  render() {
+    const {
+      border,
+      width = '100%',
+      height = '400',
+      forwardedRef,
+      ...rest
+    } = this.props;
+    const Component = border ? Iframe : 'iframe';
+    if (!this.state.isLoaded) return <div style={{ width, height }} />;
+
+    return (
+      <Component
+        ref={forwardedRef}
+        width={width}
+        height={height}
+        type="text/html"
+        frameBorder="0"
+        title="embed"
+        allowFullScreen
+        {...rest}
+      />
+    );
+  }
 }
 
 const Iframe = styled.iframe`

@@ -22,7 +22,6 @@ import { emojiToUrl } from 'utils/emoji';
 import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
-import Link from './components/Link';
 import ErrorBoundary from 'components/ErrorBoundary';
 import DocumentHistory from 'components/DocumentHistory';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
@@ -277,13 +276,6 @@ class DocumentScene extends React.Component<Props> {
     }));
   };
 
-  renderNode = props => {
-    // overriding the Link component allows us to inject plugins
-    if (props.node.type === 'link') {
-      return <Link {...props} />;
-    }
-  };
-
   render() {
     const { location, match } = this.props;
     const Editor = this.editorComponent;
@@ -378,7 +370,6 @@ class DocumentScene extends React.Component<Props> {
                 onSave={this.onSave}
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing}
-                renderNode={this.renderNode}
                 toc={!revision}
                 history={this.props.history}
                 ui={this.props.ui}

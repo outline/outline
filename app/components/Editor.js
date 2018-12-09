@@ -3,12 +3,14 @@ import * as React from 'react';
 import RichMarkdownEditor from 'rich-markdown-editor';
 import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
+import Link from './Link';
 
 type Props = {
   titlePlaceholder?: string,
   bodyPlaceholder?: string,
   defaultValue?: string,
   readOnly?: boolean,
+  disableEmbeds?: boolean,
   forwardedRef: *,
   history: *,
   ui: *,
@@ -51,6 +53,15 @@ class Editor extends React.Component<Props> {
     this.props.ui.showToast(message, 'success');
   };
 
+  renderNode = props => {
+    if (this.props.disableEmbeds) return;
+
+    // overriding the Link component allows us to inject embeddable widgets
+    if (props.node.type === 'link') {
+      return <Link {...props} />;
+    }
+  };
+
   render() {
     return (
       <RichMarkdownEditor
@@ -58,6 +69,7 @@ class Editor extends React.Component<Props> {
         uploadImage={this.onUploadImage}
         onClickLink={this.onClickLink}
         onShowToast={this.onShowToast}
+        renderNode={this.renderNode}
         {...this.props}
       />
     );

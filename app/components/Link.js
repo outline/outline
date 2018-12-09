@@ -2,7 +2,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import OriginalLink from 'rich-markdown-editor/lib/components/Link';
-import embeds from '../../../embeds';
+import embeds from '../embeds';
 import { fadeIn } from 'shared/styles/animations';
 
 export function canBeEmbedded(node: *, url: ?string) {
