@@ -3,6 +3,7 @@ import Airtable from './Airtable';
 import Figma from './Figma';
 import Framer from './Framer';
 import Gist from './Gist';
+import InVision from './InVision';
 import Loom from './Loom';
 import Lucidchart from './Lucidchart';
 import ModeAnalytics from './ModeAnalytics';
@@ -16,6 +17,7 @@ export default {
   Figma,
   Framer,
   Gist,
+  InVision,
   Loom,
   Lucidchart,
   ModeAnalytics,
