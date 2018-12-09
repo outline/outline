@@ -1,12 +1,16 @@
 // @flow
 import * as React from 'react';
 
+const URL_REGEX = new RegExp(
+  'https://([w.-]+.)?modeanalytics.com/(.*)/reports/(.*)$'
+);
+
 type Props = {
   url: string,
 };
 
 export default class ModeAnalytics extends React.Component<Props> {
-  static hostnames = ['modeanalytics.com'];
+  static hostnames = [URL_REGEX];
 
   render() {
     // Allow users to paste embed or standard urls and handle them the same
