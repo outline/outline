@@ -146,7 +146,7 @@ export default class AuthStore {
       const sessions = Cookie.getJSON('sessions') || {};
       delete sessions[team.id];
 
-      Cookie.set('sessions', sessions, {
+      Cookie.set('sessions', JSON.stringify(sessions), {
         domain: stripSubdomain(window.location.hostname),
       });
       this.team = null;

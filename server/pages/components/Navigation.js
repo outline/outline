@@ -59,18 +59,22 @@ function TopNavigation({ sessions, loggedIn }: Props) {
               <MenuItem highlighted>
                 <a>Your Teams</a>
                 <ol>
-                  {orderedSessions.map(session => (
-                    <MenuItem key={session.url}>
-                      <a href={`${session.url}/dashboard`}>
-                        <TeamLogo
-                          src={session.logoUrl}
-                          width={20}
-                          height={20}
-                        />
-                        {session.name}
-                      </a>
-                    </MenuItem>
-                  ))}
+                  {orderedSessions.map(session => {
+                    const url = decodeURIComponent(session.url);
+
+                    return (
+                      <MenuItem key={url}>
+                        <a href={`${url}/dashboard`}>
+                          <TeamLogo
+                            src={session.logoUrl}
+                            width={20}
+                            height={20}
+                          />
+                          {decodeURIComponent(session.name)}
+                        </a>
+                      </MenuItem>
+                    );
+                  })}
                 </ol>
               </MenuItem>
             ) : (

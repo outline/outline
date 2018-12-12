@@ -116,9 +116,9 @@ export default function auth(options?: { required?: boolean } = {}) {
         const sessions = JSON.stringify({
           ...existing,
           [team.id]: {
-            name: team.name,
+            name: encodeURIComponent(team.name),
             logoUrl: team.logoUrl,
-            url: team.url,
+            url: encodeURIComponent(team.url),
           },
         });
         ctx.cookies.set('sessions', sessions, {
