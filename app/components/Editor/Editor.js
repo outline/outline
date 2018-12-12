@@ -70,6 +70,17 @@ class Editor extends React.Component<Props> {
         onClickLink={this.onClickLink}
         onShowToast={this.onShowToast}
         renderNode={this.renderNode}
+        validateNode={node => {
+          if (node.type !== 'link') return;
+          if (node.object !== 'inline') return;
+
+          console.log(node.getParent(node.key));
+          console.log(node);
+          // TODO check for embed
+          return change => {
+            change.withoutNormalization(c => c.unwrapNodeByKey(node.key));
+          };
+        }}
         {...this.props}
       />
     );

@@ -2,7 +2,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import OriginalLink from 'rich-markdown-editor/lib/components/Link';
-import embeds from '../embeds';
+import embeds from '../../embeds';
 import { fadeIn } from 'shared/styles/animations';
 
 export function canBeEmbedded(node: *, url: ?string) {
@@ -37,16 +37,16 @@ export default class Link extends React.Component<*> {
     const isEmbed = canBeEmbedded(this.props.node, url);
 
     return isEmbed && EmbedComponent ? (
-      <Fade contentEditable={false}>
+      <Container contentEditable={false}>
         <EmbedComponent matches={result ? result.matches : []} url={url} />
-      </Fade>
+      </Container>
     ) : (
       <OriginalLink {...this.props} />
     );
   }
 }
 
-const Fade = styled.div`
+const Container = styled.div`
   animation: ${fadeIn} 500ms ease-in-out;
   line-height: 0;
 `;
