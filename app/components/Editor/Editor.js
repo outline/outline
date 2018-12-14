@@ -3,7 +3,8 @@ import * as React from 'react';
 import RichMarkdownEditor from 'rich-markdown-editor';
 import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
-import Link from './Link';
+import Embed from './Embed';
+import embeds from '../../embeds';
 
 type Props = {
   titlePlaceholder?: string,
@@ -53,12 +54,19 @@ class Editor extends React.Component<Props> {
     this.props.ui.showToast(message, 'success');
   };
 
-  renderNode = props => {
+  getLinkComponent = node => {
     if (this.props.disableEmbeds) return;
 
-    // overriding the Link component allows us to inject embeddable widgets
-    if (props.node.type === 'link') {
-      return <Link {...props} />;
+    const url = node.data.get('href');
+    const keys = Object.keys(embeds);
+
+    for (const key of keys) {
+      const component = embeds[key];
+
+      for (const host of component.ENABLED) {
+        const matches = url.match(host);
+        if (matches) return Embed;
+      }
     }
   };
 
@@ -69,18 +77,7 @@ class Editor extends React.Component<Props> {
         uploadImage={this.onUploadImage}
         onClickLink={this.onClickLink}
         onShowToast={this.onShowToast}
-        renderNode={this.renderNode}
-        validateNode={node => {
-          if (node.type !== 'link') return;
-          if (node.object !== 'inline') return;
-
-          console.log(node.getParent(node.key));
-          console.log(node);
-          // TODO check for embed
-          return change => {
-            change.withoutNormalization(c => c.unwrapNodeByKey(node.key));
-          };
-        }}
+        getLinkComponent={this.getLinkComponent}
         {...this.props}
       />
     );
