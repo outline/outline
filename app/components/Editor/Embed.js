@@ -26,12 +26,16 @@ export default class Embed extends React.Component<*> {
     const result = this.matches;
     if (!result) return null;
 
-    const { attributes } = this.props;
+    const { attributes, isSelected } = this.props;
     const { component, matches } = result;
     const EmbedComponent = component;
 
     return (
-      <Container contentEditable={false} {...attributes}>
+      <Container
+        contentEditable={false}
+        isSelected={isSelected}
+        {...attributes}
+      >
         <EmbedComponent matches={matches} url={this.url} />
       </Container>
     );
@@ -41,4 +45,8 @@ export default class Embed extends React.Component<*> {
 const Container = styled.div`
   animation: ${fadeIn} 500ms ease-in-out;
   line-height: 0;
+
+  border-radius: 3px;
+  box-shadow: ${props =>
+    props.isSelected ? `0 0 0 2px ${props.theme.selected}` : 'none'};
 `;
