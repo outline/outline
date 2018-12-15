@@ -359,10 +359,14 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth column auto>
               <Editor
+                key={
+                  document.embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'
+                }
                 titlePlaceholder="Start with a title…"
                 bodyPlaceholder="…the rest is your canvas"
                 defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
+                disableEmbeds={document.embedsDisabled}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.onSearchLink}

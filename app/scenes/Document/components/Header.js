@@ -168,7 +168,7 @@ class Header extends React.Component<Props> {
           )}
           {!isEditing && (
             <Action>
-              <DocumentMenu document={document} showPrint />
+              <DocumentMenu document={document} showPrint showToggleEmbeds />
             </Action>
           )}
           {!isEditing &&
