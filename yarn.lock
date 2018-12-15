@@ -8986,9 +8986,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@^6.1.1:
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-6.1.1.tgz#f3be0e5f43a804cc6c32b3cc6810907080494b54"
+rich-markdown-editor@^7.0.0-1:
+  version "7.0.0-1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-7.0.0-1.tgz#e587894609cedaacc7e5c35cfd278799ff420f61"
   dependencies:
     "@tommoor/slate-drop-or-paste-images" "^0.8.1"
     babel-plugin-transform-async-to-generator "^6.24.1"
@@ -9009,7 +9009,7 @@ rich-markdown-editor@^6.1.1:
     slate-collapse-on-escape "^0.6.1"
     slate-edit-code "^0.15.5"
     slate-edit-list "^0.11.3"
-    slate-md-serializer "^5.2.0"
+    slate-md-serializer "^5.2.2"
     slate-paste-linkify "^0.5.1"
     slate-plain-serializer "0.5.4"
     slate-prism "^0.5.0"
@@ -9381,9 +9381,9 @@ slate-edit-list@^0.11.3:
   version "0.11.3"
   resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.11.3.tgz#d27ff2ff93a83bef49131a6a44b87a9558c9d44c"
 
-slate-md-serializer@^5.2.0:
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.2.0.tgz#bc45a338f8cdc483f9b501ab8543cb920992376f"
+slate-md-serializer@^5.2.2:
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.2.2.tgz#86003e476746af3361d6ccf61c1cb41e9494eb6e"
   dependencies:
     hashtag-regex "^2.0.0"
 

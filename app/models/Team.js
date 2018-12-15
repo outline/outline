@@ -8,6 +8,7 @@ class Team extends BaseModel {
   slackConnected: boolean;
   googleConnected: boolean;
   sharing: boolean;
+  documentEmbeds: boolean;
   subdomain: ?string;
   url: string;
 }

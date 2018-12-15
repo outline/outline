@@ -277,7 +277,8 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    const { location, match } = this.props;
+    const { location, auth, match } = this.props;
+    const team = auth.team;
     const Editor = this.editorComponent;
     const document = this.document;
     const revision = this.revision;
@@ -296,7 +297,7 @@ class DocumentScene extends React.Component<Props> {
       );
     }
 
-    if (!document || !Editor) {
+    if (!document || !team || !Editor) {
       return (
         <Container column auto>
           <PageTitle title={location.state ? location.state.title : ''} />
@@ -306,6 +307,8 @@ class DocumentScene extends React.Component<Props> {
         </Container>
       );
     }
+
+    const embedsDisabled = document.embedsDisabled || !team.documentEmbeds;
 
     return (
       <ErrorBoundary>
@@ -359,10 +362,12 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth column auto>
               <Editor
+                key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
                 titlePlaceholder="Start with a title…"
                 bodyPlaceholder="…the rest is your canvas"
                 defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
+                disableEmbeds={embedsDisabled}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.onSearchLink}

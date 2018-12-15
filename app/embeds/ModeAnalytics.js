@@ -1,0 +1,24 @@
+// @flow
+import * as React from 'react';
+import Frame from './components/Frame';
+
+const URL_REGEX = new RegExp(
+  'https://([w.-]+.)?modeanalytics.com/(.*)/reports/(.*)$'
+);
+
+type Props = {
+  url: string,
+};
+
+export default class ModeAnalytics extends React.Component<Props> {
+  static ENABLED = [URL_REGEX];
+
+  render() {
+    // Allow users to paste embed or standard urls and handle them the same
+    const normalizedUrl = this.props.url.replace(/\/embed$/, '');
+
+    return (
+      <Frame src={`${normalizedUrl}/embed`} title="Mode Analytics Embed" />
+    );
+  }
+}

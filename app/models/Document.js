@@ -1,5 +1,5 @@
 // @flow
-import { action, set, computed } from 'mobx';
+import { action, set, computed, observable } from 'mobx';
 import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
@@ -42,6 +42,7 @@ export default class Document extends BaseModel {
   shareUrl: ?string;
   views: number;
   revision: number;
+  @observable embedsDisabled: ?boolean;
 
   constructor(data?: Object = {}, store: *) {
     super(data, store);
@@ -141,6 +142,16 @@ export default class Document extends BaseModel {
       this.pinned = true;
       throw err;
     }
+  };
+
+  @action
+  enableEmbeds = () => {
+    this.embedsDisabled = false;
+  };
+
+  @action
+  disableEmbeds = () => {
+    this.embedsDisabled = true;
   };
 
   @action

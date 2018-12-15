@@ -95,6 +95,7 @@ class Header extends React.Component<Props> {
       auth,
     } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;
+    const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
 
     return (
       <Actions
@@ -168,7 +169,11 @@ class Header extends React.Component<Props> {
           )}
           {!isEditing && (
             <Action>
-              <DocumentMenu document={document} showPrint />
+              <DocumentMenu
+                document={document}
+                showToggleEmbeds={canToggleEmbeds}
+                showPrint
+              />
             </Action>
           )}
           {!isEditing &&

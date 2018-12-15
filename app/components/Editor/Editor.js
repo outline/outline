@@ -3,12 +3,15 @@ import * as React from 'react';
 import RichMarkdownEditor from 'rich-markdown-editor';
 import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
+import Embed from './Embed';
+import embeds from '../../embeds';
 
 type Props = {
   titlePlaceholder?: string,
   bodyPlaceholder?: string,
   defaultValue?: string,
   readOnly?: boolean,
+  disableEmbeds?: boolean,
   forwardedRef: *,
   history: *,
   ui: *,
@@ -51,6 +54,22 @@ class Editor extends React.Component<Props> {
     this.props.ui.showToast(message, 'success');
   };
 
+  getLinkComponent = node => {
+    if (this.props.disableEmbeds) return;
+
+    const url = node.data.get('href');
+    const keys = Object.keys(embeds);
+
+    for (const key of keys) {
+      const component = embeds[key];
+
+      for (const host of component.ENABLED) {
+        const matches = url.match(host);
+        if (matches) return Embed;
+      }
+    }
+  };
+
   render() {
     return (
       <RichMarkdownEditor
@@ -58,6 +77,7 @@ class Editor extends React.Component<Props> {
         uploadImage={this.onUploadImage}
         onClickLink={this.onClickLink}
         onShowToast={this.onShowToast}
+        getLinkComponent={this.getLinkComponent}
         {...this.props}
       />
     );
