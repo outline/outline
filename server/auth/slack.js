@@ -69,8 +69,9 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   ctx.signIn(user, team, 'slack', isFirstSignin);
 });
 
-router.get('slack.commands', auth(), async ctx => {
-  const { code, error } = ctx.request.query;
+router.get('slack.commands', auth({ required: false }), async ctx => {
+  const { code, state, error } = ctx.request.query;
+  const user = ctx.state.user;
   ctx.assertPresent(code || error, 'code is required');
 
   if (error) {
@@ -78,9 +79,28 @@ router.get('slack.commands', auth(), async ctx => {
     return;
   }
 
+  // this code block accounts for the root domain being unable to
+  // access authentcation for subdomains. We must forward to the appropriate
+  // subdomain to complete the oauth flow
+  if (!user) {
+    if (state) {
+      try {
+        const team = await Team.findById(state);
+        return ctx.redirect(
+          `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
+        );
+      } catch (err) {
+        return ctx.redirect(
+          `/settings/integrations/slack?error=unauthenticated`
+        );
+      }
+    } else {
+      return ctx.redirect(`/settings/integrations/slack?error=unauthenticated`);
+    }
+  }
+
   const endpoint = `${process.env.URL || ''}/auth/slack.commands`;
   const data = await Slack.oauthAccess(code, endpoint);
-  const user = ctx.state.user;
 
   const authentication = await Authentication.create({
     service: 'slack',

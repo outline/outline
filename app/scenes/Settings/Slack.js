@@ -11,12 +11,14 @@ import HelpText from 'components/HelpText';
 import SlackButton from './components/SlackButton';
 import CollectionsStore from 'stores/CollectionsStore';
 import IntegrationsStore from 'stores/IntegrationsStore';
+import AuthStore from 'stores/AuthStore';
 import Notice from 'shared/components/Notice';
 import getQueryVariable from 'shared/utils/getQueryVariable';
 
 type Props = {
   collections: CollectionsStore,
   integrations: IntegrationsStore,
+  auth: AuthStore,
 };
 
 @observer
@@ -36,7 +38,8 @@ class Slack extends React.Component<Props> {
   }
 
   render() {
-    const { collections, integrations } = this.props;
+    const { collections, integrations, auth } = this.props;
+    const teamId = auth.team ? auth.team.id : '';
 
     return (
       <CenteredContent>
@@ -46,6 +49,12 @@ class Slack extends React.Component<Props> {
           <Notice>
             Whoops, you need to accept the permissions in Slack to connect
             Outline to your team. Try again?
+          </Notice>
+        )}
+        {this.error === 'unauthenticated' && (
+          <Notice>
+            Something went wrong while authenticating your request. Please try
+            logging in again?
           </Notice>
         )}
         <HelpText>
@@ -60,7 +69,7 @@ class Slack extends React.Component<Props> {
             <SlackButton
               scopes={['commands', 'links:read', 'links:write']}
               redirectUri={`${BASE_URL}/auth/slack.commands`}
-              state=""
+              state={teamId}
             />
           )}
         </p>
@@ -130,4 +139,4 @@ const Code = styled.code`
   border-radius: 4px;
 `;
 
-export default inject('collections', 'integrations')(Slack);
+export default inject('collections', 'integrations', 'auth')(Slack);
