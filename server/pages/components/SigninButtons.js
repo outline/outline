@@ -50,9 +50,11 @@ const SigninButtons = ({
 const Column = styled(Flex)`
   text-align: center;
 
-  &:first-child {
-    margin-right: 8px;
-  }
+  ${breakpoint('tablet')`
+    &:first-child {
+      margin-right: 8px;
+    }
+  `};
 `;
 
 const Wrapper = styled(Flex)`
@@ -62,7 +64,7 @@ const Wrapper = styled(Flex)`
   ${breakpoint('tablet')`
     display: flex;
     justify-content: flex-start;
-    `};
+  `};
 `;
 
 const Spacer = styled.span`
