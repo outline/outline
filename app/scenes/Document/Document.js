@@ -297,7 +297,7 @@ class DocumentScene extends React.Component<Props> {
       );
     }
 
-    if (!document || !team || !Editor) {
+    if (!document || !Editor) {
       return (
         <Container column auto>
           <PageTitle title={location.state ? location.state.title : ''} />
@@ -308,7 +308,8 @@ class DocumentScene extends React.Component<Props> {
       );
     }
 
-    const embedsDisabled = document.embedsDisabled || !team.documentEmbeds;
+    const embedsDisabled =
+      document.embedsDisabled || (team && !team.documentEmbeds);
 
     return (
       <ErrorBoundary>

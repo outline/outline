@@ -13,6 +13,7 @@ import 'shared/styles/prism.css';
 import ErrorBoundary from 'components/ErrorBoundary';
 import ScrollToTop from 'components/ScrollToTop';
 import ScrollToAnchor from 'components/ScrollToAnchor';
+import Toasts from 'components/Toasts';
 import Routes from './routes';
 
 let DevTools;
@@ -30,11 +31,14 @@ if (element) {
         <ErrorBoundary>
           <Provider {...stores}>
             <Router>
-              <ScrollToTop>
-                <ScrollToAnchor>
-                  <Routes />
-                </ScrollToAnchor>
-              </ScrollToTop>
+              <React.Fragment>
+                <ScrollToTop>
+                  <ScrollToAnchor>
+                    <Routes />
+                  </ScrollToAnchor>
+                </ScrollToTop>
+                <Toasts />
+              </React.Fragment>
             </Router>
           </Provider>
         </ErrorBoundary>

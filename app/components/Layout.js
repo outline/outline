@@ -15,7 +15,6 @@ import { LoadingIndicatorBar } from 'components/LoadingIndicator';
 import Sidebar from 'components/Sidebar';
 import SettingsSidebar from 'components/Sidebar/Settings';
 import Modals from 'components/Modals';
-import Toasts from 'components/Toasts';
 import ErrorSuspended from 'scenes/ErrorSuspended';
 
 import AuthStore from 'stores/AuthStore';
@@ -99,7 +98,6 @@ class Layout extends React.Component<Props> {
           </Content>
         </Flex>
         <Modals ui={ui} />
-        <Toasts ui={ui} />
       </Container>
     );
   }
