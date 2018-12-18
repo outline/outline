@@ -55,7 +55,8 @@ function TopNavigation({ sessions, loggedIn }: Props) {
         </MenuItem>
         {loggedIn ? (
           <React.Fragment>
-            {process.env.SUBDOMAINS_ENABLED === 'true' ? (
+            {process.env.SUBDOMAINS_ENABLED === 'true' &&
+            orderedSessions.length ? (
               <MenuItem highlighted>
                 <a>Your Teams</a>
                 <ol>
