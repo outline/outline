@@ -18,6 +18,8 @@ import About from './pages/About';
 import Changelog from './pages/Changelog';
 import Privacy from './pages/Privacy';
 import Pricing from './pages/Pricing';
+import Integrations from './pages/Integrations';
+import Integration from './pages/Integration';
 import Api from './pages/Api';
 import SubdomainSignin from './pages/SubdomainSignin';
 
@@ -56,6 +58,10 @@ router.get('/about', ctx => renderpage(ctx, <About />));
 router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
 router.get('/developers', ctx => renderpage(ctx, <Api />));
 router.get('/privacy', ctx => renderpage(ctx, <Privacy />));
+router.get('/integrations/:slug', ctx =>
+  renderpage(ctx, <Integration slug={ctx.params.slug} />)
+);
+router.get('/integrations', ctx => renderpage(ctx, <Integrations />));
 router.get('/changelog', async ctx => {
   const data = await fetch(
     'https://api.github.com/repos/outline/outline/releases'

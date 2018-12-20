@@ -60,7 +60,7 @@ export default function Pricing() {
       <Helmet>
         <title>API Documentation - Outline</title>
       </Helmet>
-      <Header>
+      <Header background="#AA34F0">
         <h1>Documentation</h1>
         <p>The API is the heart and soul of Outline.</p>
       </Header>

@@ -1,0 +1,138 @@
+[
+  {
+    "slug": "figma",
+    "name": "Figma",
+    "url": "https://figma.com",
+    "category": "Design",
+    "description": "Figma is a collaborative interface design tool",
+    "content": "Embed interactive Figma designs into your Outline docs. Paste a link to a Figma public share link to instantly convert into a rich preview."
+  },
+  {
+    "slug": "framer",
+    "name": "Framer",
+    "url": "https://framer.com",
+    "category": "Design",
+    "description": "Framer is an interactive design and prototyping tool",
+    "content": "Embed interactive Framer prototypes into your Outline docs. Paste a link to a Framer cloud link to instantly convert into an interactive embed."
+  },
+  {
+    "slug": "invision",
+    "name": "InVision",
+    "url": "https://invision.com",
+    "category": "Design",
+    "description": "InVision is an online design and prototyping tool",
+    "content": "Embed interactive InVision prototypes into your Outline docs. Paste an InVision share link to instantly convert into an interactive prototype."
+  },
+  {
+    "slug": "marvel",
+    "name": "Marvel",
+    "url": "https://marvelapp.com",
+    "category": "Design",
+    "description": "The all-in-one platform powering design",
+    "content": "Marvel prototypes inside your Outline docs. Paste a Marvel link to instantly convert into an interactive prototype."
+  },
+  {
+    "slug": "airtable",
+    "name": "Airtable",
+    "url": "https://airtable.com",
+    "category": "Collaboration",
+    "description": "Part spreadsheet, part database, and entirely flexible",
+    "content": "Embed interactive tables into your Outline docs. Paste a link to an Airtable public share link to instantly convert into a rich preview."
+  },
+  {
+    "slug": "lucidchart",
+    "name": "Lucidchart",
+    "url": "https://lucidchart.com",
+    "category": "Collaboration",
+    "description": "Create flowcharts and technical diagrams with ease",
+    "content": "Embed an interactive chart inside your Outline doc. Paste a link to any shared Lucidchart to instantly convert into a rich preview."
+  },
+  {
+    "slug": "realtime-board",
+    "name": "Realtime Board",
+    "url": "https://realtimeboard.com",
+    "category": "Collaboration",
+    "description": "Simple whiteboarding for cross-functional team collaboration",
+    "content": "Embed an interactive whiteboard inside your Outline doc. Paste a link to any shared Realtime Board to instantly convert to a board."
+  },
+  {
+    "slug": "slack",
+    "name": "Slack",
+    "url": "https://slack.com",
+    "category": "Collaboration",
+    "description": "Chat, collaboration, and file sharing for teams",
+    "content": ""
+  },
+  {
+    "slug": "trello",
+    "name": "Trello",
+    "url": "https://trello.com",
+    "category": "Collaboration",
+    "description": "Boards, lists, and cards to organize your projects",
+    "content": ""
+  },
+  {
+    "slug": "typeform",
+    "name": "Typeform",
+    "url": "https://typeform.com",
+    "category": "Collaboration",
+    "description": "Data collection tool and surveys, for professionals",
+    "content": ""
+  },
+  {
+    "slug": "codepen",
+    "name": "Codepen",
+    "url": "https://codepen.io",
+    "category": "Developers",
+    "description": "A social development environment and editor",
+    "content": ""
+  },
+  {
+    "slug": "github-gist",
+    "name": "GitHub Gist",
+    "url": "https://gist.github.com",
+    "category": "Developers",
+    "description": "Sharable code snippets, hosted by GitHub",
+    "content": ""
+  },
+  {
+    "slug": "numeracy",
+    "name": "Numeracy",
+    "url": "https://numeracy.io",
+    "category": "Developers",
+    "description": "A SQL pad for writing, iterating, and exploring data",
+    "content": ""
+  },
+  {
+    "slug": "mode-analytics",
+    "name": "Mode Analytics",
+    "url": "https://modeanalytics.com",
+    "category": "Developers",
+    "description": "Connect and analyze data from anywhere",
+    "content": ""
+  },
+  {
+    "slug": "loom",
+    "name": "Loom",
+    "url": "https://useloom.com",
+    "category": "Media",
+    "description": "Get your message across with instantly shareable videos",
+    "content": ""
+  },
+  {
+    "slug": "youtube",
+    "name": "YouTube",
+    "url": "https://youtube.com",
+    "category": "Media",
+    "description": "A popular little website for sharing videos",
+    "content": ""
+  },
+  {
+    "slug": "vimeo",
+    "name": "Vimeo",
+    "url": "https://vimeo.com",
+    "category": "Media",
+    "description": "A customizable and embeddable video player",
+    "content": ""
+  }
+]
