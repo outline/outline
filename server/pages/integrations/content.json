@@ -96,19 +96,19 @@
     "content": ""
   },
   {
-    "slug": "numeracy",
-    "name": "Numeracy",
-    "url": "https://numeracy.io",
-    "category": "Developers",
-    "description": "A SQL pad for writing, iterating, and exploring data",
-    "content": ""
-  },
-  {
     "slug": "mode-analytics",
     "name": "Mode Analytics",
     "url": "https://modeanalytics.com",
     "category": "Developers",
     "description": "Connect and analyze data from anywhere",
+    "content": ""
+  },
+  {
+    "slug": "numeracy",
+    "name": "Numeracy",
+    "url": "https://numeracy.io",
+    "category": "Developers",
+    "description": "A SQL pad for writing, iterating, and exploring data",
     "content": ""
   },
   {

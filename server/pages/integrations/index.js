@@ -4,9 +4,9 @@ import { map, groupBy } from 'lodash';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import { Helmet } from 'react-helmet';
-import Header from './components/Header';
-import Content from './components/Content';
-import integrations from '../config/integrations';
+import Header from '../components/Header';
+import Content from '../components/Content';
+import integrations from './content';
 
 const categories = groupBy(integrations, i => i.category);
 

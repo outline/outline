@@ -1,5 +1,7 @@
 // @flow
 import * as React from 'react';
+import fs from 'fs-extra';
+import { find } from 'lodash';
 import path from 'path';
 import Koa from 'koa';
 import Router from 'koa-router';
@@ -18,8 +20,9 @@ import About from './pages/About';
 import Changelog from './pages/Changelog';
 import Privacy from './pages/Privacy';
 import Pricing from './pages/Pricing';
-import Integrations from './pages/Integrations';
-import Integration from './pages/Integration';
+import Integrations from './pages/integrations';
+import integrations from './pages/integrations/content';
+import Integration from './pages/integrations/Integration';
 import Api from './pages/Api';
 import SubdomainSignin from './pages/SubdomainSignin';
 
@@ -36,7 +39,11 @@ const renderapp = async ctx => {
 };
 
 // serve static assets
-koa.use(serve(path.resolve(__dirname, '../public')));
+koa.use(
+  serve(path.resolve(__dirname, '../public'), {
+    maxage: 60 * 60 * 24 * 30 * 1000,
+  })
+);
 
 router.get('/_health', ctx => (ctx.body = 'OK'));
 
@@ -58,9 +65,20 @@ router.get('/about', ctx => renderpage(ctx, <About />));
 router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
 router.get('/developers', ctx => renderpage(ctx, <Api />));
 router.get('/privacy', ctx => renderpage(ctx, <Privacy />));
-router.get('/integrations/:slug', ctx =>
-  renderpage(ctx, <Integration slug={ctx.params.slug} />)
-);
+router.get('/integrations/:slug', async ctx => {
+  const slug = ctx.params.slug;
+  const integration = find(integrations, i => i.slug === slug);
+  if (!integration) throw new Error('Not found');
+
+  const content = await fs.readFile(
+    path.resolve(__dirname, `pages/integrations/${slug}.md`)
+  );
+
+  return renderpage(
+    ctx,
+    <Integration integration={integration} content={content} />
+  );
+});
 router.get('/integrations', ctx => renderpage(ctx, <Integrations />));
 router.get('/changelog', async ctx => {
   const data = await fetch(

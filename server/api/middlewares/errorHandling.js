@@ -23,7 +23,12 @@ export default function errorHandling() {
         }
       }
 
-      if (message.match('Authorization error')) {
+      if (message.match(/Not found/i)) {
+        ctx.status = 404;
+        error = 'not_found';
+      }
+
+      if (message.match(/Authorization error/i)) {
         ctx.status = 403;
         error = 'authorization_error';
       }

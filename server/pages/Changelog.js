@@ -3,8 +3,8 @@ import * as React from 'react';
 import format from 'date-fns/format';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
-import ReactMarkdown from 'react-markdown';
 import { Helmet } from 'react-helmet';
+import Markdown from './components/Markdown';
 import Header from './components/Header';
 import Content from './components/Content';
 
@@ -36,7 +36,7 @@ function Changelog({ releases }: { releases: Release[] }) {
             <Time dateTime={release.created_at}>
               {format(new Date(release.created_at), 'MMMM Do, YYYY')}
             </Time>
-            <ReactMarkdown source={release.body} />
+            <Markdown source={release.body} />
           </Article>
         ))}
       </Content>

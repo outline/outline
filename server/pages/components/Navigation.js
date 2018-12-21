@@ -4,6 +4,7 @@ import { sortBy } from 'lodash';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import Centered from './Centered';
+import OutlineLogo from '../../../shared/components/OutlineLogo';
 import TeamLogo from '../../../shared/components/TeamLogo';
 import { fadeAndScaleIn } from '../../../shared/styles/animations';
 import {
@@ -37,7 +38,9 @@ function TopNavigation({ sessions, loggedIn }: Props) {
 
   return (
     <Nav>
-      <Brand href={process.env.URL}>Outline</Brand>
+      <Brand href={process.env.URL}>
+        <OutlineLogo size={18} fill="#000" />&nbsp;Outline
+      </Brand>
       <Menu>
         <MenuItemDesktop>
           <a href={features()}>Features</a>
@@ -247,6 +250,8 @@ const BottomNav = styled.nav`
 `;
 
 const Brand = styled.a`
+  display: flex;
+  align-items: center;
   font-weight: 600;
   font-size: 20px;
   text-decoration: none;
