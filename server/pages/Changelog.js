@@ -30,9 +30,7 @@ function Changelog({ releases }: Props) {
       </Helmet>
       <Header background="#00ADFF">
         <h1>Changelog</h1>
-        <p>
-          We’re building in public. Here’s what we’ve been changing recently.
-        </p>
+        <p>We’re building in public. Here’s what has changed recently.</p>
       </Header>
       <Content>
         <Grid>

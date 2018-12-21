@@ -32,8 +32,8 @@ const Wrapper = styled.div`
     content: '';
     position: absolute;
     top: 0;
-    left: -10%;
-    width: 120%;
+    left: -30px;
+    width: 100vw;
     height: 100%;
     background: ${props => props.background || 'transparent'};
     z-index: -10;
