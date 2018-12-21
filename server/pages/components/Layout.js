@@ -78,7 +78,7 @@ function Layout({ children, loggedIn, sessions }: Props) {
 const Body = styled.body`
   padding: 0 30px;
 
-  ${breakpoint('tablet')`
+  ${breakpoint('desktop')`
     padding: 0;
   `};
 `;

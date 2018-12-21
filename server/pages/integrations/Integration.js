@@ -32,10 +32,13 @@ export default function Integration({ integration, content }: Props) {
       </Header>
       <Content>
         <Grid>
-          <Grid.Unit size={{ desktop: 1 / 4 }}>
-            <Menu integrations={integrations} />
+          <Grid.Unit
+            size={{ tablet: 1 / 4 }}
+            visible={{ mobile: false, tablet: true }}
+          >
+            <Menu integrations={integrations} active={integration.slug} />
           </Grid.Unit>
-          <Grid.Unit size={{ desktop: 3 / 4 }}>
+          <Grid.Unit size={{ tablet: 3 / 4 }}>
             <Markdown source={content} />
           </Grid.Unit>
         </Grid>

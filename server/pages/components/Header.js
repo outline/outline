@@ -20,12 +20,24 @@ const Header = ({ children, background }: Props) => {
 const Wrapper = styled.div`
   width: 100%;
   padding: 8em 0 3em;
+  position: relative;
 
   margin-top: -70px;
   margin-bottom: 2em;
   text-align: center;
   background: ${props => props.background || 'transparent'};
   z-index: -1;
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -10%;
+    width: 120%;
+    height: 100%;
+    background: ${props => props.background || 'transparent'};
+    z-index: -10;
+  }
 
   p {
     font-size: 22px;

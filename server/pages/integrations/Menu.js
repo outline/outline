@@ -3,7 +3,12 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { map, groupBy } from 'lodash';
 
-export default function IntegrationMenu({ integrations }: { integrations: * }) {
+type Props = {
+  integrations: *,
+  active: string,
+};
+
+export default function IntegrationMenu({ integrations, active }: Props) {
   const categories = groupBy(integrations, i => i.category);
 
   return (
@@ -14,7 +19,10 @@ export default function IntegrationMenu({ integrations }: { integrations: * }) {
           <List>
             {integrations.map(i => (
               <li key={i.slug}>
-                <MenuItem href={`/integrations/${i.slug}`}>
+                <MenuItem
+                  href={`/integrations/${i.slug}`}
+                  active={i.slug === active}
+                >
                   <Logo src={`/images/${i.slug}.png`} alt={i.name} />
                   <span>{i.name}</span>
                 </MenuItem>
@@ -31,6 +39,7 @@ const MenuItem = styled.a`
   display: flex;
   align-items: center;
   font-size: 16px;
+  font-weight: ${props => (props.active ? '600' : 'inherit')};
   color: ${props => props.theme.text};
 `;
 

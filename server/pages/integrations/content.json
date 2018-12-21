@@ -4,32 +4,28 @@
     "name": "Figma",
     "url": "https://figma.com",
     "category": "Design",
-    "description": "Figma is a collaborative interface design tool",
-    "content": "Embed interactive Figma designs into your Outline docs. Paste a link to a Figma public share link to instantly convert into a rich preview."
+    "description": "Figma is a collaborative interface design tool"
   },
   {
     "slug": "framer",
     "name": "Framer",
     "url": "https://framer.com",
     "category": "Design",
-    "description": "Framer is an interactive design and prototyping tool",
-    "content": "Embed interactive Framer prototypes into your Outline docs. Paste a link to a Framer cloud link to instantly convert into an interactive embed."
+    "description": "Framer is an interactive design and prototyping tool"
   },
   {
     "slug": "invision",
     "name": "InVision",
     "url": "https://invision.com",
     "category": "Design",
-    "description": "InVision is an online design and prototyping tool",
-    "content": "Embed interactive InVision prototypes into your Outline docs. Paste an InVision share link to instantly convert into an interactive prototype."
+    "description": "InVision is an online design and prototyping tool"
   },
   {
     "slug": "marvel",
     "name": "Marvel",
     "url": "https://marvelapp.com",
     "category": "Design",
-    "description": "The all-in-one platform powering design",
-    "content": "Marvel prototypes inside your Outline docs. Paste a Marvel link to instantly convert into an interactive prototype."
+    "description": "The all-in-one platform powering design"
   },
   {
     "slug": "airtable",

@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { groupBy, map } from 'lodash';
 import format from 'date-fns/format';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
@@ -15,7 +16,13 @@ type Release = {
   created_at: string,
 };
 
-function Changelog({ releases }: { releases: Release[] }) {
+type Props = { releases: Release[] };
+
+function Changelog({ releases }: Props) {
+  const categories = groupBy(releases, i =>
+    format(new Date(i.created_at), 'MMMM, YYYY')
+  );
+
   return (
     <Grid>
       <Helmet>
@@ -28,26 +35,67 @@ function Changelog({ releases }: { releases: Release[] }) {
         </p>
       </Header>
       <Content>
-        {releases.map(release => (
-          <Article key={release.id}>
-            <Heading id={release.name}>
-              <a href={`#${release.name}`}>{release.name}</a>
-            </Heading>
-            <Time dateTime={release.created_at}>
-              {format(new Date(release.created_at), 'MMMM Do, YYYY')}
-            </Time>
-            <Markdown source={release.body} />
-          </Article>
-        ))}
+        <Grid>
+          <Grid.Unit
+            size={{ tablet: 1 / 4 }}
+            visible={{ mobile: false, tablet: true }}
+          >
+            <nav>
+              {map(categories, (releases, category) => (
+                <React.Fragment key={category}>
+                  <h3>{category.split(',')[0]}</h3>
+                  <List>
+                    {releases.map(release => (
+                      <li key={release.id}>
+                        <MenuItem href={`#${release.name}`}>
+                          {release.name}
+                        </MenuItem>
+                      </li>
+                    ))}
+                  </List>
+                </React.Fragment>
+              ))}
+            </nav>
+          </Grid.Unit>
+          <Grid.Unit size={{ tablet: 3 / 4 }}>
+            {releases.map(release => (
+              <Article key={release.id}>
+                <Heading id={release.name}>
+                  <a href={`#${release.name}`}>{release.name}</a>
+                </Heading>
+                <Time dateTime={release.created_at}>
+                  {format(new Date(release.created_at), 'MMMM Do, YYYY')}
+                </Time>
+                <Markdown source={release.body} />
+              </Article>
+            ))}
+          </Grid.Unit>
+        </Grid>
       </Content>
     </Grid>
   );
 }
 
+const MenuItem = styled.a`
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: ${props => props.theme.text};
+`;
+
+const List = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+`;
+
 const Heading = styled.h1`
+  margin-top: 0.5em;
+
   a {
     color: ${props => props.theme.text};
   }
+
   a:hover {
     text-decoration: underline;
   }
@@ -65,13 +113,6 @@ const Article = styled.div`
 
   &:last-child {
     border-bottom: 0;
-  }
-
-  img {
-    max-width: 100%;
-    zoom: 50%;
-    box-shadow: 0 10px 80px rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
   }
 `;
 

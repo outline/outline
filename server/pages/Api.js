@@ -58,11 +58,11 @@ export default function Pricing() {
   return (
     <Grid>
       <Helmet>
-        <title>API Documentation - Outline</title>
+        <title>Developers - Outline</title>
       </Helmet>
       <Header background="#AA34F0">
-        <h1>Documentation</h1>
-        <p>The API is the heart and soul of Outline.</p>
+        <h1>Developers</h1>
+        <p>Outline is built on an open, best-in-class, API</p>
       </Header>
       <Container>
         <p>
@@ -164,6 +164,11 @@ export default function Pricing() {
               by the token.
             </Description>
             <Arguments />
+          </Method>
+
+          <Method method="users.list" label="List team's users">
+            <Description>List all of the users in the team.</Description>
+            <Arguments pagination />
           </Method>
 
           <Method method="users.info" label="Get current user">
@@ -628,14 +633,6 @@ export default function Pricing() {
                 required
               />
             </Arguments>
-          </Method>
-
-          <Method method="team.users" label="List team's users">
-            <Description>
-              List team`s users. This endpoint is only available for admin
-              users.
-            </Description>
-            <Arguments pagination />
           </Method>
 
           <Method method="shares.list" label="List shared document links">
