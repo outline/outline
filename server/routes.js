@@ -23,7 +23,8 @@ import Pricing from './pages/Pricing';
 import Integrations from './pages/integrations';
 import integrations from './pages/integrations/content';
 import Integration from './pages/integrations/Integration';
-import Api from './pages/Api';
+import Developers from './pages/developers';
+import Api from './pages/developers/Api';
 import SubdomainSignin from './pages/SubdomainSignin';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -63,7 +64,8 @@ if (process.env.NODE_ENV === 'production') {
 // static pages
 router.get('/about', ctx => renderpage(ctx, <About />));
 router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
-router.get('/developers', ctx => renderpage(ctx, <Api />));
+router.get('/developers', ctx => renderpage(ctx, <Developers />));
+router.get('/developers/api', ctx => renderpage(ctx, <Api />));
 router.get('/privacy', ctx => renderpage(ctx, <Privacy />));
 router.get('/integrations/:slug', async ctx => {
   const slug = ctx.params.slug;
