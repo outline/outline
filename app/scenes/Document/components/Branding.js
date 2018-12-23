@@ -6,7 +6,7 @@ import OutlineLogo from 'shared/components/OutlineLogo';
 function Branding() {
   return (
     <Link href={process.env.URL}>
-      <OutlineLogo />&nbsp;Outline
+      <OutlineLogo size={16} fill="#000" />&nbsp;Outline
     </Link>
   );
 }

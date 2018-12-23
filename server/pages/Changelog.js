@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react';
+import { groupBy, map } from 'lodash';
 import format from 'date-fns/format';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
-import ReactMarkdown from 'react-markdown';
 import { Helmet } from 'react-helmet';
+import Markdown from './components/Markdown';
 import Header from './components/Header';
 import Content from './components/Content';
 
@@ -15,39 +16,84 @@ type Release = {
   created_at: string,
 };
 
-function Changelog({ releases }: { releases: Release[] }) {
+type Props = { releases: Release[] };
+
+function Changelog({ releases }: Props) {
+  const categories = groupBy(releases, i =>
+    format(new Date(i.created_at), 'MMMM, YYYY')
+  );
+
   return (
     <Grid>
       <Helmet>
         <title>Changelog</title>
       </Helmet>
-      <Header>
+      <Header background="#00ADFF">
         <h1>Changelog</h1>
-        <p>
-          We’re building in public. Here’s what we’ve been changing recently.
-        </p>
+        <p>We’re building in public. Here’s what has changed recently.</p>
       </Header>
       <Content>
-        {releases.map(release => (
-          <Article key={release.id}>
-            <Heading id={release.name}>
-              <a href={`#${release.name}`}>{release.name}</a>
-            </Heading>
-            <Time dateTime={release.created_at}>
-              {format(new Date(release.created_at), 'MMMM Do, YYYY')}
-            </Time>
-            <ReactMarkdown source={release.body} />
-          </Article>
-        ))}
+        <Grid>
+          <Grid.Unit
+            size={{ tablet: 1 / 4 }}
+            visible={{ mobile: false, tablet: true }}
+          >
+            <nav>
+              {map(categories, (releases, category) => (
+                <React.Fragment key={category}>
+                  <h3>{category.split(',')[0]}</h3>
+                  <List>
+                    {releases.map(release => (
+                      <li key={release.id}>
+                        <MenuItem href={`#${release.name}`}>
+                          {release.name}
+                        </MenuItem>
+                      </li>
+                    ))}
+                  </List>
+                </React.Fragment>
+              ))}
+            </nav>
+          </Grid.Unit>
+          <Grid.Unit size={{ tablet: 3 / 4 }}>
+            {releases.map(release => (
+              <Article key={release.id}>
+                <Heading id={release.name}>
+                  <a href={`#${release.name}`}>{release.name}</a>
+                </Heading>
+                <Time dateTime={release.created_at}>
+                  {format(new Date(release.created_at), 'MMMM Do, YYYY')}
+                </Time>
+                <Markdown source={release.body} />
+              </Article>
+            ))}
+          </Grid.Unit>
+        </Grid>
       </Content>
     </Grid>
   );
 }
 
+const MenuItem = styled.a`
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: ${props => props.theme.text};
+`;
+
+const List = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+`;
+
 const Heading = styled.h1`
+  margin-top: 0.5em;
+
   a {
     color: ${props => props.theme.text};
   }
+
   a:hover {
     text-decoration: underline;
   }
@@ -65,13 +111,6 @@ const Article = styled.div`
 
   &:last-child {
     border-bottom: 0;
-  }
-
-  img {
-    max-width: 100%;
-    zoom: 50%;
-    box-shadow: 0 10px 80px rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
   }
 `;
 

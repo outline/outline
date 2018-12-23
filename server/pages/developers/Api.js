@@ -3,160 +3,20 @@ import * as React from 'react';
 import Grid from 'styled-components-grid';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
-import Header from './components/Header';
-
-const Container = styled.div`
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 0 2em;
-
-  pre {
-    padding: 0.5em 1em;
-    background: #f9fbfc;
-    border-radius: 4px;
-    border: 1px solid #e8ebed;
-    overflow: scroll;
-  }
-
-  code {
-    font-size: 15px;
-  }
-
-  table {
-    border-collapse: collapse;
-
-    thead {
-      td {
-        padding: 5px 12px 5px 0;
-        border-bottom: 1px solid #ddd;
-        vertical-align: bottom;
-        font-weight: 500;
-      }
-    }
-
-    tbody,
-    thead {
-      td {
-        padding: 5px 12px 5px 0;
-      }
-
-      td:last-child {
-        width: 100%;
-        padding-right: 0;
-      }
-    }
-  }
-
-  h3 {
-    code {
-      font-size: 1.08em;
-    }
-  }
-`;
+import Header from '../components/Header';
+import Content from '../components/Content';
 
 export default function Pricing() {
   return (
     <Grid>
       <Helmet>
-        <title>API Documentation - Outline</title>
+        <title>API Reference - Outline</title>
       </Helmet>
-      <Header>
-        <h1>Documentation</h1>
-        <p>The API is the heart and soul of Outline.</p>
+      <Header background="#AA34F0">
+        <h1>API Reference</h1>
+        <p>Outline is built on an open, best-in-class, API</p>
       </Header>
-      <Container>
-        <p>
-          As developers, it’s our mission to make the API as great as possible.
-          While Outline is still in public beta, we might make small
-          adjustments, including breaking changes to the API.
-        </p>
-        <h2>Making requests</h2>
-        <p>
-          Outline’s API follows simple RPC style conventions where each API
-          endpoint is a method on{' '}
-          <code>https://www.getoutline.com/api/&lt;METHOD&gt;</code>. Both{' '}
-          <code>GET</code> and <code>POST</code> methods are supported but it’s
-          recommeded that you make all call using <code>POST</code>. Only HTTPS
-          is supported in production.
-        </p>
-
-        <p>
-          For <code>GET</code> requests query string parameters are expected
-          (e.g.
-          <code>/api/document.info?id=...&token=...</code>). When making{' '}
-          <code>POST</code> requests, request parameters are parsed depending on{' '}
-          <code>Content-Type</code> header. To make a call using JSON payload,
-          one must pass <code>Content-Type: application/json</code> header:
-        </p>
-
-        <p>
-          <strong>Example POST request:</strong>
-        </p>
-        <pre>
-          <code>
-            {`curl https://www.getoutline.com/api/documents.info
-  -X POST
-  -H 'authorization: Bearer API_KEY'
-  -H 'content-type: application/json'
-  -H 'accept: application/json'
-  -d '{"id": "outline-api-NTpezNwhUP"}'
-`}
-          </code>
-        </pre>
-
-        <p>
-          <strong>Example GET request:</strong>
-        </p>
-        <pre>
-          <code>
-            {`curl https://www.getoutline.com/api/documents.info?id=outline-api-NTpezNwhUP&token=API_KEY
-`}
-          </code>
-        </pre>
-
-        <h2>Authentication</h2>
-
-        <p>
-          To access private API endpoints, you must provide a valid API key. You
-          can create new API keys in your{' '}
-          <a href={`${process.env.URL}/settings`}>account settings</a>. Be
-          careful when handling your keys as they give access to all of your
-          documents.
-        </p>
-
-        <p>
-          To authenticate with Outline API, you can supply the API key as a
-          header (<code>Authorization: Bearer YOUR_API_KEY</code>) or as part of
-          the payload using <code>token</code> parameter. If you’re making{' '}
-          <code>GET</code> requests, header based authentication is recommended
-          so that your keys don’t leak into logs.
-        </p>
-
-        <p>
-          Some API endpoints allow unauhenticated requests for public resources
-          and they can be called without an API key.
-        </p>
-
-        <h2>Errors</h2>
-
-        <p>
-          All successful API requests will be returned with <code>200</code>{' '}
-          status code and <code>ok: true</code> in the response payload. If
-          there’s an error while making the request, appropriate status code is
-          returned with the <code>error</code> message:
-        </p>
-
-        <pre>
-          <code>
-            {`{
-  "ok": false,
-  "error: "Not Found"
-}
-`}
-          </code>
-        </pre>
-
-        <h2>Methods</h2>
+      <Content>
         <Methods>
           <Method method="auth.info" label="Get current auth">
             <Description>
@@ -164,6 +24,11 @@ export default function Pricing() {
               by the token.
             </Description>
             <Arguments />
+          </Method>
+
+          <Method method="users.list" label="List team's users">
+            <Description>List all of the users in the team.</Description>
+            <Arguments pagination />
           </Method>
 
           <Method method="users.info" label="Get current user">
@@ -331,11 +196,11 @@ export default function Pricing() {
               </p>
               <ul>
                 <li>
-                  UUID - <code>id</code> field of the document
+                  UUID - <Code>id</Code> field of the document
                 </li>
                 <li>
                   URI identifier - Human readable identifier used in Outline
-                  URLs (e.g. <code>outline-api-i48ZEZc5zjXndcP</code>)
+                  URLs (e.g. <Code>outline-api-i48ZEZc5zjXndcP</Code>)
                 </li>
               </ul>
             </Description>
@@ -360,14 +225,14 @@ export default function Pricing() {
               This method allows you to publish a new document under an existing
               collection. By default a document is set to the parent collection
               root. If you want to create a subdocument, you can pass{' '}
-              <code>parentDocument</code> to set parent document.
+              <Code>parentDocument</Code> to set parent document.
             </Description>
             <Arguments>
               <Argument
                 id="collection"
                 description={
                   <span>
-                    <code>ID</code> of the collection to which the document is
+                    <Code>ID</Code> of the collection to which the document is
                     created
                   </span>
                 }
@@ -387,7 +252,7 @@ export default function Pricing() {
                 id="parentDocument"
                 description={
                   <span>
-                    <code>ID</code> of the parent document within the collection
+                    <Code>ID</Code> of the parent document within the collection
                   </span>
                 }
               />
@@ -395,7 +260,7 @@ export default function Pricing() {
                 id="publish"
                 description={
                   <span>
-                    <code>true</code> by default. Pass <code>false</code> to
+                    <Code>true</Code> by default. Pass <Code>false</Code> to
                     create a draft.
                   </span>
                 }
@@ -422,7 +287,7 @@ export default function Pricing() {
                 id="publish"
                 description={
                   <span>
-                    Pass <code>true</code> to publish a draft.
+                    Pass <Code>true</Code> to publish a draft.
                   </span>
                 }
               />
@@ -430,7 +295,7 @@ export default function Pricing() {
                 id="autosave"
                 description={
                   <span>
-                    Pass <code>true</code> to signify an autosave. This skips
+                    Pass <Code>true</Code> to signify an autosave. This skips
                     creating a revision.
                   </span>
                 }
@@ -439,7 +304,7 @@ export default function Pricing() {
                 id="done"
                 description={
                   <span>
-                    Pass <code>true</code> to signify the end of an editing
+                    Pass <Code>true</Code> to signify the end of an editing
                     session. This will trigger documents.update hooks.
                   </span>
                 }
@@ -630,14 +495,6 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
-          <Method method="team.users" label="List team's users">
-            <Description>
-              List team`s users. This endpoint is only available for admin
-              users.
-            </Description>
-            <Arguments pagination />
-          </Method>
-
           <Method method="shares.list" label="List shared document links">
             <Description>
               List all your currently shared document links.
@@ -666,13 +523,22 @@ export default function Pricing() {
             </Arguments>
           </Method>
         </Methods>
-      </Container>
+      </Content>
     </Grid>
   );
 }
 
-const MethodList = styled.ul`
-  margin-bottom: 80px;
+const MenuItem = styled.a`
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: ${props => props.theme.text};
+`;
+
+const List = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
 `;
 
 const Methods = (props: { children: React.Node }) => {
@@ -680,16 +546,26 @@ const Methods = (props: { children: React.Node }) => {
   const methods = children.map(child => child.props.method);
 
   return (
-    <div>
-      <MethodList>
-        {methods.map(method => (
-          <li key={method}>
-            <a href={`#${method}`}>{method}</a>
-          </li>
-        ))}
-      </MethodList>
-      {children}
-    </div>
+    <React.Fragment>
+      <Grid>
+        <Grid.Unit
+          size={{ tablet: 1 / 4 }}
+          visible={{ mobile: false, tablet: true }}
+        >
+          <nav>
+            <h2>Reference</h2>
+            <List>
+              {methods.map(method => (
+                <li key={method}>
+                  <MenuItem href={`#${method}`}>{method}</MenuItem>
+                </li>
+              ))}
+            </List>
+          </nav>
+        </Grid.Unit>
+        <Grid.Unit size={{ tablet: 3 / 4 }}>{children}</Grid.Unit>
+      </Grid>
+    </React.Fragment>
   );
 };
 
@@ -716,8 +592,33 @@ type ArgumentsProps = {
   children?: React.Node | string,
 };
 
+const Table = styled.table`
+  border-collapse: collapse;
+
+  thead {
+    td {
+      padding: 5px 12px 5px 0;
+      border-bottom: 1px solid #ddd;
+      vertical-align: bottom;
+      font-weight: 500;
+    }
+  }
+
+  tbody,
+  thead {
+    td {
+      padding: 5px 12px 5px 0;
+    }
+
+    td:last-child {
+      width: 100%;
+      padding-right: 0;
+    }
+  }
+`;
+
 const Arguments = (props: ArgumentsProps) => (
-  <table>
+  <Table>
     <thead>
       <tr>
         <td>Argument</td>
@@ -733,8 +634,22 @@ const Arguments = (props: ArgumentsProps) => (
       )}
       {props.children}
     </tbody>
-  </table>
+  </Table>
 );
+
+const Heading = styled.h3`
+  code {
+    font-size: 1em;
+    padding: 2px 4px;
+    background: #333;
+    border-radius: 4px;
+    color: #fff;
+  }
+`;
+
+const Code = styled.code`
+  font-size: 15px;
+`;
 
 const Method = (props: MethodProps) => {
   const children = React.Children.toArray(props.children);
@@ -743,13 +658,13 @@ const Method = (props: MethodProps) => {
 
   return (
     <MethodContainer>
-      <h3 id={props.method}>
-        <code>{props.method}</code> - {props.label}
-      </h3>
+      <Heading id={props.method}>
+        <code>{props.method}</code> {props.label}
+      </Heading>
       <div>{description}</div>
       <Request>HTTP request & arguments</Request>
       <p>
-        <code>{`${process.env.URL}/api/${props.method}`}</code>
+        <Code>{`${process.env.URL}/api/${props.method}`}</Code>
       </p>
       {apiArgs}
     </MethodContainer>
@@ -765,7 +680,7 @@ type ArgumentProps = {
 const Argument = (props: ArgumentProps) => (
   <tr>
     <td>
-      <code>{props.id}</code>
+      <Code>{props.id}</Code>
     </td>
     <td>
       <i>{props.required ? 'required' : 'optional'}</i>
@@ -773,6 +688,7 @@ const Argument = (props: ArgumentProps) => (
     <td>{props.description}</td>
   </tr>
 );
+
 const PaginationArguments = () => [
   <Argument id="offset" description="Pagination offset" />,
   <Argument id="limit" description="Pagination limit" />,

@@ -166,7 +166,7 @@ const Mask = styled.div`
 `;
 
 const Features = styled.div`
-  background: hsl(180, 58%, 85%);
+  background: #00adff;
   padding: 0 2em;
   width: 100%;
 `;
@@ -200,7 +200,7 @@ const Feature = styled(Grid.Unit)`
 `;
 
 const Footer = styled.div`
-  background: hsl(127, 58%, 85%);
+  background: #aa34f0;
   text-align: left;
   width: 100%;
   padding: 4em 2em;
@@ -208,6 +208,10 @@ const Footer = styled.div`
   h2 {
     font-size: 1.8em;
     margin-top: 0;
+  }
+
+  p {
+    margin-bottom: 0;
   }
 
   ${breakpoint('tablet')`

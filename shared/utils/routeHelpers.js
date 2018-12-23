@@ -73,6 +73,10 @@ export function about(): string {
   return `${process.env.URL}/about`;
 }
 
+export function integrations(): string {
+  return `${process.env.URL}/integrations`;
+}
+
 export function privacy(): string {
   return `${process.env.URL}/privacy`;
 }

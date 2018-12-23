@@ -4,6 +4,7 @@ import { sortBy } from 'lodash';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import Centered from './Centered';
+import OutlineLogo from '../../../shared/components/OutlineLogo';
 import TeamLogo from '../../../shared/components/TeamLogo';
 import { fadeAndScaleIn } from '../../../shared/styles/animations';
 import {
@@ -11,6 +12,7 @@ import {
   changelog,
   features,
   about,
+  integrations,
   privacy,
   githubUrl,
   twitterUrl,
@@ -36,19 +38,18 @@ function TopNavigation({ sessions, loggedIn }: Props) {
 
   return (
     <Nav>
-      <Brand href={process.env.URL}>Outline</Brand>
+      <Brand href={process.env.URL}>
+        <OutlineLogo size={18} fill="#000" />&nbsp;Outline
+      </Brand>
       <Menu>
         <MenuItemDesktop>
           <a href={features()}>Features</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
-          <a href={about()}>About</a>
+          <a href={integrations()}>Integrations</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
           <a href={changelog()}>Changelog</a>
-        </MenuItemDesktop>
-        <MenuItemDesktop>
-          <a href={twitterUrl()}>Twitter</a>
         </MenuItemDesktop>
         <MenuItem>
           <a href={developers()}>API</a>
@@ -109,6 +110,9 @@ function BottomNavigation() {
       <div>
         <a href={privacy()}>Privacy</a>
       </div>
+      <div>
+        <a href={about()}>About</a>
+      </div>
     </BottomNav>
   );
 }
@@ -118,11 +122,11 @@ const MenuLinkStyle = props => `
   font-weight: 500;
 
   a {
-    color: ${props.theme.slate};
+    color: rgba(0, 0, 0, 0.6);
   }
 
   a:hover {
-    color: ${props.theme.slateDark};
+    color: rgba(0, 0, 0, 0.4);
     text-decoration: underline;
   }
 `;
@@ -142,17 +146,17 @@ const MenuItem = styled.li`
     props.highlighted &&
     `
   position: relative;
-  border: 2px solid ${props.theme.slate};
+  border: 2px solid rgba(0, 0, 0, 0.6);
   border-radius: 4px;
   padding: 6px 8px;
   margin-top: -6px;
   margin-bottom: -6px;
 
   &:hover {
-    border: 2px solid ${props.theme.slateDark};
+    border: 2px solid rgba(0, 0, 0, 0.4);
 
     > a {
-      color: ${props.theme.slateDark};
+      color: rgba(0, 0, 0, 0.4);
     }
   }
 
@@ -246,6 +250,8 @@ const BottomNav = styled.nav`
 `;
 
 const Brand = styled.a`
+  display: flex;
+  align-items: center;
   font-weight: 600;
   font-size: 20px;
   text-decoration: none;
