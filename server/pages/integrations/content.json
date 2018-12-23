@@ -96,5 +96,12 @@
     "url": "https://numeracy.io",
     "category": "Developers",
     "description": "A SQL pad for writing, iterating, and exploring data"
+  },
+  {
+    "slug": "zapier",
+    "name": "Zapier",
+    "url": "https://zapier.com",
+    "category": "Developers",
+    "description": "Connect apps and automate workflows"
   }
 ]
