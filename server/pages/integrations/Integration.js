@@ -24,7 +24,7 @@ export default function Integration({ integration, content }: Props) {
   return (
     <Grid>
       <Helmet>
-        <title>{integration.name} Integration</title>
+        <title>{integration.name} Integration – Outline</title>
       </Helmet>
       <Header background="#F4F7FA">
         <h1>{integration.name} Integration</h1>

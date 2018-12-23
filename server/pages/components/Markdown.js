@@ -23,4 +23,11 @@ export default styled(ReactMarkdown)`
     box-shadow: 0 10px 80px rgba(0, 0, 0, 0.1), 0 1px 10px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
   }
+
+  code {
+    font-size: 15px;
+    background: ${props => props.theme.smoke};
+    padding: 2px 4px;
+    border-radius: 2px;
+  }
 `;
