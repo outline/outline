@@ -51,14 +51,14 @@ export default `
   h4,
   h5,
   h6 {
-    font-family: 'Lato', -apple-system, BlinkMacSystemFont;
+    font-family: 'Lato',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen, Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif;
     font-weight: 500;
     line-height: 1.25;
     margin-top: 1em;
     margin-bottom: 0.5em;
     color: ${theme.text};
   }
-  h1 { font-size: 2em; }
+  h1 { font-size: 2.25em; }
   h2 { font-size: 1.5em; }
   h3 { font-size: 1.25em; }
   h4 { font-size: 1em; }
