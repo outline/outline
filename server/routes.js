@@ -84,7 +84,8 @@ router.get('/integrations/:slug', async ctx => {
 router.get('/integrations', ctx => renderpage(ctx, <Integrations />));
 router.get('/changelog', async ctx => {
   const data = await fetch(
-    'https://api.github.com/repos/outline/outline/releases'
+    `https://api.github.com/repos/outline/outline/releases?access_token=${process
+      .env.GITHUB_ACCESS_TOKEN || ''}`
   );
   const releases = await data.json();
   return renderpage(ctx, <Changelog releases={releases} />);
