@@ -9,6 +9,7 @@ import Flex from 'shared/components/Flex';
 type Props = {
   id: string,
   children: React.Node,
+  disabled?: boolean,
 };
 
 type State = {
@@ -31,7 +32,7 @@ class Tip extends React.Component<Props, State> {
 
   render() {
     const { children } = this.props;
-    if (this.state.isHidden) return null;
+    if (this.props.disabled || this.state.isHidden) return null;
 
     return (
       <Wrapper align="center">

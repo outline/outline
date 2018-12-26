@@ -29,8 +29,11 @@ class Dashboard extends React.Component<Props> {
 
     return (
       <CenteredContent>
-        {auth.team.subdomain && <TipInvite team={auth.team} />}
         <PageTitle title="Home" />
+        <TipInvite
+          team={auth.team}
+          disabled={!auth.team.subdomain || !auth.user.isAdmin}
+        />
         <h1>Home</h1>
         <Tabs>
           <Tab to="/dashboard" exact>
