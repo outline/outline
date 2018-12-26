@@ -28,7 +28,11 @@ const slugify = text =>
   });
 
 const createRevision = (doc, options = {}) => {
+  // we don't create revisions for autosaves
   if (options.autosave) return;
+
+  // we don't create revisions if identical to previous
+  if (doc.text === doc.previous('text')) return;
 
   return Revision.create({
     title: doc.title,
@@ -54,20 +58,9 @@ const beforeSave = async doc => {
     doc.text = doc.text.replace(/^.*$/m, `# ${DEFAULT_TITLE}`);
   }
 
-  // calculate collaborators
-  let ids = [];
-  if (doc.id) {
-    ids = await Revision.findAll({
-      attributes: [[DataTypes.literal('DISTINCT "userId"'), 'userId']],
-      where: {
-        documentId: doc.id,
-      },
-    }).map(rev => rev.userId);
-  }
-
-  // add the current user as revision hasn't been generated yet
-  ids.push(doc.lastModifiedById);
-  doc.collaboratorIds = uniq(ids);
+  // add the current user as a collaborator on this doc
+  if (!doc.collaboratorIds) doc.collaboratorIds = [];
+  doc.collaboratorIds = uniq(doc.collaboratorIds.concat(doc.lastModifiedById));
 
   // increment revision
   doc.revisionCount += 1;
@@ -110,6 +103,12 @@ const Document = sequelize.define(
       beforeUpdate: beforeSave,
       afterCreate: createRevision,
       afterUpdate: createRevision,
+    },
+    getterMethods: {
+      url: function() {
+        const slugifiedTitle = slugify(this.title);
+        return `/doc/${slugifiedTitle}-${this.urlId}`;
+      },
     },
   }
 );
@@ -319,18 +318,13 @@ Document.prototype.getSummary = function() {
   return lines.length >= 1 ? lines[1] : '';
 };
 
-Document.prototype.getUrl = function() {
-  const slugifiedTitle = slugify(this.title);
-  return `/doc/${slugifiedTitle}-${this.urlId}`;
-};
-
 Document.prototype.toJSON = function() {
   // Warning: only use for new documents as order of children is
   // handled in the collection's documentStructure
   return {
     id: this.id,
     title: this.title,
-    url: this.getUrl(),
+    url: this.url,
     children: [],
   };
 };

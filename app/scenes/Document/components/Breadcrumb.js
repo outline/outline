@@ -18,8 +18,10 @@ type Props = {
 
 const Breadcrumb = observer(({ document, collections }: Props) => {
   const path = document.pathToDocument.slice(0, -1);
+  if (!document.collection) return null;
+
   const collection =
-    collections.getById(document.collection.id) || document.collection;
+    collections.data.get(document.collection.id) || document.collection;
 
   return (
     <Wrapper justify="flex-start" align="center">

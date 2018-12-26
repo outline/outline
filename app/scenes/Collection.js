@@ -5,6 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { CollectionIcon, NewDocumentIcon, PinIcon } from 'outline-icons';
+import RichMarkdownEditor from 'rich-markdown-editor';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
@@ -53,15 +54,14 @@ class CollectionScene extends React.Component<Props> {
   }
 
   loadContent = async (id: string) => {
-    const { collections } = this.props;
-    const collection = collections.getById(id) || (await collections.fetch(id));
+    const collection = await this.props.collections.fetch(id);
 
     if (collection) {
       this.props.ui.setActiveCollection(collection);
       this.collection = collection;
 
       await Promise.all([
-        this.props.documents.fetchRecentlyEdited({
+        this.props.documents.fetchRecentlyUpdated({
           limit: 10,
           collection: id,
         }),
@@ -102,7 +102,7 @@ class CollectionScene extends React.Component<Props> {
   }
 
   renderEmptyCollection() {
-    if (!this.collection) return;
+    if (!this.collection) return null;
 
     return (
       <CenteredContent>
@@ -140,7 +140,7 @@ class CollectionScene extends React.Component<Props> {
       ? this.props.documents.pinnedInCollection(this.collection.id)
       : [];
     const recentDocuments = this.collection
-      ? this.props.documents.recentlyEditedInCollection(this.collection.id)
+      ? this.props.documents.recentlyUpdatedInCollection(this.collection.id)
       : [];
     const hasPinnedDocuments = !!pinnedDocuments.length;
 
@@ -157,6 +157,13 @@ class CollectionScene extends React.Component<Props> {
               />{' '}
               {this.collection.name}
             </Heading>
+            {this.collection.description && (
+              <RichMarkdownEditor
+                key={this.collection.description}
+                defaultValue={this.collection.description}
+                readOnly
+              />
+            )}
 
             {hasPinnedDocuments && (
               <React.Fragment>

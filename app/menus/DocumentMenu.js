@@ -6,16 +6,19 @@ import { MoreIcon } from 'outline-icons';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
-import { documentMoveUrl } from 'utils/routeHelpers';
+import AuthStore from 'stores/AuthStore';
+import { documentMoveUrl, documentHistoryUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
   ui: UiStore,
+  auth: AuthStore,
   label?: React.Node,
   history: Object,
   document: Document,
   className: string,
   showPrint?: boolean,
+  showToggleEmbeds?: boolean,
 };
 
 @observer
@@ -30,6 +33,10 @@ class DocumentMenu extends React.Component<Props> {
   handleDelete = (ev: SyntheticEvent<*>) => {
     const { document } = this.props;
     this.props.ui.setActiveModal('document-delete', { document });
+  };
+
+  handleDocumentHistory = () => {
+    this.props.history.push(documentHistoryUrl(this.props.document));
   };
 
   handleMove = (ev: SyntheticEvent<*>) => {
@@ -69,7 +76,15 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    const { document, label, className, showPrint } = this.props;
+    const {
+      document,
+      label,
+      className,
+      showPrint,
+      showToggleEmbeds,
+      auth,
+    } = this.props;
+    const canShareDocuments = auth.team && auth.team.sharing;
 
     return (
       <DropdownMenu label={label || <MoreIcon />} className={className}>
@@ -91,13 +106,31 @@ class DocumentMenu extends React.Component<Props> {
                 Star
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem
-              onClick={this.handleShareLink}
-              title="Create a public share link"
-            >
-              Share link…
-            </DropdownMenuItem>
+            {canShareDocuments && (
+              <DropdownMenuItem
+                onClick={this.handleShareLink}
+                title="Create a public share link"
+              >
+                Share link…
+              </DropdownMenuItem>
+            )}
+            {showToggleEmbeds && (
+              <React.Fragment>
+                {document.embedsDisabled ? (
+                  <DropdownMenuItem onClick={document.enableEmbeds}>
+                    Enable embeds
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={document.disableEmbeds}>
+                    Disable embeds
+                  </DropdownMenuItem>
+                )}
+              </React.Fragment>
+            )}
             <hr />
+            <DropdownMenuItem onClick={this.handleDocumentHistory}>
+              Document history
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={this.handleNewChild}
               title="Create a new child document for the current document"
@@ -123,4 +156,4 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('ui')(DocumentMenu));
+export default withRouter(inject('ui', 'auth')(DocumentMenu));

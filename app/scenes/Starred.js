@@ -9,12 +9,15 @@ import Empty from 'components/Empty';
 import PageTitle from 'components/PageTitle';
 import Heading from 'components/Heading';
 import DocumentList from 'components/DocumentList';
+import Tabs from 'components/Tabs';
+import Tab from 'components/Tab';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
 import Actions, { Action } from 'components/Actions';
 import DocumentsStore from 'stores/DocumentsStore';
 
 type Props = {
   documents: DocumentsStore,
+  match: Object,
 };
 
 @observer
@@ -24,7 +27,13 @@ class Starred extends React.Component<Props> {
   }
 
   render() {
-    const { isLoaded, isFetching, starred } = this.props.documents;
+    const {
+      isLoaded,
+      isFetching,
+      starred,
+      starredAlphabetical,
+    } = this.props.documents;
+    const { sort } = this.props.match.params;
     const showLoading = !isLoaded && isFetching;
     const showEmpty = isLoaded && !starred.length;
 
@@ -32,9 +41,27 @@ class Starred extends React.Component<Props> {
       <CenteredContent column auto>
         <PageTitle title="Starred" />
         <Heading>Starred</Heading>
+        {showEmpty ? (
+          <Empty>You’ve not starred any documents yet.</Empty>
+        ) : (
+          <React.Fragment>
+            <Tabs>
+              <Tab to="/starred" exact>
+                Recently Updated
+              </Tab>
+              <Tab to="/starred/alphabetical" exact>
+                Alphabetical
+              </Tab>
+            </Tabs>
+            <DocumentList
+              documents={
+                sort === 'alphabetical' ? starredAlphabetical : starred
+              }
+              showCollection
+            />
+          </React.Fragment>
+        )}
         {showLoading && <ListPlaceholder />}
-        {showEmpty && <Empty>You’ve not starred any documents yet.</Empty>}
-        <DocumentList documents={starred} />
         <Actions align="center" justify="flex-end">
           <Action>
             <NewDocumentMenu label={<NewDocumentIcon />} />

@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Prompt } from 'react-router-dom';
+import { withRouter, Prompt, Route } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
@@ -13,21 +13,17 @@ import {
   collectionUrl,
   updateDocumentUrl,
   documentMoveUrl,
+  documentHistoryUrl,
   documentEditUrl,
   matchDocumentEdit,
-  matchDocumentMove,
 } from 'utils/routeHelpers';
-import { uploadFile } from 'utils/uploadFile';
 import { emojiToUrl } from 'utils/emoji';
-import isInternalUrl from 'utils/isInternalUrl';
 
-import Document from 'models/Document';
 import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import DocumentsStore from 'stores/DocumentsStore';
+import Branding from './components/Branding';
 import ErrorBoundary from 'components/ErrorBoundary';
+import DocumentHistory from 'components/DocumentHistory';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
@@ -36,7 +32,17 @@ import Search from 'scenes/Search';
 import Error404 from 'scenes/Error404';
 import ErrorOffline from 'scenes/ErrorOffline';
 
-const AUTOSAVE_INTERVAL = 3000;
+import UiStore from 'stores/UiStore';
+import AuthStore from 'stores/AuthStore';
+import DocumentsStore from 'stores/DocumentsStore';
+import RevisionsStore from 'stores/RevisionsStore';
+import Document from 'models/Document';
+import Revision from 'models/Revision';
+
+import schema from './schema';
+
+const AUTOSAVE_DELAY = 3000;
+const IS_DIRTY_DELAY = 500;
 const MARK_AS_VIEWED_AFTER = 3000;
 const DISCARD_CHANGES = `
 You have unsaved changes.
@@ -52,6 +58,7 @@ type Props = {
   history: Object,
   location: Location,
   documents: DocumentsStore,
+  revisions: RevisionsStore,
   newDocument?: boolean,
   auth: AuthStore,
   ui: UiStore,
@@ -59,16 +66,17 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  savedTimeout: TimeoutID;
   viewTimeout: TimeoutID;
+  getEditorText: () => string;
 
   @observable editorComponent;
-  @observable editCache: ?string;
   @observable document: ?Document;
+  @observable revision: ?Revision;
   @observable newDocument: ?Document;
   @observable isUploading = false;
   @observable isSaving = false;
   @observable isPublishing = false;
+  @observable isDirty = false;
   @observable notFound = false;
   @observable moveModalOpen: boolean = false;
 
@@ -80,19 +88,23 @@ class DocumentScene extends React.Component<Props> {
   componentWillReceiveProps(nextProps) {
     if (
       nextProps.match.params.documentSlug !==
-      this.props.match.params.documentSlug
+        this.props.match.params.documentSlug ||
+      this.props.match.params.revisionId !== nextProps.match.params.revisionId
     ) {
       this.notFound = false;
+      clearTimeout(this.viewTimeout);
       this.loadDocument(nextProps);
     }
   }
 
   componentWillUnmount() {
-    clearTimeout(this.savedTimeout);
     clearTimeout(this.viewTimeout);
-
     this.props.ui.clearActiveDocument();
   }
+
+  goToDocumentCanonical = () => {
+    if (this.document) this.props.history.push(this.document.url);
+  };
 
   @keydown('m')
   goToMove(ev) {
@@ -100,40 +112,66 @@ class DocumentScene extends React.Component<Props> {
     if (this.document) this.props.history.push(documentMoveUrl(this.document));
   }
 
+  @keydown('h')
+  goToHistory(ev) {
+    ev.preventDefault();
+    if (!this.document) return;
+
+    if (this.revision) {
+      this.props.history.push(this.document.url);
+    } else {
+      this.props.history.push(documentHistoryUrl(this.document));
+    }
+  }
+
   loadDocument = async props => {
     if (props.newDocument) {
-      this.document = new Document({
-        collection: { id: props.match.params.id },
-        parentDocument: new URLSearchParams(props.location.search).get(
-          'parentDocument'
-        ),
-        title: '',
-        text: '',
-      });
+      this.document = new Document(
+        {
+          collection: { id: props.match.params.id },
+          parentDocument: new URLSearchParams(props.location.search).get(
+            'parentDocument'
+          ),
+          title: '',
+          text: '',
+        },
+        this.props.documents
+      );
     } else {
-      const { shareId } = props.match.params;
+      const { shareId, revisionId } = props.match.params;
+
       this.document = await this.props.documents.fetch(
         props.match.params.documentSlug,
         { shareId }
       );
+
+      if (revisionId) {
+        this.revision = await this.props.revisions.fetch(
+          props.match.params.documentSlug,
+          { revisionId }
+        );
+      } else {
+        this.revision = undefined;
+      }
+
+      this.isDirty = false;
 
       const document = this.document;
 
       if (document) {
         this.props.ui.setActiveDocument(document);
 
-        // Cache data if user enters edit mode and cancels
-        this.editCache = document.text;
-
         if (this.props.auth.user && !shareId) {
           if (!this.isEditing && document.publishedAt) {
             this.viewTimeout = setTimeout(document.view, MARK_AS_VIEWED_AFTER);
           }
 
-          // Update url to match the current one
-          this.props.history.replace(
-            updateDocumentUrl(props.match.url, document.url)
-          );
+          if (!this.revision) {
+            // Update url to match the current one
+            this.props.history.replace(
+              updateDocumentUrl(props.match.url, document.url)
+            );
+          }
         }
       } else {
         // Render 404 with search
@@ -163,13 +201,25 @@ class DocumentScene extends React.Component<Props> {
     options: { done?: boolean, publish?: boolean, autosave?: boolean } = {}
   ) => {
     let document = this.document;
-    if (!document || !document.allowSave) return;
+    if (!document) return;
+
+    // get the latest version of the editor text value
+    const text = this.getEditorText ? this.getEditorText() : document.text;
+
+    // prevent autosave if nothing has changed
+    if (options.autosave && document.text.trim() === text.trim()) return;
+
+    document.text = text;
+    if (!document.allowSave) return;
+
+    // prevent autosave before anything has been written
+    if (options.autosave && !document.title && !document.id) return;
 
     let isNew = !document.id;
-    this.editCache = null;
     this.isSaving = true;
     this.isPublishing = !!options.publish;
     document = await document.save(options);
+    this.isDirty = false;
     this.isSaving = false;
     this.isPublishing = false;
 
@@ -182,9 +232,16 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  autosave = debounce(async () => {
+  autosave = debounce(() => {
     this.onSave({ done: false, autosave: true });
-  }, AUTOSAVE_INTERVAL);
+  }, AUTOSAVE_DELAY);
+
+  updateIsDirty = debounce(() => {
+    const document = this.document;
+
+    this.isDirty =
+      document && this.getEditorText().trim() !== document.text.trim();
+  }, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
     this.isUploading = true;
@@ -194,14 +251,9 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  onChange = text => {
-    let document = this.document;
-    if (!document) return;
-    if (document.text.trim() === text.trim()) return;
-    document.updateData({ text }, true);
-
-    // prevent autosave before anything has been written
-    if (!document.title && !document.id) return;
+  onChange = getEditorText => {
+    this.getEditorText = getEditorText;
+    this.updateIsDirty();
     this.autosave();
   };
 
@@ -209,16 +261,10 @@ class DocumentScene extends React.Component<Props> {
     let url;
     if (this.document && this.document.url) {
       url = this.document.url;
-      if (this.editCache) this.document.updateData({ text: this.editCache });
     } else {
       url = collectionUrl(this.props.match.params.id);
     }
     this.props.history.push(url);
-  };
-
-  onUploadImage = async (file: File) => {
-    const result = await uploadFile(file);
-    return result.url;
   };
 
   onSearchLink = async (term: string) => {
@@ -230,43 +276,14 @@ class DocumentScene extends React.Component<Props> {
     }));
   };
 
-  onClickLink = (href: string) => {
-    // on page hash
-    if (href[0] === '#') {
-      window.location.href = href;
-      return;
-    }
-
-    if (isInternalUrl(href)) {
-      // relative
-      let navigateTo = href;
-
-      // probably absolute
-      if (href[0] !== '/') {
-        try {
-          const url = new URL(href);
-          navigateTo = url.pathname + url.hash;
-        } catch (err) {
-          navigateTo = href;
-        }
-      }
-
-      this.props.history.push(navigateTo);
-    } else {
-      window.open(href, '_blank');
-    }
-  };
-
-  onShowToast = (message: string) => {
-    this.props.ui.showToast(message, 'success');
-  };
-
   render() {
-    const { location, match } = this.props;
+    const { location, auth, match } = this.props;
+    const team = auth.team;
     const Editor = this.editorComponent;
-    const isMoving = match.path === matchDocumentMove;
     const document = this.document;
+    const revision = this.revision;
     const isShare = match.params.shareId;
+    const isHistory = match.url.match(/\/history(\/|$)/); // Can't match on history alone as that can be in the user-generated slug
 
     if (this.notFound) {
       return navigator.onLine ? (
@@ -291,10 +308,27 @@ class DocumentScene extends React.Component<Props> {
       );
     }
 
+    const embedsDisabled =
+      document.embedsDisabled || (team && !team.documentEmbeds);
+
     return (
       <ErrorBoundary>
-        <Container key={document.id} isShare={isShare} column auto>
-          {isMoving && <DocumentMove document={document} />}
+        <Container
+          key={revision ? revision.id : document.id}
+          sidebar={isHistory}
+          isShare={isShare}
+          column
+          auto
+        >
+          <Route
+            path={`${match.url}/move`}
+            component={() => (
+              <DocumentMove
+                document={document}
+                onRequestClose={this.goToDocumentCanonical}
+              />
+            )}
+          />
           <PageTitle
             title={document.title.replace(document.emoji, '')}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
@@ -305,10 +339,13 @@ class DocumentScene extends React.Component<Props> {
             {this.isEditing && (
               <React.Fragment>
                 <Prompt
-                  when={document.hasPendingChanges}
+                  when={this.isDirty || false}
                   message={DISCARD_CHANGES}
                 />
-                <Prompt when={this.isUploading} message={UPLOADING_WARNING} />
+                <Prompt
+                  when={this.isUploading || false}
+                  message={UPLOADING_WARNING}
+                />
               </React.Fragment>
             )}
             {!isShare && (
@@ -326,25 +363,31 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth column auto>
               <Editor
+                key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
                 titlePlaceholder="Start with a title…"
                 bodyPlaceholder="…the rest is your canvas"
-                defaultValue={document.text}
+                defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
-                uploadImage={this.onUploadImage}
+                disableEmbeds={embedsDisabled}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.onSearchLink}
-                onClickLink={this.onClickLink}
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onCancel={this.onDiscard}
-                onShowToast={this.onShowToast}
                 readOnly={!this.isEditing}
-                toc
+                toc={!revision}
+                history={this.props.history}
+                ui={this.props.ui}
+                schema={schema}
               />
             </MaxWidth>
           </Container>
         </Container>
+        {isHistory && (
+          <DocumentHistory revision={revision} document={document} />
+        )}
+        {isShare && <Branding />}
       </ErrorBoundary>
     );
   }
@@ -357,19 +400,23 @@ const MaxWidth = styled(Flex)`
   height: 100%;
 
   ${breakpoint('tablet')`	
-    padding: 0;
+    padding: 0 24px;
     margin: 12px auto;
     max-width: 46em;
+    box-sizing: content-box;
   `};
 `;
 
 const Container = styled(Flex)`
   position: relative;
   margin-top: ${props => (props.isShare ? '50px' : '0')};
+  margin-right: ${props => (props.sidebar ? props.theme.sidebarWidth : 0)};
 `;
 
 const LoadingState = styled(LoadingPlaceholder)`
   margin: 40px 0;
 `;
 
-export default withRouter(inject('ui', 'auth', 'documents')(DocumentScene));
+export default withRouter(
+  inject('ui', 'auth', 'documents', 'revisions')(DocumentScene)
+);

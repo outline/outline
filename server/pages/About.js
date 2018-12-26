@@ -38,7 +38,7 @@ export default function About() {
       <Helmet>
         <title>About Us</title>
       </Helmet>
-      <Header>
+      <Header background="#F22C5F">
         <h1>About Us</h1>
         <p>The team behind Outline</p>
       </Header>

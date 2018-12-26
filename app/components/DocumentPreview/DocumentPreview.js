@@ -15,7 +15,7 @@ type Props = {
   highlight?: ?string,
   context?: ?string,
   showCollection?: boolean,
-  innerRef?: *,
+  ref?: *,
 };
 
 const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
@@ -58,8 +58,8 @@ const DocumentLink = styled(Link)`
   &:hover,
   &:active,
   &:focus {
-    background: ${props => props.theme.smokeLight};
-    border: 2px solid ${props => props.theme.smoke};
+    background: rgba(0, 0, 0, 0.05);
+    border: 2px solid rgba(0, 0, 0, 0.1);
     outline: none;
 
     ${StyledStar}, ${StyledDocumentMenu} {
@@ -72,7 +72,7 @@ const DocumentLink = styled(Link)`
   }
 
   &:focus {
-    border: 2px solid ${props => props.theme.slateDark};
+    border: 2px solid rgba(0, 0, 0, 0.2);
   }
 `;
 
@@ -131,7 +131,6 @@ class DocumentPreview extends React.Component<Props> {
     const {
       document,
       showCollection,
-      innerRef,
       highlight,
       context,
       ...rest
@@ -147,7 +146,6 @@ class DocumentPreview extends React.Component<Props> {
           pathname: document.url,
           state: { title: document.title },
         }}
-        innerRef={innerRef}
         {...rest}
       >
         <Heading>

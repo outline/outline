@@ -35,6 +35,15 @@ Object {
 }
 `;
 
+exports[`#documents.restore should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#documents.search should require authentication 1`] = `
 Object {
   "error": "authentication_required",

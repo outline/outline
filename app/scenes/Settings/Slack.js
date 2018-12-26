@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { inject, observer } from 'mobx-react';
-import _ from 'lodash';
+import { find } from 'lodash';
 import styled from 'styled-components';
 
 import Button from 'components/Button';
@@ -11,12 +11,14 @@ import HelpText from 'components/HelpText';
 import SlackButton from './components/SlackButton';
 import CollectionsStore from 'stores/CollectionsStore';
 import IntegrationsStore from 'stores/IntegrationsStore';
+import AuthStore from 'stores/AuthStore';
 import Notice from 'shared/components/Notice';
 import getQueryVariable from 'shared/utils/getQueryVariable';
 
 type Props = {
   collections: CollectionsStore,
   integrations: IntegrationsStore,
+  auth: AuthStore,
 };
 
 @observer
@@ -25,17 +27,19 @@ class Slack extends React.Component<Props> {
 
   componentDidMount() {
     this.error = getQueryVariable('error');
+    this.props.collections.fetchPage({ limit: 100 });
     this.props.integrations.fetchPage();
   }
 
   get commandIntegration() {
-    return _.find(this.props.integrations.slackIntegrations, {
+    return find(this.props.integrations.slackIntegrations, {
       type: 'command',
     });
   }
 
   render() {
-    const { collections, integrations } = this.props;
+    const { collections, integrations, auth } = this.props;
+    const teamId = auth.team ? auth.team.id : '';
 
     return (
       <CenteredContent>
@@ -45,6 +49,12 @@ class Slack extends React.Component<Props> {
           <Notice>
             Whoops, you need to accept the permissions in Slack to connect
             Outline to your team. Try again?
+          </Notice>
+        )}
+        {this.error === 'unauthenticated' && (
+          <Notice>
+            Something went wrong while authenticating your request. Please try
+            logging in again?
           </Notice>
         )}
         <HelpText>
@@ -59,7 +69,7 @@ class Slack extends React.Component<Props> {
             <SlackButton
               scopes={['commands', 'links:read', 'links:write']}
               redirectUri={`${BASE_URL}/auth/slack.commands`}
-              state=""
+              state={teamId}
             />
           )}
         </p>
@@ -73,7 +83,7 @@ class Slack extends React.Component<Props> {
 
         <List>
           {collections.orderedData.map(collection => {
-            const integration = _.find(integrations.slackIntegrations, {
+            const integration = find(integrations.slackIntegrations, {
               collectionId: collection.id,
             });
 
@@ -129,4 +139,4 @@ const Code = styled.code`
   border-radius: 4px;
 `;
 
-export default inject('collections', 'integrations')(Slack);
+export default inject('collections', 'integrations', 'auth')(Slack);

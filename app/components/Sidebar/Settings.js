@@ -3,13 +3,16 @@ import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import {
   DocumentIcon,
+  EmailIcon,
   ProfileIcon,
-  SettingsIcon,
+  PadlockIcon,
   CodeIcon,
   UserIcon,
   LinkIcon,
   TeamIcon,
 } from 'outline-icons';
+import ZapierIcon from './icons/Zapier';
+import SlackIcon from './icons/Slack';
 
 import Flex from 'shared/components/Flex';
 import Sidebar, { Section } from './Sidebar';
@@ -32,7 +35,7 @@ class SettingsSidebar extends React.Component<Props> {
 
   render() {
     const { team, user } = this.props.auth;
-    if (!team || !user) return;
+    if (!team || !user) return null;
 
     return (
       <Sidebar>
@@ -50,6 +53,9 @@ class SettingsSidebar extends React.Component<Props> {
               <SidebarLink to="/settings" icon={<ProfileIcon />}>
                 Profile
               </SidebarLink>
+              <SidebarLink to="/settings/notifications" icon={<EmailIcon />}>
+                Notifications
+              </SidebarLink>
               <SidebarLink to="/settings/tokens" icon={<CodeIcon />}>
                 API Tokens
               </SidebarLink>
@@ -61,26 +67,44 @@ class SettingsSidebar extends React.Component<Props> {
                   Details
                 </SidebarLink>
               )}
-              <SidebarLink to="/settings/people" icon={<UserIcon />}>
+              {user.isAdmin && (
+                <SidebarLink to="/settings/security" icon={<PadlockIcon />}>
+                  Security
+                </SidebarLink>
+              )}
+              <SidebarLink
+                to="/settings/people"
+                icon={<UserIcon />}
+                exact={false}
+              >
                 People
               </SidebarLink>
               <SidebarLink to="/settings/shares" icon={<LinkIcon />}>
                 Share Links
               </SidebarLink>
               {user.isAdmin && (
-                <SidebarLink
-                  to="/settings/integrations/slack"
-                  icon={<SettingsIcon />}
-                >
-                  Integrations
-                </SidebarLink>
-              )}
-              {user.isAdmin && (
                 <SidebarLink to="/settings/export" icon={<DocumentIcon />}>
                   Export Data
                 </SidebarLink>
               )}
             </Section>
+            {user.isAdmin && (
+              <Section>
+                <Header>Integrations</Header>
+                <SidebarLink
+                  to="/settings/integrations/slack"
+                  icon={<SlackIcon />}
+                >
+                  Slack
+                </SidebarLink>
+                <SidebarLink
+                  to="/settings/integrations/zapier"
+                  icon={<ZapierIcon />}
+                >
+                  Zapier
+                </SidebarLink>
+              </Section>
+            )}
           </Scrollable>
         </Flex>
       </Sidebar>

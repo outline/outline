@@ -4,7 +4,7 @@ import Sequelize from 'sequelize';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentShare } from '../presenters';
-import { Document, User, Share } from '../models';
+import { Document, User, Share, Team } from '../models';
 import policy from '../policies';
 
 const Op = Sequelize.Op;
@@ -57,7 +57,9 @@ router.post('shares.create', auth(), async ctx => {
 
   const user = ctx.state.user;
   const document = await Document.findById(documentId);
+  const team = await Team.findById(user.teamId);
   authorize(user, 'share', document);
+  authorize(user, 'share', team);
 
   const [share] = await Share.findOrCreate({
     where: {

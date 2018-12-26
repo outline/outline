@@ -26,18 +26,18 @@ class Export extends React.Component<Props> {
     ev.preventDefault();
     this.isLoading = true;
 
-    const success = await this.props.collections.export();
-
-    if (success) {
+    try {
+      await this.props.collections.export();
       this.isExporting = true;
       this.props.ui.showToast('Export in progress…', 'success');
+    } finally {
+      this.isLoading = false;
     }
-    this.isLoading = false;
   };
 
   render() {
     const { auth } = this.props;
-    if (!auth.user) return;
+    if (!auth.user) return null;
 
     return (
       <CenteredContent>

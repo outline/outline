@@ -122,6 +122,15 @@ describe('#shares.create', async () => {
     expect(body.data.id).toBe(share.id);
   });
 
+  it('should not allow creating a share record if disabled', async () => {
+    const { user, document, team } = await seed();
+    await team.update({ sharing: false });
+    const res = await server.post('/api/shares.create', {
+      body: { token: user.getJwtToken(), documentId: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it('should require authentication', async () => {
     const { document } = await seed();
     const res = await server.post('/api/shares.create', {

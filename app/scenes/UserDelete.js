@@ -22,11 +22,8 @@ class UserDelete extends React.Component<Props> {
     this.isDeleting = true;
 
     try {
-      const success = await this.props.auth.deleteUser();
-
-      if (success) {
-        this.props.auth.logout();
-      }
+      await this.props.auth.deleteUser();
+      this.props.auth.logout();
     } finally {
       this.isDeleting = false;
     }

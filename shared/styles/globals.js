@@ -1,9 +1,9 @@
 // @flow
 import styledNormalize from 'styled-normalize';
-import { injectGlobal } from 'styled-components';
+import { createGlobalStyle } from 'styled-components';
 import base from './base';
 
-export default () => injectGlobal`
+export default createGlobalStyle`
   ${styledNormalize}
   ${base}
 `;

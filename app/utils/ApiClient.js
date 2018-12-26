@@ -1,5 +1,5 @@
 // @flow
-import _ from 'lodash';
+import { map } from 'lodash';
 import invariant from 'invariant';
 import stores from 'stores';
 
@@ -39,20 +39,31 @@ class ApiClient {
     const headers = new Headers({
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      'cache-control': 'no-cache',
+      pragma: 'no-cache',
     });
     if (stores.auth.authenticated) {
       invariant(stores.auth.token, 'JWT token not set properly');
       headers.set('Authorization', `Bearer ${stores.auth.token}`);
     }
 
-    // $FlowFixMe don't care much about this right now
-    const response = await fetch(this.baseUrl + (modifiedPath || path), {
-      method,
-      body,
-      headers,
-      redirect: 'follow',
-      credentials: 'include',
-    });
+    let response;
+    try {
+      response = await fetch(this.baseUrl + (modifiedPath || path), {
+        method,
+        body,
+        headers,
+        redirect: 'follow',
+        credentials: 'omit',
+        cache: 'no-cache',
+      });
+    } catch (err) {
+      if (window.navigator.onLine) {
+        throw new Error('A network error occurred, try again?');
+      } else {
+        throw new Error('No internet connection available');
+      }
+    }
 
     if (response.status >= 200 && response.status < 300) {
       return response.json();
@@ -68,6 +79,14 @@ class ApiClient {
     const error = {};
     error.statusCode = response.status;
     error.response = response;
+
+    try {
+      const data = await response.json();
+      error.message = data.message || '';
+    } catch (_err) {
+      // we're trying to parse an error so JSON may not be valid
+    }
+
     throw error;
   };
 
@@ -81,9 +100,10 @@ class ApiClient {
 
   // Helpers
   constructQueryString = (data: Object) => {
-    return _.map(data, (v, k) => {
-      return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
-    }).join('&');
+    return map(
+      data,
+      (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+    ).join('&');
   };
 }
 

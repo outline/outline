@@ -3,6 +3,7 @@ const colors = {
   almostBlack: '#181A1B',
   lightBlack: '#2F3336',
   almostWhite: '#E6E6E6',
+
   white: '#FFF',
   white10: 'rgba(255, 255, 255, 0.1)',
   black: '#000',
@@ -15,7 +16,7 @@ const colors = {
 
   danger: '#D0021B',
   warning: '#f08a24',
-  success: '#1AB6FF',
+  success: '#2f3336',
   info: '#a0d3e8',
 };
 
@@ -72,7 +73,7 @@ export const dark = {
   text: colors.almostWhite,
 
   sidebarBackground: colors.black,
-  sidebarText: colors.white,
+  sidebarText: colors.greyMid,
 
   toolbarBackground: colors.white,
   toolbarInput: colors.black10,

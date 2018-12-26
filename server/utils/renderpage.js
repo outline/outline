@@ -13,10 +13,23 @@ import theme from '../../shared/styles/theme';
 const sheet = new ServerStyleSheet();
 
 export default function renderpage(ctx: Object, children: React.Node) {
+  let sessions = {};
+  try {
+    sessions = JSON.parse(ctx.cookies.get('sessions') || '{}');
+  } catch (err) {
+    console.error(`Sessions cookie could not be parsed: ${err}`);
+  }
+
+  const loggedIn = !!(
+    ctx.cookies.get('accessToken') || Object.keys(sessions).length
+  );
+
   const html = ReactDOMServer.renderToString(
     <StyleSheetManager sheet={sheet.instance}>
       <ThemeProvider theme={theme}>
-        <Layout>{children}</Layout>
+        <Layout sessions={sessions} loggedIn={loggedIn}>
+          {children}
+        </Layout>
       </ThemeProvider>
     </StyleSheetManager>
   );
@@ -27,7 +40,7 @@ export default function renderpage(ctx: Object, children: React.Node) {
   // $FlowFixMe
   Object.keys(helmet).forEach(key => (head += helmet[key].toString()));
 
-  ctx.body = html
+  ctx.body = `<!DOCTYPE html>\n${html}`
     .replace('{{CSS}}', sheet.getStyleTags())
     .replace('{{HEAD}}', head);
 }

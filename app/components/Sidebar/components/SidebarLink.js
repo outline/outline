@@ -28,7 +28,7 @@ const StyledNavLink = styled(NavLink)`
   text-overflow: ellipsis;
   padding: 4px 0;
   margin-left: ${({ icon }) => (icon ? '-20px;' : '0')};
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.sidebarText};
   font-size: 15px;
   cursor: pointer;
 
@@ -36,8 +36,6 @@ const StyledNavLink = styled(NavLink)`
     color: ${props => props.theme.text};
   }
 `;
-
-const StyledDiv = StyledNavLink.withComponent('div');
 
 type Props = {
   to?: string | Object,
@@ -78,9 +76,9 @@ class SidebarLink extends React.Component<Props> {
   }
 
   @action
-  handleClick = (event: SyntheticEvent<*>) => {
-    event.preventDefault();
-    event.stopPropagation();
+  handleClick = (ev: SyntheticEvent<*>) => {
+    ev.preventDefault();
+    ev.stopPropagation();
     this.expanded = !this.expanded;
   };
 
@@ -103,26 +101,26 @@ class SidebarLink extends React.Component<Props> {
       hideExpandToggle,
       exact,
     } = this.props;
-    const Component = to ? StyledNavLink : StyledDiv;
     const showExpandIcon =
       expandedContent && !hideExpandToggle ? true : undefined;
 
     return (
       <Wrapper menuOpen={menuOpen} column>
-        <Component
+        <StyledNavLink
           icon={showExpandIcon}
           activeStyle={this.activeStyle}
           style={active ? this.activeStyle : undefined}
           onClick={onClick}
-          to={to}
           exact={exact !== false}
+          to={to}
+          as={to ? undefined : 'div'}
         >
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {showExpandIcon && (
             <StyledGoTo expanded={this.expanded} onClick={this.handleClick} />
           )}
           <Content onClick={this.handleExpand}>{children}</Content>
-        </Component>
+        </StyledNavLink>
         {/* Collection */ expand && hideExpandToggle && expandedContent}
         {/* Document */ this.expanded && !hideExpandToggle && expandedContent}
         {menu && <Action>{menu}</Action>}

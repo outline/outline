@@ -4,8 +4,9 @@ import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import breakpoint from 'styled-components-breakpoint';
-import Notice from '../../shared/components/Notice';
+import AuthErrors from './components/AuthErrors';
 import Hero from './components/Hero';
+import HeroText from './components/HeroText';
 import Centered from './components/Centered';
 import SigninButtons from './components/SigninButtons';
 import SlackLogo from '../../shared/components/SlackLogo';
@@ -36,24 +37,7 @@ function Home(props: Props) {
           <p>
             <SigninButtons {...props} />
           </p>
-          {props.notice === 'google-hd' && (
-            <Notice>
-              Sorry, Google sign in cannot be used with a personal email. Please
-              try signing in with your company Google account.
-            </Notice>
-          )}
-          {props.notice === 'hd-not-allowed' && (
-            <Notice>
-              Sorry, your Google apps domain is not allowed. Please try again
-              with an allowed company domain.
-            </Notice>
-          )}
-          {props.notice === 'auth-error' && (
-            <Notice>
-              Authentication failed - we were unable to sign you in at this
-              time. Please try again.
-            </Notice>
-          )}
+          <AuthErrors notice={props.notice} />
         </Hero>
         <Mask>
           <Features>
@@ -80,7 +64,7 @@ function Home(props: Props) {
                 </Grid.Unit>
                 <Feature size={{ tablet: 2 / 3 }}>
                   <Screenshot
-                    srcset="screenshot.png, screenshot@2x.png 2x"
+                    srcSet="screenshot.png, screenshot@2x.png 2x"
                     src="/screenshot@2x.png"
                     alt="Outline Screenshot"
                   />
@@ -182,7 +166,7 @@ const Mask = styled.div`
 `;
 
 const Features = styled.div`
-  background: hsl(180, 58%, 85%);
+  background: #00adff;
   padding: 0 2em;
   width: 100%;
 `;
@@ -216,7 +200,7 @@ const Feature = styled(Grid.Unit)`
 `;
 
 const Footer = styled.div`
-  background: hsl(127, 58%, 85%);
+  background: #aa34f0;
   text-align: left;
   width: 100%;
   padding: 4em 2em;
@@ -226,19 +210,14 @@ const Footer = styled.div`
     margin-top: 0;
   }
 
+  p {
+    margin-bottom: 0;
+  }
+
   ${breakpoint('tablet')`
     margin: 2em 0;
     padding: 6em 4em;
   `};
-`;
-
-const HeroText = styled.p`
-  font-size: 22px;
-  color: #666;
-  font-weight: 500;
-  text-align: left;
-  max-width: 600px;
-  margin-bottom: 2em;
 `;
 
 export default Home;

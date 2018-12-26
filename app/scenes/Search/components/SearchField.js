@@ -10,18 +10,14 @@ type Props = {
 };
 
 class SearchField extends React.Component<Props> {
-  input: HTMLInputElement;
+  input: ?HTMLInputElement;
 
   handleChange = (ev: SyntheticEvent<*>) => {
     this.props.onChange(ev.currentTarget.value ? ev.currentTarget.value : '');
   };
 
   focusInput = (ev: SyntheticEvent<*>) => {
-    this.input.focus();
-  };
-
-  setRef = (ref: HTMLInputElement) => {
-    this.input = ref;
+    if (this.input) this.input.focus();
   };
 
   render() {
@@ -35,7 +31,7 @@ class SearchField extends React.Component<Props> {
         />
         <StyledInput
           {...this.props}
-          innerRef={this.setRef}
+          ref={ref => (this.input = ref)}
           onChange={this.handleChange}
           spellCheck="false"
           placeholder="search…"

@@ -11,7 +11,7 @@ export default function Privacy() {
       <Helmet>
         <title>Privacy Policy</title>
       </Helmet>
-      <Header>
+      <Header background="#F4F7FA">
         <h1>Privacy Policy</h1>
         <p>How we collect and use your information</p>
       </Header>

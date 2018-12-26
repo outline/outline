@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 import Toast from './components/Toast';
 import UiStore from '../../stores/UiStore';
@@ -41,4 +41,4 @@ const List = styled.ol`
   z-index: 1000;
 `;
 
-export default Toasts;
+export default inject('ui')(Toasts);

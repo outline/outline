@@ -6,7 +6,7 @@ import subMinutes from 'date-fns/sub_minutes';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
-import { Star, ApiKey } from '.';
+import { Star, NotificationSetting, ApiKey } from '.';
 
 const User = sequelize.define(
   'user',
@@ -39,17 +39,16 @@ const User = sequelize.define(
         return !!this.suspendedAt;
       },
     },
-    indexes: [
-      {
-        fields: ['email'],
-      },
-    ],
   }
 );
 
 // Class methods
 User.associate = models => {
-  User.hasMany(models.ApiKey, { as: 'apiKeys' });
+  User.hasMany(models.ApiKey, { as: 'apiKeys', onDelete: 'cascade' });
+  User.hasMany(models.NotificationSetting, {
+    as: 'notificationSettings',
+    onDelete: 'cascade',
+  });
   User.hasMany(models.Document, { as: 'documents' });
   User.hasMany(models.View, { as: 'views' });
 };
@@ -93,9 +92,19 @@ const setRandomJwtSecret = model => {
   model.jwtSecret = crypto.randomBytes(64).toString('hex');
 };
 
-const removeIdentifyingInfo = async model => {
-  await ApiKey.destroy({ where: { userId: model.id } });
-  await Star.destroy({ where: { userId: model.id } });
+const removeIdentifyingInfo = async (model, options) => {
+  await NotificationSetting.destroy({
+    where: { userId: model.id },
+    transaction: options.transaction,
+  });
+  await ApiKey.destroy({
+    where: { userId: model.id },
+    transaction: options.transaction,
+  });
+  await Star.destroy({
+    where: { userId: model.id },
+    transaction: options.transaction,
+  });
 
   model.email = '';
   model.name = 'Unknown';
@@ -108,7 +117,7 @@ const removeIdentifyingInfo = async model => {
 
   // this shouldn't be needed once this issue is resolved:
   // https://github.com/sequelize/sequelize/issues/9318
-  await model.save({ hooks: false });
+  await model.save({ hooks: false, transaction: options.transaction });
 };
 
 const checkLastAdmin = async model => {
@@ -131,5 +140,26 @@ User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(user => sendEmail('welcome', user.email));
+
+// By default when a user signs up we subscribe them to email notifications
+// when documents they created are edited by other team members and onboarding
+User.afterCreate(async (user, options) => {
+  await NotificationSetting.findOrCreate({
+    where: {
+      userId: user.id,
+      teamId: user.teamId,
+      event: 'documents.update',
+    },
+    transaction: options.transaction,
+  });
+  await NotificationSetting.findOrCreate({
+    where: {
+      userId: user.id,
+      teamId: user.teamId,
+      event: 'emails.onboarding',
+    },
+    transaction: options.transaction,
+  });
+});
 
 export default User;

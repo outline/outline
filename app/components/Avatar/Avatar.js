@@ -23,11 +23,13 @@ class Avatar extends React.Component<Props> {
   };
 
   render() {
+    const { src, ...rest } = this.props;
+
     return (
       <CircleImg
-        size={this.props.size}
         onError={this.handleError}
-        src={this.error ? placeholder : this.props.src}
+        src={this.error ? placeholder : src}
+        {...rest}
       />
     );
   }

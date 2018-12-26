@@ -1,41 +1,95 @@
 // @flow
 import * as React from 'react';
+import { sortBy } from 'lodash';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import Centered from './Centered';
+import OutlineLogo from '../../../shared/components/OutlineLogo';
+import TeamLogo from '../../../shared/components/TeamLogo';
+import { fadeAndScaleIn } from '../../../shared/styles/animations';
 import {
   developers,
   changelog,
+  features,
   about,
+  integrations,
   privacy,
   githubUrl,
   twitterUrl,
   spectrumUrl,
 } from '../../../shared/utils/routeHelpers';
 
-function TopNavigation() {
+type Sessions = {
+  [subdomain: string]: {
+    name: string,
+    logoUrl: string,
+    expires: string,
+    url: string,
+  },
+};
+
+type Props = {
+  sessions: ?Sessions,
+  loggedIn: boolean,
+};
+
+function TopNavigation({ sessions, loggedIn }: Props) {
+  const orderedSessions = sortBy(sessions, 'name');
+
   return (
     <Nav>
-      <Brand href="/">Outline</Brand>
+      <Brand href={process.env.URL}>
+        <OutlineLogo size={18} fill="#000" />&nbsp;Outline
+      </Brand>
       <Menu>
         <MenuItemDesktop>
-          <a href="/#features">Features</a>
+          <a href={features()}>Features</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
-          <a href={about()}>About</a>
+          <a href={integrations()}>Integrations</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
           <a href={changelog()}>Changelog</a>
         </MenuItemDesktop>
-        <MenuItemDesktop>
-          <a href={twitterUrl()}>Twitter</a>
-        </MenuItemDesktop>
         <MenuItem>
           <a href={developers()}>API</a>
         </MenuItem>
-        <MenuItem>
-          <a href="/#signin">Sign In</a>
-        </MenuItem>
+        {loggedIn ? (
+          <React.Fragment>
+            {process.env.SUBDOMAINS_ENABLED === 'true' &&
+            orderedSessions.length ? (
+              <MenuItem highlighted>
+                <a>Your Teams</a>
+                <ol>
+                  {orderedSessions.map(session => {
+                    const url = decodeURIComponent(session.url);
+
+                    return (
+                      <MenuItem key={url}>
+                        <a href={`${url}/dashboard`}>
+                          <TeamLogo
+                            src={session.logoUrl}
+                            width={20}
+                            height={20}
+                          />
+                          {decodeURIComponent(session.name)}
+                        </a>
+                      </MenuItem>
+                    );
+                  })}
+                </ol>
+              </MenuItem>
+            ) : (
+              <MenuItem highlighted>
+                <a href="/dashboard">Dashboard</a>
+              </MenuItem>
+            )}
+          </React.Fragment>
+        ) : (
+          <MenuItem>
+            <a href="/#signin">Sign In</a>
+          </MenuItem>
+        )}
       </Menu>
     </Nav>
   );
@@ -56,6 +110,9 @@ function BottomNavigation() {
       <div>
         <a href={privacy()}>Privacy</a>
       </div>
+      <div>
+        <a href={about()}>About</a>
+      </div>
     </BottomNav>
   );
 }
@@ -65,22 +122,17 @@ const MenuLinkStyle = props => `
   font-weight: 500;
 
   a {
-    color: ${props.theme.slate};
+    color: rgba(0, 0, 0, 0.6);
   }
 
   a:hover {
-    color: ${props.theme.slateDark};
+    color: rgba(0, 0, 0, 0.4);
     text-decoration: underline;
   }
 `;
 
-const Menu = styled.ul`
-  margin: 0;
-  padding: 0;
-  list-style: none;
-`;
-
 const MenuItem = styled.li`
+  position: relative;
   display: inline-block;
   margin: 0 0 0 40px;
 
@@ -89,6 +141,34 @@ const MenuItem = styled.li`
   }
 
   ${MenuLinkStyle};
+
+  ${props =>
+    props.highlighted &&
+    `
+  position: relative;
+  border: 2px solid rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-top: -6px;
+  margin-bottom: -6px;
+
+  &:hover {
+    border: 2px solid rgba(0, 0, 0, 0.4);
+
+    > a {
+      color: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  > a:hover {
+    text-decoration: none;
+  }
+  `};
+
+  &:hover ol {
+    animation: ${fadeAndScaleIn} 200ms ease;
+    display: block;
+  }
 `;
 
 const MenuItemDesktop = styled(MenuItem)`
@@ -97,6 +177,42 @@ const MenuItemDesktop = styled(MenuItem)`
   ${breakpoint('tablet')`
     display: inline-block;
   `};
+`;
+
+const Menu = styled.ul`
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  ol {
+    display: none;
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    right: 0;
+    top: 34px;
+
+    background: #fff;
+    border-radius: 4px;
+    min-width: 160px;
+    padding: 0 0.5em;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08),
+      0 2px 4px rgba(0, 0, 0, 0.08);
+
+    ${MenuItem} {
+      padding: 0.5em 0;
+      margin: 0;
+    }
+
+    ${MenuItem} a {
+      display: flex;
+      align-items: center;
+    }
+
+    ${TeamLogo} {
+      margin-right: 0.5em;
+    }
+  }
 `;
 
 const Nav = styled(Centered)`
@@ -134,6 +250,8 @@ const BottomNav = styled.nav`
 `;
 
 const Brand = styled.a`
+  display: flex;
+  align-items: center;
   font-weight: 600;
   font-size: 20px;
   text-decoration: none;

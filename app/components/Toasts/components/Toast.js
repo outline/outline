@@ -49,7 +49,7 @@ const Container = styled.li`
   align-items: center;
   animation: ${fadeAndScaleIn} 100ms ease;
   margin: 8px 0;
-  padding: 8px;
+  padding: 10px 12px;
   color: ${props => props.theme.white};
   background: ${props => props.theme[props.type]};
   font-size: 15px;

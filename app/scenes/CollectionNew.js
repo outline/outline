@@ -5,47 +5,57 @@ import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
 import Input from 'components/Input';
+import InputRich from 'components/InputRich';
 import ColorPicker from 'components/ColorPicker';
 import HelpText from 'components/HelpText';
 
 import Collection from 'models/Collection';
 import CollectionsStore from 'stores/CollectionsStore';
+import UiStore from 'stores/UiStore';
 
 type Props = {
   history: Object,
+  ui: UiStore,
   collections: CollectionsStore,
   onSubmit: () => void,
 };
 
 @observer
 class CollectionNew extends React.Component<Props> {
-  @observable collection: Collection;
   @observable name: string = '';
+  @observable description: string = '';
   @observable color: string = '';
   @observable isSaving: boolean;
-
-  constructor(props: Props) {
-    super(props);
-    this.collection = new Collection();
-  }
 
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isSaving = true;
-    this.collection.updateData({ name: this.name, color: this.color });
-    const success = await this.collection.save();
+    const collection = new Collection(
+      {
+        name: this.name,
+        description: this.description,
+        color: this.color,
+      },
+      this.props.collections
+    );
 
-    if (success) {
-      this.props.collections.add(this.collection);
+    try {
+      await collection.save();
       this.props.onSubmit();
-      this.props.history.push(this.collection.url);
+      this.props.history.push(collection.url);
+    } catch (err) {
+      this.props.ui.showToast(err.message);
+    } finally {
+      this.isSaving = false;
     }
-
-    this.isSaving = false;
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
     this.name = ev.target.value;
+  };
+
+  handleDescriptionChange = getValue => {
+    this.description = getValue();
   };
 
   handleColor = (color: string) => {
@@ -68,6 +78,14 @@ class CollectionNew extends React.Component<Props> {
           required
           autoFocus
         />
+        <InputRich
+          label="Description"
+          onChange={this.handleDescriptionChange}
+          defaultValue={this.description || ''}
+          placeholder="More details about this collection…"
+          minHeight={68}
+          maxHeight={200}
+        />
         <ColorPicker onSelect={this.handleColor} />
         <Button type="submit" disabled={this.isSaving || !this.name}>
           {this.isSaving ? 'Creating…' : 'Create'}
@@ -77,4 +95,4 @@ class CollectionNew extends React.Component<Props> {
   }
 }
 
-export default inject('collections')(withRouter(CollectionNew));
+export default inject('collections', 'ui')(withRouter(CollectionNew));
