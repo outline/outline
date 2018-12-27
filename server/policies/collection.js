@@ -1,5 +1,6 @@
 // @flow
 import policy from './policy';
+import { map } from 'lodash';
 import { Collection, User } from '../models';
 import { AdminRequiredError } from '../errors';
 
@@ -13,12 +14,14 @@ allow(
   Collection,
   (user, collection) => {
     if (!collection || user.teamId !== collection.teamId) return false;
+    if (user.isAdmin) return true;
+
     if (
-      collection.users &&
-      collection.users.length &&
-      !collection.users.includes(user)
+      collection.private &&
+      !map(collection.users, u => u.id).includes(user.id)
     )
       return false;
+
     return true;
   }
 );
@@ -27,12 +30,9 @@ allow(User, 'delete', Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
   if (user.isAdmin) return true;
 
-  if (
-    collection.users &&
-    collection.users.length &&
-    !collection.users.includes(user)
-  )
+  if (collection.private && !map(collection.users, u => u.id).includes(user.id))
     return false;
+
   if (user.id === collection.creatorId) return true;
 
   throw new AdminRequiredError();

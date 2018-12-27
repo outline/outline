@@ -29,6 +29,7 @@ async function present(ctx: Object, collection: Collection) {
     description: collection.description,
     color: collection.color || '#4E5C6E',
     type: collection.type,
+    private: collection.private,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     recentDocuments: undefined,

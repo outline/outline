@@ -5,7 +5,7 @@ import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection, presentUser } from '../presenters';
 import { Collection, CollectionUser, Team, User } from '../models';
-import { ValidationError } from '../errors';
+import { ValidationError, InvalidRequestError } from '../errors';
 import { exportCollection, exportCollections } from '../logistics';
 import policy from '../policies';
 
@@ -14,6 +14,8 @@ const router = new Router();
 
 router.post('collections.create', auth(), async ctx => {
   const { name, color, description, type } = ctx.body;
+  const isPrivate = ctx.body.private;
+
   ctx.assertPresent(name, 'name is required');
   if (color)
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
@@ -28,6 +30,7 @@ router.post('collections.create', auth(), async ctx => {
     type: type || 'atlas',
     teamId: user.teamId,
     creatorId: user.id,
+    private: isPrivate,
   });
 
   ctx.body = {
@@ -37,7 +40,7 @@ router.post('collections.create', auth(), async ctx => {
 
 router.post('collections.info', auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertUuid(id, 'id is required');
 
   const collection = await Collection.scope('withRecentDocuments').findById(id);
   authorize(ctx.state.user, 'read', collection);
@@ -49,11 +52,15 @@ router.post('collections.info', auth(), async ctx => {
 
 router.post('collections.add_user', auth(), async ctx => {
   const { id, userId, permission = 'read_write' } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
-  ctx.assertPresent(userId, 'userId is required');
+  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(userId, 'userId is required');
 
   const collection = await Collection.findById(id);
   authorize(ctx.state.user, 'update', collection);
+
+  if (!collection.private) {
+    throw new InvalidRequestError('Collection must be private to add users');
+  }
 
   const user = await User.findById(userId);
   authorize(ctx.state.user, 'read', user);
@@ -72,11 +79,15 @@ router.post('collections.add_user', auth(), async ctx => {
 
 router.post('collections.remove_user', auth(), async ctx => {
   const { id, userId } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
-  ctx.assertPresent(userId, 'userId is required');
+  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(userId, 'userId is required');
 
   const collection = await Collection.findById(id);
   authorize(ctx.state.user, 'update', collection);
+
+  if (!collection.private) {
+    throw new InvalidRequestError('Collection must be private to remove users');
+  }
 
   const user = await User.findById(userId);
   authorize(ctx.state.user, 'read', user);
@@ -90,7 +101,7 @@ router.post('collections.remove_user', auth(), async ctx => {
 
 router.post('collections.users', auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertUuid(id, 'id is required');
 
   const collection = await Collection.findById(id);
   authorize(ctx.state.user, 'read', collection);
@@ -108,7 +119,7 @@ router.post('collections.users', auth(), async ctx => {
 
 router.post('collections.export', auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
   const collection = await Collection.findById(id);
@@ -137,16 +148,29 @@ router.post('collections.exportAll', auth(), async ctx => {
 
 router.post('collections.update', auth(), async ctx => {
   const { id, name, description, color } = ctx.body;
+  const isPrivate = ctx.body.private;
+
   ctx.assertPresent(name, 'name is required');
   if (color)
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
 
+  const user = ctx.state.user;
   const collection = await Collection.findById(id);
-  authorize(ctx.state.user, 'update', collection);
+  authorize(user, 'update', collection);
+
+  if (isPrivate && !collection.private) {
+    await CollectionUser.create({
+      collectionId: collection.id,
+      permission: 'read_write',
+      userId: user.id,
+      createdById: user.id,
+    });
+  }
 
   collection.name = name;
   collection.description = description;
   collection.color = color;
+  collection.private = isPrivate;
   await collection.save();
 
   ctx.body = {
@@ -182,7 +206,7 @@ router.post('collections.list', auth(), pagination(), async ctx => {
 
 router.post('collections.delete', auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertUuid(id, 'id is required');
 
   const collection = await Collection.findById(id);
   authorize(ctx.state.user, 'delete', collection);

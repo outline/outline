@@ -29,9 +29,13 @@ describe('#collections.list', async () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(collection.id);
   });
+
+  it('should not return private collections');
 });
 
 describe('#collections.export', async () => {
+  it('should require user in collection');
+
   it('should require authentication', async () => {
     const res = await server.post('/api/collections.export');
     const body = await res.json();
@@ -79,7 +83,12 @@ describe('#collections.exportAll', async () => {
 
 describe('#collections.add_user', async () => {
   it('should add user to collection', async () => {
-    const { user, collection } = await seed();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      private: true,
+    });
     const anotherUser = await buildUser({ teamId: user.teamId });
     const res = await server.post('/api/collections.add_user', {
       body: {
@@ -91,11 +100,15 @@ describe('#collections.add_user', async () => {
 
     const users = await collection.getUsers();
     expect(res.status).toEqual(200);
-    expect(users.length).toEqual(1);
+    expect(users.length).toEqual(2);
   });
 
   it('should require user in team', async () => {
-    const { user, collection } = await seed();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      private: true,
+    });
     const anotherUser = await buildUser();
     const res = await server.post('/api/collections.add_user', {
       body: {
@@ -134,7 +147,12 @@ describe('#collections.add_user', async () => {
 
 describe('#collections.remove_user', async () => {
   it('should remove user from collection', async () => {
-    const { user, collection } = await seed();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      private: true,
+    });
     const anotherUser = await buildUser({ teamId: user.teamId });
 
     await server.post('/api/collections.add_user', {
@@ -155,11 +173,15 @@ describe('#collections.remove_user', async () => {
 
     const users = await collection.getUsers();
     expect(res.status).toEqual(200);
-    expect(users.length).toEqual(0);
+    expect(users.length).toEqual(1);
   });
 
   it('should require user in team', async () => {
-    const { user, collection } = await seed();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      private: true,
+    });
     const anotherUser = await buildUser();
     const res = await server.post('/api/collections.remove_user', {
       body: {
@@ -196,6 +218,29 @@ describe('#collections.remove_user', async () => {
   });
 });
 
+describe('#collections.users', async () => {
+  it('should require user in collection');
+
+  it('should return users in collection');
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/collections.users');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { collection } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/collections.users', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe('#collections.info', async () => {
   it('should return collection', async () => {
     const { user, collection } = await seed();
@@ -207,6 +252,8 @@ describe('#collections.info', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(collection.id);
   });
+
+  it('should require user in collection');
 
   it('should require authentication', async () => {
     const res = await server.post('/api/collections.info');

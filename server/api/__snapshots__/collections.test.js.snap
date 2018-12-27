@@ -78,3 +78,12 @@ Object {
   "ok": false,
 }
 `;
+
+exports[`#collections.users should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;

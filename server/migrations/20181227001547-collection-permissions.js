@@ -35,12 +35,18 @@ module.exports = {
         allowNull: false,
       }
     });
+    await queryInterface.addColumn('collections', 'private', {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    });
 
     await queryInterface.addIndex('collection_users', ['collectionId', 'userId']);
   },
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('collection_users');
+    await queryInterface.removeColumn('collections', 'private');
 
     await queryInterface.removeIndex('collection_users', ['collectionId', 'userId']);
   },

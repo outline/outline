@@ -6,6 +6,7 @@ import { DataTypes, sequelize } from '../sequelize';
 import { asyncLock } from '../redis';
 import events from '../events';
 import Document from './Document';
+import CollectionUser from './CollectionUser';
 import Event from './Event';
 import { welcomeMessage } from '../utils/onboarding';
 
@@ -26,6 +27,7 @@ const Collection = sequelize.define(
     name: DataTypes.STRING,
     description: DataTypes.STRING,
     color: DataTypes.STRING,
+    private: DataTypes.BOOLEAN,
     type: {
       type: DataTypes.STRING,
       validate: { isIn: allowedCollectionTypes },
@@ -142,6 +144,22 @@ Collection.addHook('afterDestroy', model =>
 Collection.addHook('afterUpdate', model =>
   events.add({ name: 'collections.update', model })
 );
+
+Collection.addHook('afterCreate', (model, options) => {
+  if (model.private) {
+    return CollectionUser.create(
+      {
+        collectionId: model.id,
+        userId: model.creatorId,
+        permission: 'read_write',
+        createdById: model.creatorId,
+      },
+      {
+        transaction: options.transaction,
+      }
+    );
+  }
+});
 
 // Instance methods
 
