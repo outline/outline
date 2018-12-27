@@ -1,5 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`#shares.create should allow creating a share record for document 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#shares.create should require authentication 1`] = `
 Object {
   "error": "authentication_required",

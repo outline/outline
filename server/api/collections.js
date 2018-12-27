@@ -3,8 +3,8 @@ import Router from 'koa-router';
 
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
-import { presentCollection } from '../presenters';
-import { Collection, Team } from '../models';
+import { presentCollection, presentUser } from '../presenters';
+import { Collection, CollectionUser, Team, User } from '../models';
 import { ValidationError } from '../errors';
 import { exportCollection, exportCollections } from '../logistics';
 import policy from '../policies';
@@ -44,6 +44,65 @@ router.post('collections.info', auth(), async ctx => {
 
   ctx.body = {
     data: await presentCollection(ctx, collection),
+  };
+});
+
+router.post('collections.add_user', auth(), async ctx => {
+  const { id, userId, permission = 'read_write' } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(userId, 'userId is required');
+
+  const collection = await Collection.findById(id);
+  authorize(ctx.state.user, 'update', collection);
+
+  const user = await User.findById(userId);
+  authorize(ctx.state.user, 'read', user);
+
+  await CollectionUser.create({
+    collectionId: id,
+    userId,
+    permission,
+    createdById: ctx.state.user.id,
+  });
+
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.post('collections.remove_user', auth(), async ctx => {
+  const { id, userId } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(userId, 'userId is required');
+
+  const collection = await Collection.findById(id);
+  authorize(ctx.state.user, 'update', collection);
+
+  const user = await User.findById(userId);
+  authorize(ctx.state.user, 'read', user);
+
+  await collection.removeUser(user);
+
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.post('collections.users', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const collection = await Collection.findById(id);
+  authorize(ctx.state.user, 'read', collection);
+
+  const users = await collection.getUsers();
+
+  const data = await Promise.all(
+    users.map(async user => await presentUser(ctx, user))
+  );
+
+  ctx.body = {
+    data,
   };
 });
 
@@ -97,6 +156,9 @@ router.post('collections.update', auth(), async ctx => {
 
 router.post('collections.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
+
+  // TODO: filter by permissions
+
   const collections = await Collection.findAll({
     where: {
       teamId: user.teamId,

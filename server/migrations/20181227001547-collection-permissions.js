@@ -1,11 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('collection_users', {
-      id: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        primaryKey: true,
-      },
       collectionId: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -45,6 +40,8 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('collection_users');
+
     await queryInterface.removeIndex('collection_users', ['collectionId', 'userId']);
   },
 };

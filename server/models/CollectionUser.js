@@ -4,11 +4,6 @@ import { DataTypes, sequelize } from '../sequelize';
 const CollectionUser = sequelize.define(
   'collection_user',
   {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
     permission: {
       type: DataTypes.STRING,
       validate: {
@@ -28,11 +23,11 @@ CollectionUser.associate = models => {
   });
   CollectionUser.belongsTo(models.User, {
     as: 'user',
-    foreignKey: 'createdById',
+    foreignKey: 'userId',
   });
   CollectionUser.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
+    as: 'createdBy',
+    foreignKey: 'createdById',
   });
 };
 

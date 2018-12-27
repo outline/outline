@@ -11,12 +11,29 @@ allow(
   User,
   ['read', 'publish', 'update', 'export'],
   Collection,
-  (user, collection) => collection && user.teamId === collection.teamId
+  (user, collection) => {
+    if (!collection || user.teamId !== collection.teamId) return false;
+    if (
+      collection.users &&
+      collection.users.length &&
+      !collection.users.includes(user)
+    )
+      return false;
+    return true;
+  }
 );
 
 allow(User, 'delete', Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) return false;
-  if (user.id === collection.creatorId) return true;
   if (user.isAdmin) return true;
+
+  if (
+    collection.users &&
+    collection.users.length &&
+    !collection.users.includes(user)
+  )
+    return false;
+  if (user.id === collection.creatorId) return true;
+
   throw new AdminRequiredError();
 });

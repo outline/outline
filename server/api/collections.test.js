@@ -2,7 +2,7 @@
 import TestServer from 'fetch-test-server';
 import app from '..';
 import { flushdb, seed } from '../test/support';
-import { buildUser } from '../test/factories';
+import { buildUser, buildCollection } from '../test/factories';
 import { Collection } from '../models';
 const server = new TestServer(app.callback());
 
@@ -74,6 +74,125 @@ describe('#collections.exportAll', async () => {
     });
 
     expect(res.status).toEqual(200);
+  });
+});
+
+describe('#collections.add_user', async () => {
+  it('should add user to collection', async () => {
+    const { user, collection } = await seed();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+    const res = await server.post('/api/collections.add_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: anotherUser.id,
+      },
+    });
+
+    const users = await collection.getUsers();
+    expect(res.status).toEqual(200);
+    expect(users.length).toEqual(1);
+  });
+
+  it('should require user in team', async () => {
+    const { user, collection } = await seed();
+    const anotherUser = await buildUser();
+    const res = await server.post('/api/collections.add_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: anotherUser.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/collections.add_user');
+
+    expect(res.status).toEqual(401);
+  });
+
+  it('should require authorization', async () => {
+    const { collection } = await seed();
+    const user = await buildUser();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+
+    const res = await server.post('/api/collections.add_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: anotherUser.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe('#collections.remove_user', async () => {
+  it('should remove user from collection', async () => {
+    const { user, collection } = await seed();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+
+    await server.post('/api/collections.add_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: anotherUser.id,
+      },
+    });
+
+    const res = await server.post('/api/collections.remove_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: anotherUser.id,
+      },
+    });
+
+    const users = await collection.getUsers();
+    expect(res.status).toEqual(200);
+    expect(users.length).toEqual(0);
+  });
+
+  it('should require user in team', async () => {
+    const { user, collection } = await seed();
+    const anotherUser = await buildUser();
+    const res = await server.post('/api/collections.remove_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: anotherUser.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/collections.remove_user');
+
+    expect(res.status).toEqual(401);
+  });
+
+  it('should require authorization', async () => {
+    const { collection } = await seed();
+    const user = await buildUser();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+
+    const res = await server.post('/api/collections.remove_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: anotherUser.id,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 

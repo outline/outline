@@ -85,6 +85,11 @@ Collection.associate = models => {
     foreignKey: 'collectionId',
     onDelete: 'cascade',
   });
+  Collection.belongsToMany(models.User, {
+    as: 'users',
+    through: models.CollectionUser,
+    foreignKey: 'collectionId',
+  });
   Collection.belongsTo(models.User, {
     as: 'user',
     foreignKey: 'creatorId',
@@ -92,6 +97,20 @@ Collection.associate = models => {
   Collection.belongsTo(models.Team, {
     as: 'team',
   });
+  Collection.addScope(
+    'defaultScope',
+    {
+      include: [
+        {
+          model: models.User,
+          as: 'users',
+          through: 'collection_users',
+          paranoid: false,
+        },
+      ],
+    },
+    { override: true }
+  );
   Collection.addScope('withRecentDocuments', {
     include: [
       {
@@ -111,8 +130,6 @@ Collection.addHook('afterDestroy', async model => {
     },
   });
 });
-
-// Hooks
 
 Collection.addHook('afterCreate', model =>
   events.add({ name: 'collections.create', model })

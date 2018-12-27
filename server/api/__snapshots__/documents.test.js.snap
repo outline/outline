@@ -17,6 +17,15 @@ Object {
 }
 `;
 
+exports[`#documents.drafts should return unpublished documents 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#documents.list should require authentication 1`] = `
 Object {
   "error": "authentication_required",
