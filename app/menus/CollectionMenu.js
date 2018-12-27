@@ -1,8 +1,11 @@
 // @flow
 import * as React from 'react';
+import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
 import { MoreIcon } from 'outline-icons';
+import Modal from 'components/Modal';
+import CollectionPermissions from 'scenes/CollectionPermissions';
 
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import importFile from 'utils/importFile';
@@ -24,6 +27,7 @@ type Props = {
 @observer
 class CollectionMenu extends React.Component<Props> {
   file: ?HTMLInputElement;
+  @observable permissionsModalOpen: boolean = false;
 
   onNewDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
@@ -71,17 +75,36 @@ class CollectionMenu extends React.Component<Props> {
     this.props.ui.setActiveModal('collection-export', { collection });
   };
 
+  onPermissions = (ev: SyntheticEvent<*>) => {
+    ev.preventDefault();
+    this.permissionsModalOpen = true;
+  };
+
+  handlePermissionsModalClose = () => {
+    this.permissionsModalOpen = false;
+  };
+
   render() {
     const { collection, label, onOpen, onClose } = this.props;
 
     return (
-      <span>
+      <React.Fragment>
         <HiddenInput
           type="file"
           ref={ref => (this.file = ref)}
           onChange={this.onFilePicked}
           accept="text/markdown, text/plain"
         />
+        <Modal
+          title="Collection permissions"
+          onRequestClose={this.handlePermissionsModalClose}
+          isOpen={this.permissionsModalOpen}
+        >
+          <CollectionPermissions
+            collection={collection}
+            onSubmit={this.handlePermissionsModalClose}
+          />
+        </Modal>
         <DropdownMenu
           label={label || <MoreIcon />}
           onOpen={onOpen}
@@ -97,6 +120,9 @@ class CollectionMenu extends React.Component<Props> {
               </DropdownMenuItem>
               <hr />
               <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
+              <DropdownMenuItem onClick={this.onPermissions}>
+                Permissions…
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={this.onExport}>
                 Export…
               </DropdownMenuItem>
@@ -104,7 +130,7 @@ class CollectionMenu extends React.Component<Props> {
           )}
           <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>
         </DropdownMenu>
-      </span>
+      </React.Fragment>
     );
   }
 }

@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
+import Flex from 'shared/components/Flex';
 
 type Props = {
   image?: React.Node,
   title: string,
-  subtitle: React.Node,
+  subtitle?: React.Node,
   actions?: React.Node,
 };
 
@@ -13,9 +14,9 @@ const ListItem = ({ image, title, subtitle, actions }: Props) => {
   return (
     <Wrapper>
       {image && <Image>{image}</Image>}
-      <Content>
+      <Content align={subtitle ? undefined : 'center'} column={!!subtitle}>
         <Heading>{title}</Heading>
-        <Subtitle>{subtitle}</Subtitle>
+        {subtitle && <Subtitle>{subtitle}</Subtitle>}
       </Content>
       {actions && <Actions>{actions}</Actions>}
     </Wrapper>
@@ -29,17 +30,20 @@ const Wrapper = styled.li`
   border-bottom: 1px solid ${props => props.theme.smokeDark};
 `;
 
-const Image = styled.div`
+const Image = styled(Flex)`
   padding: 0 8px 0 0;
   max-height: 40px;
+  align-items: center;
 `;
 
-const Heading = styled.h2`
+const Heading = styled.p`
   font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
   margin: 0;
 `;
 
-const Content = styled.div`
+const Content = styled(Flex)`
   flex-grow: 1;
 `;
 
