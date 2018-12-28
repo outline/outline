@@ -260,9 +260,13 @@ describe('#collections.remove_user', async () => {
 });
 
 describe('#collections.users', async () => {
-  it('should require user in collection');
-
-  it('should return users in collection');
+  it('should return members in private collection', async () => {
+    const { collection, user } = await seed();
+    const res = await server.post('/api/collections.users', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    expect(res.status).toEqual(200);
+  });
 
   it('should require authentication', async () => {
     const res = await server.post('/api/collections.users');
@@ -294,7 +298,16 @@ describe('#collections.info', async () => {
     expect(body.data.id).toEqual(collection.id);
   });
 
-  it('should require user in collection');
+  it('should require user member of collection', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post('/api/collections.info', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    expect(res.status).toEqual(403);
+  });
 
   it('should require authentication', async () => {
     const res = await server.post('/api/collections.info');

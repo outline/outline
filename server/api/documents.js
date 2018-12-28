@@ -189,9 +189,15 @@ router.post('documents.drafts', auth(), pagination(), async ctx => {
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
+  const collectionIds = await user.collectionIds();
+
   const documents = await Document.findAll({
-    // $FlowFixMe
-    where: { userId: user.id, publishedAt: { [Op.eq]: null } },
+    where: {
+      userId: user.id,
+      collectionId: collectionIds,
+      // $FlowFixMe
+      publishedAt: { [Op.eq]: null },
+    },
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
