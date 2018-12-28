@@ -1,6 +1,5 @@
 // @flow
 import Router from 'koa-router';
-
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection, presentUser } from '../presenters';
@@ -185,28 +184,16 @@ router.post('collections.update', auth(), async ctx => {
 router.post('collections.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
 
+  const collectionIds = await user.collectionIds();
   let collections = await Collection.findAll({
     where: {
       teamId: user.teamId,
+      id: collectionIds,
     },
     order: [['updatedAt', 'DESC']],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
-    include: [
-      {
-        model: User,
-        through: 'collection_users',
-        as: 'users',
-        where: { id: user.id },
-        required: false,
-      },
-    ],
   });
-
-  // Filter collections that are private and don't have an association
-  collections = collections.filter(
-    collection => !collection.private || collection.users.length
-  );
 
   const data = await Promise.all(
     collections.map(

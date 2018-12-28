@@ -220,7 +220,7 @@ Document.searchForUser = async (
       ts_headline('english', "text", plainto_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
     FROM documents
     WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
-      "teamId" = '${user.teamId}'::uuid AND
+      "collectionId" IN(:collectionIds) AND
       "deletedAt" IS NULL AND
       ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
     ORDER BY 
@@ -230,20 +230,24 @@ Document.searchForUser = async (
     OFFSET :offset;
   `;
 
+  const collectionIds = await user.collectionIds();
   const results = await sequelize.query(sql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
       query,
       limit,
       offset,
+      collectionIds,
     },
   });
 
-  // Second query to get associated document data
+  // Final query to get associated document data
   const documents = await Document.scope({
     method: ['withViews', user.id],
   }).findAll({
-    where: { id: map(results, 'id') },
+    where: {
+      id: map(results, 'id'),
+    },
     include: [
       { model: Collection, as: 'collection' },
       { model: User, as: 'createdBy', paranoid: false },
