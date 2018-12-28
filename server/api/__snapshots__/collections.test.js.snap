@@ -62,15 +62,6 @@ Object {
 }
 `;
 
-exports[`#collections.list should return collections 1`] = `
-Object {
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
 exports[`#collections.remove_user should require user in team 1`] = `
 Object {
   "error": "authorization_error",

@@ -14,7 +14,6 @@ type Props = {
 const UserListItem = ({ user, onAdd, showAdd }: Props) => {
   return (
     <ListItem
-      key={user.id}
       title={user.name}
       image={<Avatar src={user.avatarUrl} size={32} />}
       actions={

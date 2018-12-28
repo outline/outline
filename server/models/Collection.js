@@ -147,17 +147,17 @@ Collection.addHook('afterUpdate', model =>
 
 Collection.addHook('afterCreate', (model, options) => {
   if (model.private) {
-    return CollectionUser.create(
-      {
+    return CollectionUser.findOrCreate({
+      where: {
         collectionId: model.id,
         userId: model.creatorId,
+      },
+      defaults: {
         permission: 'read_write',
         createdById: model.creatorId,
       },
-      {
-        transaction: options.transaction,
-      }
-    );
+      transaction: options.transaction,
+    });
   }
 });
 

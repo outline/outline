@@ -14,7 +14,6 @@ type Props = {
 const MemberListItem = ({ user, onRemove, showRemove }: Props) => {
   return (
     <ListItem
-      key={user.id}
       title={user.name}
       image={<Avatar src={user.avatarUrl} size={32} />}
       actions={

@@ -30,11 +30,52 @@ describe('#collections.list', async () => {
     expect(body.data[0].id).toEqual(collection.id);
   });
 
-  it('should not return private collections');
+  it('should not return private collections not a member of', async () => {
+    const { user, collection } = await seed();
+    await buildCollection({
+      private: true,
+      teamId: user.teamId,
+    });
+    const res = await server.post('/api/collections.list', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(collection.id);
+  });
+
+  it('should return private collections member of', async () => {
+    const { user } = await seed();
+    await buildCollection({
+      private: true,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post('/api/collections.list', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+  });
 });
 
 describe('#collections.export', async () => {
-  it('should require user in collection');
+  it('should require user to be a member', async () => {
+    const { user } = await seed();
+    const collection = await buildCollection({
+      private: true,
+      teamId: user.teamId,
+    });
+    const res = await server.post('/api/collections.export', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
 
   it('should require authentication', async () => {
     const res = await server.post('/api/collections.export');

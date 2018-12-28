@@ -159,11 +159,15 @@ router.post('collections.update', auth(), async ctx => {
   authorize(user, 'update', collection);
 
   if (isPrivate && !collection.private) {
-    await CollectionUser.create({
-      collectionId: collection.id,
-      permission: 'read_write',
-      userId: user.id,
-      createdById: user.id,
+    await CollectionUser.findOrCreate({
+      where: {
+        collectionId: collection.id,
+        userId: user.id,
+      },
+      defaults: {
+        permission: 'read_write',
+        createdById: user.id,
+      },
     });
   }
 
@@ -181,16 +185,28 @@ router.post('collections.update', auth(), async ctx => {
 router.post('collections.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
 
-  // TODO: filter by permissions
-
-  const collections = await Collection.findAll({
+  let collections = await Collection.findAll({
     where: {
       teamId: user.teamId,
     },
     order: [['updatedAt', 'DESC']],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
+    include: [
+      {
+        model: User,
+        through: 'collection_users',
+        as: 'users',
+        where: { id: user.id },
+        required: false,
+      },
+    ],
   });
+
+  // Filter collections that are private and don't have an association
+  collections = collections.filter(
+    collection => !collection.private || collection.users.length
+  );
 
   const data = await Promise.all(
     collections.map(
