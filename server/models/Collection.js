@@ -113,16 +113,6 @@ Collection.associate = models => {
     },
     { override: true }
   );
-  Collection.addScope('withRecentDocuments', {
-    include: [
-      {
-        as: 'documents',
-        limit: 10,
-        model: models.Document,
-        order: [['updatedAt', 'DESC']],
-      },
-    ],
-  });
 };
 
 Collection.addHook('afterDestroy', async model => {

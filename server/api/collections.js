@@ -41,7 +41,7 @@ router.post('collections.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.scope('withRecentDocuments').findById(id);
+  const collection = await Collection.findById(id);
   authorize(ctx.state.user, 'read', collection);
 
   ctx.body = {

@@ -32,21 +32,12 @@ async function present(ctx: Object, collection: Collection) {
     private: collection.private,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
-    recentDocuments: undefined,
     documents: undefined,
   };
 
   if (collection.type === 'atlas') {
     // Force alphabetical sorting
     data.documents = sortDocuments(collection.documentStructure);
-  }
-
-  if (collection.documents) {
-    data.recentDocuments = await Promise.all(
-      collection.documents.map(
-        async document => await presentDocument(ctx, document)
-      )
-    );
   }
 
   return data;

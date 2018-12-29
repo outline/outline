@@ -15,9 +15,11 @@ import MemberListItem from './components/MemberListItem';
 import Collection from 'models/Collection';
 import UsersStore from 'stores/UsersStore';
 import AuthStore from 'stores/AuthStore';
+import UiStore from 'stores/UiStore';
 
 type Props = {
   users: UsersStore,
+  ui: UiStore,
   auth: AuthStore,
   collection: Collection,
 };
@@ -32,21 +34,35 @@ class CollectionPermissions extends React.Component<Props> {
     this.props.collection.fetchUsers();
   }
 
-  addUser = user => {
-    this.props.collection.addUser(user);
-  };
-
-  removeUser = user => {
-    this.props.collection.removeUser(user);
-  };
-
   handlePrivateChange = async (ev: SyntheticInputEvent<*>) => {
     const { collection } = this.props;
-    collection.private = !ev.target.checked;
-    await collection.save();
 
-    if (collection.private) {
-      await collection.fetchUsers();
+    try {
+      collection.private = !ev.target.checked;
+      await collection.save();
+
+      if (collection.private) {
+        await collection.fetchUsers();
+      }
+    } catch (err) {
+      collection.private = ev.target.checked;
+      this.props.ui.showToast('Collection privacy could not be changed');
+    }
+  };
+
+  handleAddUser = user => {
+    try {
+      this.props.collection.addUser(user);
+    } catch (err) {
+      this.props.ui.showToast('Could not add user');
+    }
+  };
+
+  handleRemoveUser = user => {
+    try {
+      this.props.collection.removeUser(user);
+    } catch (err) {
+      this.props.ui.showToast('Could not remove user');
     }
   };
 
@@ -92,21 +108,21 @@ class CollectionPermissions extends React.Component<Props> {
                     key={member.id}
                     user={member}
                     showRemove={user.id !== member.id}
-                    onRemove={() => this.removeUser(member)}
+                    onRemove={() => this.handleRemoveUser(member)}
                   />
                 ))}
               </List>
 
               {hasOtherUsers && (
                 <React.Fragment>
-                  <Subheading>Other Team Members</Subheading>
+                  <Subheading>Team Members</Subheading>
                   <Input onChange={this.handleFilter} placeholder="Filter…" />
                   <List>
                     {filteredUsers.map(member => (
                       <UserListItem
                         key={member.id}
                         user={member}
-                        onAdd={() => this.addUser(member)}
+                        onAdd={() => this.handleAddUser(member)}
                         showAdd
                       />
                     ))}
@@ -121,4 +137,4 @@ class CollectionPermissions extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'users')(CollectionPermissions);
+export default inject('auth', 'ui', 'users')(CollectionPermissions);
