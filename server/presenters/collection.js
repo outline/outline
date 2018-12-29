@@ -1,6 +1,5 @@
 // @flow
 import { Collection } from '../models';
-import presentDocument from './document';
 import naturalSort from '../../shared/utils/naturalSort';
 
 type Document = {
