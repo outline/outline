@@ -40,7 +40,6 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     revision: document.revisionCount,
     pinned: undefined,
     collectionId: undefined,
-    collaboratorCount: undefined,
     collection: undefined,
     views: undefined,
   };
@@ -67,8 +66,6 @@ async function present(ctx: Object, document: Document, options: ?Options) {
         id: takeRight(document.collaboratorIds, 10) || [],
       },
     }).map(user => presentUser(ctx, user));
-
-    data.collaboratorCount = document.collaboratorIds.length;
   }
 
   return data;

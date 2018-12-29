@@ -27,6 +27,18 @@ describe('#documents.info', async () => {
     expect(body.data.id).toEqual(document.id);
   });
 
+  it('should not return published document in collection not a member of', async () => {
+    const { user, document, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it('should return drafts', async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -242,6 +254,18 @@ describe('#documents.revision', async () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).not.toEqual(document.id);
     expect(body.data[0].title).toEqual(document.title);
+  });
+
+  it('should not return revisions for document in collection not a member of', async () => {
+    const { user, document, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post('/api/documents.revisions', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it('should require authorization', async () => {

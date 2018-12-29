@@ -255,6 +255,7 @@ router.post('documents.revision', auth(), async ctx => {
   let { id, revisionId } = ctx.body;
   ctx.assertUuid(id, 'id is required');
   ctx.assertPresent(revisionId, 'revisionId is required');
+
   const document = await Document.findById(id);
   authorize(ctx.state.user, 'read', document);
 
