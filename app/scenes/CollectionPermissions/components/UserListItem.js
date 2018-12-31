@@ -19,7 +19,7 @@ const UserListItem = ({ user, onAdd, showAdd }: Props) => {
       actions={
         showAdd ? (
           <Button type="button" onClick={onAdd}>
-            Add
+            Invite
           </Button>
         ) : (
           undefined

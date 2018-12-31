@@ -116,7 +116,12 @@ class CollectionPermissions extends React.Component<Props> {
               {hasOtherUsers && (
                 <React.Fragment>
                   <Subheading>Team Members</Subheading>
-                  <Input onChange={this.handleFilter} placeholder="Filter…" />
+                  <Input
+                    onChange={this.handleFilter}
+                    placeholder="Filter…"
+                    value={this.filter}
+                    type="search"
+                  />
                   <List>
                     {filteredUsers.map(member => (
                       <UserListItem
