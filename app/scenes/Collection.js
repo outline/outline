@@ -4,7 +4,12 @@ import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { CollectionIcon, NewDocumentIcon, PinIcon } from 'outline-icons';
+import {
+  CollectionIcon,
+  PadlockIcon,
+  NewDocumentIcon,
+  PinIcon,
+} from 'outline-icons';
 import RichMarkdownEditor from 'rich-markdown-editor';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
@@ -101,29 +106,6 @@ class CollectionScene extends React.Component<Props> {
     );
   }
 
-  renderEmptyCollection() {
-    if (!this.collection) return null;
-
-    return (
-      <CenteredContent>
-        <PageTitle title={this.collection.name} />
-        <Heading>
-          <CollectionIcon color={this.collection.color} size={40} expanded />{' '}
-          {this.collection.name}
-        </Heading>
-        <HelpText>
-          Publish your first document to start building this collection.
-        </HelpText>
-        <Wrapper>
-          <Link to={newDocumentUrl(this.collection)}>
-            <Button>Create new document</Button>
-          </Link>
-        </Wrapper>
-        {this.renderActions()}
-      </CenteredContent>
-    );
-  }
-
   renderNotFound() {
     return <Search notFound />;
   }
@@ -131,9 +113,6 @@ class CollectionScene extends React.Component<Props> {
   render() {
     if (!this.isFetching && !this.collection) {
       return this.renderNotFound();
-    }
-    if (this.collection && this.collection.isEmpty) {
-      return this.renderEmptyCollection();
     }
 
     const pinnedDocuments = this.collection
@@ -150,32 +129,52 @@ class CollectionScene extends React.Component<Props> {
           <React.Fragment>
             <PageTitle title={this.collection.name} />
             <Heading>
-              <CollectionIcon
-                color={this.collection.color}
-                size={40}
-                expanded
-              />{' '}
+              {this.collection.private ? (
+                <PadlockIcon color={this.collection.color} size={40} />
+              ) : (
+                <CollectionIcon
+                  color={this.collection.color}
+                  size={40}
+                  expanded
+                />
+              )}{' '}
               {this.collection.name}
             </Heading>
-            {this.collection.description && (
-              <RichMarkdownEditor
-                key={this.collection.description}
-                defaultValue={this.collection.description}
-                readOnly
-              />
-            )}
-
-            {hasPinnedDocuments && (
+            {this.collection.isEmpty ? (
               <React.Fragment>
-                <Subheading>
-                  <TinyPinIcon size={18} /> Pinned
-                </Subheading>
-                <DocumentList documents={pinnedDocuments} />
+                <HelpText>
+                  Publish your first document to start building this collection.
+                </HelpText>
+                <Wrapper>
+                  <Link to={newDocumentUrl(this.collection)}>
+                    <Button>Create new document</Button>
+                  </Link>
+                </Wrapper>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                {this.collection.description && (
+                  <RichMarkdownEditor
+                    key={this.collection.description}
+                    defaultValue={this.collection.description}
+                    readOnly
+                  />
+                )}
+
+                {hasPinnedDocuments && (
+                  <React.Fragment>
+                    <Subheading>
+                      <TinyPinIcon size={18} /> Pinned
+                    </Subheading>
+                    <DocumentList documents={pinnedDocuments} />
+                  </React.Fragment>
+                )}
+
+                <Subheading>Recently edited</Subheading>
+                <DocumentList documents={recentDocuments} limit={10} />
               </React.Fragment>
             )}
 
-            <Subheading>Recently edited</Subheading>
-            <DocumentList documents={recentDocuments} limit={10} />
             {this.renderActions()}
           </React.Fragment>
         ) : (

@@ -38,14 +38,14 @@ class CollectionPermissions extends React.Component<Props> {
     const { collection } = this.props;
 
     try {
-      collection.private = !ev.target.checked;
+      collection.private = ev.target.checked;
       await collection.save();
 
       if (collection.private) {
         await collection.fetchUsers();
       }
     } catch (err) {
-      collection.private = ev.target.checked;
+      collection.private = !ev.target.checked;
       this.props.ui.showToast('Collection privacy could not be changed');
     }
   };
@@ -88,20 +88,21 @@ class CollectionPermissions extends React.Component<Props> {
       <Flex column>
         <HelpText>
           Choose which people on the team have access to read and edit documents
-          in the <strong>{collection.name}</strong> collection.
+          in the <strong>{collection.name}</strong> collection. By default all
+          team members have access.
         </HelpText>
 
         <Switch
           id="private"
-          label="Visible to all team members"
+          label="Private collection"
           onChange={this.handlePrivateChange}
-          checked={!collection.private}
+          checked={collection.private}
         />
 
         {collection.private && (
           <Fade>
             <Flex column>
-              <Subheading>Has Access ({collection.users.length})</Subheading>
+              <Subheading>Invited ({collection.users.length})</Subheading>
               <List>
                 {collection.users.map(member => (
                   <MemberListItem
