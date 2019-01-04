@@ -30,6 +30,8 @@ import DocumentList from 'components/DocumentList';
 import Subheading from 'components/Subheading';
 import PageTitle from 'components/PageTitle';
 import Flex from 'shared/components/Flex';
+import Modal from 'components/Modal';
+import CollectionPermissions from 'scenes/CollectionPermissions';
 
 type Props = {
   ui: UiStore,
@@ -43,6 +45,7 @@ type Props = {
 class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
+  @observable permissionsModalOpen: boolean = false;
 
   componentDidMount() {
     this.loadContent(this.props.match.params.id);
@@ -87,6 +90,15 @@ class CollectionScene extends React.Component<Props> {
     }
   };
 
+  onPermissions = (ev: SyntheticEvent<*>) => {
+    ev.preventDefault();
+    this.permissionsModalOpen = true;
+  };
+
+  handlePermissionsModalClose = () => {
+    this.permissionsModalOpen = false;
+  };
+
   renderActions() {
     return (
       <Actions align="center" justify="flex-end">
@@ -122,41 +134,53 @@ class CollectionScene extends React.Component<Props> {
       ? this.props.documents.recentlyUpdatedInCollection(this.collection.id)
       : [];
     const hasPinnedDocuments = !!pinnedDocuments.length;
+    const collection = this.collection;
 
     return (
       <CenteredContent>
-        {this.collection ? (
+        {collection ? (
           <React.Fragment>
-            <PageTitle title={this.collection.name} />
+            <PageTitle title={collection.name} />
             <Heading>
-              {this.collection.private ? (
-                <PadlockIcon color={this.collection.color} size={40} />
+              {collection.private ? (
+                <PadlockIcon color={collection.color} size={40} />
               ) : (
-                <CollectionIcon
-                  color={this.collection.color}
-                  size={40}
-                  expanded
-                />
+                <CollectionIcon color={collection.color} size={40} expanded />
               )}{' '}
-              {this.collection.name}
+              {collection.name}
             </Heading>
-            {this.collection.isEmpty ? (
+            {collection.isEmpty ? (
               <React.Fragment>
                 <HelpText>
                   Publish your first document to start building this collection.
                 </HelpText>
                 <Wrapper>
-                  <Link to={newDocumentUrl(this.collection)}>
+                  <Link to={newDocumentUrl(collection)}>
                     <Button>Create new document</Button>
-                  </Link>
+                  </Link>&nbsp;&nbsp;
+                  {collection.private && (
+                    <Button onClick={this.onPermissions} neutral>
+                      Invite people
+                    </Button>
+                  )}
                 </Wrapper>
+                <Modal
+                  title="Collection permissions"
+                  onRequestClose={this.handlePermissionsModalClose}
+                  isOpen={this.permissionsModalOpen}
+                >
+                  <CollectionPermissions
+                    collection={this.collection}
+                    onSubmit={this.handlePermissionsModalClose}
+                  />
+                </Modal>
               </React.Fragment>
             ) : (
               <React.Fragment>
-                {this.collection.description && (
+                {collection.description && (
                   <RichMarkdownEditor
-                    key={this.collection.description}
-                    defaultValue={this.collection.description}
+                    key={collection.description}
+                    defaultValue={collection.description}
                     readOnly
                   />
                 )}
