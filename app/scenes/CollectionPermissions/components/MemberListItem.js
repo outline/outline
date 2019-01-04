@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import styled from 'styled-components';
 import { MoreIcon } from 'outline-icons';
 import Avatar from 'components/Avatar';
 import HelpText from 'components/HelpText';
@@ -21,9 +22,7 @@ const MemberListItem = ({ user, onRemove, showRemove }: Props) => {
       image={<Avatar src={user.avatarUrl} size={32} />}
       actions={
         <Flex align="center">
-          <HelpText as="span" small>
-            Can edit&nbsp;
-          </HelpText>
+          <Permission as="span">Can edit&nbsp;</Permission>
           {showRemove && (
             <DropdownMenu label={<MoreIcon />}>
               <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
@@ -34,5 +33,10 @@ const MemberListItem = ({ user, onRemove, showRemove }: Props) => {
     />
   );
 };
+
+const Permission = styled(HelpText)`
+  text-transform: uppercase;
+  font-size: 11px;
+`;
 
 export default MemberListItem;
