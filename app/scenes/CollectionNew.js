@@ -4,6 +4,7 @@ import { withRouter } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
+import Switch from 'components/Switch';
 import Input from 'components/Input';
 import InputRich from 'components/InputRich';
 import ColorPicker from 'components/ColorPicker';
@@ -25,6 +26,7 @@ class CollectionNew extends React.Component<Props> {
   @observable name: string = '';
   @observable description: string = '';
   @observable color: string = '';
+  @observable private: boolean = false;
   @observable isSaving: boolean;
 
   handleSubmit = async (ev: SyntheticEvent<*>) => {
@@ -35,6 +37,7 @@ class CollectionNew extends React.Component<Props> {
         name: this.name,
         description: this.description,
         color: this.color,
+        private: this.private,
       },
       this.props.collections
     );
@@ -56,6 +59,10 @@ class CollectionNew extends React.Component<Props> {
 
   handleDescriptionChange = getValue => {
     this.description = getValue();
+  };
+
+  handlePrivateChange = (ev: SyntheticInputEvent<*>) => {
+    this.private = ev.target.checked;
   };
 
   handleColor = (color: string) => {
@@ -87,6 +94,16 @@ class CollectionNew extends React.Component<Props> {
           maxHeight={200}
         />
         <ColorPicker onSelect={this.handleColor} />
+        <Switch
+          id="private"
+          label="Private collection"
+          onChange={this.handlePrivateChange}
+          checked={this.private}
+        />
+        <HelpText>
+          A private collection will only be visible to invited team members.
+        </HelpText>
+
         <Button type="submit" disabled={this.isSaving || !this.name}>
           {this.isSaving ? 'Creating…' : 'Create'}
         </Button>

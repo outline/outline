@@ -20,7 +20,7 @@ function Switch({ width = 38, height = 20, label, ...props }: Props) {
 
   if (label) {
     return (
-      <Label for={props.id}>
+      <Label htmlFor={props.id}>
         {component}
         <LabelText>&nbsp;{label}</LabelText>
       </Label>
