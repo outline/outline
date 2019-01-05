@@ -8,7 +8,6 @@ import AuthErrors from './components/AuthErrors';
 import Hero from './components/Hero';
 import HeroText from './components/HeroText';
 import Centered from './components/Centered';
-import SigninButtons from './components/SigninButtons';
 import Flex from '../../shared/components/Flex';
 
 type Props = {
@@ -27,17 +26,17 @@ function Home(props: Props) {
       </Helmet>
       <Grid>
         <Hero id="signin">
-              <Grid reverse={{ mobile: true, tablet: false, desktop: false }}>
-                <Grid.Unit size={{ tablet: 2 / 3 }}>
-                  <h1>贵团队的专属知识库</h1>
-                  <HeroText>
-                    团队 wiki、文档、会议笔记、工作日志、脑暴记录等，远不止于此...
-                  </HeroText>
-                </Grid.Unit>
-                <Grid.Unit size={{ tablet: 1 / 3 }}>
-                  <div id="authing-login-form-wrapper"></div>
-                </Grid.Unit>
-              </Grid>
+          <Grid reverse={{ mobile: true, tablet: false, desktop: false }}>
+            <Grid.Unit size={{ tablet: 2 / 3 }}>
+              <h1>贵团队的专属知识库</h1>
+              <HeroText>
+                团队 wiki、文档、会议笔记、工作日志、脑暴记录等，远不止于此...
+              </HeroText>
+            </Grid.Unit>
+            <Grid.Unit size={{ tablet: 1 / 3 }}>
+              <div id="authing-login-form-wrapper"></div>
+            </Grid.Unit>
+          </Grid>
           <AuthErrors notice={props.notice} />
         </Hero>
         <Mask>

@@ -33,8 +33,6 @@ class InvitePeople extends React.Component<Props> {
   render() {
     const { auth, ...rest } = this.props;
 
-    console.log(this.props);
-
     const sharedUrl = `${location.origin}/invite/${auth.team.id}`;
 
     return (

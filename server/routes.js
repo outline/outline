@@ -20,6 +20,7 @@ import About from './pages/About';
 import Changelog from './pages/Changelog';
 import Privacy from './pages/Privacy';
 import Pricing from './pages/Pricing';
+import Inviting from './pages/Inviting';
 import Integrations from './pages/integrations';
 import integrations from './pages/integrations/content';
 import Integration from './pages/integrations/Integration';
@@ -145,6 +146,22 @@ router.get('/', async ctx => {
       slackSigninEnabled={!!process.env.SLACK_KEY}
     />
   );
+});
+
+// invite page
+router.get('/invite/:teamId', async ctx => {
+  const accessToken = ctx.cookies.get('accessToken');
+
+  // If we have an accessToken we can just go ahead and render the app – if
+  // the accessToken turns out to be invalid the user will be redirected.
+  if (accessToken) {
+    ctx.redirect(`/dashboard`);
+  } else {
+    const team = await Team.find({
+      id: ctx.params.teamId,
+    });
+    return renderpage(ctx, <Inviting team={team} />);
+  }
 });
 
 // Other
