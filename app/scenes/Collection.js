@@ -24,6 +24,7 @@ import Actions, { Action, Separator } from 'components/Actions';
 import Heading from 'components/Heading';
 import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
+import Mask from 'components/Mask';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
 import DocumentList from 'components/DocumentList';
@@ -156,7 +157,8 @@ class CollectionScene extends React.Component<Props> {
             {collection.isEmpty ? (
               <React.Fragment>
                 <HelpText>
-                  Publish your first document to start building this collection.
+                  Collections are for grouping your knowledge base. Get started
+                  by creating a new document.
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection)}>
@@ -206,7 +208,12 @@ class CollectionScene extends React.Component<Props> {
             {this.renderActions()}
           </React.Fragment>
         ) : (
-          <ListPlaceholder count={5} />
+          <React.Fragment>
+            <Heading>
+              <Mask height={35} />
+            </Heading>
+            <ListPlaceholder count={5} />
+          </React.Fragment>
         )}
       </CenteredContent>
     );

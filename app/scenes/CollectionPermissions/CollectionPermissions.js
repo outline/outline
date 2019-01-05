@@ -80,6 +80,8 @@ class CollectionPermissions extends React.Component<Props> {
       collection.userIds.includes(user.id)
     );
     const hasOtherUsers = !!otherUsers.length;
+    const isFirstLoadingUsers =
+      collection.isLoadingUsers && !collection.users.length;
     const filteredUsers = reject(
       otherUsers,
       user => this.filter && !user.name.toLowerCase().includes(this.filter)
@@ -105,7 +107,7 @@ class CollectionPermissions extends React.Component<Props> {
             <Flex column>
               <Subheading>Invited ({collection.users.length})</Subheading>
               <List>
-                {collection.isLoadingUsers ? (
+                {isFirstLoadingUsers ? (
                   <Placeholder />
                 ) : (
                   collection.users.map(member => (

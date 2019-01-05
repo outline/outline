@@ -8,7 +8,8 @@ export default function LoadingPlaceholder(props: Object) {
   return (
     <Fade>
       <Flex column auto {...props}>
-        <Mask header />
+        <Mask height={34} />
+        <br />
         <Mask />
         <Mask />
         <Mask />
