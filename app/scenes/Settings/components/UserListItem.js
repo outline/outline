@@ -22,9 +22,9 @@ const UserListItem = ({ user, showMenu }: Props) => {
       subtitle={
         <React.Fragment>
           {user.email ? `${user.email} · ` : undefined}
-          Joined <Time dateTime={user.createdAt} /> ago
-          {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
-          {user.isSuspended && <Badge>Suspended</Badge>}
+          <Time dateTime={user.createdAt} /> 前加入
+          {user.isAdmin && <Badge admin={user.isAdmin}>管理员</Badge>}
+          {user.isSuspended && <Badge>已冻结</Badge>}
         </React.Fragment>
       }
       actions={showMenu ? <UserMenu user={user} /> : undefined}

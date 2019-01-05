@@ -81,9 +81,9 @@ class Profile extends React.Component<Props> {
     return (
       <CenteredContent>
         <PageTitle title="Profile" />
-        <h1>Profile</h1>
+        <h1>我的资料</h1>
         <ProfilePicture column>
-          <LabelText>Picture</LabelText>
+          <LabelText>头像</LabelText>
           <AvatarContainer>
             <ImageUpload
               onSuccess={this.handleAvatarUpload}
@@ -91,7 +91,7 @@ class Profile extends React.Component<Props> {
             >
               <Avatar src={avatarUrl} />
               <Flex auto align="center" justify="center">
-                Upload
+                上传
               </Flex>
             </ImageUpload>
           </AvatarContainer>
@@ -105,16 +105,15 @@ class Profile extends React.Component<Props> {
             short
           />
           <Button type="submit" disabled={isSaving || !this.isValid}>
-            {isSaving ? 'Saving…' : 'Save'}
+            {isSaving ? '保存中...' : '保存'}
           </Button>
         </form>
 
         <DangerZone>
-          <LabelText>Delete Account</LabelText>
+          <LabelText>删除账户</LabelText>
           <p>
-            You may delete your account at any time, note that this is
-            unrecoverable.{' '}
-            <a onClick={this.toggleDeleteAccount}>Delete account</a>.
+            你随时都可以删除账户，但是请注意删除之后无法恢复。{' '}
+            <a onClick={this.toggleDeleteAccount}>删除账户</a>
           </p>
         </DangerZone>
         {this.showDeleteModal && (

@@ -2,6 +2,7 @@
 import * as React from 'react';
 import invariant from 'invariant';
 import { observer, inject } from 'mobx-react';
+import { observable } from 'mobx';
 
 import AuthStore from 'stores/AuthStore';
 import UsersStore from 'stores/UsersStore';
@@ -12,6 +13,7 @@ import UserListItem from './components/UserListItem';
 import List from 'components/List';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
+import InvitePeople from 'scenes/InvitePeople';
 
 type Props = {
   auth: AuthStore,
@@ -21,9 +23,16 @@ type Props = {
 
 @observer
 class People extends React.Component<Props> {
+
+  @observable showInviteModal: boolean = false;
+
   componentDidMount() {
     this.props.users.fetchPage({ limit: 100 });
   }
+
+  toggleInvitePeople = () => {
+    this.showInviteModal = !this.showInviteModal;
+  };
 
   render() {
     const { auth, match } = this.props;
@@ -41,22 +50,25 @@ class People extends React.Component<Props> {
     return (
       <CenteredContent>
         <PageTitle title="People" />
-        <h1>People</h1>
+        <h1>成员</h1>
         <HelpText>
-          Everyone that has signed into Outline appears here. It’s possible that
-          there are other users who have access through Single Sign-On but
-          haven’t signed into Outline yet.
+          每一个注册了大事记的成员都会出现在这里，            
+          你也可以<a onClick={this.toggleInvitePeople}>邀请成员</a>。
         </HelpText>
+
+        {this.showInviteModal && (
+          <InvitePeople onRequestClose={this.toggleInvitePeople} />
+        )}
 
         <Tabs>
           <Tab to="/settings/people" exact>
-            Active
+            活跃
           </Tab>
           <Tab to="/settings/people/admins" exact>
-            Admins
+            管理员
           </Tab>
           <Tab to="/settings/people/all" exact>
-            Everyone
+            所有人
           </Tab>
         </Tabs>
         <List>

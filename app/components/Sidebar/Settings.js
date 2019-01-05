@@ -49,27 +49,27 @@ class SettingsSidebar extends React.Component<Props> {
         <Flex auto column>
           <Scrollable shadow>
             <Section>
-              <Header>Account</Header>
+              <Header>我的账户</Header>
               <SidebarLink to="/settings" icon={<ProfileIcon />}>
-                Profile
+                基础资料
               </SidebarLink>
               <SidebarLink to="/settings/notifications" icon={<EmailIcon />}>
-                Notifications
+                通知
               </SidebarLink>
               <SidebarLink to="/settings/tokens" icon={<CodeIcon />}>
                 API Tokens
               </SidebarLink>
             </Section>
             <Section>
-              <Header>Team</Header>
+              <Header>团队</Header>
               {user.isAdmin && (
                 <SidebarLink to="/settings/details" icon={<TeamIcon />}>
-                  Details
+                  基本信息
                 </SidebarLink>
               )}
               {user.isAdmin && (
                 <SidebarLink to="/settings/security" icon={<PadlockIcon />}>
-                  Security
+                  安全
                 </SidebarLink>
               )}
               <SidebarLink
@@ -77,20 +77,20 @@ class SettingsSidebar extends React.Component<Props> {
                 icon={<UserIcon />}
                 exact={false}
               >
-                People
+                成员
               </SidebarLink>
               <SidebarLink to="/settings/shares" icon={<LinkIcon />}>
-                Share Links
+                共享链接
               </SidebarLink>
               {user.isAdmin && (
                 <SidebarLink to="/settings/export" icon={<DocumentIcon />}>
-                  Export Data
+                  导出数据
                 </SidebarLink>
               )}
             </Section>
             {user.isAdmin && (
               <Section>
-                <Header>Integrations</Header>
+                <Header>集成</Header>
                 <SidebarLink
                   to="/settings/integrations/slack"
                   icon={<SlackIcon />}
