@@ -9,7 +9,9 @@ import { client } from 'utils/ApiClient';
 import type { NavigationNode } from 'types';
 
 export default class Collection extends BaseModel {
-  isSaving: boolean;
+  @observable isSaving: boolean;
+  @observable isLoadingUsers: boolean;
+  @observable userIds: string[] = [];
 
   id: string;
   name: string;
@@ -21,7 +23,6 @@ export default class Collection extends BaseModel {
   createdAt: ?string;
   updatedAt: ?string;
   url: string;
-  @observable userIds: string[] = [];
 
   @computed
   get isEmpty(): boolean {
@@ -50,10 +51,16 @@ export default class Collection extends BaseModel {
 
   @action
   async fetchUsers() {
-    const res = await client.post('/collections.users', { id: this.id });
-    invariant(res && res.data, 'User data should be available');
-    this.userIds = map(res.data, user => user.id);
-    res.data.forEach(this.store.rootStore.users.add);
+    this.isLoadingUsers = true;
+
+    try {
+      const res = await client.post('/collections.users', { id: this.id });
+      invariant(res && res.data, 'User data should be available');
+      this.userIds = map(res.data, user => user.id);
+      res.data.forEach(this.store.rootStore.users.add);
+    } finally {
+      this.isLoadingUsers = false;
+    }
   }
 
   @action

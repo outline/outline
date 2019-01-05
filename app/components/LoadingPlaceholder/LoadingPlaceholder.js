@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import Mask from './components/Mask';
+import Mask from 'components/Mask';
 import Fade from 'components/Fade';
 import Flex from 'shared/components/Flex';
 

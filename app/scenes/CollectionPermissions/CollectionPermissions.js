@@ -9,6 +9,7 @@ import Input from 'components/Input';
 import HelpText from 'components/HelpText';
 import Subheading from 'components/Subheading';
 import List from 'components/List';
+import Placeholder from 'components/List/Placeholder';
 import Switch from 'components/Switch';
 import UserListItem from './components/UserListItem';
 import MemberListItem from './components/MemberListItem';
@@ -88,8 +89,8 @@ class CollectionPermissions extends React.Component<Props> {
       <Flex column>
         <HelpText>
           Choose which people on the team have access to read and edit documents
-          in the <strong>{collection.name}</strong> collection. By default all
-          team members have access.
+          in the <strong>{collection.name}</strong> collection. By default
+          collections are visible to all team members.
         </HelpText>
 
         <Switch
@@ -104,14 +105,18 @@ class CollectionPermissions extends React.Component<Props> {
             <Flex column>
               <Subheading>Invited ({collection.users.length})</Subheading>
               <List>
-                {collection.users.map(member => (
-                  <MemberListItem
-                    key={member.id}
-                    user={member}
-                    showRemove={user.id !== member.id}
-                    onRemove={() => this.handleRemoveUser(member)}
-                  />
-                ))}
+                {collection.isLoadingUsers ? (
+                  <Placeholder />
+                ) : (
+                  collection.users.map(member => (
+                    <MemberListItem
+                      key={member.id}
+                      user={member}
+                      showRemove={user.id !== member.id}
+                      onRemove={() => this.handleRemoveUser(member)}
+                    />
+                  ))
+                )}
               </List>
 
               {hasOtherUsers && (
