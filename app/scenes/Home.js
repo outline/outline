@@ -8,10 +8,15 @@ type Props = {
   auth: AuthStore,
 };
 
-const Home = observer(({ auth }: Props) => {
-  if (auth.authenticated) return <Redirect to="/dashboard" />;
-  auth.logout();
-  return null;
-});
+@observer
+class Home extends React.Component<Props> {
+
+  render() {
+    const { auth } = this.props;
+    if (auth.authenticated) return <Redirect to="/dashboard" />;
+    auth.logout();
+    return null;  
+  }
+}
 
 export default inject('auth')(Home);

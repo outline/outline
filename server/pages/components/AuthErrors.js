@@ -23,8 +23,7 @@ export default function AuthErrors({ notice }: Props) {
       )}
       {notice === 'auth-error' && (
         <Notice>
-          Authentication failed - we were unable to sign you in at this time.
-          Please try again.
+          认证失败 - 暂时出了点问题，无法认证你的身份，请稍候再试一下。
         </Notice>
       )}
     </React.Fragment>

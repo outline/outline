@@ -10,12 +10,16 @@ import { stripSubdomain } from '../../shared/utils/domains';
 
 import slack from './slack';
 import google from './google';
+import wxapp from './wxapp';
+import github from './github';
 
 const app = new Koa();
 const router = new Router();
 
 router.use('/', slack.routes());
 router.use('/', google.routes());
+router.use('/', wxapp.routes());
+router.use('/', github.routes());
 
 router.get('/redirect', auth(), async ctx => {
   const user = ctx.state.user;

@@ -54,7 +54,7 @@ export default function Pricing() {
             <p>
               Outline’s API follows simple RPC style conventions where each API
               endpoint is a method on{' '}
-              <Code>https://www.getoutline.com/api/&lt;METHOD&gt;</Code>. Both{' '}
+              <Code>https://outline.authing.cn/api/&lt;METHOD&gt;</Code>. Both{' '}
               <Code>GET</Code> and <Code>POST</Code> methods are supported but
               it’s recommeded that you make all call using <Code>POST</Code>.
               Only HTTPS is supported in production.
@@ -75,7 +75,7 @@ export default function Pricing() {
             </p>
             <Pre>
               <Code>
-                {`curl https://www.getoutline.com/api/documents.info
+                {`curl https://outline.authing.cn/api/documents.info
   -X POST
   -H 'authorization: Bearer API_KEY'
   -H 'content-type: application/json'
@@ -90,7 +90,7 @@ export default function Pricing() {
             </p>
             <Pre>
               <Code>
-                {`curl https://www.getoutline.com/api/documents.info?id=outline-api-NTpezNwhUP&token=API_KEY
+                {`curl https://outline.authing.cn/api/documents.info?id=outline-api-NTpezNwhUP&token=API_KEY
 `}
               </Code>
             </Pre>

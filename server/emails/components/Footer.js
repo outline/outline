@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import { Table, TBody, TR, TD } from 'oy-vey';
-import { twitterUrl, spectrumUrl } from '../../../shared/utils/routeHelpers';
 import theme from '../../../shared/styles/theme';
 
 type Props = {
@@ -42,12 +41,6 @@ export default ({ unsubscribeUrl }: Props) => {
           <TD style={footerStyle}>
             <a href={process.env.URL} style={linkStyle}>
               Outline
-            </a>
-            <a href={twitterUrl()} style={externalLinkStyle}>
-              Twitter
-            </a>
-            <a href={spectrumUrl()} style={externalLinkStyle}>
-              Spectrum
             </a>
           </TD>
         </TR>

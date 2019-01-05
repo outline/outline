@@ -8,9 +8,9 @@ import Analytics from './Analytics';
 import GlobalStyles from '../../../shared/styles/globals';
 import prefetchTags from '../../utils/prefetchTags';
 
-export const title = 'Outline';
+export const title = '大事记';
 export const description =
-  'Your team’s knowledge base - Team wiki, documentation, playbooks, onboarding & more…';
+  '贵团队的专属知识库 - 团队 wiki、文档、会议笔记、工作日志、脑暴记录等，远不止于此...';
 export const screenshotUrl = `${process.env.URL}/screenshot.png`;
 
 type Props = {
@@ -21,7 +21,7 @@ type Props = {
 
 function Layout({ children, loggedIn, sessions }: Props) {
   return (
-    <html lang="en">
+    <html lang='zh-cn'>
       <head>
         <GlobalStyles />
         <Helmet>
@@ -70,6 +70,8 @@ function Layout({ children, loggedIn, sessions }: Props) {
         <TopNavigation sessions={sessions} loggedIn={loggedIn} />
         {children}
         <BottomNavigation />
+        <script src="https://cdn.authing.cn/sdk/javascript/authing-login-form-1.2.3.js"></script>
+        <script src={`${process.env.URL}/scripts/login-form.js?v=${Math.round(Math.random() * 100000)}`}></script>
       </Body>
     </html>
   );

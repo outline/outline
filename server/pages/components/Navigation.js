@@ -9,7 +9,6 @@ import TeamLogo from '../../../shared/components/TeamLogo';
 import { fadeAndScaleIn } from '../../../shared/styles/animations';
 import {
   developers,
-  changelog,
   features,
   about,
   integrations,
@@ -39,17 +38,14 @@ function TopNavigation({ sessions, loggedIn }: Props) {
   return (
     <Nav>
       <Brand href={process.env.URL}>
-        <OutlineLogo size={18} fill="#000" />&nbsp;Outline
+        <OutlineLogo size={18} fill="#000" />&nbsp;大事记
       </Brand>
       <Menu>
         <MenuItemDesktop>
-          <a href={features()}>Features</a>
+          <a href={features()}>功能特性</a>
         </MenuItemDesktop>
         <MenuItemDesktop>
-          <a href={integrations()}>Integrations</a>
-        </MenuItemDesktop>
-        <MenuItemDesktop>
-          <a href={changelog()}>Changelog</a>
+          <a href={integrations()}>第三方集成</a>
         </MenuItemDesktop>
         <MenuItem>
           <a href={developers()}>API</a>
@@ -81,13 +77,13 @@ function TopNavigation({ sessions, loggedIn }: Props) {
               </MenuItem>
             ) : (
               <MenuItem highlighted>
-                <a href="/dashboard">Dashboard</a>
+                <a href="/dashboard">控制台</a>
               </MenuItem>
             )}
           </React.Fragment>
         ) : (
           <MenuItem>
-            <a href="/#signin">Sign In</a>
+            <a href="/#signin">登录</a>
           </MenuItem>
         )}
       </Menu>
@@ -100,12 +96,6 @@ function BottomNavigation() {
     <BottomNav>
       <div>
         <a href={githubUrl()}>GitHub</a>
-      </div>
-      <div>
-        <a href={twitterUrl()}>Twitter</a>
-      </div>
-      <div>
-        <a href={spectrumUrl()}>Spectrum</a>
       </div>
       <div>
         <a href={privacy()}>Privacy</a>

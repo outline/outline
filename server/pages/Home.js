@@ -9,10 +9,7 @@ import Hero from './components/Hero';
 import HeroText from './components/HeroText';
 import Centered from './components/Centered';
 import SigninButtons from './components/SigninButtons';
-import SlackLogo from '../../shared/components/SlackLogo';
-import GithubLogo from '../../shared/components/GithubLogo';
 import Flex from '../../shared/components/Flex';
-import { githubUrl, slackAppStoreUrl } from '../../shared/utils/routeHelpers';
 
 type Props = {
   notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed',
@@ -22,21 +19,22 @@ type Props = {
 };
 
 function Home(props: Props) {
+
   return (
     <span>
       <Helmet>
-        <title>Outline - Team wiki & knowledge base</title>
+        <title>大事记 - 团队 wiki & 知识管理 - Powered by Authing.cn</title>
       </Helmet>
       <Grid>
         <Hero id="signin">
-          <h1>Your team’s knowledge base</h1>
+          <h1>贵团队的专属知识库</h1>
           <HeroText>
-            Team wiki, documentation, meeting notes, playbooks, onboarding, work
-            logs, brainstorming, & more…
+            团队 wiki、文档、会议笔记、工作日志、脑暴记录等，远不止于此...
           </HeroText>
           <p>
             <SigninButtons {...props} />
           </p>
+          <div id="authing-login-form-wrapper"></div>
           <AuthErrors notice={props.notice} />
         </Hero>
         <Mask>
@@ -45,20 +43,15 @@ function Home(props: Props) {
               <Grid reverse={{ mobile: true, tablet: false, desktop: false }}>
                 <Grid.Unit size={{ tablet: 1 / 3 }}>
                   <Feature>
-                    <h2>Improve Communication</h2>
-                    <p>
-                      Easily structure your teams information in one central,
-                      structured location. No more hunting through folders or
-                      scanning pages of search results and chat conversations.
+                    <h2 style={{color: '#fff'}}>增进沟通</h2>
+                    <p style={{color: '#fff'}}>
+                      使用大事记可以非常容易的将贵团队的信息集中存储并具有可编程能力。不用反复查找文件夹、打开页面和发起聊天，团队中的每个人都可以通过其他人的文档来了解对方的想法。
                     </p>
                   </Feature>
                   <Feature>
-                    <h2>Safe &amp; Secure</h2>
-                    <p>
-                      Outline provides a secure place for your teams
-                      documentation on our hosted platform, stored in portable
-                      Markdown format. Or, you can run your own copy – it’s open
-                      source!
+                    <h2 style={{color: '#fff'}}>安全 &amp; 稳定</h2>
+                    <p style={{color: '#fff'}}>
+                      大事记提供了一个安全稳定的存储环境，所有内容都以 Markdown 形式存储。
                     </p>
                   </Feature>
                 </Grid.Unit>
@@ -76,49 +69,16 @@ function Home(props: Props) {
         <Centered id="features">
           <Grid>
             <Feature size={{ desktop: 1 / 3 }}>
-              <h2>Blazing Fast</h2>
+              <h2>闪电一般快⚡️</h2>
               <p>
-                Outline is fast, really fast. We’ve worked hard to ensure
-                millisecond response times – documents load instantly, search is
-                speedy and navigating the UI is delightful.
+                大事记很快，非常快，我们花费了很大精力对速度进行了优化。无论是文档加载，还是搜索，抑或是体验交互，都做到了毫秒级的响应。
               </p>
             </Feature>
             <Feature size={{ desktop: 1 / 3 }} />
             <Feature size={{ desktop: 1 / 3 }}>
-              <h2>Markdown Support</h2>
+              <h2>支持 Markdown</h2>
               <p>
-                Documents are stored in plain Markdown making editing, import
-                and export painless. Shortcuts are also built right into the
-                editor so you can easily format using **markdown syntax** if you
-                like.
-              </p>
-            </Feature>
-            <Feature size={{ desktop: 1 / 3 }}>
-              <h2>
-                <SlackLogo fill="#000" size={30} />&nbsp;Slack &amp; API
-              </h2>
-              <p>
-                Get Slack notifications about changes and search Outline
-                directly within Slack using the{' '}
-                <code>/outline &lt;keyword&gt;</code> command. Access your
-                information programatically through the modern API.
-              </p>
-              <p>
-                <a href={slackAppStoreUrl()}>Slack App</a>
-              </p>
-            </Feature>
-            <Feature size={{ desktop: 1 / 3 }} />
-            <Feature size={{ desktop: 1 / 3 }}>
-              <h2>
-                <GithubLogo fill="#000" size={30} />&nbsp;Open Source
-              </h2>
-              <p>
-                Outline is open source, so the community can help improve it
-                too. You get new features, interface improvements, bug fixes,
-                and a transparent roadmap for free.
-              </p>
-              <p>
-                <a href={githubUrl()}>GitHub</a>
+                所有的文档都以 Markdown 形式存储，导入导出都毫无压力。我们还提供了大量快捷键方便你更快的编写 Markdown。
               </p>
             </Feature>
           </Grid>
@@ -127,10 +87,9 @@ function Home(props: Props) {
           <Centered>
             <Grid>
               <Grid.Unit size={{ desktop: 1 / 3 }}>
-                <h2>Create an account</h2>
-                <p>
-                  On the same page as us? Create a free account to give Outline
-                  a try with your team.
+                <h2 style={{color: '#fff'}}>创建账户</h2>
+                <p style={{color: '#fff'}}>
+                  创建一个账户和你的团队一起使用，完全免费。
                 </p>
               </Grid.Unit>
               <Grid.Unit size={{ desktop: 2 / 3 }}>

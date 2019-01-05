@@ -26,11 +26,11 @@ export function slackAuth(
 }
 
 export function githubUrl(): string {
-  return 'https://www.github.com/outline';
+  return 'https://www.github.com/authing/outline';
 }
 
 export function githubIssuesUrl(): string {
-  return 'https://www.github.com/outline/outline/issues';
+  return 'https://www.github.com/authing/outline/issues';
 }
 
 export function slackAppStoreUrl(): string {
