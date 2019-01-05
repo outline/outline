@@ -25,7 +25,7 @@ router.get('github.callback', auth({ required: false }), async ctx => {
       googleId: _id,
     },
     defaults: {
-      name: randomString(4, 8) + '-ego',
+      name: _id.substr(0, 8) + '-ego',
       avatarUrl: photo,
     },
   });

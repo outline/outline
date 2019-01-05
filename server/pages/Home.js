@@ -27,14 +27,17 @@ function Home(props: Props) {
       </Helmet>
       <Grid>
         <Hero id="signin">
-          <h1>贵团队的专属知识库</h1>
-          <HeroText>
-            团队 wiki、文档、会议笔记、工作日志、脑暴记录等，远不止于此...
-          </HeroText>
-          <p>
-            <SigninButtons {...props} />
-          </p>
-          <div id="authing-login-form-wrapper"></div>
+              <Grid reverse={{ mobile: true, tablet: false, desktop: false }}>
+                <Grid.Unit size={{ tablet: 2 / 3 }}>
+                  <h1>贵团队的专属知识库</h1>
+                  <HeroText>
+                    团队 wiki、文档、会议笔记、工作日志、脑暴记录等，远不止于此...
+                  </HeroText>
+                </Grid.Unit>
+                <Grid.Unit size={{ tablet: 1 / 3 }}>
+                  <div id="authing-login-form-wrapper"></div>
+                </Grid.Unit>
+              </Grid>
           <AuthErrors notice={props.notice} />
         </Hero>
         <Mask>
@@ -86,15 +89,17 @@ function Home(props: Props) {
         <Footer>
           <Centered>
             <Grid>
-              <Grid.Unit size={{ desktop: 1 / 3 }}>
-                <h2 style={{color: '#fff'}}>创建账户</h2>
-                <p style={{color: '#fff'}}>
+              <Grid.Unit size={{ desktop: 3 }}>
+                <h2 style={{color: '#fff', textAlign: 'center'}}>创建账户</h2>
+                <p style={{color: '#fff', textAlign: 'center'}}>
                   创建一个账户和你的团队一起使用，完全免费。
                 </p>
               </Grid.Unit>
-              <Grid.Unit size={{ desktop: 2 / 3 }}>
+              <Grid.Unit size={{ desktop: 3 }}>
                 <Flex justify="center" align="center">
-                  <SigninButtons {...props} />
+                  <Button href={`/#signin`}>
+                    <Spacer>立即注册</Spacer>
+                  </Button>
                 </Flex>
               </Grid.Unit>
             </Grid>
@@ -177,6 +182,22 @@ const Footer = styled.div`
     margin: 2em 0;
     padding: 6em 4em;
   `};
+`;
+
+const Spacer = styled.span`
+  padding-left: 0px;
+`;
+
+const Button = styled.a`
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  color: ${props => props.theme.white};
+  background: ${props => props.theme.black};
+  border-radius: 4px;
+  font-weight: 600;
+  height: 56px;
+  margin-top: 22px;
 `;
 
 export default Home;
