@@ -7,7 +7,7 @@ RUN mkdir -p $APP_PATH
 
 WORKDIR $APP_PATH
 COPY . $APP_PATH
-RUN yarn
+RUN yarn config set registry https://registry.npm.taobao.org && yarn
 RUN cp -r /opt/outline/node_modules /opt/node_modules
 
 CMD yarn build && yarn start
