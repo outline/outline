@@ -10,12 +10,11 @@ type Props = {
   count?: number,
 };
 
-const ListPlaceHolder = ({ count }: Props) => {
+const Placeholder = ({ count }: Props) => {
   return (
     <Fade>
       {times(count || 2, index => (
         <Item key={index} column auto>
-          <Mask header />
           <Mask />
         </Item>
       ))}
@@ -24,7 +23,7 @@ const ListPlaceHolder = ({ count }: Props) => {
 };
 
 const Item = styled(Flex)`
-  padding: 10px 0;
+  padding: 15px 0 16px;
 `;
 
-export default ListPlaceHolder;
+export default Placeholder;

@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import { observable } from 'mobx';
-import { CollectionIcon } from 'outline-icons';
+import { CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 import styled from 'styled-components';
 import Collection from 'models/Collection';
 import Document from 'models/Document';
@@ -45,7 +45,16 @@ class CollectionLink extends React.Component<Props> {
         <SidebarLink
           key={collection.id}
           to={collection.url}
-          icon={<CollectionIcon expanded={expanded} color={collection.color} />}
+          icon={
+            collection.private ? (
+              <PrivateCollectionIcon
+                expanded={expanded}
+                color={collection.color}
+              />
+            ) : (
+              <CollectionIcon expanded={expanded} color={collection.color} />
+            )
+          }
           iconColor={collection.color}
           expand={expanded}
           hideExpandToggle

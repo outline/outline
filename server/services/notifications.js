@@ -77,6 +77,7 @@ export default class Notifications {
       ],
     });
     if (!collection) return;
+    if (collection.private) return;
 
     const notificationSettings = await NotificationSetting.findAll({
       where: {

@@ -152,15 +152,55 @@ export default function Pricing() {
 
           <Method method="collections.update" label="Update a collection">
             <Description>
-              This method allows you to modify already created document.
+              This method allows you to modify an already created collection.
             </Description>
             <Arguments>
               <Argument id="id" description="Collection ID" required />
               <Argument id="name" description="Name for the collection" />
+              <Argument id="private" description="Boolean" />
               <Argument
                 id="color"
                 description="Collection color in hex form (e.g. #E1E1E1)"
               />
+            </Arguments>
+          </Method>
+
+          <Method method="collections.add_user" label="Add a collection member">
+            <Description>
+              This method allows you to add a user to a private collection.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
+              <Argument
+                id="userId"
+                description="User ID to add to the collection"
+              />
+            </Arguments>
+          </Method>
+
+          <Method
+            method="collections.remove_user"
+            label="Remove a collection member"
+          >
+            <Description>
+              This method allows you to remove a user from a private collection.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
+              <Argument
+                id="userId"
+                description="User ID to remove from the collection"
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="collections.users" label="List collection members">
+            <Description>
+              This method allows you to list users with access to a private
+              collection.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
             </Arguments>
           </Method>
 

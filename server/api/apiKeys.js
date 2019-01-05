@@ -48,7 +48,7 @@ router.post('apiKeys.list', auth(), pagination(), async ctx => {
 
 router.post('apiKeys.delete', auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
   const key = await ApiKey.findById(id);

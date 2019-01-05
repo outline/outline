@@ -3,7 +3,12 @@ import TestServer from 'fetch-test-server';
 import app from '..';
 import { Document, View, Star, Revision } from '../models';
 import { flushdb, seed } from '../test/support';
-import { buildShare, buildUser, buildDocument } from '../test/factories';
+import {
+  buildShare,
+  buildCollection,
+  buildUser,
+  buildDocument,
+} from '../test/factories';
 
 const server = new TestServer(app.callback());
 
@@ -22,6 +27,18 @@ describe('#documents.info', async () => {
     expect(body.data.id).toEqual(document.id);
   });
 
+  it('should not return published document in collection not a member of', async () => {
+    const { user, document, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it('should return drafts', async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -36,7 +53,7 @@ describe('#documents.info', async () => {
     expect(body.data.id).toEqual(document.id);
   });
 
-  it('should return redacted document from shareId without token', async () => {
+  it('should return document from shareId without token', async () => {
     const { document } = await seed();
     const share = await buildShare({
       documentId: document.id,
@@ -141,6 +158,20 @@ describe('#documents.list', async () => {
     expect(body.data.length).toEqual(1);
   });
 
+  it('should not return documents in private collections not a member of', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post('/api/documents.list', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it('should allow changing sort direction', async () => {
     const { user, document } = await seed();
     const res = await server.post('/api/documents.list', {
@@ -189,6 +220,23 @@ describe('#documents.drafts', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
   });
+
+  it('should not return documents in private collections not a member of', async () => {
+    const { user, document, collection } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post('/api/documents.drafts', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
 });
 
 describe('#documents.revision', async () => {
@@ -206,6 +254,18 @@ describe('#documents.revision', async () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).not.toEqual(document.id);
     expect(body.data[0].title).toEqual(document.title);
+  });
+
+  it('should not return revisions for document in collection not a member of', async () => {
+    const { user, document, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post('/api/documents.revisions', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it('should require authorization', async () => {
@@ -296,6 +356,26 @@ describe('#documents.search', async () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it('should not return documents in private collections not a member of', async () => {
+    const { user } = await seed();
+    const collection = await buildCollection({ private: true });
+
+    await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      publishedAt: null,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post('/api/documents.search', {
+      body: { token: user.getJwtToken(), query: 'search term' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it('should require authentication', async () => {
     const res = await server.post('/api/documents.search');
     const body = await res.json();
@@ -335,6 +415,21 @@ describe('#documents.viewed', async () => {
     const { user, document } = await seed();
     await View.increment({ documentId: document.id, userId: user.id });
     await document.destroy();
+
+    const res = await server.post('/api/documents.viewed', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it('should not return recently viewed documents in collection not a member of', async () => {
+    const { user, document, collection } = await seed();
+    await View.increment({ documentId: document.id, userId: user.id });
+    collection.private = true;
+    await collection.save();
 
     const res = await server.post('/api/documents.viewed', {
       body: { token: user.getJwtToken() },

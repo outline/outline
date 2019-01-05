@@ -1,21 +1,24 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
+import Flex from 'shared/components/Flex';
 
 type Props = {
   image?: React.Node,
   title: string,
-  subtitle: React.Node,
+  subtitle?: React.Node,
   actions?: React.Node,
 };
 
 const ListItem = ({ image, title, subtitle, actions }: Props) => {
+  const compact = !subtitle;
+
   return (
-    <Wrapper>
+    <Wrapper compact={compact}>
       {image && <Image>{image}</Image>}
-      <Content>
+      <Content align={compact ? 'center' : undefined} column={!compact}>
         <Heading>{title}</Heading>
-        <Subtitle>{subtitle}</Subtitle>
+        {subtitle && <Subtitle>{subtitle}</Subtitle>}
       </Content>
       {actions && <Actions>{actions}</Actions>}
     </Wrapper>
@@ -24,22 +27,26 @@ const ListItem = ({ image, title, subtitle, actions }: Props) => {
 
 const Wrapper = styled.li`
   display: flex;
-  padding: 12px 0;
+  padding: ${props => (props.compact ? '8px' : '12px')} 0;
   margin: 0;
   border-bottom: 1px solid ${props => props.theme.smokeDark};
 `;
 
-const Image = styled.div`
+const Image = styled(Flex)`
   padding: 0 8px 0 0;
   max-height: 40px;
+  align-items: center;
+  user-select: none;
 `;
 
-const Heading = styled.h2`
+const Heading = styled.p`
   font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
   margin: 0;
 `;
 
-const Content = styled.div`
+const Content = styled(Flex)`
   flex-grow: 1;
 `;
 

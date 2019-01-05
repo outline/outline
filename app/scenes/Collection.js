@@ -4,7 +4,12 @@ import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { CollectionIcon, NewDocumentIcon, PinIcon } from 'outline-icons';
+import {
+  CollectionIcon,
+  PrivateCollectionIcon,
+  NewDocumentIcon,
+  PinIcon,
+} from 'outline-icons';
 import RichMarkdownEditor from 'rich-markdown-editor';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
@@ -19,12 +24,15 @@ import Actions, { Action, Separator } from 'components/Actions';
 import Heading from 'components/Heading';
 import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
+import Mask from 'components/Mask';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
 import DocumentList from 'components/DocumentList';
 import Subheading from 'components/Subheading';
 import PageTitle from 'components/PageTitle';
 import Flex from 'shared/components/Flex';
+import Modal from 'components/Modal';
+import CollectionPermissions from 'scenes/CollectionPermissions';
 
 type Props = {
   ui: UiStore,
@@ -38,6 +46,7 @@ type Props = {
 class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
+  @observable permissionsModalOpen: boolean = false;
 
   componentDidMount() {
     this.loadContent(this.props.match.params.id);
@@ -82,6 +91,15 @@ class CollectionScene extends React.Component<Props> {
     }
   };
 
+  onPermissions = (ev: SyntheticEvent<*>) => {
+    ev.preventDefault();
+    this.permissionsModalOpen = true;
+  };
+
+  handlePermissionsModalClose = () => {
+    this.permissionsModalOpen = false;
+  };
+
   renderActions() {
     return (
       <Actions align="center" justify="flex-end">
@@ -101,29 +119,6 @@ class CollectionScene extends React.Component<Props> {
     );
   }
 
-  renderEmptyCollection() {
-    if (!this.collection) return null;
-
-    return (
-      <CenteredContent>
-        <PageTitle title={this.collection.name} />
-        <Heading>
-          <CollectionIcon color={this.collection.color} size={40} expanded />{' '}
-          {this.collection.name}
-        </Heading>
-        <HelpText>
-          Publish your first document to start building this collection.
-        </HelpText>
-        <Wrapper>
-          <Link to={newDocumentUrl(this.collection)}>
-            <Button>Create new document</Button>
-          </Link>
-        </Wrapper>
-        {this.renderActions()}
-      </CenteredContent>
-    );
-  }
-
   renderNotFound() {
     return <Search notFound />;
   }
@@ -131,9 +126,6 @@ class CollectionScene extends React.Component<Props> {
   render() {
     if (!this.isFetching && !this.collection) {
       return this.renderNotFound();
-    }
-    if (this.collection && this.collection.isEmpty) {
-      return this.renderEmptyCollection();
     }
 
     const pinnedDocuments = this.collection
@@ -143,43 +135,85 @@ class CollectionScene extends React.Component<Props> {
       ? this.props.documents.recentlyUpdatedInCollection(this.collection.id)
       : [];
     const hasPinnedDocuments = !!pinnedDocuments.length;
+    const collection = this.collection;
 
     return (
       <CenteredContent>
-        {this.collection ? (
+        {collection ? (
           <React.Fragment>
-            <PageTitle title={this.collection.name} />
+            <PageTitle title={collection.name} />
             <Heading>
-              <CollectionIcon
-                color={this.collection.color}
-                size={40}
-                expanded
-              />{' '}
-              {this.collection.name}
+              {collection.private ? (
+                <PrivateCollectionIcon
+                  color={collection.color}
+                  size={40}
+                  expanded
+                />
+              ) : (
+                <CollectionIcon color={collection.color} size={40} expanded />
+              )}{' '}
+              {collection.name}
             </Heading>
-            {this.collection.description && (
-              <RichMarkdownEditor
-                key={this.collection.description}
-                defaultValue={this.collection.description}
-                readOnly
-              />
-            )}
-
-            {hasPinnedDocuments && (
+            {collection.isEmpty ? (
               <React.Fragment>
-                <Subheading>
-                  <TinyPinIcon size={18} /> Pinned
-                </Subheading>
-                <DocumentList documents={pinnedDocuments} />
+                <HelpText>
+                  Collections are for grouping your knowledge base. Get started
+                  by creating a new document.
+                </HelpText>
+                <Wrapper>
+                  <Link to={newDocumentUrl(collection)}>
+                    <Button>Create new document</Button>
+                  </Link>&nbsp;&nbsp;
+                  {collection.private && (
+                    <Button onClick={this.onPermissions} neutral>
+                      Invite people
+                    </Button>
+                  )}
+                </Wrapper>
+                <Modal
+                  title="Collection permissions"
+                  onRequestClose={this.handlePermissionsModalClose}
+                  isOpen={this.permissionsModalOpen}
+                >
+                  <CollectionPermissions
+                    collection={this.collection}
+                    onSubmit={this.handlePermissionsModalClose}
+                  />
+                </Modal>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                {collection.description && (
+                  <RichMarkdownEditor
+                    key={collection.description}
+                    defaultValue={collection.description}
+                    readOnly
+                  />
+                )}
+
+                {hasPinnedDocuments && (
+                  <React.Fragment>
+                    <Subheading>
+                      <TinyPinIcon size={18} /> Pinned
+                    </Subheading>
+                    <DocumentList documents={pinnedDocuments} />
+                  </React.Fragment>
+                )}
+
+                <Subheading>Recently edited</Subheading>
+                <DocumentList documents={recentDocuments} limit={10} />
               </React.Fragment>
             )}
 
-            <Subheading>Recently edited</Subheading>
-            <DocumentList documents={recentDocuments} limit={10} />
             {this.renderActions()}
           </React.Fragment>
         ) : (
-          <ListPlaceholder count={5} />
+          <React.Fragment>
+            <Heading>
+              <Mask height={35} />
+            </Heading>
+            <ListPlaceholder count={5} />
+          </React.Fragment>
         )}
       </CenteredContent>
     );

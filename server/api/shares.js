@@ -80,7 +80,7 @@ router.post('shares.create', auth(), async ctx => {
 
 router.post('shares.revoke', auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
   const share = await Share.findById(id);

@@ -1,10 +1,9 @@
 // @flow
 import Document from '../models/Document';
-import DocumentsStore from '../stores/DocumentsStore';
 
 type Options = {
   file: File,
-  documents: DocumentsStore,
+  documents: *,
   collectionId: string,
   documentId?: string,
 };

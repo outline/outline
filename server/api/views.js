@@ -10,7 +10,7 @@ const router = new Router();
 
 router.post('views.list', auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
@@ -40,7 +40,7 @@ router.post('views.list', auth(), async ctx => {
 
 router.post('views.create', auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
