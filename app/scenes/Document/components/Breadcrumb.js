@@ -4,7 +4,7 @@ import { observer, inject } from 'mobx-react';
 import breakpoint from 'styled-components-breakpoint';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { CollectionIcon, PadlockIcon, GoToIcon } from 'outline-icons';
+import { CollectionIcon, PrivateCollectionIcon, GoToIcon } from 'outline-icons';
 
 import Document from 'models/Document';
 import CollectionsStore from 'stores/CollectionsStore';
@@ -27,7 +27,7 @@ const Breadcrumb = observer(({ document, collections }: Props) => {
     <Wrapper justify="flex-start" align="center">
       <CollectionName to={collectionUrl(collection.id)}>
         {collection.private ? (
-          <PadlockIcon color={collection.color} />
+          <PrivateCollectionIcon color={collection.color} expanded />
         ) : (
           <CollectionIcon color={collection.color} expanded />
         )}{' '}

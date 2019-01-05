@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import { inject } from 'mobx-react';
-import { MoreIcon, CollectionIcon } from 'outline-icons';
+import { MoreIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
@@ -42,7 +42,12 @@ class NewDocumentMenu extends React.Component<Props> {
             key={collection.id}
             onClick={() => this.handleNewDocument(collection)}
           >
-            <CollectionIcon color={collection.color} /> {collection.name}
+            {collection.private ? (
+              <PrivateCollectionIcon color={collection.color} />
+            ) : (
+              <CollectionIcon color={collection.color} />
+            )}{' '}
+            {collection.name}
           </DropdownMenuItem>
         ))}
       </DropdownMenu>

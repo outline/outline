@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import { observable } from 'mobx';
-import { CollectionIcon, PadlockIcon } from 'outline-icons';
+import { CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 import styled from 'styled-components';
 import Collection from 'models/Collection';
 import Document from 'models/Document';
@@ -47,7 +47,10 @@ class CollectionLink extends React.Component<Props> {
           to={collection.url}
           icon={
             collection.private ? (
-              <PadlockIcon color={collection.color} />
+              <PrivateCollectionIcon
+                expanded={expanded}
+                color={collection.color}
+              />
             ) : (
               <CollectionIcon expanded={expanded} color={collection.color} />
             )

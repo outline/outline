@@ -6,7 +6,7 @@ import { withRouter, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   CollectionIcon,
-  PadlockIcon,
+  PrivateCollectionIcon,
   NewDocumentIcon,
   PinIcon,
 } from 'outline-icons';
@@ -143,7 +143,11 @@ class CollectionScene extends React.Component<Props> {
             <PageTitle title={collection.name} />
             <Heading>
               {collection.private ? (
-                <PadlockIcon color={collection.color} size={40} />
+                <PrivateCollectionIcon
+                  color={collection.color}
+                  size={40}
+                  expanded
+                />
               ) : (
                 <CollectionIcon color={collection.color} size={40} expanded />
               )}{' '}
