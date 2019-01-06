@@ -10,7 +10,7 @@ import { fadeAndScaleIn } from '../../../shared/styles/animations';
 import {
   developers,
   changelog,
-  features,
+  pricing,
   about,
   integrations,
   privacy,
@@ -43,17 +43,17 @@ function TopNavigation({ sessions, loggedIn }: Props) {
       </Brand>
       <Menu>
         <MenuItemDesktop>
-          <a href={features()}>Features</a>
-        </MenuItemDesktop>
-        <MenuItemDesktop>
           <a href={integrations()}>Integrations</a>
         </MenuItemDesktop>
+        <MenuItem>
+          <a href={pricing()}>Pricing</a>
+        </MenuItem>
         <MenuItemDesktop>
           <a href={changelog()}>Changelog</a>
         </MenuItemDesktop>
-        <MenuItem>
+        <MenuItemDesktop>
           <a href={developers()}>API</a>
-        </MenuItem>
+        </MenuItemDesktop>
         {loggedIn ? (
           <React.Fragment>
             {process.env.SUBDOMAINS_ENABLED === 'true' &&
