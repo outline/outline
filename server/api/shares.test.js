@@ -50,7 +50,7 @@ describe('#shares.list', async () => {
     expect(body.data.length).toEqual(0);
   });
 
-  it('admins should only return shares created by all users', async () => {
+  it('admins should return shares created by all users', async () => {
     const { admin, document } = await seed();
     const share = await buildShare({
       documentId: document.id,
@@ -65,6 +65,25 @@ describe('#shares.list', async () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(share.id);
     expect(body.data[0].documentTitle).toBe(document.title);
+  });
+
+  it('admins should not return shares in collection not a member of', async () => {
+    const { admin, document, collection } = await seed();
+    await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+    });
+
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post('/api/shares.list', {
+      body: { token: admin.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
   });
 
   it('should require authentication', async () => {
