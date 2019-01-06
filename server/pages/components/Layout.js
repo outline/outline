@@ -70,7 +70,7 @@ function Layout({ children, loggedIn, sessions }: Props) {
         <TopNavigation sessions={sessions} loggedIn={loggedIn} />
         {children}
         <BottomNavigation />
-        <script src="https://cdn.authing.cn/sdk/javascript/authing-login-form-1.2.3.js"></script>
+        <script src="https://cdn.authing.cn/sdk/javascript/authing-login-form-1.3.0.js"></script>
         <script src={`${process.env.URL}/scripts/login-form.js?v=${Math.round(Math.random() * 100000)}`}></script>
       </Body>
     </html>
