@@ -27,7 +27,8 @@ type Props = {
 
 @observer
 class CollectionPermissions extends React.Component<Props> {
-  @observable isSaving: boolean;
+  @observable isEdited: boolean = false;
+  @observable isSaving: boolean = false;
   @observable filter: string;
 
   componentDidMount() {
@@ -35,10 +36,17 @@ class CollectionPermissions extends React.Component<Props> {
     this.props.collection.fetchUsers();
   }
 
+  componentWillUnmount() {
+    if (this.isEdited) {
+      this.props.ui.showToast('Permissions updated');
+    }
+  }
+
   handlePrivateChange = async (ev: SyntheticInputEvent<*>) => {
     const { collection } = this.props;
 
     try {
+      this.isEdited = true;
       collection.private = ev.target.checked;
       await collection.save();
 
@@ -53,6 +61,7 @@ class CollectionPermissions extends React.Component<Props> {
 
   handleAddUser = user => {
     try {
+      this.isEdited = true;
       this.props.collection.addUser(user);
     } catch (err) {
       this.props.ui.showToast('Could not add user');
@@ -61,6 +70,7 @@ class CollectionPermissions extends React.Component<Props> {
 
   handleRemoveUser = user => {
     try {
+      this.isEdited = true;
       this.props.collection.removeUser(user);
     } catch (err) {
       this.props.ui.showToast('Could not remove user');

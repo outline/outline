@@ -25,38 +25,40 @@ type Props = {
 
 @observer
 class Collections extends React.Component<Props> {
+  isPreloaded: boolean = !!this.props.collections.orderedData.length;
+
   componentDidMount() {
     this.props.collections.fetchPage({ limit: 100 });
   }
 
   render() {
     const { history, location, collections, ui, documents } = this.props;
+    const content = (
+      <Flex column>
+        <Header>Collections</Header>
+        {collections.orderedData.map(collection => (
+          <CollectionLink
+            key={collection.id}
+            history={history}
+            location={location}
+            collection={collection}
+            activeDocument={documents.active}
+            prefetchDocument={documents.prefetchDocument}
+            ui={ui}
+          />
+        ))}
+        <SidebarLink
+          onClick={this.props.onCreateCollection}
+          icon={<PlusIcon />}
+        >
+          New collection…
+        </SidebarLink>
+      </Flex>
+    );
 
     return (
-      collections.isLoaded && (
-        <Fade>
-          <Flex column>
-            <Header>Collections</Header>
-            {collections.orderedData.map(collection => (
-              <CollectionLink
-                key={collection.id}
-                history={history}
-                location={location}
-                collection={collection}
-                activeDocument={documents.active}
-                prefetchDocument={documents.prefetchDocument}
-                ui={ui}
-              />
-            ))}
-            <SidebarLink
-              onClick={this.props.onCreateCollection}
-              icon={<PlusIcon />}
-            >
-              New collection…
-            </SidebarLink>
-          </Flex>
-        </Fade>
-      )
+      collections.isLoaded &&
+      (this.isPreloaded ? content : <Fade>{content}</Fade>)
     );
   }
 }

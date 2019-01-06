@@ -1,60 +1,53 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { darken } from 'polished';
+import { darken, lighten } from 'polished';
 
 const RealButton = styled.button`
   display: inline-block;
   margin: 0;
   padding: 0;
   border: 0;
-  background: ${props => props.theme.primary};
+  background: ${props => props.theme.blackLight};
   color: ${props => props.theme.white};
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px;
   border-radius: 4px;
-  font-size: 15px;
+  font-size: 12px;
+  font-weight: 500;
   height: 36px;
   text-decoration: none;
+  text-transform: uppercase;
   flex-shrink: 0;
   outline: none;
   cursor: pointer;
+  user-select: none;
 
   &::-moz-focus-inner {
     padding: 0;
     border: 0;
   }
-  &:hover {
-    background: ${props => darken(0.05, props.theme.primary)};
-  }
 
-  svg {
-    position: relative;
-    top: 0.05em;
+  &:hover {
+    background: ${props => darken(0.05, props.theme.blackLight)};
   }
 
   &:disabled {
-    opacity: 0.6;
     cursor: default;
+    pointer-events: none;
+    color: ${props => lighten(0.2, props.theme.blackLight)};
   }
 
   ${props =>
-    props.light &&
+    props.neutral &&
     `
-    color: ${props.theme.slate};
-    background: transparent;
-    border: 1px solid ${props.theme.slate};
+    background: ${props.theme.white};
+    color: ${props.theme.text};
+    box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px;
+    border: 1px solid ${props.theme.slateLight};
 
     &:hover {
-      background: transparent;
-      color: ${props.theme.slateDark};
-      border: 1px solid ${props.theme.slateDark};
-    }
-  `} ${props =>
-      props.neutral &&
-      `
-    background: ${props.theme.slate};
-
-    &:hover {
-      background: ${darken(0.05, props.theme.slate)};
+      background: ${darken(0.05, props.theme.white)};
+      border: 1px solid ${darken(0.05, props.theme.slateLight)};
     }
   `} ${props =>
       props.danger &&
@@ -72,7 +65,7 @@ const Label = styled.span`
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  ${props => props.hasIcon && 'padding-left: 2px;'};
+  ${props => props.hasIcon && 'padding-left: 4px;'};
 `;
 
 const Inner = styled.span`
@@ -84,7 +77,7 @@ const Inner = styled.span`
 
   ${props =>
     props.hasIcon &&
-    (props.small ? 'padding-left: 6px;' : 'padding-left: 10px;')};
+    (props.small ? 'padding-left: 6px;' : 'padding-left: 8px;')};
 `;
 
 export type Props = {

@@ -18,7 +18,7 @@ const UserListItem = ({ user, onAdd, showAdd }: Props) => {
       image={<Avatar src={user.avatarUrl} size={32} />}
       actions={
         showAdd ? (
-          <Button type="button" onClick={onAdd}>
+          <Button type="button" onClick={onAdd} neutral>
             Invite
           </Button>
         ) : (

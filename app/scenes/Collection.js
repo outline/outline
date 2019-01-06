@@ -142,27 +142,17 @@ class CollectionScene extends React.Component<Props> {
         {collection ? (
           <React.Fragment>
             <PageTitle title={collection.name} />
-            <Heading>
-              {collection.private ? (
-                <PrivateCollectionIcon
-                  color={collection.color}
-                  size={40}
-                  expanded
-                />
-              ) : (
-                <CollectionIcon color={collection.color} size={40} expanded />
-              )}{' '}
-              {collection.name}
-            </Heading>
             {collection.isEmpty ? (
-              <React.Fragment>
+              <Centered column>
                 <HelpText>
-                  Collections are for grouping your knowledge base. Get started
-                  by creating a new document.
+                  <strong>{collection.name}</strong> doesn’t contain any
+                  documents yet.<br />Get started by creating a new one!
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection)}>
-                    <Button>Create new document</Button>
+                    <Button icon={<NewDocumentIcon color="#FFF" />}>
+                      Create a document
+                    </Button>
                   </Link>&nbsp;&nbsp;
                   {collection.private && (
                     <Button onClick={this.onPermissions} neutral>
@@ -180,9 +170,26 @@ class CollectionScene extends React.Component<Props> {
                     onSubmit={this.handlePermissionsModalClose}
                   />
                 </Modal>
-              </React.Fragment>
+              </Centered>
             ) : (
               <React.Fragment>
+                <Heading>
+                  {collection.private ? (
+                    <PrivateCollectionIcon
+                      color={collection.color}
+                      size={40}
+                      expanded
+                    />
+                  ) : (
+                    <CollectionIcon
+                      color={collection.color}
+                      size={40}
+                      expanded
+                    />
+                  )}{' '}
+                  {collection.name}
+                </Heading>
+
                 {collection.description && (
                   <RichMarkdownEditor
                     key={collection.description}
@@ -220,6 +227,13 @@ class CollectionScene extends React.Component<Props> {
   }
 }
 
+const Centered = styled(Flex)`
+  text-align: center;
+  margin: 40vh auto 0;
+  max-width: 380px;
+  transform: translateY(-50%);
+`;
+
 const TinyPinIcon = styled(PinIcon)`
   position: relative;
   top: 4px;
@@ -227,6 +241,7 @@ const TinyPinIcon = styled(PinIcon)`
 `;
 
 const Wrapper = styled(Flex)`
+  justify-content: center;
   margin: 10px 0;
 `;
 
