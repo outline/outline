@@ -11,6 +11,7 @@ import Lucidchart from './Lucidchart';
 import Marvel from './Marvel';
 import ModeAnalytics from './ModeAnalytics';
 import Numeracy from './Numeracy';
+import Prezi from './Prezi';
 import RealtimeBoard from './RealtimeBoard';
 import Spotify from './Spotify';
 import Trello from './Trello';
@@ -31,6 +32,7 @@ export default {
   Marvel,
   ModeAnalytics,
   Numeracy,
+  Prezi,
   RealtimeBoard,
   Spotify,
   Trello,

@@ -18,8 +18,6 @@ export default class YouTube extends React.Component<Props> {
 
     return (
       <Frame
-        width="420px"
-        height="235px"
         src={`https://www.youtube.com/embed/${videoId}?modestbranding=1`}
         title={`YouTube (${videoId})`}
       />
