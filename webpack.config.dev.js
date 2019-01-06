@@ -21,7 +21,7 @@ developmentWebpackConfig.plugins = [
   new ExtractTextPlugin({ filename: 'styles.css' }),
   new webpack.HotModuleReplacementPlugin(),
   new HtmlWebpackPlugin({
-    title: 'Outline',
+    title: '大事记',
   }),
 ];
 
