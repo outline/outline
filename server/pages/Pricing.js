@@ -3,18 +3,17 @@ import * as React from 'react';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import Grid from 'styled-components-grid';
-import { Helmet } from 'react-helmet';
+import PageTitle from './components/PageTitle';
 import Header from './components/Header';
 import Content from './components/Content';
 import Button from './components/Button';
 import Notice from '../../shared/components/Notice';
+import { mailToUrl, githubUrl } from '../../shared/utils/routeHelpers';
 
 export default function Pricing() {
   return (
     <Grid>
-      <Helmet>
-        <title>Pricing</title>
-      </Helmet>
+      <PageTitle title="Pricing" />
       <Header background="#00adff">
         <h1>Our Pricing</h1>
         <p>Our pricing is simple. You’ll only pay for what you use.</p>
@@ -57,7 +56,9 @@ export default function Pricing() {
                   $
                 </span>
                 <span itemprop="price">5</span>{' '}
-                <Period>per seat per month</Period>
+                <Period>
+                  <strong>per seat</strong> per month
+                </Period>
               </Price>
             </div>
             <div itemprop="description">
@@ -70,15 +71,18 @@ export default function Pricing() {
               </ul>
             </div>
             <Notice>
-              Note: Outline is currently in Beta. This plan is currently free
-              until public release in Q1 2019.
+              Note: Outline is in Beta. This plan is currently free until public
+              release in Q1 2019.
             </Notice>
           </Plan>
         </Grid>
       </Content>
       <Content>
-        <h2>Self Hosted</h2>
-        <p>Host your own instance on-premise or in the cloud</p>
+        <Centered>
+          <br />
+          <h2>Self Hosted</h2>
+          <p>Host your own instance on-premise or in the cloud.</p>
+        </Centered>
         <Grid>
           <Plan
             size={{ desktop: 1 / 2 }}
@@ -98,9 +102,11 @@ export default function Pricing() {
               Outline’s codebase is open source. If you wish to run the service
               on your own infrastructure you can do so.
             </p>
-            <p>
-              <Button>GitHub</Button>
-            </p>
+            <Centered>
+              <Button href={githubUrl()} target="_blank">
+                Source Code
+              </Button>
+            </Centered>
           </Plan>
           <Plan
             size={{ desktop: 1 / 2 }}
@@ -118,12 +124,12 @@ export default function Pricing() {
             </div>
 
             <p itemprop="description">
-              Run Outline on your own infrastructure. Get dedicated support with
-              setup, maintainence, and product issues.
+              Support continued development of Outline. Get dedicated support
+              with setup, maintainence, and product issues.
             </p>
-            <p>
-              <Button>Contact Us</Button>
-            </p>
+            <Centered>
+              <Button href={mailToUrl()}>Contact Us</Button>
+            </Centered>
           </Plan>
         </Grid>
       </Content>
@@ -170,6 +176,10 @@ const Plan = styled(Grid.Unit)`
       }
     }
   }
+`;
+
+const Centered = styled.div`
+  text-align: center;
 `;
 
 const Name = styled.h3`

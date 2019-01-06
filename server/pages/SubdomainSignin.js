@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import Hero from './components/Hero';
@@ -8,6 +7,7 @@ import HeroText from './components/HeroText';
 import SigninButtons from './components/SigninButtons';
 import AuthErrors from './components/AuthErrors';
 import Centered from './components/Centered';
+import PageTitle from './components/PageTitle';
 import { Team } from '../models';
 
 type Props = {
@@ -36,9 +36,7 @@ function SubdomainSignin({
 
   return (
     <React.Fragment>
-      <Helmet>
-        <title>Outline - Sign in to {team.name}</title>
-      </Helmet>
+      <PageTitle title={`Sign in to ${team.name}`} />
       <Grid>
         <Hero>
           <h1>{lastSignedIn ? 'Welcome back,' : 'Hey there,'}</h1>

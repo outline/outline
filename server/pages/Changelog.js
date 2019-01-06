@@ -4,7 +4,7 @@ import { groupBy, map } from 'lodash';
 import format from 'date-fns/format';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
-import { Helmet } from 'react-helmet';
+import PageTitle from './components/PageTitle';
 import Markdown from './components/Markdown';
 import Header from './components/Header';
 import Content from './components/Content';
@@ -25,9 +25,7 @@ function Changelog({ releases }: Props) {
 
   return (
     <Grid>
-      <Helmet>
-        <title>Changelog</title>
-      </Helmet>
+      <PageTitle title="Changelog" />
       <Header background="#00ADFF">
         <h1>Changelog</h1>
         <p>We’re building in public. Here’s what has changed recently.</p>

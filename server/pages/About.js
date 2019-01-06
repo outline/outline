@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Grid from 'styled-components-grid';
 import styled from 'styled-components';
-import { Helmet } from 'react-helmet';
+import PageTitle from './components/PageTitle';
 import Flex from '../../shared/components/Flex';
 import Header from './components/Header';
 import Content from './components/Content';
@@ -35,9 +35,8 @@ const Avatar = styled.img`
 export default function About() {
   return (
     <Grid>
-      <Helmet>
-        <title>About Us</title>
-      </Helmet>
+      <PageTitle title="About Us" />
+
       <Header background="#F22C5F">
         <h1>About Us</h1>
         <p>The team behind Outline</p>
