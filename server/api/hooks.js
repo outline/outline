@@ -1,7 +1,7 @@
 // @flow
 import Router from 'koa-router';
 import { AuthenticationError, InvalidRequestError } from '../errors';
-import { Authentication, Document, User } from '../models';
+import { Authentication, Document, User, Team } from '../models';
 import { presentSlackAttachment } from '../presenters';
 import * as Slack from '../slack';
 const router = new Router();
@@ -64,6 +64,8 @@ router.post('hooks.slack', async ctx => {
 
   if (!user) throw new InvalidRequestError('Invalid user');
 
+  const team = await Team.findById(user.teamId);
+
   const results = await Document.searchForUser(user, text, {
     limit: 5,
   });
@@ -78,6 +80,7 @@ router.post('hooks.slack', async ctx => {
       attachments.push(
         presentSlackAttachment(
           result.document,
+          team,
           queryIsInTitle ? undefined : result.context
         )
       );
