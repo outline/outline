@@ -4,7 +4,6 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { CloseIcon } from 'outline-icons';
-import Button from './Button';
 import Tooltip from './Tooltip';
 import Flex from 'shared/components/Flex';
 

@@ -14,7 +14,7 @@ const RealButton = styled.button`
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
-  height: 36px;
+  height: ${props => (props.small ? 24 : 36)}px;
   text-decoration: none;
   text-transform: uppercase;
   flex-shrink: 0;
@@ -69,9 +69,9 @@ const Label = styled.span`
 `;
 
 const Inner = styled.span`
-  padding: 0 12px;
+  padding: 0 ${props => (props.small ? 8 : 12)}px;
   display: flex;
-  line-height: 28px;
+  line-height: ${props => (props.small ? 24 : 28)}px;
   justify-content: center;
   align-items: center;
 
@@ -86,6 +86,7 @@ export type Props = {
   icon?: React.Node,
   className?: string,
   children?: React.Node,
+  small?: boolean,
 };
 
 export default function Button({
@@ -93,14 +94,15 @@ export default function Button({
   icon,
   children,
   value,
+  small,
   ...rest
 }: Props) {
   const hasText = children !== undefined || value !== undefined;
   const hasIcon = icon !== undefined;
 
   return (
-    <RealButton {...rest}>
-      <Inner hasIcon={hasIcon}>
+    <RealButton small={small} {...rest}>
+      <Inner hasIcon={hasIcon} small={small}>
         {hasIcon && icon}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
       </Inner>

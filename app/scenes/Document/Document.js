@@ -300,7 +300,9 @@ class DocumentScene extends React.Component<Props> {
     if (!document || !Editor) {
       return (
         <Container column auto>
-          <PageTitle title={location.state ? location.state.title : ''} />
+          <PageTitle
+            title={location.state ? location.state.title : 'Untitled'}
+          />
           <CenteredContent>
             <LoadingState />
           </CenteredContent>
@@ -330,7 +332,7 @@ class DocumentScene extends React.Component<Props> {
             )}
           />
           <PageTitle
-            title={document.title.replace(document.emoji, '')}
+            title={document.title.replace(document.emoji, '') || 'Untitled'}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}

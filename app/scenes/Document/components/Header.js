@@ -15,6 +15,7 @@ import Breadcrumb from './Breadcrumb';
 import DocumentMenu from 'menus/DocumentMenu';
 import NewChildDocumentMenu from 'menus/NewChildDocumentMenu';
 import DocumentShare from 'scenes/DocumentShare';
+import Button from 'components/Button';
 import Modal from 'components/Modal';
 import Collaborators from 'components/Collaborators';
 import { Action, Separator } from 'components/Actions';
@@ -126,45 +127,53 @@ class Header extends React.Component<Props> {
                 <Status>Saving…</Status>
               </Action>
             )}
-          {isDraft && (
-            <Action>
-              <Link
-                onClick={this.handlePublish}
-                title="Publish document (Cmd+Enter)"
-                disabled={savingIsDisabled}
-                highlight
-              >
-                {isPublishing ? 'Publishing…' : 'Publish'}
-              </Link>
-            </Action>
-          )}
           {!isDraft &&
             !isEditing &&
             canShareDocuments && (
               <Action>
-                <Link onClick={this.handleShareLink} title="Share document">
+                <Button
+                  onClick={this.handleShareLink}
+                  title="Share document"
+                  neutral
+                  small
+                >
                   Share
-                </Link>
+                </Button>
               </Action>
             )}
           {isEditing && (
             <React.Fragment>
               <Action>
-                <Link
+                <Button
                   onClick={this.handleSave}
                   title="Save changes (Cmd+Enter)"
                   disabled={savingIsDisabled}
                   isSaving={isSaving}
-                  highlight={!isDraft}
+                  neutral={isDraft}
+                  small
                 >
-                  {isDraft ? 'Save Draft' : 'Done'}
-                </Link>
+                  {isDraft ? 'Save Draft' : 'Done Editing'}
+                </Button>
               </Action>
             </React.Fragment>
           )}
+          {isDraft && (
+            <Action>
+              <Button
+                onClick={this.handlePublish}
+                title="Publish document (Cmd+Enter)"
+                disabled={savingIsDisabled}
+                small
+              >
+                {isPublishing ? 'Publishing…' : 'Publish'}
+              </Button>
+            </Action>
+          )}
           {!isEditing && (
             <Action>
-              <Link onClick={this.handleEdit}>Edit</Link>
+              <Button onClick={this.handleEdit} neutral small>
+                Edit
+              </Button>
             </Action>
           )}
           {!isEditing && (
@@ -248,17 +257,6 @@ const Title = styled.div`
     display: block;
     flex-grow: 1;
   `};
-`;
-
-const Link = styled.a`
-  display: flex;
-  align-items: center;
-  font-weight: ${props => (props.highlight ? 500 : 'inherit')};
-  color: ${props =>
-    props.highlight ? `${props.theme.primary} !important` : 'inherit'};
-  opacity: ${props => (props.disabled ? 0.5 : 1)};
-  pointer-events: ${props => (props.disabled ? 'none' : 'auto')};
-  cursor: ${props => (props.disabled ? 'default' : 'pointer')};
 `;
 
 export default inject('auth')(Header);

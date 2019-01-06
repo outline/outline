@@ -46,7 +46,8 @@ const Modal = ({
         <Content column>
           {title && <h1>{title}</h1>}
           <Close onClick={onRequestClose}>
-            <CloseIcon size={32} />
+            <CloseIcon size={40} />
+            <Esc>esc</Esc>
           </Close>
           {children}
         </Content>
@@ -78,6 +79,13 @@ const StyledModal = styled(ReactModal)`
   background: white;
   padding: 13vh 2rem 2rem;
   outline: none;
+`;
+
+const Esc = styled.span`
+  display: block;
+  text-align: center;
+  margin-top: -10px;
+  font-size: 13px;
 `;
 
 const Close = styled.a`
