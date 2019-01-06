@@ -4,6 +4,7 @@ import Codepen from './Codepen';
 import Figma from './Figma';
 import Framer from './Framer';
 import Gist from './Gist';
+import GoogleSlides from './GoogleSlides';
 import InVision from './InVision';
 import Loom from './Loom';
 import Lucidchart from './Lucidchart';
@@ -23,6 +24,7 @@ export default {
   Figma,
   Framer,
   Gist,
+  GoogleSlides,
   InVision,
   Loom,
   Lucidchart,
