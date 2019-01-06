@@ -1,7 +1,8 @@
 up:
 	docker-compose up -d redis postgres s3
 	docker-compose run --rm outline bash -c "yarn && yarn sequelize db:migrate"
-	docker-compose up outline
+	docker-compose up outline -d
+	docker-compose logs -f outline
 
 build:
 	docker-compose build --pull outline
