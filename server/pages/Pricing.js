@@ -26,15 +26,15 @@ export default function Pricing() {
             itemType="http://schema.org/Product"
           >
             <div>
-              <Name itemprop="name">Free</Name>
+              <Name itemProp="name">Free</Name>
               <Price>
-                <span itemprop="priceCurrency" content="USD">
+                <span itemProp="priceCurrency" content="USD">
                   $
                 </span>
-                <span itemprop="price">0</span>
+                <span itemProp="price">0</span>
               </Price>
             </div>
-            <div itemprop="description">
+            <div itemProp="description">
               <h4>Top features:</h4>
               <ul>
                 <li>Upto 5 team members</li>
@@ -50,18 +50,18 @@ export default function Pricing() {
             itemType="http://schema.org/Product"
           >
             <div>
-              <Name itemprop="name">Standard</Name>
+              <Name itemProp="name">Standard</Name>
               <Price>
-                <span itemprop="priceCurrency" content="USD">
+                <span itemProp="priceCurrency" content="USD">
                   $
                 </span>
-                <span itemprop="price">5</span>{' '}
+                <span itemProp="price">5</span>{' '}
                 <Period>
                   <strong>per seat</strong> per month
                 </Period>
               </Price>
             </div>
-            <div itemprop="description">
+            <div itemProp="description">
               <h4>Top features:</h4>
               <ul>
                 <li>Unlimited team members</li>
@@ -90,15 +90,15 @@ export default function Pricing() {
             itemType="http://schema.org/Product"
           >
             <div>
-              <Name itemprop="name">Open Source</Name>
+              <Name itemProp="name">Open Source</Name>
               <Price>
-                <span itemprop="priceCurrency" content="USD">
+                <span itemProp="priceCurrency" content="USD">
                   $
                 </span>
-                <span itemprop="price">0</span>
+                <span itemProp="price">0</span>
               </Price>
             </div>
-            <p itemprop="description">
+            <p itemProp="description">
               Outline’s codebase is open source. If you wish to run the service
               on your own infrastructure you can do so.
             </p>
@@ -114,16 +114,16 @@ export default function Pricing() {
             itemType="http://schema.org/Product"
           >
             <div>
-              <Name itemprop="name">Enterprise</Name>
+              <Name itemProp="name">Enterprise</Name>
               <Price>
-                <span itemprop="priceCurrency" content="USD">
+                <span itemProp="priceCurrency" content="USD">
                   $
                 </span>
-                <span itemprop="price">199</span> <Period>per month</Period>
+                <span itemProp="price">199</span> <Period>per month</Period>
               </Price>
             </div>
 
-            <p itemprop="description">
+            <p itemProp="description">
               Support continued development of Outline. Get dedicated support
               with setup, maintainence, and product issues.
             </p>
