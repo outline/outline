@@ -46,6 +46,7 @@ class DocumentLink extends React.Component<Props> {
         .includes(document.id) ||
         isActiveDocument)
     );
+    const hasChildren = !!document.children.length;
 
     return (
       <Flex
@@ -64,27 +65,24 @@ class DocumentLink extends React.Component<Props> {
               pathname: document.url,
               state: { title: document.title },
             }}
-            expand={showChildren}
-            expandedContent={
-              document.children.length ? (
-                <DocumentChildren column>
-                  {document.children.map(childDocument => (
-                    <DocumentLink
-                      key={childDocument.id}
-                      history={history}
-                      document={childDocument}
-                      activeDocument={activeDocument}
-                      prefetchDocument={prefetchDocument}
-                      depth={depth + 1}
-                    />
-                  ))}
-                </DocumentChildren>
-              ) : (
-                undefined
-              )
-            }
+            expanded={showChildren}
+            label={document.title}
+            depth={depth}
           >
-            {document.title}
+            {hasChildren && (
+              <DocumentChildren column>
+                {document.children.map(childDocument => (
+                  <DocumentLink
+                    key={childDocument.id}
+                    history={history}
+                    document={childDocument}
+                    activeDocument={activeDocument}
+                    prefetchDocument={prefetchDocument}
+                    depth={depth + 1}
+                  />
+                ))}
+              </DocumentChildren>
+            )}
           </SidebarLink>
         </DropToImport>
       </Flex>
@@ -92,9 +90,6 @@ class DocumentLink extends React.Component<Props> {
   }
 }
 
-const DocumentChildren = styled(Flex)`
-  margin-top: -4px;
-  margin-left: 12px;
-`;
+const DocumentChildren = styled(Flex)``;
 
 export default DocumentLink;

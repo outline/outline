@@ -3,7 +3,6 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import { observable } from 'mobx';
 import { CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
-import styled from 'styled-components';
 import Collection from 'models/Collection';
 import Document from 'models/Document';
 import CollectionMenu from 'menus/CollectionMenu';
@@ -56,23 +55,10 @@ class CollectionLink extends React.Component<Props> {
             )
           }
           iconColor={collection.color}
-          expand={expanded}
-          hideExpandToggle
+          expanded={expanded}
+          hideDisclosure
           menuOpen={this.menuOpen}
-          expandedContent={
-            <CollectionChildren column>
-              {collection.documents.map(document => (
-                <DocumentLink
-                  key={document.id}
-                  history={history}
-                  document={document}
-                  activeDocument={activeDocument}
-                  prefetchDocument={prefetchDocument}
-                  depth={0}
-                />
-              ))}
-            </CollectionChildren>
-          }
+          label={collection.name}
           menu={
             <CollectionMenu
               history={history}
@@ -82,23 +68,22 @@ class CollectionLink extends React.Component<Props> {
             />
           }
         >
-          <CollectionName justify="space-between">
-            {collection.name}
-          </CollectionName>
+          <Flex column>
+            {collection.documents.map(document => (
+              <DocumentLink
+                key={document.id}
+                history={history}
+                document={document}
+                activeDocument={activeDocument}
+                prefetchDocument={prefetchDocument}
+                depth={1.5}
+              />
+            ))}
+          </Flex>
         </SidebarLink>
       </DropToImport>
     );
   }
 }
-
-const CollectionName = styled(Flex)`
-  padding: 0 0 4px;
-`;
-
-const CollectionChildren = styled(Flex)`
-  margin-top: -4px;
-  margin-left: 36px;
-  padding-bottom: 4px;
-`;
 
 export default CollectionLink;

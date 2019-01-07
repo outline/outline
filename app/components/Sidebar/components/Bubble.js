@@ -18,9 +18,11 @@ const Wrapper = styled.div`
   color: ${props => props.theme.white};
   background: ${props => props.theme.slateDark};
   display: inline-block;
-  min-width: 15px;
-  padding: 0 5px;
+  font-feature-settings: "tnum";
+  font-weight: 500;
   font-size: 10px;
+  min-width: 15px;
+  padding: 0 4px;
   position: relative;
   top: -2px;
   left: 2px;

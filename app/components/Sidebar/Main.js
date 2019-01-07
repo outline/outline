@@ -7,8 +7,9 @@ import { HomeIcon, EditIcon, SearchIcon, StarredIcon } from 'outline-icons';
 
 import Flex from 'shared/components/Flex';
 import AccountMenu from 'menus/AccountMenu';
-import Sidebar, { Section } from './Sidebar';
+import Sidebar from './Sidebar';
 import Scrollable from 'components/Scrollable';
+import Section from './components/Section';
 import Collections from './components/Collections';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
@@ -56,24 +57,31 @@ class MainSidebar extends React.Component<Props> {
         <Flex auto column>
           <Scrollable shadow>
             <Section>
-              <SidebarLink to="/dashboard" icon={<HomeIcon />} exact={false}>
-                Home
-              </SidebarLink>
-              <SidebarLink to="/search" icon={<SearchIcon />}>
-                Search
-              </SidebarLink>
-              <SidebarLink to="/starred" icon={<StarredIcon />} exact={false}>
-                Starred
-              </SidebarLink>
+              <SidebarLink
+                to="/dashboard"
+                icon={<HomeIcon />}
+                exact={false}
+                label="Home"
+              />
+              <SidebarLink to="/search" icon={<SearchIcon />} label="Search" />
+              <SidebarLink
+                to="/starred"
+                icon={<StarredIcon />}
+                exact={false}
+                label="Starred"
+              />
               <SidebarLink
                 to="/drafts"
                 icon={<EditIcon />}
                 active={
                   documents.active ? !documents.active.publishedAt : undefined
                 }
-              >
-                Drafts <Bubble count={documents.drafts.length} />
-              </SidebarLink>
+                label={
+                  <React.Fragment>
+                    Drafts <Bubble count={documents.drafts.length} />
+                  </React.Fragment>
+                }
+              />
             </Section>
             <Section>
               <Collections

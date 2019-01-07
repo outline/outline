@@ -8,7 +8,7 @@ const Header = styled(Flex)`
   text-transform: uppercase;
   color: ${props => props.theme.slateDark};
   letter-spacing: 0.04em;
-  margin-bottom: 4px;
+  margin: 4px 16px;
 `;
 
 export default Header;
