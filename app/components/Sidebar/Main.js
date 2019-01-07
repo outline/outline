@@ -42,6 +42,8 @@ class MainSidebar extends React.Component<Props> {
     const { user, team } = auth;
     if (!user || !team) return null;
 
+    const draftDocumentsCount = documents.drafts.length;
+
     return (
       <Sidebar>
         <AccountMenu
@@ -72,14 +74,16 @@ class MainSidebar extends React.Component<Props> {
               />
               <SidebarLink
                 to="/drafts"
-                icon={<EditIcon />}
+                icon={
+                  draftDocumentsCount > 0 && draftDocumentsCount < 10 ? (
+                    <Bubble count={draftDocumentsCount} />
+                  ) : (
+                    <EditIcon />
+                  )
+                }
+                label="Drafts"
                 active={
                   documents.active ? !documents.active.publishedAt : undefined
-                }
-                label={
-                  <React.Fragment>
-                    Drafts <Bubble count={documents.drafts.length} />
-                  </React.Fragment>
                 }
               />
             </Section>
