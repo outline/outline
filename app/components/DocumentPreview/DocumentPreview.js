@@ -15,6 +15,7 @@ type Props = {
   highlight?: ?string,
   context?: ?string,
   showCollection?: boolean,
+  showPublished?: boolean,
   ref?: *,
 };
 
@@ -133,6 +134,7 @@ class DocumentPreview extends React.Component<Props> {
     const {
       document,
       showCollection,
+      showPublished,
       highlight,
       context,
       ...rest
@@ -173,6 +175,7 @@ class DocumentPreview extends React.Component<Props> {
         <PublishingInfo
           document={document}
           collection={showCollection ? document.collection : undefined}
+          showPublished={showPublished}
         />
       </DocumentLink>
     );

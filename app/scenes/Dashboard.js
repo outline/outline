@@ -12,8 +12,8 @@ import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
-import TipInvite from 'components/TipInvite';
 import PaginatedDocumentList from '../components/PaginatedDocumentList';
+import TipInvite from 'components/TipInvite';
 
 type Props = {
   documents: DocumentsStore,

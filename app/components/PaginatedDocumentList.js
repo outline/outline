@@ -11,6 +11,7 @@ import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 type Props = {
   showCollection?: boolean,
+  showPublished?: boolean,
   documents: Document[],
   fetch: (options: ?Object) => Promise<*>,
   options?: Object,
@@ -64,11 +65,15 @@ class PaginatedDocumentList extends React.Component<Props> {
   };
 
   render() {
-    const { showCollection, documents } = this.props;
+    const { showCollection, showPublished, documents } = this.props;
 
     return this.isLoaded || documents.length ? (
       <React.Fragment>
-        <DocumentList documents={documents} showCollection={showCollection} />
+        <DocumentList
+          documents={documents}
+          showCollection={showCollection}
+          showPublished={showPublished}
+        />
         {this.allowLoadMore && (
           <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
         )}
