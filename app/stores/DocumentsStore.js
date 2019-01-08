@@ -55,13 +55,25 @@ export default class DocumentsStore extends BaseStore<Document> {
     );
   }
 
+  publishedInCollection(collectionId: string): Document[] {
+    return filter(
+      Array.from(this.data.values()),
+      document =>
+        document.collectionId === collectionId && !!document.publishedAt
+    );
+  }
+
+  leastRecentlyUpdatedInCollection(collectionId: string): Document[] {
+    return orderBy(
+      this.publishedInCollection(collectionId),
+      'updatedAt',
+      'asc'
+    );
+  }
+
   recentlyUpdatedInCollection(collectionId: string): Document[] {
     return orderBy(
-      filter(
-        Array.from(this.data.values()),
-        document =>
-          document.collectionId === collectionId && !!document.publishedAt
-      ),
+      this.publishedInCollection(collectionId),
       'updatedAt',
       'desc'
     );
@@ -69,14 +81,14 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   recentlyPublishedInCollection(collectionId: string): Document[] {
     return orderBy(
-      filter(
-        Array.from(this.data.values()),
-        document =>
-          document.collectionId === collectionId && !!document.publishedAt
-      ),
+      this.publishedInCollection(collectionId),
       'publishedAt',
       'desc'
     );
+  }
+
+  alphabeticalInCollection(collectionId: string): Document[] {
+    return naturalSort(this.publishedInCollection(collectionId), 'title');
   }
 
   @computed
@@ -136,6 +148,26 @@ export default class DocumentsStore extends BaseStore<Document> {
       );
     });
     return data;
+  };
+
+  @action
+  fetchAlphabetical = async (options: ?PaginationParams): Promise<*> => {
+    return this.fetchNamedPage('list', {
+      sort: 'title',
+      direction: 'ASC',
+      ...options,
+    });
+  };
+
+  @action
+  fetchLeastRecentlyUpdated = async (
+    options: ?PaginationParams
+  ): Promise<*> => {
+    return this.fetchNamedPage('list', {
+      sort: 'updatedAt',
+      direction: 'ASC',
+      ...options,
+    });
   };
 
   @action

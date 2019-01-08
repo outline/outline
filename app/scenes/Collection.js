@@ -211,8 +211,34 @@ class CollectionScene extends React.Component<Props> {
                   <Tab to={collectionUrl(collection.id, 'recent')} exact>
                     Recently published
                   </Tab>
+                  <Tab to={collectionUrl(collection.id, 'old')} exact>
+                    Least recently updated
+                  </Tab>
+                  <Tab to={collectionUrl(collection.id, 'alphabetical')} exact>
+                    A–Z
+                  </Tab>
                 </Tabs>
                 <Switch>
+                  <Route path={collectionUrl(collection.id, 'alphabetical')}>
+                    <PaginatedDocumentList
+                      key="alphabetical"
+                      documents={documents.alphabeticalInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchAlphabetical}
+                      options={{ collection: collection.id }}
+                    />
+                  </Route>
+                  <Route path={collectionUrl(collection.id, 'old')}>
+                    <PaginatedDocumentList
+                      key="old"
+                      documents={documents.leastRecentlyUpdatedInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchLeastRecentlyUpdated}
+                      options={{ collection: collection.id }}
+                    />
+                  </Route>
                   <Route path={collectionUrl(collection.id, 'recent')}>
                     <PaginatedDocumentList
                       key="recent"
