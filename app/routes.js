@@ -68,6 +68,11 @@ export default function Routes() {
               component={Zapier}
             />
             <Route exact path="/settings/export" component={Export} />
+            <RouteSidebarHidden
+              exact
+              path="/collections/:id/new"
+              component={DocumentNew}
+            />
             <Route exact path="/collections/:id/:tab" component={Collection} />
             <Route exact path="/collections/:id" component={Collection} />
             <Route exact path={`/d/${slug}`} component={RedirectDocument} />
@@ -85,11 +90,6 @@ export default function Routes() {
             <Route exact path="/search" component={Search} />
             <Route exact path="/search/:query" component={Search} />
             <Route path="/404" component={Error404} />
-            <RouteSidebarHidden
-              exact
-              path="/collections/:id/new"
-              component={DocumentNew}
-            />
             <Route component={NotFound} />
           </Switch>
         </Layout>
