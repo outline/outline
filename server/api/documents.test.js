@@ -339,6 +339,51 @@ describe('#documents.search', async () => {
     expect(body.data[1].document.id).toEqual(secondResult.id);
   });
 
+  it('should return partial results in ranked order', async () => {
+    const { user } = await seed();
+    const firstResult = await buildDocument({
+      title: 'search term',
+      text: 'random text',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const secondResult = await buildDocument({
+      title: 'random text',
+      text: 'search term',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post('/api/documents.search', {
+      body: { token: user.getJwtToken(), query: 'sear &' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+    expect(body.data[0].document.id).toEqual(firstResult.id);
+    expect(body.data[1].document.id).toEqual(secondResult.id);
+  });
+
+  it('should strip junk from search term', async () => {
+    const { user } = await seed();
+    const firstResult = await buildDocument({
+      title: 'search term',
+      text: 'this is some random text of the document body',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post('/api/documents.search', {
+      body: { token: user.getJwtToken(), query: 'rando &\\;:()' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.id).toEqual(firstResult.id);
+  });
+
   it('should return draft documents created by user', async () => {
     const { user } = await seed();
     await buildDocument({
