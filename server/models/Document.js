@@ -212,14 +212,15 @@ Document.searchForUser = async (
 ): Promise<SearchResult[]> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
+  const wildcardQuery = `${sequelize.escape(query)}:*`;
 
   const sql = `
     SELECT
       id,
-      ts_rank(documents."searchVector", plainto_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", plainto_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
+      ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
+      ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
     FROM documents
-    WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
+    WHERE "searchVector" @@ to_tsquery('english', :query) AND
       "collectionId" IN(:collectionIds) AND
       "deletedAt" IS NULL AND
       ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
@@ -234,7 +235,7 @@ Document.searchForUser = async (
   const results = await sequelize.query(sql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
-      query,
+      query: wildcardQuery,
       limit,
       offset,
       collectionIds,
