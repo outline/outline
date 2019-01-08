@@ -1,7 +1,7 @@
 window.onload = () => {
     let options = {
-        clientId: '5bf36ad6a9e256000132cebf',
-        secret: 'c15331f0f3361acd83005871801ec613',
+        clientId: '5c344f102e450b000170190a',
+        secret: '03bb8b2fca823137c7dec63fd0029fc2',
         mountId: 'authing-login-form-wrapper',
         hideUP: true,
         title: '大事记',

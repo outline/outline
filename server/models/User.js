@@ -6,7 +6,7 @@ import subMinutes from 'date-fns/sub_minutes';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
-import { Star, NotificationSetting, ApiKey } from '.';
+import { Star, Collection, NotificationSetting, ApiKey } from '.';
 
 const User = sequelize.define(
   'user',
@@ -54,6 +54,25 @@ User.associate = models => {
 };
 
 // Instance methods
+User.prototype.collectionIds = async function() {
+  let models = await Collection.findAll({
+    attributes: ['id', 'private'],
+    where: { teamId: this.teamId },
+    include: [
+      {
+        model: User,
+        through: 'collection_users',
+        as: 'users',
+        where: { id: this.id },
+        required: false,
+      },
+    ],
+  });
+
+  // Filter collections that are private and don't have an association
+  return models.filter(c => !c.private || c.users.length).map(c => c.id);
+};
+
 User.prototype.updateActiveAt = function(ip) {
   const fiveMinutesAgo = subMinutes(new Date(), 5);
 

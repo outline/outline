@@ -7,78 +7,52 @@ import { CollapsedIcon } from 'outline-icons';
 import styled, { withTheme } from 'styled-components';
 import Flex from 'shared/components/Flex';
 
-const StyledGoTo = styled(CollapsedIcon)`
-  margin-bottom: -4px;
-  margin-left: 1px;
-  margin-right: -3px;
-  ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'};
-`;
-
-const IconWrapper = styled.span`
-  margin-left: -4px;
-  margin-right: 4px;
-  height: 24px;
-`;
-
-const StyledNavLink = styled(NavLink)`
-  display: flex;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 4px 0;
-  margin-left: ${props => (props.icon ? '-20px;' : '0')};
-  color: ${props => props.theme.slateDark};
-  font-size: 15px;
-  cursor: pointer;
-
-  &:hover {
-    color: ${props => props.theme.text};
-  }
-`;
-
 type Props = {
   to?: string | Object,
   onClick?: (SyntheticEvent<*>) => *,
   children?: React.Node,
   icon?: React.Node,
-  expand?: boolean,
-  expandedContent?: React.Node,
+  expanded?: boolean,
+  label?: React.Node,
   menu?: React.Node,
   menuOpen?: boolean,
-  hideExpandToggle?: boolean,
+  hideDisclosure?: boolean,
   iconColor?: string,
   active?: boolean,
   theme: Object,
   exact?: boolean,
+  depth?: number,
 };
 
 @observer
 class SidebarLink extends React.Component<Props> {
-  @observable expanded: boolean = false;
-  activeStyle: Object;
+  @observable expanded: boolean;
 
-  constructor(props) {
-    super(props);
+  style = {
+    paddingLeft: `${(this.props.depth || 0) * 16 + 16}px`,
+  };
 
-    this.activeStyle = {
-      color: props.theme.black,
-      fontWeight: 500,
-    };
-  }
+  activeStyle = {
+    color: this.props.theme.text,
+    background: 'rgba(0, 0, 0, 0.05)',
+    fontWeight: 600,
+    ...this.style,
+  };
 
   componentDidMount() {
-    if (this.props.expand) this.handleExpand();
+    if (this.props.expanded) this.handleExpand();
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.expand) this.handleExpand();
+    if (nextProps.expanded !== undefined) {
+      this.expanded = nextProps.expanded;
+    }
   }
 
   @action
-  handleClick = (event: SyntheticEvent<*>) => {
-    event.preventDefault();
-    event.stopPropagation();
+  handleClick = (ev: SyntheticEvent<*>) => {
+    ev.preventDefault();
+    ev.stopPropagation();
     this.expanded = !this.expanded;
   };
 
@@ -93,47 +67,69 @@ class SidebarLink extends React.Component<Props> {
       children,
       onClick,
       to,
-      expandedContent,
-      expand,
+      label,
       active,
       menu,
       menuOpen,
-      hideExpandToggle,
+      hideDisclosure,
       exact,
     } = this.props;
-    const showExpandIcon =
-      expandedContent && !hideExpandToggle ? true : undefined;
+    const showDisclosure = !!children && !hideDisclosure;
 
     return (
       <Wrapper menuOpen={menuOpen} column>
         <StyledNavLink
-          icon={showExpandIcon}
           activeStyle={this.activeStyle}
-          style={active ? this.activeStyle : undefined}
+          style={active ? this.activeStyle : this.style}
           onClick={onClick}
           exact={exact !== false}
           to={to}
           as={to ? undefined : 'div'}
         >
           {icon && <IconWrapper>{icon}</IconWrapper>}
-          {showExpandIcon && (
-            <StyledGoTo expanded={this.expanded} onClick={this.handleClick} />
-          )}
-          <Content onClick={this.handleExpand}>{children}</Content>
+          <Label onClick={this.handleExpand}>
+            {showDisclosure && (
+              <Disclosure expanded={this.expanded} onClick={this.handleClick} />
+            )}
+            {label}
+          </Label>
         </StyledNavLink>
-        {/* Collection */ expand && hideExpandToggle && expandedContent}
-        {/* Document */ this.expanded && !hideExpandToggle && expandedContent}
+        {this.expanded && children}
         {menu && <Action>{menu}</Action>}
       </Wrapper>
     );
   }
 }
 
+// accounts for whitespace around icon
+const IconWrapper = styled.span`
+  margin-left: -4px;
+  margin-right: 4px;
+  height: 24px;
+`;
+
+const StyledNavLink = styled(NavLink)`
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 16px;
+  border-radius: 4px;
+  color: ${props => props.theme.slateDark};
+  font-size: 15px;
+  cursor: pointer;
+
+  &:hover {
+    color: ${props => props.theme.text};
+  }
+`;
+
 const Action = styled.span`
   position: absolute;
-  right: 0;
-  top: 2px;
+  top: 4px;
+  right: 4px;
   color: ${props => props.theme.slate};
+
   svg {
     opacity: 0.75;
   }
@@ -159,9 +155,17 @@ const Wrapper = styled(Flex)`
   }
 `;
 
-const Content = styled.div`
+const Label = styled.div`
+  position: relative;
   width: 100%;
-  max-height: 4em;
+  max-height: 4.4em;
+`;
+
+const Disclosure = styled(CollapsedIcon)`
+  position: absolute;
+  left: -24px;
+
+  ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'};
 `;
 
 export default withRouter(withTheme(SidebarLink));

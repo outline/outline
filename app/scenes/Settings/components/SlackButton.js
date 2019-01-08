@@ -17,7 +17,11 @@ function SlackButton({ state, scopes, redirectUri, label }: Props) {
     (window.location.href = slackAuth(state, scopes, redirectUri));
 
   return (
-    <Button onClick={handleClick} icon={<SpacedSlackLogo size={24} />} neutral>
+    <Button
+      onClick={handleClick}
+      icon={<SpacedSlackLogo size={24} fill="#000" />}
+      neutral
+    >
       {label ? (
         label
       ) : (

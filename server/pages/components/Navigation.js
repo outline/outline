@@ -10,12 +10,12 @@ import { fadeAndScaleIn } from '../../../shared/styles/animations';
 import {
   developers,
   features,
+  changelog,
+  pricing,
   about,
   integrations,
   privacy,
   githubUrl,
-  twitterUrl,
-  spectrumUrl,
 } from '../../../shared/utils/routeHelpers';
 
 type Sessions = {
@@ -47,9 +47,9 @@ function TopNavigation({ sessions, loggedIn }: Props) {
         <MenuItemDesktop>
           <a href={integrations()}>第三方集成</a>
         </MenuItemDesktop>
-        <MenuItem>
+        <MenuItemDesktop>
           <a href={developers()}>API</a>
-        </MenuItem>
+        </MenuItemDesktop>
         {loggedIn ? (
           <React.Fragment>
             {process.env.SUBDOMAINS_ENABLED === 'true' &&

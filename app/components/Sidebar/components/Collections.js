@@ -8,6 +8,7 @@ import { PlusIcon } from 'outline-icons';
 import Header from './Header';
 import SidebarLink from './SidebarLink';
 import CollectionLink from './CollectionLink';
+import Fade from 'components/Fade';
 
 import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
@@ -24,14 +25,15 @@ type Props = {
 
 @observer
 class Collections extends React.Component<Props> {
+  isPreloaded: boolean = !!this.props.collections.orderedData.length;
+
   componentDidMount() {
     this.props.collections.fetchPage({ limit: 100 });
   }
 
   render() {
     const { history, location, collections, ui, documents } = this.props;
-
-    return (
+    const content = (
       <Flex column>
         <Header>Collections</Header>
         {collections.orderedData.map(collection => (
@@ -45,16 +47,17 @@ class Collections extends React.Component<Props> {
             ui={ui}
           />
         ))}
-
-        {collections.isLoaded && (
-          <SidebarLink
-            onClick={this.props.onCreateCollection}
-            icon={<PlusIcon />}
-          >
-            New collection…
-          </SidebarLink>
-        )}
+        <SidebarLink
+          onClick={this.props.onCreateCollection}
+          icon={<PlusIcon />}
+          label="New collection…"
+        />
       </Flex>
+    );
+
+    return (
+      collections.isLoaded &&
+      (this.isPreloaded ? content : <Fade>{content}</Fade>)
     );
   }
 }

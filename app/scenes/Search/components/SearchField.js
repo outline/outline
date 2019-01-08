@@ -35,6 +35,7 @@ class SearchField extends React.Component<Props> {
           onChange={this.handleChange}
           spellCheck="false"
           placeholder="search…"
+          type="search"
           autoFocus
         />
       </Flex>

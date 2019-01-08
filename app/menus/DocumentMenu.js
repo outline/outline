@@ -76,14 +76,7 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    const {
-      document,
-      label,
-      className,
-      showPrint,
-      showToggleEmbeds,
-      auth,
-    } = this.props;
+    const { document, label, className, showPrint, auth } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;
 
     return (
@@ -113,19 +106,6 @@ class DocumentMenu extends React.Component<Props> {
               >
                 Share link…
               </DropdownMenuItem>
-            )}
-            {showToggleEmbeds && (
-              <React.Fragment>
-                {document.embedsDisabled ? (
-                  <DropdownMenuItem onClick={document.enableEmbeds}>
-                    Enable embeds
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onClick={document.disableEmbeds}>
-                    Disable embeds
-                  </DropdownMenuItem>
-                )}
-              </React.Fragment>
             )}
             <hr />
             <DropdownMenuItem onClick={this.handleDocumentHistory}>

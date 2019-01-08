@@ -1,6 +1,6 @@
 // @flow
 import type { Event } from '../events';
-import { Document, Integration, Collection } from '../models';
+import { Document, Integration, Collection, Team } from '../models';
 import { presentSlackAttachment } from '../presenters';
 
 export default class Slack {
@@ -70,6 +70,8 @@ export default class Slack {
     });
     if (!integration) return;
 
+    const team = await Team.findById(document.teamId);
+
     let text = `${document.createdBy.name} published a new document`;
 
     if (event.name === 'documents.update') {
@@ -83,7 +85,7 @@ export default class Slack {
       },
       body: JSON.stringify({
         text,
-        attachments: [presentSlackAttachment(document)],
+        attachments: [presentSlackAttachment(document, team)],
       }),
     });
   }

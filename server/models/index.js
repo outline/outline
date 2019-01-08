@@ -2,6 +2,7 @@
 import ApiKey from './ApiKey';
 import Authentication from './Authentication';
 import Collection from './Collection';
+import CollectionUser from './CollectionUser';
 import Document from './Document';
 import Event from './Event';
 import Integration from './Integration';
@@ -18,6 +19,7 @@ const models = {
   ApiKey,
   Authentication,
   Collection,
+  CollectionUser,
   Document,
   Event,
   Integration,
@@ -42,6 +44,7 @@ export {
   ApiKey,
   Authentication,
   Collection,
+  CollectionUser,
   Document,
   Event,
   Integration,

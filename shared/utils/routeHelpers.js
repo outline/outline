@@ -57,6 +57,10 @@ export function features(): string {
   return `${process.env.URL}/#features`;
 }
 
+export function pricing(): string {
+  return `${process.env.URL}/pricing`;
+}
+
 export function developers(): string {
   return `${process.env.URL}/developers`;
 }

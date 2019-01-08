@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
+import Button from './Button';
 import { signin } from '../../../shared/utils/routeHelpers';
 import Flex from '../../../shared/components/Flex';
 import GoogleLogo from '../../../shared/components/GoogleLogo';
@@ -69,17 +70,6 @@ const Wrapper = styled(Flex)`
 
 const Spacer = styled.span`
   padding-left: 10px;
-`;
-
-const Button = styled.a`
-  display: inline-flex;
-  align-items: center;
-  padding: 10px 20px;
-  color: ${props => props.theme.white};
-  background: ${props => props.theme.black};
-  border-radius: 4px;
-  font-weight: 600;
-  height: 56px;
 `;
 
 const LastLogin = styled.p`

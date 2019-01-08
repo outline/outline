@@ -27,6 +27,10 @@ const RealInput = styled.input`
   &::placeholder {
     color: ${props => props.theme.slate};
   }
+
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: searchfield-cancel-button;
+  }
 `;
 
 const Wrapper = styled.div`
@@ -78,7 +82,10 @@ export default function Input({
       <label>
         {label && <LabelText>{label}</LabelText>}
         <Outline>
-          <InputComponent {...rest} />
+          <InputComponent
+            type={type === 'textarea' ? undefined : type}
+            {...rest}
+          />
         </Outline>
       </label>
     </Wrapper>

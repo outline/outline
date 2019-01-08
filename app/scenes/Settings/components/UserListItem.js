@@ -16,7 +16,6 @@ type Props = {
 const UserListItem = ({ user, showMenu }: Props) => {
   return (
     <ListItem
-      key={user.id}
       title={user.name}
       image={<Avatar src={user.avatarUrl} size={40} />}
       subtitle={

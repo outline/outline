@@ -88,13 +88,6 @@ const Container = styled(Flex)`
   `};
 `;
 
-export const Section = styled(Flex)`
-  flex-direction: column;
-  margin: 24px 0;
-  padding: 0 24px;
-  position: relative;
-`;
-
 const Toggle = styled.a`
   position: fixed;
   top: 0;
