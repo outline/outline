@@ -58,10 +58,10 @@ router.post('users.s3Upload', auth(), async ctx => {
   ctx.assertPresent(size, 'size is required');
 
   const s3Key = uuid.v4();
-  const key = `uploads/${ctx.state.user.id}/${s3Key}/${filename}`;
+  const key = `uploads/${ctx.state.user.id}_${s3Key}/${filename}`;
   const policy = makePolicy();
   const endpoint = publicS3Endpoint();
-  const url = `${endpoint}/${key}`;
+  const url = `${endpoint}/${key.replace('usercontents/outline-dev')}`;
 
   await Event.create({
     name: 'user.s3Upload',
