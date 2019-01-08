@@ -67,6 +67,18 @@ export default class DocumentsStore extends BaseStore<Document> {
     );
   }
 
+  recentlyPublishedInCollection(collectionId: string): Document[] {
+    return orderBy(
+      filter(
+        Array.from(this.data.values()),
+        document =>
+          document.collectionId === collectionId && !!document.publishedAt
+      ),
+      'publishedAt',
+      'desc'
+    );
+  }
+
   @computed
   get starred(): Document[] {
     return filter(this.orderedData, d => d.starred);
@@ -124,6 +136,15 @@ export default class DocumentsStore extends BaseStore<Document> {
       );
     });
     return data;
+  };
+
+  @action
+  fetchRecentlyPublished = async (options: ?PaginationParams): Promise<*> => {
+    return this.fetchNamedPage('list', {
+      sort: 'publishedAt',
+      direction: 'DESC',
+      ...options,
+    });
   };
 
   @action

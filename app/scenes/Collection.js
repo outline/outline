@@ -2,7 +2,8 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Link } from 'react-router-dom';
+import { withRouter, Link, Switch, Route } from 'react-router-dom';
+
 import styled from 'styled-components';
 import {
   CollectionIcon,
@@ -12,7 +13,7 @@ import {
 } from 'outline-icons';
 import RichMarkdownEditor from 'rich-markdown-editor';
 
-import { newDocumentUrl } from 'utils/routeHelpers';
+import { newDocumentUrl, collectionUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
@@ -33,6 +34,9 @@ import PageTitle from 'components/PageTitle';
 import Flex from 'shared/components/Flex';
 import Modal from 'components/Modal';
 import CollectionPermissions from 'scenes/CollectionPermissions';
+import Tabs from 'components/Tabs';
+import Tab from 'components/Tab';
+import PaginatedDocumentList from 'components/PaginatedDocumentList';
 
 type Props = {
   ui: UiStore,
@@ -69,15 +73,9 @@ class CollectionScene extends React.Component<Props> {
       this.props.ui.setActiveCollection(collection);
       this.collection = collection;
 
-      await Promise.all([
-        this.props.documents.fetchRecentlyUpdated({
-          limit: 10,
-          collection: id,
-        }),
-        this.props.documents.fetchPinned({
-          collection: id,
-        }),
-      ]);
+      await this.props.documents.fetchPinned({
+        collection: id,
+      });
     }
 
     this.isFetching = false;
@@ -124,15 +122,14 @@ class CollectionScene extends React.Component<Props> {
   }
 
   render() {
+    const { documents } = this.props;
+
     if (!this.isFetching && !this.collection) {
       return this.renderNotFound();
     }
 
     const pinnedDocuments = this.collection
-      ? this.props.documents.pinnedInCollection(this.collection.id)
-      : [];
-    const recentDocuments = this.collection
-      ? this.props.documents.recentlyUpdatedInCollection(this.collection.id)
+      ? documents.pinnedInCollection(this.collection.id)
       : [];
     const hasPinnedDocuments = !!pinnedDocuments.length;
     const collection = this.collection;
@@ -207,8 +204,36 @@ class CollectionScene extends React.Component<Props> {
                   </React.Fragment>
                 )}
 
-                <Subheading>Recently edited</Subheading>
-                <DocumentList documents={recentDocuments} limit={10} />
+                <Tabs>
+                  <Tab to={collectionUrl(collection.id)} exact>
+                    Recently updated
+                  </Tab>
+                  <Tab to={collectionUrl(collection.id, 'recent')} exact>
+                    Recently published
+                  </Tab>
+                </Tabs>
+                <Switch>
+                  <Route path={collectionUrl(collection.id, 'recent')}>
+                    <PaginatedDocumentList
+                      key="recent"
+                      documents={documents.recentlyPublishedInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchRecentlyPublished}
+                      options={{ collection: collection.id }}
+                      showPublished
+                    />
+                  </Route>
+                  <Route path={collectionUrl(collection.id)}>
+                    <PaginatedDocumentList
+                      documents={documents.recentlyUpdatedInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchRecentlyUpdated}
+                      options={{ collection: collection.id }}
+                    />
+                  </Route>
+                </Switch>
               </React.Fragment>
             )}
 

@@ -59,6 +59,7 @@ class CollectionLink extends React.Component<Props> {
           hideDisclosure
           menuOpen={this.menuOpen}
           label={collection.name}
+          exact={false}
           menu={
             <CollectionMenu
               history={history}

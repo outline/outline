@@ -68,6 +68,7 @@ export default function Routes() {
               component={Zapier}
             />
             <Route exact path="/settings/export" component={Export} />
+            <Route exact path="/collections/:id/:tab" component={Collection} />
             <Route exact path="/collections/:id" component={Collection} />
             <Route exact path={`/d/${slug}`} component={RedirectDocument} />
             <Route
