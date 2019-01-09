@@ -13,7 +13,6 @@ import type { FetchOptions, PaginationParams, SearchResult } from 'types';
 
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
-  @observable recentlyUpdatedIds: string[] = [];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
@@ -30,11 +29,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get recentlyUpdated(): * {
-    return orderBy(
-      compact(this.recentlyUpdatedIds.map(id => this.data.get(id))),
-      'updatedAt',
-      'desc'
-    );
+    return orderBy(Array.from(this.data.values()), 'updatedAt', 'desc');
   }
 
   createdByUser(userId: string): * {
@@ -139,15 +134,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   fetchRecentlyUpdated = async (options: ?PaginationParams): Promise<*> => {
-    const data = await this.fetchNamedPage('list', options);
-
-    runInAction('DocumentsStore#fetchRecentlyUpdated', () => {
-      // $FlowFixMe
-      this.recentlyUpdatedIds.replace(
-        uniq(this.recentlyUpdatedIds.concat(map(data, 'id')))
-      );
-    });
-    return data;
+    return this.fetchNamedPage('list', options);
   };
 
   @action
@@ -308,7 +295,6 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     runInAction(() => {
       this.recentlyViewedIds = without(this.recentlyViewedIds, document.id);
-      this.recentlyUpdatedIds = without(this.recentlyUpdatedIds, document.id);
     });
 
     const collection = this.getCollectionForDocument(document);

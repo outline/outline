@@ -9,6 +9,7 @@ import RevisionsStore from './RevisionsStore';
 import SharesStore from './SharesStore';
 import UiStore from './UiStore';
 import UsersStore from './UsersStore';
+import ViewsStore from './ViewsStore';
 
 export default class RootStore {
   apiKeys: ApiKeysStore;
@@ -21,6 +22,7 @@ export default class RootStore {
   shares: SharesStore;
   ui: UiStore;
   users: UsersStore;
+  views: ViewsStore;
 
   constructor() {
     this.apiKeys = new ApiKeysStore(this);
@@ -33,6 +35,7 @@ export default class RootStore {
     this.shares = new SharesStore(this);
     this.ui = new UiStore();
     this.users = new UsersStore(this);
+    this.views = new ViewsStore(this);
   }
 
   logout() {
@@ -44,5 +47,6 @@ export default class RootStore {
     this.revisions.clear();
     this.shares.clear();
     this.users.clear();
+    this.views.clear();
   }
 }
