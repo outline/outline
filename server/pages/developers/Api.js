@@ -574,8 +574,8 @@ export default function Pricing() {
           <Method method="views.create" label="Create a document view">
             <Description>
               Creates a new view for a document. This is documented in the
-              interests of thoroughness however it is recommended that views
-              are not created from outside of the Outline UI.
+              interests of thoroughness however it is recommended that views are
+              not created from outside of the Outline UI.
             </Description>
             <Arguments>
               <Argument id="documentId" description="Document ID" required />
