@@ -22,6 +22,7 @@ router.post('views.list', auth(), async ctx => {
     include: [
       {
         model: User,
+        paranoid: false,
       },
     ],
   });
