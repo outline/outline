@@ -8,6 +8,7 @@ export const Action = styled(Flex)`
   align-items: center;
   padding: 0 0 0 12px;
   font-size: 15px;
+  flex-shrink: 0;
 
   a {
     color: ${props => props.theme.text};

@@ -310,8 +310,7 @@ class DocumentScene extends React.Component<Props> {
       );
     }
 
-    const embedsDisabled =
-      document.embedsDisabled || (team && !team.documentEmbeds);
+    const embedsDisabled = team && !team.documentEmbeds;
 
     return (
       <ErrorBoundary>

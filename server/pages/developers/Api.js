@@ -560,6 +560,27 @@ export default function Pricing() {
               <Argument id="id" description="Share ID" required />
             </Arguments>
           </Method>
+
+          <Method method="views.list" label="List document views">
+            <Description>
+              List all users that have viewed a document and the overall view
+              count.
+            </Description>
+            <Arguments>
+              <Argument id="documentId" description="Document ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="views.create" label="Create a document view">
+            <Description>
+              Creates a new view for a document. This is documented in the
+              interests of thoroughness however it is recommended that views are
+              not created from outside of the Outline UI.
+            </Description>
+            <Arguments>
+              <Argument id="documentId" description="Document ID" required />
+            </Arguments>
+          </Method>
         </Methods>
       </Content>
     </Grid>
