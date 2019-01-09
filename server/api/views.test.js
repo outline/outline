@@ -50,7 +50,7 @@ describe('#views.create', async () => {
   it('should allow creating a view record for document', async () => {
     const { user, document } = await seed();
     const res = await server.post('/api/views.create', {
-      body: { token: user.getJwtToken(), id: document.id },
+      body: { token: user.getJwtToken(), documentId: document.id },
     });
     const body = await res.json();
 
@@ -61,7 +61,7 @@ describe('#views.create', async () => {
   it('should require authentication', async () => {
     const { document } = await seed();
     const res = await server.post('/api/views.create', {
-      body: { id: document.id },
+      body: { documentId: document.id },
     });
     const body = await res.json();
 
@@ -73,7 +73,7 @@ describe('#views.create', async () => {
     const { document } = await seed();
     const user = await buildUser();
     const res = await server.post('/api/views.create', {
-      body: { token: user.getJwtToken(), id: document.id },
+      body: { token: user.getJwtToken(), documentId: document.id },
     });
     expect(res.status).toEqual(403);
   });

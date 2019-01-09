@@ -32,8 +32,6 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     updatedAt: document.updatedAt,
     updatedBy: undefined,
     publishedAt: document.publishedAt,
-    firstViewedAt: undefined,
-    lastViewedAt: undefined,
     team: document.teamId,
     collaborators: [],
     starred: !!(document.starred && document.starred.length),
@@ -41,7 +39,6 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     pinned: undefined,
     collectionId: undefined,
     collection: undefined,
-    views: undefined,
   };
 
   if (!options.isPublic) {

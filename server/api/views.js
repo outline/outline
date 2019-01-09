@@ -34,14 +34,14 @@ router.post('views.list', auth(), async ctx => {
 });
 
 router.post('views.create', auth(), async ctx => {
-  const { id } = ctx.body;
-  ctx.assertUuid(id, 'id is required');
+  const { documentId } = ctx.body;
+  ctx.assertUuid(documentId, 'documentId is required');
 
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findById(documentId);
   authorize(user, 'read', document);
 
-  await View.increment({ documentId: document.id, userId: user.id });
+  await View.increment({ documentId, userId: user.id });
 
   ctx.body = {
     success: true,
