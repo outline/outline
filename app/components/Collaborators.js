@@ -47,24 +47,24 @@ export class Collaborators extends React.Component<Props> {
 
     // filter to only show views that haven't collaborated
     const collaboratorIds = collaborators.map(user => user.id);
-    const viewedNeverUpdated = filter(
+    const viewersNotCollaborators = filter(
       documentViews,
       view => !collaboratorIds.includes(view.user.id)
     );
 
     // only show the most recent viewers, the rest can overflow
-    const viewers = viewedNeverUpdated.slice(
+    const mostRecentViewers = viewersNotCollaborators.slice(
       0,
       MAX_DISPLAY - collaborators.length
     );
 
     // if there are too many to display then add a (+X) to the UI
-    const overflow = viewedNeverUpdated.length - viewers.length;
+    const overflow = viewersNotCollaborators.length - mostRecentViewers.length;
 
     return (
       <Avatars>
         {overflow > 0 && <More>+{overflow}</More>}
-        {viewers.map(({ lastViewedAt, user }) => (
+        {mostRecentViewers.map(({ lastViewedAt, user }) => (
           <StyledTooltip
             key={user.id}
             tooltip={`${user.name} viewed ${distanceInWordsToNow(
