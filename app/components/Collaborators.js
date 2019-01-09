@@ -18,7 +18,7 @@ type Props = {
 };
 
 @observer
-export class Collaborators extends React.Component<Props> {
+class Collaborators extends React.Component<Props> {
   componentDidMount() {
     this.props.views.fetchPage({ documentId: this.props.document.id });
   }

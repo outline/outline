@@ -1,5 +1,5 @@
 // @flow
-import { action, set, computed, observable } from 'mobx';
+import { action, set, computed } from 'mobx';
 import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
