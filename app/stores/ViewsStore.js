@@ -13,7 +13,7 @@ export default class ViewsStore extends BaseStore<View> {
 
   inDocument(documentId: string): View[] {
     return orderBy(
-      filter(this.orderedData, view => view.documentId !== documentId),
+      filter(this.orderedData, view => view.documentId === documentId),
       'lastViewedAt',
       'desc'
     );
