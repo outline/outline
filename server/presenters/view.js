@@ -7,6 +7,8 @@ function present(ctx: Object, view: View) {
     id: view.id,
     documentId: view.documentId,
     count: view.count,
+    firstViewedAt: view.createdAt,
+    lastViewedAt: view.updatedAt,
     user: presentUser(ctx, view.user),
   };
 }

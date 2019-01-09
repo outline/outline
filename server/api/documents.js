@@ -148,7 +148,7 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
   const collectionIds = await user.collectionIds();
 
-  const views = await Star.findAll({
+  const stars = await Star.findAll({
     where: {
       userId: user.id,
     },
@@ -175,7 +175,7 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    views.map(view => presentDocument(ctx, view.document))
+    stars.map(star => presentDocument(ctx, star.document))
   );
 
   ctx.body = {

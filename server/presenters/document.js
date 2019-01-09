@@ -54,12 +54,6 @@ async function present(ctx: Object, document: Document, options: ?Options) {
       data.collection = await presentCollection(ctx, document.collection);
     }
 
-    if (document.views && document.views.length === 1) {
-      data.views = document.views[0].count;
-      data.firstViewedAt = document.views[0].createdAt;
-      data.lastViewedAt = document.views[0].updatedAt;
-    }
-
     // This could be further optimized by using ctx.cache
     data.collaborators = await User.findAll({
       where: {

@@ -40,23 +40,36 @@ export class Collaborators extends React.Component<Props> {
         new Date(createdAt)
       )} ago`;
     } else {
-      tooltip = `${updatedBy.name} modified ${distanceInWordsToNow(
+      tooltip = `${updatedBy.name} updated ${distanceInWordsToNow(
         new Date(updatedAt)
       )} ago`;
     }
 
+    // filter to only show views that haven't collaborated
     const collaboratorIds = collaborators.map(user => user.id);
-    const viewers = filter(
+    const viewedNeverUpdated = filter(
       documentViews,
       view => !collaboratorIds.includes(view.user.id)
-    ).slice(0, MAX_DISPLAY - collaborators.length);
+    );
+
+    // only show the most recent viewers, the rest can overflow
+    const viewers = viewedNeverUpdated.slice(
+      0,
+      MAX_DISPLAY - collaborators.length
+    );
+
+    // if there are too many to display then add a (+X) to the UI
+    const overflow = viewedNeverUpdated.length - viewers.length;
 
     return (
       <Avatars>
-        {viewers.map(({ user }) => (
+        {overflow > 0 && <More>+{overflow}</More>}
+        {viewers.map(({ lastViewedAt, user }) => (
           <StyledTooltip
             key={user.id}
-            tooltip={`${user.name} viewed`}
+            tooltip={`${user.name} viewed ${distanceInWordsToNow(
+              new Date(lastViewedAt)
+            )} ago`}
             placement="bottom"
           >
             <Viewer>
@@ -97,6 +110,19 @@ const Viewer = styled.div`
 const Collaborator = styled.div`
   width: 24px;
   height: 24px;
+`;
+
+const More = styled.div`
+  min-width: 30px;
+  height: 24px;
+  border-radius: 12px;
+  background: ${props => props.theme.slate};
+  color: ${props => props.theme.text};
+  border: 2px solid #fff;
+  text-align: center;
+  line-height: 20px;
+  font-size: 11px;
+  font-weight: 600;
 `;
 
 const Avatars = styled(Flex)`
