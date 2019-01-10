@@ -27,16 +27,44 @@ import Developers from './pages/developers';
 import Api from './pages/developers/Api';
 import SubdomainSignin from './pages/SubdomainSignin';
 
-const isProduction = process.env.NODE_ENV === 'production';
 const koa = new Koa();
 const router = new Router();
 
-const renderapp = async ctx => {
-  if (isProduction) {
-    await sendfile(ctx, path.join(__dirname, '../dist/index.html'));
-  } else {
-    await sendfile(ctx, path.join(__dirname, './static/dev.html'));
+// Read index.html either from dist/index.html (production builds) or from webpack middleware
+const readIndexFile = async ctx => {
+  if (!ctx.devMiddleware) {
+    return await fs.readFile(path.join(__dirname, '../dist/index.html'));
   }
+
+  const middleware = ctx.devMiddleware;
+  await new Promise(resolve => middleware.waitUntilValid(resolve));
+  return await new Promise((resolve, reject) => {
+    const indexPath = `${ctx.webpackConfig.output.path}/index.html`;
+    middleware.fileSystem.readFile(indexPath, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(result);
+    });
+  });
+};
+
+const renderapp = async ctx => {
+  const page = await readIndexFile(ctx);
+  const str = page.toString();
+  const subdomainsEnabled = process.env.SUBDOMAINS_ENABLED === 'true';
+
+  const script = `
+    window.env = {
+      BASE_URL: ${JSON.stringify(process.env.URL)},
+      SLACK_APP_ID: ${JSON.stringify(process.env.SLACK_APP_ID)},
+      BUGSNAG_KEY: ${JSON.stringify(process.env.BUGSNAG_KEY)},
+      SUBDOMAINS_ENABLED: ${JSON.stringify(subdomainsEnabled)},
+      GOOGLE_ANALYTICS_ID: ${JSON.stringify(process.env.GOOGLE_ANALYTICS_ID)},
+    };
+  `;
+  ctx.body = str.replace('{{env}}', script);
+  return;
 };
 
 // serve static assets

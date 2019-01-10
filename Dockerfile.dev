@@ -10,8 +10,7 @@ COPY yarn.lock $APP_PATH
 RUN yarn install
 
 COPY . $APP_PATH
-RUN yarn build
 
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+CMD ["yarn", "dev"]

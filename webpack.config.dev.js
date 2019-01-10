@@ -18,11 +18,11 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
 
 developmentWebpackConfig.plugins = [
   ...developmentWebpackConfig.plugins,
+  new HtmlWebpackPlugin({
+    template: 'server/static/index.html',
+  }),
   new ExtractTextPlugin({ filename: 'styles.css' }),
   new webpack.HotModuleReplacementPlugin(),
-  new HtmlWebpackPlugin({
-    title: 'Outline',
-  }),
 ];
 
 module.exports = developmentWebpackConfig;

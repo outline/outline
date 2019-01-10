@@ -114,7 +114,7 @@ class Details extends React.Component<Props> {
             required
             short
           />
-          {process.env.SUBDOMAINS_ENABLED && (
+          {window.env.SUBDOMAINS_ENABLED && (
             <React.Fragment>
               <Input
                 label="Subdomain"

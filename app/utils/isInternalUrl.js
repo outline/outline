@@ -4,7 +4,7 @@ import parseDomain from 'parse-domain';
 export default function isInternalUrl(href: string) {
   if (href[0] === '/') return true;
 
-  const outline = parseDomain(BASE_URL);
+  const outline = parseDomain(window.env.BASE_URL);
   const parsed = parseDomain(href);
   if (
     parsed &&

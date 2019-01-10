@@ -22,7 +22,7 @@ const Authenticated = observer(({ auth, children }: Props) => {
     // If we're authenticated but viewing a subdomain that doesn't match the
     // currently authenticated team then kick the user to the teams subdomain.
     if (
-      process.env.SUBDOMAINS_ENABLED &&
+      window.env.SUBDOMAINS_ENABLED &&
       team.subdomain &&
       isCustomSubdomain(hostname) &&
       !hostname.startsWith(`${team.subdomain}.`)

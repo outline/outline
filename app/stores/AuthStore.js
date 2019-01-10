@@ -153,6 +153,7 @@ export default class AuthStore {
     }
 
     // add a timestamp to force reload from server
-    window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
+    const stamp = new Date().getTime();
+    window.location.href = `${window.env.BASE_URL}?done=${stamp}`;
   };
 }

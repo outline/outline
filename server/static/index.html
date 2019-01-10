@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <title>Outline</title>
-    <meta name="slack-app-id" content="<%= SLACK_APP_ID %>" />
     <link rel="manifest" href="/manifest.json" />
     <style>
       body,
@@ -25,6 +24,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script src="//d2wy8f7a9ursnm.cloudfront.net/bugsnag-3.min.js" data-apikey="<%= BUGSNAG_KEY %>"></script>
+    <script>{{env}}</script>
   </body>
 </html>

@@ -23,13 +23,12 @@ services:
     command: yarn dev
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        pull: 1
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     volumes:
-      - .:/opt/outline:cached
+      - .:/opt/outline
+      - /opt/outline/node_modules
     depends_on:
       - postgres
       - redis

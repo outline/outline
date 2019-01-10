@@ -10,15 +10,6 @@ const definePlugin = new webpack.DefinePlugin({
   __PRERELEASE__: JSON.stringify(
     JSON.parse(process.env.BUILD_PRERELEASE || 'false')
   ),
-  SLACK_APP_ID: JSON.stringify(process.env.SLACK_APP_ID),
-  BASE_URL: JSON.stringify(process.env.URL),
-  BUGSNAG_KEY: JSON.stringify(process.env.BUGSNAG_KEY),
-  DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT || 'hosted'),
-  'process.env': {
-    URL: JSON.stringify(process.env.URL),
-    SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
-    SUBDOMAINS_ENABLED: JSON.stringify(process.env.SUBDOMAINS_ENABLED === 'true')
-  }
 });
 
 module.exports = {
