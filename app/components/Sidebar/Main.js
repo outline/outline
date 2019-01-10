@@ -65,7 +65,12 @@ class MainSidebar extends React.Component<Props> {
                 exact={false}
                 label="Home"
               />
-              <SidebarLink to="/search" icon={<SearchIcon />} label="Search" />
+              <SidebarLink
+                to="/search"
+                icon={<SearchIcon />}
+                label="Search"
+                exact={false}
+              />
               <SidebarLink
                 to="/starred"
                 icon={<StarredIcon />}

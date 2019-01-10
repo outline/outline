@@ -13,6 +13,7 @@ import type { FetchOptions, PaginationParams, SearchResult } from 'types';
 
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
+  @observable searchCache: Map<string, SearchResult[]> = new Map();
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
@@ -84,6 +85,10 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   alphabeticalInCollection(collectionId: string): Document[] {
     return naturalSort(this.publishedInCollection(collectionId), 'title');
+  }
+
+  searchResults(query: string): SearchResult[] {
+    return this.searchCache.get(query) || [];
   }
 
   @computed
@@ -202,15 +207,39 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   search = async (
     query: string,
-    options: ?PaginationParams
+    options: PaginationParams = {}
   ): Promise<SearchResult[]> => {
     const res = await client.get('/documents.search', {
       ...options,
       query,
     });
-    invariant(res && res.data, 'Search API response should be available');
+    invariant(res && res.data, 'Search response should be available');
     const { data } = res;
+
+    // add the document to the store
     data.forEach(result => this.add(result.document));
+
+    // store a reference to the document model in the search cache instead
+    // of the original result from the API.
+    const results: SearchResult[] = compact(
+      data.map(result => {
+        const document = this.data.get(result.document.id);
+        if (!document) return null;
+
+        return {
+          ranking: result.ranking,
+          context: result.context,
+          document,
+        };
+      })
+    );
+
+    let existing = this.searchCache.get(query) || [];
+
+    // splice modifies any existing results, taking into account pagination
+    existing.splice(options.offset || 0, options.limit || 0, ...results);
+
+    this.searchCache.set(query, existing);
     return data;
   };
 

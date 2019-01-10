@@ -10,7 +10,6 @@ import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
-import type { SearchResult } from 'types';
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import { searchUrl } from 'utils/routeHelpers';
@@ -61,12 +60,11 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 class Search extends React.Component<Props> {
   firstDocument: ?DocumentPreview;
 
-  @observable results: SearchResult[] = [];
   @observable query: string = '';
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
   @observable isFetching: boolean = false;
-  @observable pinToTop: boolean = false;
+  @observable pinToTop: boolean = !!this.props.match.params.query;
 
   componentDidMount() {
     this.handleQueryChange();
@@ -103,12 +101,11 @@ class Search extends React.Component<Props> {
   handleQueryChange = () => {
     const query = this.props.match.params.query;
     this.query = query ? query : '';
-    this.results = [];
     this.offset = 0;
     this.allowLoadMore = true;
 
     // To prevent "no results" showing before debounce kicks in
-    if (this.query) this.isFetching = true;
+    this.isFetching = !!this.query;
 
     this.fetchResultsDebounced();
   };
@@ -124,31 +121,27 @@ class Search extends React.Component<Props> {
 
   @action
   fetchResults = async () => {
-    this.isFetching = true;
-
     if (this.query) {
+      this.isFetching = true;
+
       try {
         const results = await this.props.documents.search(this.query, {
           offset: this.offset,
           limit: DEFAULT_PAGINATION_LIMIT,
         });
-        this.results = this.results.concat(results);
 
-        if (this.results.length > 0) this.pinToTop = true;
+        if (results.length > 0) this.pinToTop = true;
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
           this.allowLoadMore = false;
         } else {
           this.offset += DEFAULT_PAGINATION_LIMIT;
         }
-      } catch (e) {
-        console.error('Something went wrong');
+      } finally {
+        this.isFetching = false;
       }
     } else {
-      this.results = [];
       this.pinToTop = false;
     }
-
-    this.isFetching = false;
   };
 
   fetchResultsDebounced = debounce(this.fetchResults, 350, {
@@ -173,8 +166,8 @@ class Search extends React.Component<Props> {
 
   render() {
     const { documents, notFound } = this.props;
-    const showEmpty =
-      !this.isFetching && this.query && this.results.length === 0;
+    const results = documents.searchResults(this.query);
+    const showEmpty = !this.isFetching && this.query && results.length === 0;
 
     return (
       <Container auto>
@@ -198,7 +191,7 @@ class Search extends React.Component<Props> {
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
-              {this.results.map((result, index) => {
+              {results.map((result, index) => {
                 const document = documents.data.get(result.document.id);
                 if (!document) return null;
 
