@@ -75,7 +75,7 @@ export default class Slack {
     let text = `${document.createdBy.name} published a new document`;
 
     if (event.name === 'documents.update') {
-      text = `${document.createdBy.name} updated a document`;
+      text = `${document.updatedBy.name} updated a document`;
     }
 
     await fetch(integration.settings.url, {
