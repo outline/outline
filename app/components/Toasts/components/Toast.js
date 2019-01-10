@@ -15,7 +15,7 @@ class Toast extends React.Component<Props> {
   timeout: TimeoutID;
 
   static defaultProps = {
-    closeAfterMs: 30000,
+    closeAfterMs: 3000,
   };
 
   componentDidMount() {
