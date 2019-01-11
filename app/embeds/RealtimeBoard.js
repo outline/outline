@@ -18,7 +18,7 @@ export default class RealtimeBoard extends React.Component<Props> {
 
     return (
       <Frame
-        src={`http://realtimeboard.com/app/embed/${boardId}`}
+        src={`https://realtimeboard.com/app/embed/${boardId}`}
         title={`RealtimeBoard (${boardId})`}
       />
     );
