@@ -45,9 +45,11 @@ function TopNavigation({ sessions, loggedIn }: Props) {
         <MenuItemDesktop>
           <a href={integrations()}>Integrations</a>
         </MenuItemDesktop>
-        <MenuItem>
-          <a href={pricing()}>Pricing</a>
-        </MenuItem>
+        {process.env.DEPLOYMENT === 'hosted' && (
+          <MenuItem>
+            <a href={pricing()}>Pricing</a>
+          </MenuItem>
+        )}
         <MenuItemDesktop>
           <a href={changelog()}>Changelog</a>
         </MenuItemDesktop>
