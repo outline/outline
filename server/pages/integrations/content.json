@@ -70,6 +70,13 @@
     "description": "Data collection tool and surveys, for professionals"
   },
   {
+    "slug": "prezi",
+    "name": "Prezi",
+    "url": "https://prezi.com",
+    "category": "Collaboration",
+    "description": "Easy presentations for people who aren't designers"
+  },
+  {
     "slug": "codepen",
     "name": "Codepen",
     "url": "https://codepen.io",
