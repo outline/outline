@@ -13,13 +13,17 @@ type Domain = {
 export function parseDomain(url: string): ?Domain {
   if (typeof url !== 'string') return null;
 
+  // strip extermeties and whitespace from input
   const normalizedDomain = trim(url.replace(/(https?:)?\/\//, ''));
   const parts = normalizedDomain.split('.');
 
+  // ensure the last part only includes something that looks like a TLD
   function cleanTLD(tld = '') {
     return tld.split(/[/:?]/)[0];
   }
 
+  // simplistic subdomain parse, we don't need to take into account subdomains
+  // with "." characters as these are not valid in Outline
   if (parts.length >= 3) {
     return {
       subdomain: parts[0],

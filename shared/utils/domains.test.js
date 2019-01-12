@@ -3,7 +3,7 @@ import { stripSubdomain, parseDomain, isCustomSubdomain } from './domains';
 
 // test suite is based on subset of parse-domain module we want to support
 // https://github.com/peerigon/parse-domain/blob/master/test/parseDomain.test.js
-describe.only('#parseDomain', () => {
+describe('#parseDomain', () => {
   it('should remove the protocol', () => {
     expect(parseDomain('http://example.com')).toMatchObject({
       subdomain: '',
