@@ -47,7 +47,7 @@ function Home(props: Props) {
                   <Feature>
                     <h2>Improve Communication</h2>
                     <p>
-                      Easily structure your teams information in one central,
+                      Easily structure your team’s information in one central,
                       structured location. No more hunting through folders or
                       scanning pages of search results and chat conversations.
                     </p>
@@ -55,7 +55,7 @@ function Home(props: Props) {
                   <Feature>
                     <h2>Safe &amp; Secure</h2>
                     <p>
-                      Outline provides a secure place for your teams
+                      Outline provides a secure place for your team’s
                       documentation on our hosted platform, stored in portable
                       Markdown format. Or, you can run your own copy – it’s open
                       source!

@@ -60,7 +60,7 @@ class Slack extends React.Component<Props> {
         <HelpText>
           Preview Outline links your team mates share and use the{' '}
           <Code>/outline</Code> slash command in Slack to search for documents
-          in your teams wiki.
+          in your team’s wiki.
         </HelpText>
         <p>
           {this.commandIntegration ? (

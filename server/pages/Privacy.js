@@ -54,7 +54,7 @@ export default function Privacy() {
           identifying information is to better understand how Outline’s visitors
           use its website. From time to time, Outline may release
           non-personally-identifying information in the aggregate, e.g., by
-          publishing a report on trends in the usage of its website. p> Outline
+          publishing a report on trends in the usage of its website. Outline
           also collects potentially personally-identifying information like
           Internet Protocol (IP) addresses for logged in users.
         </p>
