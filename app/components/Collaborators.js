@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { filter } from 'lodash';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
@@ -8,6 +9,7 @@ import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';
 import Tooltip from 'components/Tooltip';
 import Document from 'models/Document';
+import UserProfile from 'scenes/UserProfile';
 import ViewsStore from 'stores/ViewsStore';
 
 const MAX_DISPLAY = 6;
@@ -19,9 +21,19 @@ type Props = {
 
 @observer
 class Collaborators extends React.Component<Props> {
+  @observable openProfileId: ?string;
+
   componentDidMount() {
     this.props.views.fetchPage({ documentId: this.props.document.id });
   }
+
+  handleOpenProfile = (userId: string) => {
+    this.openProfileId = userId;
+  };
+
+  handleCloseProfile = () => {
+    this.openProfileId = undefined;
+  };
 
   render() {
     const { document, views } = this.props;
@@ -36,13 +48,21 @@ class Collaborators extends React.Component<Props> {
     let tooltip;
 
     if (createdAt === updatedAt) {
-      tooltip = `${createdBy.name} published ${distanceInWordsToNow(
-        new Date(createdAt)
-      )} ago`;
+      tooltip = (
+        <TooltipCentered>
+          <strong>{createdBy.name}</strong>
+          <br />
+          published {distanceInWordsToNow(new Date(createdAt))} ago
+        </TooltipCentered>
+      );
     } else {
-      tooltip = `${updatedBy.name} updated ${distanceInWordsToNow(
-        new Date(updatedAt)
-      )} ago`;
+      tooltip = (
+        <TooltipCentered>
+          <strong>{updatedBy.name}</strong>
+          <br />
+          updated {distanceInWordsToNow(new Date(updatedAt))} ago
+        </TooltipCentered>
+      );
     }
 
     // filter to only show views that haven't collaborated
@@ -65,35 +85,59 @@ class Collaborators extends React.Component<Props> {
       <Avatars>
         {overflow > 0 && <More>+{overflow}</More>}
         {mostRecentViewers.map(({ lastViewedAt, user }) => (
-          <StyledTooltip
+          <AvatarPile
             key={user.id}
-            tooltip={`${user.name} viewed ${distanceInWordsToNow(
-              new Date(lastViewedAt)
-            )} ago`}
+            tooltip={
+              <TooltipCentered>
+                <strong>{user.name}</strong>
+                <br />
+                viewed {distanceInWordsToNow(new Date(lastViewedAt))} ago
+              </TooltipCentered>
+            }
             placement="bottom"
           >
             <Viewer>
-              <Avatar src={user.avatarUrl} />
+              <Avatar
+                src={user.avatarUrl}
+                onClick={() => this.handleOpenProfile(user.id)}
+              />
+              <UserProfile
+                user={user}
+                isOpen={this.openProfileId === user.id}
+                onRequestClose={this.handleCloseProfile}
+              />
             </Viewer>
-          </StyledTooltip>
+          </AvatarPile>
         ))}
         {collaborators.map(user => (
-          <StyledTooltip
+          <AvatarPile
             key={user.id}
             tooltip={collaborators.length > 1 ? user.name : tooltip}
             placement="bottom"
           >
             <Collaborator>
-              <Avatar src={user.avatarUrl} />
+              <Avatar
+                src={user.avatarUrl}
+                onClick={() => this.handleOpenProfile(user.id)}
+              />
+              <UserProfile
+                user={user}
+                isOpen={this.openProfileId === user.id}
+                onRequestClose={this.handleCloseProfile}
+              />
             </Collaborator>
-          </StyledTooltip>
+          </AvatarPile>
         ))}
       </Avatars>
     );
   }
 }
 
-const StyledTooltip = styled(Tooltip)`
+const TooltipCentered = styled.div`
+  text-align: center;
+`;
+
+const AvatarPile = styled(Tooltip)`
   margin-right: -8px;
 
   &:first-child {
@@ -128,6 +172,7 @@ const More = styled.div`
 const Avatars = styled(Flex)`
   align-items: center;
   flex-direction: row-reverse;
+  cursor: pointer;
 `;
 
 export default inject('views')(Collaborators);

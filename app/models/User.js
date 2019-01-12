@@ -6,7 +6,6 @@ class User extends BaseModel {
   id: string;
   name: string;
   email: string;
-  username: string;
   isAdmin: boolean;
   isSuspended: boolean;
   createdAt: string;

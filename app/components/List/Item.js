@@ -5,7 +5,7 @@ import Flex from 'shared/components/Flex';
 
 type Props = {
   image?: React.Node,
-  title: string,
+  title: React.Node,
   subtitle?: React.Node,
   actions?: React.Node,
 };
