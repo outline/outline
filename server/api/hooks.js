@@ -1,5 +1,6 @@
 // @flow
 import Router from 'koa-router';
+import { escapeRegExp } from 'lodash';
 import { AuthenticationError, InvalidRequestError } from '../errors';
 import { Authentication, Document, User, Team } from '../models';
 import { presentSlackAttachment } from '../presenters';
@@ -13,7 +14,6 @@ router.post('hooks.unfurl', async ctx => {
   if (token !== process.env.SLACK_VERIFICATION_TOKEN)
     throw new AuthenticationError('Invalid token');
 
-  // TODO: Everything from here onwards will get moved to an async job
   const user = await User.find({
     where: { service: 'slack', serviceId: event.user },
   });
@@ -75,7 +75,7 @@ router.post('hooks.slack', async ctx => {
     for (const result of results) {
       const queryIsInTitle = !!result.document.title
         .toLowerCase()
-        .match(text.toLowerCase());
+        .match(escapeRegExp(text.toLowerCase()));
 
       attachments.push(
         presentSlackAttachment(

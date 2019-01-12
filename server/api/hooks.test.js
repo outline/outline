@@ -86,6 +86,25 @@ describe('#hooks.slack', async () => {
     expect(body.attachments[0].text).toEqual(document.getSummary());
   });
 
+  it('should return search results if query is regex-like', async () => {
+    const user = await buildUser();
+    await buildDocument({
+      title: 'This title contains a search term',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post('/api/hooks.slack', {
+      body: {
+        token: process.env.SLACK_VERIFICATION_TOKEN,
+        user_id: user.serviceId,
+        text: '*contains',
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.attachments.length).toEqual(1);
+  });
+
   it('should return search results with snippet if query is in text', async () => {
     const user = await buildUser();
     const document = await buildDocument({
