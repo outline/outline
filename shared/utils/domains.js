@@ -1,5 +1,42 @@
 // @flow
-import parseDomain from 'parse-domain';
+import { trim } from 'lodash';
+
+type Domain = {
+  tld: string,
+  subdomain: string,
+  domain: string,
+};
+
+// we originally used the parse-domain npm module however this includes
+// a large list of possible TLD's which increase the size of the bundle
+// unneccessarily for our usecase of trusted input.
+export function parseDomain(url: string): ?Domain {
+  if (typeof url !== 'string') return null;
+
+  const normalizedDomain = trim(url.replace(/(https?:)?\/\//, ''));
+  const parts = normalizedDomain.split('.');
+
+  function cleanTLD(tld = '') {
+    return tld.split(/[/:?]/)[0];
+  }
+
+  if (parts.length >= 3) {
+    return {
+      subdomain: parts[0],
+      domain: parts[1],
+      tld: cleanTLD(parts.slice(2).join('.')),
+    };
+  }
+  if (parts.length === 2) {
+    return {
+      subdomain: '',
+      domain: parts[0],
+      tld: cleanTLD(parts.slice(1).join('.')),
+    };
+  }
+
+  return null;
+}
 
 export function stripSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);

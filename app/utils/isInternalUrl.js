@@ -1,5 +1,5 @@
 // @flow
-import parseDomain from 'parse-domain';
+import { parseDomain } from '../../shared/utils/domains';
 
 export default function isInternalUrl(href: string) {
   if (href[0] === '/') return true;
