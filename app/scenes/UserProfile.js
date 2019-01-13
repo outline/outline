@@ -47,6 +47,7 @@ class UserProfile extends React.Component<Props> {
             {user.isAdmin && (
               <StyledBadge admin={user.isAdmin}>Admin</StyledBadge>
             )}
+            {user.isSuspended && <Badge>Suspended</Badge>}
             {isCurrentUser && (
               <Edit>
                 <Button to="/settings" as={Link} small neutral>
@@ -55,7 +56,7 @@ class UserProfile extends React.Component<Props> {
               </Edit>
             )}
           </Meta>
-          <Subheading>Recently Edited</Subheading>
+          <Subheading>Recently updated</Subheading>
           <PaginatedDocumentList
             documents={documents.createdByUser(user.id)}
             fetch={documents.fetchOwned}

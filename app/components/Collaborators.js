@@ -38,32 +38,7 @@ class Collaborators extends React.Component<Props> {
   render() {
     const { document, views } = this.props;
     const documentViews = views.inDocument(document.id);
-    const {
-      createdAt,
-      updatedAt,
-      createdBy,
-      updatedBy,
-      collaborators,
-    } = document;
-    let tooltip;
-
-    if (createdAt === updatedAt) {
-      tooltip = (
-        <TooltipCentered>
-          <strong>{createdBy.name}</strong>
-          <br />
-          published {distanceInWordsToNow(new Date(createdAt))} ago
-        </TooltipCentered>
-      );
-    } else {
-      tooltip = (
-        <TooltipCentered>
-          <strong>{updatedBy.name}</strong>
-          <br />
-          updated {distanceInWordsToNow(new Date(updatedAt))} ago
-        </TooltipCentered>
-      );
-    }
+    const { createdAt, updatedAt, updatedBy, collaborators } = document;
 
     // filter to only show views that haven't collaborated
     const collaboratorIds = collaborators.map(user => user.id);
@@ -112,7 +87,15 @@ class Collaborators extends React.Component<Props> {
         {collaborators.map(user => (
           <AvatarPile
             key={user.id}
-            tooltip={collaborators.length > 1 ? user.name : tooltip}
+            tooltip={
+              <TooltipCentered>
+                <strong>{user.name}</strong>
+                <br />
+                {createdAt === updatedAt ? 'published' : 'updated'}{' '}
+                {updatedBy.id === user.id &&
+                  `${distanceInWordsToNow(new Date(updatedAt))} ago`}
+              </TooltipCentered>
+            }
             placement="bottom"
           >
             <Collaborator>
