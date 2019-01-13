@@ -39,101 +39,80 @@
         "required": true
       },
       "ENABLE_UPDATES": {
-        "value": true,
+        "value": "true",
         "required": true
       },
       "SUBDOMAINS_ENABLED": {
-        "value": false,
+        "value": "false",
         "required": true,
         "description": "Running different subdomains. Likely not needed in single org mode"
       },
       "URL": {
         "description": "https://{your app name}.herokuapp.com",
-        "required": false
+        "required": true
       },
       "GOOGLE_CLIENT_ID": {
-        "description": "See https://developers.google.com/identity/protocols/OAuth2 to create a new Google OAuth client. You must configure at least one of Slack or Google to control login.",
-        "required": false
+        "description": "See https://developers.google.com/identity/protocols/OAuth2 to create a new Google OAuth client. You must configure at least one of Slack or Google to control login."
       },
       "GOOGLE_CLIENT_SECRET": {
-        "description": "",
-        "required": false
+        "description": ""
       },
       "GOOGLE_ALLOWED_DOMAINS": {
-        "description": "Comma separated list of domains to be allowed (optional). If not set, all Google apps domains are allowed by default",
-        "required": false
+        "description": "Comma separated list of domains to be allowed (optional). If not set, all Google apps domains are allowed by default"
       },
       "SLACK_KEY": {
-        "description": "See https://api.slack.com/apps to create a new Slack app. You must configure at least one of Slack or Google to control login.",
-        "required": false
+        "description": "See https://api.slack.com/apps to create a new Slack app. You must configure at least one of Slack or Google to control login."
       },
       "SLACK_SECRET": {
-        "description": "Your Slack client secret - d2dc414f9953226bad0a356cXXXXYYYY",
-        "required": false
+        "description": "Your Slack client secret - d2dc414f9953226bad0a356cXXXXYYYY"
       },
       "SLACK_VERIFICATION_TOKEN": {
-        "description": "Your Slack verification token - PLxk6OlXXXXXVj3YYYY",
-        "required": false
+        "description": "Your Slack verification token - PLxk6OlXXXXXVj3YYYY"
       },
       "SLACK_APP_ID": {
-        "description": "A0XXXXXXXXX",
-        "required": false
+        "description": "A0XXXXXXXXX"
       },
       "AWS_ACCESS_KEY_ID": {
-        "description": "",
-        "required": false
+        "description": "Needed to save file uploads. Optional for dev / testing."
       },
       "AWS_SECRET_ACCESS_KEY": {
-        "description": "",
-        "required": false
+        "description": ""
       },
       "AWS_S3_UPLOAD_BUCKET_NAME": {
-        "description": "yourbucket.example.com",
-        "required": false
+        "description": "yourbucket.example.com"
       },
       "AWS_S3_UPLOAD_BUCKET_URL": {
-        "description": "Live web link to your bucket. For CNAMEs, https://yourbucket.example.com",
-        "required": false
+        "description": "Live web link to your bucket. For CNAMEs, https://yourbucket.example.com"
       },
       "AWS_S3_UPLOAD_MAX_SIZE": {
         "description": "",
-        "required": false,
         "value": "26214400"
       },
       "SMTP_HOST": {
-        "description": "smtp.example.com (optional)",
-        "required": false
+        "description": "smtp.example.com (optional)"
       },
       "SMTP_PORT": {
-        "description": "1234 (optional)",
-        "required": false
+        "description": "1234 (optional)"
       },
       "SMTP_USERNAME": {
-        "description": "me@example.com (optional)",
-        "required": false
+        "description": "me@example.com (optional)"
       },
       "SMTP_PASSWORD": {
-        "description": "(optional)",
-        "required": false
+        "description": "(optional)"
       },
       "SMTP_FROM_EMAIL": {
-        "description": "wiki@example.com (optional)",
-        "required": false
+        "description": "wiki@example.com (optional)"
       },
       "SMTP_REPLY_EMAIL": {
-        "description": "wikireply@example.com (optional)",
-        "required": false
+        "description": "wikireply@example.com (optional)"
       },
       "GOOGLE_ANALYTICS_ID": {
-        "required": false,
         "description": "UA-xxxx (optional)"
       },
       "BUGSNAG_KEY": {
-        "required": false,
         "description": "(optional)"
       },
       "GITHUB_ACCESS_TOKEN": {
-        "required": false,
         "description": "(optional)"
       }
 
