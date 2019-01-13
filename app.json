@@ -73,7 +73,8 @@
         "required": false
       },
       "SLACK_VERIFICATION_TOKEN": {
-        "description": "Your Slack verification token - PLxk6OlXXXXXVj3YYYY"
+        "description": "Your Slack verification token - PLxk6OlXXXXXVj3YYYY",
+        "required": false
       },
       "SLACK_APP_ID": {
         "description": "A0XXXXXXXXX",
