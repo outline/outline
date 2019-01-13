@@ -5,8 +5,9 @@ Object {
   "avatarUrl": "http://example.com/avatar.png",
   "createdAt": undefined,
   "id": "123",
+  "isAdmin": undefined,
+  "isSuspended": undefined,
   "name": "Test User",
-  "username": "testuser",
 }
 `;
 
@@ -15,7 +16,8 @@ Object {
   "avatarUrl": null,
   "createdAt": undefined,
   "id": "123",
+  "isAdmin": undefined,
+  "isSuspended": undefined,
   "name": "Test User",
-  "username": "testuser",
 }
 `;
