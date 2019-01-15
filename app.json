@@ -36,6 +36,7 @@
         "required": true
       },
       "DEPLOYMENT": {
+		"description": "Should be 'self' for self hosted installations, turns off things like pricing pages"
         "value": "self",
         "required": true
       },
@@ -46,7 +47,7 @@
       "SUBDOMAINS_ENABLED": {
         "value": "false",
         "required": true,
-        "description": "Running different subdomains. Not needed in single org mode"
+        "description": "Allows each team to have a different subdomain. Not recommend when self hosting"
       },
       "URL": {
         "description": "https://{your app name}.herokuapp.com",
@@ -97,7 +98,7 @@
         "required": false
       },
       "AWS_S3_UPLOAD_MAX_SIZE": {
-        "description": "",
+        "description": "Maximum file upload size in bytes",
         "value": "26214400",
         "required": false
       },
@@ -130,11 +131,11 @@
         "required": false
       },
       "BUGSNAG_KEY": {
-        "description": "(optional)",
+        "description": "An API key for bugsnag if you wish to collect error reporting (optional)",
         "required": false
       },
       "GITHUB_ACCESS_TOKEN": {
-        "description": "(optional)",
+        "description": "An API token for GitHub, optional for self hosted (optional)",
         "required": false
       }
 
