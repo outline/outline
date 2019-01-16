@@ -7,8 +7,6 @@ import Embed from './Embed';
 import embeds from '../../embeds';
 
 type Props = {
-  titlePlaceholder?: string,
-  bodyPlaceholder?: string,
   defaultValue?: string,
   readOnly?: boolean,
   disableEmbeds?: boolean,
