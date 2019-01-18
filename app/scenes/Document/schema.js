@@ -17,9 +17,22 @@ schema.document.normalize = (editor: Editor, error: SlateError) => {
     }
     case 'child_min_invalid': {
       const missingTitle = error.index === 0;
-      const block = Block.create(missingTitle ? 'heading1' : 'paragraph');
-      editor.insertNodeByKey(error.node.key, error.index, block);
+      const firstNode = editor.value.document.nodes.get(0);
+      if (!firstNode) {
+        editor.insertNodeByKey(error.node.key, 0, Block.create('heading1'));
+      } else {
+        editor.setNodeByKey(firstNode.key, { type: 'heading1' });
+      }
+
+      const secondNode = editor.value.document.nodes.get(1);
+      if (!secondNode) {
+        editor.insertNodeByKey(error.node.key, 1, Block.create('paragraph'));
+      } else {
+        editor.setNodeByKey(secondNode.key, { type: 'paragraph' });
+      }
+
       if (missingTitle) setImmediate(() => editor.moveFocusToStartOfDocument());
+
       return editor;
     }
     default:

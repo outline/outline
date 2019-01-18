@@ -2,6 +2,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import Editor from 'components/Editor';
+import Placeholder from 'rich-markdown-editor/lib/components/Placeholder';
 import ClickablePadding from 'components/ClickablePadding';
 import plugins from './plugins';
 
@@ -49,6 +50,17 @@ class DocumentEditor extends React.Component<Props> {
 const StyledEditor = styled(Editor)`
   display: flex;
   flex: 0;
+
+  p {
+    ${Placeholder} {
+      visibility: hidden;
+    }
+  }
+  p:nth-child(2):last-child {
+    ${Placeholder} {
+      visibility: visible;
+    }
+  }
 `;
 
 export default DocumentEditor;

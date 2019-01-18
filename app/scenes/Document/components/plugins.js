@@ -21,7 +21,6 @@ export default [
       if (node.object !== 'block') return false;
       if (node.type !== 'paragraph') return false;
       if (node.text !== '') return false;
-      if (editor.value.document.nodes.get(1) !== node) return false;
       return true;
     },
   }),

@@ -16,6 +16,15 @@ type Props = {
 };
 
 class Editor extends React.Component<Props> {
+  componentDidCatch(err) {
+    if (err.message.match("Failed to execute 'getRangeAt'")) {
+      // known issue that shouldn't affect further editing
+      // https://github.com/ianstormtaylor/slate/issues/1237
+      return console.warn(err);
+    }
+    throw err;
+  }
+
   onUploadImage = async (file: File) => {
     const result = await uploadFile(file);
     return result.url;
