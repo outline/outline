@@ -15,7 +15,7 @@ export default [
     },
   }),
   Placeholder({
-    placeholder: '…write something nice',
+    placeholder: '…the rest is your canvas',
     when: (editor: Editor, node: Node) => {
       if (editor.readOnly) return false;
       if (node.object !== 'block') return false;
