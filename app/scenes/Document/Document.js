@@ -167,10 +167,13 @@ class DocumentScene extends React.Component<Props> {
           }
 
           if (!this.revision) {
-            // Update url to match the current one
-            this.props.history.replace(
-              updateDocumentUrl(props.match.url, document.url)
+            const canonicalUrl = updateDocumentUrl(
+              props.match.url,
+              document.url
             );
+            if (this.props.location !== canonicalUrl) {
+              this.props.history.replace(canonicalUrl);
+            }
           }
         }
       } else {
