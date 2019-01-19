@@ -49,7 +49,7 @@ You have unsaved changes.
 Are you sure you want to discard them?
 `;
 const UPLOADING_WARNING = `
-Image are still uploading.
+Images are still uploading.
 Are you sure you want to discard them?
 `;
 
@@ -240,7 +240,7 @@ class DocumentScene extends React.Component<Props> {
     const document = this.document;
 
     this.isDirty =
-      document && this.getEditorText().trim() !== document.text.trim();
+      !!document && this.getEditorText().trim() !== document.text.trim();
   }, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
@@ -340,11 +340,11 @@ class DocumentScene extends React.Component<Props> {
             {this.isEditing && (
               <React.Fragment>
                 <Prompt
-                  when={this.isDirty || false}
+                  when={this.isDirty && !this.isUploading}
                   message={DISCARD_CHANGES}
                 />
                 <Prompt
-                  when={this.isUploading || false}
+                  when={this.isUploading && !this.isDirty}
                   message={UPLOADING_WARNING}
                 />
               </React.Fragment>
@@ -365,8 +365,6 @@ class DocumentScene extends React.Component<Props> {
             <MaxWidth column auto>
               <Editor
                 key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
-                titlePlaceholder="Start with a title…"
-                bodyPlaceholder="…the rest is your canvas"
                 defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
                 disableEmbeds={embedsDisabled}
