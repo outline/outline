@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import { inject } from 'mobx-react';
+import { observable } from 'mobx';
+import { inject, observer } from 'mobx-react';
+import { Redirect } from 'react-router-dom';
 import { MoreIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
@@ -10,13 +11,15 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
   label?: React.Node,
-  history: Object,
   collections: CollectionsStore,
 };
 
+@observer
 class NewDocumentMenu extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
   handleNewDocument = collection => {
-    this.props.history.push(newDocumentUrl(collection));
+    this.redirectTo = newDocumentUrl(collection);
   };
 
   onOpen = () => {
@@ -28,7 +31,9 @@ class NewDocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    const { collections, label, history, ...rest } = this.props;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+
+    const { collections, label, ...rest } = this.props;
 
     return (
       <DropdownMenu
@@ -55,4 +60,4 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('collections')(NewDocumentMenu));
+export default inject('collections')(NewDocumentMenu);

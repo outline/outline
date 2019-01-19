@@ -62,7 +62,6 @@ class CollectionLink extends React.Component<Props> {
           exact={false}
           menu={
             <CollectionMenu
-              history={history}
               collection={collection}
               onOpen={() => (this.menuOpen = true)}
               onClose={() => (this.menuOpen = false)}

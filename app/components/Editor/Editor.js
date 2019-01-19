@@ -1,5 +1,8 @@
 // @flow
 import * as React from 'react';
+import { Redirect } from 'react-router-dom';
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
 import RichMarkdownEditor from 'rich-markdown-editor';
 import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
@@ -11,11 +14,13 @@ type Props = {
   readOnly?: boolean,
   disableEmbeds?: boolean,
   forwardedRef: *,
-  history: *,
   ui: *,
 };
 
+@observer
 class Editor extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
   onUploadImage = async (file: File) => {
     const result = await uploadFile(file);
     return result.url;
@@ -42,7 +47,7 @@ class Editor extends React.Component<Props> {
         }
       }
 
-      this.props.history.push(navigateTo);
+      this.redirectTo = navigateTo;
     } else {
       window.open(href, '_blank');
     }
@@ -69,6 +74,8 @@ class Editor extends React.Component<Props> {
   };
 
   render() {
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+
     return (
       <RichMarkdownEditor
         ref={this.props.forwardedRef}

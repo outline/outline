@@ -376,7 +376,6 @@ class DocumentScene extends React.Component<Props> {
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing}
                 toc={!revision}
-                history={this.props.history}
                 ui={this.props.ui}
                 schema={schema}
               />

@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react';
-import { Switch, Route, withRouter } from 'react-router-dom';
-import type { Location } from 'react-router-dom';
+import { Switch, Route, Redirect } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import keydown from 'react-keydown';
 import Analytics from 'components/Analytics';
@@ -16,14 +16,11 @@ import Sidebar from 'components/Sidebar';
 import SettingsSidebar from 'components/Sidebar/Settings';
 import Modals from 'components/Modals';
 import ErrorSuspended from 'scenes/ErrorSuspended';
-
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 
 type Props = {
-  history: Object,
-  location: Location,
   documents: DocumentsStore,
   children?: ?React.Node,
   actions?: ?React.Node,
@@ -36,17 +33,24 @@ type Props = {
 @observer
 class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
+  @observable redirectTo: ?string;
+
+  componentDidUpdate() {
+    if (this.redirectTo) {
+      this.redirectTo = undefined;
+    }
+  }
 
   @keydown(['/', 't', 'meta+k'])
   goToSearch(ev) {
     ev.preventDefault();
     ev.stopPropagation();
-    this.props.history.push(searchUrl());
+    this.redirectTo = searchUrl();
   }
 
   @keydown('d')
   goToDashboard() {
-    this.props.history.push(homeUrl());
+    this.redirectTo = homeUrl();
   }
 
   @keydown('e')
@@ -56,7 +60,7 @@ class Layout extends React.Component<Props> {
 
     ev.preventDefault();
     ev.stopPropagation();
-    this.props.history.push(documentEditUrl(activeDocument));
+    this.redirectTo = documentEditUrl(activeDocument);
   }
 
   @keydown('shift+/')
@@ -70,6 +74,7 @@ class Layout extends React.Component<Props> {
     const showSidebar = auth.authenticated && user && team;
 
     if (auth.isSuspended) return <ErrorSuspended />;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
 
     return (
       <Container column auto>
@@ -122,4 +127,4 @@ const Content = styled(Flex)`
   `};
 `;
 
-export default withRouter(inject('auth', 'ui', 'documents')(Layout));
+export default inject('auth', 'ui', 'documents')(Layout);

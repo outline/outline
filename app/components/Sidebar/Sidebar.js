@@ -12,7 +12,6 @@ import UiStore from 'stores/UiStore';
 
 type Props = {
   children: React.Node,
-  history: Object,
   location: Location,
   ui: UiStore,
 };

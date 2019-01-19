@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
+import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -15,19 +16,20 @@ import {
 
 type Props = {
   label: React.Node,
-  history: Object,
   ui: UiStore,
   auth: AuthStore,
 };
 
 @observer
 class AccountMenu extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
   handleOpenKeyboardShortcuts = () => {
     this.props.ui.setActiveModal('keyboard-shortcuts');
   };
 
   handleOpenSettings = () => {
-    this.props.history.push('/settings');
+    this.redirectTo = '/settings';
   };
 
   handleLogout = () => {
@@ -35,6 +37,8 @@ class AccountMenu extends React.Component<Props> {
   };
 
   render() {
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+
     return (
       <DropdownMenu
         style={{ marginRight: 10, marginTop: -10 }}
@@ -69,4 +73,4 @@ class AccountMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('ui', 'auth')(AccountMenu));
+export default inject('ui', 'auth')(AccountMenu);

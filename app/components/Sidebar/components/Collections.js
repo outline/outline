@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
+import { withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import Flex from 'shared/components/Flex';
 import { PlusIcon } from 'outline-icons';
@@ -62,4 +63,6 @@ class Collections extends React.Component<Props> {
   }
 }
 
-export default inject('collections', 'ui', 'documents')(Collections);
+export default inject('collections', 'ui', 'documents')(
+  withRouter(Collections)
+);

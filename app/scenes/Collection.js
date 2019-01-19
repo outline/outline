@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Link, Switch, Route } from 'react-router-dom';
+import { Redirect, Link, Switch, Route } from 'react-router-dom';
 
 import styled from 'styled-components';
 import {
@@ -42,7 +42,6 @@ type Props = {
   ui: UiStore,
   documents: DocumentsStore,
   collections: CollectionsStore,
-  history: Object,
   match: Object,
 };
 
@@ -51,6 +50,7 @@ class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
   @observable permissionsModalOpen: boolean = false;
+  @observable redirectTo: ?string;
 
   componentDidMount() {
     this.loadContent(this.props.match.params.id);
@@ -85,7 +85,7 @@ class CollectionScene extends React.Component<Props> {
     ev.preventDefault();
 
     if (this.collection) {
-      this.props.history.push(`${this.collection.url}/new`);
+      this.redirectTo = `${this.collection.url}/new`;
     }
   };
 
@@ -102,10 +102,7 @@ class CollectionScene extends React.Component<Props> {
     return (
       <Actions align="center" justify="flex-end">
         <Action>
-          <CollectionMenu
-            history={this.props.history}
-            collection={this.collection}
-          />
+          <CollectionMenu collection={this.collection} />
         </Action>
         <Separator />
         <Action>
@@ -117,16 +114,11 @@ class CollectionScene extends React.Component<Props> {
     );
   }
 
-  renderNotFound() {
-    return <Search notFound />;
-  }
-
   render() {
     const { documents } = this.props;
 
-    if (!this.isFetching && !this.collection) {
-      return this.renderNotFound();
-    }
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+    if (!this.isFetching && !this.collection) return <Search notFound />;
 
     const pinnedDocuments = this.collection
       ? documents.pinnedInCollection(this.collection.id)
@@ -296,6 +288,4 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default withRouter(
-  inject('collections', 'documents', 'ui')(CollectionScene)
-);
+export default inject('collections', 'documents', 'ui')(CollectionScene);
