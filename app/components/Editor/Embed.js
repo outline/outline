@@ -26,7 +26,7 @@ export default class Embed extends React.Component<*> {
     const result = this.matches;
     if (!result) return null;
 
-    const { attributes, isSelected } = this.props;
+    const { attributes, isSelected, children } = this.props;
     const { component, matches } = result;
     const EmbedComponent = component;
 
@@ -37,6 +37,7 @@ export default class Embed extends React.Component<*> {
         {...attributes}
       >
         <EmbedComponent matches={matches} url={this.url} />
+        {children}
       </Container>
     );
   }
