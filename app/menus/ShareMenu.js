@@ -24,6 +24,10 @@ type Props = {
 class ShareMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
 
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   handleGoToDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.redirectTo = this.props.share.documentUrl;

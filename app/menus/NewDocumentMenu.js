@@ -18,6 +18,10 @@ type Props = {
 class NewDocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
 
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   handleNewDocument = collection => {
     this.redirectTo = newDocumentUrl(collection);
   };

@@ -30,6 +30,10 @@ class CollectionMenu extends React.Component<Props> {
   @observable permissionsModalOpen: boolean = false;
   @observable redirectTo: ?string;
 
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   onNewDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { collection } = this.props;

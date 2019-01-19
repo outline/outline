@@ -25,6 +25,10 @@ type Props = {
 class DocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
 
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   handleNewChild = (ev: SyntheticEvent<*>) => {
     const { document } = this.props;
     this.redirectTo = `${document.collection.url}/new?parentDocument=${

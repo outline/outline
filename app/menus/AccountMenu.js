@@ -24,6 +24,10 @@ type Props = {
 class AccountMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
 
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   handleOpenKeyboardShortcuts = () => {
     this.props.ui.setActiveModal('keyboard-shortcuts');
   };
