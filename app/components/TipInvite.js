@@ -9,6 +9,7 @@ import Team from '../models/Team';
 
 type Props = {
   team: Team,
+  disabled: boolean,
 };
 
 @observer
@@ -20,7 +21,8 @@ class TipInvite extends React.Component<Props> {
   };
 
   render() {
-    const { team } = this.props;
+    const { team, disabled } = this.props;
+    if (disabled) return null;
 
     return (
       <Tip id="subdomain-invite">
