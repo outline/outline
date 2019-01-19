@@ -12,6 +12,7 @@ import Flex from 'shared/components/Flex';
 import { documentEditUrl, homeUrl, searchUrl } from 'utils/routeHelpers';
 
 import { LoadingIndicatorBar } from 'components/LoadingIndicator';
+import { GlobalStyles } from 'components/DropToImport';
 import Sidebar from 'components/Sidebar';
 import SettingsSidebar from 'components/Sidebar/Settings';
 import Modals from 'components/Modals';
@@ -103,6 +104,7 @@ class Layout extends React.Component<Props> {
           </Content>
         </Flex>
         <Modals ui={ui} />
+        <GlobalStyles />
       </Container>
     );
   }

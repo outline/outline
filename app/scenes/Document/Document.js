@@ -357,7 +357,6 @@ class DocumentScene extends React.Component<Props> {
                 isSaving={this.isSaving}
                 isPublishing={this.isPublishing}
                 savingIsDisabled={!document.allowSave}
-                history={this.props.history}
                 onDiscard={this.onDiscard}
                 onSave={this.onSave}
               />
