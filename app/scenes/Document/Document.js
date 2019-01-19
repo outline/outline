@@ -172,7 +172,7 @@ class DocumentScene extends React.Component<Props> {
               props.match.url,
               document.url
             );
-            if (this.props.location !== canonicalUrl) {
+            if (this.props.location.pathname !== canonicalUrl) {
               this.props.history.replace(canonicalUrl);
             }
           }
