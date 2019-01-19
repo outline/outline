@@ -2,8 +2,8 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { Redirect } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
-import { omit } from 'lodash';
 import invariant from 'invariant';
 import importFile from 'utils/importFile';
 import Dropzone from 'react-dropzone';
@@ -18,11 +18,11 @@ type Props = {
   rejectClassName?: string,
   documents: DocumentsStore,
   disabled: boolean,
-  history: Object,
 };
 
-const GlobalStyles = createGlobalStyle`
+export const GlobalStyles = createGlobalStyle`
   .activeDropZone {
+    border-radius: 4px;
     background: ${props => props.theme.slateDark};
     svg { fill: ${props => props.theme.white}; }
   }
@@ -35,6 +35,7 @@ const GlobalStyles = createGlobalStyle`
 @observer
 class DropToImport extends React.Component<Props> {
   @observable isImporting: boolean = false;
+  @observable redirectTo: ?string;
 
   onDropAccepted = async (files = []) => {
     this.isImporting = true;
@@ -59,7 +60,7 @@ class DropToImport extends React.Component<Props> {
         });
 
         if (redirect) {
-          this.props.history.push(doc.url);
+          this.redirectTo = doc.url;
         }
       }
     } finally {
@@ -68,16 +69,15 @@ class DropToImport extends React.Component<Props> {
   };
 
   render() {
-    const props = omit(
-      this.props,
-      'history',
-      'documentId',
-      'collectionId',
-      'documents',
-      'disabled',
-      'menuOpen'
-    );
+    const {
+      documentId,
+      collectionId,
+      documents,
+      disabled,
+      ...rest
+    } = this.props;
 
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
     if (this.props.disabled) return this.props.children;
 
     return (
@@ -88,9 +88,8 @@ class DropToImport extends React.Component<Props> {
         disableClick
         disablePreview
         multiple
-        {...props}
+        {...rest}
       >
-        <GlobalStyles />
         {this.isImporting && <LoadingIndicator />}
         {this.props.children}
       </Dropzone>

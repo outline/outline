@@ -1,7 +1,5 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import type { Location } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
 import { HomeIcon, EditIcon, SearchIcon, StarredIcon } from 'outline-icons';
 
@@ -20,8 +18,6 @@ import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
-  history: Object,
-  location: Location,
   auth: AuthStore,
   documents: DocumentsStore,
   ui: UiStore,
@@ -93,11 +89,7 @@ class MainSidebar extends React.Component<Props> {
               />
             </Section>
             <Section>
-              <Collections
-                history={this.props.history}
-                location={this.props.location}
-                onCreateCollection={this.handleCreateCollection}
-              />
+              <Collections onCreateCollection={this.handleCreateCollection} />
             </Section>
           </Scrollable>
         </Flex>
@@ -106,4 +98,4 @@ class MainSidebar extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('documents', 'auth', 'ui')(MainSidebar));
+export default inject('documents', 'auth', 'ui')(MainSidebar);

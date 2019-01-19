@@ -3,6 +3,7 @@ import * as React from 'react';
 import { throttle } from 'lodash';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { NewDocumentIcon } from 'outline-icons';
@@ -33,7 +34,6 @@ type Props = {
     publish?: boolean,
     autosave?: boolean,
   }) => *,
-  history: Object,
   auth: AuthStore,
 };
 
@@ -41,6 +41,7 @@ type Props = {
 class Header extends React.Component<Props> {
   @observable isScrolled = false;
   @observable showShareModal = false;
+  @observable redirectTo: ?string;
 
   componentDidMount() {
     window.addEventListener('scroll', this.handleScroll);
@@ -57,7 +58,7 @@ class Header extends React.Component<Props> {
   handleScroll = throttle(this.updateIsScrolled, 50);
 
   handleEdit = () => {
-    this.props.history.push(documentEditUrl(this.props.document));
+    this.redirectTo = documentEditUrl(this.props.document);
   };
 
   handleSave = () => {
@@ -86,6 +87,8 @@ class Header extends React.Component<Props> {
   };
 
   render() {
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+
     const {
       document,
       isEditing,

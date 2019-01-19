@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import { inject } from 'mobx-react';
+import { Redirect } from 'react-router-dom';
+import { inject, observer } from 'mobx-react';
+import { observable } from 'mobx';
 import { MoreIcon } from 'outline-icons';
 
 import CopyToClipboard from 'components/CopyToClipboard';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-
 import SharesStore from 'stores/SharesStore';
 import UiStore from 'stores/UiStore';
 import Share from 'models/Share';
@@ -15,16 +15,22 @@ type Props = {
   label?: React.Node,
   onOpen?: () => *,
   onClose: () => *,
-  history: Object,
   shares: SharesStore,
   ui: UiStore,
   share: Share,
 };
 
+@observer
 class ShareMenu extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   handleGoToDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
-    this.props.history.push(this.props.share.documentUrl);
+    this.redirectTo = this.props.share.documentUrl;
   };
 
   handleRevoke = (ev: SyntheticEvent<*>) => {
@@ -38,6 +44,8 @@ class ShareMenu extends React.Component<Props> {
   };
 
   render() {
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+
     const { share, label, onOpen, onClose } = this.props;
 
     return (
@@ -61,4 +69,4 @@ class ShareMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('shares', 'ui')(ShareMenu));
+export default inject('shares', 'ui')(ShareMenu);

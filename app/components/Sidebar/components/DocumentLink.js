@@ -10,7 +10,6 @@ import { type NavigationNode } from 'types';
 
 type Props = {
   document: NavigationNode,
-  history: Object,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => *,
   prefetchDocument: (documentId: string) => Promise<void>,
@@ -34,7 +33,6 @@ class DocumentLink extends React.Component<Props> {
       activeDocumentRef,
       prefetchDocument,
       depth,
-      history,
     } = this.props;
 
     const isActiveDocument =
@@ -55,11 +53,7 @@ class DocumentLink extends React.Component<Props> {
         ref={isActiveDocument ? activeDocumentRef : undefined}
         onMouseEnter={this.handleMouseEnter}
       >
-        <DropToImport
-          history={history}
-          documentId={document.id}
-          activeClassName="activeDropZone"
-        >
+        <DropToImport documentId={document.id} activeClassName="activeDropZone">
           <SidebarLink
             to={{
               pathname: document.url,
@@ -74,7 +68,6 @@ class DocumentLink extends React.Component<Props> {
                 {document.children.map(childDocument => (
                   <DocumentLink
                     key={childDocument.id}
-                    history={history}
                     document={childDocument}
                     activeDocument={activeDocument}
                     prefetchDocument={prefetchDocument}

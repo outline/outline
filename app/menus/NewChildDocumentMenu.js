@@ -1,6 +1,8 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
@@ -9,25 +11,32 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
   label?: React.Node,
-  history: Object,
   document: Document,
 };
 
+@observer
 class NewChildDocumentMenu extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   handleNewDocument = () => {
-    const { history, document } = this.props;
-    history.push(newDocumentUrl(document.collection));
+    this.redirectTo = newDocumentUrl(this.props.document.collection);
   };
 
   handleNewChild = () => {
-    const { history, document } = this.props;
-    history.push(
-      `${document.collection.url}/new?parentDocument=${document.id}`
-    );
+    const { document } = this.props;
+    this.redirectTo = `${document.collection.url}/new?parentDocument=${
+      document.id
+    }`;
   };
 
   render() {
-    const { label, document, history, ...rest } = this.props;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+
+    const { label, document, ...rest } = this.props;
     const { collection } = document;
 
     return (
@@ -45,4 +54,4 @@ class NewChildDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(NewChildDocumentMenu);
+export default NewChildDocumentMenu;

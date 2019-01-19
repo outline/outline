@@ -13,7 +13,6 @@ import DropToImport from 'components/DropToImport';
 import Flex from 'shared/components/Flex';
 
 type Props = {
-  history: Object,
   collection: Collection,
   ui: UiStore,
   activeDocument: ?Document,
@@ -25,19 +24,12 @@ class CollectionLink extends React.Component<Props> {
   @observable menuOpen = false;
 
   render() {
-    const {
-      history,
-      collection,
-      activeDocument,
-      prefetchDocument,
-      ui,
-    } = this.props;
+    const { collection, activeDocument, prefetchDocument, ui } = this.props;
     const expanded = collection.id === ui.activeCollectionId;
 
     return (
       <DropToImport
         key={collection.id}
-        history={history}
         collectionId={collection.id}
         activeClassName="activeDropZone"
       >
@@ -62,7 +54,6 @@ class CollectionLink extends React.Component<Props> {
           exact={false}
           menu={
             <CollectionMenu
-              history={history}
               collection={collection}
               onOpen={() => (this.menuOpen = true)}
               onClose={() => (this.menuOpen = false)}
@@ -73,7 +64,6 @@ class CollectionLink extends React.Component<Props> {
             {collection.documents.map(document => (
               <DocumentLink
                 key={document.id}
-                history={history}
                 document={document}
                 activeDocument={activeDocument}
                 prefetchDocument={prefetchDocument}

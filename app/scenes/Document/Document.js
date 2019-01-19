@@ -41,6 +41,7 @@ import Revision from 'models/Revision';
 
 import schema from './schema';
 
+let EditorImport;
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
 const MARK_AS_VIEWED_AFTER = 3000;
@@ -69,7 +70,7 @@ class DocumentScene extends React.Component<Props> {
   viewTimeout: TimeoutID;
   getEditorText: () => string;
 
-  @observable editorComponent;
+  @observable editorComponent = EditorImport;
   @observable document: ?Document;
   @observable revision: ?Revision;
   @observable newDocument: ?Document;
@@ -167,10 +168,13 @@ class DocumentScene extends React.Component<Props> {
           }
 
           if (!this.revision) {
-            // Update url to match the current one
-            this.props.history.replace(
-              updateDocumentUrl(props.match.url, document.url)
+            const canonicalUrl = updateDocumentUrl(
+              props.match.url,
+              document.url
             );
+            if (this.props.location.pathname !== canonicalUrl) {
+              this.props.history.replace(canonicalUrl);
+            }
           }
         }
       } else {
@@ -181,8 +185,11 @@ class DocumentScene extends React.Component<Props> {
   };
 
   loadEditor = async () => {
-    const EditorImport = await import('./components/Editor');
-    this.editorComponent = EditorImport.default;
+    if (this.editorComponent) return;
+
+    const Imported = await import('./components/Editor');
+    EditorImport = Imported.default;
+    this.editorComponent = EditorImport;
   };
 
   get isEditing() {
@@ -357,7 +364,6 @@ class DocumentScene extends React.Component<Props> {
                 isSaving={this.isSaving}
                 isPublishing={this.isPublishing}
                 savingIsDisabled={!document.allowSave}
-                history={this.props.history}
                 onDiscard={this.onDiscard}
                 onSave={this.onSave}
               />
@@ -376,7 +382,6 @@ class DocumentScene extends React.Component<Props> {
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing}
                 toc={!revision}
-                history={this.props.history}
                 ui={this.props.ui}
                 schema={schema}
               />
