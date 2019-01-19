@@ -31,12 +31,15 @@ const DocumentNew = () => <Document newDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
+const RemountDocument = props => (
+  <Document key={props.location.pathname} {...props} />
+);
 
 export default function Routes() {
   return (
     <Switch>
       <Route exact path="/" component={Home} />
-      <Route exact path="/share/:shareId" component={Document} />
+      <Route exact path="/share/:shareId" component={RemountDocument} />
       <Authenticated>
         <Layout>
           <Switch>
@@ -79,14 +82,14 @@ export default function Routes() {
             <Route
               exact
               path={`/doc/${slug}/history/:revisionId?`}
-              component={Document}
+              component={RemountDocument}
             />
             <RouteSidebarHidden
               exact
               path={`/doc/${slug}/edit`}
-              component={Document}
+              component={RemountDocument}
             />
-            <Route path={`/doc/${slug}`} component={Document} />
+            <Route path={`/doc/${slug}`} component={RemountDocument} />
             <Route exact path="/search" component={Search} />
             <Route exact path="/search/:query" component={Search} />
             <Route path="/404" component={Error404} />

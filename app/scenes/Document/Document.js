@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Prompt, Route } from 'react-router-dom';
+import { Prompt, Route } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
@@ -74,28 +74,16 @@ class DocumentScene extends React.Component<Props> {
   @observable document: ?Document;
   @observable revision: ?Revision;
   @observable newDocument: ?Document;
-  @observable isUploading = false;
-  @observable isSaving = false;
-  @observable isPublishing = false;
-  @observable isDirty = false;
-  @observable notFound = false;
+  @observable isUploading: boolean = false;
+  @observable isSaving: boolean = false;
+  @observable isPublishing: boolean = false;
+  @observable isDirty: boolean = false;
+  @observable notFound: boolean = false;
   @observable moveModalOpen: boolean = false;
 
   componentDidMount() {
     this.loadDocument(this.props);
     this.loadEditor();
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (
-      nextProps.match.params.documentSlug !==
-        this.props.match.params.documentSlug ||
-      this.props.match.params.revisionId !== nextProps.match.params.revisionId
-    ) {
-      this.notFound = false;
-      clearTimeout(this.viewTimeout);
-      this.loadDocument(nextProps);
-    }
   }
 
   componentWillUnmount() {
@@ -284,6 +272,8 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
+    console.log('render', this.props);
+
     const { location, auth, match } = this.props;
     const team = auth.team;
     const Editor = this.editorComponent;
@@ -421,6 +411,4 @@ const LoadingState = styled(LoadingPlaceholder)`
   margin: 40px 0;
 `;
 
-export default withRouter(
-  inject('ui', 'auth', 'documents', 'revisions')(DocumentScene)
-);
+export default inject('ui', 'auth', 'documents', 'revisions')(DocumentScene);

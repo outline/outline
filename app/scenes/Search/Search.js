@@ -6,7 +6,6 @@ import Waypoint from 'react-waypoint';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { debounce } from 'lodash';
-import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
@@ -217,4 +216,4 @@ class Search extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('documents')(Search));
+export default inject('documents')(Search);

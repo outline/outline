@@ -1,8 +1,6 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { withRouter } from 'react-router-dom';
-import type { Location } from 'react-router-dom';
 import Flex from 'shared/components/Flex';
 import { PlusIcon } from 'outline-icons';
 
@@ -16,8 +14,6 @@ import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 
 type Props = {
-  history: Object,
-  location: Location,
   collections: CollectionsStore,
   documents: DocumentsStore,
   onCreateCollection: () => void,
@@ -33,15 +29,13 @@ class Collections extends React.Component<Props> {
   }
 
   render() {
-    const { history, location, collections, ui, documents } = this.props;
+    const { collections, ui, documents } = this.props;
     const content = (
       <Flex column>
         <Header>Collections</Header>
         {collections.orderedData.map(collection => (
           <CollectionLink
             key={collection.id}
-            history={history}
-            location={location}
             collection={collection}
             activeDocument={documents.active}
             prefetchDocument={documents.prefetchDocument}
@@ -63,6 +57,4 @@ class Collections extends React.Component<Props> {
   }
 }
 
-export default inject('collections', 'ui', 'documents')(
-  withRouter(Collections)
-);
+export default inject('collections', 'ui', 'documents')(Collections);
