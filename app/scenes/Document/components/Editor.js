@@ -16,7 +16,7 @@ class DocumentEditor extends React.Component<Props> {
 
   componentDidMount() {
     if (!this.props.defaultValue) {
-      this.focusAtStart();
+      setImmediate(this.focusAtStart);
     }
   }
 

@@ -3,6 +3,7 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
+import { withRouter } from 'react-router-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { debounce } from 'lodash';
@@ -216,4 +217,4 @@ class Search extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(Search);
+export default withRouter(inject('documents')(Search));

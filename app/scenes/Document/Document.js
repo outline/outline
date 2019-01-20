@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { Prompt, Route } from 'react-router-dom';
+import { Prompt, Route, withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
@@ -125,7 +125,7 @@ class DocumentScene extends React.Component<Props> {
           title: '',
           text: '',
         },
-        this.props.documents
+        props.documents
       );
     } else {
       const { shareId, revisionId } = props.match.params;
@@ -404,4 +404,6 @@ const LoadingState = styled(LoadingPlaceholder)`
   margin: 40px 0;
 `;
 
-export default inject('ui', 'auth', 'documents', 'revisions')(DocumentScene);
+export default withRouter(
+  inject('ui', 'auth', 'documents', 'revisions')(DocumentScene)
+);

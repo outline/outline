@@ -358,7 +358,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     return client.post('/documents.unstar', { id: document.id });
   };
 
-  getByUrl = (url: string): ?Document => {
+  getByUrl = (url: string = ''): ?Document => {
     return find(Array.from(this.data.values()), doc => url.endsWith(doc.urlId));
   };
 
