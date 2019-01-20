@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
@@ -8,8 +7,9 @@ import Waypoint from 'react-waypoint';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
-import Document from 'models/Document';
+import DocumentsStore from 'stores/DocumentsStore';
 import RevisionsStore from 'stores/RevisionsStore';
+import Document from 'models/Document';
 
 import Flex from 'shared/components/Flex';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
@@ -18,9 +18,8 @@ import { documentHistoryUrl } from 'utils/routeHelpers';
 
 type Props = {
   match: Object,
-  document: Document,
+  documents: DocumentsStore,
   revisions: RevisionsStore,
-  revision?: Object,
   history: Object,
 };
 
@@ -30,11 +29,27 @@ class DocumentHistory extends React.Component<Props> {
   @observable isFetching: boolean = false;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
+  @observable document: Document;
+
+  constructor(props) {
+    super();
+    this.document = props.documents.getByUrl(props.match.params.documentSlug);
+  }
 
   async componentDidMount() {
-    this.selectFirstRevision();
     await this.loadMoreResults();
     this.selectFirstRevision();
+  }
+
+  async componentWillReceiveProps(nextProps) {
+    const document = nextProps.documents.getByUrl(
+      nextProps.match.params.documentSlug
+    );
+    if (!this.document && document) {
+      this.document = document;
+      await this.loadMoreResults();
+      this.selectFirstRevision();
+    }
   }
 
   fetchResults = async () => {
@@ -44,7 +59,7 @@ class DocumentHistory extends React.Component<Props> {
     const results = await this.props.revisions.fetchPage({
       limit,
       offset: this.offset,
-      id: this.props.document.id,
+      id: this.document.id,
     });
 
     if (
@@ -61,10 +76,9 @@ class DocumentHistory extends React.Component<Props> {
   };
 
   selectFirstRevision = () => {
-    const revisions = this.revisions;
-    if (revisions.length && !this.props.revision) {
+    if (this.revisions.length) {
       this.props.history.replace(
-        documentHistoryUrl(this.props.document, this.revisions[0].id)
+        documentHistoryUrl(this.document, this.revisions[0].id)
       );
     }
   };
@@ -72,12 +86,13 @@ class DocumentHistory extends React.Component<Props> {
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
-    if (!this.allowLoadMore || this.isFetching) return;
+    if (!this.allowLoadMore || this.isFetching || !this.document) return;
     await this.fetchResults();
   };
 
   get revisions() {
-    return this.props.revisions.getDocumentRevisions(this.props.document.id);
+    if (!this.document) return [];
+    return this.props.revisions.getDocumentRevisions(this.document.id);
   }
 
   render() {
@@ -98,7 +113,7 @@ class DocumentHistory extends React.Component<Props> {
               <Revision
                 key={revision.id}
                 revision={revision}
-                document={this.props.document}
+                document={this.document}
                 showMenu={index !== 0}
               />
             ))}
@@ -117,15 +132,10 @@ const Loading = styled.div`
 `;
 
 const Wrapper = styled(Flex)`
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-
   min-width: ${props => props.theme.sidebarWidth};
   border-left: 1px solid ${props => props.theme.slateLight};
   overflow: scroll;
   overscroll-behavior: none;
 `;
 
-export default withRouter(inject('revisions')(DocumentHistory));
+export default inject('documents', 'revisions')(DocumentHistory);

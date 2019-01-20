@@ -62,6 +62,7 @@ class DocumentLink extends React.Component<Props> {
             expanded={showChildren}
             label={document.title}
             depth={depth}
+            exact={false}
           >
             {hasChildren && (
               <DocumentChildren column>

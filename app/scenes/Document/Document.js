@@ -23,7 +23,6 @@ import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
 import ErrorBoundary from 'components/ErrorBoundary';
-import DocumentHistory from 'components/DocumentHistory';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
@@ -81,8 +80,10 @@ class DocumentScene extends React.Component<Props> {
   @observable notFound: boolean = false;
   @observable moveModalOpen: boolean = false;
 
-  componentDidMount() {
-    this.loadDocument(this.props);
+  constructor(props) {
+    super();
+    this.document = props.documents.getByUrl(props.match.params.documentSlug);
+    this.loadDocument(props);
     this.loadEditor();
   }
 
@@ -129,13 +130,13 @@ class DocumentScene extends React.Component<Props> {
     } else {
       const { shareId, revisionId } = props.match.params;
 
-      this.document = await this.props.documents.fetch(
+      this.document = await props.documents.fetch(
         props.match.params.documentSlug,
         { shareId }
       );
 
       if (revisionId) {
-        this.revision = await this.props.revisions.fetch(
+        this.revision = await props.revisions.fetch(
           props.match.params.documentSlug,
           { revisionId }
         );
@@ -160,8 +161,8 @@ class DocumentScene extends React.Component<Props> {
               props.match.url,
               document.url
             );
-            if (this.props.location.pathname !== canonicalUrl) {
-              this.props.history.replace(canonicalUrl);
+            if (props.location.pathname !== canonicalUrl) {
+              props.history.replace(canonicalUrl);
             }
           }
         }
@@ -272,15 +273,12 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    console.log('render', this.props);
-
     const { location, auth, match } = this.props;
     const team = auth.team;
     const Editor = this.editorComponent;
     const document = this.document;
     const revision = this.revision;
     const isShare = match.params.shareId;
-    const isHistory = match.url.match(/\/history(\/|$)/); // Can't match on history alone as that can be in the user-generated slug
 
     if (this.notFound) {
       return navigator.onLine ? (
@@ -313,7 +311,6 @@ class DocumentScene extends React.Component<Props> {
       <ErrorBoundary>
         <Container
           key={revision ? revision.id : document.id}
-          sidebar={isHistory}
           isShare={isShare}
           column
           auto
@@ -378,9 +375,6 @@ class DocumentScene extends React.Component<Props> {
             </MaxWidth>
           </Container>
         </Container>
-        {isHistory && (
-          <DocumentHistory revision={revision} document={document} />
-        )}
         {isShare && <Branding />}
       </ErrorBoundary>
     );
@@ -404,7 +398,6 @@ const MaxWidth = styled(Flex)`
 const Container = styled(Flex)`
   position: relative;
   margin-top: ${props => (props.isShare ? '50px' : '0')};
-  margin-right: ${props => (props.sidebar ? props.theme.sidebarWidth : 0)};
 `;
 
 const LoadingState = styled(LoadingPlaceholder)`

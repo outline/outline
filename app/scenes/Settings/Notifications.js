@@ -93,8 +93,8 @@ class Notifications extends React.Component<Props> {
           Manage when you receive email notifications from Outline.
         </HelpText>
 
-        {options.map(option => {
-          if (option.separator) return <Separator />;
+        {options.map((option, index) => {
+          if (option.separator) return <Separator key={`separator-${index}`} />;
 
           const setting = notificationSettings.getByEvent(option.event);
 
