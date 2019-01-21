@@ -181,6 +181,7 @@ class CollectionScene extends React.Component<Props> {
 
                 {collection.description && (
                   <RichMarkdownEditor
+                    id={collection.id}
                     key={collection.description}
                     defaultValue={collection.description}
                     readOnly

@@ -30,6 +30,12 @@
     ]
   },
   "settings": {
+    "react": {
+      "createClass": "createReactClass",
+      "pragma": "React",
+      "version": "detect",
+      "flowVersion": "0.86" 
+    },
     "import/resolver": {
       "node": {
         "paths": ["app", "."]

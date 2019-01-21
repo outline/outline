@@ -78,6 +78,7 @@ class CollectionEdit extends React.Component<Props> {
             autoFocus
           />
           <InputRich
+            id={this.props.collection.id}
             label="Description"
             onChange={this.handleDescriptionChange}
             defaultValue={this.description || ''}

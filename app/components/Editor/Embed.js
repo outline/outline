@@ -9,7 +9,7 @@ export default class Embed extends React.Component<*> {
     return this.props.node.data.get('href');
   }
 
-  get matches(): ?{ component: *, matches: string[] } {
+  getMatchResults(): ?{ component: *, matches: string[] } {
     const keys = Object.keys(embeds);
 
     for (const key of keys) {
@@ -23,7 +23,7 @@ export default class Embed extends React.Component<*> {
   }
 
   render() {
-    const result = this.matches;
+    const result = this.getMatchResults();
     if (!result) return null;
 
     const { attributes, isSelected, children } = this.props;
