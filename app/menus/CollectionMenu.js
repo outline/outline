@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { Redirect } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import { MoreIcon } from 'outline-icons';
 import Modal from 'components/Modal';
@@ -22,6 +22,7 @@ type Props = {
   ui: UiStore,
   documents: DocumentsStore,
   collection: Collection,
+  history: Object,
 };
 
 @observer
@@ -30,14 +31,10 @@ class CollectionMenu extends React.Component<Props> {
   @observable permissionsModalOpen: boolean = false;
   @observable redirectTo: ?string;
 
-  componentDidUpdate() {
-    this.redirectTo = undefined;
-  }
-
   onNewDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { collection } = this.props;
-    this.redirectTo = `${collection.url}/new`;
+    this.props.history.push(`${collection.url}/new`);
   };
 
   onImportDocument = (ev: SyntheticEvent<*>) => {
@@ -56,7 +53,7 @@ class CollectionMenu extends React.Component<Props> {
         documents: this.props.documents,
         collectionId: this.props.collection.id,
       });
-      this.redirectTo = document.url;
+      this.props.history.push(document.url);
     } catch (err) {
       this.props.ui.showToast(err.message);
     }
@@ -90,8 +87,6 @@ class CollectionMenu extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
     const { collection, label, onOpen, onClose } = this.props;
 
     return (
@@ -149,4 +144,4 @@ const HiddenInput = styled.input`
   visibility: hidden;
 `;
 
-export default inject('ui', 'documents')(CollectionMenu);
+export default inject('ui', 'documents')(withRouter(CollectionMenu));
