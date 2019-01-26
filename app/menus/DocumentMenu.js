@@ -82,7 +82,7 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
     const { document, label, className, showPrint, auth } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;

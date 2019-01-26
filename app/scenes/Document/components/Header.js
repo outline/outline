@@ -87,7 +87,7 @@ class Header extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
     const {
       document,

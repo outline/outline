@@ -77,7 +77,7 @@ class DropToImport extends React.Component<Props> {
       ...rest
     } = this.props;
 
-    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
     if (this.props.disabled) return this.props.children;
 
     return (

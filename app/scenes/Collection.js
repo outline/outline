@@ -117,7 +117,7 @@ class CollectionScene extends React.Component<Props> {
   render() {
     const { documents } = this.props;
 
-    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
     if (!this.isFetching && !this.collection) return <Search notFound />;
 
     const pinnedDocuments = this.collection

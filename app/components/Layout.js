@@ -81,7 +81,7 @@ class Layout extends React.Component<Props> {
     const showSidebar = auth.authenticated && user && team;
 
     if (auth.isSuspended) return <ErrorSuspended />;
-    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
     return (
       <Container column auto>

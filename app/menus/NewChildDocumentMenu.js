@@ -34,7 +34,7 @@ class NewChildDocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
     const { label, document, ...rest } = this.props;
     const { collection } = document;

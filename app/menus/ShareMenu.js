@@ -44,7 +44,7 @@ class ShareMenu extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} />;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
     const { share, label, onOpen, onClose } = this.props;
 
