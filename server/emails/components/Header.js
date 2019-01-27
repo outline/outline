@@ -13,8 +13,8 @@ export default () => {
             <img
               alt="Outline"
               src={`${process.env.URL}/email/header-logo.png`}
-              height="55"
-              width="32"
+              height="48"
+              width="48"
             />
           </TD>
         </TR>

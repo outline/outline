@@ -83,14 +83,14 @@ export class Mailer {
     }
   };
 
-  welcome = async (opts: { to: string }) => {
+  welcome = async (opts: { to: string, teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
       title: 'Welcome to Outline',
       previewText:
         'Outline is a place for your team to build and share knowledge.',
-      html: <WelcomeEmail />,
-      text: welcomeEmailText,
+      html: <WelcomeEmail {...opts} />,
+      text: welcomeEmailText(opts),
     });
   };
 
