@@ -16,7 +16,10 @@ describe('Mailer', () => {
   });
 
   test('#welcome', () => {
-    fakeMailer.welcome({ to: 'user@example.com' });
+    fakeMailer.welcome({
+      to: 'user@example.com',
+      teamUrl: 'http://example.com',
+    });
     expect(sendMailOutput).toMatchSnapshot();
   });
 });

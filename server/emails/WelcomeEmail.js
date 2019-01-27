@@ -8,7 +8,11 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import EmptySpace from './components/EmptySpace';
 
-export const welcomeEmailText = `
+export type Props = {
+  teamUrl: string,
+};
+
+export const welcomeEmailText = ({ teamUrl }: Props) => `
 Welcome to Outline!
 
 Outline is a place for your team to build and share knowledge.
@@ -17,10 +21,10 @@ To get started, head to your dashboard and try creating a collection to help doc
 
 You can also import existing Markdown documents by dragging and dropping them to your collections.
 
-${process.env.URL}/dashboard
+${teamUrl}/dashboard
 `;
 
-export const WelcomeEmail = () => {
+export const WelcomeEmail = ({ teamUrl }: Props) => {
   return (
     <EmailTemplate>
       <Header />
@@ -39,9 +43,7 @@ export const WelcomeEmail = () => {
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${process.env.URL}/dashboard`}>
-            View my dashboard
-          </Button>
+          <Button href={`${teamUrl}/dashboard`}>View my dashboard</Button>
         </p>
       </Body>
 
