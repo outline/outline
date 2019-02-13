@@ -14,7 +14,8 @@ import { robotsResponse } from './utils/robots';
 import { NotFoundError } from './errors';
 import { Team } from './models';
 
-import Home from './pages/Home';
+// import Home from './pages/Home';
+import Home from './pages/HomeWeKnow';
 import About from './pages/About';
 import Changelog from './pages/Changelog';
 import Privacy from './pages/Privacy';
