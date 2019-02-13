@@ -174,7 +174,7 @@ class Header extends React.Component<Props> {
             </Action>
           )}
           {!isEditing &&
-            !currentUser.isAdmin && (
+            !!currentUser.isAdmin && (
             <Action>
               <Button onClick={this.handleEdit} neutral small>
                 Edit
