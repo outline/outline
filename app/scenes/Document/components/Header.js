@@ -101,6 +101,7 @@ class Header extends React.Component<Props> {
     const canShareDocuments = auth.team && auth.team.sharing;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
     const currentUser = auth.user;
+    console.log(currentUser);
 
     return (
       <Actions
