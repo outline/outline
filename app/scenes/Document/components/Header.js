@@ -100,6 +100,7 @@ class Header extends React.Component<Props> {
     } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
+    const currentUser = auth.user;
 
     return (
       <Actions
@@ -172,7 +173,8 @@ class Header extends React.Component<Props> {
               </Button>
             </Action>
           )}
-          {!isEditing && (
+          {!isEditing &&
+            !currentUser.isAdmin && (
             <Action>
               <Button onClick={this.handleEdit} neutral small>
                 Edit
