@@ -102,8 +102,6 @@ class Header extends React.Component<Props> {
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
     const currentUser = auth.user;
     const isAdmin = currentUser.isAdmin;
-    console.log(currentUser);
-    console.log(isAdmin);
 
     return (
       <Actions
