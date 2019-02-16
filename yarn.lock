@@ -8571,9 +8571,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@^8.1.9:
-  version "8.1.9"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-8.1.9.tgz#67b057ecf9905bbacbda5268c956126b84234a7f"
+rich-markdown-editor@^9.0.1:
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.0.1.tgz#8e45392069fba8555484c31761a78e9025b49888"
   dependencies:
     "@wikifactory/slate-edit-blockquote" "^0.7.1"
     "@wikifactory/slate-edit-code" "^0.16.0"
@@ -8596,7 +8596,7 @@ rich-markdown-editor@^8.1.9:
     react-keydown "^1.9.7"
     react-medium-image-zoom "^3.0.10"
     react-portal "^4.1.4"
-    slate "^0.44.0"
+    slate "^0.44.10"
     slate-collapse-on-escape "^0.8.1"
     slate-drop-or-paste-images "^0.9.1"
     slate-md-serializer "^5.2.3"
@@ -9026,9 +9026,9 @@ slate-schema-violations@^0.1.39:
   version "0.1.39"
   resolved "https://registry.yarnpkg.com/slate-schema-violations/-/slate-schema-violations-0.1.39.tgz#854ab5624136419cef4c803b1823acabe11f1c15"
 
-slate@^0.44.0:
-  version "0.44.9"
-  resolved "https://registry.yarnpkg.com/slate/-/slate-0.44.9.tgz#0fc9ba9f08b379b86c4c0a1ddebbe6bf28aa3c4b"
+slate@^0.44.10:
+  version "0.44.10"
+  resolved "https://registry.yarnpkg.com/slate/-/slate-0.44.10.tgz#ac7c3e3cf85570a8723a64a8a7807c881ddbfa8a"
   dependencies:
     debug "^3.1.0"
     direction "^0.1.5"
