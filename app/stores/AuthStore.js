@@ -78,9 +78,9 @@ export default class AuthStore {
         }
       });
     } catch (err) {
-      if (err.error.error === 'user_suspended') {
+      if (err.error === 'user_suspended') {
         this.isSuspended = true;
-        this.suspendedContactEmail = err.error.data.adminEmail;
+        this.suspendedContactEmail = err.data.adminEmail;
       }
     }
   };

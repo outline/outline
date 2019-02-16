@@ -80,7 +80,10 @@ export default function auth(options?: { required?: boolean } = {}) {
       }
 
       if (user.isSuspended) {
-        const suspendingAdmin = await User.findById(user.suspendedById);
+        const suspendingAdmin = await User.findOne({
+          where: { id: user.suspendedById },
+          paranoid: false,
+        });
         throw new UserSuspendedError({ adminEmail: suspendingAdmin.email });
       }
 

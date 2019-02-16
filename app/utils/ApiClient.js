@@ -81,8 +81,10 @@ class ApiClient {
     error.response = response;
 
     try {
-      const data = await response.json();
-      error.message = data.message || '';
+      const parsed = await response.json();
+      error.message = parsed.message || '';
+      error.error = parsed.error;
+      error.data = parsed.data;
     } catch (_err) {
       // we're trying to parse an error so JSON may not be valid
     }
