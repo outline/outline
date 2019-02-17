@@ -20,6 +20,8 @@ type Props = {
   rejectClassName?: string,
   documents: DocumentsStore,
   disabled: boolean,
+  location: Object,
+  match: Object,
   history: Object,
 };
 
@@ -76,6 +78,9 @@ class DropToImport extends React.Component<Props> {
       collectionId,
       documents,
       disabled,
+      location,
+      match,
+      history,
       ...rest
     } = this.props;
 

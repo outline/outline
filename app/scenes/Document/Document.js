@@ -89,7 +89,6 @@ class DocumentScene extends React.Component<Props> {
 
   componentWillUnmount() {
     clearTimeout(this.viewTimeout);
-    this.props.ui.clearActiveDocument();
   }
 
   goToDocumentCanonical = () => {
