@@ -42,6 +42,13 @@
     "description": "Create flowcharts and technical diagrams with ease"
   },
   {
+    "slug": "mindmeister",
+    "name": "Mindmeister",
+    "url": "https://mindmeister.com",
+    "category": "Collaboration",
+    "description": "Interactive and embeddable mind maps"
+  },
+  {
     "slug": "realtime-board",
     "name": "Realtime Board",
     "url": "https://realtimeboard.com",
