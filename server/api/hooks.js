@@ -63,11 +63,21 @@ router.post('hooks.interactive', async ctx => {
   const user = await User.find({
     where: { service: 'slack', serviceId: data.user.id },
   });
+  if (!user) {
+    ctx.body = {
+      text: 'Sorry, we couldn’t find your user on this team in Outline.',
+      response_type: 'ephemeral',
+      replace_original: false,
+    };
+    return;
+  }
 
   // we find the document based on the users teamId to ensure access
   const document = await Document.find({
     where: { id: data.callback_id, teamId: user.teamId },
   });
+  if (!document) throw new InvalidRequestError('Invalid document');
+
   const team = await Team.findById(user.teamId);
 
   // respond with a public message that will be posted in the original channel
@@ -96,11 +106,14 @@ router.post('hooks.slack', async ctx => {
       serviceId: user_id,
     },
   });
-
-  if (!user) throw new InvalidRequestError('Invalid user');
+  if (!user) {
+    ctx.body = {
+      text: 'Sorry, we couldn’t find your user on this team in Outline.',
+    };
+    return;
+  }
 
   const team = await Team.findById(user.teamId);
-
   const results = await Document.searchForUser(user, text, {
     limit: 5,
   });
