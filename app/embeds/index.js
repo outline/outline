@@ -9,6 +9,7 @@ import InVision from './InVision';
 import Loom from './Loom';
 import Lucidchart from './Lucidchart';
 import Marvel from './Marvel';
+import Mindmeister from './Mindmeister';
 import ModeAnalytics from './ModeAnalytics';
 import Numeracy from './Numeracy';
 import Prezi from './Prezi';
@@ -30,6 +31,7 @@ export default {
   Loom,
   Lucidchart,
   Marvel,
+  Mindmeister,
   ModeAnalytics,
   Numeracy,
   Prezi,
