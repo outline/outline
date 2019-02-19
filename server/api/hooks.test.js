@@ -138,7 +138,7 @@ describe('#hooks.slack', async () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.text.match(/sorry/gi)).toEqual(true);
+    expect(body.text.includes('Sorry')).toEqual(true);
     expect(body.attachments).toEqual(undefined);
   });
 
@@ -184,13 +184,14 @@ describe('#hooks.interactive', async () => {
     const payload = JSON.stringify({
       token: process.env.SLACK_VERIFICATION_TOKEN,
       user: { id: 'not-a-user-id', name: 'unknown' },
+      callback_id: 'doesnt-matter',
     });
     const res = await server.post('/api/hooks.interactive', {
       body: { payload },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.text.match(/sorry/gi)).toEqual(true);
+    expect(body.text.includes('Sorry')).toEqual(true);
     expect(body.attachments).toEqual(undefined);
   });
 
@@ -199,6 +200,7 @@ describe('#hooks.interactive', async () => {
     const payload = JSON.stringify({
       token: 'wrong-verification-token',
       user: { id: user.serviceId, name: user.name },
+      callback_id: 'doesnt-matter',
     });
     const res = await server.post('/api/hooks.interactive', {
       body: { payload },
