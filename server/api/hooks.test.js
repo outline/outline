@@ -137,9 +137,9 @@ describe('#hooks.slack', async () => {
       },
     });
     const body = await res.json();
-    expect(body.text.match(/sorry/)).toEqual(true);
-    expect(body.attachments).toEqual(undefined);
     expect(res.status).toEqual(200);
+    expect(body.text.match(/sorry/gi)).toEqual(true);
+    expect(body.attachments).toEqual(undefined);
   });
 
   it('should error if incorrect verification token', async () => {
@@ -170,14 +170,14 @@ describe('#hooks.interactive', async () => {
       user: { id: user.serviceId, name: user.name },
       callback_id: document.id,
     });
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post('/api/hooks.interactive', {
       body: { payload },
     });
     const body = await res.json();
+    expect(res.status).toEqual(200);
     expect(body.response_type).toEqual('in_channel');
     expect(body.attachments.length).toEqual(1);
     expect(body.attachments[0].title).toEqual(document.title);
-    expect(res.status).toEqual(200);
   });
 
   it('should respond with error if unknown user', async () => {
@@ -185,13 +185,13 @@ describe('#hooks.interactive', async () => {
       token: process.env.SLACK_VERIFICATION_TOKEN,
       user: { id: 'not-a-user-id', name: 'unknown' },
     });
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post('/api/hooks.interactive', {
       body: { payload },
     });
     const body = await res.json();
-    expect(body.text.match(/sorry/)).toEqual(true);
-    expect(body.attachments).toEqual(undefined);
     expect(res.status).toEqual(200);
+    expect(body.text.match(/sorry/gi)).toEqual(true);
+    expect(body.attachments).toEqual(undefined);
   });
 
   it('should error if incorrect verification token', async () => {
@@ -200,7 +200,7 @@ describe('#hooks.interactive', async () => {
       token: 'wrong-verification-token',
       user: { id: user.serviceId, name: user.name },
     });
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post('/api/hooks.interactive', {
       body: { payload },
     });
     expect(res.status).toEqual(401);
