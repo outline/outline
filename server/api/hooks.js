@@ -7,6 +7,7 @@ import { presentSlackAttachment } from '../presenters';
 import * as Slack from '../slack';
 const router = new Router();
 
+// triggered by a user posting a getoutline.com link in Slack
 router.post('hooks.unfurl', async ctx => {
   const { challenge, token, event } = ctx.body;
   if (challenge) return (ctx.body = ctx.body.challenge);
@@ -46,6 +47,50 @@ router.post('hooks.unfurl', async ctx => {
   });
 });
 
+// triggered by interactions with actions, dialogs, message buttons in Slack
+router.post('hooks.interactive', async ctx => {
+  const { payload } = ctx.body;
+  ctx.assertPresent(payload, 'payload is required');
+
+  const data = JSON.parse(payload);
+  const { callback_id, token } = data;
+  ctx.assertPresent(token, 'token is required');
+  ctx.assertPresent(callback_id, 'callback_id is required');
+
+  if (token !== process.env.SLACK_VERIFICATION_TOKEN)
+    throw new AuthenticationError('Invalid verification token');
+
+  const user = await User.find({
+    where: { service: 'slack', serviceId: data.user.id },
+  });
+  if (!user) {
+    ctx.body = {
+      text: 'Sorry, we couldn’t find your user on this team in Outline.',
+      response_type: 'ephemeral',
+      replace_original: false,
+    };
+    return;
+  }
+
+  // we find the document based on the users teamId to ensure access
+  const document = await Document.find({
+    where: { id: data.callback_id, teamId: user.teamId },
+  });
+  if (!document) throw new InvalidRequestError('Invalid document');
+
+  const team = await Team.findById(user.teamId);
+
+  // respond with a public message that will be posted in the original channel
+  ctx.body = {
+    response_type: 'in_channel',
+    replace_original: false,
+    attachments: [
+      presentSlackAttachment(document, team, document.getSummary()),
+    ],
+  };
+});
+
+// triggered by the /outline command in Slack
 router.post('hooks.slack', async ctx => {
   const { token, user_id, text } = ctx.body;
   ctx.assertPresent(token, 'token is required');
@@ -53,7 +98,7 @@ router.post('hooks.slack', async ctx => {
   ctx.assertPresent(text, 'text is required');
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN)
-    throw new AuthenticationError('Invalid token');
+    throw new AuthenticationError('Invalid verification token');
 
   const user = await User.find({
     where: {
@@ -61,11 +106,14 @@ router.post('hooks.slack', async ctx => {
       serviceId: user_id,
     },
   });
-
-  if (!user) throw new InvalidRequestError('Invalid user');
+  if (!user) {
+    ctx.body = {
+      text: 'Sorry, we couldn’t find your user on this team in Outline.',
+    };
+    return;
+  }
 
   const team = await Team.findById(user.teamId);
-
   const results = await Document.searchForUser(user, text, {
     limit: 5,
   });
@@ -81,7 +129,17 @@ router.post('hooks.slack', async ctx => {
         presentSlackAttachment(
           result.document,
           team,
-          queryIsInTitle ? undefined : result.context
+          queryIsInTitle ? undefined : result.context,
+          process.env.SLACK_MESSAGE_ACTIONS
+            ? [
+                {
+                  name: 'post',
+                  text: 'Post to Channel',
+                  type: 'button',
+                  value: result.document.id,
+                },
+              ]
+            : undefined
         )
       );
     }

@@ -128,7 +128,7 @@ describe('#hooks.slack', async () => {
     );
   });
 
-  it('should error if unknown user', async () => {
+  it('should respond with error if unknown user', async () => {
     const res = await server.post('/api/hooks.slack', {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
@@ -136,7 +136,10 @@ describe('#hooks.slack', async () => {
         text: 'Welcome',
       },
     });
-    expect(res.status).toEqual(400);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.text.includes('Sorry')).toEqual(true);
+    expect(body.attachments).toEqual(undefined);
   });
 
   it('should error if incorrect verification token', async () => {
@@ -148,6 +151,59 @@ describe('#hooks.slack', async () => {
         user_id: user.serviceId,
         text: 'Welcome',
       },
+    });
+    expect(res.status).toEqual(401);
+  });
+});
+
+describe('#hooks.interactive', async () => {
+  it('should respond with replacement message', async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      title: 'This title contains a search term',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const payload = JSON.stringify({
+      token: process.env.SLACK_VERIFICATION_TOKEN,
+      user: { id: user.serviceId, name: user.name },
+      callback_id: document.id,
+    });
+    const res = await server.post('/api/hooks.interactive', {
+      body: { payload },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.response_type).toEqual('in_channel');
+    expect(body.attachments.length).toEqual(1);
+    expect(body.attachments[0].title).toEqual(document.title);
+  });
+
+  it('should respond with error if unknown user', async () => {
+    const payload = JSON.stringify({
+      token: process.env.SLACK_VERIFICATION_TOKEN,
+      user: { id: 'not-a-user-id', name: 'unknown' },
+      callback_id: 'doesnt-matter',
+    });
+    const res = await server.post('/api/hooks.interactive', {
+      body: { payload },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.text.includes('Sorry')).toEqual(true);
+    expect(body.attachments).toEqual(undefined);
+  });
+
+  it('should error if incorrect verification token', async () => {
+    const { user } = await seed();
+    const payload = JSON.stringify({
+      token: 'wrong-verification-token',
+      user: { id: user.serviceId, name: user.name },
+      callback_id: 'doesnt-matter',
+    });
+    const res = await server.post('/api/hooks.interactive', {
+      body: { payload },
     });
     expect(res.status).toEqual(401);
   });
