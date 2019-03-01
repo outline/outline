@@ -115,15 +115,19 @@ export default function auth(options?: { required?: boolean } = {}) {
       // to the teams subdomain if subdomains are enabled
       if (process.env.SUBDOMAINS_ENABLED === 'true' && team.subdomain) {
         // get any existing sessions (teams signed in) and add this team
-        const existing = JSON.parse(ctx.cookies.get('sessions') || '{}');
-        const sessions = JSON.stringify({
-          ...existing,
-          [team.id]: {
-            name: encodeURIComponent(team.name),
-            logoUrl: team.logoUrl,
-            url: encodeURIComponent(team.url),
-          },
-        });
+        const existing = JSON.parse(
+          decodeURIComponent(ctx.cookies.get('sessions') || '') || '{}'
+        );
+        const sessions = encodeURIComponent(
+          JSON.stringify({
+            ...existing,
+            [team.id]: {
+              name: team.name,
+              logoUrl: team.logoUrl,
+              url: team.url,
+            },
+          })
+        );
         ctx.cookies.set('sessions', sessions, {
           httpOnly: false,
           expires,

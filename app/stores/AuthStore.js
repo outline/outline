@@ -1,7 +1,7 @@
 // @flow
 import { observable, action, computed, autorun, runInAction } from 'mobx';
 import invariant from 'invariant';
-import Cookie from 'js-cookie';
+import { getCookie, setCookie, removeCookie } from 'tiny-cookie';
 import { client } from 'utils/ApiClient';
 import { stripSubdomain } from 'shared/utils/domains';
 import RootStore from 'stores/RootStore';
@@ -31,7 +31,7 @@ export default class AuthStore {
     this.rootStore = rootStore;
     this.user = data.user;
     this.team = data.team;
-    this.token = Cookie.get('accessToken');
+    this.token = getCookie('accessToken');
 
     if (this.token) setImmediate(() => this.fetch());
 
@@ -138,15 +138,15 @@ export default class AuthStore {
     this.token = null;
 
     // remove authentication token itself
-    Cookie.remove('accessToken', { path: '/' });
+    removeCookie('accessToken', { path: '/' });
 
     // remove session record on apex cookie
     const team = this.team;
     if (team) {
-      const sessions = Cookie.getJSON('sessions') || {};
+      const sessions = JSON.parse(getCookie('sessions') || '{}');
       delete sessions[team.id];
 
-      Cookie.set('sessions', JSON.stringify(sessions), {
+      setCookie('sessions', JSON.stringify(sessions), {
         domain: stripSubdomain(window.location.hostname),
       });
       this.team = null;
