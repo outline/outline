@@ -155,7 +155,7 @@
     "sequelize": "4.28.6",
     "sequelize-cli": "^2.7.0",
     "sequelize-encrypted": "0.1.0",
-    "slug": "0.9.1",
+    "slug": "^1.0.0",
     "string-replace-to-array": "^1.0.3",
     "style-loader": "^0.18.2",
     "styled-components": "^4.1.3",
