@@ -4,6 +4,7 @@
 .*/shared/.*
 
 [ignore]
+.*/node_modules/tiny-cookie/flow/.*
 .*/node_modules/styled-components/.*
 .*/node_modules/polished/.*
 .*/node_modules/react-side-effect/.*
