@@ -19,14 +19,7 @@
     "test": "npm run test:app && npm run test:server",
     "test:app": "jest",
     "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
-    "test:watch": "jest --config=server/.jestconfig.json --runInBand --forceExit --watchAll",
-    "precommit": "lint-staged"
-  },
-  "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "git add"
-    ]
+    "test:watch": "jest --config=server/.jestconfig.json --runInBand --forceExit --watchAll"
   },
   "jest": {
     "verbose": false,
@@ -187,7 +180,6 @@
     "jest-cli": "22",
     "koa-webpack-dev-middleware": "1.4.5",
     "koa-webpack-hot-middleware": "1.0.3",
-    "lint-staged": "^3.4.0",
     "mobx-react-devtools": "^6.0.3",
     "nodemon": "1.11.0",
     "prettier": "1.8.2",
