@@ -88,6 +88,8 @@ class UiStore {
     message: string,
     type?: 'warning' | 'error' | 'info' | 'success' = 'success'
   ) => {
+    if (!message) return;
+
     const id = v4();
     const createdAt = new Date().toISOString();
     this.toasts.set(id, { message, type, createdAt, id });
