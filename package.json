@@ -22,6 +22,7 @@
     "test:watch": "jest --config=server/.jestconfig.json --runInBand --forceExit --watchAll"
   },
   "jest": {
+    "testURL": "http://localhost",
     "verbose": false,
     "roots": [
       "app",
