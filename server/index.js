@@ -88,12 +88,12 @@ if (process.env.NODE_ENV === 'development') {
     bugsnag.register(process.env.BUGSNAG_KEY, {
       filters: ['authorization'],
     });
-    app.on('error', error => {
+    app.on('error', (error, ctx) => {
       // we don't need to report every time a request stops to the bug tracker
       if (error.code === 'EPIPE' || error.code === 'ECONNRESET') {
         logger.warn('Connection error', { error });
       } else {
-        bugsnag.koaHandler(error);
+        bugsnag.koaHandler(error, ctx);
       }
     });
   }
