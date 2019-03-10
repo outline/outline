@@ -8,15 +8,17 @@ const colors = {
   slateLight: '#DAE1E9',
   slateDark: '#4E5C6E',
 
+  smoke: '#F4F7FA',
+  smokeLight: '#F9FBFC',
+  smokeDark: '#E8EBED',
+
   white: '#FFF',
   white10: 'rgba(255, 255, 255, 0.1)',
   black: '#000',
+  black05: 'rgba(0, 0, 0, 0.05)',
   black10: 'rgba(0, 0, 0, 0.1)',
+  black50: 'rgba(0, 0, 0, 0.50)',
   primary: '#1AB6FF',
-  greyLight: '#F4F7FA',
-  grey: '#E8EBED',
-  greyMid: '#9BA6B2',
-  greyDark: '#DAE1E9',
 
   danger: '#D0021B',
   warning: '#f08a24',
@@ -44,7 +46,6 @@ export const base = {
   textSecondary: colors.slate,
   textLight: colors.white,
   selected: colors.primary,
-  inputBorder: colors.slate,
 
   contentHeaderBackground: 'hsl(180, 58%, 85%)',
 };
@@ -59,20 +60,24 @@ export const light = {
 
   menuBackground: colors.white,
   divider: colors.slateLight,
+  inputBorder: colors.slateLight,
+
+  listItemHoverBackground: colors.smoke,
+  listItemHoverBorder: colors.smokeDark,
 
   toolbarBackground: colors.lightBlack,
   toolbarInput: colors.white10,
   toolbarItem: colors.white,
 
-  blockToolbarBackground: colors.greyLight,
-  blockToolbarTrigger: colors.greyMid,
+  blockToolbarBackground: colors.smoke,
+  blockToolbarTrigger: colors.slate,
   blockToolbarTriggerIcon: colors.white,
   blockToolbarItem: colors.almostBlack,
 
-  quote: colors.greyDark,
-  codeBackground: colors.greyLight,
-  codeBorder: colors.grey,
-  horizontalRule: colors.grey,
+  quote: colors.slateLight,
+  codeBackground: colors.smoke,
+  codeBorder: colors.smokeDark,
+  horizontalRule: colors.smokeDark,
 };
 
 export const dark = {
@@ -80,11 +85,15 @@ export const dark = {
   background: colors.almostBlack,
   text: colors.almostWhite,
 
-  sidebarBackground: 'rgba(0, 0, 0, 0.5)',
-  sidebarText: colors.greyMid,
+  sidebarBackground: colors.black50,
+  sidebarText: colors.slate,
 
   menuBackground: colors.almostBlack,
   divider: colors.lightBlack,
+  inputBorder: colors.slate,
+
+  listItemHoverBackground: colors.black10,
+  listItemHoverBorder: colors.black50,
 
   toolbarBackground: colors.white,
   toolbarInput: colors.black10,

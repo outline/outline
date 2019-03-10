@@ -25,7 +25,7 @@ const Redacted = styled(Flex)`
   width: ${props => (props.header ? props.width / 2 : props.width)}%;
   height: ${props => (props.height ? props.height : props.header ? 24 : 18)}px;
   margin-bottom: 6px;
-  background-color: ${props => props.theme.smokeDark};
+  background-color: ${props => props.theme.divider};
   animation: ${pulsate} 1.3s infinite;
 
   &:last-child {

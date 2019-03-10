@@ -59,8 +59,8 @@ const DocumentLink = styled(Link)`
   &:hover,
   &:active,
   &:focus {
-    background: rgba(0, 0, 0, 0.05);
-    border: 2px solid rgba(0, 0, 0, 0.1);
+    background: ${props => props.theme.listItemHoverBackground};
+    border: 2px solid ${props => props.theme.listItemHoverBorder};
     outline: none;
 
     ${StyledStar}, ${StyledDocumentMenu} {

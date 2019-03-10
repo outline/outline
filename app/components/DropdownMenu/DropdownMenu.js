@@ -101,10 +101,6 @@ const Menu = styled.div`
   @media print {
     display: none;
   }
-
-  hr {
-    border-bottom: 0;
-  }
 `;
 
 export default DropdownMenu;
