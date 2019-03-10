@@ -61,6 +61,9 @@ class UserProfile extends React.Component<Props> {
             documents={documents.createdByUser(user.id)}
             fetch={documents.fetchOwned}
             options={{ user: user.id }}
+            empty={
+              <HelpText>{user.name} hasn’t updated any documents yet.</HelpText>
+            }
             showCollection
           />
         </Flex>

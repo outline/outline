@@ -15,6 +15,7 @@ type Props = {
   documents: Document[],
   fetch: (options: ?Object) => Promise<*>,
   options?: Object,
+  empty?: React.Node,
 };
 
 @observer
@@ -65,15 +66,19 @@ class PaginatedDocumentList extends React.Component<Props> {
   };
 
   render() {
-    const { showCollection, showPublished, documents } = this.props;
+    const { showCollection, showPublished, empty, documents } = this.props;
 
     return this.isLoaded || documents.length ? (
       <React.Fragment>
-        <DocumentList
-          documents={documents}
-          showCollection={showCollection}
-          showPublished={showPublished}
-        />
+        {documents.length ? (
+          <DocumentList
+            documents={documents}
+            showCollection={showCollection}
+            showPublished={showPublished}
+          />
+        ) : (
+          empty
+        )}
         {this.allowLoadMore && (
           <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
         )}
