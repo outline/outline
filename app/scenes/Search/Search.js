@@ -13,6 +13,7 @@ import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import { searchUrl } from 'utils/routeHelpers';
+import { meta } from 'utils/keyboard';
 
 import Flex from 'shared/components/Flex';
 import Empty from 'components/Empty';
@@ -193,8 +194,8 @@ class Search extends React.Component<Props> {
           {showShortcutTip && (
             <Fade>
               <HelpText small>
-                Use the <strong>CMD+K</strong> shortcut to search from anywhere
-                in Outline
+                Use the <strong>{meta}+K</strong> shortcut to search from
+                anywhere in Outline
               </HelpText>
             </Fade>
           )}

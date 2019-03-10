@@ -10,6 +10,7 @@ import { NewDocumentIcon } from 'outline-icons';
 import Document from 'models/Document';
 import AuthStore from 'stores/AuthStore';
 import { documentEditUrl } from 'utils/routeHelpers';
+import { meta } from 'utils/keyboard';
 
 import Flex from 'shared/components/Flex';
 import Breadcrumb from './Breadcrumb';
@@ -107,6 +108,7 @@ class Header extends React.Component<Props> {
         justify="space-between"
         readOnly={!isEditing}
         isCompact={this.isScrolled}
+        shrink={false}
       >
         <Modal
           isOpen={this.showShareModal}
@@ -149,7 +151,7 @@ class Header extends React.Component<Props> {
               <Action>
                 <Button
                   onClick={this.handleSave}
-                  title="Save changes (Cmd+Enter)"
+                  title={`Save changes ${isDraft ? '' : `${meta}+Enter`}`}
                   disabled={savingIsDisabled}
                   isSaving={isSaving}
                   neutral={isDraft}
@@ -164,7 +166,7 @@ class Header extends React.Component<Props> {
             <Action>
               <Button
                 onClick={this.handlePublish}
-                title="Publish document (Cmd+Enter)"
+                title={`Publish document (${meta}+Enter)`}
                 disabled={savingIsDisabled}
                 small
               >

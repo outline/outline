@@ -86,7 +86,7 @@ export default class Document extends BaseModel {
   @computed
   get isEmpty(): boolean {
     // Check if the document title has been modified and user generated content exists
-    return this.text.replace(new RegExp(`^#$`), '').trim().length === 0;
+    return this.text.replace(/^#/, '').trim().length === 0;
   }
 
   @computed

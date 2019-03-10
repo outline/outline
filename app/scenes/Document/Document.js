@@ -194,6 +194,10 @@ class DocumentScene extends React.Component<Props> {
   handleCloseMoveModal = () => (this.moveModalOpen = false);
   handleOpenMoveModal = () => (this.moveModalOpen = true);
 
+  onSaveAndExit = () => {
+    this.onSave({ done: true, publish: true });
+  };
+
   onSave = async (
     options: { done?: boolean, publish?: boolean, autosave?: boolean } = {}
   ) => {
@@ -367,7 +371,7 @@ class DocumentScene extends React.Component<Props> {
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.onSearchLink}
                 onChange={this.onChange}
-                onSave={this.onSave}
+                onSave={this.onSaveAndExit}
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing}
                 toc={!revision}
@@ -387,7 +391,6 @@ const MaxWidth = styled(Flex)`
   padding: 0 16px;
   max-width: 100vw;
   width: 100%;
-  height: 100%;
 
   ${breakpoint('tablet')`	
     padding: 0 24px;

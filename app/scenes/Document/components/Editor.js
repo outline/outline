@@ -48,6 +48,8 @@ class DocumentEditor extends React.Component<Props> {
 }
 
 const StyledEditor = styled(Editor)`
+  justify-content: start;
+
   p {
     ${Placeholder} {
       visibility: hidden;
