@@ -16,6 +16,8 @@ import { searchUrl } from 'utils/routeHelpers';
 
 import Flex from 'shared/components/Flex';
 import Empty from 'components/Empty';
+import Fade from 'components/Fade';
+import HelpText from 'components/HelpText';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
 import DocumentPreview from 'components/DocumentPreview';
@@ -25,6 +27,7 @@ import SearchField from './components/SearchField';
 type Props = {
   history: Object,
   match: Object,
+  location: Object,
   documents: DocumentsStore,
   notFound: ?boolean,
 };
@@ -165,9 +168,11 @@ class Search extends React.Component<Props> {
   }
 
   render() {
-    const { documents, notFound } = this.props;
+    const { documents, notFound, location } = this.props;
     const results = documents.searchResults(this.query);
     const showEmpty = !this.isFetching && this.query && results.length === 0;
+    const showShortcutTip =
+      !this.pinToTop && location.state && location.state.fromMenu;
 
     return (
       <Container auto>
@@ -185,6 +190,14 @@ class Search extends React.Component<Props> {
             onChange={this.updateLocation}
             defaultValue={this.query}
           />
+          {showShortcutTip && (
+            <Fade>
+              <HelpText small>
+                Use the <strong>CMD+K</strong> shortcut to search from anywhere
+                in Outline
+              </HelpText>
+            </Fade>
+          )}
           {showEmpty && <Empty>No matching documents.</Empty>}
           <ResultList column visible={this.pinToTop}>
             <StyledArrowKeyNavigation

@@ -62,7 +62,10 @@ class MainSidebar extends React.Component<Props> {
                 label="Home"
               />
               <SidebarLink
-                to="/search"
+                to={{
+                  pathname: '/search',
+                  state: { fromMenu: true },
+                }}
                 icon={<SearchIcon />}
                 label="Search"
                 exact={false}
