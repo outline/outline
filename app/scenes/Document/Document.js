@@ -101,6 +101,12 @@ class DocumentScene extends React.Component<Props> {
     if (this.document) this.props.history.push(documentMoveUrl(this.document));
   }
 
+  @keydown('esc')
+  goBack(ev) {
+    ev.preventDefault();
+    this.props.history.goBack();
+  }
+
   @keydown('h')
   goToHistory(ev) {
     ev.preventDefault();
