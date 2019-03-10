@@ -212,15 +212,16 @@ Document.searchForUser = async (
 ): Promise<SearchResult[]> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
+  const wildcardQuery = `${sequelize.escape(query)}:*`;
 
   const sql = `
     SELECT
       id,
-      ts_rank(documents."searchVector", plainto_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", plainto_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
+      ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
+      ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
     FROM documents
-    WHERE "searchVector" @@ plainto_tsquery('english', :query) AND
-      "teamId" = '${user.teamId}'::uuid AND
+    WHERE "searchVector" @@ to_tsquery('english', :query) AND
+      "collectionId" IN(:collectionIds) AND
       "deletedAt" IS NULL AND
       ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
     ORDER BY 
@@ -230,20 +231,24 @@ Document.searchForUser = async (
     OFFSET :offset;
   `;
 
+  const collectionIds = await user.collectionIds();
   const results = await sequelize.query(sql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
-      query,
+      query: wildcardQuery,
       limit,
       offset,
+      collectionIds,
     },
   });
 
-  // Second query to get associated document data
+  // Final query to get associated document data
   const documents = await Document.scope({
     method: ['withViews', user.id],
   }).findAll({
-    where: { id: map(results, 'id') },
+    where: {
+      id: map(results, 'id'),
+    },
     include: [
       { model: Collection, as: 'collection' },
       { model: User, as: 'createdBy', paranoid: false },

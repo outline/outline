@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
+import { transparentize } from 'polished';
 
 type Props = {
   onClick?: (SyntheticEvent<*>) => *,
@@ -22,7 +23,8 @@ const MenuItem = styled.a`
   padding: 6px 12px;
   height: 32px;
 
-  color: ${props => (props.disabled ? props.theme.greyMid : props.theme.text)};
+  color: ${props =>
+    props.disabled ? transparentize(0.5, props.theme.text) : props.theme.text};
   justify-content: left;
   align-items: center;
   font-size: 15px;

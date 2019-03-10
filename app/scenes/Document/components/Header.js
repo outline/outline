@@ -3,18 +3,22 @@ import * as React from 'react';
 import { throttle } from 'lodash';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { NewDocumentIcon } from 'outline-icons';
+import { transparentize } from 'polished';
 import Document from 'models/Document';
 import AuthStore from 'stores/AuthStore';
 import { documentEditUrl } from 'utils/routeHelpers';
+import { meta } from 'utils/keyboard';
 
 import Flex from 'shared/components/Flex';
 import Breadcrumb from './Breadcrumb';
 import DocumentMenu from 'menus/DocumentMenu';
 import NewChildDocumentMenu from 'menus/NewChildDocumentMenu';
 import DocumentShare from 'scenes/DocumentShare';
+import Button from 'components/Button';
 import Modal from 'components/Modal';
 import Collaborators from 'components/Collaborators';
 import { Action, Separator } from 'components/Actions';
@@ -32,7 +36,6 @@ type Props = {
     publish?: boolean,
     autosave?: boolean,
   }) => *,
-  history: Object,
   auth: AuthStore,
 };
 
@@ -40,6 +43,7 @@ type Props = {
 class Header extends React.Component<Props> {
   @observable isScrolled = false;
   @observable showShareModal = false;
+  @observable redirectTo: ?string;
 
   componentDidMount() {
     window.addEventListener('scroll', this.handleScroll);
@@ -56,7 +60,7 @@ class Header extends React.Component<Props> {
   handleScroll = throttle(this.updateIsScrolled, 50);
 
   handleEdit = () => {
-    this.props.history.push(documentEditUrl(this.props.document));
+    this.redirectTo = documentEditUrl(this.props.document);
   };
 
   handleSave = () => {
@@ -85,6 +89,8 @@ class Header extends React.Component<Props> {
   };
 
   render() {
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
     const {
       document,
       isEditing,
@@ -103,6 +109,7 @@ class Header extends React.Component<Props> {
         justify="space-between"
         readOnly={!isEditing}
         isCompact={this.isScrolled}
+        shrink={false}
       >
         <Modal
           isOpen={this.showShareModal}
@@ -126,45 +133,53 @@ class Header extends React.Component<Props> {
                 <Status>Saving…</Status>
               </Action>
             )}
-          {isDraft && (
-            <Action>
-              <Link
-                onClick={this.handlePublish}
-                title="Publish document (Cmd+Enter)"
-                disabled={savingIsDisabled}
-                highlight
-              >
-                {isPublishing ? 'Publishing…' : 'Publish'}
-              </Link>
-            </Action>
-          )}
           {!isDraft &&
             !isEditing &&
             canShareDocuments && (
               <Action>
-                <Link onClick={this.handleShareLink} title="Share document">
+                <Button
+                  onClick={this.handleShareLink}
+                  title="Share document"
+                  neutral
+                  small
+                >
                   Share
-                </Link>
+                </Button>
               </Action>
             )}
           {isEditing && (
             <React.Fragment>
               <Action>
-                <Link
+                <Button
                   onClick={this.handleSave}
-                  title="Save changes (Cmd+Enter)"
+                  title={`Save changes ${isDraft ? '' : `${meta}+Enter`}`}
                   disabled={savingIsDisabled}
                   isSaving={isSaving}
-                  highlight={!isDraft}
+                  neutral={isDraft}
+                  small
                 >
-                  {isDraft ? 'Save Draft' : 'Done'}
-                </Link>
+                  {isDraft ? 'Save Draft' : 'Done Editing'}
+                </Button>
               </Action>
             </React.Fragment>
           )}
+          {isDraft && (
+            <Action>
+              <Button
+                onClick={this.handlePublish}
+                title={`Publish document (${meta}+Enter)`}
+                disabled={savingIsDisabled}
+                small
+              >
+                {isPublishing ? 'Publishing…' : 'Publish'}
+              </Button>
+            </Action>
+          )}
           {!isEditing && (
             <Action>
-              <Link onClick={this.handleEdit}>Edit</Link>
+              <Button onClick={this.handleEdit} neutral small>
+                Edit
+              </Button>
             </Action>
           )}
           {!isEditing && (
@@ -213,9 +228,9 @@ const Actions = styled(Flex)`
   right: 0;
   left: 0;
   z-index: 1;
-  background: rgba(255, 255, 255, 0.9);
+  background: ${props => transparentize(0.1, props.theme.background)};
   border-bottom: 1px solid
-    ${props => (props.isCompact ? props.theme.smoke : 'transparent')};
+    ${props => (props.isCompact ? props.theme.background : 'transparent')};
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
@@ -248,17 +263,6 @@ const Title = styled.div`
     display: block;
     flex-grow: 1;
   `};
-`;
-
-const Link = styled.a`
-  display: flex;
-  align-items: center;
-  font-weight: ${props => (props.highlight ? 500 : 'inherit')};
-  color: ${props =>
-    props.highlight ? `${props.theme.primary} !important` : 'inherit'};
-  opacity: ${props => (props.disabled ? 0.5 : 1)};
-  pointer-events: ${props => (props.disabled ? 'none' : 'auto')};
-  cursor: ${props => (props.disabled ? 'default' : 'pointer')};
 `;
 
 export default inject('auth')(Header);

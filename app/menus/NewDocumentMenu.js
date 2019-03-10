@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import { inject } from 'mobx-react';
-import { MoreIcon, CollectionIcon } from 'outline-icons';
+import { observable } from 'mobx';
+import { inject, observer } from 'mobx-react';
+import { Redirect } from 'react-router-dom';
+import { MoreIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
@@ -10,13 +11,19 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
   label?: React.Node,
-  history: Object,
   collections: CollectionsStore,
 };
 
+@observer
 class NewDocumentMenu extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   handleNewDocument = collection => {
-    this.props.history.push(newDocumentUrl(collection));
+    this.redirectTo = newDocumentUrl(collection);
   };
 
   onOpen = () => {
@@ -28,7 +35,9 @@ class NewDocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    const { collections, label, history, ...rest } = this.props;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
+    const { collections, label, ...rest } = this.props;
 
     return (
       <DropdownMenu
@@ -42,7 +51,12 @@ class NewDocumentMenu extends React.Component<Props> {
             key={collection.id}
             onClick={() => this.handleNewDocument(collection)}
           >
-            <CollectionIcon color={collection.color} /> {collection.name}
+            {collection.private ? (
+              <PrivateCollectionIcon color={collection.color} />
+            ) : (
+              <CollectionIcon color={collection.color} />
+            )}{' '}
+            {collection.name}
           </DropdownMenuItem>
         ))}
       </DropdownMenu>
@@ -50,4 +64,4 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('collections')(NewDocumentMenu));
+export default inject('collections')(NewDocumentMenu);

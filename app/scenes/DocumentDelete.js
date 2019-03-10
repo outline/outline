@@ -45,11 +45,12 @@ class DocumentDelete extends React.Component<Props> {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            Are you sure? Deleting the <strong>{document.title}</strong>{' '}
-            document is permanent and will also delete all of its history.
+            Are you sure about that? Deleting the{' '}
+            <strong>{document.title}</strong> document is permanent, will delete
+            all of its history, and any child documents.
           </HelpText>
           <Button type="submit" danger>
-            {this.isDeleting ? 'Deleting…' : 'Delete'}
+            {this.isDeleting ? 'Deleting…' : 'I’m sure – Delete'}
           </Button>
         </form>
       </Flex>

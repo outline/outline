@@ -1,11 +1,8 @@
 // @flow
-import _ from 'lodash';
-import Sequelize from 'sequelize';
+import { takeRight } from 'lodash';
 import { User, Document } from '../models';
 import presentUser from './user';
 import presentCollection from './collection';
-
-const Op = Sequelize.Op;
 
 type Options = {
   isPublic?: boolean,
@@ -35,17 +32,13 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     updatedAt: document.updatedAt,
     updatedBy: undefined,
     publishedAt: document.publishedAt,
-    firstViewedAt: undefined,
-    lastViewedAt: undefined,
     team: document.teamId,
     collaborators: [],
     starred: !!(document.starred && document.starred.length),
     revision: document.revisionCount,
     pinned: undefined,
     collectionId: undefined,
-    collaboratorCount: undefined,
     collection: undefined,
-    views: undefined,
   };
 
   if (!options.isPublic) {
@@ -58,23 +51,12 @@ async function present(ctx: Object, document: Document, options: ?Options) {
       data.collection = await presentCollection(ctx, document.collection);
     }
 
-    if (document.views && document.views.length === 1) {
-      data.views = document.views[0].count;
-      data.firstViewedAt = document.views[0].createdAt;
-      data.lastViewedAt = document.views[0].updatedAt;
-    }
-
     // This could be further optimized by using ctx.cache
     data.collaborators = await User.findAll({
       where: {
-        id: {
-          // $FlowFixMe
-          [Op.in]: _.takeRight(document.collaboratorIds, 10) || [],
-        },
+        id: takeRight(document.collaboratorIds, 10) || [],
       },
     }).map(user => presentUser(ctx, user));
-
-    data.collaboratorCount = document.collaboratorIds.length;
   }
 
   return data;

@@ -1,24 +1,27 @@
 // @flow
 import * as React from 'react';
+import { Redirect } from 'react-router-dom';
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
+import { withTheme } from 'styled-components';
 import RichMarkdownEditor from 'rich-markdown-editor';
 import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
 import Embed from './Embed';
 import embeds from '../../embeds';
-import theme from 'shared/styles/theme';
 
 type Props = {
-  titlePlaceholder?: string,
-  bodyPlaceholder?: string,
   defaultValue?: string,
   readOnly?: boolean,
   disableEmbeds?: boolean,
   forwardedRef: *,
-  history: *,
   ui: *,
 };
 
+@observer
 class Editor extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
   onUploadImage = async (file: File) => {
     const result = await uploadFile(file);
     return result.url;
@@ -45,7 +48,7 @@ class Editor extends React.Component<Props> {
         }
       }
 
-      this.props.history.push(navigateTo);
+      this.redirectTo = navigateTo;
     } else {
       window.open(href, '_blank');
     }
@@ -72,6 +75,8 @@ class Editor extends React.Component<Props> {
   };
 
   render() {
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
     return (
       <RichMarkdownEditor
         ref={this.props.forwardedRef}
@@ -79,14 +84,13 @@ class Editor extends React.Component<Props> {
         onClickLink={this.onClickLink}
         onShowToast={this.onShowToast}
         getLinkComponent={this.getLinkComponent}
-        theme={theme}
         {...this.props}
       />
     );
   }
 }
 
-// $FlowIssue - https://github.com/facebook/flow/issues/6103
-export default React.forwardRef((props, ref) => (
-  <Editor {...props} forwardedRef={ref} />
-));
+export default withTheme(
+  // $FlowIssue - https://github.com/facebook/flow/issues/6103
+  React.forwardRef((props, ref) => <Editor {...props} forwardedRef={ref} />)
+);

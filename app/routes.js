@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
-
 import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
 import Starred from 'scenes/Starred';
 import Drafts from 'scenes/Drafts';
 import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
+import KeyedDocument from 'scenes/Document/KeyedDocument';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import Details from 'scenes/Settings/Details';
@@ -27,7 +27,7 @@ import RouteSidebarHidden from 'components/RouteSidebarHidden';
 import { matchDocumentSlug as slug } from 'utils/routeHelpers';
 
 const NotFound = () => <Search notFound />;
-const DocumentNew = () => <Document newDocument />;
+const NewDocument = () => <Document newDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
@@ -36,7 +36,7 @@ export default function Routes() {
   return (
     <Switch>
       <Route exact path="/" component={Home} />
-      <Route exact path="/share/:shareId" component={Document} />
+      <Route exact path="/share/:shareId" component={KeyedDocument} />
       <Authenticated>
         <Layout>
           <Switch>
@@ -68,27 +68,28 @@ export default function Routes() {
               component={Zapier}
             />
             <Route exact path="/settings/export" component={Export} />
+            <RouteSidebarHidden
+              exact
+              path="/collections/:id/new"
+              component={NewDocument}
+            />
+            <Route exact path="/collections/:id/:tab" component={Collection} />
             <Route exact path="/collections/:id" component={Collection} />
             <Route exact path={`/d/${slug}`} component={RedirectDocument} />
             <Route
               exact
               path={`/doc/${slug}/history/:revisionId?`}
-              component={Document}
+              component={KeyedDocument}
             />
             <RouteSidebarHidden
               exact
               path={`/doc/${slug}/edit`}
-              component={Document}
+              component={KeyedDocument}
             />
-            <Route path={`/doc/${slug}`} component={Document} />
+            <Route path={`/doc/${slug}`} component={KeyedDocument} />
             <Route exact path="/search" component={Search} />
             <Route exact path="/search/:query" component={Search} />
             <Route path="/404" component={Error404} />
-            <RouteSidebarHidden
-              exact
-              path="/collections/:id/new"
-              component={DocumentNew}
-            />
             <Route component={NotFound} />
           </Switch>
         </Layout>

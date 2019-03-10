@@ -29,6 +29,10 @@ const RealInput = styled.input`
   &::placeholder {
     color: ${props => props.theme.placeholder};
   }
+
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: searchfield-cancel-button;
+  }
 `;
 
 const Wrapper = styled.div`
@@ -44,7 +48,7 @@ export const Outline = styled(Flex)`
   color: inherit;
   border-width: 1px;
   border-style: solid;
-  border-color: ${props => (props.hasError ? 'red' : props.theme.slateLight)};
+  border-color: ${props => (props.hasError ? 'red' : props.theme.inputBorder)};
   border-radius: 4px;
   font-weight: normal;
 
@@ -80,7 +84,10 @@ export default function Input({
       <label>
         {label && <LabelText>{label}</LabelText>}
         <Outline>
-          <InputComponent {...rest} />
+          <InputComponent
+            type={type === 'textarea' ? undefined : type}
+            {...rest}
+          />
         </Outline>
       </label>
     </Wrapper>

@@ -1,17 +1,15 @@
 // @flow
 import * as React from 'react';
-import Grid from 'styled-components-grid';
-import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
+import Grid from 'styled-components-grid';
+import PageTitle from '../components/PageTitle';
 import Header from '../components/Header';
 import Content from '../components/Content';
 
 export default function Pricing() {
   return (
     <Grid>
-      <Helmet>
-        <title>API Reference - Outline</title>
-      </Helmet>
+      <PageTitle title="API Reference" />
       <Header background="#AA34F0">
         <h1>API Reference</h1>
         <p>Outline is built on an open, best-in-class, API</p>
@@ -152,15 +150,55 @@ export default function Pricing() {
 
           <Method method="collections.update" label="Update a collection">
             <Description>
-              This method allows you to modify already created document.
+              This method allows you to modify an already created collection.
             </Description>
             <Arguments>
               <Argument id="id" description="Collection ID" required />
               <Argument id="name" description="Name for the collection" />
+              <Argument id="private" description="Boolean" />
               <Argument
                 id="color"
                 description="Collection color in hex form (e.g. #E1E1E1)"
               />
+            </Arguments>
+          </Method>
+
+          <Method method="collections.add_user" label="Add a collection member">
+            <Description>
+              This method allows you to add a user to a private collection.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
+              <Argument
+                id="userId"
+                description="User ID to add to the collection"
+              />
+            </Arguments>
+          </Method>
+
+          <Method
+            method="collections.remove_user"
+            label="Remove a collection member"
+          >
+            <Description>
+              This method allows you to remove a user from a private collection.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
+              <Argument
+                id="userId"
+                description="User ID to remove from the collection"
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="collections.users" label="List collection members">
+            <Description>
+              This method allows you to list users with access to a private
+              collection.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
             </Arguments>
           </Method>
 
@@ -520,6 +558,27 @@ export default function Pricing() {
             </Description>
             <Arguments>
               <Argument id="id" description="Share ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="views.list" label="List document views">
+            <Description>
+              List all users that have viewed a document and the overall view
+              count.
+            </Description>
+            <Arguments>
+              <Argument id="documentId" description="Document ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="views.create" label="Create a document view">
+            <Description>
+              Creates a new view for a document. This is documented in the
+              interests of thoroughness however it is recommended that views are
+              not created from outside of the Outline UI.
+            </Description>
+            <Arguments>
+              <Argument id="documentId" description="Document ID" required />
             </Arguments>
           </Method>
         </Methods>

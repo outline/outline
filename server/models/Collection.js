@@ -6,6 +6,7 @@ import { DataTypes, sequelize } from '../sequelize';
 import { asyncLock } from '../redis';
 import events from '../events';
 import Document from './Document';
+import CollectionUser from './CollectionUser';
 import Event from './Event';
 import { welcomeMessage } from '../utils/onboarding';
 
@@ -26,6 +27,7 @@ const Collection = sequelize.define(
     name: DataTypes.STRING,
     description: DataTypes.STRING,
     color: DataTypes.STRING,
+    private: DataTypes.BOOLEAN,
     type: {
       type: DataTypes.STRING,
       validate: { isIn: allowedCollectionTypes },
@@ -85,6 +87,11 @@ Collection.associate = models => {
     foreignKey: 'collectionId',
     onDelete: 'cascade',
   });
+  Collection.belongsToMany(models.User, {
+    as: 'users',
+    through: models.CollectionUser,
+    foreignKey: 'collectionId',
+  });
   Collection.belongsTo(models.User, {
     as: 'user',
     foreignKey: 'creatorId',
@@ -92,16 +99,20 @@ Collection.associate = models => {
   Collection.belongsTo(models.Team, {
     as: 'team',
   });
-  Collection.addScope('withRecentDocuments', {
-    include: [
-      {
-        as: 'documents',
-        limit: 10,
-        model: models.Document,
-        order: [['updatedAt', 'DESC']],
-      },
-    ],
-  });
+  Collection.addScope(
+    'defaultScope',
+    {
+      include: [
+        {
+          model: models.User,
+          as: 'users',
+          through: 'collection_users',
+          paranoid: false,
+        },
+      ],
+    },
+    { override: true }
+  );
 };
 
 Collection.addHook('afterDestroy', async model => {
@@ -111,8 +122,6 @@ Collection.addHook('afterDestroy', async model => {
     },
   });
 });
-
-// Hooks
 
 Collection.addHook('afterCreate', model =>
   events.add({ name: 'collections.create', model })
@@ -125,6 +134,22 @@ Collection.addHook('afterDestroy', model =>
 Collection.addHook('afterUpdate', model =>
   events.add({ name: 'collections.update', model })
 );
+
+Collection.addHook('afterCreate', (model, options) => {
+  if (model.private) {
+    return CollectionUser.findOrCreate({
+      where: {
+        collectionId: model.id,
+        userId: model.creatorId,
+      },
+      defaults: {
+        permission: 'read_write',
+        createdById: model.creatorId,
+      },
+      transaction: options.transaction,
+    });
+  }
+});
 
 // Instance methods
 

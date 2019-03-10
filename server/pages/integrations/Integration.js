@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import Grid from 'styled-components-grid';
-import { Helmet } from 'react-helmet';
+import PageTitle from '../components/PageTitle';
 import Markdown from '../components/Markdown';
 import Header from '../components/Header';
 import Content from '../components/Content';
@@ -23,9 +23,7 @@ type Props = {
 export default function Integration({ integration, content }: Props) {
   return (
     <Grid>
-      <Helmet>
-        <title>{integration.name} Integration – Outline</title>
-      </Helmet>
+      <PageTitle title={`${integration.name} Integration`} />
       <Header background="#F4F7FA">
         <h1>{integration.name} Integration</h1>
         <p>{integration.description}</p>

@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { lighten } from 'polished';
 import styled, { withTheme } from 'styled-components';
 import { SearchIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
@@ -22,7 +23,7 @@ class SearchField extends React.Component<Props> {
 
   render() {
     return (
-      <Flex align="center">
+      <Field align="center">
         <StyledIcon
           type="Search"
           size={46}
@@ -35,23 +36,34 @@ class SearchField extends React.Component<Props> {
           onChange={this.handleChange}
           spellCheck="false"
           placeholder="search…"
+          type="search"
           autoFocus
         />
-      </Flex>
+      </Field>
     );
   }
 }
 
+const Field = styled(Flex)`
+  position: relative;
+  margin-bottom: 8px;
+`;
+
 const StyledInput = styled.input`
   width: 100%;
-  padding: 10px;
-  font-size: 48px;
+  padding: 10px 10px 10px 60px;
+  font-size: 36px;
   font-weight: 400;
   outline: none;
   border: 0;
-  background: none;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+
   color: ${props => props.theme.text};
 
+  ::-webkit-search-cancel-button {
+    -webkit-appearance: searchfield-cancel-button;
+  }
   ::-webkit-input-placeholder {
     color: ${props => props.theme.placeholder};
   }
@@ -67,8 +79,8 @@ const StyledInput = styled.input`
 `;
 
 const StyledIcon = styled(SearchIcon)`
-  position: relative;
-  top: 4px;
+  position: absolute;
+  left: 8px;
 `;
 
 export default withTheme(SearchField);

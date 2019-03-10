@@ -13,7 +13,7 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": "?source=pwa",
+  "start_url": "/dashboard?source=pwa",
   "background_color": "#FFFFFF",
   "display": "standalone",
   "theme_color": "#FFFFFF"

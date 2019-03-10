@@ -10,7 +10,6 @@ import { type NavigationNode } from 'types';
 
 type Props = {
   document: NavigationNode,
-  history: Object,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => *,
   prefetchDocument: (documentId: string) => Promise<void>,
@@ -34,7 +33,6 @@ class DocumentLink extends React.Component<Props> {
       activeDocumentRef,
       prefetchDocument,
       depth,
-      history,
     } = this.props;
 
     const isActiveDocument =
@@ -46,6 +44,7 @@ class DocumentLink extends React.Component<Props> {
         .includes(document.id) ||
         isActiveDocument)
     );
+    const hasChildren = !!document.children.length;
 
     return (
       <Flex
@@ -54,37 +53,30 @@ class DocumentLink extends React.Component<Props> {
         ref={isActiveDocument ? activeDocumentRef : undefined}
         onMouseEnter={this.handleMouseEnter}
       >
-        <DropToImport
-          history={history}
-          documentId={document.id}
-          activeClassName="activeDropZone"
-        >
+        <DropToImport documentId={document.id} activeClassName="activeDropZone">
           <SidebarLink
             to={{
               pathname: document.url,
               state: { title: document.title },
             }}
-            expand={showChildren}
-            expandedContent={
-              document.children.length ? (
-                <DocumentChildren column>
-                  {document.children.map(childDocument => (
-                    <DocumentLink
-                      key={childDocument.id}
-                      history={history}
-                      document={childDocument}
-                      activeDocument={activeDocument}
-                      prefetchDocument={prefetchDocument}
-                      depth={depth + 1}
-                    />
-                  ))}
-                </DocumentChildren>
-              ) : (
-                undefined
-              )
-            }
+            expanded={showChildren}
+            label={document.title}
+            depth={depth}
+            exact={false}
           >
-            {document.title}
+            {hasChildren && (
+              <DocumentChildren column>
+                {document.children.map(childDocument => (
+                  <DocumentLink
+                    key={childDocument.id}
+                    document={childDocument}
+                    activeDocument={activeDocument}
+                    prefetchDocument={prefetchDocument}
+                    depth={depth + 1}
+                  />
+                ))}
+              </DocumentChildren>
+            )}
           </SidebarLink>
         </DropToImport>
       </Flex>
@@ -92,9 +84,6 @@ class DocumentLink extends React.Component<Props> {
   }
 }
 
-const DocumentChildren = styled(Flex)`
-  margin-top: -4px;
-  margin-left: 12px;
-`;
+const DocumentChildren = styled(Flex)``;
 
 export default DocumentLink;

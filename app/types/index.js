@@ -2,6 +2,8 @@
 import Document from 'models/Document';
 
 export type Toast = {
+  id: string,
+  createdAt: string,
   message: string,
   type: 'warning' | 'error' | 'info' | 'success',
 };

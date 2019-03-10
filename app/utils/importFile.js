@@ -1,10 +1,9 @@
 // @flow
 import Document from '../models/Document';
-import DocumentsStore from '../stores/DocumentsStore';
 
 type Options = {
   file: File,
-  documents: DocumentsStore,
+  documents: *,
   collectionId: string,
   documentId?: string,
 };
@@ -28,9 +27,9 @@ const importFile = async ({
 
       if (documentId) data.parentDocument = documentId;
 
-      const document = new Document(data, documents);
+      let document = new Document(data, documents);
       try {
-        await document.save({ publish: true });
+        document = await document.save({ publish: true });
         resolve(document);
       } catch (err) {
         reject(err);

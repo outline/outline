@@ -1,5 +1,7 @@
 // @flow
 import * as React from 'react';
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import Tip from './Tip';
 import CopyToClipboard from './CopyToClipboard';
@@ -7,23 +9,20 @@ import Team from '../models/Team';
 
 type Props = {
   team: Team,
+  disabled: boolean,
 };
 
-type State = {
-  linkCopied: boolean,
-};
-
-class TipInvite extends React.Component<Props, State> {
-  state = {
-    linkCopied: false,
-  };
+@observer
+class TipInvite extends React.Component<Props> {
+  @observable linkCopied: boolean = false;
 
   handleCopy = () => {
-    this.setState({ linkCopied: true });
+    this.linkCopied = true;
   };
 
   render() {
-    const { team } = this.props;
+    const { team, disabled } = this.props;
+    if (disabled) return null;
 
     return (
       <Tip id="subdomain-invite">
@@ -35,7 +34,7 @@ class TipInvite extends React.Component<Props, State> {
           –{' '}
           <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
             <a>
-              {this.state.linkCopied
+              {this.linkCopied
                 ? 'link copied to clipboard!'
                 : 'copy a link to share.'}
             </a>

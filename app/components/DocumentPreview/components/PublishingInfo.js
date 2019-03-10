@@ -19,11 +19,12 @@ const Modified = styled.span`
 
 type Props = {
   collection?: Collection,
+  showPublished?: boolean,
   document: Document,
   views?: number,
 };
 
-function PublishingInfo({ collection, document }: Props) {
+function PublishingInfo({ collection, showPublished, document }: Props) {
   const {
     modifiedSinceViewed,
     updatedAt,
@@ -35,7 +36,7 @@ function PublishingInfo({ collection, document }: Props) {
 
   return (
     <Container align="center">
-      {publishedAt && neverUpdated ? (
+      {publishedAt && (neverUpdated || showPublished) ? (
         <span>
           {updatedBy.name} published <Time dateTime={publishedAt} /> ago
         </span>
@@ -48,7 +49,7 @@ function PublishingInfo({ collection, document }: Props) {
             </span>
           ) : (
             <Modified highlight={modifiedSinceViewed}>
-              &nbsp;modified <Time dateTime={updatedAt} /> ago
+              &nbsp;updated <Time dateTime={updatedAt} /> ago
             </Modified>
           )}
         </React.Fragment>

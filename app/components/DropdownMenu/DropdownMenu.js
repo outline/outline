@@ -5,6 +5,7 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import { PortalWithState } from 'react-portal';
+import { darken } from 'polished';
 import Flex from 'shared/components/Flex';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 
@@ -89,17 +90,20 @@ const Menu = styled.div`
   right: ${({ right }) => right}px;
   top: ${({ top }) => top}px;
   z-index: 1000;
-  border: ${props => props.theme.slateLight};
-  background: ${props => props.theme.white};
+  background: ${props => props.theme.menuBackground};
   border-radius: 2px;
   padding: 0.5em 0;
-  min-width: 160px;
+  min-width: 180px;
   overflow: hidden;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08),
     0 2px 4px rgba(0, 0, 0, 0.08);
 
   @media print {
     display: none;
+  }
+
+  hr {
+    border-bottom: 0;
   }
 `;
 

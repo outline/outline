@@ -37,15 +37,17 @@ class Toast extends React.Component<Props> {
         : toast.message.toString();
 
     return (
-      <Container onClick={onRequestClose} type={toast.type}>
-        <Message>{message}</Message>
-      </Container>
+      <li>
+        <Container onClick={onRequestClose} type={toast.type}>
+          <Message>{message}</Message>
+        </Container>
+      </li>
     );
   }
 }
 
-const Container = styled.li`
-  display: flex;
+const Container = styled.div`
+  display: inline-block;
   align-items: center;
   animation: ${fadeAndScaleIn} 100ms ease;
   margin: 8px 0;

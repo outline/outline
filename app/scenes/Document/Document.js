@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Prompt, Route } from 'react-router-dom';
+import { Prompt, Route, withRouter } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
@@ -23,7 +23,6 @@ import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
 import ErrorBoundary from 'components/ErrorBoundary';
-import DocumentHistory from 'components/DocumentHistory';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
@@ -41,6 +40,7 @@ import Revision from 'models/Revision';
 
 import schema from './schema';
 
+let EditorImport;
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
 const MARK_AS_VIEWED_AFTER = 3000;
@@ -49,7 +49,7 @@ You have unsaved changes.
 Are you sure you want to discard them?
 `;
 const UPLOADING_WARNING = `
-Image are still uploading.
+Images are still uploading.
 Are you sure you want to discard them?
 `;
 
@@ -69,37 +69,26 @@ class DocumentScene extends React.Component<Props> {
   viewTimeout: TimeoutID;
   getEditorText: () => string;
 
-  @observable editorComponent;
+  @observable editorComponent = EditorImport;
   @observable document: ?Document;
   @observable revision: ?Revision;
   @observable newDocument: ?Document;
-  @observable isUploading = false;
-  @observable isSaving = false;
-  @observable isPublishing = false;
-  @observable isDirty = false;
-  @observable notFound = false;
+  @observable isUploading: boolean = false;
+  @observable isSaving: boolean = false;
+  @observable isPublishing: boolean = false;
+  @observable isDirty: boolean = false;
+  @observable notFound: boolean = false;
   @observable moveModalOpen: boolean = false;
 
-  componentDidMount() {
-    this.loadDocument(this.props);
+  constructor(props) {
+    super();
+    this.document = props.documents.getByUrl(props.match.params.documentSlug);
+    this.loadDocument(props);
     this.loadEditor();
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (
-      nextProps.match.params.documentSlug !==
-        this.props.match.params.documentSlug ||
-      this.props.match.params.revisionId !== nextProps.match.params.revisionId
-    ) {
-      this.notFound = false;
-      clearTimeout(this.viewTimeout);
-      this.loadDocument(nextProps);
-    }
   }
 
   componentWillUnmount() {
     clearTimeout(this.viewTimeout);
-    this.props.ui.clearActiveDocument();
   }
 
   goToDocumentCanonical = () => {
@@ -110,6 +99,12 @@ class DocumentScene extends React.Component<Props> {
   goToMove(ev) {
     ev.preventDefault();
     if (this.document) this.props.history.push(documentMoveUrl(this.document));
+  }
+
+  @keydown('esc')
+  goBack(ev) {
+    ev.preventDefault();
+    this.props.history.goBack();
   }
 
   @keydown('h')
@@ -135,18 +130,18 @@ class DocumentScene extends React.Component<Props> {
           title: '',
           text: '',
         },
-        this.props.documents
+        props.documents
       );
     } else {
       const { shareId, revisionId } = props.match.params;
 
-      this.document = await this.props.documents.fetch(
+      this.document = await props.documents.fetch(
         props.match.params.documentSlug,
         { shareId }
       );
 
       if (revisionId) {
-        this.revision = await this.props.revisions.fetch(
+        this.revision = await props.revisions.fetch(
           props.match.params.documentSlug,
           { revisionId }
         );
@@ -166,11 +161,16 @@ class DocumentScene extends React.Component<Props> {
             this.viewTimeout = setTimeout(document.view, MARK_AS_VIEWED_AFTER);
           }
 
-          if (!this.revision) {
-            // Update url to match the current one
-            this.props.history.replace(
-              updateDocumentUrl(props.match.url, document.url)
+          const isMove = props.location.pathname.match(/move$/);
+          const canRedirect = !this.revision && !isMove;
+          if (canRedirect) {
+            const canonicalUrl = updateDocumentUrl(
+              props.match.url,
+              document.url
             );
+            if (props.location.pathname !== canonicalUrl) {
+              props.history.replace(canonicalUrl);
+            }
           }
         }
       } else {
@@ -181,8 +181,11 @@ class DocumentScene extends React.Component<Props> {
   };
 
   loadEditor = async () => {
-    const EditorImport = await import('./components/Editor');
-    this.editorComponent = EditorImport.default;
+    if (this.editorComponent) return;
+
+    const Imported = await import('./components/Editor');
+    EditorImport = Imported.default;
+    this.editorComponent = EditorImport;
   };
 
   get isEditing() {
@@ -196,6 +199,10 @@ class DocumentScene extends React.Component<Props> {
 
   handleCloseMoveModal = () => (this.moveModalOpen = false);
   handleOpenMoveModal = () => (this.moveModalOpen = true);
+
+  onSaveAndExit = () => {
+    this.onSave({ done: true, publish: true });
+  };
 
   onSave = async (
     options: { done?: boolean, publish?: boolean, autosave?: boolean } = {}
@@ -240,7 +247,7 @@ class DocumentScene extends React.Component<Props> {
     const document = this.document;
 
     this.isDirty =
-      document && this.getEditorText().trim() !== document.text.trim();
+      !!document && this.getEditorText().trim() !== document.text.trim();
   }, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
@@ -283,7 +290,6 @@ class DocumentScene extends React.Component<Props> {
     const document = this.document;
     const revision = this.revision;
     const isShare = match.params.shareId;
-    const isHistory = match.url.match(/\/history(\/|$)/); // Can't match on history alone as that can be in the user-generated slug
 
     if (this.notFound) {
       return navigator.onLine ? (
@@ -300,7 +306,9 @@ class DocumentScene extends React.Component<Props> {
     if (!document || !Editor) {
       return (
         <Container column auto>
-          <PageTitle title={location.state ? location.state.title : ''} />
+          <PageTitle
+            title={location.state ? location.state.title : 'Untitled'}
+          />
           <CenteredContent>
             <LoadingState />
           </CenteredContent>
@@ -308,14 +316,12 @@ class DocumentScene extends React.Component<Props> {
       );
     }
 
-    const embedsDisabled =
-      document.embedsDisabled || (team && !team.documentEmbeds);
+    const embedsDisabled = team && !team.documentEmbeds;
 
     return (
       <ErrorBoundary>
         <Container
           key={revision ? revision.id : document.id}
-          sidebar={isHistory}
           isShare={isShare}
           column
           auto
@@ -330,7 +336,7 @@ class DocumentScene extends React.Component<Props> {
             )}
           />
           <PageTitle
-            title={document.title.replace(document.emoji, '')}
+            title={document.title.replace(document.emoji, '') || 'Untitled'}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
@@ -339,11 +345,11 @@ class DocumentScene extends React.Component<Props> {
             {this.isEditing && (
               <React.Fragment>
                 <Prompt
-                  when={this.isDirty || false}
+                  when={this.isDirty && !this.isUploading}
                   message={DISCARD_CHANGES}
                 />
                 <Prompt
-                  when={this.isUploading || false}
+                  when={this.isUploading && !this.isDirty}
                   message={UPLOADING_WARNING}
                 />
               </React.Fragment>
@@ -356,16 +362,14 @@ class DocumentScene extends React.Component<Props> {
                 isSaving={this.isSaving}
                 isPublishing={this.isPublishing}
                 savingIsDisabled={!document.allowSave}
-                history={this.props.history}
                 onDiscard={this.onDiscard}
                 onSave={this.onSave}
               />
             )}
             <MaxWidth column auto>
               <Editor
+                id={document.id}
                 key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
-                titlePlaceholder="Start with a title…"
-                bodyPlaceholder="…the rest is your canvas"
                 defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
                 disableEmbeds={embedsDisabled}
@@ -373,20 +377,16 @@ class DocumentScene extends React.Component<Props> {
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.onSearchLink}
                 onChange={this.onChange}
-                onSave={this.onSave}
+                onSave={this.onSaveAndExit}
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing}
                 toc={!revision}
-                history={this.props.history}
                 ui={this.props.ui}
                 schema={schema}
               />
             </MaxWidth>
           </Container>
         </Container>
-        {isHistory && (
-          <DocumentHistory revision={revision} document={document} />
-        )}
         {isShare && <Branding />}
       </ErrorBoundary>
     );
@@ -397,7 +397,6 @@ const MaxWidth = styled(Flex)`
   padding: 0 16px;
   max-width: 100vw;
   width: 100%;
-  height: 100%;
 
   ${breakpoint('tablet')`	
     padding: 0 24px;
@@ -410,7 +409,6 @@ const MaxWidth = styled(Flex)`
 const Container = styled(Flex)`
   position: relative;
   margin-top: ${props => (props.isShare ? '50px' : '0')};
-  margin-right: ${props => (props.sidebar ? props.theme.sidebarWidth : 0)};
 `;
 
 const LoadingState = styled(LoadingPlaceholder)`

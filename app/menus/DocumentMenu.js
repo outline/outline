@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
+import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
@@ -14,7 +15,6 @@ type Props = {
   ui: UiStore,
   auth: AuthStore,
   label?: React.Node,
-  history: Object,
   document: Document,
   className: string,
   showPrint?: boolean,
@@ -23,11 +23,17 @@ type Props = {
 
 @observer
 class DocumentMenu extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   handleNewChild = (ev: SyntheticEvent<*>) => {
-    const { history, document } = this.props;
-    history.push(
-      `${document.collection.url}/new?parentDocument=${document.id}`
-    );
+    const { document } = this.props;
+    this.redirectTo = `${document.collection.url}/new?parentDocument=${
+      document.id
+    }`;
   };
 
   handleDelete = (ev: SyntheticEvent<*>) => {
@@ -36,16 +42,16 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   handleDocumentHistory = () => {
-    this.props.history.push(documentHistoryUrl(this.props.document));
+    this.redirectTo = documentHistoryUrl(this.props.document);
   };
 
   handleMove = (ev: SyntheticEvent<*>) => {
-    this.props.history.push(documentMoveUrl(this.props.document));
+    this.redirectTo = documentMoveUrl(this.props.document);
   };
 
   handleDuplicate = async (ev: SyntheticEvent<*>) => {
     const duped = await this.props.document.duplicate();
-    this.props.history.push(duped.url);
+    this.redirectTo = duped.url;
   };
 
   handlePin = (ev: SyntheticEvent<*>) => {
@@ -76,14 +82,9 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    const {
-      document,
-      label,
-      className,
-      showPrint,
-      showToggleEmbeds,
-      auth,
-    } = this.props;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
+    const { document, label, className, showPrint, auth } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;
 
     return (
@@ -114,19 +115,6 @@ class DocumentMenu extends React.Component<Props> {
                 Share link…
               </DropdownMenuItem>
             )}
-            {showToggleEmbeds && (
-              <React.Fragment>
-                {document.embedsDisabled ? (
-                  <DropdownMenuItem onClick={document.enableEmbeds}>
-                    Enable embeds
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onClick={document.disableEmbeds}>
-                    Disable embeds
-                  </DropdownMenuItem>
-                )}
-              </React.Fragment>
-            )}
             <hr />
             <DropdownMenuItem onClick={this.handleDocumentHistory}>
               Document history
@@ -156,4 +144,4 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('ui', 'auth')(DocumentMenu));
+export default inject('ui', 'auth')(DocumentMenu);

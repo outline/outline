@@ -1,10 +1,14 @@
 // @flow
-import { observable, action } from 'mobx';
+import { v4 } from 'uuid';
+import { orderBy } from 'lodash';
+import { observable, action, computed } from 'mobx';
 import Document from 'models/Document';
 import Collection from 'models/Collection';
 import type { Toast } from '../types';
 
 class UiStore {
+  @observable
+  theme: 'light' | 'dark' = window.localStorage.getItem('theme') || 'light';
   @observable activeModalName: ?string;
   @observable activeModalProps: ?Object;
   @observable activeDocumentId: ?string;
@@ -12,7 +16,13 @@ class UiStore {
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
-  @observable toasts: Toast[] = [];
+  @observable toasts: Map<string, Toast> = new Map();
+
+  @action
+  toggleDarkMode = () => {
+    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+    window.localStorage.setItem('theme', this.theme);
+  };
 
   @action
   setActiveModal = (name: string, props: ?Object): void => {
@@ -85,14 +95,25 @@ class UiStore {
   showToast = (
     message: string,
     type?: 'warning' | 'error' | 'info' | 'success' = 'success'
-  ): void => {
-    this.toasts.push({ message, type });
+  ) => {
+    if (!message) return;
+
+    const id = v4();
+    const createdAt = new Date().toISOString();
+    this.toasts.set(id, { message, type, createdAt, id });
+    return id;
   };
 
   @action
-  removeToast = (index: number): void => {
-    this.toasts.splice(index, 1);
+  removeToast = (id: string) => {
+    this.toasts.delete(id);
   };
+
+  @computed
+  get orderedToasts(): Toast[] {
+    // $FlowIssue
+    return orderBy(Array.from(this.toasts.values()), 'createdAt', 'desc');
+  }
 }
 
 export default UiStore;

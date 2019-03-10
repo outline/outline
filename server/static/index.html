@@ -3,6 +3,8 @@
   <head>
     <title>Outline</title>
     <meta name="slack-app-id" content="<%= SLACK_APP_ID %>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" type="image/png" href="favicon-32.png" sizes="32x32" />
     <link rel="manifest" href="/manifest.json" />
     <style>
       body,
@@ -21,10 +23,21 @@
         flex: 1;
         min-height: 100vh;
       }
+
+      #sidebar-placeholder {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 280px;
+        background: #F4F7FA;
+      }
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="sidebar-placeholder"></div>
+    </div>
     <script src="//d2wy8f7a9ursnm.cloudfront.net/bugsnag-3.min.js" data-apikey="<%= BUGSNAG_KEY %>"></script>
   </body>
 </html>

@@ -12,7 +12,6 @@ import UiStore from 'stores/UiStore';
 
 type Props = {
   children: React.Node,
-  history: Object,
   location: Location,
   ui: UiStore,
 };
@@ -86,13 +85,6 @@ const Container = styled(Flex)`
     width: ${props => props.theme.sidebarWidth};
     margin: 0;
   `};
-`;
-
-export const Section = styled(Flex)`
-  flex-direction: column;
-  margin: 24px 0;
-  padding: 0 24px;
-  position: relative;
 `;
 
 const Toggle = styled.a`

@@ -1,5 +1,5 @@
 // @flow
-import { action, set, computed, observable } from 'mobx';
+import { action, set, computed } from 'mobx';
 import invariant from 'invariant';
 
 import { client } from 'utils/ApiClient';
@@ -22,7 +22,6 @@ export default class Document extends BaseModel {
   collaborators: User[];
   collection: Collection;
   collectionId: string;
-  firstViewedAt: ?string;
   lastViewedAt: ?string;
   createdAt: string;
   createdBy: User;
@@ -40,9 +39,7 @@ export default class Document extends BaseModel {
   url: string;
   urlId: string;
   shareUrl: ?string;
-  views: number;
   revision: number;
-  @observable embedsDisabled: ?boolean;
 
   constructor(data?: Object = {}, store: *) {
     super(data, store);
@@ -89,7 +86,7 @@ export default class Document extends BaseModel {
   @computed
   get isEmpty(): boolean {
     // Check if the document title has been modified and user generated content exists
-    return this.text.replace(new RegExp(`^#$`), '').trim().length === 0;
+    return this.text.replace(/^#/, '').trim().length === 0;
   }
 
   @computed
@@ -145,16 +142,6 @@ export default class Document extends BaseModel {
   };
 
   @action
-  enableEmbeds = () => {
-    this.embedsDisabled = false;
-  };
-
-  @action
-  disableEmbeds = () => {
-    this.embedsDisabled = true;
-  };
-
-  @action
   star = async () => {
     this.starred = true;
     try {
@@ -178,8 +165,7 @@ export default class Document extends BaseModel {
 
   @action
   view = async () => {
-    this.views++;
-    await client.post('/views.create', { id: this.id });
+    await client.post('/views.create', { documentId: this.id });
   };
 
   @action

@@ -25,6 +25,7 @@ router.post('shares.list', auth(), pagination(), async ctx => {
 
   if (user.isAdmin) delete where.userId;
 
+  const collectionIds = await user.collectionIds();
   const shares = await Share.findAll({
     where,
     order: [[sort, direction]],
@@ -33,6 +34,9 @@ router.post('shares.list', auth(), pagination(), async ctx => {
         model: Document,
         required: true,
         as: 'document',
+        where: {
+          collectionId: collectionIds,
+        },
       },
       {
         model: User,
@@ -80,7 +84,7 @@ router.post('shares.create', auth(), async ctx => {
 
 router.post('shares.revoke', auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
   const share = await Share.findById(id);

@@ -3,28 +3,38 @@
   <head>
     <title>Outline</title>
     <link href="/static/styles.css" rel="stylesheet">
-  </head>
-  <style>
-    body,
-    html {
-      margin: 0;
-      padding: 0;
-    }
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+      }
 
-    body {
-      display: flex;
-      width: 100%;
-      height: 100%;
-    }
+      body {
+        display: flex;
+        width: 100%;
+        height: 100%;
+      }
 
-    #root {
-      flex: 1;
-      min-height: 100vh;
-    }
-  </style>
+      #root {
+        flex: 1;
+        min-height: 100vh;
+      }
+
+      #sidebar-placeholder {
+          position: fixed;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          width: 280px;
+          background: #F4F7FA;
+        }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="sidebar-placeholder"></div>
+    </div>
     <script src="/static/bundle.js"></script>
   </body>
 </html>

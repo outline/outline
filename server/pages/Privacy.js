@@ -1,16 +1,14 @@
 // @flow
 import * as React from 'react';
 import Grid from 'styled-components-grid';
-import { Helmet } from 'react-helmet';
+import PageTitle from './components/PageTitle';
 import Header from './components/Header';
 import Content from './components/Content';
 
 export default function Privacy() {
   return (
     <Grid>
-      <Helmet>
-        <title>Privacy Policy</title>
-      </Helmet>
+      <PageTitle title="Privacy Policy" />
       <Header background="#F4F7FA">
         <h1>Privacy Policy</h1>
         <p>How we collect and use your information</p>
@@ -56,7 +54,7 @@ export default function Privacy() {
           identifying information is to better understand how Outline’s visitors
           use its website. From time to time, Outline may release
           non-personally-identifying information in the aggregate, e.g., by
-          publishing a report on trends in the usage of its website. p> Outline
+          publishing a report on trends in the usage of its website. Outline
           also collects potentially personally-identifying information like
           Internet Protocol (IP) addresses for logged in users.
         </p>

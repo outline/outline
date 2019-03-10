@@ -1,14 +1,13 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import type { Location } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
 import { HomeIcon, EditIcon, SearchIcon, StarredIcon } from 'outline-icons';
 
 import Flex from 'shared/components/Flex';
 import AccountMenu from 'menus/AccountMenu';
-import Sidebar, { Section } from './Sidebar';
+import Sidebar from './Sidebar';
 import Scrollable from 'components/Scrollable';
+import Section from './components/Section';
 import Collections from './components/Collections';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
@@ -19,8 +18,6 @@ import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
-  history: Object,
-  location: Location,
   auth: AuthStore,
   documents: DocumentsStore,
   ui: UiStore,
@@ -41,6 +38,8 @@ class MainSidebar extends React.Component<Props> {
     const { user, team } = auth;
     if (!user || !team) return null;
 
+    const draftDocumentsCount = documents.drafts.length;
+
     return (
       <Sidebar>
         <AccountMenu
@@ -56,31 +55,44 @@ class MainSidebar extends React.Component<Props> {
         <Flex auto column>
           <Scrollable shadow>
             <Section>
-              <SidebarLink to="/dashboard" icon={<HomeIcon />} exact={false}>
-                Home
-              </SidebarLink>
-              <SidebarLink to="/search" icon={<SearchIcon />}>
-                Search
-              </SidebarLink>
-              <SidebarLink to="/starred" icon={<StarredIcon />} exact={false}>
-                Starred
-              </SidebarLink>
+              <SidebarLink
+                to="/dashboard"
+                icon={<HomeIcon />}
+                exact={false}
+                label="Home"
+              />
+              <SidebarLink
+                to={{
+                  pathname: '/search',
+                  state: { fromMenu: true },
+                }}
+                icon={<SearchIcon />}
+                label="Search"
+                exact={false}
+              />
+              <SidebarLink
+                to="/starred"
+                icon={<StarredIcon />}
+                exact={false}
+                label="Starred"
+              />
               <SidebarLink
                 to="/drafts"
-                icon={<EditIcon />}
+                icon={
+                  draftDocumentsCount > 0 && draftDocumentsCount < 10 ? (
+                    <Bubble count={draftDocumentsCount} />
+                  ) : (
+                    <EditIcon />
+                  )
+                }
+                label="Drafts"
                 active={
                   documents.active ? !documents.active.publishedAt : undefined
                 }
-              >
-                Drafts <Bubble count={documents.drafts.length} />
-              </SidebarLink>
+              />
             </Section>
             <Section>
-              <Collections
-                history={this.props.history}
-                location={this.props.location}
-                onCreateCollection={this.handleCreateCollection}
-              />
+              <Collections onCreateCollection={this.handleCreateCollection} />
             </Section>
           </Scrollable>
         </Flex>
@@ -89,4 +101,4 @@ class MainSidebar extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('documents', 'auth', 'ui')(MainSidebar));
+export default inject('documents', 'auth', 'ui')(MainSidebar);

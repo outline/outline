@@ -1,17 +1,15 @@
 // @flow
 import * as React from 'react';
 import Grid from 'styled-components-grid';
-import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
+import PageTitle from '../components/PageTitle';
 import Header from '../components/Header';
 import Content from '../components/Content';
 
 export default function Pricing() {
   return (
     <Grid>
-      <Helmet>
-        <title>Developers - Outline</title>
-      </Helmet>
+      <PageTitle title="Developers" />
       <Header background="#AA34F0">
         <h1>Developers</h1>
         <p>Outline is built on an open, best-in-class, API</p>

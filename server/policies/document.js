@@ -2,7 +2,7 @@
 import policy from './policy';
 import { Document, Revision, User } from '../models';
 
-const { allow } = policy;
+const { allow, cannot } = policy;
 
 allow(User, 'create', Document);
 
@@ -10,7 +10,13 @@ allow(
   User,
   ['read', 'update', 'delete', 'share'],
   Document,
-  (user, document) => user.teamId === document.teamId
+  (user, document) => {
+    if (document.collection) {
+      if (cannot(user, 'read', document.collection)) return false;
+    }
+
+    return user.teamId === document.teamId;
+  }
 );
 
 allow(

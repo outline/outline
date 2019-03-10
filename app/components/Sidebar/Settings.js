@@ -15,8 +15,9 @@ import ZapierIcon from './icons/Zapier';
 import SlackIcon from './icons/Slack';
 
 import Flex from 'shared/components/Flex';
-import Sidebar, { Section } from './Sidebar';
+import Sidebar from './Sidebar';
 import Scrollable from 'components/Scrollable';
+import Section from './components/Section';
 import Header from './components/Header';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
@@ -50,42 +51,55 @@ class SettingsSidebar extends React.Component<Props> {
           <Scrollable shadow>
             <Section>
               <Header>Account</Header>
-              <SidebarLink to="/settings" icon={<ProfileIcon />}>
-                Profile
-              </SidebarLink>
-              <SidebarLink to="/settings/notifications" icon={<EmailIcon />}>
-                Notifications
-              </SidebarLink>
-              <SidebarLink to="/settings/tokens" icon={<CodeIcon />}>
-                API Tokens
-              </SidebarLink>
+              <SidebarLink
+                to="/settings"
+                icon={<ProfileIcon />}
+                label="Profile"
+              />
+              <SidebarLink
+                to="/settings/notifications"
+                icon={<EmailIcon />}
+                label="Notifications"
+              />
+              <SidebarLink
+                to="/settings/tokens"
+                icon={<CodeIcon />}
+                label="API Tokens"
+              />
             </Section>
             <Section>
               <Header>Team</Header>
               {user.isAdmin && (
-                <SidebarLink to="/settings/details" icon={<TeamIcon />}>
-                  Details
-                </SidebarLink>
+                <SidebarLink
+                  to="/settings/details"
+                  icon={<TeamIcon />}
+                  label="Details"
+                />
               )}
               {user.isAdmin && (
-                <SidebarLink to="/settings/security" icon={<PadlockIcon />}>
-                  Security
-                </SidebarLink>
+                <SidebarLink
+                  to="/settings/security"
+                  icon={<PadlockIcon />}
+                  label="Security"
+                />
               )}
               <SidebarLink
                 to="/settings/people"
                 icon={<UserIcon />}
                 exact={false}
-              >
-                People
-              </SidebarLink>
-              <SidebarLink to="/settings/shares" icon={<LinkIcon />}>
-                Share Links
-              </SidebarLink>
+                label="People"
+              />
+              <SidebarLink
+                to="/settings/shares"
+                icon={<LinkIcon />}
+                label="Share Links"
+              />
               {user.isAdmin && (
-                <SidebarLink to="/settings/export" icon={<DocumentIcon />}>
-                  Export Data
-                </SidebarLink>
+                <SidebarLink
+                  to="/settings/export"
+                  icon={<DocumentIcon />}
+                  label="Export Data"
+                />
               )}
             </Section>
             {user.isAdmin && (
@@ -94,15 +108,13 @@ class SettingsSidebar extends React.Component<Props> {
                 <SidebarLink
                   to="/settings/integrations/slack"
                   icon={<SlackIcon />}
-                >
-                  Slack
-                </SidebarLink>
+                  label="Slack"
+                />
                 <SidebarLink
                   to="/settings/integrations/zapier"
                   icon={<ZapierIcon />}
-                >
-                  Zapier
-                </SidebarLink>
+                  label="Zapier"
+                />
               </Section>
             )}
           </Scrollable>

@@ -14,13 +14,6 @@ export default class Loom extends React.Component<Props> {
   render() {
     const normalizedUrl = this.props.url.replace('share', 'embed');
 
-    return (
-      <Frame
-        width="420px"
-        height="235px"
-        src={normalizedUrl}
-        title="Loom Embed"
-      />
-    );
+    return <Frame src={normalizedUrl} title="Loom Embed" />;
   }
 }

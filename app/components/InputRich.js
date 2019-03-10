@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react';
 import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { withRouter } from 'react-router-dom';
+import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import Input, { LabelText, Outline } from 'components/Input';
 
@@ -11,13 +10,11 @@ type Props = {
   minHeight?: number,
   maxHeight?: number,
   readOnly?: boolean,
-  history: *,
-  ui: *,
 };
 
 @observer
 class InputRich extends React.Component<Props> {
-  @observable editorComponent;
+  @observable editorComponent: *;
 
   componentDidMount() {
     this.loadEditor();
@@ -63,4 +60,4 @@ const StyledOutline = styled(Outline)`
   }
 `;
 
-export default inject('ui')(withRouter(InputRich));
+export default InputRich;

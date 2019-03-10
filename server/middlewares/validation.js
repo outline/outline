@@ -24,7 +24,7 @@ export default function validation() {
       }
     };
 
-    ctx.assertUuid = (value, message) => {
+    ctx.assertUuid = (value = '', message) => {
       if (!validator.isUUID(value)) {
         throw new ValidationError(message);
       }

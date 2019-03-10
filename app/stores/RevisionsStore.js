@@ -63,6 +63,7 @@ export default class RevisionsStore extends BaseStore<Revision> {
         });
         this.isLoaded = true;
       });
+      return res.data;
     } finally {
       this.isFetching = false;
     }

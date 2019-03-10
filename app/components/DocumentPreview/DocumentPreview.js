@@ -15,11 +15,12 @@ type Props = {
   highlight?: ?string,
   context?: ?string,
   showCollection?: boolean,
+  showPublished?: boolean,
   ref?: *,
 };
 
 const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
-  <StarredIcon color={solid ? theme.black : theme.text} {...props} />
+  <StarredIcon color={theme.text} {...props} />
 ))`
   flex-shrink: 0;
   opacity: ${props => (props.solid ? '1 !important' : 0)};
@@ -84,6 +85,8 @@ const Heading = styled.h3`
   margin-bottom: 0.25em;
   overflow: hidden;
   white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 `;
 
 const Actions = styled(Flex)`
@@ -131,6 +134,7 @@ class DocumentPreview extends React.Component<Props> {
     const {
       document,
       showCollection,
+      showPublished,
       highlight,
       context,
       ...rest
@@ -171,6 +175,7 @@ class DocumentPreview extends React.Component<Props> {
         <PublishingInfo
           document={document}
           collection={showCollection ? document.collection : undefined}
+          showPublished={showPublished}
         />
       </DocumentLink>
     );

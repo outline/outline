@@ -1,5 +1,7 @@
 // @flow
 import * as React from 'react';
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
 import styled from 'styled-components';
 
 type Props = {
@@ -10,14 +12,10 @@ type Props = {
   height?: string,
 };
 
-type State = {
-  isLoaded: boolean,
-};
-
-class Frame extends React.Component<Props, State> {
+@observer
+class Frame extends React.Component<Props> {
   mounted: boolean;
-
-  state = { isLoaded: false };
+  @observable isLoaded: boolean = false;
 
   componentDidMount() {
     this.mounted = true;
@@ -30,7 +28,7 @@ class Frame extends React.Component<Props, State> {
 
   loadIframe = () => {
     if (!this.mounted) return;
-    this.setState({ isLoaded: true });
+    this.isLoaded = true;
   };
 
   render() {
@@ -45,7 +43,7 @@ class Frame extends React.Component<Props, State> {
 
     return (
       <Rounded width={width} height={height}>
-        {this.state.isLoaded && (
+        {this.isLoaded && (
           <Component
             ref={forwardedRef}
             sandbox="allow-same-origin allow-scripts allow-popups allow-forms"

@@ -8,37 +8,6 @@ import Flex from 'shared/components/Flex';
 import Document from 'models/Document';
 import type { DocumentPath } from 'stores/CollectionsStore';
 
-const StyledGoToIcon = styled(GoToIcon)``;
-
-const ResultWrapper = styled.div`
-  display: flex;
-  margin-bottom: 10px;
-
-  color: ${props => props.theme.text};
-  cursor: default;
-`;
-
-const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
-  height: 32px;
-  padding-top: 3px;
-  padding-left: 5px;
-
-  &:hover,
-  &:active,
-  &:focus {
-    margin-left: 0px;
-    border-radius: 2px;
-    background: ${props => props.theme.black};
-    color: ${props => props.theme.smokeLight};
-    outline: none;
-    cursor: pointer;
-
-    ${StyledGoToIcon} {
-      fill: ${props => props.theme.white};
-    }
-  }
-`;
-
 type Props = {
   result: DocumentPath,
   document?: Document,
@@ -76,17 +45,54 @@ class PathToDocument extends React.Component<Props> {
     return (
       <Component ref={ref} onClick={this.handleClick} href="" selectable>
         {result.path
-          .map(doc => <span key={doc.id}>{doc.title}</span>)
+          .map(doc => <Title key={doc.id}>{doc.title}</Title>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
         {document && (
           <Flex>
             {' '}
-            <StyledGoToIcon /> {document.title}
+            <StyledGoToIcon /> <Title>{document.title}</Title>
           </Flex>
         )}
       </Component>
     );
   }
 }
+
+const Title = styled.span`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const StyledGoToIcon = styled(GoToIcon)``;
+
+const ResultWrapper = styled.div`
+  display: flex;
+  margin-bottom: 10px;
+
+  color: ${props => props.theme.text};
+  cursor: default;
+`;
+
+const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
+  height: 32px;
+  padding-top: 3px;
+  padding-left: 5px;
+
+  &:hover,
+  &:active,
+  &:focus {
+    margin-left: 0px;
+    border-radius: 2px;
+    background: ${props => props.theme.black};
+    color: ${props => props.theme.smokeLight};
+    outline: none;
+    cursor: pointer;
+
+    ${StyledGoToIcon} {
+      fill: ${props => props.theme.white};
+    }
+  }
+`;
 
 export default PathToDocument;

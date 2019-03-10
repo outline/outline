@@ -8,16 +8,21 @@ const NavItem = styled(NavLink)`
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
-  color: ${props => props.theme.slate};
+  color: ${props => props.theme.textSecondary};
   letter-spacing: 0.04em;
-  margin-right: 20px;
+  margin-right: 24px;
   padding-bottom: 8px;
+
+  &:hover {
+    color: ${props => props.theme.text};
+  }
 `;
 
 function Tab(props: *) {
   const activeStyle = {
     paddingBottom: '5px',
     borderBottom: `3px solid ${props.theme.slateLight}`,
+    color: props.theme.slate,
   };
 
   return <NavItem {...props} activeStyle={activeStyle} />;

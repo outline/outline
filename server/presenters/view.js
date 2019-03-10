@@ -1,18 +1,16 @@
 // @flow
-import { View, User } from '../models';
+import { View } from '../models';
 import { presentUser } from '../presenters';
 
-async function present(ctx: Object, view: View) {
-  let data = {
+function present(ctx: Object, view: View) {
+  return {
+    id: view.id,
+    documentId: view.documentId,
     count: view.count,
-    user: undefined,
+    firstViewedAt: view.createdAt,
+    lastViewedAt: view.updatedAt,
+    user: presentUser(ctx, view.user),
   };
-  const user = await ctx.cache.get(
-    view.userId,
-    async () => await User.findById(view.userId)
-  );
-  data.user = await presentUser(ctx, user);
-  return data;
 }
 
 export default present;

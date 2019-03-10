@@ -13,7 +13,7 @@ import type { FetchOptions, PaginationParams, SearchResult } from 'types';
 
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
-  @observable recentlyUpdatedIds: string[] = [];
+  @observable searchCache: Map<string, SearchResult[]> = new Map();
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
@@ -30,11 +30,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get recentlyUpdated(): * {
-    return orderBy(
-      compact(this.recentlyUpdatedIds.map(id => this.data.get(id))),
-      'updatedAt',
-      'desc'
-    );
+    return orderBy(Array.from(this.data.values()), 'updatedAt', 'desc');
   }
 
   createdByUser(userId: string): * {
@@ -55,16 +51,44 @@ export default class DocumentsStore extends BaseStore<Document> {
     );
   }
 
+  publishedInCollection(collectionId: string): Document[] {
+    return filter(
+      Array.from(this.data.values()),
+      document =>
+        document.collectionId === collectionId && !!document.publishedAt
+    );
+  }
+
+  leastRecentlyUpdatedInCollection(collectionId: string): Document[] {
+    return orderBy(
+      this.publishedInCollection(collectionId),
+      'updatedAt',
+      'asc'
+    );
+  }
+
   recentlyUpdatedInCollection(collectionId: string): Document[] {
     return orderBy(
-      filter(
-        Array.from(this.data.values()),
-        document =>
-          document.collectionId === collectionId && !!document.publishedAt
-      ),
+      this.publishedInCollection(collectionId),
       'updatedAt',
       'desc'
     );
+  }
+
+  recentlyPublishedInCollection(collectionId: string): Document[] {
+    return orderBy(
+      this.publishedInCollection(collectionId),
+      'publishedAt',
+      'desc'
+    );
+  }
+
+  alphabeticalInCollection(collectionId: string): Document[] {
+    return naturalSort(this.publishedInCollection(collectionId), 'title');
+  }
+
+  searchResults(query: string): SearchResult[] {
+    return this.searchCache.get(query) || [];
   }
 
   @computed
@@ -115,15 +139,36 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   fetchRecentlyUpdated = async (options: ?PaginationParams): Promise<*> => {
-    const data = await this.fetchNamedPage('list', options);
+    return this.fetchNamedPage('list', options);
+  };
 
-    runInAction('DocumentsStore#fetchRecentlyUpdated', () => {
-      // $FlowFixMe
-      this.recentlyUpdatedIds.replace(
-        uniq(this.recentlyUpdatedIds.concat(map(data, 'id')))
-      );
+  @action
+  fetchAlphabetical = async (options: ?PaginationParams): Promise<*> => {
+    return this.fetchNamedPage('list', {
+      sort: 'title',
+      direction: 'ASC',
+      ...options,
     });
-    return data;
+  };
+
+  @action
+  fetchLeastRecentlyUpdated = async (
+    options: ?PaginationParams
+  ): Promise<*> => {
+    return this.fetchNamedPage('list', {
+      sort: 'updatedAt',
+      direction: 'ASC',
+      ...options,
+    });
+  };
+
+  @action
+  fetchRecentlyPublished = async (options: ?PaginationParams): Promise<*> => {
+    return this.fetchNamedPage('list', {
+      sort: 'publishedAt',
+      direction: 'DESC',
+      ...options,
+    });
   };
 
   @action
@@ -162,15 +207,39 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   search = async (
     query: string,
-    options: ?PaginationParams
+    options: PaginationParams = {}
   ): Promise<SearchResult[]> => {
     const res = await client.get('/documents.search', {
       ...options,
       query,
     });
-    invariant(res && res.data, 'Search API response should be available');
+    invariant(res && res.data, 'Search response should be available');
     const { data } = res;
+
+    // add the document to the store
     data.forEach(result => this.add(result.document));
+
+    // store a reference to the document model in the search cache instead
+    // of the original result from the API.
+    const results: SearchResult[] = compact(
+      data.map(result => {
+        const document = this.data.get(result.document.id);
+        if (!document) return null;
+
+        return {
+          ranking: result.ranking,
+          context: result.context,
+          document,
+        };
+      })
+    );
+
+    let existing = this.searchCache.get(query) || [];
+
+    // splice modifies any existing results, taking into account pagination
+    existing.splice(options.offset || 0, options.limit || 0, ...results);
+
+    this.searchCache.set(query, existing);
     return data;
   };
 
@@ -255,7 +324,6 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     runInAction(() => {
       this.recentlyViewedIds = without(this.recentlyViewedIds, document.id);
-      this.recentlyUpdatedIds = without(this.recentlyUpdatedIds, document.id);
     });
 
     const collection = this.getCollectionForDocument(document);
@@ -290,7 +358,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     return client.post('/documents.unstar', { id: document.id });
   };
 
-  getByUrl = (url: string): ?Document => {
+  getByUrl = (url: string = ''): ?Document => {
     return find(Array.from(this.data.values()), doc => url.endsWith(doc.urlId));
   };
 

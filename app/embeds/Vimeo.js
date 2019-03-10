@@ -18,9 +18,7 @@ export default class Vimeo extends React.Component<Props> {
 
     return (
       <Frame
-        width="420px"
-        height="235px"
-        src={`http://player.vimeo.com/video/${videoId}?byline=0`}
+        src={`https://player.vimeo.com/video/${videoId}?byline=0`}
         title={`Vimeo Embed (${videoId})`}
       />
     );

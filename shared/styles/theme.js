@@ -4,6 +4,10 @@ const colors = {
   lightBlack: '#2F3336',
   almostWhite: '#E6E6E6',
 
+  slate: '#9BA6B2',
+  slateLight: '#DAE1E9',
+  slateDark: '#4E5C6E',
+
   white: '#FFF',
   white10: 'rgba(255, 255, 255, 0.1)',
   black: '#000',
@@ -37,9 +41,10 @@ export const base = {
   fontWeight: 400,
   link: colors.primary,
   placeholder: '#B1BECC',
-  textSecondary: '#4E5C6E',
+  textSecondary: colors.slate,
   textLight: colors.white,
   selected: colors.primary,
+  inputBorder: colors.slate,
 
   contentHeaderBackground: 'hsl(180, 58%, 85%)',
 };
@@ -49,8 +54,11 @@ export const light = {
   background: colors.white,
   text: colors.almostBlack,
 
-  sidebarBackground: colors.grey,
-  sidebarText: colors.black,
+  sidebarBackground: 'rgb(244, 247, 250)',
+  sidebarText: 'rgb(78, 92, 110)',
+
+  menuBackground: colors.white,
+  divider: colors.slateLight,
 
   toolbarBackground: colors.lightBlack,
   toolbarInput: colors.white10,
@@ -72,8 +80,11 @@ export const dark = {
   background: colors.almostBlack,
   text: colors.almostWhite,
 
-  sidebarBackground: colors.black,
+  sidebarBackground: 'rgba(0, 0, 0, 0.5)',
   sidebarText: colors.greyMid,
+
+  menuBackground: colors.almostBlack,
+  divider: colors.lightBlack,
 
   toolbarBackground: colors.white,
   toolbarInput: colors.black10,
@@ -88,4 +99,4 @@ export const dark = {
   horizontalRule: colors.almostWhite,
 };
 
-export default dark;
+export default light;
