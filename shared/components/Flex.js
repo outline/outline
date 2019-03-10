@@ -37,7 +37,7 @@ const Container = styled.div`
   flex-direction: ${({ column }) => (column ? 'column' : 'row')};
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
-  flex-shrink: ${({ shrink }) => (shrink ? 1 : 0)};
+  flex-shrink: ${({ shrink }) => (shrink ? 1 : 'initial')};
   min-height: 0;
   min-width: 0;
 `;
