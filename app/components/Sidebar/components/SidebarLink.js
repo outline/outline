@@ -128,7 +128,7 @@ const Action = styled.span`
   position: absolute;
   top: 4px;
   right: 4px;
-  color: ${props => props.theme.textSecondary};
+  color: ${props => props.theme.textTertiary};
 
   svg {
     opacity: 0.75;

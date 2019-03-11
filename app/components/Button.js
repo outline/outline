@@ -43,11 +43,11 @@ const RealButton = styled.button`
     background: ${props.theme.white};
     color: ${props.theme.text};
     box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px;
-    border: 1px solid ${props.theme.smoke};
+    border: 1px solid ${props.theme.slateLight};
 
     &:hover {
       background: ${darken(0.05, props.theme.white)};
-      border: 1px solid ${darken(0.05, props.theme.smoke)};
+      border: 1px solid ${darken(0.05, props.theme.slateLight)};
     }
   `} ${props =>
       props.danger &&

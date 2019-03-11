@@ -20,7 +20,7 @@ export const Separator = styled.div`
   margin-left: 12px;
   width: 1px;
   height: 20px;
-  background: ${props => props.theme.textSecondary};
+  background: ${props => props.theme.divider};
 `;
 
 const Actions = styled(Flex)`

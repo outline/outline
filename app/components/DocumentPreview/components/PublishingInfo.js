@@ -7,13 +7,13 @@ import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
 
 const Container = styled(Flex)`
-  color: ${props => props.theme.textSecondary};
+  color: ${props => props.theme.textTertiary};
   font-size: 13px;
 `;
 
 const Modified = styled.span`
   color: ${props =>
-    props.highlight ? props.theme.text : props.theme.textSecondary};
+    props.highlight ? props.theme.text : props.theme.textTertiary};
   font-weight: ${props => (props.highlight ? '600' : '400')};
 `;
 

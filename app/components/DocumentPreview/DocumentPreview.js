@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import Document from 'models/Document';
 import styled, { withTheme } from 'styled-components';
+import { darken } from 'polished';
 import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
 import { StarredIcon } from 'outline-icons';
@@ -73,7 +74,7 @@ const DocumentLink = styled(Link)`
   }
 
   &:focus {
-    border: 2px solid rgba(0, 0, 0, 0.2);
+    border: 2px solid ${props => darken(0.5, props.theme.listItemHoverBorder)};
   }
 `;
 
@@ -102,7 +103,7 @@ const Title = styled(Highlight)`
 
 const ResultContext = styled(Highlight)`
   display: block;
-  color: ${props => props.theme.textSecondary};
+  color: ${props => props.theme.textTertiary};
   font-size: 14px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;

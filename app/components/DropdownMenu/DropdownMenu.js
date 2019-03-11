@@ -3,9 +3,8 @@ import * as React from 'react';
 import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import styled from 'styled-components';
 import { PortalWithState } from 'react-portal';
-import { darken } from 'polished';
+import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 

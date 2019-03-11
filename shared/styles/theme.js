@@ -1,4 +1,6 @@
 // @flow
+import { lighten } from 'polished';
+
 const colors = {
   almostBlack: '#181A1B',
   lightBlack: '#2F3336',
@@ -19,6 +21,7 @@ const colors = {
   black10: 'rgba(0, 0, 0, 0.1)',
   black50: 'rgba(0, 0, 0, 0.50)',
   primary: '#1AB6FF',
+  yellow: '#FBCA04',
 
   danger: '#D0021B',
   warning: '#f08a24',
@@ -43,17 +46,15 @@ export const base = {
   fontWeight: 400,
   link: colors.primary,
   placeholder: '#B1BECC',
-  textSecondary: colors.slate,
-  textLight: colors.white,
-  selected: colors.primary,
-
-  contentHeaderBackground: 'hsl(180, 58%, 85%)',
 };
 
 export const light = {
   ...base,
   background: colors.white,
+
   text: colors.almostBlack,
+  textSecondary: colors.slateDark,
+  textTertiary: colors.slate,
 
   sidebarBackground: 'rgb(244, 247, 250)',
   sidebarText: 'rgb(78, 92, 110)',
@@ -83,7 +84,10 @@ export const light = {
 export const dark = {
   ...base,
   background: colors.almostBlack,
+
   text: colors.almostWhite,
+  textSecondary: lighten(0.2, colors.slate),
+  textTertiary: colors.slate,
 
   sidebarBackground: colors.black50,
   sidebarText: colors.slate,

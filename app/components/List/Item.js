@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { lighten } from 'polished';
 import Flex from 'shared/components/Flex';
 
 type Props = {
