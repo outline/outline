@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import styled from 'styled-components';
+import styled, { withTheme } from 'styled-components';
 import Input, { LabelText, Outline } from 'components/Input';
 
 type Props = {
@@ -60,4 +60,4 @@ const StyledOutline = styled(Outline)`
   }
 `;
 
-export default InputRich;
+export default withTheme(InputRich);

@@ -24,7 +24,7 @@ const MenuItem = styled.a`
   height: 32px;
 
   color: ${props =>
-    props.disabled ? transparentize(0.5, props.theme.text) : props.theme.text};
+    props.disabled ? props.theme.textTertiary : props.theme.text};
   justify-content: left;
   align-items: center;
   font-size: 15px;

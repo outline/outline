@@ -57,6 +57,7 @@ export const light = {
   textTertiary: colors.slate,
 
   sidebarBackground: 'rgb(244, 247, 250)',
+  sidebarItemBackground: colors.black05,
   sidebarText: 'rgb(78, 92, 110)',
 
   menuBackground: colors.white,
@@ -69,6 +70,9 @@ export const light = {
   toolbarBackground: colors.lightBlack,
   toolbarInput: colors.white10,
   toolbarItem: colors.white,
+
+  tooltipBackground: colors.almostBlack,
+  tooltipText: colors.white,
 
   blockToolbarBackground: colors.smoke,
   blockToolbarTrigger: colors.slate,
@@ -90,6 +94,7 @@ export const dark = {
   textTertiary: colors.slate,
 
   sidebarBackground: colors.black50,
+  sidebarItemBackground: colors.black50,
   sidebarText: colors.slate,
 
   menuBackground: colors.almostBlack,
@@ -102,6 +107,9 @@ export const dark = {
   toolbarBackground: colors.white,
   toolbarInput: colors.black10,
   toolbarItem: colors.lightBlack,
+
+  tooltipBackground: colors.white,
+  tooltipText: colors.lightBlack,
 
   blockToolbarBackground: colors.white,
   blockToolbarTrigger: colors.almostWhite,

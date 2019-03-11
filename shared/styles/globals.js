@@ -81,6 +81,6 @@ export default createGlobalStyle`
   hr {
     border: 0;
     height: 0;
-    border-bottom: 1px solid ${props => props.theme.divider};
+    border-top: 1px solid ${props => props.theme.divider};
   }
 `;

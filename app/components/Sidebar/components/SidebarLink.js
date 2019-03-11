@@ -34,7 +34,7 @@ class SidebarLink extends React.Component<Props> {
 
   activeStyle = {
     color: this.props.theme.text,
-    background: 'rgba(0, 0, 0, 0.05)',
+    background: this.props.theme.sidebarItemBackground,
     fontWeight: 600,
     ...this.style,
   };
