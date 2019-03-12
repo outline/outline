@@ -7038,6 +7038,10 @@ outline-icons@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.6.0.tgz#6c7897d354e6bd77ca5498cd3a989b8cb9482574"
 
+outline-icons@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.7.0.tgz#093f2f18c80bf5577bc31a6ff41460f2feb76fb7"
+
 oy-vey@^0.10.0:
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/oy-vey/-/oy-vey-0.10.0.tgz#16160f837f0ea3d0340adfc2377ba93d1ed9ce76"

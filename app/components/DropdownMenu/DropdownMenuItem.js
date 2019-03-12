@@ -29,7 +29,7 @@ const MenuItem = styled.a`
   font-size: 15px;
   cursor: default;
 
-  svg {
+  svg:not(:last-child) {
     margin-right: 8px;
   }
 
