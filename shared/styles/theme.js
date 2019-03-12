@@ -2,7 +2,7 @@
 import { lighten } from 'polished';
 
 const colors = {
-  almostBlack: '#181A1B',
+  almostBlack: '#111319',
   lightBlack: '#2F3336',
   almostWhite: '#E6E6E6',
 
@@ -63,6 +63,7 @@ export const light = {
   menuBackground: colors.white,
   divider: colors.slateLight,
   inputBorder: colors.slateLight,
+  inputBorderFocused: colors.slate,
 
   listItemHoverBackground: colors.smoke,
   listItemHoverBorder: colors.smokeDark,
@@ -99,7 +100,8 @@ export const dark = {
 
   menuBackground: colors.almostBlack,
   divider: colors.lightBlack,
-  inputBorder: colors.slate,
+  inputBorder: colors.slateDark,
+  inputBorderFocused: colors.slate,
 
   listItemHoverBackground: colors.black10,
   listItemHoverBorder: colors.black50,

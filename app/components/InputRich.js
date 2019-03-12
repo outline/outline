@@ -15,10 +15,19 @@ type Props = {
 @observer
 class InputRich extends React.Component<Props> {
   @observable editorComponent: *;
+  @observable focused: boolean = false;
 
   componentDidMount() {
     this.loadEditor();
   }
+
+  handleBlur = () => {
+    this.focused = false;
+  };
+
+  handleFocus = () => {
+    this.focused = true;
+  };
 
   loadEditor = async () => {
     const EditorImport = await import('./Editor');
@@ -33,8 +42,16 @@ class InputRich extends React.Component<Props> {
       <React.Fragment>
         <LabelText>{label}</LabelText>
         {Editor ? (
-          <StyledOutline maxHeight={maxHeight} minHeight={minHeight}>
-            <Editor {...rest} />
+          <StyledOutline
+            maxHeight={maxHeight}
+            minHeight={minHeight}
+            focused={this.focused}
+          >
+            <Editor
+              onBlur={this.handleBlur}
+              onFocus={this.handleFocus}
+              {...rest}
+            />
           </StyledOutline>
         ) : (
           <Input

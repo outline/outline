@@ -1,5 +1,7 @@
 // @flow
 import * as React from 'react';
+import { observer } from 'mobx-react';
+import { observable } from 'mobx';
 import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 
@@ -48,13 +50,14 @@ export const Outline = styled(Flex)`
   color: inherit;
   border-width: 1px;
   border-style: solid;
-  border-color: ${props => (props.hasError ? 'red' : props.theme.inputBorder)};
+  border-color: ${props =>
+    props.hasError
+      ? 'red'
+      : props.focused
+        ? props.theme.inputBorderFocused
+        : props.theme.inputBorder};
   border-radius: 4px;
   font-weight: normal;
-
-  &:focus {
-    border-color: ${props => props.theme.slate};
-  }
 `;
 
 export const LabelText = styled.div`
@@ -70,26 +73,39 @@ export type Props = {
   short?: boolean,
 };
 
-export default function Input({
-  type = 'text',
-  label,
-  className,
-  short,
-  ...rest
-}: Props) {
-  const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
+@observer
+class Input extends React.Component<Props> {
+  @observable focused: boolean = false;
 
-  return (
-    <Wrapper className={className} short={short}>
-      <label>
-        {label && <LabelText>{label}</LabelText>}
-        <Outline>
-          <InputComponent
-            type={type === 'textarea' ? undefined : type}
-            {...rest}
-          />
-        </Outline>
-      </label>
-    </Wrapper>
-  );
+  handleBlur = () => {
+    this.focused = false;
+  };
+
+  handleFocus = () => {
+    this.focused = true;
+  };
+
+  render() {
+    const { type = 'text', label, className, short, ...rest } = this.props;
+
+    const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
+
+    return (
+      <Wrapper className={className} short={short}>
+        <label>
+          {label && <LabelText>{label}</LabelText>}
+          <Outline focused={this.focused}>
+            <InputComponent
+              onBlur={this.handleBlur}
+              onFocus={this.handleFocus}
+              type={type === 'textarea' ? undefined : type}
+              {...rest}
+            />
+          </Outline>
+        </label>
+      </Wrapper>
+    );
+  }
 }
+
+export default Input;
