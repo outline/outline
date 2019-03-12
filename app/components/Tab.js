@@ -21,7 +21,7 @@ const NavItem = styled(NavLink)`
 function Tab(props: *) {
   const activeStyle = {
     paddingBottom: '5px',
-    borderBottom: `3px solid ${props.theme.slateLight}`,
+    borderBottom: `3px solid ${props.theme.textTertiary}`,
     color: props.theme.textTertiary,
   };
 

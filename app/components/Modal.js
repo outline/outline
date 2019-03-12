@@ -96,7 +96,7 @@ const Close = styled.a`
   top: 16px;
   right: 16px;
   opacity: 0.5;
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.textSecondary};
 
   &:hover {
     opacity: 1;

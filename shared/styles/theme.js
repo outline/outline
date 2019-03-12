@@ -1,5 +1,5 @@
 // @flow
-import { lighten } from 'polished';
+import { darken, lighten } from 'polished';
 
 const colors = {
   almostBlack: '#111319',
@@ -45,7 +45,6 @@ export const base = {
     "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen, Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif",
   fontWeight: 400,
   link: colors.primary,
-  placeholder: '#B1BECC',
 };
 
 export const light = {
@@ -55,6 +54,7 @@ export const light = {
   text: colors.almostBlack,
   textSecondary: colors.slateDark,
   textTertiary: colors.slate,
+  placeholder: '#B1BECC',
 
   sidebarBackground: 'rgb(244, 247, 250)',
   sidebarItemBackground: colors.black05,
@@ -71,6 +71,11 @@ export const light = {
   toolbarBackground: colors.lightBlack,
   toolbarInput: colors.white10,
   toolbarItem: colors.white,
+
+  buttonBackground: colors.lightBlack,
+  buttonText: colors.white,
+  buttonNeutralBackground: colors.white,
+  buttonNeutralText: colors.almostBlack,
 
   tooltipBackground: colors.almostBlack,
   tooltipText: colors.white,
@@ -93,6 +98,7 @@ export const dark = {
   text: colors.almostWhite,
   textSecondary: lighten(0.2, colors.slate),
   textTertiary: colors.slate,
+  placeholder: darken(0.5, '#B1BECC'),
 
   sidebarBackground: colors.black50,
   sidebarItemBackground: colors.black50,
@@ -109,6 +115,11 @@ export const dark = {
   toolbarBackground: colors.white,
   toolbarInput: colors.black10,
   toolbarItem: colors.lightBlack,
+
+  buttonBackground: colors.white,
+  buttonText: colors.lightBlack,
+  buttonNeutralBackground: colors.almostBlack,
+  buttonNeutralText: colors.white,
 
   tooltipBackground: colors.white,
   tooltipText: colors.lightBlack,
