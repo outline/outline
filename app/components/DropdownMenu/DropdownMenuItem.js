@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { transparentize } from 'polished';
 
 type Props = {
   onClick?: (SyntheticEvent<*>) => *,

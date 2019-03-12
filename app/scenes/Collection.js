@@ -43,7 +43,7 @@ type Props = {
   documents: DocumentsStore,
   collections: CollectionsStore,
   match: Object,
-  theme: Object
+  theme: Object,
 };
 
 @observer
@@ -291,4 +291,6 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject('collections', 'documents', 'ui')(withTheme(CollectionScene));
+export default inject('collections', 'documents', 'ui')(
+  withTheme(CollectionScene)
+);
