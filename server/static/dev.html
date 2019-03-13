@@ -20,21 +20,15 @@
         flex: 1;
         min-height: 100vh;
       }
-
-      #sidebar-placeholder {
-          position: fixed;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          width: 280px;
-          background: #F4F7FA;
-        }
     </style>
   </head>
   <body>
-    <div id="root">
-      <div id="sidebar-placeholder"></div>
-    </div>
+    <div id="root"></div>
+    <script>
+      if (window.localStorage.getItem("theme") === "dark") {
+        window.document.querySelector('#root').style.background = "#111319";
+      }
+    </script>
     <script src="/static/bundle.js"></script>
   </body>
 </html>

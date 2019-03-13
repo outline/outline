@@ -88,6 +88,7 @@ export const light = {
   quote: colors.slateLight,
   codeBackground: colors.smoke,
   codeBorder: colors.smokeDark,
+  embedBorder: '#DDD #DDD #CCC',
   horizontalRule: colors.smokeDark,
 };
 
@@ -130,6 +131,9 @@ export const dark = {
   blockToolbarItem: colors.lightBlack,
 
   quote: colors.almostWhite,
+  codeBackground: colors.almostBlack,
+  codeBorder: colors.black50,
+  embedBorder: colors.black50,
   horizontalRule: colors.almostWhite,
 };
 
