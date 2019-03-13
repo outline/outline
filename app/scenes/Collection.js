@@ -4,7 +4,7 @@ import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Redirect, Link, Switch, Route } from 'react-router-dom';
 
-import styled from 'styled-components';
+import styled, { withTheme } from 'styled-components';
 import {
   CollectionIcon,
   PrivateCollectionIcon,
@@ -43,6 +43,7 @@ type Props = {
   documents: DocumentsStore,
   collections: CollectionsStore,
   match: Object,
+  theme: Object,
 };
 
 @observer
@@ -115,7 +116,7 @@ class CollectionScene extends React.Component<Props> {
   }
 
   render() {
-    const { documents } = this.props;
+    const { documents, theme } = this.props;
 
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
     if (!this.isFetching && !this.collection) return <Search notFound />;
@@ -139,7 +140,7 @@ class CollectionScene extends React.Component<Props> {
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection)}>
-                    <Button icon={<NewDocumentIcon color="#FFF" />}>
+                    <Button icon={<NewDocumentIcon color={theme.buttonText} />}>
                       Create a document
                     </Button>
                   </Link>&nbsp;&nbsp;
@@ -184,6 +185,7 @@ class CollectionScene extends React.Component<Props> {
                     id={collection.id}
                     key={collection.description}
                     defaultValue={collection.description}
+                    theme={theme}
                     readOnly
                   />
                 )}
@@ -289,4 +291,6 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject('collections', 'documents', 'ui')(CollectionScene);
+export default inject('collections', 'documents', 'ui')(
+  withTheme(CollectionScene)
+);

@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import { withTheme } from 'styled-components';
 import RichMarkdownEditor from 'rich-markdown-editor';
 import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
@@ -89,7 +90,7 @@ class Editor extends React.Component<Props> {
   }
 }
 
-// $FlowIssue - https://github.com/facebook/flow/issues/6103
-export default React.forwardRef((props, ref) => (
-  <Editor {...props} forwardedRef={ref} />
-));
+export default withTheme(
+  // $FlowIssue - https://github.com/facebook/flow/issues/6103
+  React.forwardRef((props, ref) => <Editor {...props} forwardedRef={ref} />)
+);

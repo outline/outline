@@ -34,7 +34,7 @@ class SidebarLink extends React.Component<Props> {
 
   activeStyle = {
     color: this.props.theme.text,
-    background: 'rgba(0, 0, 0, 0.05)',
+    background: this.props.theme.sidebarItemBackground,
     fontWeight: 600,
     ...this.style,
   };
@@ -115,7 +115,7 @@ const StyledNavLink = styled(NavLink)`
   text-overflow: ellipsis;
   padding: 4px 16px;
   border-radius: 4px;
-  color: ${props => props.theme.slateDark};
+  color: ${props => props.theme.sidebarText};
   font-size: 15px;
   cursor: pointer;
 
@@ -128,7 +128,7 @@ const Action = styled.span`
   position: absolute;
   top: 4px;
   right: 4px;
-  color: ${props => props.theme.slate};
+  color: ${props => props.theme.textTertiary};
 
   svg {
     opacity: 0.75;

@@ -8,8 +8,8 @@ const RealButton = styled.button`
   margin: 0;
   padding: 0;
   border: 0;
-  background: ${props => props.theme.blackLight};
-  color: ${props => props.theme.white};
+  background: ${props => props.theme.buttonBackground};
+  color: ${props => props.theme.buttonText};
   box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px;
   border-radius: 4px;
   font-size: 12px;
@@ -28,26 +28,26 @@ const RealButton = styled.button`
   }
 
   &:hover {
-    background: ${props => darken(0.05, props.theme.blackLight)};
+    background: ${props => darken(0.05, props.theme.buttonBackground)};
   }
 
   &:disabled {
     cursor: default;
     pointer-events: none;
-    color: ${props => lighten(0.2, props.theme.blackLight)};
+    color: ${props => lighten(0.2, props.theme.buttonText)};
   }
 
   ${props =>
     props.neutral &&
     `
-    background: ${props.theme.white};
-    color: ${props.theme.text};
+    background: ${props.theme.buttonNeutralBackground};
+    color: ${props.theme.buttonNeutralText};
     box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px;
-    border: 1px solid ${props.theme.slateLight};
+    border: 1px solid ${darken(0.1, props.theme.buttonNeutralBackground)};
 
     &:hover {
-      background: ${darken(0.05, props.theme.white)};
-      border: 1px solid ${darken(0.05, props.theme.slateLight)};
+      background: ${darken(0.05, props.theme.buttonNeutralBackground)};
+      border: 1px solid ${darken(0.15, props.theme.buttonNeutralBackground)};
     }
   `} ${props =>
       props.danger &&

@@ -39,7 +39,7 @@ const CircleImg = styled.img`
   width: ${props => props.size}px;
   height: ${props => props.size}px;
   border-radius: 50%;
-  border: 2px solid ${props => props.theme.white};
+  border: 2px solid ${props => props.theme.background};
   flex-shrink: 0;
 `;
 

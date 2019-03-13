@@ -3,8 +3,11 @@ import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
+import { MoonIcon } from 'outline-icons';
+import styled, { withTheme } from 'styled-components';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
+import Flex from 'shared/components/Flex';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import {
   developers,
@@ -18,6 +21,7 @@ type Props = {
   label: React.Node,
   ui: UiStore,
   auth: AuthStore,
+  theme: Object,
 };
 
 @observer
@@ -42,6 +46,8 @@ class AccountMenu extends React.Component<Props> {
 
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+    const { ui, theme } = this.props;
+    const isLightTheme = ui.theme === 'light';
 
     return (
       <DropdownMenu
@@ -72,9 +78,22 @@ class AccountMenu extends React.Component<Props> {
         </DropdownMenuItem>
         <hr />
         <DropdownMenuItem onClick={this.handleLogout}>Logout</DropdownMenuItem>
+        <hr />
+        <DropdownMenuItem onClick={ui.toggleDarkMode}>
+          <NightMode justify="space-between">
+            Night Mode{' '}
+            <MoonIcon
+              color={isLightTheme ? theme.textSecondary : theme.primary}
+            />
+          </NightMode>
+        </DropdownMenuItem>
       </DropdownMenu>
     );
   }
 }
 
-export default inject('ui', 'auth')(AccountMenu);
+const NightMode = styled(Flex)`
+  width: 100%;
+`;
+
+export default inject('ui', 'auth')(withTheme(AccountMenu));

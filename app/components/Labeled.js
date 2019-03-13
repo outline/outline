@@ -21,7 +21,7 @@ export const Label = styled(Flex)`
   font-size: 13px;
   font-weight: 500;
   text-transform: uppercase;
-  color: #9fa6ab;
+  color: ${props => props.theme.textTertiary};
   letter-spacing: 0.04em;
 `;
 

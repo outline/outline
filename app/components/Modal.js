@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import styled, { createGlobalStyle } from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import ReactModal from 'react-modal';
+import { transparentize } from 'polished';
 import { CloseIcon } from 'outline-icons';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 import Flex from 'shared/components/Flex';
@@ -17,6 +18,8 @@ type Props = {
 
 const GlobalStyles = createGlobalStyle`
   .ReactModal__Overlay {
+    background-color: ${props =>
+      transparentize(0.25, props.theme.background)} !important;
     z-index: 100;
   }
 
@@ -76,7 +79,7 @@ const StyledModal = styled(ReactModal)`
   align-items: flex-start;
   overflow-x: hidden;
   overflow-y: auto;
-  background: white;
+  background: ${props => props.theme.background};
   padding: 13vh 2rem 2rem;
   outline: none;
 `;
@@ -93,7 +96,7 @@ const Close = styled.a`
   top: 16px;
   right: 16px;
   opacity: 0.5;
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.textSecondary};
 
   &:hover {
     opacity: 1;

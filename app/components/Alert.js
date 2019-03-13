@@ -26,7 +26,7 @@ class Alert extends React.Component<Props> {
 
 const Container = styled(Flex)`
   height: $headerHeight;
-  color: #ffffff;
+  color: ${props => props.theme.white};
   font-size: 14px;
   line-height: 1;
 

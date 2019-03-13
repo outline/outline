@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react';
-import { lighten } from 'polished';
 import styled, { withTheme } from 'styled-components';
 import { SearchIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
@@ -26,8 +25,8 @@ class SearchField extends React.Component<Props> {
       <Field align="center">
         <StyledIcon
           type="Search"
-          size={48}
-          color={lighten(0.1, this.props.theme.slate)}
+          size={46}
+          color={this.props.theme.textTertiary}
           onClick={this.focusInput}
         />
         <StyledInput
@@ -56,24 +55,25 @@ const StyledInput = styled.input`
   font-weight: 400;
   outline: none;
   border: 0;
-  background: ${props => props.theme.smoke};
+  background: ${props => props.theme.sidebarBackground};
   border-radius: 4px;
+
+  color: ${props => props.theme.text};
 
   ::-webkit-search-cancel-button {
     -webkit-appearance: searchfield-cancel-button;
   }
-
   ::-webkit-input-placeholder {
-    color: ${props => props.theme.slate};
+    color: ${props => props.theme.placeholder};
   }
   :-moz-placeholder {
-    color: ${props => props.theme.slate};
+    color: ${props => props.theme.placeholder};
   }
   ::-moz-placeholder {
-    color: ${props => props.theme.slate};
+    color: ${props => props.theme.placeholder};
   }
   :-ms-input-placeholder {
-    color: ${props => props.theme.slate};
+    color: ${props => props.theme.placeholder};
   }
 `;
 

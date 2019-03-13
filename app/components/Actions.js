@@ -20,7 +20,7 @@ export const Separator = styled.div`
   margin-left: 12px;
   width: 1px;
   height: 20px;
-  background: ${props => props.theme.slateLight};
+  background: ${props => props.theme.divider};
 `;
 
 const Actions = styled(Flex)`
@@ -29,7 +29,7 @@ const Actions = styled(Flex)`
   right: 0;
   left: 0;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.9);
+  background: ${props => props.theme.background};
   padding: 12px;
   -webkit-backdrop-filter: blur(20px);
 

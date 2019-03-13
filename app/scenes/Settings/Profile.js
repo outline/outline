@@ -126,7 +126,7 @@ class Profile extends React.Component<Props> {
 }
 
 const DangerZone = styled.div`
-  background: #fff;
+  background: ${props => props.theme.background};
   position: absolute;
   bottom: 16px;
 `;

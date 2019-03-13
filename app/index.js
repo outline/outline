@@ -2,17 +2,15 @@
 import * as React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
-import { ThemeProvider } from 'styled-components';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 import stores from 'stores';
-import theme from 'shared/styles/theme';
-import GlobalStyles from 'shared/styles/globals';
 import 'shared/styles/prism.css';
 
 import ErrorBoundary from 'components/ErrorBoundary';
 import ScrollToTop from 'components/ScrollToTop';
 import Toasts from 'components/Toasts';
+import Theme from 'components/Theme';
 import Routes from './routes';
 
 let DevTools;
@@ -25,10 +23,9 @@ const element = document.getElementById('root');
 if (element) {
   render(
     <React.Fragment>
-      <GlobalStyles />
-      <ThemeProvider theme={theme}>
-        <ErrorBoundary>
-          <Provider {...stores}>
+      <ErrorBoundary>
+        <Provider {...stores}>
+          <Theme>
             <Router>
               <React.Fragment>
                 <ScrollToTop>
@@ -37,9 +34,9 @@ if (element) {
                 <Toasts />
               </React.Fragment>
             </Router>
-          </Provider>
-        </ErrorBoundary>
-      </ThemeProvider>
+          </Theme>
+        </Provider>
+      </ErrorBoundary>
       {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}
     </React.Fragment>,
     element

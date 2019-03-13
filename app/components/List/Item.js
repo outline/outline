@@ -29,7 +29,7 @@ const Wrapper = styled.li`
   display: flex;
   padding: ${props => (props.compact ? '8px' : '12px')} 0;
   margin: 0;
-  border-bottom: 1px solid ${props => props.theme.smokeDark};
+  border-bottom: 1px solid ${props => props.theme.divider};
 `;
 
 const Image = styled(Flex)`

@@ -8,7 +8,7 @@ import {
   ThemeProvider,
 } from 'styled-components';
 import Layout from '../pages/components/Layout';
-import theme from '../../shared/styles/theme';
+import { light } from '../../shared/styles/theme';
 
 const sheet = new ServerStyleSheet();
 
@@ -28,7 +28,7 @@ export default function renderpage(ctx: Object, children: React.Node) {
 
   const html = ReactDOMServer.renderToString(
     <StyleSheetManager sheet={sheet.instance}>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={light}>
         <Layout sessions={sessions} loggedIn={loggedIn}>
           {children}
         </Layout>

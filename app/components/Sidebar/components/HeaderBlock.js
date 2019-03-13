@@ -46,7 +46,7 @@ const Subheading = styled.div`
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 500;
-  color: ${props => props.theme.slateDark};
+  color: ${props => props.theme.sidebarText};
 `;
 
 const TeamName = styled.div`

@@ -70,7 +70,7 @@ const Rounded = styled.div`
 
 const Iframe = styled.iframe`
   border: 1px solid;
-  border-color: #ddd #ddd #ccc;
+  border-color: ${props => props.theme.embedBorder};
   border-radius: 3px;
 `;
 

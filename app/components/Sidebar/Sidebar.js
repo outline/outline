@@ -6,9 +6,11 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observer, inject } from 'mobx-react';
 import { CloseIcon, MenuIcon } from 'outline-icons';
+import Fade from 'components/Fade';
 import Flex from 'shared/components/Flex';
-
 import UiStore from 'stores/UiStore';
+
+let firstRender = true;
 
 type Props = {
   children: React.Node,
@@ -30,8 +32,7 @@ class Sidebar extends React.Component<Props> {
 
   render() {
     const { children, ui } = this.props;
-
-    return (
+    const content = (
       <Container
         editMode={ui.editMode}
         mobileSidebarVisible={ui.mobileSidebarVisible}
@@ -46,6 +47,14 @@ class Sidebar extends React.Component<Props> {
         {children}
       </Container>
     );
+
+    // Fade in the sidebar on first render after page load
+    if (firstRender) {
+      firstRender = false;
+      return <Fade>{content}</Fade>;
+    }
+
+    return content;
   }
 }
 
@@ -55,7 +64,7 @@ const Container = styled(Flex)`
   bottom: 0;
   left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
   width: 100%;
-  background: ${props => props.theme.smoke};
+  background: ${props => props.theme.sidebarBackground};
   transition: left 100ms ease-out;
   margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
   z-index: 2;
@@ -68,7 +77,7 @@ const Container = styled(Flex)`
   &:before,
   &:after {
     content: '';
-    background: ${props => props.theme.smoke};
+    background: ${props => props.theme.sidebarBackground};
     position: absolute;
     top: -50vh;
     left: 0;
