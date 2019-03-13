@@ -6,7 +6,7 @@ const Subheading = styled.h3`
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: ${props => props.theme.divider};
+  color: ${props => props.theme.textTertiary};
   border-bottom: 1px solid ${props => props.theme.divider};
   padding-bottom: 8px;
   margin-top: 30px;
