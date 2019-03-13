@@ -140,7 +140,7 @@ class CollectionScene extends React.Component<Props> {
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection)}>
-                    <Button icon={<NewDocumentIcon color="#FFF" />}>
+                    <Button icon={<NewDocumentIcon color={theme.buttonText} />}>
                       Create a document
                     </Button>
                   </Link>&nbsp;&nbsp;
