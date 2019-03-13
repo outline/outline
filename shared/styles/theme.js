@@ -110,7 +110,7 @@ export const dark = {
   menuBackground: lighten(0.015, colors.almostBlack),
   menuShadow:
     '0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)',
-  divider: colors.slate,
+  divider: darken(0.2, colors.slate),
   inputBorder: colors.slateDark,
   inputBorderFocused: colors.slate,
 
