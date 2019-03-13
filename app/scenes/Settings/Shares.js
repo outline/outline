@@ -8,6 +8,7 @@ import AuthStore from 'stores/AuthStore';
 import ShareListItem from './components/ShareListItem';
 import List from 'components/List';
 import CenteredContent from 'components/CenteredContent';
+import Subheading from 'components/Subheading';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
 
@@ -46,6 +47,7 @@ class Shares extends React.Component<Props> {
               sharing in <Link to="/settings/security">security settings</Link>.
             </HelpText>
           )}
+        <Subheading>Shared Documents</Subheading>
         <List>
           {shares.orderedData.map(share => (
             <ShareListItem key={share.id} share={share} />

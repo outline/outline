@@ -61,6 +61,8 @@ export const light = {
   sidebarText: 'rgb(78, 92, 110)',
 
   menuBackground: colors.white,
+  menuShadow:
+    '0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.08)',
   divider: colors.slateLight,
   inputBorder: colors.slateLight,
   inputBorderFocused: colors.slate,
@@ -106,6 +108,8 @@ export const dark = {
   sidebarText: colors.slate,
 
   menuBackground: colors.almostBlack,
+  menuShadow:
+    '0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)',
   divider: colors.lightBlack,
   inputBorder: colors.slateDark,
   inputBorderFocused: colors.slate,
