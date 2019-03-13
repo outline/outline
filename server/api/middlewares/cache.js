@@ -2,7 +2,7 @@
 import debug from 'debug';
 import { type Context } from 'koa';
 
-const debugCache = debug('cache');
+const log = debug('cache');
 
 export default function cache() {
   return async function cacheMiddleware(ctx: Context, next: () => Promise<*>) {
@@ -14,9 +14,9 @@ export default function cache() {
 
     ctx.cache.get = async (id, def) => {
       if (ctx.cache[id]) {
-        debugCache(`hit: ${id}`);
+        log(`hit: ${id}`);
       } else {
-        debugCache(`miss: ${id}`);
+        log(`miss: ${id}`);
         ctx.cache.set(id, await def());
       }
       return ctx.cache[id];
