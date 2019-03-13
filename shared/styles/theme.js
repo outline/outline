@@ -107,10 +107,10 @@ export const dark = {
   sidebarItemBackground: colors.black50,
   sidebarText: colors.slate,
 
-  menuBackground: colors.almostBlack,
+  menuBackground: lighten(0.015, colors.almostBlack),
   menuShadow:
     '0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)',
-  divider: colors.lightBlack,
+  divider: colors.slate,
   inputBorder: colors.slateDark,
   inputBorderFocused: colors.slate,
 
