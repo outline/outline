@@ -101,7 +101,7 @@ class ApiClient {
   };
 
   // Helpers
-  constructQueryString = (data: Object) => {
+  constructQueryString = (data: { [key: string]: string }) => {
     return map(
       data,
       (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
