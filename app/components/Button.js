@@ -34,7 +34,7 @@ const RealButton = styled.button`
   &:disabled {
     cursor: default;
     pointer-events: none;
-    color: ${props => lighten(0.2, props.theme.buttonText)};
+    color: ${props => props.theme.textTertiary};
   }
 
   ${props =>
