@@ -29,8 +29,12 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   ctx.assertPresent(code || error, 'code is required');
   ctx.assertPresent(state, 'state is required');
 
-  if (state !== ctx.cookies.get('state') || error) {
-    ctx.redirect(`/?notice=auth-error`);
+  if (state !== ctx.cookies.get('state')) {
+    ctx.redirect('/?notice=auth-error');
+    return;
+  }
+  if (error) {
+    ctx.redirect(`/?notice=auth-error&error=${error}`);
     return;
   }
 
