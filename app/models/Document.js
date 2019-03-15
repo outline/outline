@@ -36,6 +36,7 @@ export default class Document extends BaseModel {
   emoji: string;
   parentDocument: ?string;
   publishedAt: ?string;
+  deletedAt: ?string;
   url: string;
   urlId: string;
   shareUrl: ?string;
@@ -117,6 +118,10 @@ export default class Document extends BaseModel {
 
   restore = (revision: Revision) => {
     return this.store.restore(this, revision);
+  };
+
+  unarchive = () => {
+    return this.store.unarchive(this);
   };
 
   @action

@@ -40,7 +40,6 @@ class DocumentMenu extends React.Component<Props> {
     const { document } = this.props;
     this.props.ui.setActiveModal('document-delete', { document });
   };
-
   handleDocumentHistory = () => {
     this.redirectTo = documentHistoryUrl(this.props.document);
   };
@@ -52,6 +51,10 @@ class DocumentMenu extends React.Component<Props> {
   handleDuplicate = async (ev: SyntheticEvent<*>) => {
     const duped = await this.props.document.duplicate();
     this.redirectTo = duped.url;
+  };
+
+  handleUnarchive = (ev: SyntheticEvent<*>) => {
+    this.props.document.unarchive();
   };
 
   handlePin = (ev: SyntheticEvent<*>) => {
@@ -86,6 +89,19 @@ class DocumentMenu extends React.Component<Props> {
 
     const { document, label, className, showPrint, auth } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;
+
+    if (document.deletedAt) {
+      return (
+        <DropdownMenu label={label || <MoreIcon />} className={className}>
+          <DropdownMenuItem onClick={this.handleUnarchive}>
+            Unarchive
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={this.handleDelete}>
+            Delete…
+          </DropdownMenuItem>
+        </DropdownMenu>
+      );
+    }
 
     return (
       <DropdownMenu label={label || <MoreIcon />} className={className}>

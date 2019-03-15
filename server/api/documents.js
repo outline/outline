@@ -100,6 +100,30 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('documents.deleted', auth(), pagination(), async ctx => {
+  const { sort = 'updatedAt' } = ctx.body;
+  let direction = ctx.body.direction;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const documents = await Document.findAll({
+    where: { teamId: user.teamId },
+    paranoid: false,
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  const data = await Promise.all(
+    documents.map(document => presentDocument(ctx, document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
 router.post('documents.viewed', auth(), pagination(), async ctx => {
   let { sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
@@ -530,6 +554,30 @@ router.post('documents.move', auth(), async ctx => {
   };
 });
 
+router.post('documents.undelete', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const document = await Document.findById(id);
+  authorize(ctx.state.user, 'delete', document);
+
+
+
+  document.children.forEach(child => )
+
+  const collection = document.collection;
+  if (collection && collection.type === 'atlas') {
+    // Delete document and all of its children
+    await collection.deleteDocument(document);
+  }
+
+  await document.destroy();
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 router.post('documents.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
@@ -540,7 +588,7 @@ router.post('documents.delete', auth(), async ctx => {
   const collection = document.collection;
   if (collection && collection.type === 'atlas') {
     // Delete document and all of its children
-    await collection.removeDocument(document);
+    await collection.deleteDocument(document);
   }
 
   await document.destroy();

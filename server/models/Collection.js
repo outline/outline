@@ -1,5 +1,5 @@
 // @flow
-import _ from 'lodash';
+import { find, remove } from 'lodash';
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
@@ -261,98 +261,58 @@ Collection.prototype.updateDocument = async function(updatedDocument) {
 Collection.prototype.moveDocument = async function(document, index) {
   if (!this.documentStructure) return;
 
-  const documentJson = await this.removeDocument(document, {
-    deleteDocument: false,
-  });
+  const documentJson = await this.removeDocumentFromStructure(document);
   await this.addDocumentToStructure(document, index, { documentJson });
 
   return this;
 };
 
-type DeleteDocumentOptions = {
-  deleteDocument: boolean,
+Collection.prototype.deleteDocument = async function(document) {
+  await this.removeDocumentFromStructure(document, { save: true });
+  await document.deleteWithChildren();
 };
 
-/**
- * removeDocument is used for both deleting documents (deleteDocument: true)
- * and removing them temporarily from the structure while they are being moved
- * (deleteDocument: false).
- */
-Collection.prototype.removeDocument = async function(
+Collection.prototype.removeDocumentFromStructure = async function(
   document,
-  options: DeleteDocumentOptions = { deleteDocument: true }
+  options?: { save?: boolean }
 ) {
   if (!this.documentStructure) return;
-
   let returnValue;
+  let unlock;
 
-  // documentStructure can only be updated by one request at the time
-  const unlock = await asyncLock('testLock');
+  if (this.save) {
+    // documentStructure can only be updated by one request at the time
+    unlock = await asyncLock(`collection-${this.id}`);
+  }
 
-  const existingData = {
-    old: this.documentStructure,
-    documentId: document,
-    parentDocumentId: document.parentDocumentId,
-    options,
-  };
-
-  // Helper to destroy all child documents for a document
-  const deleteChildren = async documentId => {
-    const childDocuments = await Document.findAll({
-      where: { parentDocumentId: documentId },
-    });
-    childDocuments.forEach(async child => {
-      await deleteChildren(child.id);
-      await child.destroy();
-    });
-  };
-
-  // Prune, and destroy if needed, from the document structure
-  const deleteFromChildren = async (children, id) => {
+  const removeFromChildren = async (children, id) => {
     children = await Promise.all(
       children.map(async childDocument => {
         return {
           ...childDocument,
-          children: await deleteFromChildren(childDocument.children, id),
+          children: await removeFromChildren(childDocument.children, id),
         };
       })
     );
 
-    const match = _.find(children, { id });
+    const match = find(children, { id });
     if (match) {
-      if (!options.deleteDocument && !returnValue) returnValue = match;
-      _.remove(children, { id });
-
-      if (options.deleteDocument) {
-        const childDocument = await Document.findById(id);
-        // Delete the actual document
-        if (childDocument) await childDocument.destroy();
-        // Delete all child documents
-        await deleteChildren(id);
-      }
+      if (!returnValue) returnValue = match;
+      remove(children, { id });
     }
 
     return children;
   };
 
-  this.documentStructure = await deleteFromChildren(
+  this.documentStructure = await removeFromChildren(
     this.documentStructure,
     document.id
   );
 
-  if (options.deleteDocument) await this.save();
-
-  await Event.create({
-    name: 'Collection#removeDocument',
-    data: {
-      ...existingData,
-      new: this.documentStructure,
-    },
-    collectionId: this.id,
-    teamId: this.teamId,
-  });
-
-  await unlock();
+  if (options && options.save && unlock) {
+    await this.save();
+    await unlock();
+  }
 
   return returnValue;
 };

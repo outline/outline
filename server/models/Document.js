@@ -296,6 +296,25 @@ Document.addHook('afterDestroy', model =>
 
 // Instance methods
 
+// Note: This method marks the document and it's children as deleted
+// in the database, it does not permanantly delete them OR remove
+// from the collection structure.
+Document.prototype.deleteWithChildren = async function() {
+  // Helper to destroy all child documents for a document
+  const deleteChildren = async documentId => {
+    const childDocuments = await Document.findAll({
+      where: { parentDocumentId: documentId },
+    });
+    childDocuments.forEach(async child => {
+      await deleteChildren(child.id);
+      await child.destroy();
+    });
+  };
+
+  await deleteChildren(this.id);
+  await this.destroy();
+};
+
 Document.prototype.publish = async function() {
   if (this.publishedAt) return this.save();
 

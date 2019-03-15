@@ -30,6 +30,7 @@ function PublishingInfo({ collection, showPublished, document }: Props) {
     updatedAt,
     updatedBy,
     publishedAt,
+    deletedAt,
     isDraft,
   } = document;
   const neverUpdated = publishedAt === updatedAt;
@@ -43,7 +44,11 @@ function PublishingInfo({ collection, showPublished, document }: Props) {
       ) : (
         <React.Fragment>
           {updatedBy.name}
-          {isDraft ? (
+          {deletedAt ? (
+            <span>
+              &nbsp;deleted <Time dateTime={deletedAt} /> ago
+            </span>
+          ) : isDraft ? (
             <span>
               &nbsp;saved <Time dateTime={updatedAt} /> ago
             </span>

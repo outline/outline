@@ -1,7 +1,13 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { HomeIcon, EditIcon, SearchIcon, StarredIcon } from 'outline-icons';
+import {
+  HomeIcon,
+  TrashIcon,
+  EditIcon,
+  SearchIcon,
+  StarredIcon,
+} from 'outline-icons';
 
 import Flex from 'shared/components/Flex';
 import AccountMenu from 'menus/AccountMenu';
@@ -93,6 +99,14 @@ class MainSidebar extends React.Component<Props> {
             </Section>
             <Section>
               <Collections onCreateCollection={this.handleCreateCollection} />
+            </Section>
+            <Section>
+              <SidebarLink
+                to="/trash"
+                icon={<TrashIcon />}
+                exact={false}
+                label="Archive"
+              />
             </Section>
           </Scrollable>
         </Flex>
