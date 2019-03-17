@@ -324,18 +324,29 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
 router.post('documents.restore', auth(), async ctx => {
   const { id, revisionId } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  ctx.assertPresent(revisionId, 'revisionId is required');
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
   authorize(user, 'update', document);
 
-  const revision = await Revision.findById(revisionId);
-  authorize(document, 'restore', revision);
+  // restore a deleted document
+  if (document.deletedAt) {
+    if (document.collection) {
+      await document.collection.restoreDocument(document);
+    }
+    await document.restore();
 
-  document.text = revision.text;
-  document.title = revision.title;
-  await document.save();
+    // restore an active document to a specific revision
+  } else if (revisionId) {
+    const revision = await Revision.findById(revisionId);
+    authorize(document, 'restore', revision);
+
+    document.text = revision.text;
+    document.title = revision.title;
+    await document.save();
+  } else {
+    ctx.assertPresent(revisionId, 'revisionId is required');
+  }
 
   ctx.body = {
     data: await presentDocument(ctx, document),
@@ -554,30 +565,6 @@ router.post('documents.move', auth(), async ctx => {
   };
 });
 
-router.post('documents.undelete', auth(), async ctx => {
-  const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
-
-  const document = await Document.findById(id);
-  authorize(ctx.state.user, 'delete', document);
-
-
-
-  document.children.forEach(child => )
-
-  const collection = document.collection;
-  if (collection && collection.type === 'atlas') {
-    // Delete document and all of its children
-    await collection.deleteDocument(document);
-  }
-
-  await document.destroy();
-
-  ctx.body = {
-    success: true,
-  };
-});
-
 router.post('documents.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
@@ -585,10 +572,8 @@ router.post('documents.delete', auth(), async ctx => {
   const document = await Document.findById(id);
   authorize(ctx.state.user, 'delete', document);
 
-  const collection = document.collection;
-  if (collection && collection.type === 'atlas') {
-    // Delete document and all of its children
-    await collection.deleteDocument(document);
+  if (document.collection) {
+    await document.collection.deleteDocument(document);
   }
 
   await document.destroy();

@@ -116,12 +116,8 @@ export default class Document extends BaseModel {
     this.updateTitle();
   };
 
-  restore = (revision: Revision) => {
+  restore = (revision: ?Revision) => {
     return this.store.restore(this, revision);
-  };
-
-  unarchive = () => {
-    return this.store.unarchive(this);
   };
 
   @action

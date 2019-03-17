@@ -346,10 +346,10 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
-  restore = async (document: Document, revision: Revision) => {
+  restore = async (document: Document, revision?: Revision) => {
     const res = await client.post('/documents.restore', {
       id: document.id,
-      revisionId: revision.id,
+      revisionId: revision ? revision.id : undefined,
     });
     runInAction('Document#restore', () => {
       invariant(res && res.data, 'Data should be available');

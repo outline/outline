@@ -159,12 +159,6 @@ Collection.prototype.addDocumentToStructure = async function(
   options = {}
 ) {
   if (!this.documentStructure) return;
-  const existingData = {
-    old: this.documentStructure,
-    documentId: document,
-    parentDocumentId: document.parentDocumentId,
-    index,
-  };
 
   // documentStructure can only be updated by one request at the time
   const unlock = await asyncLock(`collection-${this.id}`);
@@ -207,17 +201,6 @@ Collection.prototype.addDocumentToStructure = async function(
   // Sequelize doesn't seem to set the value with splice on JSONB field
   this.documentStructure = this.documentStructure;
   await this.save();
-
-  await Event.create({
-    name: 'Collection#addDocumentToStructure',
-    data: {
-      ...existingData,
-      new: this.documentStructure,
-    },
-    collectionId: this.id,
-    teamId: this.teamId,
-  });
-
   unlock();
 
   return this;
@@ -261,18 +244,21 @@ Collection.prototype.updateDocument = async function(updatedDocument) {
 Collection.prototype.moveDocument = async function(document, index) {
   if (!this.documentStructure) return;
 
-  const documentJson = await this.removeDocumentFromStructure(document);
+  const documentJson = await this.removeDocumentInStructure(document);
   await this.addDocumentToStructure(document, index, { documentJson });
+};
 
-  return this;
+Collection.prototype.restoreDocument = async function(document) {
+  await this.addDocumentToStructure(document);
+  await document.restore();
 };
 
 Collection.prototype.deleteDocument = async function(document) {
-  await this.removeDocumentFromStructure(document, { save: true });
+  await this.removeDocumentInStructure(document, { save: true });
   await document.deleteWithChildren();
 };
 
-Collection.prototype.removeDocumentFromStructure = async function(
+Collection.prototype.removeDocumentInStructure = async function(
   document,
   options?: { save?: boolean }
 ) {

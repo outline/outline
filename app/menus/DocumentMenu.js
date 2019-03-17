@@ -53,8 +53,8 @@ class DocumentMenu extends React.Component<Props> {
     this.redirectTo = duped.url;
   };
 
-  handleUnarchive = (ev: SyntheticEvent<*>) => {
-    this.props.document.unarchive();
+  handleRestore = (ev: SyntheticEvent<*>) => {
+    this.props.document.restore();
   };
 
   handlePin = (ev: SyntheticEvent<*>) => {

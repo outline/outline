@@ -268,9 +268,7 @@ describe('#removeDocument', () => {
       const { collection, document } = await seed();
       jest.spyOn(collection, 'save');
 
-      const removedNode = await collection.removeDocumentFromStructure(
-        document
-      );
+      const removedNode = await collection.removeDocumentInStructure(document);
       expect(collection.documentStructure.length).toBe(1);
       expect(destroyMock).not.toBeCalled();
       expect(collection.save).not.toBeCalled();
