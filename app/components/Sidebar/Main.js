@@ -2,8 +2,8 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import {
+  ArchiveIcon,
   HomeIcon,
-  TrashIcon,
   EditIcon,
   SearchIcon,
   StarredIcon,
@@ -103,7 +103,7 @@ class MainSidebar extends React.Component<Props> {
             <Section>
               <SidebarLink
                 to="/trash"
-                icon={<TrashIcon />}
+                icon={<ArchiveIcon />}
                 exact={false}
                 label="Archive"
               />

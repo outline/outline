@@ -326,7 +326,7 @@ router.post('documents.restore', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findOne({ where: { id }, paranoid: false });
   authorize(user, 'update', document);
 
   // restore a deleted document
@@ -565,7 +565,7 @@ router.post('documents.move', auth(), async ctx => {
   };
 });
 
-router.post('documents.delete', auth(), async ctx => {
+router.post('documents.archive', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
@@ -577,6 +577,28 @@ router.post('documents.delete', auth(), async ctx => {
   }
 
   await document.destroy();
+
+  ctx.body = {
+    data: await presentDocument(ctx, document),
+  };
+});
+
+router.post('documents.delete', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const document = await Document.findOne({
+    where: { id },
+    paranoid: false,
+  });
+  authorize(ctx.state.user, 'delete', document);
+
+  if (document.collection) {
+    await document.collection.deleteDocument(document);
+  }
+
+  await Revision.destroy({ where: { documentId: id }, force: true });
+  await document.destroy({ force: true });
 
   ctx.body = {
     success: true,

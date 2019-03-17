@@ -52,7 +52,8 @@ const RealButton = styled.button`
   `} ${props =>
       props.danger &&
       `
-    background: ${props.theme.danger};
+      background: ${props.theme.danger};
+      color: ${props.theme.white};
 
     &:hover {
       background: ${darken(0.05, props.theme.danger)};

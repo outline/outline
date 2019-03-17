@@ -40,6 +40,7 @@ class DocumentMenu extends React.Component<Props> {
     const { document } = this.props;
     this.props.ui.setActiveModal('document-delete', { document });
   };
+
   handleDocumentHistory = () => {
     this.redirectTo = documentHistoryUrl(this.props.document);
   };
@@ -53,7 +54,11 @@ class DocumentMenu extends React.Component<Props> {
     this.redirectTo = duped.url;
   };
 
-  handleRestore = (ev: SyntheticEvent<*>) => {
+  handleArchive = (ev: SyntheticEvent<*>) => {
+    this.props.document.archive();
+  };
+
+  handleUnarchive = (ev: SyntheticEvent<*>) => {
     this.props.document.restore();
   };
 
@@ -147,7 +152,9 @@ class DocumentMenu extends React.Component<Props> {
             <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
           </React.Fragment>
         )}
-        <DropdownMenuItem onClick={this.handleDelete}>Delete…</DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleArchive}>
+          Archive
+        </DropdownMenuItem>
         <hr />
         <DropdownMenuItem onClick={this.handleExport}>
           Download

@@ -346,6 +346,20 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
+  archive = async (document: Document) => {
+    const res = await client.post('/documents.archive', {
+      id: document.id,
+    });
+    runInAction('Document#restore', () => {
+      invariant(res && res.data, 'Data should be available');
+      document.updateFromJson(res.data);
+    });
+
+    const collection = this.getCollectionForDocument(document);
+    if (collection) collection.refresh();
+  };
+
+  @action
   restore = async (document: Document, revision?: Revision) => {
     const res = await client.post('/documents.restore', {
       id: document.id,
@@ -355,10 +369,9 @@ export default class DocumentsStore extends BaseStore<Document> {
       invariant(res && res.data, 'Data should be available');
       document.updateFromJson(res.data);
     });
-  };
 
-  unarchive = (document: Document) => {
-    return client.post('/documents.unarchive', { id: document.id });
+    const collection = this.getCollectionForDocument(document);
+    if (collection) collection.refresh();
   };
 
   pin = (document: Document) => {
