@@ -23,9 +23,9 @@ class Trash extends React.Component<Props> {
 
   render() {
     const { documents } = this.props;
-    const { isLoaded, isFetching, deleted } = documents;
+    const { isLoaded, isFetching, archived } = documents;
     const showLoading = !isLoaded && isFetching;
-    const showEmpty = isLoaded && !deleted.length;
+    const showEmpty = isLoaded && !archived.length;
 
     return (
       <CenteredContent column auto>
@@ -37,7 +37,7 @@ class Trash extends React.Component<Props> {
           <React.Fragment>
             <Subheading>Documents</Subheading>
             <PaginatedDocumentList
-              documents={documents.archived}
+              documents={archived}
               fetch={documents.fetchArchived}
               link={false}
               showCollection

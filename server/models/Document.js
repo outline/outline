@@ -4,7 +4,7 @@ import { map, find, compact, uniq } from 'lodash';
 import randomstring from 'randomstring';
 import MarkdownSerializer from 'slate-md-serializer';
 import Plain from 'slate-plain-serializer';
-import Sequelize from 'sequelize';
+import Sequelize, { type Transaction } from 'sequelize';
 import removeMarkdown from '@tommoor/remove-markdown';
 
 import isUUID from 'validator/lib/isUUID';
@@ -311,8 +311,7 @@ Document.prototype.deleteWithChildren = async function(options) {
     });
   };
 
-  // $FlowFixMe
-  return sequelize.transaction(async transaction => {
+  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
     await deleteChildren(this.id, { ...options, transaction });
     await this.destroy({ ...options, transaction });
   });
@@ -337,8 +336,7 @@ Document.prototype.publish = async function() {
 // Moves a document from being visible to the team within a collection
 // to the archived area, where it can be subsequently restored.
 Document.prototype.archive = function() {
-  // $FlowFixMe
-  return sequelize.transaction(async transaction => {
+  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
     // delete any children and remove from the document structure
     const collection = await this.getCollection();
     await collection.deleteDocument(this, { transaction });
@@ -355,8 +353,7 @@ Document.prototype.archive = function() {
 
 // Restore an archived document back to being visible to the team
 Document.prototype.unarchive = function() {
-  // $FlowFixMe
-  return sequelize.transaction(async transaction => {
+  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
     const collection = await this.getCollection();
     await collection.addDocumentToStructure(this, 0, {
       transaction,
@@ -373,8 +370,7 @@ Document.prototype.unarchive = function() {
 
 // Permenanatly delete a document, archived or otherwise.
 Document.prototype.delete = function() {
-  // $FlowFixMe
-  return sequelize.transaction(async transaction => {
+  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
     if (!this.deletedAt) {
       // delete any children and remove from the document structure
       await this.collection.deleteDocument(this, { transaction });

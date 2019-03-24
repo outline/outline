@@ -467,7 +467,7 @@ describe('#documents.search', async () => {
   });
 });
 
-describe.only('#documents.archived', async () => {
+describe('#documents.archived', async () => {
   it('should return archived documents', async () => {
     const { user } = await seed();
     const document = await buildDocument({
@@ -636,8 +636,36 @@ describe('#documents.pin', async () => {
   });
 });
 
-describe('#documents.restore', async () => {
-  it('should restore a deleted document');
+describe('#documents.restore', () => {
+  describe('archived documents', () => {
+    it('should allow restore', async () => {
+      const { user, document } = await seed();
+      await document.archive();
+
+      const res = await server.post('/api/documents.restore', {
+        body: { token: user.getJwtToken(), id: document.id },
+      });
+      const body = await res.json();
+      expect(body.data.deletedAt).toEqual(null);
+    });
+
+    it('should restore when previous parent is deleted', async () => {
+      const { user, document } = await seed();
+      const childDocument = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: document.collectionId,
+        parentDocumentId: document.id,
+      });
+      await document.archive();
+
+      const res = await server.post('/api/documents.restore', {
+        body: { token: user.getJwtToken(), id: childDocument.id },
+      });
+      const body = await res.json();
+      expect(body.data.deletedAt).toEqual(null);
+    });
+  });
 
   it('should restore the document to a previous version', async () => {
     const { user, document } = await seed();

@@ -347,17 +347,18 @@ router.post('documents.restore', auth(), async ctx => {
   const document = await Document.findOne({ where: { id }, paranoid: false });
   authorize(user, 'update', document);
 
-  // restore a deleted document
   if (document.deletedAt) {
+    // restore a previously archived document
     await document.restore();
 
-    // restore an active document to a specific revision
+    // restore a document to a specific revision
   } else if (revisionId) {
     const revision = await Revision.findById(revisionId);
     authorize(document, 'restore', revision);
 
     document.text = revision.text;
     document.title = revision.title;
+    document.deletedAt = null;
     await document.save();
   } else {
     ctx.assertPresent(revisionId, 'revisionId is required');

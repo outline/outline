@@ -7,13 +7,9 @@ import { asyncLock } from '../redis';
 import events from '../events';
 import Document from './Document';
 import CollectionUser from './CollectionUser';
-import Event from './Event';
 import { welcomeMessage } from '../utils/onboarding';
 
-// $FlowIssue invalid flow-typed
 slug.defaults.mode = 'rfc3986';
-
-const allowedCollectionTypes = [['atlas', 'journal']];
 
 const Collection = sequelize.define(
   'collection',
@@ -30,7 +26,7 @@ const Collection = sequelize.define(
     private: DataTypes.BOOLEAN,
     type: {
       type: DataTypes.STRING,
-      validate: { isIn: allowedCollectionTypes },
+      validate: { isIn: [['atlas', 'journal']] },
     },
 
     /* type: atlas */
@@ -40,10 +36,10 @@ const Collection = sequelize.define(
     tableName: 'collections',
     paranoid: true,
     hooks: {
-      beforeValidate: collection => {
+      beforeValidate: (collection: Collection) => {
         collection.urlId = collection.urlId || randomstring.generate(10);
       },
-      afterCreate: async collection => {
+      afterCreate: async (collection: Collection) => {
         const team = await collection.getTeam();
         const collections = await team.getCollections();
 
@@ -115,7 +111,7 @@ Collection.associate = models => {
   );
 };
 
-Collection.addHook('afterDestroy', async model => {
+Collection.addHook('afterDestroy', async (model: Collection) => {
   await Document.destroy({
     where: {
       collectionId: model.id,
@@ -123,19 +119,19 @@ Collection.addHook('afterDestroy', async model => {
   });
 });
 
-Collection.addHook('afterCreate', model =>
+Collection.addHook('afterCreate', (model: Collection) =>
   events.add({ name: 'collections.create', model })
 );
 
-Collection.addHook('afterDestroy', model =>
+Collection.addHook('afterDestroy', (model: Collection) =>
   events.add({ name: 'collections.delete', model })
 );
 
-Collection.addHook('afterUpdate', model =>
+Collection.addHook('afterUpdate', (model: Collection) =>
   events.add({ name: 'collections.update', model })
 );
 
-Collection.addHook('afterCreate', (model, options) => {
+Collection.addHook('afterCreate', (model: Collection, options) => {
   if (model.private) {
     return CollectionUser.findOrCreate({
       where: {
@@ -154,8 +150,8 @@ Collection.addHook('afterCreate', (model, options) => {
 // Instance methods
 
 Collection.prototype.addDocumentToStructure = async function(
-  document,
-  index,
+  document: Document,
+  index: number,
   options = {}
 ) {
   if (!this.documentStructure) return;
@@ -208,7 +204,9 @@ Collection.prototype.addDocumentToStructure = async function(
 /**
  * Update document's title and url in the documentStructure
  */
-Collection.prototype.updateDocument = async function(updatedDocument) {
+Collection.prototype.updateDocument = async function(
+  updatedDocument: Document
+) {
   if (!this.documentStructure) return;
 
   // documentStructure can only be updated by one request at the time

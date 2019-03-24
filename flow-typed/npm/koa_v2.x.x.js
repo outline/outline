@@ -1,3 +1,4 @@
+// @flow
 // flow-typed signature: 225656ba2479b8c1dd8b10776913e73f
 // flow-typed version: b7d0245d00/koa_v2.x.x/flow_>=v0.47.x
 
@@ -43,7 +44,7 @@ declare module 'koa' {
     url: string,
     header: SimpleHeader,
   };
-  declare type RequestInspect = void |  RequestJSON;
+  declare type RequestInspect = void | RequestJSON;
   declare type Request = {
     app: Application,
     req: http$IncomingMessage,
@@ -75,13 +76,13 @@ declare module 'koa' {
     type: string,
     url: string,
 
-    charset: string |  void,
-    length: number  | void,
+    charset: string | void,
+    length: number | void,
 
     //  Those functions comes from https://github.com/jshttp/accepts/blob/master/index.js
     //  request.js$L445
     //  https://github.com/jshttp/accepts/blob/master/test/type.js
-    accepts: ((args: string[]) => string  | false)  &
+    accepts: ((args: string[]) => string | false) &
       // ToDo: There is an issue https://github.com/facebook/flow/issues/3009
       // if you meet some error here, temporarily add an additional annotation
       // like: `request.accepts((['json', 'text']:Array<string>))` to fix it.
@@ -90,7 +91,7 @@ declare module 'koa' {
 
     //  https://github.com/jshttp/accepts/blob/master/index.js#L153
     //  https://github.com/jshttp/accepts/blob/master/test/charset.js
-    acceptsCharsets: ((args: string[]) => buffer$Encoding | false)  &
+    acceptsCharsets: ((args: string[]) => buffer$Encoding | false) &
       // ToDo: https://github.com/facebook/flow/issues/3009
       // if you meet some error here, see L70.
       ((arg: string, ...args: string[]) => buffer$Encoding | false) &
@@ -98,7 +99,7 @@ declare module 'koa' {
 
     //  https://github.com/jshttp/accepts/blob/master/index.js#L119
     //  https://github.com/jshttp/accepts/blob/master/test/encoding.js
-    acceptsEncodings: ((args: string[]) => string | false)  &
+    acceptsEncodings: ((args: string[]) => string | false) &
       // ToDo: https://github.com/facebook/flow/issues/3009
       // if you meet some error here, see L70.
       ((arg: string, ...args: string[]) => string | false) &
@@ -121,7 +122,7 @@ declare module 'koa' {
 * If there is no content type, `false` is returned.
 * Otherwise, it returns the first `type` that matches.
 */
-    is: ((args: string[]) => null | false | string)  &
+    is: ((args: string[]) => null | false | string) &
       ((arg: string, ...args: string[]) => null | false | string) &
       (() => string), // should return the mime type
 
@@ -165,7 +166,7 @@ declare module 'koa' {
     writable: boolean,
 
     // charset: string,  // doesn't find in response.js
-    length: number |  void,
+    length: number | void,
 
     append: (field: string, val: string | string[]) => void,
     attachment: (filename?: string) => void,
@@ -178,7 +179,7 @@ declare module 'koa' {
     redirect: (url: string, alt?: string) => void,
     remove: (field: string) => void,
     // https://github.com/koajs/koa/blob/v2.x/lib/response.js#L418
-    set: ((field: string, val: string | string[]) => void)  &
+    set: ((field: string, val: string | string[]) => void) &
       ((field: { [key: string]: string | string[] }) => void),
 
     vary: (field: string) => void,
@@ -217,7 +218,7 @@ declare module 'koa' {
       name: string,
       value: string,
       options?: CookiesSetOptions
-    ) => Context)  &
+    ) => Context) &
       // delete cookie (an outbound header with an expired date is used.)
       ((name: string) => Context),
   };
@@ -320,7 +321,7 @@ declare module 'koa' {
       res: http$ServerResponse
     ) => void;
     env: string;
-    keys?: Array<string>  | Object; // https://github.com/crypto-utils/keygrip
+    keys?: Array<string> | Object; // https://github.com/crypto-utils/keygrip
     middleware: Array<Middleware>;
     proxy: boolean; // when true proxy header fields will be trusted
     request: Request;
