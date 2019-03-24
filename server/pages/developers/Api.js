@@ -370,9 +370,23 @@ export default function Pricing() {
             </Arguments>
           </Method>
 
+          <Method method="documents.archive" label="Archive a document">
+            <Description>
+              Archive a document and all of its child documents, if any.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
+              />
+            </Arguments>
+          </Method>
+
           <Method method="documents.delete" label="Delete a document">
             <Description>
-              Delete a document and all of its child documents if any.
+              Permanantly delete a document and all of its child documents, if
+              any.
             </Description>
             <Arguments>
               <Argument
@@ -403,7 +417,8 @@ export default function Pricing() {
           >
             <Description>
               Restores a document to a previous revision by creating a new
-              revision with the contents of the given revisionId.
+              revision with the contents of the given revisionId or restores an
+              archived document if no revisionId is passed.
             </Description>
             <Arguments>
               <Argument
@@ -414,7 +429,6 @@ export default function Pricing() {
               <Argument
                 id="revisionId"
                 description="Revision ID to restore to"
-                required
               />
             </Arguments>
           </Method>
