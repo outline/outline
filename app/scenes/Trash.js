@@ -18,7 +18,7 @@ type Props = {
 @observer
 class Trash extends React.Component<Props> {
   componentDidMount() {
-    this.props.documents.fetchDeleted();
+    this.props.documents.fetchArchived();
   }
 
   render() {
@@ -37,8 +37,8 @@ class Trash extends React.Component<Props> {
           <React.Fragment>
             <Subheading>Documents</Subheading>
             <PaginatedDocumentList
-              documents={documents.deleted}
-              fetch={documents.fetchDeleted}
+              documents={documents.archived}
+              fetch={documents.fetchArchived}
               link={false}
               showCollection
             />

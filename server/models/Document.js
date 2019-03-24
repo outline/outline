@@ -271,7 +271,7 @@ Document.addHook('beforeSave', async model => {
   if (!model.publishedAt) return;
 
   const collection = await Collection.findById(model.collectionId);
-  if (collection.type !== 'atlas') return;
+  if (!collection || collection.type !== 'atlas') return;
 
   await collection.updateDocument(model);
   model.collection = collection;
@@ -281,7 +281,7 @@ Document.addHook('afterCreate', async model => {
   if (!model.publishedAt) return;
 
   const collection = await Collection.findById(model.collectionId);
-  if (collection.type !== 'atlas') return;
+  if (!collection || collection.type !== 'atlas') return;
 
   await collection.addDocumentToStructure(model);
   model.collection = collection;
@@ -299,20 +299,23 @@ Document.addHook('afterDestroy', model =>
 // Note: This method marks the document and it's children as deleted
 // in the database, it does not permanantly delete them OR remove
 // from the collection structure.
-Document.prototype.deleteWithChildren = async function() {
+Document.prototype.deleteWithChildren = async function(options) {
   // Helper to destroy all child documents for a document
-  const deleteChildren = async documentId => {
+  const deleteChildren = async (documentId, opts) => {
     const childDocuments = await Document.findAll({
       where: { parentDocumentId: documentId },
     });
     childDocuments.forEach(async child => {
-      await deleteChildren(child.id);
-      await child.destroy();
+      await deleteChildren(child.id, opts);
+      await child.destroy(opts);
     });
   };
 
-  await deleteChildren(this.id);
-  await this.destroy();
+  // $FlowFixMe
+  return sequelize.transaction(async transaction => {
+    await deleteChildren(this.id, { ...options, transaction });
+    await this.destroy({ ...options, transaction });
+  });
 };
 
 Document.prototype.publish = async function() {
@@ -329,6 +332,62 @@ Document.prototype.publish = async function() {
 
   events.add({ name: 'documents.publish', model: this });
   return this;
+};
+
+// Moves a document from being visible to the team within a collection
+// to the archived area, where it can be subsequently restored.
+Document.prototype.archive = function() {
+  // $FlowFixMe
+  return sequelize.transaction(async transaction => {
+    // delete any children and remove from the document structure
+    const collection = await this.getCollection();
+    await collection.deleteDocument(this, { transaction });
+
+    await Revision.destroy({
+      where: { documentId: this.id },
+      transaction,
+    });
+
+    // archive is just an alias for soft delete
+    await this.destroy({ transaction });
+  });
+};
+
+// Restore an archived document back to being visible to the team
+Document.prototype.unarchive = function() {
+  // $FlowFixMe
+  return sequelize.transaction(async transaction => {
+    const collection = await this.getCollection();
+    await collection.addDocumentToStructure(this, 0, {
+      transaction,
+    });
+
+    await Revision.restore({
+      where: { documentId: this.id },
+      transaction,
+    });
+
+    await this.restore({ transaction });
+  });
+};
+
+// Permenanatly delete a document, archived or otherwise.
+Document.prototype.delete = function() {
+  // $FlowFixMe
+  return sequelize.transaction(async transaction => {
+    if (!this.deletedAt) {
+      // delete any children and remove from the document structure
+      await this.collection.deleteDocument(this, { transaction });
+    }
+
+    await Revision.destroy({
+      where: { documentId: this.id },
+      transaction,
+      force: true,
+    });
+
+    await this.destroy({ transaction, force: true });
+  });
 };
 
 Document.prototype.getTimestamp = function() {

@@ -163,8 +163,7 @@ Collection.prototype.addDocumentToStructure = async function(
   // documentStructure can only be updated by one request at the time
   const unlock = await asyncLock(`collection-${this.id}`);
 
-  // If moving existing document with children, use existing structure to
-  // keep everything in shape and not loose documents
+  // If moving existing document with children, use existing structure
   const documentJson = {
     ...document.toJSON(),
     ...options.documentJson,
@@ -200,7 +199,7 @@ Collection.prototype.addDocumentToStructure = async function(
 
   // Sequelize doesn't seem to set the value with splice on JSONB field
   this.documentStructure = this.documentStructure;
-  await this.save();
+  await this.save(options);
   unlock();
 
   return this;
@@ -248,11 +247,6 @@ Collection.prototype.moveDocument = async function(document, index) {
   await this.addDocumentToStructure(document, index, { documentJson });
 };
 
-Collection.prototype.restoreDocument = async function(document) {
-  await this.addDocumentToStructure(document);
-  await document.restore();
-};
-
 Collection.prototype.deleteDocument = async function(document) {
   await this.removeDocumentInStructure(document, { save: true });
   await document.deleteWithChildren();
@@ -266,7 +260,7 @@ Collection.prototype.removeDocumentInStructure = async function(
   let returnValue;
   let unlock;
 
-  if (this.save) {
+  if (options && options.save) {
     // documentStructure can only be updated by one request at the time
     unlock = await asyncLock(`collection-${this.id}`);
   }
@@ -295,9 +289,9 @@ Collection.prototype.removeDocumentInStructure = async function(
     document.id
   );
 
-  if (options && options.save && unlock) {
+  if (options && options.save) {
     await this.save();
-    await unlock();
+    if (unlock) await unlock();
   }
 
   return returnValue;

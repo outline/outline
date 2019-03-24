@@ -420,6 +420,24 @@ describe('#documents.search', async () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it('should not return archived documents', async () => {
+    const { user } = await seed();
+    const document = await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+    });
+    await document.archive();
+
+    const res = await server.post('/api/documents.search', {
+      body: { token: user.getJwtToken(), query: 'search term' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it('should not return documents in private collections not a member of', async () => {
     const { user } = await seed();
     const collection = await buildCollection({ private: true });
@@ -446,6 +464,47 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe.only('#documents.archived', async () => {
+  it('should return archived documents', async () => {
+    const { user } = await seed();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await document.archive();
+
+    const res = await server.post('/api/documents.archived', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
+  it('should not return deleted documents', async () => {
+    const { user } = await seed();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await document.delete();
+
+    const res = await server.post('/api/documents.archived', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.archived');
+    expect(res.status).toEqual(401);
   });
 });
 
@@ -578,6 +637,8 @@ describe('#documents.pin', async () => {
 });
 
 describe('#documents.restore', async () => {
+  it('should restore a deleted document');
+
   it('should restore the document to a previous version', async () => {
     const { user, document } = await seed();
     const revision = await Revision.findOne({

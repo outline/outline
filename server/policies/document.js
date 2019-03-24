@@ -19,6 +19,15 @@ allow(
   }
 );
 
+allow(User, 'archive', Document, (user, document) => {
+  if (document.collection) {
+    if (cannot(user, 'read', document.collection)) return false;
+  }
+  if (!document.publishedAt) return false;
+
+  return user.teamId === document.teamId;
+});
+
 allow(
   Document,
   'restore',

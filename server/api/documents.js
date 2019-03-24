@@ -100,14 +100,32 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   };
 });
 
-router.post('documents.deleted', auth(), pagination(), async ctx => {
+router.post('documents.archived', auth(), pagination(), async ctx => {
   const { sort = 'updatedAt' } = ctx.body;
   let direction = ctx.body.direction;
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
   const documents = await Document.findAll({
-    where: { teamId: user.teamId },
+    where: {
+      teamId: user.teamId,
+      deletedAt: {
+        // $FlowFixMe
+        [Op.ne]: null,
+      },
+      // $FlowFixMe
+      [Op.or]: [
+        {
+          publishedAt: {
+            // $FlowFixMe
+            [Op.ne]: null,
+          },
+        },
+        {
+          createdById: user.id,
+        },
+      ],
+    },
     paranoid: false,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
@@ -331,9 +349,6 @@ router.post('documents.restore', auth(), async ctx => {
 
   // restore a deleted document
   if (document.deletedAt) {
-    if (document.collection) {
-      await document.collection.restoreDocument(document);
-    }
     await document.restore();
 
     // restore an active document to a specific revision
@@ -570,13 +585,9 @@ router.post('documents.archive', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const document = await Document.findById(id);
-  authorize(ctx.state.user, 'delete', document);
+  authorize(ctx.state.user, 'archive', document);
 
-  if (document.collection) {
-    await document.collection.deleteDocument(document);
-  }
-
-  await document.destroy();
+  await document.archive();
 
   ctx.body = {
     data: await presentDocument(ctx, document),
@@ -597,7 +608,6 @@ router.post('documents.delete', auth(), async ctx => {
     await document.collection.deleteDocument(document);
   }
 
-  await Revision.destroy({ where: { documentId: id }, force: true });
   await document.destroy({ force: true });
 
   ctx.body = {

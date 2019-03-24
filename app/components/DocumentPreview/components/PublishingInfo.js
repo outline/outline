@@ -5,6 +5,7 @@ import Collection from 'models/Collection';
 import Document from 'models/Document';
 import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
+import Badge from 'components/Badge';
 
 const Container = styled(Flex)`
   color: ${props => props.theme.textTertiary};
@@ -64,6 +65,7 @@ function PublishingInfo({ collection, showPublished, document }: Props) {
           &nbsp;in <strong>{isDraft ? 'Drafts' : collection.name}</strong>
         </span>
       )}
+      {isDraft && deletedAt && <Badge>&nbsp;Visible only to you</Badge>}
     </Container>
   );
 }

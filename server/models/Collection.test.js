@@ -156,8 +156,6 @@ describe('#moveDocument', () => {
 
   test('should move a document with children', async () => {
     const { collection, document } = await seed();
-
-    // Add a child for testing
     const newDocument = await Document.create({
       parentDocumentId: document.id,
       collectionId: collection.id,

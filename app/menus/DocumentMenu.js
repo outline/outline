@@ -110,7 +110,7 @@ class DocumentMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu label={label || <MoreIcon />} className={className}>
-        {!document.isDraft && (
+        {!document.isDraft ? (
           <React.Fragment>
             {document.pinned ? (
               <DropdownMenuItem onClick={this.handleUnpin}>
@@ -149,12 +149,16 @@ class DocumentMenu extends React.Component<Props> {
             <DropdownMenuItem onClick={this.handleDuplicate}>
               Duplicate
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleArchive}>
+              Archive
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
           </React.Fragment>
+        ) : (
+          <DropdownMenuItem onClick={this.handleDelete}>
+            Delete…
+          </DropdownMenuItem>
         )}
-        <DropdownMenuItem onClick={this.handleArchive}>
-          Archive
-        </DropdownMenuItem>
         <hr />
         <DropdownMenuItem onClick={this.handleExport}>
           Download

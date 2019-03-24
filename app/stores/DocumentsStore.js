@@ -99,7 +99,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @computed
-  get deleted(): Document[] {
+  get archived(): Document[] {
     return filter(
       orderBy(this.orderedData, 'deletedAt', 'desc'),
       d => d.deletedAt
@@ -148,8 +148,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  fetchDeleted = async (options: ?PaginationParams): Promise<*> => {
-    return this.fetchNamedPage('deleted', options);
+  fetchArchived = async (options: ?PaginationParams): Promise<*> => {
+    return this.fetchNamedPage('archived', options);
   };
 
   @action
