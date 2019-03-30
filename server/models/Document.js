@@ -359,11 +359,6 @@ Document.prototype.unarchive = function() {
       transaction,
     });
 
-    await Revision.restore({
-      where: { documentId: this.id },
-      transaction,
-    });
-
     await this.restore({ transaction });
   });
 };
@@ -373,13 +368,13 @@ Document.prototype.delete = function() {
   return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
     if (!this.deletedAt) {
       // delete any children and remove from the document structure
-      await this.collection.deleteDocument(this, { transaction });
+      const collection = await this.getCollection();
+      if (collection) await collection.deleteDocument(this, { transaction });
     }
 
     await Revision.destroy({
       where: { documentId: this.id },
       transaction,
-      force: true,
     });
 
     await this.destroy({ transaction, force: true });

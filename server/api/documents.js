@@ -106,9 +106,12 @@ router.post('documents.archived', auth(), pagination(), async ctx => {
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
+  const collectionIds = await user.collectionIds();
+
   const documents = await Document.findAll({
     where: {
       teamId: user.teamId,
+      collectionId: collectionIds,
       deletedAt: {
         // $FlowFixMe
         [Op.ne]: null,
@@ -349,7 +352,7 @@ router.post('documents.restore', auth(), async ctx => {
 
   if (document.deletedAt) {
     // restore a previously archived document
-    await document.restore();
+    await document.unarchive();
 
     // restore a document to a specific revision
   } else if (revisionId) {
@@ -358,7 +361,6 @@ router.post('documents.restore', auth(), async ctx => {
 
     document.text = revision.text;
     document.title = revision.title;
-    document.deletedAt = null;
     await document.save();
   } else {
     ctx.assertPresent(revisionId, 'revisionId is required');
@@ -605,11 +607,7 @@ router.post('documents.delete', auth(), async ctx => {
   });
   authorize(ctx.state.user, 'delete', document);
 
-  if (document.collection) {
-    await document.collection.deleteDocument(document);
-  }
-
-  await document.destroy({ force: true });
+  await document.delete();
 
   ctx.body = {
     success: true,
