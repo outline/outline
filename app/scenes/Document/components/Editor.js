@@ -29,13 +29,15 @@ class DocumentEditor extends React.Component<Props> {
   };
 
   render() {
-    const { readOnly } = this.props;
+    const { readOnly, defaultValue } = this.props;
 
     return (
       <React.Fragment>
         <StyledEditor
           ref={ref => (this.editor = ref)}
           plugins={plugins}
+          options={{ normalize: !defaultValue }}
+          defaultValue={defaultValue}
           {...this.props}
         />
         <ClickablePadding

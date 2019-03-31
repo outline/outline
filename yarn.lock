@@ -7735,9 +7735,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@^9.0.6:
-  version "9.0.6"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.0.6.tgz#9d963e099cac15bf729a32448ab6a19bf10ca8ca"
+rich-markdown-editor@^9.1.0:
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.1.0.tgz#d149eda8aa416c06eb1c2b3dfc474f9cd0b7a632"
   dependencies:
     "@tommoor/slate-edit-list" "0.19.0-0"
     "@wikifactory/slate-edit-blockquote" "^0.7.1"
@@ -7763,9 +7763,8 @@ rich-markdown-editor@^9.0.6:
     slate "^0.44.10"
     slate-collapse-on-escape "^0.8.1"
     slate-drop-or-paste-images "^0.9.1"
-    slate-md-serializer "^5.2.3"
+    slate-md-serializer "^5.3.0"
     slate-paste-linkify "^0.7.0"
-    slate-plain-serializer "0.6.33"
     slate-react "^0.21.15"
     slate-schema-violations "^0.1.39"
     slugify "^1.3.0"
@@ -8089,9 +8088,9 @@ slate-hotkeys@^0.2.8:
     is-hotkey "0.1.4"
     slate-dev-environment "^0.2.1"
 
-slate-md-serializer@^5.2.3:
-  version "5.2.3"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.2.3.tgz#45e67f37dca2bfc2c4ea7b17206a1c653d40e55d"
+slate-md-serializer@^5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.3.0.tgz#481c1cafe75151faee264803c30bf3dd5f4ed2ac"
   dependencies:
     hashtag-regex "^2.0.0"
 
@@ -8100,10 +8099,6 @@ slate-paste-linkify@^0.7.0:
   resolved "https://registry.yarnpkg.com/slate-paste-linkify/-/slate-paste-linkify-0.7.0.tgz#42adf3a3b40c88086c201666a5b203140da5a6ae"
   dependencies:
     is-url "^1.2.2"
-
-slate-plain-serializer@0.6.33:
-  version "0.6.33"
-  resolved "https://registry.yarnpkg.com/slate-plain-serializer/-/slate-plain-serializer-0.6.33.tgz#b731ecd8757f0d402ab36823f4be641c3f11a229"
 
 slate-plain-serializer@^0.6.34:
   version "0.6.34"
