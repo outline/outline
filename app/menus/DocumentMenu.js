@@ -8,7 +8,12 @@ import { MoreIcon } from 'outline-icons';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
-import { documentMoveUrl, documentHistoryUrl } from 'utils/routeHelpers';
+import {
+  documentUrl,
+  documentMoveUrl,
+  documentHistoryUrl,
+  homeUrl,
+} from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
@@ -51,17 +56,28 @@ class DocumentMenu extends React.Component<Props> {
 
   handleDuplicate = async (ev: SyntheticEvent<*>) => {
     const duped = await this.props.document.duplicate();
+
+    // when duplicating, go straight to the duplicated document content
     this.redirectTo = duped.url;
     this.props.ui.showToast('Document duplicated');
   };
 
   handleArchive = (ev: SyntheticEvent<*>) => {
     this.props.document.archive();
+
+    // we only need to redirect away if we're currently looking at the
+    // document – archving from a list view should not change the route.
+    if (this.props.ui.activeDocumentId === this.props.document.id) {
+      this.redirectTo = homeUrl();
+    }
     this.props.ui.showToast('Document archived');
   };
 
   handleRestore = (ev: SyntheticEvent<*>) => {
     this.props.document.restore();
+
+    // when restoring, go straight to the restored document content
+    this.redirectTo = documentUrl(this.props.document);
     this.props.ui.showToast('Document restored');
   };
 
@@ -154,6 +170,9 @@ class DocumentMenu extends React.Component<Props> {
             </DropdownMenuItem>
             <DropdownMenuItem onClick={this.handleArchive}>
               Archive
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleDelete}>
+              Delete…
             </DropdownMenuItem>
             <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
           </React.Fragment>
