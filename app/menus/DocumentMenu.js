@@ -12,7 +12,7 @@ import {
   documentUrl,
   documentMoveUrl,
   documentHistoryUrl,
-  homeUrl,
+  collectionUrl,
 } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
@@ -68,7 +68,7 @@ class DocumentMenu extends React.Component<Props> {
     // we only need to redirect away if we're currently looking at the
     // document – archving from a list view should not change the route.
     if (this.props.ui.activeDocumentId === this.props.document.id) {
-      this.redirectTo = homeUrl();
+      this.redirectTo = collectionUrl(this.props.document.collectionId);
     }
     this.props.ui.showToast('Document archived');
   };
