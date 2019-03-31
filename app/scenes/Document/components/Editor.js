@@ -6,6 +6,8 @@ import Placeholder from 'rich-markdown-editor/lib/components/Placeholder';
 import ClickablePadding from 'components/ClickablePadding';
 import plugins from './plugins';
 
+const defaultOptions = { normalize: true };
+
 type Props = {
   defaultValue?: string,
   readOnly?: boolean,
@@ -29,15 +31,14 @@ class DocumentEditor extends React.Component<Props> {
   };
 
   render() {
-    const { readOnly, defaultValue } = this.props;
+    const { readOnly } = this.props;
 
     return (
       <React.Fragment>
         <StyledEditor
           ref={ref => (this.editor = ref)}
           plugins={plugins}
-          options={{ normalize: !defaultValue }}
-          defaultValue={defaultValue}
+          options={defaultOptions}
           {...this.props}
         />
         <ClickablePadding
