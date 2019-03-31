@@ -52,14 +52,17 @@ class DocumentMenu extends React.Component<Props> {
   handleDuplicate = async (ev: SyntheticEvent<*>) => {
     const duped = await this.props.document.duplicate();
     this.redirectTo = duped.url;
+    this.props.ui.showToast('Document duplicated');
   };
 
   handleArchive = (ev: SyntheticEvent<*>) => {
     this.props.document.archive();
+    this.props.ui.showToast('Document archived');
   };
 
-  handleUnarchive = (ev: SyntheticEvent<*>) => {
+  handleRestore = (ev: SyntheticEvent<*>) => {
     this.props.document.restore();
+    this.props.ui.showToast('Document restored');
   };
 
   handlePin = (ev: SyntheticEvent<*>) => {
@@ -98,8 +101,8 @@ class DocumentMenu extends React.Component<Props> {
     if (document.deletedAt) {
       return (
         <DropdownMenu label={label || <MoreIcon />} className={className}>
-          <DropdownMenuItem onClick={this.handleUnarchive}>
-            Unarchive
+          <DropdownMenuItem onClick={this.handleRestore}>
+            Restore
           </DropdownMenuItem>
           <DropdownMenuItem onClick={this.handleDelete}>
             Delete…
