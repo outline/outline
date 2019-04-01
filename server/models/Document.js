@@ -355,6 +355,17 @@ Document.prototype.archive = function() {
 Document.prototype.unarchive = function() {
   return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
     const collection = await this.getCollection();
+
+    // check to see if the documents parent hasn't been deleted also
+    // If it has then restore the document to the collection root.
+    if (this.parentDocumentId) {
+      const parent = await Document.findById(this.parentDocumentId);
+      if (!parent) {
+        this.parentDocumentId = undefined;
+        await this.save({ transaction });
+      }
+    }
+
     await collection.addDocumentToStructure(this, 0, {
       transaction,
     });
