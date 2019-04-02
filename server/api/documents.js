@@ -285,7 +285,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
     }
     document = share.document;
   } else {
-    document = await Document.findById(id);
+    document = await Document.findById(id, { paranoid: false });
     authorize(user, 'read', document);
   }
 

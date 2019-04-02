@@ -27,6 +27,8 @@ import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
+import Notice from 'shared/components/Notice';
+import Time from 'shared/components/Time';
 import Search from 'scenes/Search';
 import Error404 from 'scenes/Error404';
 import ErrorOffline from 'scenes/ErrorOffline';
@@ -366,7 +368,13 @@ class DocumentScene extends React.Component<Props> {
                 onSave={this.onSave}
               />
             )}
-            <MaxWidth column auto>
+            <MaxWidth archived={!!document.deletedAt} column auto>
+              {document.deletedAt && (
+                <Notice muted>
+                  Archived by {document.updatedBy.name}{' '}
+                  <Time dateTime={document.deletedAt} /> ago
+                </Notice>
+              )}
               <Editor
                 id={document.id}
                 key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
@@ -379,7 +387,7 @@ class DocumentScene extends React.Component<Props> {
                 onChange={this.onChange}
                 onSave={this.onSaveAndExit}
                 onCancel={this.onDiscard}
-                readOnly={!this.isEditing}
+                readOnly={!this.isEditing || !!document.deletedAt}
                 toc={!revision}
                 ui={this.props.ui}
                 schema={schema}
@@ -394,6 +402,11 @@ class DocumentScene extends React.Component<Props> {
 }
 
 const MaxWidth = styled(Flex)`
+  * {
+    color: ${props =>
+      props.archived ? `${props.theme.textSecondary} !important` : 'inherit'};
+  }
+
   padding: 0 16px;
   max-width: 100vw;
   width: 100%;

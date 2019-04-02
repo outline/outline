@@ -16,7 +16,7 @@ type Props = {
 };
 
 @observer
-class Trash extends React.Component<Props> {
+class Archive extends React.Component<Props> {
   componentDidMount() {
     this.props.documents.fetchArchived();
   }
@@ -29,7 +29,7 @@ class Trash extends React.Component<Props> {
 
     return (
       <CenteredContent column auto>
-        <PageTitle title="Trash" />
+        <PageTitle title="Archive" />
         <Heading>Archive</Heading>
         {showEmpty ? (
           <Empty>The document archive is empty at the moment.</Empty>
@@ -39,7 +39,6 @@ class Trash extends React.Component<Props> {
             <PaginatedDocumentList
               documents={archived}
               fetch={documents.fetchArchived}
-              link={false}
               showCollection
             />
           </React.Fragment>
@@ -50,4 +49,4 @@ class Trash extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(Trash);
+export default inject('documents')(Archive);

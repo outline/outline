@@ -183,18 +183,20 @@ Document.associate = models => {
   }));
 };
 
-Document.findById = async id => {
+Document.findById = async (id, options) => {
   const scope = Document.scope('withUnpublished');
 
   if (isUUID(id)) {
     return scope.findOne({
       where: { id },
+      ...options,
     });
   } else if (id.match(URL_REGEX)) {
     return scope.findOne({
       where: {
         urlId: id.match(URL_REGEX)[1],
       },
+      ...options,
     });
   }
 };
@@ -347,7 +349,7 @@ Document.prototype.archive = function() {
     });
 
     // archive is just an alias for soft delete
-    await this.destroy({ transaction });
+    return this.destroy({ transaction });
   });
 };
 
@@ -370,7 +372,7 @@ Document.prototype.unarchive = function() {
       transaction,
     });
 
-    await this.restore({ transaction });
+    return this.restore({ transaction });
   });
 };
 
@@ -388,7 +390,7 @@ Document.prototype.delete = function() {
       transaction,
     });
 
-    await this.destroy({ transaction, force: true });
+    return this.destroy({ transaction, force: true });
   });
 };
 

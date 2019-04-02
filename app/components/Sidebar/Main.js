@@ -102,10 +102,13 @@ class MainSidebar extends React.Component<Props> {
             </Section>
             <Section>
               <SidebarLink
-                to="/trash"
+                to="/archive"
                 icon={<ArchiveIcon />}
                 exact={false}
                 label="Archive"
+                active={
+                  documents.active ? !!documents.active.deletedAt : undefined
+                }
               />
             </Section>
           </Scrollable>
