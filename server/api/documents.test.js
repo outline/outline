@@ -98,6 +98,20 @@ describe('#documents.info', async () => {
     expect(res.status).toEqual(400);
   });
 
+  it('should not return document from archived shareId', async () => {
+    const { document, user } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    await document.archive(user.id);
+
+    const res = await server.post('/api/documents.info', {
+      body: { shareId: share.id },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it('should return document from shareId with token', async () => {
     const { user, document, collection } = await seed();
     const share = await buildShare({
@@ -486,7 +500,7 @@ describe('#documents.archived', async () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive();
+    await document.archive(user.id);
 
     const res = await server.post('/api/documents.archived', {
       body: { token: user.getJwtToken() },
@@ -522,7 +536,7 @@ describe('#documents.archived', async () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await document.archive();
+    await document.archive(user.id);
 
     const res = await server.post('/api/documents.archived', {
       body: { token: user.getJwtToken() },
@@ -1089,6 +1103,24 @@ describe('#documents.update', async () => {
       body: { token: user.getJwtToken(), id: document.id, text: 'Updated' },
     });
     expect(res.status).toEqual(403);
+  });
+});
+
+describe('#documents.archive', async () => {
+  it('should allow archiving document', async () => {
+    const { user, document } = await seed();
+    const res = await server.post('/api/documents.archive', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it('should require authentication', async () => {
+    const { document } = await seed();
+    const res = await server.post('/api/documents.archive', {
+      body: { id: document.id },
+    });
+    expect(res.status).toEqual(401);
   });
 });
 

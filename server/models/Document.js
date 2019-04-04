@@ -388,10 +388,7 @@ Document.prototype.unarchive = function(userId) {
     // If it has then restore the document to the collection root.
     if (this.parentDocumentId) {
       const parent = await Document.findById(this.parentDocumentId);
-      if (!parent) {
-        this.parentDocumentId = undefined;
-        await this.save({ transaction });
-      }
+      if (!parent) this.parentDocumentId = undefined;
     }
 
     await collection.addDocumentToStructure(this, 0, {

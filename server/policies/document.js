@@ -32,6 +32,15 @@ allow(User, 'archive', Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
+allow(User, 'unarchive', Document, (user, document) => {
+  if (document.collection) {
+    if (cannot(user, 'read', document.collection)) return false;
+  }
+  if (!document.archivedAt) return false;
+
+  return user.teamId === document.teamId;
+});
+
 allow(
   Document,
   'restore',

@@ -264,16 +264,10 @@ router.post('documents.info', auth({ required: false }), async ctx => {
           model: Document,
           required: true,
           as: 'document',
-          where: {
-            archivedAt: {
-              // $FlowFixMe
-              [Op.ne]: null,
-            },
-          },
         },
       ],
     });
-    if (!share) {
+    if (!share || share.document.archivedAt) {
       throw new InvalidRequestError('Document could not be found for shareId');
     }
     document = share.document;
@@ -341,14 +335,17 @@ router.post('documents.restore', auth(), async ctx => {
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
-  authorize(user, 'update', document);
 
   if (document.archivedAt) {
+    authorize(user, 'unarchive', document);
+
     // restore a previously archived document
     await document.unarchive(user.id);
 
     // restore a document to a specific revision
   } else if (revisionId) {
+    authorize(user, 'update', document);
+
     const revision = await Revision.findById(revisionId);
     authorize(document, 'restore', revision);
 

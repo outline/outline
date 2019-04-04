@@ -402,11 +402,8 @@ class DocumentScene extends React.Component<Props> {
 }
 
 const MaxWidth = styled(Flex)`
-  * {
-    color: ${props =>
-      props.archived ? `${props.theme.textSecondary} !important` : 'inherit'};
-  }
-
+  ${props =>
+    props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
   padding: 0 16px;
   max-width: 100vw;
   width: 100%;
