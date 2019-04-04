@@ -8,12 +8,7 @@ import { MoreIcon } from 'outline-icons';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
-import {
-  documentUrl,
-  documentMoveUrl,
-  documentHistoryUrl,
-  collectionUrl,
-} from 'utils/routeHelpers';
+import { documentMoveUrl, documentHistoryUrl } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
@@ -62,22 +57,13 @@ class DocumentMenu extends React.Component<Props> {
     this.props.ui.showToast('Document duplicated');
   };
 
-  handleArchive = (ev: SyntheticEvent<*>) => {
-    this.props.document.archive();
-
-    // we only need to redirect away if we're currently looking at the
-    // document – archving from a list view should not change the route.
-    if (this.props.ui.activeDocumentId === this.props.document.id) {
-      this.redirectTo = collectionUrl(this.props.document.collectionId);
-    }
+  handleArchive = async (ev: SyntheticEvent<*>) => {
+    await this.props.document.archive();
     this.props.ui.showToast('Document archived');
   };
 
-  handleRestore = (ev: SyntheticEvent<*>) => {
-    this.props.document.restore();
-
-    // when restoring, go straight to the restored document content
-    this.redirectTo = documentUrl(this.props.document);
+  handleRestore = async (ev: SyntheticEvent<*>) => {
+    await this.props.document.restore();
     this.props.ui.showToast('Document restored');
   };
 
@@ -114,7 +100,7 @@ class DocumentMenu extends React.Component<Props> {
     const { document, label, className, showPrint, auth } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;
 
-    if (document.deletedAt) {
+    if (document.isArchived) {
       return (
         <DropdownMenu label={label || <MoreIcon />} className={className}>
           <DropdownMenuItem onClick={this.handleRestore}>

@@ -163,7 +163,7 @@ class DocumentPreview extends React.Component<Props> {
         <Heading>
           <Title text={document.title} highlight={highlight} />
           {!document.isDraft &&
-            !document.deletedAt && (
+            !document.isArchived && (
               <Actions>
                 {document.starred ? (
                   <StyledStar onClick={this.unstar} solid />

@@ -21,7 +21,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(this.orderedData, d => !d.deletedAt);
+    return filter(this.orderedData, d => !d.archivedAt && !d.deletedAt);
   }
 
   @computed
@@ -101,8 +101,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   @computed
   get archived(): Document[] {
     return filter(
-      orderBy(this.orderedData, 'deletedAt', 'desc'),
-      d => d.deletedAt
+      orderBy(this.orderedData, 'archivedAt', 'desc'),
+      d => d.archivedAt
     );
   }
 
@@ -350,7 +350,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const res = await client.post('/documents.archive', {
       id: document.id,
     });
-    runInAction('Document#restore', () => {
+    runInAction('Document#archive', () => {
       invariant(res && res.data, 'Data should be available');
       document.updateFromJson(res.data);
     });

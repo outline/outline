@@ -91,6 +91,7 @@ const Document = sequelize.define(
     },
     text: DataTypes.TEXT,
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+    archivedAt: DataTypes.DATE,
     publishedAt: DataTypes.DATE,
     parentDocumentId: DataTypes.UUID,
     collaboratorIds: DataTypes.ARRAY(DataTypes.UUID),
@@ -224,6 +225,7 @@ Document.searchForUser = async (
     FROM documents
     WHERE "searchVector" @@ to_tsquery('english', :query) AND
       "collectionId" IN(:collectionIds) AND
+      "archivedAt" IS NULL AND
       "deletedAt" IS NULL AND
       ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
     ORDER BY 
@@ -303,19 +305,45 @@ Document.addHook('afterDestroy', model =>
 // from the collection structure.
 Document.prototype.deleteWithChildren = async function(options) {
   // Helper to destroy all child documents for a document
-  const deleteChildren = async (documentId, opts) => {
+  const loopChildren = async (documentId, opts) => {
     const childDocuments = await Document.findAll({
       where: { parentDocumentId: documentId },
     });
     childDocuments.forEach(async child => {
-      await deleteChildren(child.id, opts);
+      await loopChildren(child.id, opts);
       await child.destroy(opts);
     });
   };
 
   return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
-    await deleteChildren(this.id, { ...options, transaction });
+    await loopChildren(this.id, { ...options, transaction });
     await this.destroy({ ...options, transaction });
+  });
+};
+
+Document.prototype.archiveWithChildren = async function(userId, options) {
+  const archivedAt = new Date();
+
+  // Helper to archive all child documents for a document
+  const loopChildren = async (documentId, opts) => {
+    const childDocuments = await Document.findAll({
+      where: { parentDocumentId: documentId },
+    });
+    childDocuments.forEach(async child => {
+      await loopChildren(child.id, opts);
+
+      child.archivedAt = archivedAt;
+      child.lastModifiedById = userId;
+      await child.save(opts);
+    });
+  };
+
+  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
+    await loopChildren(this.id, { ...options, transaction });
+
+    this.archivedAt = archivedAt;
+    this.lastModifiedById = userId;
+    await this.save({ ...options, transaction });
   });
 };
 
@@ -337,28 +365,26 @@ Document.prototype.publish = async function() {
 
 // Moves a document from being visible to the team within a collection
 // to the archived area, where it can be subsequently restored.
-Document.prototype.archive = function() {
+Document.prototype.archive = function(userId) {
   return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
-    // delete any children and remove from the document structure
+    // archive any children and remove from the document structure
     const collection = await this.getCollection();
-    await collection.deleteDocument(this, { transaction });
+    await collection.removeDocumentInStructure(this, { save: true });
 
-    await Revision.destroy({
-      where: { documentId: this.id },
-      transaction,
-    });
+    await this.archiveWithChildren(userId, { transaction });
+    this.collection = collection;
 
-    // archive is just an alias for soft delete
-    return this.destroy({ transaction });
+    events.add({ name: 'documents.archive', model: this });
+    return this;
   });
 };
 
 // Restore an archived document back to being visible to the team
-Document.prototype.unarchive = function() {
+Document.prototype.unarchive = function(userId) {
   return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
     const collection = await this.getCollection();
 
-    // check to see if the documents parent hasn't been deleted also
+    // check to see if the documents parent hasn't been archived also
     // If it has then restore the document to the collection root.
     if (this.parentDocumentId) {
       const parent = await Document.findById(this.parentDocumentId);
@@ -372,14 +398,21 @@ Document.prototype.unarchive = function() {
       transaction,
     });
 
-    return this.restore({ transaction });
+    this.archivedAt = null;
+    this.lastModifiedById = userId;
+
+    await this.save({ transaction });
+    this.collection = collection;
+
+    events.add({ name: 'documents.unarchive', model: this });
+    return this;
   });
 };
 
-// Permenanatly delete a document, archived or otherwise.
-Document.prototype.delete = function() {
+// Delete a document, archived or otherwise.
+Document.prototype.delete = function(options) {
   return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
-    if (!this.deletedAt) {
+    if (!this.archivedAt) {
       // delete any children and remove from the document structure
       const collection = await this.getCollection();
       if (collection) await collection.deleteDocument(this, { transaction });
@@ -390,7 +423,10 @@ Document.prototype.delete = function() {
       transaction,
     });
 
-    return this.destroy({ transaction, force: true });
+    await this.destroy({ transaction, ...options });
+
+    events.add({ name: 'documents.delete', model: this });
+    return this;
   });
 };
 

@@ -102,9 +102,9 @@ class Header extends React.Component<Props> {
       auth,
     } = this.props;
     const canShareDocuments =
-      auth.team && auth.team.sharing && !document.deletedAt;
+      auth.team && auth.team.sharing && !document.isArchived;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
-    const canEdit = !document.deletedAt && !isEditing;
+    const canEdit = !document.isArchived && !isEditing;
 
     return (
       <Actions
@@ -126,7 +126,7 @@ class Header extends React.Component<Props> {
         </Modal>
         <Breadcrumb document={document} />
         <Title isHidden={!this.isScrolled} onClick={this.handleClickTitle}>
-          {document.title} {document.deletedAt && <Badge>Archived</Badge>}
+          {document.title} {document.isArchived && <Badge>Archived</Badge>}
         </Title>
         <Wrapper align="center" justify="flex-end">
           {!isDraft && !isEditing && <Collaborators document={document} />}

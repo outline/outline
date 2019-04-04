@@ -13,6 +13,7 @@ type Props = {
   documents: Document[],
   fetch: (options: ?Object) => Promise<*>,
   options?: Object,
+  heading?: React.Node,
   empty?: React.Node,
 };
 
@@ -64,10 +65,11 @@ class PaginatedDocumentList extends React.Component<Props> {
   };
 
   render() {
-    const { empty, documents, fetch, options, ...rest } = this.props;
+    const { empty, heading, documents, fetch, options, ...rest } = this.props;
 
     return this.isLoaded || documents.length ? (
       <React.Fragment>
+        {heading}
         {documents.length ? (
           <DocumentList documents={documents} {...rest} />
         ) : (

@@ -36,6 +36,7 @@ export default class Document extends BaseModel {
   emoji: string;
   parentDocument: ?string;
   publishedAt: ?string;
+  archivedAt: string;
   deletedAt: ?string;
   url: string;
   urlId: string;
@@ -77,6 +78,16 @@ export default class Document extends BaseModel {
     }
 
     return [];
+  }
+
+  @computed
+  get isArchived(): boolean {
+    return !!this.archivedAt;
+  }
+
+  @computed
+  get isDeleted(): boolean {
+    return !!this.deletedAt;
   }
 
   @computed

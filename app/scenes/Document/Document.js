@@ -368,11 +368,11 @@ class DocumentScene extends React.Component<Props> {
                 onSave={this.onSave}
               />
             )}
-            <MaxWidth archived={!!document.deletedAt} column auto>
-              {document.deletedAt && (
+            <MaxWidth archived={document.isArchived} column auto>
+              {document.archivedAt && (
                 <Notice muted>
                   Archived by {document.updatedBy.name}{' '}
-                  <Time dateTime={document.deletedAt} /> ago
+                  <Time dateTime={document.archivedAt} /> ago
                 </Notice>
               )}
               <Editor
@@ -387,7 +387,7 @@ class DocumentScene extends React.Component<Props> {
                 onChange={this.onChange}
                 onSave={this.onSaveAndExit}
                 onCancel={this.onDiscard}
-                readOnly={!this.isEditing || !!document.deletedAt}
+                readOnly={!this.isEditing || document.isArchived}
                 toc={!revision}
                 ui={this.props.ui}
                 schema={schema}

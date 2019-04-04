@@ -38,7 +38,6 @@ class Drafts extends React.Component<Props> {
           <Empty>You’ve not got any drafts at the moment.</Empty>
         ) : (
           <React.Fragment>
-            {' '}
             <Subheading>Documents</Subheading>
             <DocumentList documents={drafts} showCollection />
           </React.Fragment>

@@ -56,11 +56,11 @@ class UserProfile extends React.Component<Props> {
               </Edit>
             )}
           </Meta>
-          <Subheading>Recently updated</Subheading>
           <PaginatedDocumentList
             documents={documents.createdByUser(user.id)}
             fetch={documents.fetchOwned}
             options={{ user: user.id }}
+            heading={<Subheading>Recently updated</Subheading>}
             empty={
               <HelpText>{user.name} hasn’t updated any documents yet.</HelpText>
             }

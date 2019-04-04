@@ -112,24 +112,11 @@ router.post('documents.archived', auth(), pagination(), async ctx => {
     where: {
       teamId: user.teamId,
       collectionId: collectionIds,
-      deletedAt: {
+      archivedAt: {
         // $FlowFixMe
         [Op.ne]: null,
       },
-      // $FlowFixMe
-      [Op.or]: [
-        {
-          publishedAt: {
-            // $FlowFixMe
-            [Op.ne]: null,
-          },
-        },
-        {
-          createdById: user.id,
-        },
-      ],
     },
-    paranoid: false,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
@@ -277,6 +264,12 @@ router.post('documents.info', auth({ required: false }), async ctx => {
           model: Document,
           required: true,
           as: 'document',
+          where: {
+            archivedAt: {
+              // $FlowFixMe
+              [Op.ne]: null,
+            },
+          },
         },
       ],
     });
@@ -285,7 +278,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
     }
     document = share.document;
   } else {
-    document = await Document.findById(id, { paranoid: false });
+    document = await Document.findById(id);
     authorize(user, 'read', document);
   }
 
@@ -347,12 +340,12 @@ router.post('documents.restore', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findOne({ where: { id }, paranoid: false });
+  const document = await Document.findById(id);
   authorize(user, 'update', document);
 
-  if (document.deletedAt) {
+  if (document.archivedAt) {
     // restore a previously archived document
-    await document.unarchive();
+    await document.unarchive(user.id);
 
     // restore a document to a specific revision
   } else if (revisionId) {
@@ -587,10 +580,11 @@ router.post('documents.archive', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
+  const user = ctx.state.user;
   const document = await Document.findById(id);
-  authorize(ctx.state.user, 'archive', document);
+  authorize(user, 'archive', document);
 
-  await document.archive();
+  await document.archive(user.id);
 
   ctx.body = {
     data: await presentDocument(ctx, document),
@@ -601,11 +595,9 @@ router.post('documents.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
-  const document = await Document.findOne({
-    where: { id },
-    paranoid: false,
-  });
-  authorize(ctx.state.user, 'delete', document);
+  const user = ctx.state.user;
+  const document = await Document.findById(id);
+  authorize(user, 'delete', document);
 
   await document.delete();
 

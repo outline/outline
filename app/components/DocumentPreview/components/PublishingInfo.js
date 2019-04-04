@@ -30,6 +30,7 @@ function PublishingInfo({ collection, showPublished, document }: Props) {
     updatedAt,
     updatedBy,
     publishedAt,
+    archivedAt,
     deletedAt,
     isDraft,
   } = document;
@@ -39,7 +40,13 @@ function PublishingInfo({ collection, showPublished, document }: Props) {
   if (deletedAt) {
     content = (
       <span>
-        &nbsp;archived <Time dateTime={deletedAt} /> ago
+        &nbsp;deleted <Time dateTime={deletedAt} /> ago
+      </span>
+    );
+  } else if (archivedAt) {
+    content = (
+      <span>
+        &nbsp;archived <Time dateTime={archivedAt} /> ago
       </span>
     );
   } else if (publishedAt && (neverUpdated || showPublished)) {

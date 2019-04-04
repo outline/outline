@@ -51,12 +51,13 @@ class DocumentDelete extends React.Component<Props> {
             <strong>{document.title}</strong> document is permanent, and will
             delete all of its history, and any child documents.
           </HelpText>
-          {!document.deletedAt && (
-            <HelpText>
-              If you’d like the option of referencing or restoring this document
-              in the future, consider archiving it instead.
-            </HelpText>
-          )}
+          {!document.isDraft &&
+            !document.isArchived && (
+              <HelpText>
+                If you’d like the option of referencing or restoring this
+                document in the future, consider archiving it instead.
+              </HelpText>
+            )}
           <Button type="submit" danger>
             {this.isDeleting ? 'Deleting…' : 'I’m sure – Delete'}
           </Button>

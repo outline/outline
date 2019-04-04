@@ -107,7 +107,7 @@ class MainSidebar extends React.Component<Props> {
                 exact={false}
                 label="Archive"
                 active={
-                  documents.active ? !!documents.active.deletedAt : undefined
+                  documents.active ? documents.active.isArchived : undefined
                 }
               />
             </Section>

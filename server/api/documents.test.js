@@ -27,6 +27,18 @@ describe('#documents.info', async () => {
     expect(body.data.id).toEqual(document.id);
   });
 
+  it('should return archived document', async () => {
+    const { user, document } = await seed();
+    await document.archive();
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+  });
+
   it('should not return published document in collection not a member of', async () => {
     const { user, document, collection } = await seed();
     collection.private = true;
@@ -664,10 +676,10 @@ describe('#documents.restore', () => {
       body: { token: user.getJwtToken(), id: document.id },
     });
     const body = await res.json();
-    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.archivedAt).toEqual(null);
   });
 
-  it('should restore archived when previous parent is deleted', async () => {
+  it('should restore archived when previous parent is archived', async () => {
     const { user, document } = await seed();
     const childDocument = await buildDocument({
       userId: user.id,
@@ -681,7 +693,7 @@ describe('#documents.restore', () => {
       body: { token: user.getJwtToken(), id: childDocument.id },
     });
     const body = await res.json();
-    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.archivedAt).toEqual(null);
   });
 
   it('should restore the document to a previous version', async () => {
