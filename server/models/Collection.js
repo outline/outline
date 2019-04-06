@@ -156,7 +156,7 @@ Collection.prototype.addDocumentToStructure = async function(
 ) {
   if (!this.documentStructure) return;
 
-  // documentStructure can only be updated by one request at the time
+  // documentStructure can only be updated by one request at a time
   const unlock = await asyncLock(`collection-${this.id}`);
 
   // If moving existing document with children, use existing structure

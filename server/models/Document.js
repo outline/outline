@@ -382,11 +382,19 @@ Document.prototype.unarchive = async function(userId) {
   // check to see if the documents parent hasn't been archived also
   // If it has then restore the document to the collection root.
   if (this.parentDocumentId) {
-    const parent = await Document.findById(this.parentDocumentId);
+    const parent = await Document.findOne({
+      where: {
+        id: this.parentDocumentId,
+        archivedAt: {
+          // $FlowFixMe
+          [Op.eq]: null,
+        },
+      },
+    });
     if (!parent) this.parentDocumentId = undefined;
   }
 
-  await collection.addDocumentToStructure(this, 0);
+  await collection.addDocumentToStructure(this);
   this.collection = collection;
 
   this.archivedAt = null;

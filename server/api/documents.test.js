@@ -708,6 +708,7 @@ describe('#documents.restore', () => {
       body: { token: user.getJwtToken(), id: childDocument.id },
     });
     const body = await res.json();
+    expect(body.data.parentDocumentId).toEqual(undefined);
     expect(body.data.archivedAt).toEqual(null);
   });
 
