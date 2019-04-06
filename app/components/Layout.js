@@ -10,7 +10,6 @@ import keydown from 'react-keydown';
 import Analytics from 'components/Analytics';
 import Flex from 'shared/components/Flex';
 import {
-  documentEditUrl,
   homeUrl,
   searchUrl,
   matchDocumentSlug as slug,
