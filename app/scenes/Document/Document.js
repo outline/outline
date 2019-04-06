@@ -202,10 +202,6 @@ class DocumentScene extends React.Component<Props> {
   handleCloseMoveModal = () => (this.moveModalOpen = false);
   handleOpenMoveModal = () => (this.moveModalOpen = true);
 
-  onSaveAndExit = () => {
-    this.onSave({ done: true });
-  };
-
   onSave = async (
     options: { done?: boolean, publish?: boolean, autosave?: boolean } = {}
   ) => {
@@ -385,7 +381,7 @@ class DocumentScene extends React.Component<Props> {
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.onSearchLink}
                 onChange={this.onChange}
-                onSave={this.onSaveAndExit}
+                onSave={this.onSave}
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing || document.isArchived}
                 toc={!revision}

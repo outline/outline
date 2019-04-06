@@ -52,7 +52,7 @@ function PublishingInfo({ collection, showPublished, document }: Props) {
   } else if (publishedAt && (neverUpdated || showPublished)) {
     content = (
       <span>
-        {updatedBy.name} published <Time dateTime={publishedAt} /> ago
+        &nbsp;published <Time dateTime={publishedAt} /> ago
       </span>
     );
   } else if (isDraft) {
