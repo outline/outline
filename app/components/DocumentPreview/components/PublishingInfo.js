@@ -10,6 +10,8 @@ import Breadcrumb from 'shared/components/Breadcrumb';
 const Container = styled(Flex)`
   color: ${props => props.theme.textTertiary};
   font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
 `;
 
 const Modified = styled.span`
