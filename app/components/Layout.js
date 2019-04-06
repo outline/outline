@@ -10,7 +10,6 @@ import keydown from 'react-keydown';
 import Analytics from 'components/Analytics';
 import Flex from 'shared/components/Flex';
 import {
-  documentEditUrl,
   homeUrl,
   searchUrl,
   matchDocumentSlug as slug,
@@ -70,16 +69,6 @@ class Layout extends React.Component<Props> {
   @keydown('d')
   goToDashboard() {
     this.redirectTo = homeUrl();
-  }
-
-  @keydown('e')
-  goToEdit(ev) {
-    const activeDocument = this.props.documents.active;
-    if (!activeDocument) return;
-
-    ev.preventDefault();
-    ev.stopPropagation();
-    this.redirectTo = documentEditUrl(activeDocument);
   }
 
   @keydown('shift+/')

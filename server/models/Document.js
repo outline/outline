@@ -4,7 +4,7 @@ import { map, find, compact, uniq } from 'lodash';
 import randomstring from 'randomstring';
 import MarkdownSerializer from 'slate-md-serializer';
 import Plain from 'slate-plain-serializer';
-import Sequelize from 'sequelize';
+import Sequelize, { type Transaction } from 'sequelize';
 import removeMarkdown from '@tommoor/remove-markdown';
 
 import isUUID from 'validator/lib/isUUID';
@@ -91,6 +91,7 @@ const Document = sequelize.define(
     },
     text: DataTypes.TEXT,
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+    archivedAt: DataTypes.DATE,
     publishedAt: DataTypes.DATE,
     parentDocumentId: DataTypes.UUID,
     collaboratorIds: DataTypes.ARRAY(DataTypes.UUID),
@@ -183,18 +184,20 @@ Document.associate = models => {
   }));
 };
 
-Document.findById = async id => {
+Document.findById = async (id, options) => {
   const scope = Document.scope('withUnpublished');
 
   if (isUUID(id)) {
     return scope.findOne({
       where: { id },
+      ...options,
     });
   } else if (id.match(URL_REGEX)) {
     return scope.findOne({
       where: {
         urlId: id.match(URL_REGEX)[1],
       },
+      ...options,
     });
   }
 };
@@ -222,6 +225,7 @@ Document.searchForUser = async (
     FROM documents
     WHERE "searchVector" @@ to_tsquery('english', :query) AND
       "collectionId" IN(:collectionIds) AND
+      "archivedAt" IS NULL AND
       "deletedAt" IS NULL AND
       ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
     ORDER BY 
@@ -271,7 +275,7 @@ Document.addHook('beforeSave', async model => {
   if (!model.publishedAt) return;
 
   const collection = await Collection.findById(model.collectionId);
-  if (collection.type !== 'atlas') return;
+  if (!collection || collection.type !== 'atlas') return;
 
   await collection.updateDocument(model);
   model.collection = collection;
@@ -281,7 +285,7 @@ Document.addHook('afterCreate', async model => {
   if (!model.publishedAt) return;
 
   const collection = await Collection.findById(model.collectionId);
-  if (collection.type !== 'atlas') return;
+  if (!collection || collection.type !== 'atlas') return;
 
   await collection.addDocumentToStructure(model);
   model.collection = collection;
@@ -295,6 +299,48 @@ Document.addHook('afterDestroy', model =>
 );
 
 // Instance methods
+
+// Note: This method marks the document and it's children as deleted
+// in the database, it does not permanantly delete them OR remove
+// from the collection structure.
+Document.prototype.deleteWithChildren = async function(options) {
+  // Helper to destroy all child documents for a document
+  const loopChildren = async (documentId, opts) => {
+    const childDocuments = await Document.findAll({
+      where: { parentDocumentId: documentId },
+    });
+    childDocuments.forEach(async child => {
+      await loopChildren(child.id, opts);
+      await child.destroy(opts);
+    });
+  };
+
+  await loopChildren(this.id, options);
+  await this.destroy(options);
+};
+
+Document.prototype.archiveWithChildren = async function(userId, options) {
+  const archivedAt = new Date();
+
+  // Helper to archive all child documents for a document
+  const archiveChildren = async parentDocumentId => {
+    const childDocuments = await Document.findAll({
+      where: { parentDocumentId },
+    });
+    childDocuments.forEach(async child => {
+      await archiveChildren(child.id);
+
+      child.archivedAt = archivedAt;
+      child.lastModifiedById = userId;
+      await child.save(options);
+    });
+  };
+
+  await archiveChildren(this.id);
+  this.archivedAt = archivedAt;
+  this.lastModifiedById = userId;
+  return this.save(options);
+};
 
 Document.prototype.publish = async function() {
   if (this.publishedAt) return this.save();
@@ -310,6 +356,74 @@ Document.prototype.publish = async function() {
 
   events.add({ name: 'documents.publish', model: this });
   return this;
+};
+
+// Moves a document from being visible to the team within a collection
+// to the archived area, where it can be subsequently restored.
+Document.prototype.archive = async function(userId) {
+  // archive any children and remove from the document structure
+  const collection = await this.getCollection();
+  await collection.removeDocumentInStructure(this, { save: true });
+  this.collection = collection;
+
+  this.archivedAt = new Date();
+  this.lastModifiedById = userId;
+  await this.save();
+  await this.archiveWithChildren(userId);
+
+  events.add({ name: 'documents.archive', model: this });
+  return this;
+};
+
+// Restore an archived document back to being visible to the team
+Document.prototype.unarchive = async function(userId) {
+  const collection = await this.getCollection();
+
+  // check to see if the documents parent hasn't been archived also
+  // If it has then restore the document to the collection root.
+  if (this.parentDocumentId) {
+    const parent = await Document.findOne({
+      where: {
+        id: this.parentDocumentId,
+        archivedAt: {
+          // $FlowFixMe
+          [Op.eq]: null,
+        },
+      },
+    });
+    if (!parent) this.parentDocumentId = undefined;
+  }
+
+  await collection.addDocumentToStructure(this);
+  this.collection = collection;
+
+  this.archivedAt = null;
+  this.lastModifiedById = userId;
+  await this.save();
+
+  events.add({ name: 'documents.unarchive', model: this });
+  return this;
+};
+
+// Delete a document, archived or otherwise.
+Document.prototype.delete = function(options) {
+  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
+    if (!this.archivedAt) {
+      // delete any children and remove from the document structure
+      const collection = await this.getCollection();
+      if (collection) await collection.deleteDocument(this, { transaction });
+    }
+
+    await Revision.destroy({
+      where: { documentId: this.id },
+      transaction,
+    });
+
+    await this.destroy({ transaction, ...options });
+
+    events.add({ name: 'documents.delete', model: this });
+    return this;
+  });
 };
 
 Document.prototype.getTimestamp = function() {

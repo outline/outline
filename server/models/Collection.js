@@ -1,5 +1,5 @@
 // @flow
-import _ from 'lodash';
+import { find, remove } from 'lodash';
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
@@ -7,13 +7,9 @@ import { asyncLock } from '../redis';
 import events from '../events';
 import Document from './Document';
 import CollectionUser from './CollectionUser';
-import Event from './Event';
 import { welcomeMessage } from '../utils/onboarding';
 
-// $FlowIssue invalid flow-typed
 slug.defaults.mode = 'rfc3986';
-
-const allowedCollectionTypes = [['atlas', 'journal']];
 
 const Collection = sequelize.define(
   'collection',
@@ -30,7 +26,7 @@ const Collection = sequelize.define(
     private: DataTypes.BOOLEAN,
     type: {
       type: DataTypes.STRING,
-      validate: { isIn: allowedCollectionTypes },
+      validate: { isIn: [['atlas', 'journal']] },
     },
 
     /* type: atlas */
@@ -40,10 +36,10 @@ const Collection = sequelize.define(
     tableName: 'collections',
     paranoid: true,
     hooks: {
-      beforeValidate: collection => {
+      beforeValidate: (collection: Collection) => {
         collection.urlId = collection.urlId || randomstring.generate(10);
       },
-      afterCreate: async collection => {
+      afterCreate: async (collection: Collection) => {
         const team = await collection.getTeam();
         const collections = await team.getCollections();
 
@@ -115,7 +111,7 @@ Collection.associate = models => {
   );
 };
 
-Collection.addHook('afterDestroy', async model => {
+Collection.addHook('afterDestroy', async (model: Collection) => {
   await Document.destroy({
     where: {
       collectionId: model.id,
@@ -123,19 +119,19 @@ Collection.addHook('afterDestroy', async model => {
   });
 });
 
-Collection.addHook('afterCreate', model =>
+Collection.addHook('afterCreate', (model: Collection) =>
   events.add({ name: 'collections.create', model })
 );
 
-Collection.addHook('afterDestroy', model =>
+Collection.addHook('afterDestroy', (model: Collection) =>
   events.add({ name: 'collections.delete', model })
 );
 
-Collection.addHook('afterUpdate', model =>
+Collection.addHook('afterUpdate', (model: Collection) =>
   events.add({ name: 'collections.update', model })
 );
 
-Collection.addHook('afterCreate', (model, options) => {
+Collection.addHook('afterCreate', (model: Collection, options) => {
   if (model.private) {
     return CollectionUser.findOrCreate({
       where: {
@@ -154,23 +150,16 @@ Collection.addHook('afterCreate', (model, options) => {
 // Instance methods
 
 Collection.prototype.addDocumentToStructure = async function(
-  document,
-  index,
+  document: Document,
+  index: number,
   options = {}
 ) {
   if (!this.documentStructure) return;
-  const existingData = {
-    old: this.documentStructure,
-    documentId: document,
-    parentDocumentId: document.parentDocumentId,
-    index,
-  };
 
-  // documentStructure can only be updated by one request at the time
+  // documentStructure can only be updated by one request at a time
   const unlock = await asyncLock(`collection-${this.id}`);
 
-  // If moving existing document with children, use existing structure to
-  // keep everything in shape and not loose documents
+  // If moving existing document with children, use existing structure
   const documentJson = {
     ...document.toJSON(),
     ...options.documentJson,
@@ -206,18 +195,7 @@ Collection.prototype.addDocumentToStructure = async function(
 
   // Sequelize doesn't seem to set the value with splice on JSONB field
   this.documentStructure = this.documentStructure;
-  await this.save();
-
-  await Event.create({
-    name: 'Collection#addDocumentToStructure',
-    data: {
-      ...existingData,
-      new: this.documentStructure,
-    },
-    collectionId: this.id,
-    teamId: this.teamId,
-  });
-
+  await this.save(options);
   unlock();
 
   return this;
@@ -226,7 +204,9 @@ Collection.prototype.addDocumentToStructure = async function(
 /**
  * Update document's title and url in the documentStructure
  */
-Collection.prototype.updateDocument = async function(updatedDocument) {
+Collection.prototype.updateDocument = async function(
+  updatedDocument: Document
+) {
   if (!this.documentStructure) return;
 
   // documentStructure can only be updated by one request at the time
@@ -261,98 +241,56 @@ Collection.prototype.updateDocument = async function(updatedDocument) {
 Collection.prototype.moveDocument = async function(document, index) {
   if (!this.documentStructure) return;
 
-  const documentJson = await this.removeDocument(document, {
-    deleteDocument: false,
-  });
+  const documentJson = await this.removeDocumentInStructure(document);
   await this.addDocumentToStructure(document, index, { documentJson });
-
-  return this;
 };
 
-type DeleteDocumentOptions = {
-  deleteDocument: boolean,
+Collection.prototype.deleteDocument = async function(document) {
+  await this.removeDocumentInStructure(document, { save: true });
+  await document.deleteWithChildren();
 };
 
-/**
- * removeDocument is used for both deleting documents (deleteDocument: true)
- * and removing them temporarily from the structure while they are being moved
- * (deleteDocument: false).
- */
-Collection.prototype.removeDocument = async function(
+Collection.prototype.removeDocumentInStructure = async function(
   document,
-  options: DeleteDocumentOptions = { deleteDocument: true }
+  options?: { save?: boolean }
 ) {
   if (!this.documentStructure) return;
-
   let returnValue;
+  let unlock;
 
-  // documentStructure can only be updated by one request at the time
-  const unlock = await asyncLock('testLock');
+  if (options && options.save) {
+    // documentStructure can only be updated by one request at the time
+    unlock = await asyncLock(`collection-${this.id}`);
+  }
 
-  const existingData = {
-    old: this.documentStructure,
-    documentId: document,
-    parentDocumentId: document.parentDocumentId,
-    options,
-  };
-
-  // Helper to destroy all child documents for a document
-  const deleteChildren = async documentId => {
-    const childDocuments = await Document.findAll({
-      where: { parentDocumentId: documentId },
-    });
-    childDocuments.forEach(async child => {
-      await deleteChildren(child.id);
-      await child.destroy();
-    });
-  };
-
-  // Prune, and destroy if needed, from the document structure
-  const deleteFromChildren = async (children, id) => {
+  const removeFromChildren = async (children, id) => {
     children = await Promise.all(
       children.map(async childDocument => {
         return {
           ...childDocument,
-          children: await deleteFromChildren(childDocument.children, id),
+          children: await removeFromChildren(childDocument.children, id),
         };
       })
     );
 
-    const match = _.find(children, { id });
+    const match = find(children, { id });
     if (match) {
-      if (!options.deleteDocument && !returnValue) returnValue = match;
-      _.remove(children, { id });
-
-      if (options.deleteDocument) {
-        const childDocument = await Document.findById(id);
-        // Delete the actual document
-        if (childDocument) await childDocument.destroy();
-        // Delete all child documents
-        await deleteChildren(id);
-      }
+      if (!returnValue) returnValue = match;
+      remove(children, { id });
     }
 
     return children;
   };
 
-  this.documentStructure = await deleteFromChildren(
+  this.documentStructure = await removeFromChildren(
     this.documentStructure,
     document.id
   );
 
-  if (options.deleteDocument) await this.save();
-
-  await Event.create({
-    name: 'Collection#removeDocument',
-    data: {
-      ...existingData,
-      new: this.documentStructure,
-    },
-    collectionId: this.id,
-    teamId: this.teamId,
-  });
-
-  await unlock();
+  if (options && options.save) {
+    await this.save(options);
+    if (unlock) await unlock();
+  }
 
   return returnValue;
 };

@@ -29,7 +29,9 @@ class DocumentDelete extends React.Component<Props> {
 
     try {
       await this.props.document.delete();
-      this.props.history.push(collection.url);
+      if (this.props.ui.activeDocumentId === this.props.document.id) {
+        this.props.history.push(collection.url);
+      }
       this.props.onSubmit();
     } catch (err) {
       this.props.ui.showToast(err.message);
@@ -46,9 +48,16 @@ class DocumentDelete extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Are you sure about that? Deleting the{' '}
-            <strong>{document.title}</strong> document is permanent, will delete
-            all of its history, and any child documents.
+            <strong>{document.title}</strong> document is permanent, and will
+            delete all of its history, and any child documents.
           </HelpText>
+          {!document.isDraft &&
+            !document.isArchived && (
+              <HelpText>
+                If you’d like the option of referencing or restoring this
+                document in the future, consider archiving it instead.
+              </HelpText>
+            )}
           <Button type="submit" danger>
             {this.isDeleting ? 'Deleting…' : 'I’m sure – Delete'}
           </Button>

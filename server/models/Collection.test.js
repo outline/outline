@@ -156,8 +156,6 @@ describe('#moveDocument', () => {
 
   test('should move a document with children', async () => {
     const { collection, document } = await seed();
-
-    // Add a child for testing
     const newDocument = await Document.create({
       parentDocumentId: document.id,
       collectionId: collection.id,
@@ -182,14 +180,14 @@ describe('#removeDocument', () => {
     const { collection, document } = await seed();
     jest.spyOn(collection, 'save');
 
-    await collection.removeDocument(document);
+    await collection.deleteDocument(document);
     expect(collection.save).toBeCalled();
   });
 
   test('should remove documents from root', async () => {
     const { collection, document } = await seed();
 
-    await collection.removeDocument(document);
+    await collection.deleteDocument(document);
     expect(collection.documentStructure.length).toBe(1);
 
     // Verify that the document was removed
@@ -219,7 +217,7 @@ describe('#removeDocument', () => {
     expect(collection.documentStructure[1].children.length).toBe(1);
 
     // Remove the document
-    await collection.removeDocument(document);
+    await collection.deleteDocument(document);
     expect(collection.documentStructure.length).toBe(1);
     const collectionDocuments = await Document.findAndCountAll({
       where: {
@@ -249,7 +247,7 @@ describe('#removeDocument', () => {
     expect(collection.documentStructure[1].children.length).toBe(1);
 
     // Remove the document
-    await collection.removeDocument(newDocument);
+    await collection.deleteDocument(newDocument);
 
     expect(collection.documentStructure.length).toBe(2);
     expect(collection.documentStructure[0].children.length).toBe(0);
@@ -268,9 +266,7 @@ describe('#removeDocument', () => {
       const { collection, document } = await seed();
       jest.spyOn(collection, 'save');
 
-      const removedNode = await collection.removeDocument(document, {
-        deleteDocument: false,
-      });
+      const removedNode = await collection.removeDocumentInStructure(document);
       expect(collection.documentStructure.length).toBe(1);
       expect(destroyMock).not.toBeCalled();
       expect(collection.save).not.toBeCalled();

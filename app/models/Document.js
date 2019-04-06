@@ -36,6 +36,8 @@ export default class Document extends BaseModel {
   emoji: string;
   parentDocument: ?string;
   publishedAt: ?string;
+  archivedAt: string;
+  deletedAt: ?string;
   url: string;
   urlId: string;
   shareUrl: ?string;
@@ -79,6 +81,16 @@ export default class Document extends BaseModel {
   }
 
   @computed
+  get isArchived(): boolean {
+    return !!this.archivedAt;
+  }
+
+  @computed
+  get isDeleted(): boolean {
+    return !!this.deletedAt;
+  }
+
+  @computed
   get isDraft(): boolean {
     return !this.publishedAt;
   }
@@ -115,7 +127,11 @@ export default class Document extends BaseModel {
     this.updateTitle();
   };
 
-  restore = (revision: Revision) => {
+  archive = () => {
+    return this.store.archive(this);
+  };
+
+  restore = (revision: ?Revision) => {
     return this.store.restore(this, revision);
   };
 

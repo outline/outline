@@ -35,3 +35,6 @@ jobs:
       - run:
           name: lint
           command: yarn lint
+      - run:
+          name: flow
+          command: yarn flow

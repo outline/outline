@@ -100,6 +100,38 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('documents.archived', auth(), pagination(), async ctx => {
+  const { sort = 'updatedAt' } = ctx.body;
+  let direction = ctx.body.direction;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const collectionIds = await user.collectionIds();
+
+  const documents = await Document.findAll({
+    where: {
+      teamId: user.teamId,
+      collectionId: collectionIds,
+      archivedAt: {
+        // $FlowFixMe
+        [Op.ne]: null,
+      },
+    },
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  const data = await Promise.all(
+    documents.map(document => presentDocument(ctx, document))
+  );
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+  };
+});
+
 router.post('documents.viewed', auth(), pagination(), async ctx => {
   let { sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
@@ -235,7 +267,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
         },
       ],
     });
-    if (!share) {
+    if (!share || share.document.archivedAt) {
       throw new InvalidRequestError('Document could not be found for shareId');
     }
     document = share.document;
@@ -300,18 +332,29 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
 router.post('documents.restore', auth(), async ctx => {
   const { id, revisionId } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  ctx.assertPresent(revisionId, 'revisionId is required');
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
-  authorize(user, 'update', document);
 
-  const revision = await Revision.findById(revisionId);
-  authorize(document, 'restore', revision);
+  if (document.archivedAt) {
+    authorize(user, 'unarchive', document);
 
-  document.text = revision.text;
-  document.title = revision.title;
-  await document.save();
+    // restore a previously archived document
+    await document.unarchive(user.id);
+
+    // restore a document to a specific revision
+  } else if (revisionId) {
+    authorize(user, 'update', document);
+
+    const revision = await Revision.findById(revisionId);
+    authorize(document, 'restore', revision);
+
+    document.text = revision.text;
+    document.title = revision.title;
+    await document.save();
+  } else {
+    ctx.assertPresent(revisionId, 'revisionId is required');
+  }
 
   ctx.body = {
     data: await presentDocument(ctx, document),
@@ -530,20 +573,30 @@ router.post('documents.move', auth(), async ctx => {
   };
 });
 
+router.post('documents.archive', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, 'id is required');
+
+  const user = ctx.state.user;
+  const document = await Document.findById(id);
+  authorize(user, 'archive', document);
+
+  await document.archive(user.id);
+
+  ctx.body = {
+    data: await presentDocument(ctx, document),
+  };
+});
+
 router.post('documents.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
+  const user = ctx.state.user;
   const document = await Document.findById(id);
-  authorize(ctx.state.user, 'delete', document);
+  authorize(user, 'delete', document);
 
-  const collection = document.collection;
-  if (collection && collection.type === 'atlas') {
-    // Delete document and all of its children
-    await collection.removeDocument(document);
-  }
-
-  await document.destroy();
+  await document.delete();
 
   ctx.body = {
     success: true,

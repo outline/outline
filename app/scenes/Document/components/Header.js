@@ -20,6 +20,7 @@ import NewChildDocumentMenu from 'menus/NewChildDocumentMenu';
 import DocumentShare from 'scenes/DocumentShare';
 import Button from 'components/Button';
 import Modal from 'components/Modal';
+import Badge from 'components/Badge';
 import Collaborators from 'components/Collaborators';
 import { Action, Separator } from 'components/Actions';
 
@@ -100,8 +101,10 @@ class Header extends React.Component<Props> {
       savingIsDisabled,
       auth,
     } = this.props;
-    const canShareDocuments = auth.team && auth.team.sharing;
+    const canShareDocuments =
+      auth.team && auth.team.sharing && !document.isArchived;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
+    const canEdit = !document.isArchived && !isEditing;
 
     return (
       <Actions
@@ -123,7 +126,7 @@ class Header extends React.Component<Props> {
         </Modal>
         <Breadcrumb document={document} />
         <Title isHidden={!this.isScrolled} onClick={this.handleClickTitle}>
-          {document.title}
+          {document.title} {document.isArchived && <Badge>Archived</Badge>}
         </Title>
         <Wrapper align="center" justify="flex-end">
           {!isDraft && !isEditing && <Collaborators document={document} />}
@@ -175,7 +178,7 @@ class Header extends React.Component<Props> {
               </Button>
             </Action>
           )}
-          {!isEditing && (
+          {canEdit && (
             <Action>
               <Button onClick={this.handleEdit} neutral small>
                 Edit
@@ -191,7 +194,7 @@ class Header extends React.Component<Props> {
               />
             </Action>
           )}
-          {!isEditing &&
+          {canEdit &&
             !isDraft && (
               <React.Fragment>
                 <Separator />
@@ -249,6 +252,7 @@ const Title = styled.div`
   font-size: 16px;
   font-weight: 600;
   text-align: center;
+  align-items: center;
   justify-content: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -260,7 +264,7 @@ const Title = styled.div`
   width: 0;
 
   ${breakpoint('tablet')`	
-    display: block;
+    display: flex;
     flex-grow: 1;
   `};
 `;

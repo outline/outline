@@ -5,6 +5,7 @@ import Home from 'scenes/Home';
 import Dashboard from 'scenes/Dashboard';
 import Starred from 'scenes/Starred';
 import Drafts from 'scenes/Drafts';
+import Archive from 'scenes/Archive';
 import Collection from 'scenes/Collection';
 import Document from 'scenes/Document';
 import KeyedDocument from 'scenes/Document/KeyedDocument';
@@ -45,6 +46,7 @@ export default function Routes() {
             <Route exact path="/starred" component={Starred} />
             <Route exact path="/starred/:sort" component={Starred} />
             <Route exact path="/drafts" component={Drafts} />
+            <Route exact path="/archive" component={Archive} />
             <Route exact path="/settings" component={Settings} />
             <Route exact path="/settings/details" component={Details} />
             <Route exact path="/settings/security" component={Security} />

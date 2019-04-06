@@ -17,6 +17,7 @@ type Props = {
   context?: ?string,
   showCollection?: boolean,
   showPublished?: boolean,
+  link?: boolean,
   ref?: *,
 };
 
@@ -138,6 +139,7 @@ class DocumentPreview extends React.Component<Props> {
       showPublished,
       highlight,
       context,
+      link,
       ...rest
     } = this.props;
 
@@ -147,23 +149,29 @@ class DocumentPreview extends React.Component<Props> {
 
     return (
       <DocumentLink
-        to={{
-          pathname: document.url,
-          state: { title: document.title },
-        }}
+        as={link === false ? 'div' : undefined}
+        to={
+          link === false
+            ? undefined
+            : {
+                pathname: document.url,
+                state: { title: document.title },
+              }
+        }
         {...rest}
       >
         <Heading>
           <Title text={document.title} highlight={highlight} />
-          {!document.isDraft && (
-            <Actions>
-              {document.starred ? (
-                <StyledStar onClick={this.unstar} solid />
-              ) : (
-                <StyledStar onClick={this.star} />
-              )}
-            </Actions>
-          )}
+          {!document.isDraft &&
+            !document.isArchived && (
+              <Actions>
+                {document.starred ? (
+                  <StyledStar onClick={this.unstar} solid />
+                ) : (
+                  <StyledStar onClick={this.star} />
+                )}
+              </Actions>
+            )}
           <StyledDocumentMenu document={document} />
         </Heading>
         {!queryIsInTitle && (

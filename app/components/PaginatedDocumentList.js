@@ -10,11 +10,10 @@ import DocumentList from 'components/DocumentList';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 type Props = {
-  showCollection?: boolean,
-  showPublished?: boolean,
   documents: Document[],
   fetch: (options: ?Object) => Promise<*>,
   options?: Object,
+  heading?: React.Node,
   empty?: React.Node,
 };
 
@@ -66,25 +65,25 @@ class PaginatedDocumentList extends React.Component<Props> {
   };
 
   render() {
-    const { showCollection, showPublished, empty, documents } = this.props;
+    const { empty, heading, documents, fetch, options, ...rest } = this.props;
+    const showLoading = !this.isLoaded && this.isFetching && !documents.length;
+    const showEmpty = this.isLoaded && !documents.length;
 
-    return this.isLoaded || documents.length ? (
+    return (
       <React.Fragment>
-        {documents.length ? (
-          <DocumentList
-            documents={documents}
-            showCollection={showCollection}
-            showPublished={showPublished}
-          />
-        ) : (
+        {showEmpty ? (
           empty
+        ) : (
+          <React.Fragment>
+            {heading}
+            <DocumentList documents={documents} {...rest} />
+            {this.allowLoadMore && (
+              <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+            )}
+          </React.Fragment>
         )}
-        {this.allowLoadMore && (
-          <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
-        )}
+        {showLoading && <ListPlaceholder count={5} />}
       </React.Fragment>
-    ) : (
-      <ListPlaceholder count={5} />
     );
   }
 }

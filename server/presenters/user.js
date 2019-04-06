@@ -18,7 +18,7 @@ export default (
   ctx: Object,
   user: User,
   options: Options = {}
-): UserPresentation => {
+): ?UserPresentation => {
   const userData = {};
   userData.id = user.id;
   userData.createdAt = user.createdAt;

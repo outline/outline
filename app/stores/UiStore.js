@@ -40,7 +40,7 @@ class UiStore {
   setActiveDocument = (document: Document): void => {
     this.activeDocumentId = document.id;
 
-    if (document.publishedAt) {
+    if (document.publishedAt && !document.isArchived && !document.isDeleted) {
       this.activeCollectionId = document.collectionId;
     }
   };

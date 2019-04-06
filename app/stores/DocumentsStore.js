@@ -20,7 +20,12 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @computed
-  get recentlyViewed(): * {
+  get all(): Document[] {
+    return filter(this.orderedData, d => !d.archivedAt && !d.deletedAt);
+  }
+
+  @computed
+  get recentlyViewed(): Document[] {
     return orderBy(
       compact(this.recentlyViewedIds.map(id => this.data.get(id))),
       'updatedAt',
@@ -29,16 +34,13 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @computed
-  get recentlyUpdated(): * {
-    return orderBy(Array.from(this.data.values()), 'updatedAt', 'desc');
+  get recentlyUpdated(): Document[] {
+    return orderBy(this.all, 'updatedAt', 'desc');
   }
 
   createdByUser(userId: string): * {
     return orderBy(
-      filter(
-        Array.from(this.data.values()),
-        document => document.createdBy.id === userId
-      ),
+      filter(this.all, d => d.createdBy.id === userId),
       'updatedAt',
       'desc'
     );
@@ -53,7 +55,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   publishedInCollection(collectionId: string): Document[] {
     return filter(
-      Array.from(this.data.values()),
+      this.all,
       document =>
         document.collectionId === collectionId && !!document.publishedAt
     );
@@ -93,7 +95,15 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get starred(): Document[] {
-    return filter(this.orderedData, d => d.starred);
+    return filter(this.all, d => d.starred);
+  }
+
+  @computed
+  get archived(): Document[] {
+    return filter(
+      orderBy(this.orderedData, 'archivedAt', 'desc'),
+      d => d.archivedAt
+    );
   }
 
   @computed
@@ -104,7 +114,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @computed
   get drafts(): Document[] {
     return filter(
-      orderBy(Array.from(this.data.values()), 'updatedAt', 'desc'),
+      orderBy(this.all, 'updatedAt', 'desc'),
       doc => !doc.publishedAt
     );
   }
@@ -135,6 +145,11 @@ export default class DocumentsStore extends BaseStore<Document> {
     } finally {
       this.isFetching = false;
     }
+  };
+
+  @action
+  fetchArchived = async (options: ?PaginationParams): Promise<*> => {
+    return this.fetchNamedPage('archived', options);
   };
 
   @action
@@ -331,15 +346,32 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
-  restore = async (document: Document, revision: Revision) => {
+  archive = async (document: Document) => {
+    const res = await client.post('/documents.archive', {
+      id: document.id,
+    });
+    runInAction('Document#archive', () => {
+      invariant(res && res.data, 'Data should be available');
+      document.updateFromJson(res.data);
+    });
+
+    const collection = this.getCollectionForDocument(document);
+    if (collection) collection.refresh();
+  };
+
+  @action
+  restore = async (document: Document, revision?: Revision) => {
     const res = await client.post('/documents.restore', {
       id: document.id,
-      revisionId: revision.id,
+      revisionId: revision ? revision.id : undefined,
     });
     runInAction('Document#restore', () => {
       invariant(res && res.data, 'Data should be available');
       document.updateFromJson(res.data);
     });
+
+    const collection = this.getCollectionForDocument(document);
+    if (collection) collection.refresh();
   };
 
   pin = (document: Document) => {
@@ -359,7 +391,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   getByUrl = (url: string = ''): ?Document => {
-    return find(Array.from(this.data.values()), doc => url.endsWith(doc.urlId));
+    return find(this.orderedData, doc => url.endsWith(doc.urlId));
   };
 
   getCollectionForDocument(document: Document) {
