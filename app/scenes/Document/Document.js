@@ -100,7 +100,19 @@ class DocumentScene extends React.Component<Props> {
   @keydown('m')
   goToMove(ev) {
     ev.preventDefault();
-    if (this.document) this.props.history.push(documentMoveUrl(this.document));
+
+    if (this.document && !this.document.isArchived) {
+      this.props.history.push(documentMoveUrl(this.document));
+    }
+  }
+
+  @keydown('e')
+  goToEdit(ev) {
+    ev.preventDefault();
+
+    if (this.document && !this.document.isArchived) {
+      this.props.history.push(documentEditUrl(this.document));
+    }
   }
 
   @keydown('esc')
@@ -157,6 +169,10 @@ class DocumentScene extends React.Component<Props> {
 
       if (document) {
         this.props.ui.setActiveDocument(document);
+
+        if (document.isArchived && this.isEditing) {
+          return this.goToDocumentCanonical();
+        }
 
         if (this.props.auth.user && !shareId) {
           if (!this.isEditing && document.publishedAt) {

@@ -72,16 +72,6 @@ class Layout extends React.Component<Props> {
     this.redirectTo = homeUrl();
   }
 
-  @keydown('e')
-  goToEdit(ev) {
-    const activeDocument = this.props.documents.active;
-    if (!activeDocument) return;
-
-    ev.preventDefault();
-    ev.stopPropagation();
-    this.redirectTo = documentEditUrl(activeDocument);
-  }
-
   @keydown('shift+/')
   openKeyboardShortcuts() {
     this.props.ui.setActiveModal('keyboard-shortcuts');

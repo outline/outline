@@ -989,6 +989,22 @@ describe('#documents.update', async () => {
     expect(body.data.collection.documents[0].title).toBe('Updated title');
   });
 
+  it('should not edit archived document', async () => {
+    const { user, document } = await seed();
+    await document.archive();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+        lastRevision: document.revision,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it('should not create new version when autosave=true', async () => {
     const { user, document } = await seed();
 

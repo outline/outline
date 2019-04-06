@@ -41,13 +41,13 @@ class NewChildDocumentMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu label={label || <MoreIcon />} {...rest}>
-        <DropdownMenuItem onClick={this.handleNewChild}>
-          New child document
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleNewDocument}>
           <span>
             New document in <strong>{collection.name}</strong>
           </span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleNewChild}>
+          New child document
         </DropdownMenuItem>
       </DropdownMenu>
     );
