@@ -66,21 +66,24 @@ class PaginatedDocumentList extends React.Component<Props> {
 
   render() {
     const { empty, heading, documents, fetch, options, ...rest } = this.props;
+    const showLoading = !this.isLoaded && this.isFetching && !documents.length;
+    const showEmpty = this.isLoaded && !documents.length;
 
-    return this.isLoaded || documents.length ? (
+    return (
       <React.Fragment>
-        {heading}
-        {documents.length ? (
-          <DocumentList documents={documents} {...rest} />
-        ) : (
+        {showEmpty ? (
           empty
+        ) : (
+          <React.Fragment>
+            {heading}
+            <DocumentList documents={documents} {...rest} />
+            {this.allowLoadMore && (
+              <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+            )}
+          </React.Fragment>
         )}
-        {this.allowLoadMore && (
-          <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
-        )}
+        {showLoading && <ListPlaceholder count={5} />}
       </React.Fragment>
-    ) : (
-      <ListPlaceholder count={5} />
     );
   }
 }
