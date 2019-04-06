@@ -86,5 +86,5 @@ export function privacy(): string {
 }
 
 export function settings(): string {
-  return `${process.env.URL}/settings`;
+  return `/settings`;
 }
