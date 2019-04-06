@@ -5,6 +5,7 @@ import Collection from 'models/Collection';
 import Document from 'models/Document';
 import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
+import Breadcrumb from 'shared/components/Breadcrumb';
 
 const Container = styled(Flex)`
   color: ${props => props.theme.textTertiary};
@@ -75,7 +76,10 @@ function PublishingInfo({ collection, showPublished, document }: Props) {
       {content}
       {collection && (
         <span>
-          &nbsp;in <strong>{isDraft ? 'Drafts' : collection.name}</strong>
+          &nbsp;in&nbsp;
+          <strong>
+            {isDraft ? 'Drafts' : <Breadcrumb document={document} onlyText />}
+          </strong>
         </span>
       )}
     </Container>

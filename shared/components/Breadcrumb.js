@@ -14,14 +14,29 @@ import Flex from 'shared/components/Flex';
 type Props = {
   document: Document,
   collections: CollectionsStore,
+  onlyText: boolean,
 };
 
-const Breadcrumb = observer(({ document, collections }: Props) => {
+const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
   const path = document.pathToDocument.slice(0, -1);
   if (!document.collection) return null;
 
   const collection =
     collections.data.get(document.collection.id) || document.collection;
+
+  if (onlyText === true) {
+    return (
+      <React.Fragment>
+        {collection.name}
+        {path.map(n => (
+          <React.Fragment key={n.id}>
+            <SmallSlash />
+            {n.title}
+          </React.Fragment>
+        ))}
+      </React.Fragment>
+    );
+  }
 
   return (
     <Wrapper justify="flex-start" align="center">
@@ -52,6 +67,13 @@ const Wrapper = styled(Flex)`
   ${breakpoint('tablet')`	
     display: flex;
   `};
+`;
+
+const SmallSlash = styled(GoToIcon)`
+  width: 15px;
+  height: 10px;
+  flex-shrink: 0;
+  opacity: 0.25;
 `;
 
 const Slash = styled(GoToIcon)`

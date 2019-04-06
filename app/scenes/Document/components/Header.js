@@ -14,7 +14,7 @@ import { documentEditUrl } from 'utils/routeHelpers';
 import { meta } from 'utils/keyboard';
 
 import Flex from 'shared/components/Flex';
-import Breadcrumb from './Breadcrumb';
+import Breadcrumb from 'shared/components/Breadcrumb';
 import DocumentMenu from 'menus/DocumentMenu';
 import NewChildDocumentMenu from 'menus/NewChildDocumentMenu';
 import DocumentShare from 'scenes/DocumentShare';
