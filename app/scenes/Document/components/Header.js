@@ -155,7 +155,7 @@ class Header extends React.Component<Props> {
               <Action>
                 <Button
                   onClick={this.handleSave}
-                  title={`Save changes ${isDraft ? '' : `${meta}+Enter`}`}
+                  title={`Save changes (${meta}+Enter)`}
                   disabled={savingIsDisabled}
                   isSaving={isSaving}
                   neutral={isDraft}
@@ -170,7 +170,7 @@ class Header extends React.Component<Props> {
             <Action>
               <Button
                 onClick={this.handlePublish}
-                title={`Publish document (${meta}+Enter)`}
+                title="Publish document"
                 disabled={savingIsDisabled}
                 small
               >

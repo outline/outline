@@ -203,7 +203,7 @@ class DocumentScene extends React.Component<Props> {
   handleOpenMoveModal = () => (this.moveModalOpen = true);
 
   onSaveAndExit = () => {
-    this.onSave({ done: true, publish: true });
+    this.onSave({ done: true });
   };
 
   onSave = async (
