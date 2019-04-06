@@ -315,36 +315,31 @@ Document.prototype.deleteWithChildren = async function(options) {
     });
   };
 
-  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
-    await loopChildren(this.id, { ...options, transaction });
-    await this.destroy({ ...options, transaction });
-  });
+  await loopChildren(this.id, options);
+  await this.destroy(options);
 };
 
 Document.prototype.archiveWithChildren = async function(userId, options) {
   const archivedAt = new Date();
 
   // Helper to archive all child documents for a document
-  const loopChildren = async (documentId, opts) => {
+  const archiveChildren = async parentDocumentId => {
     const childDocuments = await Document.findAll({
-      where: { parentDocumentId: documentId },
+      where: { parentDocumentId },
     });
     childDocuments.forEach(async child => {
-      await loopChildren(child.id, opts);
+      await archiveChildren(child.id);
 
       child.archivedAt = archivedAt;
       child.lastModifiedById = userId;
-      await child.save(opts);
+      await child.save(options);
     });
   };
 
-  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
-    await loopChildren(this.id, { ...options, transaction });
-
-    this.archivedAt = archivedAt;
-    this.lastModifiedById = userId;
-    await this.save({ ...options, transaction });
-  });
+  await archiveChildren(this.id);
+  this.archivedAt = archivedAt;
+  this.lastModifiedById = userId;
+  return this.save(options);
 };
 
 Document.prototype.publish = async function() {
@@ -365,45 +360,41 @@ Document.prototype.publish = async function() {
 
 // Moves a document from being visible to the team within a collection
 // to the archived area, where it can be subsequently restored.
-Document.prototype.archive = function(userId) {
-  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
-    // archive any children and remove from the document structure
-    const collection = await this.getCollection();
-    await collection.removeDocumentInStructure(this, { save: true });
+Document.prototype.archive = async function(userId) {
+  // archive any children and remove from the document structure
+  const collection = await this.getCollection();
+  await collection.removeDocumentInStructure(this, { save: true });
+  this.collection = collection;
 
-    await this.archiveWithChildren(userId, { transaction });
-    this.collection = collection;
+  this.archivedAt = new Date();
+  this.lastModifiedById = userId;
+  await this.save();
+  await this.archiveWithChildren(userId);
 
-    events.add({ name: 'documents.archive', model: this });
-    return this;
-  });
+  events.add({ name: 'documents.archive', model: this });
+  return this;
 };
 
 // Restore an archived document back to being visible to the team
-Document.prototype.unarchive = function(userId) {
-  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
-    const collection = await this.getCollection();
+Document.prototype.unarchive = async function(userId) {
+  const collection = await this.getCollection();
 
-    // check to see if the documents parent hasn't been archived also
-    // If it has then restore the document to the collection root.
-    if (this.parentDocumentId) {
-      const parent = await Document.findById(this.parentDocumentId);
-      if (!parent) this.parentDocumentId = undefined;
-    }
+  // check to see if the documents parent hasn't been archived also
+  // If it has then restore the document to the collection root.
+  if (this.parentDocumentId) {
+    const parent = await Document.findById(this.parentDocumentId);
+    if (!parent) this.parentDocumentId = undefined;
+  }
 
-    await collection.addDocumentToStructure(this, 0, {
-      transaction,
-    });
+  await collection.addDocumentToStructure(this, 0);
+  this.collection = collection;
 
-    this.archivedAt = null;
-    this.lastModifiedById = userId;
+  this.archivedAt = null;
+  this.lastModifiedById = userId;
+  await this.save();
 
-    await this.save({ transaction });
-    this.collection = collection;
-
-    events.add({ name: 'documents.unarchive', model: this });
-    return this;
-  });
+  events.add({ name: 'documents.unarchive', model: this });
+  return this;
 };
 
 // Delete a document, archived or otherwise.

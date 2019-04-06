@@ -288,7 +288,7 @@ Collection.prototype.removeDocumentInStructure = async function(
   );
 
   if (options && options.save) {
-    await this.save();
+    await this.save(options);
     if (unlock) await unlock();
   }
 

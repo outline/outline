@@ -29,7 +29,7 @@ describe('#documents.info', async () => {
 
   it('should return archived document', async () => {
     const { user, document } = await seed();
-    await document.archive();
+    await document.archive(user.id);
     const res = await server.post('/api/documents.info', {
       body: { token: user.getJwtToken(), id: document.id },
     });
@@ -453,7 +453,7 @@ describe('#documents.search', async () => {
       text: 'search term',
       teamId: user.teamId,
     });
-    await document.archive();
+    await document.archive(user.id);
 
     const res = await server.post('/api/documents.search', {
       body: { token: user.getJwtToken(), query: 'search term' },
@@ -684,7 +684,7 @@ describe('#documents.pin', async () => {
 describe('#documents.restore', () => {
   it('should allow restore of archived documents', async () => {
     const { user, document } = await seed();
-    await document.archive();
+    await document.archive(user.id);
 
     const res = await server.post('/api/documents.restore', {
       body: { token: user.getJwtToken(), id: document.id },
@@ -701,7 +701,8 @@ describe('#documents.restore', () => {
       collectionId: document.collectionId,
       parentDocumentId: document.id,
     });
-    await document.archive();
+    await childDocument.archive(user.id);
+    await document.archive(user.id);
 
     const res = await server.post('/api/documents.restore', {
       body: { token: user.getJwtToken(), id: childDocument.id },
