@@ -145,7 +145,7 @@ const More = styled.div`
   border-radius: 12px;
   background: ${props => props.theme.slate};
   color: ${props => props.theme.text};
-  border: 2px solid #fff;
+  border: 2px solid ${props => props.theme.background};
   text-align: center;
   line-height: 20px;
   font-size: 11px;

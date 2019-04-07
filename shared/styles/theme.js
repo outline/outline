@@ -138,7 +138,7 @@ export const dark = {
   codeBackground: colors.almostBlack,
   codeBorder: colors.black50,
   embedBorder: colors.black50,
-  horizontalRule: colors.almostWhite,
+  horizontalRule: darken(0.2, colors.slate),
 };
 
 export default light;
