@@ -8,13 +8,13 @@ import RootStore from './RootStore';
 import Collection from '../models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
 
-export type DocumentPathItem = {|
+export type DocumentPathItem = {
   id: string,
   collectionId: string,
   title: string,
   url: string,
   type: 'collection' | 'document',
-|};
+};
 
 export type DocumentPath = DocumentPathItem & {
   path: DocumentPathItem[],
