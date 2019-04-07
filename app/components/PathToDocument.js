@@ -64,7 +64,9 @@ const Title = styled.span`
   text-overflow: ellipsis;
 `;
 
-const StyledGoToIcon = styled(GoToIcon)``;
+const StyledGoToIcon = styled(GoToIcon)`
+  opacity: 0.25;
+`;
 
 const ResultWrapper = styled.div`
   display: flex;
