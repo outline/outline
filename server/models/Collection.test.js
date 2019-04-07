@@ -146,8 +146,6 @@ describe('#updateDocument', () => {
 });
 
 describe('#removeDocument', () => {
-  const destroyMock = jest.fn();
-
   test('should save if removing', async () => {
     const { collection, document } = await seed();
     jest.spyOn(collection, 'save');

@@ -86,7 +86,6 @@ class DocumentMove extends React.Component<Props> {
         last(result.path.map(doc => doc.id)) !== document.parentDocumentId
     );
 
-    console.log(results);
     return results;
   }
 
