@@ -21,6 +21,9 @@ export default async function documentMover({
   const documentJson = await collection.removeDocumentInStructure(document);
 
   // add to new collection (may be the same)
+  document.collectionId = collectionId;
+  document.parentDocumentId = parentDocumentId;
+
   const newCollection: Collection = collectionChanged
     ? await Collection.findById(collectionId)
     : collection;
@@ -46,13 +49,11 @@ export default async function documentMover({
     };
 
     await loopChildren(document.id);
-    await document.update({
-      collectionId,
-      parentDocumentId,
-    });
-    document.collection = newCollection;
-    response.documents.push(document);
   }
+
+  await document.save();
+  document.collection = newCollection;
+  response.documents.push(document);
 
   // we need to send all updated models back to the client
   return response;
