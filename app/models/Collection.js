@@ -25,6 +25,11 @@ export default class Collection extends BaseModel {
   url: string;
 
   @computed
+  get isPrivate(): boolean {
+    return this.private;
+  }
+
+  @computed
   get isEmpty(): boolean {
     return this.documents.length === 0;
   }

@@ -86,6 +86,7 @@ class DocumentMove extends React.Component<Props> {
         last(result.path.map(doc => doc.id)) !== document.parentDocumentId
     );
 
+    console.log(results);
     return results;
   }
 
@@ -113,7 +114,12 @@ class DocumentMove extends React.Component<Props> {
     const result = collections.getPathForDocument(document.id);
 
     if (result) {
-      return <PathToDocument result={result} />;
+      return (
+        <PathToDocument
+          result={result}
+          collection={collections.get(result.collectionId)}
+        />
+      );
     }
   }
 
@@ -152,6 +158,7 @@ class DocumentMove extends React.Component<Props> {
                         key={result.id}
                         result={result}
                         document={document}
+                        collection={collections.get(result.collectionId)}
                         ref={ref =>
                           index === 0 && this.setFirstDocumentRef(ref)
                         }

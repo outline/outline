@@ -14,7 +14,7 @@ allow(User, ['read', 'delete'], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ['update', 'share'], Document, (user, document) => {
+allow(User, ['update', 'move', 'share'], Document, (user, document) => {
   if (document.collection) {
     if (cannot(user, 'read', document.collection)) return false;
   }
