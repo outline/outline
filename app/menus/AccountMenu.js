@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import { MoonIcon } from 'outline-icons';
 import styled, { withTheme } from 'styled-components';
@@ -42,7 +43,9 @@ class AccountMenu extends React.Component<Props> {
         style={{ marginRight: 10, marginTop: -10 }}
         label={this.props.label}
       >
-        <DropdownMenuItem href={settings()}>Settings</DropdownMenuItem>
+        <DropdownMenuItem as={Link} to={settings()}>
+          Settings
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleOpenKeyboardShortcuts}>
           Keyboard shortcuts
         </DropdownMenuItem>
