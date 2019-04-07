@@ -20,7 +20,7 @@ export default async function documentMover({
   const collection: Collection = await document.getCollection();
   const documentJson = await collection.removeDocumentInStructure(document);
 
-  // add to new collection
+  // add to new collection (may be the same)
   const newCollection: Collection = collectionChanged
     ? await Collection.findById(collectionId)
     : collection;
@@ -40,6 +40,7 @@ export default async function documentMover({
       childDocuments.forEach(async child => {
         await loopChildren(child.id);
         await child.update({ collectionId });
+        child.collection = newCollection;
         response.documents.push(child);
       });
     };
@@ -49,6 +50,7 @@ export default async function documentMover({
       collectionId,
       parentDocumentId,
     });
+    document.collection = newCollection;
     response.documents.push(document);
   }
 

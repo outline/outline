@@ -84,6 +84,7 @@ Backend is driven by [Koa](http://koajs.com/) (API, web server), [Sequelize](htt
 - `server/models` - Database models (Sequelize)
 - `server/pages` - Server-side rendered public pages (React)
 - `server/presenters` - API responses for database models
+- `server/commands` - Domain logic, currently being refactored from /models
 - `shared` - Code shared between frontend and backend applications
 
 ## Tests

@@ -234,34 +234,21 @@ Collection.prototype.updateDocument = async function(
   return this;
 };
 
-/**
- * moveDocument is combination of removing the document from the structure
- * and placing it back the the new location with the existing children.
- */
-Collection.prototype.moveDocument = async function(document, index) {
-  if (!this.documentStructure) return;
-
-  const documentJson = await this.removeDocumentInStructure(document);
-  await this.addDocumentToStructure(document, index, { documentJson });
-};
-
 Collection.prototype.deleteDocument = async function(document) {
-  await this.removeDocumentInStructure(document, { save: true });
+  await this.removeDocumentInStructure(document);
   await document.deleteWithChildren();
 };
 
 Collection.prototype.removeDocumentInStructure = async function(
   document,
-  options?: { save?: boolean }
+  options
 ) {
   if (!this.documentStructure) return;
   let returnValue;
   let unlock;
 
-  if (options && options.save) {
-    // documentStructure can only be updated by one request at the time
-    unlock = await asyncLock(`collection-${this.id}`);
-  }
+  // documentStructure can only be updated by one request at the time
+  unlock = await asyncLock(`collection-${this.id}`);
 
   const removeFromChildren = async (children, id) => {
     children = await Promise.all(
@@ -287,10 +274,8 @@ Collection.prototype.removeDocumentInStructure = async function(
     document.id
   );
 
-  if (options && options.save) {
-    await this.save(options);
-    if (unlock) await unlock();
-  }
+  await this.save(options);
+  if (unlock) await unlock();
 
   return returnValue;
 };

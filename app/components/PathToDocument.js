@@ -11,8 +11,8 @@ import type { DocumentPath } from 'stores/CollectionsStore';
 
 type Props = {
   result: DocumentPath,
-  document?: Document,
-  collection?: Collection,
+  document?: ?Document,
+  collection: ?Collection,
   onSuccess?: () => void,
   ref?: *,
 };

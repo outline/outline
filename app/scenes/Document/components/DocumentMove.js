@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import { observable, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Search } from 'js-search';
-import { first, last } from 'lodash';
+import { last } from 'lodash';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import styled from 'styled-components';
 
