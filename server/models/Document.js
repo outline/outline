@@ -20,7 +20,6 @@ const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
 const DEFAULT_TITLE = 'Untitled document';
 
-// $FlowIssue invalid flow-typed
 slug.defaults.mode = 'rfc3986';
 const slugify = text =>
   slug(text, {
@@ -366,9 +365,6 @@ Document.prototype.archive = async function(userId) {
   await collection.removeDocumentInStructure(this, { save: true });
   this.collection = collection;
 
-  this.archivedAt = new Date();
-  this.lastModifiedById = userId;
-  await this.save();
   await this.archiveWithChildren(userId);
 
   events.add({ name: 'documents.archive', model: this });

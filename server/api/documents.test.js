@@ -1130,7 +1130,11 @@ describe('#documents.archive', async () => {
     const res = await server.post('/api/documents.archive', {
       body: { token: user.getJwtToken(), id: document.id },
     });
+    const body = await res.json();
+
     expect(res.status).toEqual(200);
+    expect(body.data.updatedBy.id).toEqual(user.id);
+    expect(body.data.archivedAt).toBeTruthy();
   });
 
   it('should require authentication', async () => {
