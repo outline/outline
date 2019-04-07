@@ -40,12 +40,13 @@ export default async function documentMover({
       const childDocuments = await Document.findAll({
         where: { parentDocumentId: documentId },
       });
-      childDocuments.forEach(async child => {
+
+      for (const child of childDocuments) {
         await loopChildren(child.id);
         await child.update({ collectionId });
         child.collection = newCollection;
         response.documents.push(child);
-      });
+      }
     };
 
     await loopChildren(document.id);
