@@ -1,5 +1,6 @@
 // @flow
 import { Document, Collection } from '../models';
+import { sequelize } from '../sequelize';
 
 export default async function documentMover({
   document,
@@ -12,49 +13,67 @@ export default async function documentMover({
   parentDocumentId: string,
   index?: number,
 }) {
-  const response = { collections: [], documents: [] };
+  let transaction;
+  const result = { collections: [], documents: [] };
   const collectionChanged = collectionId !== document.collectionId;
 
-  // remove from original collection
-  const collection: Collection = await document.getCollection();
-  const documentJson = await collection.removeDocumentInStructure(document);
+  try {
+    transaction = await sequelize.transaction();
 
-  // add to new collection (may be the same)
-  document.collectionId = collectionId;
-  document.parentDocumentId = parentDocumentId;
+    // remove from original collection
+    const collection = await document.getCollection({
+      transaction,
+    });
+    const documentJson = await collection.removeDocumentInStructure(document, {
+      save: collectionChanged,
+    });
 
-  const newCollection: Collection = collectionChanged
-    ? await Collection.findById(collectionId)
-    : collection;
-  await newCollection.addDocumentToStructure(document, index, { documentJson });
-  response.collections.push(collection);
+    // add to new collection (may be the same)
+    document.collectionId = collectionId;
+    document.parentDocumentId = parentDocumentId;
 
-  // if collection does not remain the same loop through children and change their
-  // collectionId too. This includes archived children, otherwise their collection
-  // would be wrong once restored.
-  if (collectionChanged) {
-    response.collections.push(newCollection);
+    const newCollection: Collection = collectionChanged
+      ? await Collection.findById(collectionId)
+      : collection;
+    await newCollection.addDocumentToStructure(document, index, {
+      documentJson,
+    });
+    result.collections.push(collection);
 
-    const loopChildren = async documentId => {
-      const childDocuments = await Document.findAll({
-        where: { parentDocumentId: documentId },
-      });
+    // if collection does not remain the same loop through children and change their
+    // collectionId too. This includes archived children, otherwise their collection
+    // would be wrong once restored.
+    if (collectionChanged) {
+      result.collections.push(newCollection);
 
-      for (const child of childDocuments) {
-        await loopChildren(child.id);
-        await child.update({ collectionId });
-        child.collection = newCollection;
-        response.documents.push(child);
-      }
-    };
+      const loopChildren = async documentId => {
+        const childDocuments = await Document.findAll({
+          where: { parentDocumentId: documentId },
+        });
 
-    await loopChildren(document.id);
+        for (const child of childDocuments) {
+          await loopChildren(child.id);
+          await child.update({ collectionId }, { transaction });
+          child.collection = newCollection;
+          result.documents.push(child);
+        }
+      };
+
+      await loopChildren(document.id);
+    }
+
+    await document.save({ transaction });
+    document.collection = newCollection;
+    result.documents.push(document);
+
+    await transaction.commit();
+  } catch (err) {
+    if (transaction) {
+      await transaction.rollback();
+    }
+    throw err;
   }
 
-  await document.save();
-  document.collection = newCollection;
-  response.documents.push(document);
-
   // we need to send all updated models back to the client
-  return response;
+  return result;
 }
