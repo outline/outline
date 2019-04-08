@@ -156,8 +156,12 @@ Collection.prototype.addDocumentToStructure = async function(
 ) {
   if (!this.documentStructure) return;
 
+  let unlock;
+
   // documentStructure can only be updated by one request at a time
-  const unlock = await asyncLock(`collection-${this.id}`);
+  if (options.save !== false) {
+    unlock = await asyncLock(`collection-${this.id}`);
+  }
 
   // If moving existing document with children, use existing structure
   const documentJson = {
@@ -195,8 +199,11 @@ Collection.prototype.addDocumentToStructure = async function(
 
   // Sequelize doesn't seem to set the value with splice on JSONB field
   this.documentStructure = this.documentStructure;
-  await this.save(options);
-  unlock();
+
+  if (options.save !== false) {
+    await this.save(options);
+    if (unlock) unlock();
+  }
 
   return this;
 };

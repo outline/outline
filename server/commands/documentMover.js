@@ -21,19 +21,21 @@ export default async function documentMover({
     transaction = await sequelize.transaction();
 
     // remove from original collection
-    const collection = await document.getCollection({
-      transaction,
-    });
+    const collection = await document.getCollection({ transaction });
     const documentJson = await collection.removeDocumentInStructure(document, {
-      save: collectionChanged,
+      save: false,
     });
+
+    // if the collection is the same then it will get saved below, this
+    // line prevents a pointless intermediate save from occurring.
+    if (collectionChanged) await collection.save({ transaction });
 
     // add to new collection (may be the same)
     document.collectionId = collectionId;
     document.parentDocumentId = parentDocumentId;
 
     const newCollection: Collection = collectionChanged
-      ? await Collection.findById(collectionId)
+      ? await Collection.findById(collectionId, { transaction })
       : collection;
     await newCollection.addDocumentToStructure(document, index, {
       documentJson,
@@ -51,12 +53,14 @@ export default async function documentMover({
           where: { parentDocumentId: documentId },
         });
 
-        for (const child of childDocuments) {
-          await loopChildren(child.id);
-          await child.update({ collectionId }, { transaction });
-          child.collection = newCollection;
-          result.documents.push(child);
-        }
+        await Promise.all(
+          childDocuments.map(async child => {
+            await loopChildren(child.id);
+            await child.update({ collectionId }, { transaction });
+            child.collection = newCollection;
+            result.documents.push(child);
+          })
+        );
       };
 
       await loopChildren(document.id);
