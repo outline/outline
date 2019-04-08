@@ -1,6 +1,5 @@
 // @flow
-import Document from '../models/Document';
-import { Collection } from '../models';
+import { Document, Collection } from '../models';
 
 export default async function documentMover({
   document,
