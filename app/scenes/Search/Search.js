@@ -35,33 +35,6 @@ type Props = {
   notFound: ?boolean,
 };
 
-const Container = styled(CenteredContent)`
-  > div {
-    position: relative;
-    height: 100%;
-  }
-`;
-
-const ResultsWrapper = styled(Flex)`
-  position: absolute;
-  transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
-  top: ${props => (props.pinToTop ? '0%' : '50%')};
-  margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
-  width: 100%;
-`;
-
-const ResultList = styled(Flex)`
-  margin-bottom: 150px;
-  opacity: ${props => (props.visible ? '1' : '0')};
-  transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
-`;
-
-const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-`;
-
 @observer
 class Search extends React.Component<Props> {
   firstDocument: ?DocumentPreview;
@@ -209,12 +182,15 @@ class Search extends React.Component<Props> {
             </Fade>
           )}
           {this.pinToTop && (
-            <Checkbox
-              label="Include archived docs"
-              name="includeArchived"
-              checked={this.includeArchived}
-              onChange={this.handleFilterChange}
-            />
+            <Filters>
+              <Checkbox
+                label="Include archived docs"
+                name="includeArchived"
+                checked={this.includeArchived}
+                onChange={this.handleFilterChange}
+                small
+              />
+            </Filters>
           )}
           {showEmpty && <Empty>No matching documents.</Empty>}
           <ResultList column visible={this.pinToTop}>
@@ -247,5 +223,37 @@ class Search extends React.Component<Props> {
     );
   }
 }
+
+const Container = styled(CenteredContent)`
+  > div {
+    position: relative;
+    height: 100%;
+  }
+`;
+
+const ResultsWrapper = styled(Flex)`
+  position: absolute;
+  transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
+  top: ${props => (props.pinToTop ? '0%' : '50%')};
+  margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
+  width: 100%;
+`;
+
+const ResultList = styled(Flex)`
+  margin-bottom: 150px;
+  opacity: ${props => (props.visible ? '1' : '0')};
+  transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
+`;
+
+const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+`;
+
+const Filters = styled(Flex)`
+  border-bottom: 1px solid ${props => props.theme.divider};
+  margin-bottom: 10px;
+`;
 
 export default withRouter(inject('documents')(Search));
