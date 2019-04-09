@@ -19,6 +19,7 @@ type Props = {
   className: string,
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
+  showPin?: boolean,
 };
 
 @observer
@@ -97,7 +98,7 @@ class DocumentMenu extends React.Component<Props> {
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { document, label, className, showPrint, auth } = this.props;
+    const { document, label, className, showPrint, showPin, auth } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;
 
     if (document.isArchived) {
@@ -117,13 +118,16 @@ class DocumentMenu extends React.Component<Props> {
       <DropdownMenu label={label || <MoreIcon />} className={className}>
         {!document.isDraft ? (
           <React.Fragment>
-            {document.pinned ? (
-              <DropdownMenuItem onClick={this.handleUnpin}>
-                Unpin
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={this.handlePin}>Pin</DropdownMenuItem>
-            )}
+            {showPin &&
+              (document.pinned ? (
+                <DropdownMenuItem onClick={this.handleUnpin}>
+                  Unpin
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={this.handlePin}>
+                  Pin to collection
+                </DropdownMenuItem>
+              ))}
             {document.starred ? (
               <DropdownMenuItem onClick={this.handleUnstar}>
                 Unstar

@@ -195,7 +195,7 @@ class CollectionScene extends React.Component<Props> {
                     <Subheading>
                       <TinyPinIcon size={18} /> Pinned
                     </Subheading>
-                    <DocumentList documents={pinnedDocuments} />
+                    <DocumentList documents={pinnedDocuments} showPin />
                   </React.Fragment>
                 )}
 
@@ -222,6 +222,7 @@ class CollectionScene extends React.Component<Props> {
                       )}
                       fetch={documents.fetchAlphabetical}
                       options={{ collection: collection.id }}
+                      showPin
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id, 'old')}>
@@ -232,6 +233,7 @@ class CollectionScene extends React.Component<Props> {
                       )}
                       fetch={documents.fetchLeastRecentlyUpdated}
                       options={{ collection: collection.id }}
+                      showPin
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id, 'recent')}>
@@ -243,6 +245,7 @@ class CollectionScene extends React.Component<Props> {
                       fetch={documents.fetchRecentlyPublished}
                       options={{ collection: collection.id }}
                       showPublished
+                      showPin
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id)}>
@@ -252,6 +255,7 @@ class CollectionScene extends React.Component<Props> {
                       )}
                       fetch={documents.fetchRecentlyUpdated}
                       options={{ collection: collection.id }}
+                      showPin
                     />
                   </Route>
                 </Switch>

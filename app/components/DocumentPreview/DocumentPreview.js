@@ -17,6 +17,7 @@ type Props = {
   context?: ?string,
   showCollection?: boolean,
   showPublished?: boolean,
+  showPin?: boolean,
   link?: boolean,
   ref?: *,
 };
@@ -137,6 +138,7 @@ class DocumentPreview extends React.Component<Props> {
       document,
       showCollection,
       showPublished,
+      showPin,
       highlight,
       context,
       link,
@@ -172,7 +174,7 @@ class DocumentPreview extends React.Component<Props> {
                 )}
               </Actions>
             )}
-          <StyledDocumentMenu document={document} />
+          <StyledDocumentMenu document={document} showPin={showPin} />
         </Heading>
         {!queryIsInTitle && (
           <ResultContext

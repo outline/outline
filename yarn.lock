@@ -7738,6 +7738,7 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
 rich-markdown-editor@^9.1.2:
   version "9.1.2"
   resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.1.2.tgz#869d2a66d93b84ae6878ad3917dd3a012cffb721"
+  integrity sha512-Sv9svBpH+rVktpNjD/73IpVTVE3atKVLt+Kdcx+o/DRkvJPdXwJkMYXM2jE8IIBRafgdGS/X6JZImVlsX5uHxQ==
   dependencies:
     "@tommoor/slate-edit-list" "0.19.0-0"
     "@wikifactory/slate-edit-blockquote" "^0.7.1"
