@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import { observer } from 'mobx-react';
+import { darken } from 'polished';
 import styled from 'styled-components';
 import { GoToIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
@@ -74,29 +75,29 @@ const StyledGoToIcon = styled(GoToIcon)`
 const ResultWrapper = styled.div`
   display: flex;
   margin-bottom: 10px;
+  margin-left: -4px;
+  user-select: none;
 
   color: ${props => props.theme.text};
   cursor: default;
 `;
 
 const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
-  height: 32px;
-  padding-top: 3px;
-  padding-left: 5px;
+  margin: 0 -10px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 2px solid transparent;
 
   &:hover,
   &:active,
   &:focus {
-    margin-left: 0px;
-    border-radius: 2px;
-    background: ${props => props.theme.black};
-    color: ${props => props.theme.smokeLight};
+    background: ${props => props.theme.listItemHoverBackground};
+    border: 2px solid ${props => props.theme.listItemHoverBorder};
     outline: none;
-    cursor: pointer;
+  }
 
-    ${StyledGoToIcon} {
-      fill: ${props => props.theme.white};
-    }
+  &:focus {
+    border: 2px solid ${props => darken(0.5, props.theme.listItemHoverBorder)};
   }
 `;
 

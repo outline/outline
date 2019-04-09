@@ -16,12 +16,16 @@ import Flex from 'shared/components/Flex';
 
 import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
+import UiStore from 'stores/UiStore';
 import CollectionsStore, { type DocumentPath } from 'stores/CollectionsStore';
+
+const MAX_RESULTS = 8;
 
 type Props = {
   document: Document,
   documents: DocumentsStore,
   collections: CollectionsStore,
+  ui: UiStore,
   onRequestClose: *,
 };
 
@@ -53,24 +57,9 @@ class DocumentMove extends React.Component<Props> {
     let results = [];
     if (collections.isLoaded) {
       if (this.searchTerm) {
-        // Search by the keyword
         results = this.searchIndex.search(this.searchTerm);
       } else {
-        // Default results, root of the current collection
-        results = [];
-        collections.orderedData.forEach(collection => {
-          collection.documents.forEach(doc => {
-            const path = collections.getPathForDocument(doc.id);
-            if (doc && path) {
-              results.push(path);
-            }
-          });
-
-          const rootPath = collections.getPathForDocument(collection.id);
-          if (rootPath) {
-            results = [rootPath, ...results];
-          }
-        });
+        results = this.searchIndex._documents;
       }
     }
 
@@ -98,6 +87,11 @@ class DocumentMove extends React.Component<Props> {
         if (element instanceof HTMLElement) element.focus();
       }
     }
+  };
+
+  handleSuccess = () => {
+    this.props.ui.showToast('Document moved');
+    this.props.onRequestClose();
   };
 
   handleFilter = (ev: SyntheticInputEvent<*>) => {
@@ -140,7 +134,7 @@ class DocumentMove extends React.Component<Props> {
                 <Labeled label="Choose a new location">
                   <Input
                     type="text"
-                    placeholder="Filter…"
+                    placeholder="Search collections & documents…"
                     onKeyDown={this.handleKeyDown}
                     onChange={this.handleFilter}
                     required
@@ -152,18 +146,20 @@ class DocumentMove extends React.Component<Props> {
                     mode={ArrowKeyNavigation.mode.VERTICAL}
                     defaultActiveChildIndex={0}
                   >
-                    {this.results.map((result, index) => (
-                      <PathToDocument
-                        key={result.id}
-                        result={result}
-                        document={document}
-                        collection={collections.get(result.collectionId)}
-                        ref={ref =>
-                          index === 0 && this.setFirstDocumentRef(ref)
-                        }
-                        onSuccess={onRequestClose}
-                      />
-                    ))}
+                    {this.results
+                      .slice(0, MAX_RESULTS)
+                      .map((result, index) => (
+                        <PathToDocument
+                          key={result.id}
+                          result={result}
+                          document={document}
+                          collection={collections.get(result.collectionId)}
+                          ref={ref =>
+                            index === 0 && this.setFirstDocumentRef(ref)
+                          }
+                          onSuccess={this.handleSuccess}
+                        />
+                      ))}
                   </StyledArrowKeyNavigation>
                 </Flex>
               </Section>
@@ -184,4 +180,4 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
-export default inject('documents', 'collections')(DocumentMove);
+export default inject('documents', 'collections', 'ui')(DocumentMove);
