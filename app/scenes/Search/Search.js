@@ -18,6 +18,8 @@ import { meta } from 'utils/keyboard';
 import Flex from 'shared/components/Flex';
 import Empty from 'components/Empty';
 import Fade from 'components/Fade';
+import Checkbox from 'components/Checkbox';
+
 import HelpText from 'components/HelpText';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -68,6 +70,7 @@ class Search extends React.Component<Props> {
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
   @observable isFetching: boolean = false;
+  @observable includeArchived: boolean = false;
   @observable pinToTop: boolean = !!this.props.match.params.query;
 
   componentDidMount() {
@@ -114,6 +117,11 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
+  handleFilterChange = ev => {
+    this.includeArchived = ev.target.checked;
+    this.fetchResultsDebounced();
+  };
+
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
@@ -132,6 +140,7 @@ class Search extends React.Component<Props> {
         const results = await this.props.documents.search(this.query, {
           offset: this.offset,
           limit: DEFAULT_PAGINATION_LIMIT,
+          includeArchived: this.includeArchived,
         });
 
         if (results.length > 0) this.pinToTop = true;
@@ -198,6 +207,14 @@ class Search extends React.Component<Props> {
                 anywhere in Outline
               </HelpText>
             </Fade>
+          )}
+          {this.pinToTop && (
+            <Checkbox
+              label="Include archived docs"
+              name="includeArchived"
+              checked={this.includeArchived}
+              onChange={this.handleFilterChange}
+            />
           )}
           {showEmpty && <Empty>No matching documents.</Empty>}
           <ResultList column visible={this.pinToTop}>

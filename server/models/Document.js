@@ -224,7 +224,7 @@ Document.searchForUser = async (
     FROM documents
     WHERE "searchVector" @@ to_tsquery('english', :query) AND
       "collectionId" IN(:collectionIds) AND
-      "archivedAt" IS NULL AND
+      ${options.includeArchived ? '' : '"archivedAt" IS NULL AND'}
       "deletedAt" IS NULL AND
       ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
     ORDER BY 
