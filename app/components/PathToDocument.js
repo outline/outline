@@ -2,16 +2,18 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
-import { GoToIcon } from 'outline-icons';
+import { GoToIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 
 import Document from 'models/Document';
+import Collection from 'models/Collection';
 import type { DocumentPath } from 'stores/CollectionsStore';
 
 type Props = {
   result: DocumentPath,
-  document?: Document,
-  onSuccess?: *,
+  document?: ?Document,
+  collection: ?Collection,
+  onSuccess?: () => void,
   ref?: *,
 };
 
@@ -23,27 +25,28 @@ class PathToDocument extends React.Component<Props> {
     if (!document) return;
 
     if (result.type === 'document') {
-      await document.move(result.id);
-    } else if (
-      result.type === 'collection' &&
-      result.id === document.collection.id
-    ) {
-      await document.move(null);
+      await document.move(result.collectionId, result.id);
     } else {
-      throw new Error('Not implemented yet');
+      await document.move(result.collectionId, null);
     }
 
     if (onSuccess) onSuccess();
   };
 
   render() {
-    const { result, document, ref } = this.props;
+    const { result, collection, document, ref } = this.props;
     const Component = document ? ResultWrapperLink : ResultWrapper;
 
     if (!result) return <div />;
 
     return (
       <Component ref={ref} onClick={this.handleClick} href="" selectable>
+        {collection &&
+          (collection.private ? (
+            <PrivateCollectionIcon color={collection.color} />
+          ) : (
+            <CollectionIcon color={collection.color} />
+          ))}
         {result.path
           .map(doc => <Title key={doc.id}>{doc.title}</Title>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
@@ -64,7 +67,9 @@ const Title = styled.span`
   text-overflow: ellipsis;
 `;
 
-const StyledGoToIcon = styled(GoToIcon)``;
+const StyledGoToIcon = styled(GoToIcon)`
+  opacity: 0.25;
+`;
 
 const ResultWrapper = styled.div`
   display: flex;

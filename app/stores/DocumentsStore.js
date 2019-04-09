@@ -294,17 +294,20 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  move = async (document: Document, parentDocumentId: ?string) => {
+  move = async (
+    document: Document,
+    collectionId: string,
+    parentDocumentId: ?string
+  ) => {
     const res = await client.post('/documents.move', {
       id: document.id,
-      parentDocument: parentDocumentId,
+      collectionId,
+      parentDocumentId,
     });
     invariant(res && res.data, 'Data not available');
 
-    const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
-
-    return this.add(res.data);
+    res.data.documents.forEach(this.add);
+    res.data.collections.forEach(this.rootStore.collections.add);
   };
 
   @action

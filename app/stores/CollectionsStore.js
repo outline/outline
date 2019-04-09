@@ -10,9 +10,10 @@ import naturalSort from 'shared/utils/naturalSort';
 
 export type DocumentPathItem = {
   id: string,
+  collectionId: string,
   title: string,
   url: string,
-  type: 'document' | 'collection',
+  type: 'collection' | 'document',
 };
 
 export type DocumentPath = DocumentPathItem & {
@@ -52,20 +53,26 @@ export default class CollectionsStore extends BaseStore<Collection> {
   @computed
   get pathsToDocuments(): DocumentPath[] {
     let results = [];
-    const travelDocuments = (documentList, path) =>
+    const travelDocuments = (documentList, collectionId, path) =>
       documentList.forEach(document => {
         const { id, title, url } = document;
-        const node = { id, title, url, type: 'document' };
+        const node = { id, collectionId, title, url, type: 'document' };
         results.push(concat(path, node));
-        travelDocuments(document.children, concat(path, [node]));
+        travelDocuments(document.children, collectionId, concat(path, [node]));
       });
 
     if (this.isLoaded) {
       this.data.forEach(collection => {
         const { id, name, url } = collection;
-        const node = { id, title: name, url, type: 'collection' };
+        const node = {
+          id,
+          collectionId: id,
+          title: name,
+          url,
+          type: 'collection',
+        };
         results.push([node]);
-        travelDocuments(collection.documents, [node]);
+        travelDocuments(collection.documents, id, [node]);
       });
     }
 

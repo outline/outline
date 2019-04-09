@@ -3,7 +3,12 @@ import Router from 'koa-router';
 import Sequelize from 'sequelize';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
-import { presentDocument, presentRevision } from '../presenters';
+import documentMover from '../commands/documentMover';
+import {
+  presentDocument,
+  presentCollection,
+  presentRevision,
+} from '../presenters';
 import { Document, Collection, Share, Star, View, Revision } from '../models';
 import { InvalidRequestError } from '../errors';
 import events from '../events';
@@ -537,39 +542,56 @@ router.post('documents.update', auth(), async ctx => {
 });
 
 router.post('documents.move', auth(), async ctx => {
-  const { id, parentDocument, index } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
-  if (parentDocument)
-    ctx.assertUuid(parentDocument, 'parentDocument must be a uuid');
-  if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
+  const { id, collectionId, parentDocumentId, index } = ctx.body;
+  ctx.assertUuid(id, 'id must be a uuid');
+  ctx.assertUuid(collectionId, 'collectionId must be a uuid');
+
+  if (parentDocumentId) {
+    ctx.assertUuid(parentDocumentId, 'parentDocumentId must be a uuid');
+  }
+  if (index) {
+    ctx.assertPositiveInteger(index, 'index must be a positive integer');
+  }
+  if (parentDocumentId === id) {
+    throw new InvalidRequestError(
+      'Infinite loop detected, cannot nest a document inside itself'
+    );
+  }
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
-  authorize(user, 'update', document);
+  authorize(user, 'move', document);
 
-  const collection = document.collection;
-  if (collection.type !== 'atlas')
-    throw new InvalidRequestError('This document can’t be moved');
+  const collection = await Collection.findById(collectionId);
+  authorize(user, 'update', collection);
 
-  // Set parent document
-  if (parentDocument) {
-    const parent = await Document.findById(parentDocument);
+  if (collection.type !== 'atlas' && parentDocumentId) {
+    throw new InvalidRequestError(
+      'Document cannot be nested in this collection type'
+    );
+  }
+
+  if (parentDocumentId) {
+    const parent = await Document.findById(parentDocumentId);
     authorize(user, 'update', parent);
   }
 
-  if (parentDocument === id)
-    throw new InvalidRequestError('Infinite loop detected and prevented!');
-
-  // If no parent document is provided, set it as null (move to root level)
-  document.parentDocumentId = parentDocument;
-  await document.save();
-
-  await collection.moveDocument(document, index);
-  // Update collection
-  document.collection = collection;
+  const { documents, collections } = await documentMover({
+    document,
+    collectionId,
+    parentDocumentId,
+    index,
+  });
 
   ctx.body = {
-    data: await presentDocument(ctx, document),
+    data: {
+      documents: await Promise.all(
+        documents.map(document => presentDocument(ctx, document))
+      ),
+      collections: await Promise.all(
+        collections.map(collection => presentCollection(ctx, collection))
+      ),
+    },
   };
 });
 

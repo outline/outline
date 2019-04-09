@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import { observable, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Search } from 'js-search';
-import { first, last } from 'lodash';
+import { last } from 'lodash';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import styled from 'styled-components';
 
@@ -33,19 +33,14 @@ class DocumentMove extends React.Component<Props> {
 
   @computed
   get searchIndex() {
-    const { document, collections } = this.props;
+    const { collections } = this.props;
     const paths = collections.pathsToDocuments;
     const index = new Search('id');
     index.addIndex('title');
 
     // Build index
     const indexeableDocuments = [];
-    paths.forEach(path => {
-      // TMP: For now, exclude paths to other collections
-      if (first(path.path).id !== document.collection.id) return;
-
-      indexeableDocuments.push(path);
-    });
+    paths.forEach(path => indexeableDocuments.push(path));
     index.addDocuments(indexeableDocuments);
 
     return index;
@@ -63,20 +58,19 @@ class DocumentMove extends React.Component<Props> {
       } else {
         // Default results, root of the current collection
         results = [];
-        document.collection.documents.forEach(doc => {
-          const path = collections.getPathForDocument(doc.id);
-          if (doc && path) {
-            results.push(path);
+        collections.orderedData.forEach(collection => {
+          collection.documents.forEach(doc => {
+            const path = collections.getPathForDocument(doc.id);
+            if (doc && path) {
+              results.push(path);
+            }
+          });
+
+          const rootPath = collections.getPathForDocument(collection.id);
+          if (rootPath) {
+            results = [rootPath, ...results];
           }
         });
-      }
-    }
-
-    if (document && document.parentDocumentId) {
-      // Add root if document does have a parent document
-      const rootPath = collections.getPathForDocument(document.collection.id);
-      if (rootPath) {
-        results = [rootPath, ...results];
       }
     }
 
@@ -119,7 +113,12 @@ class DocumentMove extends React.Component<Props> {
     const result = collections.getPathForDocument(document.id);
 
     if (result) {
-      return <PathToDocument result={result} />;
+      return (
+        <PathToDocument
+          result={result}
+          collection={collections.get(result.collectionId)}
+        />
+      );
     }
   }
 
@@ -141,7 +140,7 @@ class DocumentMove extends React.Component<Props> {
                 <Labeled label="Choose a new location">
                   <Input
                     type="text"
-                    placeholder="Filter by document name…"
+                    placeholder="Filter…"
                     onKeyDown={this.handleKeyDown}
                     onChange={this.handleFilter}
                     required
@@ -158,6 +157,7 @@ class DocumentMove extends React.Component<Props> {
                         key={result.id}
                         result={result}
                         document={document}
+                        collection={collections.get(result.collectionId)}
                         ref={ref =>
                           index === 0 && this.setFirstDocumentRef(ref)
                         }

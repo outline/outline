@@ -352,8 +352,7 @@ export default function Pricing() {
 
           <Method method="documents.move" label="Move document in a collection">
             <Description>
-              Move a document into a new location inside the collection. This is
-              easily done by defining the parent document ID. If no parent
+              Move a document to a new location or collection. If no parent
               document is provided, the document will be moved to the collection
               root.
             </Description>
@@ -364,8 +363,13 @@ export default function Pricing() {
                 required
               />
               <Argument
-                id="parentDocument"
-                description="ID of the new parent document (if any)"
+                id="collectionId"
+                description="ID of the collection"
+                required
+              />
+              <Argument
+                id="parentDocumentId"
+                description="ID of the new parent document"
               />
             </Arguments>
           </Method>
