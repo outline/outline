@@ -18,6 +18,8 @@ import { meta } from 'utils/keyboard';
 import Flex from 'shared/components/Flex';
 import Empty from 'components/Empty';
 import Fade from 'components/Fade';
+import Checkbox from 'components/Checkbox';
+
 import HelpText from 'components/HelpText';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -33,33 +35,6 @@ type Props = {
   notFound: ?boolean,
 };
 
-const Container = styled(CenteredContent)`
-  > div {
-    position: relative;
-    height: 100%;
-  }
-`;
-
-const ResultsWrapper = styled(Flex)`
-  position: absolute;
-  transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
-  top: ${props => (props.pinToTop ? '0%' : '50%')};
-  margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
-  width: 100%;
-`;
-
-const ResultList = styled(Flex)`
-  margin-bottom: 150px;
-  opacity: ${props => (props.visible ? '1' : '0')};
-  transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
-`;
-
-const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-`;
-
 @observer
 class Search extends React.Component<Props> {
   firstDocument: ?DocumentPreview;
@@ -68,6 +43,7 @@ class Search extends React.Component<Props> {
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
   @observable isFetching: boolean = false;
+  @observable includeArchived: boolean = false;
   @observable pinToTop: boolean = !!this.props.match.params.query;
 
   componentDidMount() {
@@ -114,6 +90,11 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
+  handleFilterChange = ev => {
+    this.includeArchived = ev.target.checked;
+    this.fetchResultsDebounced();
+  };
+
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
@@ -132,6 +113,7 @@ class Search extends React.Component<Props> {
         const results = await this.props.documents.search(this.query, {
           offset: this.offset,
           limit: DEFAULT_PAGINATION_LIMIT,
+          includeArchived: this.includeArchived,
         });
 
         if (results.length > 0) this.pinToTop = true;
@@ -199,6 +181,17 @@ class Search extends React.Component<Props> {
               </HelpText>
             </Fade>
           )}
+          {this.pinToTop && (
+            <Filters>
+              <Checkbox
+                label="Include archived"
+                name="includeArchived"
+                checked={this.includeArchived}
+                onChange={this.handleFilterChange}
+                small
+              />
+            </Filters>
+          )}
           {showEmpty && <Empty>No matching documents.</Empty>}
           <ResultList column visible={this.pinToTop}>
             <StyledArrowKeyNavigation
@@ -230,5 +223,37 @@ class Search extends React.Component<Props> {
     );
   }
 }
+
+const Container = styled(CenteredContent)`
+  > div {
+    position: relative;
+    height: 100%;
+  }
+`;
+
+const ResultsWrapper = styled(Flex)`
+  position: absolute;
+  transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
+  top: ${props => (props.pinToTop ? '0%' : '50%')};
+  margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
+  width: 100%;
+`;
+
+const ResultList = styled(Flex)`
+  margin-bottom: 150px;
+  opacity: ${props => (props.visible ? '1' : '0')};
+  transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
+`;
+
+const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+`;
+
+const Filters = styled(Flex)`
+  border-bottom: 1px solid ${props => props.theme.divider};
+  margin-bottom: 10px;
+`;
 
 export default withRouter(inject('documents')(Search));

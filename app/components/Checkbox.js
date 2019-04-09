@@ -8,15 +8,18 @@ export type Props = {
   label?: string,
   className?: string,
   note?: string,
+  small?: boolean,
 };
 
 const LabelText = styled.span`
   font-weight: 500;
-  margin-left: 10px;
+  margin-left: ${props => (props.small ? '6px' : '10px')};
+  ${props => (props.small ? `color: ${props.theme.textSecondary}` : '')};
 `;
 
 const Wrapper = styled.div`
   padding-bottom: 8px;
+  ${props => (props.small ? 'font-size: 14px' : '')};
 `;
 
 const Label = styled.label`
@@ -28,15 +31,16 @@ export default function Checkbox({
   label,
   note,
   className,
+  small,
   short,
   ...rest
 }: Props) {
   return (
     <React.Fragment>
-      <Wrapper>
+      <Wrapper small={small}>
         <Label>
           <input type="checkbox" {...rest} />
-          {label && <LabelText>{label}</LabelText>}
+          {label && <LabelText small={small}>{label}</LabelText>}
         </Label>
         {note && <HelpText small>{note}</HelpText>}
       </Wrapper>

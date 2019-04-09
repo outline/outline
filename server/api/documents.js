@@ -367,12 +367,13 @@ router.post('documents.restore', auth(), async ctx => {
 });
 
 router.post('documents.search', auth(), pagination(), async ctx => {
-  const { query } = ctx.body;
+  const { query, includeArchived } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
   ctx.assertPresent(query, 'query is required');
 
   const user = ctx.state.user;
   const results = await Document.searchForUser(user, query, {
+    includeArchived: includeArchived === 'true',
     offset,
     limit,
   });

@@ -250,11 +250,13 @@ export default function Pricing() {
 
           <Method method="documents.search" label="Search documents">
             <Description>
-              This methods allows you to search all of your documents with
-              keywords.
+              This methods allows you to search your teams documents with
+              keywords. Search results will be restricted to those accessible by
+              the current access token.
             </Description>
             <Arguments>
               <Argument id="query" description="Search query" required />
+              <Argument id="includeArchived" description="Boolean" />
             </Arguments>
           </Method>
 
