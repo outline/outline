@@ -184,7 +184,7 @@ class Search extends React.Component<Props> {
           {this.pinToTop && (
             <Filters>
               <Checkbox
-                label="Include archived docs"
+                label="Include archived"
                 name="includeArchived"
                 checked={this.includeArchived}
                 onChange={this.handleFilterChange}

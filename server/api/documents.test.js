@@ -464,6 +464,29 @@ describe('#documents.search', async () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it('should return archived documents if chosen', async () => {
+    const { user } = await seed();
+    const document = await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+    });
+    await document.archive(user.id);
+
+    const res = await server.post('/api/documents.search', {
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        includeArchived: 'true',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.text).toEqual('search term');
+  });
+
   it('should not return documents in private collections not a member of', async () => {
     const { user } = await seed();
     const collection = await buildCollection({ private: true });
