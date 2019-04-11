@@ -39,7 +39,7 @@ class Frame extends React.Component<Props> {
       forwardedRef,
       ...rest
     } = this.props;
-    const Component = border ? Iframe : 'iframe';
+    const Component = border ? StyledIframe : 'iframe';
 
     return (
       <Rounded width={width} height={height}>
@@ -52,6 +52,7 @@ class Frame extends React.Component<Props> {
             type="text/html"
             frameBorder="0"
             title="embed"
+            loading="lazy"
             allowFullScreen
             {...rest}
           />
@@ -68,7 +69,11 @@ const Rounded = styled.div`
   height: ${props => props.height};
 `;
 
-const Iframe = styled.iframe`
+// This wrapper allows us to pass non-standard HTML attributes through to the DOM element
+// https://www.styled-components.com/docs/basics#passed-props
+const Iframe = props => <iframe {...props} />;
+
+const StyledIframe = styled(Iframe)`
   border: 1px solid;
   border-color: ${props => props.theme.embedBorder};
   border-radius: 3px;
