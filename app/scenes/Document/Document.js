@@ -101,7 +101,7 @@ class DocumentScene extends React.Component<Props> {
   goToMove(ev) {
     ev.preventDefault();
 
-    if (this.document && !this.document.isArchived) {
+    if (this.document && !this.document.isArchived && this.document.isDraft) {
       this.props.history.push(documentMoveUrl(this.document));
     }
   }
