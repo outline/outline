@@ -9,7 +9,7 @@ function present(ctx: Object, revision: Revision) {
     title: revision.title,
     text: revision.text,
     createdAt: revision.createdAt,
-    createdBy: presentUser(ctx, revision.user),
+    createdBy: presentUser(revision.user),
   };
 }
 

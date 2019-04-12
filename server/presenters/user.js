@@ -14,11 +14,7 @@ type UserPresentation = {
   isSuspended: boolean,
 };
 
-export default (
-  ctx: Object,
-  user: User,
-  options: Options = {}
-): ?UserPresentation => {
+export default (user: User, options: Options = {}): ?UserPresentation => {
   const userData = {};
   userData.id = user.id;
   userData.createdAt = user.createdAt;

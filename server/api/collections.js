@@ -33,7 +33,7 @@ router.post('collections.create', auth(), async ctx => {
   });
 
   ctx.body = {
-    data: await presentCollection(ctx, collection),
+    data: await presentCollection(collection),
   };
 });
 
@@ -45,7 +45,7 @@ router.post('collections.info', auth(), async ctx => {
   authorize(ctx.state.user, 'read', collection);
 
   ctx.body = {
-    data: await presentCollection(ctx, collection),
+    data: await presentCollection(collection),
   };
 });
 
@@ -108,7 +108,7 @@ router.post('collections.users', auth(), async ctx => {
   const users = await collection.getUsers();
 
   const data = await Promise.all(
-    users.map(async user => await presentUser(ctx, user))
+    users.map(async user => await presentUser(user))
   );
 
   ctx.body = {
@@ -177,7 +177,7 @@ router.post('collections.update', auth(), async ctx => {
   await collection.save();
 
   ctx.body = {
-    data: await presentCollection(ctx, collection),
+    data: await presentCollection(collection),
   };
 });
 
@@ -196,9 +196,7 @@ router.post('collections.list', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    collections.map(
-      async collection => await presentCollection(ctx, collection)
-    )
+    collections.map(async collection => await presentCollection(collection))
   );
 
   ctx.body = {

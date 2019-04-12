@@ -8,12 +8,11 @@ type Options = {
   isPublic?: boolean,
 };
 
-async function present(ctx: Object, document: Document, options: ?Options) {
+async function present(document: Document, options: ?Options) {
   options = {
     isPublic: false,
     ...options,
   };
-  ctx.cache.set(document.id, document);
 
   // For empty document content, return the title
   if (!document.text.trim()) {
@@ -46,11 +45,11 @@ async function present(ctx: Object, document: Document, options: ?Options) {
   if (!options.isPublic) {
     data.pinned = !!document.pinnedById;
     data.collectionId = document.collectionId;
-    data.createdBy = presentUser(ctx, document.createdBy);
-    data.updatedBy = presentUser(ctx, document.updatedBy);
+    data.createdBy = presentUser(document.createdBy);
+    data.updatedBy = presentUser(document.updatedBy);
 
     if (document.collection) {
-      data.collection = await presentCollection(ctx, document.collection);
+      data.collection = await presentCollection(document.collection);
     }
 
     // This could be further optimized by using ctx.cache
@@ -58,7 +57,7 @@ async function present(ctx: Object, document: Document, options: ?Options) {
       where: {
         id: takeRight(document.collaboratorIds, 10) || [],
       },
-    }).map(user => presentUser(ctx, user));
+    }).map(user => presentUser(user));
   }
 
   return data;

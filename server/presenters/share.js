@@ -8,7 +8,7 @@ function present(ctx: Object, share: Share) {
     documentTitle: share.document.title,
     documentUrl: share.document.url,
     url: `${process.env.URL}/share/${share.id}`,
-    createdBy: presentUser(ctx, share.user),
+    createdBy: presentUser(share.user),
     createdAt: share.createdAt,
     updatedAt: share.updatedAt,
   };

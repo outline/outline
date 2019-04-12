@@ -18,9 +18,7 @@ const sortDocuments = (documents: Document[]): Document[] => {
   }));
 };
 
-async function present(ctx: Object, collection: Collection) {
-  ctx.cache.set(collection.id, collection);
-
+async function present(collection: Collection) {
   const data = {
     id: collection.id,
     url: collection.url,

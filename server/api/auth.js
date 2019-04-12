@@ -12,7 +12,7 @@ router.post('auth.info', auth(), async ctx => {
 
   ctx.body = {
     data: {
-      user: await presentUser(ctx, user, { includeDetails: true }),
+      user: await presentUser(user, { includeDetails: true }),
       team: await presentTeam(ctx, team),
     },
   };

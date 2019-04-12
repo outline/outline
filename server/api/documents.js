@@ -60,7 +60,7 @@ router.post('documents.list', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    documents.map(document => presentDocument(ctx, document))
+    documents.map(document => presentDocument(document))
   );
 
   ctx.body = {
@@ -96,7 +96,7 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    documents.map(document => presentDocument(ctx, document))
+    documents.map(document => presentDocument(document))
   );
 
   ctx.body = {
@@ -128,7 +128,7 @@ router.post('documents.archived', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    documents.map(document => presentDocument(ctx, document))
+    documents.map(document => presentDocument(document))
   );
 
   ctx.body = {
@@ -169,7 +169,7 @@ router.post('documents.viewed', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    views.map(view => presentDocument(ctx, view.document))
+    views.map(view => presentDocument(view.document))
   );
 
   ctx.body = {
@@ -212,7 +212,7 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    stars.map(star => presentDocument(ctx, star.document))
+    stars.map(star => presentDocument(star.document))
   );
 
   ctx.body = {
@@ -241,7 +241,7 @@ router.post('documents.drafts', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    documents.map(document => presentDocument(ctx, document))
+    documents.map(document => presentDocument(document))
   );
 
   ctx.body = {
@@ -284,7 +284,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   const isPublic = cannot(user, 'read', document);
 
   ctx.body = {
-    data: await presentDocument(ctx, document, { isPublic }),
+    data: await presentDocument(document, { isPublic }),
   };
 });
 
@@ -362,7 +362,7 @@ router.post('documents.restore', auth(), async ctx => {
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, document),
+    data: await presentDocument(document),
   };
 });
 
@@ -380,7 +380,7 @@ router.post('documents.search', auth(), pagination(), async ctx => {
 
   const data = await Promise.all(
     results.map(async result => {
-      const document = await presentDocument(ctx, result.document);
+      const document = await presentDocument(result.document);
       return { ...result, document };
     })
   );
@@ -403,7 +403,7 @@ router.post('documents.pin', auth(), async ctx => {
   await document.save();
 
   ctx.body = {
-    data: await presentDocument(ctx, document),
+    data: await presentDocument(document),
   };
 });
 
@@ -419,7 +419,7 @@ router.post('documents.unpin', auth(), async ctx => {
   await document.save();
 
   ctx.body = {
-    data: await presentDocument(ctx, document),
+    data: await presentDocument(document),
   };
 });
 
@@ -504,7 +504,7 @@ router.post('documents.create', auth(), async ctx => {
   });
 
   ctx.body = {
-    data: await presentDocument(ctx, document),
+    data: await presentDocument(document),
   };
 });
 
@@ -538,7 +538,7 @@ router.post('documents.update', auth(), async ctx => {
   }
 
   ctx.body = {
-    data: await presentDocument(ctx, document),
+    data: await presentDocument(document),
   };
 });
 
@@ -587,10 +587,10 @@ router.post('documents.move', auth(), async ctx => {
   ctx.body = {
     data: {
       documents: await Promise.all(
-        documents.map(document => presentDocument(ctx, document))
+        documents.map(document => presentDocument(document))
       ),
       collections: await Promise.all(
-        collections.map(collection => presentCollection(ctx, collection))
+        collections.map(collection => presentCollection(collection))
       ),
     },
   };
@@ -607,7 +607,7 @@ router.post('documents.archive', auth(), async ctx => {
   await document.archive(user.id);
 
   ctx.body = {
-    data: await presentDocument(ctx, document),
+    data: await presentDocument(document),
   };
 });
 
