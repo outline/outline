@@ -21,6 +21,7 @@ if (
   console.error(
     'Please set SECRET_KEY env variable with output of `openssl rand -hex 32`'
   );
+  // $FlowFixMe
   process.exit(1);
 }
 

@@ -4,7 +4,6 @@ import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
 import { asyncLock } from '../redis';
-import events from '../events';
 import Document from './Document';
 import CollectionUser from './CollectionUser';
 import { welcomeMessage } from '../utils/onboarding';
@@ -118,18 +117,6 @@ Collection.addHook('afterDestroy', async (model: Collection) => {
     },
   });
 });
-
-Collection.addHook('afterCreate', (model: Collection) =>
-  events.add({ name: 'collections.create', model })
-);
-
-Collection.addHook('afterDestroy', (model: Collection) =>
-  events.add({ name: 'collections.delete', model })
-);
-
-Collection.addHook('afterUpdate', (model: Collection) =>
-  events.add({ name: 'collections.update', model })
-);
 
 Collection.addHook('afterCreate', (model: Collection, options) => {
   if (model.private) {

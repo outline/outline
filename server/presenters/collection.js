@@ -18,7 +18,7 @@ const sortDocuments = (documents: Document[]): Document[] => {
   }));
 };
 
-export default async function present(collection: Collection) {
+export default function present(collection: Collection) {
   const data = {
     id: collection.id,
     url: collection.url,

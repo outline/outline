@@ -289,13 +289,8 @@ Document.addHook('afterCreate', async model => {
   await collection.addDocumentToStructure(model);
   model.collection = collection;
 
-  events.add({ name: 'documents.create', model });
   return model;
 });
-
-Document.addHook('afterDestroy', model =>
-  events.add({ name: 'documents.delete', model })
-);
 
 // Instance methods
 
@@ -353,7 +348,6 @@ Document.prototype.publish = async function() {
   await this.save();
   this.collection = collection;
 
-  events.add({ name: 'documents.publish', model: this });
   return this;
 };
 
@@ -367,7 +361,6 @@ Document.prototype.archive = async function(userId) {
 
   await this.archiveWithChildren(userId);
 
-  events.add({ name: 'documents.archive', model: this });
   return this;
 };
 
@@ -397,7 +390,6 @@ Document.prototype.unarchive = async function(userId) {
   this.lastModifiedById = userId;
   await this.save();
 
-  events.add({ name: 'documents.unarchive', model: this });
   return this;
 };
 
@@ -417,7 +409,6 @@ Document.prototype.delete = function(options) {
 
     await this.destroy({ transaction, ...options });
 
-    events.add({ name: 'documents.delete', model: this });
     return this;
   });
 };

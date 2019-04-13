@@ -1,7 +1,17 @@
 // @flow
 import Queue from 'bull';
 import services from './services';
-import { Collection, Document, Integration } from './models';
+
+type UserEvent = {
+  name: | 'users.create' // eslint-disable-line
+    | 'users.update'
+    | 'users.suspend'
+    | 'users.activate'
+    | 'users.delete',
+  modelId: string,
+  teamId: string,
+  actorId: string,
+};
 
 type DocumentEvent = {
   name: | 'documents.create' // eslint-disable-line
@@ -12,26 +22,39 @@ type DocumentEvent = {
     | 'documents.pin'
     | 'documents.unpin'
     | 'documents.archive'
+    | 'documents.unarchive'
     | 'documents.restore'
     | 'documents.star'
     | 'documents.unstar',
-  model: Document,
+  modelId: string,
+  collectionId: string,
+  teamId: string,
   actorId: string,
 };
 
 type CollectionEvent = {
-  name: 'collections.create' | 'collections.update' | 'collections.delete',
-  model: Collection,
+  name: | 'collections.create' // eslint-disable-line
+    | 'collections.update'
+    | 'collections.delete'
+    | 'collections.add_user'
+    | 'collections.remove_user',
+  modelId: string,
+  teamId: string,
   actorId: string,
 };
 
 type IntegrationEvent = {
   name: 'integrations.create' | 'integrations.update' | 'collections.delete',
-  model: Integration,
+  modelId: string,
+  teamId: string,
   actorId: string,
 };
 
-export type Event = DocumentEvent | CollectionEvent | IntegrationEvent;
+export type Event =
+  | UserEvent
+  | DocumentEvent
+  | CollectionEvent
+  | IntegrationEvent;
 
 const globalEventsQueue = new Queue('global events', process.env.REDIS_URL);
 const serviceEventsQueue = new Queue('service events', process.env.REDIS_URL);
