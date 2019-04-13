@@ -19,15 +19,15 @@ const importFile = async ({
 
     reader.onload = async ev => {
       const text = ev.target.result;
-      let data = {
-        parentDocument: undefined,
-        collection: { id: collectionId },
-        text,
-      };
 
-      if (documentId) data.parentDocument = documentId;
-
-      let document = new Document(data, documents);
+      let document = new Document(
+        {
+          parentDocumentId: documentId,
+          collectionId,
+          text,
+        },
+        documents
+      );
       try {
         document = await document.save({ publish: true });
         resolve(document);

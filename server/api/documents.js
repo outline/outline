@@ -495,13 +495,15 @@ router.post('documents.unstar', auth(), async ctx => {
 });
 
 router.post('documents.create', auth(), async ctx => {
-  const { title, text, publish, parentDocument, index } = ctx.body;
+  const { title, text, publish, parentDocumentId, index } = ctx.body;
   const collectionId = ctx.body.collection;
   ctx.assertUuid(collectionId, 'collection must be an uuid');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
-  if (parentDocument)
-    ctx.assertUuid(parentDocument, 'parentDocument must be an uuid');
+  if (parentDocumentId) {
+    ctx.assertUuid(parentDocumentId, 'parentDocumentId must be an uuid');
+  }
+
   if (index) ctx.assertPositiveInteger(index, 'index must be an integer (>=0)');
 
   const user = ctx.state.user;
@@ -515,19 +517,19 @@ router.post('documents.create', auth(), async ctx => {
   });
   authorize(user, 'publish', collection);
 
-  let parentDocumentObj = {};
-  if (parentDocument && collection.type === 'atlas') {
-    parentDocumentObj = await Document.findOne({
+  let parentDocument;
+  if (parentDocumentId && collection.type === 'atlas') {
+    parentDocument = await Document.findOne({
       where: {
-        id: parentDocument,
+        id: parentDocumentId,
         collectionId: collection.id,
       },
     });
-    authorize(user, 'read', parentDocumentObj);
+    authorize(user, 'read', parentDocument);
   }
 
   let document = await Document.create({
-    parentDocumentId: parentDocumentObj.id,
+    parentDocumentId,
     collectionId: collection.id,
     teamId: user.teamId,
     userId: user.id,

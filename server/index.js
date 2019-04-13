@@ -26,10 +26,16 @@ SocketAuth(io, {
     }
   },
   postAuthenticate: async (socket, data) => {
-    // automatically join the rooms associated with the current team
-    // and user so we can send authenticated events to the right folks
+    // join the rooms associated with the current team
+    // and user so we can send authenticated events
     socket.join(socket.client.user.teamId);
     socket.join(socket.client.user.id);
+
+    // join rooms associated with collections this user
+    // has access to on connection. New collection subscriptions
+    // are managed from the client as needed
+    const collectionIds = await socket.client.user.collectionIds();
+    collectionIds.forEach(collectionId => socket.join(collectionId));
   },
 });
 

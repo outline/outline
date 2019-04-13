@@ -1,7 +1,7 @@
 // @flow
 import type { Event } from '../events';
-import { Document } from '../models';
-import { presentDocument } from '../presenters';
+import { Document, Collection } from '../models';
+import { presentDocument, presentCollection } from '../presenters';
 import { socketio } from '../';
 
 export default class Websockets {
@@ -19,9 +19,10 @@ export default class Websockets {
           paranoid: true,
         });
 
-        return socketio.to(document.teamId).emit('entities', {
+        return socketio.to(document.collectionId).emit('entities', {
           event: event.name,
           documents: [await presentDocument(document)],
+          collections: [await presentCollection(document.collection)],
         });
       }
       case 'documents.create': {
@@ -30,6 +31,7 @@ export default class Websockets {
         return socketio.to(event.actorId).emit('entities', {
           event: event.name,
           documents: [await presentDocument(document)],
+          collections: [await presentCollection(document.collection)],
         });
       }
       case 'documents.star':
@@ -37,6 +39,18 @@ export default class Websockets {
         return socketio.to(event.actorId).emit(event.name, {
           documentId: event.modelId,
         });
+      }
+      case 'collections.create': {
+        const collection = await Collection.findById(event.modelId, {
+          paranoid: true,
+        });
+
+        return socketio
+          .to(collection.private ? collection.id : collection.teamId)
+          .emit('entities', {
+            event: event.name,
+            collections: [await presentCollection(collection)],
+          });
       }
       default:
     }

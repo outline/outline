@@ -943,7 +943,7 @@ describe('#documents.create', async () => {
         collection: collection.id,
         title: 'new document',
         text: 'hello',
-        parentDocument: document.id,
+        parentDocumentId: document.id,
         publish: true,
       },
     });
@@ -963,7 +963,7 @@ describe('#documents.create', async () => {
         collection: collection.id,
         title: 'new document',
         text: 'hello',
-        parentDocument: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
+        parentDocumentId: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
       },
     });
     const body = await res.json();
@@ -980,7 +980,7 @@ describe('#documents.create', async () => {
         collection: collection.id,
         title: 'new document',
         text: 'hello',
-        parentDocument: document.id,
+        parentDocumentId: document.id,
       },
     });
     const body = await res.json();
