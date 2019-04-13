@@ -30,7 +30,9 @@ router.post('team.update', auth(), async ctx => {
   }
   await team.save();
 
-  ctx.body = { data: await presentTeam(ctx, team) };
+  ctx.body = {
+    data: presentTeam(team),
+  };
 });
 
 export default router;

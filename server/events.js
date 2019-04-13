@@ -4,18 +4,31 @@ import services from './services';
 import { Collection, Document, Integration } from './models';
 
 type DocumentEvent = {
-  name: 'documents.create' | 'documents.update' | 'documents.publish',
+  name: | 'documents.create' // eslint-disable-line
+    | 'documents.publish'
+    | 'documents.update'
+    | 'documents.move'
+    | 'documents.delete'
+    | 'documents.pin'
+    | 'documents.unpin'
+    | 'documents.archive'
+    | 'documents.restore'
+    | 'documents.star'
+    | 'documents.unstar',
   model: Document,
+  actorId: string,
 };
 
 type CollectionEvent = {
-  name: 'collections.create' | 'collections.update',
+  name: 'collections.create' | 'collections.update' | 'collections.delete',
   model: Collection,
+  actorId: string,
 };
 
 type IntegrationEvent = {
-  name: 'integrations.create' | 'integrations.update',
+  name: 'integrations.create' | 'integrations.update' | 'collections.delete',
   model: Integration,
+  actorId: string,
 };
 
 export type Event = DocumentEvent | CollectionEvent | IntegrationEvent;

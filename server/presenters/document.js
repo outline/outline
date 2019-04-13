@@ -7,7 +7,7 @@ type Options = {
   isPublic?: boolean,
 };
 
-async function present(document: Document, options: ?Options) {
+export default async function present(document: Document, options: ?Options) {
   options = {
     isPublic: false,
     ...options,
@@ -58,5 +58,3 @@ async function present(document: Document, options: ?Options) {
 
   return data;
 }
-
-export default present;

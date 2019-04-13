@@ -2,7 +2,7 @@
 import { View } from '../models';
 import { presentUser } from '../presenters';
 
-function present(ctx: Object, view: View) {
+export default function present(view: View) {
   return {
     id: view.id,
     documentId: view.documentId,
@@ -12,5 +12,3 @@ function present(ctx: Object, view: View) {
     user: presentUser(view.user),
   };
 }
-
-export default present;

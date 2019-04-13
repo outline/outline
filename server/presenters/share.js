@@ -2,7 +2,7 @@
 import { Share } from '../models';
 import { presentUser } from '.';
 
-function present(ctx: Object, share: Share) {
+export default function present(share: Share) {
   return {
     id: share.id,
     documentTitle: share.document.title,
@@ -13,5 +13,3 @@ function present(ctx: Object, share: Share) {
     updatedAt: share.updatedAt,
   };
 }
-
-export default present;

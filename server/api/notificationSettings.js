@@ -25,7 +25,7 @@ router.post('notificationSettings.create', auth(), async ctx => {
   });
 
   ctx.body = {
-    data: presentNotificationSetting(ctx, setting),
+    data: presentNotificationSetting(setting),
   };
 });
 
@@ -38,7 +38,7 @@ router.post('notificationSettings.list', auth(), async ctx => {
   });
 
   ctx.body = {
-    data: settings.map(setting => presentNotificationSetting(ctx, setting)),
+    data: settings.map(presentNotificationSetting),
   };
 });
 

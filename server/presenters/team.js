@@ -1,9 +1,7 @@
 // @flow
 import { Team } from '../models';
 
-function present(ctx: Object, team: Team) {
-  ctx.cache.set(team.id, team);
-
+export default function present(team: Team) {
   return {
     id: team.id,
     name: team.name,
@@ -16,5 +14,3 @@ function present(ctx: Object, team: Team) {
     url: team.url,
   };
 }
-
-export default present;

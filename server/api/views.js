@@ -27,10 +27,8 @@ router.post('views.list', auth(), async ctx => {
     ],
   });
 
-  const data = views.map(view => presentView(ctx, view));
-
   ctx.body = {
-    data,
+    data: views.map(presentView),
   };
 });
 
