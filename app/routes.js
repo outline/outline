@@ -23,6 +23,7 @@ import Export from 'scenes/Settings/Export';
 import Error404 from 'scenes/Error404';
 
 import Layout from 'components/Layout';
+import SocketProvider from 'components/SocketProvider';
 import Authenticated from 'components/Authenticated';
 import RouteSidebarHidden from 'components/RouteSidebarHidden';
 import { matchDocumentSlug as slug } from 'utils/routeHelpers';
@@ -39,62 +40,68 @@ export default function Routes() {
       <Route exact path="/" component={Home} />
       <Route exact path="/share/:shareId" component={KeyedDocument} />
       <Authenticated>
-        <Layout>
-          <Switch>
-            <Route path="/dashboard/:tab" component={Dashboard} />
-            <Route path="/dashboard" component={Dashboard} />
-            <Route exact path="/starred" component={Starred} />
-            <Route exact path="/starred/:sort" component={Starred} />
-            <Route exact path="/drafts" component={Drafts} />
-            <Route exact path="/archive" component={Archive} />
-            <Route exact path="/settings" component={Settings} />
-            <Route exact path="/settings/details" component={Details} />
-            <Route exact path="/settings/security" component={Security} />
-            <Route exact path="/settings/people" component={People} />
-            <Route exact path="/settings/people/:filter" component={People} />
-            <Route exact path="/settings/shares" component={Shares} />
-            <Route exact path="/settings/tokens" component={Tokens} />
-            <Route
-              exact
-              path="/settings/notifications"
-              component={Notifications}
-            />
-            <Route
-              exact
-              path="/settings/integrations/slack"
-              component={Slack}
-            />
-            <Route
-              exact
-              path="/settings/integrations/zapier"
-              component={Zapier}
-            />
-            <Route exact path="/settings/export" component={Export} />
-            <RouteSidebarHidden
-              exact
-              path="/collections/:id/new"
-              component={NewDocument}
-            />
-            <Route exact path="/collections/:id/:tab" component={Collection} />
-            <Route exact path="/collections/:id" component={Collection} />
-            <Route exact path={`/d/${slug}`} component={RedirectDocument} />
-            <Route
-              exact
-              path={`/doc/${slug}/history/:revisionId?`}
-              component={KeyedDocument}
-            />
-            <RouteSidebarHidden
-              exact
-              path={`/doc/${slug}/edit`}
-              component={KeyedDocument}
-            />
-            <Route path={`/doc/${slug}`} component={KeyedDocument} />
-            <Route exact path="/search" component={Search} />
-            <Route exact path="/search/:query" component={Search} />
-            <Route path="/404" component={Error404} />
-            <Route component={NotFound} />
-          </Switch>
-        </Layout>
+        <SocketProvider>
+          <Layout>
+            <Switch>
+              <Route path="/dashboard/:tab" component={Dashboard} />
+              <Route path="/dashboard" component={Dashboard} />
+              <Route exact path="/starred" component={Starred} />
+              <Route exact path="/starred/:sort" component={Starred} />
+              <Route exact path="/drafts" component={Drafts} />
+              <Route exact path="/archive" component={Archive} />
+              <Route exact path="/settings" component={Settings} />
+              <Route exact path="/settings/details" component={Details} />
+              <Route exact path="/settings/security" component={Security} />
+              <Route exact path="/settings/people" component={People} />
+              <Route exact path="/settings/people/:filter" component={People} />
+              <Route exact path="/settings/shares" component={Shares} />
+              <Route exact path="/settings/tokens" component={Tokens} />
+              <Route
+                exact
+                path="/settings/notifications"
+                component={Notifications}
+              />
+              <Route
+                exact
+                path="/settings/integrations/slack"
+                component={Slack}
+              />
+              <Route
+                exact
+                path="/settings/integrations/zapier"
+                component={Zapier}
+              />
+              <Route exact path="/settings/export" component={Export} />
+              <RouteSidebarHidden
+                exact
+                path="/collections/:id/new"
+                component={NewDocument}
+              />
+              <Route
+                exact
+                path="/collections/:id/:tab"
+                component={Collection}
+              />
+              <Route exact path="/collections/:id" component={Collection} />
+              <Route exact path={`/d/${slug}`} component={RedirectDocument} />
+              <Route
+                exact
+                path={`/doc/${slug}/history/:revisionId?`}
+                component={KeyedDocument}
+              />
+              <RouteSidebarHidden
+                exact
+                path={`/doc/${slug}/edit`}
+                component={KeyedDocument}
+              />
+              <Route path={`/doc/${slug}`} component={KeyedDocument} />
+              <Route exact path="/search" component={Search} />
+              <Route exact path="/search/:query" component={Search} />
+              <Route path="/404" component={Error404} />
+              <Route component={NotFound} />
+            </Switch>
+          </Layout>
+        </SocketProvider>
       </Authenticated>
     </Switch>
   );

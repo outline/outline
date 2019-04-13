@@ -3,7 +3,6 @@ import * as React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import io from 'socket.io-client';
 import stores from 'stores';
 import 'shared/styles/prism.css';
 
@@ -12,10 +11,6 @@ import ScrollToTop from 'components/ScrollToTop';
 import Toasts from 'components/Toasts';
 import Theme from 'components/Theme';
 import Routes from './routes';
-
-const socket = io(window.location.origin, {
-  path: '/realtime',
-});
 
 // socket.on('connect', function(){});
 // socket.on('event', function(data){});

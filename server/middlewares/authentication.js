@@ -2,6 +2,7 @@
 import JWT from 'jsonwebtoken';
 import { type Context } from 'koa';
 import { User, ApiKey } from '../models';
+import { getUserForJWT } from '../utils/jwt';
 import { AuthenticationError, UserSuspendedError } from '../errors';
 import addMonths from 'date-fns/add_months';
 import addMinutes from 'date-fns/add_minutes';
@@ -60,23 +61,7 @@ export default function auth(options?: { required?: boolean } = {}) {
         if (!user) throw new AuthenticationError('Invalid API key');
       } else {
         // JWT
-        // Get user without verifying payload signature
-        let payload;
-        try {
-          payload = JWT.decode(token);
-        } catch (e) {
-          throw new AuthenticationError('Unable to decode JWT token');
-        }
-
-        if (!payload) throw new AuthenticationError('Invalid token');
-
-        user = await User.findById(payload.id);
-
-        try {
-          JWT.verify(token, user.jwtSecret);
-        } catch (e) {
-          throw new AuthenticationError('Invalid token');
-        }
+        user = await getUserForJWT(token);
       }
 
       if (user.isSuspended) {

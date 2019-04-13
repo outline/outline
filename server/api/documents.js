@@ -346,9 +346,8 @@ router.post('documents.restore', auth(), async ctx => {
 
     // restore a previously archived document
     await document.unarchive(user.id);
-
-    // restore a document to a specific revision
   } else if (revisionId) {
+    // restore a document to a specific revision
     authorize(user, 'update', document);
 
     const revision = await Revision.findById(revisionId);
@@ -360,6 +359,8 @@ router.post('documents.restore', auth(), async ctx => {
   } else {
     ctx.assertPresent(revisionId, 'revisionId is required');
   }
+
+  events.add({ name: 'documents.restore', model: document });
 
   ctx.body = {
     data: await presentDocument(document),
@@ -402,6 +403,8 @@ router.post('documents.pin', auth(), async ctx => {
   document.pinnedById = user.id;
   await document.save();
 
+  events.add({ name: 'documents.pin', model: document });
+
   ctx.body = {
     data: await presentDocument(document),
   };
@@ -417,6 +420,8 @@ router.post('documents.unpin', auth(), async ctx => {
 
   document.pinnedById = null;
   await document.save();
+
+  events.add({ name: 'documents.unpin', model: document });
 
   ctx.body = {
     data: await presentDocument(document),
@@ -434,6 +439,8 @@ router.post('documents.star', auth(), async ctx => {
   await Star.findOrCreate({
     where: { documentId: document.id, userId: user.id },
   });
+
+  events.add({ name: 'documents.star', model: document, actorId: user.id });
 });
 
 router.post('documents.unstar', auth(), async ctx => {
@@ -447,6 +454,8 @@ router.post('documents.unstar', auth(), async ctx => {
   await Star.destroy({
     where: { documentId: document.id, userId: user.id },
   });
+
+  events.add({ name: 'documents.unstar', model: document, actorId: user.id });
 });
 
 router.post('documents.create', auth(), async ctx => {
@@ -605,6 +614,8 @@ router.post('documents.archive', auth(), async ctx => {
   authorize(user, 'archive', document);
 
   await document.archive(user.id);
+
+  events.add({ name: 'documents.archive', model: document });
 
   ctx.body = {
     data: await presentDocument(document),
