@@ -24,14 +24,6 @@ export function documentUrl(doc: Document): string {
   return doc.url;
 }
 
-export function documentNewUrl(doc: Document): string {
-  const newUrl = `${doc.collection.url || ''}/new`;
-  if (doc.parentDocumentId) {
-    return `${newUrl}?parentDocument=${doc.parentDocumentId}`;
-  }
-  return newUrl;
-}
-
 export function documentEditUrl(doc: Document): string {
   return `${doc.url}/edit`;
 }
@@ -60,8 +52,17 @@ export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
   return newUrl;
 }
 
-export function newDocumentUrl(collection: Collection): string {
-  return `${collection.url || ''}/new`;
+export function newDocumentUrl(
+  collectionId: string,
+  parentDocumentId?: string
+): string {
+  let route = `/collections/${collectionId}/new`;
+
+  if (parentDocumentId) {
+    route += `?parentDocumentId=${parentDocumentId}`;
+  }
+
+  return route;
 }
 
 export function searchUrl(query?: string): string {

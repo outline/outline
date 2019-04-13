@@ -8,6 +8,7 @@ import { MoreIcon } from 'outline-icons';
 import Modal from 'components/Modal';
 import CollectionPermissions from 'scenes/CollectionPermissions';
 
+import { newDocumentUrl } from 'utils/routeHelpers';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
 import importFile from 'utils/importFile';
 import Collection from 'models/Collection';
@@ -34,7 +35,7 @@ class CollectionMenu extends React.Component<Props> {
   onNewDocument = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { collection } = this.props;
-    this.props.history.push(`${collection.url}/new`);
+    this.props.history.push(newDocumentUrl(collection.id));
   };
 
   onImportDocument = (ev: SyntheticEvent<*>) => {

@@ -67,7 +67,6 @@ export default async function documentMover({
     }
 
     await document.save({ transaction });
-    document.collection = newCollection;
     result.documents.push(document);
 
     await transaction.commit();

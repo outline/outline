@@ -2,7 +2,6 @@
 import { takeRight } from 'lodash';
 import { User, Document } from '../models';
 import presentUser from './user';
-import presentCollection from './collection';
 
 type Options = {
   isPublic?: boolean,
@@ -39,25 +38,22 @@ async function present(document: Document, options: ?Options) {
     revision: document.revisionCount,
     pinned: undefined,
     collectionId: undefined,
-    collection: undefined,
+    parentDocumentId: undefined,
   };
 
   if (!options.isPublic) {
     data.pinned = !!document.pinnedById;
     data.collectionId = document.collectionId;
+    data.parentDocumentId = document.parentDocumentId;
     data.createdBy = presentUser(document.createdBy);
     data.updatedBy = presentUser(document.updatedBy);
 
-    if (document.collection) {
-      data.collection = await presentCollection(document.collection);
-    }
-
-    // This could be further optimized by using ctx.cache
+    // TODO: This could be further optimized
     data.collaborators = await User.findAll({
       where: {
         id: takeRight(document.collaboratorIds, 10) || [],
       },
-    }).map(user => presentUser(user));
+    }).map(presentUser);
   }
 
   return data;

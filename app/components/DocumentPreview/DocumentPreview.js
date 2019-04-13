@@ -18,7 +18,6 @@ type Props = {
   showCollection?: boolean,
   showPublished?: boolean,
   showPin?: boolean,
-  link?: boolean,
   ref?: *,
 };
 
@@ -141,7 +140,6 @@ class DocumentPreview extends React.Component<Props> {
       showPin,
       highlight,
       context,
-      link,
       ...rest
     } = this.props;
 
@@ -151,15 +149,10 @@ class DocumentPreview extends React.Component<Props> {
 
     return (
       <DocumentLink
-        as={link === false ? 'div' : undefined}
-        to={
-          link === false
-            ? undefined
-            : {
-                pathname: document.url,
-                state: { title: document.title },
-              }
-        }
+        to={{
+          pathname: document.url,
+          state: { title: document.title },
+        }}
         {...rest}
       >
         <Heading>
@@ -185,7 +178,7 @@ class DocumentPreview extends React.Component<Props> {
         )}
         <PublishingInfo
           document={document}
-          collection={showCollection ? document.collection : undefined}
+          showCollection={showCollection}
           showPublished={showPublished}
         />
       </DocumentLink>

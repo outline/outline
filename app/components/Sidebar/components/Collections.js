@@ -34,10 +34,10 @@ class Collections extends React.Component<Props> {
 
   @keydown('n')
   goToNewDocument() {
-    const activeCollection = this.props.collections.active;
-    if (!activeCollection) return;
+    const { activeCollectionId } = this.props.ui;
+    if (!activeCollectionId) return;
 
-    this.props.history.push(newDocumentUrl(activeCollection));
+    this.props.history.push(newDocumentUrl(activeCollectionId));
   }
 
   render() {

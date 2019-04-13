@@ -1,16 +1,12 @@
 // @flow
 import { action, set, computed } from 'mobx';
 import invariant from 'invariant';
-
 import { client } from 'utils/ApiClient';
 import parseTitle from 'shared/utils/parseTitle';
 import unescape from 'shared/utils/unescape';
-
-import type { NavigationNode } from 'types';
 import BaseModel from 'models/BaseModel';
 import Revision from 'models/Revision';
 import User from 'models/User';
-import Collection from 'models/Collection';
 
 type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
@@ -20,7 +16,6 @@ export default class Document extends BaseModel {
   store: *;
 
   collaborators: User[];
-  collection: Collection;
   collectionId: string;
   lastViewedAt: ?string;
   createdAt: string;
@@ -34,7 +29,7 @@ export default class Document extends BaseModel {
   text: string;
   title: string;
   emoji: string;
-  parentDocument: ?string;
+  parentDocumentId: ?string;
   publishedAt: ?string;
   archivedAt: string;
   deletedAt: ?string;
@@ -56,28 +51,6 @@ export default class Document extends BaseModel {
   @computed
   get modifiedSinceViewed(): boolean {
     return !!this.lastViewedAt && this.lastViewedAt < this.updatedAt;
-  }
-
-  @computed
-  get pathToDocument(): NavigationNode[] {
-    let path;
-    const traveler = (nodes, previousPath) => {
-      nodes.forEach(childNode => {
-        const newPath = [...previousPath, childNode];
-        if (childNode.id === this.id) {
-          path = newPath;
-          return;
-        }
-        return traveler(childNode.children, newPath);
-      });
-    };
-
-    if (this.collection && this.collection.documents) {
-      traveler(this.collection.documents, []);
-      if (path) return path;
-    }
-
-    return [];
   }
 
   @computed
@@ -104,13 +77,6 @@ export default class Document extends BaseModel {
   @computed
   get allowSave(): boolean {
     return !this.isEmpty && !this.isSaving;
-  }
-
-  @computed
-  get parentDocumentId(): ?string {
-    return this.pathToDocument.length > 1
-      ? this.pathToDocument[this.pathToDocument.length - 2].id
-      : null;
   }
 
   @action
@@ -203,30 +169,25 @@ export default class Document extends BaseModel {
     try {
       if (isCreating) {
         const data = {
-          parentDocument: undefined,
-          collection: this.collection.id,
+          parentDocumentId: this.parentDocumentId,
+          collection: this.collectionId,
           title: this.title,
           text: this.text,
           ...options,
         };
-        if (this.parentDocument) {
-          data.parentDocument = this.parentDocument;
-        }
-        const document = await this.store.create(data);
-        return document;
-      } else {
-        const document = await this.store.update({
-          id: this.id,
-          title: this.title,
-          text: this.text,
-          lastRevision: this.revision,
-          ...options,
-        });
-        return document;
+        return this.store.create(data);
       }
+
+      return this.store.update({
+        id: this.id,
+        title: this.title,
+        text: this.text,
+        lastRevision: this.revision,
+        ...options,
+      });
     } finally {
       if (wasDraft && options.publish) {
-        this.store.rootStore.collections.fetch(this.collection.id, {
+        this.store.rootStore.collections.fetch(this.collectionId, {
           force: true,
         });
       }

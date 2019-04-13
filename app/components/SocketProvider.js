@@ -28,11 +28,6 @@ class SocketProvider extends React.Component<Props> {
       this.socket.emit('authentication', {
         token: auth.token,
       });
-      this.socket.on('authenticated', () => {
-        // use the socket as usual
-        ui.showToast('Authed!');
-        console.log(this.socket);
-      });
       this.socket.on('unauthorized', err => {
         ui.showToast(err.message);
       });

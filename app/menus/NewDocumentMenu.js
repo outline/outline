@@ -22,15 +22,15 @@ class NewDocumentMenu extends React.Component<Props> {
     this.redirectTo = undefined;
   }
 
-  handleNewDocument = collection => {
-    this.redirectTo = newDocumentUrl(collection);
+  handleNewDocument = (collectionId: string) => {
+    this.redirectTo = newDocumentUrl(collectionId);
   };
 
   onOpen = () => {
     const { collections } = this.props;
 
     if (collections.orderedData.length === 1) {
-      this.handleNewDocument(collections.orderedData[0]);
+      this.handleNewDocument(collections.orderedData[0].id);
     }
   };
 
@@ -49,7 +49,7 @@ class NewDocumentMenu extends React.Component<Props> {
         {collections.orderedData.map(collection => (
           <DropdownMenuItem
             key={collection.id}
-            onClick={() => this.handleNewDocument(collection)}
+            onClick={() => this.handleNewDocument(collection.id)}
           >
             {collection.private ? (
               <PrivateCollectionIcon color={collection.color} />

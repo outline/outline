@@ -9,6 +9,7 @@ import HelpText from 'components/HelpText';
 import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
+import { collectionUrl } from 'utils/routeHelpers';
 
 type Props = {
   history: Object,
@@ -25,12 +26,13 @@ class DocumentDelete extends React.Component<Props> {
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.isDeleting = true;
-    const { collection } = this.props.document;
 
     try {
       await this.props.document.delete();
       if (this.props.ui.activeDocumentId === this.props.document.id) {
-        this.props.history.push(collection.url);
+        this.props.history.push(
+          collectionUrl(this.props.document.collectionId)
+        );
       }
       this.props.onSubmit();
     } catch (err) {

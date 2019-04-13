@@ -86,7 +86,7 @@ class CollectionScene extends React.Component<Props> {
     ev.preventDefault();
 
     if (this.collection) {
-      this.redirectTo = `${this.collection.url}/new`;
+      this.redirectTo = newDocumentUrl(this.collection.id);
     }
   };
 
@@ -139,7 +139,7 @@ class CollectionScene extends React.Component<Props> {
                   documents yet.<br />Get started by creating a new one!
                 </HelpText>
                 <Wrapper>
-                  <Link to={newDocumentUrl(collection)}>
+                  <Link to={newDocumentUrl(collection.id)}>
                     <Button icon={<NewDocumentIcon color={theme.buttonText} />}>
                       Create a document
                     </Button>
