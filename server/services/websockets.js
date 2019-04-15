@@ -40,18 +40,73 @@ export default class Websockets {
           documentId: event.modelId,
         });
       }
+      case 'documents.move': {
+        const documents = await Document.findAll({
+          where: {
+            id: event.documentIds,
+          },
+          paranoid: true,
+        });
+        const collections = await Collection.findAll({
+          where: {
+            id: event.collectionIds,
+          },
+          paranoid: true,
+        });
+        documents.forEach(async document => {
+          socketio.to(document.collectionId).emit('entities', {
+            event: event.name,
+            documents: [await presentDocument(document)],
+          });
+        });
+        collections.forEach(async collection => {
+          socketio.to(collection.id).emit('entities', {
+            event: event.name,
+            collections: [await presentCollection(collection)],
+          });
+        });
+        return;
+      }
       case 'collections.create': {
         const collection = await Collection.findById(event.modelId, {
           paranoid: true,
         });
 
-        return socketio
+        socketio
           .to(collection.private ? collection.id : collection.teamId)
           .emit('entities', {
             event: event.name,
             collections: [await presentCollection(collection)],
           });
+        return socketio
+          .to(collection.private ? collection.id : collection.teamId)
+          .emit('join', {
+            event: event.name,
+            roomId: collection.id,
+          });
       }
+      case 'collections.update':
+      case 'collections.delete': {
+        const collection = await Collection.findById(event.modelId, {
+          paranoid: true,
+        });
+
+        return socketio.to(collection.id).emit('entities', {
+          event: event.name,
+          collections: [await presentCollection(collection)],
+        });
+      }
+      case 'collections.add_user':
+        return socketio.to(event.modelId).emit('join', {
+          event: event.name,
+          roomId: event.collectionId,
+        });
+      case 'collections.remove_user':
+        return socketio.to(event.modelId).emit('leave', {
+          event: event.name,
+          roomId: event.collectionId,
+        });
+
       default:
     }
   }

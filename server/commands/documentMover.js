@@ -1,6 +1,7 @@
 // @flow
 import { Document, Collection } from '../models';
 import { sequelize } from '../sequelize';
+import events from '../events';
 
 export default async function documentMover({
   document,
@@ -70,6 +71,14 @@ export default async function documentMover({
     result.documents.push(document);
 
     await transaction.commit();
+
+    events.add({
+      name: 'documents.move',
+      modelId: document.id,
+      collectionIds: result.collections.map(c => c.id),
+      documentIds: result.documents.map(d => d.id),
+      teamId: document.teamId,
+    });
   } catch (err) {
     if (transaction) {
       await transaction.rollback();

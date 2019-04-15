@@ -13,35 +13,49 @@ type UserEvent = {
   actorId: string,
 };
 
-type DocumentEvent = {
+type DocumentEvent =
+  | {
   name: | 'documents.create' // eslint-disable-line
-    | 'documents.publish'
-    | 'documents.update'
-    | 'documents.move'
-    | 'documents.delete'
-    | 'documents.pin'
-    | 'documents.unpin'
-    | 'documents.archive'
-    | 'documents.unarchive'
-    | 'documents.restore'
-    | 'documents.star'
-    | 'documents.unstar',
-  modelId: string,
-  collectionId: string,
-  teamId: string,
-  actorId: string,
-};
+        | 'documents.publish'
+        | 'documents.update'
+        | 'documents.delete'
+        | 'documents.pin'
+        | 'documents.unpin'
+        | 'documents.archive'
+        | 'documents.unarchive'
+        | 'documents.restore'
+        | 'documents.star'
+        | 'documents.unstar',
+      modelId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+    }
+  | {
+      name: 'documents.move',
+      modelId: string,
+      collectionIds: string[],
+      documentIds: string[],
+      teamId: string,
+      actorId: string,
+    };
 
-type CollectionEvent = {
+type CollectionEvent =
+  | {
   name: | 'collections.create' // eslint-disable-line
-    | 'collections.update'
-    | 'collections.delete'
-    | 'collections.add_user'
-    | 'collections.remove_user',
-  modelId: string,
-  teamId: string,
-  actorId: string,
-};
+        | 'collections.update'
+        | 'collections.delete',
+      modelId: string,
+      teamId: string,
+      actorId: string,
+    }
+  | {
+      name: 'collections.add_user' | 'collections.remove_user',
+      modelId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+    };
 
 type IntegrationEvent = {
   name: 'integrations.create' | 'integrations.update' | 'collections.delete',

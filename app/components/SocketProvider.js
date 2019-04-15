@@ -49,6 +49,12 @@ class SocketProvider extends React.Component<Props> {
         const document = documents.get(event.documentId);
         if (document) document.starred = false;
       });
+      this.socket.on('join', event => {
+        // request API to join room
+      });
+      this.socket.on('leave', event => {
+        // request API to leave room
+      });
     });
   }
 

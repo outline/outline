@@ -81,7 +81,8 @@ router.post('collections.add_user', auth(), async ctx => {
 
   events.add({
     name: 'collections.add_user',
-    modelId: collection.id,
+    modelId: userId,
+    collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
   });
@@ -110,7 +111,8 @@ router.post('collections.remove_user', auth(), async ctx => {
 
   events.add({
     name: 'collections.remove_user',
-    modelId: collection.id,
+    modelId: userId,
+    collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
   });
