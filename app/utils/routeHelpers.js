@@ -1,6 +1,5 @@
 // @flow
 import Document from 'models/Document';
-import Collection from 'models/Collection';
 
 export function homeUrl(): string {
   return '/dashboard';

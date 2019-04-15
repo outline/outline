@@ -10,7 +10,6 @@ import removeMarkdown from '@tommoor/remove-markdown';
 import isUUID from 'validator/lib/isUUID';
 import { Collection, User } from '../models';
 import { DataTypes, sequelize } from '../sequelize';
-import events from '../events';
 import parseTitle from '../../shared/utils/parseTitle';
 import unescape from '../../shared/utils/unescape';
 import Revision from './Revision';
