@@ -168,14 +168,13 @@ export default class Document extends BaseModel {
 
     try {
       if (isCreating) {
-        const data = {
+        return this.store.create({
           parentDocumentId: this.parentDocumentId,
-          collection: this.collectionId,
+          collectionId: this.collectionId,
           title: this.title,
           text: this.text,
           ...options,
-        };
-        return this.store.create(data);
+        });
       }
 
       return this.store.update({

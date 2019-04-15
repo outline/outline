@@ -495,9 +495,15 @@ router.post('documents.unstar', auth(), async ctx => {
 });
 
 router.post('documents.create', auth(), async ctx => {
-  const { title, text, publish, parentDocumentId, index } = ctx.body;
-  const collectionId = ctx.body.collection;
-  ctx.assertUuid(collectionId, 'collection must be an uuid');
+  const {
+    title,
+    text,
+    publish,
+    collectionId,
+    parentDocumentId,
+    index,
+  } = ctx.body;
+  ctx.assertUuid(collectionId, 'collectionId must be an uuid');
   ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
   if (parentDocumentId) {

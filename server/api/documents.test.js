@@ -112,7 +112,7 @@ describe('#documents.info', async () => {
   });
 
   it('should return document from shareId with token', async () => {
-    const { user, document, collection } = await seed();
+    const { user, document } = await seed();
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
@@ -890,7 +890,7 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
         title: 'new document',
         text: 'hello',
         publish: true,
@@ -908,7 +908,7 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
         title: ' ',
         text: ' ',
       },
@@ -924,7 +924,7 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
         title:
           'This is a really long title that is not acceptable to Outline because it is so ridiculously long that we need to have a limit somewhere',
         text: ' ',
@@ -938,10 +938,10 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
+        parentDocumentId: document.id,
         title: 'new document',
         text: 'hello',
-        parentDocumentId: document.id,
         publish: true,
       },
     });
@@ -956,10 +956,10 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
+        parentDocumentId: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
         title: 'new document',
         text: 'hello',
-        parentDocumentId: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
       },
     });
     const body = await res.json();
@@ -973,10 +973,10 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
+        parentDocumentId: document.id,
         title: 'new document',
         text: 'hello',
-        parentDocumentId: document.id,
       },
     });
     const body = await res.json();

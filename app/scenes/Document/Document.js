@@ -137,7 +137,7 @@ class DocumentScene extends React.Component<Props> {
     if (props.newDocument) {
       this.document = new Document(
         {
-          collection: { id: props.match.params.id },
+          collectionId: props.match.params.id,
           parentDocumentId: new URLSearchParams(props.location.search).get(
             'parentDocumentId'
           ),
