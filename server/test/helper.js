@@ -1,4 +1,5 @@
 // @flow
+/* global jest */
 require('dotenv').config({ silent: true });
 
 // test environment variables
@@ -26,3 +27,7 @@ function runMigrations() {
 }
 
 runMigrations();
+
+// This is needed for the relative manual mock to be picked up
+// $FlowFixMe
+jest.mock('../events');

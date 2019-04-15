@@ -48,15 +48,8 @@ server.on('listening', () => {
   console.log(`\n> Listening on http://localhost:${address.port}\n`);
 });
 
-io.on('connection', socket => {
-  console.log('a user connected');
-  socket.on('disconnect', function() {
-    console.log('user disconnected');
-  });
-});
+server.listen(process.env.PORT || '3000');
 
 export const socketio = io;
-
-server.listen(process.env.PORT || '3000');
 
 export default server;

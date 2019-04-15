@@ -1,6 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
-import app from '..';
+import app from '../app';
 import { Document, View, Star, Revision } from '../models';
 import { flushdb, seed } from '../test/support';
 import {
@@ -79,7 +79,6 @@ describe('#documents.info', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
-    expect(body.data.collection).toEqual(undefined);
     expect(body.data.createdBy).toEqual(undefined);
     expect(body.data.updatedBy).toEqual(undefined);
   });
@@ -126,7 +125,6 @@ describe('#documents.info', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
-    expect(body.data.collection.id).toEqual(collection.id);
     expect(body.data.createdBy.id).toEqual(user.id);
     expect(body.data.updatedBy.id).toEqual(user.id);
   });
@@ -951,8 +949,6 @@ describe('#documents.create', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('new document');
-    expect(body.data.collection.documents.length).toBe(2);
-    expect(body.data.collection.documents[0].children[0].id).toBe(body.data.id);
   });
 
   it('should error with invalid parentDocument', async () => {
@@ -987,7 +983,6 @@ describe('#documents.create', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('new document');
-    expect(body.data.collection.documents.length).toBe(2);
   });
 });
 
@@ -1009,7 +1004,6 @@ describe('#documents.update', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Updated title');
     expect(body.data.text).toBe('Updated text');
-    expect(body.data.collection.documents[0].title).toBe('Updated title');
   });
 
   it('should not edit archived document', async () => {
@@ -1070,7 +1064,6 @@ describe('#documents.update', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Untitled document');
     expect(body.data.text).toBe('# Untitled document');
-    expect(body.data.collection.documents[0].title).toBe('Untitled document');
   });
 
   it('should fail if document lastRevision does not match', async () => {
@@ -1121,9 +1114,6 @@ describe('#documents.update', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Updated title');
-    expect(body.data.collection.documents[0].children[1].title).toBe(
-      'Updated title'
-    );
   });
 
   it('should require authentication', async () => {
