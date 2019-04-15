@@ -16,7 +16,7 @@ export default class Websockets {
       case 'documents.update':
       case 'documents.delete': {
         const document = await Document.findById(event.modelId, {
-          paranoid: true,
+          paranoid: false,
         });
 
         return socketio.to(document.collectionId).emit('entities', {
@@ -45,13 +45,13 @@ export default class Websockets {
           where: {
             id: event.documentIds,
           },
-          paranoid: true,
+          paranoid: false,
         });
         const collections = await Collection.findAll({
           where: {
             id: event.collectionIds,
           },
-          paranoid: true,
+          paranoid: false,
         });
         documents.forEach(async document => {
           socketio.to(document.collectionId).emit('entities', {
@@ -69,7 +69,7 @@ export default class Websockets {
       }
       case 'collections.create': {
         const collection = await Collection.findById(event.modelId, {
-          paranoid: true,
+          paranoid: false,
         });
 
         socketio
@@ -88,7 +88,7 @@ export default class Websockets {
       case 'collections.update':
       case 'collections.delete': {
         const collection = await Collection.findById(event.modelId, {
-          paranoid: true,
+          paranoid: false,
         });
 
         return socketio.to(collection.id).emit('entities', {

@@ -22,6 +22,7 @@ export default class Collection extends BaseModel {
   documents: NavigationNode[];
   createdAt: ?string;
   updatedAt: ?string;
+  deletedAt: ?string;
   url: string;
 
   @computed

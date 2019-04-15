@@ -49,11 +49,17 @@ class SocketProvider extends React.Component<Props> {
         const document = documents.get(event.documentId);
         if (document) document.starred = false;
       });
+
+      // received a message from the API server that we should request
+      // to join a specific room. Forward that to the ws server.
       this.socket.on('join', event => {
-        // request API to join room
+        this.socket.emit('join', event);
       });
+
+      // received a message from the API server that we should request
+      // to leave a specific room. Forward that to the ws server.
       this.socket.on('leave', event => {
-        // request API to leave room
+        this.socket.emit('leave', event);
       });
     });
   }

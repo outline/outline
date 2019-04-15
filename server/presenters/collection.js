@@ -29,6 +29,7 @@ export default function present(collection: Collection) {
     private: collection.private,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
+    deletedAt: collection.deletedAt,
     documents: undefined,
   };
 

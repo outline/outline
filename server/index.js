@@ -31,6 +31,16 @@ SocketAuth(io, {
     socket.join(socket.client.user.teamId);
     socket.join(socket.client.user.id);
 
+    socket.on('join', event => {
+      // TODO: authorization
+      socket.join(event.roomId);
+    });
+
+    socket.on('leave', event => {
+      // TODO: authorization
+      socket.leave(event.roomId);
+    });
+
     // join rooms associated with collections this user
     // has access to on connection. New collection subscriptions
     // are managed from the client as needed
