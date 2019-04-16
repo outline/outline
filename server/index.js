@@ -8,58 +8,62 @@ import { Collection } from './models';
 import app from './app';
 import policy from './policies';
 
-const { can } = policy;
-
 const server = http.createServer(app.callback());
-const io = IO(server, {
-  path: '/realtime',
-  serveClient: false,
-  cookie: false,
-});
+let io;
 
-io.adapter(socketRedisAdapter(process.env.REDIS_URL));
+if (process.env.WEBSOCKETS_ENABLED === 'true') {
+  const { can } = policy;
 
-SocketAuth(io, {
-  authenticate: async (socket, data, callback) => {
-    const { token } = data;
+  io = IO(server, {
+    path: '/realtime',
+    serveClient: false,
+    cookie: false,
+  });
 
-    try {
-      const user = await getUserForJWT(token);
-      socket.client.user = user;
+  io.adapter(socketRedisAdapter(process.env.REDIS_URL));
 
-      return callback(null, true);
-    } catch (err) {
-      return callback(err);
-    }
-  },
-  postAuthenticate: async (socket, data) => {
-    const { user } = socket.client;
-    // join the rooms associated with the current team
-    // and user so we can send authenticated events
-    socket.join(user.teamId);
-    socket.join(user.id);
+  SocketAuth(io, {
+    authenticate: async (socket, data, callback) => {
+      const { token } = data;
 
-    // join rooms associated with collections this user
-    // has access to on connection. New collection subscriptions
-    // are managed from the client as needed
-    const collectionIds = await user.collectionIds();
-    collectionIds.forEach(collectionId => socket.join(collectionId));
+      try {
+        const user = await getUserForJWT(token);
+        socket.client.user = user;
 
-    // allow the client to request to join rooms based on
-    // new collections being created.
-    socket.on('join', async event => {
-      const collection = await Collection.findById(event.roomId);
-
-      if (can(user, 'read', collection)) {
-        socket.join(event.roomId);
+        return callback(null, true);
+      } catch (err) {
+        return callback(err);
       }
-    });
+    },
+    postAuthenticate: async (socket, data) => {
+      const { user } = socket.client;
+      // join the rooms associated with the current team
+      // and user so we can send authenticated events
+      socket.join(user.teamId);
+      socket.join(user.id);
 
-    socket.on('leave', event => {
-      socket.leave(event.roomId);
-    });
-  },
-});
+      // join rooms associated with collections this user
+      // has access to on connection. New collection subscriptions
+      // are managed from the client as needed
+      const collectionIds = await user.collectionIds();
+      collectionIds.forEach(collectionId => socket.join(collectionId));
+
+      // allow the client to request to join rooms based on
+      // new collections being created.
+      socket.on('join', async event => {
+        const collection = await Collection.findById(event.roomId);
+
+        if (can(user, 'read', collection)) {
+          socket.join(event.roomId);
+        }
+      });
+
+      socket.on('leave', event => {
+        socket.leave(event.roomId);
+      });
+    },
+  });
+}
 
 server.on('error', err => {
   throw err;

@@ -18,11 +18,15 @@ type Props = {
 };
 
 class SocketProvider extends React.Component<Props> {
-  socket = io(window.location.origin, {
-    path: '/realtime',
-  });
+  socket;
 
   componentDidMount() {
+    if (!process.env.WEBSOCKETS_ENABLED) return;
+
+    this.socket = io(window.location.origin, {
+      path: '/realtime',
+    });
+
     const { auth, ui, documents, collections } = this.props;
     if (!auth.token) return;
 

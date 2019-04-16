@@ -6,6 +6,8 @@ import { socketio } from '../';
 
 export default class Websockets {
   async on(event: Event) {
+    if (process.env.WEBSOCKETS_ENABLED !== 'true' || !socketio) return;
+
     switch (event.name) {
       case 'documents.publish':
       case 'documents.restore':
