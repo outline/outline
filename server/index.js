@@ -2,6 +2,7 @@
 import http from 'http';
 import IO from 'socket.io';
 import SocketAuth from 'socketio-auth';
+import socketRedisAdapter from 'socket.io-redis';
 import { getUserForJWT } from './utils/jwt';
 import { Collection } from './models';
 import app from './app';
@@ -15,6 +16,8 @@ const io = IO(server, {
   serveClient: false,
   cookie: false,
 });
+
+io.adapter(socketRedisAdapter(process.env.REDIS_URL));
 
 SocketAuth(io, {
   authenticate: async (socket, data, callback) => {
