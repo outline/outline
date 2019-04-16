@@ -1,9 +1,13 @@
 // @flow
+import http from 'http';
 import IO from 'socket.io';
 import SocketAuth from 'socketio-auth';
 import { getUserForJWT } from './utils/jwt';
-import http from 'http';
+import { Collection } from './models';
 import app from './app';
+import policy from './policies';
+
+const { can } = policy;
 
 const server = http.createServer(app.callback());
 const io = IO(server, {
@@ -26,26 +30,31 @@ SocketAuth(io, {
     }
   },
   postAuthenticate: async (socket, data) => {
+    const { user } = socket.client;
     // join the rooms associated with the current team
     // and user so we can send authenticated events
-    socket.join(socket.client.user.teamId);
-    socket.join(socket.client.user.id);
-
-    socket.on('join', event => {
-      // TODO: authorization
-      socket.join(event.roomId);
-    });
-
-    socket.on('leave', event => {
-      // TODO: authorization
-      socket.leave(event.roomId);
-    });
+    socket.join(user.teamId);
+    socket.join(user.id);
 
     // join rooms associated with collections this user
     // has access to on connection. New collection subscriptions
     // are managed from the client as needed
-    const collectionIds = await socket.client.user.collectionIds();
+    const collectionIds = await user.collectionIds();
     collectionIds.forEach(collectionId => socket.join(collectionId));
+
+    // allow the client to request to join rooms based on
+    // new collections being created.
+    socket.on('join', async event => {
+      const collection = await Collection.findById(event.roomId);
+
+      if (can(user, 'read', collection)) {
+        socket.join(event.roomId);
+      }
+    });
+
+    socket.on('leave', event => {
+      socket.leave(event.roomId);
+    });
   },
 });
 
