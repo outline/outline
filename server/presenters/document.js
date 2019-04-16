@@ -34,7 +34,7 @@ export default async function present(document: Document, options: ?Options) {
     deletedAt: document.deletedAt,
     team: document.teamId,
     collaborators: [],
-    starred: !!(document.starred && document.starred.length),
+    starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,
     pinned: undefined,
     collectionId: undefined,

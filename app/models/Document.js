@@ -24,7 +24,6 @@ export default class Document extends BaseModel {
   updatedBy: User;
   id: string;
   team: string;
-  starred: boolean;
   pinned: boolean;
   text: string;
   title: string;
@@ -51,6 +50,11 @@ export default class Document extends BaseModel {
   @computed
   get modifiedSinceViewed(): boolean {
     return !!this.lastViewedAt && this.lastViewedAt < this.updatedAt;
+  }
+
+  @computed
+  get isStarred(): boolean {
+    return this.store.starredIds.get(this.id);
   }
 
   @computed
@@ -124,25 +128,13 @@ export default class Document extends BaseModel {
   };
 
   @action
-  star = async () => {
-    this.starred = true;
-    try {
-      await this.store.star(this);
-    } catch (err) {
-      this.starred = false;
-      throw err;
-    }
+  star = () => {
+    return this.store.star(this);
   };
 
   @action
   unstar = async () => {
-    this.starred = false;
-    try {
-      await this.store.unstar(this);
-    } catch (err) {
-      this.starred = true;
-      throw err;
-    }
+    return this.store.unstar(this);
   };
 
   @action

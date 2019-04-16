@@ -160,7 +160,7 @@ class DocumentPreview extends React.Component<Props> {
           {!document.isDraft &&
             !document.isArchived && (
               <Actions>
-                {document.starred ? (
+                {document.isStarred ? (
                   <StyledStar onClick={this.unstar} solid />
                 ) : (
                   <StyledStar onClick={this.star} />

@@ -42,12 +42,10 @@ class SocketProvider extends React.Component<Props> {
         }
       });
       this.socket.on('documents.star', event => {
-        const document = documents.get(event.documentId);
-        if (document) document.starred = true;
+        documents.starredIds.set(event.documentId, true);
       });
       this.socket.on('documents.unstar', event => {
-        const document = documents.get(event.documentId);
-        if (document) document.starred = false;
+        documents.starredIds.set(event.documentId, false);
       });
 
       // received a message from the API server that we should request

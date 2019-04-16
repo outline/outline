@@ -132,7 +132,7 @@ class DocumentMenu extends React.Component<Props> {
                   Pin to collection
                 </DropdownMenuItem>
               ))}
-            {document.starred ? (
+            {document.isStarred ? (
               <DropdownMenuItem onClick={this.handleUnstar}>
                 Unstar
               </DropdownMenuItem>
