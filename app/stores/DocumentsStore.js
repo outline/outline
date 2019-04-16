@@ -331,8 +331,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   _add = this.add;
 
   @action
-  add = async (item: Object) => {
-    const document = await this._add(item);
+  add = (item: Object) => {
+    const document = this._add(item);
 
     if (item.starred !== undefined) {
       this.starredIds.set(document.id, item.starred);
