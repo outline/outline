@@ -55,7 +55,7 @@ class Editor extends React.Component<Props> {
   };
 
   onShowToast = (message: string) => {
-    this.props.ui.showToast(message, 'success');
+    this.props.ui.showToast(message);
   };
 
   getLinkComponent = node => {

@@ -45,7 +45,7 @@ class Profile extends React.Component<Props> {
       name: this.name,
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast('Profile saved', 'success');
+    this.props.ui.showToast('Profile saved');
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -58,7 +58,7 @@ class Profile extends React.Component<Props> {
     await this.props.auth.updateUser({
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast('Profile picture updated', 'success');
+    this.props.ui.showToast('Profile picture updated');
   };
 
   handleAvatarError = (error: ?string) => {

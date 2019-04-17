@@ -39,7 +39,25 @@ class SocketProvider extends React.Component<Props> {
       });
       this.socket.on('entities', event => {
         if (event.documents) {
-          event.documents.forEach(documents.add);
+          event.documents.forEach(doc => {
+            documents.add(doc);
+
+            // TODO: Move this to the document scene once data loading
+            // has been refactored to be friendlier there.
+            if (
+              auth.user &&
+              doc.id === ui.activeDocumentId &&
+              doc.updatedBy.id !== auth.user.id
+            ) {
+              ui.showToast(`Document updated by ${doc.updatedBy.name}`, {
+                timeout: 30 * 1000,
+                action: {
+                  text: 'Refresh',
+                  onClick: () => window.location.reload(),
+                },
+              });
+            }
+          });
         }
         if (event.collections) {
           event.collections.forEach(collections.add);
