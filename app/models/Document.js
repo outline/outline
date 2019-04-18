@@ -1,16 +1,12 @@
 // @flow
 import { action, set, computed } from 'mobx';
 import invariant from 'invariant';
-
 import { client } from 'utils/ApiClient';
 import parseTitle from 'shared/utils/parseTitle';
 import unescape from 'shared/utils/unescape';
-
-import type { NavigationNode } from 'types';
 import BaseModel from 'models/BaseModel';
 import Revision from 'models/Revision';
 import User from 'models/User';
-import Collection from 'models/Collection';
 
 type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
@@ -20,7 +16,6 @@ export default class Document extends BaseModel {
   store: *;
 
   collaborators: User[];
-  collection: Collection;
   collectionId: string;
   lastViewedAt: ?string;
   createdAt: string;
@@ -29,12 +24,11 @@ export default class Document extends BaseModel {
   updatedBy: User;
   id: string;
   team: string;
-  starred: boolean;
   pinned: boolean;
   text: string;
   title: string;
   emoji: string;
-  parentDocument: ?string;
+  parentDocumentId: ?string;
   publishedAt: ?string;
   archivedAt: string;
   deletedAt: ?string;
@@ -59,25 +53,8 @@ export default class Document extends BaseModel {
   }
 
   @computed
-  get pathToDocument(): NavigationNode[] {
-    let path;
-    const traveler = (nodes, previousPath) => {
-      nodes.forEach(childNode => {
-        const newPath = [...previousPath, childNode];
-        if (childNode.id === this.id) {
-          path = newPath;
-          return;
-        }
-        return traveler(childNode.children, newPath);
-      });
-    };
-
-    if (this.collection && this.collection.documents) {
-      traveler(this.collection.documents, []);
-      if (path) return path;
-    }
-
-    return [];
+  get isStarred(): boolean {
+    return this.store.starredIds.get(this.id);
   }
 
   @computed
@@ -104,13 +81,6 @@ export default class Document extends BaseModel {
   @computed
   get allowSave(): boolean {
     return !this.isEmpty && !this.isSaving;
-  }
-
-  @computed
-  get parentDocumentId(): ?string {
-    return this.pathToDocument.length > 1
-      ? this.pathToDocument[this.pathToDocument.length - 2].id
-      : null;
   }
 
   @action
@@ -158,25 +128,13 @@ export default class Document extends BaseModel {
   };
 
   @action
-  star = async () => {
-    this.starred = true;
-    try {
-      await this.store.star(this);
-    } catch (err) {
-      this.starred = false;
-      throw err;
-    }
+  star = () => {
+    return this.store.star(this);
   };
 
   @action
   unstar = async () => {
-    this.starred = false;
-    try {
-      await this.store.unstar(this);
-    } catch (err) {
-      this.starred = true;
-      throw err;
-    }
+    return this.store.unstar(this);
   };
 
   @action
@@ -202,31 +160,25 @@ export default class Document extends BaseModel {
 
     try {
       if (isCreating) {
-        const data = {
-          parentDocument: undefined,
-          collection: this.collection.id,
+        return this.store.create({
+          parentDocumentId: this.parentDocumentId,
+          collectionId: this.collectionId,
           title: this.title,
           text: this.text,
-          ...options,
-        };
-        if (this.parentDocument) {
-          data.parentDocument = this.parentDocument;
-        }
-        const document = await this.store.create(data);
-        return document;
-      } else {
-        const document = await this.store.update({
-          id: this.id,
-          title: this.title,
-          text: this.text,
-          lastRevision: this.revision,
           ...options,
         });
-        return document;
       }
+
+      return this.store.update({
+        id: this.id,
+        title: this.title,
+        text: this.text,
+        lastRevision: this.revision,
+        ...options,
+      });
     } finally {
       if (wasDraft && options.publish) {
-        this.store.rootStore.collections.fetch(this.collection.id, {
+        this.store.rootStore.collections.fetch(this.collectionId, {
           force: true,
         });
       }

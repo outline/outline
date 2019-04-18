@@ -8,7 +8,7 @@ type Action = {
   value: string,
 };
 
-function present(
+export default function present(
   document: Document,
   team: Team,
   context?: string,
@@ -31,5 +31,3 @@ function present(
     actions,
   };
 }
-
-export default present;

@@ -23,7 +23,7 @@ router.post('apiKeys.create', auth(), async ctx => {
   });
 
   ctx.body = {
-    data: presentApiKey(ctx, key),
+    data: presentApiKey(key),
   };
 });
 
@@ -38,11 +38,9 @@ router.post('apiKeys.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const data = keys.map(key => presentApiKey(ctx, key));
-
   ctx.body = {
     pagination: ctx.state.pagination,
-    data,
+    data: keys.map(presentApiKey),
   };
 });
 

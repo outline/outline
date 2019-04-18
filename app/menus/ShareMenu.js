@@ -36,11 +36,11 @@ class ShareMenu extends React.Component<Props> {
   handleRevoke = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.props.shares.revoke(this.props.share);
-    this.props.ui.showToast('Share link revoked', 'success');
+    this.props.ui.showToast('Share link revoked');
   };
 
   handleCopy = () => {
-    this.props.ui.showToast('Share link copied', 'success');
+    this.props.ui.showToast('Share link copied');
   };
 
   render() {

@@ -8,7 +8,12 @@ import { MoreIcon } from 'outline-icons';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
-import { documentMoveUrl, documentHistoryUrl } from 'utils/routeHelpers';
+import CollectionStore from 'stores/CollectionsStore';
+import {
+  documentMoveUrl,
+  documentHistoryUrl,
+  newDocumentUrl,
+} from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
@@ -16,6 +21,7 @@ type Props = {
   auth: AuthStore,
   label?: React.Node,
   document: Document,
+  collections: CollectionStore,
   className: string,
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
@@ -32,9 +38,7 @@ class DocumentMenu extends React.Component<Props> {
 
   handleNewChild = (ev: SyntheticEvent<*>) => {
     const { document } = this.props;
-    this.redirectTo = `${document.collection.url}/new?parentDocument=${
-      document.id
-    }`;
+    this.redirectTo = newDocumentUrl(document.collectionId, document.id);
   };
 
   handleDelete = (ev: SyntheticEvent<*>) => {
@@ -128,7 +132,7 @@ class DocumentMenu extends React.Component<Props> {
                   Pin to collection
                 </DropdownMenuItem>
               ))}
-            {document.starred ? (
+            {document.isStarred ? (
               <DropdownMenuItem onClick={this.handleUnstar}>
                 Unstar
               </DropdownMenuItem>
@@ -183,4 +187,4 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject('ui', 'auth')(DocumentMenu);
+export default inject('ui', 'auth', 'collections')(DocumentMenu);

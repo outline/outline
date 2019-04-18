@@ -52,7 +52,7 @@ class DropToImport extends React.Component<Props> {
       if (documentId && !collectionId) {
         const document = await this.props.documents.fetch(documentId);
         invariant(document, 'Document not available');
-        collectionId = document.collection.id;
+        collectionId = document.collectionId;
       }
 
       for (const file of files) {

@@ -1,3 +1,4 @@
+// @flow
 require('./init');
 
 if (process.env.NODE_ENV === 'production') {
@@ -20,18 +21,8 @@ if (
   console.error(
     'Please set SECRET_KEY env variable with output of `openssl rand -hex 32`'
   );
+  // $FlowFixMe
   process.exit(1);
 }
 
-const app = require('./server').default;
-const http = require('http');
-
-const server = http.createServer(app.callback());
-server.listen(process.env.PORT || '3000');
-server.on('error', err => {
-  throw err;
-});
-server.on('listening', () => {
-  const address = server.address();
-  console.log(`\n> Listening on http://localhost:${address.port}\n`);
-});
+require('./server');

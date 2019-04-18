@@ -5,11 +5,13 @@ import styled from 'styled-components';
 import Document from 'models/Document';
 import SidebarLink from './SidebarLink';
 import DropToImport from 'components/DropToImport';
+import Collection from 'models/Collection';
 import Flex from 'shared/components/Flex';
 import { type NavigationNode } from 'types';
 
 type Props = {
   document: NavigationNode,
+  collection?: Collection,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => *,
   prefetchDocument: (documentId: string) => Promise<void>,
@@ -29,6 +31,7 @@ class DocumentLink extends React.Component<Props> {
   render() {
     const {
       document,
+      collection,
       activeDocument,
       activeDocumentRef,
       prefetchDocument,
@@ -39,7 +42,9 @@ class DocumentLink extends React.Component<Props> {
       activeDocument && activeDocument.id === document.id;
     const showChildren = !!(
       activeDocument &&
-      (activeDocument.pathToDocument
+      collection &&
+      (collection
+        .pathToDocument(activeDocument)
         .map(entry => entry.id)
         .includes(document.id) ||
         isActiveDocument)
@@ -69,6 +74,7 @@ class DocumentLink extends React.Component<Props> {
                 {document.children.map(childDocument => (
                   <DocumentLink
                     key={childDocument.id}
+                    collection={collection}
                     document={childDocument}
                     activeDocument={activeDocument}
                     prefetchDocument={prefetchDocument}

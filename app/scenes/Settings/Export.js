@@ -29,7 +29,7 @@ class Export extends React.Component<Props> {
     try {
       await this.props.collections.export();
       this.isExporting = true;
-      this.props.ui.showToast('Export in progress…', 'success');
+      this.props.ui.showToast('Export in progress…');
     } finally {
       this.isLoading = false;
     }

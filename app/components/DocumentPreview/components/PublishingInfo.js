@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react';
+import { inject } from 'mobx-react';
 import styled from 'styled-components';
-import Collection from 'models/Collection';
 import Document from 'models/Document';
 import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
 import Breadcrumb from 'shared/components/Breadcrumb';
+import CollectionsStore from 'stores/CollectionsStore';
 
 const Container = styled(Flex)`
   color: ${props => props.theme.textTertiary};
@@ -21,13 +22,19 @@ const Modified = styled.span`
 `;
 
 type Props = {
-  collection?: Collection,
+  collections: CollectionsStore,
+  showCollection?: boolean,
   showPublished?: boolean,
   document: Document,
   views?: number,
 };
 
-function PublishingInfo({ collection, showPublished, document }: Props) {
+function PublishingInfo({
+  collections,
+  showPublished,
+  showCollection,
+  document,
+}: Props) {
   const {
     modifiedSinceViewed,
     updatedAt,
@@ -37,6 +44,7 @@ function PublishingInfo({ collection, showPublished, document }: Props) {
     deletedAt,
     isDraft,
   } = document;
+
   const neverUpdated = publishedAt === updatedAt;
   let content;
 
@@ -72,20 +80,23 @@ function PublishingInfo({ collection, showPublished, document }: Props) {
     );
   }
 
+  const collection = collections.get(document.collectionId);
+
   return (
     <Container align="center">
       {updatedBy.name}
       {content}
-      {collection && (
-        <span>
-          &nbsp;in&nbsp;
-          <strong>
-            {isDraft ? 'Drafts' : <Breadcrumb document={document} onlyText />}
-          </strong>
-        </span>
-      )}
+      {showCollection &&
+        collection && (
+          <span>
+            &nbsp;in&nbsp;
+            <strong>
+              {isDraft ? 'Drafts' : <Breadcrumb document={document} onlyText />}
+            </strong>
+          </span>
+        )}
     </Container>
   );
 }
 
-export default PublishingInfo;
+export default inject('collections')(PublishingInfo);

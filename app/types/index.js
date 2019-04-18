@@ -6,6 +6,11 @@ export type Toast = {
   createdAt: string,
   message: string,
   type: 'warning' | 'error' | 'info' | 'success',
+  timeout?: number,
+  action?: {
+    text: string,
+    onClick: () => void,
+  },
 };
 
 export type FetchOptions = {

@@ -7,6 +7,7 @@ import { Collection, CollectionUser, Team, User } from '../models';
 import { ValidationError, InvalidRequestError } from '../errors';
 import { exportCollection, exportCollections } from '../logistics';
 import policy from '../policies';
+import events from '../events';
 
 const { authorize } = policy;
 const router = new Router();
@@ -32,8 +33,15 @@ router.post('collections.create', auth(), async ctx => {
     private: isPrivate,
   });
 
+  events.add({
+    name: 'collections.create',
+    modelId: collection.id,
+    teamId: collection.teamId,
+    actorId: user.id,
+  });
+
   ctx.body = {
-    data: await presentCollection(ctx, collection),
+    data: await presentCollection(collection),
   };
 });
 
@@ -45,7 +53,7 @@ router.post('collections.info', auth(), async ctx => {
   authorize(ctx.state.user, 'read', collection);
 
   ctx.body = {
-    data: await presentCollection(ctx, collection),
+    data: await presentCollection(collection),
   };
 });
 
@@ -71,6 +79,14 @@ router.post('collections.add_user', auth(), async ctx => {
     createdById: ctx.state.user.id,
   });
 
+  events.add({
+    name: 'collections.add_user',
+    modelId: userId,
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: ctx.state.user.id,
+  });
+
   ctx.body = {
     success: true,
   };
@@ -93,6 +109,14 @@ router.post('collections.remove_user', auth(), async ctx => {
 
   await collection.removeUser(user);
 
+  events.add({
+    name: 'collections.remove_user',
+    modelId: userId,
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: ctx.state.user.id,
+  });
+
   ctx.body = {
     success: true,
   };
@@ -107,12 +131,8 @@ router.post('collections.users', auth(), async ctx => {
 
   const users = await collection.getUsers();
 
-  const data = await Promise.all(
-    users.map(async user => await presentUser(ctx, user))
-  );
-
   ctx.body = {
-    data,
+    data: users.map(presentUser),
   };
 });
 
@@ -176,8 +196,15 @@ router.post('collections.update', auth(), async ctx => {
   collection.private = isPrivate;
   await collection.save();
 
+  events.add({
+    name: 'collections.update',
+    modelId: collection.id,
+    teamId: collection.teamId,
+    actorId: user.id,
+  });
+
   ctx.body = {
-    data: await presentCollection(ctx, collection),
+    data: presentCollection(collection),
   };
 });
 
@@ -196,9 +223,7 @@ router.post('collections.list', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    collections.map(
-      async collection => await presentCollection(ctx, collection)
-    )
+    collections.map(async collection => await presentCollection(collection))
   );
 
   ctx.body = {
@@ -209,15 +234,23 @@ router.post('collections.list', auth(), pagination(), async ctx => {
 
 router.post('collections.delete', auth(), async ctx => {
   const { id } = ctx.body;
+  const user = ctx.state.user;
   ctx.assertUuid(id, 'id is required');
 
   const collection = await Collection.findById(id);
-  authorize(ctx.state.user, 'delete', collection);
+  authorize(user, 'delete', collection);
 
   const total = await Collection.count();
   if (total === 1) throw new ValidationError('Cannot delete last collection');
 
   await collection.destroy();
+
+  events.add({
+    name: 'collections.delete',
+    modelId: collection.id,
+    teamId: collection.teamId,
+    actorId: user.id,
+  });
 
   ctx.body = {
     success: true,

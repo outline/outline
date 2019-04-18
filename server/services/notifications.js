@@ -17,7 +17,7 @@ export default class Notifications {
   }
 
   async documentUpdated(event: Event) {
-    const document = await Document.findById(event.model.id);
+    const document = await Document.findById(event.modelId);
     if (!document) return;
 
     const { collection } = document;
@@ -67,7 +67,7 @@ export default class Notifications {
   }
 
   async collectionCreated(event: Event) {
-    const collection = await Collection.findById(event.model.id, {
+    const collection = await Collection.findById(event.modelId, {
       include: [
         {
           model: User,

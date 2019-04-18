@@ -1,9 +1,8 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import presentUser from './user';
-import ctx from '../../__mocks__/ctx';
 
 it('presents a user', async () => {
-  const user = await presentUser(ctx, {
+  const user = await presentUser({
     id: '123',
     name: 'Test User',
     username: 'testuser',
@@ -16,7 +15,7 @@ it('presents a user', async () => {
 });
 
 it('presents a user without slack data', async () => {
-  const user = await presentUser(ctx, {
+  const user = await presentUser({
     id: '123',
     name: 'Test User',
     username: 'testuser',

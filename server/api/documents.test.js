@@ -1,6 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
-import app from '..';
+import app from '../app';
 import { Document, View, Star, Revision } from '../models';
 import { flushdb, seed } from '../test/support';
 import {
@@ -79,7 +79,6 @@ describe('#documents.info', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
-    expect(body.data.collection).toEqual(undefined);
     expect(body.data.createdBy).toEqual(undefined);
     expect(body.data.updatedBy).toEqual(undefined);
   });
@@ -113,7 +112,7 @@ describe('#documents.info', async () => {
   });
 
   it('should return document from shareId with token', async () => {
-    const { user, document, collection } = await seed();
+    const { user, document } = await seed();
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
@@ -126,7 +125,6 @@ describe('#documents.info', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
-    expect(body.data.collection.id).toEqual(collection.id);
     expect(body.data.createdBy.id).toEqual(user.id);
     expect(body.data.updatedBy.id).toEqual(user.id);
   });
@@ -892,7 +890,7 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
         title: 'new document',
         text: 'hello',
         publish: true,
@@ -910,7 +908,7 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
         title: ' ',
         text: ' ',
       },
@@ -926,7 +924,7 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
         title:
           'This is a really long title that is not acceptable to Outline because it is so ridiculously long that we need to have a limit somewhere',
         text: ' ',
@@ -940,10 +938,10 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
+        parentDocumentId: document.id,
         title: 'new document',
         text: 'hello',
-        parentDocument: document.id,
         publish: true,
       },
     });
@@ -951,8 +949,6 @@ describe('#documents.create', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('new document');
-    expect(body.data.collection.documents.length).toBe(2);
-    expect(body.data.collection.documents[0].children[0].id).toBe(body.data.id);
   });
 
   it('should error with invalid parentDocument', async () => {
@@ -960,10 +956,10 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
+        parentDocumentId: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
         title: 'new document',
         text: 'hello',
-        parentDocument: 'd7a4eb73-fac1-4028-af45-d7e34d54db8e',
       },
     });
     const body = await res.json();
@@ -977,17 +973,16 @@ describe('#documents.create', async () => {
     const res = await server.post('/api/documents.create', {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
+        parentDocumentId: document.id,
         title: 'new document',
         text: 'hello',
-        parentDocument: document.id,
       },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('new document');
-    expect(body.data.collection.documents.length).toBe(2);
   });
 });
 
@@ -1009,7 +1004,6 @@ describe('#documents.update', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Updated title');
     expect(body.data.text).toBe('Updated text');
-    expect(body.data.collection.documents[0].title).toBe('Updated title');
   });
 
   it('should not edit archived document', async () => {
@@ -1070,7 +1064,6 @@ describe('#documents.update', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Untitled document');
     expect(body.data.text).toBe('# Untitled document');
-    expect(body.data.collection.documents[0].title).toBe('Untitled document');
   });
 
   it('should fail if document lastRevision does not match', async () => {
@@ -1121,9 +1114,6 @@ describe('#documents.update', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe('Updated title');
-    expect(body.data.collection.documents[0].children[1].title).toBe(
-      'Updated title'
-    );
   });
 
   it('should require authentication', async () => {

@@ -48,10 +48,8 @@ router.post('shares.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const data = await Promise.all(shares.map(share => presentShare(ctx, share)));
-
   ctx.body = {
-    data,
+    data: shares.map(presentShare),
   };
 });
 
@@ -78,7 +76,7 @@ router.post('shares.create', auth(), async ctx => {
   share.document = document;
 
   ctx.body = {
-    data: presentShare(ctx, share),
+    data: presentShare(share),
   };
 });
 

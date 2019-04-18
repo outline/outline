@@ -3,7 +3,6 @@ import * as React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
 import { BrowserRouter as Router } from 'react-router-dom';
-
 import stores from 'stores';
 import 'shared/styles/prism.css';
 
@@ -12,6 +11,10 @@ import ScrollToTop from 'components/ScrollToTop';
 import Toasts from 'components/Toasts';
 import Theme from 'components/Theme';
 import Routes from './routes';
+
+// socket.on('connect', function(){});
+// socket.on('event', function(data){});
+// socket.on('disconnect', function(){});
 
 let DevTools;
 if (__DEV__) {

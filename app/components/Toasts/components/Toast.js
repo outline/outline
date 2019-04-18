@@ -21,7 +21,7 @@ class Toast extends React.Component<Props> {
   componentDidMount() {
     this.timeout = setTimeout(
       this.props.onRequestClose,
-      this.props.closeAfterMs
+      this.props.toast.timeout || this.props.closeAfterMs
     );
   }
 
@@ -31,6 +31,7 @@ class Toast extends React.Component<Props> {
 
   render() {
     const { toast, onRequestClose } = this.props;
+    const { action } = toast;
     const message =
       typeof toast.message === 'string'
         ? toast.message
@@ -38,20 +39,43 @@ class Toast extends React.Component<Props> {
 
     return (
       <li>
-        <Container onClick={onRequestClose} type={toast.type}>
+        <Container
+          onClick={action ? undefined : onRequestClose}
+          type={toast.type || 'success'}
+        >
           <Message>{message}</Message>
+          {action && (
+            <Action type={toast.type || 'success'} onClick={action.onClick}>
+              {action.text}
+            </Action>
+          )}
         </Container>
       </li>
     );
   }
 }
 
+const Action = styled.span`
+  display: inline-block;
+  padding: 10px 12px;
+  height: 100%;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: ${props => props.theme.white};
+  background: ${props => darken(0.05, props.theme[props.type])};
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+
+  &:hover {
+    background: ${props => darken(0.1, props.theme[props.type])};
+  }
+`;
+
 const Container = styled.div`
   display: inline-block;
   align-items: center;
   animation: ${fadeAndScaleIn} 100ms ease;
   margin: 8px 0;
-  padding: 10px 12px;
   color: ${props => props.theme.white};
   background: ${props => props.theme[props.type]};
   font-size: 15px;
@@ -64,7 +88,8 @@ const Container = styled.div`
 `;
 
 const Message = styled.div`
-  padding-left: 5px;
+  display: inline-block;
+  padding: 10px 12px;
 `;
 
 export default Toast;

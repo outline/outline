@@ -14,6 +14,7 @@ import type { FetchOptions, PaginationParams, SearchResult } from 'types';
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
   @observable searchCache: Map<string, SearchResult[]> = new Map();
+  @observable starredIds: Map<string, boolean> = new Map();
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
@@ -95,7 +96,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get starred(): Document[] {
-    return filter(this.all, d => d.starred);
+    return filter(this.all, d => d.isStarred);
   }
 
   @computed
@@ -314,8 +315,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   duplicate = async (document: Document): * => {
     const res = await client.post('/documents.create', {
       publish: true,
-      parentDocument: document.parentDocumentId,
-      collection: document.collection.id,
+      parentDocumentId: document.parentDocumentId,
+      collection: document.collectionId,
       title: `${document.title} (duplicate)`,
       text: document.text,
     });
@@ -327,6 +328,20 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.add(res.data);
   };
 
+  _add = this.add;
+
+  @action
+  add = (item: Object) => {
+    const document = this._add(item);
+
+    if (item.starred !== undefined) {
+      this.starredIds.set(document.id, item.starred);
+    }
+
+    return document;
+  };
+
+  @action
   async update(params: *) {
     const document = await super.update(params);
 
@@ -337,6 +352,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     return document;
   }
 
+  @action
   async delete(document: Document) {
     await super.delete(document);
 
@@ -385,12 +401,24 @@ export default class DocumentsStore extends BaseStore<Document> {
     return client.post('/documents.unpin', { id: document.id });
   };
 
-  star = (document: Document) => {
-    return client.post('/documents.star', { id: document.id });
+  star = async (document: Document) => {
+    this.starredIds.set(document.id, true);
+
+    try {
+      return client.post('/documents.star', { id: document.id });
+    } catch (err) {
+      this.starredIds.set(document.id, false);
+    }
   };
 
   unstar = (document: Document) => {
-    return client.post('/documents.unstar', { id: document.id });
+    this.starredIds.set(document.id, false);
+
+    try {
+      return client.post('/documents.unstar', { id: document.id });
+    } catch (err) {
+      this.starredIds.set(document.id, false);
+    }
   };
 
   getByUrl = (url: string = ''): ?Document => {

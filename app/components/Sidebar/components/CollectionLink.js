@@ -65,6 +65,7 @@ class CollectionLink extends React.Component<Props> {
               <DocumentLink
                 key={document.id}
                 document={document}
+                collection={collection}
                 activeDocument={activeDocument}
                 prefetchDocument={prefetchDocument}
                 depth={1.5}
