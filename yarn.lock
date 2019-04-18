@@ -7856,9 +7856,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@^9.2.1-0:
-  version "9.2.1-0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.2.1-0.tgz#98417a65f1b3d4cdd5781414f4d9fba97b336443"
+rich-markdown-editor@^9.2.1:
+  version "9.2.1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.2.1.tgz#a43c654882891664861696716fea653ef8c1ff22"
   dependencies:
     "@tommoor/slate-edit-list" "0.19.0-0"
     "@wikifactory/slate-edit-blockquote" "^0.7.1"
@@ -7881,7 +7881,7 @@ rich-markdown-editor@^9.2.1-0:
     slate "^0.45.0"
     slate-collapse-on-escape "^0.8.1"
     slate-drop-or-paste-images "^0.9.1"
-    slate-md-serializer "^5.3.1"
+    slate-md-serializer "^5.3.2"
     slate-paste-linkify "^0.7.0"
     slate-react "^0.21.20"
     slate-schema-violations "^0.1.39"
@@ -8206,9 +8206,9 @@ slate-hotkeys@^0.2.9:
     is-hotkey "0.1.4"
     slate-dev-environment "^0.2.2"
 
-slate-md-serializer@^5.3.1:
-  version "5.3.1"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.3.1.tgz#999dfb9dafe71d2f96019d9d95d4aac24bd493de"
+slate-md-serializer@^5.3.2:
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.3.2.tgz#443695e0e4555916be97762699d9ba31adbbae94"
   dependencies:
     hashtag-regex "^2.0.0"
 
