@@ -615,6 +615,7 @@ router.post('documents.update', auth(), async ctx => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: user.id,
+      autosave,
     });
   }
 

@@ -17,7 +17,6 @@ type DocumentEvent =
   | {
   name: | 'documents.create' // eslint-disable-line
         | 'documents.publish'
-        | 'documents.update'
         | 'documents.delete'
         | 'documents.pin'
         | 'documents.unpin'
@@ -38,6 +37,14 @@ type DocumentEvent =
       documentIds: string[],
       teamId: string,
       actorId: string,
+    }
+  | {
+      name: 'documents.update',
+      modelId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+      autosave: boolean,
     };
 
 type CollectionEvent =
