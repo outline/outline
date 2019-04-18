@@ -18,11 +18,10 @@ type Props = {
 };
 
 const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
-  const path = document.pathToDocument.slice(0, -1);
-  if (!document.collection) return null;
+  const collection = collections.get(document.collectionId);
+  if (!collection) return null;
 
-  const collection =
-    collections.data.get(document.collection.id) || document.collection;
+  const path = collection.pathToDocument(document).slice(0, -1);
 
   if (onlyText === true) {
     return (

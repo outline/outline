@@ -26,12 +26,12 @@ class RevisionMenu extends React.Component<Props> {
   handleRestore = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     await this.props.document.restore(this.props.revision);
-    this.props.ui.showToast('Document restored', 'success');
+    this.props.ui.showToast('Document restored');
     this.props.history.push(this.props.document.url);
   };
 
   handleCopy = () => {
-    this.props.ui.showToast('Link copied', 'success');
+    this.props.ui.showToast('Link copied');
   };
 
   render() {

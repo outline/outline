@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { Helmet } from 'react-helmet';
 import { groupBy, map } from 'lodash';
 import format from 'date-fns/format';
 import styled from 'styled-components';
@@ -25,6 +26,14 @@ function Changelog({ releases }: Props) {
 
   return (
     <Grid>
+      <Helmet>
+        <link
+          rel="alternate"
+          type="application/atom+xml"
+          title="Release Notes"
+          href="https://github.com/outline/outline/releases.atom"
+        />
+      </Helmet>
       <PageTitle title="Changelog" />
       <Header background="#00ADFF">
         <h1>Changelog</h1>

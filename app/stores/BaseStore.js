@@ -160,7 +160,6 @@ export default class BaseStore<T: BaseModel> {
 
   @computed
   get orderedData(): T[] {
-    // $FlowIssue
     return orderBy(Array.from(this.data.values()), 'createdAt', 'desc');
   }
 }

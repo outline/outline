@@ -2,18 +2,16 @@
 import { takeRight } from 'lodash';
 import { User, Document } from '../models';
 import presentUser from './user';
-import presentCollection from './collection';
 
 type Options = {
   isPublic?: boolean,
 };
 
-async function present(ctx: Object, document: Document, options: ?Options) {
+export default async function present(document: Document, options: ?Options) {
   options = {
     isPublic: false,
     ...options,
   };
-  ctx.cache.set(document.id, document);
 
   // For empty document content, return the title
   if (!document.text.trim()) {
@@ -36,32 +34,27 @@ async function present(ctx: Object, document: Document, options: ?Options) {
     deletedAt: document.deletedAt,
     team: document.teamId,
     collaborators: [],
-    starred: !!(document.starred && document.starred.length),
+    starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,
     pinned: undefined,
     collectionId: undefined,
-    collection: undefined,
+    parentDocumentId: undefined,
   };
 
   if (!options.isPublic) {
     data.pinned = !!document.pinnedById;
     data.collectionId = document.collectionId;
-    data.createdBy = presentUser(ctx, document.createdBy);
-    data.updatedBy = presentUser(ctx, document.updatedBy);
+    data.parentDocumentId = document.parentDocumentId;
+    data.createdBy = presentUser(document.createdBy);
+    data.updatedBy = presentUser(document.updatedBy);
 
-    if (document.collection) {
-      data.collection = await presentCollection(ctx, document.collection);
-    }
-
-    // This could be further optimized by using ctx.cache
+    // TODO: This could be further optimized
     data.collaborators = await User.findAll({
       where: {
         id: takeRight(document.collaboratorIds, 10) || [],
       },
-    }).map(user => presentUser(ctx, user));
+    }).map(presentUser);
   }
 
   return data;
 }
-
-export default present;

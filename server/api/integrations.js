@@ -5,6 +5,7 @@ import pagination from './middlewares/pagination';
 import auth from '../middlewares/authentication';
 import { presentIntegration } from '../presenters';
 import policy from '../policies';
+import events from '../events';
 
 const { authorize } = policy;
 const router = new Router();
@@ -21,9 +22,7 @@ router.post('integrations.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const data = await Promise.all(
-    integrations.map(integration => presentIntegration(ctx, integration))
-  );
+  const data = await Promise.all(integrations.map(presentIntegration));
 
   ctx.body = {
     pagination: ctx.state.pagination,
@@ -35,10 +34,18 @@ router.post('integrations.delete', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
+  const user = ctx.state.user;
   const integration = await Integration.findById(id);
-  authorize(ctx.state.user, 'delete', integration);
+  authorize(user, 'delete', integration);
 
   await integration.destroy();
+
+  events.add({
+    name: 'integrations.delete',
+    modelId: integration.id,
+    teamId: integration.teamId,
+    actorId: user.id,
+  });
 
   ctx.body = {
     success: true,

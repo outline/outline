@@ -24,7 +24,7 @@ Outline features an [API](https://www.getoutline.com/developers) for programatic
 const newDocument = {
   title: 'Getting started with codebase',
   text: 'All the information needed in Markdown',
-  collection: '${collectionId}',
+  collectionId: '${collectionId}',
   token: 'API_KEY', // Replace with a value from https://www.getoutline.com/settings/tokens
 };
 

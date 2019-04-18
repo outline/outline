@@ -1,24 +1,74 @@
 // @flow
 import Queue from 'bull';
 import services from './services';
-import { Collection, Document, Integration } from './models';
 
-type DocumentEvent = {
-  name: 'documents.create' | 'documents.update' | 'documents.publish',
-  model: Document,
+type UserEvent = {
+  name: | 'users.create' // eslint-disable-line
+    | 'users.update'
+    | 'users.suspend'
+    | 'users.activate'
+    | 'users.delete',
+  modelId: string,
+  teamId: string,
+  actorId: string,
 };
 
-type CollectionEvent = {
-  name: 'collections.create' | 'collections.update',
-  model: Collection,
-};
+type DocumentEvent =
+  | {
+  name: | 'documents.create' // eslint-disable-line
+        | 'documents.publish'
+        | 'documents.update'
+        | 'documents.delete'
+        | 'documents.pin'
+        | 'documents.unpin'
+        | 'documents.archive'
+        | 'documents.unarchive'
+        | 'documents.restore'
+        | 'documents.star'
+        | 'documents.unstar',
+      modelId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+    }
+  | {
+      name: 'documents.move',
+      modelId: string,
+      collectionIds: string[],
+      documentIds: string[],
+      teamId: string,
+      actorId: string,
+    };
+
+type CollectionEvent =
+  | {
+  name: | 'collections.create' // eslint-disable-line
+        | 'collections.update'
+        | 'collections.delete',
+      modelId: string,
+      teamId: string,
+      actorId: string,
+    }
+  | {
+      name: 'collections.add_user' | 'collections.remove_user',
+      modelId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+    };
 
 type IntegrationEvent = {
-  name: 'integrations.create' | 'integrations.update',
-  model: Integration,
+  name: 'integrations.create' | 'integrations.update' | 'collections.delete',
+  modelId: string,
+  teamId: string,
+  actorId: string,
 };
 
-export type Event = DocumentEvent | CollectionEvent | IntegrationEvent;
+export type Event =
+  | UserEvent
+  | DocumentEvent
+  | CollectionEvent
+  | IntegrationEvent;
 
 const globalEventsQueue = new Queue('global events', process.env.REDIS_URL);
 const serviceEventsQueue = new Queue('service events', process.env.REDIS_URL);

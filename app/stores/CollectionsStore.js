@@ -1,11 +1,11 @@
 // @flow
 import { computed, runInAction } from 'mobx';
-import { concat, last } from 'lodash';
+import { concat, filter, last } from 'lodash';
 import { client } from 'utils/ApiClient';
 
 import BaseStore from './BaseStore';
 import RootStore from './RootStore';
-import Collection from '../models/Collection';
+import Collection from 'models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
 
 export type DocumentPathItem = {
@@ -34,7 +34,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
   @computed
   get orderedData(): Collection[] {
-    return naturalSort(Array.from(this.data.values()), 'name');
+    return filter(
+      naturalSort(Array.from(this.data.values()), 'name'),
+      d => !d.deletedAt
+    );
   }
 
   @computed

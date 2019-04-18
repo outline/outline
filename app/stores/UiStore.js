@@ -94,13 +94,20 @@ class UiStore {
   @action
   showToast = (
     message: string,
-    type?: 'warning' | 'error' | 'info' | 'success' = 'success'
+    options?: {
+      type?: 'warning' | 'error' | 'info' | 'success',
+      timeout?: number,
+      action?: {
+        text: string,
+        onClick: () => void,
+      },
+    }
   ) => {
     if (!message) return;
 
     const id = v4();
     const createdAt = new Date().toISOString();
-    this.toasts.set(id, { message, type, createdAt, id });
+    this.toasts.set(id, { message, createdAt, id, ...options });
     return id;
   };
 
@@ -111,7 +118,6 @@ class UiStore {
 
   @computed
   get orderedToasts(): Toast[] {
-    // $FlowIssue
     return orderBy(Array.from(this.toasts.values()), 'createdAt', 'desc');
   }
 }

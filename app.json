@@ -1,143 +1,147 @@
 {
-    "name": "Outline",
-    "description": "Open source wiki and knowledge base for growing teams",
-    "website": "https://www.getoutline.com/",
-    "repository": "https://github.com/outline/outline",
-    "keywords": [
-      "wiki",
-      "team",
-      "node",
-      "markdown",
-      "slack"
-    ],
-    "success_url": "/",
-    "formation": {
-      "web": {
-        "quantity": 1,
-        "size": "Hobby"
-      }
+  "name": "Outline",
+  "description": "Open source wiki and knowledge base for growing teams",
+  "website": "https://www.getoutline.com/",
+  "repository": "https://github.com/outline/outline",
+  "keywords": [
+    "wiki",
+    "team",
+    "node",
+    "markdown",
+    "slack"
+  ],
+  "success_url": "/",
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "Hobby"
+    }
+  },
+  "image": "heroku/node",
+  "addons": [
+    {
+      "plan": "heroku-redis"
     },
-    "image": "heroku/node",
-    "addons": [
-      {
-        "plan": "heroku-redis"
-      },
-      {
-        "plan": "heroku-postgresql"
-      }
-    ],
-    "scripts": {
-      "postdeploy": "yarn sequelize db:migrate"
+    {
+      "plan": "heroku-postgresql"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "yarn sequelize db:migrate"
+  },
+  "env": {
+    "SECRET_KEY": {
+      "description": "A secret key",
+      "generator": "secret",
+      "required": true
     },
-    "env": {
-      "SECRET_KEY": {
-        "description": "A secret key",
-        "generator": "secret",
-        "required": true
-      },
-      "DEPLOYMENT": {
-	"description": "Should be 'self' for self hosted installations, turns off things like pricing pages",
-        "value": "self",
-        "required": true
-      },
-      "ENABLE_UPDATES": {
-        "value": "true",
-        "required": true
-      },
-      "SUBDOMAINS_ENABLED": {
-        "value": "false",
-        "required": true,
-        "description": "Allows each team to have a different subdomain. Not recommend when self hosting"
-      },
-      "URL": {
-        "description": "https://{your app name}.herokuapp.com",
-        "required": true
-      },
-      "GOOGLE_CLIENT_ID": {
-        "description": "See https://developers.google.com/identity/protocols/OAuth2 to create a new Google OAuth client. You must configure at least one of Slack or Google to control login.",
-        "required": false
-      },
-      "GOOGLE_CLIENT_SECRET": {
-        "description": "",
-        "required": false
-      },
-      "GOOGLE_ALLOWED_DOMAINS": {
-        "description": "Comma separated list of domains to be allowed (optional). If not set, all Google apps domains are allowed by default",
-        "required": false
-      },
-      "SLACK_KEY": {
-        "description": "See https://api.slack.com/apps to create a new Slack app. You must configure at least one of Slack or Google to control login.",
-        "required": false
-      },
-      "SLACK_SECRET": {
-        "description": "Your Slack client secret - d2dc414f9953226bad0a356cXXXXYYYY",
-        "required": false
-      },
-      "SLACK_VERIFICATION_TOKEN": {
-        "description": "Your Slack verification token - PLxk6OlXXXXXVj3YYYY",
-        "required": false
-      },
-      "SLACK_APP_ID": {
-        "description": "A0XXXXXXXXX",
-        "required": false
-      },
-      "AWS_ACCESS_KEY_ID": {
-        "description": "Needed to save file uploads. Optional for dev / testing.",
-        "required": false
-      },
-      "AWS_SECRET_ACCESS_KEY": {
-        "description": "",
-        "required": false
-      },
-      "AWS_S3_UPLOAD_BUCKET_NAME": {
-        "description": "yourbucket.example.com",
-        "required": false
-      },
-      "AWS_S3_UPLOAD_BUCKET_URL": {
-        "description": "Live web link to your bucket. For CNAMEs, https://yourbucket.example.com",
-        "required": false
-      },
-      "AWS_S3_UPLOAD_MAX_SIZE": {
-        "description": "Maximum file upload size in bytes",
-        "value": "26214400",
-        "required": false
-      },
-      "SMTP_HOST": {
-        "description": "smtp.example.com (optional)",
-        "required": false
-      },
-      "SMTP_PORT": {
-        "description": "1234 (optional)",
-        "required": false
-      },
-      "SMTP_USERNAME": {
-        "description": "me@example.com (optional)",
-        "required": false
-      },
-      "SMTP_PASSWORD": {
-        "description": "(optional)",
-        "required": false
-      },
-      "SMTP_FROM_EMAIL": {
-        "description": "wiki@example.com (optional)",
-        "required": false
-      },
-      "SMTP_REPLY_EMAIL": {
-        "description": "wikireply@example.com (optional)",
-        "required": false
-      },
-      "GOOGLE_ANALYTICS_ID": {
-        "description": "UA-xxxx (optional)",
-        "required": false
-      },
-      "BUGSNAG_KEY": {
-        "description": "An API key for bugsnag if you wish to collect error reporting (optional)",
-        "required": false
-      },
-      "GITHUB_ACCESS_TOKEN": {
-        "description": "An API token for GitHub, optional for self hosted (optional)",
-        "required": false
-      }
-
+    "DEPLOYMENT": {
+      "description": "Should be 'self' for self hosted installations, turns off things like pricing pages",
+      "value": "self",
+      "required": true
+    },
+    "ENABLE_UPDATES": {
+      "value": "true",
+      "required": true
+    },
+    "SUBDOMAINS_ENABLED": {
+      "value": "false",
+      "required": true,
+      "description": "Allows each team to have a different subdomain. Not recommend when self hosting"
+    },
+    "WEBSOCKETS_ENABLED": {
+      "value": "true",
+      "required": true,
+      "description": "Allow realtime data to be pushed to clients over websockets"
+    },
+    "URL": {
+      "description": "https://{your app name}.herokuapp.com",
+      "required": true
+    },
+    "GOOGLE_CLIENT_ID": {
+      "description": "See https://developers.google.com/identity/protocols/OAuth2 to create a new Google OAuth client. You must configure at least one of Slack or Google to control login.",
+      "required": false
+    },
+    "GOOGLE_CLIENT_SECRET": {
+      "description": "",
+      "required": false
+    },
+    "GOOGLE_ALLOWED_DOMAINS": {
+      "description": "Comma separated list of domains to be allowed (optional). If not set, all Google apps domains are allowed by default",
+      "required": false
+    },
+    "SLACK_KEY": {
+      "description": "See https://api.slack.com/apps to create a new Slack app. You must configure at least one of Slack or Google to control login.",
+      "required": false
+    },
+    "SLACK_SECRET": {
+      "description": "Your Slack client secret - d2dc414f9953226bad0a356cXXXXYYYY",
+      "required": false
+    },
+    "SLACK_VERIFICATION_TOKEN": {
+      "description": "Your Slack verification token - PLxk6OlXXXXXVj3YYYY",
+      "required": false
+    },
+    "SLACK_APP_ID": {
+      "description": "A0XXXXXXXXX",
+      "required": false
+    },
+    "AWS_ACCESS_KEY_ID": {
+      "description": "Needed to save file uploads. Optional for dev / testing.",
+      "required": false
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+      "description": "",
+      "required": false
+    },
+    "AWS_S3_UPLOAD_BUCKET_NAME": {
+      "description": "yourbucket.example.com",
+      "required": false
+    },
+    "AWS_S3_UPLOAD_BUCKET_URL": {
+      "description": "Live web link to your bucket. For CNAMEs, https://yourbucket.example.com",
+      "required": false
+    },
+    "AWS_S3_UPLOAD_MAX_SIZE": {
+      "description": "Maximum file upload size in bytes",
+      "value": "26214400",
+      "required": false
+    },
+    "SMTP_HOST": {
+      "description": "smtp.example.com (optional)",
+      "required": false
+    },
+    "SMTP_PORT": {
+      "description": "1234 (optional)",
+      "required": false
+    },
+    "SMTP_USERNAME": {
+      "description": "me@example.com (optional)",
+      "required": false
+    },
+    "SMTP_PASSWORD": {
+      "description": "(optional)",
+      "required": false
+    },
+    "SMTP_FROM_EMAIL": {
+      "description": "wiki@example.com (optional)",
+      "required": false
+    },
+    "SMTP_REPLY_EMAIL": {
+      "description": "wikireply@example.com (optional)",
+      "required": false
+    },
+    "GOOGLE_ANALYTICS_ID": {
+      "description": "UA-xxxx (optional)",
+      "required": false
+    },
+    "BUGSNAG_KEY": {
+      "description": "An API key for bugsnag if you wish to collect error reporting (optional)",
+      "required": false
+    },
+    "GITHUB_ACCESS_TOKEN": {
+      "description": "An API token for GitHub, optional for self hosted (optional)",
+      "required": false
     }
   }
+}

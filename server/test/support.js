@@ -75,10 +75,12 @@ const seed = async () => {
     text: '# Much guidance',
   });
 
+  await collection.reload();
+
   return {
     user,
     admin,
-    collection: document.collection,
+    collection,
     document,
     team,
   };

@@ -27,7 +27,7 @@ class CollectionExport extends React.Component<Props> {
     await this.props.collection.export();
     this.isLoading = false;
 
-    this.props.ui.showToast('Export in progress…', 'success');
+    this.props.ui.showToast('Export in progress…');
     this.props.onSubmit();
   };
 

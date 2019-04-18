@@ -65,7 +65,7 @@ class DocumentMove extends React.Component<Props> {
 
     // Exclude root from search results if document is already at the root
     if (!document.parentDocumentId) {
-      results = results.filter(result => result.id !== document.collection.id);
+      results = results.filter(result => result.id !== document.collectionId);
     }
 
     // Exclude document if on the path to result, or the same result
