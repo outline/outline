@@ -39,14 +39,16 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
       const { user } = socket.client;
       // join the rooms associated with the current team
       // and user so we can send authenticated events
-      socket.join(user.teamId);
-      socket.join(user.id);
+      socket.join(`team-${user.teamId}`);
+      socket.join(`user-${user.id}`);
 
       // join rooms associated with collections this user
       // has access to on connection. New collection subscriptions
       // are managed from the client as needed
       const collectionIds = await user.collectionIds();
-      collectionIds.forEach(collectionId => socket.join(collectionId));
+      collectionIds.forEach(collectionId =>
+        socket.join(`collection-${collectionId}`)
+      );
 
       // allow the client to request to join rooms based on
       // new collections being created.
@@ -54,12 +56,12 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
         const collection = await Collection.findById(event.roomId);
 
         if (can(user, 'read', collection)) {
-          socket.join(event.roomId);
+          socket.join(`collection-${event.roomId}`);
         }
       });
 
       socket.on('leave', event => {
-        socket.leave(event.roomId);
+        socket.leave(`collection-${event.roomId}`);
       });
     },
   });

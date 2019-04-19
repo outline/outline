@@ -21,16 +21,18 @@ export default class Websockets {
           paranoid: false,
         });
 
-        return socketio.to(document.collectionId).emit('entities', {
-          event: event.name,
-          documents: [await presentDocument(document)],
-          collections: [await presentCollection(document.collection)],
-        });
+        return socketio
+          .to(`collection-${document.collectionId}`)
+          .emit('entities', {
+            event: event.name,
+            documents: [await presentDocument(document)],
+            collections: [await presentCollection(document.collection)],
+          });
       }
       case 'documents.create': {
         const document = await Document.findById(event.modelId);
 
-        return socketio.to(event.actorId).emit('entities', {
+        return socketio.to(`user-${event.actorId}`).emit('entities', {
           event: event.name,
           documents: [await presentDocument(document)],
           collections: [await presentCollection(document.collection)],
@@ -38,7 +40,7 @@ export default class Websockets {
       }
       case 'documents.star':
       case 'documents.unstar': {
-        return socketio.to(event.actorId).emit(event.name, {
+        return socketio.to(`user-${event.actorId}`).emit(event.name, {
           documentId: event.modelId,
         });
       }
@@ -56,13 +58,13 @@ export default class Websockets {
           paranoid: false,
         });
         documents.forEach(async document => {
-          socketio.to(document.collectionId).emit('entities', {
+          socketio.to(`collection-${document.collectionId}`).emit('entities', {
             event: event.name,
             documents: [await presentDocument(document)],
           });
         });
         collections.forEach(async collection => {
-          socketio.to(collection.id).emit('entities', {
+          socketio.to(`collection-${collection.id}`).emit('entities', {
             event: event.name,
             collections: [await presentCollection(collection)],
           });
@@ -75,13 +77,21 @@ export default class Websockets {
         });
 
         socketio
-          .to(collection.private ? collection.id : collection.teamId)
+          .to(
+            collection.private
+              ? `collection-${collection.id}`
+              : `team-${collection.teamId}`
+          )
           .emit('entities', {
             event: event.name,
             collections: [await presentCollection(collection)],
           });
         return socketio
-          .to(collection.private ? collection.id : collection.teamId)
+          .to(
+            collection.private
+              ? `collection-${collection.id}`
+              : `team-${collection.teamId}`
+          )
           .emit('join', {
             event: event.name,
             roomId: collection.id,
@@ -93,18 +103,18 @@ export default class Websockets {
           paranoid: false,
         });
 
-        return socketio.to(collection.id).emit('entities', {
+        return socketio.to(`collection-${collection.id}`).emit('entities', {
           event: event.name,
           collections: [await presentCollection(collection)],
         });
       }
       case 'collections.add_user':
-        return socketio.to(event.modelId).emit('join', {
+        return socketio.to(`user-${event.modelId}`).emit('join', {
           event: event.name,
           roomId: event.collectionId,
         });
       case 'collections.remove_user':
-        return socketio.to(event.modelId).emit('leave', {
+        return socketio.to(`user-${event.modelId}`).emit('leave', {
           event: event.name,
           roomId: event.collectionId,
         });
