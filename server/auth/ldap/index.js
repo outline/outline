@@ -63,7 +63,6 @@ router.get('ldap.callback', auth({ required: false }), async ctx => {
 
   if(adminGroup != "" && profile.groups.indexOf(adminGroup) > -1){
     isAdmin = true;
-    console.log("Is admin");
   } else {
     isAdmin = isFirstUser;
   }

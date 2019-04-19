@@ -21,7 +21,6 @@ const SigninButtons = ({
   googleSigninEnabled,
   ldapSigninEnabled,
 }: Props) => {
-  console.log(ldapSigninEnabled);
   return (
     <Wrapper>
       {slackSigninEnabled && (
