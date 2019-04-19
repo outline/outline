@@ -25,6 +25,7 @@ function SubdomainSignin({
   notice,
   googleSigninEnabled,
   slackSigninEnabled,
+  ldapSigninEnabled,
   hostname,
 }: Props) {
   googleSigninEnabled = !!team.googleId && googleSigninEnabled;
@@ -48,6 +49,7 @@ function SubdomainSignin({
             <SigninButtons
               googleSigninEnabled={googleSigninEnabled}
               slackSigninEnabled={slackSigninEnabled}
+              ldapSigninEnabled={ldapSigninEnabled}
               lastSignedIn={signinHint}
             />
           </p>

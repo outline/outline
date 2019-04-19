@@ -1,16 +1,38 @@
 // @flow
+import * as React from 'react';
 import Router from 'koa-router';
-import { User, Team } from '../models';
-import auth from '../middlewares/authentication';
+import { User, Team } from '../../models';
+import auth from '../../middlewares/authentication';
 import md5 from 'blueimp-md5';
+import getUser from './ldapGetUser';
+import LdapSignin from '../../pages/LdapSignin';
+import renderpage from '../../utils/renderpage';
+
 
 const router = new Router();
 
 router.get('ldap', auth({ required: false }), async ctx => {
-  const { code } = ctx.request.query;
-  ctx.assertPresent(code, 'code is required');
+  return renderpage(
+    ctx,
+    <LdapSignin
+      notice={ctx.request.query.notice}
+      error={ctx.request.query.error}
+    />
+  );
+});
 
-  const profile = {uid:"uid", mail:"mail@example.com"};
+router.get('ldap.callback', auth({ required: false }), async ctx => {
+  const { name, pass } = ctx.request.query;
+  ctx.assertPresent(name, 'name is required');
+  ctx.assertPresent(pass, 'pass is required');
+
+  let profile;
+  try {
+    profile = await getUser(name, pass);
+  } catch(err) {
+    ctx.redirect(`ldap?notice=auth-error&error=${encodeURIComponent(err.message)}`);
+    return;
+  }
   const teamName = process.env.LDAP_TEAM || "LDAP";
 
   const avatarUrl = process.env.LDAP_TEAM_AVATAR || teamAvatarUrl(teamName);
@@ -25,8 +47,8 @@ router.get('ldap', auth({ required: false }), async ctx => {
     },
   });
 
-  const profileEmail = process.env.LDAP_USER_MAIL_ATTR || 'mail';
-  const gravatar = 'https://www.gravatar.com/avatar/' + md5(profileEmail.trim().toLowerCase());
+  const email = process.env.LDAP_USER_MAIL_ATTR || 'mail';
+  const gravatar = 'https://www.gravatar.com/avatar/' + md5(profile[email].trim().toLowerCase());
 
   const [user, isFirstSignin] = await User.findOrCreate({
     where: {
@@ -36,7 +58,7 @@ router.get('ldap', auth({ required: false }), async ctx => {
     },
     defaults: {
       name: profile.uid,
-      email: profile[profileEmail],
+      email: profile[email],
       isAdmin: isFirstUser, //TODO check admin group
       avatarUrl: gravatar,
     },

@@ -12,13 +12,16 @@ type Props = {
   lastSignedIn?: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
+  ldapSigninEnabled: boolean,
 };
 
 const SigninButtons = ({
   lastSignedIn,
   slackSigninEnabled,
   googleSigninEnabled,
+  ldapSigninEnabled,
 }: Props) => {
+  console.log(ldapSigninEnabled);
   return (
     <Wrapper>
       {slackSigninEnabled && (
@@ -44,6 +47,15 @@ const SigninButtons = ({
           </LastLogin>
         </Column>
       )}
+      {ldapSigninEnabled && (<Column column>
+          <Button href={signin('ldap')}>
+            <Spacer>Sign In with LDAP</Spacer>
+          </Button>
+          <LastLogin>
+            {lastSignedIn === 'ldap' &&
+              'You signed in with LDAP previously'}
+          </LastLogin>
+        </Column>)}
     </Wrapper>
   );
 };
