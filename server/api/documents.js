@@ -324,11 +324,9 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const data = await Promise.all(revisions.map(presentRevision));
-
   ctx.body = {
     pagination: ctx.state.pagination,
-    data,
+    data: revisions.map(presentRevision)
   };
 });
 

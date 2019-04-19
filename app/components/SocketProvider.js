@@ -36,6 +36,7 @@ class SocketProvider extends React.Component<Props> {
       });
       this.socket.on('unauthorized', err => {
         ui.showToast(err.message);
+        throw err;
       });
       this.socket.on('entities', event => {
         if (event.documents) {

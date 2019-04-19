@@ -2,7 +2,7 @@
 import presentUser from './user';
 
 it('presents a user', async () => {
-  const user = await presentUser({
+  const user = presentUser({
     id: '123',
     name: 'Test User',
     username: 'testuser',
@@ -15,7 +15,7 @@ it('presents a user', async () => {
 });
 
 it('presents a user without slack data', async () => {
-  const user = await presentUser({
+  const user = presentUser({
     id: '123',
     name: 'Test User',
     username: 'testuser',
