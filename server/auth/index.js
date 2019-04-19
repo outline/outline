@@ -17,7 +17,9 @@ const router = new Router();
 
 router.use('/', slack.routes());
 router.use('/', google.routes());
-router.use('/', ldap.routes());
+if(!!process.env.LDAP_ENABLED){
+  router.use('/', ldap.routes());
+}
 
 router.get('/redirect', auth(), async ctx => {
   const user = ctx.state.user;

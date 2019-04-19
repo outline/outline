@@ -125,7 +125,7 @@ router.get('/', async ctx => {
           lastSignedIn={lastSignedIn}
           googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}
           slackSigninEnabled={!!process.env.SLACK_KEY}
-          ldapSiginEnabled={!!process.env.LDAP_ENABLED}
+          ldapSigninEnabled={!!process.env.LDAP_ENABLED}
           hostname={ctx.request.hostname}
         />
       );
