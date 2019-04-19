@@ -17,7 +17,7 @@ const router = new Router();
 
 router.use('/', slack.routes());
 router.use('/', google.routes());
-if(!!process.env.LDAP_ENABLED){
+if (!!process.env.LDAP_ENABLED) {
   router.use('/', ldap.routes());
 }
 

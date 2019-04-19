@@ -8,7 +8,6 @@ import getUser from './ldapGetUser';
 import LdapSignin from '../../pages/LdapSignin';
 import renderpage from '../../utils/renderpage';
 
-
 const router = new Router();
 
 router.get('ldap', auth({ required: false }), async ctx => {
@@ -29,18 +28,24 @@ router.get('ldap.callback', auth({ required: false }), async ctx => {
   let profile;
   try {
     profile = await getUser(name, pass);
-  } catch(err) {
-    ctx.redirect(`ldap?notice=auth-error&error=${encodeURIComponent(err.message)}`);
+  } catch (err) {
+    ctx.redirect(
+      `ldap?notice=auth-error&error=${encodeURIComponent(err.message)}`
+    );
     return;
   }
-  const accessGroup = process.env.LDAP_ACCESS_GROUP || "";
+  const accessGroup = process.env.LDAP_ACCESS_GROUP || '';
 
-  if(accessGroup != "" && profile.groups.indexOf(accessGroup) == -1){
-    ctx.redirect(`ldap?notice=auth-error&error=${encodeURIComponent("You are not allowed to sign in.")}`);
+  if (accessGroup !== '' && profile.groups.indexOf(accessGroup) === -1) {
+    ctx.redirect(
+      `ldap?notice=auth-error&error=${encodeURIComponent(
+        'You are not allowed to sign in.'
+      )}`
+    );
     return;
   }
 
-  const teamName = process.env.LDAP_TEAM || "LDAP";
+  const teamName = process.env.LDAP_TEAM || 'LDAP';
 
   const avatarUrl = process.env.LDAP_TEAM_AVATAR || teamAvatarUrl(teamName);
 
@@ -55,13 +60,15 @@ router.get('ldap.callback', auth({ required: false }), async ctx => {
   });
 
   const email = process.env.LDAP_USER_MAIL_ATTR || 'mail';
-  const gravatar = 'https://www.gravatar.com/avatar/' + md5(profile[email].trim().toLowerCase());
+  const gravatar =
+    'https://www.gravatar.com/avatar/' +
+    md5(profile[email].trim().toLowerCase());
 
-  const adminGroup = process.env.LDAP_ADMIN_GROUP || "";
+  const adminGroup = process.env.LDAP_ADMIN_GROUP || '';
 
   var isAdmin = false;
 
-  if(adminGroup != "" && profile.groups.indexOf(adminGroup) > -1){
+  if (adminGroup !== '' && profile.groups.indexOf(adminGroup) > -1) {
     isAdmin = true;
   } else {
     isAdmin = isFirstUser;
@@ -83,7 +90,7 @@ router.get('ldap.callback', auth({ required: false }), async ctx => {
 
   if (isFirstUser) {
     await team.provisionFirstCollection(user.id);
-    await team.provisionSubdomain(hostname);
+    await team.provisionSubdomain('ldap');
   }
 
   // set cookies on response and redirect to team subdomain
@@ -91,9 +98,7 @@ router.get('ldap.callback', auth({ required: false }), async ctx => {
 });
 
 function teamAvatarUrl(teamName) {
-  return `https://tiley.herokuapp.com/avatar/ABC/${
-    teamName[0]
-  }.png`;
+  return `https://tiley.herokuapp.com/avatar/ABC/${teamName[0]}.png`;
 }
 
 export default router;

@@ -46,15 +46,16 @@ const SigninButtons = ({
           </LastLogin>
         </Column>
       )}
-      {ldapSigninEnabled && (<Column column>
+      {ldapSigninEnabled && (
+        <Column column>
           <Button href={signin('ldap')}>
             <Spacer>Sign In with LDAP</Spacer>
           </Button>
           <LastLogin>
-            {lastSignedIn === 'ldap' &&
-              'You signed in with LDAP previously'}
+            {lastSignedIn === 'ldap' && 'You signed in with LDAP previously'}
           </LastLogin>
-        </Column>)}
+        </Column>
+      )}
     </Wrapper>
   );
 };
