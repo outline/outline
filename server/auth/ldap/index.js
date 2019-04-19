@@ -33,6 +33,13 @@ router.get('ldap.callback', auth({ required: false }), async ctx => {
     ctx.redirect(`ldap?notice=auth-error&error=${encodeURIComponent(err.message)}`);
     return;
   }
+  const accessGroup = process.env.LDAP_ACCESS_GROUP || "";
+
+  if(accessGroup != "" && profile.groups.indexOf(accessGroup) == -1){
+    ctx.redirect(`ldap?notice=auth-error&error=${encodeURIComponent("You are not allowed to sign in.")}`);
+    return;
+  }
+
   const teamName = process.env.LDAP_TEAM || "LDAP";
 
   const avatarUrl = process.env.LDAP_TEAM_AVATAR || teamAvatarUrl(teamName);
@@ -50,6 +57,17 @@ router.get('ldap.callback', auth({ required: false }), async ctx => {
   const email = process.env.LDAP_USER_MAIL_ATTR || 'mail';
   const gravatar = 'https://www.gravatar.com/avatar/' + md5(profile[email].trim().toLowerCase());
 
+  const adminGroup = process.env.LDAP_ADMIN_GROUP || "";
+
+  var isAdmin = false;
+
+  if(adminGroup != "" && profile.groups.indexOf(adminGroup) > -1){
+    isAdmin = true;
+    console.log("Is admin");
+  } else {
+    isAdmin = isFirstUser;
+  }
+
   const [user, isFirstSignin] = await User.findOrCreate({
     where: {
       service: 'ldap',
@@ -59,7 +77,7 @@ router.get('ldap.callback', auth({ required: false }), async ctx => {
     defaults: {
       name: profile.uid,
       email: profile[email],
-      isAdmin: isFirstUser, //TODO check admin group
+      isAdmin: isAdmin,
       avatarUrl: gravatar,
     },
   });
