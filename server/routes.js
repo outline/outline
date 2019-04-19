@@ -8,6 +8,7 @@ import Router from 'koa-router';
 import sendfile from 'koa-sendfile';
 import serve from 'koa-static';
 import apexRedirect from './middlewares/apexRedirect';
+import ldapReverseProxy from './middlewares/ldapReverseProxy';
 import renderpage from './utils/renderpage';
 import { isCustomSubdomain, parseDomain } from '../shared/utils/domains';
 import { robotsResponse } from './utils/robots';
@@ -159,6 +160,9 @@ router.get('*', async (ctx, next) => {
 });
 
 // middleware
+if(!!process.env.LDAP_REVERSE_PROXY_HEADER){
+  koa.use(ldapReverseProxy());
+}
 koa.use(apexRedirect());
 koa.use(router.routes());
 
