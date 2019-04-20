@@ -264,6 +264,7 @@ Document.searchForUser = async (
       id: map(results, 'id'),
     },
     include: [
+      { model: Collection, as: 'collection' },
       { model: User, as: 'createdBy', paranoid: false },
       { model: User, as: 'updatedBy', paranoid: false },
     ],
