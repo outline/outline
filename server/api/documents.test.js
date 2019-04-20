@@ -485,6 +485,37 @@ describe('#documents.search', async () => {
     expect(body.data[0].document.text).toEqual('search term');
   });
 
+  it('should return documents for a specific user', async () => {
+    const { user } = await seed();
+
+    await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    // This one will be filtered out
+    await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+    });
+
+    const res = await server.post('/api/documents.search', {
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        userId: user.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.text).toEqual('search term');
+  });
+
   it('should return documents for a specific collection', async () => {
     const { user } = await seed();
     const collection = await buildCollection();

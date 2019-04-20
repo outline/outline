@@ -223,6 +223,11 @@ Document.searchForUser = async (
     FROM documents
     WHERE "searchVector" @@ to_tsquery('english', :query) AND
       "collectionId" IN(:collectionIds) AND
+      ${
+        options.collaboratorIds
+          ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
+          : ''
+      }
       ${options.includeArchived ? '' : '"archivedAt" IS NULL AND'}
       "deletedAt" IS NULL AND
       ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
@@ -243,6 +248,7 @@ Document.searchForUser = async (
   const results = await sequelize.query(sql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
+      collaboratorIds: options.collaboratorIds,
       query: wildcardQuery,
       limit,
       offset,
