@@ -126,6 +126,7 @@ class Layout extends React.Component<Props> {
 
 const Container = styled(Flex)`
   background: ${props => props.theme.background};
+  transition: ${props => props.theme.backgroundTransition};
   position: relative;
   width: 100vw;
   min-height: 100%;

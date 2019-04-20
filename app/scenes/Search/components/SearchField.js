@@ -56,6 +56,7 @@ const StyledInput = styled.input`
   outline: none;
   border: 0;
   background: ${props => props.theme.sidebarBackground};
+  transition: ${props => props.theme.backgroundTransition};
   border-radius: 4px;
 
   color: ${props => props.theme.text};
