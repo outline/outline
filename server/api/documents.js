@@ -326,7 +326,7 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: revisions.map(presentRevision)
+    data: revisions.map(presentRevision),
   };
 });
 
