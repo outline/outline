@@ -117,8 +117,10 @@ class DocumentScene extends React.Component<Props> {
 
   @keydown('esc')
   goBack(ev) {
-    ev.preventDefault();
-    this.props.history.goBack();
+    if (this.isEditing) {
+      ev.preventDefault();
+      this.props.history.goBack();
+    }
   }
 
   @keydown('h')
