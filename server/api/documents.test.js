@@ -485,12 +485,22 @@ describe('#documents.search', async () => {
     expect(body.data[0].document.text).toEqual('search term');
   });
 
-  it('should return documents for a collectionId', async () => {
+  it('should return documents for a specific collection', async () => {
     const { user } = await seed();
+    const collection = await buildCollection();
+
     const document = await buildDocument({
       title: 'search term',
       text: 'search term',
       teamId: user.teamId,
+    });
+
+    // This one will be filtered out
+    await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+      collectionId: collection.id,
     });
 
     const res = await server.post('/api/documents.search', {

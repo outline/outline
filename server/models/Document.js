@@ -13,9 +13,7 @@ import { DataTypes, sequelize } from '../sequelize';
 import parseTitle from '../../shared/utils/parseTitle';
 import unescape from '../../shared/utils/unescape';
 import Revision from './Revision';
-import policy from '../policies';
 
-const { authorize } = policy;
 const Op = Sequelize.Op;
 const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
