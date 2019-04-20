@@ -378,13 +378,21 @@ router.post('documents.restore', auth(), async ctx => {
 });
 
 router.post('documents.search', auth(), pagination(), async ctx => {
-  const { query, includeArchived } = ctx.body;
+  const { query, includeArchived, collectionId } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
+  const user = ctx.state.user;
   ctx.assertPresent(query, 'query is required');
 
-  const user = ctx.state.user;
+  if (collectionId) {
+    ctx.assertUuid(collectionId, 'collectionId must be a UUID');
+
+    const collection = await Collection.findById(collectionId);
+    authorize(user, 'read', collection);
+  }
+
   const results = await Document.searchForUser(user, query, {
     includeArchived: includeArchived === 'true',
+    collectionId,
     offset,
     limit,
   });

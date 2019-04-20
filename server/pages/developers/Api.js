@@ -256,6 +256,7 @@ export default function Api() {
             </Description>
             <Arguments>
               <Argument id="query" description="Search query" required />
+              <Argument id="collectionId" description="Collection ID" />
               <Argument id="includeArchived" description="Boolean" />
             </Arguments>
           </Method>

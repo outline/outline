@@ -13,7 +13,9 @@ import { DataTypes, sequelize } from '../sequelize';
 import parseTitle from '../../shared/utils/parseTitle';
 import unescape from '../../shared/utils/unescape';
 import Revision from './Revision';
+import policy from '../policies';
 
+const { authorize } = policy;
 const Op = Sequelize.Op;
 const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
@@ -233,7 +235,13 @@ Document.searchForUser = async (
     OFFSET :offset;
   `;
 
-  const collectionIds = await user.collectionIds();
+  let collectionIds;
+  if (options.collectionId) {
+    collectionIds = [options.collectionId];
+  } else {
+    collectionIds = await user.collectionIds();
+  }
+
   const results = await sequelize.query(sql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
@@ -252,7 +260,6 @@ Document.searchForUser = async (
       id: map(results, 'id'),
     },
     include: [
-      { model: Collection, as: 'collection' },
       { model: User, as: 'createdBy', paranoid: false },
       { model: User, as: 'updatedBy', paranoid: false },
     ],
