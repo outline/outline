@@ -20,22 +20,26 @@ export default class Websockets {
         const document = await Document.findById(event.modelId, {
           paranoid: false,
         });
+        const documents = [await presentDocument(document)];
+        const collections = [await presentCollection(document.collection)];
 
         return socketio
           .to(`collection-${document.collectionId}`)
           .emit('entities', {
             event: event.name,
-            documents: [await presentDocument(document)],
-            collections: [await presentCollection(document.collection)],
+            documents,
+            collections,
           });
       }
       case 'documents.create': {
         const document = await Document.findById(event.modelId);
+        const documents = [await presentDocument(document)];
+        const collections = [await presentCollection(document.collection)];
 
         return socketio.to(`user-${event.actorId}`).emit('entities', {
           event: event.name,
-          documents: [await presentDocument(document)],
-          collections: [await presentCollection(document.collection)],
+          documents,
+          collections,
         });
       }
       case 'documents.star':
@@ -58,15 +62,17 @@ export default class Websockets {
           paranoid: false,
         });
         documents.forEach(async document => {
+          const documents = [await presentDocument(document)];
           socketio.to(`collection-${document.collectionId}`).emit('entities', {
             event: event.name,
-            documents: [await presentDocument(document)],
+            documents,
           });
         });
         collections.forEach(async collection => {
+          const collections = [await presentCollection(collection)];
           socketio.to(`collection-${collection.id}`).emit('entities', {
             event: event.name,
-            collections: [await presentCollection(collection)],
+            collections,
           });
         });
         return;
@@ -75,6 +81,7 @@ export default class Websockets {
         const collection = await Collection.findById(event.modelId, {
           paranoid: false,
         });
+        const collections = [await presentCollection(collection)];
 
         socketio
           .to(
@@ -84,7 +91,7 @@ export default class Websockets {
           )
           .emit('entities', {
             event: event.name,
-            collections: [await presentCollection(collection)],
+            collections,
           });
         return socketio
           .to(
@@ -102,10 +109,11 @@ export default class Websockets {
         const collection = await Collection.findById(event.modelId, {
           paranoid: false,
         });
+        const collections = [await presentCollection(collection)];
 
         return socketio.to(`collection-${collection.id}`).emit('entities', {
           event: event.name,
-          collections: [await presentCollection(collection)],
+          collections,
         });
       }
       case 'collections.add_user':
