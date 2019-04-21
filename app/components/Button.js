@@ -70,8 +70,8 @@ const Label = styled.span`
 `;
 
 const Inner = styled.span`
-  padding: 0 ${props => (props.small ? 8 : 12)}px;
   display: flex;
+  padding: 0 ${props => (props.small ? 8 : 12)}px;
   line-height: ${props => (props.small ? 24 : 28)}px;
   justify-content: center;
   align-items: center;

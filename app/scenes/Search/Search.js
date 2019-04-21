@@ -7,18 +7,22 @@ import { withRouter } from 'react-router-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { debounce } from 'lodash';
+import queryString from 'query-string';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import CollectionsStore from 'stores/CollectionsStore';
 import { searchUrl } from 'utils/routeHelpers';
 import { meta } from 'utils/keyboard';
 
 import Flex from 'shared/components/Flex';
+import Scrollable from 'components/Scrollable';
 import Empty from 'components/Empty';
 import Fade from 'components/Fade';
 import Checkbox from 'components/Checkbox';
+import Button from 'components/Button';
 
 import HelpText from 'components/HelpText';
 import CenteredContent from 'components/CenteredContent';
@@ -26,12 +30,14 @@ import LoadingIndicator from 'components/LoadingIndicator';
 import DocumentPreview from 'components/DocumentPreview';
 import PageTitle from 'components/PageTitle';
 import SearchField from './components/SearchField';
+import { DropdownMenu } from 'components/DropdownMenu';
 
 type Props = {
   history: Object,
   match: Object,
   location: Object,
   documents: DocumentsStore,
+  collections: CollectionsStore,
   notFound: ?boolean,
 };
 
@@ -40,19 +46,23 @@ class Search extends React.Component<Props> {
   firstDocument: ?DocumentPreview;
 
   @observable query: string = '';
+  @observable params: URLSearchParams = new URLSearchParams();
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
   @observable isFetching: boolean = false;
-  @observable includeArchived: boolean = false;
-  @observable pinToTop: boolean = !!this.props.match.params.query;
+  @observable pinToTop: boolean = !!this.props.match.params.term;
 
   componentDidMount() {
+    this.handleTermChange();
     this.handleQueryChange();
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.match.params.query !== this.props.match.params.query) {
+    if (prevProps.location.search !== this.props.location.search) {
       this.handleQueryChange();
+    }
+    if (prevProps.match.params.term !== this.props.match.params.term) {
+      this.handleTermChange();
     }
   }
 
@@ -79,7 +89,14 @@ class Search extends React.Component<Props> {
   };
 
   handleQueryChange = () => {
-    const query = this.props.match.params.query;
+    this.params = new URLSearchParams(this.props.location.search);
+    this.offset = 0;
+    this.allowLoadMore = true;
+    this.fetchResultsDebounced();
+  };
+
+  handleTermChange = () => {
+    const query = this.props.match.params.term;
     this.query = query ? query : '';
     this.offset = 0;
     this.allowLoadMore = true;
@@ -91,9 +108,33 @@ class Search extends React.Component<Props> {
   };
 
   handleFilterChange = ev => {
-    this.includeArchived = ev.target.checked;
-    this.fetchResultsDebounced();
+    this.props.history.push({
+      pathname: this.props.location.pathname,
+      search: queryString.stringify({
+        ...queryString.parse(this.props.location.search),
+        includeArchived: ev.target.checked ? 'true' : undefined,
+      }),
+    });
   };
+
+  handleCollectionChange = collectionId => {
+    this.props.history.push({
+      pathname: this.props.location.pathname,
+      search: queryString.stringify({
+        ...queryString.parse(this.props.location.search),
+        collectionId,
+      }),
+    });
+  };
+
+  get includeArchived() {
+    return this.params.get('includeArchived') === 'true';
+  }
+
+  get collectionId() {
+    const id = this.params.get('collectionId');
+    return id ? id : undefined;
+  }
 
   @action
   loadMoreResults = async () => {
@@ -114,6 +155,7 @@ class Search extends React.Component<Props> {
           offset: this.offset,
           limit: DEFAULT_PAGINATION_LIMIT,
           includeArchived: this.includeArchived,
+          collectionId: this.collectionId,
         });
 
         if (results.length > 0) this.pinToTop = true;
@@ -183,13 +225,41 @@ class Search extends React.Component<Props> {
           )}
           {this.pinToTop && (
             <Filters>
-              <Checkbox
-                label="Include archived"
-                name="includeArchived"
-                checked={this.includeArchived}
-                onChange={this.handleFilterChange}
-                small
-              />
+              <Filter label="Archived" active={this.includeArchived}>
+                <Checkbox
+                  label="Include archived"
+                  name="includeArchived"
+                  note="Include documents that have been previously been archived"
+                  checked={this.includeArchived}
+                  onChange={this.handleFilterChange}
+                />
+              </Filter>
+              <Filter label="Collection" active={this.collectionId}>
+                <List>
+                  {this.props.collections.orderedData.map(collection => (
+                    <li
+                      key={collection.id}
+                      onClick={ev => {
+                        ev.preventDefault();
+                        this.handleCollectionChange(
+                          this.collectionId === collection.id
+                            ? undefined
+                            : collection.id
+                        );
+                      }}
+                    >
+                      <Label>
+                        <input
+                          type="checkbox"
+                          checked={this.collectionId === collection.id}
+                        />
+                        &nbsp;
+                        {collection.name}
+                      </Label>
+                    </li>
+                  ))}
+                </List>
+              </Filter>
             </Filters>
           )}
           {showEmpty && <Empty>No matching documents.</Empty>}
@@ -252,8 +322,63 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 `;
 
 const Filters = styled(Flex)`
-  border-bottom: 1px solid ${props => props.theme.divider};
   margin-bottom: 10px;
 `;
 
-export default withRouter(inject('documents')(Search));
+const List = styled('ol')`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+`;
+
+const Label = styled('label')`
+  font-weight: 500;
+  font-size: 15px;
+`;
+
+const Content = styled(Flex)`
+  padding: 12px 16px;
+  max-width: 250px;
+  max-height: 50vh;
+
+  p {
+    margin-bottom: 0;
+  }
+`;
+
+const StyledButton = styled(Button)`
+  box-shadow: none;
+  text-transform: none;
+  height: 28px;
+`;
+
+const SearchFilter = props => {
+  return (
+    <DropdownMenu
+      className={props.className}
+      label={
+        <StyledButton active={props.active} neutral={!props.active} small>
+          {props.label}
+        </StyledButton>
+      }
+      leftAlign
+    >
+      {({ closePortal }) => (
+        <Content column>
+          <Scrollable>{props.children}</Scrollable>
+          <Flex justify="flex-end">
+            <Button onClick={closePortal} small neutral>
+              Done
+            </Button>
+          </Flex>
+        </Content>
+      )}
+    </DropdownMenu>
+  );
+};
+
+const Filter = styled(SearchFilter)`
+  margin-right: 8px;
+`;
+
+export default withRouter(inject('documents', 'collections')(Search));

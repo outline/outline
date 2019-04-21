@@ -96,7 +96,7 @@ export default function Routes() {
               />
               <Route path={`/doc/${slug}`} component={KeyedDocument} />
               <Route exact path="/search" component={Search} />
-              <Route exact path="/search/:query" component={Search} />
+              <Route exact path="/search/:term" component={Search} />
               <Route path="/404" component={Error404} />
               <Route component={NotFound} />
             </Switch>
