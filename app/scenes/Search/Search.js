@@ -6,7 +6,7 @@ import Waypoint from 'react-waypoint';
 import { withRouter } from 'react-router-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { debounce } from 'lodash';
+import { debounce, map } from 'lodash';
 import queryString from 'query-string';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
@@ -41,6 +41,14 @@ type Props = {
   collections: CollectionsStore,
   users: UsersStore,
   notFound: ?boolean,
+};
+
+const dateFilters = {
+  any: 'Any time',
+  day: 'Past day',
+  week: 'Past week',
+  month: 'Past month',
+  year: 'Past year',
 };
 
 @observer
@@ -111,7 +119,7 @@ class Search extends React.Component<Props> {
   };
 
   handleFilterChange = ev => {
-    this.props.history.push({
+    this.props.history.replace({
       pathname: this.props.location.pathname,
       search: queryString.stringify({
         ...queryString.parse(this.props.location.search),
@@ -121,7 +129,7 @@ class Search extends React.Component<Props> {
   };
 
   handleCollectionChange = collectionId => {
-    this.props.history.push({
+    this.props.history.replace({
       pathname: this.props.location.pathname,
       search: queryString.stringify({
         ...queryString.parse(this.props.location.search),
@@ -131,11 +139,21 @@ class Search extends React.Component<Props> {
   };
 
   handleUserChange = userId => {
-    this.props.history.push({
+    this.props.history.replace({
       pathname: this.props.location.pathname,
       search: queryString.stringify({
         ...queryString.parse(this.props.location.search),
         userId,
+      }),
+    });
+  };
+
+  handleDateFilterChange = dateFilter => {
+    this.props.history.replace({
+      pathname: this.props.location.pathname,
+      search: queryString.stringify({
+        ...queryString.parse(this.props.location.search),
+        dateFilter,
       }),
     });
   };
@@ -151,6 +169,11 @@ class Search extends React.Component<Props> {
 
   get userId() {
     const id = this.params.get('userId');
+    return id ? id : undefined;
+  }
+
+  get dateFilter() {
+    const id = this.params.get('dateFilter');
     return id ? id : undefined;
   }
 
@@ -172,6 +195,7 @@ class Search extends React.Component<Props> {
         const results = await this.props.documents.search(this.query, {
           offset: this.offset,
           limit: DEFAULT_PAGINATION_LIMIT,
+          dateFilter: this.dateFilter,
           includeArchived: this.includeArchived,
           collectionId: this.collectionId,
           userId: this.userId,
@@ -197,7 +221,10 @@ class Search extends React.Component<Props> {
   });
 
   updateLocation = query => {
-    this.props.history.replace(searchUrl(query));
+    this.props.history.replace({
+      pathname: searchUrl(query),
+      search: this.props.location.search,
+    });
   };
 
   setFirstDocumentRef = ref => {
@@ -327,6 +354,30 @@ class Search extends React.Component<Props> {
                   ))}
                 </List>
               </Filter>
+              <Filter
+                label={
+                  this.dateFilter ? dateFilters[this.dateFilter] : 'Any time'
+                }
+                active={this.dateFilter}
+              >
+                <List>
+                  {map(dateFilters, (value, key) => (
+                    <li
+                      key={key}
+                      onClick={ev => {
+                        ev.preventDefault();
+                        this.handleDateFilterChange(
+                          this.dateFilter === key
+                            ? undefined
+                            : key === 'any' ? undefined : key
+                        );
+                      }}
+                    >
+                      {value}
+                    </li>
+                  ))}
+                </List>
+              </Filter>
             </Filters>
           )}
           {showEmpty && <Empty>No matching documents.</Empty>}
@@ -390,6 +441,12 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 
 const Filters = styled(Flex)`
   margin-bottom: 12px;
+  opacity: 0.85;
+  transition: opacity 100ms ease-in-out;
+
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 const List = styled('ol')`
@@ -416,6 +473,7 @@ const Content = styled(Flex)`
 const StyledButton = styled(Button)`
   box-shadow: none;
   text-transform: none;
+  border-color: transparent;
   height: 28px;
 `;
 
@@ -424,12 +482,7 @@ const SearchFilter = props => {
     <DropdownMenu
       className={props.className}
       label={
-        <StyledButton
-          active={props.active}
-          neutral={!props.active}
-          disclosure
-          small
-        >
+        <StyledButton neutral disclosure small>
           {props.label}
         </StyledButton>
       }

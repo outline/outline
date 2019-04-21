@@ -8,6 +8,8 @@ import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 
+let previousClosePortal;
+
 type Children =
   | React.Node
   | ((options: { closePortal: () => void }) => React.Node);
@@ -28,7 +30,10 @@ class DropdownMenu extends React.Component<Props> {
   @observable right: number;
   @observable left: number;
 
-  handleOpen = (openPortal: (SyntheticEvent<*>) => *) => {
+  handleOpen = (
+    openPortal: (SyntheticEvent<*>) => void,
+    closePortal: () => void
+  ) => {
     return (ev: SyntheticMouseEvent<*>) => {
       ev.preventDefault();
       const currentTarget = ev.currentTarget;
@@ -44,6 +49,12 @@ class DropdownMenu extends React.Component<Props> {
         } else {
           this.right = bodyRect.width - targetRect.left - targetRect.width;
         }
+
+        // attempt to keep only one flyout menu open at once
+        if (previousClosePortal) {
+          previousClosePortal();
+        }
+        previousClosePortal = closePortal;
         openPortal(ev);
       }
     };
@@ -62,7 +73,9 @@ class DropdownMenu extends React.Component<Props> {
         >
           {({ closePortal, openPortal, portal }) => (
             <React.Fragment>
-              <Label onClick={this.handleOpen(openPortal)}>{label}</Label>
+              <Label onClick={this.handleOpen(openPortal, closePortal)}>
+                {label}
+              </Label>
               {portal(
                 <Menu
                   onClick={

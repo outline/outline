@@ -215,35 +215,53 @@ Document.searchForUser = async (
   const offset = options.offset || 0;
   const wildcardQuery = `${sequelize.escape(query)}:*`;
 
-  const sql = `
-    SELECT
-      id,
-      ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
-    FROM documents
-    WHERE "searchVector" @@ to_tsquery('english', :query) AND
-      "collectionId" IN(:collectionIds) AND
-      ${
-        options.collaboratorIds
-          ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
-          : ''
-      }
-      ${options.includeArchived ? '' : '"archivedAt" IS NULL AND'}
-      "deletedAt" IS NULL AND
-      ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
-    ORDER BY 
-      "searchRanking" DESC,
-      "updatedAt" DESC
-    LIMIT :limit
-    OFFSET :offset;
-  `;
-
+  // Ensure we're filtering by the users accessible collections. If
+  // collectionId is passed as an option it is assumed that the authorization
+  // has already been done in the router
   let collectionIds;
   if (options.collectionId) {
     collectionIds = [options.collectionId];
   } else {
     collectionIds = await user.collectionIds();
   }
+
+  // Ensure we're only passing valid interval options into the query
+  let dateFilter;
+  if (options.dateFilter) {
+    if (['day', 'week', 'month', 'year'].includes(options.dateFilter)) {
+      dateFilter = `1 ${options.dateFilter}`;
+    } else {
+      dateFilter = '1 year';
+    }
+  }
+
+  // Build the SQL query to get documentIds, ranking, and search term context
+  const sql = `
+  SELECT
+    id,
+    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
+    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
+  FROM documents
+  WHERE "searchVector" @@ to_tsquery('english', :query) AND
+    "teamId" = '${user.teamId}' AND
+    "collectionId" IN(:collectionIds) AND
+    ${
+      options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ''
+    }
+    ${
+      options.collaboratorIds
+        ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
+        : ''
+    }
+    ${options.includeArchived ? '' : '"archivedAt" IS NULL AND'}
+    "deletedAt" IS NULL AND
+    ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
+  ORDER BY 
+    "searchRanking" DESC,
+    "updatedAt" DESC
+  LIMIT :limit
+  OFFSET :offset;
+`;
 
   const results = await sequelize.query(sql, {
     type: sequelize.QueryTypes.SELECT,
@@ -253,6 +271,7 @@ Document.searchForUser = async (
       limit,
       offset,
       collectionIds,
+      dateFilter,
     },
   });
 
