@@ -14,6 +14,7 @@ import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
+import UsersStore from 'stores/UsersStore';
 import { searchUrl } from 'utils/routeHelpers';
 import { meta } from 'utils/keyboard';
 
@@ -38,6 +39,7 @@ type Props = {
   location: Object,
   documents: DocumentsStore,
   collections: CollectionsStore,
+  users: UsersStore,
   notFound: ?boolean,
 };
 
@@ -55,6 +57,7 @@ class Search extends React.Component<Props> {
   componentDidMount() {
     this.handleTermChange();
     this.handleQueryChange();
+    this.props.users.fetchPage({ limit: 100 });
   }
 
   componentDidUpdate(prevProps) {
@@ -127,12 +130,27 @@ class Search extends React.Component<Props> {
     });
   };
 
+  handleUserChange = userId => {
+    this.props.history.push({
+      pathname: this.props.location.pathname,
+      search: queryString.stringify({
+        ...queryString.parse(this.props.location.search),
+        userId,
+      }),
+    });
+  };
+
   get includeArchived() {
     return this.params.get('includeArchived') === 'true';
   }
 
   get collectionId() {
     const id = this.params.get('collectionId');
+    return id ? id : undefined;
+  }
+
+  get userId() {
+    const id = this.params.get('userId');
     return id ? id : undefined;
   }
 
@@ -156,6 +174,7 @@ class Search extends React.Component<Props> {
           limit: DEFAULT_PAGINATION_LIMIT,
           includeArchived: this.includeArchived,
           collectionId: this.collectionId,
+          userId: this.userId,
         });
 
         if (results.length > 0) this.pinToTop = true;
@@ -199,6 +218,9 @@ class Search extends React.Component<Props> {
     const showShortcutTip =
       !this.pinToTop && location.state && location.state.fromMenu;
 
+    const selectedCollection = this.props.collections.get(this.collectionId);
+    const selectedUser = this.props.users.get(this.userId);
+
     return (
       <Container auto>
         <PageTitle title={this.title} />
@@ -225,7 +247,12 @@ class Search extends React.Component<Props> {
           )}
           {this.pinToTop && (
             <Filters>
-              <Filter label="Archived" active={this.includeArchived}>
+              <Filter
+                label={
+                  this.includeArchived ? 'All documents' : 'Active documents'
+                }
+                active={this.includeArchived}
+              >
                 <Checkbox
                   label="Include archived"
                   name="includeArchived"
@@ -234,7 +261,16 @@ class Search extends React.Component<Props> {
                   onChange={this.handleFilterChange}
                 />
               </Filter>
-              <Filter label="Collection" active={this.collectionId}>
+              <Filter
+                label={
+                  this.collectionId
+                    ? `Collection: ${
+                        selectedCollection ? selectedCollection.name : ''
+                      }`
+                    : 'Any collection'
+                }
+                active={this.collectionId}
+              >
                 <List>
                   {this.props.collections.orderedData.map(collection => (
                     <li
@@ -255,6 +291,37 @@ class Search extends React.Component<Props> {
                         />
                         &nbsp;
                         {collection.name}
+                      </Label>
+                    </li>
+                  ))}
+                </List>
+              </Filter>
+              <Filter
+                label={
+                  this.userId
+                    ? `Author: ${selectedUser ? selectedUser.name : ''}`
+                    : 'Any author'
+                }
+                active={this.userId}
+              >
+                <List>
+                  {this.props.users.orderedData.map(user => (
+                    <li
+                      key={user.id}
+                      onClick={ev => {
+                        ev.preventDefault();
+                        this.handleUserChange(
+                          this.userId === user.id ? undefined : user.id
+                        );
+                      }}
+                    >
+                      <Label>
+                        <input
+                          type="checkbox"
+                          checked={this.userId === user.id}
+                        />
+                        &nbsp;
+                        {user.name}
                       </Label>
                     </li>
                   ))}
@@ -322,12 +389,12 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 `;
 
 const Filters = styled(Flex)`
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 `;
 
 const List = styled('ol')`
   list-style: none;
-  margin: 0;
+  margin: 0 0 8px;
   padding: 0;
 `;
 
@@ -338,7 +405,7 @@ const Label = styled('label')`
 
 const Content = styled(Flex)`
   padding: 12px 16px;
-  max-width: 250px;
+  width: 250px;
   max-height: 50vh;
 
   p {
@@ -357,7 +424,12 @@ const SearchFilter = props => {
     <DropdownMenu
       className={props.className}
       label={
-        <StyledButton active={props.active} neutral={!props.active} small>
+        <StyledButton
+          active={props.active}
+          neutral={!props.active}
+          disclosure
+          small
+        >
           {props.label}
         </StyledButton>
       }
@@ -381,4 +453,4 @@ const Filter = styled(SearchFilter)`
   margin-right: 8px;
 `;
 
-export default withRouter(inject('documents', 'collections')(Search));
+export default withRouter(inject('documents', 'collections', 'users')(Search));
