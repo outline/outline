@@ -33,7 +33,9 @@ router.post('users.list', auth(), pagination(), async ctx => {
 });
 
 router.post('users.info', auth(), async ctx => {
-  ctx.body = { data: await presentUser(ctx.state.user) };
+  ctx.body = {
+    data: presentUser(ctx.state.user),
+  };
 });
 
 router.post('users.update', auth(), async ctx => {
@@ -48,7 +50,9 @@ router.post('users.update', auth(), async ctx => {
 
   await user.save();
 
-  ctx.body = { data: await presentUser(user, { includeDetails: true }) };
+  ctx.body = {
+    data: presentUser(user, { includeDetails: true }),
+  };
 });
 
 router.post('users.s3Upload', auth(), async ctx => {

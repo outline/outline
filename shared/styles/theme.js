@@ -45,6 +45,7 @@ export const base = {
     "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen, Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif",
   fontWeight: 400,
   link: colors.primary,
+  backgroundTransition: 'background 100ms ease-in-out',
 };
 
 export const light = {

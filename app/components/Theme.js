@@ -13,7 +13,7 @@ type Props = {
 
 function Theme({ children, ui }: Props) {
   return (
-    <ThemeProvider theme={ui.theme === 'dark' ? dark : light} key={ui.theme}>
+    <ThemeProvider theme={ui.theme === 'dark' ? dark : light}>
       <React.Fragment>
         <GlobalStyles />
         {children}

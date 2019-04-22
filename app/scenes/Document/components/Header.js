@@ -7,7 +7,7 @@ import { Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { NewDocumentIcon } from 'outline-icons';
-import { transparentize } from 'polished';
+import { transparentize, darken } from 'polished';
 import Document from 'models/Document';
 import AuthStore from 'stores/AuthStore';
 import { documentEditUrl } from 'utils/routeHelpers';
@@ -233,7 +233,10 @@ const Actions = styled(Flex)`
   z-index: 1;
   background: ${props => transparentize(0.1, props.theme.background)};
   border-bottom: 1px solid
-    ${props => (props.isCompact ? props.theme.background : 'transparent')};
+    ${props =>
+      props.isCompact
+        ? darken(0.05, props.theme.sidebarBackground)
+        : 'transparent'};
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
