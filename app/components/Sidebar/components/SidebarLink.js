@@ -32,13 +32,6 @@ class SidebarLink extends React.Component<Props> {
     paddingLeft: `${(this.props.depth || 0) * 16 + 16}px`,
   };
 
-  activeStyle = {
-    color: this.props.theme.text,
-    background: this.props.theme.sidebarItemBackground,
-    fontWeight: 600,
-    ...this.style,
-  };
-
   componentDidMount() {
     if (this.props.expanded) this.handleExpand();
   }
@@ -75,12 +68,18 @@ class SidebarLink extends React.Component<Props> {
       exact,
     } = this.props;
     const showDisclosure = !!children && !hideDisclosure;
+    const activeStyle = {
+      color: this.props.theme.text,
+      background: this.props.theme.sidebarItemBackground,
+      fontWeight: 600,
+      ...this.style,
+    };
 
     return (
       <Wrapper menuOpen={menuOpen} column>
         <StyledNavLink
-          activeStyle={this.activeStyle}
-          style={active ? this.activeStyle : this.style}
+          activeStyle={activeStyle}
+          style={active ? activeStyle : this.style}
           onClick={onClick}
           exact={exact !== false}
           to={to}

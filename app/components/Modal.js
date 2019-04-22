@@ -80,6 +80,7 @@ const StyledModal = styled(ReactModal)`
   overflow-x: hidden;
   overflow-y: auto;
   background: ${props => props.theme.background};
+  transition: ${props => props.theme.backgroundTransition};
   padding: 13vh 2rem 2rem;
   outline: none;
 `;

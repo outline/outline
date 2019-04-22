@@ -22,11 +22,9 @@ router.post('integrations.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const data = await Promise.all(integrations.map(presentIntegration));
-
   ctx.body = {
     pagination: ctx.state.pagination,
-    data,
+    data: integrations.map(presentIntegration),
   };
 });
 

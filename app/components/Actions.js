@@ -30,6 +30,7 @@ const Actions = styled(Flex)`
   left: 0;
   border-radius: 3px;
   background: ${props => props.theme.background};
+  transition: ${props => props.theme.backgroundTransition};
   padding: 12px;
   -webkit-backdrop-filter: blur(20px);
 

@@ -53,6 +53,10 @@ class DocumentEditor extends React.Component<Props> {
 const StyledEditor = styled(Editor)`
   justify-content: start;
 
+  > div {
+    transition: ${props => props.theme.backgroundTransition};
+  }
+
   p {
     ${Placeholder} {
       visibility: hidden;

@@ -32,7 +32,7 @@ export default async function present(document: Document, options: ?Options) {
     publishedAt: document.publishedAt,
     archivedAt: document.archivedAt,
     deletedAt: document.deletedAt,
-    team: document.teamId,
+    teamId: document.teamId,
     collaborators: [],
     starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,

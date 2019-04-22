@@ -12,10 +12,6 @@ import Toasts from 'components/Toasts';
 import Theme from 'components/Theme';
 import Routes from './routes';
 
-// socket.on('connect', function(){});
-// socket.on('event', function(data){});
-// socket.on('disconnect', function(){});
-
 let DevTools;
 if (__DEV__) {
   DevTools = require('mobx-react-devtools').default; // eslint-disable-line global-require

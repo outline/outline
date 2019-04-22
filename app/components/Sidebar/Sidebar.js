@@ -65,7 +65,7 @@ const Container = styled(Flex)`
   left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
   width: 100%;
   background: ${props => props.theme.sidebarBackground};
-  transition: left 100ms ease-out;
+  transition: left 100ms ease-out, ${props => props.theme.backgroundTransition};
   margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
   z-index: 2;
 
