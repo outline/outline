@@ -16,6 +16,7 @@ type Props = {
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
+  ldapSigninEnabled: boolean,
   hostname: string,
 };
 

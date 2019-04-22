@@ -1,7 +1,7 @@
 // @flow
 import LdapClient from 'promised-ldap';
 
-function getUser(identifier, password) {
+function getUser(identifier: string, password: string): Promise<any> {
   return new Promise((resolve, reject) => {
     var client = new LdapClient({ url: process.env.LDAP_URL });
     var opts = {
