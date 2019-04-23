@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { CheckboxIcon } from 'outline-icons';
+import { CheckmarkIcon } from 'outline-icons';
 import styled from 'styled-components';
 import HelpText from 'components/HelpText';
 import Flex from 'shared/components/Flex';
@@ -21,14 +21,14 @@ const FilterOption = ({ label, note, onSelect, active }: Props) => {
             {label}
             {note && <HelpText small>{note}</HelpText>}
           </span>
-          {active && <StyledCheckboxIcon checked />}
+          {active && <Checkmark />}
         </Flex>
       </Anchor>
     </ListItem>
   );
 };
 
-const StyledCheckboxIcon = styled(CheckboxIcon)`
+const Checkmark = styled(CheckmarkIcon)`
   flex-shrink: 0;
   padding-left: 4px;
   fill: ${props => props.theme.text};
