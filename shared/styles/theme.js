@@ -115,7 +115,7 @@ export const dark = {
   inputBorder: colors.slateDark,
   inputBorderFocused: colors.slate,
 
-  listItemHoverBackground: colors.black10,
+  listItemHoverBackground: colors.black50,
   listItemHoverBorder: colors.black50,
 
   toolbarBackground: colors.white,

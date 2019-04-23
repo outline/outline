@@ -1,5 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
+import { subWeeks } from 'date-fns';
 import app from '../app';
 import { Document, View, Star, Revision } from '../models';
 import { flushdb, seed } from '../test/support';
@@ -410,7 +411,7 @@ describe('#documents.search', async () => {
 
   it('should return draft documents created by user', async () => {
     const { user } = await seed();
-    await buildDocument({
+    const document = await buildDocument({
       title: 'search term',
       text: 'search term',
       publishedAt: null,
@@ -424,7 +425,7 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.text).toEqual('search term');
+    expect(body.data[0].document.id).toEqual(document.id);
   });
 
   it('should not return draft documents created by other users', async () => {
@@ -482,13 +483,13 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.text).toEqual('search term');
+    expect(body.data[0].document.id).toEqual(document.id);
   });
 
   it('should return documents for a specific user', async () => {
     const { user } = await seed();
 
-    await buildDocument({
+    const document = await buildDocument({
       title: 'search term',
       text: 'search term',
       teamId: user.teamId,
@@ -513,7 +514,7 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.text).toEqual('search term');
+    expect(body.data[0].document.id).toEqual(document.id);
   });
 
   it('should return documents for a specific collection', async () => {
@@ -545,7 +546,7 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.text).toEqual('search term');
+    expect(body.data[0].document.id).toEqual(document.id);
   });
 
   it('should not return documents in private collections not a member of', async () => {

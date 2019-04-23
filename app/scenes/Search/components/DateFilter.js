@@ -7,6 +7,7 @@ const options = [
   { key: 'day', label: 'Past day' },
   { key: 'week', label: 'Past week' },
   { key: 'month', label: 'Past month' },
+  { key: 'year', label: 'Past year' },
 ];
 
 type Props = {

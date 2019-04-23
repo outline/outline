@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react';
+import { CheckboxIcon } from 'outline-icons';
 import styled from 'styled-components';
 import HelpText from 'components/HelpText';
+import Flex from 'shared/components/Flex';
 
 type Props = {
   label: string,
@@ -14,18 +16,29 @@ const FilterOption = ({ label, note, onSelect, active }: Props) => {
   return (
     <ListItem active={active}>
       <Anchor onClick={active ? undefined : onSelect}>
-        {label}
-        {note && <HelpText small>{note}</HelpText>}
+        <Flex align="center" justify="space-between">
+          <span>
+            {label}
+            {note && <HelpText small>{note}</HelpText>}
+          </span>
+          {active && <StyledCheckboxIcon checked />}
+        </Flex>
       </Anchor>
     </ListItem>
   );
 };
 
+const StyledCheckboxIcon = styled(CheckboxIcon)`
+  flex-shrink: 0;
+  padding-left: 4px;
+  fill: ${props => props.theme.text};
+`;
+
 const Anchor = styled('a')`
   display: flex;
   flex-direction: column;
   font-size: 15px;
-  padding: 4px 32px 4px 8px;
+  padding: 4px 8px;
   color: ${props => props.theme.text};
 
   ${HelpText} {
