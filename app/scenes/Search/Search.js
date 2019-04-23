@@ -53,7 +53,10 @@ class Search extends React.Component<Props> {
 
   componentDidMount() {
     this.handleTermChange();
-    this.handleQueryChange();
+
+    if (this.props.location.search) {
+      this.handleQueryChange();
+    }
   }
 
   componentDidUpdate(prevProps) {

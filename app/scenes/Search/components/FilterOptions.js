@@ -48,7 +48,6 @@ const FilterOptions = ({
 const Content = styled('div')`
   padding: 0 8px;
   width: 250px;
-  max-height: 50vh;
 
   p {
     margin-bottom: 0;
@@ -78,13 +77,19 @@ const SearchFilter = props => {
       leftAlign
     >
       {({ closePortal }) => (
-        <Content>
-          <Scrollable>{props.children}</Scrollable>
-        </Content>
+        <MaxHeightScrollable>
+          <Content>{props.children}</Content>
+        </MaxHeightScrollable>
       )}
     </DropdownMenu>
   );
 };
+
+const MaxHeightScrollable = styled(Scrollable)`
+  max-height: 50vh;
+  margin: -8px 0;
+  padding: 8px 0;
+`;
 
 const DropdownButton = styled(SearchFilter)`
   margin-right: 8px;
