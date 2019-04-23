@@ -40,6 +40,7 @@ const Anchor = styled('a')`
   font-size: 15px;
   padding: 4px 8px;
   color: ${props => props.theme.text};
+  min-height: 32px;
 
   ${HelpText} {
     font-weight: normal;

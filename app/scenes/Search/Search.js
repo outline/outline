@@ -91,6 +91,10 @@ class Search extends React.Component<Props> {
     this.params = new URLSearchParams(this.props.location.search);
     this.offset = 0;
     this.allowLoadMore = true;
+
+    // To prevent "no results" showing before debounce kicks in
+    this.isFetching = true;
+
     this.fetchResultsDebounced();
   };
 
