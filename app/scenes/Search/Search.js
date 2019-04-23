@@ -3,7 +3,7 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { debounce } from 'lodash';
@@ -139,6 +139,22 @@ class Search extends React.Component<Props> {
     return id ? id : undefined;
   }
 
+  get isFiltered() {
+    return (
+      this.dateFilter ||
+      this.userId ||
+      this.collectionId ||
+      this.includeArchived
+    );
+  }
+
+  get title() {
+    const query = this.query;
+    const title = 'Search';
+    if (query) return `${query} – ${title}`;
+    return title;
+  }
+
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
@@ -192,13 +208,6 @@ class Search extends React.Component<Props> {
   setFirstDocumentRef = ref => {
     this.firstDocument = ref;
   };
-
-  get title() {
-    const query = this.query;
-    const title = 'Search';
-    if (query) return `${query} - ${title}`;
-    return title;
-  }
 
   render() {
     const { documents, notFound, location } = this.props;
@@ -255,7 +264,18 @@ class Search extends React.Component<Props> {
               />
             </Filters>
           )}
-          {showEmpty && <Empty>No matching documents.</Empty>}
+          {showEmpty && (
+            <Empty>
+              No results found for search.{' '}
+              {this.isFiltered && (
+                <React.Fragment>
+                  &nbsp;<Link to={this.props.location.pathname}>
+                    Clear Filters
+                  </Link>.
+                </React.Fragment>
+              )}
+            </Empty>
+          )}
           <ResultList column visible={this.pinToTop}>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
