@@ -243,7 +243,7 @@ Document.searchForUser = async (
     ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
   FROM documents
   WHERE "searchVector" @@ to_tsquery('english', :query) AND
-    "teamId" = '${user.teamId}' AND
+    "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${
       options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ''
@@ -255,7 +255,7 @@ Document.searchForUser = async (
     }
     ${options.includeArchived ? '' : '"archivedAt" IS NULL AND'}
     "deletedAt" IS NULL AND
-    ("publishedAt" IS NOT NULL OR "createdById" = '${user.id}')
+    ("publishedAt" IS NOT NULL OR "createdById" = :userId)
   ORDER BY 
     "searchRanking" DESC,
     "updatedAt" DESC
@@ -266,6 +266,8 @@ Document.searchForUser = async (
   const results = await sequelize.query(sql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
+      teamId: user.teamId,
+      userId: user.id,
       collaboratorIds: options.collaboratorIds,
       query: wildcardQuery,
       limit,
