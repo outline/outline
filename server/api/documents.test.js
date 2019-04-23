@@ -1,6 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
-import { subWeeks } from 'date-fns';
 import app from '../app';
 import { Document, View, Star, Revision } from '../models';
 import { flushdb, seed } from '../test/support';
