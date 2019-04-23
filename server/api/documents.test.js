@@ -410,7 +410,7 @@ describe('#documents.search', async () => {
 
   it('should return draft documents created by user', async () => {
     const { user } = await seed();
-    await buildDocument({
+    const document = await buildDocument({
       title: 'search term',
       text: 'search term',
       publishedAt: null,
@@ -424,7 +424,7 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.text).toEqual('search term');
+    expect(body.data[0].document.id).toEqual(document.id);
   });
 
   it('should not return draft documents created by other users', async () => {
@@ -482,7 +482,70 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.text).toEqual('search term');
+    expect(body.data[0].document.id).toEqual(document.id);
+  });
+
+  it('should return documents for a specific user', async () => {
+    const { user } = await seed();
+
+    const document = await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    // This one will be filtered out
+    await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+    });
+
+    const res = await server.post('/api/documents.search', {
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        userId: user.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.id).toEqual(document.id);
+  });
+
+  it('should return documents for a specific collection', async () => {
+    const { user } = await seed();
+    const collection = await buildCollection();
+
+    const document = await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+    });
+
+    // This one will be filtered out
+    await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post('/api/documents.search', {
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        collectionId: document.collectionId,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.id).toEqual(document.id);
   });
 
   it('should not return documents in private collections not a member of', async () => {
@@ -503,6 +566,20 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
+  });
+
+  it('should not allow unknown dateFilter values', async () => {
+    const { user } = await seed();
+
+    const res = await server.post('/api/documents.search', {
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        dateFilter: 'DROP TABLE students;',
+      },
+    });
+
+    expect(res.status).toEqual(400);
   });
 
   it('should require authentication', async () => {

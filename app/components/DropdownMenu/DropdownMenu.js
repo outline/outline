@@ -8,21 +8,32 @@ import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 
+let previousClosePortal;
+
+type Children =
+  | React.Node
+  | ((options: { closePortal: () => void }) => React.Node);
+
 type Props = {
   label: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
-  children?: React.Node,
+  children?: Children,
   className?: string,
   style?: Object,
+  leftAlign?: boolean,
 };
 
 @observer
 class DropdownMenu extends React.Component<Props> {
   @observable top: number;
   @observable right: number;
+  @observable left: number;
 
-  handleOpen = (openPortal: (SyntheticEvent<*>) => *) => {
+  handleOpen = (
+    openPortal: (SyntheticEvent<*>) => void,
+    closePortal: () => void
+  ) => {
     return (ev: SyntheticMouseEvent<*>) => {
       ev.preventDefault();
       const currentTarget = ev.currentTarget;
@@ -32,7 +43,18 @@ class DropdownMenu extends React.Component<Props> {
         const bodyRect = document.body.getBoundingClientRect();
         const targetRect = currentTarget.getBoundingClientRect();
         this.top = targetRect.bottom - bodyRect.top;
-        this.right = bodyRect.width - targetRect.left - targetRect.width;
+
+        if (this.props.leftAlign) {
+          this.left = targetRect.left;
+        } else {
+          this.right = bodyRect.width - targetRect.left - targetRect.width;
+        }
+
+        // attempt to keep only one flyout menu open at once
+        if (previousClosePortal) {
+          previousClosePortal();
+        }
+        previousClosePortal = closePortal;
         openPortal(ev);
       }
     };
@@ -51,18 +73,27 @@ class DropdownMenu extends React.Component<Props> {
         >
           {({ closePortal, openPortal, portal }) => (
             <React.Fragment>
-              <Label onClick={this.handleOpen(openPortal)}>{label}</Label>
+              <Label onClick={this.handleOpen(openPortal, closePortal)}>
+                {label}
+              </Label>
               {portal(
                 <Menu
-                  onClick={ev => {
-                    ev.stopPropagation();
-                    closePortal();
-                  }}
+                  onClick={
+                    typeof children === 'function'
+                      ? undefined
+                      : ev => {
+                          ev.stopPropagation();
+                          closePortal();
+                        }
+                  }
                   style={this.props.style}
                   top={this.top}
+                  left={this.left}
                   right={this.right}
                 >
-                  {children}
+                  {typeof children === 'function'
+                    ? children({ closePortal })
+                    : children}
                 </Menu>
               )}
             </React.Fragment>
@@ -83,10 +114,11 @@ const Label = styled(Flex).attrs({
 
 const Menu = styled.div`
   animation: ${fadeAndScaleIn} 200ms ease;
-  transform-origin: 75% 0;
+  transform-origin: ${({ left }) => (left !== undefined ? '25%' : '75%')} 0;
 
   position: absolute;
-  right: ${({ right }) => right}px;
+  ${({ left }) => (left !== undefined ? `left: ${left}px` : '')};
+  ${({ right }) => (right !== undefined ? `right: ${right}px` : '')};
   top: ${({ top }) => top}px;
   z-index: 1000;
 

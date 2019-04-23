@@ -25,6 +25,7 @@ const Wrapper = styled.div`
 const Label = styled.label`
   display: flex;
   align-items: center;
+  user-select: none;
 `;
 
 export default function Checkbox({

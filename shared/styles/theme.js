@@ -110,12 +110,12 @@ export const dark = {
 
   menuBackground: lighten(0.015, colors.almostBlack),
   menuShadow:
-    '0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)',
+    '0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 0 1px rgba(255,255,255,.2)',
   divider: darken(0.2, colors.slate),
   inputBorder: colors.slateDark,
   inputBorderFocused: colors.slate,
 
-  listItemHoverBackground: colors.black10,
+  listItemHoverBackground: colors.black50,
   listItemHoverBorder: colors.black50,
 
   toolbarBackground: colors.white,

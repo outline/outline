@@ -378,13 +378,37 @@ router.post('documents.restore', auth(), async ctx => {
 });
 
 router.post('documents.search', auth(), pagination(), async ctx => {
-  const { query, includeArchived } = ctx.body;
+  const { query, includeArchived, collectionId, userId, dateFilter } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
+  const user = ctx.state.user;
   ctx.assertPresent(query, 'query is required');
 
-  const user = ctx.state.user;
+  if (collectionId) {
+    ctx.assertUuid(collectionId, 'collectionId must be a UUID');
+
+    const collection = await Collection.findById(collectionId);
+    authorize(user, 'read', collection);
+  }
+
+  let collaboratorIds = undefined;
+  if (userId) {
+    ctx.assertUuid(userId, 'userId must be a UUID');
+    collaboratorIds = [userId];
+  }
+
+  if (dateFilter) {
+    ctx.assertIn(
+      dateFilter,
+      ['day', 'week', 'month', 'year'],
+      'dateFilter must be one of day,week,month,year'
+    );
+  }
+
   const results = await Document.searchForUser(user, query, {
     includeArchived: includeArchived === 'true',
+    collaboratorIds,
+    collectionId,
+    dateFilter,
     offset,
     limit,
   });

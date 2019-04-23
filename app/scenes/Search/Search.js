@@ -3,35 +3,40 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { debounce } from 'lodash';
+import queryString from 'query-string';
 import styled from 'styled-components';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import UsersStore from 'stores/UsersStore';
 import { searchUrl } from 'utils/routeHelpers';
 import { meta } from 'utils/keyboard';
 
 import Flex from 'shared/components/Flex';
 import Empty from 'components/Empty';
 import Fade from 'components/Fade';
-import Checkbox from 'components/Checkbox';
-
 import HelpText from 'components/HelpText';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
 import DocumentPreview from 'components/DocumentPreview';
 import PageTitle from 'components/PageTitle';
 import SearchField from './components/SearchField';
+import StatusFilter from './components/StatusFilter';
+import CollectionFilter from './components/CollectionFilter';
+import UserFilter from './components/UserFilter';
+import DateFilter from './components/DateFilter';
 
 type Props = {
   history: Object,
   match: Object,
   location: Object,
   documents: DocumentsStore,
+  users: UsersStore,
   notFound: ?boolean,
 };
 
@@ -40,19 +45,23 @@ class Search extends React.Component<Props> {
   firstDocument: ?DocumentPreview;
 
   @observable query: string = '';
+  @observable params: URLSearchParams = new URLSearchParams();
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
   @observable isFetching: boolean = false;
-  @observable includeArchived: boolean = false;
-  @observable pinToTop: boolean = !!this.props.match.params.query;
+  @observable pinToTop: boolean = !!this.props.match.params.term;
 
   componentDidMount() {
+    this.handleTermChange();
     this.handleQueryChange();
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.match.params.query !== this.props.match.params.query) {
+    if (prevProps.location.search !== this.props.location.search) {
       this.handleQueryChange();
+    }
+    if (prevProps.match.params.term !== this.props.match.params.term) {
+      this.handleTermChange();
     }
   }
 
@@ -79,7 +88,18 @@ class Search extends React.Component<Props> {
   };
 
   handleQueryChange = () => {
-    const query = this.props.match.params.query;
+    this.params = new URLSearchParams(this.props.location.search);
+    this.offset = 0;
+    this.allowLoadMore = true;
+
+    // To prevent "no results" showing before debounce kicks in
+    this.isFetching = true;
+
+    this.fetchResultsDebounced();
+  };
+
+  handleTermChange = () => {
+    const query = this.props.match.params.term;
     this.query = query ? query : '';
     this.offset = 0;
     this.allowLoadMore = true;
@@ -90,10 +110,50 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
-  handleFilterChange = ev => {
-    this.includeArchived = ev.target.checked;
-    this.fetchResultsDebounced();
+  handleFilterChange = search => {
+    this.props.history.replace({
+      pathname: this.props.location.pathname,
+      search: queryString.stringify({
+        ...queryString.parse(this.props.location.search),
+        ...search,
+      }),
+    });
   };
+
+  get includeArchived() {
+    return this.params.get('includeArchived') === 'true';
+  }
+
+  get collectionId() {
+    const id = this.params.get('collectionId');
+    return id ? id : undefined;
+  }
+
+  get userId() {
+    const id = this.params.get('userId');
+    return id ? id : undefined;
+  }
+
+  get dateFilter() {
+    const id = this.params.get('dateFilter');
+    return id ? id : undefined;
+  }
+
+  get isFiltered() {
+    return (
+      this.dateFilter ||
+      this.userId ||
+      this.collectionId ||
+      this.includeArchived
+    );
+  }
+
+  get title() {
+    const query = this.query;
+    const title = 'Search';
+    if (query) return `${query} – ${title}`;
+    return title;
+  }
 
   @action
   loadMoreResults = async () => {
@@ -113,7 +173,10 @@ class Search extends React.Component<Props> {
         const results = await this.props.documents.search(this.query, {
           offset: this.offset,
           limit: DEFAULT_PAGINATION_LIMIT,
+          dateFilter: this.dateFilter,
           includeArchived: this.includeArchived,
+          collectionId: this.collectionId,
+          userId: this.userId,
         });
 
         if (results.length > 0) this.pinToTop = true;
@@ -136,19 +199,15 @@ class Search extends React.Component<Props> {
   });
 
   updateLocation = query => {
-    this.props.history.replace(searchUrl(query));
+    this.props.history.replace({
+      pathname: searchUrl(query),
+      search: this.props.location.search,
+    });
   };
 
   setFirstDocumentRef = ref => {
     this.firstDocument = ref;
   };
-
-  get title() {
-    const query = this.query;
-    const title = 'Search';
-    if (query) return `${query} - ${title}`;
-    return title;
-  }
 
   render() {
     const { documents, notFound, location } = this.props;
@@ -183,16 +242,40 @@ class Search extends React.Component<Props> {
           )}
           {this.pinToTop && (
             <Filters>
-              <Checkbox
-                label="Include archived"
-                name="includeArchived"
-                checked={this.includeArchived}
-                onChange={this.handleFilterChange}
-                small
+              <StatusFilter
+                includeArchived={this.includeArchived}
+                onSelect={includeArchived =>
+                  this.handleFilterChange({ includeArchived })
+                }
+              />
+              <CollectionFilter
+                collectionId={this.collectionId}
+                onSelect={collectionId =>
+                  this.handleFilterChange({ collectionId })
+                }
+              />
+              <UserFilter
+                userId={this.userId}
+                onSelect={userId => this.handleFilterChange({ userId })}
+              />
+              <DateFilter
+                dateFilter={this.dateFilter}
+                onSelect={dateFilter => this.handleFilterChange({ dateFilter })}
               />
             </Filters>
           )}
-          {showEmpty && <Empty>No matching documents.</Empty>}
+          {showEmpty && (
+            <Empty>
+              No results found for search.{' '}
+              {this.isFiltered && (
+                <React.Fragment>
+                  &nbsp;<Link to={this.props.location.pathname}>
+                    Clear Filters
+                  </Link>.
+                </React.Fragment>
+              )}
+            </Empty>
+          )}
           <ResultList column visible={this.pinToTop}>
             <StyledArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
@@ -252,8 +335,13 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 `;
 
 const Filters = styled(Flex)`
-  border-bottom: 1px solid ${props => props.theme.divider};
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  opacity: 0.85;
+  transition: opacity 100ms ease-in-out;
+
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 export default withRouter(inject('documents')(Search));

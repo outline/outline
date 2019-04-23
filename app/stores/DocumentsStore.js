@@ -1,6 +1,15 @@
 // @flow
 import { observable, action, computed, runInAction } from 'mobx';
-import { without, map, find, orderBy, filter, compact, uniq } from 'lodash';
+import {
+  without,
+  map,
+  find,
+  orderBy,
+  filter,
+  compact,
+  omitBy,
+  uniq,
+} from 'lodash';
 import { client } from 'utils/ApiClient';
 import naturalSort from 'shared/utils/naturalSort';
 import invariant from 'invariant';
@@ -225,8 +234,10 @@ export default class DocumentsStore extends BaseStore<Document> {
     query: string,
     options: PaginationParams = {}
   ): Promise<SearchResult[]> => {
+    // $FlowFixMe
+    const compactedOptions = omitBy(options, o => !o);
     const res = await client.get('/documents.search', {
-      ...options,
+      ...compactedOptions,
       query,
     });
     invariant(res && res.data, 'Search response should be available');

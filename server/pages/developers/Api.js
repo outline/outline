@@ -256,7 +256,13 @@ export default function Api() {
             </Description>
             <Arguments>
               <Argument id="query" description="Search query" required />
+              <Argument id="userId" description="User ID" />
+              <Argument id="collectionId" description="Collection ID" />
               <Argument id="includeArchived" description="Boolean" />
+              <Argument
+                id="dateFilter"
+                description="Date range to consider (day, week, month or year)"
+              />
             </Arguments>
           </Method>
 

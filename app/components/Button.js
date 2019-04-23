@@ -2,6 +2,7 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { darken } from 'polished';
+import { ExpandedIcon } from 'outline-icons';
 
 const RealButton = styled.button`
   display: inline-block;
@@ -21,6 +22,10 @@ const RealButton = styled.button`
   outline: none;
   cursor: pointer;
   user-select: none;
+
+  svg {
+    fill: ${props => props.theme.buttonText};
+  }
 
   &::-moz-focus-inner {
     padding: 0;
@@ -44,6 +49,10 @@ const RealButton = styled.button`
     color: ${props.theme.buttonNeutralText};
     box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px;
     border: 1px solid ${darken(0.1, props.theme.buttonNeutralBackground)};
+
+    svg {
+      fill: ${props.theme.buttonNeutralText};
+    }
 
     &:hover {
       background: ${darken(0.05, props.theme.buttonNeutralBackground)};
@@ -70,8 +79,9 @@ const Label = styled.span`
 `;
 
 const Inner = styled.span`
-  padding: 0 ${props => (props.small ? 8 : 12)}px;
   display: flex;
+  padding: 0 ${props => (props.small ? 8 : 12)}px;
+  padding-right: ${props => (props.disclosure ? 2 : props.small ? 8 : 12)}px;
   line-height: ${props => (props.small ? 24 : 28)}px;
   justify-content: center;
   align-items: center;
@@ -88,6 +98,7 @@ export type Props = {
   className?: string,
   children?: React.Node,
   small?: boolean,
+  disclosure?: boolean,
 };
 
 export default function Button({
@@ -95,6 +106,7 @@ export default function Button({
   icon,
   children,
   value,
+  disclosure,
   small,
   ...rest
 }: Props) {
@@ -103,9 +115,10 @@ export default function Button({
 
   return (
     <RealButton small={small} {...rest}>
-      <Inner hasIcon={hasIcon} small={small}>
+      <Inner hasIcon={hasIcon} small={small} disclosure={disclosure}>
         {hasIcon && icon}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
+        {disclosure && <ExpandedIcon />}
       </Inner>
     </RealButton>
   );

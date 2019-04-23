@@ -12,6 +12,12 @@ export default function validation() {
       }
     };
 
+    ctx.assertIn = (value, options, message) => {
+      if (!options.includes(value)) {
+        throw new ValidationError(message);
+      }
+    };
+
     ctx.assertNotEmpty = (value, message) => {
       if (value === '') {
         throw new ValidationError(message);
