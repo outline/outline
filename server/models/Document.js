@@ -225,14 +225,9 @@ Document.searchForUser = async (
     collectionIds = await user.collectionIds();
   }
 
-  // Ensure we're only passing valid interval options into the query
   let dateFilter;
   if (options.dateFilter) {
-    if (['day', 'week', 'month', 'year'].includes(options.dateFilter)) {
-      dateFilter = `1 ${options.dateFilter}`;
-    } else {
-      dateFilter = '1 year';
-    }
+    dateFilter = `1 ${options.dateFilter}`;
   }
 
   // Build the SQL query to get documentIds, ranking, and search term context

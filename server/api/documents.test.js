@@ -568,6 +568,20 @@ describe('#documents.search', async () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it('should not allow unknown dateFilter values', async () => {
+    const { user } = await seed();
+
+    const res = await server.post('/api/documents.search', {
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        dateFilter: 'DROP TABLE students;',
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
   it('should require authentication', async () => {
     const res = await server.post('/api/documents.search');
     const body = await res.json();

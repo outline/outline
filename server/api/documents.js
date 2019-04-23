@@ -396,6 +396,14 @@ router.post('documents.search', auth(), pagination(), async ctx => {
     collaboratorIds = [userId];
   }
 
+  if (dateFilter) {
+    ctx.assertIn(
+      dateFilter,
+      ['day', 'week', 'month', 'year'],
+      'dateFilter must be one of day,week,month,year'
+    );
+  }
+
   const results = await Document.searchForUser(user, query, {
     includeArchived: includeArchived === 'true',
     collaboratorIds,
