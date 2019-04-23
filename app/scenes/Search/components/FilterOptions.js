@@ -60,6 +60,10 @@ const StyledButton = styled(Button)`
   text-transform: none;
   border-color: transparent;
   height: 28px;
+
+  &:hover {
+    background: transparent;
+  }
 `;
 
 const SearchFilter = props => {
