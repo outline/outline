@@ -44,6 +44,7 @@ const Anchor = styled('a')`
 
   ${HelpText} {
     font-weight: normal;
+    user-select: none;
   }
 
   &:hover {

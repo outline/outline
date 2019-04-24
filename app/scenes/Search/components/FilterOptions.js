@@ -31,16 +31,21 @@ const FilterOptions = ({
 
   return (
     <DropdownButton label={activeKey ? selectedLabel : defaultLabel}>
-      <List>
-        {options.map(option => (
-          <FilterOption
-            key={option.key}
-            onSelect={() => onSelect(option.key)}
-            active={option.key === activeKey}
-            {...option}
-          />
-        ))}
-      </List>
+      {({ closeMenu }) => (
+        <List>
+          {options.map(option => (
+            <FilterOption
+              key={option.key}
+              onSelect={() => {
+                onSelect(option.key);
+                closeMenu();
+              }}
+              active={option.key === activeKey}
+              {...option}
+            />
+          ))}
+        </List>
+      )}
     </DropdownButton>
   );
 };
@@ -78,7 +83,7 @@ const SearchFilter = props => {
     >
       {({ closePortal }) => (
         <MaxHeightScrollable>
-          <Content>{props.children}</Content>
+          <Content>{props.children({ closeMenu: closePortal })}</Content>
         </MaxHeightScrollable>
       )}
     </DropdownMenu>
