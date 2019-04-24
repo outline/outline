@@ -600,7 +600,7 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, publish, autosave, lastRevision } = ctx.body;
+  const { id, title, text, publish, autosave, done, lastRevision } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
 
@@ -638,6 +638,7 @@ router.post('documents.update', auth(), async ctx => {
       teamId: document.teamId,
       actorId: user.id,
       autosave,
+      done,
     });
   }
 

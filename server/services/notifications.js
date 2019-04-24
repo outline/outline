@@ -20,6 +20,9 @@ export default class Notifications {
     // lets not send a notification on every autosave update
     if (event.autosave) return;
 
+    // wait until the user has finished editing
+    if (!event.done) return;
+
     const document = await Document.findById(event.modelId);
     if (!document) return;
 

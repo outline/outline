@@ -45,6 +45,7 @@ type DocumentEvent =
       teamId: string,
       actorId: string,
       autosave: boolean,
+      done: boolean,
     };
 
 type CollectionEvent =
