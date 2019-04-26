@@ -20,11 +20,11 @@ function PlainHome(props: Props) {
   return (
     <span>
       <Helmet>
-        <title>{process.env.COMPANY_NAME} - Team wiki & knowledge base</title>
+        <title>{process.env.TEAM_NAME} - Team wiki & knowledge base</title>
       </Helmet>
       <Grid>
         <Hero id="signin">
-          <Logo src={process.env.COMPANY_LOGO} alt={process.env.COMPANY_NAME} />
+          <Logo src={process.env.TEAM_LOGO} alt={process.env.TEAM_NAME} />
           <h1>Our team’s knowledge base</h1>
           <HeroText>
             Team wiki, documentation, meeting notes, playbooks, onboarding, work

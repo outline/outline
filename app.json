@@ -147,12 +147,12 @@
       "description": "Switch between PlainHome and home",
       "required": true
     },
-    "COMPANY_NAME": {
-      "description": "PlainHome requires a company name",
+    "TEAM_NAME": {
+      "description": "PlainHome requires a team name",
       "required": false
     },
-    "COMPANY_LOGO": {
-      "description": "PlainHome requires a company logo",
+    "TEAM_LOGO": {
+      "description": "PlainHome requires a team logo",
       "required": false
     }
   }
