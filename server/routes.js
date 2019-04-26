@@ -25,6 +25,7 @@ import Integration from './pages/integrations/Integration';
 import Developers from './pages/developers';
 import Api from './pages/developers/Api';
 import SubdomainSignin from './pages/SubdomainSignin';
+import PlainHome from './pages/PlainHome';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const koa = new Koa();
@@ -132,6 +133,20 @@ router.get('/', async ctx => {
 
     ctx.redirect(`${process.env.URL}?notice=invalid-auth`);
     return;
+  }
+
+  // If plain homepage enabled, go ahead and render the plain homepage
+  
+  if (process.env.PLAIN_HOME_ENABLED === 'true') { 
+    return renderpage(
+      ctx,
+      <PlainHome
+        notice={ctx.request.query.notice}
+        lastSignedIn={lastSignedIn}
+        googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}
+        slackSigninEnabled={!!process.env.SLACK_KEY}
+      />
+    );
   }
 
   // Otherwise, go ahead and render the homepage
