@@ -67,9 +67,11 @@ function Layout({ children, loggedIn, sessions }: Props) {
         {'{{CSS}}'}
       </head>
       <Body>
-        {process.env.PLAIN_HOME_ENABLED === 'false' && (<TopNavigation sessions={sessions} loggedIn={loggedIn} />) }
+        {process.env.PLAIN_HOME_ENABLED === 'false' && (
+          <TopNavigation sessions={sessions} loggedIn={loggedIn} />
+        )}
         {children}
-        {process.env.PLAIN_HOME_ENABLED === 'false' && (<BottomNavigation />)}
+        {process.env.PLAIN_HOME_ENABLED === 'false' && <BottomNavigation />}
       </Body>
     </html>
   );

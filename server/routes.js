@@ -136,8 +136,8 @@ router.get('/', async ctx => {
   }
 
   // If plain homepage enabled, go ahead and render the plain homepage
-  
-  if (process.env.PLAIN_HOME_ENABLED === 'true') { 
+
+  if (process.env.PLAIN_HOME_ENABLED === 'true') {
     return renderpage(
       ctx,
       <PlainHome
