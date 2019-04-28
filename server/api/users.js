@@ -1,7 +1,8 @@
 // @flow
 import uuid from 'uuid';
 import Router from 'koa-router';
-import { makePolicy, signPolicy, publicS3Endpoint } from '../utils/s3';
+import format from 'date-fns/format';
+import { makePolicy, getSignature, publicS3Endpoint } from '../utils/s3';
 import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
@@ -63,7 +64,9 @@ router.post('users.s3Upload', auth(), async ctx => {
 
   const s3Key = uuid.v4();
   const key = `uploads/${ctx.state.user.id}/${s3Key}/${filename}`;
-  const policy = makePolicy();
+  const credential = process.env.AWS_ACCESS_KEY_ID + '/' + format(new Date(), 'YYYYMMDD') + '/' + process.env.AWS_REGION + '/s3/aws4_request';
+  const longDate = format(new Date(), 'YYYYMMDDTHHmmss\\Z');
+  const policy = makePolicy(credential, longDate);
   const endpoint = publicS3Endpoint();
   const url = `${endpoint}/${key}`;
 
@@ -84,13 +87,15 @@ router.post('users.s3Upload', auth(), async ctx => {
       maxUploadSize: process.env.AWS_S3_UPLOAD_MAX_SIZE,
       uploadUrl: endpoint,
       form: {
-        AWSAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
         'Cache-Control': 'max-age=31557600',
         'Content-Type': kind,
-        key,
         acl: 'public-read',
-        signature: signPolicy(policy),
+        key,
         policy,
+        'x-amz-algorithm': 'AWS4-HMAC-SHA256',
+        'x-amz-credential': credential,
+        'x-amz-date': longDate,
+        'x-amz-signature': getSignature(policy),
       },
       asset: {
         contentType: kind,

@@ -1,5 +1,5 @@
 // @flow
-import crypto from 'crypto';
+import crypto from 'crypto-js'
 import addHours from 'date-fns/add_hours';
 import format from 'date-fns/format';
 import AWS from 'aws-sdk';
@@ -10,7 +10,7 @@ import bugsnag from 'bugsnag';
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
-export const makePolicy = () => {
+export const makePolicy = (credential: string, longDate: string) => {
   const tomorrow = addHours(new Date(), 24);
   const policy = {
     conditions: [
@@ -20,6 +20,9 @@ export const makePolicy = () => {
       ['content-length-range', 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
       ['starts-with', '$Content-Type', 'image'],
       ['starts-with', '$Cache-Control', ''],
+      { 'x-amz-algorithm': 'AWS4-HMAC-SHA256'},
+      { 'x-amz-credential': credential },
+      { 'x-amz-date': longDate },
     ],
     expiration: format(tomorrow, 'YYYY-MM-DDTHH:mm:ss\\Z'),
   };
@@ -27,15 +30,26 @@ export const makePolicy = () => {
   return new Buffer(JSON.stringify(policy)).toString('base64');
 };
 
-export const signPolicy = (policy: any) => {
-  invariant(AWS_SECRET_ACCESS_KEY, 'AWS_SECRET_ACCESS_KEY not set');
-  const signature = crypto
-    .createHmac('sha1', AWS_SECRET_ACCESS_KEY)
-    .update(policy)
-    .digest('base64');
+export const getSignature = (policy: any) => {
+  const kSecret = "AWS4" + AWS_SECRET_ACCESS_KEY;
+  const kDate = crypto.HmacSHA256(format(new Date(), 'YYYYMMDD'), kSecret);
+  const kRegion = crypto.HmacSHA256(process.env.AWS_REGION, kDate);
+  const kService = crypto.HmacSHA256("s3", kRegion);
+  const kSigning = crypto.HmacSHA256("aws4_request", kService);
 
+  const signature = crypto.HmacSHA256(policy, kSigning).toString(crypto.enc.Hex);
   return signature;
 };
+
+// export const signPolicy = (policy: any) => {
+//   invariant(AWS_SECRET_ACCESS_KEY, 'AWS_SECRET_ACCESS_KEY not set');
+//   const signature = crypto
+//     .createHmac('sha1', AWS_SECRET_ACCESS_KEY)
+//     .update(policy)
+//     .digest('base64');
+
+//   return signature;
+// };
 
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // lose trailing slash if there is one and convert fake-s3 url to localhost
