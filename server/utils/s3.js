@@ -41,16 +41,6 @@ export const getSignature = (policy: any) => {
   return signature;
 };
 
-// export const signPolicy = (policy: any) => {
-//   invariant(AWS_SECRET_ACCESS_KEY, 'AWS_SECRET_ACCESS_KEY not set');
-//   const signature = crypto
-//     .createHmac('sha1', AWS_SECRET_ACCESS_KEY)
-//     .update(policy)
-//     .digest('base64');
-
-//   return signature;
-// };
-
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // lose trailing slash if there is one and convert fake-s3 url to localhost
   // for access outside of docker containers in local development
