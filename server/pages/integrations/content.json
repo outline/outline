@@ -1,5 +1,12 @@
 [
   {
+    "slug": "abstract",
+    "name": "Abstract",
+    "url": "https://abstract.com",
+    "category": "Design",
+    "description": "One place to version, manage, and collaborate"
+  },
+  {
     "slug": "figma",
     "name": "Figma",
     "url": "https://figma.com",
