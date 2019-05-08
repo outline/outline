@@ -1,4 +1,5 @@
 // @flow
+import Abstract from './Abstract';
 import Airtable from './Airtable';
 import Codepen from './Codepen';
 import Figma from './Figma';
@@ -21,6 +22,7 @@ import Vimeo from './Vimeo';
 import YouTube from './YouTube';
 
 export default {
+  Abstract,
   Airtable,
   Codepen,
   Figma,
