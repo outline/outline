@@ -13,7 +13,7 @@ describe('#index', async () => {
     const res = await server.get('/');
     const html = await res.text();
     expect(res.status).toEqual(200);
-    expect(html.includes('Your team’s knowledge base')).toEqual(true);
+    expect(html.includes('Our team’s knowledge base')).toEqual(true);
   });
 
   it('should render app if there is an accessToken', async () => {
