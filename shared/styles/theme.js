@@ -75,6 +75,10 @@ export const light = {
   toolbarInput: colors.white10,
   toolbarItem: colors.white,
 
+  tableDivider: colors.smokeDark,
+  tableSelected: colors.primary,
+  tableSelectedBackground: '#E5F7FF',
+
   buttonBackground: colors.lightBlack,
   buttonText: colors.white,
   buttonNeutralBackground: colors.white,
@@ -121,6 +125,10 @@ export const dark = {
   toolbarBackground: colors.white,
   toolbarInput: colors.black10,
   toolbarItem: colors.lightBlack,
+
+  tableDivider: colors.lightBlack,
+  tableSelected: colors.primary,
+  tableSelectedBackground: '#002333',
 
   buttonBackground: colors.white,
   buttonText: colors.lightBlack,
