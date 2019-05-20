@@ -7856,9 +7856,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@^9.3.0:
-  version "9.3.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.3.0.tgz#f841e37403130354b94e1a4a9aa4eafe1e2f4853"
+rich-markdown-editor@^9.4.1:
+  version "9.4.1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.4.1.tgz#4f5eb2c549b5e8cc1caa7f81c873232c1b8a1839"
   dependencies:
     "@tommoor/slate-edit-list" "0.19.0-0"
     "@wikifactory/slate-edit-blockquote" "^0.7.1"
