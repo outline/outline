@@ -17,9 +17,9 @@ export default function pagination(options?: Object) {
     let query = ctx.request.query;
     let body = ctx.request.body;
     // $FlowFixMe
-    let limit = parseInt(query.limit || body.limit, 10);
+    let limit = Math.abs(parseInt(query.limit || body.limit, 10));
     // $FlowFixMe
-    let offset = parseInt(query.offset || body.offset, 10);
+    let offset = Math.abs(parseInt(query.offset || body.offset, 10));
     limit = isNaN(limit) ? opts.defaultLimit : limit;
     offset = isNaN(offset) ? 0 : offset;
 
