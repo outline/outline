@@ -92,6 +92,10 @@
     lodash "^4.17.11"
     to-fast-properties "^2.0.0"
 
+"@domoinc/slate-edit-table@^0.22.2":
+  version "0.22.2"
+  resolved "https://registry.yarnpkg.com/@domoinc/slate-edit-table/-/slate-edit-table-0.22.2.tgz#67450c1915eeae37d2a4055755c9a12f70f3306c"
+
 "@emotion/is-prop-valid@^0.7.3":
   version "0.7.3"
   resolved "https://registry.yarnpkg.com/@emotion/is-prop-valid/-/is-prop-valid-0.7.3.tgz#a6bf4fa5387cbba59d44e698a4680f481a8da6cc"
@@ -6437,13 +6441,9 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-outline-icons@^1.6.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.6.0.tgz#6c7897d354e6bd77ca5498cd3a989b8cb9482574"
-
-outline-icons@^1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.8.0.tgz#e2ebdc6e69db5a79ca3dfdd60b533bbeb8edf1ef"
+outline-icons@^1.9.0:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.9.0.tgz#e17d998272209846aa3277ad7ed7063fc4dae984"
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -7856,10 +7856,11 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@^9.4.2:
-  version "9.4.2"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.4.2.tgz#37a55ccb6697cd596a41597248d4b7eb945f9956"
+rich-markdown-editor@9.5.0-4:
+  version "9.5.0-4"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.5.0-4.tgz#012ec6611a442a332cfcc4beeed21a0b48632a5b"
   dependencies:
+    "@domoinc/slate-edit-table" "^0.22.2"
     "@tommoor/slate-edit-list" "0.19.0-0"
     "@wikifactory/slate-edit-blockquote" "^0.7.1"
     "@wikifactory/slate-edit-code" "^0.16.0"
@@ -7872,7 +7873,7 @@ rich-markdown-editor@^9.4.2:
     eslint-plugin-prettier "^2.6.0"
     golery-slate-prism "0.6.0-golery.2"
     lodash "^4.17.11"
-    outline-icons "^1.6.0"
+    outline-icons "^1.9.0"
     prismjs "^1.16.0"
     react-autosize-textarea "^6.0.0"
     react-keydown "^1.9.7"
@@ -7881,7 +7882,7 @@ rich-markdown-editor@^9.4.2:
     slate "^0.45.0"
     slate-collapse-on-escape "^0.8.1"
     slate-drop-or-paste-images "^0.9.1"
-    slate-md-serializer "^5.3.3"
+    slate-md-serializer "^5.4.0-5"
     slate-paste-linkify "^0.7.0"
     slate-react "^0.21.20"
     slate-schema-violations "^0.1.39"
@@ -8206,9 +8207,9 @@ slate-hotkeys@^0.2.9:
     is-hotkey "0.1.4"
     slate-dev-environment "^0.2.2"
 
-slate-md-serializer@^5.3.3:
-  version "5.3.3"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.3.3.tgz#31c5a3e24cce888ff941560be5200625498ec865"
+slate-md-serializer@^5.4.0-5:
+  version "5.4.0-5"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.4.0-5.tgz#52d5324dbc3112743e741a7465b3531863e3fe3f"
   dependencies:
     hashtag-regex "^2.0.0"
 
