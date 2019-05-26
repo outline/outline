@@ -1,7 +1,5 @@
 // @flow
 import * as React from 'react';
-import fs from 'fs-extra';
-import { find } from 'lodash';
 import path from 'path';
 import Koa from 'koa';
 import Router from 'koa-router';

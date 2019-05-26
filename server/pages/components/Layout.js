@@ -65,9 +65,7 @@ function Layout({ children, loggedIn, sessions }: Props) {
         {'{{HEAD}}'}
         {'{{CSS}}'}
       </head>
-      <Body>
-        {children}
-      </Body>
+      <Body>{children}</Body>
     </html>
   );
 }
