@@ -2,7 +2,7 @@
 import uuid from 'uuid';
 import Router from 'koa-router';
 import format from 'date-fns/format';
-import { makePolicy, getSignature, publicS3Endpoint } from '../utils/s3';
+import { makePolicy, getSignature, publicS3Endpoint, makeCredential } from '../utils/s3';
 import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
@@ -64,7 +64,7 @@ router.post('users.s3Upload', auth(), async ctx => {
 
   const s3Key = uuid.v4();
   const key = `uploads/${ctx.state.user.id}/${s3Key}/${filename}`;
-  const credential = process.env.AWS_ACCESS_KEY_ID + '/' + format(new Date(), 'YYYYMMDD') + '/' + process.env.AWS_REGION + '/s3/aws4_request';
+  const credential = makeCredential();
   const longDate = format(new Date(), 'YYYYMMDDTHHmmss\\Z');
   const policy = makePolicy(credential, longDate);
   const endpoint = publicS3Endpoint();

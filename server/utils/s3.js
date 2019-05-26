@@ -1,5 +1,5 @@
 // @flow
-import crypto from 'crypto-js'
+import crypto from 'crypto';
 import addHours from 'date-fns/add_hours';
 import format from 'date-fns/format';
 import AWS from 'aws-sdk';
@@ -8,7 +8,13 @@ import fetch from 'isomorphic-fetch';
 import bugsnag from 'bugsnag';
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
+
+export const makeCredential = () => {
+  const credential = AWS_SECRET_ACCESS_KEY + '/' + format(new Date(), 'YYYYMMDD') + '/' + AWS_REGION + '/s3/aws4_request';
+  return credential
+}
 
 export const makePolicy = (credential: string, longDate: string) => {
   const tomorrow = addHours(new Date(), 24);
@@ -20,7 +26,7 @@ export const makePolicy = (credential: string, longDate: string) => {
       ['content-length-range', 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
       ['starts-with', '$Content-Type', 'image'],
       ['starts-with', '$Cache-Control', ''],
-      { 'x-amz-algorithm': 'AWS4-HMAC-SHA256'},
+      { 'x-amz-algorithm': 'AWS4-HMAC-SHA256' },
       { 'x-amz-credential': credential },
       { 'x-amz-date': longDate },
     ],
@@ -31,13 +37,13 @@ export const makePolicy = (credential: string, longDate: string) => {
 };
 
 export const getSignature = (policy: any) => {
-  const kSecret = "AWS4" + AWS_SECRET_ACCESS_KEY;
-  const kDate = crypto.HmacSHA256(format(new Date(), 'YYYYMMDD'), kSecret);
-  const kRegion = crypto.HmacSHA256(process.env.AWS_REGION, kDate);
-  const kService = crypto.HmacSHA256("s3", kRegion);
-  const kSigning = crypto.HmacSHA256("aws4_request", kService);
+  const kSecret = 'AWS4' + AWS_SECRET_ACCESS_KEY;
+  const kDate = crypto.createHmac('sha256', kSecret).update(format(new Date(), 'YYYYMMDD'));
+  const kRegion = crypto.createHmac('sha256', kDate).update(process.env.AWS_REGION);
+  const kService = crypto.createHmac('sha256', kRegion).update('s3');
+  const kSigning = crypto.createHmac('sha256', kService).update('aws4_request');
 
-  const signature = crypto.HmacSHA256(policy, kSigning).toString(crypto.enc.Hex);
+  const signature = crypto.createHmac('sha256', kSigning).update(policy).digest('hex');
   return signature;
 };
 
