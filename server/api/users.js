@@ -2,7 +2,12 @@
 import uuid from 'uuid';
 import Router from 'koa-router';
 import format from 'date-fns/format';
-import { makePolicy, getSignature, publicS3Endpoint, makeCredential } from '../utils/s3';
+import {
+  makePolicy,
+  getSignature,
+  publicS3Endpoint,
+  makeCredential,
+} from '../utils/s3';
 import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';

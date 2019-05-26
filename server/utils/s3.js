@@ -12,9 +12,15 @@ const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
 export const makeCredential = () => {
-  const credential = AWS_SECRET_ACCESS_KEY + '/' + format(new Date(), 'YYYYMMDD') + '/' + AWS_REGION + '/s3/aws4_request';
-  return credential
-}
+  const credential =
+    AWS_SECRET_ACCESS_KEY +
+    '/' +
+    format(new Date(), 'YYYYMMDD') +
+    '/' +
+    AWS_REGION +
+    '/s3/aws4_request';
+  return credential;
+};
 
 export const makePolicy = (credential: string, longDate: string) => {
   const tomorrow = addHours(new Date(), 24);
@@ -38,12 +44,19 @@ export const makePolicy = (credential: string, longDate: string) => {
 
 export const getSignature = (policy: any) => {
   const kSecret = 'AWS4' + AWS_SECRET_ACCESS_KEY;
-  const kDate = crypto.createHmac('sha256', kSecret).update(format(new Date(), 'YYYYMMDD'));
-  const kRegion = crypto.createHmac('sha256', kDate).update(process.env.AWS_REGION);
+  const kDate = crypto
+    .createHmac('sha256', kSecret)
+    .update(format(new Date(), 'YYYYMMDD'));
+  const kRegion = crypto
+    .createHmac('sha256', kDate)
+    .update(process.env.AWS_REGION);
   const kService = crypto.createHmac('sha256', kRegion).update('s3');
   const kSigning = crypto.createHmac('sha256', kService).update('aws4_request');
 
-  const signature = crypto.createHmac('sha256', kSigning).update(policy).digest('hex');
+  const signature = crypto
+    .createHmac('sha256', kSigning)
+    .update(policy)
+    .digest('hex');
   return signature;
 };
 
