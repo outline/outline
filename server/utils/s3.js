@@ -8,12 +8,20 @@ import fetch from 'isomorphic-fetch';
 import bugsnag from 'bugsnag';
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
+const hmac = (key: string, message: string, encoding: string) => {
+  return crypto
+    .createHmac('sha256', key)
+    .update(message, 'utf8')
+    .digest(encoding);
+};
+
 export const makeCredential = () => {
   const credential =
-    AWS_SECRET_ACCESS_KEY +
+    AWS_ACCESS_KEY_ID +
     '/' +
     format(new Date(), 'YYYYMMDD') +
     '/' +
@@ -43,21 +51,15 @@ export const makePolicy = (credential: string, longDate: string) => {
 };
 
 export const getSignature = (policy: any) => {
-  const kSecret = 'AWS4' + AWS_SECRET_ACCESS_KEY;
-  const kDate = crypto
-    .createHmac('sha256', kSecret)
-    .update(format(new Date(), 'YYYYMMDD'));
-  const kRegion = crypto
-    .createHmac('sha256', kDate)
-    .update(process.env.AWS_REGION);
-  const kService = crypto.createHmac('sha256', kRegion).update('s3');
-  const kSigning = crypto.createHmac('sha256', kService).update('aws4_request');
+  const kDate = hmac(
+    'AWS4' + AWS_SECRET_ACCESS_KEY,
+    format(new Date(), 'YYYYMMDD')
+  );
+  const kRegion = hmac(kDate, AWS_REGION);
+  const kService = hmac(kRegion, 's3');
+  const kCredentials = hmac(kService, 'aws4_request');
 
-  const signature = crypto
-    .createHmac('sha256', kSigning)
-    .update(policy)
-    .digest('hex')
-    .toString();
+  const signature = hmac(kCredentials, policy, 'hex');
   return signature;
 };
 
