@@ -56,7 +56,8 @@ export const getSignature = (policy: any) => {
   const signature = crypto
     .createHmac('sha256', kSigning)
     .update(policy)
-    .digest('hex');
+    .digest('hex')
+    .toString();
   return signature;
 };
 
