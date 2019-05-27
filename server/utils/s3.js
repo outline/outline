@@ -12,7 +12,7 @@ const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
-const hmac = (key: string, message: string, encoding: string) => {
+const hmac = (key: string, message: string, encoding: any) => {
   return crypto
     .createHmac('sha256', key)
     .update(message, 'utf8')
