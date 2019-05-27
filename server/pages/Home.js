@@ -20,7 +20,7 @@ function Home(props: Props) {
   return (
     <span>
       <Helmet>
-        <title>{process.env.TEAM_NAME} - Team wiki & knowledge base</title>
+        <title>Outline - Team wiki & knowledge base</title>
       </Helmet>
       <Grid>
         <Hero id="signin">
