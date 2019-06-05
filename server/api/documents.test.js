@@ -1222,29 +1222,30 @@ describe('#documents.update', async () => {
         id: document.id,
         text: 'Additional text',
         lastRevision: document.revision,
-        append: true
+        append: true,
       },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.text).toBe(document.text+'\nAdditional text');
+    expect(body.data.text).toBe(document.text + '\nAdditional text');
   });
 
   it('should require text while appending', async () => {
     const { user, document } = await seed();
-  
+
     const res = await server.post('/api/documents.update', {
       body: {
         token: user.getJwtToken(),
         id: document.id,
         lastRevision: document.revision,
-        append: true
+        append: true,
       },
     });
     const body = await res.json();
-  
+
     expect(res.status).toEqual(400);
+    expect(body).toMatchSnapshot();
   });
 });
 

@@ -600,10 +600,19 @@ router.post('documents.create', auth(), async ctx => {
 });
 
 router.post('documents.update', auth(), async ctx => {
-  const { id, title, text, publish, autosave, done, lastRevision, append } = ctx.body;
+  const {
+    id,
+    title,
+    text,
+    publish,
+    autosave,
+    done,
+    lastRevision,
+    append,
+  } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
-  if(append) ctx.assertPresent(text, 'text is required while appending');
+  if (append) ctx.assertPresent(text, 'text is required while appending');
 
   const user = ctx.state.user;
   const document = await Document.findById(id);
@@ -613,11 +622,11 @@ router.post('documents.update', auth(), async ctx => {
   if (lastRevision && lastRevision !== document.revisionCount) {
     throw new InvalidRequestError('Document has changed since last revision');
   }
-  
+
   // Update document
   if (title) document.title = title;
   //append to document
-  if(append) document.text += "\n"+text;
+  if (append) document.text += '\n' + text;
   else if (text) document.text = text;
   document.lastModifiedById = user.id;
 
