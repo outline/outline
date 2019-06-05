@@ -612,7 +612,7 @@ router.post('documents.update', auth(), async ctx => {
   } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
-  if (append) ctx.assertPresent(text, 'text is required while appending');
+  if (append) ctx.assertPresent(text, 'Text is required while appending');
 
   const user = ctx.state.user;
   const document = await Document.findById(id);

@@ -1239,6 +1239,7 @@ describe('#documents.update', async () => {
         token: user.getJwtToken(),
         id: document.id,
         lastRevision: document.revision,
+        title: 'Updated Title',
         append: true,
       },
     });
