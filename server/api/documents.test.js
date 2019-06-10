@@ -1228,7 +1228,7 @@ describe('#documents.update', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.text).toBe(document.text + '\nAdditional text');
+    expect(body.data.text).toBe(document.text + 'Additional text');
   });
 
   it('should require text while appending', async () => {

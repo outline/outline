@@ -626,8 +626,11 @@ router.post('documents.update', auth(), async ctx => {
   // Update document
   if (title) document.title = title;
   //append to document
-  if (append) document.text += '\n' + text;
-  else if (text) document.text = text;
+  if (append) {
+    document.text += text;
+  } else if (text) {
+    document.text = text;
+  }
   document.lastModifiedById = user.id;
 
   if (publish) {
