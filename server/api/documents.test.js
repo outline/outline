@@ -1212,6 +1212,42 @@ describe('#documents.update', async () => {
     });
     expect(res.status).toEqual(403);
   });
+
+  it('should append document with text', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: 'Additional text',
+        lastRevision: document.revision,
+        append: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.text).toBe(document.text + 'Additional text');
+  });
+
+  it('should require text while appending', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        lastRevision: document.revision,
+        title: 'Updated Title',
+        append: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body).toMatchSnapshot();
+  });
 });
 
 describe('#documents.archive', async () => {
