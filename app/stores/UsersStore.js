@@ -23,7 +23,7 @@ export default class UsersStore extends BaseStore<User> {
   }
 
   @computed
-  get orderedData(): T[] {
+  get orderedData(): User[] {
     return orderBy(Array.from(this.data.values()), 'name', 'asc');
   }
 
