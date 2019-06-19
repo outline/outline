@@ -142,7 +142,7 @@
     "react-waypoint": "^7.3.1",
     "redis": "^2.6.2",
     "redis-lock": "^0.1.0",
-    "rich-markdown-editor": "^9.5.1",
+    "rich-markdown-editor": "^9.6.1",
     "safestart": "1.1.0",
     "sequelize": "4.28.6",
     "sequelize-cli": "^5.4.0",
