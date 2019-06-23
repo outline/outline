@@ -12,8 +12,9 @@ router.post('hooks.unfurl', async ctx => {
   const { challenge, token, event } = ctx.body;
   if (challenge) return (ctx.body = ctx.body.challenge);
 
-  if (token !== process.env.SLACK_VERIFICATION_TOKEN)
+  if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
     throw new AuthenticationError('Invalid token');
+  }
 
   const user = await User.findOne({
     where: { service: 'slack', serviceId: event.user },

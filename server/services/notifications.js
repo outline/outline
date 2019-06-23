@@ -32,7 +32,6 @@ export default class Notifications {
     const notificationSettings = await NotificationSetting.findAll({
       where: {
         userId: {
-          // $FlowFixMe
           [Op.ne]: document.lastModifiedById,
         },
         teamId: document.teamId,
@@ -88,7 +87,6 @@ export default class Notifications {
     const notificationSettings = await NotificationSetting.findAll({
       where: {
         userId: {
-          // $FlowFixMe
           [Op.ne]: collection.createdById,
         },
         teamId: collection.teamId,

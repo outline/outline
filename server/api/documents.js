@@ -86,7 +86,6 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
       teamId: user.teamId,
       collectionId,
       pinnedById: {
-        // $FlowFixMe
         [Op.ne]: null,
       },
     },
@@ -118,7 +117,6 @@ router.post('documents.archived', auth(), pagination(), async ctx => {
       teamId: user.teamId,
       collectionId: collectionIds,
       archivedAt: {
-        // $FlowFixMe
         [Op.ne]: null,
       },
     },
@@ -232,7 +230,6 @@ router.post('documents.drafts', auth(), pagination(), async ctx => {
     where: {
       userId: user.id,
       collectionId: collectionIds,
-      // $FlowFixMe
       publishedAt: { [Op.eq]: null },
     },
     order: [[sort, direction]],
@@ -260,7 +257,6 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   if (shareId) {
     const share = await Share.findOne({
       where: {
-        // $FlowFixMe
         revokedAt: { [Op.eq]: null },
         id: shareId,
       },

@@ -156,7 +156,6 @@ Document.associate = models => {
       ],
       where: {
         publishedAt: {
-          // $FlowFixMe
           [Op.ne]: null,
         },
       },
@@ -182,7 +181,7 @@ Document.associate = models => {
   }));
 };
 
-Document.findById = async (id, options) => {
+Document.findByPk = async (id, options) => {
   const scope = Document.scope('withUnpublished');
 
   if (isUUID(id)) {
@@ -402,7 +401,6 @@ Document.prototype.unarchive = async function(userId) {
       where: {
         id: this.parentDocumentId,
         archivedAt: {
-          // $FlowFixMe
           [Op.eq]: null,
         },
       },
