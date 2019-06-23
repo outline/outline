@@ -66,10 +66,11 @@ describe('#documents.info', async () => {
   });
 
   it('should return document from shareId without token', async () => {
-    const { document } = await seed();
+    const { document, user } = await seed();
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
     });
 
     const res = await server.post('/api/documents.info', {
@@ -88,6 +89,7 @@ describe('#documents.info', async () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
     });
     await share.revoke(user.id);
 
@@ -102,6 +104,7 @@ describe('#documents.info', async () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
     });
     await document.archive(user.id);
 
@@ -116,6 +119,7 @@ describe('#documents.info', async () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
     });
 
     const res = await server.post('/api/documents.info', {
@@ -134,6 +138,7 @@ describe('#documents.info', async () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
     });
 
     collection.private = true;
@@ -974,7 +979,7 @@ describe('#documents.create', async () => {
       },
     });
     const body = await res.json();
-    const newDocument = await Document.findById(body.data.id);
+    const newDocument = await Document.findByPk(body.data.id);
     expect(res.status).toEqual(200);
     expect(newDocument.parentDocumentId).toBe(null);
     expect(newDocument.collection.id).toBe(collection.id);

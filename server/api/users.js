@@ -119,10 +119,10 @@ router.post('users.promote', auth(), async ctx => {
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'promote', user);
 
-  const team = await Team.findById(teamId);
+  const team = await Team.findByPk(teamId);
   await team.addAdmin(user);
 
   ctx.body = {
@@ -135,10 +135,10 @@ router.post('users.demote', auth(), async ctx => {
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'demote', user);
 
-  const team = await Team.findById(teamId);
+  const team = await Team.findByPk(teamId);
   try {
     await team.removeAdmin(user);
   } catch (err) {
@@ -161,10 +161,10 @@ router.post('users.suspend', auth(), async ctx => {
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'suspend', user);
 
-  const team = await Team.findById(teamId);
+  const team = await Team.findByPk(teamId);
   try {
     await team.suspendUser(user, admin);
   } catch (err) {
@@ -188,10 +188,10 @@ router.post('users.activate', auth(), async ctx => {
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'activate', user);
 
-  const team = await Team.findById(teamId);
+  const team = await Team.findByPk(teamId);
   await team.activateUser(user, admin);
 
   ctx.body = {

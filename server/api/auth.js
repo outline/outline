@@ -8,7 +8,7 @@ const router = new Router();
 
 router.post('auth.info', auth(), async ctx => {
   const user = ctx.state.user;
-  const team = await Team.findById(user.teamId);
+  const team = await Team.findByPk(user.teamId);
 
   ctx.body = {
     data: {

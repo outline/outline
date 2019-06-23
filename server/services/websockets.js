@@ -17,7 +17,7 @@ export default class Websockets {
       case 'documents.unpin':
       case 'documents.update':
       case 'documents.delete': {
-        const document = await Document.findById(event.modelId, {
+        const document = await Document.findByPk(event.modelId, {
           paranoid: false,
         });
         const documents = [await presentDocument(document)];
@@ -32,7 +32,7 @@ export default class Websockets {
           });
       }
       case 'documents.create': {
-        const document = await Document.findById(event.modelId);
+        const document = await Document.findByPk(event.modelId);
         const documents = [await presentDocument(document)];
         const collections = [await presentCollection(document.collection)];
 
@@ -78,7 +78,7 @@ export default class Websockets {
         return;
       }
       case 'collections.create': {
-        const collection = await Collection.findById(event.modelId, {
+        const collection = await Collection.findByPk(event.modelId, {
           paranoid: false,
         });
         const collections = [await presentCollection(collection)];
@@ -106,7 +106,7 @@ export default class Websockets {
       }
       case 'collections.update':
       case 'collections.delete': {
-        const collection = await Collection.findById(event.modelId, {
+        const collection = await Collection.findByPk(event.modelId, {
           paranoid: false,
         });
         const collections = [await presentCollection(collection)];

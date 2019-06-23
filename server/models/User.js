@@ -159,7 +159,7 @@ User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(async user => {
-  const team = await Team.findById(user.teamId);
+  const team = await Team.findByPk(user.teamId);
   sendEmail('welcome', user.email, { teamUrl: team.url });
 });
 

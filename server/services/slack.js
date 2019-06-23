@@ -60,7 +60,7 @@ export default class Slack {
     // lets not send a notification on every autosave update
     if (event.autosave) return;
 
-    const document = await Document.findById(event.modelId);
+    const document = await Document.findByPk(event.modelId);
     if (!document) return;
 
     // never send information on draft documents
@@ -76,7 +76,7 @@ export default class Slack {
     });
     if (!integration) return;
 
-    const team = await Team.findById(document.teamId);
+    const team = await Team.findByPk(document.teamId);
 
     let text = `${document.createdBy.name} published a new document`;
 

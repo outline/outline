@@ -156,7 +156,6 @@ Document.associate = models => {
       ],
       where: {
         publishedAt: {
-          // $FlowFixMe
           [Op.ne]: null,
         },
       },
@@ -182,7 +181,7 @@ Document.associate = models => {
   }));
 };
 
-Document.findById = async (id, options) => {
+Document.findByPk = async (id, options) => {
   const scope = Document.scope('withUnpublished');
 
   if (isUUID(id)) {
@@ -300,7 +299,7 @@ Document.searchForUser = async (
 Document.addHook('beforeSave', async model => {
   if (!model.publishedAt) return;
 
-  const collection = await Collection.findById(model.collectionId);
+  const collection = await Collection.findByPk(model.collectionId);
   if (!collection || collection.type !== 'atlas') return;
 
   await collection.updateDocument(model);
@@ -310,7 +309,7 @@ Document.addHook('beforeSave', async model => {
 Document.addHook('afterCreate', async model => {
   if (!model.publishedAt) return;
 
-  const collection = await Collection.findById(model.collectionId);
+  const collection = await Collection.findByPk(model.collectionId);
   if (!collection || collection.type !== 'atlas') return;
 
   await collection.addDocumentToStructure(model);
@@ -366,7 +365,7 @@ Document.prototype.archiveWithChildren = async function(userId, options) {
 Document.prototype.publish = async function() {
   if (this.publishedAt) return this.save();
 
-  const collection = await Collection.findById(this.collectionId);
+  const collection = await Collection.findByPk(this.collectionId);
   if (collection.type !== 'atlas') return this.save();
 
   await collection.addDocumentToStructure(this);
@@ -402,7 +401,6 @@ Document.prototype.unarchive = async function(userId) {
       where: {
         id: this.parentDocumentId,
         archivedAt: {
-          // $FlowFixMe
           [Op.eq]: null,
         },
       },

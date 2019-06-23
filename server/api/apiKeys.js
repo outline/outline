@@ -49,7 +49,7 @@ router.post('apiKeys.delete', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const key = await ApiKey.findById(id);
+  const key = await ApiKey.findByPk(id);
   authorize(user, 'delete', key);
 
   await key.destroy();

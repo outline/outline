@@ -7,7 +7,7 @@ import { Collection, Document } from '../models';
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
-    const document = await Document.findById(doc.id);
+    const document = await Document.findByPk(doc.id);
 
     zip.file(`${document.title}.md`, unescape(document.text));
 
