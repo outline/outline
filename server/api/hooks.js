@@ -15,12 +15,12 @@ router.post('hooks.unfurl', async ctx => {
   if (token !== process.env.SLACK_VERIFICATION_TOKEN)
     throw new AuthenticationError('Invalid token');
 
-  const user = await User.find({
+  const user = await User.findOne({
     where: { service: 'slack', serviceId: event.user },
   });
   if (!user) return;
 
-  const auth = await Authentication.find({
+  const auth = await Authentication.findOne({
     where: { service: 'slack', teamId: user.teamId },
   });
   if (!auth) return;
@@ -29,7 +29,7 @@ router.post('hooks.unfurl', async ctx => {
   let unfurls = {};
   for (let link of event.links) {
     const id = link.url.substr(link.url.lastIndexOf('/') + 1);
-    const doc = await Document.findById(id);
+    const doc = await Document.findByPk(id);
     if (!doc || doc.teamId !== user.teamId) continue;
 
     unfurls[link.url] = {
@@ -60,7 +60,7 @@ router.post('hooks.interactive', async ctx => {
   if (token !== process.env.SLACK_VERIFICATION_TOKEN)
     throw new AuthenticationError('Invalid verification token');
 
-  const user = await User.find({
+  const user = await User.findOne({
     where: { service: 'slack', serviceId: data.user.id },
   });
   if (!user) {
@@ -73,12 +73,12 @@ router.post('hooks.interactive', async ctx => {
   }
 
   // we find the document based on the users teamId to ensure access
-  const document = await Document.find({
+  const document = await Document.findOne({
     where: { id: data.callback_id, teamId: user.teamId },
   });
   if (!document) throw new InvalidRequestError('Invalid document');
 
-  const team = await Team.findById(user.teamId);
+  const team = await Team.findByPk(user.teamId);
 
   // respond with a public message that will be posted in the original channel
   ctx.body = {
@@ -100,7 +100,7 @@ router.post('hooks.slack', async ctx => {
   if (token !== process.env.SLACK_VERIFICATION_TOKEN)
     throw new AuthenticationError('Invalid verification token');
 
-  const user = await User.find({
+  const user = await User.findOne({
     where: {
       service: 'slack',
       serviceId: user_id,
@@ -113,7 +113,7 @@ router.post('hooks.slack', async ctx => {
     return;
   }
 
-  const team = await Team.findById(user.teamId);
+  const team = await Team.findByPk(user.teamId);
   const results = await Document.searchForUser(user, text, {
     limit: 5,
   });

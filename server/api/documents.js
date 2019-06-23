@@ -41,7 +41,7 @@ router.post('documents.list', auth(), pagination(), async ctx => {
     ctx.assertUuid(collectionId, 'collection must be a UUID');
 
     where = { ...where, collectionId };
-    const collection = await Collection.findById(collectionId);
+    const collection = await Collection.findByPk(collectionId);
     authorize(user, 'read', collection);
 
     // otherwise, filter by all collections the user has access to
@@ -77,7 +77,7 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   ctx.assertUuid(collectionId, 'collection is required');
 
   const user = ctx.state.user;
-  const collection = await Collection.findById(collectionId);
+  const collection = await Collection.findByPk(collectionId);
   authorize(user, 'read', collection);
 
   const starredScope = { method: ['withStarred', user.id] };
@@ -258,7 +258,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   let document;
 
   if (shareId) {
-    const share = await Share.find({
+    const share = await Share.findOne({
       where: {
         // $FlowFixMe
         revokedAt: { [Op.eq]: null },
@@ -277,7 +277,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
     }
     document = share.document;
   } else {
-    document = await Document.findById(id);
+    document = await Document.findByPk(id);
     authorize(user, 'read', document);
   }
 
@@ -293,7 +293,7 @@ router.post('documents.revision', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(revisionId, 'revisionId is required');
 
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
   authorize(ctx.state.user, 'read', document);
 
   const revision = await Revision.findOne({
@@ -313,7 +313,7 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   let { id, sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
   ctx.assertPresent(id, 'id is required');
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
 
   authorize(ctx.state.user, 'read', document);
 
@@ -335,7 +335,7 @@ router.post('documents.restore', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
 
   if (document.archivedAt) {
     authorize(user, 'unarchive', document);
@@ -354,7 +354,7 @@ router.post('documents.restore', auth(), async ctx => {
     // restore a document to a specific revision
     authorize(user, 'update', document);
 
-    const revision = await Revision.findById(revisionId);
+    const revision = await Revision.findByPk(revisionId);
     authorize(document, 'restore', revision);
 
     document.text = revision.text;
@@ -386,7 +386,7 @@ router.post('documents.search', auth(), pagination(), async ctx => {
   if (collectionId) {
     ctx.assertUuid(collectionId, 'collectionId must be a UUID');
 
-    const collection = await Collection.findById(collectionId);
+    const collection = await Collection.findByPk(collectionId);
     authorize(user, 'read', collection);
   }
 
@@ -430,7 +430,7 @@ router.post('documents.pin', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
 
   authorize(user, 'update', document);
 
@@ -454,7 +454,7 @@ router.post('documents.unpin', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
 
   authorize(user, 'update', document);
 
@@ -478,7 +478,7 @@ router.post('documents.star', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
 
   authorize(user, 'read', document);
 
@@ -499,7 +499,7 @@ router.post('documents.unstar', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
 
   authorize(user, 'read', document);
 
@@ -590,7 +590,7 @@ router.post('documents.create', auth(), async ctx => {
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
-  document = await Document.find({
+  document = await Document.findOne({
     where: { id: document.id, publishedAt: document.publishedAt },
   });
 
@@ -615,7 +615,7 @@ router.post('documents.update', auth(), async ctx => {
   if (append) ctx.assertPresent(text, 'Text is required while appending');
 
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
 
   authorize(ctx.state.user, 'update', document);
 
@@ -680,10 +680,10 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
   authorize(user, 'move', document);
 
-  const collection = await Collection.findById(collectionId);
+  const collection = await Collection.findByPk(collectionId);
   authorize(user, 'update', collection);
 
   if (collection.type !== 'atlas' && parentDocumentId) {
@@ -693,7 +693,7 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   if (parentDocumentId) {
-    const parent = await Document.findById(parentDocumentId);
+    const parent = await Document.findByPk(parentDocumentId);
     authorize(user, 'update', parent);
   }
 
@@ -721,7 +721,7 @@ router.post('documents.archive', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
   authorize(user, 'archive', document);
 
   await document.archive(user.id);
@@ -744,7 +744,7 @@ router.post('documents.delete', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findById(id);
+  const document = await Document.findByPk(id);
   authorize(user, 'delete', document);
 
   await document.delete();

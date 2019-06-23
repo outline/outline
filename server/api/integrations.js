@@ -33,7 +33,7 @@ router.post('integrations.delete', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const integration = await Integration.findById(id);
+  const integration = await Integration.findByPk(id);
   authorize(user, 'delete', integration);
 
   await integration.destroy();

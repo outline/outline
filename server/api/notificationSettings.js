@@ -47,7 +47,7 @@ router.post('notificationSettings.delete', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const setting = await NotificationSetting.findById(id);
+  const setting = await NotificationSetting.findByPk(id);
   authorize(user, 'delete', setting);
 
   await setting.destroy();
@@ -62,7 +62,7 @@ router.post('notificationSettings.unsubscribe', async ctx => {
   ctx.assertUuid(id, 'id is required');
   ctx.assertPresent(token, 'token is required');
 
-  const setting = await NotificationSetting.findById(id);
+  const setting = await NotificationSetting.findByPk(id);
   if (setting) {
     if (token !== setting.unsubscribeToken) {
       ctx.redirect(`${process.env.URL}?notice=invalid-auth`);
