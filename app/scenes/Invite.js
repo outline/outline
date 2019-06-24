@@ -13,9 +13,11 @@ import Tooltip from 'components/Tooltip';
 
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
+import UsersStore from 'stores/UsersStore';
 
 type Props = {
   auth: AuthStore,
+  users: UsersStore,
   history: Object,
   ui: UiStore,
   onSubmit: () => void,
@@ -25,30 +27,24 @@ type Props = {
 class Invite extends React.Component<Props> {
   @observable isSaving: boolean;
   @observable
-  invites: Array<{ email: string, name: string }> = [{ email: '', name: '' }];
+  invites: Array<{ email: string, name: string }> = [
+    { email: '', name: '' },
+    { email: '', name: '' },
+    { email: '', name: '' },
+  ];
 
   handleSubmit = async (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
-    // this.isSaving = true;
-    // const collection = new Collection(
-    //   {
-    //     name: this.name,
-    //     description: this.description,
-    //     color: this.color,
-    //     private: this.private,
-    //   },
-    //   this.props.collections
-    // );
+    this.isSaving = true;
 
-    // try {
-    //   await collection.save();
-    //   this.props.onSubmit();
-    //   this.props.history.push(collection.url);
-    // } catch (err) {
-    //   this.props.ui.showToast(err.message);
-    // } finally {
-    //   this.isSaving = false;
-    // }
+    try {
+      await this.props.users.invite(this.invites);
+      this.props.onSubmit();
+    } catch (err) {
+      this.props.ui.showToast(err.message);
+    } finally {
+      this.isSaving = false;
+    }
   };
 
   handleChange = (ev, index) => {
@@ -130,4 +126,4 @@ const Remove = styled('div')`
   right: -32px;
 `;
 
-export default inject('auth', 'ui')(withRouter(Invite));
+export default inject('auth', 'users', 'ui')(withRouter(Invite));

@@ -12,6 +12,7 @@ import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
+import userInviter from '../commands/userInviter';
 import { presentUser } from '../presenters';
 import policy from '../policies';
 
@@ -189,14 +190,17 @@ router.post('users.activate', auth(), async ctx => {
 });
 
 router.post('users.invite', auth(), async ctx => {
-  const { email, name } = ctx.body;
-  ctx.assertPresent(email, 'email is required');
-  ctx.assertPresent(name, 'name is required');
+  const { invites } = ctx.body;
+  ctx.assertPresent(invites, 'invites is required');
 
   const user = ctx.state.user;
   authorize(user, 'invite');
 
-  // TODO
+  await userInviter({ user, invites });
+
+  ctx.body = {
+    success: true,
+  };
 });
 
 router.post('users.delete', auth(), async ctx => {

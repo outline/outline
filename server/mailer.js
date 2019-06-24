@@ -9,6 +9,11 @@ import { baseStyles } from './emails/components/EmailLayout';
 import { WelcomeEmail, welcomeEmailText } from './emails/WelcomeEmail';
 import { ExportEmail, exportEmailText } from './emails/ExportEmail';
 import {
+  type Props as InviteEmailT,
+  InviteEmail,
+  inviteEmailText,
+} from './emails/InviteEmail';
+import {
   type Props as DocumentNotificationEmailT,
   DocumentNotificationEmail,
   documentNotificationEmailText,
@@ -102,6 +107,17 @@ export class Mailer {
       previewText: "Here's your request data export from Outline",
       html: <ExportEmail />,
       text: exportEmailText,
+    });
+  };
+
+  invite = async (opts: { to: string } & InviteEmailT) => {
+    this.sendMail({
+      to: opts.to,
+      title: `${opts.actorName} invited you to join ${opts.teamName}'s Outline`,
+      previewText:
+        'Outline is a place for your team to build and share knowledge.',
+      html: <InviteEmail {...opts} />,
+      text: inviteEmailText,
     });
   };
 

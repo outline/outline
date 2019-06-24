@@ -47,6 +47,11 @@ export default class UsersStore extends BaseStore<User> {
     return this.actionOnUser('activate', user);
   };
 
+  @action
+  invite = async (invites: Array<{ email: string, name: string }>) => {
+    await client.post(`/users.invite`, { invites });
+  };
+
   actionOnUser = async (action: string, user: User) => {
     const res = await client.post(`/users.${action}`, {
       id: user.id,
