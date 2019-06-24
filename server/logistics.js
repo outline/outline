@@ -18,7 +18,7 @@ const queueOptions = {
 
 async function exportAndEmailCollection(collectionId: string, email: string) {
   log('Archiving collection', collectionId);
-  const collection = await Collection.findById(collectionId);
+  const collection = await Collection.findByPk(collectionId);
   const filePath = await archiveCollection(collection);
 
   log('Archive path', filePath);
@@ -36,7 +36,7 @@ async function exportAndEmailCollection(collectionId: string, email: string) {
 
 async function exportAndEmailCollections(teamId: string, email: string) {
   log('Archiving team', teamId);
-  const team = await Team.findById(teamId);
+  const team = await Team.findByPk(teamId);
   const collections = await Collection.findAll({
     where: { teamId },
     order: [['name', 'ASC']],

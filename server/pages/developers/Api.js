@@ -338,6 +338,15 @@ export default function Api() {
                 }
               />
               <Argument
+                id="append"
+                description={
+                  <span>
+                    Pass <Code>true</Code> to append the text parameter to the
+                    end of the document rather than replace.
+                  </span>
+                }
+              />
+              <Argument
                 id="autosave"
                 description={
                   <span>
@@ -351,7 +360,7 @@ export default function Api() {
                 description={
                   <span>
                     Pass <Code>true</Code> to signify the end of an editing
-                    session. This will trigger documents.update hooks.
+                    session. This will trigger update notifications.
                   </span>
                 }
               />

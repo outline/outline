@@ -8,9 +8,29 @@ import fetch from 'isomorphic-fetch';
 import bugsnag from 'bugsnag';
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
+const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
-export const makePolicy = () => {
+const hmac = (key: string, message: string, encoding: any) => {
+  return crypto
+    .createHmac('sha256', key)
+    .update(message, 'utf8')
+    .digest(encoding);
+};
+
+export const makeCredential = () => {
+  const credential =
+    AWS_ACCESS_KEY_ID +
+    '/' +
+    format(new Date(), 'YYYYMMDD') +
+    '/' +
+    AWS_REGION +
+    '/s3/aws4_request';
+  return credential;
+};
+
+export const makePolicy = (credential: string, longDate: string) => {
   const tomorrow = addHours(new Date(), 24);
   const policy = {
     conditions: [
@@ -20,6 +40,9 @@ export const makePolicy = () => {
       ['content-length-range', 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
       ['starts-with', '$Content-Type', 'image'],
       ['starts-with', '$Cache-Control', ''],
+      { 'x-amz-algorithm': 'AWS4-HMAC-SHA256' },
+      { 'x-amz-credential': credential },
+      { 'x-amz-date': longDate },
     ],
     expiration: format(tomorrow, 'YYYY-MM-DDTHH:mm:ss\\Z'),
   };
@@ -27,13 +50,16 @@ export const makePolicy = () => {
   return new Buffer(JSON.stringify(policy)).toString('base64');
 };
 
-export const signPolicy = (policy: any) => {
-  invariant(AWS_SECRET_ACCESS_KEY, 'AWS_SECRET_ACCESS_KEY not set');
-  const signature = crypto
-    .createHmac('sha1', AWS_SECRET_ACCESS_KEY)
-    .update(policy)
-    .digest('base64');
+export const getSignature = (policy: any) => {
+  const kDate = hmac(
+    'AWS4' + AWS_SECRET_ACCESS_KEY,
+    format(new Date(), 'YYYYMMDD')
+  );
+  const kRegion = hmac(kDate, AWS_REGION);
+  const kService = hmac(kRegion, 's3');
+  const kCredentials = hmac(kService, 'aws4_request');
 
+  const signature = hmac(kCredentials, policy, 'hex');
   return signature;
 };
 

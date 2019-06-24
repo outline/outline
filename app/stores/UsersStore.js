@@ -1,5 +1,5 @@
 // @flow
-import { filter } from 'lodash';
+import { filter, orderBy } from 'lodash';
 import { computed, action, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
@@ -20,6 +20,11 @@ export default class UsersStore extends BaseStore<User> {
   @computed
   get admins(): User[] {
     return filter(this.orderedData, user => user.isAdmin);
+  }
+
+  @computed
+  get orderedData(): User[] {
+    return orderBy(Array.from(this.data.values()), 'name', 'asc');
   }
 
   @action

@@ -13,7 +13,7 @@ export async function getUserForJWT(token: string) {
 
   if (!payload) throw new AuthenticationError('Invalid token');
 
-  const user = await User.findById(payload.id);
+  const user = await User.findByPk(payload.id);
 
   try {
     JWT.verify(token, user.jwtSecret);

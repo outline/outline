@@ -1,7 +1,15 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.removeConstraint('users', 'email_unique_idx');
-    await queryInterface.removeConstraint('users', 'username_unique_idx');
+    await queryInterface.changeColumn('users', 'email', {
+      type: Sequelize.STRING,
+      unique: false,
+      allowNull: false,
+    });
+    await queryInterface.changeColumn('users', 'username', {
+      type: Sequelize.STRING,
+      unique: false,
+      allowNull: false,
+    });
   },
 
   down: async (queryInterface, Sequelize) => {

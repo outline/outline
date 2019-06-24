@@ -1,7 +1,13 @@
 // @flow
 import uuid from 'uuid';
 import Router from 'koa-router';
-import { makePolicy, signPolicy, publicS3Endpoint } from '../utils/s3';
+import format from 'date-fns/format';
+import {
+  makePolicy,
+  getSignature,
+  publicS3Endpoint,
+  makeCredential,
+} from '../utils/s3';
 import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
@@ -63,7 +69,9 @@ router.post('users.s3Upload', auth(), async ctx => {
 
   const s3Key = uuid.v4();
   const key = `uploads/${ctx.state.user.id}/${s3Key}/${filename}`;
-  const policy = makePolicy();
+  const credential = makeCredential();
+  const longDate = format(new Date(), 'YYYYMMDDTHHmmss\\Z');
+  const policy = makePolicy(credential, longDate);
   const endpoint = publicS3Endpoint();
   const url = `${endpoint}/${key}`;
 
@@ -84,13 +92,15 @@ router.post('users.s3Upload', auth(), async ctx => {
       maxUploadSize: process.env.AWS_S3_UPLOAD_MAX_SIZE,
       uploadUrl: endpoint,
       form: {
-        AWSAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
         'Cache-Control': 'max-age=31557600',
         'Content-Type': kind,
-        key,
         acl: 'public-read',
-        signature: signPolicy(policy),
+        key,
         policy,
+        'x-amz-algorithm': 'AWS4-HMAC-SHA256',
+        'x-amz-credential': credential,
+        'x-amz-date': longDate,
+        'x-amz-signature': getSignature(policy),
       },
       asset: {
         contentType: kind,
@@ -109,10 +119,10 @@ router.post('users.promote', auth(), async ctx => {
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'promote', user);
 
-  const team = await Team.findById(teamId);
+  const team = await Team.findByPk(teamId);
   await team.addAdmin(user);
 
   ctx.body = {
@@ -125,10 +135,10 @@ router.post('users.demote', auth(), async ctx => {
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'demote', user);
 
-  const team = await Team.findById(teamId);
+  const team = await Team.findByPk(teamId);
   try {
     await team.removeAdmin(user);
   } catch (err) {
@@ -151,10 +161,10 @@ router.post('users.suspend', auth(), async ctx => {
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'suspend', user);
 
-  const team = await Team.findById(teamId);
+  const team = await Team.findByPk(teamId);
   try {
     await team.suspendUser(user, admin);
   } catch (err) {
@@ -178,10 +188,10 @@ router.post('users.activate', auth(), async ctx => {
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, 'id is required');
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'activate', user);
 
-  const team = await Team.findById(teamId);
+  const team = await Team.findByPk(teamId);
   await team.activateUser(user, admin);
 
   ctx.body = {

@@ -113,7 +113,7 @@ router.get('/', async ctx => {
   ) {
     const domain = parseDomain(ctx.request.hostname);
     const subdomain = domain ? domain.subdomain : undefined;
-    const team = await Team.find({
+    const team = await Team.findOne({
       where: { subdomain },
     });
     if (team) {

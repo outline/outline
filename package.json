@@ -141,16 +141,15 @@
     "react-router-dom": "^4.3.1",
     "react-waypoint": "^7.3.1",
     "redis": "^2.6.2",
-    "redis-lock": "^0.1.0",
-    "rich-markdown-editor": "^9.5.1",
+    "rich-markdown-editor": "^9.6.1",
     "safestart": "1.1.0",
-    "sequelize": "4.28.6",
-    "sequelize-cli": "^5.4.0",
-    "sequelize-encrypted": "0.1.0",
+    "sequelize": "^5.8.12",
+    "sequelize-cli": "^5.5.0",
+    "sequelize-encrypted": "^0.1.0",
     "slug": "^1.0.0",
     "socket.io": "^2.2.0",
-    "socketio-auth": "^0.1.1",
     "socket.io-redis": "^5.2.0",
+    "socketio-auth": "^0.1.1",
     "string-replace-to-array": "^1.0.3",
     "style-loader": "^0.18.2",
     "styled-components": "^4.2.0",
@@ -187,5 +186,5 @@
     "prettier": "1.8.2",
     "rimraf": "^2.5.4"
   },
-  "version": "0.17.0"
+  "version": "0.18.0"
 }

@@ -36,7 +36,7 @@ export default async function documentMover({
     document.parentDocumentId = parentDocumentId;
 
     const newCollection: Collection = collectionChanged
-      ? await Collection.findById(collectionId, { transaction })
+      ? await Collection.findByPk(collectionId, { transaction })
       : collection;
     await newCollection.addDocumentToStructure(document, index, {
       documentJson,
