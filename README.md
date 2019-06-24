@@ -37,13 +37,13 @@ In development you can quickly get an environment running using Docker by follow
 
 For production deployment by building from scratch, you can follow these steps:
 
-1. Clone this repo and install dependencies with `npm install` or `yarn`
+1. Clone this repo and install dependencies with `yarn` or `npm install`
 
-   > Requires [Node.js and npm](https://nodejs.org/) installed, [yarn](https://yarnpkg.com) is optional if you prefer
+   > Requires [Node.js, npm](https://nodejs.org/) and [yarn](https://yarnpkg.com) installed
 
-2. Build the web app with `npm run build:webpack` or  `yarn build:webpack`
+2. Build the web app with `yarn build:webpack` or `npm run build:webpack`
 
-3. Migrate database schema with `npm run sequelize:migrate ` or `yarn sequelize:migrate`
+3. Migrate database schema with `yarn sequelize:migrate` or `npm run sequelize:migrate `
 
 4. Copy the file `.env.sample` to `.env` and fill out the essential fields:
 
