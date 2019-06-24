@@ -7,7 +7,7 @@ const { allow } = policy;
 
 allow(
   User,
-  'read',
+  ['read', 'invite'],
   User,
   (actor, user) => user && user.teamId === actor.teamId
 );
