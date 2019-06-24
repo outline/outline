@@ -3,10 +3,13 @@ import * as React from 'react';
 import { withRouter } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
+import { CloseIcon } from 'outline-icons';
+import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
+import Tooltip from 'components/Tooltip';
 
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -52,8 +55,12 @@ class Invite extends React.Component<Props> {
     this.invites[index][ev.target.name] = ev.target.value;
   };
 
-  handleAddAnother = () => {
+  handleAdd = () => {
     this.invites.push({ email: '', name: '' });
+  };
+
+  handleRemove = (index: number) => {
+    this.invites.splice(index, 1);
   };
 
   render() {
@@ -92,11 +99,18 @@ class Invite extends React.Component<Props> {
               required={!!invite.email}
               flex
             />
+            {index !== 0 && (
+              <Remove>
+                <Tooltip tooltip="Remove invite" placement="top">
+                  <CloseIcon onClick={() => this.handleRemove(index)} />
+                </Tooltip>
+              </Remove>
+            )}
           </Flex>
         ))}
 
         <Flex justify="space-between">
-          <Button type="button" onClick={this.handleAddAnother} neutral>
+          <Button type="button" onClick={this.handleAdd} neutral>
             Add another…
           </Button>
 
@@ -109,5 +123,11 @@ class Invite extends React.Component<Props> {
     );
   }
 }
+
+const Remove = styled('div')`
+  margin-top: 6px;
+  position: absolute;
+  right: -32px;
+`;
 
 export default inject('auth', 'ui')(withRouter(Invite));
