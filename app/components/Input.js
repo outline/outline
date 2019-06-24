@@ -38,9 +38,10 @@ const RealInput = styled.input`
 `;
 
 const Wrapper = styled.div`
+  flex: ${props => (props.flex ? '1' : '0')};
   max-width: ${props => (props.short ? '350px' : '100%')};
   min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : '0')};
-  max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : 'auto')};
+  max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : 'initial')};
 `;
 
 export const Outline = styled(Flex)`
@@ -70,6 +71,7 @@ export type Props = {
   value?: string,
   label?: string,
   className?: string,
+  flex?: boolean,
   short?: boolean,
 };
 
@@ -86,12 +88,19 @@ class Input extends React.Component<Props> {
   };
 
   render() {
-    const { type = 'text', label, className, short, ...rest } = this.props;
+    const {
+      type = 'text',
+      label,
+      className,
+      short,
+      flex,
+      ...rest
+    } = this.props;
 
     const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
 
     return (
-      <Wrapper className={className} short={short}>
+      <Wrapper className={className} short={short} flex={flex}>
         <label>
           {label && <LabelText>{label}</LabelText>}
           <Outline focused={this.focused}>

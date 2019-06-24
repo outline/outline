@@ -239,7 +239,6 @@ Collection.prototype.updateDocument = async function(
     this.documentStructure = updateChildren(this.documentStructure);
     await this.save({ transaction });
     await transaction.commit();
-
   } catch (err) {
     if (transaction) {
       await transaction.rollback();
@@ -296,7 +295,6 @@ Collection.prototype.removeDocumentInStructure = async function(
       transaction,
     });
     await transaction.commit();
-
   } catch (err) {
     if (transaction) {
       await transaction.rollback();
