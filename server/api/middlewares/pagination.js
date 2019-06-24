@@ -16,7 +16,9 @@ export default function pagination(options?: Object) {
     };
 
     let query = ctx.request.query;
-    let body: Object = ctx.request.body;
+
+    // $FlowFixMe
+    let body = ctx.request.body;
     let limit = query.limit || body.limit;
     let offset = query.offset || body.offset;
 

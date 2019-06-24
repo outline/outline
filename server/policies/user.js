@@ -7,10 +7,14 @@ const { allow } = policy;
 
 allow(
   User,
-  ['read', 'invite'],
+  'read',
   User,
   (actor, user) => user && user.teamId === actor.teamId
 );
+
+allow(User, 'invite', actor => {
+  return true;
+});
 
 allow(User, ['update', 'delete'], User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;

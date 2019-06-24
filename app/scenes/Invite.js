@@ -15,6 +15,8 @@ import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import UsersStore from 'stores/UsersStore';
 
+const MAX_INVITES = 20;
+
 type Props = {
   auth: AuthStore,
   users: UsersStore,
@@ -27,7 +29,7 @@ type Props = {
 class Invite extends React.Component<Props> {
   @observable isSaving: boolean;
   @observable
-  invites: Array<{ email: string, name: string }> = [
+  invites: { email: string, name: string }[] = [
     { email: '', name: '' },
     { email: '', name: '' },
     { email: '', name: '' },
@@ -52,6 +54,8 @@ class Invite extends React.Component<Props> {
   };
 
   handleAdd = () => {
+    if (this.invites.length >= MAX_INVITES) return;
+
     this.invites.push({ email: '', name: '' });
   };
 
@@ -108,9 +112,13 @@ class Invite extends React.Component<Props> {
         ))}
 
         <Flex justify="space-between">
-          <Button type="button" onClick={this.handleAdd} neutral>
-            Add another…
-          </Button>
+          {this.invites.length <= MAX_INVITES ? (
+            <Button type="button" onClick={this.handleAdd} neutral>
+              Add another…
+            </Button>
+          ) : (
+            <span />
+          )}
 
           <Button type="submit" disabled={this.isSaving}>
             {this.isSaving ? 'Inviting…' : 'Send Invites'}

@@ -117,7 +117,7 @@ export class Mailer {
       previewText:
         'Outline is a place for your team to build and share knowledge.',
       html: <InviteEmail {...opts} />,
-      text: inviteEmailText,
+      text: inviteEmailText(opts),
     });
   };
 
