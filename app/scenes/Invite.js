@@ -78,7 +78,8 @@ class Invite extends React.Component<Props> {
             <Input
               type="email"
               name="email"
-              label={index === 0 ? 'Email' : undefined}
+              label="Email"
+              labelHidden={index !== 0}
               onChange={ev => this.handleChange(ev, index)}
               placeholder={`example@${predictedDomain}`}
               value={invite.email}
@@ -89,7 +90,8 @@ class Invite extends React.Component<Props> {
             <Input
               type="text"
               name="name"
-              label={index === 0 ? 'Full name' : undefined}
+              label={'Full name'}
+              labelHidden={index !== 0}
               onChange={ev => this.handleChange(ev, index)}
               value={invite.name}
               required={!!invite.email}

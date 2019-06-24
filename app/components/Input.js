@@ -3,6 +3,7 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import { observable } from 'mobx';
 import styled from 'styled-components';
+import VisuallyHidden from 'components/VisuallyHidden';
 import Flex from 'shared/components/Flex';
 
 const RealTextarea = styled.textarea`
@@ -71,6 +72,7 @@ export type Props = {
   value?: string,
   label?: string,
   className?: string,
+  labelHidden?: boolean,
   flex?: boolean,
   short?: boolean,
 };
@@ -94,15 +96,22 @@ class Input extends React.Component<Props> {
       className,
       short,
       flex,
+      labelHidden,
       ...rest
     } = this.props;
 
     const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
+    const wrappedLabel = <LabelText>{label}</LabelText>;
 
     return (
       <Wrapper className={className} short={short} flex={flex}>
         <label>
-          {label && <LabelText>{label}</LabelText>}
+          {label &&
+            (labelHidden ? (
+              <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
+            ) : (
+              wrappedLabel
+            ))}
           <Outline focused={this.focused}>
             <InputComponent
               onBlur={this.handleBlur}
