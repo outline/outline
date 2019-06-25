@@ -6,6 +6,7 @@ import { inject, observer } from 'mobx-react';
 import { CloseIcon } from 'outline-icons';
 import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
+import CopyToClipboard from 'components/CopyToClipboard';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
@@ -28,6 +29,7 @@ type Props = {
 @observer
 class Invite extends React.Component<Props> {
   @observable isSaving: boolean;
+  @observable linkCopied: boolean = false;
   @observable
   invites: { email: string, name: string }[] = [
     { email: '', name: '' },
@@ -68,6 +70,10 @@ class Invite extends React.Component<Props> {
     this.invites.splice(index, 1);
   };
 
+  handleCopy = () => {
+    this.linkCopied = true;
+  };
+
   render() {
     const { team, user } = this.props.auth;
     if (!team || !user) return null;
@@ -82,6 +88,15 @@ class Invite extends React.Component<Props> {
           {team.slackConnected ? 'Slack' : 'Google'} account to be able to join
           Outline.
         </HelpText>
+        {team.subdomain && (
+          <HelpText>
+            You can also{' '}
+            <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
+              <a>{this.linkCopied ? 'link copied' : 'copy a link'}</a>
+            </CopyToClipboard>{' '}
+            to your teams signin page.
+          </HelpText>
+        )}
         {this.invites.map((invite, index) => (
           <Flex key={index}>
             <Input
@@ -99,7 +114,7 @@ class Invite extends React.Component<Props> {
             <Input
               type="text"
               name="name"
-              label={'Full name'}
+              label="Full name"
               labelHidden={index !== 0}
               onChange={ev => this.handleChange(ev, index)}
               value={invite.name}
