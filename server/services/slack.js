@@ -1,5 +1,5 @@
 // @flow
-import type { Event } from '../events';
+import type { DocumentEvent, IntegrationEvent, Event } from '../events';
 import { Document, Integration, Collection, Team } from '../models';
 import { presentSlackAttachment } from '../presenters';
 
@@ -15,7 +15,7 @@ export default class Slack {
     }
   }
 
-  async integrationCreated(event: Event) {
+  async integrationCreated(event: IntegrationEvent) {
     const integration = await Integration.findOne({
       where: {
         id: event.modelId,
@@ -56,7 +56,7 @@ export default class Slack {
     });
   }
 
-  async documentUpdated(event: Event) {
+  async documentUpdated(event: DocumentEvent) {
     // lets not send a notification on every autosave update
     if (event.autosave) return;
 

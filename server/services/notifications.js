@@ -1,6 +1,6 @@
 // @flow
 import { Op } from '../sequelize';
-import type { Event } from '../events';
+import type { DocumentEvent, CollectionEvent, Event } from '../events';
 import { Document, Collection, User, NotificationSetting } from '../models';
 import mailer from '../mailer';
 
@@ -16,7 +16,7 @@ export default class Notifications {
     }
   }
 
-  async documentUpdated(event: Event) {
+  async documentUpdated(event: DocumentEvent) {
     // lets not send a notification on every autosave update
     if (event.autosave) return;
 
@@ -71,7 +71,7 @@ export default class Notifications {
     });
   }
 
-  async collectionCreated(event: Event) {
+  async collectionCreated(event: CollectionEvent) {
     const collection = await Collection.findByPk(event.modelId, {
       include: [
         {

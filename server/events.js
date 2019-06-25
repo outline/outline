@@ -2,7 +2,7 @@
 import Queue from 'bull';
 import services from './services';
 
-type UserEvent =
+export type UserEvent =
   | {
   name: | 'users.create' // eslint-disable-line
         | 'users.update'
@@ -20,7 +20,7 @@ type UserEvent =
       email: string,
     };
 
-type DocumentEvent =
+export type DocumentEvent =
   | {
   name: | 'documents.create' // eslint-disable-line
         | 'documents.publish'
@@ -55,7 +55,7 @@ type DocumentEvent =
       done: boolean,
     };
 
-type CollectionEvent =
+export type CollectionEvent =
   | {
   name: | 'collections.create' // eslint-disable-line
         | 'collections.update'
@@ -72,7 +72,7 @@ type CollectionEvent =
       actorId: string,
     };
 
-type IntegrationEvent = {
+export type IntegrationEvent = {
   name: 'integrations.create' | 'integrations.update' | 'collections.delete',
   modelId: string,
   teamId: string,
