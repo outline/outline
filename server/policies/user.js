@@ -12,7 +12,7 @@ allow(
   (actor, user) => user && user.teamId === actor.teamId
 );
 
-allow(User, 'invite', actor => {
+allow(User, 'invite', User, actor => {
   return true;
 });
 

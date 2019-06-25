@@ -42,6 +42,7 @@ class Invite extends React.Component<Props> {
     try {
       await this.props.users.invite(this.invites);
       this.props.onSubmit();
+      this.props.ui.showToast('We sent out your invites!');
     } catch (err) {
       this.props.ui.showToast(err.message);
     } finally {
@@ -54,7 +55,11 @@ class Invite extends React.Component<Props> {
   };
 
   handleAdd = () => {
-    if (this.invites.length >= MAX_INVITES) return;
+    if (this.invites.length >= MAX_INVITES) {
+      this.props.ui.showToast(
+        `Sorry, you can only send ${MAX_INVITES} invites at a time`
+      );
+    }
 
     this.invites.push({ email: '', name: '' });
   };

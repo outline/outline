@@ -1,4 +1,5 @@
 // @flow
+import { uniqBy } from 'lodash';
 import { User, Team } from '../models';
 import events from '../events';
 import mailer from '../mailer';
@@ -11,15 +12,18 @@ export default async function documentMover({
 }: {
   user: User,
   invites: Invite[],
-}): Promise<Invite[]> {
+}): Promise<{ sent: Invite[] }> {
   const team = await Team.findByPk(user.teamId);
 
-  // filter out empties
-  const compactedInvites = invites.filter(invite => !invite.email.trim());
+  // filter out empties, duplicates and non-emails
+  const compactedInvites = uniqBy(
+    invites.filter(invite => !!invite.email.trim() && invite.email.match('@')),
+    'email'
+  );
   const emails = compactedInvites.map(invite => invite.email);
 
   // filter out existing users
-  const existingUsers = User.findAll({
+  const existingUsers = await User.findAll({
     where: {
       teamId: user.teamId,
       email: emails,
@@ -36,17 +40,18 @@ export default async function documentMover({
       to: invite.email,
       name: invite.name,
       actorName: user.name,
+      actorEmail: user.email,
       teamName: team.name,
       teamUrl: team.url,
     });
 
     events.add({
       name: 'users.invite',
-      userId: user.id,
+      actorId: user.id,
       teamId: user.teamId,
       email: invite.email,
     });
   });
 
-  return filteredInvites;
+  return { sent: filteredInvites };
 }

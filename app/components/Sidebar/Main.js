@@ -137,7 +137,7 @@ class MainSidebar extends React.Component<Props> {
           onRequestClose={this.handleInviteModalClose}
           isOpen={this.inviteModalOpen}
         >
-          <Invite />
+          <Invite onSubmit={this.handleInviteModalClose} />
         </Modal>
       </Sidebar>
     );

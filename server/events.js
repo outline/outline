@@ -2,16 +2,23 @@
 import Queue from 'bull';
 import services from './services';
 
-type UserEvent = {
+type UserEvent =
+  | {
   name: | 'users.create' // eslint-disable-line
-    | 'users.update'
-    | 'users.suspend'
-    | 'users.activate'
-    | 'users.delete',
-  modelId: string,
-  teamId: string,
-  actorId: string,
-};
+        | 'users.update'
+        | 'users.suspend'
+        | 'users.activate'
+        | 'users.delete',
+      modelId: string,
+      teamId: string,
+      actorId: string,
+    }
+  | {
+      name: 'users.invite',
+      teamId: string,
+      actorId: string,
+      email: string,
+    };
 
 type DocumentEvent =
   | {

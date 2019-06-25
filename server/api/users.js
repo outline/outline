@@ -194,12 +194,12 @@ router.post('users.invite', auth(), async ctx => {
   ctx.assertPresent(invites, 'invites is required');
 
   const user = ctx.state.user;
-  authorize(user, 'invite');
+  authorize(user, 'invite', User);
 
-  await userInviter({ user, invites });
+  const invitesSent = await userInviter({ user, invites });
 
   ctx.body = {
-    success: true,
+    data: invitesSent,
   };
 });
 

@@ -11,21 +11,32 @@ import EmptySpace from './components/EmptySpace';
 export type Props = {
   name: string,
   actorName: string,
+  actorEmail: string,
   teamName: string,
   teamUrl: string,
 };
 
-export const inviteEmailText = ({ teamName, actorName, teamUrl }: Props) => `
+export const inviteEmailText = ({
+  teamName,
+  actorName,
+  actorEmail,
+  teamUrl,
+}: Props) => `
 Join ${teamName} on Outline
 
-${
-  actorName
-} has invited you to join Outline, a place for your team to build and share knowledge.
+${actorName} (${
+  actorEmail
+}) has invited you to join Outline, a place for your team to build and share knowledge.
 
 Join now: ${teamUrl}
 `;
 
-export const InviteEmail = ({ teamName, actorName, teamUrl }: Props) => {
+export const InviteEmail = ({
+  teamName,
+  actorName,
+  actorEmail,
+  teamUrl,
+}: Props) => {
   return (
     <EmailTemplate>
       <Header />
@@ -33,8 +44,8 @@ export const InviteEmail = ({ teamName, actorName, teamUrl }: Props) => {
       <Body>
         <Heading>Join {teamName} on Outline</Heading>
         <p>
-          {actorName} has invited you to join Outline, a place for your team to
-          build and share knowledge.
+          {actorName} ({actorEmail}) has invited you to join Outline, a place
+          for your team to build and share knowledge.
         </p>
         <EmptySpace height={10} />
         <p>
