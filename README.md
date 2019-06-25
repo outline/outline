@@ -21,8 +21,10 @@ If you'd like to run your own copy of Outline or contribute to development then 
 
 Outline requires the following dependencies:
 
+- Node.js >= 8.11
 - Postgres >=9.5
 - Redis
+- AWS S3 storage bucket for media and other attachments
 - Slack or Google developer application for OAuth
 
 In development you can quickly get an environment running using Docker by following these steps:
@@ -32,6 +34,28 @@ In development you can quickly get an environment running using Docker by follow
 1. Copy the file `.env.sample` to `.env` and fill out the Slack keys, everything
    else should work well for development.
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline.
+
+For production deployment by building from scratch, you can follow these steps:
+
+1. Clone this repo and install dependencies with `yarn` or `npm install`
+
+   > Requires [Node.js, npm](https://nodejs.org/) and [yarn](https://yarnpkg.com) installed
+
+2. Build the web app with `yarn build:webpack` or `npm run build:webpack`
+
+3. Migrate database schema with `yarn sequelize:migrate` or `npm run sequelize:migrate `
+
+4. Copy the file `.env.sample` to `.env` and fill out the essential fields:
+
+   Database, Change secret key, Redis, URL if you have your own domain name, Slack key or Google client ID or both, AWS credentials
+
+5. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start index.js --name outline `
+
+6. Visit http://you_server_ip:3000 and you should be able to see Outline page
+
+   > Port number can be changed in the `.env` file
+
+7. (Optional) You can add an `nginx` reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
 
 ## Development
 
