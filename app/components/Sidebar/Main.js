@@ -124,11 +124,13 @@ class MainSidebar extends React.Component<Props> {
                   documents.active ? documents.active.isArchived : undefined
                 }
               />
-              <SidebarLink
-                onClick={this.handleInviteModalOpen}
-                icon={<PlusIcon />}
-                label="Invite people…"
-              />
+              {user.isAdmin && (
+                <SidebarLink
+                  onClick={this.handleInviteModalOpen}
+                  icon={<PlusIcon />}
+                  label="Invite people…"
+                />
+              )}
             </Section>
           </Scrollable>
         </Flex>

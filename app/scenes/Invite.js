@@ -125,7 +125,13 @@ class Invite extends React.Component<Props> {
             <span />
           )}
 
-          <Button type="submit" disabled={this.isSaving}>
+          <Button
+            type="submit"
+            disabled={this.isSaving}
+            data-on="click"
+            data-event-category="invite"
+            data-event-action="sendInvites"
+          >
             {this.isSaving ? 'Inviting…' : 'Send Invites'}
           </Button>
         </Flex>

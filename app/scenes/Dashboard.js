@@ -13,7 +13,6 @@ import PageTitle from 'components/PageTitle';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
 import PaginatedDocumentList from '../components/PaginatedDocumentList';
-import TipInvite from 'components/TipInvite';
 
 type Props = {
   documents: DocumentsStore,
@@ -30,10 +29,6 @@ class Dashboard extends React.Component<Props> {
     return (
       <CenteredContent>
         <PageTitle title="Home" />
-        <TipInvite
-          team={auth.team}
-          disabled={!auth.team.subdomain || !auth.user.isAdmin}
-        />
         <h1>Home</h1>
         <Tabs>
           <Tab to="/dashboard" exact>
