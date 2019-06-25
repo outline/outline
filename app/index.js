@@ -52,4 +52,7 @@ window.addEventListener('load', async () => {
 
   window.ga('require', 'outboundLinkTracker');
   window.ga('require', 'urlChangeTracker');
+  window.ga('require', 'eventTracker', {
+    attributePrefix: 'data-',
+  });
 });

@@ -7,9 +7,12 @@ import {
   EditIcon,
   SearchIcon,
   StarredIcon,
+  PlusIcon,
 } from 'outline-icons';
 
 import Flex from 'shared/components/Flex';
+import Modal from 'components/Modal';
+import Invite from 'scenes/Invite';
 import AccountMenu from 'menus/AccountMenu';
 import Sidebar from './Sidebar';
 import Scrollable from 'components/Scrollable';
@@ -22,6 +25,7 @@ import Bubble from './components/Bubble';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
+import { observable } from 'mobx';
 
 type Props = {
   auth: AuthStore,
@@ -31,12 +35,22 @@ type Props = {
 
 @observer
 class MainSidebar extends React.Component<Props> {
+  @observable inviteModalOpen: boolean = false;
+
   componentDidMount() {
     this.props.documents.fetchDrafts();
   }
 
   handleCreateCollection = () => {
     this.props.ui.setActiveModal('collection-new');
+  };
+
+  handleInviteModalOpen = () => {
+    this.inviteModalOpen = true;
+  };
+
+  handleInviteModalClose = () => {
+    this.inviteModalOpen = false;
   };
 
   render() {
@@ -110,9 +124,23 @@ class MainSidebar extends React.Component<Props> {
                   documents.active ? documents.active.isArchived : undefined
                 }
               />
+              {user.isAdmin && (
+                <SidebarLink
+                  onClick={this.handleInviteModalOpen}
+                  icon={<PlusIcon />}
+                  label="Invite people…"
+                />
+              )}
             </Section>
           </Scrollable>
         </Flex>
+        <Modal
+          title="Invite people"
+          onRequestClose={this.handleInviteModalClose}
+          isOpen={this.inviteModalOpen}
+        >
+          <Invite onSubmit={this.handleInviteModalClose} />
+        </Modal>
       </Sidebar>
     );
   }

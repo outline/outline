@@ -12,6 +12,10 @@ allow(
   (actor, user) => user && user.teamId === actor.teamId
 );
 
+allow(User, 'invite', User, actor => {
+  return true;
+});
+
 allow(User, ['update', 'delete'], User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
   if (user.id === actor.id) return true;

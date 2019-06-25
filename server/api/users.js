@@ -12,6 +12,7 @@ import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
+import userInviter from '../commands/userInviter';
 import { presentUser } from '../presenters';
 import policy from '../policies';
 
@@ -150,11 +151,6 @@ router.post('users.demote', auth(), async ctx => {
   };
 });
 
-/**
- * Suspend user
- *
- * Admin can suspend users to reduce the number of accounts on their billing plan
- */
 router.post('users.suspend', auth(), async ctx => {
   const admin = ctx.state.user;
   const userId = ctx.body.id;
@@ -176,12 +172,6 @@ router.post('users.suspend', auth(), async ctx => {
   };
 });
 
-/**
- * Activate user
- *
- * Admin can activate users to let them access resources. These users will also
- * account towards the billing plan limits.
- */
 router.post('users.activate', auth(), async ctx => {
   const admin = ctx.state.user;
   const userId = ctx.body.id;
@@ -196,6 +186,20 @@ router.post('users.activate', auth(), async ctx => {
 
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
+  };
+});
+
+router.post('users.invite', auth(), async ctx => {
+  const { invites } = ctx.body;
+  ctx.assertPresent(invites, 'invites is required');
+
+  const user = ctx.state.user;
+  authorize(user, 'invite', User);
+
+  const invitesSent = await userInviter({ user, invites });
+
+  ctx.body = {
+    data: invitesSent,
   };
 });
 

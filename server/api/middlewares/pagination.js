@@ -16,8 +16,12 @@ export default function pagination(options?: Object) {
     };
 
     let query = ctx.request.query;
-    let body: Object = ctx.request.body;
+
+    // $FlowFixMe
+    let body = ctx.request.body;
+    // $FlowFixMe
     let limit = query.limit || body.limit;
+    // $FlowFixMe
     let offset = query.offset || body.offset;
 
     if (limit && isNaN(limit)) {

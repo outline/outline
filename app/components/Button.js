@@ -114,7 +114,7 @@ export default function Button({
   const hasIcon = icon !== undefined;
 
   return (
-    <RealButton small={small} {...rest}>
+    <RealButton small={small} type={type} {...rest}>
       <Inner hasIcon={hasIcon} small={small} disclosure={disclosure}>
         {hasIcon && icon}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
