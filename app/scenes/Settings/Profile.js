@@ -83,7 +83,7 @@ class Profile extends React.Component<Props> {
         <PageTitle title="Profile" />
         <h1>Profile</h1>
         <ProfilePicture column>
-          <LabelText>Picture</LabelText>
+          <LabelText>Photo</LabelText>
           <AvatarContainer>
             <ImageUpload
               onSuccess={this.handleAvatarUpload}
@@ -98,7 +98,7 @@ class Profile extends React.Component<Props> {
         </ProfilePicture>
         <form onSubmit={this.handleSubmit} ref={ref => (this.form = ref)}>
           <Input
-            label="Name"
+            label="Full name"
             value={this.name}
             onChange={this.handleNameChange}
             required
@@ -139,7 +139,7 @@ const ProfilePicture = styled(Flex)`
 const avatarStyles = `
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+  border-radius: 8px;
 `;
 
 const AvatarContainer = styled(Flex)`
