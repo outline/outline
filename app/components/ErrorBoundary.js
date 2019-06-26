@@ -56,11 +56,11 @@ class ErrorBoundary extends React.Component<Props> {
           <p>
             <Button onClick={this.handleReload}>Reload</Button>{' '}
             {this.showDetails ? (
-              <Button onClick={this.handleReportBug} light>
+              <Button onClick={this.handleReportBug} neutral>
                 Report a Bug…
               </Button>
             ) : (
-              <Button onClick={this.handleShowDetails} light>
+              <Button onClick={this.handleShowDetails} neutral>
                 Show Details…
               </Button>
             )}
