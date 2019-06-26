@@ -6,14 +6,18 @@ import styled from 'styled-components';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
+import Input from 'components/Input';
+import Subheading from 'components/Subheading';
 import NotificationListItem from './components/NotificationListItem';
 import Notice from 'shared/components/Notice';
 
 import UiStore from 'stores/UiStore';
+import AuthStore from 'stores/AuthStore';
 import NotificationSettingsStore from 'stores/NotificationSettingsStore';
 
 type Props = {
   ui: UiStore,
+  auth: AuthStore,
   notificationSettings: NotificationSettingsStore,
 };
 
@@ -75,8 +79,10 @@ class Notifications extends React.Component<Props> {
   }, 500);
 
   render() {
-    const { notificationSettings } = this.props;
+    const { notificationSettings, auth } = this.props;
     const showSuccessNotice = window.location.search === '?success';
+    const { user, team } = auth;
+    if (!team || !user) return null;
 
     return (
       <CenteredContent>
@@ -90,8 +96,20 @@ class Notifications extends React.Component<Props> {
         <h1>Notifications</h1>
 
         <HelpText>
-          Manage when you receive email notifications from Outline.
+          Manage when and where you receive email notifications from Outline.
+          Your email address can be updated in your{' '}
+          {team.slackConnected ? 'Slack' : 'Google'} account.
         </HelpText>
+
+        <Input
+          type="email"
+          value={user.email}
+          label="Email address"
+          disabled
+          short
+        />
+
+        <Subheading>Notifications</Subheading>
 
         {options.map((option, index) => {
           if (option.separator) return <Separator key={`separator-${index}`} />;
@@ -119,4 +137,4 @@ const Separator = styled.hr`
   padding-bottom: 12px;
 `;
 
-export default inject('notificationSettings', 'ui')(Notifications);
+export default inject('notificationSettings', 'auth', 'ui')(Notifications);
