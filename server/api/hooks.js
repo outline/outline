@@ -96,10 +96,25 @@ router.post('hooks.slack', async ctx => {
   const { token, user_id, text } = ctx.body;
   ctx.assertPresent(token, 'token is required');
   ctx.assertPresent(user_id, 'user_id is required');
-  ctx.assertPresent(text, 'text is required');
 
-  if (token !== process.env.SLACK_VERIFICATION_TOKEN)
+  if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
     throw new AuthenticationError('Invalid verification token');
+  }
+
+  // Handle "help" command or no input
+  if (text.trim() === 'help' || !text.trim()) {
+    ctx.body = {
+      response_type: 'ephemeral',
+      text: 'How to use /outline',
+      attachments: [
+        {
+          text:
+            'To search your knowledgebase use `/outline keyword`. \nYou’ve already learned how to get help with `/outline help`.',
+        },
+      ],
+    };
+    return;
+  }
 
   const user = await User.findOne({
     where: {
@@ -109,7 +124,8 @@ router.post('hooks.slack', async ctx => {
   });
   if (!user) {
     ctx.body = {
-      text: 'Sorry, we couldn’t find your user on this team in Outline.',
+      response_type: 'ephemeral',
+      text: 'Sorry, we couldn’t find your user – have you signed into Outline?',
     };
     return;
   }

@@ -128,6 +128,34 @@ describe('#hooks.slack', async () => {
     );
   });
 
+  it('should respond with help content for help keyword', async () => {
+    const user = await buildUser();
+    const res = await server.post('/api/hooks.slack', {
+      body: {
+        token: process.env.SLACK_VERIFICATION_TOKEN,
+        user_id: user.serviceId,
+        text: 'help',
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.text.includes('How to use')).toEqual(true);
+  });
+
+  it('should respond with help content for no keyword', async () => {
+    const user = await buildUser();
+    const res = await server.post('/api/hooks.slack', {
+      body: {
+        token: process.env.SLACK_VERIFICATION_TOKEN,
+        user_id: user.serviceId,
+        text: '',
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.text.includes('How to use')).toEqual(true);
+  });
+
   it('should respond with error if unknown user', async () => {
     const res = await server.post('/api/hooks.slack', {
       body: {
