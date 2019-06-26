@@ -69,6 +69,11 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
     await team.provisionSubdomain(data.team.domain);
   }
 
+  // update email address if it's changed in Slack
+  if (!isFirstSignin && data.user.email !== user.email) {
+    await user.update({ email: data.user.email });
+  }
+
   // set cookies on response and redirect to team subdomain
   ctx.signIn(user, team, 'slack', isFirstSignin);
 });
