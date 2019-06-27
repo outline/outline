@@ -160,7 +160,7 @@ export default class Document extends BaseModel {
 
     try {
       if (isCreating) {
-        return this.store.create({
+        return await this.store.create({
           parentDocumentId: this.parentDocumentId,
           collectionId: this.collectionId,
           title: this.title,
@@ -169,7 +169,7 @@ export default class Document extends BaseModel {
         });
       }
 
-      return this.store.update({
+      return await this.store.update({
         id: this.id,
         title: this.title,
         text: this.text,
