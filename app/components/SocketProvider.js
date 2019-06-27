@@ -41,7 +41,11 @@ class SocketProvider extends React.Component<Props> {
       this.socket.on('entities', event => {
         if (event.documents) {
           event.documents.forEach(doc => {
-            documents.add(doc);
+            if (doc.deletedAt) {
+              documents.remove(doc.id);
+            } else {
+              documents.add(doc);
+            }
 
             // TODO: Move this to the document scene once data loading
             // has been refactored to be friendlier there.
@@ -61,7 +65,14 @@ class SocketProvider extends React.Component<Props> {
           });
         }
         if (event.collections) {
-          event.collections.forEach(collections.add);
+          event.collections.forEach(collection => {
+            if (collection.deletedAt) {
+              collections.remove(collection.id);
+              documents.removeCollectionDocuments(collection.id);
+            } else {
+              collections.add(collection);
+            }
+          });
         }
       });
       this.socket.on('documents.star', event => {

@@ -1,5 +1,5 @@
 // @flow
-import { computed, runInAction } from 'mobx';
+import { computed } from 'mobx';
 import { concat, filter, last } from 'lodash';
 import { client } from 'utils/ApiClient';
 
@@ -100,10 +100,9 @@ export default class CollectionsStore extends BaseStore<Collection> {
   delete(collection: Collection) {
     super.delete(collection);
 
-    runInAction(() => {
-      this.rootStore.documents.fetchRecentlyUpdated();
-      this.rootStore.documents.fetchRecentlyViewed();
-    });
+    this.rootStore.documents.removeCollectionDocuments(collection.id);
+    this.rootStore.documents.fetchRecentlyUpdated();
+    this.rootStore.documents.fetchRecentlyViewed();
   }
 
   export = () => {

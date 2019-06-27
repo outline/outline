@@ -16,8 +16,8 @@ import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
 import RootStore from 'stores/RootStore';
-import Document from '../models/Document';
-import Revision from '../models/Revision';
+import Document from 'models/Document';
+import Revision from 'models/Revision';
 import type { FetchOptions, PaginationParams, SearchResult } from 'types';
 
 export default class DocumentsStore extends BaseStore<Document> {
@@ -54,6 +54,10 @@ export default class DocumentsStore extends BaseStore<Document> {
       'updatedAt',
       'desc'
     );
+  }
+
+  inCollection(collectionId: string): Document[] {
+    return filter(this.all, document => document.collectionId === collectionId);
   }
 
   pinnedInCollection(collectionId: string): Document[] {
@@ -351,6 +355,14 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     return document;
   };
+
+  @action
+  removeCollectionDocuments(collectionId: string) {
+    const documents = this.inCollection(collectionId);
+    const documentIds = documents.map(doc => doc.id);
+    this.recentlyViewedIds = without(this.recentlyViewedIds, ...documentIds);
+    documentIds.forEach(id => this.data.delete(id));
+  }
 
   @action
   async update(params: *) {
