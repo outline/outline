@@ -360,8 +360,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   removeCollectionDocuments(collectionId: string) {
     const documents = this.inCollection(collectionId);
     const documentIds = documents.map(doc => doc.id);
-    this.recentlyViewedIds = without(this.recentlyViewedIds, ...documentIds);
-    documentIds.forEach(id => this.data.delete(id));
+    documentIds.forEach(id => this.remove(id));
   }
 
   @action

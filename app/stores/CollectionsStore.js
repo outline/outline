@@ -100,7 +100,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
   delete(collection: Collection) {
     super.delete(collection);
 
-    this.rootStore.documents.removeCollectionDocuments(collection.id);
     this.rootStore.documents.fetchRecentlyUpdated();
     this.rootStore.documents.fetchRecentlyViewed();
   }
