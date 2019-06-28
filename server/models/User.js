@@ -164,7 +164,7 @@ User.afterCreate(async user => {
   // From Slack support:
   // If you wish to contact users at an email address obtained through Slack,
   // you need them to opt-in through a clear and separate process.
-  if (team.service !== 'slack') {
+  if (!team.slackId) {
     sendEmail('welcome', user.email, { teamUrl: team.url });
   }
 });
