@@ -6,6 +6,8 @@ Outline supports tons of the most popular tools on the market out of the box. Ju
 
 Our integration code is [open-source](https://github.com/outline/outline) and we encourage third party developers and the community to build support for additional tools! Find out more on our [integrations directory](https://www.getoutline.com/integrations).
 
+*Tip:* Most integrations work by simply pasting a link from a supported service into a document.
+
 ## Slack
 
 If your team is using Slack to communicate then you’ll definitely want to enable our [Slack App](https://getoutline.slack.com/apps/A0W3UMKBQ-outline) to get instant link unfurling for Outline documents and access to the `/outline` slash command to search your knowledgebase from within Slack.
