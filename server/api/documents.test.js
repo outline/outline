@@ -188,7 +188,7 @@ describe('#documents.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
   });
 
@@ -203,7 +203,7 @@ describe('#documents.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
+    expect(body.data.length).toEqual(0);
   });
 
   it('should not return documents in private collections not a member of', async () => {
@@ -222,13 +222,20 @@ describe('#documents.list', async () => {
 
   it('should allow changing sort direction', async () => {
     const { user, document } = await seed();
+    const anotherDoc = await buildDocument({
+      title: 'another document',
+      text: 'random text',
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post('/api/documents.list', {
       body: { token: user.getJwtToken(), direction: 'ASC' },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data[1].id).toEqual(document.id);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(body.data[1].id).toEqual(anotherDoc.id);
   });
 
   it('should allow filtering by collection', async () => {
@@ -242,7 +249,7 @@ describe('#documents.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(1);
   });
 
   it('should require authentication', async () => {
@@ -339,7 +346,7 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.text).toEqual('# Much guidance');
+    expect(body.data[0].document.text).toEqual('# Much test support');
   });
 
   it('should return results in ranked order', async () => {
