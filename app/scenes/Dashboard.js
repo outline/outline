@@ -4,8 +4,9 @@ import { Switch, Route } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
 import { NewDocumentIcon } from 'outline-icons';
 
-import DocumentsStore from 'stores/DocumentsStore';
 import AuthStore from 'stores/AuthStore';
+import DocumentsStore from 'stores/DocumentsStore';
+import EventsStore from 'stores/EventsStore';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
 import Actions, { Action } from 'components/Actions';
 import CenteredContent from 'components/CenteredContent';
@@ -15,12 +16,17 @@ import Tab from 'components/Tab';
 import PaginatedDocumentList from '../components/PaginatedDocumentList';
 
 type Props = {
+  events: EventsStore,
   documents: DocumentsStore,
   auth: AuthStore,
 };
 
 @observer
 class Dashboard extends React.Component<Props> {
+  componentDidMount() {
+    this.props.events.fetchPage();
+  }
+
   render() {
     const { documents, auth } = this.props;
     if (!auth.user || !auth.team) return null;
@@ -75,4 +81,4 @@ class Dashboard extends React.Component<Props> {
   }
 }
 
-export default inject('documents', 'auth')(Dashboard);
+export default inject('documents', 'auth', 'events')(Dashboard);

@@ -1,5 +1,6 @@
 // @flow
 import { DataTypes, sequelize } from '../sequelize';
+import events from '../events';
 
 const Event = sequelize.define('event', {
   id: {
@@ -16,6 +17,10 @@ Event.associate = models => {
     as: 'user',
     foreignKey: 'userId',
   });
+  Event.belongsTo(models.User, {
+    as: 'actor',
+    foreignKey: 'actorId',
+  });
   Event.belongsTo(models.Collection, {
     as: 'collection',
     foreignKey: 'collectionId',
@@ -29,5 +34,9 @@ Event.associate = models => {
     foreignKey: 'teamId',
   });
 };
+
+Event.afterCreate(event => {
+  events.add(event);
+});
 
 export default Event;

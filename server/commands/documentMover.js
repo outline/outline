@@ -1,14 +1,15 @@
 // @flow
-import { Document, Collection } from '../models';
+import { User, Document, Collection, Event } from '../models';
 import { sequelize } from '../sequelize';
-import events from '../events';
 
 export default async function documentMover({
+  user,
   document,
   collectionId,
   parentDocumentId,
   index,
 }: {
+  user: User,
   document: Document,
   collectionId: string,
   parentDocumentId: string,
@@ -72,12 +73,17 @@ export default async function documentMover({
 
     await transaction.commit();
 
-    events.add({
+    Event.create({
       name: 'documents.move',
-      modelId: document.id,
-      collectionIds: result.collections.map(c => c.id),
-      documentIds: result.documents.map(d => d.id),
+      actorId: user.id,
+      documentId: document.id,
+      collectionId,
       teamId: document.teamId,
+      data: {
+        title: document.title,
+        collectionIds: result.collections.map(c => c.id),
+        documentIds: result.documents.map(d => d.id),
+      },
     });
   } catch (err) {
     if (transaction) {

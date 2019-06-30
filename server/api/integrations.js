@@ -3,9 +3,9 @@ import Router from 'koa-router';
 import Integration from '../models/Integration';
 import pagination from './middlewares/pagination';
 import auth from '../middlewares/authentication';
+import { Event } from '../models';
 import { presentIntegration } from '../presenters';
 import policy from '../policies';
-import events from '../events';
 
 const { authorize } = policy;
 const router = new Router();
@@ -38,7 +38,7 @@ router.post('integrations.delete', auth(), async ctx => {
 
   await integration.destroy();
 
-  events.add({
+  Event.create({
     name: 'integrations.delete',
     modelId: integration.id,
     teamId: integration.teamId,

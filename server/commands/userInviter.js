@@ -1,12 +1,11 @@
 // @flow
 import { uniqBy } from 'lodash';
-import { User, Team } from '../models';
-import events from '../events';
+import { User, Event, Team } from '../models';
 import mailer from '../mailer';
 
 type Invite = { name: string, email: string };
 
-export default async function documentMover({
+export default async function userInviter({
   user,
   invites,
 }: {
@@ -45,11 +44,14 @@ export default async function documentMover({
       teamUrl: team.url,
     });
 
-    events.add({
+    Event.create({
       name: 'users.invite',
       actorId: user.id,
       teamId: user.teamId,
-      email: invite.email,
+      data: {
+        email: invite.email,
+        name: invite.name,
+      },
     });
   });
 

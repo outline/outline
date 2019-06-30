@@ -9,7 +9,7 @@ export type UserEvent =
         | 'users.suspend'
         | 'users.activate'
         | 'users.delete',
-      modelId: string,
+      userId: string,
       teamId: string,
       actorId: string,
     }
@@ -17,7 +17,10 @@ export type UserEvent =
       name: 'users.invite',
       teamId: string,
       actorId: string,
-      email: string,
+      data: {
+        email: string,
+        name: string,
+      },
     };
 
 export type DocumentEvent =
@@ -32,27 +35,32 @@ export type DocumentEvent =
         | 'documents.restore'
         | 'documents.star'
         | 'documents.unstar',
-      modelId: string,
+      documentId: string,
       collectionId: string,
       teamId: string,
       actorId: string,
     }
   | {
       name: 'documents.move',
-      modelId: string,
-      collectionIds: string[],
-      documentIds: string[],
-      teamId: string,
-      actorId: string,
-    }
-  | {
-      name: 'documents.update',
-      modelId: string,
+      documentId: string,
       collectionId: string,
       teamId: string,
       actorId: string,
-      autosave: boolean,
-      done: boolean,
+      data: {
+        collectionIds: string[],
+        documentIds: string[],
+      },
+    }
+  | {
+      name: 'documents.update',
+      documentId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+      data: {
+        autosave: boolean,
+        done: boolean,
+      },
     };
 
 export type CollectionEvent =
@@ -60,20 +68,20 @@ export type CollectionEvent =
   name: | 'collections.create' // eslint-disable-line
         | 'collections.update'
         | 'collections.delete',
-      modelId: string,
+      collectionId: string,
       teamId: string,
       actorId: string,
     }
   | {
       name: 'collections.add_user' | 'collections.remove_user',
-      modelId: string,
+      userId: string,
       collectionId: string,
       teamId: string,
       actorId: string,
     };
 
 export type IntegrationEvent = {
-  name: 'integrations.create' | 'integrations.update' | 'collections.delete',
+  name: 'integrations.create' | 'integrations.update',
   modelId: string,
   teamId: string,
   actorId: string,

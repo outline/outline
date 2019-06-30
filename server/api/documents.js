@@ -9,9 +9,16 @@ import {
   presentCollection,
   presentRevision,
 } from '../presenters';
-import { Document, Collection, Share, Star, View, Revision } from '../models';
+import {
+  Collection,
+  Document,
+  Event,
+  Share,
+  Star,
+  View,
+  Revision,
+} from '../models';
 import { InvalidRequestError } from '../errors';
-import events from '../events';
 import policy from '../policies';
 
 const Op = Sequelize.Op;
@@ -339,12 +346,13 @@ router.post('documents.restore', auth(), async ctx => {
     // restore a previously archived document
     await document.unarchive(user.id);
 
-    events.add({
+    Event.create({
       name: 'documents.unarchive',
-      modelId: document.id,
+      documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: user.id,
+      data: { title: document.title },
     });
   } else if (revisionId) {
     // restore a document to a specific revision
@@ -357,12 +365,13 @@ router.post('documents.restore', auth(), async ctx => {
     document.title = revision.title;
     await document.save();
 
-    events.add({
+    Event.create({
       name: 'documents.restore',
-      modelId: document.id,
+      documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: user.id,
+      data: { title: document.title },
     });
   } else {
     ctx.assertPresent(revisionId, 'revisionId is required');
@@ -433,12 +442,13 @@ router.post('documents.pin', auth(), async ctx => {
   document.pinnedById = user.id;
   await document.save();
 
-  events.add({
+  Event.create({
     name: 'documents.pin',
-    modelId: document.id,
+    documentId: document.id,
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
+    data: { title: document.title },
   });
 
   ctx.body = {
@@ -457,12 +467,13 @@ router.post('documents.unpin', auth(), async ctx => {
   document.pinnedById = null;
   await document.save();
 
-  events.add({
+  Event.create({
     name: 'documents.unpin',
-    modelId: document.id,
+    documentId: document.id,
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
+    data: { title: document.title },
   });
 
   ctx.body = {
@@ -482,12 +493,13 @@ router.post('documents.star', auth(), async ctx => {
     where: { documentId: document.id, userId: user.id },
   });
 
-  events.add({
+  Event.create({
     name: 'documents.star',
-    modelId: document.id,
+    documentId: document.id,
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
+    data: { title: document.title },
   });
 });
 
@@ -503,12 +515,13 @@ router.post('documents.unstar', auth(), async ctx => {
     where: { documentId: document.id, userId: user.id },
   });
 
-  events.add({
+  Event.create({
     name: 'documents.unstar',
     modelId: document.id,
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
+    data: { title: document.title },
   });
 });
 
@@ -563,23 +576,25 @@ router.post('documents.create', auth(), async ctx => {
     text,
   });
 
-  events.add({
+  Event.create({
     name: 'documents.create',
-    modelId: document.id,
+    documentId: document.id,
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
+    data: { title: document.title },
   });
 
   if (publish) {
     await document.publish();
 
-    events.add({
+    Event.create({
       name: 'documents.publish',
-      modelId: document.id,
+      documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: user.id,
+      data: { title: document.title },
     });
   }
 
@@ -632,24 +647,28 @@ router.post('documents.update', auth(), async ctx => {
   if (publish) {
     await document.publish();
 
-    events.add({
+    Event.create({
       name: 'documents.publish',
-      modelId: document.id,
+      documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: user.id,
+      data: { title: document.title },
     });
   } else {
     await document.save({ autosave });
 
-    events.add({
+    Event.create({
       name: 'documents.update',
-      modelId: document.id,
+      documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: user.id,
-      autosave,
-      done,
+      data: {
+        autosave,
+        done,
+        title: document.title,
+      },
     });
   }
 
@@ -694,6 +713,7 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   const { documents, collections } = await documentMover({
+    user,
     document,
     collectionId,
     parentDocumentId,
@@ -722,12 +742,13 @@ router.post('documents.archive', auth(), async ctx => {
 
   await document.archive(user.id);
 
-  events.add({
+  Event.create({
     name: 'documents.archive',
-    modelId: document.id,
+    documentId: document.id,
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
+    data: { title: document.title },
   });
 
   ctx.body = {
@@ -745,12 +766,13 @@ router.post('documents.delete', auth(), async ctx => {
 
   await document.delete();
 
-  events.add({
+  Event.create({
     name: 'documents.delete',
-    modelId: document.id,
+    documentId: document.id,
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
+    data: { title: document.title },
   });
 
   ctx.body = {

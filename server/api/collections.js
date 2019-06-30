@@ -3,11 +3,10 @@ import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection, presentUser } from '../presenters';
-import { Collection, CollectionUser, Team, User } from '../models';
+import { Collection, CollectionUser, Team, Event, User } from '../models';
 import { ValidationError, InvalidRequestError } from '../errors';
 import { exportCollection, exportCollections } from '../logistics';
 import policy from '../policies';
-import events from '../events';
 
 const { authorize } = policy;
 const router = new Router();
@@ -33,11 +32,12 @@ router.post('collections.create', auth(), async ctx => {
     private: isPrivate,
   });
 
-  events.add({
+  Event.create({
     name: 'collections.create',
-    modelId: collection.id,
+    collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
+    data: { name },
   });
 
   ctx.body = {
@@ -79,9 +79,9 @@ router.post('collections.add_user', auth(), async ctx => {
     createdById: ctx.state.user.id,
   });
 
-  events.add({
+  Event.create({
     name: 'collections.add_user',
-    modelId: userId,
+    userId,
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
@@ -109,9 +109,9 @@ router.post('collections.remove_user', auth(), async ctx => {
 
   await collection.removeUser(user);
 
-  events.add({
+  Event.create({
     name: 'collections.remove_user',
-    modelId: userId,
+    userId,
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
@@ -196,11 +196,12 @@ router.post('collections.update', auth(), async ctx => {
   collection.private = isPrivate;
   await collection.save();
 
-  events.add({
+  Event.create({
     name: 'collections.update',
-    modelId: collection.id,
+    collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
+    data: { name },
   });
 
   ctx.body = {
@@ -245,11 +246,12 @@ router.post('collections.delete', auth(), async ctx => {
 
   await collection.destroy();
 
-  events.add({
+  Event.create({
     name: 'collections.delete',
-    modelId: collection.id,
+    collectionId: collection.id,
     teamId: collection.teamId,
     actorId: user.id,
+    data: { name: collection.name },
   });
 
   ctx.body = {
