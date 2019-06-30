@@ -8,5 +8,8 @@ The heart of Outline is the document editor. We let you write in the way that yo
 
 If you’re comfortable writing markdown then all of the usual shortcuts are supported, for example type \*\*bold\*\* and hit `space` to instantly create bold text. If you forget some syntax or are after a refresher, simply type `?` to access the keyboard shortcut help.
 
-## Images
+*Tip:* You can even paste markdown from elsewhere directly into a document.
 
+## Blocks
+
+The editor supports a variety of content blocks including images, tables, lists, quotes, and more. You can also drag and drop images to include them in your document or paste a link to embed content from one of the many supported [integrations](/integrations)
