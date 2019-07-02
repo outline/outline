@@ -43,6 +43,7 @@ Event.ACTIVITY_EVENTS = [
   'users.create',
   'documents.publish',
   'documents.update',
+  'documents.delete',
   'documents.archive',
   'documents.unarchive',
   'documents.pin',
