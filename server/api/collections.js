@@ -147,6 +147,14 @@ router.post('collections.export', auth(), async ctx => {
   // async operation to create zip archive and email user
   exportCollection(id, user.email);
 
+  Event.create({
+    name: 'collections.export',
+    collectionId: collection.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: { title: collection.title },
+  });
+
   ctx.body = {
     success: true,
   };
@@ -159,6 +167,12 @@ router.post('collections.exportAll', auth(), async ctx => {
 
   // async operation to create zip archive and email user
   exportCollections(user.teamId, user.email);
+
+  Event.create({
+    name: 'collections.export',
+    teamId: user.teamId,
+    actorId: user.id,
+  });
 
   ctx.body = {
     success: true,

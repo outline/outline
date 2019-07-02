@@ -39,4 +39,16 @@ Event.afterCreate(event => {
   events.add(event);
 });
 
+Event.ACTIVITY_EVENTS = [
+  'users.create',
+  'documents.publish',
+  'documents.update',
+  'documents.archive',
+  'documents.unarchive',
+  'documents.pin',
+  'documents.unpin',
+  'collections.create',
+  'collections.delete',
+];
+
 export default Event;

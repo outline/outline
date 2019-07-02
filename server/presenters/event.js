@@ -1,5 +1,6 @@
 // @flow
 import { Event } from '../models';
+import presentUser from './user';
 
 export default function present(event: Event) {
   return {
@@ -10,5 +11,7 @@ export default function present(event: Event) {
     collectionId: event.collectionId,
     documentId: event.documentId,
     createdAt: event.createdAt,
+    data: event.data,
+    actor: presentUser(event.actor),
   };
 }

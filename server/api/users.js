@@ -126,6 +126,14 @@ router.post('users.promote', auth(), async ctx => {
   const team = await Team.findByPk(teamId);
   await team.addAdmin(user);
 
+  Event.create({
+    name: 'users.promote',
+    actorId: ctx.state.user.id,
+    userId,
+    teamId,
+    data: { name: user.name },
+  });
+
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
   };
@@ -145,6 +153,14 @@ router.post('users.demote', auth(), async ctx => {
   } catch (err) {
     throw new ValidationError(err.message);
   }
+
+  Event.create({
+    name: 'users.demote',
+    actorId: ctx.state.user.id,
+    userId,
+    teamId,
+    data: { name: user.name },
+  });
 
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
@@ -167,6 +183,14 @@ router.post('users.suspend', auth(), async ctx => {
     throw new ValidationError(err.message);
   }
 
+  Event.create({
+    name: 'users.suspend',
+    actorId: ctx.state.user.id,
+    userId,
+    teamId,
+    data: { name: user.name },
+  });
+
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
   };
@@ -183,6 +207,14 @@ router.post('users.activate', auth(), async ctx => {
 
   const team = await Team.findByPk(teamId);
   await team.activateUser(user, admin);
+
+  Event.create({
+    name: 'users.activate',
+    actorId: ctx.state.user.id,
+    userId,
+    teamId,
+    data: { name: user.name },
+  });
 
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
@@ -215,6 +247,14 @@ router.post('users.delete', auth(), async ctx => {
   } catch (err) {
     throw new ValidationError(err.message);
   }
+
+  Event.create({
+    name: 'users.delete',
+    actorId: user.id,
+    userId: user.id,
+    teamId: user.teamId,
+    data: { name: user.name },
+  });
 
   ctx.body = {
     success: true,

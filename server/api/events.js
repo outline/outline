@@ -15,6 +15,7 @@ router.post('events.list', auth(), pagination(), async ctx => {
   const collectionIds = await user.collectionIds();
 
   const where = {
+    name: Event.ACTIVITY_EVENTS,
     teamId: user.teamId,
     collectionId: collectionIds,
   };
@@ -25,7 +26,7 @@ router.post('events.list', auth(), pagination(), async ctx => {
     include: [
       {
         model: User,
-        as: 'user',
+        as: 'actor',
       },
     ],
     offset: ctx.state.pagination.offset,
@@ -33,6 +34,7 @@ router.post('events.list', auth(), pagination(), async ctx => {
   });
 
   ctx.body = {
+    pagination: ctx.state.pagination,
     data: events.map(presentEvent),
   };
 });
