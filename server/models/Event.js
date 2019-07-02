@@ -9,6 +9,7 @@ const Event = sequelize.define('event', {
     primaryKey: true,
   },
   name: DataTypes.STRING,
+  ip: DataTypes.STRING,
   data: DataTypes.JSONB,
 });
 
@@ -35,6 +36,13 @@ Event.associate = models => {
   });
 };
 
+Event.beforeCreate(event => {
+  if (event.ip) {
+    // cleanup IPV6 representations of IPV4 addresses
+    event.ip = event.ip.replace(/^::ffff:/, '');
+  }
+});
+
 Event.afterCreate(event => {
   events.add(event);
 });
@@ -42,12 +50,37 @@ Event.afterCreate(event => {
 Event.ACTIVITY_EVENTS = [
   'users.create',
   'documents.publish',
-  'documents.delete',
   'documents.archive',
   'documents.unarchive',
   'documents.pin',
   'documents.unpin',
+  'documents.delete',
   'collections.create',
+  'collections.delete',
+];
+
+Event.AUDIT_EVENTS = [
+  'users.create',
+  'users.promote',
+  'users.demote',
+  'users.invite',
+  'users.suspend',
+  'users.activate',
+  'users.delete',
+  'documents.publish',
+  'documents.update',
+  'documents.archive',
+  'documents.unarchive',
+  'documents.pin',
+  'documents.unpin',
+  'documents.move',
+  'documents.delete',
+  'shares.create',
+  'shares.revoke',
+  'collections.create',
+  'collections.update',
+  'collections.add_user',
+  'collections.remove_user',
   'collections.delete',
 ];
 

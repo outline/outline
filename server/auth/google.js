@@ -101,6 +101,7 @@ router.get('google.callback', auth({ required: false }), async ctx => {
         name: user.name,
         service: 'google',
       },
+      ip: ctx.request.ip,
     });
   }
 

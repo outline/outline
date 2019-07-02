@@ -78,9 +78,11 @@ router.post('shares.create', auth(), async ctx => {
     name: 'shares.create',
     documentId,
     collectionId: document.collectionId,
+    modelId: share.id,
     teamId: user.teamId,
     actorId: user.id,
     data: { name: document.title },
+    ip: ctx.request.ip,
   });
 
   share.user = user;
@@ -107,9 +109,11 @@ router.post('shares.revoke', auth(), async ctx => {
     name: 'shares.revoke',
     documentId: document.id,
     collectionId: document.collectionId,
+    modelId: share.id,
     teamId: user.teamId,
     actorId: user.id,
     data: { name: document.title },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {

@@ -12,6 +12,11 @@ allow(User, 'share', Team, (user, team) => {
   return team.sharing;
 });
 
+allow(User, 'auditLog', Team, user => {
+  if (user.isAdmin) return true;
+  return false;
+});
+
 allow(User, ['update', 'export'], Team, (user, team) => {
   if (!team || user.teamId !== team.id) return false;
   if (user.isAdmin) return true;

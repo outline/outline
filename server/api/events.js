@@ -1,24 +1,40 @@
 // @flow
+import Sequelize from 'sequelize';
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentEvent } from '../presenters';
-import { Event, User } from '../models';
+import { Event, Team, User } from '../models';
+import policy from '../policies';
 
+const Op = Sequelize.Op;
+const { authorize } = policy;
 const router = new Router();
 
 router.post('events.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction } = ctx.body;
+  let { sort = 'updatedAt', direction, auditLog = false } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
   const collectionIds = await user.collectionIds();
 
-  const where = {
+  let where = {
     name: Event.ACTIVITY_EVENTS,
     teamId: user.teamId,
-    collectionId: collectionIds,
+    [Op.or]: [
+      { collectionId: collectionIds },
+      {
+        collectionId: {
+          [Op.eq]: null,
+        },
+      },
+    ],
   };
+
+  if (auditLog) {
+    authorize(user, 'auditLog', Team);
+    where.name = Event.AUDIT_EVENTS;
+  }
 
   const events = await Event.findAll({
     where,
@@ -35,7 +51,7 @@ router.post('events.list', auth(), pagination(), async ctx => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: events.map(presentEvent),
+    data: events.map(event => presentEvent(event, auditLog)),
   };
 });
 

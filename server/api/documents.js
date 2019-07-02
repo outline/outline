@@ -353,6 +353,7 @@ router.post('documents.restore', auth(), async ctx => {
       teamId: document.teamId,
       actorId: user.id,
       data: { title: document.title },
+      ip: ctx.request.ip,
     });
   } else if (revisionId) {
     // restore a document to a specific revision
@@ -372,6 +373,7 @@ router.post('documents.restore', auth(), async ctx => {
       teamId: document.teamId,
       actorId: user.id,
       data: { title: document.title },
+      ip: ctx.request.ip,
     });
   } else {
     ctx.assertPresent(revisionId, 'revisionId is required');
@@ -449,6 +451,7 @@ router.post('documents.pin', auth(), async ctx => {
     teamId: document.teamId,
     actorId: user.id,
     data: { title: document.title },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -474,6 +477,7 @@ router.post('documents.unpin', auth(), async ctx => {
     teamId: document.teamId,
     actorId: user.id,
     data: { title: document.title },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -500,6 +504,7 @@ router.post('documents.star', auth(), async ctx => {
     teamId: document.teamId,
     actorId: user.id,
     data: { title: document.title },
+    ip: ctx.request.ip,
   });
 });
 
@@ -522,6 +527,7 @@ router.post('documents.unstar', auth(), async ctx => {
     teamId: document.teamId,
     actorId: user.id,
     data: { title: document.title },
+    ip: ctx.request.ip,
   });
 });
 
@@ -583,6 +589,7 @@ router.post('documents.create', auth(), async ctx => {
     teamId: document.teamId,
     actorId: user.id,
     data: { title: document.title },
+    ip: ctx.request.ip,
   });
 
   if (publish) {
@@ -595,6 +602,7 @@ router.post('documents.create', auth(), async ctx => {
       teamId: document.teamId,
       actorId: user.id,
       data: { title: document.title },
+      ip: ctx.request.ip,
     });
   }
 
@@ -654,6 +662,7 @@ router.post('documents.update', auth(), async ctx => {
       teamId: document.teamId,
       actorId: user.id,
       data: { title: document.title },
+      ip: ctx.request.ip,
     });
   } else {
     await document.save({ autosave });
@@ -669,6 +678,7 @@ router.post('documents.update', auth(), async ctx => {
         done,
         title: document.title,
       },
+      ip: ctx.request.ip,
     });
   }
 
@@ -713,7 +723,7 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   const { documents, collections } = await documentMover({
-    user,
+    ctx,
     document,
     collectionId,
     parentDocumentId,
@@ -749,6 +759,7 @@ router.post('documents.archive', auth(), async ctx => {
     teamId: document.teamId,
     actorId: user.id,
     data: { title: document.title },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -773,6 +784,7 @@ router.post('documents.delete', auth(), async ctx => {
     teamId: document.teamId,
     actorId: user.id,
     data: { title: document.title },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {

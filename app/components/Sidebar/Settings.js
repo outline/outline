@@ -10,6 +10,7 @@ import {
   UserIcon,
   LinkIcon,
   TeamIcon,
+  BulletedListIcon,
 } from 'outline-icons';
 import ZapierIcon from './icons/Zapier';
 import SlackIcon from './icons/Slack';
@@ -93,6 +94,11 @@ class SettingsSidebar extends React.Component<Props> {
                 to="/settings/shares"
                 icon={<LinkIcon />}
                 label="Share Links"
+              />
+              <SidebarLink
+                to="/settings/events"
+                icon={<BulletedListIcon />}
+                label="Audit Log"
               />
               {user.isAdmin && (
                 <SidebarLink

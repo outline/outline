@@ -86,6 +86,7 @@ router.post('users.s3Upload', auth(), async ctx => {
     },
     teamId: ctx.state.user.teamId,
     userId: ctx.state.user.id,
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -132,6 +133,7 @@ router.post('users.promote', auth(), async ctx => {
     userId,
     teamId,
     data: { name: user.name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -160,6 +162,7 @@ router.post('users.demote', auth(), async ctx => {
     userId,
     teamId,
     data: { name: user.name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -189,6 +192,7 @@ router.post('users.suspend', auth(), async ctx => {
     userId,
     teamId,
     data: { name: user.name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -214,6 +218,7 @@ router.post('users.activate', auth(), async ctx => {
     userId,
     teamId,
     data: { name: user.name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -228,7 +233,7 @@ router.post('users.invite', auth(), async ctx => {
   const user = ctx.state.user;
   authorize(user, 'invite', User);
 
-  const invitesSent = await userInviter({ user, invites });
+  const invitesSent = await userInviter({ ctx, invites });
 
   ctx.body = {
     data: invitesSent,
@@ -254,6 +259,7 @@ router.post('users.delete', auth(), async ctx => {
     userId: user.id,
     teamId: user.teamId,
     data: { name: user.name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {

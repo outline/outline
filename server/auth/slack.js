@@ -86,6 +86,7 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
         name: user.name,
         service: 'slack',
       },
+      ip: ctx.request.ip,
     });
   }
 

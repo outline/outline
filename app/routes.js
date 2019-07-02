@@ -20,6 +20,7 @@ import Zapier from 'scenes/Settings/Zapier';
 import Shares from 'scenes/Settings/Shares';
 import Tokens from 'scenes/Settings/Tokens';
 import Export from 'scenes/Settings/Export';
+import Events from 'scenes/Settings/Events';
 import Error404 from 'scenes/Error404';
 
 import Layout from 'components/Layout';
@@ -56,6 +57,7 @@ export default function Routes() {
               <Route exact path="/settings/people/:filter" component={People} />
               <Route exact path="/settings/shares" component={Shares} />
               <Route exact path="/settings/tokens" component={Tokens} />
+              <Route exact path="/settings/events" component={Events} />
               <Route
                 exact
                 path="/settings/notifications"

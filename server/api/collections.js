@@ -38,6 +38,7 @@ router.post('collections.create', auth(), async ctx => {
     teamId: collection.teamId,
     actorId: user.id,
     data: { name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -85,6 +86,8 @@ router.post('collections.add_user', auth(), async ctx => {
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
+    data: { name: user.name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -115,6 +118,8 @@ router.post('collections.remove_user', auth(), async ctx => {
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
+    data: { name: user.name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -153,6 +158,7 @@ router.post('collections.export', auth(), async ctx => {
     teamId: user.teamId,
     actorId: user.id,
     data: { title: collection.title },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -172,6 +178,7 @@ router.post('collections.exportAll', auth(), async ctx => {
     name: 'collections.export',
     teamId: user.teamId,
     actorId: user.id,
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -216,6 +223,7 @@ router.post('collections.update', auth(), async ctx => {
     teamId: collection.teamId,
     actorId: user.id,
     data: { name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -266,6 +274,7 @@ router.post('collections.delete', auth(), async ctx => {
     teamId: collection.teamId,
     actorId: user.id,
     data: { name: collection.name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {

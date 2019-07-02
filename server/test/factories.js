@@ -30,6 +30,7 @@ export function buildTeam(overrides: Object = {}) {
 export function buildEvent(overrides: Object = {}) {
   return Event.create({
     name: 'documents.publish',
+    ip: '127.0.0.1',
     ...overrides,
   });
 }

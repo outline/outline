@@ -49,6 +49,7 @@ router.post('views.create', auth(), async ctx => {
     collectionId: document.collectionId,
     teamId: user.teamId,
     data: { title: document.title },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {

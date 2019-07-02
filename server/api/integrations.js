@@ -43,6 +43,7 @@ router.post('integrations.delete', auth(), async ctx => {
     modelId: integration.id,
     teamId: integration.teamId,
     actorId: user.id,
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
