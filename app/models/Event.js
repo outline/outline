@@ -16,6 +16,8 @@ class Event extends BaseModel {
 
   toSentance(): string {
     switch (this.name) {
+      case 'teams.create':
+        return `created the team`;
       case 'users.create':
         return `joined the team`;
       case 'documents.publish':

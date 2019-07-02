@@ -60,6 +60,9 @@ export default class Slack {
     // lets not send a notification on every autosave update
     if (event.data && event.data.autosave) return;
 
+    // lets not send a notification on every CMD+S update
+    if (event.data && !event.data.done) return;
+
     const document = await Document.findByPk(event.documentId);
     if (!document) return;
 
