@@ -138,6 +138,7 @@ Team.prototype.provisionFirstCollection = async function(userId) {
     );
     const { title } = parseTitle(text);
     const document = await Document.create({
+      isWelcome: true,
       parentDocumentId: null,
       collectionId: collection.id,
       teamId: collection.teamId,
