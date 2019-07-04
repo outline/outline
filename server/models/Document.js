@@ -88,6 +88,7 @@ const Document = sequelize.define(
       },
     },
     text: DataTypes.TEXT,
+    isWelcome: { type: DataTypes.BOOLEAN, defaultValue: false },
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     archivedAt: DataTypes.DATE,
     publishedAt: DataTypes.DATE,

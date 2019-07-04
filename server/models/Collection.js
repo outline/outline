@@ -5,7 +5,6 @@ import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
 import Document from './Document';
 import CollectionUser from './CollectionUser';
-import { welcomeMessage } from '../utils/onboarding';
 
 slug.defaults.mode = 'rfc3986';
 
@@ -36,33 +35,6 @@ const Collection = sequelize.define(
     hooks: {
       beforeValidate: (collection: Collection) => {
         collection.urlId = collection.urlId || randomstring.generate(10);
-      },
-      afterCreate: async (collection: Collection) => {
-        const team = await collection.getTeam();
-        const collections = await team.getCollections();
-
-        // Don't auto-create for journal types, yet
-        if (collection.type !== 'atlas') return;
-
-        if (collections.length < 2) {
-          // Create intro document if first collection for team
-          const document = await Document.create({
-            parentDocumentId: null,
-            collectionId: collection.id,
-            teamId: collection.teamId,
-            userId: collection.creatorId,
-            lastModifiedById: collection.creatorId,
-            createdById: collection.creatorId,
-            publishedAt: new Date(),
-            title: 'Welcome to Outline',
-            text: welcomeMessage(collection.id),
-          });
-          collection.documentStructure = [document.toJSON()];
-        } else {
-          // Let user create first document
-          collection.documentStructure = [];
-        }
-        await collection.save();
       },
     },
     getterMethods: {
@@ -140,7 +112,9 @@ Collection.prototype.addDocumentToStructure = async function(
   index: number,
   options = {}
 ) {
-  if (!this.documentStructure) return;
+  if (!this.documentStructure) {
+    this.documentStructure = [];
+  }
 
   let transaction;
 
