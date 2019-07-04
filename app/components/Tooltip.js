@@ -18,7 +18,7 @@ const GlobalStyles = createGlobalStyle`
     left:50%;
     -webkit-transform:translateX(-50%);
     transform:translateX(-50%);
-    margin:0 0 8px 0;
+    margin:0 0 ${props => props.offset + 8}px 0;
     text-align:left
   }
   .tooltip-container.tooltip-container-visible{
@@ -67,7 +67,7 @@ const GlobalStyles = createGlobalStyle`
     box-sizing:content-box;
     z-index:-1;
     position:absolute;
-    bottom:-4px;
+    bottom: -4px;
     left:50%;
     -webkit-transform:translateX(-50%) rotateZ(45deg);
     transform:translateX(-50%) rotateZ(45deg);
@@ -90,7 +90,7 @@ const GlobalStyles = createGlobalStyle`
   }
   .tooltip.tooltip-bottom .tooltip-container .tooltip-content:before{
     bottom:auto;
-    top:-4px;
+    top: -4px;
     border-top:1px solid ${props => props.theme.tooltipBackground};
     border-right:none;
     border-bottom:none;
@@ -98,7 +98,7 @@ const GlobalStyles = createGlobalStyle`
   }
   .tooltip.tooltip-bottom .tooltip-container .tooltip-content:after{
     bottom:auto;
-    top:-4px
+    top: -4px;
   }
   .tooltip.tooltip-right .tooltip-container{
     top:50%;
@@ -110,7 +110,7 @@ const GlobalStyles = createGlobalStyle`
   }
   .tooltip.tooltip-right .tooltip-container .tooltip-content:before{
     bottom:auto;
-    left:-4px;
+    left: -4px;
     top:50%;
     -webkit-transform:translatey(-50%) rotateZ(45deg);
     transform:translatey(-50%) rotateZ(45deg);
@@ -121,7 +121,7 @@ const GlobalStyles = createGlobalStyle`
   }
   .tooltip.tooltip-right .tooltip-container .tooltip-content:after{
     bottom:auto;
-    left:-4px;
+    left: -4px;
     top:50%;
     -webkit-transform:translatey(-50%) rotateZ(45deg);
     transform:translatey(-50%) rotateZ(45deg)
@@ -137,7 +137,7 @@ const GlobalStyles = createGlobalStyle`
   }
   .tooltip.tooltip-left .tooltip-container .tooltip-content:before{
     bottom:auto;
-    right:-4px;
+    right: -4px;
     left:auto;
     top:50%;
     -webkit-transform:translatey(-50%) rotateZ(45deg);
@@ -194,11 +194,18 @@ const GlobalStyles = createGlobalStyle`
   }
 `;
 
-const Tooltip = function(props: *) {
+type Props = {
+  tooltip: React.Node,
+  placement?: 'top' | 'bottom' | 'left' | 'right',
+  children: React.Node,
+  offset?: number,
+};
+
+const Tooltip = function({ offset = 0, ...rest }: Props) {
   return (
     <React.Fragment>
-      <GlobalStyles />
-      <TooltipTrigger {...props} />
+      <GlobalStyles offset={offset} />
+      <TooltipTrigger {...rest} />
     </React.Fragment>
   );
 };

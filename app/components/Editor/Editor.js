@@ -7,6 +7,7 @@ import { withTheme } from 'styled-components';
 import RichMarkdownEditor from 'rich-markdown-editor';
 import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
+import Tooltip from 'components/Tooltip';
 import Embed from './Embed';
 import embeds from '../../embeds';
 
@@ -84,11 +85,14 @@ class Editor extends React.Component<Props> {
         onClickLink={this.onClickLink}
         onShowToast={this.onShowToast}
         getLinkComponent={this.getLinkComponent}
+        tooltip={EditorTooltip}
         {...this.props}
       />
     );
   }
 }
+
+const EditorTooltip = props => <Tooltip offset={8} {...props} />;
 
 export default withTheme(
   // $FlowIssue - https://github.com/facebook/flow/issues/6103
