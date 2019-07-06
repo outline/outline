@@ -6,7 +6,7 @@ import mailer from '../mailer';
 
 type Invite = { name: string, email: string };
 
-export default async function documentMover({
+export default async function userInviter({
   user,
   invites,
 }: {

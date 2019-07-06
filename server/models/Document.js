@@ -141,6 +141,9 @@ Document.associate = models => {
     as: 'revisions',
     onDelete: 'cascade',
   });
+  Document.hasMany(models.Backlink, {
+    as: 'backlinks',
+  });
   Document.hasMany(models.Star, {
     as: 'starred',
   });
