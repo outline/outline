@@ -219,6 +219,11 @@ export default function Api() {
                 id="collection"
                 description="Collection ID to filter by"
               />
+              <Argument id="user" description="User ID to filter by" />
+              <Argument
+                id="backlinkDocumentId"
+                description="Backlinked document ID to filter by"
+              />
             </Arguments>
           </Method>
 
