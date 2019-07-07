@@ -1,10 +1,10 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import parseLinks from './parseLinks';
+import parseDocumentIds from './parseDocumentIds';
 
 it('should return an array of document links', () => {
-  expect(parseLinks(`# Header`).length).toBe(0);
+  expect(parseDocumentIds(`# Header`).length).toBe(0);
   expect(
-    parseLinks(`# Header
+    parseDocumentIds(`# Header
   
   [title](/doc/test)
   `)[0]
@@ -12,9 +12,9 @@ it('should return an array of document links', () => {
 });
 
 it('should not return non document links', () => {
-  expect(parseLinks(`[title](http://www.google.com)`).length).toBe(0);
+  expect(parseDocumentIds(`[title](http://www.google.com)`).length).toBe(0);
 });
 
 it('should not return non document relative links', () => {
-  expect(parseLinks(`[title](/developers)`).length).toBe(0);
+  expect(parseDocumentIds(`[title](/developers)`).length).toBe(0);
 });
