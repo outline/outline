@@ -1,14 +1,14 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import parseDocumentIds from './parseDocumentIds';
 
-it('should return an array of document links', () => {
+it('should return an array of document ids', () => {
   expect(parseDocumentIds(`# Header`).length).toBe(0);
   expect(
     parseDocumentIds(`# Header
   
-  [title](/doc/test)
+  [title](/doc/test-456733)
   `)[0]
-  ).toBe('/doc/test');
+  ).toBe('test-456733');
 });
 
 it('should not return non document links', () => {
