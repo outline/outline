@@ -201,13 +201,21 @@ type Props = {
   offset?: number,
 };
 
-const Tooltip = function({ offset = 0, ...rest }: Props) {
-  return (
-    <React.Fragment>
-      <GlobalStyles offset={offset} />
-      <TooltipTrigger {...rest} />
-    </React.Fragment>
-  );
-};
+class Tooltip extends React.Component<Props> {
+  shouldComponentUpdate() {
+    return false;
+  }
+
+  render() {
+    const { offset = 0, ...rest } = this.props;
+
+    return (
+      <React.Fragment>
+        <GlobalStyles offset={offset} />
+        <TooltipTrigger {...rest} />
+      </React.Fragment>
+    );
+  }
+}
 
 export default Tooltip;
