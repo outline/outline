@@ -14,6 +14,8 @@ export default class Backlinks {
         await Promise.all(
           linkIds.map(async linkId => {
             const document = await Document.findByPk(linkId);
+            if (document.id === event.modelId) return;
+
             await Backlink.create({
               documentId: document.id,
               reverseDocumentId: event.modelId,
@@ -45,6 +47,8 @@ export default class Backlinks {
         await Promise.all(
           addedLinkIds.map(async linkId => {
             const document = await Document.findByPk(linkId);
+            if (document.id === event.modelId) return;
+
             await Backlink.create({
               documentId: document.id,
               reverseDocumentId: event.modelId,
