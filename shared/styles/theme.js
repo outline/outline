@@ -46,6 +46,7 @@ export const base = {
   fontWeight: 400,
   link: colors.primary,
   backgroundTransition: 'background 100ms ease-in-out',
+  zIndex: 100,
 };
 
 export const light = {
