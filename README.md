@@ -31,8 +31,12 @@ In development you can quickly get an environment running using Docker by follow
 
 1. Install [Docker for Desktop](https://www.docker.com) if you don't already have it.
 1. Register a Slack app at https://api.slack.com/apps
-1. Copy the file `.env.sample` to `.env` and fill out the Slack keys, everything
-   else should work well for development.
+1. Copy the file `.env.sample` to `.env`
+1. Fill out the following fields:
+    1. `SECRET_KEY` (follow instructions in the comments of `.env`)
+    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
+    1. `SLACK_SECRET`
+1. Add `http://localhost:3000/auth/slack.callback` as an Oauth callback URL in Slack Admin
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline.
 
 For production deployment by building from scratch, you can follow these steps:
