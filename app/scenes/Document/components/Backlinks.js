@@ -12,27 +12,35 @@ type Props = {
   documents: DocumentsStore,
 };
 
-function Backlinks({ documents, document }: Props) {
-  const backlinks = documents.getBacklinedDocuments(document.id);
-  const showBacklinks = !!backlinks.length;
+@observer
+class Backlinks extends React.Component<Props> {
+  componentDidMount() {
+    this.props.documents.fetchBacklinks(this.props.document.id);
+  }
 
-  return (
-    showBacklinks && (
-      <Fade>
-        <Subheading>Referenced By</Subheading>
-        {backlinks.map(backlinkedDocument => (
-          <Backlink
-            anchor={document.urlId}
-            key={backlinkedDocument.id}
-            document={backlinkedDocument}
-            showCollection={
-              backlinkedDocument.collectionId !== document.collectionId
-            }
-          />
-        ))}
-      </Fade>
-    )
-  );
+  render() {
+    const { documents, document } = this.props;
+    const backlinks = documents.getBacklinedDocuments(document.id);
+    const showBacklinks = !!backlinks.length;
+
+    return (
+      showBacklinks && (
+        <Fade>
+          <Subheading>Referenced By</Subheading>
+          {backlinks.map(backlinkedDocument => (
+            <Backlink
+              anchor={document.urlId}
+              key={backlinkedDocument.id}
+              document={backlinkedDocument}
+              showCollection={
+                backlinkedDocument.collectionId !== document.collectionId
+              }
+            />
+          ))}
+        </Fade>
+      )
+    );
+  }
 }
 
-export default observer(Backlinks);
+export default Backlinks;

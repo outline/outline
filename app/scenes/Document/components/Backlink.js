@@ -10,7 +10,6 @@ type Props = {
   document: Document,
   anchor: string,
   showCollection?: boolean,
-  showPublished?: boolean,
   ref?: *,
 };
 
@@ -48,13 +47,7 @@ const Title = styled.h3`
 @observer
 class Backlink extends React.Component<Props> {
   render() {
-    const {
-      document,
-      showCollection,
-      showPublished,
-      anchor,
-      ...rest
-    } = this.props;
+    const { document, showCollection, anchor, ...rest } = this.props;
 
     return (
       <DocumentLink
@@ -66,11 +59,7 @@ class Backlink extends React.Component<Props> {
         {...rest}
       >
         <Title>{document.title}</Title>
-        <PublishingInfo
-          document={document}
-          showCollection={showCollection}
-          showPublished={showPublished}
-        />
+        <PublishingInfo document={document} showCollection={showCollection} />
       </DocumentLink>
     );
   }

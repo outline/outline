@@ -157,8 +157,6 @@ class DocumentScene extends React.Component<Props> {
         { shareId }
       );
 
-      props.documents.fetchBacklinks(this.document.id);
-
       if (revisionId) {
         this.revision = await props.revisions.fetch(
           props.match.params.documentSlug,
