@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import { darken } from 'polished';
 import styled from 'styled-components';
 import { GoToIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';

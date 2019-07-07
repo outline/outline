@@ -4,7 +4,6 @@ import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
 import { StarredIcon } from 'outline-icons';
 import styled, { withTheme } from 'styled-components';
-import { darken } from 'polished';
 import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
 import PublishingInfo from 'components/PublishingInfo';
