@@ -22,6 +22,7 @@ const colors = {
   black50: 'rgba(0, 0, 0, 0.50)',
   primary: '#1AB6FF',
   yellow: '#FBCA04',
+  warmGrey: '#EDF2F7',
 
   danger: '#D0021B',
   warning: '#f08a24',
@@ -57,7 +58,7 @@ export const light = {
   textTertiary: colors.slate,
   placeholder: '#B1BECC',
 
-  sidebarBackground: 'rgb(244, 247, 250)',
+  sidebarBackground: colors.warmGrey,
   sidebarItemBackground: colors.black05,
   sidebarText: 'rgb(78, 92, 110)',
 
@@ -68,8 +69,7 @@ export const light = {
   inputBorder: colors.slateLight,
   inputBorderFocused: colors.slate,
 
-  listItemHoverBackground: colors.smoke,
-  listItemHoverBorder: colors.smokeDark,
+  listItemHoverBackground: colors.warmGrey,
 
   toolbarBackground: colors.lightBlack,
   toolbarInput: colors.white10,
@@ -120,7 +120,6 @@ export const dark = {
   inputBorderFocused: colors.slate,
 
   listItemHoverBackground: colors.black50,
-  listItemHoverBorder: colors.black50,
 
   toolbarBackground: colors.white,
   toolbarInput: colors.black10,

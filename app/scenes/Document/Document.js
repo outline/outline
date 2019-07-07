@@ -22,12 +22,12 @@ import { emojiToUrl } from 'utils/emoji';
 import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
+import Backlinks from './components/Backlinks';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
-import DocumentPreview from 'components/DocumentPreview';
 import Notice from 'shared/components/Notice';
 import Time from 'shared/components/Time';
 import Search from 'scenes/Search';
@@ -409,17 +409,12 @@ class DocumentScene extends React.Component<Props> {
                 ui={this.props.ui}
                 schema={schema}
               />
-              {this.props.documents
-                .getBacklinedDocuments(document.id)
-                .map(backlinkedDocument => (
-                  <DocumentPreview
-                    key={backlinkedDocument.id}
-                    document={backlinkedDocument}
-                    showCollection={
-                      backlinkedDocument.collectionId !== document.collectionId
-                    }
-                  />
-                ))}
+              {!this.isEditing && (
+                <Backlinks
+                  documents={this.props.documents}
+                  document={document}
+                />
+              )}
             </MaxWidth>
           </Container>
         </Container>

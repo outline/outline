@@ -92,12 +92,7 @@ const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
   &:active,
   &:focus {
     background: ${props => props.theme.listItemHoverBackground};
-    border: 2px solid ${props => props.theme.listItemHoverBorder};
     outline: none;
-  }
-
-  &:focus {
-    border: 2px solid ${props => darken(0.5, props.theme.listItemHoverBorder)};
   }
 `;
 
