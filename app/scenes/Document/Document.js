@@ -79,6 +79,7 @@ class DocumentScene extends React.Component<Props> {
   @observable isSaving: boolean = false;
   @observable isPublishing: boolean = false;
   @observable isDirty: boolean = false;
+  @observable isEmpty: boolean = true;
   @observable notFound: boolean = false;
   @observable moveModalOpen: boolean = false;
 
@@ -166,6 +167,7 @@ class DocumentScene extends React.Component<Props> {
       }
 
       this.isDirty = false;
+      this.isEmpty = false;
 
       const document = this.document;
 
@@ -226,17 +228,19 @@ class DocumentScene extends React.Component<Props> {
     let document = this.document;
     if (!document) return;
 
+    // prevent saves when we're already saving
+    if (document.isSaving ) return;
+
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
+
+    // prevent save before anything has been written
+    if (text.trim() === "#") return;
 
     // prevent autosave if nothing has changed
     if (options.autosave && document.text.trim() === text.trim()) return;
 
     document.text = text;
-    if (!document.allowSave) return;
-
-    // prevent autosave before anything has been written
-    if (options.autosave && !document.title && !document.id) return;
 
     let isNew = !document.id;
     this.isSaving = true;
@@ -261,9 +265,15 @@ class DocumentScene extends React.Component<Props> {
 
   updateIsDirty = debounce(() => {
     const document = this.document;
+    const editorText = this.getEditorText().trim()
 
-    this.isDirty =
-      !!document && this.getEditorText().trim() !== document.text.trim();
+    this.isEmpty = editorText === "#";
+    this.isDirty = !!document && editorText !== document.text.trim()
+
+    console.log({editorText})
+    console.log({doctext: document.text.trim()})
+
+
   }, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
@@ -377,7 +387,8 @@ class DocumentScene extends React.Component<Props> {
                 isEditing={this.isEditing}
                 isSaving={this.isSaving}
                 isPublishing={this.isPublishing}
-                savingIsDisabled={!document.allowSave}
+                publishingIsDisabled={document.isSaving || this.isPublishing || this.isEmpty}
+                savingIsDisabled={document.isSaving || this.isEmpty}
                 onDiscard={this.onDiscard}
                 onSave={this.onSave}
               />
