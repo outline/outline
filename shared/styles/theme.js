@@ -45,7 +45,6 @@ export const base = {
   fontFamily:
     "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen, Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif",
   fontWeight: 400,
-  link: colors.primary,
   backgroundTransition: 'background 100ms ease-in-out',
 };
 
@@ -53,6 +52,7 @@ export const light = {
   ...base,
   background: colors.white,
 
+  link: colors.almostBlack,
   text: colors.almostBlack,
   textSecondary: colors.slateDark,
   textTertiary: colors.slate,
@@ -103,6 +103,7 @@ export const dark = {
   ...base,
   background: colors.almostBlack,
 
+  link: colors.almostWhite,
   text: colors.almostWhite,
   textSecondary: lighten(0.2, colors.slate),
   textTertiary: colors.slate,
