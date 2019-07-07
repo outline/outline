@@ -27,6 +27,7 @@ import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
+import DocumentPreview from 'components/DocumentPreview';
 import Notice from 'shared/components/Notice';
 import Time from 'shared/components/Time';
 import Search from 'scenes/Search';
@@ -155,6 +156,8 @@ class DocumentScene extends React.Component<Props> {
         props.match.params.documentSlug,
         { shareId }
       );
+
+      props.documents.fetchBacklinks(this.document.id);
 
       if (revisionId) {
         this.revision = await props.revisions.fetch(
@@ -406,6 +409,17 @@ class DocumentScene extends React.Component<Props> {
                 ui={this.props.ui}
                 schema={schema}
               />
+              {this.props.documents
+                .getBacklinedDocuments(document.id)
+                .map(backlinkedDocument => (
+                  <DocumentPreview
+                    key={backlinkedDocument.id}
+                    document={backlinkedDocument}
+                    showCollection={
+                      backlinkedDocument.collectionId !== document.collectionId
+                    }
+                  />
+                ))}
             </MaxWidth>
           </Container>
         </Container>

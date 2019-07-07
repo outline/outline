@@ -13,13 +13,17 @@ export default class Backlinks {
 
         await Promise.all(
           linkIds.map(async linkId => {
-            const document = await Document.findByPk(linkId);
-            if (document.id === event.modelId) return;
+            const linkedDocument = await Document.findByPk(linkId);
+            if (linkedDocument.id === event.modelId) return;
 
-            await Backlink.create({
-              documentId: document.id,
-              reverseDocumentId: event.modelId,
-              userId: document.userId,
+            await Backlink.findOrCreate({
+              where: {
+                documentId: linkedDocument.id,
+                reverseDocumentId: event.modelId,
+              },
+              defaults: {
+                userId: document.lastModifiedById,
+              },
             });
           })
         );
@@ -46,13 +50,17 @@ export default class Backlinks {
 
         await Promise.all(
           addedLinkIds.map(async linkId => {
-            const document = await Document.findByPk(linkId);
-            if (document.id === event.modelId) return;
+            const linkedDocument = await Document.findByPk(linkId);
+            if (linkedDocument.id === event.modelId) return;
 
-            await Backlink.create({
-              documentId: document.id,
-              reverseDocumentId: event.modelId,
-              userId: currentRevision.userId,
+            await Backlink.findOrCreate({
+              where: {
+                documentId: linkedDocument.id,
+                reverseDocumentId: event.modelId,
+              },
+              defaults: {
+                userId: currentRevision.userId,
+              },
             });
           })
         );
