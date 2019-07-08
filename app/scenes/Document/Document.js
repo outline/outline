@@ -228,14 +228,14 @@ class DocumentScene extends React.Component<Props> {
     let document = this.document;
     if (!document) return;
 
-    // prevent saves when we're already saving
-    if (document.isSaving ) return;
+    // prevent saves when we are already saving
+    if (document.isSaving) return;
 
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
 
-    // prevent save before anything has been written
-    if (text.trim() === "#") return;
+    // prevent save before anything has been written (single hash is empty doc)
+    if (text.trim() === '#') return;
 
     // prevent autosave if nothing has changed
     if (options.autosave && document.text.trim() === text.trim()) return;
@@ -265,15 +265,11 @@ class DocumentScene extends React.Component<Props> {
 
   updateIsDirty = debounce(() => {
     const document = this.document;
-    const editorText = this.getEditorText().trim()
+    const editorText = this.getEditorText().trim();
 
-    this.isEmpty = editorText === "#";
-    this.isDirty = !!document && editorText !== document.text.trim()
-
-    console.log({editorText})
-    console.log({doctext: document.text.trim()})
-
-
+    // a single hash is a doc with just an empty title
+    this.isEmpty = editorText === '#';
+    this.isDirty = !!document && editorText !== document.text.trim();
   }, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
@@ -387,7 +383,9 @@ class DocumentScene extends React.Component<Props> {
                 isEditing={this.isEditing}
                 isSaving={this.isSaving}
                 isPublishing={this.isPublishing}
-                publishingIsDisabled={document.isSaving || this.isPublishing || this.isEmpty}
+                publishingIsDisabled={
+                  document.isSaving || this.isPublishing || this.isEmpty
+                }
                 savingIsDisabled={document.isSaving || this.isEmpty}
                 onDiscard={this.onDiscard}
                 onSave={this.onSave}
