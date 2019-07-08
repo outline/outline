@@ -82,10 +82,9 @@ const ResultWrapper = styled.div`
 `;
 
 const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
-  margin: 0 -10px;
+  margin: 0 -8px;
   padding: 8px 4px;
   border-radius: 8px;
-  border: 2px solid transparent;
 
   &:hover,
   &:active,

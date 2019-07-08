@@ -44,10 +44,9 @@ const StyledDocumentMenu = styled(DocumentMenu)`
 
 const DocumentLink = styled(Link)`
   display: block;
-  margin: 8px -8px;
+  margin: 10px -8px;
   padding: 6px 8px;
   border-radius: 8px;
-  border: 2px solid transparent;
   max-height: 50vh;
   min-width: 100%;
   overflow: hidden;

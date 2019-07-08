@@ -15,10 +15,9 @@ type Props = {
 
 const DocumentLink = styled(Link)`
   display: block;
-  margin: 0 -8px;
+  margin: 2px -8px;
   padding: 6px 8px;
   border-radius: 8px;
-  border: 2px solid transparent;
   max-height: 50vh;
   min-width: 100%;
   overflow: hidden;
