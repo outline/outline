@@ -522,7 +522,6 @@ router.post('documents.create', auth(), async ctx => {
     index,
   } = ctx.body;
   ctx.assertUuid(collectionId, 'collectionId must be an uuid');
-  ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
   if (parentDocumentId) {
     ctx.assertUuid(parentDocumentId, 'parentDocumentId must be an uuid');

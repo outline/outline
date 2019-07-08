@@ -30,6 +30,7 @@ type Props = {
   isEditing: boolean,
   isSaving: boolean,
   isPublishing: boolean,
+  publishingIsDisabled: boolean,
   savingIsDisabled: boolean,
   onDiscard: () => *,
   onSave: ({
@@ -99,6 +100,7 @@ class Header extends React.Component<Props> {
       isPublishing,
       isSaving,
       savingIsDisabled,
+      publishingIsDisabled,
       auth,
     } = this.props;
     const canShareDocuments =
@@ -171,7 +173,7 @@ class Header extends React.Component<Props> {
               <Button
                 onClick={this.handlePublish}
                 title="Publish document"
-                disabled={savingIsDisabled}
+                disabled={publishingIsDisabled}
                 small
               >
                 {isPublishing ? 'Publishing…' : 'Publish'}
