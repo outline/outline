@@ -3,8 +3,10 @@ import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { withTheme } from 'styled-components';
+import { lighten } from 'polished';
+import styled, { withTheme } from 'styled-components';
 import RichMarkdownEditor from 'rich-markdown-editor';
+import Placeholder from 'rich-markdown-editor/lib/components/Placeholder';
 import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
 import Tooltip from 'components/Tooltip';
@@ -79,7 +81,7 @@ class Editor extends React.Component<Props> {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
     return (
-      <RichMarkdownEditor
+      <StyledEditor
         ref={this.props.forwardedRef}
         uploadImage={this.onUploadImage}
         onClickLink={this.onClickLink}
@@ -91,6 +93,38 @@ class Editor extends React.Component<Props> {
     );
   }
 }
+
+const StyledEditor = styled(RichMarkdownEditor)`
+  justify-content: start;
+
+  > div {
+    transition: ${props => props.theme.backgroundTransition};
+  }
+
+  p {
+    ${Placeholder} {
+      visibility: hidden;
+    }
+  }
+  p:nth-child(2):last-child {
+    ${Placeholder} {
+      visibility: visible;
+    }
+  }
+
+  p {
+    a {
+      color: ${props => props.theme.link};
+      border-bottom: 1px solid ${props => lighten(0.5, props.theme.link)};
+      font-weight: 500;
+
+      &:hover {
+        border-bottom: 1px solid ${props => props.theme.link};
+        text-decoration: none;
+      }
+    }
+  }
+`;
 
 const EditorTooltip = props => <Tooltip offset={8} {...props} />;
 

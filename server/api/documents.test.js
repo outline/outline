@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '../app';
-import { Document, View, Star, Revision } from '../models';
+import { Document, View, Star, Revision, Backlink } from '../models';
 import { flushdb, seed } from '../test/support';
 import {
   buildShare,
@@ -250,6 +250,31 @@ describe('#documents.list', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
+  });
+
+  it('should return backlinks', async () => {
+    const { user, document } = await seed();
+    const anotherDoc = await buildDocument({
+      title: 'another document',
+      text: 'random text',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    await Backlink.create({
+      reverseDocumentId: anotherDoc.id,
+      documentId: document.id,
+      userId: user.id,
+    });
+
+    const res = await server.post('/api/documents.list', {
+      body: { token: user.getJwtToken(), backlinkDocumentId: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(anotherDoc.id);
   });
 
   it('should require authentication', async () => {

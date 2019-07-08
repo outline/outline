@@ -2,14 +2,13 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
-import Document from 'models/Document';
+import { StarredIcon } from 'outline-icons';
 import styled, { withTheme } from 'styled-components';
-import { darken } from 'polished';
 import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
-import { StarredIcon } from 'outline-icons';
-import PublishingInfo from './components/PublishingInfo';
+import PublishingInfo from 'components/PublishingInfo';
 import DocumentMenu from 'menus/DocumentMenu';
+import Document from 'models/Document';
 
 type Props = {
   document: Document,
@@ -45,8 +44,8 @@ const StyledDocumentMenu = styled(DocumentMenu)`
 
 const DocumentLink = styled(Link)`
   display: block;
-  margin: 0 -16px;
-  padding: 10px 16px;
+  margin: 8px -8px;
+  padding: 6px 8px;
   border-radius: 8px;
   border: 2px solid transparent;
   max-height: 50vh;
@@ -62,7 +61,6 @@ const DocumentLink = styled(Link)`
   &:active,
   &:focus {
     background: ${props => props.theme.listItemHoverBackground};
-    border: 2px solid ${props => props.theme.listItemHoverBorder};
     outline: none;
 
     ${StyledStar}, ${StyledDocumentMenu} {
@@ -72,10 +70,6 @@ const DocumentLink = styled(Link)`
         opacity: 1;
       }
     }
-  }
-
-  &:focus {
-    border: 2px solid ${props => darken(0.5, props.theme.listItemHoverBorder)};
   }
 `;
 

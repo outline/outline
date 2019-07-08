@@ -24,6 +24,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
   @observable searchCache: Map<string, SearchResult[]> = new Map();
   @observable starredIds: Map<string, boolean> = new Map();
+  @observable backlinks: Map<string, string[]> = new Map();
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
@@ -138,6 +139,28 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.rootStore.ui.activeDocumentId
       ? this.data.get(this.rootStore.ui.activeDocumentId)
       : undefined;
+  }
+
+  @action
+  fetchBacklinks = async (documentId: string): Promise<?(Document[])> => {
+    const res = await client.post(`/documents.list`, {
+      backlinkDocumentId: documentId,
+    });
+    invariant(res && res.data, 'Document list not available');
+    const { data } = res;
+    runInAction('DocumentsStore#fetchBacklinks', () => {
+      data.forEach(this.add);
+      this.backlinks.set(documentId, data.map(doc => doc.id));
+    });
+  };
+
+  getBacklinedDocuments(documentId: string): Document[] {
+    const documentIds = this.backlinks.get(documentId) || [];
+    return orderBy(
+      compact(documentIds.map(id => this.data.get(id))),
+      'updatedAt',
+      'desc'
+    );
   }
 
   @action

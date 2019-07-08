@@ -1,8 +1,6 @@
 // @flow
 import * as React from 'react';
-import styled from 'styled-components';
 import Editor from 'components/Editor';
-import Placeholder from 'rich-markdown-editor/lib/components/Placeholder';
 import ClickablePadding from 'components/ClickablePadding';
 import plugins from './plugins';
 
@@ -33,7 +31,7 @@ class DocumentEditor extends React.Component<Props> {
 
     return (
       <React.Fragment>
-        <StyledEditor
+        <Editor
           ref={ref => (this.editor = ref)}
           plugins={plugins}
           {...this.props}
@@ -46,24 +44,5 @@ class DocumentEditor extends React.Component<Props> {
     );
   }
 }
-
-const StyledEditor = styled(Editor)`
-  justify-content: start;
-
-  > div {
-    transition: ${props => props.theme.backgroundTransition};
-  }
-
-  p {
-    ${Placeholder} {
-      visibility: hidden;
-    }
-  }
-  p:nth-child(2):last-child {
-    ${Placeholder} {
-      visibility: visible;
-    }
-  }
-`;
 
 export default DocumentEditor;

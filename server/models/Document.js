@@ -32,12 +32,17 @@ const createRevision = (doc, options = {}) => {
   // we don't create revisions if identical to previous
   if (doc.text === doc.previous('text')) return;
 
-  return Revision.create({
-    title: doc.title,
-    text: doc.text,
-    userId: doc.lastModifiedById,
-    documentId: doc.id,
-  });
+  return Revision.create(
+    {
+      title: doc.title,
+      text: doc.text,
+      userId: doc.lastModifiedById,
+      documentId: doc.id,
+    },
+    {
+      transaction: options.transaction,
+    }
+  );
 };
 
 const createUrlId = doc => {
@@ -140,6 +145,9 @@ Document.associate = models => {
   Document.hasMany(models.Revision, {
     as: 'revisions',
     onDelete: 'cascade',
+  });
+  Document.hasMany(models.Backlink, {
+    as: 'backlinks',
   });
   Document.hasMany(models.Star, {
     as: 'starred',
@@ -363,16 +371,16 @@ Document.prototype.archiveWithChildren = async function(userId, options) {
   return this.save(options);
 };
 
-Document.prototype.publish = async function() {
-  if (this.publishedAt) return this.save();
+Document.prototype.publish = async function(options) {
+  if (this.publishedAt) return this.save(options);
 
   const collection = await Collection.findByPk(this.collectionId);
-  if (collection.type !== 'atlas') return this.save();
+  if (collection.type !== 'atlas') return this.save(options);
 
   await collection.addDocumentToStructure(this);
 
   this.publishedAt = new Date();
-  await this.save();
+  await this.save(options);
   this.collection = collection;
 
   return this;
