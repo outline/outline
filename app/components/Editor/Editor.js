@@ -271,7 +271,9 @@ const PrismStyles = createGlobalStyle`
   }
 `;
 
-const EditorTooltip = props => <Tooltip offset={8} {...props} />;
+const EditorTooltip = props => (
+  <Tooltip offset="0, 16" delay={150} {...props} />
+);
 
 export default withTheme(
   // $FlowIssue - https://github.com/facebook/flow/issues/6103
