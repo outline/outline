@@ -86,7 +86,6 @@
     "dotenv": "^4.0.0",
     "emoji-regex": "^6.5.1",
     "exports-loader": "^0.6.4",
-    "extract-text-webpack-plugin": "^3.0.2",
     "file-loader": "^1.1.6",
     "flow-typed": "^2.4.0",
     "fs-extra": "^4.0.2",
