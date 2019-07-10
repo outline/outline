@@ -182,5 +182,8 @@
     "prettier": "1.8.2",
     "rimraf": "^2.5.4"
   },
+  "resolutions": {
+    "js-yaml": "^3.13.1"
+  },
   "version": "0.18.0"
 }
