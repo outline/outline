@@ -1,10 +1,9 @@
 /* eslint-disable */
-var path = require('path');
-var webpack = require('webpack');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-var ManifestPlugin = require('webpack-manifest-plugin');
+const path = require('path');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const ManifestPlugin = require('webpack-manifest-plugin');
 
 commonWebpackConfig = require('./webpack.config');
 
@@ -25,7 +24,6 @@ productionWebpackConfig.plugins = [
   new HtmlWebpackPlugin({
     template: 'server/static/index.html',
   }),
-  new ExtractTextPlugin({ filename: 'styles.[hash].css' }),
   new UglifyJsPlugin({
     sourceMap: true,
     uglifyOptions: {

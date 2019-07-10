@@ -18,6 +18,11 @@ export default class UsersStore extends BaseStore<User> {
   }
 
   @computed
+  get suspended(): User[] {
+    return filter(this.orderedData, user => user.isSuspended);
+  }
+
+  @computed
   get admins(): User[] {
     return filter(this.orderedData, user => user.isAdmin);
   }

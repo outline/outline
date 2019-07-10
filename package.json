@@ -29,7 +29,6 @@
     ],
     "moduleNameMapper": {
       "^shared/(.*)$": "<rootDir>/shared/$1",
-      "^.*[.](s?css|css)$": "<rootDir>/__mocks__/styleMock.js",
       "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
     },
     "moduleFileExtensions": [
@@ -56,6 +55,7 @@
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "dependencies": {
+    "@tippy.js/react": "^2.2.2",
     "@tommoor/remove-markdown": "0.3.1",
     "autotrack": "^2.4.1",
     "aws-sdk": "^2.135.0",
@@ -81,13 +81,11 @@
     "bull": "^3.5.2",
     "cancan": "3.1.0",
     "copy-to-clipboard": "^3.0.6",
-    "css-loader": "^0.28.7",
     "date-fns": "1.29.0",
     "debug": "^4.1.1",
     "dotenv": "^4.0.0",
     "emoji-regex": "^6.5.1",
     "exports-loader": "^0.6.4",
-    "extract-text-webpack-plugin": "^3.0.2",
     "file-loader": "^1.1.6",
     "flow-typed": "^2.4.0",
     "fs-extra": "^4.0.2",
@@ -125,7 +123,6 @@
     "pg": "^6.1.5",
     "pg-hstore": "2.3.2",
     "polished": "1.2.1",
-    "pui-react-tooltip": "^8.3.3",
     "query-string": "^4.3.4",
     "randomstring": "1.1.5",
     "raw-loader": "^0.5.1",
@@ -141,7 +138,7 @@
     "react-router-dom": "^4.3.1",
     "react-waypoint": "^7.3.1",
     "redis": "^2.6.2",
-    "rich-markdown-editor": "^9.8.1",
+    "rich-markdown-editor": "^9.8.2",
     "safestart": "1.1.0",
     "sequelize": "^5.8.12",
     "sequelize-cli": "^5.5.0",
@@ -151,8 +148,7 @@
     "socket.io-redis": "^5.2.0",
     "socketio-auth": "^0.1.1",
     "string-replace-to-array": "^1.0.3",
-    "style-loader": "^0.18.2",
-    "styled-components": "^4.2.0",
+    "styled-components": "^4.3.2",
     "styled-components-breakpoint": "^2.1.1",
     "styled-components-grid": "^2.2.1",
     "styled-normalize": "^8.0.4",
