@@ -60,56 +60,60 @@ class Collaborators extends React.Component<Props> {
       <Avatars>
         {overflow > 0 && <More>+{overflow}</More>}
         {mostRecentViewers.map(({ lastViewedAt, user }) => (
-          <AvatarPile
-            key={user.id}
-            tooltip={
-              <TooltipCentered>
-                <strong>{user.name}</strong>
-                <br />
-                viewed {distanceInWordsToNow(new Date(lastViewedAt))} ago
-              </TooltipCentered>
-            }
-            placement="bottom"
-          >
-            <Viewer>
-              <Avatar
-                src={user.avatarUrl}
-                onClick={() => this.handleOpenProfile(user.id)}
-              />
-              <UserProfile
-                user={user}
-                isOpen={this.openProfileId === user.id}
-                onRequestClose={this.handleCloseProfile}
-              />
-            </Viewer>
-          </AvatarPile>
+          <React.Fragment>
+            <AvatarPile
+              key={user.id}
+              tooltip={
+                <TooltipCentered>
+                  <strong>{user.name}</strong>
+                  <br />
+                  viewed {distanceInWordsToNow(new Date(lastViewedAt))} ago
+                </TooltipCentered>
+              }
+              placement="bottom"
+            >
+              <Viewer>
+                <Avatar
+                  src={user.avatarUrl}
+                  onClick={() => this.handleOpenProfile(user.id)}
+                />
+              </Viewer>
+            </AvatarPile>
+            <UserProfile
+              user={user}
+              isOpen={this.openProfileId === user.id}
+              onRequestClose={this.handleCloseProfile}
+            />
+          </React.Fragment>
         ))}
         {collaborators.map(user => (
-          <AvatarPile
-            key={user.id}
-            tooltip={
-              <TooltipCentered>
-                <strong>{user.name}</strong>
-                <br />
-                {createdAt === updatedAt ? 'published' : 'updated'}{' '}
-                {updatedBy.id === user.id &&
-                  `${distanceInWordsToNow(new Date(updatedAt))} ago`}
-              </TooltipCentered>
-            }
-            placement="bottom"
-          >
-            <Collaborator>
-              <Avatar
-                src={user.avatarUrl}
-                onClick={() => this.handleOpenProfile(user.id)}
-              />
-              <UserProfile
-                user={user}
-                isOpen={this.openProfileId === user.id}
-                onRequestClose={this.handleCloseProfile}
-              />
-            </Collaborator>
-          </AvatarPile>
+          <React.Fragment>
+            <AvatarPile
+              key={user.id}
+              tooltip={
+                <TooltipCentered>
+                  <strong>{user.name}</strong>
+                  <br />
+                  {createdAt === updatedAt ? 'published' : 'updated'}{' '}
+                  {updatedBy.id === user.id &&
+                    `${distanceInWordsToNow(new Date(updatedAt))} ago`}
+                </TooltipCentered>
+              }
+              placement="bottom"
+            >
+              <Collaborator>
+                <Avatar
+                  src={user.avatarUrl}
+                  onClick={() => this.handleOpenProfile(user.id)}
+                />
+              </Collaborator>
+            </AvatarPile>
+            <UserProfile
+              user={user}
+              isOpen={this.openProfileId === user.id}
+              onRequestClose={this.handleCloseProfile}
+            />
+          </React.Fragment>
         ))}
       </Avatars>
     );
