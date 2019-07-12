@@ -20,7 +20,7 @@ const colors = {
   black05: 'rgba(0, 0, 0, 0.05)',
   black10: 'rgba(0, 0, 0, 0.1)',
   black50: 'rgba(0, 0, 0, 0.50)',
-  primary: '#1AB6FF',
+  primary: '#0073E6',
   yellow: '#FBCA04',
   warmGrey: '#EDF2F7',
 
