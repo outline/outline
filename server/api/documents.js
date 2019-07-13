@@ -17,6 +17,7 @@ import {
   View,
   Revision,
   Backlink,
+  User,
 } from '../models';
 import { InvalidRequestError } from '../errors';
 import events from '../events';
@@ -286,7 +287,12 @@ router.post('documents.info', auth({ required: false }), async ctx => {
       },
       include: [
         {
-          model: Document,
+          // unscoping here allows us to return unpublished documents
+          model: Document.unscoped(),
+          include: [
+            { model: User, as: 'createdBy', paranoid: false },
+            { model: User, as: 'updatedBy', paranoid: false },
+          ],
           required: true,
           as: 'document',
         },

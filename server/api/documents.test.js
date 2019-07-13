@@ -133,6 +133,28 @@ describe('#documents.info', async () => {
     expect(body.data.updatedBy.id).toEqual(user.id);
   });
 
+  it('should return draft document from shareId with token', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+    expect(body.data.createdBy.id).toEqual(user.id);
+    expect(body.data.updatedBy.id).toEqual(user.id);
+  });
+
   it('should return document from shareId in collection not a member of', async () => {
     const { user, document, collection } = await seed();
     const share = await buildShare({
