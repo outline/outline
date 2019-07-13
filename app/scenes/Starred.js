@@ -64,7 +64,7 @@ class Starred extends React.Component<Props> {
         {showLoading && <ListPlaceholder />}
         <Actions align="center" justify="flex-end">
           <Action>
-            <NewDocumentMenu label={<NewDocumentIcon />} />
+            <NewDocumentMenu />
           </Action>
         </Actions>
       </CenteredContent>

@@ -9,6 +9,7 @@ import {
   CollectionIcon,
   PrivateCollectionIcon,
   NewDocumentIcon,
+  PlusIcon,
   PinIcon,
 } from 'outline-icons';
 import RichMarkdownEditor from 'rich-markdown-editor';
@@ -103,13 +104,13 @@ class CollectionScene extends React.Component<Props> {
     return (
       <Actions align="center" justify="flex-end">
         <Action>
-          <CollectionMenu collection={this.collection} />
+          <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
+            New doc
+          </Button>
         </Action>
         <Separator />
         <Action>
-          <a onClick={this.onNewDocument}>
-            <NewDocumentIcon />
-          </a>
+          <CollectionMenu collection={this.collection} />
         </Action>
       </Actions>
     );

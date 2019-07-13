@@ -44,7 +44,7 @@ class Drafts extends React.Component<Props> {
         )}
         <Actions align="center" justify="flex-end">
           <Action>
-            <NewDocumentMenu label={<NewDocumentIcon />} />
+            <NewDocumentMenu />
           </Action>
         </Actions>
       </CenteredContent>

@@ -60,9 +60,8 @@ class Collaborators extends React.Component<Props> {
       <Avatars>
         {overflow > 0 && <More>+{overflow}</More>}
         {mostRecentViewers.map(({ lastViewedAt, user }) => (
-          <React.Fragment>
+          <React.Fragment key={user.id}>
             <AvatarPile
-              key={user.id}
               tooltip={
                 <TooltipCentered>
                   <strong>{user.name}</strong>
@@ -76,6 +75,7 @@ class Collaborators extends React.Component<Props> {
                 <Avatar
                   src={user.avatarUrl}
                   onClick={() => this.handleOpenProfile(user.id)}
+                  size={32}
                 />
               </Viewer>
             </AvatarPile>
@@ -87,9 +87,8 @@ class Collaborators extends React.Component<Props> {
           </React.Fragment>
         ))}
         {collaborators.map(user => (
-          <React.Fragment>
+          <React.Fragment key={user.id}>
             <AvatarPile
-              key={user.id}
               tooltip={
                 <TooltipCentered>
                   <strong>{user.name}</strong>
@@ -105,6 +104,7 @@ class Collaborators extends React.Component<Props> {
                 <Avatar
                   src={user.avatarUrl}
                   onClick={() => this.handleOpenProfile(user.id)}
+                  size={32}
                 />
               </Collaborator>
             </AvatarPile>
@@ -133,14 +133,14 @@ const AvatarPile = styled(Tooltip)`
 `;
 
 const Viewer = styled.div`
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   opacity: 0.75;
 `;
 
 const Collaborator = styled.div`
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
 `;
 
 const More = styled.div`
