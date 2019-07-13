@@ -190,9 +190,19 @@ class DocumentMenu extends React.Component<Props> {
             <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
           </React.Fragment>
         ) : (
-          <DropdownMenuItem onClick={this.handleDelete}>
-            Delete…
-          </DropdownMenuItem>
+          <React.Fragment>
+            {canShareDocuments && (
+              <DropdownMenuItem
+                onClick={this.handleShareLink}
+                title="Create a public share link"
+              >
+                Share link…
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={this.handleDelete}>
+              Delete…
+            </DropdownMenuItem>
+          </React.Fragment>
         )}
         <hr />
         <DropdownMenuItem onClick={this.handleExport}>
