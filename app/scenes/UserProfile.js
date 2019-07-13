@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import { inject, observer } from 'mobx-react';
 import { Link } from 'react-router-dom';
+import { EditIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 import Modal from 'components/Modal';
@@ -50,7 +51,7 @@ class UserProfile extends React.Component<Props> {
             {user.isSuspended && <Badge>Suspended</Badge>}
             {isCurrentUser && (
               <Edit>
-                <Button to="/settings" as={Link} small neutral>
+                <Button to="/settings" as={Link} icon={<EditIcon />} neutral>
                   Edit Profile
                 </Button>
               </Edit>

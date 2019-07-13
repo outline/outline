@@ -20,12 +20,15 @@ type Props = {
   ui: UiStore,
   auth: AuthStore,
   label?: React.Node,
+  position?: 'left' | 'right' | 'center',
   document: Document,
   collections: CollectionStore,
   className: string,
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
   showPin?: boolean,
+  onOpen?: () => void,
+  onClose?: () => void,
 };
 
 @observer
@@ -102,7 +105,17 @@ class DocumentMenu extends React.Component<Props> {
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { document, label, className, showPrint, showPin, auth } = this.props;
+    const {
+      document,
+      position,
+      label,
+      className,
+      showPrint,
+      showPin,
+      auth,
+      onOpen,
+      onClose,
+    } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;
 
     if (document.isArchived) {
@@ -119,7 +132,13 @@ class DocumentMenu extends React.Component<Props> {
     }
 
     return (
-      <DropdownMenu label={label || <MoreIcon />} className={className}>
+      <DropdownMenu
+        label={label || <MoreIcon />}
+        className={className}
+        position={position}
+        onOpen={onOpen}
+        onClose={onClose}
+      >
         {!document.isDraft ? (
           <React.Fragment>
             {showPin &&

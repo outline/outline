@@ -1,16 +1,21 @@
 // @flow
 import * as React from 'react';
 import { observer } from 'mobx-react';
+import { observable } from 'mobx';
 import styled from 'styled-components';
 import Document from 'models/Document';
+import DocumentMenu from 'menus/DocumentMenu';
 import SidebarLink from './SidebarLink';
 import DropToImport from 'components/DropToImport';
+import Fade from 'components/Fade';
 import Collection from 'models/Collection';
+import DocumentsStore from 'stores/DocumentsStore';
 import Flex from 'shared/components/Flex';
 import { type NavigationNode } from 'types';
 
 type Props = {
-  document: NavigationNode,
+  node: NavigationNode,
+  documents: DocumentsStore,
   collection?: Collection,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => *,
@@ -20,17 +25,20 @@ type Props = {
 
 @observer
 class DocumentLink extends React.Component<Props> {
+  @observable menuOpen = false;
+
   handleMouseEnter = (ev: SyntheticEvent<*>) => {
-    const { document, prefetchDocument } = this.props;
+    const { node, prefetchDocument } = this.props;
 
     ev.stopPropagation();
     ev.preventDefault();
-    prefetchDocument(document.id);
+    prefetchDocument(node.id);
   };
 
   render() {
     const {
-      document,
+      node,
+      documents,
       collection,
       activeDocument,
       activeDocumentRef,
@@ -38,44 +46,60 @@ class DocumentLink extends React.Component<Props> {
       depth,
     } = this.props;
 
-    const isActiveDocument =
-      activeDocument && activeDocument.id === document.id;
+    const isActiveDocument = activeDocument && activeDocument.id === node.id;
     const showChildren = !!(
       activeDocument &&
       collection &&
       (collection
         .pathToDocument(activeDocument)
         .map(entry => entry.id)
-        .includes(document.id) ||
+        .includes(node.id) ||
         isActiveDocument)
     );
-    const hasChildren = !!document.children.length;
+    const hasChildren = !!node.children.length;
+    const document = documents.get(node.id);
 
     return (
       <Flex
         column
-        key={document.id}
+        key={node.id}
         ref={isActiveDocument ? activeDocumentRef : undefined}
         onMouseEnter={this.handleMouseEnter}
       >
-        <DropToImport documentId={document.id} activeClassName="activeDropZone">
+        <DropToImport documentId={node.id} activeClassName="activeDropZone">
           <SidebarLink
             to={{
-              pathname: document.url,
-              state: { title: document.title },
+              pathname: node.url,
+              state: { title: node.title },
             }}
             expanded={showChildren}
-            label={document.title}
+            label={node.title}
             depth={depth}
             exact={false}
+            menuOpen={this.menuOpen}
+            menu={
+              document ? (
+                <Fade>
+                  <DocumentMenu
+                    position="left"
+                    document={document}
+                    onOpen={() => (this.menuOpen = true)}
+                    onClose={() => (this.menuOpen = false)}
+                  />
+                </Fade>
+              ) : (
+                undefined
+              )
+            }
           >
             {hasChildren && (
               <DocumentChildren column>
-                {document.children.map(childDocument => (
+                {node.children.map(childNode => (
                   <DocumentLink
-                    key={childDocument.id}
+                    key={childNode.id}
                     collection={collection}
-                    document={childDocument}
+                    node={childNode}
+                    documents={documents}
                     activeDocument={activeDocument}
                     prefetchDocument={prefetchDocument}
                     depth={depth + 1}

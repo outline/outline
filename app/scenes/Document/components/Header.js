@@ -6,7 +6,7 @@ import { observer, inject } from 'mobx-react';
 import { Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
-import { NewDocumentIcon } from 'outline-icons';
+import { EditIcon, PlusIcon } from 'outline-icons';
 import { transparentize, darken } from 'polished';
 import Document from 'models/Document';
 import AuthStore from 'stores/AuthStore';
@@ -182,32 +182,42 @@ class Header extends React.Component<Props> {
           )}
           {canEdit && (
             <Action>
-              <Button onClick={this.handleEdit} neutral small>
+              <Button
+                icon={<EditIcon />}
+                onClick={this.handleEdit}
+                neutral
+                small
+              >
                 Edit
               </Button>
             </Action>
           )}
-          {!isEditing && (
-            <Action>
-              <DocumentMenu
-                document={document}
-                showToggleEmbeds={canToggleEmbeds}
-                showPrint
-              />
-            </Action>
-          )}
           {canEdit &&
             !isDraft && (
-              <React.Fragment>
-                <Separator />
-                <Action>
-                  <NewChildDocumentMenu
-                    document={document}
-                    label={<NewDocumentIcon />}
-                  />
-                </Action>
-              </React.Fragment>
+              <Action>
+                <NewChildDocumentMenu
+                  document={document}
+                  label={
+                    <Button icon={<PlusIcon />} neutral>
+                      New doc
+                    </Button>
+                  }
+                />
+              </Action>
             )}
+
+          {!isEditing && (
+            <React.Fragment>
+              <Separator />
+              <Action>
+                <DocumentMenu
+                  document={document}
+                  showToggleEmbeds={canToggleEmbeds}
+                  showPrint
+                />
+              </Action>
+            </React.Fragment>
+          )}
         </Wrapper>
       </Actions>
     );

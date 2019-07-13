@@ -119,7 +119,7 @@ const Label = styled(Flex).attrs({
 `;
 
 const Position = styled.div`
-  position: absolute;
+  position: fixed;
   ${({ left }) => (left !== undefined ? `left: ${left}px` : '')};
   ${({ right }) => (right !== undefined ? `right: ${right}px` : '')};
   top: ${({ top }) => top}px;

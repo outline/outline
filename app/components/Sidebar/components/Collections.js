@@ -49,6 +49,7 @@ class Collections extends React.Component<Props> {
         {collections.orderedData.map(collection => (
           <CollectionLink
             key={collection.id}
+            documents={documents}
             collection={collection}
             activeDocument={documents.active}
             prefetchDocument={documents.prefetchDocument}

@@ -19,7 +19,7 @@ export const Action = styled(Flex)`
 export const Separator = styled.div`
   margin-left: 12px;
   width: 1px;
-  height: 20px;
+  height: 28px;
   background: ${props => props.theme.divider};
 `;
 
