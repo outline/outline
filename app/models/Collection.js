@@ -32,7 +32,12 @@ export default class Collection extends BaseModel {
 
   @computed
   get isEmpty(): boolean {
-    return this.documents.length === 0;
+    return !this.isJournal && this.documents.length === 0;
+  }
+
+  @computed
+  get isJournal(): boolean {
+    return this.type === 'journal';
   }
 
   @computed
@@ -124,7 +129,14 @@ export default class Collection extends BaseModel {
   }
 
   toJS = () => {
-    return pick(this, ['id', 'name', 'color', 'description', 'private']);
+    return pick(this, [
+      'id',
+      'name',
+      'type',
+      'color',
+      'description',
+      'private',
+    ]);
   };
 
   export = () => {

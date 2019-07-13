@@ -41,6 +41,9 @@ const Collection = sequelize.define(
       url() {
         return `/collections/${this.id}`;
       },
+      isJournal() {
+        return this.type === 'journal';
+      },
     },
   }
 );

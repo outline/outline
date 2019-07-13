@@ -18,6 +18,7 @@ import Sidebar from './Sidebar';
 import Scrollable from 'components/Scrollable';
 import Section from './components/Section';
 import Collections from './components/Collections';
+import Journals from './components/Journals';
 import SidebarLink from './components/SidebarLink';
 import HeaderBlock from './components/HeaderBlock';
 import Bubble from './components/Bubble';
@@ -110,6 +111,9 @@ class MainSidebar extends React.Component<Props> {
                   documents.active ? !documents.active.publishedAt : undefined
                 }
               />
+            </Section>
+            <Section>
+              <Journals />
             </Section>
             <Section>
               <Collections onCreateCollection={this.handleCreateCollection} />

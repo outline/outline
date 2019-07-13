@@ -69,19 +69,21 @@ class CollectionLink extends React.Component<Props> {
             />
           }
         >
-          <Flex column>
-            {collection.documents.map(node => (
-              <DocumentLink
-                key={node.id}
-                node={node}
-                documents={documents}
-                collection={collection}
-                activeDocument={activeDocument}
-                prefetchDocument={prefetchDocument}
-                depth={1.5}
-              />
-            ))}
-          </Flex>
+          {collection.documents && (
+            <Flex column>
+              {collection.documents.map(node => (
+                <DocumentLink
+                  key={node.id}
+                  node={node}
+                  documents={documents}
+                  collection={collection}
+                  activeDocument={activeDocument}
+                  prefetchDocument={prefetchDocument}
+                  depth={1.5}
+                />
+              ))}
+            </Flex>
+          )}
         </SidebarLink>
       </DropToImport>
     );

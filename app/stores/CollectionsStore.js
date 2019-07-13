@@ -50,6 +50,16 @@ export default class CollectionsStore extends BaseStore<Collection> {
     return this.orderedData.filter(collection => collection.private);
   }
 
+  @computed
+  get atlases(): Collection[] {
+    return this.orderedData.filter(collection => !collection.isJournal);
+  }
+
+  @computed
+  get feeds(): Collection[] {
+    return this.orderedData.filter(collection => collection.isJournal);
+  }
+
   /**
    * List of paths to each of the documents, where paths are composed of id and title/name pairs
    */

@@ -6,9 +6,9 @@ import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
 import Switch from 'components/Switch';
 import Input from 'components/Input';
-import Flex from 'shared/components/Flex';
 import ColorPicker from 'components/ColorPicker';
 import HelpText from 'components/HelpText';
+import Flex from 'shared/components/Flex';
 
 import Collection from 'models/Collection';
 import CollectionsStore from 'stores/CollectionsStore';
@@ -22,7 +22,7 @@ type Props = {
 };
 
 @observer
-class CollectionNew extends React.Component<Props> {
+class JournalNew extends React.Component<Props> {
   @observable name: string = '';
   @observable color: string = '#4E5C6E';
   @observable private: boolean = false;
@@ -36,6 +36,7 @@ class CollectionNew extends React.Component<Props> {
         name: this.name,
         color: this.color,
         private: this.private,
+        type: 'journal',
       },
       this.props.collections
     );
@@ -67,9 +68,9 @@ class CollectionNew extends React.Component<Props> {
     return (
       <form onSubmit={this.handleSubmit}>
         <HelpText>
-          Collections are for grouping your knowledge base. They work best when
-          organized around a topic or internal team — Product or Engineering for
-          example.
+          Journals are for chronological posts, you can think of them like an
+          internal blog. Communicate announcments, initiatives, and new ideas in
+          a way that is permanently referencable.
         </HelpText>
         <Flex>
           <Input
@@ -83,14 +84,15 @@ class CollectionNew extends React.Component<Props> {
           />
           &nbsp;<ColorPicker onChange={this.handleColor} value={this.color} />
         </Flex>
+
         <Switch
           id="private"
-          label="Private collection"
+          label="Private journal"
           onChange={this.handlePrivateChange}
           checked={this.private}
         />
         <HelpText>
-          A private collection will only be visible to invited team members.
+          A private journal will only be visible to invited team members.
         </HelpText>
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
@@ -101,4 +103,4 @@ class CollectionNew extends React.Component<Props> {
   }
 }
 
-export default inject('collections', 'ui')(withRouter(CollectionNew));
+export default inject('collections', 'ui')(withRouter(JournalNew));

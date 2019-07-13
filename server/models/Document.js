@@ -374,10 +374,11 @@ Document.prototype.archiveWithChildren = async function(userId, options) {
 Document.prototype.publish = async function(options) {
   if (this.publishedAt) return this.save(options);
 
-  const collection = await Collection.findByPk(this.collectionId);
-  if (collection.type !== 'atlas') return this.save(options);
+  const collection = await this.getCollection();
 
-  await collection.addDocumentToStructure(this);
+  if (collection.type === 'atlas') {
+    await collection.addDocumentToStructure(this);
+  }
 
   this.publishedAt = new Date();
   await this.save(options);
@@ -391,8 +392,11 @@ Document.prototype.publish = async function(options) {
 Document.prototype.archive = async function(userId) {
   // archive any children and remove from the document structure
   const collection = await this.getCollection();
-  await collection.removeDocumentInStructure(this);
-  this.collection = collection;
+
+  if (collection.type === 'atlas') {
+    await collection.removeDocumentInStructure(this);
+    this.collection = collection;
+  }
 
   await this.archiveWithChildren(userId);
 
@@ -417,8 +421,10 @@ Document.prototype.unarchive = async function(userId) {
     if (!parent) this.parentDocumentId = undefined;
   }
 
-  await collection.addDocumentToStructure(this);
-  this.collection = collection;
+  if (collection.type === 'atlas') {
+    await collection.addDocumentToStructure(this);
+    this.collection = collection;
+  }
 
   this.archivedAt = null;
   this.lastModifiedById = userId;
