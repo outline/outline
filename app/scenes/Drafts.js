@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { NewDocumentIcon } from 'outline-icons';
 
 import Heading from 'components/Heading';
 import CenteredContent from 'components/CenteredContent';
