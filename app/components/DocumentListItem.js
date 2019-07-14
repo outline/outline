@@ -106,7 +106,7 @@ const ResultContext = styled(Highlight)`
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 @observer
-class DocumentPreview extends React.Component<Props> {
+class DocumentListItem extends React.Component<Props> {
   star = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     ev.stopPropagation();
@@ -179,4 +179,4 @@ class DocumentPreview extends React.Component<Props> {
   }
 }
 
-export default DocumentPreview;
+export default DocumentListItem;

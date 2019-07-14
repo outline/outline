@@ -94,6 +94,8 @@ export default class Collection extends BaseModel {
 
   @action
   updateDocument(document: Document) {
+    if (this.isJournal) return;
+
     const travelDocuments = (documentList, path) =>
       documentList.forEach(d => {
         if (d.id === document.id) {

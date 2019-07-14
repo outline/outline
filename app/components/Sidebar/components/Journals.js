@@ -42,7 +42,7 @@ class Journals extends React.Component<Props> {
     const content = (
       <Flex column>
         <Header>Journals</Header>
-        {collections.feeds.map(collection => (
+        {collections.journals.map(collection => (
           <CollectionLink
             key={collection.id}
             documents={documents}

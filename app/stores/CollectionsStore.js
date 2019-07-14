@@ -56,7 +56,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @computed
-  get feeds(): Collection[] {
+  get journals(): Collection[] {
     return this.orderedData.filter(collection => collection.isJournal);
   }
 

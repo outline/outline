@@ -32,6 +32,7 @@ import HelpText from 'components/HelpText';
 import DocumentList from 'components/DocumentList';
 import Subheading from 'components/Subheading';
 import PageTitle from 'components/PageTitle';
+import PostListItem from 'components/PostListItem';
 import Flex from 'shared/components/Flex';
 import Modal from 'components/Modal';
 import CollectionPermissions from 'scenes/CollectionPermissions';
@@ -101,11 +102,13 @@ class CollectionScene extends React.Component<Props> {
   };
 
   renderActions() {
+    if (!this.collection) return null;
+
     return (
       <Actions align="center" justify="flex-end">
         <Action>
           <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
-            New doc
+            New {this.collection.isJournal ? 'post' : 'doc'}
           </Button>
         </Action>
         <Separator />
@@ -200,20 +203,25 @@ class CollectionScene extends React.Component<Props> {
                   </React.Fragment>
                 )}
 
-                <Tabs>
-                  <Tab to={collectionUrl(collection.id)} exact>
-                    Recently updated
-                  </Tab>
-                  <Tab to={collectionUrl(collection.id, 'recent')} exact>
-                    Recently published
-                  </Tab>
-                  <Tab to={collectionUrl(collection.id, 'old')} exact>
-                    Least recently updated
-                  </Tab>
-                  <Tab to={collectionUrl(collection.id, 'alphabetical')} exact>
-                    A–Z
-                  </Tab>
-                </Tabs>
+                {!collection.isJournal && (
+                  <Tabs>
+                    <Tab to={collectionUrl(collection.id)} exact>
+                      Recently updated
+                    </Tab>
+                    <Tab to={collectionUrl(collection.id, 'recent')} exact>
+                      Recently published
+                    </Tab>
+                    <Tab to={collectionUrl(collection.id, 'old')} exact>
+                      Least recently updated
+                    </Tab>
+                    <Tab
+                      to={collectionUrl(collection.id, 'alphabetical')}
+                      exact
+                    >
+                      A–Z
+                    </Tab>
+                  </Tabs>
+                )}
                 <Switch>
                   <Route path={collectionUrl(collection.id, 'alphabetical')}>
                     <PaginatedDocumentList
@@ -250,14 +258,25 @@ class CollectionScene extends React.Component<Props> {
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id)}>
-                    <PaginatedDocumentList
-                      documents={documents.recentlyUpdatedInCollection(
-                        collection.id
-                      )}
-                      fetch={documents.fetchRecentlyUpdated}
-                      options={{ collection: collection.id }}
-                      showPin
-                    />
+                    {collection.isJournal ? (
+                      <PaginatedDocumentList
+                        documents={documents.recentlyPublishedInCollection(
+                          collection.id
+                        )}
+                        fetch={documents.fetchRecentlyPublished}
+                        options={{ collection: collection.id }}
+                        component={PostListItem}
+                      />
+                    ) : (
+                      <PaginatedDocumentList
+                        documents={documents.recentlyUpdatedInCollection(
+                          collection.id
+                        )}
+                        fetch={documents.fetchRecentlyUpdated}
+                        options={{ collection: collection.id }}
+                        showPin
+                      />
+                    )}
                   </Route>
                 </Switch>
               </React.Fragment>

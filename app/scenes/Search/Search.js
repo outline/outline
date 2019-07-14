@@ -23,7 +23,7 @@ import Fade from 'components/Fade';
 import HelpText from 'components/HelpText';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
-import DocumentPreview from 'components/DocumentPreview';
+import DocumentListItem from 'components/DocumentListItem';
 import PageTitle from 'components/PageTitle';
 import SearchField from './components/SearchField';
 import StatusFilter from './components/StatusFilter';
@@ -42,7 +42,7 @@ type Props = {
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: ?DocumentPreview;
+  firstDocument: ?DocumentListItem;
 
   @observable query: string = '';
   @observable params: URLSearchParams = new URLSearchParams();
@@ -289,7 +289,7 @@ class Search extends React.Component<Props> {
                 if (!document) return null;
 
                 return (
-                  <DocumentPreview
+                  <DocumentListItem
                     ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
                     key={document.id}
                     document={document}

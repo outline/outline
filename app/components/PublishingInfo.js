@@ -25,6 +25,7 @@ type Props = {
   collections: CollectionsStore,
   showCollection?: boolean,
   showPublished?: boolean,
+  showName?: boolean,
   document: Document,
   views?: number,
 };
@@ -33,6 +34,7 @@ function PublishingInfo({
   collections,
   showPublished,
   showCollection,
+  showName = true,
   document,
 }: Props) {
   const {
@@ -84,7 +86,7 @@ function PublishingInfo({
 
   return (
     <Container align="center">
-      {updatedBy.name}
+      {showName && updatedBy.name}
       {content}
       {showCollection &&
         collection && (

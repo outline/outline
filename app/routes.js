@@ -86,15 +86,15 @@ export default function Routes() {
               <Route exact path={`/d/${slug}`} component={RedirectDocument} />
               <Route
                 exact
-                path={`/doc/${slug}/history/:revisionId?`}
+                path={`/(doc|post)/${slug}/history/:revisionId?`}
                 component={KeyedDocument}
               />
               <RouteSidebarHidden
                 exact
-                path={`/doc/${slug}/edit`}
+                path={`/(doc|post)/${slug}/edit`}
                 component={KeyedDocument}
               />
-              <Route path={`/doc/${slug}`} component={KeyedDocument} />
+              <Route path={`/(doc|post)/${slug}`} component={KeyedDocument} />
               <Route exact path="/search" component={Search} />
               <Route exact path="/search/:term" component={Search} />
               <Route path="/404" component={Error404} />

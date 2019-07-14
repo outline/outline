@@ -112,7 +112,11 @@ const Document = sequelize.define(
     getterMethods: {
       url: function() {
         const slugifiedTitle = slugify(this.title);
-        return `/doc/${slugifiedTitle}-${this.urlId}`;
+        const type =
+          this.collection && this.collection.type === 'journal'
+            ? 'post'
+            : 'doc';
+        return `/${type}/${slugifiedTitle}-${this.urlId}`;
       },
     },
   }

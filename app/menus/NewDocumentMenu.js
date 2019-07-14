@@ -35,6 +35,22 @@ class NewDocumentMenu extends React.Component<Props> {
     }
   };
 
+  renderCollection = collection => {
+    return (
+      <DropdownMenuItem
+        key={collection.id}
+        onClick={() => this.handleNewDocument(collection.id)}
+      >
+        {collection.private ? (
+          <PrivateCollectionIcon color={collection.color} />
+        ) : (
+          <CollectionIcon color={collection.color} />
+        )}{' '}
+        {collection.name}
+      </DropdownMenuItem>
+    );
+  };
+
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
@@ -52,20 +68,10 @@ class NewDocumentMenu extends React.Component<Props> {
         onOpen={this.onOpen}
         {...rest}
       >
-        <DropdownMenuItem disabled>Choose a collection…</DropdownMenuItem>
-        {collections.orderedData.map(collection => (
-          <DropdownMenuItem
-            key={collection.id}
-            onClick={() => this.handleNewDocument(collection.id)}
-          >
-            {collection.private ? (
-              <PrivateCollectionIcon color={collection.color} />
-            ) : (
-              <CollectionIcon color={collection.color} />
-            )}{' '}
-            {collection.name}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuItem disabled>Choose a location…</DropdownMenuItem>
+        {collections.journals.map(this.renderCollection)}
+        {collections.journals.length && <hr />}
+        {collections.atlases.map(this.renderCollection)}
       </DropdownMenu>
     );
   }
