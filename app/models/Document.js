@@ -28,6 +28,7 @@ export default class Document extends BaseModel {
   text: string;
   title: string;
   emoji: string;
+  type: 'post' | 'document';
   parentDocumentId: ?string;
   publishedAt: ?string;
   archivedAt: string;

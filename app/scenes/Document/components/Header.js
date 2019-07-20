@@ -199,7 +199,7 @@ class Header extends React.Component<Props> {
                   document={document}
                   label={
                     <Button icon={<PlusIcon />} neutral>
-                      New doc
+                      New {document.type === 'post' ? 'post' : 'doc'}
                     </Button>
                   }
                 />

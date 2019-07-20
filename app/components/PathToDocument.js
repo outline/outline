@@ -49,7 +49,11 @@ class PathToDocument extends React.Component<Props> {
           ))}
         {result.path
           .map(doc => <Title key={doc.id}>{doc.title}</Title>)
-          .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
+          .reduce((prev, curr, index) => [
+            prev,
+            <StyledGoToIcon key={index} />,
+            curr,
+          ])}
         {document && (
           <Flex>
             {' '}

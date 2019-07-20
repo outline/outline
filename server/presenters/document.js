@@ -39,6 +39,7 @@ export default async function present(document: Document, options: ?Options) {
     pinned: undefined,
     collectionId: undefined,
     parentDocumentId: undefined,
+    type: document.collection.type === 'journal' ? 'post' : 'document',
   };
 
   if (!options.isPublic) {

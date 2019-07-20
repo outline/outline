@@ -13,7 +13,7 @@ export type DocumentPathItem = {
   collectionId: string,
   title: string,
   url: string,
-  type: 'collection' | 'document',
+  type: 'atlas' | 'journal' | 'document',
 };
 
 export type DocumentPath = DocumentPathItem & {
@@ -71,21 +71,31 @@ export default class CollectionsStore extends BaseStore<Collection> {
         const { id, title, url } = document;
         const node = { id, collectionId, title, url, type: 'document' };
         results.push(concat(path, node));
-        travelDocuments(document.children, collectionId, concat(path, [node]));
+
+        if (document.children) {
+          travelDocuments(
+            document.children,
+            collectionId,
+            concat(path, [node])
+          );
+        }
       });
 
     if (this.isLoaded) {
       this.data.forEach(collection => {
-        const { id, name, url } = collection;
+        const { id, name, type, url } = collection;
         const node = {
           id,
           collectionId: id,
           title: name,
           url,
-          type: 'collection',
+          type,
         };
         results.push([node]);
-        travelDocuments(collection.documents, id, [node]);
+
+        if (collection.documents) {
+          travelDocuments(collection.documents, id, [node]);
+        }
       });
     }
 

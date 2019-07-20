@@ -118,10 +118,10 @@ class CollectionMenu extends React.Component<Props> {
           {collection && (
             <React.Fragment>
               <DropdownMenuItem onClick={this.onNewDocument}>
-                New document
+                New {collection.type === 'journal' ? 'post' : 'document'}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={this.onImportDocument}>
-                Import document
+                Import {collection.type === 'journal' ? 'post' : 'document'}
               </DropdownMenuItem>
               <hr />
               <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>

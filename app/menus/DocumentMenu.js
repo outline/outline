@@ -8,7 +8,6 @@ import { MoreIcon } from 'outline-icons';
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
-import CollectionStore from 'stores/CollectionsStore';
 import {
   documentMoveUrl,
   documentHistoryUrl,
@@ -22,7 +21,6 @@ type Props = {
   label?: React.Node,
   position?: 'left' | 'right' | 'center',
   document: Document,
-  collections: CollectionStore,
   className: string,
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
@@ -172,12 +170,14 @@ class DocumentMenu extends React.Component<Props> {
             <DropdownMenuItem onClick={this.handleDocumentHistory}>
               Document history
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={this.handleNewChild}
-              title="Create a new child document for the current document"
-            >
-              New child document
-            </DropdownMenuItem>
+            {document.type === 'document' && (
+              <DropdownMenuItem
+                onClick={this.handleNewChild}
+                title="Create a new child document for the current document"
+              >
+                New child document
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={this.handleDuplicate}>
               Duplicate
             </DropdownMenuItem>
@@ -216,4 +216,4 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject('ui', 'auth', 'collections')(DocumentMenu);
+export default inject('ui', 'auth')(DocumentMenu);

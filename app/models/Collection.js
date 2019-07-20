@@ -49,7 +49,9 @@ export default class Collection extends BaseModel {
         travelDocuments(document.children);
       });
 
-    travelDocuments(this.documents);
+    if (this.documents) {
+      travelDocuments(this.documents);
+    }
     return results;
   }
 
@@ -106,7 +108,9 @@ export default class Collection extends BaseModel {
         }
       });
 
-    travelDocuments(this.documents);
+    if (this.documents) {
+      travelDocuments(this.documents);
+    }
   }
 
   pathToDocument(document: Document) {

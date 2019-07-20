@@ -108,10 +108,14 @@ class DocumentMove extends React.Component<Props> {
 
     if (result) {
       return (
-        <PathToDocument
-          result={result}
-          collection={collections.get(result.collectionId)}
-        />
+        <Section>
+          <Labeled label="Current location">
+            <PathToDocument
+              result={result}
+              collection={collections.get(result.collectionId)}
+            />
+          </Labeled>
+        </Section>
       );
     }
   }
@@ -124,11 +128,7 @@ class DocumentMove extends React.Component<Props> {
         {document &&
           collections.isLoaded && (
             <Flex column>
-              <Section>
-                <Labeled label="Current location">
-                  {this.renderPathToCurrentDocument()}
-                </Labeled>
-              </Section>
+              {this.renderPathToCurrentDocument()}
 
               <Section column>
                 <Labeled label="Choose a new location">
