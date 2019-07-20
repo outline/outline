@@ -65,7 +65,7 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   });
 
   if (isFirstUser) {
-    await team.provisionFirstCollection(user.id);
+    await team.provisionFirstCollections(user.id);
     await team.provisionSubdomain(data.team.domain);
   }
 

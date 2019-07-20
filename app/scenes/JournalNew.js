@@ -69,8 +69,8 @@ class JournalNew extends React.Component<Props> {
       <form onSubmit={this.handleSubmit}>
         <HelpText>
           Journals are for chronological posts, you can think of them like an
-          internal blog. Communicate announcments, initiatives, and new ideas in
-          a way that is permanently referencable.
+          internal blog. Communicate announcements, initiatives, and new ideas
+          in a way that is permanently accessible.
         </HelpText>
         <Flex>
           <Input

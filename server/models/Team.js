@@ -118,7 +118,14 @@ Team.prototype.provisionSubdomain = async function(subdomain) {
   return subdomain;
 };
 
-Team.prototype.provisionFirstCollection = async function(userId) {
+Team.prototype.provisionFirstCollections = async function(userId) {
+  await Collection.create({
+    name: 'Announcements',
+    type: 'journal',
+    teamId: this.id,
+    creatorId: userId,
+  });
+
   const collection = await Collection.create({
     name: 'Welcome',
     description:
