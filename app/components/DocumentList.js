@@ -6,18 +6,11 @@ import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 type Props = {
   documents: Document[],
-  component: React.Element<any>,
   limit?: number,
 };
 
-export default function DocumentList({
-  limit,
-  documents,
-  component,
-  ...rest
-}: Props) {
+export default function DocumentList({ limit, documents, ...rest }: Props) {
   const items = limit ? documents.splice(0, limit) : documents;
-  const Component = component ? component : DocumentListItem;
 
   return (
     <ArrowKeyNavigation
@@ -25,7 +18,7 @@ export default function DocumentList({
       defaultActiveChildIndex={0}
     >
       {items.map(document => (
-        <Component key={document.id} document={document} {...rest} />
+        <DocumentListItem key={document.id} document={document} {...rest} />
       ))}
     </ArrowKeyNavigation>
   );

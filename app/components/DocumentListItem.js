@@ -7,6 +7,8 @@ import styled, { withTheme } from 'styled-components';
 import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
 import PublishingInfo from 'components/PublishingInfo';
+import Editor from 'components/Editor';
+import Avatar from 'components/Avatar';
 import DocumentMenu from 'menus/DocumentMenu';
 import Document from 'models/Document';
 
@@ -103,6 +105,15 @@ const ResultContext = styled(Highlight)`
   margin-bottom: 0.25em;
 `;
 
+const Author = styled.h4`
+  margin: 0 0 0 8px;
+`;
+
+const Meta = styled(Flex)`
+  position: relative;
+  margin-bottom: 8px;
+`;
+
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 @observer
@@ -124,6 +135,12 @@ class DocumentListItem extends React.Component<Props> {
     // an infinite loop to trigger a regex inside it's own callback
     return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, '$1');
   };
+
+  get summary() {
+    const { document } = this.props;
+    const lines = document.text.split('\n');
+    return lines.slice(1, 3).join('\n');
+  }
 
   render() {
     const {
@@ -148,32 +165,65 @@ class DocumentListItem extends React.Component<Props> {
         }}
         {...rest}
       >
-        <Heading>
-          <Title text={document.title} highlight={highlight} />
-          {!document.isDraft &&
-            !document.isArchived && (
-              <Actions>
-                {document.isStarred ? (
-                  <StyledStar onClick={this.unstar} solid />
-                ) : (
-                  <StyledStar onClick={this.star} />
+        {document.type === 'post' ? (
+          <React.Fragment>
+            <Meta>
+              <Avatar src={document.createdBy.avatarUrl} size={32} />
+              <Flex column>
+                <Author>{document.createdBy.name}</Author>
+                <PublishingInfo
+                  document={document}
+                  showCollection={showCollection}
+                  showName={false}
+                />
+              </Flex>
+              <StyledDocumentMenu document={document} showPin={showPin} />
+            </Meta>
+            <Heading>
+              <Title text={document.title} highlight={highlight} />
+              {!document.isDraft &&
+                !document.isArchived && (
+                  <Actions>
+                    {document.isStarred ? (
+                      <StyledStar onClick={this.unstar} solid />
+                    ) : (
+                      <StyledStar onClick={this.star} />
+                    )}
+                  </Actions>
                 )}
-              </Actions>
+            </Heading>
+            <Editor defaultValue={this.summary} readOnly />
+          </React.Fragment>
+        ) : (
+          <React.Fragment>
+            <Heading>
+              <Title text={document.title} highlight={highlight} />
+              {!document.isDraft &&
+                !document.isArchived && (
+                  <Actions>
+                    {document.isStarred ? (
+                      <StyledStar onClick={this.unstar} solid />
+                    ) : (
+                      <StyledStar onClick={this.star} />
+                    )}
+                  </Actions>
+                )}
+              <StyledDocumentMenu document={document} showPin={showPin} />
+            </Heading>
+            {!queryIsInTitle && (
+              <ResultContext
+                text={context}
+                highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+                processResult={this.replaceResultMarks}
+              />
             )}
-          <StyledDocumentMenu document={document} showPin={showPin} />
-        </Heading>
-        {!queryIsInTitle && (
-          <ResultContext
-            text={context}
-            highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-            processResult={this.replaceResultMarks}
-          />
+            <PublishingInfo
+              document={document}
+              showCollection={showCollection}
+              showPublished={showPublished}
+            />
+          </React.Fragment>
         )}
-        <PublishingInfo
-          document={document}
-          showCollection={showCollection}
-          showPublished={showPublished}
-        />
       </DocumentLink>
     );
   }

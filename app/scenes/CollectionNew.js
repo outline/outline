@@ -74,7 +74,7 @@ class CollectionNew extends React.Component<Props> {
           <HelpText>
             Journals are for chronological posts, you can think of them like an
             internal blog. Communicate announcements, initiatives, and new ideas
-            in a way that is permanently accessible.
+            in a way that is permanently referenceable.
           </HelpText>
         ) : (
           <HelpText>

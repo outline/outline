@@ -32,7 +32,6 @@ import HelpText from 'components/HelpText';
 import DocumentList from 'components/DocumentList';
 import Subheading from 'components/Subheading';
 import PageTitle from 'components/PageTitle';
-import PostListItem from 'components/PostListItem';
 import Flex from 'shared/components/Flex';
 import Modal from 'components/Modal';
 import CollectionPermissions from 'scenes/CollectionPermissions';
@@ -265,7 +264,6 @@ class CollectionScene extends React.Component<Props> {
                         )}
                         fetch={documents.fetchRecentlyPublished}
                         options={{ collection: collection.id }}
-                        component={PostListItem}
                       />
                     ) : (
                       <PaginatedDocumentList
