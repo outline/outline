@@ -59,6 +59,11 @@ export default class Document extends BaseModel {
   }
 
   @computed
+  get shortType(): string {
+    return this.type === 'post' ? 'post' : 'doc';
+  }
+
+  @computed
   get isArchived(): boolean {
     return !!this.archivedAt;
   }

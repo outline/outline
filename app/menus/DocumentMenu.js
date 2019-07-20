@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { capitalize } from 'lodash';
 import { Redirect } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
@@ -168,7 +169,7 @@ class DocumentMenu extends React.Component<Props> {
             )}
             <hr />
             <DropdownMenuItem onClick={this.handleDocumentHistory}>
-              Document history
+              {capitalize(document.shortType)} history
             </DropdownMenuItem>
             {document.type === 'document' && (
               <DropdownMenuItem
@@ -178,9 +179,11 @@ class DocumentMenu extends React.Component<Props> {
                 New child document
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={this.handleDuplicate}>
-              Duplicate
-            </DropdownMenuItem>
+            {document.type === 'document' && (
+              <DropdownMenuItem onClick={this.handleDuplicate}>
+                Duplicate
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={this.handleArchive}>
               Archive
             </DropdownMenuItem>

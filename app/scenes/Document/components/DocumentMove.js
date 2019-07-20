@@ -134,7 +134,7 @@ class DocumentMove extends React.Component<Props> {
                 <Labeled label="Choose a new location">
                   <Input
                     type="text"
-                    placeholder="Search collections & documents…"
+                    placeholder="Search collections, documents & posts…"
                     onKeyDown={this.handleKeyDown}
                     onChange={this.handleFilter}
                     required

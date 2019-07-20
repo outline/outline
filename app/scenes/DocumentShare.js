@@ -40,8 +40,8 @@ class DocumentShare extends React.Component<Props> {
       <div>
         <HelpText>
           The link below allows anyone in the world to access a read-only
-          version of the document <strong>{document.title}</strong>. You can
-          revoke this link in settings at any time.{' '}
+          version of the <strong>{document.title}</strong> {document.shortType}.
+          You can revoke this link in settings at any time.{' '}
           <Link to="/settings/shares" onClick={onSubmit}>
             Manage share links
           </Link>.
