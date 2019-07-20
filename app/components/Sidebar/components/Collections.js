@@ -1,16 +1,19 @@
 // @flow
 import * as React from 'react';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import keydown from 'react-keydown';
-import Flex from 'shared/components/Flex';
 import { PlusIcon } from 'outline-icons';
+import Flex from 'shared/components/Flex';
 import { newDocumentUrl } from 'utils/routeHelpers';
 
 import Header from './Header';
 import SidebarLink from './SidebarLink';
 import CollectionLink from './CollectionLink';
+import Modal from 'components/Modal';
 import Fade from 'components/Fade';
+import CollectionNew from 'scenes/CollectionNew';
 
 import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
@@ -20,13 +23,21 @@ type Props = {
   history: Object,
   collections: CollectionsStore,
   documents: DocumentsStore,
-  onCreateCollection: () => void,
   ui: UiStore,
 };
 
 @observer
 class Collections extends React.Component<Props> {
   isPreloaded: boolean = !!this.props.collections.orderedData.length;
+  @observable createModalOpen: boolean = false;
+
+  handleModalOpen = () => {
+    this.createModalOpen = true;
+  };
+
+  handleModalClose = () => {
+    this.createModalOpen = false;
+  };
 
   componentDidMount() {
     this.props.collections.fetchPage({ limit: 100 });
@@ -57,10 +68,17 @@ class Collections extends React.Component<Props> {
           />
         ))}
         <SidebarLink
-          onClick={this.props.onCreateCollection}
+          onClick={this.handleModalOpen}
           icon={<PlusIcon />}
           label="New collection…"
         />
+        <Modal
+          title="Create a collection"
+          onRequestClose={this.handleModalClose}
+          isOpen={this.createModalOpen}
+        >
+          <CollectionNew onSubmit={this.handleModalClose} type="collection" />
+        </Modal>
       </Flex>
     );
 

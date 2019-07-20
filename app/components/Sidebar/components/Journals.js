@@ -11,7 +11,7 @@ import SidebarLink from './SidebarLink';
 import CollectionLink from './CollectionLink';
 import Fade from 'components/Fade';
 import Modal from 'components/Modal';
-import JournalNew from 'scenes/JournalNew';
+import CollectionNew from 'scenes/CollectionNew';
 
 import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
@@ -62,7 +62,7 @@ class Journals extends React.Component<Props> {
           onRequestClose={this.handleModalClose}
           isOpen={this.createModalOpen}
         >
-          <JournalNew onSubmit={this.handleModalClose} />
+          <CollectionNew onSubmit={this.handleModalClose} type="journal" />
         </Modal>
       </Flex>
     );

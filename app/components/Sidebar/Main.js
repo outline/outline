@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import {
   ArchiveIcon,
@@ -25,13 +26,10 @@ import Bubble from './components/Bubble';
 
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
-import UiStore from 'stores/UiStore';
-import { observable } from 'mobx';
 
 type Props = {
   auth: AuthStore,
   documents: DocumentsStore,
-  ui: UiStore,
 };
 
 @observer
@@ -41,10 +39,6 @@ class MainSidebar extends React.Component<Props> {
   componentDidMount() {
     this.props.documents.fetchDrafts();
   }
-
-  handleCreateCollection = () => {
-    this.props.ui.setActiveModal('collection-new');
-  };
 
   handleInviteModalOpen = () => {
     this.inviteModalOpen = true;
@@ -116,7 +110,7 @@ class MainSidebar extends React.Component<Props> {
               <Journals />
             </Section>
             <Section>
-              <Collections onCreateCollection={this.handleCreateCollection} />
+              <Collections />
             </Section>
             <Section>
               <SidebarLink
@@ -150,4 +144,4 @@ class MainSidebar extends React.Component<Props> {
   }
 }
 
-export default inject('documents', 'auth', 'ui')(MainSidebar);
+export default inject('documents', 'auth')(MainSidebar);

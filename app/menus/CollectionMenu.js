@@ -3,10 +3,12 @@ import * as React from 'react';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
+import { capitalize } from 'lodash';
 import styled from 'styled-components';
 import { MoreIcon } from 'outline-icons';
 import Modal from 'components/Modal';
 import CollectionPermissions from 'scenes/CollectionPermissions';
+import CollectionEdit from 'scenes/CollectionEdit';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
@@ -30,6 +32,7 @@ type Props = {
 @observer
 class CollectionMenu extends React.Component<Props> {
   file: ?HTMLInputElement;
+  @observable editModalOpen: boolean = false;
   @observable permissionsModalOpen: boolean = false;
   @observable redirectTo: ?string;
 
@@ -61,12 +64,6 @@ class CollectionMenu extends React.Component<Props> {
     }
   };
 
-  onEdit = (ev: SyntheticEvent<*>) => {
-    ev.preventDefault();
-    const { collection } = this.props;
-    this.props.ui.setActiveModal('collection-edit', { collection });
-  };
-
   onDelete = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     const { collection } = this.props;
@@ -79,7 +76,7 @@ class CollectionMenu extends React.Component<Props> {
     this.props.ui.setActiveModal('collection-export', { collection });
   };
 
-  onPermissions = (ev: SyntheticEvent<*>) => {
+  handlePermissionsModalOpen = (ev: SyntheticEvent<*>) => {
     ev.preventDefault();
     this.permissionsModalOpen = true;
   };
@@ -88,8 +85,20 @@ class CollectionMenu extends React.Component<Props> {
     this.permissionsModalOpen = false;
   };
 
+  handleEditModalOpen = (ev: SyntheticEvent<*>) => {
+    ev.preventDefault();
+    this.editModalOpen = true;
+  };
+
+  handleEditModalClose = () => {
+    this.editModalOpen = false;
+  };
+
   render() {
     const { collection, label, position, onOpen, onClose } = this.props;
+    const docType = collection.type === 'journal' ? 'post' : 'document';
+    const collectionType =
+      collection.type === 'journal' ? 'journal' : 'collection';
 
     return (
       <React.Fragment>
@@ -100,13 +109,23 @@ class CollectionMenu extends React.Component<Props> {
           accept="text/markdown, text/plain"
         />
         <Modal
-          title="Collection permissions"
+          title={`${capitalize(collectionType)} permissions`}
           onRequestClose={this.handlePermissionsModalClose}
           isOpen={this.permissionsModalOpen}
         >
           <CollectionPermissions
             collection={collection}
             onSubmit={this.handlePermissionsModalClose}
+          />
+        </Modal>
+        <Modal
+          title={`Edit ${collectionType}`}
+          onRequestClose={this.handleEditModalClose}
+          isOpen={this.editModalOpen}
+        >
+          <CollectionEdit
+            collection={collection}
+            onSubmit={this.handleEditModalClose}
           />
         </Modal>
         <DropdownMenu
@@ -118,14 +137,16 @@ class CollectionMenu extends React.Component<Props> {
           {collection && (
             <React.Fragment>
               <DropdownMenuItem onClick={this.onNewDocument}>
-                New {collection.type === 'journal' ? 'post' : 'document'}
+                New {docType}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={this.onImportDocument}>
-                Import {collection.type === 'journal' ? 'post' : 'document'}
+                Import {docType}
               </DropdownMenuItem>
               <hr />
-              <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
-              <DropdownMenuItem onClick={this.onPermissions}>
+              <DropdownMenuItem onClick={this.handleEditModalOpen}>
+                Edit…
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={this.handlePermissionsModalOpen}>
                 Permissions…
               </DropdownMenuItem>
               <DropdownMenuItem onClick={this.onExport}>

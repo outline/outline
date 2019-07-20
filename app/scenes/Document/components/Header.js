@@ -193,7 +193,8 @@ class Header extends React.Component<Props> {
             </Action>
           )}
           {canEdit &&
-            !isDraft && (
+            !isDraft &&
+            document.type === 'document' && (
               <Action>
                 <NewChildDocumentMenu
                   document={document}

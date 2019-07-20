@@ -23,12 +23,13 @@ type Props = {
 class CollectionEdit extends React.Component<Props> {
   @observable name: string;
   @observable description: string = '';
-  @observable color: string = '';
+  @observable color: string = '#4E5C6E';
   @observable isSaving: boolean;
 
   componentWillMount() {
     this.name = this.props.collection.name;
     this.description = this.props.collection.description;
+    this.color = this.props.collection.color;
   }
 
   handleSubmit = async (ev: SyntheticEvent<*>) => {
@@ -66,30 +67,33 @@ class CollectionEdit extends React.Component<Props> {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            You can edit a collection’s name and other details at any time,
-            however doing so often might confuse your team mates.
+            You can edit the name and other details at any time, however doing
+            so often might confuse your team mates.
           </HelpText>
-          <Input
-            type="text"
-            label="Name"
-            onChange={this.handleNameChange}
-            value={this.name}
-            required
-            autoFocus
-          />
-          <InputRich
-            id={this.props.collection.id}
-            label="Description"
-            onChange={this.handleDescriptionChange}
-            defaultValue={this.description || ''}
-            placeholder="More details about this collection…"
-            minHeight={68}
-            maxHeight={200}
-          />
-          <ColorPicker
-            onSelect={this.handleColor}
-            value={this.props.collection.color}
-          />
+          <Flex>
+            <Input
+              type="text"
+              label="Name"
+              onChange={this.handleNameChange}
+              value={this.name}
+              required
+              autoFocus
+              flex
+            />
+            &nbsp;<ColorPicker onChange={this.handleColor} value={this.color} />
+          </Flex>
+
+          {this.description && (
+            <InputRich
+              id={this.props.collection.id}
+              label="Description"
+              onChange={this.handleDescriptionChange}
+              defaultValue={this.description || ''}
+              placeholder="More details about this collection…"
+              minHeight={68}
+              maxHeight={200}
+            />
+          )}
           <Button
             type="submit"
             disabled={this.isSaving || !this.props.collection.name}

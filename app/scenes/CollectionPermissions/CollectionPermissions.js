@@ -97,17 +97,20 @@ class CollectionPermissions extends React.Component<Props> {
       user => this.filter && !user.name.toLowerCase().includes(this.filter)
     );
 
+    const collectionType =
+      collection.type === 'journal' ? 'journal' : 'collection';
+
     return (
       <Flex column>
         <HelpText>
           Choose which people on the team have access to read and edit documents
-          in the <strong>{collection.name}</strong> collection. By default
-          collections are visible to all team members.
+          in the <strong>{collection.name}</strong> {collectionType}. By default
+          the {collectionType} is visible to all team members.
         </HelpText>
 
         <Switch
           id="private"
-          label="Private collection"
+          label={`Private ${collectionType}`}
           onChange={this.handlePrivateChange}
           checked={collection.private}
         />

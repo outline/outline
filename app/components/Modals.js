@@ -3,8 +3,6 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import BaseModal from 'components/Modal';
 import UiStore from 'stores/UiStore';
-import CollectionNew from 'scenes/CollectionNew';
-import CollectionEdit from 'scenes/CollectionEdit';
 import CollectionDelete from 'scenes/CollectionDelete';
 import CollectionExport from 'scenes/CollectionExport';
 import DocumentDelete from 'scenes/DocumentDelete';
@@ -37,12 +35,6 @@ class Modals extends React.Component<Props> {
 
     return (
       <span>
-        <Modal name="collection-new" title="Create a collection">
-          <CollectionNew onSubmit={this.handleClose} />
-        </Modal>
-        <Modal name="collection-edit" title="Edit collection">
-          <CollectionEdit onSubmit={this.handleClose} />
-        </Modal>
         <Modal name="collection-delete" title="Delete collection">
           <CollectionDelete onSubmit={this.handleClose} />
         </Modal>
