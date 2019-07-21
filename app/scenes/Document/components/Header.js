@@ -119,7 +119,7 @@ class Header extends React.Component<Props> {
         <Modal
           isOpen={this.showShareModal}
           onRequestClose={this.handleCloseShareModal}
-          title="Share document"
+          title={`Share ${document.shortType}`}
         >
           <DocumentShare
             document={document}
@@ -144,7 +144,7 @@ class Header extends React.Component<Props> {
               <Action>
                 <Button
                   onClick={this.handleShareLink}
-                  title="Share document"
+                  title={`Share ${document.shortType}`}
                   neutral
                   small
                 >
@@ -172,7 +172,7 @@ class Header extends React.Component<Props> {
             <Action>
               <Button
                 onClick={this.handlePublish}
-                title="Publish document"
+                title={`Publish ${document.shortType}`}
                 disabled={publishingIsDisabled}
                 small
               >
