@@ -56,6 +56,7 @@ class CollectionLink extends React.Component<Props> {
           }
           iconColor={collection.color}
           expanded={expanded}
+          active={collection.isJournal && expanded ? true : undefined}
           hideDisclosure
           menuOpen={this.menuOpen}
           label={collection.name}
