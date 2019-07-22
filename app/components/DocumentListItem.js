@@ -7,7 +7,6 @@ import styled, { withTheme } from 'styled-components';
 import Flex from 'shared/components/Flex';
 import Highlight from 'components/Highlight';
 import PublishingInfo from 'components/PublishingInfo';
-import Editor from 'components/Editor';
 import Avatar from 'components/Avatar';
 import DocumentMenu from 'menus/DocumentMenu';
 import Document from 'models/Document';
@@ -106,12 +105,26 @@ const ResultContext = styled(Highlight)`
 `;
 
 const Author = styled.h4`
-  margin: 0 0 0 8px;
+  margin: 0;
+`;
+
+const StyledAvatar = styled(Avatar)`
+  margin: 0 8px 0 0;
 `;
 
 const Meta = styled(Flex)`
   position: relative;
   margin-bottom: 8px;
+`;
+
+const Summary = styled.p`
+  max-height: 120px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  color: ${props => props.theme.textSecondary};
+  margin-top: -0;
+  margin-bottom: 0.25em;
 `;
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -135,12 +148,6 @@ class DocumentListItem extends React.Component<Props> {
     // an infinite loop to trigger a regex inside it's own callback
     return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, '$1');
   };
-
-  get summary() {
-    const { document } = this.props;
-    const lines = document.text.split('\n');
-    return lines.slice(1, 3).join('\n');
-  }
 
   render() {
     const {
@@ -167,8 +174,8 @@ class DocumentListItem extends React.Component<Props> {
       >
         {document.type === 'post' ? (
           <React.Fragment>
-            <Meta>
-              <Avatar src={document.createdBy.avatarUrl} size={32} />
+            <Meta align="center">
+              <StyledAvatar src={document.createdBy.avatarUrl} size={34} />
               <Flex column>
                 <Author>{document.createdBy.name}</Author>
                 <PublishingInfo
@@ -192,7 +199,15 @@ class DocumentListItem extends React.Component<Props> {
                   </Actions>
                 )}
             </Heading>
-            <Editor defaultValue={this.summary} readOnly />
+            {!queryIsInTitle && highlight ? (
+              <ResultContext
+                text={context}
+                highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+                processResult={this.replaceResultMarks}
+              />
+            ) : (
+              <Summary>{document.summary}</Summary>
+            )}
           </React.Fragment>
         ) : (
           <React.Fragment>

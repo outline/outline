@@ -36,6 +36,7 @@ export default class Document extends BaseModel {
   url: string;
   urlId: string;
   shareUrl: ?string;
+  summary: ?string;
   revision: number;
 
   constructor(data?: Object = {}, store: *) {

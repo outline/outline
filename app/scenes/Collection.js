@@ -138,13 +138,15 @@ class CollectionScene extends React.Component<Props> {
             {collection.isEmpty ? (
               <Centered column>
                 <HelpText>
-                  <strong>{collection.name}</strong> doesn’t contain any
-                  documents yet.<br />Get started by creating a new one!
+                  <strong>{collection.name}</strong> doesn’t contain any{' '}
+                  {collection.type === 'journal' ? 'posts' : 'documents'} yet.<br
+                  />Get started by creating the first one!
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection.id)}>
                     <Button icon={<NewDocumentIcon color={theme.buttonText} />}>
-                      Create a document
+                      Create a{' '}
+                      {collection.type === 'journal' ? 'post' : 'document'}
                     </Button>
                   </Link>&nbsp;&nbsp;
                   {collection.private && (
@@ -257,24 +259,14 @@ class CollectionScene extends React.Component<Props> {
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id)}>
-                    {collection.isJournal ? (
-                      <PaginatedDocumentList
-                        documents={documents.recentlyPublishedInCollection(
-                          collection.id
-                        )}
-                        fetch={documents.fetchRecentlyPublished}
-                        options={{ collection: collection.id }}
-                      />
-                    ) : (
-                      <PaginatedDocumentList
-                        documents={documents.recentlyUpdatedInCollection(
-                          collection.id
-                        )}
-                        fetch={documents.fetchRecentlyUpdated}
-                        options={{ collection: collection.id }}
-                        showPin
-                      />
-                    )}
+                    <PaginatedDocumentList
+                      documents={documents.recentlyUpdatedInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchRecentlyUpdated}
+                      options={{ collection: collection.id }}
+                      showPin
+                    />
                   </Route>
                 </Switch>
               </React.Fragment>

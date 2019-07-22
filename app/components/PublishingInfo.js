@@ -53,31 +53,31 @@ function PublishingInfo({
   if (deletedAt) {
     content = (
       <span>
-        &nbsp;deleted <Time dateTime={deletedAt} /> ago
+        deleted <Time dateTime={deletedAt} /> ago
       </span>
     );
   } else if (archivedAt) {
     content = (
       <span>
-        &nbsp;archived <Time dateTime={archivedAt} /> ago
+        archived <Time dateTime={archivedAt} /> ago
       </span>
     );
   } else if (publishedAt && (neverUpdated || showPublished)) {
     content = (
       <span>
-        &nbsp;published <Time dateTime={publishedAt} /> ago
+        published <Time dateTime={publishedAt} /> ago
       </span>
     );
   } else if (isDraft) {
     content = (
       <span>
-        &nbsp;saved <Time dateTime={updatedAt} /> ago
+        saved <Time dateTime={updatedAt} /> ago
       </span>
     );
   } else {
     content = (
       <Modified highlight={modifiedSinceViewed}>
-        &nbsp;updated <Time dateTime={updatedAt} /> ago
+        updated <Time dateTime={updatedAt} /> ago
       </Modified>
     );
   }
@@ -86,7 +86,7 @@ function PublishingInfo({
 
   return (
     <Container align="center">
-      {showName && updatedBy.name}
+      {showName && <React.Fragment>{updatedBy.name}&nbsp;</React.Fragment>}
       {content}
       {showCollection &&
         collection && (

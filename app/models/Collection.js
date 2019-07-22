@@ -32,7 +32,13 @@ export default class Collection extends BaseModel {
 
   @computed
   get isEmpty(): boolean {
-    return !this.isJournal && this.documents.length === 0;
+    if (this.isJournal) {
+      return (
+        this.store.rootStore.documents.publishedInCollection(this.id).length ===
+        0
+      );
+    }
+    return this.documents.length === 0;
   }
 
   @computed

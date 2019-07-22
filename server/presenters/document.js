@@ -18,6 +18,8 @@ export default async function present(document: Document, options: ?Options) {
     document.text = `# ${document.title}`;
   }
 
+  const isPost = document.collection && document.collection.type === 'journal';
+
   const data = {
     id: document.id,
     url: document.url,
@@ -39,10 +41,8 @@ export default async function present(document: Document, options: ?Options) {
     pinned: undefined,
     collectionId: undefined,
     parentDocumentId: undefined,
-    type:
-      document.collection && document.collection.type === 'journal'
-        ? 'post'
-        : 'document',
+    summary: isPost ? document.getSummary() : undefined,
+    type: isPost ? 'post' : 'document',
   };
 
   if (!options.isPublic) {
