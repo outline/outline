@@ -26,8 +26,6 @@ class CollectionExport extends React.Component<Props> {
     this.isLoading = true;
     await this.props.collection.export();
     this.isLoading = false;
-
-    this.props.ui.showToast('Export in progress…');
     this.props.onSubmit();
   };
 
@@ -40,11 +38,11 @@ class CollectionExport extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Exporting the collection <strong>{collection.name}</strong> may take
-            a few minutes. We’ll put together a zip file of your documents in
-            Markdown format and email it to <strong>{auth.user.email}</strong>.
+            a few seconds. Your documents will be downloaded as a zip of folders
+            with files in Markdown format.
           </HelpText>
           <Button type="submit" disabled={this.isLoading} primary>
-            {this.isLoading ? 'Requesting Export…' : 'Export Collection'}
+            {this.isLoading ? 'Exporting…' : 'Export Collection'}
           </Button>
         </form>
       </Flex>
