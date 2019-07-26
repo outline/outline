@@ -56,9 +56,9 @@
     "description": "Interactive and embeddable mind maps"
   },
   {
-    "slug": "realtime-board",
-    "name": "Realtime Board",
-    "url": "https://realtimeboard.com",
+    "slug": "miro",
+    "name": "Miro",
+    "url": "https://miro.com",
     "category": "Collaboration",
     "description": "Simple whiteboarding for cross-functional team collaboration"
   },
