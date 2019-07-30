@@ -1,3 +1,6 @@
+// @flow
+/* global navigator */
+
 // download.js v3.0, by dandavis; 2008-2014. [CCBY2] see http://danml.com/download.html for tests/usage
 // v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
 // v2 added named files via a[download], msSaveBlob, IE (10+) support, and window.URL support for larger+faster saves than dataURLs
@@ -6,7 +9,7 @@
 // data can be a string, Blob, File, or dataURL
 
 export default function download(
-  data: Blob,
+  data: Blob | string | File,
   strFileName: string,
   strMimeType?: string
 ) {
@@ -16,7 +19,7 @@ export default function download(
     x = data,
     D = document,
     a = D.createElement('a'),
-    z = function(a) {
+    z = function(a, o) {
       return String(a);
     },
     B = self.Blob || self.MozBlob || self.WebKitBlob || z,
@@ -25,8 +28,6 @@ export default function download(
     blob,
     b,
     fr;
-
-  //if(typeof B.bind === 'function' ){ B=B.bind(self); }
 
   if (String(this) === 'true') {
     //reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
@@ -37,8 +38,10 @@ export default function download(
 
   //go ahead and download dataURLs right away
   if (String(x).match(/^data\:[\w+\-]+\/[\w+\-]+[,;]/)) {
+    // $FlowIssue
     return navigator.msSaveBlob // IE10 can't do a[download], only Blobs:
-      ? navigator.msSaveBlob(d2b(x), fn)
+      ? // $FlowIssue
+        navigator.msSaveBlob(d2b(x), fn)
       : saver(x); // everyone else can save dataURLs un-processed
   } //end if dataURL passed?
 
@@ -53,6 +56,9 @@ export default function download(
   }
 
   function d2b(u) {
+    if (typeof u !== 'string') {
+      throw Error('Attempted to pass non-string to d2b');
+    }
     var p = u.split(/[:;,]/),
       t = p[1],
       dec = p[2] === 'base64' ? atob : decodeURIComponent,
@@ -67,15 +73,18 @@ export default function download(
   }
 
   function saver(url, winMode) {
+    if (typeof url !== 'string') {
+      throw Error('Attempted to pass non-string url to saver');
+    }
+
     if ('download' in a) {
-      //html5 A[download]
       a.href = url;
       a.setAttribute('download', fn);
       a.innerHTML = 'downloading…';
-      D.body.appendChild(a);
+      D.body && D.body.appendChild(a);
       setTimeout(function() {
         a.click();
-        D.body.removeChild(a);
+        D.body && D.body.removeChild(a);
         if (winMode === true) {
           setTimeout(function() {
             self.URL.revokeObjectURL(a.href);
@@ -87,7 +96,7 @@ export default function download(
 
     //do iframe dataURL download (old ch+FF):
     var f = D.createElement('iframe');
-    D.body.appendChild(f);
+    D.body && D.body.appendChild(f);
     if (!winMode) {
       // force a mime that will download:
       url = 'data:' + url.replace(/^data:([\w\/\-\+]+)/, u);
@@ -95,10 +104,11 @@ export default function download(
 
     f.src = url;
     setTimeout(function() {
-      D.body.removeChild(f);
+      D.body && D.body.removeChild(f);
     }, 333);
-  } //end saver
+  }
 
+  // $FlowIssue
   if (navigator.msSaveBlob) {
     // IE10+ : (has Blob, but not a[download] or URL)
     return navigator.msSaveBlob(blob, fn);
@@ -109,10 +119,15 @@ export default function download(
     saver(self.URL.createObjectURL(blob), true);
   } else {
     // handle non-Blob()+non-URL browsers:
-    if (typeof blob === 'string' || blob.constructor === z) {
+    if (
+      blob &&
+      (typeof blob === 'string' || blob.constructor === z) &&
+      typeof m === 'string'
+    ) {
       try {
         return saver('data:' + m + ';base64,' + self.btoa(blob));
       } catch (y) {
+        // $FlowIssue
         return saver('data:' + m + ',' + encodeURIComponent(blob));
       }
     }
@@ -122,7 +137,10 @@ export default function download(
     fr.onload = function(e) {
       saver(this.result);
     };
-    fr.readAsDataURL(blob);
+
+    if (blob instanceof Blob) {
+      fr.readAsDataURL(blob);
+    }
   }
   return true;
 }
