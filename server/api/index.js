@@ -45,7 +45,7 @@ router.use('/', shares.routes());
 router.use('/', team.routes());
 router.use('/', integrations.routes());
 router.use('/', notificationSettings.routes());
-router.post('*', async (ctx, next) => {
+router.post('*', ctx => {
   ctx.throw(new NotFoundError('Endpoint not found'));
 });
 
