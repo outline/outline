@@ -19,11 +19,12 @@ router.post('shares.list', auth(), pagination(), async ctx => {
   const where = {
     teamId: user.teamId,
     userId: user.id,
-    // $FlowFixMe
     revokedAt: { [Op.eq]: null },
   };
 
-  if (user.isAdmin) delete where.userId;
+  if (user.isAdmin) {
+    delete where.userId;
+  }
 
   const collectionIds = await user.collectionIds();
   const shares = await Share.findAll({
@@ -58,8 +59,8 @@ router.post('shares.create', auth(), async ctx => {
   ctx.assertPresent(documentId, 'documentId is required');
 
   const user = ctx.state.user;
-  const document = await Document.findById(documentId);
-  const team = await Team.findById(user.teamId);
+  const document = await Document.findByPk(documentId);
+  const team = await Team.findByPk(user.teamId);
   authorize(user, 'share', document);
   authorize(user, 'share', team);
 
@@ -85,7 +86,7 @@ router.post('shares.revoke', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const share = await Share.findById(id);
+  const share = await Share.findByPk(id);
   authorize(user, 'revoke', share);
 
   await share.revoke(user.id);

@@ -4,12 +4,18 @@ import { observer, inject } from 'mobx-react';
 import breakpoint from 'styled-components-breakpoint';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { CollectionIcon, PrivateCollectionIcon, GoToIcon } from 'outline-icons';
+import {
+  CollectionIcon,
+  PrivateCollectionIcon,
+  GoToIcon,
+  MoreIcon,
+} from 'outline-icons';
 
 import Document from 'models/Document';
 import CollectionsStore from 'stores/CollectionsStore';
 import { collectionUrl } from 'utils/routeHelpers';
 import Flex from 'shared/components/Flex';
+import BreadcrumbMenu from './BreadcrumbMenu';
 
 type Props = {
   document: Document,
@@ -37,6 +43,10 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
     );
   }
 
+  const isNestedDocument = path.length > 1;
+  const lastPath = path.length ? path[path.length - 1] : undefined;
+  const menuPath = isNestedDocument ? path.slice(0, -1) : [];
+
   return (
     <Wrapper justify="flex-start" align="center">
       <CollectionName to={collectionUrl(collection.id)}>
@@ -47,14 +57,19 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
         )}{' '}
         <span>{collection.name}</span>
       </CollectionName>
-      {path.map(n => (
-        <React.Fragment key={n.id}>
+      {isNestedDocument && (
+        <React.Fragment>
+          <Slash /> <BreadcrumbMenu label={<Overflow />} path={menuPath} />
+        </React.Fragment>
+      )}
+      {lastPath && (
+        <React.Fragment>
           <Slash />{' '}
-          <Crumb to={n.url} title={n.title}>
-            {n.title}
+          <Crumb to={lastPath.url} title={lastPath.title}>
+            {lastPath.title}
           </Crumb>
         </React.Fragment>
-      ))}
+      )}
     </Wrapper>
   );
 });
@@ -78,6 +93,17 @@ const SmallSlash = styled(GoToIcon)`
 const Slash = styled(GoToIcon)`
   flex-shrink: 0;
   opacity: 0.25;
+`;
+
+const Overflow = styled(MoreIcon)`
+  flex-shrink: 0;
+  opacity: 0.25;
+  transition: opacity 100ms ease-in-out;
+
+  &:hover,
+  &:active {
+    opacity: 1;
+  }
 `;
 
 const Crumb = styled(Link)`

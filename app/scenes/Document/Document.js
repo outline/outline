@@ -22,6 +22,7 @@ import { emojiToUrl } from 'utils/emoji';
 import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
+import Backlinks from './components/Backlinks';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -79,6 +80,7 @@ class DocumentScene extends React.Component<Props> {
   @observable isSaving: boolean = false;
   @observable isPublishing: boolean = false;
   @observable isDirty: boolean = false;
+  @observable isEmpty: boolean = true;
   @observable notFound: boolean = false;
   @observable moveModalOpen: boolean = false;
 
@@ -166,6 +168,7 @@ class DocumentScene extends React.Component<Props> {
       }
 
       this.isDirty = false;
+      this.isEmpty = false;
 
       const document = this.document;
 
@@ -226,17 +229,19 @@ class DocumentScene extends React.Component<Props> {
     let document = this.document;
     if (!document) return;
 
+    // prevent saves when we are already saving
+    if (document.isSaving) return;
+
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
+
+    // prevent save before anything has been written (single hash is empty doc)
+    if (text.trim() === '#') return;
 
     // prevent autosave if nothing has changed
     if (options.autosave && document.text.trim() === text.trim()) return;
 
     document.text = text;
-    if (!document.allowSave) return;
-
-    // prevent autosave before anything has been written
-    if (options.autosave && !document.title && !document.id) return;
 
     let isNew = !document.id;
     this.isSaving = true;
@@ -261,9 +266,11 @@ class DocumentScene extends React.Component<Props> {
 
   updateIsDirty = debounce(() => {
     const document = this.document;
+    const editorText = this.getEditorText().trim();
 
-    this.isDirty =
-      !!document && this.getEditorText().trim() !== document.text.trim();
+    // a single hash is a doc with just an empty title
+    this.isEmpty = editorText === '#';
+    this.isDirty = !!document && editorText !== document.text.trim();
   }, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
@@ -377,7 +384,10 @@ class DocumentScene extends React.Component<Props> {
                 isEditing={this.isEditing}
                 isSaving={this.isSaving}
                 isPublishing={this.isPublishing}
-                savingIsDisabled={!document.allowSave}
+                publishingIsDisabled={
+                  document.isSaving || this.isPublishing || this.isEmpty
+                }
+                savingIsDisabled={document.isSaving || this.isEmpty}
                 onDiscard={this.onDiscard}
                 onSave={this.onSave}
               />
@@ -406,6 +416,13 @@ class DocumentScene extends React.Component<Props> {
                 ui={this.props.ui}
                 schema={schema}
               />
+              {!this.isEditing &&
+                !isShare && (
+                  <Backlinks
+                    documents={this.props.documents}
+                    document={document}
+                  />
+                )}
             </MaxWidth>
           </Container>
         </Container>

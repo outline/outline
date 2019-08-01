@@ -57,7 +57,7 @@ export default function auth(options?: { required?: boolean } = {}) {
 
         if (!apiKey) throw new AuthenticationError('Invalid API key');
 
-        user = await User.findById(apiKey.userId);
+        user = await User.findByPk(apiKey.userId);
         if (!user) throw new AuthenticationError('Invalid API key');
       } else {
         // JWT

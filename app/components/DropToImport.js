@@ -23,6 +23,7 @@ type Props = {
   location: Object,
   match: Object,
   history: Object,
+  staticContext: Object,
 };
 
 export const GlobalStyles = createGlobalStyle`
@@ -81,6 +82,7 @@ class DropToImport extends React.Component<Props> {
       location,
       match,
       history,
+      staticContext,
       ...rest
     } = this.props;
 

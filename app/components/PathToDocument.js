@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import { darken } from 'polished';
 import styled from 'styled-components';
 import { GoToIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
@@ -83,21 +82,15 @@ const ResultWrapper = styled.div`
 `;
 
 const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
-  margin: 0 -10px;
+  margin: 0 -8px;
   padding: 8px 4px;
   border-radius: 8px;
-  border: 2px solid transparent;
 
   &:hover,
   &:active,
   &:focus {
     background: ${props => props.theme.listItemHoverBackground};
-    border: 2px solid ${props => props.theme.listItemHoverBorder};
     outline: none;
-  }
-
-  &:focus {
-    border: 2px solid ${props => darken(0.5, props.theme.listItemHoverBorder)};
   }
 `;
 

@@ -31,7 +31,7 @@ router.get('/redirect', auth(), async ctx => {
     expires: addMonths(new Date(), 3),
   });
 
-  const team = await Team.findById(user.teamId);
+  const team = await Team.findByPk(user.teamId);
   ctx.redirect(`${team.url}/dashboard`);
 });
 

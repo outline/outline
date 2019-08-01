@@ -16,14 +16,15 @@ import invariant from 'invariant';
 
 import BaseStore from 'stores/BaseStore';
 import RootStore from 'stores/RootStore';
-import Document from '../models/Document';
-import Revision from '../models/Revision';
+import Document from 'models/Document';
+import Revision from 'models/Revision';
 import type { FetchOptions, PaginationParams, SearchResult } from 'types';
 
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
   @observable searchCache: Map<string, SearchResult[]> = new Map();
   @observable starredIds: Map<string, boolean> = new Map();
+  @observable backlinks: Map<string, string[]> = new Map();
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
@@ -54,6 +55,10 @@ export default class DocumentsStore extends BaseStore<Document> {
       'updatedAt',
       'desc'
     );
+  }
+
+  inCollection(collectionId: string): Document[] {
+    return filter(this.all, document => document.collectionId === collectionId);
   }
 
   pinnedInCollection(collectionId: string): Document[] {
@@ -134,6 +139,28 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.rootStore.ui.activeDocumentId
       ? this.data.get(this.rootStore.ui.activeDocumentId)
       : undefined;
+  }
+
+  @action
+  fetchBacklinks = async (documentId: string): Promise<?(Document[])> => {
+    const res = await client.post(`/documents.list`, {
+      backlinkDocumentId: documentId,
+    });
+    invariant(res && res.data, 'Document list not available');
+    const { data } = res;
+    runInAction('DocumentsStore#fetchBacklinks', () => {
+      data.forEach(this.add);
+      this.backlinks.set(documentId, data.map(doc => doc.id));
+    });
+  };
+
+  getBacklinedDocuments(documentId: string): Document[] {
+    const documentIds = this.backlinks.get(documentId) || [];
+    return orderBy(
+      compact(documentIds.map(id => this.data.get(id))),
+      'updatedAt',
+      'desc'
+    );
   }
 
   @action
@@ -327,7 +354,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const res = await client.post('/documents.create', {
       publish: true,
       parentDocumentId: document.parentDocumentId,
-      collection: document.collectionId,
+      collectionId: document.collectionId,
       title: `${document.title} (duplicate)`,
       text: document.text,
     });
@@ -351,6 +378,13 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     return document;
   };
+
+  @action
+  removeCollectionDocuments(collectionId: string) {
+    const documents = this.inCollection(collectionId);
+    const documentIds = documents.map(doc => doc.id);
+    documentIds.forEach(id => this.remove(id));
+  }
 
   @action
   async update(params: *) {

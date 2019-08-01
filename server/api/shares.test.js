@@ -11,10 +11,11 @@ afterAll(server.close);
 
 describe('#shares.list', async () => {
   it('should only return shares created by user', async () => {
-    const { user, document } = await seed();
+    const { user, admin, document } = await seed();
     await buildShare({
       documentId: document.id,
       teamId: user.teamId,
+      userId: admin.id,
     });
     const share = await buildShare({
       documentId: document.id,
@@ -51,10 +52,11 @@ describe('#shares.list', async () => {
   });
 
   it('admins should return shares created by all users', async () => {
-    const { admin, document } = await seed();
+    const { user, admin, document } = await seed();
     const share = await buildShare({
       documentId: document.id,
       teamId: admin.teamId,
+      userId: user.id,
     });
     const res = await server.post('/api/shares.list', {
       body: { token: admin.getJwtToken() },
@@ -72,6 +74,7 @@ describe('#shares.list', async () => {
     await buildShare({
       documentId: document.id,
       teamId: admin.teamId,
+      userId: admin.id,
     });
 
     collection.private = true;

@@ -59,7 +59,7 @@ class Security extends React.Component<Props> {
         <PageTitle title="Security" />
         <h1>Security</h1>
         <HelpText>
-          Settings that impact the access, security and content of your
+          Settings that impact the access, security, and content of your
           knowledgebase.
         </HelpText>
 

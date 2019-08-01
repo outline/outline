@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { NewDocumentIcon } from 'outline-icons';
 
 import Heading from 'components/Heading';
 import CenteredContent from 'components/CenteredContent';
@@ -44,7 +43,7 @@ class Drafts extends React.Component<Props> {
         )}
         <Actions align="center" justify="flex-end">
           <Action>
-            <NewDocumentMenu label={<NewDocumentIcon />} />
+            <NewDocumentMenu />
           </Action>
         </Actions>
       </CenteredContent>

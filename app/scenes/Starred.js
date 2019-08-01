@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { NewDocumentIcon } from 'outline-icons';
 
 import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
@@ -64,7 +63,7 @@ class Starred extends React.Component<Props> {
         {showLoading && <ListPlaceholder />}
         <Actions align="center" justify="flex-end">
           <Action>
-            <NewDocumentMenu label={<NewDocumentIcon />} />
+            <NewDocumentMenu />
           </Action>
         </Actions>
       </CenteredContent>

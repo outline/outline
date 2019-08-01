@@ -9,6 +9,8 @@ import { CloseIcon } from 'outline-icons';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 import Flex from 'shared/components/Flex';
 
+ReactModal.setAppElement('#root');
+
 type Props = {
   children?: React.Node,
   isOpen: boolean,

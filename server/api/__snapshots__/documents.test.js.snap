@@ -107,6 +107,15 @@ Object {
 }
 `;
 
+exports[`#documents.update should require text while appending 1`] = `
+Object {
+  "error": "param_required",
+  "message": "Text is required while appending",
+  "ok": false,
+  "status": 400,
+}
+`;
+
 exports[`#documents.viewed should require authentication 1`] = `
 Object {
   "error": "authentication_required",

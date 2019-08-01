@@ -159,8 +159,14 @@ User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
 User.afterCreate(async user => {
-  const team = await Team.findById(user.teamId);
-  sendEmail('welcome', user.email, { teamUrl: team.url });
+  const team = await Team.findByPk(user.teamId);
+
+  // From Slack support:
+  // If you wish to contact users at an email address obtained through Slack,
+  // you need them to opt-in through a clear and separate process.
+  if (!team.slackId) {
+    sendEmail('welcome', user.email, { teamUrl: team.url });
+  }
 });
 
 // By default when a user signs up we subscribe them to email notifications

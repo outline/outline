@@ -72,17 +72,6 @@ export default class Document extends BaseModel {
     return !this.publishedAt;
   }
 
-  @computed
-  get isEmpty(): boolean {
-    // Check if the document title has been modified and user generated content exists
-    return this.text.replace(/^#/, '').trim().length === 0;
-  }
-
-  @computed
-  get allowSave(): boolean {
-    return !this.isEmpty && !this.isSaving;
-  }
-
   @action
   share = async () => {
     const res = await client.post('/shares.create', { documentId: this.id });
@@ -160,7 +149,7 @@ export default class Document extends BaseModel {
 
     try {
       if (isCreating) {
-        return this.store.create({
+        return await this.store.create({
           parentDocumentId: this.parentDocumentId,
           collectionId: this.collectionId,
           title: this.title,
@@ -169,7 +158,7 @@ export default class Document extends BaseModel {
         });
       }
 
-      return this.store.update({
+      return await this.store.update({
         id: this.id,
         title: this.title,
         text: this.text,

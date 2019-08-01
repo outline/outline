@@ -1,11 +1,13 @@
 // @flow
+import fs from 'fs';
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection, presentUser } from '../presenters';
 import { Collection, CollectionUser, Team, User } from '../models';
 import { ValidationError, InvalidRequestError } from '../errors';
-import { exportCollection, exportCollections } from '../logistics';
+import { exportCollections } from '../logistics';
+import { archiveCollection } from '../utils/zip';
 import policy from '../policies';
 import events from '../events';
 
@@ -49,7 +51,7 @@ router.post('collections.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(ctx.state.user, 'read', collection);
 
   ctx.body = {
@@ -62,14 +64,14 @@ router.post('collections.add_user', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(ctx.state.user, 'update', collection);
 
   if (!collection.private) {
     throw new InvalidRequestError('Collection must be private to add users');
   }
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'read', user);
 
   await CollectionUser.create({
@@ -97,14 +99,14 @@ router.post('collections.remove_user', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(ctx.state.user, 'update', collection);
 
   if (!collection.private) {
     throw new InvalidRequestError('Collection must be private to remove users');
   }
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'read', user);
 
   await collection.removeUser(user);
@@ -126,7 +128,7 @@ router.post('collections.users', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(ctx.state.user, 'read', collection);
 
   const users = await collection.getUsers();
@@ -141,20 +143,19 @@ router.post('collections.export', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(user, 'export', collection);
 
-  // async operation to create zip archive and email user
-  exportCollection(id, user.email);
+  const filePath = await archiveCollection(collection);
 
-  ctx.body = {
-    success: true,
-  };
+  ctx.attachment(`${collection.name}.zip`);
+  ctx.set('Content-Type', 'application/force-download');
+  ctx.body = fs.createReadStream(filePath);
 });
 
 router.post('collections.exportAll', auth(), async ctx => {
   const user = ctx.state.user;
-  const team = await Team.findById(user.teamId);
+  const team = await Team.findByPk(user.teamId);
   authorize(user, 'export', team);
 
   // async operation to create zip archive and email user
@@ -174,7 +175,7 @@ router.post('collections.update', auth(), async ctx => {
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
 
   const user = ctx.state.user;
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(user, 'update', collection);
 
   if (isPrivate && !collection.private) {
@@ -237,7 +238,7 @@ router.post('collections.delete', auth(), async ctx => {
   const user = ctx.state.user;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(user, 'delete', collection);
 
   const total = await Collection.count();

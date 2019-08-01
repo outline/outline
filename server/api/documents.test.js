@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '../app';
-import { Document, View, Star, Revision } from '../models';
+import { Document, View, Star, Revision, Backlink } from '../models';
 import { flushdb, seed } from '../test/support';
 import {
   buildShare,
@@ -66,10 +66,11 @@ describe('#documents.info', async () => {
   });
 
   it('should return document from shareId without token', async () => {
-    const { document } = await seed();
+    const { document, user } = await seed();
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
     });
 
     const res = await server.post('/api/documents.info', {
@@ -88,6 +89,7 @@ describe('#documents.info', async () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
     });
     await share.revoke(user.id);
 
@@ -102,6 +104,7 @@ describe('#documents.info', async () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
     });
     await document.archive(user.id);
 
@@ -116,6 +119,29 @@ describe('#documents.info', async () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+    expect(body.data.createdBy.id).toEqual(user.id);
+    expect(body.data.updatedBy.id).toEqual(user.id);
+  });
+
+  it('should return draft document from shareId with token', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
     });
 
     const res = await server.post('/api/documents.info', {
@@ -134,6 +160,7 @@ describe('#documents.info', async () => {
     const share = await buildShare({
       documentId: document.id,
       teamId: document.teamId,
+      userId: user.id,
     });
 
     collection.private = true;
@@ -183,7 +210,7 @@ describe('#documents.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
   });
 
@@ -198,7 +225,7 @@ describe('#documents.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
+    expect(body.data.length).toEqual(0);
   });
 
   it('should not return documents in private collections not a member of', async () => {
@@ -217,13 +244,20 @@ describe('#documents.list', async () => {
 
   it('should allow changing sort direction', async () => {
     const { user, document } = await seed();
+    const anotherDoc = await buildDocument({
+      title: 'another document',
+      text: 'random text',
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post('/api/documents.list', {
       body: { token: user.getJwtToken(), direction: 'ASC' },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data[1].id).toEqual(document.id);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(body.data[1].id).toEqual(anotherDoc.id);
   });
 
   it('should allow filtering by collection', async () => {
@@ -237,7 +271,32 @@ describe('#documents.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(1);
+  });
+
+  it('should return backlinks', async () => {
+    const { user, document } = await seed();
+    const anotherDoc = await buildDocument({
+      title: 'another document',
+      text: 'random text',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    await Backlink.create({
+      reverseDocumentId: anotherDoc.id,
+      documentId: document.id,
+      userId: user.id,
+    });
+
+    const res = await server.post('/api/documents.list', {
+      body: { token: user.getJwtToken(), backlinkDocumentId: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(anotherDoc.id);
   });
 
   it('should require authentication', async () => {
@@ -334,7 +393,7 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.text).toEqual('# Much guidance');
+    expect(body.data[0].document.text).toEqual('# Much test support');
   });
 
   it('should return results in ranked order', async () => {
@@ -974,7 +1033,7 @@ describe('#documents.create', async () => {
       },
     });
     const body = await res.json();
-    const newDocument = await Document.findById(body.data.id);
+    const newDocument = await Document.findByPk(body.data.id);
     expect(res.status).toEqual(200);
     expect(newDocument.parentDocumentId).toBe(null);
     expect(newDocument.collection.id).toBe(collection.id);
@@ -1211,6 +1270,42 @@ describe('#documents.update', async () => {
       body: { token: user.getJwtToken(), id: document.id, text: 'Updated' },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it('should append document with text', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: 'Additional text',
+        lastRevision: document.revision,
+        append: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.text).toBe(document.text + 'Additional text');
+  });
+
+  it('should require text while appending', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        lastRevision: document.revision,
+        title: 'Updated Title',
+        append: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body).toMatchSnapshot();
   });
 });
 

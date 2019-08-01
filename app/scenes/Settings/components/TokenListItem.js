@@ -16,7 +16,7 @@ const TokenListItem = ({ token, onDelete }: Props) => {
       title={token.name}
       subtitle={<code>{token.secret}</code>}
       actions={
-        <Button onClick={() => onDelete(token.id)} light>
+        <Button onClick={() => onDelete(token.id)} neutral>
           Revoke
         </Button>
       }

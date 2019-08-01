@@ -21,26 +21,63 @@ If you'd like to run your own copy of Outline or contribute to development then 
 
 Outline requires the following dependencies:
 
+- Node.js >= 8.11
 - Postgres >=9.5
 - Redis
-- Slack or Google developer application for OAuth
+- AWS S3 storage bucket for media and other attachments
+- Slack or Google developer application for authentication
+
+
+### Development
 
 In development you can quickly get an environment running using Docker by following these steps:
 
-1. Install [Docker for Desktop](https://www.docker.com) if you don't already have it.
+1. Clone this repo
+1. Install [Docker for Desktop](https://www.docker.com) if you don't already have it
 1. Register a Slack app at https://api.slack.com/apps
-1. Copy the file `.env.sample` to `.env` and fill out the Slack keys, everything
-   else should work well for development.
-1. Run `make up`. This will download dependencies, build and launch a development version of Outline.
+1. Copy the file `.env.sample` to `.env`
+1. Fill out the following fields:
+    1. `SECRET_KEY` (follow instructions in the comments of `.env`)
+    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
+    1. `SLACK_SECRET`
+1. Add `http://localhost:3000/auth/slack.callback` as an Oauth callback URL in Slack App settings
+1. Run `make up`. This will download dependencies, build and launch a development version of Outline
+
+
+### Production
+
+For a self-hosted production installation there is more flexibility, but these are the suggested steps:
+
+1. Clone this repo and install dependencies with `yarn` or `npm install`
+
+   > Requires [Node.js, npm](https://nodejs.org/) and [yarn](https://yarnpkg.com) installed
+
+1. Build the web app with `yarn build:webpack` or `npm run build:webpack`
+1. Copy the file `.env.sample` to `.env` and fill out at least the essential fields:
+    1. `SECRET_KEY` (follow instructions in the comments of `.env`)
+    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
+    1. `SLACK_SECRET`
+    1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
+    1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
+    1. `URL` (the public facing URL of your installation)
+    1. `AWS_` (all of the keys beginning with AWS)
+1. Migrate database schema with `yarn sequelize:migrate` or `npm run sequelize:migrate `
+1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start index.js --name outline `
+1. Visit http://you_server_ip:3000 and you should be able to see Outline page
+
+   > Port number can be changed in the `.env` file
+
+1. (Optional) You can add an `nginx` reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
+
 
 ## Development
 
 ### Server
 
-To enable debugging statements, set the following env vars:
+Outline uses [debug](https://www.npmjs.com/package/debug). To enable debugging output, the following categories are available:
 
 ```
-DEBUG=sql,cache,presenters,events
+DEBUG=sql,cache,presenters,events,logistics,emails,mailer
 ```
 
 ## Migrations
@@ -48,7 +85,7 @@ DEBUG=sql,cache,presenters,events
 Sequelize is used to create and run migrations, for example:
 
 ```
-yarn sequelize migration:create
+yarn sequelize migration:generate --name my-migration
 yarn sequelize db:migrate
 ```
 
@@ -60,7 +97,7 @@ yarn sequelize db:migrate --env test
 
 ## Structure
 
-Outline is composed of separate backend and frontend application which are both driven by the same Node process. As both are written in Javascript, they share some code but are mostly separate. We utilize latest language features, including `async`/`await`, and [Flow](https://flow.org/) typing. Prettier and ESLint are ran as pre-commit hooks.
+Outline is composed of separate backend and frontend application which are both driven by the same Node process. As both are written in Javascript, they share some code but are mostly separate. We utilize the latest language features, including `async`/`await`, and [Flow](https://flow.org/) typing. Prettier and ESLint are enforced by CI.
 
 ### Frontend
 
@@ -80,16 +117,19 @@ The editor itself is built ontop of [Slate](https://github.com/ianstormtaylor/sl
 Backend is driven by [Koa](http://koajs.com/) (API, web server), [Sequelize](http://docs.sequelizejs.com/) (database) and React for public pages and emails.
 
 - `server/api` - API endpoints
-- `server/emails`  - React rendered email templates
-- `server/models` - Database models (Sequelize)
-- `server/pages` - Server-side rendered public pages (React)
-- `server/presenters` - API responses for database models
 - `server/commands` - Domain logic, currently being refactored from /models
+- `server/emails`  - React rendered email templates
+- `server/models` - Database models
+- `server/pages` - Server-side rendered public pages
+- `server/policies` - Authorization logic
+- `server/presenters` - API responses for database models
+- `server/test` - Test helps and support
+- `server/utils` - Utility methods
 - `shared` - Code shared between frontend and backend applications
 
 ## Tests
 
-We aim to have sufficient test coverage for critical parts of the application and aren't aiming for 100% unit test coverage. All API endpoints and anything authentication related should be thoroughly tested, and it's generally good to add tests for backend features and code.
+We aim to have sufficient test coverage for critical parts of the application and aren't aiming for 100% unit test coverage. All API endpoints and anything authentication related should be thoroughly tested.
 
 To add new tests, write your tests with [Jest](https://facebook.github.io/jest/) and add a file with `.test.js` extension next to the tested code.
 
@@ -106,7 +146,7 @@ yarn test:app
 
 ## Contributing
 
-Outline is still built and maintained by a small team – we'd love your help to fix bugs and add features!
+Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
 
 However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in our [Spectrum community](https://spectrum.chat/outline). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster! Take a look at our [roadmap](https://www.getoutline.com/share/3e6cb2b5-d68b-4ad8-8900-062476820311).
 

@@ -69,6 +69,11 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
     await team.provisionSubdomain(data.team.domain);
   }
 
+  // update email address if it's changed in Slack
+  if (!isFirstSignin && data.user.email !== user.email) {
+    await user.update({ email: data.user.email });
+  }
+
   // set cookies on response and redirect to team subdomain
   ctx.signIn(user, team, 'slack', isFirstSignin);
 });
@@ -89,7 +94,7 @@ router.get('slack.commands', auth({ required: false }), async ctx => {
   if (!user) {
     if (state) {
       try {
-        const team = await Team.findById(state);
+        const team = await Team.findByPk(state);
         return ctx.redirect(
           `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
         );
@@ -143,8 +148,8 @@ router.get('slack.post', auth({ required: false }), async ctx => {
   // appropriate subdomain to complete the oauth flow
   if (!user) {
     try {
-      const collection = await Collection.findById(state);
-      const team = await Team.findById(collection.teamId);
+      const collection = await Collection.findByPk(state);
+      const team = await Team.findByPk(collection.teamId);
       return ctx.redirect(
         `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
       );

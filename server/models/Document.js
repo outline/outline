@@ -32,12 +32,17 @@ const createRevision = (doc, options = {}) => {
   // we don't create revisions if identical to previous
   if (doc.text === doc.previous('text')) return;
 
-  return Revision.create({
-    title: doc.title,
-    text: doc.text,
-    userId: doc.lastModifiedById,
-    documentId: doc.id,
-  });
+  return Revision.create(
+    {
+      title: doc.title,
+      text: doc.text,
+      userId: doc.lastModifiedById,
+      documentId: doc.id,
+    },
+    {
+      transaction: options.transaction,
+    }
+  );
 };
 
 const createUrlId = doc => {
@@ -88,6 +93,7 @@ const Document = sequelize.define(
       },
     },
     text: DataTypes.TEXT,
+    isWelcome: { type: DataTypes.BOOLEAN, defaultValue: false },
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     archivedAt: DataTypes.DATE,
     publishedAt: DataTypes.DATE,
@@ -140,6 +146,9 @@ Document.associate = models => {
     as: 'revisions',
     onDelete: 'cascade',
   });
+  Document.hasMany(models.Backlink, {
+    as: 'backlinks',
+  });
   Document.hasMany(models.Star, {
     as: 'starred',
   });
@@ -156,7 +165,6 @@ Document.associate = models => {
       ],
       where: {
         publishedAt: {
-          // $FlowFixMe
           [Op.ne]: null,
         },
       },
@@ -182,7 +190,7 @@ Document.associate = models => {
   }));
 };
 
-Document.findById = async (id, options) => {
+Document.findByPk = async (id, options) => {
   const scope = Document.scope('withUnpublished');
 
   if (isUUID(id)) {
@@ -300,7 +308,7 @@ Document.searchForUser = async (
 Document.addHook('beforeSave', async model => {
   if (!model.publishedAt) return;
 
-  const collection = await Collection.findById(model.collectionId);
+  const collection = await Collection.findByPk(model.collectionId);
   if (!collection || collection.type !== 'atlas') return;
 
   await collection.updateDocument(model);
@@ -310,7 +318,7 @@ Document.addHook('beforeSave', async model => {
 Document.addHook('afterCreate', async model => {
   if (!model.publishedAt) return;
 
-  const collection = await Collection.findById(model.collectionId);
+  const collection = await Collection.findByPk(model.collectionId);
   if (!collection || collection.type !== 'atlas') return;
 
   await collection.addDocumentToStructure(model);
@@ -363,16 +371,16 @@ Document.prototype.archiveWithChildren = async function(userId, options) {
   return this.save(options);
 };
 
-Document.prototype.publish = async function() {
-  if (this.publishedAt) return this.save();
+Document.prototype.publish = async function(options) {
+  if (this.publishedAt) return this.save(options);
 
-  const collection = await Collection.findById(this.collectionId);
-  if (collection.type !== 'atlas') return this.save();
+  const collection = await Collection.findByPk(this.collectionId);
+  if (collection.type !== 'atlas') return this.save(options);
 
   await collection.addDocumentToStructure(this);
 
   this.publishedAt = new Date();
-  await this.save();
+  await this.save(options);
   this.collection = collection;
 
   return this;
@@ -402,7 +410,6 @@ Document.prototype.unarchive = async function(userId) {
       where: {
         id: this.parentDocumentId,
         archivedAt: {
-          // $FlowFixMe
           [Op.eq]: null,
         },
       },

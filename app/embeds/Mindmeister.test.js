@@ -5,6 +5,15 @@ const { Mindmeister } = embeds;
 
 describe('Mindmeister', () => {
   const match = Mindmeister.ENABLED[0];
+
+  test('to be enabled on mm.tt link', () => {
+    expect('https://mm.tt/326377934'.match(match)).toBeTruthy();
+  });
+
+  test('to be enabled on mm.tt link with token parameter', () => {
+    expect('https://mm.tt/326377934?t=r9NcnTRr18'.match(match)).toBeTruthy();
+  });
+
   test('to be enabled on embed link', () => {
     expect(
       'https://www.mindmeister.com/maps/public_map_shell/326377934/paper-digital-or-online-mind-mapping'.match(

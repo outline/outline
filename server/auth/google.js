@@ -91,6 +91,11 @@ router.get('google.callback', auth({ required: false }), async ctx => {
     },
   });
 
+  // update email address if it's changed in Google
+  if (!isFirstSignin && profile.data.email !== user.email) {
+    await user.update({ email: profile.data.email });
+  }
+
   if (isFirstUser) {
     await team.provisionFirstCollection(user.id);
     await team.provisionSubdomain(hostname);

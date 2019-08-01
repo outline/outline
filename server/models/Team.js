@@ -1,15 +1,22 @@
 // @flow
 import uuid from 'uuid';
 import { URL } from 'url';
+import fs from 'fs';
+import util from 'util';
+import path from 'path';
 import { DataTypes, sequelize, Op } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
 } from '../../shared/utils/domains';
+import parseTitle from '../../shared/utils/parseTitle';
 
 import Collection from './Collection';
+import Document from './Document';
 import User from './User';
+
+const readFile = util.promisify(fs.readFile);
 
 const Team = sequelize.define(
   'team',
@@ -112,13 +119,37 @@ Team.prototype.provisionSubdomain = async function(subdomain) {
 };
 
 Team.prototype.provisionFirstCollection = async function(userId) {
-  return await Collection.create({
-    name: 'General',
-    description: '',
+  const collection = await Collection.create({
+    name: 'Welcome',
+    description:
+      'This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!',
     type: 'atlas',
     teamId: this.id,
     creatorId: userId,
   });
+
+  // For the first collection we go ahead and create some intitial documents to get
+  // the team started. You can edit these in /server/onboarding/x.md
+  const onboardingDocs = ['support', 'integrations', 'editor', 'philosophy'];
+  for (const name of onboardingDocs) {
+    const text = await readFile(
+      path.join(__dirname, '..', 'onboarding', `${name}.md`),
+      'utf8'
+    );
+    const { title } = parseTitle(text);
+    const document = await Document.create({
+      isWelcome: true,
+      parentDocumentId: null,
+      collectionId: collection.id,
+      teamId: collection.teamId,
+      userId: collection.creatorId,
+      lastModifiedById: collection.creatorId,
+      createdById: collection.creatorId,
+      title,
+      text,
+    });
+    await document.publish();
+  }
 };
 
 Team.prototype.addAdmin = async function(user: User) {
@@ -131,7 +162,6 @@ Team.prototype.removeAdmin = async function(user: User) {
       teamId: this.id,
       isAdmin: true,
       id: {
-        // $FlowFixMe
         [Op.ne]: user.id,
       },
     },

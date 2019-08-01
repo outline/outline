@@ -23,21 +23,6 @@ const seed = async () => {
     },
   });
 
-  const user = await User.create({
-    id: '46fde1d4-0050-428f-9f0b-0bf77f4bdf61',
-    email: 'user1@example.com',
-    username: 'user1',
-    name: 'User 1',
-    teamId: team.id,
-    service: 'slack',
-    serviceId: 'U2399UF2P',
-    slackData: {
-      id: 'U2399UF2P',
-      image_192: 'http://example.com/avatar.png',
-    },
-    createdAt: new Date('2018-01-01T00:00:00.000Z'),
-  });
-
   const admin = await User.create({
     id: 'fa952cff-fa64-4d42-a6ea-6955c9689046',
     email: 'admin@example.com',
@@ -52,6 +37,21 @@ const seed = async () => {
       image_192: 'http://example.com/avatar.png',
     },
     createdAt: new Date('2018-01-01T00:00:00.000Z'),
+  });
+
+  const user = await User.create({
+    id: '46fde1d4-0050-428f-9f0b-0bf77f4bdf61',
+    email: 'user1@example.com',
+    username: 'user1',
+    name: 'User 1',
+    teamId: team.id,
+    service: 'slack',
+    serviceId: 'U2399UF2P',
+    slackData: {
+      id: 'U2399UF2P',
+      image_192: 'http://example.com/avatar.png',
+    },
+    createdAt: new Date('2018-01-02T00:00:00.000Z'),
   });
 
   const collection = await Collection.create({
@@ -70,11 +70,10 @@ const seed = async () => {
     userId: collection.creatorId,
     lastModifiedById: collection.creatorId,
     createdById: collection.creatorId,
-    publishedAt: new Date(),
-    title: 'Second document',
-    text: '# Much guidance',
+    title: 'First ever document',
+    text: '# Much test support',
   });
-
+  await document.publish();
   await collection.reload();
 
   return {

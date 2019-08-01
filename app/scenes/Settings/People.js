@@ -1,10 +1,16 @@
 // @flow
 import * as React from 'react';
 import invariant from 'invariant';
+import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 
 import AuthStore from 'stores/AuthStore';
 import UsersStore from 'stores/UsersStore';
+import Empty from 'components/Empty';
+import { ListPlaceholder } from 'components/LoadingPlaceholder';
+import Modal from 'components/Modal';
+import Button from 'components/Button';
+import Invite from 'scenes/Invite';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
@@ -21,9 +27,19 @@ type Props = {
 
 @observer
 class People extends React.Component<Props> {
+  @observable inviteModalOpen: boolean = false;
+
   componentDidMount() {
     this.props.users.fetchPage({ limit: 100 });
   }
+
+  handleInviteModalOpen = () => {
+    this.inviteModalOpen = true;
+  };
+
+  handleInviteModalClose = () => {
+    this.inviteModalOpen = false;
+  };
 
   render() {
     const { auth, match } = this.props;
@@ -36,7 +52,12 @@ class People extends React.Component<Props> {
       users = this.props.users.orderedData;
     } else if (filter === 'admins') {
       users = this.props.users.admins;
+    } else if (filter === 'suspended') {
+      users = this.props.users.suspended;
     }
+
+    const showLoading = this.props.users.isFetching && !users.length;
+    const showEmpty = this.props.users.isLoaded && !users.length;
 
     return (
       <CenteredContent>
@@ -47,6 +68,16 @@ class People extends React.Component<Props> {
           there are other users who have access through Single Sign-On but
           haven’t signed into Outline yet.
         </HelpText>
+        <Button
+          type="button"
+          data-on="click"
+          data-event-category="invite"
+          data-event-action="peoplePage"
+          onClick={this.handleInviteModalOpen}
+          neutral
+        >
+          Invite people…
+        </Button>
 
         <Tabs>
           <Tab to="/settings/people" exact>
@@ -55,6 +86,11 @@ class People extends React.Component<Props> {
           <Tab to="/settings/people/admins" exact>
             Admins
           </Tab>
+          {currentUser.isAdmin && (
+            <Tab to="/settings/people/suspended" exact>
+              Suspended
+            </Tab>
+          )}
           <Tab to="/settings/people/all" exact>
             Everyone
           </Tab>
@@ -68,6 +104,16 @@ class People extends React.Component<Props> {
             />
           ))}
         </List>
+        {showEmpty && <Empty>No people to see here.</Empty>}
+        {showLoading && <ListPlaceholder count={5} />}
+
+        <Modal
+          title="Invite people"
+          onRequestClose={this.handleInviteModalClose}
+          isOpen={this.inviteModalOpen}
+        >
+          <Invite onSubmit={this.handleInviteModalClose} />
+        </Modal>
       </CenteredContent>
     );
   }

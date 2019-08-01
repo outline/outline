@@ -27,15 +27,16 @@ class Shares extends React.Component<Props> {
     const { shares, auth } = this.props;
     const { user } = auth;
     const canShareDocuments = auth.team && auth.team.sharing;
+    const hasSharedDocuments = shares.orderedData.length > 0;
 
     return (
       <CenteredContent>
         <PageTitle title="Share Links" />
         <h1>Share Links</h1>
         <HelpText>
-          Documents that have been shared appear below. Anyone that has the link
-          can access a read-only version of the document until the link has been
-          revoked.
+          Documents that have been shared are listed below. Anyone that has the
+          public link can access a read-only version of the document until the
+          link has been revoked.
         </HelpText>
         {user &&
           user.isAdmin && (
@@ -47,12 +48,16 @@ class Shares extends React.Component<Props> {
               sharing in <Link to="/settings/security">security settings</Link>.
             </HelpText>
           )}
-        <Subheading>Shared Documents</Subheading>
-        <List>
-          {shares.orderedData.map(share => (
-            <ShareListItem key={share.id} share={share} />
-          ))}
-        </List>
+        {hasSharedDocuments && (
+          <React.Fragment>
+            <Subheading>Shared Documents</Subheading>
+            <List>
+              {shares.orderedData.map(share => (
+                <ShareListItem key={share.id} share={share} />
+              ))}
+            </List>
+          </React.Fragment>
+        )}
       </CenteredContent>
     );
   }

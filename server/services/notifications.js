@@ -1,6 +1,6 @@
 // @flow
 import { Op } from '../sequelize';
-import type { Event } from '../events';
+import type { DocumentEvent, CollectionEvent, Event } from '../events';
 import { Document, Collection, User, NotificationSetting } from '../models';
 import mailer from '../mailer';
 
@@ -16,14 +16,14 @@ export default class Notifications {
     }
   }
 
-  async documentUpdated(event: Event) {
+  async documentUpdated(event: DocumentEvent) {
     // lets not send a notification on every autosave update
     if (event.autosave) return;
 
     // wait until the user has finished editing
     if (!event.done) return;
 
-    const document = await Document.findById(event.modelId);
+    const document = await Document.findByPk(event.modelId);
     if (!document) return;
 
     const { collection } = document;
@@ -32,7 +32,6 @@ export default class Notifications {
     const notificationSettings = await NotificationSetting.findAll({
       where: {
         userId: {
-          // $FlowFixMe
           [Op.ne]: document.lastModifiedById,
         },
         teamId: document.teamId,
@@ -72,8 +71,8 @@ export default class Notifications {
     });
   }
 
-  async collectionCreated(event: Event) {
-    const collection = await Collection.findById(event.modelId, {
+  async collectionCreated(event: CollectionEvent) {
+    const collection = await Collection.findByPk(event.modelId, {
       include: [
         {
           model: User,
@@ -88,7 +87,6 @@ export default class Notifications {
     const notificationSettings = await NotificationSetting.findAll({
       where: {
         userId: {
-          // $FlowFixMe
           [Op.ne]: collection.createdById,
         },
         teamId: collection.teamId,

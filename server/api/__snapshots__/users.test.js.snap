@@ -4,7 +4,7 @@ exports[`#users.activate should activate a suspended user 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
-    "createdAt": "2018-01-01T00:00:00.000Z",
+    "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
@@ -38,7 +38,7 @@ exports[`#users.demote should demote an admin 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
-    "createdAt": "2018-01-01T00:00:00.000Z",
+    "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
@@ -73,19 +73,19 @@ Object {
   "data": Array [
     Object {
       "avatarUrl": "http://example.com/avatar.png",
+      "createdAt": "2018-01-02T00:00:00.000Z",
+      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
+      "isAdmin": false,
+      "isSuspended": false,
+      "name": "User 1",
+    },
+    Object {
+      "avatarUrl": "http://example.com/avatar.png",
       "createdAt": "2018-01-01T00:00:00.000Z",
       "id": "fa952cff-fa64-4d42-a6ea-6955c9689046",
       "isAdmin": true,
       "isSuspended": false,
       "name": "Admin User",
-    },
-    Object {
-      "avatarUrl": "http://example.com/avatar.png",
-      "createdAt": "2018-01-01T00:00:00.000Z",
-      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-      "isAdmin": false,
-      "isSuspended": false,
-      "name": "User 1",
     },
   ],
   "ok": true,
@@ -103,7 +103,7 @@ Object {
   "data": Array [
     Object {
       "avatarUrl": "http://example.com/avatar.png",
-      "createdAt": "2018-01-01T00:00:00.000Z",
+      "createdAt": "2018-01-02T00:00:00.000Z",
       "email": "user1@example.com",
       "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
       "isAdmin": false,
@@ -134,7 +134,7 @@ exports[`#users.promote should promote a new admin 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
-    "createdAt": "2018-01-01T00:00:00.000Z",
+    "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": true,
@@ -168,7 +168,7 @@ exports[`#users.suspend should suspend an user 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
-    "createdAt": "2018-01-01T00:00:00.000Z",
+    "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
@@ -202,7 +202,7 @@ exports[`#users.update should update user profile information 1`] = `
 Object {
   "data": Object {
     "avatarUrl": "http://example.com/avatar.png",
-    "createdAt": "2018-01-01T00:00:00.000Z",
+    "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
