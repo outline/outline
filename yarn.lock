@@ -7382,9 +7382,9 @@ retry-axios@0.3.2, retry-axios@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-0.3.2.tgz#5757c80f585b4cc4c4986aa2ffd47a60c6d35e13"
 
-rich-markdown-editor@^9.8.2:
-  version "9.8.2"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.8.2.tgz#22c0e6963cf7b0325d4c574c11eddee8cc470f13"
+rich-markdown-editor@^9.8.4:
+  version "9.8.4"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.8.4.tgz#d3a47bfa96dfd5d1e5c083009b6be6c86ac32e78"
   dependencies:
     "@domoinc/slate-edit-table" "^0.22.2"
     "@tommoor/slate-edit-list" "0.19.0-0"
