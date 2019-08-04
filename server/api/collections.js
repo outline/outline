@@ -1,11 +1,13 @@
 // @flow
+import fs from 'fs';
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentCollection, presentUser } from '../presenters';
 import { Collection, CollectionUser, Team, Event, User } from '../models';
 import { ValidationError, InvalidRequestError } from '../errors';
-import { exportCollection, exportCollections } from '../logistics';
+import { exportCollections } from '../logistics';
+import { archiveCollection } from '../utils/zip';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -149,8 +151,7 @@ router.post('collections.export', auth(), async ctx => {
   const collection = await Collection.findByPk(id);
   authorize(user, 'export', collection);
 
-  // async operation to create zip archive and email user
-  exportCollection(id, user.email);
+  const filePath = await archiveCollection(collection);
 
   Event.create({
     name: 'collections.export',
@@ -161,9 +162,9 @@ router.post('collections.export', auth(), async ctx => {
     ip: ctx.request.ip,
   });
 
-  ctx.body = {
-    success: true,
-  };
+  ctx.attachment(`${collection.name}.zip`);
+  ctx.set('Content-Type', 'application/force-download');
+  ctx.body = fs.createReadStream(filePath);
 });
 
 router.post('collections.exportAll', auth(), async ctx => {

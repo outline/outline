@@ -1,7 +1,8 @@
 // @flow
-import { map } from 'lodash';
+import { map, trim } from 'lodash';
 import invariant from 'invariant';
 import stores from 'stores';
+import download from './download';
 
 type Options = {
   baseUrl?: string,
@@ -65,7 +66,17 @@ class ApiClient {
       }
     }
 
-    if (response.status >= 200 && response.status < 300) {
+    const success = response.status >= 200 && response.status < 300;
+
+    if (options.download && success) {
+      const blob = await response.blob();
+      const fileName = (
+        response.headers.get('content-disposition') || ''
+      ).split('filename=')[1];
+
+      download(blob, trim(fileName, '"'));
+      return;
+    } else if (success) {
       return response.json();
     }
 

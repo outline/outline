@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
-import { NewDocumentIcon } from 'outline-icons';
 
 import DocumentsStore from 'stores/DocumentsStore';
 import AuthStore from 'stores/AuthStore';
@@ -67,7 +66,7 @@ class Dashboard extends React.Component<Props> {
         </Switch>
         <Actions align="center" justify="flex-end">
           <Action>
-            <NewDocumentMenu label={<NewDocumentIcon />} />
+            <NewDocumentMenu />
           </Action>
         </Actions>
       </CenteredContent>

@@ -1,0 +1,9 @@
+# ❤️ Support
+
+We hate bugs as much as you and do everything possible to keep the app bug-free. Help us out by getting in touch with the team if you see any problems with Outline. You can email [hello@getoutline.com](mailto:hello@getoutline.com) directly and we’ll get back to you (hopefully with a fix!) as soon as possible.
+
+If you already have a GitHub account then you can also submit issues directly to the development team on our [open issue tracker](https://github.com/outline/outline/issues).
+
+## Ideas
+
+We’d love to hear your ideas about how Outline can be improved and features you would like to see built. The best place to let the team know is through our [Spectrum community](https://spectrum.chat/outline).

@@ -4,7 +4,6 @@ import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import stores from 'stores';
-import 'shared/styles/prism.css';
 
 import ErrorBoundary from 'components/ErrorBoundary';
 import ScrollToTop from 'components/ScrollToTop';

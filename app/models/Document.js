@@ -72,17 +72,6 @@ export default class Document extends BaseModel {
     return !this.publishedAt;
   }
 
-  @computed
-  get isEmpty(): boolean {
-    // Check if the document title has been modified and user generated content exists
-    return this.text.replace(/^#/, '').trim().length === 0;
-  }
-
-  @computed
-  get allowSave(): boolean {
-    return !this.isEmpty && !this.isSaving;
-  }
-
   @action
   share = async () => {
     const res = await client.post('/shares.create', { documentId: this.id });

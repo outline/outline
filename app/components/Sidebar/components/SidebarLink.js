@@ -76,7 +76,7 @@ class SidebarLink extends React.Component<Props> {
     };
 
     return (
-      <Wrapper menuOpen={menuOpen} column>
+      <Wrapper column>
         <StyledNavLink
           activeStyle={activeStyle}
           style={active ? activeStyle : this.style}
@@ -92,9 +92,9 @@ class SidebarLink extends React.Component<Props> {
             )}
             {label}
           </Label>
+          {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
         </StyledNavLink>
         {this.expanded && children}
-        {menu && <Action>{menu}</Action>}
       </Wrapper>
     );
   }
@@ -107,23 +107,8 @@ const IconWrapper = styled.span`
   height: 24px;
 `;
 
-const StyledNavLink = styled(NavLink)`
-  display: flex;
-  position: relative;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 4px 16px;
-  border-radius: 4px;
-  color: ${props => props.theme.sidebarText};
-  font-size: 15px;
-  cursor: pointer;
-
-  &:hover {
-    color: ${props => props.theme.text};
-  }
-`;
-
 const Action = styled.span`
+  display: ${props => (props.menuOpen ? 'inline' : 'none')};
   position: absolute;
   top: 4px;
   right: 4px;
@@ -140,11 +125,19 @@ const Action = styled.span`
   }
 `;
 
-const Wrapper = styled(Flex)`
+const StyledNavLink = styled(NavLink)`
+  display: flex;
   position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 16px;
+  border-radius: 4px;
+  color: ${props => props.theme.sidebarText};
+  font-size: 15px;
+  cursor: pointer;
 
-  > ${Action} {
-    display: ${props => (props.menuOpen ? 'inline' : 'none')};
+  &:hover {
+    color: ${props => props.theme.text};
   }
 
   &:hover {
@@ -152,6 +145,10 @@ const Wrapper = styled(Flex)`
       display: inline;
     }
   }
+`;
+
+const Wrapper = styled(Flex)`
+  position: relative;
 `;
 
 const Label = styled.div`

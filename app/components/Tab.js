@@ -3,29 +3,32 @@ import * as React from 'react';
 import styled, { withTheme } from 'styled-components';
 import { NavLink } from 'react-router-dom';
 
-const NavItem = styled(NavLink)`
+const StyledNavLink = styled(NavLink)`
+  position: relative;
+  top: 1px;
+
   display: inline-block;
-  font-size: 11px;
   font-weight: 500;
-  text-transform: uppercase;
+  font-size: 14px;
   color: ${props => props.theme.textTertiary};
-  letter-spacing: 0.04em;
   margin-right: 24px;
   padding-bottom: 8px;
 
   &:hover {
-    color: ${props => props.theme.text};
+    color: ${props => props.theme.textSecondary};
+    border-bottom: 3px solid ${props => props.theme.divider};
+    padding-bottom: 5px;
   }
 `;
 
 function Tab(props: *) {
   const activeStyle = {
     paddingBottom: '5px',
-    borderBottom: `3px solid ${props.theme.divider}`,
-    color: props.theme.textTertiary,
+    borderBottom: `3px solid ${props.theme.textSecondary}`,
+    color: props.theme.textSecondary,
   };
 
-  return <NavItem {...props} activeStyle={activeStyle} />;
+  return <StyledNavLink {...props} activeStyle={activeStyle} />;
 }
 
 export default withTheme(Tab);

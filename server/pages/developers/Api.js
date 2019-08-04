@@ -125,7 +125,7 @@ export default function Api() {
             <Arguments pagination />
           </Method>
 
-          <Method method="collections.info" label="Get a document collection">
+          <Method method="collections.info" label="Get a collection">
             <Description>
               Returns detailed information on a document collection.
             </Description>
@@ -145,6 +145,17 @@ export default function Api() {
                 id="description"
                 description="Short description for the collection"
               />
+            </Arguments>
+          </Method>
+
+          <Method method="collections.export" label="Export a collection">
+            <Description>
+              Returns a zip file of all the collections documents in markdown
+              format. If documents are nested then they will be nested in
+              folders inside the zip file.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection id" required />
             </Arguments>
           </Method>
 
@@ -219,6 +230,11 @@ export default function Api() {
                 id="collection"
                 description="Collection ID to filter by"
               />
+              <Argument id="user" description="User ID to filter by" />
+              <Argument
+                id="backlinkDocumentId"
+                description="Backlinked document ID to filter by"
+              />
             </Arguments>
           </Method>
 
@@ -284,11 +300,7 @@ export default function Api() {
                 }
                 required
               />
-              <Argument
-                id="title"
-                description="Title for the document"
-                required
-              />
+              <Argument id="title" description="Title for the document" />
               <Argument
                 id="text"
                 description="Content of the document in Markdow"

@@ -70,11 +70,10 @@ const seed = async () => {
     userId: collection.creatorId,
     lastModifiedById: collection.creatorId,
     createdById: collection.creatorId,
-    publishedAt: new Date(),
-    title: 'Second document',
-    text: '# Much guidance',
+    title: 'First ever document',
+    text: '# Much test support',
   });
-
+  await document.publish();
   await collection.reload();
 
   return {

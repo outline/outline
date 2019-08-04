@@ -1,7 +1,6 @@
 /* eslint-disable */
 const path = require('path');
 const webpack = require('webpack');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 require('dotenv').config({ silent: true });
 
@@ -50,13 +49,6 @@ module.exports = {
       {
         test: /\.woff$/,
         loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]',
-      },
-      {
-        test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: 'css-loader'
-        }),
       },
       { test: /\.md/, loader: 'raw-loader' },
     ]

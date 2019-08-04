@@ -17,9 +17,12 @@ import {
   Star,
   View,
   Revision,
+  Backlink,
+  User,
 } from '../models';
 import { InvalidRequestError } from '../errors';
 import policy from '../policies';
+import { sequelize } from '../sequelize';
 
 const Op = Sequelize.Op;
 const { authorize, cannot } = policy;
@@ -29,6 +32,7 @@ router.post('documents.list', auth(), pagination(), async ctx => {
   const { sort = 'updatedAt' } = ctx.body;
   const collectionId = ctx.body.collection;
   const createdById = ctx.body.user;
+  const backlinkDocumentId = ctx.body.backlinkDocumentId;
   let direction = ctx.body.direction;
   if (direction !== 'ASC') direction = 'DESC';
 
@@ -55,6 +59,20 @@ router.post('documents.list', auth(), pagination(), async ctx => {
   } else {
     const collectionIds = await user.collectionIds();
     where = { ...where, collectionId: collectionIds };
+  }
+
+  if (backlinkDocumentId) {
+    const backlinks = await Backlink.findAll({
+      attributes: ['reverseDocumentId'],
+      where: {
+        documentId: backlinkDocumentId,
+      },
+    });
+
+    where = {
+      ...where,
+      id: backlinks.map(backlink => backlink.reverseDocumentId),
+    };
   }
 
   // add the users starred state to the response by default
@@ -269,7 +287,12 @@ router.post('documents.info', auth({ required: false }), async ctx => {
       },
       include: [
         {
-          model: Document,
+          // unscoping here allows us to return unpublished documents
+          model: Document.unscoped(),
+          include: [
+            { model: User, as: 'createdBy', paranoid: false },
+            { model: User, as: 'updatedBy', paranoid: false },
+          ],
           required: true,
           as: 'document',
         },
@@ -541,7 +564,6 @@ router.post('documents.create', auth(), async ctx => {
     index,
   } = ctx.body;
   ctx.assertUuid(collectionId, 'collectionId must be an uuid');
-  ctx.assertPresent(title, 'title is required');
   ctx.assertPresent(text, 'text is required');
   if (parentDocumentId) {
     ctx.assertUuid(parentDocumentId, 'parentDocumentId must be an uuid');
@@ -644,7 +666,7 @@ router.post('documents.update', auth(), async ctx => {
 
   // Update document
   if (title) document.title = title;
-  //append to document
+
   if (append) {
     document.text += text;
   } else if (text) {
@@ -652,34 +674,46 @@ router.post('documents.update', auth(), async ctx => {
   }
   document.lastModifiedById = user.id;
 
-  if (publish) {
-    await document.publish();
+  let transaction;
+  try {
+    transaction = await sequelize.transaction();
 
-    Event.create({
-      name: 'documents.publish',
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: { title: document.title },
-      ip: ctx.request.ip,
-    });
-  } else {
-    await document.save({ autosave });
+    if (publish) {
+      await document.publish({ transaction });
+      await transaction.commit();
 
-    Event.create({
-      name: 'documents.update',
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        autosave,
-        done,
-        title: document.title,
-      },
-      ip: ctx.request.ip,
-    });
+      Event.create({
+        name: 'documents.publish',
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: { title: document.title },
+        ip: ctx.request.ip,
+      });
+    } else {
+      await document.save({ autosave, transaction });
+      await transaction.commit();
+
+      Event.create({
+        name: 'documents.update',
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: {
+          autosave,
+          done,
+          title: document.title,
+        },
+        ip: ctx.request.ip,
+      });
+    }
+  } catch (err) {
+    if (transaction) {
+      await transaction.rollback();
+    }
+    throw err;
   }
 
   ctx.body = {

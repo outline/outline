@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '../app';
-import { Document, View, Star, Revision } from '../models';
+import { Document, View, Star, Revision, Backlink } from '../models';
 import { flushdb, seed } from '../test/support';
 import {
   buildShare,
@@ -133,6 +133,28 @@ describe('#documents.info', async () => {
     expect(body.data.updatedBy.id).toEqual(user.id);
   });
 
+  it('should return draft document from shareId with token', async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post('/api/documents.info', {
+      body: { token: user.getJwtToken(), shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+    expect(body.data.createdBy.id).toEqual(user.id);
+    expect(body.data.updatedBy.id).toEqual(user.id);
+  });
+
   it('should return document from shareId in collection not a member of', async () => {
     const { user, document, collection } = await seed();
     const share = await buildShare({
@@ -188,7 +210,7 @@ describe('#documents.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(document.id);
   });
 
@@ -203,7 +225,7 @@ describe('#documents.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
+    expect(body.data.length).toEqual(0);
   });
 
   it('should not return documents in private collections not a member of', async () => {
@@ -222,13 +244,20 @@ describe('#documents.list', async () => {
 
   it('should allow changing sort direction', async () => {
     const { user, document } = await seed();
+    const anotherDoc = await buildDocument({
+      title: 'another document',
+      text: 'random text',
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post('/api/documents.list', {
       body: { token: user.getJwtToken(), direction: 'ASC' },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data[1].id).toEqual(document.id);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(body.data[1].id).toEqual(anotherDoc.id);
   });
 
   it('should allow filtering by collection', async () => {
@@ -242,7 +271,32 @@ describe('#documents.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data.length).toEqual(1);
+  });
+
+  it('should return backlinks', async () => {
+    const { user, document } = await seed();
+    const anotherDoc = await buildDocument({
+      title: 'another document',
+      text: 'random text',
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    await Backlink.create({
+      reverseDocumentId: anotherDoc.id,
+      documentId: document.id,
+      userId: user.id,
+    });
+
+    const res = await server.post('/api/documents.list', {
+      body: { token: user.getJwtToken(), backlinkDocumentId: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(anotherDoc.id);
   });
 
   it('should require authentication', async () => {
@@ -339,7 +393,7 @@ describe('#documents.search', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.text).toEqual('# Much guidance');
+    expect(body.data[0].document.text).toEqual('# Much test support');
   });
 
   it('should return results in ranked order', async () => {
