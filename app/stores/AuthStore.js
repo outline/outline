@@ -82,6 +82,9 @@ export default class AuthStore {
         this.isSuspended = true;
         this.suspendedContactEmail = err.data.adminEmail;
       }
+			else {
+				console.log('General Error' + err);
+			}
     }
   };
 

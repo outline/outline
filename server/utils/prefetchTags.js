@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
-import fs from 'fs';
+const fs = require("fs");
+const fsPromises = require("fs/promises");
 import path from 'path';
 import webpackConfig from '../../webpack.config';
 
@@ -20,6 +21,8 @@ try {
     'utf8'
   );
   const manifestData = JSON.parse(manifest);
+	async function doTruncate(){
+	}
   Object.values(manifestData).forEach(filename => {
     if (typeof filename !== 'string') return;
     if (filename.endsWith('.js')) {
