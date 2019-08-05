@@ -24,6 +24,16 @@ export default function Api() {
             <Arguments />
           </Method>
 
+          <Method method="events.list" label="List team's events">
+            <Description>List all of the events in the team.</Description>
+            <Arguments pagination>
+              <Argument
+                id="auditLog"
+                description="Boolean. If user token has access, return auditing events"
+              />
+            </Arguments>
+          </Method>
+
           <Method method="users.list" label="List team's users">
             <Description>List all of the users in the team.</Description>
             <Arguments pagination />
