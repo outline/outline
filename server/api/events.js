@@ -36,7 +36,7 @@ router.post('events.list', auth(), pagination(), async ctx => {
     where.name = Event.AUDIT_EVENTS;
   }
 
-  const events = await Event.findAll({
+  const events = Event.findAll({
     where,
     order: [[sort, direction]],
     include: [

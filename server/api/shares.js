@@ -74,7 +74,7 @@ router.post('shares.create', auth(), async ctx => {
     },
   });
 
-  await Event.create({
+  Event.create({
     name: 'shares.create',
     documentId,
     collectionId: document.collectionId,
@@ -105,7 +105,7 @@ router.post('shares.revoke', auth(), async ctx => {
 
   const document = await Document.findByPk(share.documentId);
 
-  await Event.create({
+  Event.create({
     name: 'shares.revoke',
     documentId: document.id,
     collectionId: document.collectionId,

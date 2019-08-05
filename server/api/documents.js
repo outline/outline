@@ -369,7 +369,7 @@ router.post('documents.restore', auth(), async ctx => {
     // restore a previously archived document
     await document.unarchive(user.id);
 
-    await Event.create({
+    Event.create({
       name: 'documents.unarchive',
       documentId: document.id,
       collectionId: document.collectionId,
@@ -389,7 +389,7 @@ router.post('documents.restore', auth(), async ctx => {
     document.title = revision.title;
     await document.save();
 
-    await Event.create({
+    Event.create({
       name: 'documents.restore',
       documentId: document.id,
       collectionId: document.collectionId,
@@ -467,7 +467,7 @@ router.post('documents.pin', auth(), async ctx => {
   document.pinnedById = user.id;
   await document.save();
 
-  await Event.create({
+  Event.create({
     name: 'documents.pin',
     documentId: document.id,
     collectionId: document.collectionId,
@@ -493,7 +493,7 @@ router.post('documents.unpin', auth(), async ctx => {
   document.pinnedById = null;
   await document.save();
 
-  await Event.create({
+  Event.create({
     name: 'documents.unpin',
     documentId: document.id,
     collectionId: document.collectionId,
@@ -520,7 +520,7 @@ router.post('documents.star', auth(), async ctx => {
     where: { documentId: document.id, userId: user.id },
   });
 
-  await Event.create({
+  Event.create({
     name: 'documents.star',
     documentId: document.id,
     collectionId: document.collectionId,
@@ -543,7 +543,7 @@ router.post('documents.unstar', auth(), async ctx => {
     where: { documentId: document.id, userId: user.id },
   });
 
-  await Event.create({
+  Event.create({
     name: 'documents.unstar',
     modelId: document.id,
     collectionId: document.collectionId,
@@ -604,7 +604,7 @@ router.post('documents.create', auth(), async ctx => {
     text,
   });
 
-  await Event.create({
+  Event.create({
     name: 'documents.create',
     documentId: document.id,
     collectionId: document.collectionId,
@@ -617,7 +617,7 @@ router.post('documents.create', auth(), async ctx => {
   if (publish) {
     await document.publish();
 
-    await Event.create({
+    Event.create({
       name: 'documents.publish',
       documentId: document.id,
       collectionId: document.collectionId,
@@ -682,7 +682,7 @@ router.post('documents.update', auth(), async ctx => {
       await document.publish({ transaction });
       await transaction.commit();
 
-      await Event.create({
+      Event.create({
         name: 'documents.publish',
         documentId: document.id,
         collectionId: document.collectionId,
@@ -695,7 +695,7 @@ router.post('documents.update', auth(), async ctx => {
       await document.save({ autosave, transaction });
       await transaction.commit();
 
-      await Event.create({
+      Event.create({
         name: 'documents.update',
         documentId: document.id,
         collectionId: document.collectionId,
@@ -787,7 +787,7 @@ router.post('documents.archive', auth(), async ctx => {
 
   await document.archive(user.id);
 
-  await Event.create({
+  Event.create({
     name: 'documents.archive',
     documentId: document.id,
     collectionId: document.collectionId,
@@ -812,7 +812,7 @@ router.post('documents.delete', auth(), async ctx => {
 
   await document.delete();
 
-  await Event.create({
+  Event.create({
     name: 'documents.delete',
     documentId: document.id,
     collectionId: document.collectionId,

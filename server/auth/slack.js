@@ -77,7 +77,7 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   }
 
   if (isFirstSignin) {
-    await Event.create({
+    Event.create({
       name: 'users.create',
       actorId: user.id,
       userId: user.id,

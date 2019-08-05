@@ -8,18 +8,18 @@ export default class Backlinks {
   async on(event: DocumentEvent) {
     switch (event.name) {
       case 'documents.publish': {
-        const document = await Document.findByPk(event.modelId);
+        const document = await Document.findByPk(event.documentId);
         const linkIds = parseDocumentIds(document.text);
 
         await Promise.all(
           linkIds.map(async linkId => {
             const linkedDocument = await Document.findByPk(linkId);
-            if (linkedDocument.id === event.modelId) return;
+            if (linkedDocument.id === event.documentId) return;
 
             await Backlink.findOrCreate({
               where: {
                 documentId: linkedDocument.id,
-                reverseDocumentId: event.modelId,
+                reverseDocumentId: event.documentId,
               },
               defaults: {
                 userId: document.lastModifiedById,
@@ -32,14 +32,14 @@ export default class Backlinks {
       }
       case 'documents.update': {
         // no-op for now
-        if (event.autosave) return;
+        if (event.data.autosave) return;
 
         // no-op for drafts
-        const document = await Document.findByPk(event.modelId);
+        const document = await Document.findByPk(event.documentId);
         if (!document.publishedAt) return;
 
         const [currentRevision, previsionRevision] = await Revision.findAll({
-          where: { documentId: event.modelId },
+          where: { documentId: event.documentId },
           order: [['createdAt', 'desc']],
           limit: 2,
         });
@@ -51,12 +51,12 @@ export default class Backlinks {
         await Promise.all(
           addedLinkIds.map(async linkId => {
             const linkedDocument = await Document.findByPk(linkId);
-            if (linkedDocument.id === event.modelId) return;
+            if (linkedDocument.id === event.documentId) return;
 
             await Backlink.findOrCreate({
               where: {
                 documentId: linkedDocument.id,
-                reverseDocumentId: event.modelId,
+                reverseDocumentId: event.documentId,
               },
               defaults: {
                 userId: currentRevision.userId,
@@ -71,7 +71,7 @@ export default class Backlinks {
             await Backlink.destroy({
               where: {
                 documentId: document.id,
-                reverseDocumentId: event.modelId,
+                reverseDocumentId: event.documentId,
               },
             });
           })
@@ -81,12 +81,12 @@ export default class Backlinks {
       case 'documents.delete': {
         await Backlink.destroy({
           where: {
-            reverseDocumentId: event.modelId,
+            reverseDocumentId: event.documentId,
           },
         });
         await Backlink.destroy({
           where: {
-            documentId: event.modelId,
+            documentId: event.documentId,
           },
         });
         break;

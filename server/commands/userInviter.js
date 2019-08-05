@@ -46,7 +46,7 @@ export default async function userInviter({
       teamUrl: team.url,
     });
 
-    await Event.create({
+    Event.create({
       name: 'users.invite',
       actorId: user.id,
       teamId: user.teamId,
