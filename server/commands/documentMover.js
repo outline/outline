@@ -76,7 +76,7 @@ export default async function documentMover({
 
     await transaction.commit();
 
-    Event.create({
+    await Event.create({
       name: 'documents.move',
       actorId: user.id,
       documentId: document.id,

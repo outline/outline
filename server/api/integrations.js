@@ -38,7 +38,7 @@ router.post('integrations.delete', auth(), async ctx => {
 
   await integration.destroy();
 
-  Event.create({
+  await Event.create({
     name: 'integrations.delete',
     modelId: integration.id,
     teamId: integration.teamId,
