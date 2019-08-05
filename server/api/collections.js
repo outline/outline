@@ -34,7 +34,7 @@ router.post('collections.create', auth(), async ctx => {
     private: isPrivate,
   });
 
-  Event.create({
+  await Event.create({
     name: 'collections.create',
     collectionId: collection.id,
     teamId: collection.teamId,
@@ -82,7 +82,7 @@ router.post('collections.add_user', auth(), async ctx => {
     createdById: ctx.state.user.id,
   });
 
-  Event.create({
+  await Event.create({
     name: 'collections.add_user',
     userId,
     collectionId: collection.id,
@@ -114,7 +114,7 @@ router.post('collections.remove_user', auth(), async ctx => {
 
   await collection.removeUser(user);
 
-  Event.create({
+  await Event.create({
     name: 'collections.remove_user',
     userId,
     collectionId: collection.id,
@@ -153,7 +153,7 @@ router.post('collections.export', auth(), async ctx => {
 
   const filePath = await archiveCollection(collection);
 
-  Event.create({
+  await Event.create({
     name: 'collections.export',
     collectionId: collection.id,
     teamId: user.teamId,
@@ -175,7 +175,7 @@ router.post('collections.exportAll', auth(), async ctx => {
   // async operation to create zip archive and email user
   exportCollections(user.teamId, user.email);
 
-  Event.create({
+  await Event.create({
     name: 'collections.export',
     teamId: user.teamId,
     actorId: user.id,
@@ -218,7 +218,7 @@ router.post('collections.update', auth(), async ctx => {
   collection.private = isPrivate;
   await collection.save();
 
-  Event.create({
+  await Event.create({
     name: 'collections.update',
     collectionId: collection.id,
     teamId: collection.teamId,
@@ -269,7 +269,7 @@ router.post('collections.delete', auth(), async ctx => {
 
   await collection.destroy();
 
-  Event.create({
+  await Event.create({
     name: 'collections.delete',
     collectionId: collection.id,
     teamId: collection.teamId,

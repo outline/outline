@@ -42,7 +42,7 @@ router.post('views.create', auth(), async ctx => {
 
   await View.increment({ documentId, userId: user.id });
 
-  Event.create({
+  await Event.create({
     name: 'views.create',
     actorId: user.id,
     documentId: document.id,

@@ -92,7 +92,7 @@ router.get('google.callback', auth({ required: false }), async ctx => {
   });
 
   if (isFirstSignin) {
-    Event.create({
+    await Event.create({
       name: 'users.create',
       actorId: user.id,
       userId: user.id,

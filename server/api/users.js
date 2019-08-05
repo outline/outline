@@ -127,7 +127,7 @@ router.post('users.promote', auth(), async ctx => {
   const team = await Team.findByPk(teamId);
   await team.addAdmin(user);
 
-  Event.create({
+  await Event.create({
     name: 'users.promote',
     actorId: ctx.state.user.id,
     userId,
@@ -156,7 +156,7 @@ router.post('users.demote', auth(), async ctx => {
     throw new ValidationError(err.message);
   }
 
-  Event.create({
+  await Event.create({
     name: 'users.demote',
     actorId: ctx.state.user.id,
     userId,
@@ -186,7 +186,7 @@ router.post('users.suspend', auth(), async ctx => {
     throw new ValidationError(err.message);
   }
 
-  Event.create({
+  await Event.create({
     name: 'users.suspend',
     actorId: ctx.state.user.id,
     userId,
@@ -212,7 +212,7 @@ router.post('users.activate', auth(), async ctx => {
   const team = await Team.findByPk(teamId);
   await team.activateUser(user, admin);
 
-  Event.create({
+  await Event.create({
     name: 'users.activate',
     actorId: ctx.state.user.id,
     userId,
@@ -253,7 +253,7 @@ router.post('users.delete', auth(), async ctx => {
     throw new ValidationError(err.message);
   }
 
-  Event.create({
+  await Event.create({
     name: 'users.delete',
     actorId: user.id,
     userId: user.id,
