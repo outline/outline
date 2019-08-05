@@ -757,11 +757,12 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   const { documents, collections } = await documentMover({
-    ctx,
+    user,
     document,
     collectionId,
     parentDocumentId,
     index,
+    ip: ctx.request.ip,
   });
 
   ctx.body = {

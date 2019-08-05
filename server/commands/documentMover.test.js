@@ -6,6 +6,8 @@ import { buildDocument, buildCollection } from '../test/factories';
 beforeEach(flushdb);
 
 describe('documentMover', async () => {
+  const ip = '127.0.0.1';
+
   it('should move within a collection', async () => {
     const { document, user, collection } = await seed();
 
@@ -13,6 +15,7 @@ describe('documentMover', async () => {
       user,
       document,
       collectionId: collection.id,
+      ip,
     });
 
     expect(response.collections.length).toEqual(1);
@@ -37,6 +40,7 @@ describe('documentMover', async () => {
       collectionId: collection.id,
       parentDocumentId: undefined,
       index: 0,
+      ip,
     });
 
     expect(response.collections[0].documentStructure[0].children[0].id).toBe(
@@ -67,6 +71,7 @@ describe('documentMover', async () => {
       collectionId: newCollection.id,
       parentDocumentId: undefined,
       index: 0,
+      ip,
     });
 
     // check document ids where updated

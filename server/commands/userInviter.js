@@ -1,19 +1,19 @@
 // @flow
 import { uniqBy } from 'lodash';
-import { type Context } from 'koa';
 import { User, Event, Team } from '../models';
 import mailer from '../mailer';
 
 type Invite = { name: string, email: string };
 
 export default async function userInviter({
-  ctx,
+  user,
+  ip,
   invites,
 }: {
-  ctx: Context,
+  user: User,
+  ip: string,
   invites: Invite[],
 }): Promise<{ sent: Invite[] }> {
-  const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
 
   // filter out empties, duplicates and non-emails
@@ -54,7 +54,7 @@ export default async function userInviter({
         email: invite.email,
         name: invite.name,
       },
-      ip: ctx.request.ip,
+      ip,
     });
   });
 

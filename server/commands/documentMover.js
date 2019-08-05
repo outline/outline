@@ -4,17 +4,19 @@ import { sequelize } from '../sequelize';
 import { type Context } from 'koa';
 
 export default async function documentMover({
-  ctx,
+  user,
   document,
   collectionId,
   parentDocumentId,
   index,
+  ip,
 }: {
-  ctx: Context,
+  user: Context,
   document: Document,
   collectionId: string,
   parentDocumentId: string,
   index?: number,
+  ip: string,
 }) {
   let transaction;
   const result = { collections: [], documents: [] };
@@ -76,7 +78,7 @@ export default async function documentMover({
 
     Event.create({
       name: 'documents.move',
-      actorId: ctx.state.user.id,
+      actorId: user.id,
       documentId: document.id,
       collectionId,
       teamId: document.teamId,
@@ -85,7 +87,7 @@ export default async function documentMover({
         collectionIds: result.collections.map(c => c.id),
         documentIds: result.documents.map(d => d.id),
       },
-      ip: ctx.request.ip,
+      ip,
     });
   } catch (err) {
     if (transaction) {
