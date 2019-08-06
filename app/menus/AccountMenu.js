@@ -75,7 +75,7 @@ class AccountMenu extends React.Component<Props> {
           </NightMode>
         </DropdownMenuItem>
         <hr />
-        <DropdownMenuItem onClick={this.handleLogout}>Logout</DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleLogout}>Log out</DropdownMenuItem>
       </DropdownMenu>
     );
   }
