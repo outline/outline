@@ -10,7 +10,7 @@ type Props = {
 
 const Home = observer(({ auth }: Props) => {
   if (auth.authenticated) return <Redirect to="/dashboard" />;
-  auth.logout();
+  auth.logout(true);
   return null;
 });
 

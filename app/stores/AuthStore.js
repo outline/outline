@@ -76,6 +76,13 @@ export default class AuthStore {
             team: team.name,
           };
         }
+
+        // If we came from a redirect then send the user immediately there
+        const postLoginRedirectPath = getCookie('postLoginRedirectPath');
+        if (postLoginRedirectPath) {
+          removeCookie('postLoginRedirectPath');
+          window.location.href = postLoginRedirectPath;
+        }
       });
     } catch (err) {
       if (err.error === 'user_suspended') {
@@ -133,9 +140,21 @@ export default class AuthStore {
   };
 
   @action
-  logout = async () => {
-    this.user = null;
-    this.token = null;
+  logout = async (savePath: boolean = false) => {
+    // remove user and team from localStorage
+    localStorage.setItem(
+      AUTH_STORE,
+      JSON.stringify({
+        user: null,
+        team: null,
+      })
+    );
+
+    // if this logout was forced from an authenticated route then
+    // save the current path so we can go back there once signed in
+    if (savePath) {
+      setCookie('postLoginRedirectPath', window.location.pathname);
+    }
 
     // remove authentication token itself
     removeCookie('accessToken', { path: '/' });
