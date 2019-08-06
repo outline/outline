@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
+import styled from 'styled-components';
 import {
   ArchiveIcon,
   HomeIcon,
@@ -98,14 +99,14 @@ class MainSidebar extends React.Component<Props> {
               />
               <SidebarLink
                 to="/drafts"
-                icon={
-                  draftDocumentsCount > 0 && draftDocumentsCount < 10 ? (
-                    <Bubble count={draftDocumentsCount} />
-                  ) : (
-                    <EditIcon />
-                  )
+                icon={<EditIcon />}
+                label={
+                  <Drafts align="center">
+                    Drafts{draftDocumentsCount > 0 && (
+                      <Bubble count={draftDocumentsCount} />
+                    )}
+                  </Drafts>
                 }
-                label="Drafts"
                 active={
                   documents.active ? !documents.active.publishedAt : undefined
                 }
@@ -145,5 +146,9 @@ class MainSidebar extends React.Component<Props> {
     );
   }
 }
+
+const Drafts = styled(Flex)`
+  height: 24px;
+`;
 
 export default inject('documents', 'auth', 'ui')(MainSidebar);

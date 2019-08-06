@@ -2,24 +2,14 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { fadeAndScaleIn } from 'shared/styles/animations';
-import Flex from 'shared/components/Flex';
 
 type Props = {
   count: number,
 };
 
 const Bubble = ({ count }: Props) => {
-  return (
-    <Wrapper align="center" justify="center">
-      <Count>{count}</Count>
-    </Wrapper>
-  );
+  return <Count>{count}</Count>;
 };
-
-const Wrapper = styled(Flex)`
-  width: 24px;
-  height: 24px;
-`;
 
 const Count = styled.div`
   animation: ${fadeAndScaleIn} 200ms ease;
@@ -35,6 +25,7 @@ const Count = styled.div`
   min-height: 16px;
   text-align: center;
   padding: 0 4px;
+  margin-left: 8px;
 `;
 
 export default Bubble;
