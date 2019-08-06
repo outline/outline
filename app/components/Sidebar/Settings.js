@@ -95,11 +95,13 @@ class SettingsSidebar extends React.Component<Props> {
                 icon={<LinkIcon />}
                 label="Share Links"
               />
-              <SidebarLink
-                to="/settings/events"
-                icon={<BulletedListIcon />}
-                label="Audit Log"
-              />
+              {user.isAdmin && (
+                <SidebarLink
+                  to="/settings/events"
+                  icon={<BulletedListIcon />}
+                  label="Audit Log"
+                />
+              )}
               {user.isAdmin && (
                 <SidebarLink
                   to="/settings/export"
