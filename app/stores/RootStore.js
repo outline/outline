@@ -3,6 +3,7 @@ import ApiKeysStore from './ApiKeysStore';
 import AuthStore from './AuthStore';
 import CollectionsStore from './CollectionsStore';
 import DocumentsStore from './DocumentsStore';
+import EventsStore from './EventsStore';
 import IntegrationsStore from './IntegrationsStore';
 import NotificationSettingsStore from './NotificationSettingsStore';
 import RevisionsStore from './RevisionsStore';
@@ -16,6 +17,7 @@ export default class RootStore {
   auth: AuthStore;
   collections: CollectionsStore;
   documents: DocumentsStore;
+  events: EventsStore;
   integrations: IntegrationsStore;
   notificationSettings: NotificationSettingsStore;
   revisions: RevisionsStore;
@@ -29,6 +31,7 @@ export default class RootStore {
     this.auth = new AuthStore(this);
     this.collections = new CollectionsStore(this);
     this.documents = new DocumentsStore(this);
+    this.events = new EventsStore(this);
     this.integrations = new IntegrationsStore(this);
     this.notificationSettings = new NotificationSettingsStore(this);
     this.revisions = new RevisionsStore(this);
@@ -42,6 +45,7 @@ export default class RootStore {
     this.apiKeys.clear();
     this.collections.clear();
     this.documents.clear();
+    this.events.clear();
     this.integrations.clear();
     this.notificationSettings.clear();
     this.revisions.clear();

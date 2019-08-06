@@ -1,18 +1,22 @@
 // @flow
-import { Document, Collection } from '../models';
+import { Document, Collection, Event } from '../models';
 import { sequelize } from '../sequelize';
-import events from '../events';
+import { type Context } from 'koa';
 
 export default async function documentMover({
+  user,
   document,
   collectionId,
   parentDocumentId,
   index,
+  ip,
 }: {
+  user: Context,
   document: Document,
   collectionId: string,
   parentDocumentId: string,
   index?: number,
+  ip: string,
 }) {
   let transaction;
   const result = { collections: [], documents: [] };
@@ -72,12 +76,18 @@ export default async function documentMover({
 
     await transaction.commit();
 
-    events.add({
+    await Event.create({
       name: 'documents.move',
-      modelId: document.id,
-      collectionIds: result.collections.map(c => c.id),
-      documentIds: result.documents.map(d => d.id),
+      actorId: user.id,
+      documentId: document.id,
+      collectionId,
       teamId: document.teamId,
+      data: {
+        title: document.title,
+        collectionIds: result.collections.map(c => c.id),
+        documentIds: result.documents.map(d => d.id),
+      },
+      ip,
     });
   } catch (err) {
     if (transaction) {

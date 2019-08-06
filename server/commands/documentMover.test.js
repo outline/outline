@@ -6,12 +6,16 @@ import { buildDocument, buildCollection } from '../test/factories';
 beforeEach(flushdb);
 
 describe('documentMover', async () => {
+  const ip = '127.0.0.1';
+
   it('should move within a collection', async () => {
-    const { document, collection } = await seed();
+    const { document, user, collection } = await seed();
 
     const response = await documentMover({
+      user,
       document,
       collectionId: collection.id,
+      ip,
     });
 
     expect(response.collections.length).toEqual(1);
@@ -19,7 +23,7 @@ describe('documentMover', async () => {
   });
 
   it('should move with children', async () => {
-    const { document, collection } = await seed();
+    const { document, user, collection } = await seed();
     const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
@@ -31,10 +35,12 @@ describe('documentMover', async () => {
     await collection.addDocumentToStructure(newDocument);
 
     const response = await documentMover({
+      user,
       document,
       collectionId: collection.id,
       parentDocumentId: undefined,
       index: 0,
+      ip,
     });
 
     expect(response.collections[0].documentStructure[0].children[0].id).toBe(
@@ -45,7 +51,7 @@ describe('documentMover', async () => {
   });
 
   it('should move with children to another collection', async () => {
-    const { document, collection } = await seed();
+    const { document, user, collection } = await seed();
     const newCollection = await buildCollection({
       teamId: collection.teamId,
     });
@@ -60,10 +66,12 @@ describe('documentMover', async () => {
     await collection.addDocumentToStructure(newDocument);
 
     const response = await documentMover({
+      user,
       document,
       collectionId: newCollection.id,
       parentDocumentId: undefined,
       index: 0,
+      ip,
     });
 
     // check document ids where updated

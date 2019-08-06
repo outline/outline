@@ -153,6 +153,7 @@ export default class BaseStore<T: BaseModel> {
         res.data.forEach(this.add);
         this.isLoaded = true;
       });
+      return res.data;
     } finally {
       this.isFetching = false;
     }

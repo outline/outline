@@ -4,7 +4,14 @@ import auth from '../middlewares/authentication';
 import addHours from 'date-fns/add_hours';
 import { stripSubdomain } from '../../shared/utils/domains';
 import { slackAuth } from '../../shared/utils/routeHelpers';
-import { Authentication, Collection, Integration, User, Team } from '../models';
+import {
+  Authentication,
+  Collection,
+  Integration,
+  User,
+  Event,
+  Team,
+} from '../models';
 import * as Slack from '../slack';
 
 const router = new Router();
@@ -67,6 +74,20 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   if (isFirstUser) {
     await team.provisionFirstCollection(user.id);
     await team.provisionSubdomain(data.team.domain);
+  }
+
+  if (isFirstSignin) {
+    await Event.create({
+      name: 'users.create',
+      actorId: user.id,
+      userId: user.id,
+      teamId: team.id,
+      data: {
+        name: user.name,
+        service: 'slack',
+      },
+      ip: ctx.request.ip,
+    });
   }
 
   // update email address if it's changed in Slack
