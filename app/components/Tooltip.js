@@ -8,6 +8,7 @@ type Props = {
   placement?: 'top' | 'bottom' | 'left' | 'right',
   children: React.Node,
   delay?: number,
+  className?: string,
 };
 
 class Tooltip extends React.Component<Props> {
@@ -16,7 +17,7 @@ class Tooltip extends React.Component<Props> {
   }
 
   render() {
-    const { tooltip, delay = 50, children, ...rest } = this.props;
+    const { tooltip, delay = 50, children, className, ...rest } = this.props;
 
     return (
       <StyledTippy
@@ -29,7 +30,7 @@ class Tooltip extends React.Component<Props> {
         inertia
         {...rest}
       >
-        <span>{children}</span>
+        <span className={className}>{children}</span>
       </StyledTippy>
     );
   }
