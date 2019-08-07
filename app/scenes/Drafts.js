@@ -32,13 +32,13 @@ class Drafts extends React.Component<Props> {
       <CenteredContent column auto>
         <PageTitle title="Drafts" />
         <Heading>Drafts</Heading>
-        {showLoading && <ListPlaceholder />}
         {showEmpty ? (
           <Empty>You’ve not got any drafts at the moment.</Empty>
         ) : (
           <React.Fragment>
             <Subheading>Documents</Subheading>
             <DocumentList documents={drafts} showCollection />
+            {showLoading && <ListPlaceholder />}
           </React.Fragment>
         )}
         <Actions align="center" justify="flex-end">

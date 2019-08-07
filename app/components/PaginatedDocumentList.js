@@ -19,12 +19,14 @@ type Props = {
 
 @observer
 class PaginatedDocumentList extends React.Component<Props> {
+  isInitiallyLoaded: boolean = false;
   @observable isLoaded: boolean = false;
   @observable isFetching: boolean = false;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
 
   componentDidMount() {
+    this.isInitiallyLoaded = !!this.props.documents.length;
     this.fetchResults();
   }
 
@@ -66,14 +68,14 @@ class PaginatedDocumentList extends React.Component<Props> {
 
   render() {
     const { empty, heading, documents, fetch, options, ...rest } = this.props;
-    const showLoading = !this.isLoaded && this.isFetching && !documents.length;
-    const showEmpty = this.isLoaded && !documents.length;
+    const showLoading = this.isFetching && !this.isInitiallyLoaded;
+    const showEmpty = !documents.length || showLoading;
+    const showList = (this.isLoaded || this.isInitiallyLoaded) && !showLoading;
 
     return (
       <React.Fragment>
-        {showEmpty ? (
-          empty
-        ) : (
+        {showEmpty && empty}
+        {showList && (
           <React.Fragment>
             {heading}
             <DocumentList documents={documents} {...rest} />
