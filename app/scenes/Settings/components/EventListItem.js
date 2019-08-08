@@ -21,8 +21,9 @@ const description = event => {
       return (
         <React.Fragment>
           {capitalize(event.verbPastTense)} a{' '}
-          <Link to={`/share/${event.modelId || ''}`}>public link</Link> to a{' '}
-          <Link to={`/doc/${event.documentId}`}>document</Link>
+          <Link to={`/share/${event.modelId || ''}`}>public link</Link> to the{' '}
+          <Link to={`/doc/${event.documentId}`}>{event.data.name}</Link>{' '}
+          document
         </React.Fragment>
       );
     case 'users.create':
@@ -61,18 +62,35 @@ const description = event => {
   }
 
   if (event.documentId) {
+    if (event.name === 'documents.delete') {
+      return (
+        <React.Fragment>
+          Deleted the <strong>{event.data.title}</strong> document
+        </React.Fragment>
+      );
+    }
     return (
       <React.Fragment>
-        {capitalize(event.verbPastTense)} a{' '}
-        <Link to={`/doc/${event.documentId}`}>document</Link>
+        {capitalize(event.verbPastTense)} the{' '}
+        <Link to={`/doc/${event.documentId}`}>{event.data.title}</Link> document
       </React.Fragment>
     );
   }
   if (event.collectionId) {
+    if (event.name === 'collections.delete') {
+      return (
+        <React.Fragment>
+          Deleted the <strong>{event.data.name}</strong> collection
+        </React.Fragment>
+      );
+    }
     return (
       <React.Fragment>
-        {capitalize(event.verbPastTense)} a{' '}
-        <Link to={`/collections/${event.collectionId || ''}`}>collection</Link>
+        {capitalize(event.verbPastTense)} the{' '}
+        <Link to={`/collections/${event.collectionId || ''}`}>
+          {event.data.name}
+        </Link>{' '}
+        collection
       </React.Fragment>
     );
   }
@@ -95,7 +113,7 @@ const EventListItem = ({ event }: Props) => {
       subtitle={
         <React.Fragment>
           {description(event)} <Time dateTime={event.createdAt} /> ago &middot;{' '}
-          {event.name}
+          <strong>{event.name}</strong>
         </React.Fragment>
       }
       actions={

@@ -12,11 +12,12 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post('events.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction, auditLog = false } = ctx.body;
+  let { sort = 'createdAt', direction, auditLog = false } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
 
   const user = ctx.state.user;
-  const collectionIds = await user.collectionIds();
+  const paranoid = false;
+  const collectionIds = await user.collectionIds(paranoid);
 
   let where = {
     name: Event.ACTIVITY_EVENTS,

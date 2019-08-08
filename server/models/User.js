@@ -54,7 +54,7 @@ User.associate = models => {
 };
 
 // Instance methods
-User.prototype.collectionIds = async function() {
+User.prototype.collectionIds = async function(paranoid: boolean = true) {
   let models = await Collection.findAll({
     attributes: ['id', 'private'],
     where: { teamId: this.teamId },
@@ -67,6 +67,7 @@ User.prototype.collectionIds = async function() {
         required: false,
       },
     ],
+    paranoid,
   });
 
   // Filter collections that are private and don't have an association

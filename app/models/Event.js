@@ -13,7 +13,11 @@ class Event extends BaseModel {
   userId: string;
   createdAt: string;
   actor: User;
-  data: { name: string, email: string };
+  data: {
+    name: string,
+    email: string,
+    title: string,
+  };
 
   get model() {
     return this.name.split('.')[0];

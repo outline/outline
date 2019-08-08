@@ -37,6 +37,7 @@ const Image = styled(Flex)`
   max-height: 40px;
   align-items: center;
   user-select: none;
+  flex-shrink: 0;
 `;
 
 const Heading = styled.p`

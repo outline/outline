@@ -8,6 +8,7 @@ const Event = sequelize.define('event', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  modelId: DataTypes.UUID,
   name: DataTypes.STRING,
   ip: DataTypes.STRING,
   data: DataTypes.JSONB,
