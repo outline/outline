@@ -55,6 +55,7 @@ const Button = styled.button`
   background: none;
   line-height: 0;
   border: 0;
+  padding: 0;
 
   &:hover {
     opacity: 1;
