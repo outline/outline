@@ -3,6 +3,10 @@ import * as React from 'react';
 import styled, { withTheme } from 'styled-components';
 import { NavLink } from 'react-router-dom';
 
+type Props = {
+  theme: Object,
+};
+
 const StyledNavLink = styled(NavLink)`
   position: relative;
   top: 1px;
@@ -21,7 +25,7 @@ const StyledNavLink = styled(NavLink)`
   }
 `;
 
-function Tab(props: *) {
+function Tab(props: Props) {
   const activeStyle = {
     paddingBottom: '5px',
     borderBottom: `3px solid ${props.theme.textSecondary}`,

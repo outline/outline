@@ -22,7 +22,7 @@ class Export extends React.Component<Props> {
   @observable isLoading: boolean = false;
   @observable isExporting: boolean = false;
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isLoading = true;
 

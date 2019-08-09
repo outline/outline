@@ -83,7 +83,7 @@ class CollectionScene extends React.Component<Props> {
     this.isFetching = false;
   };
 
-  onNewDocument = (ev: SyntheticEvent<*>) => {
+  onNewDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
 
     if (this.collection) {
@@ -91,7 +91,7 @@ class CollectionScene extends React.Component<Props> {
     }
   };
 
-  onPermissions = (ev: SyntheticEvent<*>) => {
+  onPermissions = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.permissionsModalOpen = true;
   };

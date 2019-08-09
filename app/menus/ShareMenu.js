@@ -13,8 +13,8 @@ import Share from 'models/Share';
 
 type Props = {
   label?: React.Node,
-  onOpen?: () => *,
-  onClose: () => *,
+  onOpen?: () => void,
+  onClose: () => void,
   shares: SharesStore,
   ui: UiStore,
   share: Share,
@@ -28,12 +28,12 @@ class ShareMenu extends React.Component<Props> {
     this.redirectTo = undefined;
   }
 
-  handleGoToDocument = (ev: SyntheticEvent<*>) => {
+  handleGoToDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.redirectTo = this.props.share.documentUrl;
   };
 
-  handleRevoke = (ev: SyntheticEvent<*>) => {
+  handleRevoke = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.props.shares.revoke(this.props.share);
     this.props.ui.showToast('Share link revoked');

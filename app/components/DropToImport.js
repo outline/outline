@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
 import invariant from 'invariant';
 import importFile from 'utils/importFile';
@@ -22,7 +22,7 @@ type Props = {
   disabled: boolean,
   location: Object,
   match: Object,
-  history: Object,
+  history: RouterHistory,
   staticContext: Object,
 };
 

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
@@ -12,7 +12,7 @@ import UiStore from 'stores/UiStore';
 import { collectionUrl } from 'utils/routeHelpers';
 
 type Props = {
-  history: Object,
+  history: RouterHistory,
   document: Document,
   documents: DocumentsStore,
   ui: UiStore,
@@ -23,7 +23,7 @@ type Props = {
 class DocumentDelete extends React.Component<Props> {
   @observable isDeleting: boolean;
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isDeleting = true;
 

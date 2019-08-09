@@ -9,7 +9,7 @@ import Flex from 'shared/components/Flex';
 
 type Props = {
   to?: string | Object,
-  onClick?: (SyntheticEvent<*>) => *,
+  onClick?: (SyntheticEvent<>) => void,
   children?: React.Node,
   icon?: React.Node,
   expanded?: boolean,
@@ -43,7 +43,7 @@ class SidebarLink extends React.Component<Props> {
   }
 
   @action
-  handleClick = (ev: SyntheticEvent<*>) => {
+  handleClick = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.expanded = !this.expanded;

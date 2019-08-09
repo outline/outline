@@ -11,7 +11,7 @@ import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 type Props = {
   documents: Document[],
-  fetch: (options: ?Object) => Promise<*>,
+  fetch: (options: ?Object) => Promise<void>,
   options?: Object,
   heading?: React.Node,
   empty?: React.Node,

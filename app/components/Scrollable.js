@@ -12,7 +12,7 @@ type Props = {
 class Scrollable extends React.Component<Props> {
   @observable shadow: boolean = false;
 
-  handleScroll = (ev: SyntheticMouseEvent<*>) => {
+  handleScroll = (ev: SyntheticMouseEvent<HTMLDivElement>) => {
     this.shadow = !!(this.props.shadow && ev.currentTarget.scrollTop > 0);
   };
 

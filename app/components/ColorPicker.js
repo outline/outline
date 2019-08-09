@@ -66,14 +66,14 @@ class ColorPicker extends React.Component<Props> {
   };
 
   @action
-  focusOnCustomColor = (event: SyntheticEvent<*>) => {
+  focusOnCustomColor = (event: SyntheticEvent<>) => {
     this.selectedColor = '';
     this.customColorSelected = true;
     this.fireCallback();
   };
 
   @action
-  setCustomColor = (event: SyntheticEvent<*>) => {
+  setCustomColor = (event: SyntheticEvent<HTMLElement>) => {
     let target = event.target;
     if (target instanceof HTMLInputElement) {
       const color = target.value;

@@ -3,7 +3,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import { inject, observer } from 'mobx-react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { EditIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
@@ -22,8 +22,8 @@ type Props = {
   user: User,
   auth: AuthStore,
   documents: DocumentsStore,
-  history: Object,
-  onRequestClose: () => *,
+  history: RouterHistory,
+  onRequestClose: () => void,
 };
 
 @observer

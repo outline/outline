@@ -18,7 +18,7 @@ type Props = {
   ui: UiStore,
   documents: DocumentsStore,
   activeDocument: ?Document,
-  prefetchDocument: (id: string) => *,
+  prefetchDocument: (id: string) => Promise<void>,
 };
 
 @observer

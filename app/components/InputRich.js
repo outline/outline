@@ -14,7 +14,7 @@ type Props = {
 
 @observer
 class InputRich extends React.Component<Props> {
-  @observable editorComponent: *;
+  @observable editorComponent: React.ComponentType<any>;
   @observable focused: boolean = false;
 
   componentDidMount() {

@@ -15,7 +15,7 @@ type Props = {
   children?: React.Node,
   isOpen: boolean,
   title?: string,
-  onRequestClose: () => *,
+  onRequestClose: () => void,
 };
 
 const GlobalStyles = createGlobalStyle`
