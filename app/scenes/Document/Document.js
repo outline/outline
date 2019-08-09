@@ -22,6 +22,7 @@ import { emojiToUrl } from 'utils/emoji';
 import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
+import KeyboardShortcuts from './components/KeyboardShortcuts';
 import Backlinks from './components/Backlinks';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
@@ -426,7 +427,7 @@ class DocumentScene extends React.Component<Props> {
             </MaxWidth>
           </Container>
         </Container>
-        {isShare && <Branding />}
+        {isShare ? <Branding /> : <KeyboardShortcuts />}
       </ErrorBoundary>
     );
   }

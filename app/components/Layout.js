@@ -21,6 +21,8 @@ import Sidebar from 'components/Sidebar';
 import SettingsSidebar from 'components/Sidebar/Settings';
 import Modals from 'components/Modals';
 import DocumentHistory from 'components/DocumentHistory';
+import Modal from 'components/Modal';
+import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
 import ErrorSuspended from 'scenes/ErrorSuspended';
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
@@ -41,6 +43,7 @@ type Props = {
 class Layout extends React.Component<Props> {
   scrollable: ?HTMLDivElement;
   @observable redirectTo: ?string;
+  @observable keyboardShortcutsOpen: boolean = false;
 
   componentWillMount() {
     this.updateBackground();
@@ -53,6 +56,15 @@ class Layout extends React.Component<Props> {
       this.redirectTo = undefined;
     }
   }
+
+  @keydown('shift+/')
+  handleOpenKeyboardShortcuts() {
+    this.keyboardShortcutsOpen = true;
+  }
+
+  handleCloseKeyboardShortcuts = () => {
+    this.keyboardShortcutsOpen = false;
+  };
 
   updateBackground() {
     // ensure the wider page color always matches the theme
@@ -69,11 +81,6 @@ class Layout extends React.Component<Props> {
   @keydown('d')
   goToDashboard() {
     this.redirectTo = homeUrl();
-  }
-
-  @keydown('shift+/')
-  openKeyboardShortcuts() {
-    this.props.ui.setActiveModal('keyboard-shortcuts');
   }
 
   render() {
@@ -118,6 +125,13 @@ class Layout extends React.Component<Props> {
           </Switch>
         </Container>
         <Modals ui={ui} />
+        <Modal
+          isOpen={this.keyboardShortcutsOpen}
+          onRequestClose={this.handleCloseKeyboardShortcuts}
+          title="Keyboard shortcuts"
+        >
+          <KeyboardShortcuts />
+        </Modal>
         <GlobalStyles />
       </Container>
     );
