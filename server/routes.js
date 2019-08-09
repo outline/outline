@@ -11,6 +11,7 @@ import apexRedirect from './middlewares/apexRedirect';
 import renderpage from './utils/renderpage';
 import { isCustomSubdomain, parseDomain } from '../shared/utils/domains';
 import { robotsResponse } from './utils/robots';
+import { opensearchResponse } from './utils/opensearch';
 import { NotFoundError } from './errors';
 import { Team } from './models';
 
@@ -146,7 +147,14 @@ router.get('/', async ctx => {
   );
 });
 
-router.get('/robots.txt', ctx => (ctx.body = robotsResponse(ctx)));
+router.get('/robots.txt', ctx => {
+  ctx.body = robotsResponse(ctx);
+});
+
+router.get('/opensearch.xml', ctx => {
+  ctx.type = 'text/xml';
+  ctx.body = opensearchResponse();
+});
 
 // catch all for react app
 router.get('*', async (ctx, next) => {
