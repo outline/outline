@@ -3,7 +3,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 type Props = {
-  onClick?: (SyntheticEvent<*>) => *,
+  onClick?: (SyntheticEvent<>) => void | Promise<void>,
   children?: React.Node,
   disabled?: boolean,
 };

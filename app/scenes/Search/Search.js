@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
 import { withRouter, Link } from 'react-router-dom';
+import type { Location, RouterHistory } from 'react-router-dom';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { debounce } from 'lodash';
@@ -32,9 +33,9 @@ import UserFilter from './components/UserFilter';
 import DateFilter from './components/DateFilter';
 
 type Props = {
-  history: Object,
+  history: RouterHistory,
   match: Object,
-  location: Object,
+  location: Location,
   documents: DocumentsStore,
   users: UsersStore,
   notFound: ?boolean,

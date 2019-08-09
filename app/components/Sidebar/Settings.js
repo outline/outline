@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
+import type { RouterHistory } from 'react-router-dom';
 import {
   DocumentIcon,
   EmailIcon,
@@ -25,7 +26,7 @@ import HeaderBlock from './components/HeaderBlock';
 import AuthStore from 'stores/AuthStore';
 
 type Props = {
-  history: Object,
+  history: RouterHistory,
   auth: AuthStore,
 };
 

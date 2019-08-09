@@ -10,6 +10,7 @@ import Placeholder from 'rich-markdown-editor/lib/components/Placeholder';
 import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
 import Tooltip from 'components/Tooltip';
+import UiStore from 'stores/UiStore';
 import Embed from './Embed';
 import embeds from '../../embeds';
 
@@ -17,8 +18,8 @@ type Props = {
   defaultValue?: string,
   readOnly?: boolean,
   disableEmbeds?: boolean,
-  forwardedRef: *,
-  ui: *,
+  forwardedRef: React.Ref<RichMarkdownEditor>,
+  ui: UiStore,
 };
 
 @observer

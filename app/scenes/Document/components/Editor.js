@@ -10,7 +10,7 @@ type Props = {
 };
 
 class DocumentEditor extends React.Component<Props> {
-  editor: *;
+  editor: ?Editor;
 
   componentDidMount() {
     if (!this.props.defaultValue) {

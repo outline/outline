@@ -9,7 +9,7 @@ type Props = {
   event: string,
   description: string,
   disabled: boolean,
-  onChange: *,
+  onChange: (ev: SyntheticInputEvent<>) => void | Promise<void>,
 };
 
 const NotificationListItem = ({

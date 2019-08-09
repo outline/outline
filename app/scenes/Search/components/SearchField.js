@@ -5,18 +5,18 @@ import { SearchIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 
 type Props = {
-  onChange: string => *,
+  onChange: string => void,
   theme: Object,
 };
 
 class SearchField extends React.Component<Props> {
   input: ?HTMLInputElement;
 
-  handleChange = (ev: SyntheticEvent<*>) => {
+  handleChange = (ev: SyntheticEvent<HTMLInputElement>) => {
     this.props.onChange(ev.currentTarget.value ? ev.currentTarget.value : '');
   };
 
-  focusInput = (ev: SyntheticEvent<*>) => {
+  focusInput = (ev: SyntheticEvent<>) => {
     if (this.input) this.input.focus();
   };
 

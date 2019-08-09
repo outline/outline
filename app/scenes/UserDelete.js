@@ -10,14 +10,14 @@ import AuthStore from 'stores/AuthStore';
 
 type Props = {
   auth: AuthStore,
-  onRequestClose: () => *,
+  onRequestClose: () => void,
 };
 
 @observer
 class UserDelete extends React.Component<Props> {
   @observable isDeleting: boolean;
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isDeleting = true;
 

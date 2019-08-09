@@ -32,12 +32,12 @@ type Props = {
   isPublishing: boolean,
   publishingIsDisabled: boolean,
   savingIsDisabled: boolean,
-  onDiscard: () => *,
+  onDiscard: () => void,
   onSave: ({
     done?: boolean,
     publish?: boolean,
     autosave?: boolean,
-  }) => *,
+  }) => void,
   auth: AuthStore,
 };
 
@@ -73,7 +73,7 @@ class Header extends React.Component<Props> {
     this.props.onSave({ done: true, publish: true });
   };
 
-  handleShareLink = async (ev: SyntheticEvent<*>) => {
+  handleShareLink = async (ev: SyntheticEvent<>) => {
     const { document } = this.props;
     if (!document.shareUrl) await document.share();
     this.showShareModal = true;

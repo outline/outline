@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
@@ -15,7 +15,7 @@ import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
-  history: Object,
+  history: RouterHistory,
   ui: UiStore,
   collections: CollectionsStore,
   onSubmit: () => void,
@@ -29,7 +29,7 @@ class CollectionNew extends React.Component<Props> {
   @observable private: boolean = false;
   @observable isSaving: boolean;
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isSaving = true;
     const collection = new Collection(

@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 type Props = {
   user: User,
   showRemove: boolean,
-  onRemove: () => *,
+  onRemove: () => void,
 };
 
 const MemberListItem = ({ user, onRemove, showRemove }: Props) => {

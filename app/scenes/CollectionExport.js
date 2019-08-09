@@ -20,7 +20,7 @@ type Props = {
 class CollectionExport extends React.Component<Props> {
   @observable isLoading: boolean = false;
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
 
     this.isLoading = true;

@@ -6,7 +6,7 @@ import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Prompt, Route, withRouter } from 'react-router-dom';
-import type { Location } from 'react-router-dom';
+import type { Location, RouterHistory } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
 import {
@@ -59,7 +59,7 @@ Are you sure you want to discard them?
 
 type Props = {
   match: Object,
-  history: Object,
+  history: RouterHistory,
   location: Location,
   documents: DocumentsStore,
   revisions: RevisionsStore,

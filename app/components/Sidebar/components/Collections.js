@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
 import { PlusIcon } from 'outline-icons';
@@ -17,7 +17,7 @@ import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 
 type Props = {
-  history: Object,
+  history: RouterHistory,
   collections: CollectionsStore,
   documents: DocumentsStore,
   onCreateCollection: () => void,

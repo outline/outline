@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import type { RouterHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import Waypoint from 'react-waypoint';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
@@ -20,7 +21,7 @@ type Props = {
   match: Object,
   documents: DocumentsStore,
   revisions: RevisionsStore,
-  history: Object,
+  history: RouterHistory,
 };
 
 @observer

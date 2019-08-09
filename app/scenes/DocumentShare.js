@@ -11,7 +11,7 @@ import Document from 'models/Document';
 
 type Props = {
   document?: Document,
-  onSubmit: () => *,
+  onSubmit: () => void,
 };
 
 @observer

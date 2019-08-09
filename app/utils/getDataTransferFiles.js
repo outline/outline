@@ -1,5 +1,5 @@
 // @flow
-export default function getDataTransferFiles(event: SyntheticEvent<*>): File[] {
+export default function getDataTransferFiles(event: SyntheticEvent<>): File[] {
   let dataTransferItemsList = [];
 
   // $FlowFixMe

@@ -14,12 +14,12 @@ type Props = {
   document?: ?Document,
   collection: ?Collection,
   onSuccess?: () => void,
-  ref?: *,
+  ref?: (?React.ElementRef<'div'>) => void,
 };
 
 @observer
 class PathToDocument extends React.Component<Props> {
-  handleClick = async (ev: SyntheticEvent<*>) => {
+  handleClick = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { document, result, onSuccess } = this.props;
     if (!document) return;

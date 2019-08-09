@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { CloseIcon } from 'outline-icons';
@@ -21,7 +21,7 @@ const MAX_INVITES = 20;
 type Props = {
   auth: AuthStore,
   users: UsersStore,
-  history: Object,
+  history: RouterHistory,
   ui: UiStore,
   onSubmit: () => void,
 };
@@ -37,7 +37,7 @@ class Invite extends React.Component<Props> {
     { email: '', name: '' },
   ];
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isSaving = true;
 
