@@ -81,7 +81,7 @@ const Label = styled.span`
   ${props => props.hasIcon && 'padding-left: 4px;'};
 `;
 
-const Inner = styled.span`
+export const Inner = styled.span`
   display: flex;
   padding: 0 8px;
   padding-right: ${props => (props.disclosure ? 2 : 8)}px;

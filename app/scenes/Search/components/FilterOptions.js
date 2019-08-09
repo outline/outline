@@ -3,7 +3,7 @@ import * as React from 'react';
 import { find } from 'lodash';
 import styled from 'styled-components';
 import Scrollable from 'components/Scrollable';
-import Button from 'components/Button';
+import Button, { Inner } from 'components/Button';
 import { DropdownMenu } from 'components/DropdownMenu';
 import FilterOption from './FilterOption';
 
@@ -67,6 +67,10 @@ const StyledButton = styled(Button)`
 
   &:hover {
     background: transparent;
+  }
+
+  ${Inner} {
+    line-height: 28px;
   }
 `;
 

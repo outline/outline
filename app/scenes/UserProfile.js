@@ -3,7 +3,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import { inject, observer } from 'mobx-react';
-import { Link } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import { EditIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
@@ -16,11 +16,13 @@ import Subheading from 'components/Subheading';
 import User from 'models/User';
 import DocumentsStore from 'stores/DocumentsStore';
 import AuthStore from 'stores/AuthStore';
+import { settings } from 'shared/utils/routeHelpers';
 
 type Props = {
   user: User,
   auth: AuthStore,
   documents: DocumentsStore,
+  history: Object,
   onRequestClose: () => *,
 };
 
@@ -51,7 +53,11 @@ class UserProfile extends React.Component<Props> {
             {user.isSuspended && <Badge>Suspended</Badge>}
             {isCurrentUser && (
               <Edit>
-                <Button to="/settings" as={Link} icon={<EditIcon />} neutral>
+                <Button
+                  onClick={() => this.props.history.push(settings())}
+                  icon={<EditIcon />}
+                  neutral
+                >
                   Edit Profile
                 </Button>
               </Edit>
@@ -88,4 +94,4 @@ const Meta = styled(HelpText)`
   margin-top: -12px;
 `;
 
-export default inject('documents', 'auth')(UserProfile);
+export default inject('documents', 'auth')(withRouter(UserProfile));
