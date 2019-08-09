@@ -3,6 +3,7 @@ import * as React from 'react';
 import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { PlusIcon } from 'outline-icons';
 
 import AuthStore from 'stores/AuthStore';
 import UsersStore from 'stores/UsersStore';
@@ -74,6 +75,7 @@ class People extends React.Component<Props> {
           data-event-category="invite"
           data-event-action="peoplePage"
           onClick={this.handleInviteModalOpen}
+          icon={<PlusIcon />}
           neutral
         >
           Invite people…
