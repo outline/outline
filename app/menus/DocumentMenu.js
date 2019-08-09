@@ -11,6 +11,7 @@ import AuthStore from 'stores/AuthStore';
 import CollectionStore from 'stores/CollectionsStore';
 import {
   documentMoveUrl,
+  documentEditUrl,
   documentHistoryUrl,
   newDocumentUrl,
 } from 'utils/routeHelpers';
@@ -55,6 +56,10 @@ class DocumentMenu extends React.Component<Props> {
 
   handleMove = (ev: SyntheticEvent<*>) => {
     this.redirectTo = documentMoveUrl(this.props.document);
+  };
+
+  handleEdit = (ev: SyntheticEvent<*>) => {
+    this.redirectTo = documentEditUrl(this.props.document);
   };
 
   handleDuplicate = async (ev: SyntheticEvent<*>) => {
@@ -178,6 +183,7 @@ class DocumentMenu extends React.Component<Props> {
             >
               New child document
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
             <DropdownMenuItem onClick={this.handleDuplicate}>
               Duplicate
             </DropdownMenuItem>
