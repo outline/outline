@@ -7,7 +7,7 @@ import { presentCollection, presentUser } from '../presenters';
 import { Collection, CollectionUser, Team, Event, User } from '../models';
 import { ValidationError, InvalidRequestError } from '../errors';
 import { exportCollections } from '../logistics';
-import { archiveCollection } from '../utils/zip';
+import { archiveCollection, archiveCollections } from '../utils/zip';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -168,12 +168,11 @@ router.post('collections.export', auth(), async ctx => {
 });
 
 router.post('collections.exportAll', auth(), async ctx => {
+  const { download = false } = ctx.body;
+
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   authorize(user, 'export', team);
-
-  // async operation to create zip archive and email user
-  exportCollections(user.teamId, user.email);
 
   await Event.create({
     name: 'collections.export',
@@ -182,9 +181,24 @@ router.post('collections.exportAll', auth(), async ctx => {
     ip: ctx.request.ip,
   });
 
-  ctx.body = {
-    success: true,
-  };
+  if (download) {
+    const collections = await Collection.findAll({
+      where: { teamId: team.id },
+      order: [['name', 'ASC']],
+    });
+    const filePath = await archiveCollections(collections);
+
+    ctx.attachment(`${team.name}.zip`);
+    ctx.set('Content-Type', 'application/force-download');
+    ctx.body = fs.createReadStream(filePath);
+  } else {
+    // async operation to create zip archive and email user
+    exportCollections(user.teamId, user.email);
+
+    ctx.body = {
+      success: true,
+    };
+  }
 });
 
 router.post('collections.update', auth(), async ctx => {
