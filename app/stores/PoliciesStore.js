@@ -9,4 +9,9 @@ export default class PoliciesStore extends BaseStore<Policy> {
   constructor(rootStore: RootStore) {
     super(rootStore, Policy);
   }
+
+  abilties(id: string) {
+    const policy = this.get(id);
+    return policy ? policy.abilities : {};
+  }
 }

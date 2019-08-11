@@ -12,7 +12,19 @@ import './team';
 
 const { can, abilities } = policy;
 
-export function serialize(model: User, target: Team | Collection | Document) {
+type Policy = {
+  [key: string]: boolean,
+};
+
+/*
+* Given a user and a model – output an object which describes the actions the 
+* user may take against the model. This serialized policy is used for testing
+* and sent in API responses to allow clients to adjust which UI is displayed.
+*/
+export function serialize(
+  model: User,
+  target: Team | Collection | Document
+): Policy {
   let output = {};
 
   abilities.forEach(ability => {

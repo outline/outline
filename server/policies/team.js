@@ -17,6 +17,11 @@ allow(User, 'auditLog', Team, user => {
   return false;
 });
 
+allow(User, 'invite', Team, user => {
+  if (user.isAdmin) return true;
+  return false;
+});
+
 allow(User, ['update', 'export'], Team, (user, team) => {
   if (!team || user.teamId !== team.id) return false;
   if (user.isAdmin) return true;
