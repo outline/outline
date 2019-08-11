@@ -45,7 +45,7 @@ router.post('collections.create', auth(), async ctx => {
 
   ctx.body = {
     data: await presentCollection(collection),
-    policies: await presentPolicies(user, [collection]),
+    policies: presentPolicies(user, [collection]),
   };
 });
 
@@ -59,7 +59,7 @@ router.post('collections.info', auth(), async ctx => {
 
   ctx.body = {
     data: await presentCollection(collection),
-    policies: await presentPolicies(user, [collection]),
+    policies: presentPolicies(user, [collection]),
   };
 });
 
@@ -246,7 +246,7 @@ router.post('collections.update', auth(), async ctx => {
 
   ctx.body = {
     data: presentCollection(collection),
-    policies: await presentPolicies(user, [collection]),
+    policies: presentPolicies(user, [collection]),
   };
 });
 
@@ -267,7 +267,7 @@ router.post('collections.list', auth(), pagination(), async ctx => {
   const data = await Promise.all(
     collections.map(async collection => await presentCollection(collection))
   );
-  const policies = await presentPolicies(user, collections);
+  const policies = presentPolicies(user, collections);
 
   ctx.body = {
     pagination: ctx.state.pagination,
