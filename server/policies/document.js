@@ -28,6 +28,7 @@ allow(User, 'archive', Document, (user, document) => {
     if (cannot(user, 'read', document.collection)) return false;
   }
   if (!document.publishedAt) return false;
+  if (document.archivedAt) return false;
 
   return user.teamId === document.teamId;
 });

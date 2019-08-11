@@ -320,6 +320,8 @@ export default class DocumentsStore extends BaseStore<Document> {
         shareId: options.shareId,
       });
       invariant(res && res.data, 'Document not available');
+
+      this.addPolicies(res.policies);
       this.add(res.data);
 
       runInAction('DocumentsStore#fetch', () => {
@@ -363,6 +365,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
 
+    this.addPolicies(res.policies);
     return this.add(res.data);
   };
 
