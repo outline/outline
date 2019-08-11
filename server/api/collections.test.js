@@ -358,6 +358,7 @@ describe('#collections.create', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toBeTruthy();
     expect(body.data.name).toBe('Test');
+    expect(body.policies.length).toBe(1);
   });
 });
 
