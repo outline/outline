@@ -8,6 +8,7 @@ import {
   presentDocument,
   presentCollection,
   presentRevision,
+  presentPolicies,
 } from '../presenters';
 import {
   Collection,
@@ -88,9 +89,12 @@ router.post('documents.list', auth(), pagination(), async ctx => {
     documents.map(document => presentDocument(document))
   );
 
+  const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+    policies,
   };
 });
 
@@ -123,9 +127,12 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
     documents.map(document => presentDocument(document))
   );
 
+  const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+    policies,
   };
 });
 
@@ -154,9 +161,12 @@ router.post('documents.archived', auth(), pagination(), async ctx => {
     documents.map(document => presentDocument(document))
   );
 
+  const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+    policies,
   };
 });
 
@@ -191,13 +201,17 @@ router.post('documents.viewed', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
+  const documents = views.map(view => view.document);
   const data = await Promise.all(
-    views.map(view => presentDocument(view.document))
+    documents.map(document => presentDocument(document))
   );
+
+  const policies = presentPolicies(user, documents);
 
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+    policies,
   };
 });
 
@@ -234,13 +248,17 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
+  const documents = stars.map(star => star.document);
   const data = await Promise.all(
-    stars.map(star => presentDocument(star.document))
+    documents.map(document => presentDocument(document))
   );
+
+  const policies = presentPolicies(user, documents);
 
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+    policies,
   };
 });
 
@@ -266,9 +284,12 @@ router.post('documents.drafts', auth(), pagination(), async ctx => {
     documents.map(document => presentDocument(document))
   );
 
+  const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+    policies,
   };
 });
 
@@ -311,6 +332,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
 
   ctx.body = {
     data: await presentDocument(document, { isPublic }),
+    policies: isPublic ? undefined : presentPolicies(user, [document]),
   };
 });
 
@@ -404,6 +426,7 @@ router.post('documents.restore', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
   };
 });
 
@@ -443,6 +466,7 @@ router.post('documents.search', auth(), pagination(), async ctx => {
     limit,
   });
 
+  const documents = results.map(result => result.document);
   const data = await Promise.all(
     results.map(async result => {
       const document = await presentDocument(result.document);
@@ -450,9 +474,12 @@ router.post('documents.search', auth(), pagination(), async ctx => {
     })
   );
 
+  const policies = presentPolicies(user, documents);
+
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+    policies,
   };
 });
 
@@ -479,6 +506,7 @@ router.post('documents.pin', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
   };
 });
 
@@ -505,6 +533,7 @@ router.post('documents.unpin', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
   };
 });
 
@@ -637,6 +666,7 @@ router.post('documents.create', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
   };
 });
 
@@ -719,6 +749,7 @@ router.post('documents.update', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
   };
 });
 
@@ -774,6 +805,7 @@ router.post('documents.move', auth(), async ctx => {
       collections: await Promise.all(
         collections.map(collection => presentCollection(collection))
       ),
+      policies: presentPolicies(user, documents),
     },
   };
 });
@@ -800,6 +832,7 @@ router.post('documents.archive', auth(), async ctx => {
 
   ctx.body = {
     data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
   };
 });
 

@@ -1,7 +1,7 @@
 // @flow
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
-import { presentUser, presentTeam } from '../presenters';
+import { presentUser, presentTeam, presentPolicies } from '../presenters';
 import { Team } from '../models';
 
 const router = new Router();
@@ -15,6 +15,7 @@ router.post('auth.info', auth(), async ctx => {
       user: presentUser(user, { includeDetails: true }),
       team: presentTeam(team),
     },
+    policies: presentPolicies(user, [team]),
   };
 });
 
