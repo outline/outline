@@ -5,7 +5,7 @@ import { serialize } from './index';
 
 beforeEach(flushdb);
 
-it.only('should serialize policy', async () => {
+it('should serialize policy', async () => {
   const user = await buildUser();
   const response = serialize(user, user);
   expect(response.update).toEqual(true);
