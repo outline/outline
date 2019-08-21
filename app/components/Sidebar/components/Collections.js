@@ -29,7 +29,11 @@ class Collections extends React.Component<Props> {
   isPreloaded: boolean = !!this.props.collections.orderedData.length;
 
   componentDidMount() {
-    this.props.collections.fetchPage({ limit: 100 });
+    const { collections } = this.props;
+
+    if (!collections.isFetching && !collections.isLoaded) {
+      collections.fetchPage({ limit: 100 });
+    }
   }
 
   @keydown('n')
