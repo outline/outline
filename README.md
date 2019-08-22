@@ -21,7 +21,7 @@ If you'd like to run your own copy of Outline or contribute to development then 
 
 Outline requires the following dependencies:
 
-- Node.js >= 8.11
+- Node.js >= 12
 - Postgres >=9.5
 - Redis
 - AWS S3 storage bucket for media and other attachments
