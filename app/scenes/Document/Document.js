@@ -31,7 +31,6 @@ import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Notice from 'shared/components/Notice';
 import Time from 'shared/components/Time';
-import Search from 'scenes/Search';
 import Error404 from 'scenes/Error404';
 import ErrorOffline from 'scenes/ErrorOffline';
 
@@ -82,7 +81,7 @@ class DocumentScene extends React.Component<Props> {
   @observable isPublishing: boolean = false;
   @observable isDirty: boolean = false;
   @observable isEmpty: boolean = true;
-  @observable notFound: boolean = false;
+  @observable error: ?Error;
   @observable moveModalOpen: boolean = false;
 
   constructor(props) {
@@ -154,18 +153,23 @@ class DocumentScene extends React.Component<Props> {
     } else {
       const { shareId, revisionId } = props.match.params;
 
-      this.document = await props.documents.fetch(
-        props.match.params.documentSlug,
-        { shareId }
-      );
-
-      if (revisionId) {
-        this.revision = await props.revisions.fetch(
+      try {
+        this.document = await props.documents.fetch(
           props.match.params.documentSlug,
-          { revisionId }
+          { shareId }
         );
-      } else {
-        this.revision = undefined;
+
+        if (revisionId) {
+          this.revision = await props.revisions.fetch(
+            props.match.params.documentSlug,
+            { revisionId }
+          );
+        } else {
+          this.revision = undefined;
+        }
+      } catch (err) {
+        this.error = err;
+        return;
       }
 
       this.isDirty = false;
@@ -197,9 +201,6 @@ class DocumentScene extends React.Component<Props> {
             }
           }
         }
-      } else {
-        // Render 404 with search
-        this.notFound = true;
       }
     }
   };
@@ -315,16 +316,8 @@ class DocumentScene extends React.Component<Props> {
     const revision = this.revision;
     const isShare = match.params.shareId;
 
-    if (this.notFound) {
-      return navigator.onLine ? (
-        isShare ? (
-          <Error404 />
-        ) : (
-          <Search notFound />
-        )
-      ) : (
-        <ErrorOffline />
-      );
+    if (this.error) {
+      return navigator.onLine ? <Error404 /> : <ErrorOffline />;
     }
 
     if (!document || !Editor) {
