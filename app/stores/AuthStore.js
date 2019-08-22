@@ -44,6 +44,12 @@ export default class AuthStore {
     });
   }
 
+  addPolicies = policies => {
+    if (policies) {
+      policies.forEach(policy => this.rootStore.policies.add(policy));
+    }
+  };
+
   @computed
   get authenticated(): boolean {
     return !!this.token;
@@ -64,6 +70,7 @@ export default class AuthStore {
       invariant(res && res.data, 'Auth not available');
 
       runInAction('AuthStore#fetch', () => {
+        this.addPolicies(res.policies);
         const { user, team } = res.data;
         this.user = user;
         this.team = team;
@@ -112,6 +119,7 @@ export default class AuthStore {
       invariant(res && res.data, 'User response not available');
 
       runInAction('AuthStore#updateUser', () => {
+        this.addPolicies(res.policies);
         this.user = res.data;
       });
     } finally {
@@ -132,6 +140,7 @@ export default class AuthStore {
       invariant(res && res.data, 'Team response not available');
 
       runInAction('AuthStore#updateTeam', () => {
+        this.addPolicies(res.policies);
         this.team = res.data;
       });
     } finally {

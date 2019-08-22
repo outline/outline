@@ -4,7 +4,7 @@ import { Team } from '../models';
 import { publicS3Endpoint } from '../utils/s3';
 
 import auth from '../middlewares/authentication';
-import { presentTeam } from '../presenters';
+import { presentTeam, presentPolicies } from '../presenters';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -32,6 +32,7 @@ router.post('team.update', auth(), async ctx => {
 
   ctx.body = {
     data: presentTeam(team),
+    policies: presentPolicies(user, [team]),
   };
 });
 

@@ -3,7 +3,7 @@ import fs from 'fs';
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
-import { presentCollection, presentUser } from '../presenters';
+import { presentCollection, presentUser, presentPolicies } from '../presenters';
 import { Collection, CollectionUser, Team, Event, User } from '../models';
 import { ValidationError, InvalidRequestError } from '../errors';
 import { exportCollections } from '../logistics';
@@ -45,6 +45,7 @@ router.post('collections.create', auth(), async ctx => {
 
   ctx.body = {
     data: await presentCollection(collection),
+    policies: presentPolicies(user, [collection]),
   };
 });
 
@@ -52,11 +53,13 @@ router.post('collections.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
+  const user = ctx.state.user;
   const collection = await Collection.findByPk(id);
-  authorize(ctx.state.user, 'read', collection);
+  authorize(user, 'read', collection);
 
   ctx.body = {
     data: await presentCollection(collection),
+    policies: presentPolicies(user, [collection]),
   };
 });
 
@@ -243,6 +246,7 @@ router.post('collections.update', auth(), async ctx => {
 
   ctx.body = {
     data: presentCollection(collection),
+    policies: presentPolicies(user, [collection]),
   };
 });
 
@@ -263,10 +267,12 @@ router.post('collections.list', auth(), pagination(), async ctx => {
   const data = await Promise.all(
     collections.map(async collection => await presentCollection(collection))
   );
+  const policies = presentPolicies(user, collections);
 
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+    policies,
   };
 });
 
