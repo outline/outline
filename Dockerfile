@@ -1,4 +1,4 @@
-FROM node:8.11-alpine
+FROM node:12-alpine
 
 ENV PATH /opt/outline/node_modules/.bin:/opt/node_modules/.bin:$PATH
 ENV NODE_PATH /opt/outline/node_modules:/opt/node_modules
