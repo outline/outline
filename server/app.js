@@ -1,6 +1,10 @@
 // @flow
 import compress from 'koa-compress';
-import { contentSecurityPolicy } from 'koa-helmet';
+import helmet, {
+  contentSecurityPolicy,
+  dnsPrefetchControl,
+  referrerPolicy,
+} from 'koa-helmet';
 import logger from 'koa-logger';
 import mount from 'koa-mount';
 import enforceHttps from 'koa-sslify';
@@ -17,6 +21,19 @@ import routes from './routes';
 const app = new Koa();
 
 app.use(compress());
+app.use(helmet());
+app.use(
+  contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ['*', 'data:'],
+    },
+  })
+);
+app.use(dnsPrefetchControl({ allow: true }));
+app.use(referrerPolicy({ policy: 'no-referrer' }));
 
 if (process.env.NODE_ENV === 'development') {
   /* eslint-disable global-require */
@@ -102,15 +119,6 @@ if (process.env.NODE_ENV === 'development') {
 app.use(mount('/auth', auth));
 app.use(mount('/api', api));
 app.use(mount(routes));
-
-app.use(
-  contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-    },
-  })
-);
 
 /**
  * Production updates and anonymous analytics.
