@@ -12,12 +12,32 @@ if (
   process.exit(1);
 }
 
-if (process.env.AWS_ACCESS_KEY_ID && !process.env.AWS_REGION) {
-  console.error(
-    'The AWS_REGION env variable must be set when using AWS, e.g (us-east-1)'
-  );
-  // $FlowFixMe
-  process.exit(1);
+if (process.env.AWS_ACCESS_KEY_ID) {
+  [
+    'AWS_REGION',
+    'AWS_SECRET_ACCESS_KEY',
+    'AWS_S3_UPLOAD_BUCKET_URL',
+    'AWS_S3_UPLOAD_BUCKET_NAME',
+    'AWS_S3_UPLOAD_MAX_SIZE',
+  ].forEach(key => {
+    if (!process.env[key]) {
+      console.error(`The ${key} env variable must be set when using AWS`);
+      // $FlowFixMe
+      process.exit(1);
+    }
+  });
+}
+
+if (process.env.SLACK_KEY) {
+  ['SLACK_SECRET', 'SLACK_VERIFICATION_TOKEN', 'SLACK_APP_ID'].forEach(key => {
+    if (!process.env[key]) {
+      console.error(
+        `The ${key} env variable must be set when using the Slack integration`
+      );
+      // $FlowFixMe
+      process.exit(1);
+    }
+  });
 }
 
 if (!process.env.URL) {
@@ -42,6 +62,12 @@ if (!process.env.REDIS_URL) {
   );
   // $FlowFixMe
   process.exit(1);
+}
+
+if (!process.env.WEBSOCKETS_ENABLED) {
+  console.log(
+    'WARNING: Websockets are disabled. Set WEBSOCKETS_ENABLED env variable to true to enable'
+  );
 }
 
 if (process.env.NODE_ENV === 'production') {
