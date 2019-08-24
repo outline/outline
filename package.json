@@ -128,6 +128,7 @@
     "raw-loader": "^0.5.1",
     "react": "^16.8.6",
     "react-avatar-editor": "^10.3.0",
+    "react-color": "^2.17.3",
     "react-dom": "^16.8.6",
     "react-dropzone": "4.2.1",
     "react-helmet": "^5.2.0",
