@@ -120,6 +120,7 @@ app.use(
       ],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ['*', 'data:'],
+      frameSrc: ['*'],
     },
   })
 );
