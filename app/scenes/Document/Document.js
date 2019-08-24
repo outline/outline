@@ -435,7 +435,7 @@ const MaxWidth = styled(Flex)`
 
   ${breakpoint('tablet')`	
     padding: 0 24px;
-    margin: 12px auto;
+    margin: 4px auto 12px;
     max-width: 46em;
     box-sizing: content-box;
   `};
