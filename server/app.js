@@ -21,19 +21,6 @@ import routes from './routes';
 const app = new Koa();
 
 app.use(compress());
-app.use(helmet());
-app.use(
-  contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ['*', 'data:'],
-    },
-  })
-);
-app.use(dnsPrefetchControl({ allow: true }));
-app.use(referrerPolicy({ policy: 'no-referrer' }));
 
 if (process.env.NODE_ENV === 'development') {
   /* eslint-disable global-require */
@@ -118,6 +105,26 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(mount('/auth', auth));
 app.use(mount('/api', api));
+
+app.use(helmet());
+app.use(
+  contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        'www.google-analytics.com',
+        'd2wy8f7a9ursnm.cloudfront.net',
+      ],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ['*', 'data:'],
+    },
+  })
+);
+app.use(dnsPrefetchControl({ allow: true }));
+app.use(referrerPolicy({ policy: 'no-referrer' }));
 app.use(mount(routes));
 
 /**
