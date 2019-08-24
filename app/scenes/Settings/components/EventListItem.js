@@ -40,6 +40,32 @@ const description = event => {
           </a>)
         </React.Fragment>
       );
+    case 'users.suspend':
+      return (
+        <React.Fragment>
+          Suspended <strong>{event.data.name}’s</strong> account
+        </React.Fragment>
+      );
+    case 'users.activate':
+      return (
+        <React.Fragment>
+          Unsuspended <strong>{event.data.name}’s</strong> account
+        </React.Fragment>
+      );
+    case 'users.promote':
+      return (
+        <React.Fragment>
+          Made <strong>{event.data.name}</strong> an admin
+        </React.Fragment>
+      );
+    case 'users.demote':
+      return (
+        <React.Fragment>
+          Made <strong>{event.data.name}</strong> a member
+        </React.Fragment>
+      );
+    case 'users.delete':
+      return 'Deleted their account';
     case 'collections.add_user':
       return (
         <React.Fragment>
