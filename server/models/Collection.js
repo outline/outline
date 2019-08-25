@@ -21,6 +21,7 @@ const Collection = sequelize.define(
     description: DataTypes.STRING,
     color: DataTypes.STRING,
     private: DataTypes.BOOLEAN,
+    maintainerApprovalRequired: DataTypes.BOOLEAN,
     type: {
       type: DataTypes.STRING,
       validate: { isIn: [['atlas', 'journal']] },

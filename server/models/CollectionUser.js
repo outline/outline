@@ -7,7 +7,7 @@ const CollectionUser = sequelize.define(
     permission: {
       type: DataTypes.STRING,
       validate: {
-        isIn: [['read', 'read_write']],
+        isIn: [['read', 'read_write', 'maintainer']],
       },
     },
   },
