@@ -6,6 +6,7 @@ import { inject, observer } from 'mobx-react';
 import Input from 'components/Input';
 import InputRich from 'components/InputRich';
 import Button from 'components/Button';
+import Switch from 'components/Switch';
 import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 import ColorPicker from 'components/ColorPicker';
@@ -25,11 +26,13 @@ class CollectionEdit extends React.Component<Props> {
   @observable description: string = '';
   @observable color: string = '#4E5C6E';
   @observable isSaving: boolean;
+  @observable private: boolean = false;
 
   componentWillMount() {
     this.name = this.props.collection.name;
     this.description = this.props.collection.description;
     this.color = this.props.collection.color;
+    this.private = this.props.collection.private;
   }
 
   handleSubmit = async (ev: SyntheticEvent<*>) => {
@@ -41,6 +44,7 @@ class CollectionEdit extends React.Component<Props> {
         name: this.name,
         description: this.description,
         color: this.color,
+        private: this.private,
       });
       this.props.onSubmit();
     } catch (err) {
@@ -60,6 +64,10 @@ class CollectionEdit extends React.Component<Props> {
 
   handleColor = (color: string) => {
     this.color = color;
+  };
+
+  handlePrivateChange = (ev: SyntheticInputEvent<*>) => {
+    this.private = ev.target.checked;
   };
 
   render() {
@@ -91,6 +99,15 @@ class CollectionEdit extends React.Component<Props> {
             minHeight={68}
             maxHeight={200}
           />
+          <Switch
+            id="private"
+            label="Private collection"
+            onChange={this.handlePrivateChange}
+            checked={this.private}
+          />
+          <HelpText>
+            A private collection will only be visible to invited team members.
+          </HelpText>
           <Button
             type="submit"
             disabled={this.isSaving || !this.props.collection.name}
