@@ -29,7 +29,8 @@ class CollectionPermissions extends React.Component<Props> {
 
   componentDidMount() {
     this.props.users.fetchPage();
-    this.props.collection.fetchUsers();
+    // TODO
+    // this.props.collection.fetchUsers();
   }
 
   componentWillUnmount() {
@@ -37,6 +38,37 @@ class CollectionPermissions extends React.Component<Props> {
       this.props.ui.showToast('Permissions were updated');
     }
   }
+
+  handlePrivateChange = async (ev: SyntheticInputEvent<HTMLInputElement>) => {
+    console.log('handlePrivateChange');
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const { collection } = this.props;
+
+    try {
+      this.isEdited = true;
+      collection.private = ev.target.checked;
+      await collection.save();
+
+      if (collection.private) {
+        // TODO
+        // await collection.fetchUsers();
+      }
+    } catch (err) {
+      collection.private = !ev.target.checked;
+      this.props.ui.showToast('Collection privacy could not be changed');
+    }
+  };
+
+  handleAddUser = user => {
+    try {
+      this.isEdited = true;
+      this.props.collection.addUser(user);
+    } catch (err) {
+      this.props.ui.showToast('Could not add user');
+    }
+  };
 
   handleRemoveUser = user => {
     try {

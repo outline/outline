@@ -14,12 +14,14 @@ import importFile from 'utils/importFile';
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import NudeButton from 'components/NudeButton';
 
 type Props = {
   position?: 'left' | 'right' | 'center',
   ui: UiStore,
+  policies: PoliciesStore,
   documents: DocumentsStore,
   collection: Collection,
   history: RouterHistory,
@@ -89,7 +91,8 @@ class CollectionMenu extends React.Component<Props> {
   };
 
   render() {
-    const { collection, position, onOpen, onClose } = this.props;
+    const { policies, collection, position, onOpen, onClose } = this.props;
+    const can = policies.abilties(collection.id);
 
     return (
       <React.Fragment>
@@ -100,7 +103,7 @@ class CollectionMenu extends React.Component<Props> {
           accept="text/markdown, text/plain"
         />
         <Modal
-          title="Collection permissions"
+          title="Collection members"
           onRequestClose={this.handlePermissionsModalClose}
           isOpen={this.permissionsModalOpen}
         >
@@ -128,16 +131,24 @@ class CollectionMenu extends React.Component<Props> {
                 Import document
               </DropdownMenuItem>
               <hr />
-              <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
-              <DropdownMenuItem onClick={this.onPermissions}>
-                Permissions…
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={this.onExport}>
-                Export…
-              </DropdownMenuItem>
+              {can.update && (
+                <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
+              )}
+              {can.update && (
+                <DropdownMenuItem onClick={this.onPermissions}>
+                  Members…
+                </DropdownMenuItem>
+              )}
+              {can.export && (
+                <DropdownMenuItem onClick={this.onExport}>
+                  Export…
+                </DropdownMenuItem>
+              )}
             </React.Fragment>
           )}
-          <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>
+          {can.delete && (
+            <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>
+          )}
         </DropdownMenu>
       </React.Fragment>
     );
@@ -151,4 +162,6 @@ const HiddenInput = styled.input`
   visibility: hidden;
 `;
 
-export default inject('ui', 'documents')(withRouter(CollectionMenu));
+export default inject('ui', 'documents', 'policies')(
+  withRouter(CollectionMenu)
+);
