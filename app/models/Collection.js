@@ -56,14 +56,17 @@ export default class Collection extends BaseModel {
   }
 
   @action
-  async fetchUsers() {
+  async fetchMemberships() {
     this.isLoadingUsers = true;
 
     try {
-      const res = await client.post('/collections.users', { id: this.id });
-      invariant(res && res.data, 'User data should be available');
-      this.userIds = map(res.data, user => user.id);
-      res.data.forEach(this.store.rootStore.users.add);
+      const res = await client.post('/collections.memberships', {
+        id: this.id,
+      });
+      invariant(res && res.data, 'data should be available');
+
+      map(res.data.users, this.store.rootStore.users.add);
+      map(res.data.memberships, this.store.rootStore.memberships.add);
     } finally {
       this.isLoadingUsers = false;
     }

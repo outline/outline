@@ -1,17 +1,14 @@
 // @flow
 import * as React from 'react';
-import { reject } from 'lodash';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
+import { PlusIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
-import Fade from 'components/Fade';
-import Input from 'components/Input';
 import HelpText from 'components/HelpText';
 import Subheading from 'components/Subheading';
+import Button from 'components/Button';
 import List from 'components/List';
 import Placeholder from 'components/List/Placeholder';
-import Switch from 'components/Switch';
-import UserListItem from './components/UserListItem';
 import MemberListItem from './components/MemberListItem';
 import Collection from 'models/Collection';
 import UsersStore from 'stores/UsersStore';
@@ -29,7 +26,6 @@ type Props = {
 class CollectionPermissions extends React.Component<Props> {
   @observable isEdited: boolean = false;
   @observable isSaving: boolean = false;
-  @observable filter: string;
 
   componentDidMount() {
     this.props.users.fetchPage();
@@ -38,35 +34,9 @@ class CollectionPermissions extends React.Component<Props> {
 
   componentWillUnmount() {
     if (this.isEdited) {
-      this.props.ui.showToast('Permissions updated');
+      this.props.ui.showToast('Permissions were updated');
     }
   }
-
-  handlePrivateChange = async (ev: SyntheticInputEvent<*>) => {
-    const { collection } = this.props;
-
-    try {
-      this.isEdited = true;
-      collection.private = ev.target.checked;
-      await collection.save();
-
-      if (collection.private) {
-        await collection.fetchUsers();
-      }
-    } catch (err) {
-      collection.private = !ev.target.checked;
-      this.props.ui.showToast('Collection privacy could not be changed');
-    }
-  };
-
-  handleAddUser = user => {
-    try {
-      this.isEdited = true;
-      this.props.collection.addUser(user);
-    } catch (err) {
-      this.props.ui.showToast('Could not add user');
-    }
-  };
 
   handleRemoveUser = user => {
     try {
@@ -77,84 +47,62 @@ class CollectionPermissions extends React.Component<Props> {
     }
   };
 
-  handleFilter = (ev: SyntheticInputEvent<*>) => {
-    this.filter = ev.target.value.toLowerCase();
-  };
+  handleAddPeople = () => {};
 
   render() {
     const { collection, users, auth } = this.props;
     const { user } = auth;
     if (!user) return null;
 
-    const otherUsers = reject(users.active, user =>
-      collection.userIds.includes(user.id)
-    );
-    const hasOtherUsers = !!otherUsers.length;
     const isFirstLoadingUsers =
       collection.isLoadingUsers && !collection.users.length;
-    const filteredUsers = reject(
-      otherUsers,
-      user => this.filter && !user.name.toLowerCase().includes(this.filter)
-    );
 
     return (
       <Flex column>
-        <HelpText>
-          Choose which people on the team have access to read and edit documents
-          in the <strong>{collection.name}</strong> collection. By default
-          collections are visible to all team members.
-        </HelpText>
-
-        <Switch
-          id="private"
-          label="Private collection"
-          onChange={this.handlePrivateChange}
-          checked={collection.private}
-        />
-
-        {collection.private && (
-          <Fade>
-            <Flex column>
-              <Subheading>Invited ({collection.users.length})</Subheading>
-              <List>
-                {isFirstLoadingUsers ? (
-                  <Placeholder />
-                ) : (
-                  collection.users.map(member => (
-                    <MemberListItem
-                      key={member.id}
-                      user={member}
-                      showRemove={user.id !== member.id}
-                      onRemove={() => this.handleRemoveUser(member)}
-                    />
-                  ))
-                )}
-              </List>
-
-              {hasOtherUsers && (
-                <React.Fragment>
-                  <Subheading>Team Members</Subheading>
-                  <Input
-                    onChange={this.handleFilter}
-                    placeholder="Filter…"
-                    value={this.filter}
-                    type="search"
-                  />
-                  <List>
-                    {filteredUsers.map(member => (
-                      <UserListItem
-                        key={member.id}
-                        user={member}
-                        onAdd={() => this.handleAddUser(member)}
-                        showAdd
-                      />
-                    ))}
-                  </List>
-                </React.Fragment>
-              )}
-            </Flex>
-          </Fade>
+        {collection.private ? (
+          <React.Fragment>
+            <HelpText>
+              Choose which team members have access to view and edit documents
+              in the private <strong>{collection.name}</strong> collection. You
+              can make this collection visible to the whole team by making it
+              not private.
+            </HelpText>
+            <span>
+              <Button
+                type="button"
+                onClick={this.handleAddPeople}
+                icon={<PlusIcon />}
+                neutral
+              >
+                Add people…
+              </Button>
+            </span>
+          </React.Fragment>
+        ) : (
+          <HelpText>
+            Choose which team members have access to edit documents in the{' '}
+            <strong>{collection.name}</strong> collection. Need to limit who can
+            view? Make it private.
+          </HelpText>
         )}
+
+        <Subheading>Members</Subheading>
+        <List>
+          {isFirstLoadingUsers ? (
+            <Placeholder />
+          ) : (
+            (collection.private ? collection.users : users.active).map(
+              member => (
+                <MemberListItem
+                  key={member.id}
+                  user={member}
+                  showRemove={user.id !== member.id}
+                  onRemove={() => this.handleRemoveUser(member)}
+                />
+              )
+            )
+          )}
+        </List>
       </Flex>
     );
   }

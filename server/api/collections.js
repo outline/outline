@@ -80,7 +80,7 @@ router.post('collections.add_user', auth(), async ctx => {
   const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'read', user);
 
-  await CollectionUser.upsert({
+  const membership = await CollectionUser.upsert({
     collectionId: id,
     userId,
     permission,
@@ -98,9 +98,14 @@ router.post('collections.add_user', auth(), async ctx => {
   });
 
   ctx.body = {
-    success: true,
+    data: {
+      users: [presentUser(user)],
+      memberships: [presentMembership(membership)],
+    },
   };
 });
+
+// TODO: update_user
 
 router.post('collections.remove_user', auth(), async ctx => {
   const { id, userId } = ctx.body;
