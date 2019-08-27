@@ -3,7 +3,12 @@ import fs from 'fs';
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
-import { presentCollection, presentUser, presentPolicies } from '../presenters';
+import {
+  presentCollection,
+  presentUser,
+  presentPolicies,
+  presentMembership,
+} from '../presenters';
 import { Collection, CollectionUser, Team, Event, User } from '../models';
 import { ValidationError } from '../errors';
 import { exportCollections } from '../logistics';
@@ -124,6 +129,7 @@ router.post('collections.remove_user', auth(), async ctx => {
   };
 });
 
+// DEPRECATED: Use collection.memberships which has pagination and permissions
 router.post('collections.users', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
@@ -135,6 +141,37 @@ router.post('collections.users', auth(), async ctx => {
 
   ctx.body = {
     data: users.map(presentUser),
+  };
+});
+
+router.post('collections.memberships', auth(), pagination(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertUuid(id, 'id is required');
+
+  const collection = await Collection.findByPk(id);
+  authorize(ctx.state.user, 'read', collection);
+
+  const memberships = await CollectionUser.findAll({
+    where: {
+      collectionId: id,
+    },
+    order: [['createdAt', 'DESC']],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+    include: [
+      {
+        model: User,
+        as: 'user',
+      },
+    ],
+  });
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: {
+      memberships: memberships.map(presentMembership),
+      users: memberships.map(membership => presentUser(membership.user)),
+    },
   };
 });
 

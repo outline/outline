@@ -3,7 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '../app';
 import { flushdb, seed } from '../test/support';
 import { buildUser, buildCollection } from '../test/factories';
-import { Collection } from '../models';
+import { Collection, CollectionUser } from '../models';
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
@@ -272,12 +272,22 @@ describe('#collections.remove_user', async () => {
 });
 
 describe('#collections.users', async () => {
-  it('should return members in private collection', async () => {
+  it('should return users in private collection', async () => {
     const { collection, user } = await seed();
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read_write',
+    });
+
     const res = await server.post('/api/collections.users', {
       body: { token: user.getJwtToken(), id: collection.id },
     });
+    const body = await res.json();
+
     expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 
   it('should require authentication', async () => {
@@ -292,6 +302,46 @@ describe('#collections.users', async () => {
     const { collection } = await seed();
     const user = await buildUser();
     const res = await server.post('/api/collections.users', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe('#collections.memberships', async () => {
+  it('should return members in private collection', async () => {
+    const { collection, user } = await seed();
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read_write',
+    });
+
+    const res = await server.post('/api/collections.memberships', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.users.length).toEqual(1);
+    expect(body.data.users[0].id).toEqual(user.id);
+    expect(body.data.memberships.length).toEqual(1);
+    expect(body.data.memberships[0].permission).toEqual('read_write');
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/collections.memberships');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { collection } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/collections.memberships', {
       body: { token: user.getJwtToken(), id: collection.id },
     });
     expect(res.status).toEqual(403);
