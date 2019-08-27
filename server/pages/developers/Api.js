@@ -239,6 +239,7 @@ export default function Api() {
             </Description>
             <Arguments pagination>
               <Argument id="id" description="Collection ID" required />
+              <Argument id="query" description="Filter by user name" />
             </Arguments>
           </Method>
 

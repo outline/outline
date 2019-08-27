@@ -1,6 +1,7 @@
 // @flow
 import fs from 'fs';
 import Router from 'koa-router';
+import { Op } from '../sequelize';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import {
@@ -145,16 +146,28 @@ router.post('collections.users', auth(), async ctx => {
 });
 
 router.post('collections.memberships', auth(), pagination(), async ctx => {
-  const { id } = ctx.body;
+  const { id, query } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
   const collection = await Collection.findByPk(id);
   authorize(ctx.state.user, 'read', collection);
 
+  const where = {
+    collectionId: id,
+  };
+
+  let userWhere;
+
+  if (query) {
+    userWhere = {
+      name: {
+        [Op.iLike]: `%${query}%`,
+      },
+    };
+  }
+
   const memberships = await CollectionUser.findAll({
-    where: {
-      collectionId: id,
-    },
+    where,
     order: [['createdAt', 'DESC']],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
@@ -162,6 +175,8 @@ router.post('collections.memberships', auth(), pagination(), async ctx => {
       {
         model: User,
         as: 'user',
+        where: userWhere,
+        required: true,
       },
     ],
   });
