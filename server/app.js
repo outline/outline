@@ -119,7 +119,7 @@ app.use(
         'd2wy8f7a9ursnm.cloudfront.net',
       ],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ['*', 'data:'],
+      imgSrc: ['*', 'data:', 'blob:'],
       frameSrc: ['*'],
     },
   })
