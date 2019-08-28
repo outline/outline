@@ -119,7 +119,7 @@ app.use(
         'www.google-analytics.com',
         'd2wy8f7a9ursnm.cloudfront.net',
       ],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'github.githubassets.com'],
       imgSrc: ['*', 'data:', 'blob:'],
       frameSrc: ['*'],
     },
