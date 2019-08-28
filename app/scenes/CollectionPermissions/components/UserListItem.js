@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react';
-import { PlusIcon } from 'outline-icons';
 import Avatar from 'components/Avatar';
 import Button from 'components/Button';
 import ListItem from 'components/List/Item';
@@ -19,8 +18,8 @@ const UserListItem = ({ user, onAdd, showAdd }: Props) => {
       image={<Avatar src={user.avatarUrl} size={32} />}
       actions={
         showAdd ? (
-          <Button type="button" onClick={onAdd} icon={<PlusIcon />} neutral>
-            Add
+          <Button type="button" onClick={onAdd} neutral>
+            Invite
           </Button>
         ) : (
           undefined

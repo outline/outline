@@ -152,7 +152,7 @@ class CollectionScene extends React.Component<Props> {
                   )}
                 </Wrapper>
                 <Modal
-                  title="Collection members"
+                  title="Collection permissions"
                   onRequestClose={this.handlePermissionsModalClose}
                   isOpen={this.permissionsModalOpen}
                 >

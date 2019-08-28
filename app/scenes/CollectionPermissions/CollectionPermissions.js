@@ -4,11 +4,13 @@ import { reject } from 'lodash';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Flex from 'shared/components/Flex';
+import Fade from 'components/Fade';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
 import Subheading from 'components/Subheading';
 import List from 'components/List';
 import Placeholder from 'components/List/Placeholder';
+import Switch from 'components/Switch';
 import UserListItem from './components/UserListItem';
 import MemberListItem from './components/MemberListItem';
 import Collection from 'models/Collection';
@@ -40,11 +42,7 @@ class CollectionPermissions extends React.Component<Props> {
     }
   }
 
-  handlePrivateChange = async (ev: SyntheticInputEvent<HTMLInputElement>) => {
-    console.log('handlePrivateChange');
-    ev.preventDefault();
-    ev.stopPropagation();
-
+  handlePrivateChange = async (ev: SyntheticInputEvent<*>) => {
     const { collection } = this.props;
 
     try {
@@ -102,46 +100,60 @@ class CollectionPermissions extends React.Component<Props> {
     return (
       <Flex column>
         <HelpText>
-          Choose which team members have access to read and edit documents in
-          the <strong>{collection.name}</strong> collection.
+          Choose which people on the team have access to read and edit documents
+          in the <strong>{collection.name}</strong> collection. By default
+          collections are visible to all team members.
         </HelpText>
 
-        <Subheading>Members</Subheading>
-        <List>
-          {isFirstLoadingUsers ? (
-            <Placeholder />
-          ) : (
-            collection.users.map(member => (
-              <MemberListItem
-                key={member.id}
-                user={member}
-                showRemove={user.id !== member.id}
-                onRemove={() => this.handleRemoveUser(member)}
-              />
-            ))
-          )}
-        </List>
+        <Switch
+          id="private"
+          label="Private collection"
+          onChange={this.handlePrivateChange}
+          checked={collection.private}
+        />
 
-        {hasOtherUsers && (
-          <React.Fragment>
-            <Subheading>Others</Subheading>
-            <Input
-              onChange={this.handleFilter}
-              placeholder="Find a team member…"
-              value={this.filter}
-              type="search"
-            />
-            <List>
-              {filteredUsers.map(member => (
-                <UserListItem
-                  key={member.id}
-                  user={member}
-                  onAdd={() => this.handleAddUser(member)}
-                  showAdd
-                />
-              ))}
-            </List>
-          </React.Fragment>
+        {collection.private && (
+          <Fade>
+            <Flex column>
+              <Subheading>Invited ({collection.users.length})</Subheading>
+              <List>
+                {isFirstLoadingUsers ? (
+                  <Placeholder />
+                ) : (
+                  collection.users.map(member => (
+                    <MemberListItem
+                      key={member.id}
+                      user={member}
+                      showRemove={user.id !== member.id}
+                      onRemove={() => this.handleRemoveUser(member)}
+                    />
+                  ))
+                )}
+              </List>
+
+              {hasOtherUsers && (
+                <React.Fragment>
+                  <Subheading>Team Members</Subheading>
+                  <Input
+                    onChange={this.handleFilter}
+                    placeholder="Filter…"
+                    value={this.filter}
+                    type="search"
+                  />
+                  <List>
+                    {filteredUsers.map(member => (
+                      <UserListItem
+                        key={member.id}
+                        user={member}
+                        onAdd={() => this.handleAddUser(member)}
+                        showAdd
+                      />
+                    ))}
+                  </List>
+                </React.Fragment>
+              )}
+            </Flex>
+          </Fade>
         )}
       </Flex>
     );
