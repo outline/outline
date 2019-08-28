@@ -115,6 +115,7 @@ app.use(
         "'self'",
         "'unsafe-inline'",
         "'unsafe-eval'",
+        'gist.github.com',
         'www.google-analytics.com',
         'd2wy8f7a9ursnm.cloudfront.net',
       ],
