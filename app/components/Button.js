@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { darken } from 'polished';
+import { darken, lighten } from 'polished';
 import { ExpandedIcon } from 'outline-icons';
 
 const RealButton = styled.button`
@@ -33,6 +33,13 @@ const RealButton = styled.button`
 
   &:hover {
     background: ${props => darken(0.05, props.theme.buttonBackground)};
+  }
+
+  &:focus {
+    transition-duration: 0.05s;
+    box-shadow: ${props => lighten(0.4, props.theme.buttonBackground)} 0px 0px
+      0px 3px;
+    outline: none;
   }
 
   &:disabled {
@@ -98,22 +105,24 @@ export type Props = {
   icon?: React.Node,
   className?: string,
   children?: React.Node,
+  innerRef?: React.ElementRef<any>,
   disclosure?: boolean,
 };
 
-export default function Button({
+function Button({
   type = 'text',
   icon,
   children,
   value,
   disclosure,
+  innerRef,
   ...rest
 }: Props) {
   const hasText = children !== undefined || value !== undefined;
   const hasIcon = icon !== undefined;
 
   return (
-    <RealButton type={type} {...rest}>
+    <RealButton type={type} ref={innerRef} {...rest}>
       <Inner hasIcon={hasIcon} disclosure={disclosure}>
         {hasIcon && icon}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
@@ -122,3 +131,8 @@ export default function Button({
     </RealButton>
   );
 }
+
+// $FlowFixMe - need to upgrade to get forwardRef
+export default React.forwardRef((props, ref) => (
+  <Button {...props} innerRef={ref} />
+));

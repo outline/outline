@@ -10,7 +10,6 @@ type Props = {
   children: React.Node,
   delay?: number,
   className?: string,
-  block?: boolean,
 };
 
 class Tooltip extends React.Component<Props> {
@@ -19,16 +18,7 @@ class Tooltip extends React.Component<Props> {
   }
 
   render() {
-    const {
-      shortcut,
-      tooltip,
-      delay = 50,
-      children,
-      block,
-      className,
-      ...rest
-    } = this.props;
-    const Component = block ? 'div' : 'span';
+    const { shortcut, tooltip, delay = 50, className, ...rest } = this.props;
 
     let content = tooltip;
 
@@ -50,9 +40,7 @@ class Tooltip extends React.Component<Props> {
         duration={[200, 150]}
         inertia
         {...rest}
-      >
-        <Component className={className}>{children}</Component>
-      </StyledTippy>
+      />
     );
   }
 }
