@@ -24,6 +24,7 @@ import Search from 'scenes/Search';
 import CollectionMenu from 'menus/CollectionMenu';
 import Actions, { Action, Separator } from 'components/Actions';
 import Heading from 'components/Heading';
+import Tooltip from 'components/Tooltip';
 import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Mask from 'components/Mask';
@@ -104,9 +105,16 @@ class CollectionScene extends React.Component<Props> {
     return (
       <Actions align="center" justify="flex-end">
         <Action>
-          <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
-            New doc
-          </Button>
+          <Tooltip
+            tooltip="New document"
+            shortcut="n"
+            delay={500}
+            placement="bottom"
+          >
+            <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
+              New doc
+            </Button>
+          </Tooltip>
         </Action>
         <Separator />
         <Action>

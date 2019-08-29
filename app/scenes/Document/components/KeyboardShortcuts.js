@@ -34,7 +34,13 @@ class KeyboardShortcutsButton extends React.Component<Props> {
           <KeyboardShortcuts />
         </Modal>
         <Button onClick={this.handleOpenKeyboardShortcuts}>
-          <Tooltip tooltip="Keyboard shortcuts" placement="left" block>
+          <Tooltip
+            tooltip="Keyboard shortcuts"
+            shortcut="?"
+            placement="left"
+            delay={500}
+            block
+          >
             <KeyboardIcon />
           </Tooltip>
         </Button>

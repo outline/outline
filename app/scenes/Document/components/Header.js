@@ -19,6 +19,7 @@ import DocumentMenu from 'menus/DocumentMenu';
 import NewChildDocumentMenu from 'menus/NewChildDocumentMenu';
 import DocumentShare from 'scenes/DocumentShare';
 import Button from 'components/Button';
+import Tooltip from 'components/Tooltip';
 import Modal from 'components/Modal';
 import Badge from 'components/Badge';
 import Collaborators from 'components/Collaborators';
@@ -182,14 +183,21 @@ class Header extends React.Component<Props> {
           )}
           {canEdit && (
             <Action>
-              <Button
-                icon={<EditIcon />}
-                onClick={this.handleEdit}
-                neutral
-                small
+              <Tooltip
+                tooltip="Edit document"
+                shortcut="e"
+                delay={500}
+                placement="bottom"
               >
-                Edit
-              </Button>
+                <Button
+                  icon={<EditIcon />}
+                  onClick={this.handleEdit}
+                  neutral
+                  small
+                >
+                  Edit
+                </Button>
+              </Tooltip>
             </Action>
           )}
           {canEdit &&
@@ -198,9 +206,16 @@ class Header extends React.Component<Props> {
                 <NewChildDocumentMenu
                   document={document}
                   label={
-                    <Button icon={<PlusIcon />} neutral>
-                      New doc
-                    </Button>
+                    <Tooltip
+                      tooltip="New document"
+                      shortcut="n"
+                      delay={500}
+                      placement="bottom"
+                    >
+                      <Button icon={<PlusIcon />} neutral>
+                        New doc
+                      </Button>
+                    </Tooltip>
                   }
                 />
               </Action>

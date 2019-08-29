@@ -51,7 +51,7 @@ const Modal = ({
         <Content column>
           {title && <h1>{title}</h1>}
           <Close onClick={onRequestClose}>
-            <CloseIcon size={40} />
+            <CloseIcon size={40} color="currentColor" />
             <Esc>esc</Esc>
           </Close>
           {children}
@@ -98,8 +98,8 @@ const Close = styled.a`
   position: fixed;
   top: 16px;
   right: 16px;
-  opacity: 0.5;
-  color: ${props => props.theme.textSecondary};
+  opacity: 0.75;
+  color: ${props => props.theme.text};
 
   &:hover {
     opacity: 1;
