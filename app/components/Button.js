@@ -65,6 +65,13 @@ const RealButton = styled.button`
       border: 1px solid ${darken(0.15, props.theme.buttonNeutralBackground)};
     }
 
+    &:focus {
+      transition-duration: 0.05s;
+      border: 1px solid ${lighten(0.4, props.theme.buttonBackground)};
+      box-shadow: ${lighten(0.4, props.theme.buttonBackground)} 0px 0px
+        0px 2px;
+    }
+
     &:disabled {
       color: ${props.theme.textTertiary};
     }
@@ -76,6 +83,12 @@ const RealButton = styled.button`
 
     &:hover {
       background: ${darken(0.05, props.theme.danger)};
+    }
+
+    &:focus {
+      transition-duration: 0.05s;
+      box-shadow: ${lighten(0.4, props.theme.danger)} 0px 0px
+        0px 3px;
     }
   `};
 `;

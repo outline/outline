@@ -13,10 +13,6 @@ type Props = {
 };
 
 class Tooltip extends React.Component<Props> {
-  shouldComponentUpdate() {
-    return false;
-  }
-
   render() {
     const { shortcut, tooltip, delay = 50, className, ...rest } = this.props;
 

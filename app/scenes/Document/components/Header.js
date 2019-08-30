@@ -156,16 +156,22 @@ class Header extends React.Component<Props> {
           {isEditing && (
             <React.Fragment>
               <Action>
-                <Button
-                  onClick={this.handleSave}
-                  title={`Save changes (${meta}+Enter)`}
-                  disabled={savingIsDisabled}
-                  isSaving={isSaving}
-                  neutral={isDraft}
-                  small
+                <Tooltip
+                  tooltip="Save"
+                  shortcut={`${meta}+enter`}
+                  delay={500}
+                  placement="bottom"
                 >
-                  {isDraft ? 'Save Draft' : 'Done Editing'}
-                </Button>
+                  <Button
+                    onClick={this.handleSave}
+                    disabled={savingIsDisabled}
+                    isSaving={isSaving}
+                    neutral={isDraft}
+                    small
+                  >
+                    {isDraft ? 'Save Draft' : 'Done Editing'}
+                  </Button>
+                </Tooltip>
               </Action>
             </React.Fragment>
           )}
