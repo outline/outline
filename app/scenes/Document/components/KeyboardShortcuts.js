@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import { KeyboardIcon } from 'outline-icons';
 import Modal from 'components/Modal';
 import Tooltip from 'components/Tooltip';
+import NudeButton from 'components/NudeButton';
 import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
 
 type Props = {};
@@ -33,33 +34,27 @@ class KeyboardShortcutsButton extends React.Component<Props> {
         >
           <KeyboardShortcuts />
         </Modal>
-        <Button onClick={this.handleOpenKeyboardShortcuts}>
-          <Tooltip tooltip="Keyboard shortcuts" placement="left" block>
+        <Tooltip
+          tooltip="Keyboard shortcuts"
+          shortcut="?"
+          placement="left"
+          delay={500}
+        >
+          <Button onClick={this.handleOpenKeyboardShortcuts}>
             <KeyboardIcon />
-          </Tooltip>
-        </Button>
+          </Button>
+        </Tooltip>
       </React.Fragment>
     );
   }
 }
 
-const Button = styled.button`
+const Button = styled(NudeButton)`
   display: none;
   position: fixed;
   bottom: 0;
   right: 0;
   margin: 24px;
-  width: 24px;
-  height: 24px;
-  opacity: 0.8;
-  background: none;
-  line-height: 0;
-  border: 0;
-  padding: 0;
-
-  &:hover {
-    opacity: 1;
-  }
 
   ${breakpoint('tablet')`
     display: block;

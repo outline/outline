@@ -272,8 +272,10 @@ const PrismStyles = createGlobalStyle`
   }
 `;
 
-const EditorTooltip = props => (
-  <Tooltip offset="0, 16" delay={150} {...props} />
+const EditorTooltip = ({ children, ...props }) => (
+  <Tooltip offset="0, 16" delay={150} {...props}>
+    <span>{children}</span>
+  </Tooltip>
 );
 
 export default withTheme(

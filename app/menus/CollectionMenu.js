@@ -15,9 +15,9 @@ import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import NudeButton from 'components/NudeButton';
 
 type Props = {
-  label?: React.Node,
   position?: 'left' | 'right' | 'center',
   ui: UiStore,
   documents: DocumentsStore,
@@ -89,7 +89,7 @@ class CollectionMenu extends React.Component<Props> {
   };
 
   render() {
-    const { collection, label, position, onOpen, onClose } = this.props;
+    const { collection, position, onOpen, onClose } = this.props;
 
     return (
       <React.Fragment>
@@ -110,7 +110,11 @@ class CollectionMenu extends React.Component<Props> {
           />
         </Modal>
         <DropdownMenu
-          label={label || <MoreIcon />}
+          label={
+            <NudeButton>
+              <MoreIcon />
+            </NudeButton>
+          }
           onOpen={onOpen}
           onClose={onClose}
           position={position}

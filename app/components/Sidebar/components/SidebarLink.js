@@ -140,6 +140,12 @@ const StyledNavLink = styled(NavLink)`
     color: ${props => props.theme.text};
   }
 
+  &:focus {
+    color: ${props => props.theme.text};
+    background: ${props => props.theme.sidebarItemBackground};
+    outline: none;
+  }
+
   &:hover {
     > ${Action} {
       display: inline;

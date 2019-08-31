@@ -11,6 +11,7 @@ import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
 import Tooltip from 'components/Tooltip';
+import NudeButton from 'components/NudeButton';
 
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -124,7 +125,9 @@ class Invite extends React.Component<Props> {
             {index !== 0 && (
               <Remove>
                 <Tooltip tooltip="Remove invite" placement="top">
-                  <CloseIcon onClick={() => this.handleRemove(index)} />
+                  <NudeButton onClick={() => this.handleRemove(index)}>
+                    <CloseIcon />
+                  </NudeButton>
                 </Tooltip>
               </Remove>
             )}

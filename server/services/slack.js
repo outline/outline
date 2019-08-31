@@ -58,15 +58,23 @@ export default class Slack {
 
   async documentUpdated(event: DocumentEvent) {
     // lets not send a notification on every autosave update
-    if (event.data && event.data.autosave) return;
+    if (
+      event.name === 'documents.update' &&
+      event.data &&
+      event.data.autosave
+    ) {
+      return;
+    }
 
     // lets not send a notification on every CMD+S update
-    if (event.data && !event.data.done) return;
+    if (event.name === 'documents.update' && event.data && !event.data.done) {
+      return;
+    }
 
     const document = await Document.findByPk(event.documentId);
     if (!document) return;
 
-    // never send information on draft documents
+    // never send notifications for draft documents
     if (!document.publishedAt) return;
 
     const integration = await Integration.findOne({

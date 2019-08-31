@@ -21,6 +21,7 @@ type Props = {
 class PaginatedDocumentList extends React.Component<Props> {
   isInitiallyLoaded: boolean = false;
   @observable isLoaded: boolean = false;
+  @observable isFetchingMore: boolean = false;
   @observable isFetching: boolean = false;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
@@ -57,18 +58,22 @@ class PaginatedDocumentList extends React.Component<Props> {
 
     this.isLoaded = true;
     this.isFetching = false;
+    this.isFetchingMore = false;
   };
 
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
     if (!this.allowLoadMore || this.isFetching) return;
+
+    this.isFetchingMore = true;
     await this.fetchResults();
   };
 
   render() {
     const { empty, heading, documents, fetch, options, ...rest } = this.props;
-    const showLoading = this.isFetching && !this.isInitiallyLoaded;
+    const showLoading =
+      this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
     const showEmpty = !documents.length || showLoading;
     const showList = (this.isLoaded || this.isInitiallyLoaded) && !showLoading;
 

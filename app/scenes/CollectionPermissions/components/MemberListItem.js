@@ -8,6 +8,7 @@ import Flex from 'shared/components/Flex';
 import ListItem from 'components/List/Item';
 import User from 'models/User';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import NudeButton from 'components/NudeButton';
 
 type Props = {
   user: User,
@@ -24,7 +25,13 @@ const MemberListItem = ({ user, onRemove, showRemove }: Props) => {
         <Flex align="center">
           <Permission as="span">Can edit&nbsp;</Permission>
           {showRemove && (
-            <DropdownMenu label={<MoreIcon />}>
+            <DropdownMenu
+              label={
+                <NudeButton>
+                  <MoreIcon />
+                </NudeButton>
+              }
+            >
               <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
             </DropdownMenu>
           )}

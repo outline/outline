@@ -16,11 +16,11 @@ import {
   newDocumentUrl,
 } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import NudeButton from 'components/NudeButton';
 
 type Props = {
   ui: UiStore,
   auth: AuthStore,
-  label?: React.Node,
   position?: 'left' | 'right' | 'center',
   document: Document,
   collections: CollectionStore,
@@ -113,7 +113,6 @@ class DocumentMenu extends React.Component<Props> {
     const {
       document,
       position,
-      label,
       className,
       showPrint,
       showPin,
@@ -125,7 +124,14 @@ class DocumentMenu extends React.Component<Props> {
 
     if (document.isArchived) {
       return (
-        <DropdownMenu label={label || <MoreIcon />} className={className}>
+        <DropdownMenu
+          label={
+            <NudeButton>
+              <MoreIcon />
+            </NudeButton>
+          }
+          className={className}
+        >
           <DropdownMenuItem onClick={this.handleRestore}>
             Restore
           </DropdownMenuItem>
@@ -138,7 +144,11 @@ class DocumentMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu
-        label={label || <MoreIcon />}
+        label={
+          <NudeButton>
+            <MoreIcon />
+          </NudeButton>
+        }
         className={className}
         position={position}
         onOpen={onOpen}
