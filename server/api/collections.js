@@ -135,7 +135,7 @@ router.post('collections.remove_user', auth(), async ctx => {
   };
 });
 
-// DEPRECATED: Use collection.memberships which has pagination and permissions
+// DEPRECATED: Use collection.memberships which has pagination, filtering and permissions
 router.post('collections.users', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
@@ -151,13 +151,13 @@ router.post('collections.users', auth(), async ctx => {
 });
 
 router.post('collections.memberships', auth(), pagination(), async ctx => {
-  const { id, query } = ctx.body;
+  const { id, query, permission } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
   const collection = await Collection.findByPk(id);
   authorize(ctx.state.user, 'read', collection);
 
-  const where = {
+  let where = {
     collectionId: id,
   };
 
@@ -168,6 +168,13 @@ router.post('collections.memberships', auth(), pagination(), async ctx => {
       name: {
         [Op.iLike]: `%${query}%`,
       },
+    };
+  }
+
+  if (permission) {
+    where = {
+      ...where,
+      permission,
     };
   }
 

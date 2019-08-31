@@ -330,7 +330,7 @@ describe('#collections.memberships', async () => {
     expect(body.data.memberships[0].permission).toEqual('read_write');
   });
 
-  it('should allow filtering members in collection', async () => {
+  it('should allow filtering members in collection by name', async () => {
     const { collection, user } = await seed();
     const user2 = await buildUser({ name: "Won't find" });
     await CollectionUser.create({
@@ -358,6 +358,36 @@ describe('#collections.memberships', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(user.id);
+  });
+
+  it('should allow filtering members in collection by permission', async () => {
+    const { collection, user } = await seed();
+    const user2 = await buildUser();
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read_write',
+    });
+    await CollectionUser.create({
+      createdById: user2.id,
+      collectionId: collection.id,
+      userId: user2.id,
+      permission: 'maintainer',
+    });
+
+    const res = await server.post('/api/collections.memberships', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        permission: 'maintainer',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.users.length).toEqual(1);
+    expect(body.data.users[0].id).toEqual(user2.id);
   });
 
   it('should require authentication', async () => {
