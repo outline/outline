@@ -29,7 +29,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
         res.data.memberships.forEach(this.add);
         this.isLoaded = true;
       });
-      return res.data;
+      return res.data.users;
     } finally {
       this.isFetching = false;
     }

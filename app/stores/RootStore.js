@@ -21,7 +21,7 @@ export default class RootStore {
   documents: DocumentsStore;
   events: EventsStore;
   integrations: IntegrationsStore;
-  membershipsStore: MembershipsStore;
+  memberships: MembershipsStore;
   notificationSettings: NotificationSettingsStore;
   policies: PoliciesStore;
   revisions: RevisionsStore;
@@ -37,7 +37,7 @@ export default class RootStore {
     this.documents = new DocumentsStore(this);
     this.events = new EventsStore(this);
     this.integrations = new IntegrationsStore(this);
-    this.membershipsStore = new MembershipsStore(this);
+    this.memberships = new MembershipsStore(this);
     this.notificationSettings = new NotificationSettingsStore(this);
     this.policies = new PoliciesStore(this);
     this.revisions = new RevisionsStore(this);
@@ -53,7 +53,7 @@ export default class RootStore {
     this.documents.clear();
     this.events.clear();
     this.integrations.clear();
-    this.membershipsStore.clear();
+    this.memberships.clear();
     this.notificationSettings.clear();
     this.policies.clear();
     this.revisions.clear();

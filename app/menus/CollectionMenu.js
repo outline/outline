@@ -6,7 +6,7 @@ import { withRouter, type RouterHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { MoreIcon } from 'outline-icons';
 import Modal from 'components/Modal';
-import CollectionPermissions from 'scenes/CollectionPermissions';
+import CollectionMembers from 'scenes/CollectionMembers';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
 import getDataTransferFiles from 'utils/getDataTransferFiles';
@@ -107,7 +107,7 @@ class CollectionMenu extends React.Component<Props> {
           onRequestClose={this.handlePermissionsModalClose}
           isOpen={this.permissionsModalOpen}
         >
-          <CollectionPermissions
+          <CollectionMembers
             collection={collection}
             onSubmit={this.handlePermissionsModalClose}
           />

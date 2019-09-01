@@ -1,7 +1,7 @@
 // @flow
 import invariant from 'invariant';
 import { observable, set, action, computed, runInAction } from 'mobx';
-import { orderBy } from 'lodash';
+import { orderBy, find } from 'lodash';
 import { client } from 'utils/ApiClient';
 import RootStore from 'stores/RootStore';
 import BaseModel from '../models/BaseModel';
@@ -73,6 +73,10 @@ export default class BaseStore<T: BaseModel> {
 
   get(id: string): ?T {
     return this.data.get(id);
+  }
+
+  find(params: Object): ?T {
+    return find(this.orderedData, params);
   }
 
   @action

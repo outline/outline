@@ -1,6 +1,6 @@
 // @flow
 import invariant from 'invariant';
-import { map, without, pick, filter } from 'lodash';
+import { map, without, pick } from 'lodash';
 import { action, computed, observable } from 'mobx';
 import BaseModel from 'models/BaseModel';
 import Document from 'models/Document';
@@ -46,13 +46,6 @@ export default class Collection extends BaseModel {
 
     travelDocuments(this.documents);
     return results;
-  }
-
-  @computed
-  get users(): User[] {
-    return filter(this.store.rootStore.users.active, user =>
-      this.userIds.includes(user.id)
-    );
   }
 
   @action

@@ -59,6 +59,15 @@ export default class UsersStore extends BaseStore<User> {
     return res.data;
   };
 
+  inCollection = (collectionId: string) => {
+    const memberships = filter(
+      this.rootStore.memberships.orderedData,
+      member => member.collectionId === collectionId
+    );
+    const userIds = memberships.map(member => member.userId);
+    return filter(this.orderedData, user => userIds.includes(user.id));
+  };
+
   actionOnUser = async (action: string, user: User) => {
     const res = await client.post(`/users.${action}`, {
       id: user.id,

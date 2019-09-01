@@ -35,7 +35,7 @@ import Subheading from 'components/Subheading';
 import PageTitle from 'components/PageTitle';
 import Flex from 'shared/components/Flex';
 import Modal from 'components/Modal';
-import CollectionPermissions from 'scenes/CollectionPermissions';
+import CollectionMembers from 'scenes/CollectionMembers';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
 import PaginatedDocumentList from 'components/PaginatedDocumentList';
@@ -164,7 +164,7 @@ class CollectionScene extends React.Component<Props> {
                   onRequestClose={this.handlePermissionsModalClose}
                   isOpen={this.permissionsModalOpen}
                 >
-                  <CollectionPermissions
+                  <CollectionMembers
                     collection={this.collection}
                     onSubmit={this.handlePermissionsModalClose}
                   />
