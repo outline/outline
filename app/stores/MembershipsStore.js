@@ -16,7 +16,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
   }
 
   @action
-  async fetchPage(params: ?PaginationParams): Promise<*> {
+  fetchPage = async (params: ?PaginationParams): Promise<*> => {
     this.isFetching = true;
 
     try {
@@ -33,7 +33,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
     } finally {
       this.isFetching = false;
     }
-  }
+  };
 
   @action
   async create({

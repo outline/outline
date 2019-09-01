@@ -6,13 +6,20 @@ import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 import Subheading from 'components/Subheading';
 import Button from 'components/Button';
-import PaginatedMembersList from './components/PaginatedMembersList';
+import PaginatedList from 'components/PaginatedList';
 import Collection from 'models/Collection';
+import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
+import MembershipsStore from 'stores/MembershipsStore';
+import UsersStore from 'stores/UsersStore';
+import MemberListItem from './components/MemberListItem';
 
 type Props = {
+  ui: UiStore,
   auth: AuthStore,
   collection: Collection,
+  users: UsersStore,
+  memberships: MembershipsStore,
 };
 
 @observer
@@ -21,8 +28,17 @@ class CollectionMembers extends React.Component<Props> {
     // TODO
   };
 
+  handleRemoveUser = user => {
+    try {
+      this.props.collection.removeUser(user);
+    } catch (err) {
+      this.props.ui.showToast(`${user.name} was removed from the collection`);
+      this.props.ui.showToast('Could not remove user');
+    }
+  };
+
   render() {
-    const { collection, auth } = this.props;
+    const { collection, users, memberships, auth } = this.props;
     const { user } = auth;
     if (!user) return null;
 
@@ -56,10 +72,26 @@ class CollectionMembers extends React.Component<Props> {
         )}
 
         <Subheading>Members</Subheading>
-        <PaginatedMembersList collection={collection} currentUser={auth.user} />
+        <PaginatedList
+          items={
+            collection.private
+              ? users.inCollection(collection.id)
+              : users.orderedData
+          }
+          fetch={collection.private ? memberships.fetchPage : users.fetchPage}
+          options={collection.private ? { id: collection.id } : undefined}
+          renderItem={item => (
+            <MemberListItem
+              key={item.id}
+              user={item}
+              canEdit={collection.private && item.id !== user.id}
+              onRemove={() => this.handleRemoveUser(item.id)}
+            />
+          )}
+        />
       </Flex>
     );
   }
 }
 
-export default inject('auth')(CollectionMembers);
+export default inject('auth', 'users', 'memberships', 'ui')(CollectionMembers);

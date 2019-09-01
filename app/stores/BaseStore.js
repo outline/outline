@@ -155,7 +155,7 @@ export default class BaseStore<T: BaseModel> {
   }
 
   @action
-  async fetchPage(params: ?PaginationParams): Promise<*> {
+  fetchPage = async (params: ?PaginationParams): Promise<*> => {
     if (!this.actions.includes('list')) {
       throw new Error(`Cannot list ${this.modelName}`);
     }
@@ -175,7 +175,7 @@ export default class BaseStore<T: BaseModel> {
     } finally {
       this.isFetching = false;
     }
-  }
+  };
 
   @computed
   get orderedData(): T[] {
