@@ -6,6 +6,7 @@ import breakpoint from 'styled-components-breakpoint';
 import ReactModal from 'react-modal';
 import { transparentize } from 'polished';
 import { CloseIcon } from 'outline-icons';
+import NudeButton from 'components/NudeButton';
 import { fadeAndScaleIn } from 'shared/styles/animations';
 import Flex from 'shared/components/Flex';
 
@@ -90,16 +91,18 @@ const StyledModal = styled(ReactModal)`
 const Esc = styled.span`
   display: block;
   text-align: center;
-  margin-top: -10px;
   font-size: 13px;
+  height: 1em;
 `;
 
-const Close = styled.a`
+const Close = styled(NudeButton)`
   position: fixed;
   top: 16px;
   right: 16px;
   opacity: 0.75;
   color: ${props => props.theme.text};
+  width: auto;
+  height: auto;
 
   &:hover {
     opacity: 1;
