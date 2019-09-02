@@ -309,6 +309,9 @@ router.post('collections.update', auth(), async ctx => {
     ip: ctx.request.ip,
   });
 
+  // must reload to update collection.users
+  await collection.reload();
+
   ctx.body = {
     data: presentCollection(collection),
     policies: presentPolicies(user, [collection]),

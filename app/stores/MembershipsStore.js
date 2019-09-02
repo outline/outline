@@ -1,6 +1,5 @@
 // @flow
 import invariant from 'invariant';
-import { find } from 'lodash';
 import { action, runInAction } from 'mobx';
 import { client } from 'utils/ApiClient';
 import BaseStore from './BaseStore';
