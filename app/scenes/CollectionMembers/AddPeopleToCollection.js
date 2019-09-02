@@ -7,6 +7,7 @@ import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 import Input from 'components/Input';
 import Modal from 'components/Modal';
+import Empty from 'components/Empty';
 import PaginatedList from 'components/PaginatedList';
 import Invite from 'scenes/Invite';
 import Collection from 'models/Collection';
@@ -85,6 +86,13 @@ class AddPeopleToCollection extends React.Component<Props> {
           flex
         />
         <PaginatedList
+          empty={
+            this.query ? (
+              <Empty>No people matching your search</Empty>
+            ) : (
+              <Empty>No people left to add</Empty>
+            )
+          }
           items={users.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
           renderItem={item => (

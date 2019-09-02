@@ -10,7 +10,6 @@ import Button from 'components/Button';
 import PaginatedList from 'components/PaginatedList';
 import Modal from 'components/Modal';
 import Collection from 'models/Collection';
-import CollectionEdit from 'scenes/CollectionEdit';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import MembershipsStore from 'stores/MembershipsStore';
@@ -24,12 +23,12 @@ type Props = {
   collection: Collection,
   users: UsersStore,
   memberships: MembershipsStore,
+  onEdit: () => void,
 };
 
 @observer
 class CollectionMembers extends React.Component<Props> {
   @observable addModalOpen: boolean = false;
-  @observable editModalOpen: boolean = false;
 
   handleAddModalOpen = () => {
     this.addModalOpen = true;
@@ -37,14 +36,6 @@ class CollectionMembers extends React.Component<Props> {
 
   handleAddModalClose = () => {
     this.addModalOpen = false;
-  };
-
-  handleEditModalOpen = () => {
-    this.editModalOpen = true;
-  };
-
-  handleEditModalClose = () => {
-    this.editModalOpen = false;
   };
 
   handleRemoveUser = user => {
@@ -72,7 +63,7 @@ class CollectionMembers extends React.Component<Props> {
               Choose which team members have access to view and edit documents
               in the private <strong>{collection.name}</strong> collection. You
               can make this collection visible to the entire team by{' '}
-              <a role="button" onClick={this.handleEditModalOpen}>
+              <a role="button" onClick={this.props.onEdit}>
                 changing its visibility
               </a>.
             </HelpText>
@@ -92,7 +83,7 @@ class CollectionMembers extends React.Component<Props> {
             The <strong>{collection.name}</strong> collection is accessible by
             everyone on the team. If you want to limit who can view the
             collection,{' '}
-            <a role="button" onClick={this.handleEditModalOpen}>
+            <a role="button" onClick={this.props.onEdit}>
               make it private
             </a>.
           </HelpText>
@@ -125,16 +116,6 @@ class CollectionMembers extends React.Component<Props> {
           <AddPeopleToCollection
             collection={collection}
             onSubmit={this.handleAddModalClose}
-          />
-        </Modal>
-        <Modal
-          title="Edit collection"
-          onRequestClose={this.handleEditModalClose}
-          isOpen={this.editModalOpen}
-        >
-          <CollectionEdit
-            collection={collection}
-            onSubmit={this.handleEditModalClose}
           />
         </Modal>
       </Flex>

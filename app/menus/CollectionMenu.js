@@ -32,7 +32,7 @@ type Props = {
 @observer
 class CollectionMenu extends React.Component<Props> {
   file: ?HTMLInputElement;
-  @observable permissionsModalOpen: boolean = false;
+  @observable membersModalOpen: boolean = false;
   @observable redirectTo: ?string;
 
   onNewDocument = (ev: SyntheticEvent<>) => {
@@ -83,11 +83,11 @@ class CollectionMenu extends React.Component<Props> {
 
   onPermissions = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    this.permissionsModalOpen = true;
+    this.membersModalOpen = true;
   };
 
-  handlePermissionsModalClose = () => {
-    this.permissionsModalOpen = false;
+  handleMembersModalClose = () => {
+    this.membersModalOpen = false;
   };
 
   render() {
@@ -104,12 +104,13 @@ class CollectionMenu extends React.Component<Props> {
         />
         <Modal
           title="Collection members"
-          onRequestClose={this.handlePermissionsModalClose}
-          isOpen={this.permissionsModalOpen}
+          onRequestClose={this.handleMembersModalClose}
+          isOpen={this.membersModalOpen}
         >
           <CollectionMembers
             collection={collection}
-            onSubmit={this.handlePermissionsModalClose}
+            onSubmit={this.handleMembersModalClose}
+            onEdit={this.onEdit}
           />
         </Modal>
         <DropdownMenu
@@ -130,7 +131,7 @@ class CollectionMenu extends React.Component<Props> {
               <DropdownMenuItem onClick={this.onImportDocument}>
                 Import document
               </DropdownMenuItem>
-              <hr />
+              {(can.update || can.export) && <hr />}
               {can.update && (
                 <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
               )}
