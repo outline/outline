@@ -80,12 +80,21 @@ router.post('collections.add_user', auth(), async ctx => {
   const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'read', user);
 
-  const membership = await CollectionUser.upsert({
-    collectionId: id,
-    userId,
-    permission,
-    createdById: ctx.state.user.id,
+  let membership = await CollectionUser.findOne({
+    where: {
+      collectionId: id,
+      userId,
+    },
   });
+
+  if (!membership) {
+    membership = await CollectionUser.create({
+      collectionId: id,
+      userId,
+      permission,
+      createdById: ctx.state.user.id,
+    });
+  }
 
   await Event.create({
     name: 'collections.add_user',

@@ -9,7 +9,7 @@ import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 type Props = {
-  fetch: (options: ?Object) => Promise<void>,
+  fetch?: (options: ?Object) => Promise<void>,
   options?: Object,
   empty?: React.Node,
   items: any[],
@@ -31,6 +31,8 @@ class PaginatedList extends React.Component<Props> {
   }
 
   fetchResults = async () => {
+    if (!this.props.fetch) return;
+
     this.isFetching = true;
 
     const limit = DEFAULT_PAGINATION_LIMIT;

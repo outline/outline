@@ -66,13 +66,6 @@ export default class MembershipsStore extends BaseStore<Membership> {
       userId,
     });
 
-    const membership = find(this.data, {
-      collectionId,
-      userId,
-    });
-
-    if (membership) {
-      this.data.delete(membership.id);
-    }
+    this.remove(`${userId}-${collectionId}`);
   }
 }

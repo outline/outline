@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Input from 'components/Input';
@@ -14,7 +13,6 @@ import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 
 type Props = {
-  history: Object,
   collection: Collection,
   ui: UiStore,
   onSubmit: () => void,
@@ -120,4 +118,4 @@ class CollectionEdit extends React.Component<Props> {
   }
 }
 
-export default inject('ui')(withRouter(CollectionEdit));
+export default inject('ui')(CollectionEdit);

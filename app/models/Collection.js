@@ -1,17 +1,15 @@
 // @flow
 import invariant from 'invariant';
-import { map, without, pick } from 'lodash';
+import { map, pick } from 'lodash';
 import { action, computed, observable } from 'mobx';
 import BaseModel from 'models/BaseModel';
 import Document from 'models/Document';
-import User from 'models/User';
 import { client } from 'utils/ApiClient';
 import type { NavigationNode } from 'types';
 
 export default class Collection extends BaseModel {
   @observable isSaving: boolean;
   @observable isLoadingUsers: boolean;
-  @observable userIds: string[] = [];
 
   id: string;
   name: string;
@@ -63,24 +61,6 @@ export default class Collection extends BaseModel {
     } finally {
       this.isLoadingUsers = false;
     }
-  }
-
-  @action
-  async addUser(user: User) {
-    await client.post('/collections.add_user', {
-      id: this.id,
-      userId: user.id,
-    });
-    this.userIds = this.userIds.concat(user.id);
-  }
-
-  @action
-  async removeUser(user: User) {
-    await client.post('/collections.remove_user', {
-      id: this.id,
-      userId: user.id,
-    });
-    this.userIds = without(this.userIds, user.id);
   }
 
   @action

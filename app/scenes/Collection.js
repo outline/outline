@@ -155,7 +155,7 @@ class CollectionScene extends React.Component<Props> {
                   </Link>&nbsp;&nbsp;
                   {collection.private && (
                     <Button onClick={this.onPermissions} neutral>
-                      Invite people
+                      Manage members…
                     </Button>
                   )}
                 </Wrapper>
