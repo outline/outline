@@ -4,7 +4,6 @@ import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { withRouter, type RouterHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { MoreIcon } from 'outline-icons';
 import Modal from 'components/Modal';
 import CollectionMembers from 'scenes/CollectionMembers';
 
@@ -16,7 +15,6 @@ import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import PoliciesStore from 'stores/PoliciesStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import NudeButton from 'components/NudeButton';
 
 type Props = {
   position?: 'left' | 'right' | 'center',
@@ -113,16 +111,7 @@ class CollectionMenu extends React.Component<Props> {
             onEdit={this.onEdit}
           />
         </Modal>
-        <DropdownMenu
-          label={
-            <NudeButton>
-              <MoreIcon />
-            </NudeButton>
-          }
-          onOpen={onOpen}
-          onClose={onClose}
-          position={position}
-        >
+        <DropdownMenu onOpen={onOpen} onClose={onClose} position={position}>
           {collection && (
             <React.Fragment>
               <DropdownMenuItem onClick={this.onNewDocument}>

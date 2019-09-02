@@ -3,7 +3,6 @@ import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { MoreIcon } from 'outline-icons';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
@@ -16,7 +15,6 @@ import {
   newDocumentUrl,
 } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import NudeButton from 'components/NudeButton';
 
 type Props = {
   ui: UiStore,
@@ -124,14 +122,7 @@ class DocumentMenu extends React.Component<Props> {
 
     if (document.isArchived) {
       return (
-        <DropdownMenu
-          label={
-            <NudeButton>
-              <MoreIcon />
-            </NudeButton>
-          }
-          className={className}
-        >
+        <DropdownMenu className={className}>
           <DropdownMenuItem onClick={this.handleRestore}>
             Restore
           </DropdownMenuItem>
@@ -144,11 +135,6 @@ class DocumentMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu
-        label={
-          <NudeButton>
-            <MoreIcon />
-          </NudeButton>
-        }
         className={className}
         position={position}
         onOpen={onOpen}

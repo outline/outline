@@ -1,10 +1,8 @@
 // @flow
 import * as React from 'react';
 import { inject, observer } from 'mobx-react';
-import { MoreIcon } from 'outline-icons';
 
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import NudeButton from 'components/NudeButton';
 import UsersStore from 'stores/UsersStore';
 import User from 'models/User';
 
@@ -62,13 +60,7 @@ class UserMenu extends React.Component<Props> {
     const { user } = this.props;
 
     return (
-      <DropdownMenu
-        label={
-          <NudeButton>
-            <MoreIcon />
-          </NudeButton>
-        }
-      >
+      <DropdownMenu>
         {!user.isSuspended &&
           (user.isAdmin ? (
             <DropdownMenuItem onClick={this.handleDemote}>
