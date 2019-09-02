@@ -12,12 +12,12 @@ afterAll(server.close);
 
 describe('#users.list', async () => {
   it('should allow filtering by user name', async () => {
-    const { admin, user } = await seed();
+    const user = await buildUser({ name: 'Tester' });
 
     const res = await server.post('/api/users.list', {
       body: {
-        query: user.name.slice(0, 3),
-        token: admin.getJwtToken(),
+        query: 'test',
+        token: user.getJwtToken(),
       },
     });
     const body = await res.json();
