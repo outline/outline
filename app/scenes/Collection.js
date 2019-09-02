@@ -21,6 +21,7 @@ import UiStore from 'stores/UiStore';
 import Collection from 'models/Collection';
 
 import Search from 'scenes/Search';
+import CollectionEdit from 'scenes/CollectionEdit';
 import CollectionMenu from 'menus/CollectionMenu';
 import Actions, { Action, Separator } from 'components/Actions';
 import Heading from 'components/Heading';
@@ -53,6 +54,7 @@ class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
   @observable permissionsModalOpen: boolean = false;
+  @observable editModalOpen: boolean = false;
   @observable redirectTo: ?string;
 
   componentDidMount() {
@@ -99,6 +101,14 @@ class CollectionScene extends React.Component<Props> {
 
   handlePermissionsModalClose = () => {
     this.permissionsModalOpen = false;
+  };
+
+  handleEditModalOpen = () => {
+    this.editModalOpen = true;
+  };
+
+  handleEditModalClose = () => {
+    this.editModalOpen = false;
   };
 
   renderActions() {
@@ -167,6 +177,17 @@ class CollectionScene extends React.Component<Props> {
                   <CollectionMembers
                     collection={this.collection}
                     onSubmit={this.handlePermissionsModalClose}
+                    onEdit={this.handleEditModalOpen}
+                  />
+                </Modal>
+                <Modal
+                  title="Edit collection"
+                  onRequestClose={this.handleEditModalClose}
+                  isOpen={this.editModalOpen}
+                >
+                  <CollectionEdit
+                    collection={this.collection}
+                    onSubmit={this.handleEditModalClose}
                   />
                 </Modal>
               </Centered>
