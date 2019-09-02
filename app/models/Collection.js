@@ -1,6 +1,5 @@
 // @flow
-import invariant from 'invariant';
-import { map, pick } from 'lodash';
+import { pick } from 'lodash';
 import { action, computed, observable } from 'mobx';
 import BaseModel from 'models/BaseModel';
 import Document from 'models/Document';
@@ -44,23 +43,6 @@ export default class Collection extends BaseModel {
 
     travelDocuments(this.documents);
     return results;
-  }
-
-  @action
-  async fetchMemberships() {
-    this.isLoadingUsers = true;
-
-    try {
-      const res = await client.post('/collections.memberships', {
-        id: this.id,
-      });
-      invariant(res && res.data, 'data should be available');
-
-      map(res.data.users, this.store.rootStore.users.add);
-      map(res.data.memberships, this.store.rootStore.memberships.add);
-    } finally {
-      this.isLoadingUsers = false;
-    }
   }
 
   @action
