@@ -472,6 +472,89 @@ describe('#collections.create', async () => {
   });
 });
 
+describe('#collections.update', async () => {
+  it('should require authentication', async () => {
+    const collection = await buildCollection();
+    const res = await server.post('/api/collections.update', {
+      body: { id: collection.id, name: 'Test' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('allows editing non-private collection', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/collections.update', {
+      body: { token: user.getJwtToken(), id: collection.id, name: 'Test' },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toBe('Test');
+    expect(body.policies.length).toBe(1);
+  });
+
+  it('allows editing from non-private to private collection', async () => {
+    const { user, collection } = await seed();
+    const res = await server.post('/api/collections.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        private: true,
+        name: 'Test',
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toBe('Test');
+    expect(body.data.private).toBe(true);
+
+    // ensure we return with a write level policy
+    expect(body.policies.length).toBe(1);
+    expect(body.policies[0].abilities.update).toBe(true);
+  });
+
+  it('allows editing by read-write collection user', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read_write',
+    });
+
+    const res = await server.post('/api/collections.update', {
+      body: { token: user.getJwtToken(), id: collection.id, name: 'Test' },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toBe('Test');
+    expect(body.policies.length).toBe(1);
+  });
+
+  it('does not allow editing by read-only collection user', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read',
+    });
+
+    const res = await server.post('/api/collections.update', {
+      body: { token: user.getJwtToken(), id: collection.id, name: 'Test' },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe('#collections.delete', async () => {
   it('should require authentication', async () => {
     const res = await server.post('/api/collections.delete');

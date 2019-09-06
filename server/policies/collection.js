@@ -31,13 +31,9 @@ allow(User, ['publish', 'update'], Collection, (user, collection) => {
     );
     if (!collection.memberships.length) return false;
 
-    if (
-      !['read_write', 'maintainer'].includes(
-        collection.memberships[0].permission
-      )
-    ) {
-      return false;
-    }
+    return ['read_write', 'maintainer'].includes(
+      collection.memberships[0].permission
+    );
   }
 
   return true;

@@ -59,25 +59,13 @@ User.associate = models => {
 };
 
 // Instance methods
-User.prototype.collectionIds = async function(
-  paranoid: boolean = true,
-  writeAccess = true
-) {
+User.prototype.collectionIds = async function(paranoid: boolean = true) {
   let models = await Collection.findAll({
     attributes: ['id', 'private'],
     where: { teamId: this.teamId },
     include: [
       {
         model: User,
-        through: {
-          where: writeAccess
-            ? {
-                permission: {
-                  [Op.in]: ['read_write', 'maintainer'],
-                },
-              }
-            : undefined,
-        },
         as: 'users',
         where: { id: this.id },
         required: false,
