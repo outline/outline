@@ -7,9 +7,9 @@ const { allow, cannot } = policy;
 
 allow(User, 'create', Document);
 
-allow(User, ['read', 'share'], Document, (user, document, { collection }) => {
+allow(User, ['read', 'share'], Document, (user, document) => {
   // existance of collection option is not required here to account for share tokens
-  if (collection && cannot(user, 'read', collection)) {
+  if (document.collection && cannot(user, 'read', document.collection)) {
     return false;
   }
 
@@ -18,33 +18,32 @@ allow(User, ['read', 'share'], Document, (user, document, { collection }) => {
 
 // the collection associated with the document must be passed in options, it must
 // be queried withMembership scope to include the models needed to authorize
-allow(User, ['update', 'move'], Document, (user, document, { collection }) => {
+allow(User, ['update', 'move'], Document, (user, document) => {
   invariant(
-    collection,
+    document.collection,
     'collection is missing, did you forget to include in the query scope?'
   );
-  if (cannot(user, 'update', collection)) return false;
+  if (cannot(user, 'update', document.collection)) return false;
   if (document.archivedAt) return false;
 
   return user.teamId === document.teamId;
 });
 
-// the collection associated with the document must be passed in options, it must
-// be queried withMembership scope to include the models needed to authorize
-allow(User, ['delete'], Document, (user, document, { collection }) => {
+allow(User, ['delete'], Document, (user, document) => {
   // allow deleting document without a collection
-  if (collection && cannot(user, 'update', collection)) return false;
+  if (document.collection && cannot(user, 'update', document.collection))
+    return false;
   if (document.archivedAt) return false;
 
   return user.teamId === document.teamId;
 });
 
-allow(User, 'archive', Document, (user, document, { collection }) => {
+allow(User, 'archive', Document, (user, document) => {
   invariant(
-    collection,
+    document.collection,
     'collection is missing, did you forget to include in the query scope?'
   );
-  if (cannot(user, 'update', collection)) return false;
+  if (cannot(user, 'update', document.collection)) return false;
 
   if (!document.publishedAt) return false;
   if (document.archivedAt) return false;
@@ -52,12 +51,12 @@ allow(User, 'archive', Document, (user, document, { collection }) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, 'unarchive', Document, (user, document, { collection }) => {
+allow(User, 'unarchive', Document, (user, document) => {
   invariant(
-    collection,
+    document.collection,
     'collection is missing, did you forget to include in the query scope?'
   );
-  if (cannot(user, 'update', collection)) return false;
+  if (cannot(user, 'update', document.collection)) return false;
 
   if (!document.archivedAt) return false;
 

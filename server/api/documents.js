@@ -29,22 +29,6 @@ const Op = Sequelize.Op;
 const { authorize, cannot } = policy;
 const router = new Router();
 
-const findDocumentAndCollection = async (documentId, userId) => {
-  const document = await Document.findByPk(documentId);
-  const collection = await Collection.scope(
-    userId
-      ? {
-          method: ['withMembership', userId],
-        }
-      : 'defaultScope'
-  ).findByPk(document.collectionId);
-
-  return {
-    document,
-    collection,
-  };
-};
-
 router.post('documents.list', auth(), pagination(), async ctx => {
   const { sort = 'updatedAt' } = ctx.body;
   const collectionId = ctx.body.collection;
@@ -340,12 +324,11 @@ router.post('documents.info', auth({ required: false }), async ctx => {
     }
     document = share.document;
   } else {
-    const response = await findDocumentAndCollection(
+    document = await Document.findByPk(
       id,
-      user ? user.id : undefined
+      user ? { userId: user.id } : undefined
     );
-    document = response.document;
-    authorize(user, 'read', document, { collection: response.collection });
+    authorize(user, 'read', document);
   }
 
   const isPublic = cannot(user, 'read', document);
@@ -362,8 +345,8 @@ router.post('documents.revision', auth(), async ctx => {
   ctx.assertPresent(revisionId, 'revisionId is required');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-  authorize(user, 'read', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'read', document);
 
   const revision = await Revision.findOne({
     where: {
@@ -384,8 +367,8 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-  authorize(user, 'read', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'read', document);
 
   const revisions = await Revision.findAll({
     where: { documentId: id },
@@ -405,10 +388,10 @@ router.post('documents.restore', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
+  const document = await Document.findByPk(id, { userId: user.id });
 
   if (document.archivedAt) {
-    authorize(user, 'unarchive', document, { collection });
+    authorize(user, 'unarchive', document);
 
     // restore a previously archived document
     await document.unarchive(user.id);
@@ -424,7 +407,7 @@ router.post('documents.restore', auth(), async ctx => {
     });
   } else if (revisionId) {
     // restore a document to a specific revision
-    authorize(user, 'update', document, { collection });
+    authorize(user, 'update', document);
 
     const revision = await Revision.findByPk(revisionId);
     authorize(document, 'restore', revision);
@@ -510,8 +493,8 @@ router.post('documents.pin', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-  authorize(user, 'update', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'update', document);
 
   document.pinnedById = user.id;
   await document.save();
@@ -537,8 +520,8 @@ router.post('documents.unpin', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-  authorize(user, 'update', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'update', document);
 
   document.pinnedById = null;
   await document.save();
@@ -564,8 +547,8 @@ router.post('documents.star', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-  authorize(user, 'read', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'read', document);
 
   await Star.findOrCreate({
     where: { documentId: document.id, userId: user.id },
@@ -587,8 +570,8 @@ router.post('documents.unstar', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-  authorize(user, 'read', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'read', document);
 
   await Star.destroy({
     where: { documentId: document.id, userId: user.id },
@@ -710,8 +693,8 @@ router.post('documents.update', auth(), async ctx => {
   if (append) ctx.assertPresent(text, 'Text is required while appending');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-  authorize(user, 'update', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'update', document);
 
   if (lastRevision && lastRevision !== document.revisionCount) {
     throw new InvalidRequestError('Document has changed since last revision');
@@ -794,10 +777,9 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-
-  authorize(user, 'update', collection);
-  authorize(user, 'move', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  const { collection } = document;
+  authorize(user, 'move', document);
 
   if (collection.type !== 'atlas' && parentDocumentId) {
     throw new InvalidRequestError(
@@ -806,8 +788,8 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   if (parentDocumentId) {
-    const parent = await Document.findByPk(parentDocumentId);
-    authorize(user, 'update', parent, { collection });
+    const parent = await Document.findByPk(parentDocumentId, user.id);
+    authorize(user, 'update', parent);
   }
 
   const { documents, collections } = await documentMover({
@@ -837,8 +819,8 @@ router.post('documents.archive', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-  authorize(user, 'archive', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'archive', document);
 
   await document.archive(user.id);
 
@@ -863,8 +845,8 @@ router.post('documents.delete', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const { document, collection } = await findDocumentAndCollection(id, user.id);
-  authorize(user, 'delete', document, { collection });
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'delete', document);
 
   await document.delete();
 

@@ -166,8 +166,29 @@ Document.associate = models => {
       },
     },
   });
-  Document.addScope('withCollection', {
-    include: [{ model: models.Collection, as: 'collection' }],
+  Document.addScope('withCollection', userId => {
+    if (userId) {
+      return {
+        include: [
+          {
+            model: models.Collection,
+            as: 'collection',
+            include: [
+              {
+                model: models.CollectionUser,
+                as: 'memberships',
+                where: { userId },
+                required: false,
+              },
+            ],
+          },
+        ],
+      };
+    }
+
+    return {
+      include: [{ model: models.Collection, as: 'collection' }],
+    };
   });
   Document.addScope('withUnpublished', {
     include: [
@@ -187,8 +208,12 @@ Document.associate = models => {
   }));
 };
 
-Document.findByPk = async function(id, options) {
-  const scope = this.scope('withUnpublished', 'withCollection');
+Document.findByPk = async function(id, options = {}) {
+  // allow default preloading of collection membership if `userId` is passed in find options
+  // almost every endpoint needs the collection membership to determine policy permissions.
+  const scope = this.scope('withUnpublished', {
+    method: ['withCollection', options.userId],
+  });
 
   if (isUUID(id)) {
     return scope.findOne({
