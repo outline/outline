@@ -306,6 +306,8 @@ router.post('collections.update', auth(), async ctx => {
     });
   }
 
+  const isPrivacyChanged = isPrivate !== collection.private;
+
   collection.name = name;
   collection.description = description;
   collection.color = color;
@@ -322,11 +324,14 @@ router.post('collections.update', auth(), async ctx => {
   });
 
   // must reload to update collection membership for correct policy calculation
-  await collection.reload({
-    scope: {
-      method: ['withMembership', user.id],
-    },
-  });
+  // if the privacy level has changed. Otherwise skip this query for speed.
+  if (isPrivacyChanged) {
+    await collection.reload({
+      scope: {
+        method: ['withMembership', user.id],
+      },
+    });
+  }
 
   ctx.body = {
     data: presentCollection(collection),

@@ -278,7 +278,7 @@ describe('#collections.users', async () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: 'read_write',
+      permission: 'read',
     });
 
     const res = await server.post('/api/collections.users', {
@@ -431,6 +431,27 @@ describe('#collections.info', async () => {
     expect(res.status).toEqual(403);
   });
 
+  it('should allow user member of collection', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read',
+    });
+
+    const res = await server.post('/api/collections.info', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(collection.id);
+  });
+
   it('should require authentication', async () => {
     const res = await server.post('/api/collections.info');
     const body = await res.json();
@@ -484,6 +505,15 @@ describe('#collections.update', async () => {
     expect(body).toMatchSnapshot();
   });
 
+  it('should require authorization', async () => {
+    const { collection } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/collections.update', {
+      body: { token: user.getJwtToken(), id: collection.id, name: 'Test' },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it('allows editing non-private collection', async () => {
     const { user, collection } = await seed();
     const res = await server.post('/api/collections.update', {
@@ -509,6 +539,36 @@ describe('#collections.update', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.name).toBe('Test');
     expect(body.data.private).toBe(true);
+
+    // ensure we return with a write level policy
+    expect(body.policies.length).toBe(1);
+    expect(body.policies[0].abilities.update).toBe(true);
+  });
+
+  it('allows editing from private to non-private collection', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read_write',
+    });
+
+    const res = await server.post('/api/collections.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        private: false,
+        name: 'Test',
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toBe('Test');
+    expect(body.data.private).toBe(false);
 
     // ensure we return with a write level policy
     expect(body.policies.length).toBe(1);
@@ -573,7 +633,7 @@ describe('#collections.delete', async () => {
     expect(res.status).toEqual(403);
   });
 
-  it('should not delete last collection', async () => {
+  it('should not allow deleting last collection', async () => {
     const { user, collection } = await seed();
     const res = await server.post('/api/collections.delete', {
       body: { token: user.getJwtToken(), id: collection.id },
