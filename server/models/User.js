@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import uuid from 'uuid';
 import JWT from 'jsonwebtoken';
 import subMinutes from 'date-fns/sub_minutes';
-import { DataTypes, sequelize, encryptedFields } from '../sequelize';
+import { Op, DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
 import { Star, Team, Collection, NotificationSetting, ApiKey } from '.';
@@ -51,17 +51,33 @@ User.associate = models => {
   });
   User.hasMany(models.Document, { as: 'documents' });
   User.hasMany(models.View, { as: 'views' });
+  User.belongsToMany(models.User, {
+    as: 'users',
+    through: 'collection_users',
+    onDelete: 'cascade',
+  });
 };
 
 // Instance methods
-User.prototype.collectionIds = async function(paranoid: boolean = true) {
+User.prototype.collectionIds = async function(
+  paranoid: boolean = true,
+  writeAccess = true
+) {
   let models = await Collection.findAll({
     attributes: ['id', 'private'],
     where: { teamId: this.teamId },
     include: [
       {
         model: User,
-        through: 'collection_users',
+        through: {
+          where: writeAccess
+            ? {
+                permission: {
+                  [Op.in]: ['read_write', 'maintainer'],
+                },
+              }
+            : undefined,
+        },
         as: 'users',
         where: { id: this.id },
         required: false,

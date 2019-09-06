@@ -54,6 +54,11 @@ Collection.associate = models => {
     foreignKey: 'collectionId',
     onDelete: 'cascade',
   });
+  Collection.hasMany(models.CollectionUser, {
+    as: 'memberships',
+    foreignKey: 'collectionId',
+    onDelete: 'cascade',
+  });
   Collection.belongsToMany(models.User, {
     as: 'users',
     through: models.CollectionUser,
@@ -66,20 +71,16 @@ Collection.associate = models => {
   Collection.belongsTo(models.Team, {
     as: 'team',
   });
-  Collection.addScope(
-    'defaultScope',
-    {
-      include: [
-        {
-          model: models.User,
-          as: 'users',
-          through: 'collection_users',
-          paranoid: false,
-        },
-      ],
-    },
-    { override: true }
-  );
+  Collection.addScope('withMembership', userId => ({
+    include: [
+      {
+        model: models.CollectionUser,
+        as: 'memberships',
+        where: { userId },
+        required: false,
+      },
+    ],
+  }));
 };
 
 Collection.addHook('afterDestroy', async (model: Collection) => {

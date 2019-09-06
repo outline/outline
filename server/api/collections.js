@@ -60,7 +60,9 @@ router.post('collections.info', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
   authorize(user, 'read', collection);
 
   ctx.body = {
@@ -74,7 +76,9 @@ router.post('collections.add_user', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', ctx.state.user.id],
+  }).findByPk(id);
   authorize(ctx.state.user, 'update', collection);
 
   const user = await User.findByPk(userId);
@@ -94,6 +98,9 @@ router.post('collections.add_user', auth(), async ctx => {
       permission,
       createdById: ctx.state.user.id,
     });
+  } else if (permission) {
+    membership.permission = permission;
+    await membership.save();
   }
 
   await Event.create({
@@ -114,14 +121,14 @@ router.post('collections.add_user', auth(), async ctx => {
   };
 });
 
-// TODO: update_user
-
 router.post('collections.remove_user', auth(), async ctx => {
   const { id, userId } = ctx.body;
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', ctx.state.user.id],
+  }).findByPk(id);
   authorize(ctx.state.user, 'update', collection);
 
   const user = await User.findByPk(userId);
@@ -309,8 +316,19 @@ router.post('collections.update', auth(), async ctx => {
     ip: ctx.request.ip,
   });
 
-  // must reload to update collection.users
-  await collection.reload();
+  // must reload to update collection membership for correct policy calculation
+  await collection.reload({
+    include: [
+      {
+        model: 'collection_user',
+        as: 'membership',
+        where: {
+          userId: user.id,
+        },
+        required: false,
+      },
+    ],
+  });
 
   ctx.body = {
     data: presentCollection(collection),

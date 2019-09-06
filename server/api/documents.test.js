@@ -1,7 +1,14 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '../app';
-import { Document, View, Star, Revision, Backlink } from '../models';
+import {
+  Document,
+  View,
+  Star,
+  Revision,
+  Backlink,
+  CollectionUser,
+} from '../models';
 import { flushdb, seed } from '../test/support';
 import {
   buildShare,
@@ -817,6 +824,7 @@ describe('#documents.pin', async () => {
       body: { token: user.getJwtToken(), id: document.id },
     });
     const body = await res.json();
+    expect(res.status).toEqual(200);
     expect(body.data.pinned).toEqual(true);
   });
 
@@ -935,6 +943,7 @@ describe('#documents.unpin', async () => {
       body: { token: user.getJwtToken(), id: document.id },
     });
     const body = await res.json();
+    expect(res.status).toEqual(200);
     expect(body.data.pinned).toEqual(false);
   });
 
@@ -1036,7 +1045,7 @@ describe('#documents.create', async () => {
     const newDocument = await Document.findByPk(body.data.id);
     expect(res.status).toEqual(200);
     expect(newDocument.parentDocumentId).toBe(null);
-    expect(newDocument.collection.id).toBe(collection.id);
+    expect(newDocument.collectionId).toBe(collection.id);
   });
 
   it('should fallback to a default title', async () => {
@@ -1252,23 +1261,54 @@ describe('#documents.update', async () => {
     expect(body.data.title).toBe('Updated title');
   });
 
-  it('should require authentication', async () => {
-    const { document } = await seed();
-    const res = await server.post('/api/documents.update', {
-      body: { id: document.id, text: 'Updated' },
+  it('allows editing by read-write collection user', async () => {
+    const { user, document, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read_write',
     });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: 'Changed text',
+        lastRevision: document.revision,
+      },
+    });
+
     const body = await res.json();
 
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
+    expect(res.status).toEqual(200);
+    expect(body.data.text).toBe('Changed text');
   });
 
-  it('should require authorization', async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post('/api/documents.update', {
-      body: { token: user.getJwtToken(), id: document.id, text: 'Updated' },
+  it('does not allow editing by read-only collection user', async () => {
+    const { user, document, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read',
     });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: 'Changed text',
+        lastRevision: document.revision,
+      },
+    });
+
     expect(res.status).toEqual(403);
   });
 
@@ -1306,6 +1346,26 @@ describe('#documents.update', async () => {
 
     expect(res.status).toEqual(400);
     expect(body).toMatchSnapshot();
+  });
+
+  it('should require authentication', async () => {
+    const { document } = await seed();
+    const res = await server.post('/api/documents.update', {
+      body: { id: document.id, text: 'Updated' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.update', {
+      body: { token: user.getJwtToken(), id: document.id, text: 'Updated' },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 

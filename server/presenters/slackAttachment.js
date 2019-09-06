@@ -1,5 +1,5 @@
 // @flow
-import { Document, Team } from '../models';
+import { Document, Collection, Team } from '../models';
 
 type Action = {
   type: string,
@@ -10,6 +10,7 @@ type Action = {
 
 export default function present(
   document: Document,
+  collection: Collection,
   team: Team,
   context?: string,
   actions?: Action[]
@@ -21,10 +22,10 @@ export default function present(
     : document.getSummary();
 
   return {
-    color: document.collection.color,
+    color: collection.color,
     title: document.title,
     title_link: `${team.url}${document.url}`,
-    footer: document.collection.name,
+    footer: collection.name,
     callback_id: document.id,
     text,
     ts: document.getTimestamp(),

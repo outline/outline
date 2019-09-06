@@ -155,25 +155,22 @@ Document.associate = models => {
   Document.hasMany(models.View, {
     as: 'views',
   });
-  Document.addScope(
-    'defaultScope',
-    {
-      include: [
-        { model: models.Collection, as: 'collection' },
-        { model: models.User, as: 'createdBy', paranoid: false },
-        { model: models.User, as: 'updatedBy', paranoid: false },
-      ],
-      where: {
-        publishedAt: {
-          [Op.ne]: null,
-        },
+  Document.addScope('defaultScope', {
+    include: [
+      { model: models.User, as: 'createdBy', paranoid: false },
+      { model: models.User, as: 'updatedBy', paranoid: false },
+    ],
+    where: {
+      publishedAt: {
+        [Op.ne]: null,
       },
     },
-    { override: true }
-  );
+  });
+  Document.addScope('withCollection', {
+    include: [{ model: models.Collection, as: 'collection' }],
+  });
   Document.addScope('withUnpublished', {
     include: [
-      { model: models.Collection, as: 'collection' },
       { model: models.User, as: 'createdBy', paranoid: false },
       { model: models.User, as: 'updatedBy', paranoid: false },
     ],
@@ -190,8 +187,8 @@ Document.associate = models => {
   }));
 };
 
-Document.findByPk = async (id, options) => {
-  const scope = Document.scope('withUnpublished');
+Document.findByPk = async function(id, options) {
+  const scope = this.scope('withUnpublished', 'withCollection');
 
   if (isUUID(id)) {
     return scope.findOne({

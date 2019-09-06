@@ -2,7 +2,7 @@
 import Router from 'koa-router';
 import { escapeRegExp } from 'lodash';
 import { AuthenticationError, InvalidRequestError } from '../errors';
-import { Authentication, Document, User, Team } from '../models';
+import { Authentication, Document, User, Team, Collection } from '../models';
 import { presentSlackAttachment } from '../presenters';
 import * as Slack from '../slack';
 const router = new Router();
@@ -80,13 +80,14 @@ router.post('hooks.interactive', async ctx => {
   if (!document) throw new InvalidRequestError('Invalid document');
 
   const team = await Team.findByPk(user.teamId);
+  const collection = await Collection.findByPk(document.collectionId);
 
   // respond with a public message that will be posted in the original channel
   ctx.body = {
     response_type: 'in_channel',
     replace_original: false,
     attachments: [
-      presentSlackAttachment(document, team, document.getSummary()),
+      presentSlackAttachment(document, collection, team, document.getSummary()),
     ],
   };
 });
@@ -145,6 +146,7 @@ router.post('hooks.slack', async ctx => {
       attachments.push(
         presentSlackAttachment(
           result.document,
+          result.document.collection,
           team,
           queryIsInTitle ? undefined : result.context,
           process.env.SLACK_MESSAGE_ACTIONS

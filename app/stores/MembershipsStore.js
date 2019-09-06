@@ -38,13 +38,16 @@ export default class MembershipsStore extends BaseStore<Membership> {
   async create({
     collectionId,
     userId,
+    permission,
   }: {
     collectionId: string,
     userId: string,
+    permission: string,
   }) {
     const res = await client.post('/collections.add_user', {
       id: collectionId,
       userId,
+      permission,
     });
     invariant(res && res.data, 'Membership data should be available');
 
