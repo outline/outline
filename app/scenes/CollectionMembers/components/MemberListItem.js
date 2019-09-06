@@ -18,7 +18,7 @@ const PERMISSIONS = [
 ];
 type Props = {
   user: User,
-  membership: Membership,
+  membership?: ?Membership,
   canEdit: boolean,
   onAdd?: () => void,
   onRemove?: () => void,
@@ -50,7 +50,7 @@ const MemberListItem = ({
               <Select
                 label="Permissions"
                 options={PERMISSIONS}
-                value={membership.permission}
+                value={membership ? membership.permission : undefined}
                 onChange={ev => onUpdate(ev.target.value)}
                 labelHidden
               />

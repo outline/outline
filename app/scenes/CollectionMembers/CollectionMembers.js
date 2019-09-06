@@ -104,7 +104,7 @@ class CollectionMembers extends React.Component<Props> {
 
         <Subheading>Members</Subheading>
         <PaginatedList
-          key={collection.private}
+          key={collection.private.toString()}
           items={
             collection.private
               ? users.inCollection(collection.id)
