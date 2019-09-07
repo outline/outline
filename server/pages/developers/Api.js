@@ -579,7 +579,13 @@ export default function Api() {
             label="Get pinned documents for a collection"
           >
             <Description>Return pinned documents for a collection</Description>
-            <Arguments pagination />
+            <Arguments pagination>
+              <Argument
+                id="collectionId"
+                description="Collection ID"
+                required
+              />
+            </Arguments>
           </Method>
 
           <Method

@@ -28,6 +28,8 @@ describe('#collections.list', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(collection.id);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
   });
 
   it('should not return private collections not a member of', async () => {
@@ -60,6 +62,8 @@ describe('#collections.list', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
+    expect(body.policies.length).toEqual(2);
+    expect(body.policies[0].abilities.read).toEqual(true);
   });
 });
 
@@ -274,6 +278,9 @@ describe('#collections.remove_user', async () => {
 describe('#collections.users', async () => {
   it('should return users in private collection', async () => {
     const { collection, user } = await seed();
+    collection.private = true;
+    await collection.save();
+
     await CollectionUser.create({
       createdById: user.id,
       collectionId: collection.id,
@@ -311,6 +318,9 @@ describe('#collections.users', async () => {
 describe('#collections.memberships', async () => {
   it('should return members in private collection', async () => {
     const { collection, user } = await seed();
+    collection.private = true;
+    await collection.save();
+
     await CollectionUser.create({
       createdById: user.id,
       collectionId: collection.id,

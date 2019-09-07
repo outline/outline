@@ -53,7 +53,9 @@ router.post('documents.list', auth(), pagination(), async ctx => {
     ctx.assertUuid(collectionId, 'collection must be a UUID');
 
     where = { ...where, collectionId };
-    const collection = await Collection.findByPk(collectionId);
+    const collection = await Collection.scope({
+      method: ['withMembership', user.id],
+    }).findByPk(collectionId);
     authorize(user, 'read', collection);
 
     // otherwise, filter by all collections the user has access to
@@ -78,7 +80,12 @@ router.post('documents.list', auth(), pagination(), async ctx => {
 
   // add the users starred state to the response by default
   const starredScope = { method: ['withStarred', user.id] };
-  const documents = await Document.scope('defaultScope', starredScope).findAll({
+  const collectionScope = { method: ['withCollection', user.id] };
+  const documents = await Document.scope(
+    'defaultScope',
+    starredScope,
+    collectionScope
+  ).findAll({
     where,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
@@ -99,18 +106,24 @@ router.post('documents.list', auth(), pagination(), async ctx => {
 });
 
 router.post('documents.pinned', auth(), pagination(), async ctx => {
-  const { sort = 'updatedAt' } = ctx.body;
-  const collectionId = ctx.body.collection;
+  const { collectionId, sort = 'updatedAt' } = ctx.body;
   let direction = ctx.body.direction;
   if (direction !== 'ASC') direction = 'DESC';
-  ctx.assertUuid(collectionId, 'collection is required');
+  ctx.assertUuid(collectionId, 'collectionId is required');
 
   const user = ctx.state.user;
-  const collection = await Collection.findByPk(collectionId);
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(collectionId);
   authorize(user, 'read', collection);
 
   const starredScope = { method: ['withStarred', user.id] };
-  const documents = await Document.scope('defaultScope', starredScope).findAll({
+  const collectionScope = { method: ['withCollection', user.id] };
+  const documents = await Document.scope(
+    'defaultScope',
+    starredScope,
+    collectionScope
+  ).findAll({
     where: {
       teamId: user.teamId,
       collectionId,

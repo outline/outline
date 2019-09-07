@@ -156,8 +156,11 @@ router.post('collections.users', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findByPk(id);
-  authorize(ctx.state.user, 'read', collection);
+  const user = ctx.state.user;
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
+  authorize(user, 'read', collection);
 
   const users = await collection.getUsers();
 
@@ -170,8 +173,11 @@ router.post('collections.memberships', auth(), pagination(), async ctx => {
   const { id, query, permission } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findByPk(id);
-  authorize(ctx.state.user, 'read', collection);
+  const user = ctx.state.user;
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
+  authorize(user, 'read', collection);
 
   let where = {
     collectionId: id,
@@ -342,7 +348,9 @@ router.post('collections.update', auth(), async ctx => {
 router.post('collections.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
   const collectionIds = await user.collectionIds();
-  let collections = await Collection.findAll({
+  let collections = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findAll({
     where: {
       teamId: user.teamId,
       id: collectionIds,

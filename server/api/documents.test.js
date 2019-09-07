@@ -281,6 +281,30 @@ describe('#documents.list', async () => {
     expect(body.data.length).toEqual(1);
   });
 
+  it('should allow filtering to private collection', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read',
+    });
+
+    const res = await server.post('/api/documents.list', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
   it('should return backlinks', async () => {
     const { user, document } = await seed();
     const anotherDoc = await buildDocument({
@@ -312,6 +336,64 @@ describe('#documents.list', async () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#documents.pinned', async () => {
+  it('should return pinned documents', async () => {
+    const { user, document } = await seed();
+    document.pinnedById = user.id;
+    await document.save();
+
+    const res = await server.post('/api/documents.pinned', {
+      body: { token: user.getJwtToken(), collectionId: document.collectionId },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it('should return pinned documents in private collections member of', async () => {
+    const { user, collection, document } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    document.pinnedById = user.id;
+    await document.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read_write',
+    });
+
+    const res = await server.post('/api/documents.pinned', {
+      body: { token: user.getJwtToken(), collectionId: document.collectionId },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it('should not return pinned documents in private collections not a member of', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post('/api/documents.pinned', {
+      body: { token: user.getJwtToken(), collectionId: collection.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.pinned');
+    expect(res.status).toEqual(401);
   });
 });
 
@@ -573,6 +655,37 @@ describe('#documents.search', async () => {
         token: user.getJwtToken(),
         query: 'search term',
         userId: user.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.id).toEqual(document.id);
+  });
+
+  it('should return documents for a specific private collection', async () => {
+    const { user } = await seed();
+    const collection = await buildCollection({ private: true });
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read',
+    });
+
+    const document = await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+    });
+
+    const res = await server.post('/api/documents.search', {
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        collectionId: document.collectionId,
       },
     });
     const body = await res.json();
