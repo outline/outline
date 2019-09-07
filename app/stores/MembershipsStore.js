@@ -70,4 +70,13 @@ export default class MembershipsStore extends BaseStore<Membership> {
 
     this.remove(`${userId}-${collectionId}`);
   }
+
+  @action
+  removeCollectionId(collectionId: string) {
+    this.data.forEach((membership, key) => {
+      if (key.includes(collectionId)) {
+        this.remove(key);
+      }
+    });
+  }
 }

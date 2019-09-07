@@ -4,6 +4,7 @@ import { inject } from 'mobx-react';
 import io from 'socket.io-client';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
+import MembershipsStore from 'stores/MembershipsStore';
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
 
@@ -13,6 +14,7 @@ type Props = {
   children: React.Node,
   documents: DocumentsStore,
   collections: CollectionsStore,
+  memberships: MembershipsStore,
   auth: AuthStore,
   ui: UiStore,
 };
@@ -27,7 +29,7 @@ class SocketProvider extends React.Component<Props> {
       path: '/realtime',
     });
 
-    const { auth, ui, documents, collections } = this.props;
+    const { auth, ui, documents, collections, memberships } = this.props;
     if (!auth.token) return;
 
     this.socket.on('connect', () => {
@@ -66,11 +68,20 @@ class SocketProvider extends React.Component<Props> {
         }
         if (event.collections) {
           event.collections.forEach(collection => {
+            const previous = collections.get(collection.id);
+
             if (collection.deletedAt) {
               collections.remove(collection.id);
               documents.removeCollectionDocuments(collection.id);
             } else {
               collections.add(collection);
+            }
+
+            // If the collection changed privacy then we need to reload associated
+            // memberships and policies to reflect any new permissions
+            if (previous && previous.private !== collection.private) {
+              collections.fetch(collection.id, { force: true });
+              memberships.removeCollectionId(collection.id);
             }
           });
         }
@@ -105,4 +116,6 @@ class SocketProvider extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'ui', 'documents', 'collections')(SocketProvider);
+export default inject('auth', 'ui', 'documents', 'collections', 'memberships')(
+  SocketProvider
+);

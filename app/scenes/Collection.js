@@ -79,7 +79,7 @@ class CollectionScene extends React.Component<Props> {
       this.collection = collection;
 
       await this.props.documents.fetchPinned({
-        collection: id,
+        collectionId: id,
       });
     }
 
