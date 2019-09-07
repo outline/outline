@@ -68,7 +68,7 @@ describe('#collections.list', async () => {
 });
 
 describe('#collections.export', async () => {
-  it('should require user to be a member', async () => {
+  it('should now allow export of private collection not a member', async () => {
     const { user } = await seed();
     const collection = await buildCollection({
       private: true,
@@ -79,6 +79,25 @@ describe('#collections.export', async () => {
     });
 
     expect(res.status).toEqual(403);
+  });
+
+  it('should allow export of private collection', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read',
+    });
+
+    const res = await server.post('/api/collections.export', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+
+    expect(res.status).toEqual(200);
   });
 
   it('should require authentication', async () => {

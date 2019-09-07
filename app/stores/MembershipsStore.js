@@ -72,11 +72,11 @@ export default class MembershipsStore extends BaseStore<Membership> {
   }
 
   @action
-  removeCollectionId(collectionId: string) {
+  removeCollectionId = (collectionId: string) => {
     this.data.forEach((membership, key) => {
       if (key.includes(collectionId)) {
         this.remove(key);
       }
     });
-  }
+  };
 }

@@ -229,7 +229,9 @@ router.post('collections.export', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
   authorize(user, 'export', collection);
 
   const filePath = await archiveCollection(collection);

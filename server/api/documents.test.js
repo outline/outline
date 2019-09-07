@@ -665,8 +665,9 @@ describe('#documents.search', async () => {
   });
 
   it('should return documents for a specific private collection', async () => {
-    const { user } = await seed();
-    const collection = await buildCollection({ private: true });
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
 
     await CollectionUser.create({
       createdById: user.id,
@@ -679,13 +680,14 @@ describe('#documents.search', async () => {
       title: 'search term',
       text: 'search term',
       teamId: user.teamId,
+      collectionId: collection.id,
     });
 
     const res = await server.post('/api/documents.search', {
       body: {
         token: user.getJwtToken(),
         query: 'search term',
-        collectionId: document.collectionId,
+        collectionId: collection.id,
       },
     });
     const body = await res.json();

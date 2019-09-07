@@ -303,14 +303,18 @@ Document.searchForUser = async (
   });
 
   // Final query to get associated document data
-  const documents = await Document.scope({
-    method: ['withViews', user.id],
-  }).findAll({
+  const documents = await Document.scope(
+    {
+      method: ['withViews', user.id],
+    },
+    {
+      method: ['withCollection', user.id],
+    }
+  ).findAll({
     where: {
       id: map(results, 'id'),
     },
     include: [
-      { model: Collection, as: 'collection' },
       { model: User, as: 'createdBy', paranoid: false },
       { model: User, as: 'updatedBy', paranoid: false },
     ],

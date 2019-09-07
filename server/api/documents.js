@@ -457,7 +457,9 @@ router.post('documents.search', auth(), pagination(), async ctx => {
   if (collectionId) {
     ctx.assertUuid(collectionId, 'collectionId must be a UUID');
 
-    const collection = await Collection.findByPk(collectionId);
+    const collection = await Collection.scope({
+      method: ['withMembership', user.id],
+    }).findByPk(collectionId);
     authorize(user, 'read', collection);
   }
 
