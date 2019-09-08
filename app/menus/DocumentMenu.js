@@ -122,7 +122,7 @@ class DocumentMenu extends React.Component<Props> {
       onClose,
     } = this.props;
 
-    const can = policies.abilties(document.id);
+    const can = policies.abilities(document.id);
     const canShareDocuments = can.share && auth.team && auth.team.sharing;
 
     return (

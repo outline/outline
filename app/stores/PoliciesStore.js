@@ -10,7 +10,7 @@ export default class PoliciesStore extends BaseStore<Policy> {
     super(rootStore, Policy);
   }
 
-  abilties(id: string) {
+  abilities(id: string) {
     const policy = this.get(id);
     return policy ? policy.abilities : {};
   }

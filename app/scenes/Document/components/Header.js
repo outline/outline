@@ -108,7 +108,7 @@ class Header extends React.Component<Props> {
       auth,
     } = this.props;
 
-    const can = policies.abilties(document.id);
+    const can = policies.abilities(document.id);
     const canShareDocuments = auth.team && auth.team.sharing && can.share;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
     const canEdit = can.update && !isEditing;

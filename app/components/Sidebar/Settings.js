@@ -43,7 +43,7 @@ class SettingsSidebar extends React.Component<Props> {
     const { team } = auth;
     if (!team) return null;
 
-    const can = policies.abilties(team.id);
+    const can = policies.abilities(team.id);
 
     return (
       <Sidebar>

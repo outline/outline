@@ -107,7 +107,7 @@ class DocumentScene extends React.Component<Props> {
     const document = this.document;
     if (!document) return;
 
-    const can = this.props.policies.abilties(document.id);
+    const can = this.props.policies.abilities(document.id);
 
     if (can.update) {
       this.props.history.push(documentMoveUrl(document));
@@ -120,7 +120,7 @@ class DocumentScene extends React.Component<Props> {
     const document = this.document;
     if (!document) return;
 
-    const can = this.props.policies.abilties(document.id);
+    const can = this.props.policies.abilities(document.id);
 
     if (can.update) {
       this.props.history.push(documentEditUrl(document));
