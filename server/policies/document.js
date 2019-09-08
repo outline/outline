@@ -7,7 +7,7 @@ const { allow, cannot } = policy;
 
 allow(User, 'create', Document);
 
-allow(User, ['read', 'share'], Document, (user, document) => {
+allow(User, ['read', 'download'], Document, (user, document) => {
   // existance of collection option is not required here to account for share tokens
   if (document.collection && cannot(user, 'read', document.collection)) {
     return false;
@@ -16,9 +16,23 @@ allow(User, ['read', 'share'], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-// the collection associated with the document must be passed in options, it must
-// be queried withMembership scope to include the models needed to authorize
-allow(User, ['update', 'move'], Document, (user, document) => {
+allow(
+  User,
+  ['share', 'pin', 'unpin', 'star', 'unstar'],
+  Document,
+  (user, document) => {
+    if (document.archivedAt) return false;
+
+    // existance of collection option is not required here to account for share tokens
+    if (document.collection && cannot(user, 'read', document.collection)) {
+      return false;
+    }
+
+    return user.teamId === document.teamId;
+  }
+);
+
+allow(User, 'update', Document, (user, document) => {
   invariant(
     document.collection,
     'collection is missing, did you forget to include in the query scope?'
@@ -29,7 +43,19 @@ allow(User, ['update', 'move'], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ['delete'], Document, (user, document) => {
+allow(User, 'move', Document, (user, document) => {
+  invariant(
+    document.collection,
+    'collection is missing, did you forget to include in the query scope?'
+  );
+  if (cannot(user, 'update', document.collection)) return false;
+  if (document.archivedAt) return false;
+  if (!document.publishedAt) return false;
+
+  return user.teamId === document.teamId;
+});
+
+allow(User, 'delete', Document, (user, document) => {
   // allow deleting document without a collection
   if (document.collection && cannot(user, 'update', document.collection))
     return false;
