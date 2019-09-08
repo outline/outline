@@ -69,6 +69,7 @@ class SocketProvider extends React.Component<Props> {
         if (event.collections) {
           event.collections.forEach(collection => {
             const previous = collections.get(collection.id);
+            const previousPrivate = previous ? previous.private : undefined;
 
             if (collection.deletedAt) {
               collections.remove(collection.id);
@@ -79,9 +80,9 @@ class SocketProvider extends React.Component<Props> {
 
             // If the collection changed privacy then we need to reload associated
             // memberships and policies to reflect any new permissions
-            if (previous && previous.private !== collection.private) {
+            if (previous && previousPrivate !== collection.private) {
               collections.fetch(collection.id, { force: true });
-              memberships.removeCollectionId(collection.id);
+              memberships.removeCollectionMemberships(collection.id);
             }
           });
         }
