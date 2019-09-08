@@ -24,8 +24,10 @@ import Modal from 'components/Modal';
 import Badge from 'components/Badge';
 import Collaborators from 'components/Collaborators';
 import { Action, Separator } from 'components/Actions';
+import PoliciesStore from 'stores/PoliciesStore';
 
 type Props = {
+  policies: PoliciesStore,
   document: Document,
   isDraft: boolean,
   isEditing: boolean,
@@ -96,6 +98,7 @@ class Header extends React.Component<Props> {
 
     const {
       document,
+      policies,
       isEditing,
       isDraft,
       isPublishing,
@@ -104,10 +107,11 @@ class Header extends React.Component<Props> {
       publishingIsDisabled,
       auth,
     } = this.props;
-    const canShareDocuments =
-      auth.team && auth.team.sharing && !document.isArchived;
+
+    const can = policies.abilties(document.id);
+    const canShareDocuments = auth.team && auth.team.sharing && can.share;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
-    const canEdit = !document.isArchived && !isEditing;
+    const canEdit = can.update && !isEditing;
 
     return (
       <Actions
@@ -305,4 +309,4 @@ const Title = styled.div`
   `};
 `;
 
-export default inject('auth')(Header);
+export default inject('auth', 'policies')(Header);

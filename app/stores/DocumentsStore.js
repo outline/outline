@@ -173,12 +173,12 @@ export default class DocumentsStore extends BaseStore<Document> {
     try {
       const res = await client.post(`/documents.${request}`, options);
       invariant(res && res.data, 'Document list not available');
-      const { data } = res;
       runInAction('DocumentsStore#fetchNamedPage', () => {
-        data.forEach(this.add);
+        res.data.forEach(this.add);
+        this.addPolicies(res.policies);
         this.isLoaded = true;
       });
-      return data;
+      return res.data;
     } finally {
       this.isFetching = false;
     }
@@ -425,6 +425,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     runInAction('Document#archive', () => {
       invariant(res && res.data, 'Data should be available');
       document.updateFromJson(res.data);
+      this.addPolicies(res.policies);
     });
 
     const collection = this.getCollectionForDocument(document);
@@ -440,6 +441,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     runInAction('Document#restore', () => {
       invariant(res && res.data, 'Data should be available');
       document.updateFromJson(res.data);
+      this.addPolicies(res.policies);
     });
 
     const collection = this.getCollectionForDocument(document);
