@@ -275,6 +275,7 @@ const Actions = styled(Flex)`
         ? darken(0.05, props.theme.sidebarBackground)
         : 'transparent'};
   padding: 12px;
+  height: 32px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
   -webkit-backdrop-filter: blur(20px);
