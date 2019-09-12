@@ -31,10 +31,12 @@ class DropdownMenu extends React.Component<Props> {
   @observable right: number;
   @observable left: number;
   @observable position: number;
+  @observable bodyRect: DOMRect;
+  @observable labelRect: DOMRect;
 
   constructor(props) {
     super(props);
-    this.positionRef = React.createRef();
+    this.dropdownRef = React.createRef();
   }
 
   handleOpen = (
@@ -47,13 +49,13 @@ class DropdownMenu extends React.Component<Props> {
       invariant(document.body, 'why you not here');
 
       if (currentTarget instanceof HTMLDivElement) {
-        const bodyRect = document.body.getBoundingClientRect();
-        const targetRect = currentTarget.getBoundingClientRect();
-        this.top = targetRect.bottom - bodyRect.top;
+        this.bodyRect = document.body.getBoundingClientRect();
+        this.labelRect = currentTarget.getBoundingClientRect();
+        this.top = this.labelRect.bottom - this.bodyRect.top;
         this.bottom = undefined;
         this.position = this.props.position || 'left';
 
-        this.initPosition(bodyRect, targetRect);
+        this.initPosition();
 
         // attempt to keep only one flyout menu open at once
         if (previousClosePortal) {
@@ -61,55 +63,60 @@ class DropdownMenu extends React.Component<Props> {
         }
         previousClosePortal = closePortal;
         openPortal(ev);
-
-        this.fitOnTheScreen(bodyRect, targetRect);
       }
     };
   };
 
-  initPosition(bodyRect: DOMRect, targetRect: DOMRect) {
+  initPosition() {
     if (this.position === 'left') {
-      this.right = bodyRect.width - targetRect.left - targetRect.width;
+      this.right =
+        this.bodyRect.width - this.labelRect.left - this.labelRect.width;
     } else if (this.position === 'center') {
-      this.left = targetRect.left + targetRect.width / 2;
+      this.left = this.labelRect.left + this.labelRect.width / 2;
     } else {
-      this.left = targetRect.left;
+      this.left = this.labelRect.left;
     }
   }
 
-  fitOnTheScreen(bodyRect: DOMRect, targetRect: DOMRect) {
-    setTimeout(
-      function() {
-        if (!this.positionRef || !this.positionRef.current) return;
-        const el = this.positionRef.current;
+  onOpen(originalFunction?: () => void) {
+    if (typeof originalFunction === 'function') {
+      originalFunction();
+    }
+    this.fitOnTheScreen();
+  }
 
-        if (el.scrollHeight + this.top > window.innerHeight) {
-          this.top = undefined;
-          this.bottom = 0;
-        } else {
-          this.bottom = undefined;
-        }
+  fitOnTheScreen() {
+    if (!this.dropdownRef || !this.dropdownRef.current) return;
+    const el = this.dropdownRef.current;
 
+    const sticksOutPastBottomEdge =
+      el.scrollHeight + this.top > window.innerHeight;
+    if (sticksOutPastBottomEdge) {
+      this.top = undefined;
+      this.bottom = 0;
+    } else {
+      this.bottom = undefined;
+    }
+
+    if (this.position === 'left' || this.position === 'right') {
+      const totalWidth =
+        Math.sign(this.position === 'left' ? -1 : 1) * el.offsetLeft +
+        el.scrollWidth;
+      const isVisible = totalWidth < window.innerWidth;
+
+      if (!isVisible) {
         if (this.position === 'right') {
-          const isVisible = el.offsetLeft + el.scrollWidth < window.innerWidth;
-          if (!isVisible) {
-            this.position = 'left';
-            this.left = undefined;
-          }
+          this.position = 'left';
+          this.left = undefined;
         } else if (this.position === 'left') {
-          const isVisible = el.offsetLeft - el.scrollWidth < window.innerWidth;
-          if (!isVisible) {
-            this.position = 'right';
-            this.right = undefined;
-          }
+          this.position = 'right';
+          this.right = undefined;
         }
+      }
+    }
 
-        this.initPosition(bodyRect, targetRect);
-
-        this.forceUpdate();
-      }.bind(this),
-      0
-    );
+    this.initPosition();
+    this.forceUpdate();
   }
 
   render() {
@@ -118,7 +125,7 @@ class DropdownMenu extends React.Component<Props> {
     return (
       <div className={className}>
         <PortalWithState
-          onOpen={this.props.onOpen}
+          onOpen={this.onOpen.bind(this, this.props.onOpen)}
           onClose={this.props.onClose}
           closeOnOutsideClick
           closeOnEsc
@@ -130,7 +137,7 @@ class DropdownMenu extends React.Component<Props> {
               </Label>
               {portal(
                 <Position
-                  ref={this.positionRef}
+                  ref={this.dropdownRef}
                   position={this.position}
                   top={this.top}
                   bottom={this.bottom}
