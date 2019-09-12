@@ -26,15 +26,16 @@ type Props = {
 
 @observer
 class DropdownMenu extends React.Component<Props> {
-  @observable top: number;
-  @observable bottom: number;
-  @observable right: number;
-  @observable left: number;
-  @observable position: number;
-  @observable bodyRect: DOMRect;
-  @observable labelRect: DOMRect;
+  @observable top: ?number;
+  @observable bottom: ?number;
+  @observable right: ?number;
+  @observable left: ?number;
+  @observable position: 'left' | 'right' | 'center';
+  @observable bodyRect: ClientRect;
+  @observable labelRect: ClientRect;
+  @observable dropdownRef: { current: null | HTMLElement };
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
     this.dropdownRef = React.createRef();
   }
