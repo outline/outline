@@ -27,8 +27,15 @@ type Props = {
 @observer
 class DropdownMenu extends React.Component<Props> {
   @observable top: number;
+  @observable bottom: number;
   @observable right: number;
   @observable left: number;
+  @observable position: number;
+
+  constructor(props) {
+    super(props);
+    this.positionRef = React.createRef();
+  }
 
   handleOpen = (
     openPortal: (SyntheticEvent<>) => void,
@@ -43,14 +50,10 @@ class DropdownMenu extends React.Component<Props> {
         const bodyRect = document.body.getBoundingClientRect();
         const targetRect = currentTarget.getBoundingClientRect();
         this.top = targetRect.bottom - bodyRect.top;
+        this.bottom = undefined;
+        this.position = this.props.position || 'left';
 
-        if (this.props.position === 'left') {
-          this.left = targetRect.left;
-        } else if (this.props.position === 'center') {
-          this.left = targetRect.left + targetRect.width / 2;
-        } else {
-          this.right = bodyRect.width - targetRect.left - targetRect.width;
-        }
+        this.initPosition(bodyRect, targetRect);
 
         // attempt to keep only one flyout menu open at once
         if (previousClosePortal) {
@@ -58,12 +61,59 @@ class DropdownMenu extends React.Component<Props> {
         }
         previousClosePortal = closePortal;
         openPortal(ev);
+
+        this.fitOnTheScreen(bodyRect, targetRect);
       }
     };
   };
 
+  initPosition(bodyRect: DOMRect, targetRect: DOMRect) {
+    if (this.position === 'left') {
+      this.right = bodyRect.width - targetRect.left - targetRect.width;
+    } else if (this.position === 'center') {
+      this.left = targetRect.left + targetRect.width / 2;
+    } else {
+      this.left = targetRect.left;
+    }
+  }
+
+  fitOnTheScreen(bodyRect: DOMRect, targetRect: DOMRect) {
+    setTimeout(
+      function() {
+        if (!this.positionRef || !this.positionRef.current) return;
+        const el = this.positionRef.current;
+
+        if (el.scrollHeight + this.top > window.innerHeight) {
+          this.top = undefined;
+          this.bottom = 0;
+        } else {
+          this.bottom = undefined;
+        }
+
+        if (this.position === 'right') {
+          const isVisible = el.offsetLeft + el.scrollWidth < window.innerWidth;
+          if (!isVisible) {
+            this.position = 'left';
+            this.left = undefined;
+          }
+        } else if (this.position === 'left') {
+          const isVisible = el.offsetLeft - el.scrollWidth < window.innerWidth;
+          if (!isVisible) {
+            this.position = 'right';
+            this.right = undefined;
+          }
+        }
+
+        this.initPosition(bodyRect, targetRect);
+
+        this.forceUpdate();
+      }.bind(this),
+      0
+    );
+  }
+
   render() {
-    const { className, label, position, children } = this.props;
+    const { className, label, children } = this.props;
 
     return (
       <div className={className}>
@@ -80,8 +130,10 @@ class DropdownMenu extends React.Component<Props> {
               </Label>
               {portal(
                 <Position
-                  position={position}
+                  ref={this.positionRef}
+                  position={this.position}
                   top={this.top}
+                  bottom={this.bottom}
                   left={this.left}
                   right={this.right}
                 >
@@ -119,11 +171,15 @@ const Label = styled(Flex).attrs({
 `;
 
 const Position = styled.div`
-  position: absolute;
+  position: fixed;
+  display: flex;
   ${({ left }) => (left !== undefined ? `left: ${left}px` : '')};
   ${({ right }) => (right !== undefined ? `right: ${right}px` : '')};
-  top: ${({ top }) => top}px;
+  ${({ top }) => (top !== undefined ? `top: ${top}px` : '')};
+  ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : '')};
+  max-height: 75%;
   z-index: 1000;
+  box-shadow: ${props => props.theme.menuShadow};
   transform: ${props =>
     props.position === 'center' ? 'translateX(-50%)' : 'initial'};
 `;
@@ -136,7 +192,7 @@ const Menu = styled.div`
   padding: 0.5em 0;
   min-width: 180px;
   overflow: hidden;
-  box-shadow: ${props => props.theme.menuShadow};
+  overflow-y: auto;
 
   @media print {
     display: none;
