@@ -22,7 +22,13 @@ export default class Collection extends BaseModel {
   documents: NavigationNode[];
   createdAt: ?string;
   updatedAt: ?string;
+  deletedAt: ?string;
   url: string;
+
+  @computed
+  get isPrivate(): boolean {
+    return this.private;
+  }
 
   @computed
   get isEmpty(): boolean {
@@ -96,11 +102,36 @@ export default class Collection extends BaseModel {
     travelDocuments(this.documents);
   }
 
+  pathToDocument(document: Document) {
+    let path;
+    const traveler = (nodes, previousPath) => {
+      nodes.forEach(childNode => {
+        const newPath = [...previousPath, childNode];
+        if (childNode.id === document.id) {
+          path = newPath;
+          return;
+        }
+        return traveler(childNode.children, newPath);
+      });
+    };
+
+    if (this.documents) {
+      traveler(this.documents, []);
+      if (path) return path;
+    }
+
+    return [];
+  }
+
   toJS = () => {
     return pick(this, ['id', 'name', 'color', 'description', 'private']);
   };
 
   export = () => {
-    return client.post('/collections.export', { id: this.id });
+    return client.get(
+      '/collections.export',
+      { id: this.id },
+      { download: true }
+    );
   };
 }

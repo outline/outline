@@ -6,7 +6,7 @@ import UiStore from 'stores/UiStore';
 
 type Props = {
   ui: UiStore,
-  component: *,
+  component: React.ComponentType<any>,
 };
 
 class RouteSidebarHidden extends React.Component<Props> {

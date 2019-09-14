@@ -1,5 +1,5 @@
 // @flow
-import { Share, Team, User, Document, Collection } from '../models';
+import { Share, Team, User, Event, Document, Collection } from '../models';
 import uuid from 'uuid';
 
 let count = 0;
@@ -23,6 +23,14 @@ export function buildTeam(overrides: Object = {}) {
   return Team.create({
     name: `Team ${count}`,
     slackId: uuid.v4(),
+    ...overrides,
+  });
+}
+
+export function buildEvent(overrides: Object = {}) {
+  return Event.create({
+    name: 'documents.publish',
+    ip: '127.0.0.1',
     ...overrides,
   });
 }

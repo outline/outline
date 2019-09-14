@@ -1,9 +1,12 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
 import UserMenu from 'menus/UserMenu';
 import Avatar from 'components/Avatar';
+import Badge from 'components/Badge';
+import UserProfile from 'scenes/UserProfile';
 import ListItem from 'components/List/Item';
 import Time from 'shared/components/Time';
 import User from 'models/User';
@@ -13,35 +16,57 @@ type Props = {
   showMenu: boolean,
 };
 
-const UserListItem = ({ user, showMenu }: Props) => {
-  return (
-    <ListItem
-      title={user.name}
-      image={<Avatar src={user.avatarUrl} size={40} />}
-      subtitle={
-        <React.Fragment>
-          {user.email ? `${user.email} · ` : undefined}
-          Joined <Time dateTime={user.createdAt} /> ago
-          {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
-          {user.isSuspended && <Badge>Suspended</Badge>}
-        </React.Fragment>
-      }
-      actions={showMenu ? <UserMenu user={user} /> : undefined}
-    />
-  );
-};
+@observer
+class UserListItem extends React.Component<Props> {
+  @observable profileOpen: boolean = false;
 
-const Badge = styled.span`
-  margin-left: 10px;
-  padding: 2px 6px 3px;
-  background-color: ${({ admin, theme }) =>
-    admin ? theme.primary : theme.smokeDark};
-  color: ${({ admin, theme }) => (admin ? theme.white : theme.text)};
-  border-radius: 2px;
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  user-select: none;
+  handleOpenProfile = () => {
+    this.profileOpen = true;
+  };
+
+  handleCloseProfile = () => {
+    this.profileOpen = false;
+  };
+
+  render() {
+    const { user, showMenu } = this.props;
+
+    return (
+      <ListItem
+        title={<Title onClick={this.handleOpenProfile}>{user.name}</Title>}
+        image={
+          <React.Fragment>
+            <Avatar
+              src={user.avatarUrl}
+              size={40}
+              onClick={this.handleOpenProfile}
+            />
+            <UserProfile
+              user={user}
+              isOpen={this.profileOpen}
+              onRequestClose={this.handleCloseProfile}
+            />
+          </React.Fragment>
+        }
+        subtitle={
+          <React.Fragment>
+            {user.email ? `${user.email} · ` : undefined}
+            Joined <Time dateTime={user.createdAt} /> ago
+            {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
+            {user.isSuspended && <Badge>Suspended</Badge>}
+          </React.Fragment>
+        }
+        actions={showMenu ? <UserMenu user={user} /> : undefined}
+      />
+    );
+  }
+}
+
+const Title = styled.span`
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
 `;
 
 export default UserListItem;

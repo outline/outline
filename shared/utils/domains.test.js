@@ -1,5 +1,118 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { stripSubdomain, isCustomSubdomain } from './domains';
+import { stripSubdomain, parseDomain, isCustomSubdomain } from './domains';
+
+// test suite is based on subset of parse-domain module we want to support
+// https://github.com/peerigon/parse-domain/blob/master/test/parseDomain.test.js
+describe('#parseDomain', () => {
+  it('should remove the protocol', () => {
+    expect(parseDomain('http://example.com')).toMatchObject({
+      subdomain: '',
+      domain: 'example',
+      tld: 'com',
+    });
+    expect(parseDomain('//example.com')).toMatchObject({
+      subdomain: '',
+      domain: 'example',
+      tld: 'com',
+    });
+    expect(parseDomain('https://example.com')).toMatchObject({
+      subdomain: '',
+      domain: 'example',
+      tld: 'com',
+    });
+  });
+
+  it('should remove sub-domains', () => {
+    expect(parseDomain('www.example.com')).toMatchObject({
+      subdomain: 'www',
+      domain: 'example',
+      tld: 'com',
+    });
+  });
+
+  it('should remove the path', () => {
+    expect(parseDomain('example.com/some/path?and&query')).toMatchObject({
+      subdomain: '',
+      domain: 'example',
+      tld: 'com',
+    });
+    expect(parseDomain('example.com/')).toMatchObject({
+      subdomain: '',
+      domain: 'example',
+      tld: 'com',
+    });
+  });
+
+  it('should remove the query string', () => {
+    expect(parseDomain('example.com?and&query')).toMatchObject({
+      subdomain: '',
+      domain: 'example',
+      tld: 'com',
+    });
+  });
+
+  it('should remove special characters', () => {
+    expect(parseDomain('http://m.example.com\r')).toMatchObject({
+      subdomain: 'm',
+      domain: 'example',
+      tld: 'com',
+    });
+  });
+
+  it('should remove the port', () => {
+    expect(parseDomain('example.com:8080')).toMatchObject({
+      subdomain: '',
+      domain: 'example',
+      tld: 'com',
+    });
+  });
+
+  it('should allow @ characters in the path', () => {
+    expect(parseDomain('https://medium.com/@username/')).toMatchObject({
+      subdomain: '',
+      domain: 'medium',
+      tld: 'com',
+    });
+  });
+
+  it('should also work with three-level domains like .co.uk', () => {
+    expect(parseDomain('www.example.co.uk')).toMatchObject({
+      subdomain: 'www',
+      domain: 'example',
+      tld: 'co.uk',
+    });
+  });
+
+  it('should not include private domains like blogspot.com by default', () => {
+    expect(parseDomain('foo.blogspot.com')).toMatchObject({
+      subdomain: 'foo',
+      domain: 'blogspot',
+      tld: 'com',
+    });
+  });
+
+  it('should also work with the minimum', () => {
+    expect(parseDomain('example.com')).toMatchObject({
+      subdomain: '',
+      domain: 'example',
+      tld: 'com',
+    });
+  });
+
+  it('should return null if the given value is not a string', () => {
+    expect(parseDomain(undefined)).toBe(null);
+    expect(parseDomain({})).toBe(null);
+    expect(parseDomain('')).toBe(null);
+  });
+
+  it('should work with custom top-level domains (eg .local)', () => {
+    expect(parseDomain('mymachine.local')).toMatchObject({
+      subdomain: '',
+      domain: 'mymachine',
+      tld: 'local',
+    });
+  });
+});
 
 describe('#stripSubdomain', () => {
   test('to work with localhost', () => {

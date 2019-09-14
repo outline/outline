@@ -28,7 +28,7 @@ class Tokens extends React.Component<Props> {
     this.name = ev.target.value;
   };
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     await this.props.apiKeys.create({ name: this.name });
     this.name = '';
@@ -44,8 +44,8 @@ class Tokens extends React.Component<Props> {
         <h1>API Tokens</h1>
 
         <HelpText>
-          You can create an unlimited amount of personal API tokens to hack on
-          Outline. For more details about the API take a look at the{' '}
+          You can create an unlimited amount of personal tokens to authenticate
+          with the API. For more details about the API take a look at the{' '}
           <a href="/developers">developer documentation</a>.
         </HelpText>
 

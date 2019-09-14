@@ -61,10 +61,12 @@ const Column = styled(Flex)`
 const Wrapper = styled(Flex)`
   display: block;
   justify-content: center;
+  margin-top: 16px;
 
   ${breakpoint('tablet')`
     display: flex;
     justify-content: flex-start;
+    margin-top: 0;
   `};
 `;
 

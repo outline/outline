@@ -37,6 +37,12 @@ export default class BaseStore<T: BaseModel> {
     this.data.clear();
   }
 
+  addPolicies = policies => {
+    if (policies) {
+      policies.forEach(policy => this.rootStore.policies.add(policy));
+    }
+  };
+
   @action
   add = (item: Object): T => {
     const Model = this.model;
@@ -65,6 +71,10 @@ export default class BaseStore<T: BaseModel> {
     return this.create(params);
   }
 
+  get(id: string): ?T {
+    return this.data.get(id);
+  }
+
   @action
   async create(params: Object) {
     if (!this.actions.includes('create')) {
@@ -76,6 +86,8 @@ export default class BaseStore<T: BaseModel> {
       const res = await client.post(`/${this.modelName}s.create`, params);
 
       invariant(res && res.data, 'Data should be available');
+
+      this.addPolicies(res.policies);
       return this.add(res.data);
     } finally {
       this.isSaving = false;
@@ -93,6 +105,8 @@ export default class BaseStore<T: BaseModel> {
       const res = await client.post(`/${this.modelName}s.update`, params);
 
       invariant(res && res.data, 'Data should be available');
+
+      this.addPolicies(res.policies);
       return this.add(res.data);
     } finally {
       this.isSaving = false;
@@ -128,6 +142,8 @@ export default class BaseStore<T: BaseModel> {
     try {
       const res = await client.post(`/${this.modelName}s.info`, { id });
       invariant(res && res.data, 'Data should be available');
+
+      this.addPolicies(res.policies);
       return this.add(res.data);
     } finally {
       this.isFetching = false;
@@ -145,10 +161,13 @@ export default class BaseStore<T: BaseModel> {
       const res = await client.post(`/${this.modelName}s.list`, params);
 
       invariant(res && res.data, 'Data not available');
+
       runInAction(`list#${this.modelName}`, () => {
+        this.addPolicies(res.policies);
         res.data.forEach(this.add);
         this.isLoaded = true;
       });
+      return res.data;
     } finally {
       this.isFetching = false;
     }
@@ -156,7 +175,6 @@ export default class BaseStore<T: BaseModel> {
 
   @computed
   get orderedData(): T[] {
-    // $FlowIssue
     return orderBy(Array.from(this.data.values()), 'createdAt', 'desc');
   }
 }

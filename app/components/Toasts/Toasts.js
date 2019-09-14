@@ -10,20 +10,16 @@ type Props = {
 };
 @observer
 class Toasts extends React.Component<Props> {
-  handleClose = (index: number) => {
-    this.props.ui.removeToast(index);
-  };
-
   render() {
     const { ui } = this.props;
 
     return (
       <List>
-        {ui.toasts.map((toast, index) => (
+        {ui.orderedToasts.map(toast => (
           <Toast
-            key={index}
-            onRequestClose={this.handleClose.bind(this, index)}
+            key={toast.id}
             toast={toast}
+            onRequestClose={() => ui.removeToast(toast.id)}
           />
         ))}
       </List>

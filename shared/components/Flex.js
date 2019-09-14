@@ -18,6 +18,7 @@ type AlignValues =
 
 type Props = {
   column?: ?boolean,
+  shrink?: ?boolean,
   align?: AlignValues,
   justify?: JustifyValues,
   auto?: ?boolean,
@@ -36,6 +37,7 @@ const Container = styled.div`
   flex-direction: ${({ column }) => (column ? 'column' : 'row')};
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
+  flex-shrink: ${({ shrink }) => (shrink ? 1 : 'initial')};
   min-height: 0;
   min-width: 0;
 `;

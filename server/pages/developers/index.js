@@ -6,7 +6,7 @@ import PageTitle from '../components/PageTitle';
 import Header from '../components/Header';
 import Content from '../components/Content';
 
-export default function Pricing() {
+export default function Developers() {
   return (
     <Grid>
       <PageTitle title="Developers" />

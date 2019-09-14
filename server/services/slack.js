@@ -1,5 +1,5 @@
 // @flow
-import type { Event } from '../events';
+import type { DocumentEvent, IntegrationEvent, Event } from '../events';
 import { Document, Integration, Collection, Team } from '../models';
 import { presentSlackAttachment } from '../presenters';
 
@@ -15,10 +15,10 @@ export default class Slack {
     }
   }
 
-  async integrationCreated(event: Event) {
+  async integrationCreated(event: IntegrationEvent) {
     const integration = await Integration.findOne({
       where: {
-        id: event.model.id,
+        id: event.modelId,
         service: 'slack',
         type: 'post',
       },
@@ -56,9 +56,26 @@ export default class Slack {
     });
   }
 
-  async documentUpdated(event: Event) {
-    const document = await Document.findById(event.model.id);
+  async documentUpdated(event: DocumentEvent) {
+    // lets not send a notification on every autosave update
+    if (
+      event.name === 'documents.update' &&
+      event.data &&
+      event.data.autosave
+    ) {
+      return;
+    }
+
+    // lets not send a notification on every CMD+S update
+    if (event.name === 'documents.update' && event.data && !event.data.done) {
+      return;
+    }
+
+    const document = await Document.findByPk(event.documentId);
     if (!document) return;
+
+    // never send notifications for draft documents
+    if (!document.publishedAt) return;
 
     const integration = await Integration.findOne({
       where: {
@@ -70,12 +87,12 @@ export default class Slack {
     });
     if (!integration) return;
 
-    const team = await Team.findById(document.teamId);
+    const team = await Team.findByPk(document.teamId);
 
     let text = `${document.createdBy.name} published a new document`;
 
     if (event.name === 'documents.update') {
-      text = `${document.createdBy.name} updated a document`;
+      text = `${document.updatedBy.name} updated a document`;
     }
 
     await fetch(integration.settings.url, {

@@ -7,17 +7,18 @@ import Collection from 'models/Collection';
 import Document from 'models/Document';
 import CollectionMenu from 'menus/CollectionMenu';
 import UiStore from 'stores/UiStore';
+import DocumentsStore from 'stores/DocumentsStore';
 import SidebarLink from './SidebarLink';
 import DocumentLink from './DocumentLink';
 import DropToImport from 'components/DropToImport';
 import Flex from 'shared/components/Flex';
 
 type Props = {
-  history: Object,
   collection: Collection,
   ui: UiStore,
+  documents: DocumentsStore,
   activeDocument: ?Document,
-  prefetchDocument: (id: string) => *,
+  prefetchDocument: (id: string) => Promise<void>,
 };
 
 @observer
@@ -26,8 +27,8 @@ class CollectionLink extends React.Component<Props> {
 
   render() {
     const {
-      history,
       collection,
+      documents,
       activeDocument,
       prefetchDocument,
       ui,
@@ -37,7 +38,6 @@ class CollectionLink extends React.Component<Props> {
     return (
       <DropToImport
         key={collection.id}
-        history={history}
         collectionId={collection.id}
         activeClassName="activeDropZone"
       >
@@ -62,7 +62,7 @@ class CollectionLink extends React.Component<Props> {
           exact={false}
           menu={
             <CollectionMenu
-              history={history}
+              position="left"
               collection={collection}
               onOpen={() => (this.menuOpen = true)}
               onClose={() => (this.menuOpen = false)}
@@ -70,11 +70,12 @@ class CollectionLink extends React.Component<Props> {
           }
         >
           <Flex column>
-            {collection.documents.map(document => (
+            {collection.documents.map(node => (
               <DocumentLink
-                key={document.id}
-                history={history}
-                document={document}
+                key={node.id}
+                node={node}
+                documents={documents}
+                collection={collection}
                 activeDocument={activeDocument}
                 prefetchDocument={prefetchDocument}
                 depth={1.5}

@@ -3,7 +3,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 type Props = {
-  children: string,
+  children: React.Node,
 };
 
 const Empty = (props: Props) => {

@@ -2,7 +2,11 @@
 /* global ga */
 import * as React from 'react';
 
-export default class Analytics extends React.Component<*> {
+type Props = {
+  children?: React.Node,
+};
+
+export default class Analytics extends React.Component<Props> {
   componentDidMount() {
     if (!process.env.GOOGLE_ANALYTICS_ID) return;
 

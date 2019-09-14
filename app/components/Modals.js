@@ -9,7 +9,6 @@ import CollectionDelete from 'scenes/CollectionDelete';
 import CollectionExport from 'scenes/CollectionExport';
 import DocumentDelete from 'scenes/DocumentDelete';
 import DocumentShare from 'scenes/DocumentShare';
-import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
 
 type Props = {
   ui: UiStore,
@@ -54,9 +53,6 @@ class Modals extends React.Component<Props> {
         </Modal>
         <Modal name="document-delete" title="Delete document">
           <DocumentDelete onSubmit={this.handleClose} />
-        </Modal>
-        <Modal name="keyboard-shortcuts" title="Keyboard shortcuts">
-          <KeyboardShortcuts />
         </Modal>
       </span>
     );

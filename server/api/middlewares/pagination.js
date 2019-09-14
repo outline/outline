@@ -10,22 +10,41 @@ export default function pagination(options?: Object) {
   ) {
     const opts = {
       defaultLimit: 15,
+      defaultOffset: 0,
       maxLimit: 100,
       ...options,
     };
 
     let query = ctx.request.query;
+
+    // $FlowFixMe
     let body = ctx.request.body;
     // $FlowFixMe
-    let limit = parseInt(query.limit || body.limit, 10);
+    let limit = query.limit || body.limit;
     // $FlowFixMe
-    let offset = parseInt(query.offset || body.offset, 10);
-    limit = isNaN(limit) ? opts.defaultLimit : limit;
-    offset = isNaN(offset) ? 0 : offset;
+    let offset = query.offset || body.offset;
+
+    if (limit && isNaN(limit)) {
+      throw new InvalidRequestError(`Pagination limit must be a valid number`);
+    }
+    if (offset && isNaN(offset)) {
+      throw new InvalidRequestError(`Pagination offset must be a valid number`);
+    }
+
+    limit = parseInt(limit || opts.defaultLimit, 10);
+    offset = parseInt(offset || opts.defaultOffset, 10);
 
     if (limit > opts.maxLimit) {
       throw new InvalidRequestError(
         `Pagination limit is too large (max ${opts.maxLimit})`
+      );
+    }
+    if (limit <= 0) {
+      throw new InvalidRequestError(`Pagination limit must be greater than 0`);
+    }
+    if (offset < 0) {
+      throw new InvalidRequestError(
+        `Pagination offset must be greater than or equal to 0`
       );
     }
 

@@ -6,7 +6,7 @@ import PageTitle from '../components/PageTitle';
 import Header from '../components/Header';
 import Content from '../components/Content';
 
-export default function Pricing() {
+export default function Api() {
   return (
     <Grid>
       <PageTitle title="API Reference" />
@@ -22,6 +22,16 @@ export default function Pricing() {
               by the token.
             </Description>
             <Arguments />
+          </Method>
+
+          <Method method="events.list" label="List team's events">
+            <Description>List all of the events in the team.</Description>
+            <Arguments pagination>
+              <Argument
+                id="auditLog"
+                description="Boolean. If user token has access, return auditing events"
+              />
+            </Arguments>
           </Method>
 
           <Method method="users.list" label="List team's users">
@@ -125,7 +135,7 @@ export default function Pricing() {
             <Arguments pagination />
           </Method>
 
-          <Method method="collections.info" label="Get a document collection">
+          <Method method="collections.info" label="Get a collection">
             <Description>
               Returns detailed information on a document collection.
             </Description>
@@ -144,6 +154,32 @@ export default function Pricing() {
               <Argument
                 id="description"
                 description="Short description for the collection"
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="collections.export" label="Export a collection">
+            <Description>
+              Returns a zip file of all the collections documents in markdown
+              format. If documents are nested then they will be nested in
+              folders inside the zip file.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection id" required />
+            </Arguments>
+          </Method>
+
+          <Method method="collections.exportAll" label="Export all collections">
+            <Description>
+              Returns a zip file of all the collections or creates an async job
+              to send a zip file via email to the authenticated user. If
+              documents are nested then they will be nested in folders inside
+              the zip file.
+            </Description>
+            <Arguments>
+              <Argument
+                id="download"
+                description="Download as zip (default is email)"
               />
             </Arguments>
           </Method>
@@ -219,6 +255,11 @@ export default function Pricing() {
                 id="collection"
                 description="Collection ID to filter by"
               />
+              <Argument id="user" description="User ID to filter by" />
+              <Argument
+                id="backlinkDocumentId"
+                description="Backlinked document ID to filter by"
+              />
             </Arguments>
           </Method>
 
@@ -250,11 +291,19 @@ export default function Pricing() {
 
           <Method method="documents.search" label="Search documents">
             <Description>
-              This methods allows you to search all of your documents with
-              keywords.
+              This methods allows you to search your teams documents with
+              keywords. Search results will be restricted to those accessible by
+              the current access token.
             </Description>
             <Arguments>
               <Argument id="query" description="Search query" required />
+              <Argument id="userId" description="User ID" />
+              <Argument id="collectionId" description="Collection ID" />
+              <Argument id="includeArchived" description="Boolean" />
+              <Argument
+                id="dateFilter"
+                description="Date range to consider (day, week, month or year)"
+              />
             </Arguments>
           </Method>
 
@@ -263,11 +312,11 @@ export default function Pricing() {
               This method allows you to publish a new document under an existing
               collection. By default a document is set to the parent collection
               root. If you want to create a subdocument, you can pass{' '}
-              <Code>parentDocument</Code> to set parent document.
+              <Code>parentDocumentId</Code> to set parent document.
             </Description>
             <Arguments>
               <Argument
-                id="collection"
+                id="collectionId"
                 description={
                   <span>
                     <Code>ID</Code> of the collection to which the document is
@@ -276,18 +325,14 @@ export default function Pricing() {
                 }
                 required
               />
-              <Argument
-                id="title"
-                description="Title for the document"
-                required
-              />
+              <Argument id="title" description="Title for the document" />
               <Argument
                 id="text"
                 description="Content of the document in Markdow"
                 required
               />
               <Argument
-                id="parentDocument"
+                id="parentDocumentId"
                 description={
                   <span>
                     <Code>ID</Code> of the parent document within the collection
@@ -330,6 +375,15 @@ export default function Pricing() {
                 }
               />
               <Argument
+                id="append"
+                description={
+                  <span>
+                    Pass <Code>true</Code> to append the text parameter to the
+                    end of the document rather than replace.
+                  </span>
+                }
+              />
+              <Argument
                 id="autosave"
                 description={
                   <span>
@@ -343,7 +397,7 @@ export default function Pricing() {
                 description={
                   <span>
                     Pass <Code>true</Code> to signify the end of an editing
-                    session. This will trigger documents.update hooks.
+                    session. This will trigger update notifications.
                   </span>
                 }
               />
@@ -352,8 +406,7 @@ export default function Pricing() {
 
           <Method method="documents.move" label="Move document in a collection">
             <Description>
-              Move a document into a new location inside the collection. This is
-              easily done by defining the parent document ID. If no parent
+              Move a document to a new location or collection. If no parent
               document is provided, the document will be moved to the collection
               root.
             </Description>
@@ -364,15 +417,34 @@ export default function Pricing() {
                 required
               />
               <Argument
-                id="parentDocument"
-                description="ID of the new parent document (if any)"
+                id="collectionId"
+                description="ID of the collection"
+                required
+              />
+              <Argument
+                id="parentDocumentId"
+                description="ID of the new parent document"
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="documents.archive" label="Archive a document">
+            <Description>
+              Archive a document and all of its child documents, if any.
+            </Description>
+            <Arguments>
+              <Argument
+                id="id"
+                description="Document ID or URI identifier"
+                required
               />
             </Arguments>
           </Method>
 
           <Method method="documents.delete" label="Delete a document">
             <Description>
-              Delete a document and all of its child documents if any.
+              Permanantly delete a document and all of its child documents, if
+              any.
             </Description>
             <Arguments>
               <Argument
@@ -403,7 +475,8 @@ export default function Pricing() {
           >
             <Description>
               Restores a document to a previous revision by creating a new
-              revision with the contents of the given revisionId.
+              revision with the contents of the given revisionId or restores an
+              archived document if no revisionId is passed.
             </Description>
             <Arguments>
               <Argument
@@ -414,7 +487,6 @@ export default function Pricing() {
               <Argument
                 id="revisionId"
                 description="Revision ID to restore to"
-                required
               />
             </Arguments>
           </Method>

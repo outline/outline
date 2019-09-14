@@ -1,38 +1,54 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import { inject } from 'mobx-react';
-import { MoreIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
+import { observable } from 'mobx';
+import { inject, observer } from 'mobx-react';
+import { Redirect } from 'react-router-dom';
+import { PlusIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import Button from 'components/Button';
 
 type Props = {
   label?: React.Node,
-  history: Object,
   collections: CollectionsStore,
 };
 
+@observer
 class NewDocumentMenu extends React.Component<Props> {
-  handleNewDocument = collection => {
-    this.props.history.push(newDocumentUrl(collection));
+  @observable redirectTo: ?string;
+
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
+  handleNewDocument = (collectionId: string) => {
+    this.redirectTo = newDocumentUrl(collectionId);
   };
 
   onOpen = () => {
     const { collections } = this.props;
 
     if (collections.orderedData.length === 1) {
-      this.handleNewDocument(collections.orderedData[0]);
+      this.handleNewDocument(collections.orderedData[0].id);
     }
   };
 
   render() {
-    const { collections, label, history, ...rest } = this.props;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
+    const { collections, label, ...rest } = this.props;
 
     return (
       <DropdownMenu
-        label={label || <MoreIcon />}
+        label={
+          label || (
+            <Button icon={<PlusIcon />} small>
+              New doc
+            </Button>
+          )
+        }
         onOpen={this.onOpen}
         {...rest}
       >
@@ -40,7 +56,7 @@ class NewDocumentMenu extends React.Component<Props> {
         {collections.orderedData.map(collection => (
           <DropdownMenuItem
             key={collection.id}
-            onClick={() => this.handleNewDocument(collection)}
+            onClick={() => this.handleNewDocument(collection.id)}
           >
             {collection.private ? (
               <PrivateCollectionIcon color={collection.color} />
@@ -55,4 +71,4 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('collections')(NewDocumentMenu));
+export default inject('collections')(NewDocumentMenu);

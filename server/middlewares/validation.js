@@ -12,6 +12,12 @@ export default function validation() {
       }
     };
 
+    ctx.assertIn = (value, options, message) => {
+      if (!options.includes(value)) {
+        throw new ValidationError(message);
+      }
+    };
+
     ctx.assertNotEmpty = (value, message) => {
       if (value === '') {
         throw new ValidationError(message);
@@ -24,8 +30,8 @@ export default function validation() {
       }
     };
 
-    ctx.assertUuid = (value, message) => {
-      if (!validator.isUUID(value.toString())) {
+    ctx.assertUuid = (value = '', message) => {
+      if (!validator.isUUID(value)) {
         throw new ValidationError(message);
       }
     };

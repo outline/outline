@@ -3,11 +3,11 @@ services:
   redis:
     image: redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
   postgres:
     image: postgres
     ports:
-      - "5432:5432"
+      - "5434:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
@@ -29,7 +29,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - .:/opt/outline:cached
+      - .:/opt/outline
     depends_on:
       - postgres
       - redis

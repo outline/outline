@@ -1,5 +1,12 @@
 [
   {
+    "slug": "abstract",
+    "name": "Abstract",
+    "url": "https://abstract.com",
+    "category": "Design",
+    "description": "One place to version, manage, and collaborate"
+  },
+  {
     "slug": "figma",
     "name": "Figma",
     "url": "https://figma.com",
@@ -42,9 +49,16 @@
     "description": "Create flowcharts and technical diagrams with ease"
   },
   {
-    "slug": "realtime-board",
-    "name": "Realtime Board",
-    "url": "https://realtimeboard.com",
+    "slug": "mindmeister",
+    "name": "Mindmeister",
+    "url": "https://mindmeister.com",
+    "category": "Collaboration",
+    "description": "Interactive and embeddable mind maps"
+  },
+  {
+    "slug": "miro",
+    "name": "Miro",
+    "url": "https://miro.com",
     "category": "Collaboration",
     "description": "Simple whiteboarding for cross-functional team collaboration"
   },
@@ -68,6 +82,13 @@
     "url": "https://typeform.com",
     "category": "Collaboration",
     "description": "Data collection tool and surveys, for professionals"
+  },
+  {
+    "slug": "prezi",
+    "name": "Prezi",
+    "url": "https://prezi.com",
+    "category": "Collaboration",
+    "description": "Easy presentations for people who aren't designers"
   },
   {
     "slug": "codepen",

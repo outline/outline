@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
@@ -9,9 +9,10 @@ import HelpText from 'components/HelpText';
 import Document from 'models/Document';
 import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
+import { collectionUrl } from 'utils/routeHelpers';
 
 type Props = {
-  history: Object,
+  history: RouterHistory,
   document: Document,
   documents: DocumentsStore,
   ui: UiStore,
@@ -22,14 +23,17 @@ type Props = {
 class DocumentDelete extends React.Component<Props> {
   @observable isDeleting: boolean;
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isDeleting = true;
-    const { collection } = this.props.document;
 
     try {
       await this.props.document.delete();
-      this.props.history.push(collection.url);
+      if (this.props.ui.activeDocumentId === this.props.document.id) {
+        this.props.history.push(
+          collectionUrl(this.props.document.collectionId)
+        );
+      }
       this.props.onSubmit();
     } catch (err) {
       this.props.ui.showToast(err.message);
@@ -46,9 +50,16 @@ class DocumentDelete extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Are you sure about that? Deleting the{' '}
-            <strong>{document.title}</strong> document is permanent, will delete
-            all of its history, and any child documents.
+            <strong>{document.title}</strong> document is permanent, and will
+            delete all of its history, and any child documents.
           </HelpText>
+          {!document.isDraft &&
+            !document.isArchived && (
+              <HelpText>
+                If you’d like the option of referencing or restoring this
+                document in the future, consider archiving it instead.
+              </HelpText>
+            )}
           <Button type="submit" danger>
             {this.isDeleting ? 'Deleting…' : 'I’m sure – Delete'}
           </Button>

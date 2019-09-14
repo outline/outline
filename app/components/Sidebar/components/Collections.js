@@ -1,9 +1,11 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
-import type { Location } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
+import keydown from 'react-keydown';
 import Flex from 'shared/components/Flex';
 import { PlusIcon } from 'outline-icons';
+import { newDocumentUrl } from 'utils/routeHelpers';
 
 import Header from './Header';
 import SidebarLink from './SidebarLink';
@@ -15,8 +17,7 @@ import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 
 type Props = {
-  history: Object,
-  location: Location,
+  history: RouterHistory,
   collections: CollectionsStore,
   documents: DocumentsStore,
   onCreateCollection: () => void,
@@ -28,19 +29,31 @@ class Collections extends React.Component<Props> {
   isPreloaded: boolean = !!this.props.collections.orderedData.length;
 
   componentDidMount() {
-    this.props.collections.fetchPage({ limit: 100 });
+    const { collections } = this.props;
+
+    if (!collections.isFetching && !collections.isLoaded) {
+      collections.fetchPage({ limit: 100 });
+    }
+  }
+
+  @keydown('n')
+  goToNewDocument() {
+    const { activeCollectionId } = this.props.ui;
+    if (!activeCollectionId) return;
+
+    this.props.history.push(newDocumentUrl(activeCollectionId));
   }
 
   render() {
-    const { history, location, collections, ui, documents } = this.props;
+    const { collections, ui, documents } = this.props;
+
     const content = (
       <Flex column>
         <Header>Collections</Header>
         {collections.orderedData.map(collection => (
           <CollectionLink
             key={collection.id}
-            history={history}
-            location={location}
+            documents={documents}
             collection={collection}
             activeDocument={documents.active}
             prefetchDocument={documents.prefetchDocument}
@@ -62,4 +75,6 @@ class Collections extends React.Component<Props> {
   }
 }
 
-export default inject('collections', 'ui', 'documents')(Collections);
+export default inject('collections', 'ui', 'documents')(
+  withRouter(Collections)
+);

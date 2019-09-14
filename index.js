@@ -1,37 +1,82 @@
+// @flow
 require('./init');
-
-if (process.env.NODE_ENV === 'production') {
-  console.log(
-    '\n\x1b[33m%s\x1b[0m',
-    'Running Outline in production mode. Use `yarn dev` to run in development with live code reloading'
-  );
-} else if (process.env.NODE_ENV === 'development') {
-  console.log(
-    '\n\x1b[33m%s\x1b[0m',
-    'Running Outline in development mode with hot reloading. To run Outline in production mode, use `yarn start`'
-  );
-}
 
 if (
   !process.env.SECRET_KEY ||
-  process.env.SECRET_KEY ===
-    'F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B'
+  process.env.SECRET_KEY === 'generate_a_new_key'
 ) {
   console.error(
-    'Please set SECRET_KEY env variable with output of `openssl rand -hex 32`'
+    'The SECRET_KEY env variable must be set with the output of `openssl rand -hex 32`'
   );
+  // $FlowFixMe
   process.exit(1);
 }
 
-const app = require('./server').default;
-const http = require('http');
+if (process.env.AWS_ACCESS_KEY_ID) {
+  [
+    'AWS_REGION',
+    'AWS_SECRET_ACCESS_KEY',
+    'AWS_S3_UPLOAD_BUCKET_URL',
+    'AWS_S3_UPLOAD_BUCKET_NAME',
+    'AWS_S3_UPLOAD_MAX_SIZE',
+  ].forEach(key => {
+    if (!process.env[key]) {
+      console.error(`The ${key} env variable must be set when using AWS`);
+      // $FlowFixMe
+      process.exit(1);
+    }
+  });
+}
 
-const server = http.createServer(app.callback());
-server.listen(process.env.PORT || '3000');
-server.on('error', err => {
-  throw err;
-});
-server.on('listening', () => {
-  const address = server.address();
-  console.log(`\n> Listening on http://localhost:${address.port}\n`);
-});
+if (process.env.SLACK_KEY) {
+  ['SLACK_SECRET', 'SLACK_VERIFICATION_TOKEN', 'SLACK_APP_ID'].forEach(key => {
+    if (!process.env[key]) {
+      console.error(
+        `The ${key} env variable must be set when using the Slack integration`
+      );
+      // $FlowFixMe
+      process.exit(1);
+    }
+  });
+}
+
+if (!process.env.URL) {
+  console.error(
+    'The URL env variable must be set to the externally accessible URL, e.g (https://www.getoutline.com)'
+  );
+  // $FlowFixMe
+  process.exit(1);
+}
+
+if (!process.env.DATABASE_URL) {
+  console.error(
+    'The DATABASE_URL env variable must be set to the location of your postgres server, including authentication and port'
+  );
+  // $FlowFixMe
+  process.exit(1);
+}
+
+if (!process.env.REDIS_URL) {
+  console.error(
+    'The REDIS_URL env variable must be set to the location of your redis server, including authentication and port'
+  );
+  // $FlowFixMe
+  process.exit(1);
+}
+
+if (!process.env.WEBSOCKETS_ENABLED) {
+  console.log(
+    'WARNING: Websockets are disabled. Set WEBSOCKETS_ENABLED env variable to true to enable'
+  );
+}
+
+if (process.env.NODE_ENV === 'production') {
+  console.log('\n\x1b[33m%s\x1b[0m', 'Running Outline in production mode.');
+} else if (process.env.NODE_ENV === 'development') {
+  console.log(
+    '\n\x1b[33m%s\x1b[0m',
+    'Running Outline in development mode with hot reloading. To run Outline in production mode set the NODE_ENV env variable to "production"'
+  );
+}
+
+require('./server');

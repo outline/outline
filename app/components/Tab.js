@@ -2,30 +2,45 @@
 import * as React from 'react';
 import styled, { withTheme } from 'styled-components';
 import { NavLink } from 'react-router-dom';
+import { lighten } from 'polished';
 
-const NavItem = styled(NavLink)`
+type Props = {
+  theme: Object,
+};
+
+const StyledNavLink = styled(NavLink)`
+  position: relative;
+  top: 1px;
+
   display: inline-block;
-  font-size: 11px;
   font-weight: 500;
-  text-transform: uppercase;
-  color: ${props => props.theme.slate};
-  letter-spacing: 0.04em;
+  font-size: 14px;
+  color: ${props => props.theme.textTertiary};
   margin-right: 24px;
   padding-bottom: 8px;
 
   &:hover {
-    color: ${props => props.theme.slateDark};
+    color: ${props => props.theme.textSecondary};
+    border-bottom: 3px solid ${props => props.theme.divider};
+    padding-bottom: 5px;
+  }
+
+  &:focus {
+    outline: none;
+    border-bottom: 3px solid
+      ${props => lighten(0.4, props.theme.buttonBackground)};
+    padding-bottom: 5px;
   }
 `;
 
-function Tab(props: *) {
+function Tab(props: Props) {
   const activeStyle = {
     paddingBottom: '5px',
-    borderBottom: `3px solid ${props.theme.slateLight}`,
-    color: props.theme.slate,
+    borderBottom: `3px solid ${props.theme.textSecondary}`,
+    color: props.theme.textSecondary,
   };
 
-  return <NavItem {...props} activeStyle={activeStyle} />;
+  return <StyledNavLink {...props} activeStyle={activeStyle} />;
 }
 
 export default withTheme(Tab);

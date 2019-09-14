@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { inject } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
+import NudeButton from 'components/NudeButton';
 import CopyToClipboard from 'components/CopyToClipboard';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import { documentHistoryUrl } from 'utils/routeHelpers';
@@ -12,10 +13,9 @@ import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 
 type Props = {
-  label?: React.Node,
-  onOpen?: () => *,
-  onClose: () => *,
-  history: Object,
+  onOpen?: () => void,
+  onClose: () => void,
+  history: RouterHistory,
   document: Document,
   revision: Revision,
   className?: string,
@@ -23,19 +23,19 @@ type Props = {
 };
 
 class RevisionMenu extends React.Component<Props> {
-  handleRestore = async (ev: SyntheticEvent<*>) => {
+  handleRestore = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     await this.props.document.restore(this.props.revision);
-    this.props.ui.showToast('Document restored', 'success');
+    this.props.ui.showToast('Document restored');
     this.props.history.push(this.props.document.url);
   };
 
   handleCopy = () => {
-    this.props.ui.showToast('Link copied', 'success');
+    this.props.ui.showToast('Link copied');
   };
 
   render() {
-    const { label, className, onOpen, onClose } = this.props;
+    const { className, onOpen, onClose } = this.props;
     const url = `${window.location.origin}${documentHistoryUrl(
       this.props.document,
       this.props.revision.id
@@ -43,7 +43,11 @@ class RevisionMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu
-        label={label || <MoreIcon />}
+        label={
+          <NudeButton>
+            <MoreIcon />
+          </NudeButton>
+        }
         onOpen={onOpen}
         onClose={onClose}
         className={className}

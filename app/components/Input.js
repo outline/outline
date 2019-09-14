@@ -1,6 +1,9 @@
 // @flow
 import * as React from 'react';
+import { observer } from 'mobx-react';
+import { observable } from 'mobx';
 import styled from 'styled-components';
+import VisuallyHidden from 'components/VisuallyHidden';
 import Flex from 'shared/components/Flex';
 
 const RealTextarea = styled.textarea`
@@ -9,10 +12,11 @@ const RealTextarea = styled.textarea`
   padding: 8px 12px;
   outline: none;
   background: none;
+  color: ${props => props.theme.text};
 
   &:disabled,
   &::placeholder {
-    color: ${props => props.theme.slate};
+    color: ${props => props.theme.placeholder};
   }
 `;
 
@@ -22,10 +26,11 @@ const RealInput = styled.input`
   padding: 8px 12px;
   outline: none;
   background: none;
+  color: ${props => props.theme.text};
 
   &:disabled,
   &::placeholder {
-    color: ${props => props.theme.slate};
+    color: ${props => props.theme.placeholder};
   }
 
   &::-webkit-search-cancel-button {
@@ -34,9 +39,10 @@ const RealInput = styled.input`
 `;
 
 const Wrapper = styled.div`
+  flex: ${props => (props.flex ? '1' : '0')};
   max-width: ${props => (props.short ? '350px' : '100%')};
   min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : '0')};
-  max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : 'auto')};
+  max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : 'initial')};
 `;
 
 export const Outline = styled(Flex)`
@@ -46,13 +52,14 @@ export const Outline = styled(Flex)`
   color: inherit;
   border-width: 1px;
   border-style: solid;
-  border-color: ${props => (props.hasError ? 'red' : props.theme.slateLight)};
+  border-color: ${props =>
+    props.hasError
+      ? 'red'
+      : props.focused
+        ? props.theme.inputBorderFocused
+        : props.theme.inputBorder};
   border-radius: 4px;
   font-weight: normal;
-
-  &:focus {
-    border-color: ${props => props.theme.slate};
-  }
 `;
 
 export const LabelText = styled.div`
@@ -65,29 +72,58 @@ export type Props = {
   value?: string,
   label?: string,
   className?: string,
+  labelHidden?: boolean,
+  flex?: boolean,
   short?: boolean,
 };
 
-export default function Input({
-  type = 'text',
-  label,
-  className,
-  short,
-  ...rest
-}: Props) {
-  const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
+@observer
+class Input extends React.Component<Props> {
+  @observable focused: boolean = false;
 
-  return (
-    <Wrapper className={className} short={short}>
-      <label>
-        {label && <LabelText>{label}</LabelText>}
-        <Outline>
-          <InputComponent
-            type={type === 'textarea' ? undefined : type}
-            {...rest}
-          />
-        </Outline>
-      </label>
-    </Wrapper>
-  );
+  handleBlur = () => {
+    this.focused = false;
+  };
+
+  handleFocus = () => {
+    this.focused = true;
+  };
+
+  render() {
+    const {
+      type = 'text',
+      label,
+      className,
+      short,
+      flex,
+      labelHidden,
+      ...rest
+    } = this.props;
+
+    const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
+    const wrappedLabel = <LabelText>{label}</LabelText>;
+
+    return (
+      <Wrapper className={className} short={short} flex={flex}>
+        <label>
+          {label &&
+            (labelHidden ? (
+              <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
+            ) : (
+              wrappedLabel
+            ))}
+          <Outline focused={this.focused}>
+            <InputComponent
+              onBlur={this.handleBlur}
+              onFocus={this.handleFocus}
+              type={type === 'textarea' ? undefined : type}
+              {...rest}
+            />
+          </Outline>
+        </label>
+      </Wrapper>
+    );
+  }
 }
+
+export default Input;

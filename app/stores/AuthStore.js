@@ -1,7 +1,7 @@
 // @flow
 import { observable, action, computed, autorun, runInAction } from 'mobx';
 import invariant from 'invariant';
-import Cookie from 'js-cookie';
+import { getCookie, setCookie, removeCookie } from 'tiny-cookie';
 import { client } from 'utils/ApiClient';
 import { stripSubdomain } from 'shared/utils/domains';
 import RootStore from 'stores/RootStore';
@@ -31,7 +31,7 @@ export default class AuthStore {
     this.rootStore = rootStore;
     this.user = data.user;
     this.team = data.team;
-    this.token = Cookie.get('accessToken');
+    this.token = getCookie('accessToken');
 
     if (this.token) setImmediate(() => this.fetch());
 
@@ -43,6 +43,12 @@ export default class AuthStore {
       }
     });
   }
+
+  addPolicies = policies => {
+    if (policies) {
+      policies.forEach(policy => this.rootStore.policies.add(policy));
+    }
+  };
 
   @computed
   get authenticated(): boolean {
@@ -64,6 +70,7 @@ export default class AuthStore {
       invariant(res && res.data, 'Auth not available');
 
       runInAction('AuthStore#fetch', () => {
+        this.addPolicies(res.policies);
         const { user, team } = res.data;
         this.user = user;
         this.team = team;
@@ -76,11 +83,18 @@ export default class AuthStore {
             team: team.name,
           };
         }
+
+        // If we came from a redirect then send the user immediately there
+        const postLoginRedirectPath = getCookie('postLoginRedirectPath');
+        if (postLoginRedirectPath) {
+          removeCookie('postLoginRedirectPath');
+          window.location.href = postLoginRedirectPath;
+        }
       });
     } catch (err) {
-      if (err.error.error === 'user_suspended') {
+      if (err.error === 'user_suspended') {
         this.isSuspended = true;
-        this.suspendedContactEmail = err.error.data.adminEmail;
+        this.suspendedContactEmail = err.data.adminEmail;
       }
     }
   };
@@ -105,6 +119,7 @@ export default class AuthStore {
       invariant(res && res.data, 'User response not available');
 
       runInAction('AuthStore#updateUser', () => {
+        this.addPolicies(res.policies);
         this.user = res.data;
       });
     } finally {
@@ -125,6 +140,7 @@ export default class AuthStore {
       invariant(res && res.data, 'Team response not available');
 
       runInAction('AuthStore#updateTeam', () => {
+        this.addPolicies(res.policies);
         this.team = res.data;
       });
     } finally {
@@ -133,20 +149,32 @@ export default class AuthStore {
   };
 
   @action
-  logout = async () => {
-    this.user = null;
-    this.token = null;
+  logout = async (savePath: boolean = false) => {
+    // remove user and team from localStorage
+    localStorage.setItem(
+      AUTH_STORE,
+      JSON.stringify({
+        user: null,
+        team: null,
+      })
+    );
+
+    // if this logout was forced from an authenticated route then
+    // save the current path so we can go back there once signed in
+    if (savePath) {
+      setCookie('postLoginRedirectPath', window.location.pathname);
+    }
 
     // remove authentication token itself
-    Cookie.remove('accessToken', { path: '/' });
+    removeCookie('accessToken', { path: '/' });
 
     // remove session record on apex cookie
     const team = this.team;
     if (team) {
-      const sessions = Cookie.getJSON('sessions') || {};
+      const sessions = JSON.parse(getCookie('sessions') || '{}');
       delete sessions[team.id];
 
-      Cookie.set('sessions', JSON.stringify(sessions), {
+      setCookie('sessions', JSON.stringify(sessions), {
         domain: stripSubdomain(window.location.hostname),
       });
       this.team = null;

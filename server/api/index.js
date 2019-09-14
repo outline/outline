@@ -4,6 +4,7 @@ import Koa from 'koa';
 import Router from 'koa-router';
 
 import auth from './auth';
+import events from './events';
 import users from './users';
 import collections from './collections';
 import documents from './documents';
@@ -15,6 +16,7 @@ import team from './team';
 import integrations from './integrations';
 import notificationSettings from './notificationSettings';
 
+import { NotFoundError } from '../errors';
 import errorHandling from './middlewares/errorHandling';
 import validation from '../middlewares/validation';
 import methodOverride from './middlewares/methodOverride';
@@ -34,6 +36,7 @@ api.use(apiWrapper());
 
 // routes
 router.use('/', auth.routes());
+router.use('/', events.routes());
 router.use('/', users.routes());
 router.use('/', collections.routes());
 router.use('/', documents.routes());
@@ -44,6 +47,9 @@ router.use('/', shares.routes());
 router.use('/', team.routes());
 router.use('/', integrations.routes());
 router.use('/', notificationSettings.routes());
+router.post('*', ctx => {
+  ctx.throw(new NotFoundError('Endpoint not found'));
+});
 
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.

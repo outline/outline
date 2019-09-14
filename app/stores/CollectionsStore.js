@@ -1,18 +1,19 @@
 // @flow
-import { computed, runInAction } from 'mobx';
-import { concat, last } from 'lodash';
+import { computed } from 'mobx';
+import { concat, filter, last } from 'lodash';
 import { client } from 'utils/ApiClient';
 
 import BaseStore from './BaseStore';
 import RootStore from './RootStore';
-import Collection from '../models/Collection';
+import Collection from 'models/Collection';
 import naturalSort from 'shared/utils/naturalSort';
 
 export type DocumentPathItem = {
   id: string,
+  collectionId: string,
   title: string,
   url: string,
-  type: 'document' | 'collection',
+  type: 'collection' | 'document',
 };
 
 export type DocumentPath = DocumentPathItem & {
@@ -33,7 +34,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
   @computed
   get orderedData(): Collection[] {
-    return naturalSort(Array.from(this.data.values()), 'name');
+    return filter(
+      naturalSort(Array.from(this.data.values()), 'name'),
+      d => !d.deletedAt
+    );
   }
 
   @computed
@@ -52,20 +56,26 @@ export default class CollectionsStore extends BaseStore<Collection> {
   @computed
   get pathsToDocuments(): DocumentPath[] {
     let results = [];
-    const travelDocuments = (documentList, path) =>
+    const travelDocuments = (documentList, collectionId, path) =>
       documentList.forEach(document => {
         const { id, title, url } = document;
-        const node = { id, title, url, type: 'document' };
+        const node = { id, collectionId, title, url, type: 'document' };
         results.push(concat(path, node));
-        travelDocuments(document.children, concat(path, [node]));
+        travelDocuments(document.children, collectionId, concat(path, [node]));
       });
 
     if (this.isLoaded) {
       this.data.forEach(collection => {
         const { id, name, url } = collection;
-        const node = { id, title: name, url, type: 'collection' };
+        const node = {
+          id,
+          collectionId: id,
+          title: name,
+          url,
+          type: 'collection',
+        };
         results.push([node]);
-        travelDocuments(collection.documents, [node]);
+        travelDocuments(collection.documents, id, [node]);
       });
     }
 
@@ -90,10 +100,8 @@ export default class CollectionsStore extends BaseStore<Collection> {
   delete(collection: Collection) {
     super.delete(collection);
 
-    runInAction(() => {
-      this.rootStore.documents.fetchRecentlyUpdated();
-      this.rootStore.documents.fetchRecentlyViewed();
-    });
+    this.rootStore.documents.fetchRecentlyUpdated();
+    this.rootStore.documents.fetchRecentlyViewed();
   }
 
   export = () => {

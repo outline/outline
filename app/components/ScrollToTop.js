@@ -2,8 +2,14 @@
 // based on: https://reacttraining.com/react-router/web/guides/scroll-restoration
 import * as React from 'react';
 import { withRouter } from 'react-router-dom';
+import type { Location } from 'react-router-dom';
 
-class ScrollToTop extends React.Component<*> {
+type Props = {
+  location: Location,
+  children: React.Node,
+};
+
+class ScrollToTop extends React.Component<Props> {
   componentDidUpdate(prevProps) {
     if (this.props.location.pathname === prevProps.location.pathname) return;
 

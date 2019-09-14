@@ -9,20 +9,20 @@ describe('UiStore', () => {
     store = stores.ui;
   });
 
-  test('#add should add errors', () => {
-    expect(store.toasts.length).toBe(0);
+  test('#add should add messages', () => {
+    expect(store.orderedToasts.length).toBe(0);
     store.showToast('first error');
     store.showToast('second error');
-    expect(store.toasts.length).toBe(2);
+    expect(store.orderedToasts.length).toBe(2);
   });
 
-  test('#remove should remove errors', () => {
-    store.toasts = [];
-    store.showToast('first error');
+  test('#remove should remove messages', () => {
+    store.toasts.clear();
+    const id = store.showToast('first error');
     store.showToast('second error');
-    expect(store.toasts.length).toBe(2);
-    store.removeToast(0);
-    expect(store.toasts.length).toBe(1);
-    expect(store.toasts[0].message).toBe('second error');
+    expect(store.orderedToasts.length).toBe(2);
+    store.removeToast(id);
+    expect(store.orderedToasts.length).toBe(1);
+    expect(store.orderedToasts[0].message).toBe('second error');
   });
 });

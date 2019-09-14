@@ -3,7 +3,15 @@
   <head>
     <title>Outline</title>
     <meta name="slack-app-id" content="<%= SLACK_APP_ID %>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" type="image/png" href="favicon-32.png" sizes="32x32" />
     <link rel="manifest" href="/manifest.json" />
+    <link
+      rel="search"
+      type="application/opensearchdescription+xml"
+      href="/opensearch.xml"
+      title="Outline"
+    />
     <style>
       body,
       html {
@@ -25,6 +33,11 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      if (window.localStorage.getItem("theme") === "dark") {
+        window.document.querySelector('#root').style.background = "#111319";
+      }
+    </script>
     <script src="//d2wy8f7a9ursnm.cloudfront.net/bugsnag-3.min.js" data-apikey="<%= BUGSNAG_KEY %>"></script>
   </body>
 </html>

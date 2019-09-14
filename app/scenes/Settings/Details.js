@@ -40,7 +40,7 @@ class Details extends React.Component<Props> {
     clearTimeout(this.timeout);
   }
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
 
     try {
@@ -49,7 +49,7 @@ class Details extends React.Component<Props> {
         avatarUrl: this.avatarUrl,
         subdomain: this.subdomain,
       });
-      this.props.ui.showToast('Settings saved', 'success');
+      this.props.ui.showToast('Settings saved');
     } catch (err) {
       this.props.ui.showToast(err.message);
     }
@@ -128,7 +128,7 @@ class Details extends React.Component<Props> {
               />
               {this.subdomain && (
                 <HelpText small>
-                  Your knowledgebase will be accessed at{' '}
+                  Your knowledgebase will be accessible at{' '}
                   <strong>{this.subdomain}.getoutline.com</strong>
                 </HelpText>
               )}

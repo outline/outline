@@ -14,7 +14,7 @@ export default ({ children }: Props) => {
       <TBody>
         <TR>
           <TD>
-            <EmptySpace height={20} />
+            <EmptySpace height={10} />
             {children}
             <EmptySpace height={40} />
           </TD>

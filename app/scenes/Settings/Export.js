@@ -22,14 +22,14 @@ class Export extends React.Component<Props> {
   @observable isLoading: boolean = false;
   @observable isExporting: boolean = false;
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isLoading = true;
 
     try {
       await this.props.collections.export();
       this.isExporting = true;
-      this.props.ui.showToast('Export in progress…', 'success');
+      this.props.ui.showToast('Export in progress…');
     } finally {
       this.isLoading = false;
     }
@@ -44,9 +44,9 @@ class Export extends React.Component<Props> {
         <PageTitle title="Export Data" />
         <h1>Export Data</h1>
         <HelpText>
-          Exporting your teams documents may take a little time depending on the
-          size of your knowledgebase. Consider exporting a single document or
-          collection instead.
+          Exporting your team’s documents may take a little time depending on
+          the size of your knowledgebase. Consider exporting a single document
+          or collection instead.
         </HelpText>
         <HelpText>
           Still want to export everything in your wiki? We’ll put together a zip

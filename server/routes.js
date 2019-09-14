@@ -7,11 +7,11 @@ import Koa from 'koa';
 import Router from 'koa-router';
 import sendfile from 'koa-sendfile';
 import serve from 'koa-static';
-import parseDomain from 'parse-domain';
 import apexRedirect from './middlewares/apexRedirect';
 import renderpage from './utils/renderpage';
-import { isCustomSubdomain } from '../shared/utils/domains';
+import { isCustomSubdomain, parseDomain } from '../shared/utils/domains';
 import { robotsResponse } from './utils/robots';
+import { opensearchResponse } from './utils/opensearch';
 import { NotFoundError } from './errors';
 import { Team } from './models';
 
@@ -114,7 +114,7 @@ router.get('/', async ctx => {
   ) {
     const domain = parseDomain(ctx.request.hostname);
     const subdomain = domain ? domain.subdomain : undefined;
-    const team = await Team.find({
+    const team = await Team.findOne({
       where: { subdomain },
     });
     if (team) {
@@ -147,11 +147,19 @@ router.get('/', async ctx => {
   );
 });
 
-// Other
-router.get('/robots.txt', ctx => (ctx.body = robotsResponse(ctx)));
+router.get('/robots.txt', ctx => {
+  ctx.body = robotsResponse(ctx);
+});
+
+router.get('/opensearch.xml', ctx => {
+  ctx.type = 'text/xml';
+  ctx.body = opensearchResponse();
+});
 
 // catch all for react app
-router.get('*', async ctx => {
+router.get('*', async (ctx, next) => {
+  if (ctx.request.path === '/realtime/') return next();
+
   await renderapp(ctx);
   if (!ctx.status) ctx.throw(new NotFoundError());
 });

@@ -6,7 +6,7 @@ import subMinutes from 'date-fns/sub_minutes';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
-import { Star, Collection, NotificationSetting, ApiKey } from '.';
+import { Star, Team, Collection, NotificationSetting, ApiKey } from '.';
 
 const User = sequelize.define(
   'user',
@@ -54,7 +54,7 @@ User.associate = models => {
 };
 
 // Instance methods
-User.prototype.collectionIds = async function() {
+User.prototype.collectionIds = async function(paranoid: boolean = true) {
   let models = await Collection.findAll({
     attributes: ['id', 'private'],
     where: { teamId: this.teamId },
@@ -67,6 +67,7 @@ User.prototype.collectionIds = async function() {
         required: false,
       },
     ],
+    paranoid,
   });
 
   // Filter collections that are private and don't have an association
@@ -158,27 +159,38 @@ User.beforeDestroy(checkLastAdmin);
 User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
-User.afterCreate(user => sendEmail('welcome', user.email));
+User.afterCreate(async user => {
+  const team = await Team.findByPk(user.teamId);
+
+  // From Slack support:
+  // If you wish to contact users at an email address obtained through Slack,
+  // you need them to opt-in through a clear and separate process.
+  if (!team.slackId) {
+    sendEmail('welcome', user.email, { teamUrl: team.url });
+  }
+});
 
 // By default when a user signs up we subscribe them to email notifications
 // when documents they created are edited by other team members and onboarding
 User.afterCreate(async (user, options) => {
-  await NotificationSetting.findOrCreate({
-    where: {
-      userId: user.id,
-      teamId: user.teamId,
-      event: 'documents.update',
-    },
-    transaction: options.transaction,
-  });
-  await NotificationSetting.findOrCreate({
-    where: {
-      userId: user.id,
-      teamId: user.teamId,
-      event: 'emails.onboarding',
-    },
-    transaction: options.transaction,
-  });
+  await Promise.all([
+    NotificationSetting.findOrCreate({
+      where: {
+        userId: user.id,
+        teamId: user.teamId,
+        event: 'documents.update',
+      },
+      transaction: options.transaction,
+    }),
+    NotificationSetting.findOrCreate({
+      where: {
+        userId: user.id,
+        teamId: user.teamId,
+        event: 'emails.onboarding',
+      },
+      transaction: options.transaction,
+    }),
+  ]);
 });
 
 export default User;

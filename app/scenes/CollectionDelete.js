@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { homeUrl } from 'utils/routeHelpers';
@@ -12,7 +12,7 @@ import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
-  history: Object,
+  history: RouterHistory,
   collection: Collection,
   collections: CollectionsStore,
   ui: UiStore,
@@ -23,7 +23,7 @@ type Props = {
 class CollectionDelete extends React.Component<Props> {
   @observable isDeleting: boolean;
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isDeleting = true;
 

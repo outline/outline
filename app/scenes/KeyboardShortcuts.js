@@ -4,19 +4,23 @@ import styled from 'styled-components';
 import Key from 'components/Key';
 import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
+import { meta } from 'utils/keyboard';
 
 function KeyboardShortcuts() {
   return (
     <Flex column>
       <HelpText>
-        Outline is designed to be super fast and easy to use. All of your usual
-        keyboard shortcuts work here, and there
-        {"'"}
-        s Markdown too.
+        Outline is designed to be fast and easy to use. All of your usual
+        keyboard shortcuts work here, and there’s Markdown too.
       </HelpText>
 
       <h2>Navigation</h2>
       <List>
+        <Keys>
+          <Key>n</Key>
+        </Keys>
+        <Label>New document in current collection</Label>
+
         <Keys>
           <Key>e</Key>
         </Keys>
@@ -46,44 +50,44 @@ function KeyboardShortcuts() {
       <h2>Editor</h2>
       <List>
         <Keys>
-          <Key>⌘</Key> + <Key>Enter</Key>
+          <Key>{meta}</Key> + <Key>Enter</Key>
         </Keys>
         <Label>Save and exit document edit mode</Label>
         <Keys>
-          <Key>⌘</Key> + <Key>S</Key>
+          <Key>{meta}</Key> + <Key>S</Key>
         </Keys>
         <Label>Save document and continue editing</Label>
         <Keys>
-          <Key>⌘</Key> + <Key>Esc</Key>
+          <Key>{meta}</Key> + <Key>Esc</Key>
         </Keys>
         <Label>Cancel editing</Label>
 
         <Keys>
-          <Key>⌘</Key> + <Key>b</Key>
+          <Key>{meta}</Key> + <Key>b</Key>
         </Keys>
         <Label>Bold</Label>
         <Keys>
-          <Key>⌘</Key> + <Key>i</Key>
+          <Key>{meta}</Key> + <Key>i</Key>
         </Keys>
         <Label>Italic</Label>
         <Keys>
-          <Key>⌘</Key> + <Key>u</Key>
+          <Key>{meta}</Key> + <Key>u</Key>
         </Keys>
         <Label>Underline</Label>
         <Keys>
-          <Key>⌘</Key> + <Key>d</Key>
+          <Key>{meta}</Key> + <Key>d</Key>
         </Keys>
         <Label>Strikethrough</Label>
         <Keys>
-          <Key>⌘</Key> + <Key>k</Key>
+          <Key>{meta}</Key> + <Key>k</Key>
         </Keys>
         <Label>Link</Label>
         <Keys>
-          <Key>⌘</Key> + <Key>z</Key>
+          <Key>{meta}</Key> + <Key>z</Key>
         </Keys>
         <Label>Undo</Label>
         <Keys>
-          <Key>⌘</Key> + <Key>Shift</Key> + <Key>z</Key>
+          <Key>{meta}</Key> + <Key>Shift</Key> + <Key>z</Key>
         </Keys>
         <Label>Redo</Label>
       </List>

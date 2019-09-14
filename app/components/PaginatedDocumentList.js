@@ -10,21 +10,24 @@ import DocumentList from 'components/DocumentList';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 type Props = {
-  showCollection?: boolean,
-  showPublished?: boolean,
   documents: Document[],
-  fetch: (options: ?Object) => Promise<*>,
+  fetch: (options: ?Object) => Promise<void>,
   options?: Object,
+  heading?: React.Node,
+  empty?: React.Node,
 };
 
 @observer
 class PaginatedDocumentList extends React.Component<Props> {
+  isInitiallyLoaded: boolean = false;
   @observable isLoaded: boolean = false;
+  @observable isFetchingMore: boolean = false;
   @observable isFetching: boolean = false;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
 
   componentDidMount() {
+    this.isInitiallyLoaded = !!this.props.documents.length;
     this.fetchResults();
   }
 
@@ -55,31 +58,39 @@ class PaginatedDocumentList extends React.Component<Props> {
 
     this.isLoaded = true;
     this.isFetching = false;
+    this.isFetchingMore = false;
   };
 
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
     if (!this.allowLoadMore || this.isFetching) return;
+
+    this.isFetchingMore = true;
     await this.fetchResults();
   };
 
   render() {
-    const { showCollection, showPublished, documents } = this.props;
+    const { empty, heading, documents, fetch, options, ...rest } = this.props;
+    const showLoading =
+      this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
+    const showEmpty = !documents.length || showLoading;
+    const showList = (this.isLoaded || this.isInitiallyLoaded) && !showLoading;
 
-    return this.isLoaded || documents.length ? (
+    return (
       <React.Fragment>
-        <DocumentList
-          documents={documents}
-          showCollection={showCollection}
-          showPublished={showPublished}
-        />
-        {this.allowLoadMore && (
-          <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+        {showEmpty && empty}
+        {showList && (
+          <React.Fragment>
+            {heading}
+            <DocumentList documents={documents} {...rest} />
+            {this.allowLoadMore && (
+              <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+            )}
+          </React.Fragment>
         )}
+        {showLoading && <ListPlaceholder count={5} />}
       </React.Fragment>
-    ) : (
-      <ListPlaceholder count={5} />
     );
   }
 }

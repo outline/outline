@@ -3,7 +3,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 type Props = {
-  onClick?: (SyntheticEvent<*>) => *,
+  onClick?: (SyntheticEvent<>) => void | Promise<void>,
   children?: React.Node,
   disabled?: boolean,
 };
@@ -23,13 +23,13 @@ const MenuItem = styled.a`
   height: 32px;
 
   color: ${props =>
-    props.disabled ? props.theme.slate : props.theme.slateDark};
+    props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
   justify-content: left;
   align-items: center;
   font-size: 15px;
   cursor: default;
 
-  svg {
+  svg:not(:last-child) {
     margin-right: 8px;
   }
 

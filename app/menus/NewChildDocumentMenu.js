@@ -1,48 +1,59 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
+import { observable } from 'mobx';
+import { observer, inject } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
 import Document from 'models/Document';
+import CollectionsStore from 'stores/CollectionsStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 
 type Props = {
   label?: React.Node,
-  history: Object,
   document: Document,
+  collections: CollectionsStore,
 };
 
+@observer
 class NewChildDocumentMenu extends React.Component<Props> {
+  @observable redirectTo: ?string;
+
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
   handleNewDocument = () => {
-    const { history, document } = this.props;
-    history.push(newDocumentUrl(document.collection));
+    const { document } = this.props;
+    this.redirectTo = newDocumentUrl(document.collectionId);
   };
 
   handleNewChild = () => {
-    const { history, document } = this.props;
-    history.push(
-      `${document.collection.url}/new?parentDocument=${document.id}`
-    );
+    const { document } = this.props;
+    this.redirectTo = newDocumentUrl(document.collectionId, document.id);
   };
 
   render() {
-    const { label, document, history, ...rest } = this.props;
-    const { collection } = document;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
+    const { label, document, collections, ...rest } = this.props;
+    const collection = collections.get(document.collectionId);
 
     return (
       <DropdownMenu label={label || <MoreIcon />} {...rest}>
-        <DropdownMenuItem onClick={this.handleNewChild}>
-          New child document
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleNewDocument}>
           <span>
-            New document in <strong>{collection.name}</strong>
+            New document in{' '}
+            <strong>{collection ? collection.name : 'collection'}</strong>
           </span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={this.handleNewChild}>
+          New child document
         </DropdownMenuItem>
       </DropdownMenu>
     );
   }
 }
 
-export default withRouter(NewChildDocumentMenu);
+export default inject('collections')(NewChildDocumentMenu);

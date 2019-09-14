@@ -10,19 +10,7 @@
   "rules": {
     "eqeqeq": 2,
     "no-unused-vars": 2,
-    // // Bring back after we remove CSS Modules 100%
-    // "import/order": "warn",
-    // Prettier automatically uses the least amount of parens possible, so this
-    // does more harm than good.
     "no-mixed-operators": "off",
-    // Temporary fix for a failing import lint
-    "import/no-unresolved": [
-      "error",
-      {
-        "ignore": ["slate-drop-or-paste-images"]
-      }
-    ],
-    // Flow
     "flowtype/require-valid-file-annotation": [
       2,
       "always",
@@ -32,7 +20,6 @@
     ],
     "flowtype/space-after-type-colon": [2, "always"],
     "flowtype/space-before-type-colon": [2, "never"],
-    // Enforce that code is formatted with prettier.
     "prettier/prettier": [
       "error",
       {
@@ -43,6 +30,12 @@
     ]
   },
   "settings": {
+    "react": {
+      "createClass": "createReactClass",
+      "pragma": "React",
+      "version": "detect",
+      "flowVersion": "0.86" 
+    },
     "import/resolver": {
       "node": {
         "paths": ["app", "."]

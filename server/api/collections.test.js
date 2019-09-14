@@ -1,6 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
-import app from '..';
+import app from '../app';
 import { flushdb, seed } from '../test/support';
 import { buildUser, buildCollection } from '../test/factories';
 import { Collection } from '../models';
@@ -119,6 +119,18 @@ describe('#collections.exportAll', async () => {
     });
 
     expect(res.status).toEqual(200);
+  });
+
+  it('should allow downloading directly', async () => {
+    const { admin } = await seed();
+    const res = await server.post('/api/collections.exportAll', {
+      body: { token: admin.getJwtToken(), download: true },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get('content-type')).toEqual(
+      'application/force-download'
+    );
   });
 });
 
@@ -346,6 +358,7 @@ describe('#collections.create', async () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toBeTruthy();
     expect(body.data.name).toBe('Test');
+    expect(body.policies.length).toBe(1);
   });
 });
 

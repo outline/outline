@@ -1,11 +1,13 @@
 // @flow
+import fs from 'fs';
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
-import { presentCollection, presentUser } from '../presenters';
-import { Collection, CollectionUser, Team, User } from '../models';
+import { presentCollection, presentUser, presentPolicies } from '../presenters';
+import { Collection, CollectionUser, Team, Event, User } from '../models';
 import { ValidationError, InvalidRequestError } from '../errors';
-import { exportCollection, exportCollections } from '../logistics';
+import { exportCollections } from '../logistics';
+import { archiveCollection, archiveCollections } from '../utils/zip';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -32,8 +34,18 @@ router.post('collections.create', auth(), async ctx => {
     private: isPrivate,
   });
 
+  await Event.create({
+    name: 'collections.create',
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: user.id,
+    data: { name },
+    ip: ctx.request.ip,
+  });
+
   ctx.body = {
-    data: await presentCollection(ctx, collection),
+    data: await presentCollection(collection),
+    policies: presentPolicies(user, [collection]),
   };
 });
 
@@ -41,11 +53,13 @@ router.post('collections.info', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findById(id);
-  authorize(ctx.state.user, 'read', collection);
+  const user = ctx.state.user;
+  const collection = await Collection.findByPk(id);
+  authorize(user, 'read', collection);
 
   ctx.body = {
-    data: await presentCollection(ctx, collection),
+    data: await presentCollection(collection),
+    policies: presentPolicies(user, [collection]),
   };
 });
 
@@ -54,14 +68,14 @@ router.post('collections.add_user', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(ctx.state.user, 'update', collection);
 
   if (!collection.private) {
     throw new InvalidRequestError('Collection must be private to add users');
   }
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'read', user);
 
   await CollectionUser.create({
@@ -69,6 +83,16 @@ router.post('collections.add_user', auth(), async ctx => {
     userId,
     permission,
     createdById: ctx.state.user.id,
+  });
+
+  await Event.create({
+    name: 'collections.add_user',
+    userId,
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: ctx.state.user.id,
+    data: { name: user.name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -81,17 +105,27 @@ router.post('collections.remove_user', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(ctx.state.user, 'update', collection);
 
   if (!collection.private) {
     throw new InvalidRequestError('Collection must be private to remove users');
   }
 
-  const user = await User.findById(userId);
+  const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'read', user);
 
   await collection.removeUser(user);
+
+  await Event.create({
+    name: 'collections.remove_user',
+    userId,
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: ctx.state.user.id,
+    data: { name: user.name },
+    ip: ctx.request.ip,
+  });
 
   ctx.body = {
     success: true,
@@ -102,17 +136,13 @@ router.post('collections.users', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(ctx.state.user, 'read', collection);
 
   const users = await collection.getUsers();
 
-  const data = await Promise.all(
-    users.map(async user => await presentUser(ctx, user))
-  );
-
   ctx.body = {
-    data,
+    data: users.map(presentUser),
   };
 });
 
@@ -121,28 +151,57 @@ router.post('collections.export', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(user, 'export', collection);
 
-  // async operation to create zip archive and email user
-  exportCollection(id, user.email);
+  const filePath = await archiveCollection(collection);
 
-  ctx.body = {
-    success: true,
-  };
+  await Event.create({
+    name: 'collections.export',
+    collectionId: collection.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: { title: collection.title },
+    ip: ctx.request.ip,
+  });
+
+  ctx.attachment(`${collection.name}.zip`);
+  ctx.set('Content-Type', 'application/force-download');
+  ctx.body = fs.createReadStream(filePath);
 });
 
 router.post('collections.exportAll', auth(), async ctx => {
+  const { download = false } = ctx.body;
+
   const user = ctx.state.user;
-  const team = await Team.findById(user.teamId);
+  const team = await Team.findByPk(user.teamId);
   authorize(user, 'export', team);
 
-  // async operation to create zip archive and email user
-  exportCollections(user.teamId, user.email);
+  await Event.create({
+    name: 'collections.export',
+    teamId: user.teamId,
+    actorId: user.id,
+    ip: ctx.request.ip,
+  });
 
-  ctx.body = {
-    success: true,
-  };
+  if (download) {
+    const collections = await Collection.findAll({
+      where: { teamId: team.id },
+      order: [['name', 'ASC']],
+    });
+    const filePath = await archiveCollections(collections);
+
+    ctx.attachment(`${team.name}.zip`);
+    ctx.set('Content-Type', 'application/force-download');
+    ctx.body = fs.createReadStream(filePath);
+  } else {
+    // async operation to create zip archive and email user
+    exportCollections(user.teamId, user.email);
+
+    ctx.body = {
+      success: true,
+    };
+  }
 });
 
 router.post('collections.update', auth(), async ctx => {
@@ -154,7 +213,7 @@ router.post('collections.update', auth(), async ctx => {
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
 
   const user = ctx.state.user;
-  const collection = await Collection.findById(id);
+  const collection = await Collection.findByPk(id);
   authorize(user, 'update', collection);
 
   if (isPrivate && !collection.private) {
@@ -176,8 +235,18 @@ router.post('collections.update', auth(), async ctx => {
   collection.private = isPrivate;
   await collection.save();
 
+  await Event.create({
+    name: 'collections.update',
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: user.id,
+    data: { name },
+    ip: ctx.request.ip,
+  });
+
   ctx.body = {
-    data: await presentCollection(ctx, collection),
+    data: presentCollection(collection),
+    policies: presentPolicies(user, [collection]),
   };
 });
 
@@ -196,28 +265,38 @@ router.post('collections.list', auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    collections.map(
-      async collection => await presentCollection(ctx, collection)
-    )
+    collections.map(async collection => await presentCollection(collection))
   );
+  const policies = presentPolicies(user, collections);
 
   ctx.body = {
     pagination: ctx.state.pagination,
     data,
+    policies,
   };
 });
 
 router.post('collections.delete', auth(), async ctx => {
   const { id } = ctx.body;
+  const user = ctx.state.user;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findById(id);
-  authorize(ctx.state.user, 'delete', collection);
+  const collection = await Collection.findByPk(id);
+  authorize(user, 'delete', collection);
 
   const total = await Collection.count();
   if (total === 1) throw new ValidationError('Cannot delete last collection');
 
   await collection.destroy();
+
+  await Event.create({
+    name: 'collections.delete',
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: user.id,
+    data: { name: collection.name },
+    ip: ctx.request.ip,
+  });
 
   ctx.body = {
     success: true,

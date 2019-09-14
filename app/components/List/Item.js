@@ -5,7 +5,7 @@ import Flex from 'shared/components/Flex';
 
 type Props = {
   image?: React.Node,
-  title: string,
+  title: React.Node,
   subtitle?: React.Node,
   actions?: React.Node,
 };
@@ -29,7 +29,7 @@ const Wrapper = styled.li`
   display: flex;
   padding: ${props => (props.compact ? '8px' : '12px')} 0;
   margin: 0;
-  border-bottom: 1px solid ${props => props.theme.smokeDark};
+  border-bottom: 1px solid ${props => props.theme.divider};
 `;
 
 const Image = styled(Flex)`
@@ -37,6 +37,7 @@ const Image = styled(Flex)`
   max-height: 40px;
   align-items: center;
   user-select: none;
+  flex-shrink: 0;
 `;
 
 const Heading = styled.p`

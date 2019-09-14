@@ -8,14 +8,16 @@ import {
   ThemeProvider,
 } from 'styled-components';
 import Layout from '../pages/components/Layout';
-import theme from '../../shared/styles/theme';
+import { light } from '../../shared/styles/theme';
 
 const sheet = new ServerStyleSheet();
 
 export default function renderpage(ctx: Object, children: React.Node) {
   let sessions = {};
   try {
-    sessions = JSON.parse(ctx.cookies.get('sessions') || '{}');
+    sessions = JSON.parse(
+      decodeURIComponent(ctx.cookies.get('sessions') || '') || '{}'
+    );
   } catch (err) {
     console.error(`Sessions cookie could not be parsed: ${err}`);
   }
@@ -26,7 +28,7 @@ export default function renderpage(ctx: Object, children: React.Node) {
 
   const html = ReactDOMServer.renderToString(
     <StyleSheetManager sheet={sheet.instance}>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={light}>
         <Layout sessions={sessions} loggedIn={loggedIn}>
           {children}
         </Layout>

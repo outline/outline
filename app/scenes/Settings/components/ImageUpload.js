@@ -4,7 +4,6 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
 import Dropzone from 'react-dropzone';
-
 import LoadingIndicator from 'components/LoadingIndicator';
 import Flex from 'shared/components/Flex';
 import Modal from 'components/Modal';
@@ -14,8 +13,8 @@ import { uploadFile, dataUrlToBlob } from 'utils/uploadFile';
 
 type Props = {
   children?: React.Node,
-  onSuccess: string => *,
-  onError: string => *,
+  onSuccess: string => void | Promise<void>,
+  onError: string => void,
   submitText: string,
   borderRadius: number,
 };

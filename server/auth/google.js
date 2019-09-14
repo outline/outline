@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import Router from 'koa-router';
 import { capitalize } from 'lodash';
 import { OAuth2Client } from 'google-auth-library';
-import { User, Team } from '../models';
+import { User, Team, Event } from '../models';
 import auth from '../middlewares/authentication';
 
 const router = new Router();
@@ -90,6 +90,25 @@ router.get('google.callback', auth({ required: false }), async ctx => {
       avatarUrl: profile.data.picture,
     },
   });
+
+  if (isFirstSignin) {
+    await Event.create({
+      name: 'users.create',
+      actorId: user.id,
+      userId: user.id,
+      teamId: team.id,
+      data: {
+        name: user.name,
+        service: 'google',
+      },
+      ip: ctx.request.ip,
+    });
+  }
+
+  // update email address if it's changed in Google
+  if (!isFirstSignin && profile.data.email !== user.email) {
+    await user.update({ email: profile.data.email });
+  }
 
   if (isFirstUser) {
     await team.provisionFirstCollection(user.id);

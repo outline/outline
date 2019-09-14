@@ -18,9 +18,7 @@ const sortDocuments = (documents: Document[]): Document[] => {
   }));
 };
 
-async function present(ctx: Object, collection: Collection) {
-  ctx.cache.set(collection.id, collection);
-
+export default function present(collection: Collection) {
   const data = {
     id: collection.id,
     url: collection.url,
@@ -31,6 +29,7 @@ async function present(ctx: Object, collection: Collection) {
     private: collection.private,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
+    deletedAt: collection.deletedAt,
     documents: undefined,
   };
 
@@ -41,5 +40,3 @@ async function present(ctx: Object, collection: Collection) {
 
   return data;
 }
-
-export default present;

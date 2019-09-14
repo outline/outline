@@ -84,3 +84,7 @@ export function integrations(): string {
 export function privacy(): string {
   return `${process.env.URL}/privacy`;
 }
+
+export function settings(): string {
+  return `/settings`;
+}

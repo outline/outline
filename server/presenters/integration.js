@@ -1,7 +1,7 @@
 // @flow
 import { Integration } from '../models';
 
-function present(ctx: Object, integration: Integration) {
+export default function present(integration: Integration) {
   return {
     id: integration.id,
     type: integration.type,
@@ -16,5 +16,3 @@ function present(ctx: Object, integration: Integration) {
     updatedAt: integration.updatedAt,
   };
 }
-
-export default present;

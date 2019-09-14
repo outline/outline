@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react';
-import { observable, computed, action } from 'mobx';
+import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import { TwitterPicker } from 'react-color';
 import styled from 'styled-components';
-import Flex from 'shared/components/Flex';
-import { LabelText, Outline } from 'components/Input';
-import { validateColorHex } from 'shared/utils/color';
+import Fade from 'components/Fade';
+import { LabelText } from 'components/Input';
 
 const colors = [
   '#4E5C6E',
@@ -15,175 +15,92 @@ const colors = [
   '#FC2D2D',
   '#FFE100',
   '#14CF9F',
+  '#00D084',
   '#EE84F0',
   '#2F362F',
 ];
 
 type Props = {
-  onSelect: (color: string) => void,
+  onChange: (color: string) => void,
   value?: string,
 };
 
 @observer
 class ColorPicker extends React.Component<Props> {
-  @observable selectedColor: string = colors[0];
-  @observable customColorValue: string = '';
-  @observable customColorSelected: boolean;
-
-  componentWillMount() {
-    const { value } = this.props;
-    if (value && colors.includes(value)) {
-      this.selectedColor = value;
-    } else if (value) {
-      this.customColorSelected = true;
-      this.customColorValue = value.replace('#', '');
-    }
-  }
+  @observable isOpen: boolean = false;
+  node: ?HTMLElement;
 
   componentDidMount() {
-    this.fireCallback();
+    window.addEventListener('click', this.handleClickOutside);
   }
 
-  fireCallback = () => {
-    this.props.onSelect(
-      this.customColorSelected ? this.customColor : this.selectedColor
-    );
-  };
-
-  @computed
-  get customColor(): string {
-    return this.customColorValue &&
-      validateColorHex(`#${this.customColorValue}`)
-      ? `#${this.customColorValue}`
-      : colors[0];
+  componentWillUnmount() {
+    window.removeEventListener('click', this.handleClickOutside);
   }
 
-  @action
-  setColor = (color: string) => {
-    this.selectedColor = color;
-    this.customColorSelected = false;
-    this.fireCallback();
+  handleClose = () => {
+    this.isOpen = false;
   };
 
-  @action
-  focusOnCustomColor = (event: SyntheticEvent<*>) => {
-    this.selectedColor = '';
-    this.customColorSelected = true;
-    this.fireCallback();
+  handleOpen = () => {
+    this.isOpen = true;
   };
 
-  @action
-  setCustomColor = (event: SyntheticEvent<*>) => {
-    let target = event.target;
-    if (target instanceof HTMLInputElement) {
-      const color = target.value;
-      this.customColorValue = color.replace('#', '');
-      this.fireCallback();
+  handleClickOutside = (ev: SyntheticMouseEvent<>) => {
+    // $FlowFixMe
+    if (ev.target && this.node && this.node.contains(ev.target)) {
+      return;
     }
+
+    this.handleClose();
   };
 
   render() {
     return (
-      <Flex column>
-        <LabelText>Color</LabelText>
-        <StyledOutline justify="space-between">
-          <Flex>
-            {colors.map(color => (
-              <Swatch
-                key={color}
-                color={color}
-                active={
-                  color === this.selectedColor && !this.customColorSelected
-                }
-                onClick={() => this.setColor(color)}
+      <Wrapper ref={ref => (this.node = ref)}>
+        <label>
+          <LabelText>Color</LabelText>
+        </label>
+        <Swatch
+          role="button"
+          onClick={this.isOpen ? this.handleClose : this.handleOpen}
+          color={this.props.value}
+        />
+        <Floating>
+          {this.isOpen && (
+            <Fade>
+              <TwitterPicker
+                colors={colors}
+                color={this.props.value}
+                onChange={color => this.props.onChange(color.hex)}
+                triangle="top-right"
               />
-            ))}
-          </Flex>
-          <Flex justify="flex-end">
-            <strong>Custom color:</strong>
-            <HexHash>#</HexHash>
-            <CustomColorInput
-              placeholder="FFFFFF"
-              onFocus={this.focusOnCustomColor}
-              onChange={this.setCustomColor}
-              value={this.customColorValue}
-              maxLength={6}
-            />
-            <Swatch
-              color={this.customColor}
-              active={this.customColorSelected}
-            />
-          </Flex>
-        </StyledOutline>
-      </Flex>
+            </Fade>
+          )}
+        </Floating>
+      </Wrapper>
     );
   }
 }
 
-type SwatchProps = {
-  onClick?: () => void,
-  color?: string,
-  active?: boolean,
-};
-
-const Swatch = ({ onClick, ...props }: SwatchProps) => (
-  <SwatchOutset onClick={onClick} {...props}>
-    <SwatchInset {...props} />
-  </SwatchOutset>
-);
-
-const SwatchOutset = styled(Flex)`
-  width: 24px;
-  height: 24px;
-  margin-right: 5px;
-  border: 2px solid ${({ active, color }) => (active ? color : 'transparent')};
-  border-radius: 2px;
-  background: ${({ color }) => color};
-  ${({ onClick }) => onClick && `cursor: pointer;`} &:last-child {
-    margin-right: 0;
-  }
+const Wrapper = styled('div')`
+  display: inline-block;
+  position: relative;
+`;
+const Floating = styled('div')`
+  position: absolute;
+  top: 60px;
+  right: 0;
+  z-index: 1;
 `;
 
-const SwatchInset = styled(Flex)`
-  width: 20px;
-  height: 20px;
+const Swatch = styled('div')`
+  display: inline-block;
+  width: 40px;
+  height: 36px;
   border: 1px solid ${({ active, color }) => (active ? 'white' : 'transparent')};
-  border-radius: 2px;
+  border-radius: 4px;
   background: ${({ color }) => color};
-`;
-
-const StyledOutline = styled(Outline)`
-  padding: 5px;
-  flex-wrap: wrap;
-
-  strong {
-    font-weight: 500;
-  }
-`;
-
-const HexHash = styled.div`
-  margin-left: 12px;
-  padding-bottom: 0;
-  font-weight: 500;
-  user-select: none;
-`;
-
-const CustomColorInput = styled.input`
-  border: 0;
-  flex: 1;
-  width: 65px;
-  margin-right: 12px;
-  padding-bottom: 0;
-  outline: none;
-  background: none;
-  font-family: ${props => props.theme.monospaceFontFamily};
-  font-weight: 500;
-
-  &::placeholder {
-    color: ${props => props.theme.slate};
-    font-family: ${props => props.theme.monospaceFontFamily};
-    font-weight: 500;
-  }
 `;
 
 export default ColorPicker;

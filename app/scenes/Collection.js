@@ -2,13 +2,14 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { withRouter, Link, Switch, Route } from 'react-router-dom';
+import { Redirect, Link, Switch, Route } from 'react-router-dom';
 
-import styled from 'styled-components';
+import styled, { withTheme } from 'styled-components';
 import {
   CollectionIcon,
   PrivateCollectionIcon,
   NewDocumentIcon,
+  PlusIcon,
   PinIcon,
 } from 'outline-icons';
 import RichMarkdownEditor from 'rich-markdown-editor';
@@ -23,6 +24,7 @@ import Search from 'scenes/Search';
 import CollectionMenu from 'menus/CollectionMenu';
 import Actions, { Action, Separator } from 'components/Actions';
 import Heading from 'components/Heading';
+import Tooltip from 'components/Tooltip';
 import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Mask from 'components/Mask';
@@ -42,8 +44,8 @@ type Props = {
   ui: UiStore,
   documents: DocumentsStore,
   collections: CollectionsStore,
-  history: Object,
   match: Object,
+  theme: Object,
 };
 
 @observer
@@ -51,6 +53,7 @@ class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
   @observable permissionsModalOpen: boolean = false;
+  @observable redirectTo: ?string;
 
   componentDidMount() {
     this.loadContent(this.props.match.params.id);
@@ -81,15 +84,15 @@ class CollectionScene extends React.Component<Props> {
     this.isFetching = false;
   };
 
-  onNewDocument = (ev: SyntheticEvent<*>) => {
+  onNewDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
 
     if (this.collection) {
-      this.props.history.push(`${this.collection.url}/new`);
+      this.redirectTo = newDocumentUrl(this.collection.id);
     }
   };
 
-  onPermissions = (ev: SyntheticEvent<*>) => {
+  onPermissions = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.permissionsModalOpen = true;
   };
@@ -102,31 +105,30 @@ class CollectionScene extends React.Component<Props> {
     return (
       <Actions align="center" justify="flex-end">
         <Action>
-          <CollectionMenu
-            history={this.props.history}
-            collection={this.collection}
-          />
+          <Tooltip
+            tooltip="New document"
+            shortcut="n"
+            delay={500}
+            placement="bottom"
+          >
+            <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
+              New doc
+            </Button>
+          </Tooltip>
         </Action>
         <Separator />
         <Action>
-          <a onClick={this.onNewDocument}>
-            <NewDocumentIcon />
-          </a>
+          <CollectionMenu collection={this.collection} />
         </Action>
       </Actions>
     );
   }
 
-  renderNotFound() {
-    return <Search notFound />;
-  }
-
   render() {
-    const { documents } = this.props;
+    const { documents, theme } = this.props;
 
-    if (!this.isFetching && !this.collection) {
-      return this.renderNotFound();
-    }
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+    if (!this.isFetching && !this.collection) return <Search notFound />;
 
     const pinnedDocuments = this.collection
       ? documents.pinnedInCollection(this.collection.id)
@@ -146,8 +148,8 @@ class CollectionScene extends React.Component<Props> {
                   documents yet.<br />Get started by creating a new one!
                 </HelpText>
                 <Wrapper>
-                  <Link to={newDocumentUrl(collection)}>
-                    <Button icon={<NewDocumentIcon color="#FFF" />}>
+                  <Link to={newDocumentUrl(collection.id)}>
+                    <Button icon={<NewDocumentIcon color={theme.buttonText} />}>
                       Create a document
                     </Button>
                   </Link>&nbsp;&nbsp;
@@ -189,8 +191,10 @@ class CollectionScene extends React.Component<Props> {
 
                 {collection.description && (
                   <RichMarkdownEditor
+                    id={collection.id}
                     key={collection.description}
                     defaultValue={collection.description}
+                    theme={theme}
                     readOnly
                   />
                 )}
@@ -200,7 +204,7 @@ class CollectionScene extends React.Component<Props> {
                     <Subheading>
                       <TinyPinIcon size={18} /> Pinned
                     </Subheading>
-                    <DocumentList documents={pinnedDocuments} />
+                    <DocumentList documents={pinnedDocuments} showPin />
                   </React.Fragment>
                 )}
 
@@ -227,6 +231,7 @@ class CollectionScene extends React.Component<Props> {
                       )}
                       fetch={documents.fetchAlphabetical}
                       options={{ collection: collection.id }}
+                      showPin
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id, 'old')}>
@@ -237,6 +242,7 @@ class CollectionScene extends React.Component<Props> {
                       )}
                       fetch={documents.fetchLeastRecentlyUpdated}
                       options={{ collection: collection.id }}
+                      showPin
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id, 'recent')}>
@@ -248,6 +254,7 @@ class CollectionScene extends React.Component<Props> {
                       fetch={documents.fetchRecentlyPublished}
                       options={{ collection: collection.id }}
                       showPublished
+                      showPin
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id)}>
@@ -257,6 +264,7 @@ class CollectionScene extends React.Component<Props> {
                       )}
                       fetch={documents.fetchRecentlyUpdated}
                       options={{ collection: collection.id }}
+                      showPin
                     />
                   </Route>
                 </Switch>
@@ -296,6 +304,6 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default withRouter(
-  inject('collections', 'documents', 'ui')(CollectionScene)
+export default inject('collections', 'documents', 'ui')(
+  withTheme(CollectionScene)
 );

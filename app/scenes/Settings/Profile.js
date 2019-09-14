@@ -38,14 +38,14 @@ class Profile extends React.Component<Props> {
     clearTimeout(this.timeout);
   }
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
 
     await this.props.auth.updateUser({
       name: this.name,
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast('Profile saved', 'success');
+    this.props.ui.showToast('Profile saved');
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -58,7 +58,7 @@ class Profile extends React.Component<Props> {
     await this.props.auth.updateUser({
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast('Profile picture updated', 'success');
+    this.props.ui.showToast('Profile picture updated');
   };
 
   handleAvatarError = (error: ?string) => {
@@ -83,7 +83,7 @@ class Profile extends React.Component<Props> {
         <PageTitle title="Profile" />
         <h1>Profile</h1>
         <ProfilePicture column>
-          <LabelText>Picture</LabelText>
+          <LabelText>Photo</LabelText>
           <AvatarContainer>
             <ImageUpload
               onSuccess={this.handleAvatarUpload}
@@ -98,7 +98,7 @@ class Profile extends React.Component<Props> {
         </ProfilePicture>
         <form onSubmit={this.handleSubmit} ref={ref => (this.form = ref)}>
           <Input
-            label="Name"
+            label="Full name"
             value={this.name}
             onChange={this.handleNameChange}
             required
@@ -126,7 +126,8 @@ class Profile extends React.Component<Props> {
 }
 
 const DangerZone = styled.div`
-  background: #fff;
+  background: ${props => props.theme.background};
+  transition: ${props => props.theme.backgroundTransition};
   position: absolute;
   bottom: 16px;
 `;
@@ -138,7 +139,7 @@ const ProfilePicture = styled(Flex)`
 const avatarStyles = `
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+  border-radius: 8px;
 `;
 
 const AvatarContainer = styled(Flex)`

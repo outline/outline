@@ -4,7 +4,14 @@ import auth from '../middlewares/authentication';
 import addHours from 'date-fns/add_hours';
 import { stripSubdomain } from '../../shared/utils/domains';
 import { slackAuth } from '../../shared/utils/routeHelpers';
-import { Authentication, Collection, Integration, User, Team } from '../models';
+import {
+  Authentication,
+  Collection,
+  Integration,
+  User,
+  Event,
+  Team,
+} from '../models';
 import * as Slack from '../slack';
 
 const router = new Router();
@@ -29,8 +36,12 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   ctx.assertPresent(code || error, 'code is required');
   ctx.assertPresent(state, 'state is required');
 
-  if (state !== ctx.cookies.get('state') || error) {
-    ctx.redirect(`/?notice=auth-error`);
+  if (state !== ctx.cookies.get('state')) {
+    ctx.redirect('/?notice=auth-error');
+    return;
+  }
+  if (error) {
+    ctx.redirect(`/?notice=auth-error&error=${error}`);
     return;
   }
 
@@ -65,6 +76,25 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
     await team.provisionSubdomain(data.team.domain);
   }
 
+  if (isFirstSignin) {
+    await Event.create({
+      name: 'users.create',
+      actorId: user.id,
+      userId: user.id,
+      teamId: team.id,
+      data: {
+        name: user.name,
+        service: 'slack',
+      },
+      ip: ctx.request.ip,
+    });
+  }
+
+  // update email address if it's changed in Slack
+  if (!isFirstSignin && data.user.email !== user.email) {
+    await user.update({ email: data.user.email });
+  }
+
   // set cookies on response and redirect to team subdomain
   ctx.signIn(user, team, 'slack', isFirstSignin);
 });
@@ -85,7 +115,7 @@ router.get('slack.commands', auth({ required: false }), async ctx => {
   if (!user) {
     if (state) {
       try {
-        const team = await Team.findById(state);
+        const team = await Team.findByPk(state);
         return ctx.redirect(
           `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
         );
@@ -139,8 +169,8 @@ router.get('slack.post', auth({ required: false }), async ctx => {
   // appropriate subdomain to complete the oauth flow
   if (!user) {
     try {
-      const collection = await Collection.findById(state);
-      const team = await Team.findById(collection.teamId);
+      const collection = await Collection.findByPk(state);
+      const team = await Team.findByPk(collection.teamId);
       return ctx.redirect(
         `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
       );

@@ -9,7 +9,7 @@ export default class Embed extends React.Component<*> {
     return this.props.node.data.get('href');
   }
 
-  get matches(): ?{ component: *, matches: string[] } {
+  getMatchResults(): ?{ component: *, matches: string[] } {
     const keys = Object.keys(embeds);
 
     for (const key of keys) {
@@ -23,10 +23,10 @@ export default class Embed extends React.Component<*> {
   }
 
   render() {
-    const result = this.matches;
+    const result = this.getMatchResults();
     if (!result) return null;
 
-    const { attributes, isSelected } = this.props;
+    const { attributes, isSelected, children } = this.props;
     const { component, matches } = result;
     const EmbedComponent = component;
 
@@ -37,6 +37,7 @@ export default class Embed extends React.Component<*> {
         {...attributes}
       >
         <EmbedComponent matches={matches} url={this.url} />
+        {children}
       </Container>
     );
   }
@@ -48,5 +49,5 @@ const Container = styled.div`
 
   border-radius: 3px;
   box-shadow: ${props =>
-    props.isSelected ? `0 0 0 2px ${props.theme.selected}` : 'none'};
+    props.isSelected ? `0 0 0 2px ${props.theme.primary}` : 'none'};
 `;

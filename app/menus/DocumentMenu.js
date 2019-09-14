@@ -1,74 +1,106 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
+import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
-import { documentMoveUrl, documentHistoryUrl } from 'utils/routeHelpers';
+import CollectionStore from 'stores/CollectionsStore';
+import {
+  documentMoveUrl,
+  documentEditUrl,
+  documentHistoryUrl,
+  newDocumentUrl,
+} from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import NudeButton from 'components/NudeButton';
 
 type Props = {
   ui: UiStore,
   auth: AuthStore,
-  label?: React.Node,
-  history: Object,
+  position?: 'left' | 'right' | 'center',
   document: Document,
+  collections: CollectionStore,
   className: string,
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
+  showPin?: boolean,
+  onOpen?: () => void,
+  onClose?: () => void,
 };
 
 @observer
 class DocumentMenu extends React.Component<Props> {
-  handleNewChild = (ev: SyntheticEvent<*>) => {
-    const { history, document } = this.props;
-    history.push(
-      `${document.collection.url}/new?parentDocument=${document.id}`
-    );
+  @observable redirectTo: ?string;
+
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
+  handleNewChild = (ev: SyntheticEvent<>) => {
+    const { document } = this.props;
+    this.redirectTo = newDocumentUrl(document.collectionId, document.id);
   };
 
-  handleDelete = (ev: SyntheticEvent<*>) => {
+  handleDelete = (ev: SyntheticEvent<>) => {
     const { document } = this.props;
     this.props.ui.setActiveModal('document-delete', { document });
   };
 
   handleDocumentHistory = () => {
-    this.props.history.push(documentHistoryUrl(this.props.document));
+    this.redirectTo = documentHistoryUrl(this.props.document);
   };
 
-  handleMove = (ev: SyntheticEvent<*>) => {
-    this.props.history.push(documentMoveUrl(this.props.document));
+  handleMove = (ev: SyntheticEvent<>) => {
+    this.redirectTo = documentMoveUrl(this.props.document);
   };
 
-  handleDuplicate = async (ev: SyntheticEvent<*>) => {
+  handleEdit = (ev: SyntheticEvent<>) => {
+    this.redirectTo = documentEditUrl(this.props.document);
+  };
+
+  handleDuplicate = async (ev: SyntheticEvent<>) => {
     const duped = await this.props.document.duplicate();
-    this.props.history.push(duped.url);
+
+    // when duplicating, go straight to the duplicated document content
+    this.redirectTo = duped.url;
+    this.props.ui.showToast('Document duplicated');
   };
 
-  handlePin = (ev: SyntheticEvent<*>) => {
+  handleArchive = async (ev: SyntheticEvent<>) => {
+    await this.props.document.archive();
+    this.props.ui.showToast('Document archived');
+  };
+
+  handleRestore = async (ev: SyntheticEvent<>) => {
+    await this.props.document.restore();
+    this.props.ui.showToast('Document restored');
+  };
+
+  handlePin = (ev: SyntheticEvent<>) => {
     this.props.document.pin();
   };
 
-  handleUnpin = (ev: SyntheticEvent<*>) => {
+  handleUnpin = (ev: SyntheticEvent<>) => {
     this.props.document.unpin();
   };
 
-  handleStar = (ev: SyntheticEvent<*>) => {
+  handleStar = (ev: SyntheticEvent<>) => {
     this.props.document.star();
   };
 
-  handleUnstar = (ev: SyntheticEvent<*>) => {
+  handleUnstar = (ev: SyntheticEvent<>) => {
     this.props.document.unstar();
   };
 
-  handleExport = (ev: SyntheticEvent<*>) => {
+  handleExport = (ev: SyntheticEvent<>) => {
     this.props.document.download();
   };
 
-  handleShareLink = async (ev: SyntheticEvent<*>) => {
+  handleShareLink = async (ev: SyntheticEvent<>) => {
     const { document } = this.props;
     if (!document.shareUrl) await document.share();
 
@@ -76,21 +108,65 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    const { document, label, className, showPrint, auth } = this.props;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
+    const {
+      document,
+      position,
+      className,
+      showPrint,
+      showPin,
+      auth,
+      onOpen,
+      onClose,
+    } = this.props;
     const canShareDocuments = auth.team && auth.team.sharing;
 
+    if (document.isArchived) {
+      return (
+        <DropdownMenu
+          label={
+            <NudeButton>
+              <MoreIcon />
+            </NudeButton>
+          }
+          className={className}
+        >
+          <DropdownMenuItem onClick={this.handleRestore}>
+            Restore
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={this.handleDelete}>
+            Delete…
+          </DropdownMenuItem>
+        </DropdownMenu>
+      );
+    }
+
     return (
-      <DropdownMenu label={label || <MoreIcon />} className={className}>
-        {!document.isDraft && (
+      <DropdownMenu
+        label={
+          <NudeButton>
+            <MoreIcon />
+          </NudeButton>
+        }
+        className={className}
+        position={position}
+        onOpen={onOpen}
+        onClose={onClose}
+      >
+        {!document.isDraft ? (
           <React.Fragment>
-            {document.pinned ? (
-              <DropdownMenuItem onClick={this.handleUnpin}>
-                Unpin
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={this.handlePin}>Pin</DropdownMenuItem>
-            )}
-            {document.starred ? (
+            {showPin &&
+              (document.pinned ? (
+                <DropdownMenuItem onClick={this.handleUnpin}>
+                  Unpin
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={this.handlePin}>
+                  Pin to collection
+                </DropdownMenuItem>
+              ))}
+            {document.isStarred ? (
               <DropdownMenuItem onClick={this.handleUnstar}>
                 Unstar
               </DropdownMenuItem>
@@ -117,13 +193,33 @@ class DocumentMenu extends React.Component<Props> {
             >
               New child document
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
             <DropdownMenuItem onClick={this.handleDuplicate}>
               Duplicate
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleArchive}>
+              Archive
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={this.handleDelete}>
+              Delete…
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
           </React.Fragment>
+        ) : (
+          <React.Fragment>
+            {canShareDocuments && (
+              <DropdownMenuItem
+                onClick={this.handleShareLink}
+                title="Create a public share link"
+              >
+                Share link…
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={this.handleDelete}>
+              Delete…
+            </DropdownMenuItem>
+          </React.Fragment>
         )}
-        <DropdownMenuItem onClick={this.handleDelete}>Delete…</DropdownMenuItem>
         <hr />
         <DropdownMenuItem onClick={this.handleExport}>
           Download
@@ -136,4 +232,4 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('ui', 'auth')(DocumentMenu));
+export default inject('ui', 'auth', 'collections')(DocumentMenu);

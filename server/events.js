@@ -1,24 +1,97 @@
 // @flow
 import Queue from 'bull';
 import services from './services';
-import { Collection, Document, Integration } from './models';
 
-type DocumentEvent = {
-  name: 'documents.create' | 'documents.update' | 'documents.publish',
-  model: Document,
-};
+export type UserEvent =
+  | {
+  name: | 'users.create' // eslint-disable-line
+        | 'users.update'
+        | 'users.suspend'
+        | 'users.activate'
+        | 'users.delete',
+      userId: string,
+      teamId: string,
+      actorId: string,
+    }
+  | {
+      name: 'users.invite',
+      teamId: string,
+      actorId: string,
+      data: {
+        email: string,
+        name: string,
+      },
+    };
 
-type CollectionEvent = {
-  name: 'collections.create' | 'collections.update',
-  model: Collection,
-};
+export type DocumentEvent =
+  | {
+  name: | 'documents.create' // eslint-disable-line
+        | 'documents.publish'
+        | 'documents.delete'
+        | 'documents.pin'
+        | 'documents.unpin'
+        | 'documents.archive'
+        | 'documents.unarchive'
+        | 'documents.restore'
+        | 'documents.star'
+        | 'documents.unstar',
+      documentId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+    }
+  | {
+      name: 'documents.move',
+      documentId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+      data: {
+        collectionIds: string[],
+        documentIds: string[],
+      },
+    }
+  | {
+      name: 'documents.update',
+      documentId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+      data: {
+        autosave: boolean,
+        done: boolean,
+      },
+    };
 
-type IntegrationEvent = {
+export type CollectionEvent =
+  | {
+  name: | 'collections.create' // eslint-disable-line
+        | 'collections.update'
+        | 'collections.delete',
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+    }
+  | {
+      name: 'collections.add_user' | 'collections.remove_user',
+      userId: string,
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+    };
+
+export type IntegrationEvent = {
   name: 'integrations.create' | 'integrations.update',
-  model: Integration,
+  modelId: string,
+  teamId: string,
+  actorId: string,
 };
 
-export type Event = DocumentEvent | CollectionEvent | IntegrationEvent;
+export type Event =
+  | UserEvent
+  | DocumentEvent
+  | CollectionEvent
+  | IntegrationEvent;
 
 const globalEventsQueue = new Queue('global events', process.env.REDIS_URL);
 const serviceEventsQueue = new Queue('service events', process.env.REDIS_URL);

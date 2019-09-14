@@ -2,13 +2,15 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
-import { omit } from 'lodash';
 import invariant from 'invariant';
 import importFile from 'utils/importFile';
 import Dropzone from 'react-dropzone';
 import DocumentsStore from 'stores/DocumentsStore';
 import LoadingIndicator from 'components/LoadingIndicator';
+
+const EMPTY_OBJECT = {};
 
 type Props = {
   children: React.Node,
@@ -18,11 +20,15 @@ type Props = {
   rejectClassName?: string,
   documents: DocumentsStore,
   disabled: boolean,
-  history: Object,
+  location: Object,
+  match: Object,
+  history: RouterHistory,
+  staticContext: Object,
 };
 
-const GlobalStyles = createGlobalStyle`
+export const GlobalStyles = createGlobalStyle`
   .activeDropZone {
+    border-radius: 4px;
     background: ${props => props.theme.slateDark};
     svg { fill: ${props => props.theme.white}; }
   }
@@ -47,7 +53,7 @@ class DropToImport extends React.Component<Props> {
       if (documentId && !collectionId) {
         const document = await this.props.documents.fetch(documentId);
         invariant(document, 'Document not available');
-        collectionId = document.collection.id;
+        collectionId = document.collectionId;
       }
 
       for (const file of files) {
@@ -68,15 +74,17 @@ class DropToImport extends React.Component<Props> {
   };
 
   render() {
-    const props = omit(
-      this.props,
-      'history',
-      'documentId',
-      'collectionId',
-      'documents',
-      'disabled',
-      'menuOpen'
-    );
+    const {
+      documentId,
+      collectionId,
+      documents,
+      disabled,
+      location,
+      match,
+      history,
+      staticContext,
+      ...rest
+    } = this.props;
 
     if (this.props.disabled) return this.props.children;
 
@@ -84,13 +92,12 @@ class DropToImport extends React.Component<Props> {
       <Dropzone
         accept="text/markdown, text/plain"
         onDropAccepted={this.onDropAccepted}
-        style={{}}
+        style={EMPTY_OBJECT}
         disableClick
         disablePreview
         multiple
-        {...props}
+        {...rest}
       >
-        <GlobalStyles />
         {this.isImporting && <LoadingIndicator />}
         {this.props.children}
       </Dropzone>
@@ -98,4 +105,4 @@ class DropToImport extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(DropToImport);
+export default inject('documents')(withRouter(DropToImport));

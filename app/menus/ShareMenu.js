@@ -1,48 +1,60 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import { inject } from 'mobx-react';
+import { Redirect } from 'react-router-dom';
+import { inject, observer } from 'mobx-react';
+import { observable } from 'mobx';
 import { MoreIcon } from 'outline-icons';
 
+import NudeButton from 'components/NudeButton';
 import CopyToClipboard from 'components/CopyToClipboard';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-
 import SharesStore from 'stores/SharesStore';
 import UiStore from 'stores/UiStore';
 import Share from 'models/Share';
 
 type Props = {
-  label?: React.Node,
-  onOpen?: () => *,
-  onClose: () => *,
-  history: Object,
+  onOpen?: () => void,
+  onClose: () => void,
   shares: SharesStore,
   ui: UiStore,
   share: Share,
 };
 
+@observer
 class ShareMenu extends React.Component<Props> {
-  handleGoToDocument = (ev: SyntheticEvent<*>) => {
+  @observable redirectTo: ?string;
+
+  componentDidUpdate() {
+    this.redirectTo = undefined;
+  }
+
+  handleGoToDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    this.props.history.push(this.props.share.documentUrl);
+    this.redirectTo = this.props.share.documentUrl;
   };
 
-  handleRevoke = (ev: SyntheticEvent<*>) => {
+  handleRevoke = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.props.shares.revoke(this.props.share);
-    this.props.ui.showToast('Share link revoked', 'success');
+    this.props.ui.showToast('Share link revoked');
   };
 
   handleCopy = () => {
-    this.props.ui.showToast('Share link copied', 'success');
+    this.props.ui.showToast('Share link copied');
   };
 
   render() {
-    const { share, label, onOpen, onClose } = this.props;
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
+    const { share, onOpen, onClose } = this.props;
 
     return (
       <DropdownMenu
-        label={label || <MoreIcon />}
+        label={
+          <NudeButton>
+            <MoreIcon />
+          </NudeButton>
+        }
         onOpen={onOpen}
         onClose={onClose}
       >
@@ -61,4 +73,4 @@ class ShareMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('shares', 'ui')(ShareMenu));
+export default inject('shares', 'ui')(ShareMenu);

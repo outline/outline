@@ -1,7 +1,6 @@
 /* eslint-disable */
 const path = require('path');
 const webpack = require('webpack');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 require('dotenv').config({ silent: true });
 
@@ -17,7 +16,8 @@ const definePlugin = new webpack.DefinePlugin({
   'process.env': {
     URL: JSON.stringify(process.env.URL),
     SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
-    SUBDOMAINS_ENABLED: JSON.stringify(process.env.SUBDOMAINS_ENABLED === 'true')
+    SUBDOMAINS_ENABLED: JSON.stringify(process.env.SUBDOMAINS_ENABLED === 'true'),
+    WEBSOCKETS_ENABLED: JSON.stringify(process.env.WEBSOCKETS_ENABLED === 'true')
   }
 });
 
@@ -49,13 +49,6 @@ module.exports = {
       {
         test: /\.woff$/,
         loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]',
-      },
-      {
-        test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: 'css-loader'
-        }),
       },
       { test: /\.md/, loader: 'raw-loader' },
     ]
