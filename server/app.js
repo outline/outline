@@ -122,6 +122,11 @@ app.use(
       styleSrc: ["'self'", "'unsafe-inline'", 'github.githubassets.com'],
       imgSrc: ['*', 'data:', 'blob:'],
       frameSrc: ['*'],
+      connectSrc: [
+        "'self'",
+        process.env.AWS_S3_UPLOAD_BUCKET_URL,
+        'www.google-analytics.com',
+      ],
     },
   })
 );
