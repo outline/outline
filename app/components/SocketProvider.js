@@ -36,27 +36,25 @@ class SocketProvider extends React.Component<Props> {
       this.socket.emit('authentication', {
         token: auth.token,
       });
+
       this.socket.on('unauthorized', err => {
         ui.showToast(err.message);
         throw err;
       });
-      this.socket.on('entities', event => {
-        if (event.documents) {
-          event.documents.forEach(doc => {
-            if (doc.deletedAt) {
-              documents.remove(doc.id);
-            } else {
-              documents.add(doc);
-            }
+
+      this.socket.on('entities', async event => {
+        if (event.documentIds) {
+          for (const documentId of event.documentIds) {
+            const document = await documents.fetch(documentId);
 
             // TODO: Move this to the document scene once data loading
             // has been refactored to be friendlier there.
             if (
               auth.user &&
-              doc.id === ui.activeDocumentId &&
-              doc.updatedBy.id !== auth.user.id
+              documentId === ui.activeDocumentId &&
+              document.updatedBy.id !== auth.user.id
             ) {
-              ui.showToast(`Document updated by ${doc.updatedBy.name}`, {
+              ui.showToast(`Document updated by ${document.updatedBy.name}`, {
                 timeout: 30 * 1000,
                 action: {
                   text: 'Refresh',
@@ -64,18 +62,21 @@ class SocketProvider extends React.Component<Props> {
                 },
               });
             }
-          });
+          }
         }
 
-        if (event.collections) {
-          event.collections.forEach(collection => {
-            if (collection.deletedAt) {
-              collections.remove(collection.id);
-              documents.removeCollectionDocuments(collection.id);
-            } else {
-              collections.add(collection);
+        if (event.collectionIds) {
+          for (const collectionId of event.collectionIds) {
+            try {
+              await collections.fetch(collectionId, { force: true });
+            } catch (err) {
+              if (err.statusCode === 404 || err.statusCode === 403) {
+                collections.remove(collectionId);
+                documents.removeCollectionDocuments(collectionId);
+                memberships.removeCollectionMemberships(collectionId);
+              }
             }
-          });
+          }
         }
       });
 
@@ -85,16 +86,6 @@ class SocketProvider extends React.Component<Props> {
 
       this.socket.on('documents.unstar', event => {
         documents.starredIds.set(event.documentId, false);
-      });
-
-      this.socket.on('collections.update', event => {
-        const previous = collections.get(event.collectionId);
-        const previousPrivate = previous ? previous.private : undefined;
-
-        if (previousPrivate !== event.private) {
-          collections.fetch(event.collectionId, { force: true });
-          memberships.removeCollectionMemberships(event.collectionId);
-        }
       });
 
       this.socket.on('collections.add_user', event => {

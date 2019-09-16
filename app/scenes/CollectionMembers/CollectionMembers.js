@@ -68,6 +68,8 @@ class CollectionMembers extends React.Component<Props> {
     const { user } = auth;
     if (!user) return null;
 
+    const key = memberships.orderedData.map(m => m.permission).join('-');
+
     return (
       <Flex column>
         {collection.private ? (
@@ -104,7 +106,7 @@ class CollectionMembers extends React.Component<Props> {
 
         <Subheading>Members</Subheading>
         <PaginatedList
-          key={collection.private.toString()}
+          key={key}
           items={
             collection.private
               ? users.inCollection(collection.id)

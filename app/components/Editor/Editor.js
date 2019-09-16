@@ -91,7 +91,6 @@ class Editor extends React.Component<Props> {
           onShowToast={this.onShowToast}
           getLinkComponent={this.getLinkComponent}
           tooltip={EditorTooltip}
-          headingsOffset={1}
           {...this.props}
         />
       </React.Fragment>

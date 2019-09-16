@@ -147,7 +147,7 @@ export default class BaseStore<T: BaseModel> {
       return this.add(res.data);
     } catch (err) {
       if (err.statusCode === 403) {
-        return this.remove(id);
+        this.remove(id);
       }
       throw err;
     } finally {
