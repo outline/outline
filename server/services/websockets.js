@@ -111,22 +111,59 @@ export default class Websockets {
         });
         const collections = [await presentCollection(collection)];
 
-        return socketio.to(`collection-${collection.id}`).emit('entities', {
+        socketio.to(`team-${collection.teamId}`).emit(event.name, {
           event: event.name,
-          collections,
+          collectionId: event.collectionId,
+          privacy: collection.privacy,
         });
+
+        return socketio
+          .to(
+            collection.private
+              ? `collection-${collection.id}`
+              : `team-${collection.teamId}`
+          )
+          .emit('entities', {
+            event: event.name,
+            collections,
+          });
       }
-      case 'collections.add_user':
+      case 'collections.add_user': {
+        // the user being added isn't yet in the websocket channel for the collection
+        // so they need to be notified separately
+        socketio.to(`user-${event.userId}`).emit(event.name, {
+          event: event.name,
+          userId: event.userId,
+          collectionId: event.collectionId,
+        });
+
+        // let everyone with access to the collection know a user was added
+        socketio.to(`collection-${event.collectionId}`).emit(event.name, {
+          event: event.name,
+          userId: event.userId,
+          collectionId: event.collectionId,
+        });
+
+        // tell any user clients to connect to the websocket channel for the collection
         return socketio.to(`user-${event.userId}`).emit('join', {
           event: event.name,
           roomId: event.collectionId,
         });
-      case 'collections.remove_user':
+      }
+      case 'collections.remove_user': {
+        // let everyone with access to the collection know a user was removed
+        socketio.to(`collection-${event.collectionId}`).emit(event.name, {
+          event: event.name,
+          userId: event.userId,
+          collectionId: event.collectionId,
+        });
+
+        // tell any user clients to disconnect from the websocket channel for the collection
         return socketio.to(`user-${event.userId}`).emit('leave', {
           event: event.name,
           roomId: event.collectionId,
         });
-
+      }
       default:
     }
   }

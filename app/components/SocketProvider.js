@@ -66,32 +66,51 @@ class SocketProvider extends React.Component<Props> {
             }
           });
         }
+
         if (event.collections) {
           event.collections.forEach(collection => {
-            const previous = collections.get(collection.id);
-            const previousPrivate = previous ? previous.private : undefined;
-
             if (collection.deletedAt) {
               collections.remove(collection.id);
               documents.removeCollectionDocuments(collection.id);
             } else {
               collections.add(collection);
             }
-
-            // If the collection changed privacy then we need to reload associated
-            // memberships and policies to reflect any new permissions
-            if (previous && previousPrivate !== collection.private) {
-              collections.fetch(collection.id, { force: true });
-              memberships.removeCollectionMemberships(collection.id);
-            }
           });
         }
       });
+
       this.socket.on('documents.star', event => {
         documents.starredIds.set(event.documentId, true);
       });
+
       this.socket.on('documents.unstar', event => {
         documents.starredIds.set(event.documentId, false);
+      });
+
+      this.socket.on('collections.update', event => {
+        const previous = collections.get(event.collectionId);
+        const previousPrivate = previous ? previous.private : undefined;
+
+        if (previousPrivate !== event.private) {
+          collections.fetch(event.collectionId, { force: true });
+          memberships.removeCollectionMemberships(event.collectionId);
+        }
+      });
+
+      this.socket.on('collections.add_user', event => {
+        if (auth.user && event.userId === auth.user.id) {
+          collections.fetch(event.collectionId, { force: true });
+        }
+      });
+
+      this.socket.on('collections.remove_user', event => {
+        if (auth.user && event.userId === auth.user.id) {
+          collections.remove(event.collectionId);
+          memberships.removeCollectionMemberships(event.collectionId);
+          documents.removeCollectionDocuments(event.collectionId);
+        } else {
+          memberships.remove(`${event.userId}-${event.collectionId}`);
+        }
       });
 
       // received a message from the API server that we should request
