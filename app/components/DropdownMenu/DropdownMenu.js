@@ -33,12 +33,7 @@ class DropdownMenu extends React.Component<Props> {
   @observable position: 'left' | 'right' | 'center';
   @observable bodyRect: ClientRect;
   @observable labelRect: ClientRect;
-  @observable dropdownRef: { current: null | HTMLElement };
-
-  constructor(props: Props) {
-    super(props);
-    this.dropdownRef = React.createRef();
-  }
+  @observable dropdownRef: { current: null | HTMLElement } = React.createRef();
 
   handleOpen = (
     openPortal: (SyntheticEvent<>) => void,
@@ -91,10 +86,10 @@ class DropdownMenu extends React.Component<Props> {
     const el = this.dropdownRef.current;
 
     const sticksOutPastBottomEdge =
-      el.scrollHeight + this.top > window.innerHeight;
+      el.clientHeight + this.top > window.innerHeight;
     if (sticksOutPastBottomEdge) {
       this.top = undefined;
-      this.bottom = 0;
+      this.bottom = -1 * window.pageYOffset;
     } else {
       this.bottom = undefined;
     }
@@ -179,7 +174,7 @@ const Label = styled(Flex).attrs({
 `;
 
 const Position = styled.div`
-  position: fixed;
+  position: absolute;
   display: flex;
   ${({ left }) => (left !== undefined ? `left: ${left}px` : '')};
   ${({ right }) => (right !== undefined ? `right: ${right}px` : '')};
@@ -187,7 +182,6 @@ const Position = styled.div`
   ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : '')};
   max-height: 75%;
   z-index: 1000;
-  box-shadow: ${props => props.theme.menuShadow};
   transform: ${props =>
     props.position === 'center' ? 'translateX(-50%)' : 'initial'};
 `;
@@ -201,6 +195,7 @@ const Menu = styled.div`
   min-width: 180px;
   overflow: hidden;
   overflow-y: auto;
+  box-shadow: ${props => props.theme.menuShadow};
 
   @media print {
     display: none;
