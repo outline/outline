@@ -75,18 +75,15 @@ if (process.env.NODE_ENV === 'development') {
 
   app.use(mount('/emails', emails));
 } else if (process.env.NODE_ENV === 'production') {
-  // Force HTTPS on all pages
-  if (
-    process.env.FORCE_HTTPS === undefined ||
-    process.env.FORCE_HTTPS !== 'false'
-  ) {
+  // Force redirect to HTTPS protocol unless explicitly disabled
+  if (process.env.FORCE_HTTPS !== 'false') {
     app.use(
       enforceHttps({
         trustProtoHeader: true,
       })
     );
   } else {
-    console.warn('Disabled FORCE_HTTPS');
+    console.warn('Enforced https was disabled with FORCE_HTTPS env variable');
   }
 
   // trust header fields set by our proxy. eg X-Forwarded-For
