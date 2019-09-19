@@ -77,16 +77,16 @@ if (process.env.NODE_ENV === 'development') {
 } else if (process.env.NODE_ENV === 'production') {
   // Force HTTPS on all pages
   if (
-    process.env.FORCE_HTTPS === undefined || 
+    process.env.FORCE_HTTPS === undefined ||
     process.env.FORCE_HTTPS !== 'false'
   ) {
     app.use(
       enforceHttps({
         trustProtoHeader: true,
       })
-    )
+    );
   } else {
-    console.warn('Disabled FORCE_HTTPS')
+    console.warn('Disabled FORCE_HTTPS');
   }
 
   // trust header fields set by our proxy. eg X-Forwarded-For
