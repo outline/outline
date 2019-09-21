@@ -8,7 +8,9 @@ import type { Toast } from '../types';
 
 class UiStore {
   @observable
-  theme: 'light' | 'dark' = window.localStorage.getItem('theme') || 'light';
+  theme: 'light' | 'dark' = (window.localStorage &&
+    window.localStorage.getItem('theme')) ||
+    'light';
   @observable activeModalName: ?string;
   @observable activeModalProps: ?Object;
   @observable activeDocumentId: ?string;
@@ -21,7 +23,10 @@ class UiStore {
   @action
   toggleDarkMode = () => {
     this.theme = this.theme === 'dark' ? 'light' : 'dark';
-    window.localStorage.setItem('theme', this.theme);
+
+    if (window.localStorage) {
+      window.localStorage.setItem('theme', this.theme);
+    }
   };
 
   @action
