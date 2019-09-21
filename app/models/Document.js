@@ -44,7 +44,13 @@ export default class Document extends BaseModel {
 
   @action
   updateTitle() {
-    set(this, parseTitle(this.text));
+    const { title, emoji } = parseTitle(this.text);
+    if (!title) return;
+
+    set(this, {
+      title,
+      emoji,
+    });
   }
 
   @computed
