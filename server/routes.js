@@ -70,7 +70,9 @@ router.get('/privacy', ctx => renderpage(ctx, <Privacy />));
 router.get('/integrations/:slug', async ctx => {
   const slug = ctx.params.slug;
   const integration = find(integrations, i => i.slug === slug);
-  if (!integration) throw new Error('Not found');
+  if (!integration) {
+    return ctx.redirect(`${process.env.URL}/integrations`);
+  }
 
   const content = await fs.readFile(
     path.resolve(__dirname, `pages/integrations/${slug}.md`)
