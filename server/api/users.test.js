@@ -107,7 +107,7 @@ describe('#users.update', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
+    expect(body.data.name).toEqual('New name');
   });
 
   it('should require authentication', async () => {
