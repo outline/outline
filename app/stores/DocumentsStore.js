@@ -313,7 +313,10 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     try {
       const doc: ?Document = this.data.get(id) || this.getByUrl(id);
-      if (doc) return doc;
+      const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
+      if (doc && policy) {
+        return doc;
+      }
 
       const res = await client.post('/documents.info', {
         id,

@@ -93,6 +93,16 @@ class DocumentScene extends React.Component<Props> {
     this.loadEditor();
   }
 
+  componentDidUpdate() {
+    if (this.document) {
+      const policy = this.props.policies.get(this.document.id);
+
+      if (!policy) {
+        this.loadDocument(this.props);
+      }
+    }
+  }
+
   componentWillUnmount() {
     clearTimeout(this.viewTimeout);
   }
@@ -344,6 +354,9 @@ class DocumentScene extends React.Component<Props> {
     }
 
     const embedsDisabled = team && !team.documentEmbeds;
+
+    // this line is only here to make MobX understand that policies are a dependency of this component
+    this.props.policies.abilities(document.id);
 
     return (
       <ErrorBoundary>

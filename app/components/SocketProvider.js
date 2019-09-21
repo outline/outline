@@ -5,6 +5,7 @@ import io from 'socket.io-client';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import MembershipsStore from 'stores/MembershipsStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
 
@@ -15,6 +16,7 @@ type Props = {
   documents: DocumentsStore,
   collections: CollectionsStore,
   memberships: MembershipsStore,
+  policies: PoliciesStore,
   auth: AuthStore,
   ui: UiStore,
 };
@@ -29,7 +31,14 @@ class SocketProvider extends React.Component<Props> {
       path: '/realtime',
     });
 
-    const { auth, ui, documents, collections, memberships } = this.props;
+    const {
+      auth,
+      ui,
+      documents,
+      collections,
+      memberships,
+      policies,
+    } = this.props;
     if (!auth.token) return;
 
     this.socket.on('connect', () => {
@@ -92,6 +101,11 @@ class SocketProvider extends React.Component<Props> {
         if (auth.user && event.userId === auth.user.id) {
           collections.fetch(event.collectionId, { force: true });
         }
+
+        // Document policies might need updating as the permission changes
+        documents.inCollection(event.collectionId).forEach(document => {
+          policies.remove(document.id);
+        });
       });
 
       this.socket.on('collections.remove_user', event => {
@@ -127,6 +141,11 @@ class SocketProvider extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'ui', 'documents', 'collections', 'memberships')(
-  SocketProvider
-);
+export default inject(
+  'auth',
+  'ui',
+  'documents',
+  'collections',
+  'memberships',
+  'policies'
+)(SocketProvider);
