@@ -69,7 +69,7 @@ router.post('hooks.interactive', async ctx => {
   if (!team) {
     ctx.body = {
       text:
-        'Sorry, we couldn’t find an integration for your team. Head to yout Outline settings to set one up.',
+        'Sorry, we couldn’t find an integration for your team. Head to your Outline settings to set one up.',
       response_type: 'ephemeral',
       replace_original: false,
     };
@@ -128,7 +128,7 @@ router.post('hooks.slack', async ctx => {
     ctx.body = {
       response_type: 'ephemeral',
       text:
-        'Sorry, we couldn’t find an integration for your team. Head to yout Outline settings to set one up.',
+        'Sorry, we couldn’t find an integration for your team. Head to your Outline settings to set one up.',
     };
     return;
   }
