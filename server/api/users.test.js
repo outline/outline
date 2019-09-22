@@ -12,7 +12,7 @@ afterAll(server.close);
 
 describe('#users.list', async () => {
   it('should return teams paginated user list', async () => {
-    const { admin } = await seed();
+    const { admin, user } = await seed();
 
     const res = await server.post('/api/users.list', {
       body: { token: admin.getJwtToken() },
@@ -20,18 +20,24 @@ describe('#users.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
+    expect(body.data.length).toEqual(2);
+    expect(body.data[0].id).toEqual(user.id);
+    expect(body.data[1].id).toEqual(admin.id);
   });
 
   it('should require admin for detailed info', async () => {
-    const { user } = await seed();
+    const { user, admin } = await seed();
     const res = await server.post('/api/users.list', {
       body: { token: user.getJwtToken() },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
+    expect(body.data.length).toEqual(2);
+    expect(body.data[0].email).toEqual(undefined);
+    expect(body.data[1].email).toEqual(undefined);
+    expect(body.data[0].id).toEqual(user.id);
+    expect(body.data[1].id).toEqual(admin.id);
   });
 });
 
