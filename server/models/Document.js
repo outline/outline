@@ -17,7 +17,7 @@ import Revision from './Revision';
 const Op = Sequelize.Op;
 const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
-const DEFAULT_TITLE = 'Untitled document';
+const DEFAULT_TITLE = 'Untitled';
 
 slug.defaults.mode = 'rfc3986';
 const slugify = text =>
