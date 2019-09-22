@@ -214,14 +214,14 @@ type SearchResult = {
   document: Document,
 };
 
-type SearchOptions = {|
+type SearchOptions = {
   limit?: number,
   offset?: number,
   collectionId?: string,
   dateFilter?: 'day' | 'week' | 'month' | 'year',
   collaboratorIds?: string[],
   includeArchived?: boolean,
-|};
+};
 
 Document.searchForTeam = async (
   team,
