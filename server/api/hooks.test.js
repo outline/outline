@@ -3,7 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '../app';
 import { Authentication } from '../models';
 import { flushdb, seed } from '../test/support';
-import { buildDocument, buildUser } from '../test/factories';
+import { buildDocument } from '../test/factories';
 import * as Slack from '../slack';
 
 const server = new TestServer(app.callback());
