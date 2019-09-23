@@ -7,8 +7,8 @@ import Starred from 'scenes/Starred';
 import Drafts from 'scenes/Drafts';
 import Archive from 'scenes/Archive';
 import Collection from 'scenes/Collection';
-import Document from 'scenes/Document';
 import KeyedDocument from 'scenes/Document/KeyedDocument';
+import DocumentNew from 'scenes/DocumentNew';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import Details from 'scenes/Settings/Details';
@@ -30,7 +30,6 @@ import RouteSidebarHidden from 'components/RouteSidebarHidden';
 import { matchDocumentSlug as slug } from 'utils/routeHelpers';
 
 const NotFound = () => <Search notFound />;
-const NewDocument = () => <Document newDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
@@ -77,7 +76,7 @@ export default function Routes() {
               <RouteSidebarHidden
                 exact
                 path="/collections/:id/new"
-                component={NewDocument}
+                component={DocumentNew}
               />
               <Route
                 exact

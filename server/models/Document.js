@@ -17,7 +17,7 @@ import Revision from './Revision';
 const Op = Sequelize.Op;
 const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
-const DEFAULT_TITLE = 'Untitled document';
+const DEFAULT_TITLE = 'Untitled';
 
 slug.defaults.mode = 'rfc3986';
 const slugify = text =>
@@ -55,10 +55,9 @@ const beforeSave = async doc => {
   // emoji in the title is split out for easier display
   doc.emoji = emoji;
 
-  // ensure document has a title
+  // ensure documents have a title
   if (!title) {
     doc.title = DEFAULT_TITLE;
-    doc.text = doc.text.replace(/^.*$/m, `# ${DEFAULT_TITLE}`);
   }
 
   // add the current user as a collaborator on this doc

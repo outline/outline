@@ -62,7 +62,6 @@ type Props = {
   location: Location,
   documents: DocumentsStore,
   revisions: RevisionsStore,
-  newDocument?: boolean,
   auth: AuthStore,
   ui: UiStore,
 };
@@ -75,7 +74,6 @@ class DocumentScene extends React.Component<Props> {
   @observable editorComponent = EditorImport;
   @observable document: ?Document;
   @observable revision: ?Revision;
-  @observable newDocument: ?Document;
   @observable isUploading: boolean = false;
   @observable isSaving: boolean = false;
   @observable isPublishing: boolean = false;
@@ -138,67 +136,50 @@ class DocumentScene extends React.Component<Props> {
   }
 
   loadDocument = async props => {
-    if (props.newDocument) {
-      this.document = new Document(
-        {
-          collectionId: props.match.params.id,
-          parentDocumentId: new URLSearchParams(props.location.search).get(
-            'parentDocumentId'
-          ),
-          title: '',
-          text: '',
-        },
-        props.documents
+    const { shareId, revisionId } = props.match.params;
+
+    try {
+      this.document = await props.documents.fetch(
+        props.match.params.documentSlug,
+        { shareId }
       );
-    } else {
-      const { shareId, revisionId } = props.match.params;
 
-      try {
-        this.document = await props.documents.fetch(
+      if (revisionId) {
+        this.revision = await props.revisions.fetch(
           props.match.params.documentSlug,
-          { shareId }
+          { revisionId }
         );
+      } else {
+        this.revision = undefined;
+      }
+    } catch (err) {
+      this.error = err;
+      return;
+    }
 
-        if (revisionId) {
-          this.revision = await props.revisions.fetch(
-            props.match.params.documentSlug,
-            { revisionId }
-          );
-        } else {
-          this.revision = undefined;
-        }
-      } catch (err) {
-        this.error = err;
-        return;
+    this.isDirty = false;
+    this.isEmpty = false;
+
+    const document = this.document;
+
+    if (document) {
+      this.props.ui.setActiveDocument(document);
+
+      if (document.isArchived && this.isEditing) {
+        return this.goToDocumentCanonical();
       }
 
-      this.isDirty = false;
-      this.isEmpty = false;
-
-      const document = this.document;
-
-      if (document) {
-        this.props.ui.setActiveDocument(document);
-
-        if (document.isArchived && this.isEditing) {
-          return this.goToDocumentCanonical();
+      if (this.props.auth.user && !shareId) {
+        if (!this.isEditing && document.publishedAt) {
+          this.viewTimeout = setTimeout(document.view, MARK_AS_VIEWED_AFTER);
         }
 
-        if (this.props.auth.user && !shareId) {
-          if (!this.isEditing && document.publishedAt) {
-            this.viewTimeout = setTimeout(document.view, MARK_AS_VIEWED_AFTER);
-          }
-
-          const isMove = props.location.pathname.match(/move$/);
-          const canRedirect = !this.revision && !isMove;
-          if (canRedirect) {
-            const canonicalUrl = updateDocumentUrl(
-              props.match.url,
-              document.url
-            );
-            if (props.location.pathname !== canonicalUrl) {
-              props.history.replace(canonicalUrl);
-            }
+        const isMove = props.location.pathname.match(/move$/);
+        const canRedirect = !this.revision && !isMove;
+        if (canRedirect) {
+          const canonicalUrl = updateDocumentUrl(props.match.url, document.url);
+          if (props.location.pathname !== canonicalUrl) {
+            props.history.replace(canonicalUrl);
           }
         }
       }
@@ -327,7 +308,7 @@ class DocumentScene extends React.Component<Props> {
             title={location.state ? location.state.title : 'Untitled'}
           />
           <CenteredContent>
-            <LoadingState />
+            <LoadingPlaceholder />
           </CenteredContent>
         </Container>
       );
@@ -444,10 +425,6 @@ const MaxWidth = styled(Flex)`
 const Container = styled(Flex)`
   position: relative;
   margin-top: ${props => (props.isShare ? '50px' : '0')};
-`;
-
-const LoadingState = styled(LoadingPlaceholder)`
-  margin: 40px 0;
 `;
 
 export default withRouter(
