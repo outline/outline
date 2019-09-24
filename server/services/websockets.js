@@ -1,7 +1,6 @@
 // @flow
 import type { Event } from '../events';
 import { Document, Collection } from '../models';
-import { presentDocument, presentCollection } from '../presenters';
 import { socketio } from '../';
 
 export default class Websockets {
@@ -20,26 +19,22 @@ export default class Websockets {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
         });
-        const documents = [await presentDocument(document)];
-        const collections = [await presentCollection(document.collection)];
 
         return socketio
           .to(`collection-${document.collectionId}`)
           .emit('entities', {
             event: event.name,
-            documents,
-            collections,
+            documentIds: [event.documentId],
+            collectionIds: [document.collectionId],
           });
       }
       case 'documents.create': {
         const document = await Document.findByPk(event.documentId);
-        const documents = [await presentDocument(document)];
-        const collections = [await presentCollection(document.collection)];
 
         return socketio.to(`user-${event.actorId}`).emit('entities', {
           event: event.name,
-          documents,
-          collections,
+          documentIds: [event.documentId],
+          collectionIds: [document.collectionId],
         });
       }
       case 'documents.star':
@@ -55,24 +50,16 @@ export default class Websockets {
           },
           paranoid: false,
         });
-        const collections = await Collection.findAll({
-          where: {
-            id: event.data.collectionIds,
-          },
-          paranoid: false,
-        });
-        documents.forEach(async document => {
-          const documents = [await presentDocument(document)];
+        documents.forEach(document => {
           socketio.to(`collection-${document.collectionId}`).emit('entities', {
             event: event.name,
-            documents,
+            documentIds: [document.id],
           });
         });
-        collections.forEach(async collection => {
-          const collections = [await presentCollection(collection)];
-          socketio.to(`collection-${collection.id}`).emit('entities', {
+        event.data.collectionIds.forEach(collectionId => {
+          socketio.to(`collection-${collectionId}`).emit('entities', {
             event: event.name,
-            collections,
+            collectionIds: [collectionId],
           });
         });
         return;
@@ -81,7 +68,6 @@ export default class Websockets {
         const collection = await Collection.findByPk(event.collectionId, {
           paranoid: false,
         });
-        const collections = [await presentCollection(collection)];
 
         socketio
           .to(
@@ -91,7 +77,7 @@ export default class Websockets {
           )
           .emit('entities', {
             event: event.name,
-            collections,
+            collectionIds: [event.collectionId],
           });
         return socketio
           .to(
@@ -109,24 +95,48 @@ export default class Websockets {
         const collection = await Collection.findByPk(event.collectionId, {
           paranoid: false,
         });
-        const collections = [await presentCollection(collection)];
 
-        return socketio.to(`collection-${collection.id}`).emit('entities', {
+        return socketio.to(`team-${collection.teamId}`).emit('entities', {
           event: event.name,
-          collections,
+          collectionIds: [event.collectionId],
         });
       }
-      case 'collections.add_user':
+      case 'collections.add_user': {
+        // the user being added isn't yet in the websocket channel for the collection
+        // so they need to be notified separately
+        socketio.to(`user-${event.userId}`).emit(event.name, {
+          event: event.name,
+          userId: event.userId,
+          collectionId: event.collectionId,
+        });
+
+        // let everyone with access to the collection know a user was added
+        socketio.to(`collection-${event.collectionId}`).emit(event.name, {
+          event: event.name,
+          userId: event.userId,
+          collectionId: event.collectionId,
+        });
+
+        // tell any user clients to connect to the websocket channel for the collection
         return socketio.to(`user-${event.userId}`).emit('join', {
           event: event.name,
           roomId: event.collectionId,
         });
-      case 'collections.remove_user':
+      }
+      case 'collections.remove_user': {
+        // let everyone with access to the collection know a user was removed
+        socketio.to(`collection-${event.collectionId}`).emit(event.name, {
+          event: event.name,
+          userId: event.userId,
+          collectionId: event.collectionId,
+        });
+
+        // tell any user clients to disconnect from the websocket channel for the collection
         return socketio.to(`user-${event.userId}`).emit('leave', {
           event: event.name,
           roomId: event.collectionId,
         });
-
+      }
       default:
     }
   }

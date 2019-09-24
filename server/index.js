@@ -53,7 +53,9 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
       // allow the client to request to join rooms based on
       // new collections being created.
       socket.on('join', async event => {
-        const collection = await Collection.findByPk(event.roomId);
+        const collection = await Collection.scope({
+          method: ['withMembership', user.id],
+        }).findByPk(event.roomId);
 
         if (can(user, 'read', collection)) {
           socket.join(`collection-${event.roomId}`);

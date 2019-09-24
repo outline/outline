@@ -49,5 +49,5 @@ const Container = styled.div`
 
   border-radius: 3px;
   box-shadow: ${props =>
-    props.isSelected ? `0 0 0 2px ${props.theme.primary}` : 'none'};
+    props.isSelected ? `0 0 0 2px ${props.theme.selected}` : 'none'};
 `;

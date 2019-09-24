@@ -50,10 +50,25 @@ class CollectionMembers extends React.Component<Props> {
     }
   };
 
+  handleUpdateUser = (user, permission) => {
+    try {
+      this.props.memberships.create({
+        collectionId: this.props.collection.id,
+        userId: user.id,
+        permission,
+      });
+      this.props.ui.showToast(`${user.name} permissions were updated`);
+    } catch (err) {
+      this.props.ui.showToast('Could not update user');
+    }
+  };
+
   render() {
     const { collection, users, memberships, auth } = this.props;
     const { user } = auth;
     if (!user) return null;
+
+    const key = memberships.orderedData.map(m => m.permission).join('-');
 
     return (
       <Flex column>
@@ -91,7 +106,7 @@ class CollectionMembers extends React.Component<Props> {
 
         <Subheading>Members</Subheading>
         <PaginatedList
-          key={collection.private}
+          key={key}
           items={
             collection.private
               ? users.inCollection(collection.id)
@@ -103,8 +118,10 @@ class CollectionMembers extends React.Component<Props> {
             <MemberListItem
               key={item.id}
               user={item}
+              membership={memberships.get(`${item.id}-${collection.id}`)}
               canEdit={collection.private && item.id !== user.id}
               onRemove={() => this.handleRemoveUser(item)}
+              onUpdate={permission => this.handleUpdateUser(item, permission)}
             />
           )}
         />

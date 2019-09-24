@@ -50,7 +50,7 @@ router.post('collections.create', auth(), async ctx => {
   });
 
   ctx.body = {
-    data: await presentCollection(collection),
+    data: presentCollection(collection),
     policies: presentPolicies(user, [collection]),
   };
 });
@@ -60,11 +60,13 @@ router.post('collections.info', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
   authorize(user, 'read', collection);
 
   ctx.body = {
-    data: await presentCollection(collection),
+    data: presentCollection(collection),
     policies: presentPolicies(user, [collection]),
   };
 });
@@ -74,7 +76,9 @@ router.post('collections.add_user', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', ctx.state.user.id],
+  }).findByPk(id);
   authorize(ctx.state.user, 'update', collection);
 
   const user = await User.findByPk(userId);
@@ -94,6 +98,9 @@ router.post('collections.add_user', auth(), async ctx => {
       permission,
       createdById: ctx.state.user.id,
     });
+  } else if (permission) {
+    membership.permission = permission;
+    await membership.save();
   }
 
   await Event.create({
@@ -114,14 +121,14 @@ router.post('collections.add_user', auth(), async ctx => {
   };
 });
 
-// TODO: update_user
-
 router.post('collections.remove_user', auth(), async ctx => {
   const { id, userId } = ctx.body;
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', ctx.state.user.id],
+  }).findByPk(id);
   authorize(ctx.state.user, 'update', collection);
 
   const user = await User.findByPk(userId);
@@ -149,8 +156,11 @@ router.post('collections.users', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findByPk(id);
-  authorize(ctx.state.user, 'read', collection);
+  const user = ctx.state.user;
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
+  authorize(user, 'read', collection);
 
   const users = await collection.getUsers();
 
@@ -163,8 +173,11 @@ router.post('collections.memberships', auth(), pagination(), async ctx => {
   const { id, query, permission } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findByPk(id);
-  authorize(ctx.state.user, 'read', collection);
+  const user = ctx.state.user;
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
+  authorize(user, 'read', collection);
 
   let where = {
     collectionId: id,
@@ -216,7 +229,9 @@ router.post('collections.export', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
   authorize(user, 'export', collection);
 
   const filePath = await archiveCollection(collection);
@@ -272,15 +287,20 @@ router.post('collections.exportAll', auth(), async ctx => {
 router.post('collections.update', auth(), async ctx => {
   const { id, name, description, color } = ctx.body;
   const isPrivate = ctx.body.private;
-
   ctx.assertPresent(name, 'name is required');
-  if (color)
+
+  if (color) {
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
+  }
 
   const user = ctx.state.user;
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
   authorize(user, 'update', collection);
 
+  // we're making this collection private right now, ensure that the current
+  // user has a read-write membership so that at least they can edit it
   if (isPrivate && !collection.private) {
     await CollectionUser.findOrCreate({
       where: {
@@ -293,6 +313,8 @@ router.post('collections.update', auth(), async ctx => {
       },
     });
   }
+
+  const isPrivacyChanged = isPrivate !== collection.private;
 
   collection.name = name;
   collection.description = description;
@@ -309,8 +331,15 @@ router.post('collections.update', auth(), async ctx => {
     ip: ctx.request.ip,
   });
 
-  // must reload to update collection.users
-  await collection.reload();
+  // must reload to update collection membership for correct policy calculation
+  // if the privacy level has changed. Otherwise skip this query for speed.
+  if (isPrivacyChanged) {
+    await collection.reload({
+      scope: {
+        method: ['withMembership', user.id],
+      },
+    });
+  }
 
   ctx.body = {
     data: presentCollection(collection),
@@ -320,9 +349,10 @@ router.post('collections.update', auth(), async ctx => {
 
 router.post('collections.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
-
   const collectionIds = await user.collectionIds();
-  let collections = await Collection.findAll({
+  let collections = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findAll({
     where: {
       teamId: user.teamId,
       id: collectionIds,
@@ -332,15 +362,10 @@ router.post('collections.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const data = await Promise.all(
-    collections.map(async collection => await presentCollection(collection))
-  );
-  const policies = presentPolicies(user, collections);
-
   ctx.body = {
     pagination: ctx.state.pagination,
-    data,
-    policies,
+    data: collections.map(presentCollection),
+    policies: presentPolicies(user, collections),
   };
 });
 
@@ -349,7 +374,9 @@ router.post('collections.delete', auth(), async ctx => {
   const user = ctx.state.user;
   ctx.assertUuid(id, 'id is required');
 
-  const collection = await Collection.findByPk(id);
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(id);
   authorize(user, 'delete', collection);
 
   const total = await Collection.count();

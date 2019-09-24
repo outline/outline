@@ -53,7 +53,9 @@ router.post('documents.list', auth(), pagination(), async ctx => {
     ctx.assertUuid(collectionId, 'collection must be a UUID');
 
     where = { ...where, collectionId };
-    const collection = await Collection.findByPk(collectionId);
+    const collection = await Collection.scope({
+      method: ['withMembership', user.id],
+    }).findByPk(collectionId);
     authorize(user, 'read', collection);
 
     // otherwise, filter by all collections the user has access to
@@ -78,7 +80,12 @@ router.post('documents.list', auth(), pagination(), async ctx => {
 
   // add the users starred state to the response by default
   const starredScope = { method: ['withStarred', user.id] };
-  const documents = await Document.scope('defaultScope', starredScope).findAll({
+  const collectionScope = { method: ['withCollection', user.id] };
+  const documents = await Document.scope(
+    'defaultScope',
+    starredScope,
+    collectionScope
+  ).findAll({
     where,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
@@ -99,18 +106,24 @@ router.post('documents.list', auth(), pagination(), async ctx => {
 });
 
 router.post('documents.pinned', auth(), pagination(), async ctx => {
-  const { sort = 'updatedAt' } = ctx.body;
-  const collectionId = ctx.body.collection;
+  const { collectionId, sort = 'updatedAt' } = ctx.body;
   let direction = ctx.body.direction;
   if (direction !== 'ASC') direction = 'DESC';
-  ctx.assertUuid(collectionId, 'collection is required');
+  ctx.assertUuid(collectionId, 'collectionId is required');
 
   const user = ctx.state.user;
-  const collection = await Collection.findByPk(collectionId);
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findByPk(collectionId);
   authorize(user, 'read', collection);
 
   const starredScope = { method: ['withStarred', user.id] };
-  const documents = await Document.scope('defaultScope', starredScope).findAll({
+  const collectionScope = { method: ['withCollection', user.id] };
+  const documents = await Document.scope(
+    'defaultScope',
+    starredScope,
+    collectionScope
+  ).findAll({
     where: {
       teamId: user.teamId,
       collectionId,
@@ -324,7 +337,10 @@ router.post('documents.info', auth({ required: false }), async ctx => {
     }
     document = share.document;
   } else {
-    document = await Document.findByPk(id);
+    document = await Document.findByPk(
+      id,
+      user ? { userId: user.id } : undefined
+    );
     authorize(user, 'read', document);
   }
 
@@ -341,8 +357,9 @@ router.post('documents.revision', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(revisionId, 'revisionId is required');
 
-  const document = await Document.findByPk(id);
-  authorize(ctx.state.user, 'read', document);
+  const user = ctx.state.user;
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'read', document);
 
   const revision = await Revision.findOne({
     where: {
@@ -361,9 +378,10 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   let { id, sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
   ctx.assertPresent(id, 'id is required');
-  const document = await Document.findByPk(id);
 
-  authorize(ctx.state.user, 'read', document);
+  const user = ctx.state.user;
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'read', document);
 
   const revisions = await Revision.findAll({
     where: { documentId: id },
@@ -383,7 +401,7 @@ router.post('documents.restore', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id);
+  const document = await Document.findByPk(id, { userId: user.id });
 
   if (document.archivedAt) {
     authorize(user, 'unarchive', document);
@@ -439,7 +457,9 @@ router.post('documents.search', auth(), pagination(), async ctx => {
   if (collectionId) {
     ctx.assertUuid(collectionId, 'collectionId must be a UUID');
 
-    const collection = await Collection.findByPk(collectionId);
+    const collection = await Collection.scope({
+      method: ['withMembership', user.id],
+    }).findByPk(collectionId);
     authorize(user, 'read', collection);
   }
 
@@ -486,9 +506,9 @@ router.post('documents.search', auth(), pagination(), async ctx => {
 router.post('documents.pin', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const user = ctx.state.user;
-  const document = await Document.findByPk(id);
 
+  const user = ctx.state.user;
+  const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, 'update', document);
 
   document.pinnedById = user.id;
@@ -513,9 +533,9 @@ router.post('documents.pin', auth(), async ctx => {
 router.post('documents.unpin', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const user = ctx.state.user;
-  const document = await Document.findByPk(id);
 
+  const user = ctx.state.user;
+  const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, 'update', document);
 
   document.pinnedById = null;
@@ -540,9 +560,9 @@ router.post('documents.unpin', auth(), async ctx => {
 router.post('documents.star', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const user = ctx.state.user;
-  const document = await Document.findByPk(id);
 
+  const user = ctx.state.user;
+  const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, 'read', document);
 
   await Star.findOrCreate({
@@ -563,9 +583,9 @@ router.post('documents.star', auth(), async ctx => {
 router.post('documents.unstar', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
-  const user = ctx.state.user;
-  const document = await Document.findByPk(id);
 
+  const user = ctx.state.user;
+  const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, 'read', document);
 
   await Star.destroy({
@@ -603,7 +623,9 @@ router.post('documents.create', auth(), async ctx => {
   const user = ctx.state.user;
   authorize(user, 'create', Document);
 
-  const collection = await Collection.findOne({
+  const collection = await Collection.scope({
+    method: ['withMembership', user.id],
+  }).findOne({
     where: {
       id: collectionId,
       teamId: user.teamId,
@@ -619,7 +641,7 @@ router.post('documents.create', auth(), async ctx => {
         collectionId: collection.id,
       },
     });
-    authorize(user, 'read', parentDocument);
+    authorize(user, 'read', parentDocument, { collection });
   }
 
   let document = await Document.create({
@@ -686,9 +708,8 @@ router.post('documents.update', auth(), async ctx => {
   if (append) ctx.assertPresent(text, 'Text is required while appending');
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id);
-
-  authorize(ctx.state.user, 'update', document);
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, 'update', document);
 
   if (lastRevision && lastRevision !== document.revisionCount) {
     throw new InvalidRequestError('Document has changed since last revision');
@@ -771,11 +792,9 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id);
+  const document = await Document.findByPk(id, { userId: user.id });
+  const { collection } = document;
   authorize(user, 'move', document);
-
-  const collection = await Collection.findByPk(collectionId);
-  authorize(user, 'update', collection);
 
   if (collection.type !== 'atlas' && parentDocumentId) {
     throw new InvalidRequestError(
@@ -784,7 +803,7 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   if (parentDocumentId) {
-    const parent = await Document.findByPk(parentDocumentId);
+    const parent = await Document.findByPk(parentDocumentId, user.id);
     authorize(user, 'update', parent);
   }
 
@@ -815,7 +834,7 @@ router.post('documents.archive', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id);
+  const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, 'archive', document);
 
   await document.archive(user.id);
@@ -841,7 +860,7 @@ router.post('documents.delete', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id);
+  const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, 'delete', document);
 
   await document.delete();

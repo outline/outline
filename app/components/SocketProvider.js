@@ -4,6 +4,8 @@ import { inject } from 'mobx-react';
 import io from 'socket.io-client';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
+import MembershipsStore from 'stores/MembershipsStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
 
@@ -13,6 +15,8 @@ type Props = {
   children: React.Node,
   documents: DocumentsStore,
   collections: CollectionsStore,
+  memberships: MembershipsStore,
+  policies: PoliciesStore,
   auth: AuthStore,
   ui: UiStore,
 };
@@ -27,34 +31,39 @@ class SocketProvider extends React.Component<Props> {
       path: '/realtime',
     });
 
-    const { auth, ui, documents, collections } = this.props;
+    const {
+      auth,
+      ui,
+      documents,
+      collections,
+      memberships,
+      policies,
+    } = this.props;
     if (!auth.token) return;
 
     this.socket.on('connect', () => {
       this.socket.emit('authentication', {
         token: auth.token,
       });
+
       this.socket.on('unauthorized', err => {
         ui.showToast(err.message);
         throw err;
       });
-      this.socket.on('entities', event => {
-        if (event.documents) {
-          event.documents.forEach(doc => {
-            if (doc.deletedAt) {
-              documents.remove(doc.id);
-            } else {
-              documents.add(doc);
-            }
+
+      this.socket.on('entities', async event => {
+        if (event.documentIds) {
+          for (const documentId of event.documentIds) {
+            const document = await documents.fetch(documentId);
 
             // TODO: Move this to the document scene once data loading
             // has been refactored to be friendlier there.
             if (
               auth.user &&
-              doc.id === ui.activeDocumentId &&
-              doc.updatedBy.id !== auth.user.id
+              documentId === ui.activeDocumentId &&
+              document.updatedBy.id !== auth.user.id
             ) {
-              ui.showToast(`Document updated by ${doc.updatedBy.name}`, {
+              ui.showToast(`Document updated by ${document.updatedBy.name}`, {
                 timeout: 30 * 1000,
                 action: {
                   text: 'Refresh',
@@ -62,24 +71,51 @@ class SocketProvider extends React.Component<Props> {
                 },
               });
             }
-          });
+          }
         }
-        if (event.collections) {
-          event.collections.forEach(collection => {
-            if (collection.deletedAt) {
-              collections.remove(collection.id);
-              documents.removeCollectionDocuments(collection.id);
-            } else {
-              collections.add(collection);
+
+        if (event.collectionIds) {
+          for (const collectionId of event.collectionIds) {
+            try {
+              await collections.fetch(collectionId, { force: true });
+            } catch (err) {
+              if (err.statusCode === 404 || err.statusCode === 403) {
+                collections.remove(collectionId);
+                documents.removeCollectionDocuments(collectionId);
+                memberships.removeCollectionMemberships(collectionId);
+              }
             }
-          });
+          }
         }
       });
+
       this.socket.on('documents.star', event => {
         documents.starredIds.set(event.documentId, true);
       });
+
       this.socket.on('documents.unstar', event => {
         documents.starredIds.set(event.documentId, false);
+      });
+
+      this.socket.on('collections.add_user', event => {
+        if (auth.user && event.userId === auth.user.id) {
+          collections.fetch(event.collectionId, { force: true });
+        }
+
+        // Document policies might need updating as the permission changes
+        documents.inCollection(event.collectionId).forEach(document => {
+          policies.remove(document.id);
+        });
+      });
+
+      this.socket.on('collections.remove_user', event => {
+        if (auth.user && event.userId === auth.user.id) {
+          collections.remove(event.collectionId);
+          memberships.removeCollectionMemberships(event.collectionId);
+          documents.removeCollectionDocuments(event.collectionId);
+        } else {
+          memberships.remove(`${event.userId}-${event.collectionId}`);
+        }
       });
 
       // received a message from the API server that we should request
@@ -105,4 +141,11 @@ class SocketProvider extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'ui', 'documents', 'collections')(SocketProvider);
+export default inject(
+  'auth',
+  'ui',
+  'documents',
+  'collections',
+  'memberships',
+  'policies'
+)(SocketProvider);

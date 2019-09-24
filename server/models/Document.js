@@ -155,25 +155,43 @@ Document.associate = models => {
   Document.hasMany(models.View, {
     as: 'views',
   });
-  Document.addScope(
-    'defaultScope',
-    {
-      include: [
-        { model: models.Collection, as: 'collection' },
-        { model: models.User, as: 'createdBy', paranoid: false },
-        { model: models.User, as: 'updatedBy', paranoid: false },
-      ],
-      where: {
-        publishedAt: {
-          [Op.ne]: null,
-        },
+  Document.addScope('defaultScope', {
+    include: [
+      { model: models.User, as: 'createdBy', paranoid: false },
+      { model: models.User, as: 'updatedBy', paranoid: false },
+    ],
+    where: {
+      publishedAt: {
+        [Op.ne]: null,
       },
     },
-    { override: true }
-  );
+  });
+  Document.addScope('withCollection', userId => {
+    if (userId) {
+      return {
+        include: [
+          {
+            model: models.Collection,
+            as: 'collection',
+            include: [
+              {
+                model: models.CollectionUser,
+                as: 'memberships',
+                where: { userId },
+                required: false,
+              },
+            ],
+          },
+        ],
+      };
+    }
+
+    return {
+      include: [{ model: models.Collection, as: 'collection' }],
+    };
+  });
   Document.addScope('withUnpublished', {
     include: [
-      { model: models.Collection, as: 'collection' },
       { model: models.User, as: 'createdBy', paranoid: false },
       { model: models.User, as: 'updatedBy', paranoid: false },
     ],
@@ -190,8 +208,12 @@ Document.associate = models => {
   }));
 };
 
-Document.findByPk = async (id, options) => {
-  const scope = Document.scope('withUnpublished');
+Document.findByPk = async function(id, options = {}) {
+  // allow default preloading of collection membership if `userId` is passed in find options
+  // almost every endpoint needs the collection membership to determine policy permissions.
+  const scope = this.scope('withUnpublished', {
+    method: ['withCollection', options.userId],
+  });
 
   if (isUUID(id)) {
     return scope.findOne({
@@ -281,14 +303,18 @@ Document.searchForUser = async (
   });
 
   // Final query to get associated document data
-  const documents = await Document.scope({
-    method: ['withViews', user.id],
-  }).findAll({
+  const documents = await Document.scope(
+    {
+      method: ['withViews', user.id],
+    },
+    {
+      method: ['withCollection', user.id],
+    }
+  ).findAll({
     where: {
       id: map(results, 'id'),
     },
     include: [
-      { model: Collection, as: 'collection' },
       { model: User, as: 'createdBy', paranoid: false },
       { model: User, as: 'updatedBy', paranoid: false },
     ],

@@ -17,6 +17,7 @@ import RichMarkdownEditor from 'rich-markdown-editor';
 import { newDocumentUrl, collectionUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import UiStore from 'stores/UiStore';
 import Collection from 'models/Collection';
 
@@ -45,6 +46,7 @@ type Props = {
   ui: UiStore,
   documents: DocumentsStore,
   collections: CollectionsStore,
+  policies: PoliciesStore,
   match: Object,
   theme: Object,
 };
@@ -79,7 +81,7 @@ class CollectionScene extends React.Component<Props> {
       this.collection = collection;
 
       await this.props.documents.fetchPinned({
-        collection: id,
+        collectionId: id,
       });
     }
 
@@ -112,21 +114,27 @@ class CollectionScene extends React.Component<Props> {
   };
 
   renderActions() {
+    const can = this.props.policies.abilities(this.props.match.params.id);
+
     return (
       <Actions align="center" justify="flex-end">
-        <Action>
-          <Tooltip
-            tooltip="New document"
-            shortcut="n"
-            delay={500}
-            placement="bottom"
-          >
-            <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
-              New doc
-            </Button>
-          </Tooltip>
-        </Action>
-        <Separator />
+        {can.update && (
+          <React.Fragment>
+            <Action>
+              <Tooltip
+                tooltip="New document"
+                shortcut="n"
+                delay={500}
+                placement="bottom"
+              >
+                <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
+                  New doc
+                </Button>
+              </Tooltip>
+            </Action>
+            <Separator />
+          </React.Fragment>
+        )}
         <Action>
           <CollectionMenu collection={this.collection} />
         </Action>
@@ -325,6 +333,6 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject('collections', 'documents', 'ui')(
+export default inject('collections', 'policies', 'documents', 'ui')(
   withTheme(CollectionScene)
 );

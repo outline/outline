@@ -90,7 +90,7 @@ class CollectionMenu extends React.Component<Props> {
 
   render() {
     const { policies, collection, position, onOpen, onClose } = this.props;
-    const can = policies.abilties(collection.id);
+    const can = policies.abilities(collection.id);
 
     return (
       <React.Fragment>
@@ -114,13 +114,17 @@ class CollectionMenu extends React.Component<Props> {
         <DropdownMenu onOpen={onOpen} onClose={onClose} position={position}>
           {collection && (
             <React.Fragment>
-              <DropdownMenuItem onClick={this.onNewDocument}>
-                New document
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={this.onImportDocument}>
-                Import document
-              </DropdownMenuItem>
-              {(can.update || can.export) && <hr />}
+              {can.update && (
+                <DropdownMenuItem onClick={this.onNewDocument}>
+                  New document
+                </DropdownMenuItem>
+              )}
+              {can.update && (
+                <DropdownMenuItem onClick={this.onImportDocument}>
+                  Import document
+                </DropdownMenuItem>
+              )}
+              {can.update && <hr />}
               {can.update && (
                 <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
               )}

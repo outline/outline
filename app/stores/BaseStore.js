@@ -145,6 +145,11 @@ export default class BaseStore<T: BaseModel> {
 
       this.addPolicies(res.policies);
       return this.add(res.data);
+    } catch (err) {
+      if (err.statusCode === 403) {
+        this.remove(id);
+      }
+      throw err;
     } finally {
       this.isFetching = false;
     }

@@ -55,6 +55,7 @@ class AddPeopleToCollection extends React.Component<Props> {
       this.props.memberships.create({
         collectionId: this.props.collection.id,
         userId: user.id,
+        permission: 'read_write',
       });
       this.props.ui.showToast(`${user.name} was added to the collection`);
     } catch (err) {
