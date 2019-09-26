@@ -56,24 +56,6 @@ if (process.env.NODE_ENV === 'production') {
 // static pages
 router.get('/developers', ctx => renderpage(ctx, <Developers />));
 router.get('/developers/api', ctx => renderpage(ctx, <Api />));
-router.get('/privacy', ctx => renderpage(ctx, <Privacy />));
-router.get('/integrations/:slug', async ctx => {
-  const slug = ctx.params.slug;
-  const integration = find(integrations, i => i.slug === slug);
-  if (!integration) {
-    return ctx.redirect(`${process.env.URL}/integrations`);
-  }
-
-  const content = await fs.readFile(
-    path.resolve(__dirname, `pages/integrations/${slug}.md`)
-  );
-
-  return renderpage(
-    ctx,
-    <Integration integration={integration} content={content} />
-  );
-});
-router.get('/integrations', ctx => renderpage(ctx, <Integrations />));
 router.get('/changelog', async ctx => {
   const data = await fetch(
     `https://api.github.com/repos/outline/outline/releases?access_token=${process
