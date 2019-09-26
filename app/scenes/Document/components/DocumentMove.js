@@ -26,12 +26,12 @@ type Props = {
   documents: DocumentsStore,
   collections: CollectionsStore,
   ui: UiStore,
-  onRequestClose: *,
+  onRequestClose: () => void,
 };
 
 @observer
 class DocumentMove extends React.Component<Props> {
-  firstDocument: *;
+  firstDocument: ?PathToDocument;
   @observable searchTerm: ?string;
   @observable isSaving: boolean;
 

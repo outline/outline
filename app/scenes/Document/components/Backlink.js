@@ -10,7 +10,6 @@ type Props = {
   document: Document,
   anchor: string,
   showCollection?: boolean,
-  ref?: *,
 };
 
 const DocumentLink = styled(Link)`

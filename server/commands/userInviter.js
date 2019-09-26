@@ -1,7 +1,6 @@
 // @flow
 import { uniqBy } from 'lodash';
-import { User, Team } from '../models';
-import events from '../events';
+import { User, Event, Team } from '../models';
 import mailer from '../mailer';
 
 type Invite = { name: string, email: string };
@@ -9,9 +8,11 @@ type Invite = { name: string, email: string };
 export default async function userInviter({
   user,
   invites,
+  ip,
 }: {
   user: User,
   invites: Invite[],
+  ip: string,
 }): Promise<{ sent: Invite[] }> {
   const team = await Team.findByPk(user.teamId);
 
@@ -35,23 +36,28 @@ export default async function userInviter({
   );
 
   // send and record invites
-  filteredInvites.forEach(async invite => {
-    await mailer.invite({
-      to: invite.email,
-      name: invite.name,
-      actorName: user.name,
-      actorEmail: user.email,
-      teamName: team.name,
-      teamUrl: team.url,
-    });
-
-    events.add({
-      name: 'users.invite',
-      actorId: user.id,
-      teamId: user.teamId,
-      email: invite.email,
-    });
-  });
+  await Promise.all(
+    filteredInvites.map(async invite => {
+      await Event.create({
+        name: 'users.invite',
+        actorId: user.id,
+        teamId: user.teamId,
+        data: {
+          email: invite.email,
+          name: invite.name,
+        },
+        ip,
+      });
+      await mailer.invite({
+        to: invite.email,
+        name: invite.name,
+        actorName: user.name,
+        actorEmail: user.email,
+        teamName: team.name,
+        teamUrl: team.url,
+      });
+    })
+  );
 
   return { sent: filteredInvites };
 }

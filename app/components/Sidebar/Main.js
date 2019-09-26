@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
+import styled from 'styled-components';
 import {
   ArchiveIcon,
   HomeIcon,
@@ -24,12 +25,14 @@ import Bubble from './components/Bubble';
 
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import UiStore from 'stores/UiStore';
 import { observable } from 'mobx';
 
 type Props = {
   auth: AuthStore,
   documents: DocumentsStore,
+  policies: PoliciesStore,
   ui: UiStore,
 };
 
@@ -54,11 +57,12 @@ class MainSidebar extends React.Component<Props> {
   };
 
   render() {
-    const { auth, documents } = this.props;
+    const { auth, documents, policies } = this.props;
     const { user, team } = auth;
     if (!user || !team) return null;
 
     const draftDocumentsCount = documents.drafts.length;
+    const can = policies.abilties(team.id);
 
     return (
       <Sidebar>
@@ -98,14 +102,14 @@ class MainSidebar extends React.Component<Props> {
               />
               <SidebarLink
                 to="/drafts"
-                icon={
-                  draftDocumentsCount > 0 && draftDocumentsCount < 10 ? (
-                    <Bubble count={draftDocumentsCount} />
-                  ) : (
-                    <EditIcon />
-                  )
+                icon={<EditIcon />}
+                label={
+                  <Drafts align="center">
+                    Drafts{draftDocumentsCount > 0 && (
+                      <Bubble count={draftDocumentsCount} />
+                    )}
+                  </Drafts>
                 }
-                label="Drafts"
                 active={
                   documents.active ? !documents.active.publishedAt : undefined
                 }
@@ -124,7 +128,7 @@ class MainSidebar extends React.Component<Props> {
                   documents.active ? documents.active.isArchived : undefined
                 }
               />
-              {user.isAdmin && (
+              {can.invite && (
                 <SidebarLink
                   onClick={this.handleInviteModalOpen}
                   icon={<PlusIcon />}
@@ -146,4 +150,8 @@ class MainSidebar extends React.Component<Props> {
   }
 }
 
-export default inject('documents', 'auth', 'ui')(MainSidebar);
+const Drafts = styled(Flex)`
+  height: 24px;
+`;
+
+export default inject('documents', 'policies', 'auth', 'ui')(MainSidebar);

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
@@ -9,13 +9,14 @@ import Input from 'components/Input';
 import InputRich from 'components/InputRich';
 import ColorPicker from 'components/ColorPicker';
 import HelpText from 'components/HelpText';
+import Flex from 'shared/components/Flex';
 
 import Collection from 'models/Collection';
 import CollectionsStore from 'stores/CollectionsStore';
 import UiStore from 'stores/UiStore';
 
 type Props = {
-  history: Object,
+  history: RouterHistory,
   ui: UiStore,
   collections: CollectionsStore,
   onSubmit: () => void,
@@ -25,11 +26,11 @@ type Props = {
 class CollectionNew extends React.Component<Props> {
   @observable name: string = '';
   @observable description: string = '';
-  @observable color: string = '';
+  @observable color: string = '#4E5C6E';
   @observable private: boolean = false;
   @observable isSaving: boolean;
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isSaving = true;
     const collection = new Collection(
@@ -77,14 +78,18 @@ class CollectionNew extends React.Component<Props> {
           organized around a topic or internal team — Product or Engineering for
           example.
         </HelpText>
-        <Input
-          type="text"
-          label="Name"
-          onChange={this.handleNameChange}
-          value={this.name}
-          required
-          autoFocus
-        />
+        <Flex>
+          <Input
+            type="text"
+            label="Name"
+            onChange={this.handleNameChange}
+            value={this.name}
+            required
+            autoFocus
+            flex
+          />
+          &nbsp;<ColorPicker onChange={this.handleColor} value={this.color} />
+        </Flex>
         <InputRich
           label="Description"
           onChange={this.handleDescriptionChange}
@@ -93,7 +98,6 @@ class CollectionNew extends React.Component<Props> {
           minHeight={68}
           maxHeight={200}
         />
-        <ColorPicker onSelect={this.handleColor} />
         <Switch
           id="private"
           label="Private collection"

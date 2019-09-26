@@ -4,6 +4,7 @@ import Koa from 'koa';
 import Router from 'koa-router';
 
 import auth from './auth';
+import events from './events';
 import users from './users';
 import collections from './collections';
 import documents from './documents';
@@ -35,6 +36,7 @@ api.use(apiWrapper());
 
 // routes
 router.use('/', auth.routes());
+router.use('/', events.routes());
 router.use('/', users.routes());
 router.use('/', collections.routes());
 router.use('/', documents.routes());

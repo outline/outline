@@ -34,7 +34,7 @@ const Authenticated = observer(({ auth, children }: Props) => {
     return children;
   }
 
-  auth.logout();
+  auth.logout(true);
   return null;
 });
 

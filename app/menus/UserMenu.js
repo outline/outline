@@ -4,6 +4,7 @@ import { inject, observer } from 'mobx-react';
 import { MoreIcon } from 'outline-icons';
 
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import NudeButton from 'components/NudeButton';
 import UsersStore from 'stores/UsersStore';
 import User from 'models/User';
 
@@ -14,7 +15,7 @@ type Props = {
 
 @observer
 class UserMenu extends React.Component<Props> {
-  handlePromote = (ev: SyntheticEvent<*>) => {
+  handlePromote = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { user, users } = this.props;
     if (
@@ -29,7 +30,7 @@ class UserMenu extends React.Component<Props> {
     users.promote(user);
   };
 
-  handleDemote = (ev: SyntheticEvent<*>) => {
+  handleDemote = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { user, users } = this.props;
     if (!window.confirm(`Are you want to make ${user.name} a member?`)) {
@@ -38,7 +39,7 @@ class UserMenu extends React.Component<Props> {
     users.demote(user);
   };
 
-  handleSuspend = (ev: SyntheticEvent<*>) => {
+  handleSuspend = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { user, users } = this.props;
     if (
@@ -51,7 +52,7 @@ class UserMenu extends React.Component<Props> {
     users.suspend(user);
   };
 
-  handleActivate = (ev: SyntheticEvent<*>) => {
+  handleActivate = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { user, users } = this.props;
     users.activate(user);
@@ -61,7 +62,13 @@ class UserMenu extends React.Component<Props> {
     const { user } = this.props;
 
     return (
-      <DropdownMenu label={<MoreIcon />}>
+      <DropdownMenu
+        label={
+          <NudeButton>
+            <MoreIcon />
+          </NudeButton>
+        }
+      >
         {!user.isSuspended &&
           (user.isAdmin ? (
             <DropdownMenuItem onClick={this.handleDemote}>

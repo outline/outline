@@ -86,6 +86,7 @@ router.post('users.s3Upload', auth(), async ctx => {
     },
     teamId: ctx.state.user.teamId,
     userId: ctx.state.user.id,
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -126,6 +127,15 @@ router.post('users.promote', auth(), async ctx => {
   const team = await Team.findByPk(teamId);
   await team.addAdmin(user);
 
+  await Event.create({
+    name: 'users.promote',
+    actorId: ctx.state.user.id,
+    userId,
+    teamId,
+    data: { name: user.name },
+    ip: ctx.request.ip,
+  });
+
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
   };
@@ -145,6 +155,15 @@ router.post('users.demote', auth(), async ctx => {
   } catch (err) {
     throw new ValidationError(err.message);
   }
+
+  await Event.create({
+    name: 'users.demote',
+    actorId: ctx.state.user.id,
+    userId,
+    teamId,
+    data: { name: user.name },
+    ip: ctx.request.ip,
+  });
 
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
@@ -167,6 +186,15 @@ router.post('users.suspend', auth(), async ctx => {
     throw new ValidationError(err.message);
   }
 
+  await Event.create({
+    name: 'users.suspend',
+    actorId: ctx.state.user.id,
+    userId,
+    teamId,
+    data: { name: user.name },
+    ip: ctx.request.ip,
+  });
+
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
   };
@@ -184,6 +212,15 @@ router.post('users.activate', auth(), async ctx => {
   const team = await Team.findByPk(teamId);
   await team.activateUser(user, admin);
 
+  await Event.create({
+    name: 'users.activate',
+    actorId: ctx.state.user.id,
+    userId,
+    teamId,
+    data: { name: user.name },
+    ip: ctx.request.ip,
+  });
+
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
   };
@@ -196,7 +233,7 @@ router.post('users.invite', auth(), async ctx => {
   const user = ctx.state.user;
   authorize(user, 'invite', User);
 
-  const invitesSent = await userInviter({ user, invites });
+  const invitesSent = await userInviter({ user, invites, ip: ctx.request.ip });
 
   ctx.body = {
     data: invitesSent,
@@ -215,6 +252,15 @@ router.post('users.delete', auth(), async ctx => {
   } catch (err) {
     throw new ValidationError(err.message);
   }
+
+  await Event.create({
+    name: 'users.delete',
+    actorId: user.id,
+    userId: user.id,
+    teamId: user.teamId,
+    data: { name: user.name },
+    ip: ctx.request.ip,
+  });
 
   ctx.body = {
     success: true,

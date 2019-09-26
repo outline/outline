@@ -1,6 +1,10 @@
 // @flow
 import compress from 'koa-compress';
-import { contentSecurityPolicy } from 'koa-helmet';
+import helmet, {
+  contentSecurityPolicy,
+  dnsPrefetchControl,
+  referrerPolicy,
+} from 'koa-helmet';
 import logger from 'koa-logger';
 import mount from 'koa-mount';
 import enforceHttps from 'koa-sslify';
@@ -71,12 +75,16 @@ if (process.env.NODE_ENV === 'development') {
 
   app.use(mount('/emails', emails));
 } else if (process.env.NODE_ENV === 'production') {
-  // Force HTTPS on all pages
-  app.use(
-    enforceHttps({
-      trustProtoHeader: true,
-    })
-  );
+  // Force redirect to HTTPS protocol unless explicitly disabled
+  if (process.env.FORCE_HTTPS !== 'false') {
+    app.use(
+      enforceHttps({
+        trustProtoHeader: true,
+      })
+    );
+  } else {
+    console.warn('Enforced https was disabled with FORCE_HTTPS env variable');
+  }
 
   // trust header fields set by our proxy. eg X-Forwarded-For
   app.proxy = true;
@@ -101,16 +109,34 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(mount('/auth', auth));
 app.use(mount('/api', api));
-app.use(mount(routes));
 
+app.use(helmet());
 app.use(
   contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        'gist.github.com',
+        'www.google-analytics.com',
+        'd2wy8f7a9ursnm.cloudfront.net',
+      ],
+      styleSrc: ["'self'", "'unsafe-inline'", 'github.githubassets.com'],
+      imgSrc: ['*', 'data:', 'blob:'],
+      frameSrc: ['*'],
+      connectSrc: [
+        "'self'",
+        process.env.AWS_S3_UPLOAD_BUCKET_URL,
+        'www.google-analytics.com',
+      ],
     },
   })
 );
+app.use(dnsPrefetchControl({ allow: true }));
+app.use(referrerPolicy({ policy: 'no-referrer' }));
+app.use(mount(routes));
 
 /**
  * Production updates and anonymous analytics.

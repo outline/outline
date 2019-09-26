@@ -17,7 +17,6 @@ type Props = {
   showCollection?: boolean,
   showPublished?: boolean,
   showPin?: boolean,
-  ref?: *,
 };
 
 const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
@@ -107,13 +106,13 @@ const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 @observer
 class DocumentPreview extends React.Component<Props> {
-  star = (ev: SyntheticEvent<*>) => {
+  star = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.document.star();
   };
 
-  unstar = (ev: SyntheticEvent<*>) => {
+  unstar = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.document.unstar();

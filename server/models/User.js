@@ -54,7 +54,7 @@ User.associate = models => {
 };
 
 // Instance methods
-User.prototype.collectionIds = async function() {
+User.prototype.collectionIds = async function(paranoid: boolean = true) {
   let models = await Collection.findAll({
     attributes: ['id', 'private'],
     where: { teamId: this.teamId },
@@ -67,6 +67,7 @@ User.prototype.collectionIds = async function() {
         required: false,
       },
     ],
+    paranoid,
   });
 
   // Filter collections that are private and don't have an association
@@ -172,22 +173,24 @@ User.afterCreate(async user => {
 // By default when a user signs up we subscribe them to email notifications
 // when documents they created are edited by other team members and onboarding
 User.afterCreate(async (user, options) => {
-  await NotificationSetting.findOrCreate({
-    where: {
-      userId: user.id,
-      teamId: user.teamId,
-      event: 'documents.update',
-    },
-    transaction: options.transaction,
-  });
-  await NotificationSetting.findOrCreate({
-    where: {
-      userId: user.id,
-      teamId: user.teamId,
-      event: 'emails.onboarding',
-    },
-    transaction: options.transaction,
-  });
+  await Promise.all([
+    NotificationSetting.findOrCreate({
+      where: {
+        userId: user.id,
+        teamId: user.teamId,
+        event: 'documents.update',
+      },
+      transaction: options.transaction,
+    }),
+    NotificationSetting.findOrCreate({
+      where: {
+        userId: user.id,
+        teamId: user.teamId,
+        event: 'emails.onboarding',
+      },
+      transaction: options.transaction,
+    }),
+  ]);
 });
 
 export default User;

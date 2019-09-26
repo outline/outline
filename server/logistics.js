@@ -3,7 +3,7 @@ import Queue from 'bull';
 import debug from 'debug';
 import mailer from './mailer';
 import { Collection, Team } from './models';
-import { archiveCollection, archiveCollections } from './utils/zip';
+import { archiveCollections } from './utils/zip';
 
 const log = debug('logistics');
 const logisticsQueue = new Queue('logistics', process.env.REDIS_URL);
@@ -15,24 +15,6 @@ const queueOptions = {
     delay: 60 * 1000,
   },
 };
-
-async function exportAndEmailCollection(collectionId: string, email: string) {
-  log('Archiving collection', collectionId);
-  const collection = await Collection.findByPk(collectionId);
-  const filePath = await archiveCollection(collection);
-
-  log('Archive path', filePath);
-
-  mailer.export({
-    to: email,
-    attachments: [
-      {
-        filename: `${collection.name} Export.zip`,
-        path: filePath,
-      },
-    ],
-  });
-}
 
 async function exportAndEmailCollections(teamId: string, email: string) {
   log('Archiving team', teamId);
@@ -60,27 +42,11 @@ logisticsQueue.process(async job => {
   log('Process', job.data);
 
   switch (job.data.type) {
-    case 'export-collection':
-      return await exportAndEmailCollection(
-        job.data.collectionId,
-        job.data.email
-      );
     case 'export-collections':
       return await exportAndEmailCollections(job.data.teamId, job.data.email);
     default:
   }
 });
-
-export const exportCollection = (collectionId: string, email: string) => {
-  logisticsQueue.add(
-    {
-      type: 'export-collection',
-      collectionId,
-      email,
-    },
-    queueOptions
-  );
-};
 
 export const exportCollections = (teamId: string, email: string) => {
   logisticsQueue.add(

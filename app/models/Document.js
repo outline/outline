@@ -7,13 +7,13 @@ import unescape from 'shared/utils/unescape';
 import BaseModel from 'models/BaseModel';
 import Revision from 'models/Revision';
 import User from 'models/User';
+import DocumentsStore from 'stores/DocumentsStore';
 
 type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
 export default class Document extends BaseModel {
   isSaving: boolean;
-  ui: *;
-  store: *;
+  store: DocumentsStore;
 
   collaborators: User[];
   collectionId: string;
@@ -37,14 +37,18 @@ export default class Document extends BaseModel {
   shareUrl: ?string;
   revision: number;
 
-  constructor(data?: Object = {}, store: *) {
+  constructor(data?: Object = {}, store: DocumentsStore) {
     super(data, store);
     this.updateTitle();
   }
 
   @action
   updateTitle() {
-    set(this, parseTitle(this.text));
+    const { title, emoji } = parseTitle(this.text);
+
+    if (title) {
+      set(this, { title, emoji });
+    }
   }
 
   @computed
@@ -54,7 +58,7 @@ export default class Document extends BaseModel {
 
   @computed
   get isStarred(): boolean {
-    return this.store.starredIds.get(this.id);
+    return !!this.store.starredIds.get(this.id);
   }
 
   @computed
@@ -90,7 +94,7 @@ export default class Document extends BaseModel {
     return this.store.archive(this);
   };
 
-  restore = (revision: ?Revision) => {
+  restore = (revision: Revision) => {
     return this.store.restore(this, revision);
   };
 

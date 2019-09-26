@@ -7,8 +7,8 @@ import Starred from 'scenes/Starred';
 import Drafts from 'scenes/Drafts';
 import Archive from 'scenes/Archive';
 import Collection from 'scenes/Collection';
-import Document from 'scenes/Document';
 import KeyedDocument from 'scenes/Document/KeyedDocument';
+import DocumentNew from 'scenes/DocumentNew';
 import Search from 'scenes/Search';
 import Settings from 'scenes/Settings';
 import Details from 'scenes/Settings/Details';
@@ -20,6 +20,7 @@ import Zapier from 'scenes/Settings/Zapier';
 import Shares from 'scenes/Settings/Shares';
 import Tokens from 'scenes/Settings/Tokens';
 import Export from 'scenes/Settings/Export';
+import Events from 'scenes/Settings/Events';
 import Error404 from 'scenes/Error404';
 
 import Layout from 'components/Layout';
@@ -29,7 +30,6 @@ import RouteSidebarHidden from 'components/RouteSidebarHidden';
 import { matchDocumentSlug as slug } from 'utils/routeHelpers';
 
 const NotFound = () => <Search notFound />;
-const NewDocument = () => <Document newDocument />;
 const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
@@ -56,6 +56,7 @@ export default function Routes() {
               <Route exact path="/settings/people/:filter" component={People} />
               <Route exact path="/settings/shares" component={Shares} />
               <Route exact path="/settings/tokens" component={Tokens} />
+              <Route exact path="/settings/events" component={Events} />
               <Route
                 exact
                 path="/settings/notifications"
@@ -75,7 +76,7 @@ export default function Routes() {
               <RouteSidebarHidden
                 exact
                 path="/collections/:id/new"
-                component={NewDocument}
+                component={DocumentNew}
               />
               <Route
                 exact

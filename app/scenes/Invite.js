@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { CloseIcon } from 'outline-icons';
@@ -11,6 +11,7 @@ import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
 import Tooltip from 'components/Tooltip';
+import NudeButton from 'components/NudeButton';
 
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -21,7 +22,7 @@ const MAX_INVITES = 20;
 type Props = {
   auth: AuthStore,
   users: UsersStore,
-  history: Object,
+  history: RouterHistory,
   ui: UiStore,
   onSubmit: () => void,
 };
@@ -37,7 +38,7 @@ class Invite extends React.Component<Props> {
     { email: '', name: '' },
   ];
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isSaving = true;
 
@@ -124,7 +125,9 @@ class Invite extends React.Component<Props> {
             {index !== 0 && (
               <Remove>
                 <Tooltip tooltip="Remove invite" placement="top">
-                  <CloseIcon onClick={() => this.handleRemove(index)} />
+                  <NudeButton onClick={() => this.handleRemove(index)}>
+                    <CloseIcon />
+                  </NudeButton>
                 </Tooltip>
               </Remove>
             )}

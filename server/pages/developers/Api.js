@@ -24,6 +24,16 @@ export default function Api() {
             <Arguments />
           </Method>
 
+          <Method method="events.list" label="List team's events">
+            <Description>List all of the events in the team.</Description>
+            <Arguments pagination>
+              <Argument
+                id="auditLog"
+                description="Boolean. If user token has access, return auditing events"
+              />
+            </Arguments>
+          </Method>
+
           <Method method="users.list" label="List team's users">
             <Description>List all of the users in the team.</Description>
             <Arguments pagination />
@@ -156,6 +166,21 @@ export default function Api() {
             </Description>
             <Arguments>
               <Argument id="id" description="Collection id" required />
+            </Arguments>
+          </Method>
+
+          <Method method="collections.exportAll" label="Export all collections">
+            <Description>
+              Returns a zip file of all the collections or creates an async job
+              to send a zip file via email to the authenticated user. If
+              documents are nested then they will be nested in folders inside
+              the zip file.
+            </Description>
+            <Arguments>
+              <Argument
+                id="download"
+                description="Download as zip (default is email)"
+              />
             </Arguments>
           </Method>
 

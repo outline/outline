@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { MoreIcon } from 'outline-icons';
 import Modal from 'components/Modal';
@@ -15,14 +15,14 @@ import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import NudeButton from 'components/NudeButton';
 
 type Props = {
-  label?: React.Node,
   position?: 'left' | 'right' | 'center',
   ui: UiStore,
   documents: DocumentsStore,
   collection: Collection,
-  history: Object,
+  history: RouterHistory,
   onOpen?: () => void,
   onClose?: () => void,
 };
@@ -33,20 +33,20 @@ class CollectionMenu extends React.Component<Props> {
   @observable permissionsModalOpen: boolean = false;
   @observable redirectTo: ?string;
 
-  onNewDocument = (ev: SyntheticEvent<*>) => {
+  onNewDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { collection } = this.props;
     this.props.history.push(newDocumentUrl(collection.id));
   };
 
-  onImportDocument = (ev: SyntheticEvent<*>) => {
+  onImportDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
 
     // simulate a click on the file upload input element
     if (this.file) this.file.click();
   };
 
-  onFilePicked = async (ev: SyntheticEvent<*>) => {
+  onFilePicked = async (ev: SyntheticEvent<>) => {
     const files = getDataTransferFiles(ev);
 
     try {
@@ -61,25 +61,25 @@ class CollectionMenu extends React.Component<Props> {
     }
   };
 
-  onEdit = (ev: SyntheticEvent<*>) => {
+  onEdit = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { collection } = this.props;
     this.props.ui.setActiveModal('collection-edit', { collection });
   };
 
-  onDelete = (ev: SyntheticEvent<*>) => {
+  onDelete = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { collection } = this.props;
     this.props.ui.setActiveModal('collection-delete', { collection });
   };
 
-  onExport = (ev: SyntheticEvent<*>) => {
+  onExport = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { collection } = this.props;
     this.props.ui.setActiveModal('collection-export', { collection });
   };
 
-  onPermissions = (ev: SyntheticEvent<*>) => {
+  onPermissions = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.permissionsModalOpen = true;
   };
@@ -89,7 +89,7 @@ class CollectionMenu extends React.Component<Props> {
   };
 
   render() {
-    const { collection, label, position, onOpen, onClose } = this.props;
+    const { collection, position, onOpen, onClose } = this.props;
 
     return (
       <React.Fragment>
@@ -110,7 +110,11 @@ class CollectionMenu extends React.Component<Props> {
           />
         </Modal>
         <DropdownMenu
-          label={label || <MoreIcon />}
+          label={
+            <NudeButton>
+              <MoreIcon />
+            </NudeButton>
+          }
           onOpen={onOpen}
           onClose={onClose}
           position={position}

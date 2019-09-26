@@ -49,7 +49,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     return orderBy(this.all, 'updatedAt', 'desc');
   }
 
-  createdByUser(userId: string): * {
+  createdByUser(userId: string): Document[] {
     return orderBy(
       filter(this.all, d => d.createdBy.id === userId),
       'updatedAt',
@@ -320,6 +320,8 @@ export default class DocumentsStore extends BaseStore<Document> {
         shareId: options.shareId,
       });
       invariant(res && res.data, 'Document not available');
+
+      this.addPolicies(res.policies);
       this.add(res.data);
 
       runInAction('DocumentsStore#fetch', () => {
@@ -363,6 +365,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
 
+    this.addPolicies(res.policies);
     return this.add(res.data);
   };
 
@@ -387,7 +390,12 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
-  async update(params: *) {
+  async update(params: {
+    id: string,
+    title: string,
+    text: string,
+    lastRevision: number,
+  }) {
     const document = await super.update(params);
 
     // Because the collection object contains the url and title

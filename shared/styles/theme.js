@@ -49,6 +49,7 @@ export const base = {
   backgroundTransition: 'background 100ms ease-in-out',
   zIndex: 100,
 
+  selected: colors.primary,
   buttonBackground: colors.primary,
   buttonText: colors.white,
 };

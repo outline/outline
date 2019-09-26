@@ -64,10 +64,10 @@ export default class UsersStore extends BaseStore<User> {
       id: user.id,
     });
     invariant(res && res.data, 'Data should be available');
-    const { data } = res;
 
     runInAction(`UsersStore#${action}`, () => {
-      this.add(data);
+      this.addPolicies(res.policies);
+      this.add(res.data);
     });
   };
 }

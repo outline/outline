@@ -59,7 +59,7 @@ class Notifications extends React.Component<Props> {
     this.props.notificationSettings.fetchPage();
   }
 
-  handleChange = async (ev: SyntheticInputEvent<*>) => {
+  handleChange = async (ev: SyntheticInputEvent<>) => {
     const { notificationSettings } = this.props;
     const setting = notificationSettings.getByEvent(ev.target.name);
 

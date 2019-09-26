@@ -19,6 +19,7 @@ import DocumentMenu from 'menus/DocumentMenu';
 import NewChildDocumentMenu from 'menus/NewChildDocumentMenu';
 import DocumentShare from 'scenes/DocumentShare';
 import Button from 'components/Button';
+import Tooltip from 'components/Tooltip';
 import Modal from 'components/Modal';
 import Badge from 'components/Badge';
 import Collaborators from 'components/Collaborators';
@@ -32,12 +33,12 @@ type Props = {
   isPublishing: boolean,
   publishingIsDisabled: boolean,
   savingIsDisabled: boolean,
-  onDiscard: () => *,
+  onDiscard: () => void,
   onSave: ({
     done?: boolean,
     publish?: boolean,
     autosave?: boolean,
-  }) => *,
+  }) => void,
   auth: AuthStore,
 };
 
@@ -73,7 +74,7 @@ class Header extends React.Component<Props> {
     this.props.onSave({ done: true, publish: true });
   };
 
-  handleShareLink = async (ev: SyntheticEvent<*>) => {
+  handleShareLink = async (ev: SyntheticEvent<>) => {
     const { document } = this.props;
     if (!document.shareUrl) await document.share();
     this.showShareModal = true;
@@ -155,16 +156,22 @@ class Header extends React.Component<Props> {
           {isEditing && (
             <React.Fragment>
               <Action>
-                <Button
-                  onClick={this.handleSave}
-                  title={`Save changes (${meta}+Enter)`}
-                  disabled={savingIsDisabled}
-                  isSaving={isSaving}
-                  neutral={isDraft}
-                  small
+                <Tooltip
+                  tooltip="Save"
+                  shortcut={`${meta}+enter`}
+                  delay={500}
+                  placement="bottom"
                 >
-                  {isDraft ? 'Save Draft' : 'Done Editing'}
-                </Button>
+                  <Button
+                    onClick={this.handleSave}
+                    disabled={savingIsDisabled}
+                    isSaving={isSaving}
+                    neutral={isDraft}
+                    small
+                  >
+                    {isDraft ? 'Save Draft' : 'Done Editing'}
+                  </Button>
+                </Tooltip>
               </Action>
             </React.Fragment>
           )}
@@ -182,14 +189,21 @@ class Header extends React.Component<Props> {
           )}
           {canEdit && (
             <Action>
-              <Button
-                icon={<EditIcon />}
-                onClick={this.handleEdit}
-                neutral
-                small
+              <Tooltip
+                tooltip="Edit document"
+                shortcut="e"
+                delay={500}
+                placement="bottom"
               >
-                Edit
-              </Button>
+                <Button
+                  icon={<EditIcon />}
+                  onClick={this.handleEdit}
+                  neutral
+                  small
+                >
+                  Edit
+                </Button>
+              </Tooltip>
             </Action>
           )}
           {canEdit &&
@@ -198,9 +212,16 @@ class Header extends React.Component<Props> {
                 <NewChildDocumentMenu
                   document={document}
                   label={
-                    <Button icon={<PlusIcon />} neutral>
-                      New doc
-                    </Button>
+                    <Tooltip
+                      tooltip="New document"
+                      shortcut="n"
+                      delay={500}
+                      placement="bottom"
+                    >
+                      <Button icon={<PlusIcon />} neutral>
+                        New doc
+                      </Button>
+                    </Tooltip>
                   }
                 />
               </Action>

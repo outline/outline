@@ -9,10 +9,19 @@ import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
 import Avatar from 'components/Avatar';
 import RevisionMenu from 'menus/RevisionMenu';
+import Document from 'models/Document';
+import Revision from 'models/Revision';
 
 import { documentHistoryUrl } from 'utils/routeHelpers';
 
-class Revision extends React.Component<*> {
+type Props = {
+  theme: Object,
+  showMenu: () => void,
+  document: Document,
+  revision: Revision,
+};
+
+class RevisionListItem extends React.Component<Props> {
   render() {
     const { revision, document, showMenu, theme } = this.props;
 
@@ -74,4 +83,4 @@ const Meta = styled.p`
   padding: 0;
 `;
 
-export default withTheme(Revision);
+export default withTheme(RevisionListItem);

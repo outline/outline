@@ -18,7 +18,7 @@ type Props = {
   documents: DocumentsStore,
   collection?: Collection,
   activeDocument: ?Document,
-  activeDocumentRef?: (?HTMLElement) => *,
+  activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
 };
@@ -27,7 +27,7 @@ type Props = {
 class DocumentLink extends React.Component<Props> {
   @observable menuOpen = false;
 
-  handleMouseEnter = (ev: SyntheticEvent<*>) => {
+  handleMouseEnter = (ev: SyntheticEvent<>) => {
     const { node, prefetchDocument } = this.props;
 
     ev.stopPropagation();

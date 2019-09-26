@@ -4,7 +4,7 @@ import Sequelize from 'sequelize';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentShare } from '../presenters';
-import { Document, User, Share, Team } from '../models';
+import { Document, User, Event, Share, Team } from '../models';
 import policy from '../policies';
 
 const Op = Sequelize.Op;
@@ -50,6 +50,7 @@ router.post('shares.list', auth(), pagination(), async ctx => {
   });
 
   ctx.body = {
+    pagination: ctx.state.pagination,
     data: shares.map(presentShare),
   };
 });
@@ -73,6 +74,17 @@ router.post('shares.create', auth(), async ctx => {
     },
   });
 
+  await Event.create({
+    name: 'shares.create',
+    documentId,
+    collectionId: document.collectionId,
+    modelId: share.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: { name: document.title },
+    ip: ctx.request.ip,
+  });
+
   share.user = user;
   share.document = document;
 
@@ -90,6 +102,19 @@ router.post('shares.revoke', auth(), async ctx => {
   authorize(user, 'revoke', share);
 
   await share.revoke(user.id);
+
+  const document = await Document.findByPk(share.documentId);
+
+  await Event.create({
+    name: 'shares.revoke',
+    documentId: document.id,
+    collectionId: document.collectionId,
+    modelId: share.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: { name: document.title },
+    ip: ctx.request.ip,
+  });
 
   ctx.body = {
     success: true,

@@ -18,12 +18,12 @@ export default class Notifications {
 
   async documentUpdated(event: DocumentEvent) {
     // lets not send a notification on every autosave update
-    if (event.autosave) return;
+    if (event.data && event.data.autosave) return;
 
     // wait until the user has finished editing
-    if (!event.done) return;
+    if (event.data && !event.data.done) return;
 
-    const document = await Document.findByPk(event.modelId);
+    const document = await Document.findByPk(event.documentId);
     if (!document) return;
 
     const { collection } = document;
@@ -72,7 +72,7 @@ export default class Notifications {
   }
 
   async collectionCreated(event: CollectionEvent) {
-    const collection = await Collection.findByPk(event.modelId, {
+    const collection = await Collection.findByPk(event.collectionId, {
       include: [
         {
           model: User,

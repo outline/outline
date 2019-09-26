@@ -8,7 +8,7 @@ import User from 'models/User';
 type Props = {
   user: User,
   showAdd: boolean,
-  onAdd: () => *,
+  onAdd: () => void,
 };
 
 const UserListItem = ({ user, onAdd, showAdd }: Props) => {

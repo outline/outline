@@ -14,16 +14,20 @@ const randomValues = Array.from(
 
 const LoadingPlaceholder = (props: Object) => {
   return (
-    <Fade>
+    <Wrapper>
       <Flex column auto {...props}>
         <Mask style={{ width: randomValues[0] }} header />
         <Mask style={{ width: randomValues[1] }} />
         <Mask style={{ width: randomValues[2] }} />
         <Mask style={{ width: randomValues[3] }} />
       </Flex>
-    </Fade>
+    </Wrapper>
   );
 };
+
+const Wrapper = styled(Fade)`
+  margin: 40px 0;
+`;
 
 const Mask = styled(Flex)`
   height: ${props => (props.header ? 28 : 18)}px;

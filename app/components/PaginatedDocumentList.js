@@ -11,7 +11,7 @@ import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 type Props = {
   documents: Document[],
-  fetch: (options: ?Object) => Promise<*>,
+  fetch: (options: ?Object) => Promise<void>,
   options?: Object,
   heading?: React.Node,
   empty?: React.Node,
@@ -19,12 +19,15 @@ type Props = {
 
 @observer
 class PaginatedDocumentList extends React.Component<Props> {
+  isInitiallyLoaded: boolean = false;
   @observable isLoaded: boolean = false;
+  @observable isFetchingMore: boolean = false;
   @observable isFetching: boolean = false;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
 
   componentDidMount() {
+    this.isInitiallyLoaded = !!this.props.documents.length;
     this.fetchResults();
   }
 
@@ -55,25 +58,29 @@ class PaginatedDocumentList extends React.Component<Props> {
 
     this.isLoaded = true;
     this.isFetching = false;
+    this.isFetchingMore = false;
   };
 
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
     if (!this.allowLoadMore || this.isFetching) return;
+
+    this.isFetchingMore = true;
     await this.fetchResults();
   };
 
   render() {
     const { empty, heading, documents, fetch, options, ...rest } = this.props;
-    const showLoading = !this.isLoaded && this.isFetching && !documents.length;
-    const showEmpty = this.isLoaded && !documents.length;
+    const showLoading =
+      this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
+    const showEmpty = !documents.length || showLoading;
+    const showList = (this.isLoaded || this.isInitiallyLoaded) && !showLoading;
 
     return (
       <React.Fragment>
-        {showEmpty ? (
-          empty
-        ) : (
+        {showEmpty && empty}
+        {showList && (
           <React.Fragment>
             {heading}
             <DocumentList documents={documents} {...rest} />

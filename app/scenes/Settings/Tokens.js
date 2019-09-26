@@ -28,7 +28,7 @@ class Tokens extends React.Component<Props> {
     this.name = ev.target.value;
   };
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     await this.props.apiKeys.create({ name: this.name });
     this.name = '';

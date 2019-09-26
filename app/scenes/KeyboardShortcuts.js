@@ -10,10 +10,8 @@ function KeyboardShortcuts() {
   return (
     <Flex column>
       <HelpText>
-        Outline is designed to be super fast and easy to use. All of your usual
-        keyboard shortcuts work here, and there
-        {"'"}
-        s Markdown too.
+        Outline is designed to be fast and easy to use. All of your usual
+        keyboard shortcuts work here, and there’s Markdown too.
       </HelpText>
 
       <h2>Navigation</h2>

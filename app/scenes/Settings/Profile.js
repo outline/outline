@@ -38,7 +38,7 @@ class Profile extends React.Component<Props> {
     clearTimeout(this.timeout);
   }
 
-  handleSubmit = async (ev: SyntheticEvent<*>) => {
+  handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
 
     await this.props.auth.updateUser({

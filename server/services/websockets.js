@@ -17,7 +17,7 @@ export default class Websockets {
       case 'documents.unpin':
       case 'documents.update':
       case 'documents.delete': {
-        const document = await Document.findByPk(event.modelId, {
+        const document = await Document.findByPk(event.documentId, {
           paranoid: false,
         });
         const documents = [await presentDocument(document)];
@@ -32,7 +32,7 @@ export default class Websockets {
           });
       }
       case 'documents.create': {
-        const document = await Document.findByPk(event.modelId);
+        const document = await Document.findByPk(event.documentId);
         const documents = [await presentDocument(document)];
         const collections = [await presentCollection(document.collection)];
 
@@ -45,19 +45,19 @@ export default class Websockets {
       case 'documents.star':
       case 'documents.unstar': {
         return socketio.to(`user-${event.actorId}`).emit(event.name, {
-          documentId: event.modelId,
+          documentId: event.documentId,
         });
       }
       case 'documents.move': {
         const documents = await Document.findAll({
           where: {
-            id: event.documentIds,
+            id: event.data.documentIds,
           },
           paranoid: false,
         });
         const collections = await Collection.findAll({
           where: {
-            id: event.collectionIds,
+            id: event.data.collectionIds,
           },
           paranoid: false,
         });
@@ -78,7 +78,7 @@ export default class Websockets {
         return;
       }
       case 'collections.create': {
-        const collection = await Collection.findByPk(event.modelId, {
+        const collection = await Collection.findByPk(event.collectionId, {
           paranoid: false,
         });
         const collections = [await presentCollection(collection)];
@@ -106,7 +106,7 @@ export default class Websockets {
       }
       case 'collections.update':
       case 'collections.delete': {
-        const collection = await Collection.findByPk(event.modelId, {
+        const collection = await Collection.findByPk(event.collectionId, {
           paranoid: false,
         });
         const collections = [await presentCollection(collection)];
@@ -117,12 +117,12 @@ export default class Websockets {
         });
       }
       case 'collections.add_user':
-        return socketio.to(`user-${event.modelId}`).emit('join', {
+        return socketio.to(`user-${event.userId}`).emit('join', {
           event: event.name,
           roomId: event.collectionId,
         });
       case 'collections.remove_user':
-        return socketio.to(`user-${event.modelId}`).emit('leave', {
+        return socketio.to(`user-${event.userId}`).emit('leave', {
           event: event.name,
           roomId: event.collectionId,
         });

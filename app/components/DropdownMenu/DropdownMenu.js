@@ -31,10 +31,10 @@ class DropdownMenu extends React.Component<Props> {
   @observable left: number;
 
   handleOpen = (
-    openPortal: (SyntheticEvent<*>) => void,
+    openPortal: (SyntheticEvent<>) => void,
     closePortal: () => void
   ) => {
-    return (ev: SyntheticMouseEvent<*>) => {
+    return (ev: SyntheticMouseEvent<HTMLElement>) => {
       ev.preventDefault();
       const currentTarget = ev.currentTarget;
       invariant(document.body, 'why you not here');
