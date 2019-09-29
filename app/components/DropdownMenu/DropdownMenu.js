@@ -31,6 +31,7 @@ class DropdownMenu extends React.Component<Props> {
   @observable right: ?number;
   @observable left: ?number;
   @observable position: 'left' | 'right' | 'center';
+  @observable fixed: ?boolean;
   @observable bodyRect: ClientRect;
   @observable labelRect: ClientRect;
   @observable dropdownRef: { current: null | HTMLElement } = React.createRef();
@@ -50,6 +51,16 @@ class DropdownMenu extends React.Component<Props> {
         this.top = this.labelRect.bottom - this.bodyRect.top;
         this.bottom = undefined;
         this.position = this.props.position || 'left';
+
+        if (currentTarget.parentElement) {
+          const triggerParentStyle = getComputedStyle(
+            currentTarget.parentElement
+          );
+
+          if (triggerParentStyle.position === 'static') {
+            this.fixed = true;
+          }
+        }
 
         this.initPosition();
 
@@ -135,6 +146,7 @@ class DropdownMenu extends React.Component<Props> {
                 <Position
                   ref={this.dropdownRef}
                   position={this.position}
+                  fixed={this.fixed}
                   top={this.top}
                   bottom={this.bottom}
                   left={this.left}
@@ -174,7 +186,7 @@ const Label = styled(Flex).attrs({
 `;
 
 const Position = styled.div`
-  position: absolute;
+  position: ${fixed => (fixed ? 'fixed' : 'absolute')};
   display: flex;
   ${({ left }) => (left !== undefined ? `left: ${left}px` : '')};
   ${({ right }) => (right !== undefined ? `right: ${right}px` : '')};
