@@ -100,7 +100,7 @@ class DropdownMenu extends React.Component<Props> {
       el.clientHeight + this.top > window.innerHeight;
     if (sticksOutPastBottomEdge) {
       this.top = undefined;
-      this.bottom = -1 * window.pageYOffset;
+      this.bottom = this.fixed ? 0 : -1 * window.pageYOffset;
     } else {
       this.bottom = undefined;
     }
