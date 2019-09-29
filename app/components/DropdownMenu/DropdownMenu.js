@@ -186,7 +186,7 @@ const Label = styled(Flex).attrs({
 `;
 
 const Position = styled.div`
-  position: ${fixed => (fixed ? 'fixed' : 'absolute')};
+  position: ${({ fixed }) => (fixed ? 'fixed' : 'absolute')};
   display: flex;
   ${({ left }) => (left !== undefined ? `left: ${left}px` : '')};
   ${({ right }) => (right !== undefined ? `right: ${right}px` : '')};
