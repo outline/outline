@@ -148,7 +148,7 @@
       "required": false
     },
     "TEAM_LOGO": {
-      "description": "PlainHome requires a team logo",
+      "description": "A logo that will be displayed on the signed out home page",
       "required": false
     }
   }
