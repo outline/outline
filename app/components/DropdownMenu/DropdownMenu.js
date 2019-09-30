@@ -59,6 +59,7 @@ class DropdownMenu extends React.Component<Props> {
 
           if (triggerParentStyle.position === 'static') {
             this.fixed = true;
+            this.top = this.labelRect.bottom;
           }
         }
 
