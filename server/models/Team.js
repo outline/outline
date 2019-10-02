@@ -190,6 +190,15 @@ Team.prototype.activateUser = async function(user: User, admin: User) {
   });
 };
 
+Team.prototype.collectionIds = async function(paranoid: boolean = true) {
+  let models = await Collection.findAll({
+    attributes: ['id', 'private'],
+    where: { teamId: this.id, private: false },
+    paranoid,
+  });
+  return models.map(c => c.id);
+};
+
 Team.beforeSave(uploadAvatar);
 
 export default Team;

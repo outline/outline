@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import { inject } from 'mobx-react';
+import { uniq } from 'lodash';
 import io from 'socket.io-client';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
@@ -62,7 +63,10 @@ class SocketProvider extends React.Component<Props> {
               if (!event.collectionIds) {
                 event.collectionIds = [];
               }
-              event.collectionIds.push(document.collectionId);
+              event.collectionIds = uniq([
+                ...event.collectionIds,
+                document.collectionId,
+              ]);
             }
 
             // TODO: Move this to the document scene once data loading

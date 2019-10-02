@@ -18,6 +18,7 @@ export default (user: User, options: Options = {}): ?UserPresentation => {
   const userData = {};
   userData.id = user.id;
   userData.createdAt = user.createdAt;
+  userData.lastActiveAt = user.lastActiveAt;
   userData.name = user.name;
   userData.isAdmin = user.isAdmin;
   userData.isSuspended = user.isSuspended;

@@ -1163,22 +1163,6 @@ describe('#documents.create', async () => {
     expect(newDocument.collectionId).toBe(collection.id);
   });
 
-  it('should fallback to a default title', async () => {
-    const { user, collection } = await seed();
-    const res = await server.post('/api/documents.create', {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: collection.id,
-        title: ' ',
-        text: ' ',
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.title).toBe('Untitled document');
-    expect(body.data.text).toBe('# Untitled document');
-  });
-
   it('should not allow very long titles', async () => {
     const { user, collection } = await seed();
     const res = await server.post('/api/documents.create', {
@@ -1305,25 +1289,6 @@ describe('#documents.update', async () => {
 
     const revisionRecords = await Revision.count();
     expect(revisionRecords).toBe(prevRevisionRecords);
-  });
-
-  it('should fallback to a default title', async () => {
-    const { user, document } = await seed();
-
-    const res = await server.post('/api/documents.update', {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        title: ' ',
-        text: ' ',
-        lastRevision: document.revision,
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.title).toBe('Untitled document');
-    expect(body.data.text).toBe('# Untitled document');
   });
 
   it('should fail if document lastRevision does not match', async () => {

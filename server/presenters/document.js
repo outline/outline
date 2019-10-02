@@ -13,11 +13,6 @@ export default async function present(document: Document, options: ?Options) {
     ...options,
   };
 
-  // For empty document content, return the title
-  if (!document.text.trim()) {
-    document.text = `# ${document.title}`;
-  }
-
   const data = {
     id: document.id,
     url: document.url,
