@@ -314,7 +314,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     try {
       const doc: ?Document = this.data.get(id) || this.getByUrl(id);
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
-      if (doc && policy) {
+      if (doc && policy && !options.force) {
         return doc;
       }
 

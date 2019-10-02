@@ -14,7 +14,6 @@ export default class Websockets {
       case 'documents.unarchive':
       case 'documents.pin':
       case 'documents.unpin':
-      case 'documents.update':
       case 'documents.delete': {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
@@ -26,6 +25,18 @@ export default class Websockets {
             event: event.name,
             documentIds: [event.documentId],
             collectionIds: [document.collectionId],
+          });
+      }
+      case 'documents.update': {
+        const document = await Document.findByPk(event.documentId, {
+          paranoid: false,
+        });
+
+        return socketio
+          .to(`collection-${document.collectionId}`)
+          .emit('entities', {
+            event: event.name,
+            documentIds: [event.documentId],
           });
       }
       case 'documents.create': {

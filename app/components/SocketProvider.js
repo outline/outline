@@ -54,7 +54,16 @@ class SocketProvider extends React.Component<Props> {
       this.socket.on('entities', async event => {
         if (event.documentIds) {
           for (const documentId of event.documentIds) {
-            const document = await documents.fetch(documentId);
+            const { title } = documents.get(documentId) || {};
+            const document = await documents.fetch(documentId, { force: true });
+
+            // if the title changed then we need to update the collection also
+            if (title !== document.title) {
+              if (!event.collectionIds) {
+                event.collectionIds = [];
+              }
+              event.collectionIds.push(document.collectionId);
+            }
 
             // TODO: Move this to the document scene once data loading
             // has been refactored to be friendlier there.
