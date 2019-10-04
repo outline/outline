@@ -509,7 +509,7 @@ router.post('documents.pin', auth(), async ctx => {
 
   const user = ctx.state.user;
   const document = await Document.findByPk(id, { userId: user.id });
-  authorize(user, 'update', document);
+  authorize(user, 'pin', document);
 
   document.pinnedById = user.id;
   await document.save();
@@ -536,7 +536,7 @@ router.post('documents.unpin', auth(), async ctx => {
 
   const user = ctx.state.user;
   const document = await Document.findByPk(id, { userId: user.id });
-  authorize(user, 'update', document);
+  authorize(user, 'unpin', document);
 
   document.pinnedById = null;
   await document.save();
@@ -594,7 +594,7 @@ router.post('documents.unstar', auth(), async ctx => {
 
   await Event.create({
     name: 'documents.unstar',
-    modelId: document.id,
+    documentId: document.id,
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,

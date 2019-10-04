@@ -12,8 +12,6 @@ export default class Websockets {
       case 'documents.restore':
       case 'documents.archive':
       case 'documents.unarchive':
-      case 'documents.pin':
-      case 'documents.unpin':
       case 'documents.delete': {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
@@ -36,6 +34,8 @@ export default class Websockets {
             ],
           });
       }
+      case 'documents.pin':
+      case 'documents.unpin':
       case 'documents.update': {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,

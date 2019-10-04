@@ -56,11 +56,7 @@ class SocketProvider extends React.Component<Props> {
         if (event.documentIds) {
           for (const documentDescriptor of event.documentIds) {
             const documentId = documentDescriptor.id;
-
-            // if there is no existing document in the store then we don't need to
-            // update anything - in the interests of performance, ignore this message
-            let document = documents.get(documentId);
-            if (!document) continue;
+            let document = documents.get(documentId) || {};
 
             // if we already have the latest version (it was us that performed the change)
             // the we don't need to update anything either.
@@ -106,11 +102,7 @@ class SocketProvider extends React.Component<Props> {
         if (event.collectionIds) {
           for (const collectionDescriptor of event.collectionIds) {
             const collectionId = collectionDescriptor.id;
-
-            // if there is no existing document in the store then we don't need to
-            // update anything - in the interests of performance, ignore this message
-            let collection = collections.get(collectionId);
-            if (!collection) continue;
+            const collection = collections.get(collectionId) || {};
 
             // if we already have the latest version (it was us that performed the change)
             // the we don't need to update anything either.
