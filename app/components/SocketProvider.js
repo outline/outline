@@ -54,9 +54,23 @@ class SocketProvider extends React.Component<Props> {
 
       this.socket.on('entities', async event => {
         if (event.documentIds) {
-          for (const documentId of event.documentIds) {
-            const { title } = documents.get(documentId) || {};
-            const document = await documents.fetch(documentId, { force: true });
+          for (const documentDescriptor of event.documentIds) {
+            const documentId = documentDescriptor.id;
+
+            // if there is no existing document in the store then we don't need to
+            // update anything - in the interests of performance, ignore this message
+            let document = documents.get(documentId);
+            if (!document) continue;
+
+            // if we already have the latest version (it was us that performed the change)
+            // the we don't need to update anything either.
+            const { title, updatedAt } = document;
+            if (updatedAt === documentDescriptor.updatedAt) continue;
+
+            // otherwise, grab the latest version of the document
+            document = await documents.fetch(documentId, {
+              force: true,
+            });
 
             // if the title changed then we need to update the collection also
             if (title !== document.title) {
@@ -65,7 +79,9 @@ class SocketProvider extends React.Component<Props> {
               }
               event.collectionIds = uniq([
                 ...event.collectionIds,
-                document.collectionId,
+                {
+                  id: document.collectionId,
+                },
               ]);
             }
 
@@ -88,7 +104,19 @@ class SocketProvider extends React.Component<Props> {
         }
 
         if (event.collectionIds) {
-          for (const collectionId of event.collectionIds) {
+          for (const collectionDescriptor of event.collectionIds) {
+            const collectionId = collectionDescriptor.id;
+
+            // if there is no existing document in the store then we don't need to
+            // update anything - in the interests of performance, ignore this message
+            let collection = collections.get(collectionId);
+            if (!collection) continue;
+
+            // if we already have the latest version (it was us that performed the change)
+            // the we don't need to update anything either.
+            const { updatedAt } = collection;
+            if (updatedAt === collectionDescriptor.updatedAt) continue;
+
             try {
               await collections.fetch(collectionId, { force: true });
             } catch (err) {
