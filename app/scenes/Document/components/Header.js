@@ -184,18 +184,19 @@ class Header extends React.Component<Props> {
               </Action>
             </React.Fragment>
           )}
-          {isDraft && (
-            <Action>
-              <Button
-                onClick={this.handlePublish}
-                title="Publish document"
-                disabled={publishingIsDisabled}
-                small
-              >
-                {isPublishing ? 'Publishing…' : 'Publish'}
-              </Button>
-            </Action>
-          )}
+          {canEdit &&
+            isDraft && (
+              <Action>
+                <Button
+                  onClick={this.handlePublish}
+                  title="Publish document"
+                  disabled={publishingIsDisabled}
+                  small
+                >
+                  {isPublishing ? 'Publishing…' : 'Publish'}
+                </Button>
+              </Action>
+            )}
           {canEdit && (
             <Action>
               <Tooltip
