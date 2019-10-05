@@ -282,7 +282,11 @@ router.post('documents.drafts', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
   const collectionIds = await user.collectionIds();
 
-  const documents = await Document.findAll({
+  const collectionScope = { method: ['withCollection', user.id] };
+  const documents = await Document.scope(
+    'defaultScope',
+    collectionScope
+  ).findAll({
     where: {
       userId: user.id,
       collectionId: collectionIds,

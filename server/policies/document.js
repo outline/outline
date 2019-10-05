@@ -16,21 +16,29 @@ allow(User, ['read', 'download'], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(
-  User,
-  ['share', 'pin', 'unpin', 'star', 'unstar'],
-  Document,
-  (user, document) => {
-    if (document.archivedAt) return false;
+allow(User, ['share'], Document, (user, document) => {
+  if (document.archivedAt) return false;
 
-    // existance of collection option is not required here to account for share tokens
-    if (document.collection && cannot(user, 'read', document.collection)) {
-      return false;
-    }
-
-    return user.teamId === document.teamId;
+  // existance of collection option is not required here to account for share tokens
+  if (document.collection && cannot(user, 'read', document.collection)) {
+    return false;
   }
-);
+
+  return user.teamId === document.teamId;
+});
+
+allow(User, ['pin', 'unpin', 'star', 'unstar'], Document, (user, document) => {
+  if (document.archivedAt) return false;
+  if (!document.publishedAt) return false;
+
+  invariant(
+    document.collection,
+    'collection is missing, did you forget to include in the query scope?'
+  );
+  if (cannot(user, 'read', document.collection)) return false;
+
+  return user.teamId === document.teamId;
+});
 
 allow(User, 'update', Document, (user, document) => {
   invariant(
