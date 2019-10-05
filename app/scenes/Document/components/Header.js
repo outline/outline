@@ -21,6 +21,7 @@ import DocumentShare from 'scenes/DocumentShare';
 import Button from 'components/Button';
 import Tooltip from 'components/Tooltip';
 import Modal from 'components/Modal';
+import Fade from 'components/Fade';
 import Badge from 'components/Badge';
 import Collaborators from 'components/Collaborators';
 import { Action, Separator } from 'components/Actions';
@@ -132,9 +133,13 @@ class Header extends React.Component<Props> {
           />
         </Modal>
         <Breadcrumb document={document} />
-        <Title isHidden={!this.isScrolled} onClick={this.handleClickTitle}>
-          {document.title} {document.isArchived && <Badge>Archived</Badge>}
-        </Title>
+        {this.isScrolled && (
+          <Title onClick={this.handleClickTitle}>
+            <Fade>
+              {document.title} {document.isArchived && <Badge>Archived</Badge>}
+            </Fade>
+          </Title>
+        )}
         <Wrapper align="center" justify="flex-end">
           {!isDraft && !isEditing && <Collaborators document={document} />}
           {isSaving &&
@@ -298,9 +303,6 @@ const Title = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  transition: opacity 100ms ease-in-out;
-  opacity: ${props => (props.isHidden ? '0' : '1')};
-  cursor: ${props => (props.isHidden ? 'default' : 'pointer')};
   display: none;
   width: 0;
 
