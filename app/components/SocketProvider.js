@@ -58,15 +58,29 @@ class SocketProvider extends React.Component<Props> {
             const documentId = documentDescriptor.id;
             let document = documents.get(documentId) || {};
 
+            if (event.event === 'documents.delete') {
+              documents.remove(documentId);
+              continue;
+            }
+
             // if we already have the latest version (it was us that performed the change)
             // the we don't need to update anything either.
             const { title, updatedAt } = document;
-            if (updatedAt === documentDescriptor.updatedAt) continue;
+            if (updatedAt === documentDescriptor.updatedAt) {
+              continue;
+            }
 
             // otherwise, grab the latest version of the document
-            document = await documents.fetch(documentId, {
-              force: true,
-            });
+            try {
+              document = await documents.fetch(documentId, {
+                force: true,
+              });
+            } catch (err) {
+              if (err.statusCode === 404 || err.statusCode === 403) {
+                documents.remove(documentId);
+                return;
+              }
+            }
 
             // if the title changed then we need to update the collection also
             if (title !== document.title) {
@@ -108,10 +122,17 @@ class SocketProvider extends React.Component<Props> {
             const collectionId = collectionDescriptor.id;
             const collection = collections.get(collectionId) || {};
 
+            if (event.event === 'collections.delete') {
+              documents.remove(collectionId);
+              continue;
+            }
+
             // if we already have the latest version (it was us that performed the change)
             // the we don't need to update anything either.
             const { updatedAt } = collection;
-            if (updatedAt === collectionDescriptor.updatedAt) continue;
+            if (updatedAt === collectionDescriptor.updatedAt) {
+              continue;
+            }
 
             try {
               await collections.fetch(collectionId, { force: true });
@@ -120,6 +141,7 @@ class SocketProvider extends React.Component<Props> {
                 collections.remove(collectionId);
                 documents.removeCollectionDocuments(collectionId);
                 memberships.removeCollectionMemberships(collectionId);
+                return;
               }
             }
           }
@@ -167,6 +189,10 @@ class SocketProvider extends React.Component<Props> {
         this.socket.emit('leave', event);
       });
     });
+  }
+
+  componentWillUnmount() {
+    this.socket.disconnect();
   }
 
   render() {

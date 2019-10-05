@@ -11,11 +11,44 @@ export default class Websockets {
       case 'documents.publish':
       case 'documents.restore':
       case 'documents.archive':
-      case 'documents.unarchive':
+      case 'documents.unarchive': {
+        const document = await Document.findByPk(event.documentId, {
+          paranoid: false,
+        });
+
+        return socketio
+          .to(`collection-${document.collectionId}`)
+          .emit('entities', {
+            event: event.name,
+            documentIds: [
+              {
+                id: document.id,
+                updatedAt: document.updatedAt,
+              },
+            ],
+            collectionIds: [
+              {
+                id: document.collectionId,
+              },
+            ],
+          });
+      }
       case 'documents.delete': {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
         });
+
+        if (!document.publishedAt) {
+          return socketio.to(`user-${document.createdById}`).emit('entities', {
+            event: event.name,
+            documentIds: [
+              {
+                id: document.id,
+                updatedAt: document.updatedAt,
+              },
+            ],
+          });
+        }
 
         return socketio
           .to(`collection-${document.collectionId}`)

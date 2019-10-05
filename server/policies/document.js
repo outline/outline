@@ -64,6 +64,11 @@ allow(User, ['move', 'pin', 'unpin'], Document, (user, document) => {
 });
 
 allow(User, 'delete', Document, (user, document) => {
+  // unpublished drafts can always be deleted
+  if (!document.publishedAt && user.teamId === document.teamId) {
+    return true;
+  }
+
   // allow deleting document without a collection
   if (document.collection && cannot(user, 'update', document.collection))
     return false;
