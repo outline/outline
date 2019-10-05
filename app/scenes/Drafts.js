@@ -37,7 +37,7 @@ class Drafts extends React.Component<Props> {
         ) : (
           <React.Fragment>
             <Subheading>Documents</Subheading>
-            <DocumentList documents={drafts} showCollection />
+            <DocumentList documents={drafts} showDraft={false} showCollection />
             {showLoading && <ListPlaceholder />}
           </React.Fragment>
         )}
