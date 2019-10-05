@@ -27,7 +27,7 @@ allow(User, ['share'], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ['pin', 'unpin', 'star', 'unstar'], Document, (user, document) => {
+allow(User, ['star', 'unstar'], Document, (user, document) => {
   if (document.archivedAt) return false;
   if (!document.publishedAt) return false;
 
@@ -51,7 +51,7 @@ allow(User, 'update', Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, 'move', Document, (user, document) => {
+allow(User, ['move', 'pin', 'unpin'], Document, (user, document) => {
   invariant(
     document.collection,
     'collection is missing, did you forget to include in the query scope?'
