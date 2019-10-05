@@ -688,6 +688,7 @@ router.post('documents.create', auth(), async ctx => {
   document = await Document.findOne({
     where: { id: document.id, publishedAt: document.publishedAt },
   });
+  document.collection = collection;
 
   ctx.body = {
     data: await presentDocument(document),

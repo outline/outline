@@ -151,7 +151,6 @@ export default class Document extends BaseModel {
     if (this.isSaving) return this;
 
     const isCreating = !this.id;
-    const wasDraft = !this.publishedAt;
     this.isSaving = true;
     this.updateTitle();
 
@@ -174,11 +173,6 @@ export default class Document extends BaseModel {
         ...options,
       });
     } finally {
-      if (wasDraft && options.publish) {
-        this.store.rootStore.collections.fetch(this.collectionId, {
-          force: true,
-        });
-      }
       this.isSaving = false;
     }
   };

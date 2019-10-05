@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { inject } from 'mobx-react';
-import { uniq } from 'lodash';
+import { find } from 'lodash';
 import io from 'socket.io-client';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
@@ -73,12 +73,16 @@ class SocketProvider extends React.Component<Props> {
               if (!event.collectionIds) {
                 event.collectionIds = [];
               }
-              event.collectionIds = uniq([
-                ...event.collectionIds,
-                {
+
+              const existing = find(event.collectionIds, {
+                id: document.collectionId,
+              });
+
+              if (!existing) {
+                event.collectionIds.push({
                   id: document.collectionId,
-                },
-              ]);
+                });
+              }
             }
 
             // TODO: Move this to the document scene once data loading

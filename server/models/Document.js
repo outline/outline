@@ -476,7 +476,6 @@ Document.prototype.publish = async function(options) {
 
   this.publishedAt = new Date();
   await this.save(options);
-  this.collection = collection;
 
   return this;
 };
