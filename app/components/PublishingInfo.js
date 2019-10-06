@@ -91,7 +91,7 @@ function PublishingInfo({
           <span>
             &nbsp;in&nbsp;
             <strong>
-              {isDraft ? 'Drafts' : <Breadcrumb document={document} onlyText />}
+              <Breadcrumb document={document} onlyText />
             </strong>
           </span>
         )}

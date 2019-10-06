@@ -62,7 +62,7 @@ class MainSidebar extends React.Component<Props> {
     if (!user || !team) return null;
 
     const draftDocumentsCount = documents.drafts.length;
-    const can = policies.abilties(team.id);
+    const can = policies.abilities(team.id);
 
     return (
       <Sidebar>

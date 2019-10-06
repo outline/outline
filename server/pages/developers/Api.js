@@ -228,13 +228,22 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method method="collections.users" label="List collection members">
+          <Method
+            method="collections.memberships"
+            label="List collection members"
+          >
             <Description>
-              This method allows you to list users with access to a private
-              collection.
+              This method allows you to list a collections memberships. This is
+              both a collections maintainers, and user permissions for read and
+              write if the collection is private
             </Description>
-            <Arguments>
+            <Arguments pagination>
               <Argument id="id" description="Collection ID" required />
+              <Argument id="query" description="Filter results by user name" />
+              <Argument
+                id="permission"
+                description="Filter results by permission"
+              />
             </Arguments>
           </Method>
 
@@ -570,7 +579,13 @@ export default function Api() {
             label="Get pinned documents for a collection"
           >
             <Description>Return pinned documents for a collection</Description>
-            <Arguments pagination />
+            <Arguments pagination>
+              <Argument
+                id="collectionId"
+                description="Collection ID"
+                required
+              />
+            </Arguments>
           </Method>
 
           <Method

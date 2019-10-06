@@ -4,9 +4,11 @@ import invariant from 'invariant';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { PortalWithState } from 'react-portal';
+import { MoreIcon } from 'outline-icons';
 import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import { fadeAndScaleIn } from 'shared/styles/animations';
+import NudeButton from 'components/NudeButton';
 
 let previousClosePortal;
 
@@ -15,7 +17,7 @@ type Children =
   | ((options: { closePortal: () => void }) => React.Node);
 
 type Props = {
-  label: React.Node,
+  label?: React.Node,
   onOpen?: () => void,
   onClose?: () => void,
   children?: Children,
@@ -76,7 +78,11 @@ class DropdownMenu extends React.Component<Props> {
           {({ closePortal, openPortal, portal }) => (
             <React.Fragment>
               <Label onClick={this.handleOpen(openPortal, closePortal)}>
-                {label}
+                {label || (
+                  <NudeButton>
+                    <MoreIcon />
+                  </NudeButton>
+                )}
               </Label>
               {portal(
                 <Position

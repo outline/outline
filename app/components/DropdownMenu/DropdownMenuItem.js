@@ -8,9 +8,13 @@ type Props = {
   disabled?: boolean,
 };
 
-const DropdownMenuItem = ({ onClick, children, ...rest }: Props) => {
+const DropdownMenuItem = ({ onClick, children, disabled, ...rest }: Props) => {
   return (
-    <MenuItem onClick={onClick} {...rest}>
+    <MenuItem
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      {...rest}
+    >
       {children}
     </MenuItem>
   );
@@ -33,9 +37,13 @@ const MenuItem = styled.a`
     margin-right: 8px;
   }
 
+  svg {
+    opacity: ${props => (props.disabled ? '.5' : 1)};
+  }
+
   ${props =>
     props.disabled
-      ? ''
+      ? 'pointer-events: none;'
       : `
 
   &:hover {

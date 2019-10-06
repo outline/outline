@@ -51,6 +51,11 @@ User.associate = models => {
   });
   User.hasMany(models.Document, { as: 'documents' });
   User.hasMany(models.View, { as: 'views' });
+  User.belongsToMany(models.User, {
+    as: 'users',
+    through: 'collection_users',
+    onDelete: 'cascade',
+  });
 };
 
 // Instance methods
@@ -61,7 +66,6 @@ User.prototype.collectionIds = async function(paranoid: boolean = true) {
     include: [
       {
         model: User,
-        through: 'collection_users',
         as: 'users',
         where: { id: this.id },
         required: false,

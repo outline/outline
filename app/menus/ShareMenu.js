@@ -3,9 +3,7 @@ import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import { observable } from 'mobx';
-import { MoreIcon } from 'outline-icons';
 
-import NudeButton from 'components/NudeButton';
 import CopyToClipboard from 'components/CopyToClipboard';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import SharesStore from 'stores/SharesStore';
@@ -49,15 +47,7 @@ class ShareMenu extends React.Component<Props> {
     const { share, onOpen, onClose } = this.props;
 
     return (
-      <DropdownMenu
-        label={
-          <NudeButton>
-            <MoreIcon />
-          </NudeButton>
-        }
-        onOpen={onOpen}
-        onClose={onClose}
-      >
+      <DropdownMenu onOpen={onOpen} onClose={onClose}>
         <CopyToClipboard text={share.url} onCopy={this.handleCopy}>
           <DropdownMenuItem>Copy link</DropdownMenuItem>
         </CopyToClipboard>

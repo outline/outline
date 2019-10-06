@@ -17,10 +17,12 @@ import RichMarkdownEditor from 'rich-markdown-editor';
 import { newDocumentUrl, collectionUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import UiStore from 'stores/UiStore';
 import Collection from 'models/Collection';
 
 import Search from 'scenes/Search';
+import CollectionEdit from 'scenes/CollectionEdit';
 import CollectionMenu from 'menus/CollectionMenu';
 import Actions, { Action, Separator } from 'components/Actions';
 import Heading from 'components/Heading';
@@ -35,7 +37,7 @@ import Subheading from 'components/Subheading';
 import PageTitle from 'components/PageTitle';
 import Flex from 'shared/components/Flex';
 import Modal from 'components/Modal';
-import CollectionPermissions from 'scenes/CollectionPermissions';
+import CollectionMembers from 'scenes/CollectionMembers';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
 import PaginatedDocumentList from 'components/PaginatedDocumentList';
@@ -44,6 +46,7 @@ type Props = {
   ui: UiStore,
   documents: DocumentsStore,
   collections: CollectionsStore,
+  policies: PoliciesStore,
   match: Object,
   theme: Object,
 };
@@ -53,6 +56,7 @@ class CollectionScene extends React.Component<Props> {
   @observable collection: ?Collection;
   @observable isFetching: boolean = true;
   @observable permissionsModalOpen: boolean = false;
+  @observable editModalOpen: boolean = false;
   @observable redirectTo: ?string;
 
   componentDidMount() {
@@ -77,7 +81,7 @@ class CollectionScene extends React.Component<Props> {
       this.collection = collection;
 
       await this.props.documents.fetchPinned({
-        collection: id,
+        collectionId: id,
       });
     }
 
@@ -101,22 +105,36 @@ class CollectionScene extends React.Component<Props> {
     this.permissionsModalOpen = false;
   };
 
+  handleEditModalOpen = () => {
+    this.editModalOpen = true;
+  };
+
+  handleEditModalClose = () => {
+    this.editModalOpen = false;
+  };
+
   renderActions() {
+    const can = this.props.policies.abilities(this.props.match.params.id);
+
     return (
       <Actions align="center" justify="flex-end">
-        <Action>
-          <Tooltip
-            tooltip="New document"
-            shortcut="n"
-            delay={500}
-            placement="bottom"
-          >
-            <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
-              New doc
-            </Button>
-          </Tooltip>
-        </Action>
-        <Separator />
+        {can.update && (
+          <React.Fragment>
+            <Action>
+              <Tooltip
+                tooltip="New document"
+                shortcut="n"
+                delay={500}
+                placement="bottom"
+              >
+                <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
+                  New doc
+                </Button>
+              </Tooltip>
+            </Action>
+            <Separator />
+          </React.Fragment>
+        )}
         <Action>
           <CollectionMenu collection={this.collection} />
         </Action>
@@ -155,18 +173,29 @@ class CollectionScene extends React.Component<Props> {
                   </Link>&nbsp;&nbsp;
                   {collection.private && (
                     <Button onClick={this.onPermissions} neutral>
-                      Invite people
+                      Manage members…
                     </Button>
                   )}
                 </Wrapper>
                 <Modal
-                  title="Collection permissions"
+                  title="Collection members"
                   onRequestClose={this.handlePermissionsModalClose}
                   isOpen={this.permissionsModalOpen}
                 >
-                  <CollectionPermissions
+                  <CollectionMembers
                     collection={this.collection}
                     onSubmit={this.handlePermissionsModalClose}
+                    onEdit={this.handleEditModalOpen}
+                  />
+                </Modal>
+                <Modal
+                  title="Edit collection"
+                  onRequestClose={this.handleEditModalClose}
+                  isOpen={this.editModalOpen}
+                >
+                  <CollectionEdit
+                    collection={this.collection}
+                    onSubmit={this.handleEditModalClose}
                   />
                 </Modal>
               </Centered>
@@ -304,6 +333,6 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject('collections', 'documents', 'ui')(
+export default inject('collections', 'policies', 'documents', 'ui')(
   withTheme(CollectionScene)
 );

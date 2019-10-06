@@ -1,6 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '../app';
+import { CollectionUser } from '../models';
 import { flushdb, seed } from '../test/support';
 import { buildUser, buildShare } from '../test/factories';
 
@@ -101,6 +102,27 @@ describe('#shares.list', async () => {
 describe('#shares.create', async () => {
   it('should allow creating a share record for document', async () => {
     const { user, document } = await seed();
+    const res = await server.post('/api/shares.create', {
+      body: { token: user.getJwtToken(), documentId: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documentTitle).toBe(document.title);
+  });
+
+  it('should allow creating a share record for document in read-only collection', async () => {
+    const { user, document, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read',
+    });
+
     const res = await server.post('/api/shares.create', {
       body: { token: user.getJwtToken(), documentId: document.id },
     });

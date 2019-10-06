@@ -73,6 +73,7 @@ class Invite extends React.Component<Props> {
 
   handleCopy = () => {
     this.linkCopied = true;
+    this.props.ui.showToast('A link was copied to your clipboard');
   };
 
   render() {

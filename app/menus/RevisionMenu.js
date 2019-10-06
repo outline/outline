@@ -2,9 +2,7 @@
 import * as React from 'react';
 import { withRouter, type RouterHistory } from 'react-router-dom';
 import { inject } from 'mobx-react';
-import { MoreIcon } from 'outline-icons';
 
-import NudeButton from 'components/NudeButton';
 import CopyToClipboard from 'components/CopyToClipboard';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import { documentHistoryUrl } from 'utils/routeHelpers';
@@ -42,16 +40,7 @@ class RevisionMenu extends React.Component<Props> {
     )}`;
 
     return (
-      <DropdownMenu
-        label={
-          <NudeButton>
-            <MoreIcon />
-          </NudeButton>
-        }
-        onOpen={onOpen}
-        onClose={onClose}
-        className={className}
-      >
+      <DropdownMenu onOpen={onOpen} onClose={onClose} className={className}>
         <DropdownMenuItem onClick={this.handleRestore}>
           Restore version
         </DropdownMenuItem>

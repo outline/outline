@@ -37,6 +37,7 @@ import ErrorOffline from 'scenes/ErrorOffline';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import DocumentsStore from 'stores/DocumentsStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import RevisionsStore from 'stores/RevisionsStore';
 import Document from 'models/Document';
 import Revision from 'models/Revision';
@@ -60,6 +61,7 @@ type Props = {
   match: Object,
   history: RouterHistory,
   location: Location,
+  policies: PoliciesStore,
   documents: DocumentsStore,
   revisions: RevisionsStore,
   auth: AuthStore,
@@ -89,6 +91,16 @@ class DocumentScene extends React.Component<Props> {
     this.loadEditor();
   }
 
+  componentDidUpdate() {
+    if (this.document) {
+      const policy = this.props.policies.get(this.document.id);
+
+      if (!policy) {
+        this.loadDocument(this.props);
+      }
+    }
+  }
+
   componentWillUnmount() {
     clearTimeout(this.viewTimeout);
   }
@@ -100,18 +112,26 @@ class DocumentScene extends React.Component<Props> {
   @keydown('m')
   goToMove(ev) {
     ev.preventDefault();
+    const document = this.document;
+    if (!document) return;
 
-    if (this.document && !this.document.isArchived && !this.document.isDraft) {
-      this.props.history.push(documentMoveUrl(this.document));
+    const can = this.props.policies.abilities(document.id);
+
+    if (can.update) {
+      this.props.history.push(documentMoveUrl(document));
     }
   }
 
   @keydown('e')
   goToEdit(ev) {
     ev.preventDefault();
+    const document = this.document;
+    if (!document) return;
 
-    if (this.document && !this.document.isArchived) {
-      this.props.history.push(documentEditUrl(this.document));
+    const can = this.props.policies.abilities(document.id);
+
+    if (can.update) {
+      this.props.history.push(documentEditUrl(document));
     }
   }
 
@@ -316,6 +336,9 @@ class DocumentScene extends React.Component<Props> {
 
     const embedsDisabled = team && !team.documentEmbeds;
 
+    // this line is only here to make MobX understand that policies are a dependency of this component
+    this.props.policies.abilities(document.id);
+
     return (
       <ErrorBoundary>
         <Container
@@ -428,5 +451,5 @@ const Container = styled(Flex)`
 `;
 
 export default withRouter(
-  inject('ui', 'auth', 'documents', 'revisions')(DocumentScene)
+  inject('ui', 'auth', 'documents', 'policies', 'revisions')(DocumentScene)
 );
