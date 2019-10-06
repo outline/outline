@@ -728,6 +728,7 @@ router.post('documents.update', auth(), async ctx => {
     document.text = text;
   }
   document.lastModifiedById = user.id;
+  const { collection } = document;
 
   let transaction;
   try {
@@ -771,6 +772,8 @@ router.post('documents.update', auth(), async ctx => {
       ip: ctx.request.ip,
     });
   }
+
+  document.collection = collection;
 
   ctx.body = {
     data: await presentDocument(document),

@@ -1250,6 +1250,38 @@ describe('#documents.update', async () => {
     expect(body.data.text).toBe('Updated text');
   });
 
+  it('should allow publishing document in private collection', async () => {
+    const { user, collection, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read_write',
+    });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+        lastRevision: document.revision,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.publishedAt).toBeTruthy();
+    expect(body.policies[0].abilities.update).toEqual(true);
+  });
+
   it('should not edit archived document', async () => {
     const { user, document } = await seed();
     await document.archive();

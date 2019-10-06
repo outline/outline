@@ -7,7 +7,7 @@ const Badge = styled.span`
   background-color: ${({ admin, theme }) =>
     admin ? theme.primary : theme.textTertiary};
   color: ${({ admin, theme }) => (admin ? theme.white : theme.background)};
-  border-radius: 2px;
+  border-radius: 4px;
   font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
