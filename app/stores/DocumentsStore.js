@@ -357,7 +357,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   duplicate = async (document: Document): * => {
     const res = await client.post('/documents.create', {
-      publish: true,
+      publish: !!document.publishedAt,
       parentDocumentId: document.parentDocumentId,
       collectionId: document.collectionId,
       title: `${document.title} (duplicate)`,
