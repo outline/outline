@@ -5,6 +5,7 @@ import keydown from 'react-keydown';
 import Waypoint from 'react-waypoint';
 import { withRouter, Link } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
+import { PlusIcon } from 'outline-icons';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { debounce } from 'lodash';
@@ -15,16 +16,18 @@ import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import UsersStore from 'stores/UsersStore';
-import { searchUrl } from 'utils/routeHelpers';
+import { newDocumentUrl, searchUrl } from 'utils/routeHelpers';
 import { meta } from 'utils/keyboard';
 
 import Flex from 'shared/components/Flex';
+import Button from 'components/Button';
 import Empty from 'components/Empty';
 import Fade from 'components/Fade';
 import HelpText from 'components/HelpText';
 import CenteredContent from 'components/CenteredContent';
 import LoadingIndicator from 'components/LoadingIndicator';
 import DocumentPreview from 'components/DocumentPreview';
+import NewDocumentMenu from 'menus/NewDocumentMenu';
 import PageTitle from 'components/PageTitle';
 import SearchField from './components/SearchField';
 import StatusFilter from './components/StatusFilter';
@@ -122,6 +125,10 @@ class Search extends React.Component<Props> {
         ...search,
       }),
     });
+  };
+
+  handleNewDoc = () => {
+    this.props.history.push(newDocumentUrl(this.collectionId));
   };
 
   get includeArchived() {
@@ -269,16 +276,32 @@ class Search extends React.Component<Props> {
             </Filters>
           )}
           {showEmpty && (
-            <Empty>
-              No results found for search.{' '}
-              {this.isFiltered && (
-                <React.Fragment>
-                  &nbsp;<Link to={this.props.location.pathname}>
-                    Clear Filters
-                  </Link>.
-                </React.Fragment>
-              )}
-            </Empty>
+            <Fade>
+              <Empty>
+                <Centered column>
+                  <HelpText>
+                    No documents found for your search filters. <br />Create a
+                    new document?
+                  </HelpText>
+                  <Wrapper>
+                    {this.collectionId ? (
+                      <Button
+                        onClick={this.handleNewDoc}
+                        icon={<PlusIcon />}
+                        primary
+                      >
+                        New doc
+                      </Button>
+                    ) : (
+                      <NewDocumentMenu />
+                    )}&nbsp;&nbsp;
+                    <Button as={Link} to="/search" neutral>
+                      Clear filters
+                    </Button>
+                  </Wrapper>
+                </Centered>
+              </Empty>
+            </Fade>
           )}
           <ResultList column visible={this.pinToTop}>
             <StyledArrowKeyNavigation
@@ -310,6 +333,18 @@ class Search extends React.Component<Props> {
     );
   }
 }
+
+const Wrapper = styled(Flex)`
+  justify-content: center;
+  margin: 10px 0;
+`;
+
+const Centered = styled(Flex)`
+  text-align: center;
+  margin: 30vh auto 0;
+  max-width: 380px;
+  transform: translateY(-50%);
+`;
 
 const Container = styled(CenteredContent)`
   > div {
