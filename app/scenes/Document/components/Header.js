@@ -184,7 +184,7 @@ class Header extends React.Component<Props> {
               </Action>
             </React.Fragment>
           )}
-          {canEdit &&
+          {can.update &&
             isDraft && (
               <Action>
                 <Button
