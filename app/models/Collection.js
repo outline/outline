@@ -60,6 +60,25 @@ export default class Collection extends BaseModel {
     travelDocuments(this.documents);
   }
 
+  getDocumentChildren(documentId: string): NavigationNode[] {
+    let result = [];
+    const traveler = nodes => {
+      nodes.forEach(childNode => {
+        if (childNode.id === documentId) {
+          result = childNode.children;
+          return;
+        }
+        return traveler(childNode.children);
+      });
+    };
+
+    if (this.documents) {
+      traveler(this.documents);
+    }
+
+    return result;
+  }
+
   pathToDocument(document: Document) {
     let path;
     const traveler = (nodes, previousPath) => {

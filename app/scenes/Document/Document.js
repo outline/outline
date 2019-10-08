@@ -23,7 +23,7 @@ import Header from './components/Header';
 import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
-import Backlinks from './components/Backlinks';
+import References from './components/References';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -415,12 +415,7 @@ class DocumentScene extends React.Component<Props> {
                 schema={schema}
               />
               {!this.isEditing &&
-                !isShare && (
-                  <Backlinks
-                    documents={this.props.documents}
-                    document={document}
-                  />
-                )}
+                !isShare && <References document={document} />}
             </MaxWidth>
           </Container>
         </Container>
