@@ -43,7 +43,7 @@ const Title = styled.h3`
 `;
 
 @observer
-class Backlink extends React.Component<Props> {
+class ReferenceListItem extends React.Component<Props> {
   render() {
     const { document, showCollection, anchor, ...rest } = this.props;
 
@@ -65,4 +65,4 @@ class Backlink extends React.Component<Props> {
   }
 }
 
-export default Backlink;
+export default ReferenceListItem;

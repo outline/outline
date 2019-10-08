@@ -8,7 +8,7 @@ import Tab from 'components/Tab';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import Document from 'models/Document';
-import Backlink from './Backlink';
+import ReferenceListItem from './ReferenceListItem';
 
 type Props = {
   document: Document,
@@ -18,7 +18,7 @@ type Props = {
 };
 
 @observer
-class Backlinks extends React.Component<Props> {
+class References extends React.Component<Props> {
   componentDidMount() {
     this.props.documents.fetchBacklinks(this.props.document.id);
   }
@@ -33,50 +33,51 @@ class Backlinks extends React.Component<Props> {
 
     const showBacklinks = !!backlinks.length;
     const showChildren = !!children.length;
-    const isReferences =
-      this.props.location.hash === '#references' || !showChildren;
+    const isBacklinksTab =
+      this.props.location.hash === '#backlinks' || !showChildren;
 
     return (
       (showBacklinks || showChildren) && (
         <Fade>
           <Tabs>
             {showChildren && (
-              <Tab to="#children" isActive={() => !isReferences}>
+              <Tab to="#children" isActive={() => !isBacklinksTab}>
                 Child documents
               </Tab>
             )}
             {showBacklinks && (
-              <Tab to="#references" isActive={() => isReferences}>
+              <Tab to="#backlinks" isActive={() => isBacklinksTab}>
                 References
               </Tab>
             )}
           </Tabs>
-          {isReferences &&
-            backlinks.map(backlinkedDocument => (
-              <Backlink
-                anchor={document.urlId}
-                key={backlinkedDocument.id}
-                document={backlinkedDocument}
-                showCollection={
-                  backlinkedDocument.collectionId !== document.collectionId
-                }
-              />
-            ))}
-          {!isReferences &&
-            children.map(node => {
-              const document = documents.get(node.id);
-              return (
-                <Backlink
-                  key={node.id}
-                  document={document || node}
-                  showCollection={false}
+          {isBacklinksTab
+            ? backlinks.map(backlinkedDocument => (
+                <ReferenceListItem
+                  anchor={document.urlId}
+                  key={backlinkedDocument.id}
+                  document={backlinkedDocument}
+                  showCollection={
+                    backlinkedDocument.collectionId !== document.collectionId
+                  }
                 />
-              );
-            })}
+              ))
+            : children.map(node => {
+                // If we have the document in the store already then use it to get the extra
+                // contextual info, otherwise the collection node will do (only has title and id)
+                const document = documents.get(node.id);
+                return (
+                  <ReferenceListItem
+                    key={node.id}
+                    document={document || node}
+                    showCollection={false}
+                  />
+                );
+              })}
         </Fade>
       )
     );
   }
 }
 
-export default withRouter(inject('documents', 'collections')(Backlinks));
+export default withRouter(inject('documents', 'collections')(References));
