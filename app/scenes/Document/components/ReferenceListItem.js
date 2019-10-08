@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import PublishingInfo from 'components/PublishingInfo';
 import Document from 'models/Document';
+import type { NavigationNode } from 'types';
 
 type Props = {
-  document: Document,
+  document: Document | NavigationNode,
   anchor?: string,
   showCollection?: boolean,
 };

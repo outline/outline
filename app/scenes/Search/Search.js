@@ -128,7 +128,9 @@ class Search extends React.Component<Props> {
   };
 
   handleNewDoc = () => {
-    this.props.history.push(newDocumentUrl(this.collectionId));
+    if (this.collectionId) {
+      this.props.history.push(newDocumentUrl(this.collectionId));
+    }
   };
 
   get includeArchived() {
