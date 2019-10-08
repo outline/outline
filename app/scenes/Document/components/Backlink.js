@@ -8,7 +8,7 @@ import Document from 'models/Document';
 
 type Props = {
   document: Document,
-  anchor: string,
+  anchor?: string,
   showCollection?: boolean,
 };
 
@@ -51,13 +51,15 @@ class Backlink extends React.Component<Props> {
       <DocumentLink
         to={{
           pathname: document.url,
-          hash: `d-${anchor}`,
+          hash: anchor ? `d-${anchor}` : undefined,
           state: { title: document.title },
         }}
         {...rest}
       >
         <Title>{document.title}</Title>
-        <PublishingInfo document={document} showCollection={showCollection} />
+        {document.updatedBy && (
+          <PublishingInfo document={document} showCollection={showCollection} />
+        )}
       </DocumentLink>
     );
   }

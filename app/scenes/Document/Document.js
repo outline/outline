@@ -414,13 +414,7 @@ class DocumentScene extends React.Component<Props> {
                 ui={this.props.ui}
                 schema={schema}
               />
-              {!this.isEditing &&
-                !isShare && (
-                  <Backlinks
-                    documents={this.props.documents}
-                    document={document}
-                  />
-                )}
+              {!this.isEditing && !isShare && <Backlinks document={document} />}
             </MaxWidth>
           </Container>
         </Container>
