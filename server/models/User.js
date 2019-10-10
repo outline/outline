@@ -51,11 +51,7 @@ User.associate = models => {
   });
   User.hasMany(models.Document, { as: 'documents' });
   User.hasMany(models.View, { as: 'views' });
-  User.belongsToMany(models.User, {
-    as: 'users',
-    through: 'collection_users',
-    onDelete: 'cascade',
-  });
+  User.belongsTo(models.Team);
 };
 
 // Instance methods
