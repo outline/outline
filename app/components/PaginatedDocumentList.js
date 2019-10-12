@@ -74,8 +74,9 @@ class PaginatedDocumentList extends React.Component<Props> {
     const { empty, heading, documents, fetch, options, ...rest } = this.props;
     const showLoading =
       this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
-    const showEmpty = !documents.length || showLoading;
-    const showList = (this.isLoaded || this.isInitiallyLoaded) && !showLoading;
+    const showEmpty = !documents.length && !showLoading;
+    const showList =
+      (this.isLoaded || this.isInitiallyLoaded) && !showLoading && !showEmpty;
 
     return (
       <React.Fragment>
