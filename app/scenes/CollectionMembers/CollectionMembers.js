@@ -68,7 +68,10 @@ class CollectionMembers extends React.Component<Props> {
     const { user } = auth;
     if (!user) return null;
 
-    const key = memberships.orderedData.map(m => m.permission).join('-');
+    const key = memberships.orderedData
+      .map(m => m.permission)
+      .concat(collection.private)
+      .join('-');
 
     return (
       <Flex column>
