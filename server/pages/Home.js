@@ -24,6 +24,7 @@ function Home(props: Props) {
       </Helmet>
       <Grid>
         <Hero id="signin">
+          <AuthErrors notice={props.notice} />
           {process.env.TEAM_LOGO && <Logo src={process.env.TEAM_LOGO} />}
           <h1>Our team’s knowledge base</h1>
           <HeroText>
@@ -33,7 +34,6 @@ function Home(props: Props) {
           <p>
             <SigninButtons {...props} />
           </p>
-          <AuthErrors notice={props.notice} />
           <p>
             <a href={githubUrl()}>Powered by Outline</a>
           </p>

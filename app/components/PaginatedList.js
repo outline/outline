@@ -3,22 +3,21 @@ import * as React from 'react';
 import { observable, action } from 'mobx';
 import { observer } from 'mobx-react';
 import Waypoint from 'react-waypoint';
+import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
-import Document from 'models/Document';
-import DocumentList from 'components/DocumentList';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 
 type Props = {
-  documents: Document[],
-  fetch: (options: ?Object) => Promise<void>,
+  fetch?: (options: ?Object) => Promise<void>,
   options?: Object,
-  heading?: React.Node,
   empty?: React.Node,
+  items: any[],
+  renderItem: any => React.Node,
 };
 
 @observer
-class PaginatedDocumentList extends React.Component<Props> {
+class PaginatedList extends React.Component<Props> {
   isInitiallyLoaded: boolean = false;
   @observable isLoaded: boolean = false;
   @observable isFetchingMore: boolean = false;
@@ -27,17 +26,13 @@ class PaginatedDocumentList extends React.Component<Props> {
   @observable allowLoadMore: boolean = true;
 
   componentDidMount() {
-    this.isInitiallyLoaded = !!this.props.documents.length;
+    this.isInitiallyLoaded = !!this.props.items.length;
     this.fetchResults();
   }
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.fetch !== this.props.fetch) {
-      this.fetchResults();
-    }
-  }
-
   fetchResults = async () => {
+    if (!this.props.fetch) return;
+
     this.isFetching = true;
 
     const limit = DEFAULT_PAGINATION_LIMIT;
@@ -47,13 +42,10 @@ class PaginatedDocumentList extends React.Component<Props> {
       ...this.props.options,
     });
 
-    if (
-      results &&
-      (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT)
-    ) {
+    if (results && (results.length === 0 || results.length < limit)) {
       this.allowLoadMore = false;
     } else {
-      this.offset += DEFAULT_PAGINATION_LIMIT;
+      this.offset += limit;
     }
 
     this.isLoaded = true;
@@ -71,20 +63,24 @@ class PaginatedDocumentList extends React.Component<Props> {
   };
 
   render() {
-    const { empty, heading, documents, fetch, options, ...rest } = this.props;
+    const { items, empty } = this.props;
+
     const showLoading =
       this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
-    const showEmpty = !documents.length && !showLoading;
-    const showList =
-      (this.isLoaded || this.isInitiallyLoaded) && !showLoading && !showEmpty;
+    const showEmpty = !items.length || showLoading;
+    const showList = (this.isLoaded || this.isInitiallyLoaded) && !showLoading;
 
     return (
       <React.Fragment>
         {showEmpty && empty}
         {showList && (
           <React.Fragment>
-            {heading}
-            <DocumentList documents={documents} {...rest} />
+            <ArrowKeyNavigation
+              mode={ArrowKeyNavigation.mode.VERTICAL}
+              defaultActiveChildIndex={0}
+            >
+              {items.map(this.props.renderItem)}
+            </ArrowKeyNavigation>
             {this.allowLoadMore && (
               <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
             )}
@@ -96,4 +92,4 @@ class PaginatedDocumentList extends React.Component<Props> {
   }
 }
 
-export default PaginatedDocumentList;
+export default PaginatedList;

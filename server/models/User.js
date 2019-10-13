@@ -51,6 +51,7 @@ User.associate = models => {
   });
   User.hasMany(models.Document, { as: 'documents' });
   User.hasMany(models.View, { as: 'views' });
+  User.belongsTo(models.Team);
 };
 
 // Instance methods
@@ -61,7 +62,6 @@ User.prototype.collectionIds = async function(paranoid: boolean = true) {
     include: [
       {
         model: User,
-        through: 'collection_users',
         as: 'users',
         where: { id: this.id },
         required: false,

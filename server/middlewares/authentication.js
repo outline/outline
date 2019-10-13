@@ -81,7 +81,11 @@ export default function auth(options?: { required?: boolean } = {}) {
       ctx.cache[user.id] = user;
     }
 
-    ctx.signIn = (user, team, service, isFirstSignin = false) => {
+    ctx.signIn = async (user, team, service, isFirstSignin = false) => {
+      if (user.isSuspended) {
+        return ctx.redirect('/?notice=suspended');
+      }
+
       // update the database when the user last signed in
       user.updateSignedIn(ctx.request.ip);
 

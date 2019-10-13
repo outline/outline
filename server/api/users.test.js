@@ -11,6 +11,22 @@ beforeEach(flushdb);
 afterAll(server.close);
 
 describe('#users.list', async () => {
+  it('should allow filtering by user name', async () => {
+    const user = await buildUser({ name: 'Tester' });
+
+    const res = await server.post('/api/users.list', {
+      body: {
+        query: 'test',
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
   it('should return teams paginated user list', async () => {
     const { admin, user } = await seed();
 

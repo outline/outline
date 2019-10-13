@@ -45,7 +45,6 @@ class SidebarLink extends React.Component<Props> {
   @action
   handleClick = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    ev.stopPropagation();
     this.expanded = !this.expanded;
   };
 

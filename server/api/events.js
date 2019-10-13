@@ -44,6 +44,7 @@ router.post('events.list', auth(), pagination(), async ctx => {
       {
         model: User,
         as: 'actor',
+        paranoid: false,
       },
     ],
     offset: ctx.state.pagination.offset,

@@ -11,6 +11,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import LoadingIndicator from 'components/LoadingIndicator';
 
 const EMPTY_OBJECT = {};
+let importingLock = false;
 
 type Props = {
   children: React.Node,
@@ -43,7 +44,10 @@ class DropToImport extends React.Component<Props> {
   @observable isImporting: boolean = false;
 
   onDropAccepted = async (files = []) => {
+    if (importingLock) return;
+
     this.isImporting = true;
+    importingLock = true;
 
     try {
       let collectionId = this.props.collectionId;
@@ -70,6 +74,7 @@ class DropToImport extends React.Component<Props> {
       }
     } finally {
       this.isImporting = false;
+      importingLock = false;
     }
   };
 

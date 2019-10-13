@@ -2,6 +2,7 @@
 import uuid from 'uuid';
 import Router from 'koa-router';
 import format from 'date-fns/format';
+import { Op } from '../sequelize';
 import {
   makePolicy,
   getSignature,
@@ -20,12 +21,24 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post('users.list', auth(), pagination(), async ctx => {
+  const { query } = ctx.body;
   const user = ctx.state.user;
 
+  let where = {
+    teamId: user.teamId,
+  };
+
+  if (query) {
+    where = {
+      ...where,
+      name: {
+        [Op.iLike]: `%${query}%`,
+      },
+    };
+  }
+
   const users = await User.findAll({
-    where: {
-      teamId: user.teamId,
-    },
+    where,
     order: [['createdAt', 'DESC']],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
