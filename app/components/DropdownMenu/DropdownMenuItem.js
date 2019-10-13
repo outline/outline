@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import { lighten } from 'polished';
 
 type Props = {
   onClick?: (SyntheticEvent<>) => void | Promise<void>,
