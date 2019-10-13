@@ -39,6 +39,7 @@ function SubdomainSignin({
       <PageTitle title={`Sign in to ${team.name}`} />
       <Grid>
         <Hero>
+          <AuthErrors notice={notice} />
           <h1>{lastSignedIn ? 'Welcome back,' : 'Hey there,'}</h1>
           <HeroText>
             Sign in with your team account to continue to {team.name}.
@@ -51,7 +52,6 @@ function SubdomainSignin({
               lastSignedIn={signinHint}
             />
           </p>
-          <AuthErrors notice={notice} />
         </Hero>
       </Grid>
       <Alternative>

@@ -27,6 +27,12 @@ export default function AuthErrors({ notice }: Props) {
           Please try again.
         </Notice>
       )}
+      {notice === 'suspended' && (
+        <Notice>
+          Your Outline account has been suspended. To re-activate your account,
+          please contact a team admin.
+        </Notice>
+      )}
     </React.Fragment>
   );
 }
