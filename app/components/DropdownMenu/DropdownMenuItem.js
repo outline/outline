@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
+import { lighten } from 'polished';
 
 type Props = {
   onClick?: (SyntheticEvent<>) => void | Promise<void>,
@@ -13,6 +14,8 @@ const DropdownMenuItem = ({ onClick, children, disabled, ...rest }: Props) => {
     <MenuItem
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
+      role="menuitem"
+      tabIndex="-1"
       {...rest}
     >
       {children}
@@ -32,6 +35,7 @@ const MenuItem = styled.a`
   align-items: center;
   font-size: 15px;
   cursor: default;
+  user-select: none;
 
   svg:not(:last-child) {
     margin-right: 8px;
@@ -49,6 +53,7 @@ const MenuItem = styled.a`
   &:hover {
     color: ${props.theme.white};
     background: ${props.theme.primary};
+    box-shadow: none;
     cursor: pointer;
 
     svg {

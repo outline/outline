@@ -11,6 +11,7 @@ import { fadeAndScaleIn } from 'shared/styles/animations';
 import NudeButton from 'components/NudeButton';
 
 let previousClosePortal;
+let counter = 0;
 
 type Children =
   | React.Node
@@ -28,6 +29,8 @@ type Props = {
 
 @observer
 class DropdownMenu extends React.Component<Props> {
+  id: number = `menu${counter++}`;
+
   @observable top: ?number;
   @observable bottom: ?number;
   @observable right: ?number;
@@ -37,6 +40,7 @@ class DropdownMenu extends React.Component<Props> {
   @observable bodyRect: ClientRect;
   @observable labelRect: ClientRect;
   @observable dropdownRef: { current: null | HTMLElement } = React.createRef();
+  @observable menuRef: { current: null | HTMLElement } = React.createRef();
 
   handleOpen = (
     openPortal: (SyntheticEvent<>) => void,
@@ -88,12 +92,12 @@ class DropdownMenu extends React.Component<Props> {
     }
   }
 
-  onOpen(originalFunction?: () => void) {
-    if (typeof originalFunction === 'function') {
-      originalFunction();
+  onOpen = () => {
+    if (typeof this.props.onOpen === 'function') {
+      this.props.onOpen();
     }
     this.fitOnTheScreen();
-  }
+  };
 
   fitOnTheScreen() {
     if (!this.dropdownRef || !this.dropdownRef.current) return;
@@ -135,16 +139,21 @@ class DropdownMenu extends React.Component<Props> {
     return (
       <div className={className}>
         <PortalWithState
-          onOpen={this.onOpen.bind(this, this.props.onOpen)}
+          onOpen={this.onOpen}
           onClose={this.props.onClose}
           closeOnOutsideClick
           closeOnEsc
         >
-          {({ closePortal, openPortal, portal }) => (
+          {({ closePortal, openPortal, isOpen, portal }) => (
             <React.Fragment>
               <Label onClick={this.handleOpen(openPortal, closePortal)}>
                 {label || (
-                  <NudeButton>
+                  <NudeButton
+                    id={`${this.id}button`}
+                    aria-haspopup="true"
+                    aria-expanded={isOpen ? 'true' : 'false'}
+                    aria-controls={this.id}
+                  >
                     <MoreIcon />
                   </NudeButton>
                 )}
@@ -160,6 +169,7 @@ class DropdownMenu extends React.Component<Props> {
                   right={this.right}
                 >
                   <Menu
+                    ref={this.menuRef}
                     onClick={
                       typeof children === 'function'
                         ? undefined
@@ -169,6 +179,9 @@ class DropdownMenu extends React.Component<Props> {
                           }
                     }
                     style={this.props.style}
+                    id={this.id}
+                    aria-labelledby={`${this.id}button`}
+                    role="menu"
                   >
                     {typeof children === 'function'
                       ? children({ closePortal })
