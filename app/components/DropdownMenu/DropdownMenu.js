@@ -29,7 +29,7 @@ type Props = {
 
 @observer
 class DropdownMenu extends React.Component<Props> {
-  id: number = `menu${counter++}`;
+  id: string = `menu${counter++}`;
 
   @observable top: ?number;
   @observable bottom: ?number;
