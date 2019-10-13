@@ -72,7 +72,7 @@ class DocumentLink extends React.Component<Props> {
               pathname: node.url,
               state: { title: node.title },
             }}
-            expanded={showChildren}
+            expanded={showChildren ? true : undefined}
             label={node.title}
             depth={depth}
             exact={false}

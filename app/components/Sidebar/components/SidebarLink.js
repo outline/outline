@@ -26,15 +26,11 @@ type Props = {
 
 @observer
 class SidebarLink extends React.Component<Props> {
-  @observable expanded: boolean;
+  @observable expanded: ?boolean = this.props.expanded;
 
   style = {
     paddingLeft: `${(this.props.depth || 0) * 16 + 16}px`,
   };
-
-  componentDidMount() {
-    if (this.props.expanded) this.handleExpand();
-  }
 
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.expanded !== undefined) {
@@ -45,6 +41,8 @@ class SidebarLink extends React.Component<Props> {
   @action
   handleClick = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
+    ev.stopPropagation();
+
     this.expanded = !this.expanded;
   };
 
