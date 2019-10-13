@@ -62,7 +62,7 @@ class CollectionLink extends React.Component<Props> {
           exact={false}
           menu={
             <CollectionMenu
-              position="left"
+              position="right"
               collection={collection}
               onOpen={() => (this.menuOpen = true)}
               onClose={() => (this.menuOpen = false)}

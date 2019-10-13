@@ -83,7 +83,7 @@ const SearchFilter = props => {
           {props.label}
         </StyledButton>
       }
-      position="left"
+      position="right"
     >
       {({ closePortal }) => (
         <MaxHeightScrollable>
