@@ -3,8 +3,8 @@ import * as React from 'react';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { withRouter, type RouterHistory } from 'react-router-dom';
-import styled from 'styled-components';
 import Modal from 'components/Modal';
+import VisuallyHidden from 'components/VisuallyHidden';
 import CollectionMembers from 'scenes/CollectionMembers';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
@@ -31,7 +31,6 @@ type Props = {
 class CollectionMenu extends React.Component<Props> {
   file: ?HTMLInputElement;
   @observable membersModalOpen: boolean = false;
-  @observable redirectTo: ?string;
 
   onNewDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
@@ -41,6 +40,7 @@ class CollectionMenu extends React.Component<Props> {
 
   onImportDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
+    ev.stopPropagation();
 
     // simulate a click on the file upload input element
     if (this.file) this.file.click();
@@ -94,12 +94,15 @@ class CollectionMenu extends React.Component<Props> {
 
     return (
       <React.Fragment>
-        <HiddenInput
-          type="file"
-          ref={ref => (this.file = ref)}
-          onChange={this.onFilePicked}
-          accept="text/markdown, text/plain"
-        />
+        <VisuallyHidden>
+          <input
+            type="file"
+            ref={ref => (this.file = ref)}
+            onChange={this.onFilePicked}
+            accept="text/markdown, text/plain"
+          />
+        </VisuallyHidden>
+
         <Modal
           title="Collection members"
           onRequestClose={this.handleMembersModalClose}
@@ -148,13 +151,6 @@ class CollectionMenu extends React.Component<Props> {
     );
   }
 }
-
-const HiddenInput = styled.input`
-  position: absolute;
-  top: -100px;
-  left: -100px;
-  visibility: hidden;
-`;
 
 export default inject('ui', 'documents', 'policies')(
   withRouter(CollectionMenu)
