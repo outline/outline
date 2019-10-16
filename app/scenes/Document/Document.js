@@ -378,6 +378,7 @@ class DocumentScene extends React.Component<Props> {
             {!isShare && (
               <Header
                 document={document}
+                isRevision={!!revision}
                 isDraft={document.isDraft}
                 isEditing={this.isEditing}
                 isSaving={this.isSaving}

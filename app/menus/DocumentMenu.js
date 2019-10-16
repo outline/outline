@@ -10,6 +10,7 @@ import AuthStore from 'stores/AuthStore';
 import CollectionStore from 'stores/CollectionsStore';
 import PoliciesStore from 'stores/PoliciesStore';
 import {
+  documentUrl,
   documentMoveUrl,
   documentEditUrl,
   documentHistoryUrl,
@@ -25,6 +26,7 @@ type Props = {
   collections: CollectionStore,
   policies: PoliciesStore,
   className: string,
+  isRevision?: boolean,
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
   showPin?: boolean,
@@ -51,7 +53,11 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   handleDocumentHistory = () => {
-    this.redirectTo = documentHistoryUrl(this.props.document);
+    if (this.props.isRevision) {
+      this.redirectTo = documentUrl(this.props.document);
+    } else {
+      this.redirectTo = documentHistoryUrl(this.props.document);
+    }
   };
 
   handleMove = (ev: SyntheticEvent<>) => {

@@ -32,6 +32,7 @@ type Props = {
   document: Document,
   isDraft: boolean,
   isEditing: boolean,
+  isRevision: boolean,
   isSaving: boolean,
   isPublishing: boolean,
   publishingIsDisabled: boolean,
@@ -103,6 +104,7 @@ class Header extends React.Component<Props> {
       isEditing,
       isDraft,
       isPublishing,
+      isRevision,
       isSaving,
       savingIsDisabled,
       publishingIsDisabled,
@@ -243,6 +245,7 @@ class Header extends React.Component<Props> {
               <Action>
                 <DocumentMenu
                   document={document}
+                  isRevision={isRevision}
                   showToggleEmbeds={canToggleEmbeds}
                   showPrint
                 />
