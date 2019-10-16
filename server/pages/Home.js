@@ -15,7 +15,11 @@ import Flex from '../../shared/components/Flex';
 import { githubUrl, slackAppStoreUrl } from '../../shared/utils/routeHelpers';
 
 type Props = {
-  notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed' | 'azuread-no-organization' | 'azuread-no-userinfo',
+  notice?: | 'google-hd'
+    | 'auth-error'
+    | 'hd-not-allowed'
+    | 'azuread-no-organization'
+    | 'azuread-no-userinfo',
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,

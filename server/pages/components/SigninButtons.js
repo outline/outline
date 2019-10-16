@@ -54,7 +54,8 @@ const SigninButtons = ({
             <Spacer>Sign In with Microsoft</Spacer>
           </Button>
           <LastLogin>
-            {lastSignedIn === 'azuread' && 'You signed in with Microsoft previously'}
+            {lastSignedIn === 'azuread' &&
+              'You signed in with Microsoft previously'}
           </LastLogin>
         </Column>
       )}

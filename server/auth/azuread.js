@@ -1,15 +1,15 @@
 // @flow
 import crypto from 'crypto';
 import Router from 'koa-router';
-import { capitalize } from 'lodash';
 import { AuthenticationContext } from 'adal-node';
-import { AuthenticationProvider, Client } from "@microsoft/microsoft-graph-client";
+import {
+  AuthenticationProvider,
+  Client,
+} from '@microsoft/microsoft-graph-client';
 import { User, Team, Event } from '../models';
 import auth from '../middlewares/authentication';
-import { access } from 'fs';
 
 class AzureADProvider implements AuthenticationProvider {
-
   constructor(code) {
     this._code = code;
   }
@@ -37,36 +37,48 @@ var clientSecret = process.env.AZUREAD_CLIENT_SECRET;
 var authorityHostUrl = 'https://login.microsoftonline.com/';
 var tenant = process.env.AZUREAD_TENANT_ID;
 var authorityUrl = authorityHostUrl + tenant;
-var redirectUri = `${process.env.URL}/auth/azuread.callback`
-var templateAuthzUrl = `${authorityUrl}//oauth2/authorize?response_type=code&client_id=${clientId}&&redirect_uri=${redirectUri}&state=<state>`;
+var redirectUri = `${process.env.URL}/auth/azuread.callback`;
+var templateAuthzUrl = `${
+  authorityUrl
+}//oauth2/authorize?response_type=code&client_id=${clientId}&&redirect_uri=${
+  redirectUri
+}&state=<state>`;
 
-var createAuthorizationUrl = (state) => {
+var createAuthorizationUrl = state => {
   return templateAuthzUrl.replace('<state>', state);
-}
+};
 
 var aqcuireTokenAsync = (code, redirectUri, clientId, clientSecret) => {
   return new Promise((resolve, reject) => {
-      var authenticationContext = new AuthenticationContext(authorityUrl);
-      authenticationContext.acquireTokenWithAuthorizationCode(code, redirectUri, "https://graph.microsoft.com", clientId, clientSecret, (err, response) => {
-          if(err) {
-              reject(err);
-          }
+    var authenticationContext = new AuthenticationContext(authorityUrl);
+    authenticationContext.acquireTokenWithAuthorizationCode(
+      code,
+      redirectUri,
+      'https://graph.microsoft.com',
+      clientId,
+      clientSecret,
+      (err, response) => {
+        if (err) {
+          reject(err);
+        }
 
-          resolve(response);
-      })
-  })
-}
+        resolve(response);
+      }
+    );
+  });
+};
 
 // start the oauth process and redirect user to Microsoft AzureAD
 router.get('azuread', async ctx => {
-    const buffer = await crypto.randomBytes(48);
-    const token = buffer.toString('base64').replace(/\//g,'_').replace(/\+/g,'-');
-    ctx.cookies.set('authstate', token);
-    var authorizationUrl = createAuthorizationUrl(token);
-    ctx.redirect(authorizationUrl);
+  const buffer = await crypto.randomBytes(48);
+  const token = buffer
+    .toString('base64')
+    .replace(/\//g, '_')
+    .replace(/\+/g, '-');
+  ctx.cookies.set('authstate', token);
+  var authorizationUrl = createAuthorizationUrl(token);
+  ctx.redirect(authorizationUrl);
 });
-
-
 
 // signin callback from Microsoft AzureAD
 router.get('azuread.callback', auth({ required: false }), async ctx => {
@@ -81,38 +93,36 @@ router.get('azuread.callback', auth({ required: false }), async ctx => {
   var response = await aqcuireTokenAsync(
     code,
     redirectUri,
-    clientId, 
+    clientId,
     clientSecret
   );
 
-  if(!response) {
+  if (!response) {
     ctx.redirect('/?notice=auth-error');
     return;
   }
 
   const accessToken = response.accessToken;
   const clientOptions = {
-    authProvider: new AzureADProvider(accessToken)
+    authProvider: new AzureADProvider(accessToken),
   };
 
   const client = Client.initWithMiddleware(clientOptions);
 
-  let userId = "";
-  let azureId = "";
-  let hashedOrganizationId = "";
-  let teamName = "";
-  let userName = "";
-  let userEmail = "";
-  let userAvatar = "";
+  let userId = '';
+  let azureId = '';
+  let hashedOrganizationId = '';
+  let teamName = '';
+  let userName = '';
+  let userEmail = '';
+  let userAvatar = '';
 
   try {
     try {
-      const orgResource = await client
-        .api("/organization")
-        .get();
+      const orgResource = await client.api('/organization').get();
 
-      if(!orgResource) {
-        ctx.redirect("/?notice=azuread-no-organization");
+      if (!orgResource) {
+        ctx.redirect('/?notice=azuread-no-organization');
         return;
       }
 
@@ -121,13 +131,11 @@ router.get('azuread.callback', auth({ required: false }), async ctx => {
       azureId = orgResource.value[0].id;
       hashedOrganizationId = hash.digest('hex');
       teamName = orgResource.value[0].displayName;
-    } catch(error) {
+    } catch (error) {
       throw error;
     }
 
-    const userResource = await client
-      .api("/me")
-      .get();
+    const userResource = await client.api('/me').get();
 
     if (!userResource) {
       ctx.redirect('/?notice=azuread-no-userinfo');
@@ -137,12 +145,16 @@ router.get('azuread.callback', auth({ required: false }), async ctx => {
     userId = userResource.id;
     userName = userResource.displayName;
     userEmail = userResource.mail;
-    userAvatar = `https://tiley.herokuapp.com/avatar/${hashedOrganizationId}/${userName[0]}.png`;
+    userAvatar = `https://tiley.herokuapp.com/avatar/${hashedOrganizationId}/${
+      userName[0]
+    }.png`;
   } catch (error) {
     throw error;
   }
-  
-  const tileyUrl = `https://tiley.herokuapp.com/avatar/${hashedOrganizationId}/${teamName[0]}.png`;
+
+  const tileyUrl = `https://tiley.herokuapp.com/avatar/${
+    hashedOrganizationId
+  }/${teamName[0]}.png`;
   const avatarUrl = tileyUrl;
 
   const [team, isFirstUser] = await Team.findOrCreate({
@@ -183,17 +195,17 @@ router.get('azuread.callback', auth({ required: false }), async ctx => {
     });
   }
 
-    // update email address if it's changed in Azure AD
-    if (!isFirstSignin && userEmail !== user.email) {
-      await user.update({ email: userEmail });
-    }
+  // update email address if it's changed in Azure AD
+  if (!isFirstSignin && userEmail !== user.email) {
+    await user.update({ email: userEmail });
+  }
 
-    if (isFirstUser) {
-      await team.provisionFirstCollection(user.id);
-      await team.provisionSubdomain(teamName);
-    }
+  if (isFirstUser) {
+    await team.provisionFirstCollection(user.id);
+    await team.provisionSubdomain(teamName);
+  }
 
-    ctx.signIn(user, team, 'azuread', isFirstSignin);
+  ctx.signIn(user, team, 'azuread', isFirstSignin);
 });
 
 export default router;
