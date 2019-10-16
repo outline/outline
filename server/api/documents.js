@@ -814,7 +814,9 @@ router.post('documents.move', auth(), async ctx => {
   }
 
   if (parentDocumentId) {
-    const parent = await Document.findByPk(parentDocumentId, user.id);
+    const parent = await Document.findByPk(parentDocumentId, {
+      userId: user.id,
+    });
     authorize(user, 'update', parent);
   }
 
