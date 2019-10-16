@@ -10,12 +10,14 @@ import { stripSubdomain } from '../../shared/utils/domains';
 
 import slack from './slack';
 import google from './google';
+import azuread from './azuread';
 
 const app = new Koa();
 const router = new Router();
 
 router.use('/', slack.routes());
 router.use('/', google.routes());
+router.use('/', azuread.routes());
 
 router.get('/redirect', auth(), async ctx => {
   const user = ctx.state.user;

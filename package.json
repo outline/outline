@@ -55,8 +55,10 @@
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "dependencies": {
+    "@microsoft/microsoft-graph-client": "^2.0.0",
     "@tippy.js/react": "^2.2.2",
     "@tommoor/remove-markdown": "0.3.1",
+    "adal-node": "^0.2.1",
     "autotrack": "^2.4.1",
     "aws-sdk": "^2.135.0",
     "babel-core": "^6.24.1",

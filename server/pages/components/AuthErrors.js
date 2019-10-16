@@ -27,10 +27,16 @@ export default function AuthErrors({ notice }: Props) {
           Please try again.
         </Notice>
       )}
-      {notice === 'suspended' && (
+      {notice === 'azuread-no-organization' && (
+          <Notice>
+            Sorry, Microsoft sign in cannot be used with a non-Work account.
+            Please try signing in with your company Microsoft or Office 365 account.
+          </Notice>
+      )}
+      {notice === 'azuread-no-userinfo' && (
         <Notice>
-          Your Outline account has been suspended. To re-activate your account,
-          please contact a team admin.
+          Sorry, we couldn't get your user information.
+          Please try again.
         </Notice>
       )}
     </React.Fragment>

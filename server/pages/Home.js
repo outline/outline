@@ -15,7 +15,7 @@ import Flex from '../../shared/components/Flex';
 import { githubUrl, slackAppStoreUrl } from '../../shared/utils/routeHelpers';
 
 type Props = {
-  notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed',
+  notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed' | 'azuread-no-organization' | 'azuread-no-userinfo',
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
@@ -29,7 +29,6 @@ function Home(props: Props) {
       </Helmet>
       <Grid>
         <Hero id="signin">
-          <AuthErrors notice={props.notice} />
           <h1>Your team’s knowledge base</h1>
           <HeroText>
             Team wiki, documentation, meeting notes, playbooks, onboarding, work
@@ -38,6 +37,7 @@ function Home(props: Props) {
           <p>
             <SigninButtons {...props} />
           </p>
+          <AuthErrors notice={props.notice} />
         </Hero>
         <Mask>
           <Features>

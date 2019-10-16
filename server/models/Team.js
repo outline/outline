@@ -49,6 +49,7 @@ const Team = sequelize.define(
     },
     slackId: { type: DataTypes.STRING, allowNull: true },
     googleId: { type: DataTypes.STRING, allowNull: true },
+    azureId: { type: DataTypes.STRING, allowNull: true },
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
     sharing: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
     documentEmbeds: {
