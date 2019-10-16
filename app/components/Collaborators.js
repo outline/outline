@@ -61,13 +61,13 @@ class Collaborators extends React.Component<Props> {
         {overflow > 0 && <More>+{overflow}</More>}
         {mostRecentViewers.map(({ lastViewedAt, user }) => (
           <React.Fragment key={user.id}>
-            <AvatarPile
+            <Tooltip
               tooltip={
-                <TooltipCentered>
+                <Centered>
                   <strong>{user.name}</strong>
                   <br />
                   viewed {distanceInWordsToNow(new Date(lastViewedAt))} ago
-                </TooltipCentered>
+                </Centered>
               }
               placement="bottom"
             >
@@ -78,7 +78,7 @@ class Collaborators extends React.Component<Props> {
                   size={32}
                 />
               </Viewer>
-            </AvatarPile>
+            </Tooltip>
             <UserProfile
               user={user}
               isOpen={this.openProfileId === user.id}
@@ -88,15 +88,15 @@ class Collaborators extends React.Component<Props> {
         ))}
         {collaborators.map(user => (
           <React.Fragment key={user.id}>
-            <AvatarPile
+            <Tooltip
               tooltip={
-                <TooltipCentered>
+                <Centered>
                   <strong>{user.name}</strong>
                   <br />
                   {createdAt === updatedAt ? 'published' : 'updated'}{' '}
                   {updatedBy.id === user.id &&
                     `${distanceInWordsToNow(new Date(updatedAt))} ago`}
-                </TooltipCentered>
+                </Centered>
               }
               placement="bottom"
             >
@@ -107,7 +107,7 @@ class Collaborators extends React.Component<Props> {
                   size={32}
                 />
               </Collaborator>
-            </AvatarPile>
+            </Tooltip>
             <UserProfile
               user={user}
               isOpen={this.openProfileId === user.id}
@@ -120,11 +120,14 @@ class Collaborators extends React.Component<Props> {
   }
 }
 
-const TooltipCentered = styled.div`
+const Centered = styled.div`
   text-align: center;
 `;
 
-const AvatarPile = styled(Tooltip)`
+const Viewer = styled.div`
+  width: 32px;
+  height: 32px;
+  opacity: 0.75;
   margin-right: -8px;
 
   &:first-child {
@@ -132,15 +135,14 @@ const AvatarPile = styled(Tooltip)`
   }
 `;
 
-const Viewer = styled.div`
-  width: 32px;
-  height: 32px;
-  opacity: 0.75;
-`;
-
 const Collaborator = styled.div`
   width: 32px;
   height: 32px;
+  margin-right: -8px;
+
+  &:first-child {
+    margin-right: 0;
+  }
 `;
 
 const More = styled.div`
