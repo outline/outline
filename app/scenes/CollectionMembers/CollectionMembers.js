@@ -113,7 +113,7 @@ class CollectionMembers extends React.Component<Props> {
           items={
             collection.private
               ? users.inCollection(collection.id)
-              : users.orderedData
+              : users.active
           }
           fetch={collection.private ? memberships.fetchPage : users.fetchPage}
           options={collection.private ? { id: collection.id } : undefined}
