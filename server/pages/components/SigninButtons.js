@@ -6,7 +6,7 @@ import { signin } from '../../../shared/utils/routeHelpers';
 import Flex from '../../../shared/components/Flex';
 import GoogleLogo from '../../../shared/components/GoogleLogo';
 import SlackLogo from '../../../shared/components/SlackLogo';
-import AzureAdLogo from '../../../shared/components/AzureADLogo';
+import AzureAdLogo from '../../../shared/components/AzureAdLogo';
 import breakpoint from 'styled-components-breakpoint';
 
 type Props = {
