@@ -95,10 +95,12 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   handleStar = (ev: SyntheticEvent<>) => {
+    ev.stopPropagation();
     this.props.document.star();
   };
 
   handleUnstar = (ev: SyntheticEvent<>) => {
+    ev.stopPropagation();
     this.props.document.unstar();
   };
 
