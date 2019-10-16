@@ -52,7 +52,11 @@ class Editor extends React.Component<Props> {
         }
       }
 
-      this.redirectTo = navigateTo;
+      // protect against redirecting back to the same place
+      const currentLocation = window.location.pathname + window.location.hash;
+      if (currentLocation !== navigateTo) {
+        this.redirectTo = navigateTo;
+      }
     } else {
       window.open(href, '_blank');
     }
