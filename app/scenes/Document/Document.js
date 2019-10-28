@@ -155,6 +155,14 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
+  @keydown('meta+shift+p')
+  onPublish(ev) {
+    ev.preventDefault();
+    if (!this.document) return;
+    if (this.document.publishedAt) return;
+    this.onSave({ publish: true, done: true });
+  }
+
   loadDocument = async props => {
     const { shareId, revisionId } = props.match.params;
 
@@ -409,6 +417,7 @@ class DocumentScene extends React.Component<Props> {
                 onSearchLink={this.onSearchLink}
                 onChange={this.onChange}
                 onSave={this.onSave}
+                onPublish={this.onPublish}
                 onCancel={this.onDiscard}
                 readOnly={!this.isEditing || document.isArchived}
                 toc={!revision}

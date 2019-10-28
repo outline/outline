@@ -189,14 +189,21 @@ class Header extends React.Component<Props> {
           {can.update &&
             isDraft && (
               <Action>
-                <Button
-                  onClick={this.handlePublish}
-                  title="Publish document"
-                  disabled={publishingIsDisabled}
-                  small
+                <Tooltip
+                  tooltip="Publish"
+                  shortcut={`${meta}+shift+p`}
+                  delay={500}
+                  placement="bottom"
                 >
-                  {isPublishing ? 'Publishing…' : 'Publish'}
-                </Button>
+                  <Button
+                    onClick={this.handlePublish}
+                    title="Publish document"
+                    disabled={publishingIsDisabled}
+                    small
+                  >
+                    {isPublishing ? 'Publishing…' : 'Publish'}
+                  </Button>
+                </Tooltip>
               </Action>
             )}
           {canEdit && (
