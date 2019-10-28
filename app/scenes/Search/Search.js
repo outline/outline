@@ -192,7 +192,8 @@ class Search extends React.Component<Props> {
           userId: this.userId,
         });
 
-        if (results.length > 0) this.pinToTop = true;
+        this.pinToTop = true;
+
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
           this.allowLoadMore = false;
         } else {
