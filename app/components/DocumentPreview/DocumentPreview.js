@@ -141,7 +141,7 @@ class DocumentPreview extends React.Component<Props> {
 
     const queryIsInTitle =
       !!highlight &&
-      !!document.title.toLowerCase().match(highlight.toLowerCase());
+      !!document.title.toLowerCase().includes(highlight.toLowerCase());
 
     return (
       <DocumentLink

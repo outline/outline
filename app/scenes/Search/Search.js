@@ -106,7 +106,7 @@ class Search extends React.Component<Props> {
   };
 
   handleTermChange = () => {
-    const query = this.props.match.params.term;
+    const query = decodeURIComponent(this.props.match.params.term || '');
     this.query = query ? query : '';
     this.offset = 0;
     this.allowLoadMore = true;
