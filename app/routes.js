@@ -1,4 +1,5 @@
 // @flow
+import { hot } from 'react-hot-loader/root';
 import * as React from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import Home from 'scenes/Home';
@@ -34,7 +35,7 @@ const RedirectDocument = ({ match }: { match: Object }) => (
   <Redirect to={`/doc/${match.params.documentSlug}`} />
 );
 
-export default function Routes() {
+function Routes() {
   return (
     <Switch>
       <Route exact path="/" component={Home} />
@@ -107,3 +108,5 @@ export default function Routes() {
     </Switch>
   );
 }
+
+export default hot(Routes);
