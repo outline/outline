@@ -45,12 +45,13 @@ class Layout extends React.Component<Props> {
   @observable redirectTo: ?string;
   @observable keyboardShortcutsOpen: boolean = false;
 
-  componentWillMount() {
-    this.updateBackground();
+  constructor(props) {
+    super();
+    this.updateBackground(props);
   }
 
   componentDidUpdate() {
-    this.updateBackground();
+    this.updateBackground(this.props);
 
     if (this.redirectTo) {
       this.redirectTo = undefined;
@@ -66,9 +67,9 @@ class Layout extends React.Component<Props> {
     this.keyboardShortcutsOpen = false;
   };
 
-  updateBackground() {
+  updateBackground(props) {
     // ensure the wider page color always matches the theme
-    window.document.body.style.background = this.props.theme.background;
+    window.document.body.style.background = props.theme.background;
   }
 
   @keydown(['/', 't', 'meta+k'])

@@ -10,7 +10,7 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
-describe('#shares.list', async () => {
+describe('#shares.list', () => {
   it('should only return shares created by user', async () => {
     const { user, admin, document } = await seed();
     await buildShare({
@@ -99,7 +99,7 @@ describe('#shares.list', async () => {
   });
 });
 
-describe('#shares.create', async () => {
+describe('#shares.create', () => {
   it('should allow creating a share record for document', async () => {
     const { user, document } = await seed();
     const res = await server.post('/api/shares.create', {
@@ -196,7 +196,7 @@ describe('#shares.create', async () => {
   });
 });
 
-describe('#shares.revoke', async () => {
+describe('#shares.revoke', () => {
   it('should allow author to revoke a share', async () => {
     const { user, document } = await seed();
     const share = await buildShare({

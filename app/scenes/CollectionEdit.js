@@ -26,7 +26,8 @@ class CollectionEdit extends React.Component<Props> {
   @observable isSaving: boolean;
   @observable private: boolean = false;
 
-  componentWillMount() {
+  constructor() {
+    super();
     this.name = this.props.collection.name;
     this.description = this.props.collection.description;
     this.color = this.props.collection.color;

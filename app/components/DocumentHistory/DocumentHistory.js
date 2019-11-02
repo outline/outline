@@ -42,9 +42,9 @@ class DocumentHistory extends React.Component<Props> {
     this.selectFirstRevision();
   }
 
-  async componentWillReceiveProps(nextProps) {
-    const document = nextProps.documents.getByUrl(
-      nextProps.match.params.documentSlug
+  async componentDidUpdate(nextProps) {
+    const document = this.props.documents.getByUrl(
+      this.props.match.params.documentSlug
     );
     if (!this.document && document) {
       this.document = document;

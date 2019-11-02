@@ -63,9 +63,9 @@ class CollectionScene extends React.Component<Props> {
     this.loadContent(this.props.match.params.id);
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.match.params.id !== this.props.match.params.id) {
-      this.loadContent(nextProps.match.params.id);
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.match.params.id !== this.props.match.params.id) {
+      this.loadContent(this.props.match.params.id);
     }
   }
 

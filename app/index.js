@@ -1,5 +1,7 @@
 // @flow
+import 'react-hot-loader';
 import * as React from 'react';
+import { hot } from 'react-hot-loader/root';
 import { render } from 'react-dom';
 import { Provider } from 'mobx-react';
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -11,34 +13,31 @@ import Toasts from 'components/Toasts';
 import Theme from 'components/Theme';
 import Routes from './routes';
 
-let DevTools;
-if (__DEV__) {
-  DevTools = require('mobx-react-devtools').default; // eslint-disable-line global-require
-}
-
 const element = document.getElementById('root');
 
-if (element) {
-  render(
-    <React.Fragment>
-      <ErrorBoundary>
-        <Provider {...stores}>
-          <Theme>
-            <Router>
-              <React.Fragment>
-                <ScrollToTop>
-                  <Routes />
-                </ScrollToTop>
-                <Toasts />
-              </React.Fragment>
-            </Router>
-          </Theme>
-        </Provider>
-      </ErrorBoundary>
-      {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}
-    </React.Fragment>,
-    element
+const App = () => {
+  return (
+    <ErrorBoundary>
+      <Provider {...stores}>
+        <Theme>
+          <Router>
+            <React.Fragment>
+              <ScrollToTop>
+                <Routes />
+              </ScrollToTop>
+              <Toasts />
+            </React.Fragment>
+          </Router>
+        </Theme>
+      </Provider>
+    </ErrorBoundary>
   );
+};
+
+const AppContainer = hot(App);
+
+if (element) {
+  render(<AppContainer />, element);
 }
 
 window.addEventListener('load', async () => {

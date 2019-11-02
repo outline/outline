@@ -11,14 +11,15 @@
       "@babel/plugin-proposal-decorators",
       { "legacy": true }
     ],
-    "@babel/plugin-transform-destructuring",
-    "@babel/plugin-proposal-object-rest-spread",
-    "@babel/plugin-transform-regenerator",
     [
       "@babel/plugin-proposal-class-properties",
       { "loose": true }
     ],
     "@babel/plugin-syntax-dynamic-import",
+    "@babel/plugin-transform-runtime",
+    "@babel/plugin-transform-destructuring",
+    "@babel/plugin-proposal-object-rest-spread",
+    "@babel/plugin-transform-regenerator",
     "react-hot-loader/babel"
   ]
 }

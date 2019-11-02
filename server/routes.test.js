@@ -8,7 +8,7 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
-describe('#index', async () => {
+describe('#index', () => {
   it('should render homepage', async () => {
     const res = await server.get('/');
     const html = await res.text();

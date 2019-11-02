@@ -13,12 +13,13 @@ type Props = {
 class Mask extends React.Component<Props> {
   width: number;
 
-  shouldComponentUpdate() {
-    return false;
+  constructor() {
+    super();
+    this.width = randomInteger(75, 100);
   }
 
-  componentWillMount() {
-    this.width = randomInteger(75, 100);
+  shouldComponentUpdate() {
+    return false;
   }
 
   render() {

@@ -20,8 +20,8 @@ type Props = {
 
 @observer
 class Sidebar extends React.Component<Props> {
-  componentWillReceiveProps = (nextProps: Props) => {
-    if (this.props.location !== nextProps.location) {
+  componentDidUpdate = (prevProps: Props) => {
+    if (this.props.location !== prevProps.location) {
       this.props.ui.hideMobileSidebar();
     }
   };

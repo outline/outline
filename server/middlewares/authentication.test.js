@@ -7,7 +7,7 @@ import auth from './authentication';
 
 beforeEach(flushdb);
 
-describe('Authentication middleware', async () => {
+describe('Authentication middleware', () => {
   describe('with JWT', () => {
     it('should authenticate with correct token', async () => {
       const state = {};

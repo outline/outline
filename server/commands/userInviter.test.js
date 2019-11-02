@@ -5,7 +5,7 @@ import { buildUser } from '../test/factories';
 
 beforeEach(flushdb);
 
-describe('userInviter', async () => {
+describe('userInviter', () => {
   const ip = '127.0.0.1';
 
   it('should return sent invites', async () => {

@@ -1,5 +1,4 @@
 // @flow
-import { hot } from 'react-hot-loader/root';
 import * as React from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import Home from 'scenes/Home';
@@ -109,4 +108,4 @@ function Routes() {
   );
 }
 
-export default hot(Routes);
+export default Routes;

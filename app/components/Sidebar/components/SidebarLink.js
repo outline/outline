@@ -32,9 +32,9 @@ class SidebarLink extends React.Component<Props> {
     paddingLeft: `${(this.props.depth || 0) * 16 + 16}px`,
   };
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.expanded !== undefined) {
-      this.expanded = nextProps.expanded;
+  componentDidUpdate() {
+    if (this.props.expanded !== undefined) {
+      this.expanded = this.props.expanded;
     }
   }
 

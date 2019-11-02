@@ -10,7 +10,7 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
-describe('#views.list', async () => {
+describe('#views.list', () => {
   it('should return views for a document', async () => {
     const { user, document } = await seed();
     await View.increment({ documentId: document.id, userId: user.id });
@@ -70,7 +70,7 @@ describe('#views.list', async () => {
   });
 });
 
-describe('#views.create', async () => {
+describe('#views.create', () => {
   it('should allow creating a view record for document', async () => {
     const { user, document } = await seed();
     const res = await server.post('/api/views.create', {
