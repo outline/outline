@@ -1,12 +1,13 @@
 {
   "presets": [
+    "@babel/preset-flow",
     "@babel/preset-react",
-    "@babel/preset-env",
-    "@babel/preset-flow"
+    "@babel/preset-env"
   ],
   "plugins": [
     "lodash",
     "styled-components",
+    "@babel/plugin-transform-flow-strip-types",
     [
       "@babel/plugin-proposal-decorators",
       { "legacy": true }

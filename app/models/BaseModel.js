@@ -1,5 +1,5 @@
 // @flow
-import { set, observable } from 'mobx';
+import { set, extendObservable, observable } from 'mobx';
 
 export default class BaseModel {
   @observable id: string;
@@ -7,11 +7,11 @@ export default class BaseModel {
   store: *;
 
   constructor(fields: Object, store: *) {
-    set(this, fields);
+    extendObservable(this, fields);
     this.store = store;
   }
 
-  save = async params => {
+  save = async (params?: Object) => {
     this.isSaving = true;
 
     try {

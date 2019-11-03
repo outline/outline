@@ -139,7 +139,7 @@
     "react-modal": "^3.1.2",
     "react-portal": "^4.0.0",
     "react-router-dom": "^5.0.0",
-    "react-waypoint": "^7.3.1",
+    "react-waypoint": "^9.0.0",
     "react-hot-loader": "^4.12.15",
     "redis": "^2.6.2",
     "regenerator-runtime": "^0.13.3",

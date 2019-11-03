@@ -2,7 +2,7 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
-import Waypoint from 'react-waypoint';
+import { Waypoint } from 'react-waypoint';
 import { withRouter, Link } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
 import { PlusIcon } from 'outline-icons';

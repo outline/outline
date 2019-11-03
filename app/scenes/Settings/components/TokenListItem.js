@@ -6,7 +6,7 @@ import ApiKey from 'models/ApiKey';
 
 type Props = {
   token: ApiKey,
-  onDelete: (tokenId: string) => void,
+  onDelete: (tokenId: string) => Promise<void>,
 };
 
 const TokenListItem = ({ token, onDelete }: Props) => {
