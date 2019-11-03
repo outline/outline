@@ -3,15 +3,23 @@ import * as React from 'react';
 import styled from 'styled-components';
 
 type Props = {
+  to?: string | Object,
   onClick?: (SyntheticEvent<>) => void | Promise<void>,
   children?: React.Node,
   disabled?: boolean,
 };
 
-const DropdownMenuItem = ({ onClick, children, disabled, ...rest }: Props) => {
+const DropdownMenuItem = ({
+  onClick,
+  to,
+  children,
+  disabled,
+  ...rest
+}: Props) => {
   return (
     <MenuItem
       onClick={disabled ? undefined : onClick}
+      to={disabled ? undefined : to}
       disabled={disabled}
       role="menuitem"
       tabIndex="-1"

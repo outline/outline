@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { observable } from 'mobx';
+import { observable, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { Redirect } from 'react-router-dom';
 import { PlusIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
@@ -21,10 +21,12 @@ type Props = {
 class NewDocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
 
+  @action
   componentDidUpdate() {
     this.redirectTo = undefined;
   }
 
+  @action
   handleNewDocument = (collectionId: string) => {
     this.redirectTo = newDocumentUrl(collectionId);
   };

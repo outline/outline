@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { Redirect } from 'react-router-dom';
-import { observable } from 'mobx';
+import { observable, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 
 import Document from 'models/Document';
@@ -42,6 +42,7 @@ class DocumentMenu extends React.Component<Props> {
     this.redirectTo = undefined;
   }
 
+  @action
   handleNewChild = (ev: SyntheticEvent<>) => {
     const { document } = this.props;
     this.redirectTo = newDocumentUrl(document.collectionId, document.id);
@@ -52,6 +53,7 @@ class DocumentMenu extends React.Component<Props> {
     this.props.ui.setActiveModal('document-delete', { document });
   };
 
+  @action
   handleDocumentHistory = () => {
     if (this.props.isRevision) {
       this.redirectTo = documentUrl(this.props.document);
@@ -60,14 +62,17 @@ class DocumentMenu extends React.Component<Props> {
     }
   };
 
+  @action
   handleMove = (ev: SyntheticEvent<>) => {
     this.redirectTo = documentMoveUrl(this.props.document);
   };
 
+  @action
   handleEdit = (ev: SyntheticEvent<>) => {
     this.redirectTo = documentEditUrl(this.props.document);
   };
 
+  @action
   handleDuplicate = async (ev: SyntheticEvent<>) => {
     const duped = await this.props.document.duplicate();
 

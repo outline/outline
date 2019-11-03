@@ -5,7 +5,7 @@ import { darken, lighten } from 'polished';
 import { ExpandedIcon } from 'outline-icons';
 
 const RealButton = styled.button`
-  display: inline-block;
+  display: inline-flex;
   margin: 0;
   padding: 0;
   border: 0;

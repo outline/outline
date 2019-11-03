@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { observer } from 'mobx-react';
+import { observer, Observer } from 'mobx-react';
 import BaseModal from 'components/Modal';
 import UiStore from 'stores/UiStore';
 import CollectionNew from 'scenes/CollectionNew';
@@ -13,6 +13,7 @@ import DocumentShare from 'scenes/DocumentShare';
 type Props = {
   ui: UiStore,
 };
+
 @observer
 class Modals extends React.Component<Props> {
   handleClose = () => {
@@ -20,22 +21,24 @@ class Modals extends React.Component<Props> {
   };
 
   render() {
-    const { activeModalName, activeModalProps } = this.props.ui;
-
     const Modal = ({ name, children, ...rest }) => {
       return (
-        <BaseModal
-          isOpen={activeModalName === name}
-          onRequestClose={this.handleClose}
-          {...rest}
-        >
-          {React.cloneElement(children, activeModalProps)}
-        </BaseModal>
+        <Observer>
+          {() => (
+            <BaseModal
+              isOpen={this.props.ui.activeModalName === name}
+              onRequestClose={this.handleClose}
+              {...rest}
+            >
+              {React.cloneElement(children, this.props.ui.activeModalProps)}
+            </BaseModal>
+          )}
+        </Observer>
       );
     };
 
     return (
-      <span>
+      <React.Fragment>
         <Modal name="collection-new" title="Create a collection">
           <CollectionNew onSubmit={this.handleClose} />
         </Modal>
@@ -54,7 +57,7 @@ class Modals extends React.Component<Props> {
         <Modal name="document-delete" title="Delete document">
           <DocumentDelete onSubmit={this.handleClose} />
         </Modal>
-      </span>
+      </React.Fragment>
     );
   }
 }
