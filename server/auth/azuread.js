@@ -144,7 +144,7 @@ router.get('azuread.callback', auth({ required: false }), async ctx => {
 
     userId = userResource.id;
     userName = userResource.displayName;
-    userEmail = userResource.mail;
+    userEmail = userResource.mail || userResource.userPrincipalName;
     userAvatar = `https://tiley.herokuapp.com/avatar/${hashedOrganizationId}/${
       userName[0]
     }.png`;
