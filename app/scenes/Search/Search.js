@@ -106,7 +106,7 @@ class Search extends React.Component<Props> {
   };
 
   handleTermChange = () => {
-    const query = this.props.match.params.term;
+    const query = decodeURIComponent(this.props.match.params.term || '');
     this.query = query ? query : '';
     this.offset = 0;
     this.allowLoadMore = true;
@@ -192,7 +192,8 @@ class Search extends React.Component<Props> {
           userId: this.userId,
         });
 
-        if (results.length > 0) this.pinToTop = true;
+        this.pinToTop = true;
+
         if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
           this.allowLoadMore = false;
         } else {

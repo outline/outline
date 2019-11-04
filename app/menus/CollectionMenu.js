@@ -99,6 +99,7 @@ class CollectionMenu extends React.Component<Props> {
             type="file"
             ref={ref => (this.file = ref)}
             onChange={this.onFilePicked}
+            onClick={ev => ev.stopPropagation()}
             accept="text/markdown, text/plain"
           />
         </VisuallyHidden>

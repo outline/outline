@@ -54,14 +54,17 @@ function KeyboardShortcuts() {
         </Keys>
         <Label>Save and exit document edit mode</Label>
         <Keys>
-          <Key>{meta}</Key> + <Key>S</Key>
+          <Key>{meta}</Key> + <Key>Shift</Key> + <Key>p</Key>
+        </Keys>
+        <Label>Publish and exit document edit mode</Label>
+        <Keys>
+          <Key>{meta}</Key> + <Key>s</Key>
         </Keys>
         <Label>Save document and continue editing</Label>
         <Keys>
           <Key>{meta}</Key> + <Key>Esc</Key>
         </Keys>
         <Label>Cancel editing</Label>
-
         <Keys>
           <Key>{meta}</Key> + <Key>b</Key>
         </Keys>

@@ -32,6 +32,7 @@ type Props = {
   document: Document,
   isDraft: boolean,
   isEditing: boolean,
+  isRevision: boolean,
   isSaving: boolean,
   isPublishing: boolean,
   publishingIsDisabled: boolean,
@@ -103,6 +104,7 @@ class Header extends React.Component<Props> {
       isEditing,
       isDraft,
       isPublishing,
+      isRevision,
       isSaving,
       savingIsDisabled,
       publishingIsDisabled,
@@ -187,14 +189,21 @@ class Header extends React.Component<Props> {
           {can.update &&
             isDraft && (
               <Action>
-                <Button
-                  onClick={this.handlePublish}
-                  title="Publish document"
-                  disabled={publishingIsDisabled}
-                  small
+                <Tooltip
+                  tooltip="Publish"
+                  shortcut={`${meta}+shift+p`}
+                  delay={500}
+                  placement="bottom"
                 >
-                  {isPublishing ? 'Publishing…' : 'Publish'}
-                </Button>
+                  <Button
+                    onClick={this.handlePublish}
+                    title="Publish document"
+                    disabled={publishingIsDisabled}
+                    small
+                  >
+                    {isPublishing ? 'Publishing…' : 'Publish'}
+                  </Button>
+                </Tooltip>
               </Action>
             )}
           {canEdit && (
@@ -243,6 +252,7 @@ class Header extends React.Component<Props> {
               <Action>
                 <DocumentMenu
                   document={document}
+                  isRevision={isRevision}
                   showToggleEmbeds={canToggleEmbeds}
                   showPrint
                 />
