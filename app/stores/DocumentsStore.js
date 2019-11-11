@@ -122,6 +122,14 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @computed
+  get deleted(): Document[] {
+    return filter(
+      orderBy(this.orderedData, 'deletedAt', 'desc'),
+      d => d.deletedAt
+    );
+  }
+
+  @computed
   get starredAlphabetical(): Document[] {
     return naturalSort(this.starred, 'title');
   }
@@ -187,6 +195,11 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchArchived = async (options: ?PaginationParams): Promise<*> => {
     return this.fetchNamedPage('archived', options);
+  };
+
+  @action
+  fetchDeleted = async (options: ?PaginationParams): Promise<*> => {
+    return this.fetchNamedPage('deleted', options);
   };
 
   @action

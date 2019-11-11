@@ -50,8 +50,8 @@ class DocumentDelete extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Are you sure about that? Deleting the{' '}
-            <strong>{document.title}</strong> document is permanent, and will
-            delete all of its history, and any child documents.
+            <strong>{document.title}</strong> document will delete all of its
+            history, and any child documents.
           </HelpText>
           {!document.isDraft &&
             !document.isArchived && (
