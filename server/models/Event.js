@@ -56,6 +56,7 @@ Event.ACTIVITY_EVENTS = [
   'documents.pin',
   'documents.unpin',
   'documents.delete',
+  'documents.restore',
   'collections.create',
   'collections.delete',
 ];

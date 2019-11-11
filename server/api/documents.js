@@ -449,9 +449,27 @@ router.post('documents.restore', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id, { userId: user.id });
+  const document = await Document.findByPk(id, {
+    userId: user.id,
+    paranoid: false,
+  });
 
-  if (document.archivedAt) {
+  if (document.deletedAt) {
+    authorize(user, 'restore', document);
+
+    // restore a previously deleted document
+    await document.unarchive(user.id);
+
+    await Event.create({
+      name: 'documents.restore',
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      data: { title: document.title },
+      ip: ctx.request.ip,
+    });
+  } else if (document.archivedAt) {
     authorize(user, 'unarchive', document);
 
     // restore a previously archived document
