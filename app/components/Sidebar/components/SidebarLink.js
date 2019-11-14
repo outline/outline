@@ -158,6 +158,7 @@ const Label = styled.div`
   position: relative;
   width: 100%;
   max-height: 4.4em;
+  line-height: 1.6;
 `;
 
 const Disclosure = styled(CollapsedIcon)`
