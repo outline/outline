@@ -27,7 +27,30 @@ describe('#utils.gc', async () => {
       where: {
         id: document.id,
       },
-      paranoid: true,
+      paranoid: false,
+    });
+    expect(res.status).toEqual(200);
+    expect(count).toEqual(0);
+  });
+
+  it('should destroy draft documents deleted more than 30 days ago', async () => {
+    const { document } = await seed();
+
+    await document.delete();
+    document.publishedAt = null;
+    document.deletedAt = subMonths(new Date(), 2);
+    await document.save();
+
+    const res = await server.post('/api/utils.gc', {
+      body: {
+        token: process.env.UTILS_SECRET,
+      },
+    });
+    const count = await Document.count({
+      where: {
+        id: document.id,
+      },
+      paranoid: false,
     });
     expect(res.status).toEqual(200);
     expect(count).toEqual(0);

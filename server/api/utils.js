@@ -14,12 +14,13 @@ router.post('utils.gc', async ctx => {
     throw new AuthenticationError('Invalid secret token');
   }
 
-  await Document.destroy({
+  await Document.scope('withUnpublished').destroy({
     where: {
       deletedAt: {
         [Op.lt]: subDays(new Date(), 30),
       },
     },
+    force: true,
   });
 
   ctx.body = {
