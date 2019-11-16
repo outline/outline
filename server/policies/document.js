@@ -82,7 +82,6 @@ allow(User, 'delete', Document, (user, document) => {
     return false;
   }
 
-  if (document.archivedAt) return false;
   if (document.deletedAt) return false;
 
   return user.teamId === document.teamId;
