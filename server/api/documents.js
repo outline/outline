@@ -187,6 +187,46 @@ router.post('documents.archived', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('documents.deleted', auth(), pagination(), async ctx => {
+  const { sort = 'deletedAt' } = ctx.body;
+  let direction = ctx.body.direction;
+  if (direction !== 'ASC') direction = 'DESC';
+
+  const user = ctx.state.user;
+  const collectionIds = await user.collectionIds();
+
+  const collectionScope = { method: ['withCollection', user.id] };
+  const documents = await Document.scope(collectionScope).findAll({
+    where: {
+      teamId: user.teamId,
+      collectionId: collectionIds,
+      deletedAt: {
+        [Op.ne]: null,
+      },
+    },
+    include: [
+      { model: User, as: 'createdBy', paranoid: false },
+      { model: User, as: 'updatedBy', paranoid: false },
+    ],
+    paranoid: false,
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+
+  const data = await Promise.all(
+    documents.map(document => presentDocument(document))
+  );
+
+  const policies = presentPolicies(user, documents);
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+    policies,
+  };
+});
+
 router.post('documents.viewed', auth(), pagination(), async ctx => {
   let { sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';
@@ -409,9 +449,27 @@ router.post('documents.restore', auth(), async ctx => {
   ctx.assertPresent(id, 'id is required');
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id, { userId: user.id });
+  const document = await Document.findByPk(id, {
+    userId: user.id,
+    paranoid: false,
+  });
 
-  if (document.archivedAt) {
+  if (document.deletedAt) {
+    authorize(user, 'restore', document);
+
+    // restore a previously deleted document
+    await document.unarchive(user.id);
+
+    await Event.create({
+      name: 'documents.restore',
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      data: { title: document.title },
+      ip: ctx.request.ip,
+    });
+  } else if (document.archivedAt) {
     authorize(user, 'unarchive', document);
 
     // restore a previously archived document

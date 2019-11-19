@@ -1,5 +1,6 @@
 // @flow
 import { action, set, computed } from 'mobx';
+import addDays from 'date-fns/add_days';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import parseTitle from 'shared/utils/parseTitle';
@@ -74,6 +75,15 @@ export default class Document extends BaseModel {
   @computed
   get isDraft(): boolean {
     return !this.publishedAt;
+  }
+
+  @computed
+  get permanentlyDeletedAt(): ?string {
+    if (!this.deletedAt) {
+      return;
+    }
+
+    return addDays(new Date(this.deletedAt), 30).toString();
   }
 
   @action

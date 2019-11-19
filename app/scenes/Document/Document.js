@@ -400,10 +400,25 @@ class DocumentScene extends React.Component<Props> {
               />
             )}
             <MaxWidth archived={document.isArchived} column auto>
-              {document.archivedAt && (
+              {document.archivedAt &&
+                !document.deletedAt && (
+                  <Notice muted>
+                    Archived by {document.updatedBy.name}{' '}
+                    <Time dateTime={document.archivedAt} /> ago
+                  </Notice>
+                )}
+              {document.deletedAt && (
                 <Notice muted>
-                  Archived by {document.updatedBy.name}{' '}
-                  <Time dateTime={document.archivedAt} /> ago
+                  Deleted by {document.updatedBy.name}{' '}
+                  <Time dateTime={document.deletedAt} /> ago
+                  {document.permanentlyDeletedAt && (
+                    <React.Fragment>
+                      <br />
+                      This document will be permanently deleted in{' '}
+                      <Time dateTime={document.permanentlyDeletedAt} /> unless
+                      restored.
+                    </React.Fragment>
+                  )}
                 </Notice>
               )}
               <Editor

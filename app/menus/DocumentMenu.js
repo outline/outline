@@ -132,6 +132,7 @@ class DocumentMenu extends React.Component<Props> {
 
     const can = policies.abilities(document.id);
     const canShareDocuments = can.share && auth.team && auth.team.sharing;
+    const canViewHistory = can.read && !can.restore;
 
     return (
       <DropdownMenu
@@ -140,7 +141,7 @@ class DocumentMenu extends React.Component<Props> {
         onOpen={onOpen}
         onClose={onClose}
       >
-        {can.unarchive && (
+        {(can.unarchive || can.restore) && (
           <DropdownMenuItem onClick={this.handleRestore}>
             Restore
           </DropdownMenuItem>
@@ -176,11 +177,13 @@ class DocumentMenu extends React.Component<Props> {
             Share link…
           </DropdownMenuItem>
         )}
-        <hr />
-        {can.read && (
-          <DropdownMenuItem onClick={this.handleDocumentHistory}>
-            Document history
-          </DropdownMenuItem>
+        {canViewHistory && (
+          <React.Fragment>
+            <hr />
+            <DropdownMenuItem onClick={this.handleDocumentHistory}>
+              Document history
+            </DropdownMenuItem>
+          </React.Fragment>
         )}
         {can.update && (
           <DropdownMenuItem

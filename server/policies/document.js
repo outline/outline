@@ -18,6 +18,7 @@ allow(User, ['read', 'download'], Document, (user, document) => {
 
 allow(User, ['share'], Document, (user, document) => {
   if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
 
   // existance of collection option is not required here to account for share tokens
   if (document.collection && cannot(user, 'read', document.collection)) {
@@ -29,6 +30,7 @@ allow(User, ['share'], Document, (user, document) => {
 
 allow(User, ['star', 'unstar'], Document, (user, document) => {
   if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
   if (!document.publishedAt) return false;
 
   invariant(
@@ -47,6 +49,7 @@ allow(User, 'update', Document, (user, document) => {
   );
   if (cannot(user, 'update', document.collection)) return false;
   if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
 
   return user.teamId === document.teamId;
 });
@@ -58,6 +61,7 @@ allow(User, ['move', 'pin', 'unpin'], Document, (user, document) => {
   );
   if (cannot(user, 'update', document.collection)) return false;
   if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
   if (!document.publishedAt) return false;
 
   return user.teamId === document.teamId;
@@ -65,15 +69,26 @@ allow(User, ['move', 'pin', 'unpin'], Document, (user, document) => {
 
 allow(User, 'delete', Document, (user, document) => {
   // unpublished drafts can always be deleted
-  if (!document.publishedAt && user.teamId === document.teamId) {
+  if (
+    !document.deletedAt &&
+    !document.publishedAt &&
+    user.teamId === document.teamId
+  ) {
     return true;
   }
 
   // allow deleting document without a collection
-  if (document.collection && cannot(user, 'update', document.collection))
+  if (document.collection && cannot(user, 'update', document.collection)) {
     return false;
-  if (document.archivedAt) return false;
+  }
 
+  if (document.deletedAt) return false;
+
+  return user.teamId === document.teamId;
+});
+
+allow(User, 'restore', Document, (user, document) => {
+  if (!document.deletedAt) return false;
   return user.teamId === document.teamId;
 });
 
@@ -86,6 +101,7 @@ allow(User, 'archive', Document, (user, document) => {
 
   if (!document.publishedAt) return false;
   if (document.archivedAt) return false;
+  if (document.deletedAt) return false;
 
   return user.teamId === document.teamId;
 });

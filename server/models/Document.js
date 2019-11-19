@@ -147,9 +147,11 @@ Document.associate = models => {
   });
   Document.hasMany(models.Backlink, {
     as: 'backlinks',
+    onDelete: 'cascade',
   });
   Document.hasMany(models.Star, {
     as: 'starred',
+    onDelete: 'cascade',
   });
   Document.hasMany(models.View, {
     as: 'views',
@@ -513,6 +515,10 @@ Document.prototype.unarchive = async function(userId) {
 
   await collection.addDocumentToStructure(this);
   this.collection = collection;
+
+  if (this.deletedAt) {
+    await this.restore();
+  }
 
   this.archivedAt = null;
   this.lastModifiedById = userId;

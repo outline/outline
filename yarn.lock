@@ -7120,10 +7120,10 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-outline-icons@^1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.9.0.tgz#e17d998272209846aa3277ad7ed7063fc4dae984"
-  integrity sha512-Uzh1aP9Js+9ieOrvZpyPjFOaVBjpC+OFzF1pRi5jemYpH6kiA236i7itv0OdLX6KFDpybP6b6OWrCVDle5RXLQ==
+outline-icons@^1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.10.0.tgz#3c8e6957429e2b04c9d0fc72fe72e473813ce5bd"
+  integrity sha512-1o3SnjzawEIh+QkZ6GHxPckuV+Tk5m5R2tjGY0CtosF3YA7JbgQ2jQrZdQsrqLzLa1j07f1bTEbAjGdbnunLpg==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -8440,10 +8440,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^9.8.9:
-  version "9.8.9"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.8.9.tgz#ef9ee4d884988eca4ebc415495827a64fb0d7815"
-  integrity sha512-7MX2Y4MX0v81GW5vtnwPAIF6h1IPI1YE1Ex0kYUuTb+ugoLt+kM/zDc9uPL+Ix7jyr1TljDzfgBbDuP+sR2JjQ==
+rich-markdown-editor@^9.10.0:
+  version "9.10.0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.10.0.tgz#df59720ed969c1288d672d58f239664a64dd1465"
+  integrity sha512-9FGzjPExSYb/T0Rp5YEkz8qgEQkiwprAzlg4J6aj5acFZlaon2QZ4sNO/2feBaT3IBfAbnPNZEb+JeuZpL7s7w==
   dependencies:
     "@domoinc/slate-edit-table" "^0.22.2"
     "@tommoor/slate-edit-list" "0.19.0-0"
@@ -8458,7 +8458,7 @@ rich-markdown-editor@^9.8.9:
     eslint-plugin-prettier "^2.6.0"
     golery-slate-prism "0.6.0-golery.2"
     lodash "^4.17.11"
-    outline-icons "^1.9.0"
+    outline-icons "^1.10.0"
     prismjs "^1.16.0"
     react-autosize-textarea "^6.0.0"
     react-keydown "^1.9.10"
@@ -8467,6 +8467,7 @@ rich-markdown-editor@^9.8.9:
     slate "^0.45.0"
     slate-collapse-on-escape "^0.8.1"
     slate-drop-or-paste-images "^0.9.1"
+    slate-instant-replace "^0.1.13"
     slate-md-serializer "5.4.4"
     slate-paste-linkify "^0.7.0"
     slate-react "^0.21.20"
@@ -8842,6 +8843,11 @@ slate-hotkeys@^0.2.9:
   dependencies:
     is-hotkey "0.1.4"
     slate-dev-environment "^0.2.2"
+
+slate-instant-replace@^0.1.13:
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/slate-instant-replace/-/slate-instant-replace-0.1.13.tgz#03a2c908253c399a1ca5d6922a93867eb186c69b"
+  integrity sha512-jesj33+TUgrmcVKGBy6QgqORaAq55hSuFmBOv70iNjif0CHqK9CapWfHOLg8N8HWw+VAX0YpSaqy/lAQSSmwWg==
 
 slate-md-serializer@5.4.4:
   version "5.4.4"
