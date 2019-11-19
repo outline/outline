@@ -96,6 +96,17 @@ User.prototype.getJwtToken = function() {
   return JWT.sign({ id: this.id }, this.jwtSecret);
 };
 
+User.prototype.getEmailSigninToken = function() {
+  if (this.serviceId) {
+    throw new Error('Cannot generate email signin token for OAuth user');
+  }
+
+  return JWT.sign(
+    { id: this.id, createdAt: new Date().toISOString() },
+    this.jwtSecret
+  );
+};
+
 const uploadAvatar = async model => {
   const endpoint = publicS3Endpoint();
 
