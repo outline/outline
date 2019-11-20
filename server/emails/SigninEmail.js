@@ -15,7 +15,7 @@ export type Props = {
 export const signinEmailText = ({ token }: Props) => `
 Use the link below to signin to Outline:
 
-${process.env.URL}/api/auth/email.callback?token=${token}
+${process.env.URL}/auth/email.callback?token=${token}
 `;
 
 export const SigninEmail = ({ token }: Props) => {
@@ -29,7 +29,7 @@ export const SigninEmail = ({ token }: Props) => {
         <EmptySpace height={10} />
         <p>
           <Button
-            href={`${process.env.URL}/api/auth/email.callback?token=${token}`}
+            href={`${process.env.URL}/auth/email.callback?token=${token}`}
           >
             Sign In
           </Button>

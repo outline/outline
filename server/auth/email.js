@@ -1,14 +1,12 @@
 // @flow
-import Sequelize from 'sequelize';
 import Router from 'koa-router';
 import mailer from '../mailer';
 import { getUserForEmailSigninToken } from '../utils/jwt';
 import { User, Team } from '../models';
-import { InvalidRequestError } from '../errors';
 import methodOverride from '../api/middlewares/methodOverride';
 import validation from '../middlewares/validation';
+import auth from '../middlewares/authentication';
 
-const Op = Sequelize.Op;
 const router = new Router();
 
 router.use(methodOverride());
@@ -23,9 +21,7 @@ router.get('email', async ctx => {
   const user = await User.findOne({
     where: {
       email,
-      serviceId: {
-        [Op.eq]: null,
-      },
+      service: 'email',
     },
   });
 
@@ -46,7 +42,7 @@ router.get('email', async ctx => {
   };
 });
 
-router.get('email.callback', async ctx => {
+router.get('email.callback', auth({ required: false }), async ctx => {
   const { token } = ctx.request.query;
 
   ctx.assertPresent(token, 'token is required');
