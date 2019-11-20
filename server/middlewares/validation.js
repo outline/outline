@@ -24,7 +24,7 @@ export default function validation() {
       }
     };
 
-    ctx.assertEmail = (value, message) => {
+    ctx.assertEmail = (value = '', message) => {
       if (!validator.isEmail(value)) {
         throw new ValidationError(message);
       }
