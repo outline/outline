@@ -3,7 +3,7 @@ import Router from 'koa-router';
 import mailer from '../mailer';
 import { getUserForEmailSigninToken } from '../utils/jwt';
 import { User, Team } from '../models';
-import methodOverride from '../api/middlewares/methodOverride';
+import methodOverride from '../middlewares/methodOverride';
 import validation from '../middlewares/validation';
 import auth from '../middlewares/authentication';
 
