@@ -48,7 +48,7 @@ const SigninButtons = ({
       )}
       {guestSigninEnabled && (
         <Column column>
-          <form method="GET" action="/auth/email">
+          <form method="POST" action="/auth/email">
             <input type="email" name="email" placeholder="jane@domain.com" />
           </form>
           <LastLogin>

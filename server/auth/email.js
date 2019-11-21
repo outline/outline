@@ -13,7 +13,7 @@ const router = new Router();
 router.use(methodOverride());
 router.use(validation());
 
-router.get('email', async ctx => {
+router.post('email', async ctx => {
   const { email } = ctx.body;
 
   ctx.assertEmail(email, 'email is required');
@@ -42,6 +42,7 @@ router.get('email', async ctx => {
     mailer.signin({
       to: user.email,
       token: user.getEmailSigninToken(),
+      teamUrl: team.url,
     });
 
     // respond with success regardless of whether an email was sent

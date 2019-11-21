@@ -34,6 +34,7 @@ export async function getUserForJWT(token: string) {
 export async function getUserForEmailSigninToken(token: string) {
   const payload = getJWTPayload(token);
 
+  // check the token is within it's expiration time
   if (payload.createdAt) {
     if (new Date(payload.createdAt) < subMinutes(new Date(), 10)) {
       throw new AuthenticationError('Expired token');
@@ -41,6 +42,12 @@ export async function getUserForEmailSigninToken(token: string) {
   }
 
   const user = await User.findByPk(payload.id);
+
+  // if user has signed in at all since the token was created then
+  // it's no longer valid, they'll need a new one.
+  if (user.lastSignedInAt > payload.createdAt) {
+    throw new AuthenticationError('Token has already been used');
+  }
 
   try {
     JWT.verify(token, user.jwtSecret);
