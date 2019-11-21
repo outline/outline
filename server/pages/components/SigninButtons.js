@@ -12,12 +12,14 @@ type Props = {
   lastSignedIn?: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
+  guestSigninEnabled?: boolean,
 };
 
 const SigninButtons = ({
   lastSignedIn,
   slackSigninEnabled,
   googleSigninEnabled,
+  guestSigninEnabled,
 }: Props) => {
   return (
     <Wrapper>
@@ -41,6 +43,16 @@ const SigninButtons = ({
           <LastLogin>
             {lastSignedIn === 'google' &&
               'You signed in with Google previously'}
+          </LastLogin>
+        </Column>
+      )}
+      {guestSigninEnabled && (
+        <Column column>
+          <form method="GET" action="/auth/email">
+            <input type="email" name="email" placeholder="jane@domain.com" />
+          </form>
+          <LastLogin>
+            {lastSignedIn === 'email' && 'You signed in with email previously'}
           </LastLogin>
         </Column>
       )}

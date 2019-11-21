@@ -6,9 +6,14 @@ type Props = {
   notice?: string,
 };
 
-export default function AuthErrors({ notice }: Props) {
+export default function AuthNotices({ notice }: Props) {
   return (
     <React.Fragment>
+      {notice === 'guest-success' && (
+        <Notice>
+          A magic signin link has been sent to your email address.
+        </Notice>
+      )}
       {notice === 'google-hd' && (
         <Notice>
           Sorry, Google sign in cannot be used with a personal email. Please try

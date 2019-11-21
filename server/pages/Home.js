@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import Grid from 'styled-components-grid';
-import AuthErrors from './components/AuthErrors';
+import AuthNotices from './components/AuthNotices';
 import Hero from './components/Hero';
 import HeroText from './components/HeroText';
 import SigninButtons from './components/SigninButtons';
@@ -24,7 +24,7 @@ function Home(props: Props) {
       </Helmet>
       <Grid>
         <Hero id="signin">
-          <AuthErrors notice={props.notice} />
+          <AuthNotices notice={props.notice} />
           {process.env.TEAM_LOGO && <Logo src={process.env.TEAM_LOGO} />}
           <h1>Our team’s knowledge base</h1>
           <HeroText>

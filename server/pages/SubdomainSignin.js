@@ -5,14 +5,14 @@ import Grid from 'styled-components-grid';
 import Hero from './components/Hero';
 import HeroText from './components/HeroText';
 import SigninButtons from './components/SigninButtons';
-import AuthErrors from './components/AuthErrors';
+import AuthNotices from './components/AuthNotices';
 import Centered from './components/Centered';
 import PageTitle from './components/PageTitle';
 import { Team } from '../models';
 
 type Props = {
   team: Team,
-  notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed',
+  notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed' | 'guest-success',
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
@@ -30,6 +30,8 @@ function SubdomainSignin({
   googleSigninEnabled = !!team.googleId && googleSigninEnabled;
   slackSigninEnabled = !!team.slackId && slackSigninEnabled;
 
+  const guestSigninEnabled = team.guestSignin;
+
   // only show the "last signed in" hint if there is more than one option available
   const signinHint =
     googleSigninEnabled && slackSigninEnabled ? lastSignedIn : undefined;
@@ -39,16 +41,17 @@ function SubdomainSignin({
       <PageTitle title={`Sign in to ${team.name}`} />
       <Grid>
         <Hero>
-          <AuthErrors notice={notice} />
           <h1>{lastSignedIn ? 'Welcome back,' : 'Hey there,'}</h1>
           <HeroText>
             Sign in with your team account to continue to {team.name}.
             <Subdomain>{hostname}</Subdomain>
           </HeroText>
+          <AuthNotices notice={notice} />
           <p>
             <SigninButtons
               googleSigninEnabled={googleSigninEnabled}
               slackSigninEnabled={slackSigninEnabled}
+              guestSigninEnabled={guestSigninEnabled}
               lastSignedIn={signinHint}
             />
           </p>
