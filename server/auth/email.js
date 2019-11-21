@@ -6,6 +6,7 @@ import { User, Team } from '../models';
 import methodOverride from '../middlewares/methodOverride';
 import validation from '../middlewares/validation';
 import auth from '../middlewares/authentication';
+import { AuthorizationError } from '../errors';
 
 const router = new Router();
 
@@ -27,8 +28,13 @@ router.get('email', async ctx => {
 
   // TODO: Rate limit this endpoint
 
-  // send email to users registered address with a login token
   if (user) {
+    const team = await Team.findByPk(user.teamId);
+    if (!team.guestSignin) {
+      throw new AuthorizationError();
+    }
+
+    // send email to users registered address with a login token
     mailer.signin({
       to: user.email,
       token: user.getEmailSigninToken(),
@@ -48,9 +54,10 @@ router.get('email.callback', auth({ required: false }), async ctx => {
   ctx.assertPresent(token, 'token is required');
 
   const user = await getUserForEmailSigninToken(token);
-  const team = await Team.findOne({
-    where: { id: user.teamId },
-  });
+  const team = await Team.findByPk(user.teamId);
+  if (!team.guestSignin) {
+    throw new AuthorizationError();
+  }
 
   // set cookies on response and redirect to team subdomain
   ctx.signIn(user, team, undefined, false);
