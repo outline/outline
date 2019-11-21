@@ -29,6 +29,7 @@ const User = sequelize.define(
     lastActiveIp: { type: DataTypes.STRING, allowNull: true },
     lastSignedInAt: DataTypes.DATE,
     lastSignedInIp: { type: DataTypes.STRING, allowNull: true },
+    lastSigninEmailSentAt: DataTypes.DATE,
     suspendedAt: DataTypes.DATE,
     suspendedById: DataTypes.UUID,
   },

@@ -1,12 +1,13 @@
 // @flow
 import Router from 'koa-router';
 import mailer from '../mailer';
+import subMinutes from 'date-fns/sub_minutes';
 import { getUserForEmailSigninToken } from '../utils/jwt';
 import { User, Team } from '../models';
 import methodOverride from '../middlewares/methodOverride';
 import validation from '../middlewares/validation';
 import auth from '../middlewares/authentication';
-import { AuthorizationError } from '../errors';
+import { AuthorizationError, InvalidRequestError } from '../errors';
 
 const router = new Router();
 
@@ -36,7 +37,15 @@ router.post('email', async ctx => {
       throw new AuthorizationError();
     }
 
-    // TODO: Rate limit this endpoint
+    // rate limit endpoint to 1/min
+    if (
+      user.lastSigninEmailSentAt &&
+      user.lastSigninEmailSentAt > subMinutes(new Date(), 2)
+    ) {
+      throw new InvalidRequestError(
+        'An email login link was recently sent, try again in a few minutes'
+      );
+    }
 
     // send email to users registered address with a login token
     mailer.signin({
@@ -44,6 +53,9 @@ router.post('email', async ctx => {
       token: user.getEmailSigninToken(),
       teamUrl: team.url,
     });
+
+    user.lastSigninEmailSentAt = new Date();
+    await user.save();
 
     // respond with success regardless of whether an email was sent
     ctx.redirect(`${team.url}?notice=guest-success`);

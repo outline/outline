@@ -5,9 +5,12 @@ module.exports = {
       allowNull: false,
       defaultValue: true,
     });
-
+    await queryInterface.addColumn('users', 'lastSigninEmailSentAt', {
+      type: Sequelize.DATE
+    });
   },
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeColumn('teams', 'guestSignin');
+    await queryInterface.removeColumn('users', 'lastSigninEmailSentAt');
   },
 };

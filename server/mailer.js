@@ -124,7 +124,7 @@ export class Mailer {
     });
   };
 
-  signin = async (opts: { to: string, token: string }) => {
+  signin = async (opts: { to: string, token: string, teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
       title: 'Outline - Magic signin link',
