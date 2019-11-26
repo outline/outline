@@ -51,7 +51,13 @@ class UserListItem extends React.Component<Props> {
         subtitle={
           <React.Fragment>
             {user.email ? `${user.email} · ` : undefined}
-            Active <Time dateTime={user.lastActiveAt} /> ago
+            {user.lastActiveAt ? (
+              <React.Fragment>
+                Active <Time dateTime={user.lastActiveAt} /> ago
+              </React.Fragment>
+            ) : (
+              'Pending'
+            )}
             {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
             {user.isSuspended && <Badge>Suspended</Badge>}
           </React.Fragment>

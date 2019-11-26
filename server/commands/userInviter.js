@@ -1,4 +1,5 @@
 // @flow
+import crypto from 'crypto';
 import { uniqBy } from 'lodash';
 import { User, Event, Team } from '../models';
 import mailer from '../mailer';
@@ -38,11 +39,18 @@ export default async function userInviter({
   // send and record invites
   await Promise.all(
     filteredInvites.map(async invite => {
+      const hash = crypto.createHash('sha256');
+      hash.update(invite.email);
+      const hashedEmail = hash.digest('hex');
+
       await User.create({
         teamId: user.teamId,
         name: invite.name,
         email: invite.email,
-        service: '',
+        avatarUrl: `https://tiley.herokuapp.com/avatar/${hashedEmail}/${
+          invite.name[0]
+        }.png`,
+        service: null,
       });
       await Event.create({
         name: 'users.invite',
