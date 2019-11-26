@@ -60,6 +60,8 @@ class Security extends React.Component<Props> {
   }, 500);
 
   render() {
+    const { team } = this.props.auth;
+
     return (
       <CenteredContent>
         <PageTitle title="Security" />
@@ -70,11 +72,13 @@ class Security extends React.Component<Props> {
         </HelpText>
 
         <Checkbox
-          label="Allow guest signin"
+          label="Allow guest invites"
           name="guestSignin"
           checked={this.guestSignin}
           onChange={this.handleChange}
-          note="When enabled guests can be invited by email address and are able to signin without SSO"
+          note={`When enabled guests can be invited by email address and are able to signin without ${
+            team ? team.signinMethods : 'SSO'
+          }`}
         />
         <Checkbox
           label="Public document sharing"

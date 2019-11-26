@@ -38,6 +38,12 @@ export default async function userInviter({
   // send and record invites
   await Promise.all(
     filteredInvites.map(async invite => {
+      await User.create({
+        teamId: user.teamId,
+        name: invite.name,
+        email: invite.email,
+        service: '',
+      });
       await Event.create({
         name: 'users.invite',
         actorId: user.id,

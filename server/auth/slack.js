@@ -1,4 +1,5 @@
 // @flow
+import Sequelize from 'sequelize';
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import addHours from 'date-fns/add_hours';
@@ -14,6 +15,7 @@ import {
 } from '../models';
 import * as Slack from '../slack';
 
+const Op = Sequelize.Op;
 const router = new Router();
 
 // start the oauth process and redirect user to Slack
@@ -59,8 +61,15 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
 
   const [user, isFirstSignin] = await User.findOrCreate({
     where: {
-      service: 'slack',
-      serviceId: data.user.id,
+      [Op.or]: [
+        {
+          service: 'slack',
+          serviceId: data.user.id,
+        },
+        {
+          service: '',
+        },
+      ],
       teamId: team.id,
     },
     defaults: {

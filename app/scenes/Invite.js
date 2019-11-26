@@ -1,12 +1,11 @@
 // @flow
 import * as React from 'react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
+import { Link, withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { CloseIcon } from 'outline-icons';
 import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
-import CopyToClipboard from 'components/CopyToClipboard';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
@@ -16,6 +15,7 @@ import NudeButton from 'components/NudeButton';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import UsersStore from 'stores/UsersStore';
+import PoliciesStore from 'stores/PoliciesStore';
 
 const MAX_INVITES = 20;
 
@@ -23,6 +23,7 @@ type Props = {
   auth: AuthStore,
   users: UsersStore,
   history: RouterHistory,
+  policies: PoliciesStore,
   ui: UiStore,
   onSubmit: () => void,
 };
@@ -67,7 +68,8 @@ class Invite extends React.Component<Props> {
     this.invites.push({ email: '', name: '' });
   };
 
-  handleRemove = (index: number) => {
+  handleRemove = (ev: SyntheticEvent<>, index: number) => {
+    ev.preventDefault();
     this.invites.splice(index, 1);
   };
 
@@ -81,38 +83,30 @@ class Invite extends React.Component<Props> {
     if (!team || !user) return null;
 
     const predictedDomain = user.email.split('@')[1];
+    const can = this.props.policies.abilities(team.id);
 
     return (
       <form onSubmit={this.handleSubmit}>
-        <HelpText>
-          Send invites to your team members to get them kick started. Currently,
-          they must be able to sign in with your team{' '}
-          {team.slackConnected ? 'Slack' : 'Google'} account to be able to join
-          Outline.
-        </HelpText>
-        {team.subdomain && (
+        {team.guestSignin ? (
           <HelpText>
-            You can also{' '}
-            <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
-              <a>{this.linkCopied ? 'link copied' : 'copy a link'}</a>
-            </CopyToClipboard>{' '}
-            to your teams signin page.
+            Invite team members or guests to join your knowledge base. Team
+            members can sign in with {team.signinMethods} and guests can use
+            their email address.
+          </HelpText>
+        ) : (
+          <HelpText>
+            Invite team members to join your knowledge base. They will need to
+            sign in with {team.signinMethods}.{' '}
+            {can.update && (
+              <React.Fragment>
+                As an admin you can also{' '}
+                <Link to="/settings/security">enable guest invites</Link>.
+              </React.Fragment>
+            )}
           </HelpText>
         )}
         {this.invites.map((invite, index) => (
           <Flex key={index}>
-            <Input
-              type="email"
-              name="email"
-              label="Email"
-              labelHidden={index !== 0}
-              onChange={ev => this.handleChange(ev, index)}
-              placeholder={`example@${predictedDomain}`}
-              value={invite.email}
-              autoFocus={index === 0}
-              flex
-            />
-            &nbsp;&nbsp;
             <Input
               type="text"
               name="name"
@@ -121,12 +115,25 @@ class Invite extends React.Component<Props> {
               onChange={ev => this.handleChange(ev, index)}
               value={invite.name}
               required={!!invite.email}
+              autoFocus={index === 0}
+              flex
+            />
+            &nbsp;&nbsp;
+            <Input
+              type="email"
+              name="email"
+              label="Email"
+              labelHidden={index !== 0}
+              onChange={ev => this.handleChange(ev, index)}
+              placeholder={`example@${predictedDomain}`}
+              value={invite.email}
+              required={index === 0}
               flex
             />
             {index !== 0 && (
               <Remove>
                 <Tooltip tooltip="Remove invite" placement="top">
-                  <NudeButton onClick={() => this.handleRemove(index)}>
+                  <NudeButton onClick={ev => this.handleRemove(ev, index)}>
                     <CloseIcon />
                   </NudeButton>
                 </Tooltip>
@@ -166,4 +173,4 @@ const Remove = styled('div')`
   right: -32px;
 `;
 
-export default inject('auth', 'users', 'ui')(withRouter(Invite));
+export default inject('auth', 'users', 'policies', 'ui')(withRouter(Invite));

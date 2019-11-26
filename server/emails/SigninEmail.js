@@ -29,7 +29,7 @@ export const SigninEmail = ({ token, teamUrl }: Props) => {
 
       <Body>
         <Heading>Magic signin link</Heading>
-        <p>Click the button below to signin to Outline</p>
+        <p>Click the button below to signin to Outline.</p>
         <EmptySpace height={10} />
         <p>
           <Button

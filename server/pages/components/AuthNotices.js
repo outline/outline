@@ -11,7 +11,8 @@ export default function AuthNotices({ notice }: Props) {
     <React.Fragment>
       {notice === 'guest-success' && (
         <Notice>
-          A magic signin link has been sent to your email address.
+          A magic signin link has been sent to your email address, no password
+          needed.
         </Notice>
       )}
       {notice === 'google-hd' && (

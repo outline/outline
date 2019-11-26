@@ -29,7 +29,7 @@ router.post('email', async ctx => {
 
     // If the user matches an email address associated with an SSO
     // signin then just forward them directly to that service
-    if (user.service !== 'email') {
+    if (user.service && user.service !== 'email') {
       return ctx.redirect(`${team.url}/auth/${user.service}`);
     }
 
@@ -73,6 +73,11 @@ router.get('email.callback', auth({ required: false }), async ctx => {
   const team = await Team.findByPk(user.teamId);
   if (!team.guestSignin) {
     throw new AuthorizationError();
+  }
+
+  if (!user.service) {
+    user.service = 'email';
+    await user.save();
   }
 
   // set cookies on response and redirect to team subdomain

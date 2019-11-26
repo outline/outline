@@ -98,7 +98,7 @@ User.prototype.getJwtToken = function() {
 };
 
 User.prototype.getEmailSigninToken = function() {
-  if (this.service !== 'email') {
+  if (this.service && this.service !== 'email') {
     throw new Error('Cannot generate email signin token for OAuth user');
   }
 

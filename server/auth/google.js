@@ -1,10 +1,13 @@
 // @flow
+import Sequelize from 'sequelize';
 import crypto from 'crypto';
 import Router from 'koa-router';
 import { capitalize } from 'lodash';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Team, Event } from '../models';
 import auth from '../middlewares/authentication';
+
+const Op = Sequelize.Op;
 
 const router = new Router();
 const client = new OAuth2Client(
@@ -79,8 +82,15 @@ router.get('google.callback', auth({ required: false }), async ctx => {
 
   const [user, isFirstSignin] = await User.findOrCreate({
     where: {
-      service: 'google',
-      serviceId: profile.data.id,
+      [Op.or]: [
+        {
+          service: 'google',
+          serviceId: profile.data.id,
+        },
+        {
+          service: '',
+        },
+      ],
       teamId: team.id,
     },
     defaults: {

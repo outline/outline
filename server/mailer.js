@@ -127,8 +127,8 @@ export class Mailer {
   signin = async (opts: { to: string, token: string, teamUrl: string }) => {
     this.sendMail({
       to: opts.to,
-      title: 'Outline - Magic signin link',
-      previewText: "Here's your link to signin to Outline",
+      title: 'Magic signin link',
+      previewText: 'Here’s your link to signin to Outline.',
       html: <SigninEmail {...opts} />,
       text: signinEmailText(opts),
     });
