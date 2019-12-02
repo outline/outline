@@ -51,12 +51,14 @@ export default async function userInviter({
     filteredInvites.map(async invite => {
       const transaction = await sequelize.transaction();
       try {
+        const avatarUrl = getDefaultAvatar(invite);
+
         await User.create(
           {
             teamId: user.teamId,
             name: invite.name,
             email: invite.email,
-            avatarUrl: getDefaultAvatar(invite),
+            avatarUrl,
             service: null,
           },
           { transaction }
