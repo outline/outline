@@ -1,22 +1,10 @@
 // @flow
-// import crypto from 'crypto';
 import { uniqBy } from 'lodash';
 import { User, Event, Team } from '../models';
 import mailer from '../mailer';
 import { sequelize } from '../sequelize';
 
 type Invite = { name: string, email: string };
-
-function getDefaultAvatar(invite: Invite) {
-  return '';
-
-  // const hash = crypto
-  //   .createHash('md5')
-  //   .update(invite.email)
-  //   .digest('hex');
-
-  // return `https://tiley.herokuapp.com/avatar/${hash}/${invite.name[0]}.png`;
-}
 
 export default async function userInviter({
   user,
@@ -53,14 +41,11 @@ export default async function userInviter({
     filteredInvites.map(async invite => {
       const transaction = await sequelize.transaction();
       try {
-        const avatarUrl = getDefaultAvatar(invite);
-
         await User.create(
           {
             teamId: user.teamId,
             name: invite.name,
             email: invite.email,
-            avatarUrl,
             service: null,
           },
           { transaction }

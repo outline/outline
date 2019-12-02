@@ -39,6 +39,18 @@ const User = sequelize.define(
       isSuspended() {
         return !!this.suspendedAt;
       },
+      avatarUrl() {
+        const original = this.getDataValue('avatarUrl');
+        if (original) {
+          return original;
+        }
+
+        const hash = crypto
+          .createHash('md5')
+          .update(this.email)
+          .digest('hex');
+        return `https://tiley.herokuapp.com/avatar/${hash}/${this.name[0]}.png`;
+      },
     },
   }
 );
