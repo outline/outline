@@ -8,13 +8,14 @@ import { sequelize } from '../sequelize';
 type Invite = { name: string, email: string };
 
 function getDefaultAvatar(invite) {
-  const hash = crypto.createHash('sha256');
-  hash.update(invite.email);
-  const hashedEmail = hash.digest('hex');
+  return '';
+  // const hash = crypto.createHash('sha256');
+  // hash.update(invite.email);
+  // const hashedEmail = hash.digest('hex');
 
-  return `https://tiley.herokuapp.com/avatar/${hashedEmail}/${
-    invite.name[0]
-  }.png`;
+  // return `https://tiley.herokuapp.com/avatar/${hashedEmail}/${
+  //   invite.name[0]
+  // }.png`;
 }
 
 export default async function userInviter({
@@ -52,16 +53,16 @@ export default async function userInviter({
     filteredInvites.map(async invite => {
       const transaction = await sequelize.transaction();
       try {
-        // await User.create(
-        //   {
-        //     teamId: user.teamId,
-        //     name: invite.name,
-        //     email: invite.email,
-        //     avatarUrl: getDefaultAvatar(invite),
-        //     service: null,
-        //   },
-        //   { transaction }
-        // );
+        await User.create(
+          {
+            teamId: user.teamId,
+            name: invite.name,
+            email: invite.email,
+            avatarUrl: getDefaultAvatar(invite),
+            service: null,
+          },
+          { transaction }
+        );
         await Event.create(
           {
             name: 'users.invite',
