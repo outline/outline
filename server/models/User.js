@@ -8,6 +8,8 @@ import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
 import { Star, Team, Collection, NotificationSetting, ApiKey } from '.';
 
+const DEFAULT_AVATAR_HOST = 'https://tiley.herokuapp.com';
+
 const User = sequelize.define(
   'user',
   {
@@ -49,7 +51,7 @@ const User = sequelize.define(
           .createHash('md5')
           .update(this.email)
           .digest('hex');
-        return `https://tiley.herokuapp.com/avatar/${hash}/${this.name[0]}.png`;
+        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${this.name[0]}.png`;
       },
     },
   }
@@ -122,10 +124,15 @@ User.prototype.getEmailSigninToken = function() {
 
 const uploadAvatar = async model => {
   const endpoint = publicS3Endpoint();
+  const { avatarUrl } = model;
 
-  if (model.avatarUrl && !model.avatarUrl.startsWith(endpoint)) {
+  if (
+    avatarUrl &&
+    !avatarUrl.startsWith(endpoint) &&
+    !avatarUrl.startsWith(DEFAULT_AVATAR_HOST)
+  ) {
     const newUrl = await uploadToS3FromUrl(
-      model.avatarUrl,
+      avatarUrl,
       `avatars/${model.id}/${uuid.v4()}`
     );
     if (newUrl) model.avatarUrl = newUrl;
