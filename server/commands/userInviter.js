@@ -8,14 +8,12 @@ import { sequelize } from '../sequelize';
 type Invite = { name: string, email: string };
 
 function getDefaultAvatar(invite) {
-  return '';
-  // const hash = crypto.createHash('sha256');
-  // hash.update(invite.email);
-  // const hashedEmail = hash.digest('hex');
+  const hash = crypto
+    .createHash('md5')
+    .update(invite.email)
+    .digest('hex');
 
-  // return `https://tiley.herokuapp.com/avatar/${hashedEmail}/${
-  //   invite.name[0]
-  // }.png`;
+  return `https://tiley.herokuapp.com/avatar/${hash}/${invite.name[0]}.png`;
 }
 
 export default async function userInviter({
