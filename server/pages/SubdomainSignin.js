@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import Grid from 'styled-components-grid';
 import Hero from './components/Hero';
 import HeroText from './components/HeroText';
+import Button from './components/Button';
 import SigninButtons from './components/SigninButtons';
 import AuthNotices from './components/AuthNotices';
 import Centered from './components/Centered';
@@ -51,10 +52,25 @@ function SubdomainSignin({
             <SigninButtons
               googleSigninEnabled={googleSigninEnabled}
               slackSigninEnabled={slackSigninEnabled}
-              guestSigninEnabled={guestSigninEnabled}
               lastSignedIn={signinHint}
             />
           </p>
+
+          {guestSigninEnabled && (
+            <div>
+              <HeroText>Have a guest account? Sign in with email…</HeroText>
+              <form method="POST" action="/auth/email">
+                <EmailInput
+                  type="email"
+                  name="email"
+                  placeholder="jane@domain.com"
+                />{' '}
+                <Button type="submit" as="button">
+                  Sign In
+                </Button>
+              </form>
+            </div>
+          )}
         </Hero>
       </Grid>
       <Alternative>
@@ -66,6 +82,14 @@ function SubdomainSignin({
     </React.Fragment>
   );
 }
+
+const EmailInput = styled.input`
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #999;
+  min-width: 217px;
+  height: 56px;
+`;
 
 const Subdomain = styled.span`
   display: block;

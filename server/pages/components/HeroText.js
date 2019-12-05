@@ -7,7 +7,7 @@ const HeroText = styled.p`
   font-weight: 500;
   text-align: left;
   max-width: 600px;
-  margin-bottom: 2em;
+  margin-bottom: 1em;
 `;
 
 export default HeroText;

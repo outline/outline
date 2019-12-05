@@ -46,16 +46,6 @@ const SigninButtons = ({
           </LastLogin>
         </Column>
       )}
-      {guestSigninEnabled && (
-        <Column column>
-          <form method="POST" action="/auth/email">
-            <input type="email" name="email" placeholder="jane@domain.com" />
-          </form>
-          <LastLogin>
-            {lastSignedIn === 'email' && 'You signed in with email previously'}
-          </LastLogin>
-        </Column>
-      )}
     </Wrapper>
   );
 };
