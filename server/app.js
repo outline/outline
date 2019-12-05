@@ -1,5 +1,6 @@
 // @flow
 import compress from 'koa-compress';
+import { compact } from 'lodash';
 import helmet, {
   contentSecurityPolicy,
   dnsPrefetchControl,
@@ -126,11 +127,11 @@ app.use(
       styleSrc: ["'self'", "'unsafe-inline'", 'github.githubassets.com'],
       imgSrc: ['*', 'data:', 'blob:'],
       frameSrc: ['*'],
-      connectSrc: [
+      connectSrc: compact([
         "'self'",
         process.env.AWS_S3_UPLOAD_BUCKET_URL,
         'www.google-analytics.com',
-      ],
+      ]),
     },
   })
 );
