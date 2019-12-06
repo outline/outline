@@ -23,7 +23,7 @@ Outline requires the following dependencies:
 
 - Node.js >= 12
 - Postgres >=9.5
-- Redis
+- Redis >= 4
 - AWS S3 storage bucket for media and other attachments
 - Slack or Google developer application for authentication
 
