@@ -38,12 +38,14 @@ export default class Backlinks {
         const document = await Document.findByPk(event.documentId);
         if (!document.publishedAt) return;
 
-        const [currentRevision, previsionRevision] = await Revision.findAll({
+        const [currentRevision, previousRevision] = await Revision.findAll({
           where: { documentId: event.documentId },
           order: [['createdAt', 'desc']],
           limit: 2,
         });
-        const previousLinkIds = parseDocumentIds(previsionRevision.text);
+        const previousLinkIds = previousRevision
+          ? parseDocumentIds(previousRevision.text)
+          : [];
         const currentLinkIds = parseDocumentIds(currentRevision.text);
         const addedLinkIds = difference(currentLinkIds, previousLinkIds);
         const removedLinkIds = difference(previousLinkIds, currentLinkIds);
