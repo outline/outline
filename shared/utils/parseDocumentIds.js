@@ -2,7 +2,7 @@
 import MarkdownSerializer from 'slate-md-serializer';
 const Markdown = new MarkdownSerializer();
 
-export default function parseDocumentIds(text: string) {
+export default function parseDocumentIds(text: string): string[] {
   const value = Markdown.deserialize(text);
   let links = [];
 

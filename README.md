@@ -23,7 +23,7 @@ Outline requires the following dependencies:
 
 - Node.js >= 12
 - Postgres >=9.5
-- Redis
+- Redis >= 4
 - AWS S3 storage bucket for media and other attachments
 - Slack or Google developer application for authentication
 
@@ -53,7 +53,7 @@ For a self-hosted production installation there is more flexibility, but these a
    > Requires [Node.js, npm](https://nodejs.org/) and [yarn](https://yarnpkg.com) installed
 
 1. Build the web app with `yarn build:webpack` or `npm run build:webpack`
-1. Copy the file `.env.sample` to `.env` and fill out at least the essential fields:
+1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
     1. `SECRET_KEY` (follow instructions in the comments of `.env`)
     1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
     1. `SLACK_SECRET`
