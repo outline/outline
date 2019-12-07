@@ -117,7 +117,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   get archived(): Document[] {
     return filter(
       orderBy(this.orderedData, 'archivedAt', 'desc'),
-      d => d.archivedAt
+      d => d.archivedAt && !d.deletedAt
     );
   }
 
