@@ -15,7 +15,7 @@ import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
 import UserListItem from './components/UserListItem';
 import List from 'components/List';
-import Tabs from 'components/Tabs';
+import Tabs, { Separator } from 'components/Tabs';
 import Tab from 'components/Tab';
 
 import AuthStore from 'stores/AuthStore';
@@ -104,6 +104,7 @@ class People extends React.Component<Props> {
           <Tab to="/settings/people/all" exact>
             Everyone
           </Tab>
+          <Separator />
           {can.invite && (
             <Tab to="/settings/people/invited" exact>
               Invited
