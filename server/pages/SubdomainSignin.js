@@ -43,11 +43,11 @@ function SubdomainSignin({
       <Grid>
         <Hero>
           <h1>{lastSignedIn ? 'Welcome back,' : 'Hey there,'}</h1>
+          <AuthNotices notice={notice} />
           <HeroText>
             Sign in with your team account to continue to {team.name}.
             <Subdomain>{hostname}</Subdomain>
           </HeroText>
-          <AuthNotices notice={notice} />
           <p>
             <SigninButtons
               googleSigninEnabled={googleSigninEnabled}

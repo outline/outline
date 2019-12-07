@@ -27,6 +27,12 @@ export default function AuthNotices({ notice }: Props) {
           an allowed company domain.
         </Notice>
       )}
+      {notice === 'email-auth-required' && (
+        <Notice>
+          Your account uses email sign-in, please sign-in with email to
+          continue.
+        </Notice>
+      )}
       {notice === 'auth-error' && (
         <Notice>
           Authentication failed - we were unable to sign you in at this time.

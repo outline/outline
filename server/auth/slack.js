@@ -39,7 +39,7 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   ctx.assertPresent(state, 'state is required');
 
   if (state !== ctx.cookies.get('state')) {
-    ctx.redirect('/?notice=auth-error');
+    ctx.redirect('/?notice=auth-error&error=state_mismatch');
     return;
   }
   if (error) {
@@ -59,53 +59,75 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
     },
   });
 
-  const [user, isFirstSignin] = await User.findOrCreate({
-    where: {
-      [Op.or]: [
-        {
-          service: 'slack',
-          serviceId: data.user.id,
-        },
-        {
-          service: '',
-        },
-      ],
-      teamId: team.id,
-    },
-    defaults: {
-      name: data.user.name,
-      email: data.user.email,
-      isAdmin: isFirstUser,
-      avatarUrl: data.user.image_192,
-    },
-  });
-
-  if (isFirstUser) {
-    await team.provisionFirstCollection(user.id);
-    await team.provisionSubdomain(data.team.domain);
-  }
-
-  if (isFirstSignin) {
-    await Event.create({
-      name: 'users.create',
-      actorId: user.id,
-      userId: user.id,
-      teamId: team.id,
-      data: {
-        name: user.name,
-        service: 'slack',
+  try {
+    const [user, isFirstSignin] = await User.findOrCreate({
+      where: {
+        [Op.or]: [
+          {
+            service: 'slack',
+            serviceId: data.user.id,
+          },
+          {
+            service: '',
+          },
+        ],
+        teamId: team.id,
       },
-      ip: ctx.request.ip,
+      defaults: {
+        name: data.user.name,
+        email: data.user.email,
+        isAdmin: isFirstUser,
+        avatarUrl: data.user.image_192,
+      },
     });
-  }
 
-  // update email address if it's changed in Slack
-  if (!isFirstSignin && data.user.email !== user.email) {
-    await user.update({ email: data.user.email });
-  }
+    if (isFirstUser) {
+      await team.provisionFirstCollection(user.id);
+      await team.provisionSubdomain(data.team.domain);
+    }
 
-  // set cookies on response and redirect to team subdomain
-  ctx.signIn(user, team, 'slack', isFirstSignin);
+    if (isFirstSignin) {
+      await Event.create({
+        name: 'users.create',
+        actorId: user.id,
+        userId: user.id,
+        teamId: team.id,
+        data: {
+          name: user.name,
+          service: 'slack',
+        },
+        ip: ctx.request.ip,
+      });
+    }
+
+    // update email address if it's changed in Slack
+    if (!isFirstSignin && data.user.email !== user.email) {
+      await user.update({ email: data.user.email });
+    }
+
+    // set cookies on response and redirect to team subdomain
+    ctx.signIn(user, team, 'slack', isFirstSignin);
+  } catch (err) {
+    if (err instanceof Sequelize.UniqueConstraintError) {
+      const exists = await User.findOne({
+        where: {
+          service: 'email',
+          email: data.user.email,
+          teamId: team.id,
+        },
+      });
+
+      if (exists) {
+        ctx.redirect(`${team.url}?notice=email-auth-required`);
+      } else {
+        ctx.redirect(`${team.url}?notice=auth-error`);
+      }
+
+      return;
+    }
+
+    throw err;
+  }
 });
 
 router.get('slack.commands', auth({ required: false }), async ctx => {

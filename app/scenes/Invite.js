@@ -108,18 +108,6 @@ class Invite extends React.Component<Props> {
         {this.invites.map((invite, index) => (
           <Flex key={index}>
             <Input
-              type="text"
-              name="name"
-              label="Full name"
-              labelHidden={index !== 0}
-              onChange={ev => this.handleChange(ev, index)}
-              value={invite.name}
-              required={!!invite.email}
-              autoFocus={index === 0}
-              flex
-            />
-            &nbsp;&nbsp;
-            <Input
               type="email"
               name="email"
               label="Email"
@@ -128,6 +116,18 @@ class Invite extends React.Component<Props> {
               placeholder={`example@${predictedDomain}`}
               value={invite.email}
               required={index === 0}
+              flex
+            />
+            &nbsp;&nbsp;
+            <Input
+              type="text"
+              name="name"
+              label="Full name"
+              labelHidden={index !== 0}
+              onChange={ev => this.handleChange(ev, index)}
+              value={invite.name}
+              required={!!invite.email}
+              autoFocus={index === 0}
               flex
             />
             {index !== 0 && (
