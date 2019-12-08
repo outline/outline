@@ -7,7 +7,7 @@ import { User, Team } from '../models';
 import methodOverride from '../middlewares/methodOverride';
 import validation from '../middlewares/validation';
 import auth from '../middlewares/authentication';
-import { AuthorizationError, InvalidRequestError } from '../errors';
+import { AuthorizationError } from '../errors';
 
 const router = new Router();
 
@@ -19,7 +19,6 @@ router.post('email', async ctx => {
 
   ctx.assertEmail(email, 'email is required');
 
-  // attempt to find a user with matching email and no OAuth signin
   const user = await User.findOne({
     where: { email },
   });
@@ -28,7 +27,8 @@ router.post('email', async ctx => {
     const team = await Team.findByPk(user.teamId);
 
     // If the user matches an email address associated with an SSO
-    // signin then just forward them directly to that service
+    // signin then just forward them directly to that service's
+    // login page
     if (user.service && user.service !== 'email') {
       return ctx.redirect(`${team.url}/auth/${user.service}`);
     }
@@ -37,7 +37,7 @@ router.post('email', async ctx => {
       throw new AuthorizationError();
     }
 
-    // rate limit endpoint to 1/min
+    // basic rate limit of endpoint to prevent send email abuse
     if (
       user.lastSigninEmailSentAt &&
       user.lastSigninEmailSentAt > subMinutes(new Date(), 2)
@@ -46,7 +46,7 @@ router.post('email', async ctx => {
       return;
     }
 
-    // send email to users registered address with a login token
+    // send email to users registered address with a short-lived token
     mailer.signin({
       to: user.email,
       token: user.getEmailSigninToken(),
