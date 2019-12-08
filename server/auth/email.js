@@ -81,7 +81,7 @@ router.get('email.callback', auth({ required: false }), async ctx => {
   }
 
   // set cookies on response and redirect to team subdomain
-  ctx.signIn(user, team, undefined, false);
+  ctx.signIn(user, team, 'email', false);
 });
 
 export default router;
