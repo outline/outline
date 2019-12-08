@@ -33,6 +33,12 @@ export default function AuthNotices({ notice }: Props) {
           continue.
         </Notice>
       )}
+      {notice === 'email-auth-ratelimit' && (
+        <Notice>
+          An email sign-in link was recently sent, please check your inbox and
+          try again in a few minutes.
+        </Notice>
+      )}
       {notice === 'auth-error' && (
         <Notice>
           Authentication failed - we were unable to sign you in at this time.

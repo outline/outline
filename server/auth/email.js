@@ -42,9 +42,8 @@ router.post('email', async ctx => {
       user.lastSigninEmailSentAt &&
       user.lastSigninEmailSentAt > subMinutes(new Date(), 2)
     ) {
-      throw new InvalidRequestError(
-        'An email login link was recently sent, try again in a few minutes'
-      );
+      ctx.redirect(`${team.url}?notice=email-auth-ratelimit`);
+      return;
     }
 
     // send email to users registered address with a login token
