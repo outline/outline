@@ -45,6 +45,12 @@ export default function AuthNotices({ notice }: Props) {
           Please try again.
         </Notice>
       )}
+      {notice === 'expired-token' && (
+        <Notice>
+          Sorry, it looks like that sign-in link is no longer valid, please try
+          requesting another.
+        </Notice>
+      )}
       {notice === 'suspended' && (
         <Notice>
           Your Outline account has been suspended. To re-activate your account,

@@ -68,19 +68,24 @@ router.get('email.callback', auth({ required: false }), async ctx => {
 
   ctx.assertPresent(token, 'token is required');
 
-  const user = await getUserForEmailSigninToken(token);
-  const team = await Team.findByPk(user.teamId);
-  if (!team.guestSignin) {
-    throw new AuthorizationError();
-  }
+  try {
+    const user = await getUserForEmailSigninToken(token);
 
-  if (!user.service) {
-    user.service = 'email';
-    await user.save();
-  }
+    const team = await Team.findByPk(user.teamId);
+    if (!team.guestSignin) {
+      throw new AuthorizationError();
+    }
 
-  // set cookies on response and redirect to team subdomain
-  ctx.signIn(user, team, 'email', false);
+    if (!user.service) {
+      user.service = 'email';
+      await user.save();
+    }
+
+    // set cookies on response and redirect to team subdomain
+    ctx.signIn(user, team, 'email', false);
+  } catch (err) {
+    ctx.redirect(`${process.env.URL}?notice=expired-token`);
+  }
 });
 
 export default router;
