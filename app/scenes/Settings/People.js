@@ -104,11 +104,14 @@ class People extends React.Component<Props> {
           <Tab to="/settings/people/all" exact>
             Everyone
           </Tab>
-          <Separator />
+
           {can.invite && (
-            <Tab to="/settings/people/invited" exact>
-              Invited
-            </Tab>
+            <React.Fragment>
+              <Separator />
+              <Tab to="/settings/people/invited" exact>
+                Invited
+              </Tab>
+            </React.Fragment>
           )}
         </Tabs>
         <List>

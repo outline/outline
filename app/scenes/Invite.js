@@ -116,6 +116,7 @@ class Invite extends React.Component<Props> {
               placeholder={`example@${predictedDomain}`}
               value={invite.email}
               required={index === 0}
+              autoFocus={index === 0}
               flex
             />
             &nbsp;&nbsp;
@@ -127,7 +128,6 @@ class Invite extends React.Component<Props> {
               onChange={ev => this.handleChange(ev, index)}
               value={invite.name}
               required={!!invite.email}
-              autoFocus={index === 0}
               flex
             />
             {index !== 0 && (
