@@ -2,10 +2,12 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import HelpText from 'components/HelpText';
+import VisuallyHidden from 'components/VisuallyHidden';
 
 export type Props = {
   checked?: boolean,
   label?: string,
+  labelHidden?: boolean,
   className?: string,
   note?: string,
   small?: boolean,
@@ -30,18 +32,26 @@ const Label = styled.label`
 
 export default function Checkbox({
   label,
+  labelHidden,
   note,
   className,
   small,
   short,
   ...rest
 }: Props) {
+  const wrappedLabel = <LabelText small={small}>{label}</LabelText>;
+
   return (
     <React.Fragment>
       <Wrapper small={small}>
         <Label>
           <input type="checkbox" {...rest} />
-          {label && <LabelText small={small}>{label}</LabelText>}
+          {label &&
+            (labelHidden ? (
+              <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
+            ) : (
+              wrappedLabel
+            ))}
         </Label>
         {note && <HelpText small>{note}</HelpText>}
       </Wrapper>

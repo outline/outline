@@ -4,7 +4,7 @@ import { User, Event, Team } from '../models';
 import mailer from '../mailer';
 import { sequelize } from '../sequelize';
 
-type Invite = { name: string, email: string };
+type Invite = { name: string, email: string, guest: boolean };
 
 export default async function userInviter({
   user,
@@ -66,6 +66,7 @@ export default async function userInviter({
         await mailer.invite({
           to: invite.email,
           name: invite.name,
+          guest: invite.guest,
           actorName: user.name,
           actorEmail: user.email,
           teamName: team.name,

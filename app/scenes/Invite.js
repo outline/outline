@@ -8,6 +8,7 @@ import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import Button from 'components/Button';
 import Input from 'components/Input';
+import Checkbox from 'components/Checkbox';
 import HelpText from 'components/HelpText';
 import Tooltip from 'components/Tooltip';
 import NudeButton from 'components/NudeButton';
@@ -33,10 +34,10 @@ class Invite extends React.Component<Props> {
   @observable isSaving: boolean;
   @observable linkCopied: boolean = false;
   @observable
-  invites: { email: string, name: string }[] = [
-    { email: '', name: '' },
-    { email: '', name: '' },
-    { email: '', name: '' },
+  invites: { email: string, name: string, guest: boolean }[] = [
+    { email: '', name: '', guest: false },
+    { email: '', name: '', guest: false },
+    { email: '', name: '', guest: false },
   ];
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
@@ -58,6 +59,10 @@ class Invite extends React.Component<Props> {
     this.invites[index][ev.target.name] = ev.target.value;
   };
 
+  handleGuestChange = (ev, index) => {
+    this.invites[index][ev.target.name] = ev.target.checked;
+  };
+
   handleAdd = () => {
     if (this.invites.length >= MAX_INVITES) {
       this.props.ui.showToast(
@@ -65,7 +70,7 @@ class Invite extends React.Component<Props> {
       );
     }
 
-    this.invites.push({ email: '', name: '' });
+    this.invites.push({ email: '', name: '', guest: false });
   };
 
   handleRemove = (ev: SyntheticEvent<>, index: number) => {
@@ -130,6 +135,29 @@ class Invite extends React.Component<Props> {
               required={!!invite.email}
               flex
             />
+            {team.guestSignin && (
+              <React.Fragment>
+                &nbsp;&nbsp;
+                <Tooltip
+                  tooltip={
+                    <span>
+                      Guests can sign in with email and <br />do not require{' '}
+                      {team.signinMethods} accounts
+                    </span>
+                  }
+                  placement="top"
+                >
+                  <Guest>
+                    <Checkbox
+                      name="guest"
+                      label="Guest"
+                      onChange={ev => this.handleGuestChange(ev, index)}
+                      checked={invite.guest}
+                    />
+                  </Guest>
+                </Tooltip>
+              </React.Fragment>
+            )}
             {index !== 0 && (
               <Remove>
                 <Tooltip tooltip="Remove invite" placement="top">
@@ -166,6 +194,12 @@ class Invite extends React.Component<Props> {
     );
   }
 }
+
+const Guest = styled('div')`
+  padding-top: 4px;
+  margin: 0 4px 16px;
+  align-self: flex-end;
+`;
 
 const Remove = styled('div')`
   margin-top: 6px;

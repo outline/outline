@@ -13,6 +13,7 @@ import { Team } from '../models';
 
 type Props = {
   team: Team,
+  guest?: boolean,
   notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed' | 'guest-success',
   lastSignedIn: string,
   googleSigninEnabled: boolean,
@@ -22,6 +23,7 @@ type Props = {
 
 function SubdomainSignin({
   team,
+  guest,
   lastSignedIn,
   notice,
   googleSigninEnabled,
@@ -32,6 +34,16 @@ function SubdomainSignin({
   slackSigninEnabled = !!team.slackId && slackSigninEnabled;
 
   const guestSigninEnabled = team.guestSignin;
+  const guestSigninForm = guestSigninEnabled && (
+    <div>
+      <form method="POST" action="/auth/email">
+        <EmailInput type="email" name="email" placeholder="jane@domain.com" />{' '}
+        <Button type="submit" as="button">
+          Sign In
+        </Button>
+      </form>
+    </div>
+  );
 
   // only show the "last signed in" hint if there is more than one option available
   const signinHint =
@@ -44,32 +56,41 @@ function SubdomainSignin({
         <Hero>
           <h1>{lastSignedIn ? 'Welcome back,' : 'Hey there,'}</h1>
           <AuthNotices notice={notice} />
-          <HeroText>
-            Sign in with your team account to continue to {team.name}.
-            <Subdomain>{hostname}</Subdomain>
-          </HeroText>
-          <p>
-            <SigninButtons
-              googleSigninEnabled={googleSigninEnabled}
-              slackSigninEnabled={slackSigninEnabled}
-              lastSignedIn={signinHint}
-            />
-          </p>
+          {guest ? (
+            <React.Fragment>
+              <HeroText>
+                Sign in with your email address to continue to {team.name}.
+                <Subdomain>{hostname}</Subdomain>
+              </HeroText>
+              {guestSigninForm}
+              <br />
 
-          {guestSigninEnabled && (
-            <div>
+              <HeroText>Have a team account? Sign in with SSO…</HeroText>
+              <p>
+                <SigninButtons
+                  googleSigninEnabled={googleSigninEnabled}
+                  slackSigninEnabled={slackSigninEnabled}
+                  lastSignedIn={signinHint}
+                />
+              </p>
+            </React.Fragment>
+          ) : (
+            <React.Fragment>
+              <HeroText>
+                Sign in with your team account to continue to {team.name}.
+                <Subdomain>{hostname}</Subdomain>
+              </HeroText>
+              <p>
+                <SigninButtons
+                  googleSigninEnabled={googleSigninEnabled}
+                  slackSigninEnabled={slackSigninEnabled}
+                  lastSignedIn={signinHint}
+                />
+              </p>
+
               <HeroText>Have a guest account? Sign in with email…</HeroText>
-              <form method="POST" action="/auth/email">
-                <EmailInput
-                  type="email"
-                  name="email"
-                  placeholder="jane@domain.com"
-                />{' '}
-                <Button type="submit" as="button">
-                  Sign In
-                </Button>
-              </form>
-            </div>
+              {guestSigninForm}
+            </React.Fragment>
           )}
         </Hero>
       </Grid>
