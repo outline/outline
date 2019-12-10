@@ -8,6 +8,7 @@ import styled from 'styled-components';
 import Flex from 'shared/components/Flex';
 import Button from 'components/Button';
 import Input from 'components/Input';
+import CopyToClipboard from 'components/CopyToClipboard';
 import Checkbox from 'components/Checkbox';
 import HelpText from 'components/HelpText';
 import Tooltip from 'components/Tooltip';
@@ -110,6 +111,19 @@ class Invite extends React.Component<Props> {
             )}
           </HelpText>
         )}
+        {team.subdomain && (
+          <CopyBlock>
+            Want a link to share directly with your team?
+            <Flex>
+              <Input type="text" value={team.url} flex />&nbsp;&nbsp;
+              <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
+                <Button type="button" neutral>
+                  {this.linkCopied ? 'Link copied' : 'Copy link'}
+                </Button>
+              </CopyToClipboard>
+            </Flex>
+          </CopyBlock>
+        )}
         {this.invites.map((invite, index) => (
           <Flex key={index}>
             <Input
@@ -194,6 +208,19 @@ class Invite extends React.Component<Props> {
     );
   }
 }
+
+const CopyBlock = styled('div')`
+  font-size: 14px;
+  background: ${props => props.theme.secondaryBackground};
+  padding: 8px 16px 4px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+
+  input {
+    background: ${props => props.theme.background};
+    border-radius: 4px;
+  }
+`;
 
 const Guest = styled('div')`
   padding-top: 4px;
