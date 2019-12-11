@@ -157,7 +157,7 @@ const removeIdentifyingInfo = async (model, options) => {
     transaction: options.transaction,
   });
 
-  model.email = '';
+  model.email = null;
   model.name = 'Unknown';
   model.avatarUrl = '';
   model.serviceId = null;
