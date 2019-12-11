@@ -261,7 +261,11 @@ router.post('users.delete', auth(), async ctx => {
   if (id) user = await User.findByPk(id);
   authorize(user, 'delete', user);
 
-  await user.destroy();
+  try {
+    await user.destroy();
+  } catch (err) {
+    throw new ValidationError(err.message);
+  }
 
   await Event.create({
     name: 'users.delete',
