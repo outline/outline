@@ -7,6 +7,8 @@ import CollectionUser from './CollectionUser';
 import Document from './Document';
 import Event from './Event';
 import Integration from './Integration';
+import Group from './Group';
+import GroupUser from './GroupUser';
 import Notification from './Notification';
 import NotificationSetting from './NotificationSetting';
 import Revision from './Revision';
@@ -24,6 +26,8 @@ const models = {
   CollectionUser,
   Document,
   Event,
+  Group,
+  GroupUser,
   Integration,
   Notification,
   NotificationSetting,
@@ -50,6 +54,8 @@ export {
   CollectionUser,
   Document,
   Event,
+  Group,
+  GroupUser,
   Integration,
   Notification,
   NotificationSetting,
