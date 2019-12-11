@@ -254,17 +254,14 @@ router.post('users.invite', auth(), async ctx => {
 });
 
 router.post('users.delete', auth(), async ctx => {
-  const { confirmation } = ctx.body;
+  const { confirmation, id } = ctx.body;
   ctx.assertPresent(confirmation, 'confirmation is required');
 
-  const user = ctx.state.user;
+  let user = ctx.state.user;
+  if (id) user = await User.findByPk(id);
   authorize(user, 'delete', user);
 
-  try {
-    await user.destroy();
-  } catch (err) {
-    throw new ValidationError(err.message);
-  }
+  await user.destroy();
 
   await Event.create({
     name: 'users.delete',

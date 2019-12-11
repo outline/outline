@@ -19,7 +19,7 @@ allow(User, 'invite', User, actor => {
 allow(User, ['update', 'delete'], User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
   if (user.id === actor.id) return true;
-  if (actor.isAdmin) return true;
+  if (actor.isAdmin && !user.lastActiveAt) return true;
   throw new AdminRequiredError();
 });
 

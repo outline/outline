@@ -114,14 +114,17 @@ export default class BaseStore<T: BaseModel> {
   }
 
   @action
-  async delete(item: T) {
+  async delete(item: T, options?: Object = {}) {
     if (!this.actions.includes('delete')) {
       throw new Error(`Cannot delete ${this.modelName}`);
     }
     this.isSaving = true;
 
     try {
-      await client.post(`/${this.modelName}s.delete`, { id: item.id });
+      await client.post(`/${this.modelName}s.delete`, {
+        id: item.id,
+        ...options,
+      });
       return this.remove(item.id);
     } finally {
       this.isSaving = false;
