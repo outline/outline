@@ -12,7 +12,7 @@ afterAll(server.close);
 describe('#groups.create', async () => {
   it('should create a group', async () => {
     const name = 'hello I am a group';
-    const user = await buildUser();
+    const user = await buildUser({ isAdmin: true });
 
     const res = await server.post('/api/groups.create', {
       body: { token: user.getJwtToken(), name },
@@ -37,7 +37,7 @@ describe('#groups.update', async () => {
     expect(body).toMatchSnapshot();
   });
 
-  it('should require authorization', async () => {
+  it('should require admin', async () => {
     const group = await buildGroup();
     const user = await buildUser();
     const res = await server.post('/api/groups.update', {
@@ -46,9 +46,19 @@ describe('#groups.update', async () => {
     expect(res.status).toEqual(403);
   });
 
-  it('allows admin to edit a group', async () => {
-    const group = await buildGroup();
+  it('should require authorization', async () => {
     const user = await buildUser({ isAdmin: true });
+    const group = await buildGroup();
+
+    const res = await server.post('/api/groups.update', {
+      body: { token: user.getJwtToken(), id: group.id, name: 'Test' },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it('allows admin to edit a group', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const group = await buildGroup({ teamId: user.teamId });
 
     const res = await server.post('/api/groups.update', {
       body: { token: user.getJwtToken(), id: group.id, name: 'Test' },

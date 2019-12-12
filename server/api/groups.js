@@ -38,7 +38,7 @@ router.post('groups.create', auth(), async ctx => {
 
   const user = ctx.state.user;
 
-  // TODO: authorize this to admins only
+  authorize(user, 'create', Group);
   const group = await Group.create({
     name,
     teamId: user.teamId,

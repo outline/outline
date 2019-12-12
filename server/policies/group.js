@@ -5,7 +5,13 @@ import { AdminRequiredError } from '../errors';
 
 const { allow } = policy;
 
-allow(User, ['create', 'update', 'delete'], Group, (user, group) => {
-  if (user.isAdmin) return true;
+allow(User, ['create'], Group, actor => {
+  if (actor.isAdmin) return true;
+  throw new AdminRequiredError();
+});
+
+allow(User, ['update', 'delete'], Group, (actor, group) => {
+  if (!group || actor.teamId !== group.teamId) return false;
+  if (actor.isAdmin) return true;
   throw new AdminRequiredError();
 });
