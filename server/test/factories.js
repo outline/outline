@@ -1,5 +1,13 @@
 // @flow
-import { Share, Team, User, Event, Document, Collection } from '../models';
+import {
+  Share,
+  Team,
+  User,
+  Event,
+  Document,
+  Collection,
+  Group,
+} from '../models';
 import uuid from 'uuid';
 
 let count = 0;
@@ -72,6 +80,26 @@ export async function buildCollection(overrides: Object = {}) {
     description: 'Test collection description',
     creatorId: overrides.userId,
     type: 'atlas',
+    ...overrides,
+  });
+}
+
+export async function buildGroup(overrides: Object = {}) {
+  count++;
+
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  return Group.create({
+    name: 'Test Group',
+    createdById: overrides.userId,
     ...overrides,
   });
 }

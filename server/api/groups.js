@@ -59,4 +59,30 @@ router.post('groups.create', auth(), async ctx => {
   };
 });
 
+router.post('groups.update', auth(), async ctx => {
+  const { id, name } = ctx.body;
+  ctx.assertPresent(name, 'name is required');
+
+  const user = ctx.state.user;
+  const group = await Group.findByPk(id);
+
+  // NOTE: the flowtyping seems to not be working here
+  // I can pipe in anything into the third arg and not raise a flow issue
+  authorize(user, 'update', group);
+
+  group.name = name;
+  await group.save();
+
+  await Event.create({
+    name: 'groups.update',
+    actorId: user.id,
+    data: { name },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    data: presentGroup(group),
+  };
+});
+
 export default router;

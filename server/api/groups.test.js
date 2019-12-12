@@ -2,7 +2,7 @@
 import TestServer from 'fetch-test-server';
 import app from '../app';
 import { flushdb } from '../test/support';
-import { buildUser } from '../test/factories';
+import { buildUser, buildGroup } from '../test/factories';
 
 const server = new TestServer(app.callback());
 
@@ -22,5 +22,40 @@ describe('#groups.create', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual(name);
+  });
+});
+
+describe('#groups.update', async () => {
+  it('should require authentication', async () => {
+    const group = await buildGroup();
+    const res = await server.post('/api/groups.update', {
+      body: { id: group.id, name: 'Test' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const group = await buildGroup();
+    const user = await buildUser();
+    const res = await server.post('/api/groups.update', {
+      body: { token: user.getJwtToken(), id: group.id, name: 'Test' },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it('allows admin to edit a group', async () => {
+    const group = await buildGroup();
+    const user = await buildUser({ isAdmin: true });
+
+    const res = await server.post('/api/groups.update', {
+      body: { token: user.getJwtToken(), id: group.id, name: 'Test' },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toBe('Test');
   });
 });
