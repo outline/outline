@@ -1,34 +1,29 @@
 // @flow
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
-import { presentView, presentGroup } from '../presenters';
-import { View, Document, Event, User, Group } from '../models';
+import pagination from './middlewares/pagination';
+import { presentGroup, presentPolicies } from '../presenters';
+import { Event, Group } from '../models';
 import policy from '../policies';
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post('groups.list', auth(), async ctx => {
-  const { documentId } = ctx.body;
-  ctx.assertUuid(documentId, 'documentId is required');
-
+router.post('groups.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
-  const document = await Document.findByPk(documentId, { userId: user.id });
-  authorize(user, 'read', document);
-
-  const views = await View.findAll({
-    where: { documentId },
+  let groups = await Group.findAll({
+    where: {
+      teamId: user.teamId,
+    },
     order: [['updatedAt', 'DESC']],
-    include: [
-      {
-        model: User,
-        paranoid: false,
-      },
-    ],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
   });
 
   ctx.body = {
-    data: views.map(presentView),
+    pagination: ctx.state.pagination,
+    data: groups.map(presentGroup),
+    policies: presentPolicies(user, groups),
   };
 });
 
@@ -56,6 +51,7 @@ router.post('groups.create', auth(), async ctx => {
 
   ctx.body = {
     data: presentGroup(group),
+    policies: presentPolicies(user, [group]),
   };
 });
 
@@ -82,6 +78,7 @@ router.post('groups.update', auth(), async ctx => {
 
   ctx.body = {
     data: presentGroup(group),
+    policies: presentPolicies(user, [group]),
   };
 });
 

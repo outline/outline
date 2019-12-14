@@ -47,8 +47,8 @@ describe('#groups.update', async () => {
   });
 
   it('should require authorization', async () => {
-    const user = await buildUser({ isAdmin: true });
     const group = await buildGroup();
+    const user = await buildUser({ isAdmin: true });
 
     const res = await server.post('/api/groups.update', {
       body: { token: user.getJwtToken(), id: group.id, name: 'Test' },
@@ -67,5 +67,31 @@ describe('#groups.update', async () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.name).toBe('Test');
+  });
+});
+
+describe('#groups.list', async () => {
+  it('should require authentication', async () => {
+    const res = await server.post('/api/groups.list');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should return collections', async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post('/api/groups.list', {
+      body: { token: user.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(group.id);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
   });
 });
