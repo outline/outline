@@ -79,7 +79,7 @@ describe('#groups.list', async () => {
     expect(body).toMatchSnapshot();
   });
 
-  it('should return collections', async () => {
+  it('should return groups', async () => {
     const user = await buildUser();
     const group = await buildGroup({ teamId: user.teamId });
 
@@ -93,5 +93,37 @@ describe('#groups.list', async () => {
     expect(body.data[0].id).toEqual(group.id);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
+  });
+});
+
+describe('#groups.info', async () => {
+  it('should return group', async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post('/api/groups.info', {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(group.id);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/groups.info');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const user = await buildUser();
+    const group = await buildGroup();
+    const res = await server.post('/api/groups.info', {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+    expect(res.status).toEqual(403);
   });
 });

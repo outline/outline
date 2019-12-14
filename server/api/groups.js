@@ -27,6 +27,20 @@ router.post('groups.list', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('groups.info', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertUuid(id, 'id is required');
+
+  const user = ctx.state.user;
+  const group = await Group.findByPk(id);
+  authorize(user, 'read', group);
+
+  ctx.body = {
+    data: presentGroup(group),
+    policies: presentPolicies(user, [group]),
+  };
+});
+
 router.post('groups.create', auth(), async ctx => {
   const { name } = ctx.body;
   ctx.assertPresent(name, 'name is required');
