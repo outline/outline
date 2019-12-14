@@ -76,8 +76,6 @@ router.post('groups.update', auth(), async ctx => {
   const user = ctx.state.user;
   const group = await Group.findByPk(id);
 
-  // NOTE: the flowtyping seems to not be working here
-  // I can pipe in anything into the third arg and not raise a flow issue
   authorize(user, 'update', group);
 
   group.name = name;
