@@ -72,6 +72,7 @@ router.post('groups.create', auth(), async ctx => {
 router.post('groups.update', auth(), async ctx => {
   const { id, name } = ctx.body;
   ctx.assertPresent(name, 'name is required');
+  ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
   const group = await Group.findByPk(id);
@@ -83,6 +84,7 @@ router.post('groups.update', auth(), async ctx => {
 
   await Event.create({
     name: 'groups.update',
+    teamId: user.teamId,
     actorId: user.id,
     data: { name },
     ip: ctx.request.ip,
@@ -91,6 +93,30 @@ router.post('groups.update', auth(), async ctx => {
   ctx.body = {
     data: presentGroup(group),
     policies: presentPolicies(user, [group]),
+  };
+});
+
+router.post('groups.delete', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertUuid(id, 'id is required');
+
+  const { user } = ctx.state;
+  const group = await Group.findByPk(id);
+
+  authorize(user, 'delete', group);
+
+  await group.destroy();
+
+  await Event.create({
+    name: 'groups.delete',
+    actiorId: user.id,
+    teamId: group.teamId,
+    data: { name: group.name },
+    id: ctx.request.ip,
+  });
+
+  ctx.body = {
+    success: true,
   };
 });
 
