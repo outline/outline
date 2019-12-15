@@ -49,7 +49,7 @@ const User = sequelize.define(
 
         const hash = crypto
           .createHash('md5')
-          .update(this.email)
+          .update(this.email || '')
           .digest('hex');
         return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${this.name[0]}.png`;
       },
