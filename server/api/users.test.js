@@ -111,6 +111,27 @@ describe('#users.delete', async () => {
     expect(res.status).toEqual(200);
   });
 
+  it('should allow deleting pending user account with admin', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const pending = await buildUser({
+      teamId: user.teamId,
+      lastActiveAt: null,
+    });
+    const res = await server.post('/api/users.delete', {
+      body: { token: user.getJwtToken(), id: pending.id, confirmation: true },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it('should not allow deleting another user account', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const user2 = await buildUser({ teamId: user.teamId });
+    const res = await server.post('/api/users.delete', {
+      body: { token: user.getJwtToken(), id: user2.id, confirmation: true },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it('should require authentication', async () => {
     const res = await server.post('/api/users.delete');
     const body = await res.json();
@@ -183,7 +204,7 @@ describe('#users.demote', async () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("shouldn't demote admins if only one available ", async () => {
+  it('should not demote admins if only one available', async () => {
     const admin = await buildUser({ isAdmin: true });
 
     const res = await server.post('/api/users.demote', {
@@ -226,7 +247,7 @@ describe('#users.suspend', async () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("shouldn't allow suspending the user themselves", async () => {
+  it('should not allow suspending the user themselves', async () => {
     const admin = await buildUser({ isAdmin: true });
     const res = await server.post('/api/users.suspend', {
       body: {

@@ -52,21 +52,21 @@ Object {
 }
 `;
 
+exports[`#users.demote should not demote admins if only one available 1`] = `
+Object {
+  "error": "validation_error",
+  "message": "At least one admin is required",
+  "ok": false,
+  "status": 400,
+}
+`;
+
 exports[`#users.demote should require admin 1`] = `
 Object {
   "error": "admin_required",
   "message": "An admin role is required to access this resource",
   "ok": false,
   "status": 403,
-}
-`;
-
-exports[`#users.demote shouldn't demote admins if only one available  1`] = `
-Object {
-  "error": "validation_error",
-  "message": "At least one admin is required",
-  "ok": false,
-  "status": 400,
 }
 `;
 
@@ -96,6 +96,15 @@ Object {
 }
 `;
 
+exports[`#users.suspend should not allow suspending the user themselves 1`] = `
+Object {
+  "error": "validation_error",
+  "message": "Unable to suspend the current user",
+  "ok": false,
+  "status": 400,
+}
+`;
+
 exports[`#users.suspend should require admin 1`] = `
 Object {
   "error": "admin_required",
@@ -119,15 +128,6 @@ Object {
   },
   "ok": true,
   "status": 200,
-}
-`;
-
-exports[`#users.suspend shouldn't allow suspending the user themselves 1`] = `
-Object {
-  "error": "validation_error",
-  "message": "Unable to suspend the current user",
-  "ok": false,
-  "status": 400,
 }
 `;
 

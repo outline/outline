@@ -259,7 +259,7 @@ router.post('users.delete', auth(), async ctx => {
 
   let user = ctx.state.user;
   if (id) user = await User.findByPk(id);
-  authorize(user, 'delete', user);
+  authorize(ctx.state.user, 'delete', user);
 
   try {
     await user.destroy();
