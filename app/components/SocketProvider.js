@@ -195,7 +195,9 @@ class SocketProvider extends React.Component<Props> {
   }
 
   componentWillUnmount() {
-    this.socket.disconnect();
+    if (this.socket) {
+      this.socket.disconnect();
+    }
   }
 
   render() {
