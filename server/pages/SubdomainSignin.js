@@ -34,7 +34,7 @@ function SubdomainSignin({
   slackSigninEnabled = !!team.slackId && slackSigninEnabled;
 
   const guestSigninEnabled = team.guestSignin;
-  const guestSigninForm = guestSigninEnabled && (
+  const guestSigninForm = (
     <div>
       <form method="POST" action="/auth/email">
         <EmailInput type="email" name="email" placeholder="jane@domain.com" />{' '}
@@ -56,7 +56,7 @@ function SubdomainSignin({
         <Hero>
           <h1>{lastSignedIn ? 'Welcome back,' : 'Hey there,'}</h1>
           <AuthNotices notice={notice} />
-          {guest ? (
+          {guest && guestSigninEnabled ? (
             <React.Fragment>
               <HeroText>
                 Sign in with your email address to continue to {team.name}.
@@ -88,8 +88,12 @@ function SubdomainSignin({
                 />
               </p>
 
-              <HeroText>Have a guest account? Sign in with email…</HeroText>
-              {guestSigninForm}
+              {guestSigninEnabled && (
+                <React.Fragment>
+                  <HeroText>Have a guest account? Sign in with email…</HeroText>
+                  {guestSigninForm}
+                </React.Fragment>
+              )}
             </React.Fragment>
           )}
         </Hero>
