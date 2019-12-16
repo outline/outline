@@ -3,7 +3,7 @@ module.exports = {
     await queryInterface.addColumn('teams', 'guestSignin', {
       type: Sequelize.BOOLEAN,
       allowNull: false,
-      defaultValue: true,
+      defaultValue: false,
     });
     await queryInterface.addColumn('users', 'lastSigninEmailSentAt', {
       type: Sequelize.DATE
