@@ -254,11 +254,12 @@ router.post('users.invite', auth(), async ctx => {
 });
 
 router.post('users.delete', auth(), async ctx => {
-  const { confirmation } = ctx.body;
+  const { confirmation, id } = ctx.body;
   ctx.assertPresent(confirmation, 'confirmation is required');
 
-  const user = ctx.state.user;
-  authorize(user, 'delete', user);
+  let user = ctx.state.user;
+  if (id) user = await User.findByPk(id);
+  authorize(ctx.state.user, 'delete', user);
 
   try {
     await user.destroy();

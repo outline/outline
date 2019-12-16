@@ -8,6 +8,8 @@ import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
 import { Star, Team, Collection, NotificationSetting, ApiKey } from '.';
 
+const DEFAULT_AVATAR_HOST = 'https://tiley.herokuapp.com';
+
 const User = sequelize.define(
   'user',
   {
@@ -29,6 +31,7 @@ const User = sequelize.define(
     lastActiveIp: { type: DataTypes.STRING, allowNull: true },
     lastSignedInAt: DataTypes.DATE,
     lastSignedInIp: { type: DataTypes.STRING, allowNull: true },
+    lastSigninEmailSentAt: DataTypes.DATE,
     suspendedAt: DataTypes.DATE,
     suspendedById: DataTypes.UUID,
   },
@@ -37,6 +40,18 @@ const User = sequelize.define(
     getterMethods: {
       isSuspended() {
         return !!this.suspendedAt;
+      },
+      avatarUrl() {
+        const original = this.getDataValue('avatarUrl');
+        if (original) {
+          return original;
+        }
+
+        const hash = crypto
+          .createHash('md5')
+          .update(this.email || '')
+          .digest('hex');
+        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${this.name[0]}.png`;
       },
     },
   }
@@ -96,12 +111,28 @@ User.prototype.getJwtToken = function() {
   return JWT.sign({ id: this.id }, this.jwtSecret);
 };
 
+User.prototype.getEmailSigninToken = function() {
+  if (this.service && this.service !== 'email') {
+    throw new Error('Cannot generate email signin token for OAuth user');
+  }
+
+  return JWT.sign(
+    { id: this.id, createdAt: new Date().toISOString() },
+    this.jwtSecret
+  );
+};
+
 const uploadAvatar = async model => {
   const endpoint = publicS3Endpoint();
+  const { avatarUrl } = model;
 
-  if (model.avatarUrl && !model.avatarUrl.startsWith(endpoint)) {
+  if (
+    avatarUrl &&
+    !avatarUrl.startsWith(endpoint) &&
+    !avatarUrl.startsWith(DEFAULT_AVATAR_HOST)
+  ) {
     const newUrl = await uploadToS3FromUrl(
-      model.avatarUrl,
+      avatarUrl,
       `avatars/${model.id}/${uuid.v4()}`
     );
     if (newUrl) model.avatarUrl = newUrl;
@@ -126,7 +157,7 @@ const removeIdentifyingInfo = async (model, options) => {
     transaction: options.transaction,
   });
 
-  model.email = '';
+  model.email = null;
   model.name = 'Unknown';
   model.avatarUrl = '';
   model.serviceId = null;
@@ -165,7 +196,7 @@ User.afterCreate(async user => {
   // From Slack support:
   // If you wish to contact users at an email address obtained through Slack,
   // you need them to opt-in through a clear and separate process.
-  if (!team.slackId) {
+  if (user.service && user.service !== 'slack') {
     sendEmail('welcome', user.email, { teamUrl: team.url });
   }
 });

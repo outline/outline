@@ -50,6 +50,7 @@ export async function buildUser(overrides: Object = {}) {
     service: 'slack',
     serviceId: uuid.v4(),
     createdAt: new Date('2018-01-01T00:00:00.000Z'),
+    lastActiveAt: new Date('2018-01-01T00:00:00.000Z'),
     ...overrides,
   });
 }

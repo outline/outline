@@ -13,12 +13,14 @@ type Props = {
   lastSignedIn?: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
+  guestSigninEnabled?: boolean,
 };
 
 const SigninButtons = ({
   lastSignedIn,
   slackSigninEnabled,
   googleSigninEnabled,
+  guestSigninEnabled,
 }: Props) => {
   return (
     <Wrapper>

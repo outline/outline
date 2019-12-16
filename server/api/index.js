@@ -18,9 +18,9 @@ import notificationSettings from './notificationSettings';
 import utils from './utils';
 
 import { NotFoundError } from '../errors';
-import errorHandling from './middlewares/errorHandling';
+import errorHandling from '../middlewares/errorHandling';
 import validation from '../middlewares/validation';
-import methodOverride from './middlewares/methodOverride';
+import methodOverride from '../middlewares/methodOverride';
 import cache from './middlewares/cache';
 import apiWrapper from './middlewares/apiWrapper';
 

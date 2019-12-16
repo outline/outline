@@ -1,10 +1,13 @@
 // @flow
+import Sequelize from 'sequelize';
 import crypto from 'crypto';
 import Router from 'koa-router';
 import { capitalize } from 'lodash';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Team, Event } from '../models';
 import auth from '../middlewares/authentication';
+
+const Op = Sequelize.Op;
 
 const router = new Router();
 const client = new OAuth2Client(
@@ -77,46 +80,75 @@ router.get('google.callback', auth({ required: false }), async ctx => {
     },
   });
 
-  const [user, isFirstSignin] = await User.findOrCreate({
-    where: {
-      service: 'google',
-      serviceId: profile.data.id,
-      teamId: team.id,
-    },
-    defaults: {
-      name: profile.data.name,
-      email: profile.data.email,
-      isAdmin: isFirstUser,
-      avatarUrl: profile.data.picture,
-    },
-  });
-
-  if (isFirstSignin) {
-    await Event.create({
-      name: 'users.create',
-      actorId: user.id,
-      userId: user.id,
-      teamId: team.id,
-      data: {
-        name: user.name,
-        service: 'google',
+  try {
+    const [user, isFirstSignin] = await User.findOrCreate({
+      where: {
+        [Op.or]: [
+          {
+            service: 'google',
+            serviceId: profile.data.id,
+          },
+          {
+            service: '',
+          },
+        ],
+        teamId: team.id,
       },
-      ip: ctx.request.ip,
+      defaults: {
+        name: profile.data.name,
+        email: profile.data.email,
+        isAdmin: isFirstUser,
+        avatarUrl: profile.data.picture,
+      },
     });
-  }
 
-  // update email address if it's changed in Google
-  if (!isFirstSignin && profile.data.email !== user.email) {
-    await user.update({ email: profile.data.email });
-  }
+    if (isFirstSignin) {
+      await Event.create({
+        name: 'users.create',
+        actorId: user.id,
+        userId: user.id,
+        teamId: team.id,
+        data: {
+          name: user.name,
+          service: 'google',
+        },
+        ip: ctx.request.ip,
+      });
+    }
 
-  if (isFirstUser) {
-    await team.provisionFirstCollection(user.id);
-    await team.provisionSubdomain(hostname);
-  }
+    // update email address if it's changed in Google
+    if (!isFirstSignin && profile.data.email !== user.email) {
+      await user.update({ email: profile.data.email });
+    }
 
-  // set cookies on response and redirect to team subdomain
-  ctx.signIn(user, team, 'google', isFirstSignin);
+    if (isFirstUser) {
+      await team.provisionFirstCollection(user.id);
+      await team.provisionSubdomain(hostname);
+    }
+
+    // set cookies on response and redirect to team subdomain
+    ctx.signIn(user, team, 'google', isFirstSignin);
+  } catch (err) {
+    if (err instanceof Sequelize.UniqueConstraintError) {
+      const exists = await User.findOne({
+        where: {
+          service: 'email',
+          email: profile.data.email,
+          teamId: team.id,
+        },
+      });
+
+      if (exists) {
+        ctx.redirect(`${team.url}?notice=email-auth-required`);
+      } else {
+        ctx.redirect(`${team.url}?notice=auth-error`);
+      }
+
+      return;
+    }
+
+    throw err;
+  }
 });
 
 export default router;

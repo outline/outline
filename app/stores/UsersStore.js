@@ -14,7 +14,10 @@ export default class UsersStore extends BaseStore<User> {
 
   @computed
   get active(): User[] {
-    return filter(this.orderedData, user => !user.isSuspended);
+    return filter(
+      this.orderedData,
+      user => !user.isSuspended && user.lastActiveAt
+    );
   }
 
   @computed
@@ -23,8 +26,18 @@ export default class UsersStore extends BaseStore<User> {
   }
 
   @computed
+  get invited(): User[] {
+    return filter(this.orderedData, user => !user.lastActiveAt);
+  }
+
+  @computed
   get admins(): User[] {
     return filter(this.orderedData, user => user.isAdmin);
+  }
+
+  @computed
+  get all(): User[] {
+    return filter(this.orderedData, user => user.lastActiveAt);
   }
 
   @computed
