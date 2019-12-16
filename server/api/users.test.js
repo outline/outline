@@ -76,6 +76,26 @@ describe('#users.info', async () => {
   });
 });
 
+describe('#users.invite', async () => {
+  it('should return sent invites', async () => {
+    const user = await buildUser();
+    const res = await server.post('/api/users.invite', {
+      body: {
+        token: user.getJwtToken(),
+        invites: [{ email: 'test@example.com', name: 'Test', guest: false }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.sent.length).toEqual(1);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/users.invite');
+    expect(res.status).toEqual(401);
+  });
+});
+
 describe('#users.delete', async () => {
   it('should not allow deleting without confirmation', async () => {
     const user = await buildUser();
