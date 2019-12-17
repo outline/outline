@@ -8440,10 +8440,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^9.10.0:
-  version "9.10.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.10.0.tgz#df59720ed969c1288d672d58f239664a64dd1465"
-  integrity sha512-9FGzjPExSYb/T0Rp5YEkz8qgEQkiwprAzlg4J6aj5acFZlaon2QZ4sNO/2feBaT3IBfAbnPNZEb+JeuZpL7s7w==
+rich-markdown-editor@^9.11.1:
+  version "9.11.1"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-9.11.1.tgz#055cd4e573f368341985843f37007add77cdf0a6"
+  integrity sha512-l4O5wDoeX3eMVWhhsrEROQdaSuUaygnBMx21WBv7ATOl4o9CQBgOKPxdk/lkQ34Zq9qLLO4fwN4Hbjv9FZCM/w==
   dependencies:
     "@domoinc/slate-edit-table" "^0.22.2"
     "@tommoor/slate-edit-list" "0.19.0-0"
@@ -8467,7 +8467,7 @@ rich-markdown-editor@^9.10.0:
     slate "^0.45.0"
     slate-collapse-on-escape "^0.8.1"
     slate-drop-or-paste-images "^0.9.1"
-    slate-instant-replace "^0.1.13"
+    slate-instant-replace "^0.1.14"
     slate-md-serializer "5.4.4"
     slate-paste-linkify "^0.7.0"
     slate-react "^0.21.20"
@@ -8844,10 +8844,10 @@ slate-hotkeys@^0.2.9:
     is-hotkey "0.1.4"
     slate-dev-environment "^0.2.2"
 
-slate-instant-replace@^0.1.13:
-  version "0.1.13"
-  resolved "https://registry.yarnpkg.com/slate-instant-replace/-/slate-instant-replace-0.1.13.tgz#03a2c908253c399a1ca5d6922a93867eb186c69b"
-  integrity sha512-jesj33+TUgrmcVKGBy6QgqORaAq55hSuFmBOv70iNjif0CHqK9CapWfHOLg8N8HWw+VAX0YpSaqy/lAQSSmwWg==
+slate-instant-replace@^0.1.14:
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/slate-instant-replace/-/slate-instant-replace-0.1.14.tgz#b914700bbdb5039d46ef2f6f3fe06733287ae1d3"
+  integrity sha512-I3QzFZFEtMe0i+4tyFkXj2RMqhDl4I5+QcjpH1GU33yBu76q/M/yYVUogFiFvb8oT78qqLo12qSTIcl1ZQul7w==
 
 slate-md-serializer@5.4.4:
   version "5.4.4"
