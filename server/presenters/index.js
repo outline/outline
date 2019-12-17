@@ -14,6 +14,7 @@ import presentNotificationSetting from './notificationSetting';
 import presentSlackAttachment from './slackAttachment';
 import presentPolicies from './policy';
 import presentGroup from './group';
+import presentGroupMembership from './groupMembership';
 
 export {
   presentUser,
@@ -31,4 +32,5 @@ export {
   presentNotificationSetting,
   presentSlackAttachment,
   presentPolicies,
+  presentGroupMembership,
 };

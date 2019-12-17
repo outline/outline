@@ -2,8 +2,14 @@
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
-import { presentGroup, presentPolicies } from '../presenters';
-import { Event, Group } from '../models';
+import { Op } from '../sequelize';
+import {
+  presentGroup,
+  presentPolicies,
+  presentUser,
+  presentGroupMembership,
+} from '../presenters';
+import { User, Event, Group, GroupUser } from '../models';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -116,6 +122,60 @@ router.post('groups.delete', auth(), async ctx => {
 
   ctx.body = {
     success: true,
+  };
+});
+
+router.post('groups.memberships', auth(), pagination(), async ctx => {
+  const { id, query, permission } = ctx.body;
+  ctx.assertUuid(id, 'id is required');
+
+  const user = ctx.state.user;
+  const group = await Group.findByPk(id);
+
+  authorize(user, 'read', group);
+
+  let where = {
+    groupId: id,
+  };
+
+  let userWhere;
+
+  if (query) {
+    userWhere = {
+      name: {
+        [Op.iLike]: `%${query}%`,
+      },
+    };
+  }
+
+  if (permission) {
+    where = {
+      ...where,
+      permission,
+    };
+  }
+
+  const memberships = await GroupUser.findAll({
+    where,
+    order: [['createdAt', 'DESC']],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+    include: [
+      {
+        model: User,
+        as: 'user',
+        where: userWhere,
+        required: true,
+      },
+    ],
+  });
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: {
+      groupMemberships: memberships.map(presentGroupMembership),
+      users: memberships.map(membership => presentUser(membership.user)),
+    },
   };
 });
 
