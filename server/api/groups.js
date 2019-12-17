@@ -54,7 +54,7 @@ router.post('groups.create', auth(), async ctx => {
     createdById: user.id,
   });
 
-  Event.create({
+  await Event.create({
     name: 'groups.create',
     actorId: user.id,
     teamId: user.teamId,
@@ -104,15 +104,14 @@ router.post('groups.delete', auth(), async ctx => {
   const group = await Group.findByPk(id);
 
   authorize(user, 'delete', group);
-
   await group.destroy();
 
   await Event.create({
     name: 'groups.delete',
-    actiorId: user.id,
+    actorId: user.id,
     teamId: group.teamId,
     data: { name: group.name },
-    id: ctx.request.ip,
+    ip: ctx.request.ip,
   });
 
   ctx.body = {

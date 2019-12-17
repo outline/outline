@@ -127,3 +127,48 @@ describe('#groups.info', async () => {
     expect(res.status).toEqual(403);
   });
 });
+
+describe('#groups.delete', async () => {
+  it('should require authentication', async () => {
+    const group = await buildGroup();
+    const res = await server.post('/api/groups.delete', {
+      body: { id: group.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require admin', async () => {
+    const group = await buildGroup();
+    const user = await buildUser();
+    const res = await server.post('/api/groups.delete', {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it('should require authorization', async () => {
+    const group = await buildGroup();
+    const user = await buildUser({ isAdmin: true });
+
+    const res = await server.post('/api/groups.delete', {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it('allows admin to delete a group', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const group = await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post('/api/groups.delete', {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+  });
+});
