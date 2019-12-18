@@ -43,7 +43,7 @@ describe('userInviter', async () => {
     const response = await userInviter({
       invites: [
         { email: 'the@same.com', name: 'Test' },
-        { email: 'the@same.com', name: 'Test' },
+        { email: 'the@SAME.COM', name: 'Test' },
       ],
       user,
       ip,

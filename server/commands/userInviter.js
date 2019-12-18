@@ -17,14 +17,22 @@ export default async function userInviter({
 }): Promise<{ sent: Invite[] }> {
   const team = await Team.findByPk(user.teamId);
 
-  // filter out empties, duplicates and obvious non-emails
-  const compactedInvites = uniqBy(
-    invites.filter(invite => !!invite.email.trim() && invite.email.match('@')),
+  // filter out empties and obvious non-emails
+  const compactedInvites = invites.filter(
+    invite => !!invite.email.trim() && invite.email.match('@')
+  );
+
+  // normalize to lowercase and remove duplicates
+  const normalizedInvites = uniqBy(
+    compactedInvites.map(invite => ({
+      ...invite,
+      email: invite.email.toLowerCase(),
+    })),
     'email'
   );
-  const emails = compactedInvites.map(invite => invite.email);
 
-  // filter out existing users
+  // filter out any existing users in the system
+  const emails = normalizedInvites.map(invite => invite.email);
   const existingUsers = await User.findAll({
     where: {
       teamId: user.teamId,
@@ -32,11 +40,11 @@ export default async function userInviter({
     },
   });
   const existingEmails = existingUsers.map(user => user.email);
-  const filteredInvites = compactedInvites.filter(
+  const filteredInvites = normalizedInvites.filter(
     invite => !existingEmails.includes(invite.email)
   );
 
-  // send and record invites
+  // send and record remaining invites
   await Promise.all(
     filteredInvites.map(async invite => {
       const transaction = await sequelize.transaction();
