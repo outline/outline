@@ -20,7 +20,7 @@ router.post('email', async ctx => {
   ctx.assertEmail(email, 'email is required');
 
   const user = await User.findOne({
-    where: { email },
+    where: { email: email.toLowerCase() },
   });
 
   if (user) {
