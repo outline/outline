@@ -62,12 +62,11 @@ const Container = styled(Flex)`
   position: fixed;
   top: 0;
   bottom: 0;
-  left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
   width: 100%;
   background: ${props => props.theme.sidebarBackground};
   transition: left 100ms ease-out, ${props => props.theme.backgroundTransition};
   margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
-  z-index: 2;
+  z-index: 1000;
 
   @media print {
     display: none;
@@ -91,18 +90,23 @@ const Container = styled(Flex)`
   }
 
   ${breakpoint('tablet')`
+    left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
     width: ${props => props.theme.sidebarWidth};
     margin: 0;
+    z-index: 2;
   `};
 `;
 
 const Toggle = styled.a`
+  display: flex;
+  align-items: center;
   position: fixed;
   top: 0;
   left: ${props => (props.mobileSidebarVisible ? 'auto' : 0)};
   right: ${props => (props.mobileSidebarVisible ? 0 : 'auto')};
   z-index: 1;
   margin: 12px;
+  height: 32px;
 
   ${breakpoint('tablet')`
     display: none;
