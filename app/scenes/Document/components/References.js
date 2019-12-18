@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import { withRouter, type Location } from 'react-router-dom';
-import Fade from 'components/Fade';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -38,7 +37,7 @@ class References extends React.Component<Props> {
 
     return (
       (showBacklinks || showChildren) && (
-        <Fade>
+        <React.Fragment>
           <Tabs>
             {showChildren && (
               <Tab to="#children" isActive={() => !isBacklinksTab}>
@@ -74,7 +73,7 @@ class References extends React.Component<Props> {
                   />
                 );
               })}
-        </Fade>
+        </React.Fragment>
       )
     );
   }

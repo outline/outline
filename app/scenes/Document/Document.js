@@ -24,6 +24,8 @@ import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
 import References from './components/References';
+import Fade from 'components/Fade';
+import Heading from 'components/Heading';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -399,7 +401,12 @@ class DocumentScene extends React.Component<Props> {
                 onSave={this.onSave}
               />
             )}
-            <MaxWidth archived={document.isArchived} column auto>
+            <MaxWidth
+              archived={document.isArchived}
+              indexPage={document.isOnlyTitle}
+              auto
+              column
+            >
               {document.archivedAt &&
                 !document.deletedAt && (
                   <Notice muted>
@@ -421,26 +428,39 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <Editor
-                id={document.id}
-                key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
-                defaultValue={revision ? revision.text : document.text}
-                pretitle={document.emoji}
-                disableEmbeds={embedsDisabled}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onSearchLink={this.onSearchLink}
-                onChange={this.onChange}
-                onSave={this.onSave}
-                onPublish={this.onPublish}
-                onCancel={this.onDiscard}
-                readOnly={!this.isEditing || document.isArchived}
-                toc={!revision}
-                ui={this.props.ui}
-                schema={schema}
-              />
-              {!this.isEditing &&
-                !isShare && <References document={document} />}
+              {document.isOnlyTitle && !this.isEditing ? (
+                <React.Fragment>
+                  <Heading>{document.title}</Heading>
+                  {!isShare && <References document={document} />}
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  <Editor
+                    id={document.id}
+                    key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
+                    defaultValue={revision ? revision.text : document.text}
+                    pretitle={document.emoji}
+                    disableEmbeds={embedsDisabled}
+                    onImageUploadStart={this.onImageUploadStart}
+                    onImageUploadStop={this.onImageUploadStop}
+                    onSearchLink={this.onSearchLink}
+                    onChange={this.onChange}
+                    onSave={this.onSave}
+                    onPublish={this.onPublish}
+                    onCancel={this.onDiscard}
+                    readOnly={!this.isEditing || document.isArchived}
+                    toc={!revision}
+                    ui={this.props.ui}
+                    schema={schema}
+                  />
+                  {!this.isEditing &&
+                    !isShare && (
+                      <Fade>
+                        <References document={document} />
+                      </Fade>
+                    )}
+                </React.Fragment>
+              )}
             </MaxWidth>
           </Container>
         </Container>
@@ -451,6 +471,7 @@ class DocumentScene extends React.Component<Props> {
 }
 
 const MaxWidth = styled(Flex)`
+  display: ${props => (props.indexPage ? 'block' : 'flex')};
   ${props =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
   padding: 0 16px;
