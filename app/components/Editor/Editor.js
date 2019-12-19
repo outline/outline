@@ -17,6 +17,7 @@ import embeds from '../../embeds';
 type Props = {
   defaultValue?: string,
   readOnly?: boolean,
+  grow?: boolean,
   disableEmbeds?: boolean,
   forwardedRef: React.Ref<RichMarkdownEditor>,
   ui: UiStore,
@@ -103,6 +104,7 @@ class Editor extends React.Component<Props> {
 }
 
 const StyledEditor = styled(RichMarkdownEditor)`
+  flex-grow: ${props => (props.grow ? 'initial' : '0')};
   justify-content: start;
 
   > div {
