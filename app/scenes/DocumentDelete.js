@@ -51,7 +51,7 @@ class DocumentDelete extends React.Component<Props> {
           <HelpText>
             Are you sure about that? Deleting the{' '}
             <strong>{document.title}</strong> document will delete all of its
-            history, and any child documents.
+            history, and any nested documents.
           </HelpText>
           {!document.isDraft &&
             !document.isArchived && (

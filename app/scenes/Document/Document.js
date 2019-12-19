@@ -440,7 +440,11 @@ class DocumentScene extends React.Component<Props> {
                 schema={schema}
               />
               {!this.isEditing &&
-                !isShare && <References document={document} />}
+                !isShare && (
+                  <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                    <References document={document} />
+                  </ReferencesWrapper>
+                )}
             </MaxWidth>
           </Container>
         </Container>
@@ -449,6 +453,10 @@ class DocumentScene extends React.Component<Props> {
     );
   }
 }
+
+const ReferencesWrapper = styled('div')`
+  margin-top: ${props => (props.isOnlyTitle ? -45 : 16)}px;
+`;
 
 const MaxWidth = styled(Flex)`
   ${props =>
