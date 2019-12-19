@@ -24,6 +24,7 @@ import DocumentMove from './components/DocumentMove';
 import Branding from './components/Branding';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
 import References from './components/References';
+import Socket from './components/Socket';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -448,7 +449,14 @@ class DocumentScene extends React.Component<Props> {
             </MaxWidth>
           </Container>
         </Container>
-        {isShare ? <Branding /> : <KeyboardShortcuts />}
+        {isShare ? (
+          <Branding />
+        ) : (
+          <React.Fragment>
+            <Socket documentId={document.id} />
+            <KeyboardShortcuts />
+          </React.Fragment>
+        )}
       </ErrorBoundary>
     );
   }

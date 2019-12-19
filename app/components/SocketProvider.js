@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
-import { inject } from 'mobx-react';
+import { observable } from 'mobx';
+import { inject, observer } from 'mobx-react';
 import { find } from 'lodash';
 import io from 'socket.io-client';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -10,7 +11,7 @@ import PoliciesStore from 'stores/PoliciesStore';
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
 
-const SocketContext = React.createContext();
+export const SocketContext = React.createContext();
 
 type Props = {
   children: React.Node,
@@ -22,8 +23,9 @@ type Props = {
   ui: UiStore,
 };
 
+@observer
 class SocketProvider extends React.Component<Props> {
-  socket;
+  @observable socket;
 
   componentDidMount() {
     if (!process.env.WEBSOCKETS_ENABLED) return;
@@ -31,6 +33,7 @@ class SocketProvider extends React.Component<Props> {
     this.socket = io(window.location.origin, {
       path: '/realtime',
     });
+    this.socket.authenticated = false;
 
     const {
       auth,
@@ -47,7 +50,12 @@ class SocketProvider extends React.Component<Props> {
         token: auth.token,
       });
 
+      this.socket.on('authenticated', () => {
+        this.socket.authenticated = true;
+      });
+
       this.socket.on('unauthorized', err => {
+        this.socket.authenticated = false;
         ui.showToast(err.message);
         throw err;
       });
@@ -197,6 +205,7 @@ class SocketProvider extends React.Component<Props> {
   componentWillUnmount() {
     if (this.socket) {
       this.socket.disconnect();
+      this.socket.authenticated = false;
     }
   }
 
