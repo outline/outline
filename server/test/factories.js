@@ -7,6 +7,7 @@ import {
   Document,
   Collection,
   Group,
+  GroupUser,
 } from '../models';
 import uuid from 'uuid';
 
@@ -71,7 +72,7 @@ export async function buildCollection(overrides: Object = {}) {
   }
 
   if (!overrides.userId) {
-    const user = await buildUser();
+    const user = await buildUser({ teamId: overrides.teamId });
     overrides.userId = user.id;
   }
 
@@ -93,12 +94,33 @@ export async function buildGroup(overrides: Object = {}) {
   }
 
   if (!overrides.userId) {
-    const user = await buildUser();
+    const user = await buildUser({ teamId: overrides.teamId });
     overrides.userId = user.id;
   }
 
   return Group.create({
     name: 'Test Group',
+    createdById: overrides.userId,
+    ...overrides,
+  });
+}
+
+export async function buildGroupUser(overrides: Object = {}) {
+  count++;
+
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser({ teamId: overrides.teamId });
+    overrides.userId = user.id;
+  }
+
+  console.log('STUCK', overrides);
+
+  return GroupUser.create({
     createdById: overrides.userId,
     ...overrides,
   });

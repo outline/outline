@@ -2,7 +2,7 @@
 import TestServer from 'fetch-test-server';
 import app from '../app';
 import { flushdb } from '../test/support';
-import { buildUser, buildGroup } from '../test/factories';
+import { buildUser, buildGroup, buildGroupUser } from '../test/factories';
 
 const server = new TestServer(app.callback());
 
@@ -170,5 +170,77 @@ describe('#groups.delete', async () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
+  });
+});
+
+describe('#groups.memberships', async () => {
+  it('should return members in a group', async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    const groupUser = await buildGroupUser({
+      teamId: user.teamId,
+      groupId: group.id,
+      userId: user.id,
+    });
+
+    const res = await server.post('/api/groups.memberships', {
+      body: { token: user.getJwtToken(), id: groupUser.groupId },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.users.length).toEqual(1);
+    expect(body.data.users[0].id).toEqual(user.id);
+    expect(body.data.groupMemberships.length).toEqual(1);
+  });
+
+  it('should allow filtering members in group by name', async () => {
+    const user = await buildUser();
+    const user2 = await buildUser({ name: "Won't find" });
+    const group = await buildGroup({ teamId: user.teamId });
+
+    await buildGroupUser({
+      teamId: user.teamId,
+      groupId: group.id,
+      userId: user.id,
+    });
+
+    await buildGroupUser({
+      teamId: user2.teamId,
+      groupId: group.id,
+      userId: user2.id,
+    });
+
+    const res = await server.post('/api/groups.memberships', {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        query: user.name.slice(0, 3),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.users.length).toEqual(1);
+    expect(body.data.users[0].id).toEqual(user.id);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/groups.memberships');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const user = await buildUser();
+    const group = await buildGroup();
+
+    const res = await server.post('/api/groups.memberships', {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+    expect(res.status).toEqual(403);
   });
 });

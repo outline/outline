@@ -32,4 +32,7 @@ CollectionUser.associate = models => {
   });
 };
 
+// No PK for the join table
+CollectionUser.removeAttribute('id');
+
 export default CollectionUser;

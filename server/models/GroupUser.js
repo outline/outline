@@ -24,4 +24,7 @@ GroupUser.associate = models => {
   });
 };
 
+// No PK for the join table
+GroupUser.removeAttribute('id');
+
 export default GroupUser;
