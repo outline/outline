@@ -33,6 +33,11 @@ Group.associate = models => {
     as: 'createdBy',
     foreignKey: 'createdById',
   });
+  Group.belongsToMany(models.User, {
+    as: 'users',
+    through: models.GroupUser,
+    foreignKey: 'groupId',
+  });
 };
 
 export default Group;

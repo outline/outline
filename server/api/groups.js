@@ -179,4 +179,72 @@ router.post('groups.memberships', auth(), pagination(), async ctx => {
   };
 });
 
+router.post('groups.add_user', auth(), async ctx => {
+  const { id, userId } = ctx.body;
+  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(userId, 'userId is required');
+
+  const group = await Group.findByPk(id);
+  authorize(ctx.state.user, 'update', group);
+
+  const user = await User.findByPk(userId);
+  authorize(ctx.state.user, 'read', user);
+
+  let membership = await GroupUser.findOne({
+    where: {
+      groupId: id,
+      userId,
+    },
+  });
+
+  if (!membership) {
+    membership = await group.addUser(user, {
+      through: { createdById: ctx.state.user.id },
+    });
+  }
+
+  await Event.create({
+    name: 'groups.add_user',
+    userId,
+    teamId: user.teamId,
+    actorId: ctx.state.user.id,
+    data: { name: user.name },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    data: {
+      users: [presentUser(user)],
+      memberships: [presentGroupMembership(membership)],
+    },
+  };
+});
+
+router.post('groups.remove_user', auth(), async ctx => {
+  const { id, userId } = ctx.body;
+  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(userId, 'userId is required');
+
+  const group = await Group.findByPk(id);
+  authorize(ctx.state.user, 'update', group);
+
+  const user = await User.findByPk(userId);
+  authorize(ctx.state.user, 'read', user);
+
+  await group.removeUser(user);
+
+  await Event.create({
+    name: 'collections.remove_user',
+    userId,
+    teamId: user.teamId,
+    actorId: ctx.state.user.id,
+    data: { name: user.name },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 export default router;

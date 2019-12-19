@@ -2,7 +2,7 @@
 import TestServer from 'fetch-test-server';
 import app from '../app';
 import { flushdb } from '../test/support';
-import { buildUser, buildGroup, buildGroupUser } from '../test/factories';
+import { buildUser, buildGroup } from '../test/factories';
 
 const server = new TestServer(app.callback());
 
@@ -177,14 +177,11 @@ describe('#groups.memberships', async () => {
   it('should return members in a group', async () => {
     const user = await buildUser();
     const group = await buildGroup({ teamId: user.teamId });
-    const groupUser = await buildGroupUser({
-      teamId: user.teamId,
-      groupId: group.id,
-      userId: user.id,
-    });
+
+    await group.addUser(user, { through: { createdById: user.id } });
 
     const res = await server.post('/api/groups.memberships', {
-      body: { token: user.getJwtToken(), id: groupUser.groupId },
+      body: { token: user.getJwtToken(), id: group.id },
     });
 
     const body = await res.json();
@@ -200,17 +197,8 @@ describe('#groups.memberships', async () => {
     const user2 = await buildUser({ name: "Won't find" });
     const group = await buildGroup({ teamId: user.teamId });
 
-    await buildGroupUser({
-      teamId: user.teamId,
-      groupId: group.id,
-      userId: user.id,
-    });
-
-    await buildGroupUser({
-      teamId: user2.teamId,
-      groupId: group.id,
-      userId: user2.id,
-    });
+    await group.addUser(user, { through: { createdById: user.id } });
+    await group.addUser(user2, { through: { createdById: user.id } });
 
     const res = await server.post('/api/groups.memberships', {
       body: {
@@ -242,5 +230,153 @@ describe('#groups.memberships', async () => {
       body: { token: user.getJwtToken(), id: group.id },
     });
     expect(res.status).toEqual(403);
+  });
+});
+
+describe('#groups.add_user', async () => {
+  it('should add user to group', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+
+    const res = await server.post('/api/groups.add_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: user.id,
+      },
+    });
+
+    const users = await group.getUsers();
+    expect(res.status).toEqual(200);
+    expect(users.length).toEqual(1);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/groups.add_user');
+    expect(res.status).toEqual(401);
+  });
+
+  it('should require user in team', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+    const anotherUser = await buildUser();
+
+    const res = await server.post('/api/groups.add_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: anotherUser.id,
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require admin', async () => {
+    const user = await buildUser();
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+    const anotherUser = await buildUser({ teamId: user.teamId });
+
+    const res = await server.post('/api/groups.add_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: anotherUser.id,
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#groups.remove_user', async () => {
+  it('should remove user from group', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+
+    await server.post('/api/groups.add_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: user.id,
+      },
+    });
+
+    const users = await group.getUsers();
+    expect(users.length).toEqual(1);
+
+    const res = await server.post('/api/groups.remove_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: user.id,
+      },
+    });
+
+    const users1 = await group.getUsers();
+    expect(res.status).toEqual(200);
+    expect(users1.length).toEqual(0);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/groups.remove_user');
+
+    expect(res.status).toEqual(401);
+  });
+
+  it('should require user in team', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+    const anotherUser = await buildUser();
+
+    const res = await server.post('/api/groups.remove_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: anotherUser.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require admin', async () => {
+    const user = await buildUser();
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+    const anotherUser = await buildUser({
+      teamId: user.teamId,
+    });
+
+    const res = await server.post('/api/groups.remove_user', {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: anotherUser.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
   });
 });
