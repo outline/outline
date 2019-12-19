@@ -4,7 +4,7 @@ import IO from 'socket.io';
 import SocketAuth from 'socketio-auth';
 import socketRedisAdapter from 'socket.io-redis';
 import { getUserForJWT } from './utils/jwt';
-import { Collection } from './models';
+import { Document, Collection } from './models';
 import app from './app';
 import policy from './policies';
 
@@ -50,20 +50,36 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
         socket.join(`collection-${collectionId}`)
       );
 
-      // allow the client to request to join rooms based on
-      // new collections being created.
+      // allow the client to request to join rooms dynamically
       socket.on('join', async event => {
-        const collection = await Collection.scope({
-          method: ['withMembership', user.id],
-        }).findByPk(event.roomId);
+        if (event.collectionId) {
+          const collection = await Collection.scope({
+            method: ['withMembership', user.id],
+          }).findByPk(event.collectionId);
 
-        if (can(user, 'read', collection)) {
-          socket.join(`collection-${event.roomId}`);
+          if (can(user, 'read', collection)) {
+            socket.join(`collection-${event.collectionId}`);
+          }
+        }
+
+        if (event.documentId) {
+          const document = await Document.findByPk(event.documentId, {
+            userId: user.id,
+          });
+
+          if (can(user, 'read', document)) {
+            socket.join(`document-${event.documentId}`);
+          }
         }
       });
 
       socket.on('leave', event => {
-        socket.leave(`collection-${event.roomId}`);
+        if (event.collectionId) {
+          socket.leave(`collection-${event.collectionId}`);
+        }
+        if (event.documentId) {
+          socket.leave(`document-${event.documentId}`);
+        }
       });
     },
   });
