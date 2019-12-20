@@ -53,6 +53,15 @@ Object {
 }
 `;
 
+exports[`#groups.remove_user should require admin 1`] = `
+Object {
+  "error": "admin_required",
+  "message": "An admin role is required to access this resource",
+  "ok": false,
+  "status": 403,
+}
+`;
+
 exports[`#groups.remove_user should require user in team 1`] = `
 Object {
   "error": "authorization_error",

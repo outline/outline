@@ -115,6 +115,10 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   const collection = await Collection.scope({
     method: ['withMembership', user.id],
   }).findByPk(collectionId);
+
+  console.log(collection.memberships[0].permission);
+  // XXX: this is returning some strange stuff, null for permission and userId
+
   authorize(user, 'read', collection);
 
   const starredScope = { method: ['withStarred', user.id] };
@@ -388,6 +392,7 @@ router.post('documents.info', auth({ required: false }), async ctx => {
     document = await Document.findByPk(
       id,
       user ? { userId: user.id } : undefined
+      // XXX: this seems crazy to me, like you can only find the doc if you created it?
     );
     authorize(user, 'read', document);
   }

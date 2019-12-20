@@ -118,8 +118,6 @@ export async function buildGroupUser(overrides: Object = {}) {
     overrides.userId = user.id;
   }
 
-  console.log('STUCK', overrides);
-
   return GroupUser.create({
     createdById: overrides.userId,
     ...overrides,

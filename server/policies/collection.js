@@ -14,6 +14,8 @@ allow(User, ['read', 'export'], Collection, (user, collection) => {
   if (
     collection.private &&
     (!collection.memberships || !collection.memberships.length)
+    // XXX: does this need the invariant that is below in publish/update?
+    // it doesn't seem to check the permission type
   ) {
     return false;
   }
