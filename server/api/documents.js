@@ -116,9 +116,6 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
     method: ['withMembership', user.id],
   }).findByPk(collectionId);
 
-  console.log(collection.memberships[0].permission);
-  // XXX: this is returning some strange stuff, null for permission and userId
-
   authorize(user, 'read', collection);
 
   const starredScope = { method: ['withStarred', user.id] };

@@ -13,18 +13,17 @@ GroupUser.associate = models => {
   GroupUser.belongsTo(models.Group, {
     as: 'group',
     foreignKey: 'groupId',
+    primary: true,
   });
   GroupUser.belongsTo(models.User, {
     as: 'user',
     foreignKey: 'userId',
+    primary: true,
   });
   GroupUser.belongsTo(models.User, {
     as: 'createdBy',
     foreignKey: 'createdById',
   });
 };
-
-// No PK for the join table
-GroupUser.removeAttribute('id');
 
 export default GroupUser;

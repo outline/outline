@@ -34,7 +34,7 @@ module.exports = {
       }
     });
 
-    await queryInterface.addIndex("group_users", ["groupId"]);
+    await queryInterface.addIndex("group_users", ["groupId", "userId"]);
     await queryInterface.addIndex("group_users", ["userId"]);
   },
 

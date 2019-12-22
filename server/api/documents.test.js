@@ -8,6 +8,7 @@ import {
   Revision,
   Backlink,
   CollectionUser,
+  User,
 } from '../models';
 import { flushdb, seed } from '../test/support';
 import {
@@ -384,15 +385,16 @@ describe('#documents.pinned', async () => {
   });
 
   it('should not return pinned documents in private collections not a member of', async () => {
-    const user = await buildUser();
     const collection = await buildCollection({
       private: true,
-      teamId: user.teamId,
     });
+
+    const user = await buildUser({ teamId: collection.teamId });
 
     const res = await server.post('/api/documents.pinned', {
       body: { token: user.getJwtToken(), collectionId: collection.id },
     });
+
     expect(res.status).toEqual(403);
   });
 
