@@ -69,6 +69,9 @@ export default class UsersStore extends BaseStore<User> {
   invite = async (invites: { email: string, name: string }[]) => {
     const res = await client.post(`/users.invite`, { invites });
     invariant(res && res.data, 'Data should be available');
+    runInAction(`invite`, () => {
+      res.data.users.forEach(this.add);
+    });
     return res.data;
   };
 
