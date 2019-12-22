@@ -49,7 +49,7 @@ const Modal = ({
         isOpen={isOpen}
         {...rest}
       >
-        <Content column>
+        <Content onClick={ev => ev.stopPropagation()} column>
           {title && <h1>{title}</h1>}
           <Close onClick={onRequestClose}>
             <CloseIcon size={40} color="currentColor" />

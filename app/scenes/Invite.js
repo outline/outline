@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { Link, withRouter, type RouterHistory } from 'react-router-dom';
-import { observable } from 'mobx';
+import { observable, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { CloseIcon } from 'outline-icons';
 import styled from 'styled-components';
@@ -30,12 +30,18 @@ type Props = {
   onSubmit: () => void,
 };
 
+type InviteRequest = {
+  email: string,
+  name: string,
+  guest: boolean,
+};
+
 @observer
 class Invite extends React.Component<Props> {
   @observable isSaving: boolean;
   @observable linkCopied: boolean = false;
   @observable
-  invites: { email: string, name: string, guest: boolean }[] = [
+  invites: InviteRequest[] = [
     { email: '', name: '', guest: false },
     { email: '', name: '', guest: false },
     { email: '', name: '', guest: false },
@@ -56,14 +62,17 @@ class Invite extends React.Component<Props> {
     }
   };
 
+  @action
   handleChange = (ev, index) => {
     this.invites[index][ev.target.name] = ev.target.value;
   };
 
+  @action
   handleGuestChange = (ev, index) => {
     this.invites[index][ev.target.name] = ev.target.checked;
   };
 
+  @action
   handleAdd = () => {
     if (this.invites.length >= MAX_INVITES) {
       this.props.ui.showToast(
@@ -74,6 +83,7 @@ class Invite extends React.Component<Props> {
     this.invites.push({ email: '', name: '', guest: false });
   };
 
+  @action
   handleRemove = (ev: SyntheticEvent<>, index: number) => {
     ev.preventDefault();
     this.invites.splice(index, 1);
@@ -115,7 +125,7 @@ class Invite extends React.Component<Props> {
           <CopyBlock>
             Want a link to share directly with your team?
             <Flex>
-              <Input type="text" value={team.url} flex />&nbsp;&nbsp;
+              <Input type="text" value={team.url} readOnly flex />&nbsp;&nbsp;
               <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
                 <Button type="button" neutral>
                   {this.linkCopied ? 'Link copied' : 'Copy link'}

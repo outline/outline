@@ -246,10 +246,13 @@ router.post('users.invite', auth(), async ctx => {
   const user = ctx.state.user;
   authorize(user, 'invite', User);
 
-  const invitesSent = await userInviter({ user, invites, ip: ctx.request.ip });
+  const response = await userInviter({ user, invites, ip: ctx.request.ip });
 
   ctx.body = {
-    data: invitesSent,
+    data: {
+      sent: response.sent,
+      users: response.users.map(user => presentUser(user)),
+    },
   };
 });
 

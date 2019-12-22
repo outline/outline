@@ -14,7 +14,7 @@ export default async function userInviter({
   user: User,
   invites: Invite[],
   ip: string,
-}): Promise<{ sent: Invite[] }> {
+}): Promise<{ sent: Invite[], users: User[] }> {
   const team = await Team.findByPk(user.teamId);
 
   // filter out empties and obvious non-emails
@@ -44,12 +44,14 @@ export default async function userInviter({
     invite => !existingEmails.includes(invite.email)
   );
 
+  let users = [];
+
   // send and record remaining invites
   await Promise.all(
     filteredInvites.map(async invite => {
       const transaction = await sequelize.transaction();
       try {
-        await User.create(
+        const newUser = await User.create(
           {
             teamId: user.teamId,
             name: invite.name,
@@ -58,6 +60,7 @@ export default async function userInviter({
           },
           { transaction }
         );
+        users.push(newUser);
         await Event.create(
           {
             name: 'users.invite',
@@ -88,5 +91,5 @@ export default async function userInviter({
     })
   );
 
-  return { sent: filteredInvites };
+  return { sent: filteredInvites, users };
 }
