@@ -105,22 +105,8 @@ router.get('google.callback', auth({ required: false }), async ctx => {
       },
     });
 
-    if (isFirstSignin) {
-      await Event.create({
-        name: 'users.create',
-        actorId: user.id,
-        userId: user.id,
-        teamId: team.id,
-        data: {
-          name: user.name,
-          service: 'google',
-        },
-        ip: ctx.request.ip,
-      });
-    }
-
-    // update service id if first signin after invite
-    if (!isFirstSignin && !user.serviceId) {
+    // update the user with fresh details if they just accepted an invite
+    if (!user.serviceId || !user.service) {
       await user.update({
         service: 'google',
         serviceId: profile.data.id,
@@ -136,6 +122,20 @@ router.get('google.callback', auth({ required: false }), async ctx => {
     if (isFirstUser) {
       await team.provisionFirstCollection(user.id);
       await team.provisionSubdomain(hostname);
+    }
+
+    if (isFirstSignin) {
+      await Event.create({
+        name: 'users.create',
+        actorId: user.id,
+        userId: user.id,
+        teamId: team.id,
+        data: {
+          name: user.name,
+          service: 'google',
+        },
+        ip: ctx.request.ip,
+      });
     }
 
     // set cookies on response and redirect to team subdomain

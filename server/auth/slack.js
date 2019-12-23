@@ -84,6 +84,20 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
       },
     });
 
+    // update the user with fresh details if they just accepted an invite
+    if (!user.serviceId || !user.service) {
+      await user.update({
+        service: 'slack',
+        serviceId: data.user.id,
+        avatarUrl: data.user.image_192,
+      });
+    }
+
+    // update email address if it's changed in Slack
+    if (!isFirstSignin && data.user.email !== user.email) {
+      await user.update({ email: data.user.email });
+    }
+
     if (isFirstUser) {
       await team.provisionFirstCollection(user.id);
       await team.provisionSubdomain(data.team.domain);
@@ -101,20 +115,6 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
         },
         ip: ctx.request.ip,
       });
-    }
-
-    // update service id if first signin after invite
-    if (!isFirstSignin && !user.serviceId) {
-      await user.update({
-        service: 'slack',
-        serviceId: data.user.id,
-        avatarUrl: data.user.image_192,
-      });
-    }
-
-    // update email address if it's changed in Slack
-    if (!isFirstSignin && data.user.email !== user.email) {
-      await user.update({ email: data.user.email });
     }
 
     // set cookies on response and redirect to team subdomain
