@@ -89,18 +89,40 @@ router.get('google.callback', auth({ required: false }), async ctx => {
             serviceId: profile.data.id,
           },
           {
-            service: '',
+            service: { [Op.eq]: null },
+            email: profile.data.email,
           },
         ],
         teamId: team.id,
       },
       defaults: {
+        service: 'google',
+        serviceId: profile.data.id,
         name: profile.data.name,
         email: profile.data.email,
         isAdmin: isFirstUser,
         avatarUrl: profile.data.picture,
       },
     });
+
+    // update the user with fresh details if they just accepted an invite
+    if (!user.serviceId || !user.service) {
+      await user.update({
+        service: 'google',
+        serviceId: profile.data.id,
+        avatarUrl: profile.data.picture,
+      });
+    }
+
+    // update email address if it's changed in Google
+    if (!isFirstSignin && profile.data.email !== user.email) {
+      await user.update({ email: profile.data.email });
+    }
+
+    if (isFirstUser) {
+      await team.provisionFirstCollection(user.id);
+      await team.provisionSubdomain(hostname);
+    }
 
     if (isFirstSignin) {
       await Event.create({
@@ -114,16 +136,6 @@ router.get('google.callback', auth({ required: false }), async ctx => {
         },
         ip: ctx.request.ip,
       });
-    }
-
-    // update email address if it's changed in Google
-    if (!isFirstSignin && profile.data.email !== user.email) {
-      await user.update({ email: profile.data.email });
-    }
-
-    if (isFirstUser) {
-      await team.provisionFirstCollection(user.id);
-      await team.provisionSubdomain(hostname);
     }
 
     // set cookies on response and redirect to team subdomain
