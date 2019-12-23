@@ -172,6 +172,18 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
+  fetchChildDocuments = async (documentId: string): Promise<?(Document[])> => {
+    const res = await client.post(`/documents.list`, {
+      parentDocumentId: documentId,
+    });
+    invariant(res && res.data, 'Document list not available');
+    const { data } = res;
+    runInAction('DocumentsStore#fetchChildDocuments', () => {
+      data.forEach(this.add);
+    });
+  };
+
+  @action
   fetchNamedPage = async (
     request: string = 'list',
     options: ?PaginationParams
