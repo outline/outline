@@ -68,12 +68,15 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
             serviceId: data.user.id,
           },
           {
-            service: '',
+            service: { [Op.eq]: null },
+            email: data.user.email,
           },
         ],
         teamId: team.id,
       },
       defaults: {
+        service: 'slack',
+        serviceId: data.user.id,
         name: data.user.name,
         email: data.user.email,
         isAdmin: isFirstUser,
@@ -97,6 +100,15 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
           service: 'slack',
         },
         ip: ctx.request.ip,
+      });
+    }
+
+    // update service id if first signin after invite
+    if (!isFirstSignin && !user.serviceId) {
+      await user.update({
+        service: 'slack',
+        serviceId: data.user.id,
+        avatarUrl: data.user.image_192,
       });
     }
 

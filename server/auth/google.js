@@ -89,12 +89,15 @@ router.get('google.callback', auth({ required: false }), async ctx => {
             serviceId: profile.data.id,
           },
           {
-            service: '',
+            service: { [Op.eq]: null },
+            email: profile.data.email,
           },
         ],
         teamId: team.id,
       },
       defaults: {
+        service: 'google',
+        serviceId: profile.data.id,
         name: profile.data.name,
         email: profile.data.email,
         isAdmin: isFirstUser,
@@ -113,6 +116,15 @@ router.get('google.callback', auth({ required: false }), async ctx => {
           service: 'google',
         },
         ip: ctx.request.ip,
+      });
+    }
+
+    // update service id if first signin after invite
+    if (!isFirstSignin && !user.serviceId) {
+      await user.update({
+        service: 'google',
+        serviceId: profile.data.id,
+        avatarUrl: profile.data.picture,
       });
     }
 
