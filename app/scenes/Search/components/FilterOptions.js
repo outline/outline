@@ -86,19 +86,11 @@ const SearchFilter = props => {
       position="right"
     >
       {({ closePortal }) => (
-        <MaxHeightScrollable>
-          <Content>{props.children({ closeMenu: closePortal })}</Content>
-        </MaxHeightScrollable>
+        <Content>{props.children({ closeMenu: closePortal })}</Content>
       )}
     </DropdownMenu>
   );
 };
-
-const MaxHeightScrollable = styled(Scrollable)`
-  max-height: 50vh;
-  margin: -8px 0;
-  padding: 8px 0;
-`;
 
 const DropdownButton = styled(SearchFilter)`
   margin-right: 8px;

@@ -319,7 +319,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     existing.splice(options.offset || 0, options.limit || 0, ...results);
 
     this.searchCache.set(query, existing);
-    return data;
+    return res.data;
   };
 
   @action
