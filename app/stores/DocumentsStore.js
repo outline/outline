@@ -293,15 +293,15 @@ export default class DocumentsStore extends BaseStore<Document> {
       query,
     });
     invariant(res && res.data, 'Search response should be available');
-    const { data } = res;
 
-    // add the document to the store
-    data.forEach(result => this.add(result.document));
+    // add the documents and associated policies to the store
+    res.data.forEach(result => this.add(result.document));
+    this.addPolicies(res.policies);
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
     const results: SearchResult[] = compact(
-      data.map(result => {
+      res.data.map(result => {
         const document = this.data.get(result.document.id);
         if (!document) return null;
 
