@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { find } from 'lodash';
 import styled from 'styled-components';
-import Scrollable from 'components/Scrollable';
 import Button, { Inner } from 'components/Button';
 import { DropdownMenu } from 'components/DropdownMenu';
 import FilterOption from './FilterOption';
