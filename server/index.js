@@ -37,21 +37,26 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
     },
     postAuthenticate: async (socket, data) => {
       const { user } = socket.client;
-      // join the rooms associated with the current team
-      // and user so we can send authenticated events
-      socket.join(`team-${user.teamId}`);
-      socket.join(`user-${user.id}`);
 
-      // join rooms associated with collections this user
+      // the rooms associated with the current team
+      // and user so we can send authenticated events
+      let rooms = [`team-${user.teamId}`, `user-${user.id}`];
+
+      // the rooms associated with collections this user
       // has access to on connection. New collection subscriptions
-      // are managed from the client as needed
+      // are managed from the client as needed through the 'join' event
       const collectionIds = await user.collectionIds();
       collectionIds.forEach(collectionId =>
-        socket.join(`collection-${collectionId}`)
+        rooms.push(`collection-${collectionId}`)
       );
 
-      // allow the client to request to join rooms dynamically
+      // join all of the rooms at once
+      socket.join(rooms);
+
+      // allow the client to request to join rooms
       socket.on('join', async event => {
+        // user is joining a collection channel, because their permissions have
+        // changed, granting them access.
         if (event.collectionId) {
           const collection = await Collection.scope({
             method: ['withMembership', user.id],
@@ -62,24 +67,53 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
           }
         }
 
+        // user is joining a document channel, because they have nevigated to
+        // view a document.
         if (event.documentId) {
           const document = await Document.findByPk(event.documentId, {
             userId: user.id,
           });
 
           if (can(user, 'read', document)) {
-            socket.join(`document-${event.documentId}`);
+            const room = `document-${event.documentId}`;
+            socket.join(room, () => {
+              io.to(room).emit('user.join', {
+                userId: user.id,
+                documentId: event.documentId,
+              });
+            });
           }
         }
       });
 
+      // allow the client to request to leave rooms
       socket.on('leave', event => {
         if (event.collectionId) {
           socket.leave(`collection-${event.collectionId}`);
         }
         if (event.documentId) {
-          socket.leave(`document-${event.documentId}`);
+          const room = `document-${event.documentId}`;
+          socket.leave(room, () => {
+            io.to(room).emit('user.leave', {
+              userId: user.id,
+              documentId: event.documentId,
+            });
+          });
         }
+      });
+
+      socket.on('disconnecting', () => {
+        const rooms = socket.rooms.slice();
+
+        rooms.forEach(room => {
+          if (room.startsWith('document-')) {
+            const documentId = room.replace('document-', '');
+            io.to(room).emit('user.leave', {
+              userId: user.id,
+              documentId,
+            });
+          }
+        });
       });
     },
   });
