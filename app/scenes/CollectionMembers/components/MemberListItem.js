@@ -38,7 +38,14 @@ const MemberListItem = ({
       title={user.name}
       subtitle={
         <React.Fragment>
-          Joined <Time dateTime={user.createdAt} /> ago
+          {user.lastActiveAt ? (
+            <React.Fragment>
+              Active <Time dateTime={user.lastActiveAt} /> ago
+            </React.Fragment>
+          ) : (
+            'Never signed in'
+          )}
+          {!user.lastActiveAt && <Badge>Invited</Badge>}
           {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
         </React.Fragment>
       }

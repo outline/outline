@@ -93,7 +93,7 @@ export default class Document extends BaseModel {
   @computed
   get permanentlyDeletedAt(): ?string {
     if (!this.deletedAt) {
-      return;
+      return undefined;
     }
 
     return addDays(new Date(this.deletedAt), 30).toString();

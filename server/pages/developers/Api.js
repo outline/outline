@@ -269,6 +269,10 @@ export default function Api() {
                 id="backlinkDocumentId"
                 description="Backlinked document ID to filter by"
               />
+              <Argument
+                id="parentDocumentId"
+                description="Parent document ID to filter by"
+              />
             </Arguments>
           </Method>
 

@@ -56,7 +56,7 @@ class UserListItem extends React.Component<Props> {
                 Active <Time dateTime={user.lastActiveAt} /> ago
               </React.Fragment>
             ) : (
-              'Pending'
+              'Invited'
             )}
             {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
             {user.isSuspended && <Badge>Suspended</Badge>}

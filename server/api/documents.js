@@ -30,10 +30,9 @@ const { authorize, cannot } = policy;
 const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
-  const { sort = 'updatedAt' } = ctx.body;
+  const { sort = 'updatedAt', backlinkDocumentId, parentDocumentId } = ctx.body;
   const collectionId = ctx.body.collection;
   const createdById = ctx.body.user;
-  const backlinkDocumentId = ctx.body.backlinkDocumentId;
   let direction = ctx.body.direction;
   if (direction !== 'ASC') direction = 'DESC';
 
@@ -64,7 +63,14 @@ router.post('documents.list', auth(), pagination(), async ctx => {
     where = { ...where, collectionId: collectionIds };
   }
 
+  if (parentDocumentId) {
+    ctx.assertUuid(parentDocumentId, 'parentDocumentId must be a UUID');
+    where = { ...where, parentDocumentId };
+  }
+
   if (backlinkDocumentId) {
+    ctx.assertUuid(backlinkDocumentId, 'backlinkDocumentId must be a UUID');
+
     const backlinks = await Backlink.findAll({
       attributes: ['reverseDocumentId'],
       where: {
