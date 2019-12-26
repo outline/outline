@@ -16,7 +16,7 @@ allow(User, ['update', 'delete'], Group, (actor, group) => {
   throw new AdminRequiredError();
 });
 
-allow(User, ['read', 'export'], Group, (actor, group) => {
+allow(User, ['read'], Group, (actor, group) => {
   if (!group || actor.teamId !== group.teamId) return false;
   return true;
 });
