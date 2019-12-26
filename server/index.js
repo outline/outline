@@ -1,13 +1,16 @@
 // @flow
+import { promisify } from 'util';
 import http from 'http';
 import IO from 'socket.io';
 import SocketAuth from 'socketio-auth';
 import socketRedisAdapter from 'socket.io-redis';
 import { getUserForJWT } from './utils/jwt';
 import { Document, Collection } from './models';
+import { client } from './redis';
 import app from './app';
 import policy from './policies';
 
+const redisHget = promisify(client.hget).bind(client);
 const server = http.createServer(app.callback());
 let io;
 
@@ -29,6 +32,10 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
       try {
         const user = await getUserForJWT(token);
         socket.client.user = user;
+
+        // store the mapping between socket id and user id in redis
+        // so that it is accessible across multiple server nodes
+        client.hset(socket.id, 'userId', user.id);
 
         return callback(null, true);
       } catch (err) {
@@ -67,7 +74,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
           }
         }
 
-        // user is joining a document channel, because they have nevigated to
+        // user is joining a document channel, because they have navigated to
         // view a document.
         if (event.documentId) {
           const document = await Document.findByPk(event.documentId, {
@@ -77,9 +84,26 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
           if (can(user, 'read', document)) {
             const room = `document-${event.documentId}`;
             socket.join(room, () => {
+              // let everyone else in the room know they joined
               io.to(room).emit('user.join', {
                 userId: user.id,
                 documentId: event.documentId,
+              });
+
+              // let this member know who else is in this room
+              io.in(room).clients(async (err, sockets) => {
+                // because a single user can have multiple socket connections we
+                // need to make sure that only unique userIds are returned. A Map
+                // makes this easy.
+                let userIds = new Map();
+                for (const socketId of sockets) {
+                  const userId = await redisHget(socketId, 'userId');
+                  userIds.set(userId, userId);
+                }
+                socket.emit('presence', {
+                  documentId: event.documentId,
+                  userIds: userIds.keys(),
+                });
               });
             });
           }
@@ -103,7 +127,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
       });
 
       socket.on('disconnecting', () => {
-        const rooms = socket.rooms.slice();
+        const rooms = Object.keys(socket.rooms);
 
         rooms.forEach(room => {
           if (room.startsWith('document-')) {
@@ -114,6 +138,18 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
             });
           }
         });
+      });
+
+      socket.on('presence', event => {
+        const room = `document-${event.documentId}`;
+
+        if (event.documentId && socket.rooms[room]) {
+          io.to(room).emit('user.presence', {
+            userId: user.id,
+            documentId: event.documentId,
+            editing: event.editing,
+          });
+        }
       });
     },
   });
