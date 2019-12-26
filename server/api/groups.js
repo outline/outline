@@ -86,15 +86,17 @@ router.post('groups.update', auth(), async ctx => {
   authorize(user, 'update', group);
 
   group.name = name;
-  await group.save();
 
-  await Event.create({
-    name: 'groups.update',
-    teamId: user.teamId,
-    actorId: user.id,
-    data: { name },
-    ip: ctx.request.ip,
-  });
+  if (group.changed()) {
+    await group.save();
+    await Event.create({
+      name: 'groups.update',
+      teamId: user.teamId,
+      actorId: user.id,
+      data: { name },
+      ip: ctx.request.ip,
+    });
+  }
 
   ctx.body = {
     data: presentGroup(group),
@@ -201,16 +203,16 @@ router.post('groups.add_user', auth(), async ctx => {
     membership = await group.addUser(user, {
       through: { createdById: ctx.state.user.id },
     });
-  }
 
-  await Event.create({
-    name: 'groups.add_user',
-    userId,
-    teamId: user.teamId,
-    actorId: ctx.state.user.id,
-    data: { name: user.name },
-    ip: ctx.request.ip,
-  });
+    await Event.create({
+      name: 'groups.add_user',
+      userId,
+      teamId: user.teamId,
+      actorId: ctx.state.user.id,
+      data: { name: user.name },
+      ip: ctx.request.ip,
+    });
+  }
 
   ctx.body = {
     data: {

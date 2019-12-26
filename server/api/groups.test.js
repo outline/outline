@@ -3,6 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '../app';
 import { flushdb } from '../test/support';
 import { buildUser, buildGroup } from '../test/factories';
+import { Event, User } from '../models';
 
 const server = new TestServer(app.callback());
 
@@ -56,17 +57,39 @@ describe('#groups.update', async () => {
     expect(res.status).toEqual(403);
   });
 
-  it('allows admin to edit a group', async () => {
-    const user = await buildUser({ isAdmin: true });
-    const group = await buildGroup({ teamId: user.teamId });
+  describe('when user is admin', async () => {
+    let user, group;
 
-    const res = await server.post('/api/groups.update', {
-      body: { token: user.getJwtToken(), id: group.id, name: 'Test' },
+    beforeEach(async () => {
+      user = await buildUser({ isAdmin: true });
+      group = await buildGroup({ teamId: user.teamId });
     });
 
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.name).toBe('Test');
+    it('allows admin to edit a group', async () => {
+      const res = await server.post('/api/groups.update', {
+        body: { token: user.getJwtToken(), id: group.id, name: 'Test' },
+      });
+
+      const events = await Event.findAll();
+      expect(events.length).toEqual(1);
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.name).toBe('Test');
+    });
+
+    it('does not create an event if the update is a noop', async () => {
+      const res = await server.post('/api/groups.update', {
+        body: { token: user.getJwtToken(), id: group.id, name: group.name },
+      });
+
+      const events = await Event.findAll();
+      expect(events.length).toEqual(0);
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.name).toBe(group.name);
+    });
   });
 });
 
