@@ -7,6 +7,7 @@ import io from 'socket.io-client';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
 import MembershipsStore from 'stores/MembershipsStore';
+import DocumentPresenceStore from 'stores/DocumentPresenceStore';
 import PoliciesStore from 'stores/PoliciesStore';
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
@@ -18,6 +19,7 @@ type Props = {
   documents: DocumentsStore,
   collections: CollectionsStore,
   memberships: MembershipsStore,
+  presence: DocumentPresenceStore,
   policies: PoliciesStore,
   auth: AuthStore,
   ui: UiStore,
@@ -42,6 +44,7 @@ class SocketProvider extends React.Component<Props> {
       collections,
       memberships,
       policies,
+      presence,
     } = this.props;
     if (!auth.token) return;
 
@@ -199,6 +202,18 @@ class SocketProvider extends React.Component<Props> {
       this.socket.on('leave', event => {
         this.socket.emit('leave', event);
       });
+
+      this.socket.on('presence', event => {
+        presence.update(event.documentId, event.userIds);
+      });
+
+      this.socket.on('user.join', event => {
+        presence.join(event.documentId, event.userId);
+      });
+
+      this.socket.on('user.leave', event => {
+        presence.leave(event.documentId, event.userId);
+      });
     });
   }
 
@@ -224,5 +239,6 @@ export default inject(
   'documents',
   'collections',
   'memberships',
+  'presence',
   'policies'
 )(SocketProvider);

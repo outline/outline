@@ -11,11 +11,13 @@ import Tooltip from 'components/Tooltip';
 import Document from 'models/Document';
 import UserProfile from 'scenes/UserProfile';
 import ViewsStore from 'stores/ViewsStore';
+import DocumentPresenceStore from 'stores/DocumentPresenceStore';
 
 const MAX_DISPLAY = 6;
 
 type Props = {
   views: ViewsStore,
+  presence: DocumentPresenceStore,
   document: Document,
 };
 
@@ -36,7 +38,7 @@ class Collaborators extends React.Component<Props> {
   };
 
   render() {
-    const { document, views } = this.props;
+    const { document, presence, views } = this.props;
     const documentViews = views.inDocument(document.id);
     const { createdAt, updatedAt, updatedBy, collaborators } = document;
 
@@ -77,6 +79,7 @@ class Collaborators extends React.Component<Props> {
                   onClick={() => this.handleOpenProfile(user.id)}
                   size={32}
                 />
+                {presence.get(document.id).includes(user.id) ? 'ACTIVE' : ''}
               </Viewer>
             </Tooltip>
             <UserProfile
@@ -106,6 +109,7 @@ class Collaborators extends React.Component<Props> {
                   onClick={() => this.handleOpenProfile(user.id)}
                   size={32}
                 />
+                {presence.get(document.id).includes(user.id) ? 'ACTIVE' : ''}
               </Collaborator>
             </Tooltip>
             <UserProfile
@@ -164,4 +168,4 @@ const Avatars = styled(Flex)`
   cursor: pointer;
 `;
 
-export default inject('views')(Collaborators);
+export default inject('views', 'presence')(Collaborators);

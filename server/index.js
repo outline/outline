@@ -102,7 +102,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
                 }
                 socket.emit('presence', {
                   documentId: event.documentId,
-                  userIds: userIds.keys(),
+                  userIds: Array.from(userIds.keys()),
                 });
               });
             });

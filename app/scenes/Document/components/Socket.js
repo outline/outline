@@ -3,7 +3,7 @@ import * as React from 'react';
 import { SocketContext } from 'components/SocketProvider';
 
 type Props = {
-  children: React.Node,
+  children?: React.Node,
   documentId: string,
 };
 

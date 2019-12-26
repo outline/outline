@@ -7,6 +7,7 @@ import EventsStore from './EventsStore';
 import IntegrationsStore from './IntegrationsStore';
 import MembershipsStore from './MembershipsStore';
 import NotificationSettingsStore from './NotificationSettingsStore';
+import DocumentPresenceStore from './DocumentPresenceStore';
 import PoliciesStore from './PoliciesStore';
 import RevisionsStore from './RevisionsStore';
 import SharesStore from './SharesStore';
@@ -23,6 +24,7 @@ export default class RootStore {
   integrations: IntegrationsStore;
   memberships: MembershipsStore;
   notificationSettings: NotificationSettingsStore;
+  presence: DocumentPresenceStore;
   policies: PoliciesStore;
   revisions: RevisionsStore;
   shares: SharesStore;
@@ -39,6 +41,7 @@ export default class RootStore {
     this.integrations = new IntegrationsStore(this);
     this.memberships = new MembershipsStore(this);
     this.notificationSettings = new NotificationSettingsStore(this);
+    this.presence = new DocumentPresenceStore();
     this.policies = new PoliciesStore(this);
     this.revisions = new RevisionsStore(this);
     this.shares = new SharesStore(this);
@@ -55,6 +58,7 @@ export default class RootStore {
     this.integrations.clear();
     this.memberships.clear();
     this.notificationSettings.clear();
+    this.presence.clear();
     this.policies.clear();
     this.revisions.clear();
     this.shares.clear();
