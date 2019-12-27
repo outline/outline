@@ -27,7 +27,7 @@ export default class PresenceStore {
     }
   }
 
-  get(documentId: string) {
+  get(documentId: string): string[] {
     const data = this.data.get(documentId);
     return data ? Array.from(data.keys()) : [];
   }
