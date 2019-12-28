@@ -269,6 +269,10 @@ export default function Api() {
                 id="backlinkDocumentId"
                 description="Backlinked document ID to filter by"
               />
+              <Argument
+                id="parentDocumentId"
+                description="Parent document ID to filter by"
+              />
             </Arguments>
           </Method>
 
@@ -439,7 +443,7 @@ export default function Api() {
 
           <Method method="documents.archive" label="Archive a document">
             <Description>
-              Archive a document and all of its child documents, if any.
+              Archive a document and all of its nested documents, if any.
             </Description>
             <Arguments>
               <Argument
@@ -452,7 +456,7 @@ export default function Api() {
 
           <Method method="documents.delete" label="Delete a document">
             <Description>
-              Permanantly delete a document and all of its child documents, if
+              Permanently delete a document and all of its nested documents, if
               any.
             </Description>
             <Arguments>

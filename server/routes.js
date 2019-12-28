@@ -96,6 +96,7 @@ router.get('/', async ctx => {
         ctx,
         <SubdomainSignin
           team={team}
+          guest={ctx.request.query.guest}
           notice={ctx.request.query.notice}
           lastSignedIn={lastSignedIn}
           googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}

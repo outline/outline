@@ -42,7 +42,7 @@ class References extends React.Component<Props> {
           <Tabs>
             {showChildren && (
               <Tab to="#children" isActive={() => !isBacklinksTab}>
-                Child documents
+                Nested documents
               </Tab>
             )}
             {showBacklinks && (

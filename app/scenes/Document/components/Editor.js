@@ -34,12 +34,10 @@ class DocumentEditor extends React.Component<Props> {
         <Editor
           ref={ref => (this.editor = ref)}
           plugins={plugins}
+          grow={!readOnly}
           {...this.props}
         />
-        <ClickablePadding
-          onClick={!readOnly ? this.focusAtEnd : undefined}
-          grow
-        />
+        {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
       </React.Fragment>
     );
   }

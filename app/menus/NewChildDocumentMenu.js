@@ -49,7 +49,7 @@ class NewChildDocumentMenu extends React.Component<Props> {
           </span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleNewChild}>
-          New child document
+          New nested document
         </DropdownMenuItem>
       </DropdownMenu>
     );

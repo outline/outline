@@ -56,6 +56,7 @@ describe('#events.list', async () => {
     const res = await server.post('/api/events.list', {
       body: { token: admin.getJwtToken() },
     });
+
     const body = await res.json();
 
     expect(res.status).toEqual(200);

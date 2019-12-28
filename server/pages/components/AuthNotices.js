@@ -6,9 +6,15 @@ type Props = {
   notice?: string,
 };
 
-export default function AuthErrors({ notice }: Props) {
+export default function AuthNotices({ notice }: Props) {
   return (
     <React.Fragment>
+      {notice === 'guest-success' && (
+        <Notice>
+          A magic sign-in link has been sent to your email address, no password
+          needed.
+        </Notice>
+      )}
       {notice === 'google-hd' && (
         <Notice>
           Sorry, Google sign in cannot be used with a personal email. Please try
@@ -21,10 +27,28 @@ export default function AuthErrors({ notice }: Props) {
           an allowed company domain.
         </Notice>
       )}
+      {notice === 'email-auth-required' && (
+        <Notice>
+          Your account uses email sign-in, please sign-in with email to
+          continue.
+        </Notice>
+      )}
+      {notice === 'email-auth-ratelimit' && (
+        <Notice>
+          An email sign-in link was recently sent, please check your inbox and
+          try again in a few minutes.
+        </Notice>
+      )}
       {notice === 'auth-error' && (
         <Notice>
           Authentication failed - we were unable to sign you in at this time.
           Please try again.
+        </Notice>
+      )}
+      {notice === 'expired-token' && (
+        <Notice>
+          Sorry, it looks like that sign-in link is no longer valid, please try
+          requesting another.
         </Notice>
       )}
       {notice === 'suspended' && (

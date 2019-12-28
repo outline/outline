@@ -237,19 +237,23 @@ router.post('users.invite', auth(), async ctx => {
   const user = ctx.state.user;
   authorize(user, 'invite', User);
 
-  const invitesSent = await userInviter({ user, invites, ip: ctx.request.ip });
+  const response = await userInviter({ user, invites, ip: ctx.request.ip });
 
   ctx.body = {
-    data: invitesSent,
+    data: {
+      sent: response.sent,
+      users: response.users.map(user => presentUser(user)),
+    },
   };
 });
 
 router.post('users.delete', auth(), async ctx => {
-  const { confirmation } = ctx.body;
+  const { confirmation, id } = ctx.body;
   ctx.assertPresent(confirmation, 'confirmation is required');
 
-  const user = ctx.state.user;
-  authorize(user, 'delete', user);
+  let user = ctx.state.user;
+  if (id) user = await User.findByPk(id);
+  authorize(ctx.state.user, 'delete', user);
 
   await user.destroy();
   await Event.create({

@@ -8,6 +8,7 @@ import Queue from 'bull';
 import { baseStyles } from './emails/components/EmailLayout';
 import { WelcomeEmail, welcomeEmailText } from './emails/WelcomeEmail';
 import { ExportEmail, exportEmailText } from './emails/ExportEmail';
+import { SigninEmail, signinEmailText } from './emails/SigninEmail';
 import {
   type Props as InviteEmailT,
   InviteEmail,
@@ -120,6 +121,16 @@ export class Mailer {
         'Outline is a place for your team to build and share knowledge.',
       html: <InviteEmail {...opts} />,
       text: inviteEmailText(opts),
+    });
+  };
+
+  signin = async (opts: { to: string, token: string, teamUrl: string }) => {
+    this.sendMail({
+      to: opts.to,
+      title: 'Magic signin link',
+      previewText: 'Here’s your link to signin to Outline.',
+      html: <SigninEmail {...opts} />,
+      text: signinEmailText(opts),
     });
   };
 
