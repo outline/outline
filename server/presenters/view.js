@@ -8,6 +8,7 @@ export default function present(view: View) {
     documentId: view.documentId,
     count: view.count,
     firstViewedAt: view.createdAt,
+    lastEditingAt: view.lastEditingAt,
     lastViewedAt: view.updatedAt,
     user: presentUser(view.user),
   };

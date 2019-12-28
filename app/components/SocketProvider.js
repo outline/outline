@@ -218,6 +218,10 @@ class SocketProvider extends React.Component<Props> {
       this.socket.on('user.leave', event => {
         presence.leave(event.documentId, event.userId);
       });
+
+      this.socket.on('user.editing', event => {
+        views.touch(event.documentId, event.user.id, event.lastEditingAt);
+      });
     });
   }
 

@@ -9,6 +9,9 @@ const View = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    lastEditingAt: {
+      type: DataTypes.DATE,
+    },
     count: {
       type: DataTypes.INTEGER,
       defaultValue: 1,

@@ -5,6 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { sortBy } from 'lodash';
 import styled, { withTheme } from 'styled-components';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
+import subSeconds from 'date-fns/sub_seconds';
 
 import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';
@@ -14,6 +15,7 @@ import User from 'models/User';
 import UserProfile from 'scenes/UserProfile';
 import ViewsStore from 'stores/ViewsStore';
 import DocumentPresenceStore from 'stores/DocumentPresenceStore';
+import { EditIcon } from 'outline-icons';
 
 const MAX_DISPLAY = 6;
 
@@ -26,8 +28,9 @@ type Props = {
 @observer
 class AvatarWithPresence extends React.Component<{
   user: User,
-  status: string,
-  active: boolean,
+  isPresent: boolean,
+  isEditing: boolean,
+  lastViewedAt: string,
 }> {
   @observable isOpen: boolean = false;
 
@@ -39,7 +42,7 @@ class AvatarWithPresence extends React.Component<{
     this.isOpen = false;
   };
   render() {
-    const { user, active, status } = this.props;
+    const { user, lastViewedAt, isPresent, isEditing } = this.props;
 
     return (
       <React.Fragment>
@@ -48,16 +51,19 @@ class AvatarWithPresence extends React.Component<{
             <Centered>
               <strong>{user.name}</strong>
               <br />
-              {active ? 'currently viewing' : status}
+              {isPresent
+                ? isEditing ? 'currently editing' : 'currently viewing'
+                : `viewed ${distanceInWordsToNow(new Date(lastViewedAt))} ago`}
             </Centered>
           }
           placement="bottom"
         >
-          <AvatarWrapper active={active}>
+          <AvatarWrapper isPresent={isPresent}>
             <Avatar
               src={user.avatarUrl}
               onClick={this.handleOpenProfile}
               size={32}
+              icon={isEditing ? <EditIcon size={16} color="#FFF" /> : undefined}
             />
           </AvatarWrapper>
         </Tooltip>
@@ -96,19 +102,18 @@ class Collaborators extends React.Component<Props> {
     return (
       <Avatars>
         {overflow > 0 && <More>+{overflow}</More>}
-        {mostRecentViewers.map(({ lastViewedAt, user }) => {
-          const active = presentIds.includes(user.id);
+        {mostRecentViewers.map(({ lastViewedAt, lastEditingAt, user }) => {
+          const isPresent = presentIds.includes(user.id);
+          const isEditing =
+            new Date(lastEditingAt) >= subSeconds(new Date(), 7.5);
 
           return (
             <AvatarWithPresence
               key={user.id}
               user={user}
-              active={active}
-              status={
-                active
-                  ? 'currently viewing'
-                  : `viewed ${distanceInWordsToNow(new Date(lastViewedAt))} ago`
-              }
+              lastViewedAt={lastViewedAt}
+              isPresent={isPresent}
+              isEditing={isEditing}
             />
           );
         })}
@@ -125,7 +130,7 @@ const AvatarWrapper = styled.div`
   width: 32px;
   height: 32px;
   margin-right: -8px;
-  opacity: ${props => (props.active ? 1 : 0.5)};
+  opacity: ${props => (props.isPresent ? 1 : 0.5)};
   transition: opacity 250ms ease-in-out;
 
   &:first-child {

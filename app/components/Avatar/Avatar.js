@@ -44,7 +44,7 @@ const AvatarWrapper = styled.span`
 `;
 
 const IconWrapper = styled.span`
-  display: block;
+  display: flex;
   position: absolute;
   bottom: -2px;
   right: -2px;

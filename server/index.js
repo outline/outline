@@ -5,7 +5,8 @@ import IO from 'socket.io';
 import SocketAuth from 'socketio-auth';
 import socketRedisAdapter from 'socket.io-redis';
 import { getUserForJWT } from './utils/jwt';
-import { Document, Collection } from './models';
+import { Document, Collection, View } from './models';
+import { presentView } from './presenters';
 import { client } from './redis';
 import app from './app';
 import policy from './policies';
@@ -140,15 +141,29 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
         });
       });
 
-      socket.on('presence', event => {
+      socket.on('editing', async event => {
         const room = `document-${event.documentId}`;
 
         if (event.documentId && socket.rooms[room]) {
-          io.to(room).emit('user.presence', {
-            userId: user.id,
-            documentId: event.documentId,
-            editing: event.editing,
+          const lastEditingAt = new Date();
+
+          const [view, isFirstView] = await View.findOrCreate({
+            where: {
+              userId: user.id,
+              documentId: event.documentId,
+            },
+            defaults: {
+              lastEditingAt,
+            },
           });
+
+          if (!isFirstView) {
+            view.lastEditingAt = lastEditingAt;
+            view.save();
+          }
+
+          view.user = user;
+          io.to(room).emit('user.editing', presentView(view));
         }
       });
     },

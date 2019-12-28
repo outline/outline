@@ -453,7 +453,7 @@ class DocumentScene extends React.Component<Props> {
           <Branding />
         ) : (
           <React.Fragment>
-            <Socket documentId={document.id} />
+            <Socket documentId={document.id} editing={this.isEditing} />
             <KeyboardShortcuts />
           </React.Fragment>
         )}

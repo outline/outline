@@ -6,6 +6,7 @@ class View extends BaseModel {
   id: string;
   documentId: string;
   firstViewedAt: string;
+  lastEditingAt: string;
   lastViewedAt: string;
   count: number;
   user: User;
