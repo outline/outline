@@ -3,6 +3,7 @@ import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { Op } from '../sequelize';
+import { ValidationError } from '../errors';
 import {
   presentGroup,
   presentPolicies,

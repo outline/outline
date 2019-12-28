@@ -90,6 +90,25 @@ describe('#groups.update', async () => {
       expect(res.status).toEqual(200);
       expect(body.data.name).toBe(group.name);
     });
+
+    it('fails with validation error when name already taken', async () => {
+      await buildGroup({
+        teamId: user.teamId,
+        name: 'test',
+      });
+
+      const res = await server.post('/api/groups.update', {
+        body: {
+          token: user.getJwtToken(),
+          id: group.id,
+          name: 'TEST',
+        },
+      });
+
+      const body = await res.json();
+      expect(res.status).toEqual(400);
+      expect(body).toMatchSnapshot();
+    });
   });
 });
 

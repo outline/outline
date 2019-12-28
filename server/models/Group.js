@@ -1,5 +1,5 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
+import { Op, DataTypes, sequelize } from '../sequelize';
 
 const Group = sequelize.define(
   'group',
@@ -9,6 +9,10 @@ const Group = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    teamId: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+    },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -16,6 +20,19 @@ const Group = sequelize.define(
   },
   {
     timestamps: true,
+    validate: {
+      isUniqueNameInTeam: async function() {
+        const foundItem = await Group.findOne({
+          where: {
+            name: { [Op.iLike]: this.name },
+            id: { [Op.not]: this.id },
+          },
+        });
+        if (foundItem) {
+          throw new Error('The name of this group is already in use');
+        }
+      },
+    },
   }
 );
 
