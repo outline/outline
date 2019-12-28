@@ -2,13 +2,15 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { filter } from 'lodash';
+import { sortBy } from 'lodash';
+import styled, { withTheme } from 'styled-components';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
-import styled from 'styled-components';
+
 import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';
 import Tooltip from 'components/Tooltip';
 import Document from 'models/Document';
+import User from 'models/User';
 import UserProfile from 'scenes/UserProfile';
 import ViewsStore from 'stores/ViewsStore';
 import DocumentPresenceStore from 'stores/DocumentPresenceStore';
@@ -22,103 +24,94 @@ type Props = {
 };
 
 @observer
-class Collaborators extends React.Component<Props> {
-  @observable openProfileId: ?string;
+class AvatarWithPresence extends React.Component<{
+  user: User,
+  status: string,
+  active: boolean,
+}> {
+  @observable isOpen: boolean = false;
 
+  handleOpenProfile = () => {
+    this.isOpen = true;
+  };
+
+  handleCloseProfile = () => {
+    this.isOpen = false;
+  };
+  render() {
+    const { user, active, status } = this.props;
+
+    return (
+      <React.Fragment>
+        <Tooltip
+          tooltip={
+            <Centered>
+              <strong>{user.name}</strong>
+              <br />
+              {active ? 'currently viewing' : status}
+            </Centered>
+          }
+          placement="bottom"
+        >
+          <AvatarWrapper active={active}>
+            <Avatar
+              src={user.avatarUrl}
+              onClick={this.handleOpenProfile}
+              size={32}
+            />
+          </AvatarWrapper>
+        </Tooltip>
+        <UserProfile
+          user={user}
+          isOpen={this.isOpen}
+          onRequestClose={this.handleCloseProfile}
+        />
+      </React.Fragment>
+    );
+  }
+}
+
+@observer
+class Collaborators extends React.Component<Props> {
   componentDidMount() {
     this.props.views.fetchPage({ documentId: this.props.document.id });
   }
 
-  handleOpenProfile = (userId: string) => {
-    this.openProfileId = userId;
-  };
-
-  handleCloseProfile = () => {
-    this.openProfileId = undefined;
-  };
-
   render() {
     const { document, presence, views } = this.props;
     const documentViews = views.inDocument(document.id);
-    const { createdAt, updatedAt, updatedBy, collaborators } = document;
-
-    // filter to only show views that haven't collaborated
-    const collaboratorIds = collaborators.map(user => user.id);
-    const viewersNotCollaborators = filter(
-      documentViews,
-      view => !collaboratorIds.includes(view.user.id)
-    );
+    const presentIds = presence.get(document.id);
 
     // only show the most recent viewers, the rest can overflow
-    const mostRecentViewers = viewersNotCollaborators.slice(
-      0,
-      MAX_DISPLAY - collaborators.length
+    let mostRecentViewers = documentViews.slice(0, MAX_DISPLAY);
+
+    // ensure currently present via websocket are always ordered first
+    mostRecentViewers = sortBy(mostRecentViewers, view =>
+      presentIds.includes(view.user.id)
     );
 
     // if there are too many to display then add a (+X) to the UI
-    const overflow = viewersNotCollaborators.length - mostRecentViewers.length;
+    const overflow = documentViews.length - mostRecentViewers.length;
 
     return (
       <Avatars>
         {overflow > 0 && <More>+{overflow}</More>}
-        {mostRecentViewers.map(({ lastViewedAt, user }) => (
-          <React.Fragment key={user.id}>
-            <Tooltip
-              tooltip={
-                <Centered>
-                  <strong>{user.name}</strong>
-                  <br />
-                  viewed {distanceInWordsToNow(new Date(lastViewedAt))} ago
-                </Centered>
-              }
-              placement="bottom"
-            >
-              <Viewer>
-                <Avatar
-                  src={user.avatarUrl}
-                  onClick={() => this.handleOpenProfile(user.id)}
-                  size={32}
-                />
-                {presence.get(document.id).includes(user.id) ? 'ACTIVE' : ''}
-              </Viewer>
-            </Tooltip>
-            <UserProfile
+        {mostRecentViewers.map(({ lastViewedAt, user }) => {
+          const active = presentIds.includes(user.id);
+
+          return (
+            <AvatarWithPresence
+              key={user.id}
               user={user}
-              isOpen={this.openProfileId === user.id}
-              onRequestClose={this.handleCloseProfile}
-            />
-          </React.Fragment>
-        ))}
-        {collaborators.map(user => (
-          <React.Fragment key={user.id}>
-            <Tooltip
-              tooltip={
-                <Centered>
-                  <strong>{user.name}</strong>
-                  <br />
-                  {createdAt === updatedAt ? 'published' : 'updated'}{' '}
-                  {updatedBy.id === user.id &&
-                    `${distanceInWordsToNow(new Date(updatedAt))} ago`}
-                </Centered>
+              active={active}
+              status={
+                active
+                  ? 'currently viewing'
+                  : `viewed ${distanceInWordsToNow(new Date(lastViewedAt))} ago`
               }
-              placement="bottom"
-            >
-              <Collaborator>
-                <Avatar
-                  src={user.avatarUrl}
-                  onClick={() => this.handleOpenProfile(user.id)}
-                  size={32}
-                />
-                {presence.get(document.id).includes(user.id) ? 'ACTIVE' : ''}
-              </Collaborator>
-            </Tooltip>
-            <UserProfile
-              user={user}
-              isOpen={this.openProfileId === user.id}
-              onRequestClose={this.handleCloseProfile}
             />
-          </React.Fragment>
-        ))}
+          );
+        })}
       </Avatars>
     );
   }
@@ -128,21 +121,12 @@ const Centered = styled.div`
   text-align: center;
 `;
 
-const Viewer = styled.div`
-  width: 32px;
-  height: 32px;
-  opacity: 0.75;
-  margin-right: -8px;
-
-  &:first-child {
-    margin-right: 0;
-  }
-`;
-
-const Collaborator = styled.div`
+const AvatarWrapper = styled.div`
   width: 32px;
   height: 32px;
   margin-right: -8px;
+  opacity: ${props => (props.active ? 1 : 0.5)};
+  transition: opacity 250ms ease-in-out;
 
   &:first-child {
     margin-right: 0;
@@ -168,4 +152,4 @@ const Avatars = styled(Flex)`
   cursor: pointer;
 `;
 
-export default inject('views', 'presence')(Collaborators);
+export default inject('views', 'presence')(withTheme(Collaborators));

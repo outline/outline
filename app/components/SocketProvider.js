@@ -9,10 +9,11 @@ import CollectionsStore from 'stores/CollectionsStore';
 import MembershipsStore from 'stores/MembershipsStore';
 import DocumentPresenceStore from 'stores/DocumentPresenceStore';
 import PoliciesStore from 'stores/PoliciesStore';
+import ViewsStore from 'stores/ViewsStore';
 import AuthStore from 'stores/AuthStore';
 import UiStore from 'stores/UiStore';
 
-export const SocketContext = React.createContext();
+export const SocketContext: any = React.createContext();
 
 type Props = {
   children: React.Node,
@@ -21,6 +22,7 @@ type Props = {
   memberships: MembershipsStore,
   presence: DocumentPresenceStore,
   policies: PoliciesStore,
+  views: ViewsStore,
   auth: AuthStore,
   ui: UiStore,
 };
@@ -45,6 +47,7 @@ class SocketProvider extends React.Component<Props> {
       memberships,
       policies,
       presence,
+      views,
     } = this.props;
     if (!auth.token) return;
 
@@ -209,6 +212,7 @@ class SocketProvider extends React.Component<Props> {
 
       this.socket.on('user.join', event => {
         presence.join(event.documentId, event.userId);
+        views.touch(event.documentId, event.userId);
       });
 
       this.socket.on('user.leave', event => {
@@ -240,5 +244,6 @@ export default inject(
   'collections',
   'memberships',
   'presence',
-  'policies'
+  'policies',
+  'views'
 )(SocketProvider);
