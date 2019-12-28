@@ -8,7 +8,6 @@ import {
   Revision,
   Backlink,
   CollectionUser,
-  User,
 } from '../models';
 import { flushdb, seed } from '../test/support';
 import {

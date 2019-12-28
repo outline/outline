@@ -3,7 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '../app';
 import { flushdb } from '../test/support';
 import { buildUser, buildGroup } from '../test/factories';
-import { Event, User } from '../models';
+import { Event } from '../models';
 
 const server = new TestServer(app.callback());
 
