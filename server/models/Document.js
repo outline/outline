@@ -268,7 +268,7 @@ Document.searchForTeam = async (
       "collectionId" IN(:collectionIds) AND
       "deletedAt" IS NULL AND
       "publishedAt" IS NOT NULL
-    ORDER BY 
+    ORDER BY
       "searchRanking" DESC,
       "updatedAt" DESC
     LIMIT :limit
@@ -352,7 +352,7 @@ Document.searchForUser = async (
     ${options.includeArchived ? '' : '"archivedAt" IS NULL AND'}
     "deletedAt" IS NULL AND
     ("publishedAt" IS NOT NULL OR "createdById" = :userId)
-  ORDER BY 
+  ORDER BY
     "searchRanking" DESC,
     "updatedAt" DESC
   LIMIT :limit

@@ -9,7 +9,6 @@ import {
   publicS3Endpoint,
   makeCredential,
 } from '../utils/s3';
-import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
@@ -163,11 +162,7 @@ router.post('users.demote', auth(), async ctx => {
   authorize(ctx.state.user, 'demote', user);
 
   const team = await Team.findByPk(teamId);
-  try {
-    await team.removeAdmin(user);
-  } catch (err) {
-    throw new ValidationError(err.message);
-  }
+  await team.removeAdmin(user);
 
   await Event.create({
     name: 'users.demote',
@@ -193,11 +188,7 @@ router.post('users.suspend', auth(), async ctx => {
   authorize(ctx.state.user, 'suspend', user);
 
   const team = await Team.findByPk(teamId);
-  try {
-    await team.suspendUser(user, admin);
-  } catch (err) {
-    throw new ValidationError(err.message);
-  }
+  await team.suspendUser(user, admin);
 
   await Event.create({
     name: 'users.suspend',
@@ -260,12 +251,7 @@ router.post('users.delete', auth(), async ctx => {
   const user = ctx.state.user;
   authorize(user, 'delete', user);
 
-  try {
-    await user.destroy();
-  } catch (err) {
-    throw new ValidationError(err.message);
-  }
-
+  await user.destroy();
   await Event.create({
     name: 'users.delete',
     actorId: user.id,

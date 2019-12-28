@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import uuid from 'uuid';
 import JWT from 'jsonwebtoken';
 import subMinutes from 'date-fns/sub_minutes';
+import { ValidationError } from '../errors';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
@@ -148,7 +149,7 @@ const checkLastAdmin = async model => {
     const adminCount = await User.count({ where: { isAdmin: true, teamId } });
 
     if (userCount > 1 && adminCount <= 1) {
-      throw new Error(
+      throw new ValidationError(
         'Cannot delete account as only admin. Please transfer admin permissions to another user and try again.'
       );
     }
