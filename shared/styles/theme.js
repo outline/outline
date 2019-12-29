@@ -5,6 +5,7 @@ const colors = {
   almostBlack: '#111319',
   lightBlack: '#2F3336',
   almostWhite: '#E6E6E6',
+  veryDarkBlue: '#08090C',
 
   slate: '#9BA6B2',
   slateLight: '#DAE1E9',
@@ -115,8 +116,8 @@ export const dark = {
   textTertiary: colors.slate,
   placeholder: darken(0.5, '#B1BECC'),
 
-  sidebarBackground: colors.black50,
-  sidebarItemBackground: colors.black50,
+  sidebarBackground: colors.veryDarkBlue,
+  sidebarItemBackground: colors.veryDarkBlue,
   sidebarText: colors.slate,
 
   menuBackground: lighten(0.015, colors.almostBlack),
