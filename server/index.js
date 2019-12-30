@@ -6,7 +6,6 @@ import SocketAuth from 'socketio-auth';
 import socketRedisAdapter from 'socket.io-redis';
 import { getUserForJWT } from './utils/jwt';
 import { Document, Collection, View } from './models';
-import { presentView } from './presenters';
 import { client } from './redis';
 import app from './app';
 import policy from './policies';
@@ -84,11 +83,16 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
 
           if (can(user, 'read', document)) {
             const room = `document-${event.documentId}`;
+            const editing = await View.findRecentlyEditingByDocument(
+              event.documentId
+            );
+
             socket.join(room, () => {
               // let everyone else in the room know they joined
               io.to(room).emit('user.join', {
                 userId: user.id,
                 documentId: event.documentId,
+                isEditing: event.isEditing,
               });
 
               // let this member know who else is in this room
@@ -101,9 +105,10 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
                   const userId = await redisHget(socketId, 'userId');
                   userIds.set(userId, userId);
                 }
-                socket.emit('presence', {
+                socket.emit('document.presence', {
                   documentId: event.documentId,
                   userIds: Array.from(userIds.keys()),
+                  editingIds: editing.map(view => view.userId),
                 });
               });
             });
@@ -141,7 +146,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
         });
       });
 
-      socket.on('editing', async event => {
+      socket.on('presence', async event => {
         const room = `document-${event.documentId}`;
 
         if (event.documentId && socket.rooms[room]) {
@@ -163,7 +168,11 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
           }
 
           view.user = user;
-          io.to(room).emit('user.editing', presentView(view));
+          io.to(room).emit('user.presence', {
+            userId: user.id,
+            documentId: event.documentId,
+            isEditing: event.isEditing,
+          });
         }
       });
     },

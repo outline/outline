@@ -52,13 +52,19 @@ export default class SocketManager extends React.Component<Props> {
 
   emitJoin = () => {
     if (this.context) {
-      this.context.emit('join', { documentId: this.props.documentId });
+      this.context.emit('join', {
+        documentId: this.props.documentId,
+        isEditing: this.props.editing,
+      });
     }
   };
 
   emitEditing = () => {
     if (this.context) {
-      this.context.emit('editing', { documentId: this.props.documentId });
+      this.context.emit('presence', {
+        documentId: this.props.documentId,
+        isEditing: this.props.editing,
+      });
     }
   };
 

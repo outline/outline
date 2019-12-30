@@ -19,18 +19,12 @@ export default class ViewsStore extends BaseStore<View> {
     );
   }
 
-  touch(documentId: string, userId: string, editing?: boolean) {
+  touch(documentId: string, userId: string) {
     const view = find(
       this.orderedData,
       view => view.documentId === documentId && view.user.id === userId
     );
     if (!view) return;
-
-    if (editing) {
-      view.lastEditingAt = new Date().toString();
-    }
-    view.lastViewedAt = new Date().toString();
-    view.count++;
-    this.add(view);
+    view.touch();
   }
 }

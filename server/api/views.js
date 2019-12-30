@@ -16,16 +16,7 @@ router.post('views.list', auth(), async ctx => {
   const document = await Document.findByPk(documentId, { userId: user.id });
   authorize(user, 'read', document);
 
-  const views = await View.findAll({
-    where: { documentId },
-    order: [['updatedAt', 'DESC']],
-    include: [
-      {
-        model: User,
-        paranoid: false,
-      },
-    ],
-  });
+  const views = await View.findByDocument(documentId);
 
   ctx.body = {
     data: views.map(presentView),

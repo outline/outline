@@ -86,7 +86,14 @@ class Collaborators extends React.Component<Props> {
   render() {
     const { document, presence, views } = this.props;
     const documentViews = views.inDocument(document.id);
-    const presentIds = presence.get(document.id);
+    let documentPresence = presence.get(document.id);
+    documentPresence = documentPresence
+      ? Array.from(documentPresence.values())
+      : [];
+    const presentIds = documentPresence.map(p => p.userId);
+    const editingIds = documentPresence
+      .filter(p => p.isEditing)
+      .map(p => p.userId);
 
     // only show the most recent viewers, the rest can overflow
     let mostRecentViewers = documentViews.slice(0, MAX_DISPLAY);
@@ -102,10 +109,9 @@ class Collaborators extends React.Component<Props> {
     return (
       <Avatars>
         {overflow > 0 && <More>+{overflow}</More>}
-        {mostRecentViewers.map(({ lastViewedAt, lastEditingAt, user }) => {
+        {mostRecentViewers.map(({ lastViewedAt, user }) => {
           const isPresent = presentIds.includes(user.id);
-          const isEditing =
-            new Date(lastEditingAt) >= subSeconds(new Date(), 7.5);
+          const isEditing = editingIds.includes(user.id);
 
           return (
             <AvatarWithPresence

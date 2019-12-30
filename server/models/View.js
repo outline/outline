@@ -1,5 +1,7 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
+import { Op, DataTypes, sequelize } from '../sequelize';
+import { User } from '../models';
+import { subSeconds } from 'date-fns';
 
 const View = sequelize.define(
   'view',
@@ -34,6 +36,37 @@ View.increment = async where => {
     model.save();
   }
   return model;
+};
+
+View.findByDocument = async documentId => {
+  return View.findAll({
+    where: { documentId },
+    order: [['updatedAt', 'DESC']],
+    include: [
+      {
+        model: User,
+        paranoid: false,
+      },
+    ],
+  });
+};
+
+View.findRecentlyEditingByDocument = async documentId => {
+  return View.findAll({
+    where: {
+      documentId,
+      lastEditingAt: {
+        [Op.gt]: subSeconds(new Date(), 10),
+      },
+    },
+    order: [['lastEditingAt', 'DESC']],
+    include: [
+      {
+        model: User,
+        paranoid: false,
+      },
+    ],
+  });
 };
 
 export default View;

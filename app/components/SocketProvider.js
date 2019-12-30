@@ -206,21 +206,22 @@ class SocketProvider extends React.Component<Props> {
         this.socket.emit('leave', event);
       });
 
-      this.socket.on('presence', event => {
-        presence.update(event.documentId, event.userIds);
+      this.socket.on('document.presence', event => {
+        presence.init(event.documentId, event.userIds, event.editingIds);
       });
 
       this.socket.on('user.join', event => {
-        presence.join(event.documentId, event.userId);
+        presence.join(event.documentId, event.userId, event.isEditing);
         views.touch(event.documentId, event.userId);
       });
 
       this.socket.on('user.leave', event => {
         presence.leave(event.documentId, event.userId);
+        views.touch(event.documentId, event.userId);
       });
 
-      this.socket.on('user.editing', event => {
-        views.touch(event.documentId, event.user.id, event.lastEditingAt);
+      this.socket.on('user.presence', event => {
+        presence.touch(event.documentId, event.userId, event.isEditing);
       });
     });
   }
