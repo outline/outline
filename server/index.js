@@ -83,6 +83,8 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
 
           if (can(user, 'read', document)) {
             const room = `document-${event.documentId}`;
+
+            await View.touch(event.documentId, user.id, event.isEditing);
             const editing = await View.findRecentlyEditingByDocument(
               event.documentId
             );
@@ -150,24 +152,13 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
         const room = `document-${event.documentId}`;
 
         if (event.documentId && socket.rooms[room]) {
-          const lastEditingAt = new Date();
-
-          const [view, isFirstView] = await View.findOrCreate({
-            where: {
-              userId: user.id,
-              documentId: event.documentId,
-            },
-            defaults: {
-              lastEditingAt,
-            },
-          });
-
-          if (!isFirstView) {
-            view.lastEditingAt = lastEditingAt;
-            view.save();
-          }
-
+          const view = await View.touch(
+            event.documentId,
+            user.id,
+            event.isEditing
+          );
           view.user = user;
+
           io.to(room).emit('user.presence', {
             userId: user.id,
             documentId: event.documentId,

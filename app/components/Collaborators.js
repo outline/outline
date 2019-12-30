@@ -5,7 +5,6 @@ import { observer, inject } from 'mobx-react';
 import { sortBy } from 'lodash';
 import styled, { withTheme } from 'styled-components';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
-import subSeconds from 'date-fns/sub_seconds';
 
 import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';

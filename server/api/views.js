@@ -2,7 +2,7 @@
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import { presentView } from '../presenters';
-import { View, Document, Event, User } from '../models';
+import { View, Document, Event } from '../models';
 import policy from '../policies';
 
 const { authorize } = policy;

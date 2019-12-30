@@ -69,4 +69,21 @@ View.findRecentlyEditingByDocument = async documentId => {
   });
 };
 
+View.touch = async (documentId: string, userId: string, isEditing: boolean) => {
+  const [view] = await View.findOrCreate({
+    where: {
+      userId,
+      documentId,
+    },
+  });
+
+  if (isEditing) {
+    const lastEditingAt = new Date();
+    view.lastEditingAt = lastEditingAt;
+    await view.save();
+  }
+
+  return view;
+};
+
 export default View;

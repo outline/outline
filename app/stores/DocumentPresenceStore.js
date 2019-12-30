@@ -5,13 +5,13 @@ type DocumentPresence = Map<string, { isEditing: boolean, userId: string }>;
 
 export default class PresenceStore {
   @observable data: Map<string, DocumentPresence> = new Map();
-  editingTimeout: ?TimeoutID;
+  timeouts: Map<string, TimeoutID> = new Map();
 
   @action
   init(documentId: string, userIds: string[], editingIds: string[]) {
     this.data.set(documentId, new Map());
     userIds.forEach(userId =>
-      this.update(documentId, userId, editingIds.includes(userId))
+      this.touch(documentId, userId, editingIds.includes(userId))
     );
   }
 
@@ -36,17 +36,21 @@ export default class PresenceStore {
 
   @action
   touch(documentId: string, userId: string, isEditing: boolean) {
-    if (this.editingTimeout) {
-      clearTimeout(this.editingTimeout);
+    const id = `${documentId}-${userId}`;
+    let timeout = this.timeouts.get(id);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.timeouts.delete(userId);
     }
 
     this.update(documentId, userId, isEditing);
-    console.log({ documentId, userId, isEditing });
 
-    this.editingTimeout = setTimeout(() => {
-      console.log('EDITING TIMEOUT');
-      this.update(documentId, userId, false);
-    }, 10 * 1000);
+    if (isEditing) {
+      timeout = setTimeout(() => {
+        this.update(documentId, userId, false);
+      }, 10 * 1000);
+      this.timeouts.set(id, timeout);
+    }
   }
 
   get(documentId: string): ?DocumentPresence {
