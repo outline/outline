@@ -5,25 +5,29 @@ import { SocketContext } from 'components/SocketProvider';
 type Props = {
   children?: React.Node,
   documentId: string,
-  editing: boolean,
+  isEditing: boolean,
 };
 
-export default class SocketManager extends React.Component<Props> {
+export default class Socket extends React.Component<Props> {
   static contextType = SocketContext;
   previousContext: any;
   editingInterval: IntervalID;
 
   componentDidMount() {
     this.editingInterval = setInterval(() => {
-      if (this.props.editing) {
-        this.emitEditing();
+      if (this.props.isEditing) {
+        this.emitPresence();
       }
     }, 5000);
     this.setupOnce();
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps: Props) {
     this.setupOnce();
+
+    if (prevProps.isEditing !== this.props.isEditing) {
+      this.emitPresence();
+    }
   }
 
   componentWillUnmount() {
@@ -42,8 +46,8 @@ export default class SocketManager extends React.Component<Props> {
       if (this.context.authenticated) {
         this.emitJoin();
 
-        if (this.props.editing) {
-          this.emitEditing();
+        if (this.props.isEditing) {
+          this.emitPresence();
         }
       }
       this.context.on('authenticated', this.emitJoin);
@@ -54,16 +58,16 @@ export default class SocketManager extends React.Component<Props> {
     if (this.context) {
       this.context.emit('join', {
         documentId: this.props.documentId,
-        isEditing: this.props.editing,
+        isEditing: this.props.isEditing,
       });
     }
   };
 
-  emitEditing = () => {
+  emitPresence = () => {
     if (this.context) {
       this.context.emit('presence', {
         documentId: this.props.documentId,
-        isEditing: this.props.editing,
+        isEditing: this.props.isEditing,
       });
     }
   };

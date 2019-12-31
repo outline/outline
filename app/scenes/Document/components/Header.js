@@ -143,13 +143,13 @@ class Header extends React.Component<Props> {
           </Title>
         )}
         <Wrapper align="center" justify="flex-end">
-          {!isDraft && <Collaborators document={document} />}
           {isSaving &&
             !isPublishing && (
               <Action>
                 <Status>Saving…</Status>
               </Action>
             )}
+          <Collaborators document={document} />
           {!isDraft &&
             !isEditing &&
             canShareDocuments && (

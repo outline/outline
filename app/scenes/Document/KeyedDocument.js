@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { inject } from 'mobx-react';
-import Document from '.';
+import DataLoader from './components/DataLoader';
 
 class KeyedDocument extends React.Component<*> {
   componentWillUnmount() {
@@ -9,7 +9,9 @@ class KeyedDocument extends React.Component<*> {
   }
 
   render() {
-    return <Document key={this.props.location.pathname} {...this.props} />;
+    return (
+      <DataLoader key={this.props.match.params.documentSlug} {...this.props} />
+    );
   }
 }
 
