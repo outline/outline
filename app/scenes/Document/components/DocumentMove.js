@@ -21,13 +21,13 @@ import CollectionsStore, { type DocumentPath } from 'stores/CollectionsStore';
 
 const MAX_RESULTS = 8;
 
-type Props = {
+type Props = {|
   document: Document,
   documents: DocumentsStore,
   collections: CollectionsStore,
   ui: UiStore,
   onRequestClose: () => void,
-};
+|};
 
 @observer
 class DocumentMove extends React.Component<Props> {

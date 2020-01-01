@@ -149,7 +149,10 @@ class Header extends React.Component<Props> {
                 <Status>Saving…</Status>
               </Action>
             )}
-          <Collaborators document={document} />
+          <Collaborators
+            document={document}
+            currentUserId={auth.user ? auth.user.id : undefined}
+          />
           {!isDraft &&
             !isEditing &&
             canShareDocuments && (

@@ -22,6 +22,7 @@ type Props = {
   views: ViewsStore,
   presence: DocumentPresenceStore,
   document: Document,
+  currentUserId: string,
 };
 
 @observer
@@ -29,6 +30,7 @@ class AvatarWithPresence extends React.Component<{
   user: User,
   isPresent: boolean,
   isEditing: boolean,
+  isCurrentUser: boolean,
   lastViewedAt: string,
 }> {
   @observable isOpen: boolean = false;
@@ -41,14 +43,20 @@ class AvatarWithPresence extends React.Component<{
     this.isOpen = false;
   };
   render() {
-    const { user, lastViewedAt, isPresent, isEditing } = this.props;
+    const {
+      user,
+      lastViewedAt,
+      isPresent,
+      isEditing,
+      isCurrentUser,
+    } = this.props;
 
     return (
       <React.Fragment>
         <Tooltip
           tooltip={
             <Centered>
-              <strong>{user.name}</strong>
+              <strong>{user.name}</strong> {isCurrentUser && '(You)'}
               <br />
               {isPresent
                 ? isEditing ? 'currently editing' : 'currently viewing'
@@ -83,7 +91,7 @@ class Collaborators extends React.Component<Props> {
   }
 
   render() {
-    const { document, presence, views } = this.props;
+    const { document, presence, views, currentUserId } = this.props;
     const documentViews = views.inDocument(document.id);
     let documentPresence = presence.get(document.id);
     documentPresence = documentPresence
@@ -119,6 +127,7 @@ class Collaborators extends React.Component<Props> {
               lastViewedAt={lastViewedAt}
               isPresent={isPresent}
               isEditing={isEditing}
+              isCurrentUser={currentUserId === user.id}
             />
           );
         })}

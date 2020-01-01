@@ -25,6 +25,7 @@ import References from './References';
 import Loading from './Loading';
 import Container from './Container';
 import HideSidebar from './HideSidebar';
+import MarkAsViewed from './MarkAsViewed';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingIndicator from 'components/LoadingIndicator';
 import PageTitle from 'components/PageTitle';
@@ -41,7 +42,6 @@ import schema from '../schema';
 let EditorImport;
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
-// const MARK_AS_VIEWED_AFTER = 3000;
 const DISCARD_CHANGES = `
 You have unsaved changes.
 Are you sure you want to discard them?
@@ -66,7 +66,6 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  viewTimeout: TimeoutID;
   getEditorText: () => string;
 
   @observable editorComponent = EditorImport;
@@ -80,10 +79,6 @@ class DocumentScene extends React.Component<Props> {
   constructor(props) {
     super();
     this.loadEditor();
-  }
-
-  componentWillUnmount() {
-    clearTimeout(this.viewTimeout);
   }
 
   @keydown('m')
@@ -323,9 +318,12 @@ class DocumentScene extends React.Component<Props> {
               {readOnly &&
                 !isShare &&
                 !revision && (
-                  <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                    <References document={document} />
-                  </ReferencesWrapper>
+                  <React.Fragment>
+                    <MarkAsViewed document={document} />
+                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                      <References document={document} />
+                    </ReferencesWrapper>
+                  </React.Fragment>
                 )}
             </MaxWidth>
           </Container>

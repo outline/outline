@@ -17,7 +17,7 @@ import PoliciesStore from 'stores/PoliciesStore';
 import RevisionsStore from 'stores/RevisionsStore';
 import UiStore from 'stores/UiStore';
 
-type Props = {
+type Props = {|
   match: Object,
   location: Location,
   documents: DocumentsStore,
@@ -25,7 +25,7 @@ type Props = {
   revisions: RevisionsStore,
   ui: UiStore,
   history: RouterHistory,
-};
+|};
 
 @observer
 class DataLoader extends React.Component<Props> {
@@ -107,9 +107,6 @@ class DataLoader extends React.Component<Props> {
         return this.goToDocumentCanonical();
       }
 
-      // if (!this.isEditing && document.publishedAt) {
-      //   this.viewTimeout = setTimeout(document.view, MARK_AS_VIEWED_AFTER);
-      // }
       const isMove = props.location.pathname.match(/move$/);
       const canRedirect = !this.revision && !isMove && !shareId;
       if (canRedirect) {
