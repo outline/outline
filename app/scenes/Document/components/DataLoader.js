@@ -41,6 +41,9 @@ class DataLoader extends React.Component<Props> {
   }
 
   componentDidUpdate(prevProps: Props) {
+    // If we have the document in the store, but not it's policy then we need to
+    // reload from the server otherwise the UI will not know which authorizations
+    // the user has
     if (this.document) {
       const policy = this.props.policies.get(this.document.id);
 
@@ -49,48 +52,49 @@ class DataLoader extends React.Component<Props> {
       }
     }
 
+    // Also need to load the revision if it changes
     if (
       prevProps.match.params.revisionId !== this.props.match.params.revisionId
     ) {
-      this.loadDocument(this.props);
+      this.loadRevision();
     }
   }
 
   goToDocumentCanonical = () => {
-    if (this.document) this.props.history.push(this.document.url);
+    if (this.document) {
+      this.props.history.push(this.document.url);
+    }
   };
 
   get isEditing() {
-    const document = this.document;
-
-    return !!(
-      this.props.match.path === matchDocumentEdit ||
-      (document && !document.id)
-    );
+    return this.props.match.path === matchDocumentEdit;
   }
 
   onSearchLink = async (term: string) => {
     const results = await this.props.documents.search(term);
+
     return results.map((result, index) => ({
       title: result.document.title,
       url: result.document.url,
     }));
   };
 
+  loadRevision = async () => {
+    const { documentSlug, revisionId } = this.props.match.params;
+
+    this.revision = await this.props.revisions.fetch(documentSlug, {
+      revisionId,
+    });
+  };
+
   loadDocument = async props => {
-    const { shareId, revisionId } = props.match.params;
+    const { shareId, documentSlug, revisionId } = props.match.params;
 
     try {
-      this.document = await props.documents.fetch(
-        props.match.params.documentSlug,
-        { shareId }
-      );
+      this.document = await props.documents.fetch(documentSlug, { shareId });
 
       if (revisionId) {
-        this.revision = await props.revisions.fetch(
-          props.match.params.documentSlug,
-          { revisionId }
-        );
+        await this.loadRevision();
       } else {
         this.revision = undefined;
       }
@@ -109,7 +113,7 @@ class DataLoader extends React.Component<Props> {
       }
 
       const isMove = props.location.pathname.match(/move$/);
-      const canRedirect = !this.revision && !isMove && !shareId;
+      const canRedirect = !revisionId && !isMove && !shareId;
       if (canRedirect) {
         const canonicalUrl = updateDocumentUrl(props.match.url, document.url);
         if (props.location.pathname !== canonicalUrl) {
@@ -120,7 +124,7 @@ class DataLoader extends React.Component<Props> {
   };
 
   render() {
-    const { location, policies } = this.props;
+    const { location, policies, ui } = this.props;
 
     if (this.error) {
       return navigator.onLine ? <Error404 /> : <ErrorOffline />;
@@ -133,7 +137,7 @@ class DataLoader extends React.Component<Props> {
       return (
         <React.Fragment>
           <Loading location={location} />
-          {this.isEditing && <HideSidebar ui={this.props.ui} />}
+          {this.isEditing && <HideSidebar ui={ui} />}
         </React.Fragment>
       );
     }
@@ -143,7 +147,7 @@ class DataLoader extends React.Component<Props> {
 
     return (
       <Socket documentId={document.id} isEditing={this.isEditing}>
-        {this.isEditing && <HideSidebar ui={this.props.ui} />}
+        {this.isEditing && <HideSidebar ui={ui} />}
         <DocumentComponent
           key={key}
           document={document}
