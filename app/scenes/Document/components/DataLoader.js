@@ -10,6 +10,7 @@ import Revision from 'models/Revision';
 import Document from 'models/Document';
 import Socket from './Socket';
 import Loading from './Loading';
+import HideSidebar from './HideSidebar';
 import Error404 from 'scenes/Error404';
 import ErrorOffline from 'scenes/ErrorOffline';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -128,13 +129,21 @@ class DataLoader extends React.Component<Props> {
     const document = this.document;
     const revision = this.revision;
 
-    if (!document) return <Loading location={location} />;
+    if (!document) {
+      return (
+        <React.Fragment>
+          <Loading location={location} />
+          {this.isEditing && <HideSidebar ui={this.props.ui} />}
+        </React.Fragment>
+      );
+    }
 
     const abilities = policies.abilities(document.id);
     const key = this.isEditing ? 'editing' : 'read-only';
 
     return (
       <Socket documentId={document.id} isEditing={this.isEditing}>
+        {this.isEditing && <HideSidebar ui={this.props.ui} />}
         <DocumentComponent
           key={key}
           document={document}

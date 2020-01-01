@@ -24,7 +24,6 @@ import KeyboardShortcuts from './KeyboardShortcuts';
 import References from './References';
 import Loading from './Loading';
 import Container from './Container';
-import HideSidebar from './HideSidebar';
 import MarkAsViewed from './MarkAsViewed';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -248,7 +247,6 @@ class DocumentScene extends React.Component<Props> {
           <Container justify="center" column auto>
             {!readOnly && (
               <React.Fragment>
-                <HideSidebar ui={this.props.ui} />
                 <Prompt
                   when={this.isDirty && !this.isUploading}
                   message={DISCARD_CHANGES}
