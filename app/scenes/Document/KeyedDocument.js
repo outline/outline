@@ -9,9 +9,10 @@ class KeyedDocument extends React.Component<*> {
   }
 
   render() {
-    return (
-      <DataLoader key={this.props.match.params.documentSlug} {...this.props} />
-    );
+    const { match } = this.props;
+    const urlId = match.params.documentSlug.split('-')[1];
+
+    return <DataLoader key={urlId} {...this.props} />;
   }
 }
 
