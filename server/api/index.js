@@ -16,6 +16,7 @@ import team from './team';
 import integrations from './integrations';
 import notificationSettings from './notificationSettings';
 import utils from './utils';
+import images from './images';
 
 import { NotFoundError } from '../errors';
 import errorHandling from '../middlewares/errorHandling';
@@ -48,6 +49,7 @@ router.use('/', shares.routes());
 router.use('/', team.routes());
 router.use('/', integrations.routes());
 router.use('/', notificationSettings.routes());
+router.use('/', images.routes());
 router.use('/', utils.routes());
 router.post('*', ctx => {
   ctx.throw(new NotFoundError('Endpoint not found'));

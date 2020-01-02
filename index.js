@@ -28,6 +28,23 @@ if (process.env.AWS_ACCESS_KEY_ID) {
   });
 }
 
+if (process.env.ENABLE_PRIVATE_CONTENT === 'true') {
+  [
+    'AWS_ACCESS_KEY_ID',
+    'AWS_REGION',
+    'AWS_SECRET_ACCESS_KEY',
+    'AWS_S3_UPLOAD_BUCKET_URL',
+    'AWS_S3_UPLOAD_BUCKET_NAME',
+    'AWS_S3_UPLOAD_MAX_SIZE',
+  ].forEach(key => {
+    if (!process.env[key]) {
+      console.error(`The ${key} env variable must be set when serving private content from AWS`);
+      // $FlowFixMe
+      process.exit(1);
+    }
+  });
+}
+
 if (process.env.SLACK_KEY) {
   ['SLACK_SECRET', 'SLACK_VERIFICATION_TOKEN', 'SLACK_APP_ID'].forEach(key => {
     if (!process.env[key]) {

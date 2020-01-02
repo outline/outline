@@ -8,6 +8,8 @@ import {
   getSignature,
   publicS3Endpoint,
   makeCredential,
+  setS3ObjectAcl,
+  getUrlForImageProxy,
 } from '../utils/s3';
 import { ValidationError } from '../errors';
 import { Event, User, Team } from '../models';
@@ -87,7 +89,7 @@ router.post('users.s3Upload', auth(), async ctx => {
   const longDate = format(new Date(), 'YYYYMMDDTHHmmss\\Z');
   const policy = makePolicy(credential, longDate);
   const endpoint = publicS3Endpoint();
-  const url = `${endpoint}/${key}`;
+  const url = process.env.ENABLE_PRIVATE_CONTENT === 'true' ? getUrlForImageProxy(key) : `${endpoint}/${key}`;
 
   await Event.create({
     name: 'user.s3Upload',
@@ -109,7 +111,7 @@ router.post('users.s3Upload', auth(), async ctx => {
       form: {
         'Cache-Control': 'max-age=31557600',
         'Content-Type': kind,
-        acl: 'public-read',
+        acl: setS3ObjectAcl(),
         key,
         policy,
         'x-amz-algorithm': 'AWS4-HMAC-SHA256',

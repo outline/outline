@@ -11,6 +11,7 @@ const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
+const ENABLE_PRIVATE_CONTENT = process.env.ENABLE_PRIVATE_CONTENT === 'true';
 
 const hmac = (key: string, message: string, encoding: any) => {
   return crypto
@@ -36,7 +37,7 @@ export const makePolicy = (credential: string, longDate: string) => {
     conditions: [
       { bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME },
       ['starts-with', '$key', ''],
-      { acl: 'public-read' },
+      { acl: setS3ObjectAcl() },
       ['content-length-range', 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
       ['starts-with', '$Content-Type', 'image'],
       ['starts-with', '$Cache-Control', ''],
@@ -92,7 +93,7 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
     const buffer = await res.buffer();
     await s3
       .putObject({
-        ACL: 'public-read',
+        ACL: setS3ObjectAcl(),
         Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
         Key: key,
         ContentType: res.headers['content-type'],
@@ -103,7 +104,7 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
       .promise();
 
     const endpoint = publicS3Endpoint(true);
-    return `${endpoint}/${key}`;
+    return ENABLE_PRIVATE_CONTENT ? getUrlForImageProxy(key) : `${endpoint}/${key}`;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
       bugsnag.notify(err);
@@ -111,4 +112,24 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
       throw err;
     }
   }
+};
+
+export const setS3ObjectAcl = () => (ENABLE_PRIVATE_CONTENT ? 'private' : 'public-read');
+
+export const getUrlForImageProxy = (key: string) => (`/api/images.info?key=${key}`);
+
+export const getSignedImageUrl = async (key: string) => {
+  const s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  });
+  invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
+
+  const params = {
+    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Key: key,
+    Expires: 900
+  };
+
+  return s3.getSignedUrl('getObject', params);
 };
