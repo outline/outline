@@ -10,6 +10,11 @@ class KeyedDocument extends React.Component<*> {
 
   render() {
     const { match } = this.props;
+
+    // the urlId portion of the url does not include the slugified title
+    // we only want to force a re-mount of the document component when the
+    // document changes, not when the title does so only this portion is used
+    // for the key.
     const urlId = match.params.documentSlug.split('-')[1];
 
     return <DataLoader key={urlId} {...this.props} />;

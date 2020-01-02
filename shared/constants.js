@@ -1,3 +1,3 @@
 // @flow
 
-export const EDITING_PING_INTERVAL = 5000;
+export const USER_PRESENCE_INTERVAL = 5000;

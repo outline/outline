@@ -2,7 +2,7 @@
 import subMilliseconds from 'date-fns/sub_milliseconds';
 import { Op, DataTypes, sequelize } from '../sequelize';
 import { User } from '../models';
-import { EDITING_PING_INTERVAL } from '../../shared/constants';
+import { USER_PRESENCE_INTERVAL } from '../../shared/constants';
 
 const View = sequelize.define(
   'view',
@@ -57,7 +57,7 @@ View.findRecentlyEditingByDocument = async documentId => {
     where: {
       documentId,
       lastEditingAt: {
-        [Op.gt]: subMilliseconds(new Date(), EDITING_PING_INTERVAL * 2),
+        [Op.gt]: subMilliseconds(new Date(), USER_PRESENCE_INTERVAL * 2),
       },
     },
     order: [['lastEditingAt', 'DESC']],

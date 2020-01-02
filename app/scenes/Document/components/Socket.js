@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { SocketContext } from 'components/SocketProvider';
-import { EDITING_PING_INTERVAL } from 'shared/constants';
+import { USER_PRESENCE_INTERVAL } from 'shared/constants';
 
 type Props = {
   children?: React.Node,
@@ -19,7 +19,7 @@ export default class Socket extends React.Component<Props> {
       if (this.props.isEditing) {
         this.emitPresence();
       }
-    }, EDITING_PING_INTERVAL);
+    }, USER_PRESENCE_INTERVAL);
     this.setupOnce();
   }
 

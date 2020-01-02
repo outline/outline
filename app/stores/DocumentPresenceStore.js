@@ -1,5 +1,6 @@
 // @flow
 import { observable, action } from 'mobx';
+import { USER_PRESENCE_INTERVAL } from 'shared/constants';
 
 type DocumentPresence = Map<string, { isEditing: boolean, userId: string }>;
 
@@ -7,6 +8,8 @@ export default class PresenceStore {
   @observable data: Map<string, DocumentPresence> = new Map();
   timeouts: Map<string, TimeoutID> = new Map();
 
+  // called to setup when we get the initial state from document.presence
+  // websocket message. overrides any existing state
   @action
   init(documentId: string, userIds: string[], editingIds: string[]) {
     this.data.set(documentId, new Map());
@@ -15,8 +18,18 @@ export default class PresenceStore {
     );
   }
 
+  // called when a user joins the room – user.join websocket message.
   join(documentId: string, userId: string, isEditing: boolean) {
     this.update(documentId, userId, isEditing);
+  }
+
+  // called when a user leave the room – user.leave websocket message.
+  @action
+  leave(documentId: string, userId: string) {
+    const existing = this.data.get(documentId);
+    if (existing) {
+      existing.delete(userId);
+    }
   }
 
   @action
@@ -26,14 +39,12 @@ export default class PresenceStore {
     this.data.set(documentId, existing);
   }
 
-  @action
-  leave(documentId: string, userId: string) {
-    const existing = this.data.get(documentId);
-    if (existing) {
-      existing.delete(userId);
-    }
-  }
-
+  // called when a user presence message is received – user.presence websocket
+  // message.
+  // While in edit mode a message is sent every USER_PRESENCE_INTERVAL, if
+  // the other clients don't receive within USER_PRESENCE_INTERVAL*2 then a
+  // timeout is triggered causing the users presence to default back to not
+  // editing state as a safety measure.
   @action
   touch(documentId: string, userId: string, isEditing: boolean) {
     const id = `${documentId}-${userId}`;
@@ -48,7 +59,7 @@ export default class PresenceStore {
     if (isEditing) {
       timeout = setTimeout(() => {
         this.update(documentId, userId, false);
-      }, 10 * 1000);
+      }, USER_PRESENCE_INTERVAL * 2);
       this.timeouts.set(id, timeout);
     }
   }
