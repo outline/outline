@@ -60,6 +60,12 @@ class SocketProvider extends React.Component<Props> {
       });
     });
 
+    this.socket.on('disconnect', () => {
+      // when the socket is disconnected we need to clear all presence state as
+      // it's no longer reliable.
+      presence.clear();
+    });
+
     this.socket.on('authenticated', () => {
       this.socket.authenticated = true;
     });
