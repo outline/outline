@@ -89,7 +89,10 @@ router.post('users.s3Upload', auth(), async ctx => {
   const longDate = format(new Date(), 'YYYYMMDDTHHmmss\\Z');
   const policy = makePolicy(credential, longDate);
   const endpoint = publicS3Endpoint();
-  const url = process.env.ENABLE_PRIVATE_CONTENT === 'true' ? getUrlForImageProxy(key) : `${endpoint}/${key}`;
+  const url =
+    process.env.ENABLE_PRIVATE_CONTENT === 'true'
+      ? getUrlForImageProxy(key)
+      : `${endpoint}/${key}`;
 
   await Event.create({
     name: 'user.s3Upload',

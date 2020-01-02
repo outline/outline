@@ -104,7 +104,9 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
       .promise();
 
     const endpoint = publicS3Endpoint(true);
-    return ENABLE_PRIVATE_CONTENT ? getUrlForImageProxy(key) : `${endpoint}/${key}`;
+    return ENABLE_PRIVATE_CONTENT
+      ? getUrlForImageProxy(key)
+      : `${endpoint}/${key}`;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
       bugsnag.notify(err);
@@ -114,9 +116,11 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
   }
 };
 
-export const setS3ObjectAcl = () => (ENABLE_PRIVATE_CONTENT ? 'private' : 'public-read');
+export const setS3ObjectAcl = () =>
+  ENABLE_PRIVATE_CONTENT ? 'private' : 'public-read';
 
-export const getUrlForImageProxy = (key: string) => (`/api/images.info?key=${key}`);
+export const getUrlForImageProxy = (key: string) =>
+  `/api/images.info?key=${key}`;
 
 export const getSignedImageUrl = async (key: string) => {
   const s3 = new AWS.S3({
@@ -128,7 +132,7 @@ export const getSignedImageUrl = async (key: string) => {
   const params = {
     Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
-    Expires: 900
+    Expires: 900,
   };
 
   return s3.getSignedUrl('getObject', params);
@@ -147,7 +151,7 @@ export const getImageByKey = async (key: string) => {
 
   try {
     const data = await s3.getObject(params).promise();
-    return data.Body
+    return data.Body;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
       bugsnag.notify(err);

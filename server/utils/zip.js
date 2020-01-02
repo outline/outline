@@ -7,8 +7,8 @@ import { Collection, Document } from '../models';
 import { getImageByKey } from './s3';
 
 const ENABLE_PRIVATE_CONTENT = process.env.ENABLE_PRIVATE_CONTENT === 'true';
-const s3KeyRegex = /!\[.*\]\(\/api\/images\.info\?key\=(?<key>.*)\)/gi;
-const imgageApiRegex = /(?<=!\[.*\]\()(\/api\/images\.info\?key\=)/gi;
+const s3KeyRegex = /!\[.*\]\(\/api\/images\.info\?key=(?<key>.*)\)/gi;
+const imgageApiRegex = /(?<=!\[.*\]\()(\/api\/images\.info\?key=)/gi;
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
@@ -16,7 +16,9 @@ async function addToArchive(zip, documents) {
     let text = unescape(document.text);
 
     if (ENABLE_PRIVATE_CONTENT) {
-      const imageKeys = [...text.matchAll(s3KeyRegex)].map(match => match.groups && match.groups.key);
+      const imageKeys = [...text.matchAll(s3KeyRegex)].map(
+        match => match.groups && match.groups.key
+      );
       await addImagesToArchive(zip, imageKeys);
       text = text.replace(imgageApiRegex, '');
     }
@@ -33,8 +35,8 @@ async function addToArchive(zip, documents) {
 async function addImagesToArchive(zip, imageKeys) {
   for (const key of imageKeys) {
     if (key) {
-      const img = await getImageByKey(decodeURI(key))
-      zip.file(decodeURI(key), img, { createFolders: true })
+      const img = await getImageByKey(decodeURI(key));
+      zip.file(decodeURI(key), img, { createFolders: true });
     }
   }
 }
