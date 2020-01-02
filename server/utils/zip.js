@@ -4,16 +4,37 @@ import JSZip from 'jszip';
 import tmp from 'tmp';
 import unescape from '../../shared/utils/unescape';
 import { Collection, Document } from '../models';
+import { getImageByKey } from './s3';
+
+const ENABLE_PRIVATE_CONTENT = process.env.ENABLE_PRIVATE_CONTENT === 'true';
+const s3KeyRegex = /!\[.*\]\(\/api\/images\.info\?key\=(?<key>.*)\)/gi;
+const imgageApiRegex = /(?<=!\[.*\]\()(\/api\/images\.info\?key\=)/gi;
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
     const document = await Document.findByPk(doc.id);
+    let text = unescape(document.text);
 
-    zip.file(`${document.title}.md`, unescape(document.text));
+    if (ENABLE_PRIVATE_CONTENT) {
+      const imageKeys = [...text.matchAll(s3KeyRegex)].map(match => match.groups && match.groups.key);
+      await addImagesToArchive(zip, imageKeys);
+      text = text.replace(imgageApiRegex, '');
+    }
+
+    zip.file(`${document.title}.md`, text);
 
     if (doc.children && doc.children.length) {
       const folder = zip.folder(document.title);
       await addToArchive(folder, doc.children);
+    }
+  }
+}
+
+async function addImagesToArchive(zip, imageKeys) {
+  for (const key of imageKeys) {
+    if (key) {
+      const img = await getImageByKey(decodeURI(key))
+      zip.file(decodeURI(key), img, { createFolders: true })
     }
   }
 }

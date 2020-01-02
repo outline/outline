@@ -133,3 +133,27 @@ export const getSignedImageUrl = async (key: string) => {
 
   return s3.getSignedUrl('getObject', params);
 };
+
+export const getImageByKey = async (key: string) => {
+  const s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  });
+
+  const params = {
+    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Key: key,
+  };
+
+  try {
+    const data = await s3.getObject(params).promise();
+    return data.Body
+  } catch (err) {
+    if (process.env.NODE_ENV === 'production') {
+      bugsnag.notify(err);
+    } else {
+      // TODO: do something useful here perhaps?
+      throw err;
+    }
+  }
+};
