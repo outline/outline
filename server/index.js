@@ -90,15 +90,17 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
             );
 
             socket.join(room, () => {
-              // let everyone else in the room know they joined
+              // let everyone else in the room know that a new user joined
               io.to(room).emit('user.join', {
                 userId: user.id,
                 documentId: event.documentId,
                 isEditing: event.isEditing,
               });
 
-              // let this member know who else is in this room
+              // let this user know who else is already present in the room
               io.in(room).clients(async (err, sockets) => {
+                if (err) throw err;
+
                 // because a single user can have multiple socket connections we
                 // need to make sure that only unique userIds are returned. A Map
                 // makes this easy.

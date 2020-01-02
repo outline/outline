@@ -51,26 +51,28 @@ export default class Socket extends React.Component<Props> {
           this.emitPresence();
         }
       }
-      this.context.on('authenticated', this.emitJoin);
+      this.context.on('authenticated', () => {
+        this.emitJoin();
+      });
     }
   };
 
   emitJoin = () => {
-    if (this.context) {
-      this.context.emit('join', {
-        documentId: this.props.documentId,
-        isEditing: this.props.isEditing,
-      });
-    }
+    if (!this.context) return;
+
+    this.context.emit('join', {
+      documentId: this.props.documentId,
+      isEditing: this.props.isEditing,
+    });
   };
 
   emitPresence = () => {
-    if (this.context) {
-      this.context.emit('presence', {
-        documentId: this.props.documentId,
-        isEditing: this.props.isEditing,
-      });
-    }
+    if (!this.context) return;
+
+    this.context.emit('presence', {
+      documentId: this.props.documentId,
+      isEditing: this.props.isEditing,
+    });
   };
 
   render() {
