@@ -136,7 +136,7 @@
     "react-markdown": "^3.0.2",
     "react-modal": "^3.1.2",
     "react-portal": "^4.0.0",
-    "react-router-dom": "^4.3.1",
+    "react-router-dom": "^5.1.2",
     "react-waypoint": "^9.0.2",
     "redis": "^2.6.2",
     "rich-markdown-editor": "^9.11.1",
