@@ -137,6 +137,7 @@ const Wrapper = styled(Flex)`
   border-left: 1px solid ${props => props.theme.divider};
   overflow: scroll;
   overscroll-behavior: none;
+  z-index: 1;
 `;
 
 export default inject('documents', 'revisions')(DocumentHistory);

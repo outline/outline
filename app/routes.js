@@ -27,7 +27,6 @@ import Error404 from 'scenes/Error404';
 import Layout from 'components/Layout';
 import SocketProvider from 'components/SocketProvider';
 import Authenticated from 'components/Authenticated';
-import RouteSidebarHidden from 'components/RouteSidebarHidden';
 import { matchDocumentSlug as slug } from 'utils/routeHelpers';
 
 const NotFound = () => <Search notFound />;
@@ -75,7 +74,7 @@ export default function Routes() {
                 component={Zapier}
               />
               <Route exact path="/settings/export" component={Export} />
-              <RouteSidebarHidden
+              <Route
                 exact
                 path="/collections/:id/new"
                 component={DocumentNew}
@@ -92,7 +91,7 @@ export default function Routes() {
                 path={`/doc/${slug}/history/:revisionId?`}
                 component={KeyedDocument}
               />
-              <RouteSidebarHidden
+              <Route
                 exact
                 path={`/doc/${slug}/edit`}
                 component={KeyedDocument}

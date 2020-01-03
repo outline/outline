@@ -143,13 +143,16 @@ class Header extends React.Component<Props> {
           </Title>
         )}
         <Wrapper align="center" justify="flex-end">
-          {!isDraft && !isEditing && <Collaborators document={document} />}
           {isSaving &&
             !isPublishing && (
               <Action>
                 <Status>Saving…</Status>
               </Action>
             )}
+          <Collaborators
+            document={document}
+            currentUserId={auth.user ? auth.user.id : undefined}
+          />
           {!isDraft &&
             !isEditing &&
             canShareDocuments && (

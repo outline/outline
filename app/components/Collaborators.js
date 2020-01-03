@@ -2,119 +2,136 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { filter } from 'lodash';
+import { sortBy } from 'lodash';
+import styled, { withTheme } from 'styled-components';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
-import styled from 'styled-components';
+
 import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';
 import Tooltip from 'components/Tooltip';
 import Document from 'models/Document';
+import User from 'models/User';
 import UserProfile from 'scenes/UserProfile';
 import ViewsStore from 'stores/ViewsStore';
+import DocumentPresenceStore from 'stores/DocumentPresenceStore';
+import { EditIcon } from 'outline-icons';
 
 const MAX_DISPLAY = 6;
 
 type Props = {
   views: ViewsStore,
+  presence: DocumentPresenceStore,
   document: Document,
+  currentUserId: string,
 };
 
 @observer
-class Collaborators extends React.Component<Props> {
-  @observable openProfileId: ?string;
+class AvatarWithPresence extends React.Component<{
+  user: User,
+  isPresent: boolean,
+  isEditing: boolean,
+  isCurrentUser: boolean,
+  lastViewedAt: string,
+}> {
+  @observable isOpen: boolean = false;
 
+  handleOpenProfile = () => {
+    this.isOpen = true;
+  };
+
+  handleCloseProfile = () => {
+    this.isOpen = false;
+  };
+
+  render() {
+    const {
+      user,
+      lastViewedAt,
+      isPresent,
+      isEditing,
+      isCurrentUser,
+    } = this.props;
+
+    return (
+      <React.Fragment>
+        <Tooltip
+          tooltip={
+            <Centered>
+              <strong>{user.name}</strong> {isCurrentUser && '(You)'}
+              <br />
+              {isPresent
+                ? isEditing ? 'currently editing' : 'currently viewing'
+                : `viewed ${distanceInWordsToNow(new Date(lastViewedAt))} ago`}
+            </Centered>
+          }
+          placement="bottom"
+        >
+          <AvatarWrapper isPresent={isPresent}>
+            <Avatar
+              src={user.avatarUrl}
+              onClick={this.handleOpenProfile}
+              size={32}
+              icon={isEditing ? <EditIcon size={16} color="#FFF" /> : undefined}
+            />
+          </AvatarWrapper>
+        </Tooltip>
+        <UserProfile
+          user={user}
+          isOpen={this.isOpen}
+          onRequestClose={this.handleCloseProfile}
+        />
+      </React.Fragment>
+    );
+  }
+}
+
+@observer
+class Collaborators extends React.Component<Props> {
   componentDidMount() {
     this.props.views.fetchPage({ documentId: this.props.document.id });
   }
 
-  handleOpenProfile = (userId: string) => {
-    this.openProfileId = userId;
-  };
-
-  handleCloseProfile = () => {
-    this.openProfileId = undefined;
-  };
-
   render() {
-    const { document, views } = this.props;
+    const { document, presence, views, currentUserId } = this.props;
     const documentViews = views.inDocument(document.id);
-    const { createdAt, updatedAt, updatedBy, collaborators } = document;
-
-    // filter to only show views that haven't collaborated
-    const collaboratorIds = collaborators.map(user => user.id);
-    const viewersNotCollaborators = filter(
-      documentViews,
-      view => !collaboratorIds.includes(view.user.id)
-    );
+    let documentPresence = presence.get(document.id);
+    documentPresence = documentPresence
+      ? Array.from(documentPresence.values())
+      : [];
+    const presentIds = documentPresence.map(p => p.userId);
+    const editingIds = documentPresence
+      .filter(p => p.isEditing)
+      .map(p => p.userId);
 
     // only show the most recent viewers, the rest can overflow
-    const mostRecentViewers = viewersNotCollaborators.slice(
-      0,
-      MAX_DISPLAY - collaborators.length
+    let mostRecentViewers = documentViews.slice(0, MAX_DISPLAY);
+
+    // ensure currently present via websocket are always ordered first
+    mostRecentViewers = sortBy(mostRecentViewers, view =>
+      presentIds.includes(view.user.id)
     );
 
     // if there are too many to display then add a (+X) to the UI
-    const overflow = viewersNotCollaborators.length - mostRecentViewers.length;
+    const overflow = documentViews.length - mostRecentViewers.length;
 
     return (
       <Avatars>
         {overflow > 0 && <More>+{overflow}</More>}
-        {mostRecentViewers.map(({ lastViewedAt, user }) => (
-          <React.Fragment key={user.id}>
-            <Tooltip
-              tooltip={
-                <Centered>
-                  <strong>{user.name}</strong>
-                  <br />
-                  viewed {distanceInWordsToNow(new Date(lastViewedAt))} ago
-                </Centered>
-              }
-              placement="bottom"
-            >
-              <Viewer>
-                <Avatar
-                  src={user.avatarUrl}
-                  onClick={() => this.handleOpenProfile(user.id)}
-                  size={32}
-                />
-              </Viewer>
-            </Tooltip>
-            <UserProfile
+        {mostRecentViewers.map(({ lastViewedAt, user }) => {
+          const isPresent = presentIds.includes(user.id);
+          const isEditing = editingIds.includes(user.id);
+
+          return (
+            <AvatarWithPresence
+              key={user.id}
               user={user}
-              isOpen={this.openProfileId === user.id}
-              onRequestClose={this.handleCloseProfile}
+              lastViewedAt={lastViewedAt}
+              isPresent={isPresent}
+              isEditing={isEditing}
+              isCurrentUser={currentUserId === user.id}
             />
-          </React.Fragment>
-        ))}
-        {collaborators.map(user => (
-          <React.Fragment key={user.id}>
-            <Tooltip
-              tooltip={
-                <Centered>
-                  <strong>{user.name}</strong>
-                  <br />
-                  {createdAt === updatedAt ? 'published' : 'updated'}{' '}
-                  {updatedBy.id === user.id &&
-                    `${distanceInWordsToNow(new Date(updatedAt))} ago`}
-                </Centered>
-              }
-              placement="bottom"
-            >
-              <Collaborator>
-                <Avatar
-                  src={user.avatarUrl}
-                  onClick={() => this.handleOpenProfile(user.id)}
-                  size={32}
-                />
-              </Collaborator>
-            </Tooltip>
-            <UserProfile
-              user={user}
-              isOpen={this.openProfileId === user.id}
-              onRequestClose={this.handleCloseProfile}
-            />
-          </React.Fragment>
-        ))}
+          );
+        })}
       </Avatars>
     );
   }
@@ -124,21 +141,12 @@ const Centered = styled.div`
   text-align: center;
 `;
 
-const Viewer = styled.div`
-  width: 32px;
-  height: 32px;
-  opacity: 0.75;
-  margin-right: -8px;
-
-  &:first-child {
-    margin-right: 0;
-  }
-`;
-
-const Collaborator = styled.div`
+const AvatarWrapper = styled.div`
   width: 32px;
   height: 32px;
   margin-right: -8px;
+  opacity: ${props => (props.isPresent ? 1 : 0.5)};
+  transition: opacity 250ms ease-in-out;
 
   &:first-child {
     margin-right: 0;
@@ -164,4 +172,4 @@ const Avatars = styled(Flex)`
   cursor: pointer;
 `;
 
-export default inject('views')(Collaborators);
+export default inject('views', 'presence')(withTheme(Collaborators));
