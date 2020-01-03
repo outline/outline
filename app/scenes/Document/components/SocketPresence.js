@@ -9,7 +9,7 @@ type Props = {
   isEditing: boolean,
 };
 
-export default class Socket extends React.Component<Props> {
+export default class SocketPresence extends React.Component<Props> {
   static contextType = SocketContext;
   previousContext: any;
   editingInterval: IntervalID;
@@ -46,10 +46,6 @@ export default class Socket extends React.Component<Props> {
 
       if (this.context.authenticated) {
         this.emitJoin();
-
-        if (this.props.isEditing) {
-          this.emitPresence();
-        }
       }
       this.context.on('authenticated', () => {
         this.emitJoin();
