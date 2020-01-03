@@ -51,6 +51,7 @@ class InputRich extends React.Component<Props> {
             <Editor
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
+              grow
               {...rest}
             />
           ) : (
