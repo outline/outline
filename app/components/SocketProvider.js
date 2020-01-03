@@ -52,9 +52,9 @@ class SocketProvider extends React.Component<Props> {
     if (!auth.token) return;
 
     this.socket.on('connect', () => {
-      // immediately  current users token to the websocket backend where it is
-      // verified, if all goes well an 'authenticated' message will be received
-      // in response
+      // immediately send current users token to the websocket backend where it
+      // is verified, if all goes well an 'authenticated' message will be
+      // received in response
       this.socket.emit('authentication', {
         token: auth.token,
       });
@@ -230,7 +230,7 @@ class SocketProvider extends React.Component<Props> {
     // received whenever a new user joins a document room, aka they
     // navigate to / start viewing a document
     this.socket.on('user.join', event => {
-      presence.join(event.documentId, event.userId, event.isEditing);
+      presence.touch(event.documentId, event.userId, event.isEditing);
       views.touch(event.documentId, event.userId);
     });
 

@@ -18,11 +18,6 @@ export default class PresenceStore {
     );
   }
 
-  // called when a user joins the room – user.join websocket message.
-  join(documentId: string, userId: string, isEditing: boolean) {
-    this.update(documentId, userId, isEditing);
-  }
-
   // called when a user leave the room – user.leave websocket message.
   @action
   leave(documentId: string, userId: string) {
@@ -45,13 +40,12 @@ export default class PresenceStore {
   // the other clients don't receive within USER_PRESENCE_INTERVAL*2 then a
   // timeout is triggered causing the users presence to default back to not
   // editing state as a safety measure.
-  @action
   touch(documentId: string, userId: string, isEditing: boolean) {
     const id = `${documentId}-${userId}`;
     let timeout = this.timeouts.get(id);
     if (timeout) {
       clearTimeout(timeout);
-      this.timeouts.delete(userId);
+      this.timeouts.delete(id);
     }
 
     this.update(documentId, userId, isEditing);

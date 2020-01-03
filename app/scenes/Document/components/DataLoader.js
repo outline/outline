@@ -8,7 +8,7 @@ import { matchDocumentEdit, updateDocumentUrl } from 'utils/routeHelpers';
 import DocumentComponent from './Document';
 import Revision from 'models/Revision';
 import Document from 'models/Document';
-import Socket from './Socket';
+import SocketPresence from './SocketPresence';
 import Loading from './Loading';
 import HideSidebar from './HideSidebar';
 import Error404 from 'scenes/Error404';
@@ -34,10 +34,10 @@ class DataLoader extends React.Component<Props> {
   @observable revision: ?Revision;
   @observable error: ?Error;
 
-  constructor(props) {
-    super();
-    this.document = props.documents.getByUrl(props.match.params.documentSlug);
-    this.loadDocument(props);
+  componentDidMount() {
+    const { documents, match } = this.props;
+    this.document = documents.getByUrl(match.params.documentSlug);
+    this.loadDocument();
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -48,7 +48,7 @@ class DataLoader extends React.Component<Props> {
       const policy = this.props.policies.get(this.document.id);
 
       if (!policy) {
-        this.loadDocument(this.props);
+        this.loadDocument();
       }
     }
 
@@ -87,11 +87,13 @@ class DataLoader extends React.Component<Props> {
     });
   };
 
-  loadDocument = async props => {
-    const { shareId, documentSlug, revisionId } = props.match.params;
+  loadDocument = async () => {
+    const { shareId, documentSlug, revisionId } = this.props.match.params;
 
     try {
-      this.document = await props.documents.fetch(documentSlug, { shareId });
+      this.document = await this.props.documents.fetch(documentSlug, {
+        shareId,
+      });
 
       if (revisionId) {
         await this.loadRevision();
@@ -112,12 +114,15 @@ class DataLoader extends React.Component<Props> {
         return this.goToDocumentCanonical();
       }
 
-      const isMove = props.location.pathname.match(/move$/);
+      const isMove = this.props.location.pathname.match(/move$/);
       const canRedirect = !revisionId && !isMove && !shareId;
       if (canRedirect) {
-        const canonicalUrl = updateDocumentUrl(props.match.url, document.url);
-        if (props.location.pathname !== canonicalUrl) {
-          props.history.replace(canonicalUrl);
+        const canonicalUrl = updateDocumentUrl(
+          this.props.match.url,
+          document.url
+        );
+        if (this.props.location.pathname !== canonicalUrl) {
+          this.props.history.replace(canonicalUrl);
         }
       }
     }
@@ -146,7 +151,7 @@ class DataLoader extends React.Component<Props> {
     const key = this.isEditing ? 'editing' : 'read-only';
 
     return (
-      <Socket documentId={document.id} isEditing={this.isEditing}>
+      <SocketPresence documentId={document.id} isEditing={this.isEditing}>
         {this.isEditing && <HideSidebar ui={ui} />}
         <DocumentComponent
           key={key}
@@ -157,7 +162,7 @@ class DataLoader extends React.Component<Props> {
           readOnly={!this.isEditing}
           onSearchLink={this.onSearchLink}
         />
-      </Socket>
+      </SocketPresence>
     );
   }
 }

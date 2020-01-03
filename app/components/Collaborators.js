@@ -42,6 +42,7 @@ class AvatarWithPresence extends React.Component<{
   handleCloseProfile = () => {
     this.isOpen = false;
   };
+
   render() {
     const {
       user,

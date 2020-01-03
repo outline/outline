@@ -15,7 +15,7 @@ export default class ViewsStore extends BaseStore<View> {
     return orderBy(
       filter(this.orderedData, view => view.documentId === documentId),
       'lastViewedAt',
-      'asc'
+      'desc'
     );
   }
 
