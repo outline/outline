@@ -61,12 +61,6 @@ View.findRecentlyEditingByDocument = async documentId => {
       },
     },
     order: [['lastEditingAt', 'DESC']],
-    include: [
-      {
-        model: User,
-        paranoid: false,
-      },
-    ],
   });
 };
 

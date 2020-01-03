@@ -11,6 +11,7 @@ import app from './app';
 import policy from './policies';
 
 const redisHget = promisify(client.hget).bind(client);
+const redisHset = promisify(client.hset).bind(client);
 const server = http.createServer(app.callback());
 let io;
 
@@ -35,7 +36,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
 
         // store the mapping between socket id and user id in redis
         // so that it is accessible across multiple server nodes
-        client.hset(socket.id, 'userId', user.id);
+        await redisHset(socket.id, 'userId', user.id);
 
         return callback(null, true);
       } catch (err) {
