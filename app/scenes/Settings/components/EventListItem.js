@@ -14,6 +14,18 @@ type Props = {
 
 const description = event => {
   switch (event.name) {
+    case 'api_keys.create':
+      return (
+        <React.Fragment>
+          Created the API token <strong>{event.data.name}</strong>
+        </React.Fragment>
+      );
+    case 'api_keys.delete':
+      return (
+        <React.Fragment>
+          Revoked the API token <strong>{event.data.name}</strong>
+        </React.Fragment>
+      );
     case 'teams.create':
       return 'Created the team';
     case 'shares.create':

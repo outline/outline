@@ -4,7 +4,7 @@ import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentApiKey } from '../presenters';
-import { ApiKey } from '../models';
+import { ApiKey, Event } from '../models';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -20,6 +20,15 @@ router.post('apiKeys.create', auth(), async ctx => {
   const key = await ApiKey.create({
     name,
     userId: user.id,
+  });
+
+  await Event.create({
+    name: 'api_keys.create',
+    modelId: key.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: { name },
+    ip: ctx.request.ip,
   });
 
   ctx.body = {
@@ -53,6 +62,15 @@ router.post('apiKeys.delete', auth(), async ctx => {
   authorize(user, 'delete', key);
 
   await key.destroy();
+
+  await Event.create({
+    name: 'api_keys.delete',
+    modelId: key.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: { name: key.name },
+    ip: ctx.request.ip,
+  });
 
   ctx.body = {
     success: true,

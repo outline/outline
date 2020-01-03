@@ -62,6 +62,8 @@ Event.ACTIVITY_EVENTS = [
 ];
 
 Event.AUDIT_EVENTS = [
+  'api_keys.create',
+  'api_keys.delete',
   'users.create',
   'users.promote',
   'users.demote',
