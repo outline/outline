@@ -89,10 +89,7 @@ router.post('users.s3Upload', auth(), async ctx => {
   const policy = makePolicy(credential, longDate);
   const endpoint = publicS3Endpoint();
   const acl = process.env.AWS_S3_ACL || 'private';
-  const url =
-    acl === 'private'
-      ? proxyS3Url(key)
-      : `${endpoint}/${key}`;
+  const url = acl === 'private' ? proxyS3Url(key) : `${endpoint}/${key}`;
 
   await Event.create({
     name: 'user.s3Upload',

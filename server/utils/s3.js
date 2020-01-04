@@ -105,9 +105,7 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
       .promise();
 
     const endpoint = publicS3Endpoint(true);
-    return AWS_S3_ACL === 'private'
-      ? proxyS3Url(key)
-      : `${endpoint}/${key}`;
+    return AWS_S3_ACL === 'private' ? proxyS3Url(key) : `${endpoint}/${key}`;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
       bugsnag.notify(err);
@@ -117,8 +115,7 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
   }
 };
 
-export const proxyS3Url = (key: string) =>
-  `/api/images.info?key=${key}`;
+export const proxyS3Url = (key: string) => `/api/images.info?key=${key}`;
 
 export const getSignedImageUrl = async (key: string) => {
   invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');

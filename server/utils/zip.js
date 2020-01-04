@@ -20,7 +20,7 @@ async function addToArchive(zip, documents) {
           const key = match.slice(21);
           await addImageToArchive(zip, decodeURI(key));
         }
-        text = text.replace(proxyS3UrlRegex, (match) => match.slice(21));
+        text = text.replace(proxyS3UrlRegex, match => match.slice(21));
       }
     }
 
