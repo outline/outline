@@ -11,7 +11,14 @@ const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
-const ENABLE_PRIVATE_CONTENT = process.env.ENABLE_PRIVATE_CONTENT === 'true';
+const AWS_S3_ACL = process.env.AWS_S3_ACL || 'private';
+
+const s3 = new AWS.S3({
+  s3ForcePathStyle: true,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
+});
 
 const hmac = (key: string, message: string, encoding: any) => {
   return crypto
@@ -37,7 +44,7 @@ export const makePolicy = (credential: string, longDate: string) => {
     conditions: [
       { bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME },
       ['starts-with', '$key', ''],
-      { acl: setS3ObjectAcl() },
+      { acl: AWS_S3_ACL },
       ['content-length-range', 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
       ['starts-with', '$Content-Type', 'image'],
       ['starts-with', '$Cache-Control', ''],
@@ -79,12 +86,6 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
 };
 
 export const uploadToS3FromUrl = async (url: string, key: string) => {
-  const s3 = new AWS.S3({
-    s3ForcePathStyle: true,
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
-  });
   invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
 
   try {
@@ -93,7 +94,7 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
     const buffer = await res.buffer();
     await s3
       .putObject({
-        ACL: setS3ObjectAcl(),
+        ACL: AWS_S3_ACL,
         Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
         Key: key,
         ContentType: res.headers['content-type'],
@@ -104,8 +105,8 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
       .promise();
 
     const endpoint = publicS3Endpoint(true);
-    return ENABLE_PRIVATE_CONTENT
-      ? getUrlForImageProxy(key)
+    return AWS_S3_ACL === 'private'
+      ? proxyS3Url(key)
       : `${endpoint}/${key}`;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
@@ -116,34 +117,21 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
   }
 };
 
-export const setS3ObjectAcl = () =>
-  ENABLE_PRIVATE_CONTENT ? 'private' : 'public-read';
-
-export const getUrlForImageProxy = (key: string) =>
+export const proxyS3Url = (key: string) =>
   `/api/images.info?key=${key}`;
 
 export const getSignedImageUrl = async (key: string) => {
-  const s3 = new AWS.S3({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  });
   invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
 
   const params = {
     Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
-    Expires: 900,
   };
 
   return s3.getSignedUrl('getObject', params);
 };
 
 export const getImageByKey = async (key: string) => {
-  const s3 = new AWS.S3({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  });
-
   const params = {
     Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,

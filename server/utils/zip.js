@@ -6,7 +6,6 @@ import unescape from '../../shared/utils/unescape';
 import { Collection, Document } from '../models';
 import { getImageByKey } from './s3';
 
-const ENABLE_PRIVATE_CONTENT = process.env.ENABLE_PRIVATE_CONTENT === 'true';
 const s3KeyRegex = /!\[.*\]\(\/api\/images\.info\?key=(?<key>.*)\)/gi;
 const imgageApiRegex = /(?<=!\[.*\]\()(\/api\/images\.info\?key=)/gi;
 
@@ -15,7 +14,7 @@ async function addToArchive(zip, documents) {
     const document = await Document.findByPk(doc.id);
     let text = unescape(document.text);
 
-    if (ENABLE_PRIVATE_CONTENT) {
+    if (process.env.AWS_S3_ACL !== 'public-read') {
       const imageKeys = [...text.matchAll(s3KeyRegex)].map(
         match => match.groups && match.groups.key
       );
