@@ -35,6 +35,7 @@ const Attachment = sequelize.define('attachment', {
 
 Attachment.associate = models => {
   Attachment.belongsTo(models.Team);
+  Attachment.belongsTo(models.Document);
   Attachment.belongsTo(models.User);
 };
 

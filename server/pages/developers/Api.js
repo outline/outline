@@ -72,6 +72,10 @@ export default function Api() {
                 description="Size in bytes of the file"
                 required
               />
+              <Argument
+                id="documentId"
+                description="UUID of the associated document"
+              />
             </Arguments>
           </Method>
 

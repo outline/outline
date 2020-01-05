@@ -6,6 +6,13 @@ module.exports = {
         allowNull: false,
         primaryKey: true,
       },
+      teamId: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'teams',
+        },
+      },
       userId: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -13,11 +20,11 @@ module.exports = {
           model: 'users',
         },
       },
-      teamId: {
+      documentId: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
-          model: 'teams',
+          model: 'documents',
         },
       },
       name: {
@@ -49,6 +56,7 @@ module.exports = {
         allowNull: false,
       },
     });
+    await queryInterface.addIndex('attachments', ['documentId']);
   },
 
   down: async (queryInterface, Sequelize) => {

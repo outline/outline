@@ -76,7 +76,7 @@ router.post('users.update', auth(), async ctx => {
 });
 
 router.post('users.s3Upload', auth(), async ctx => {
-  let { name, filename, contentType, kind, size } = ctx.body;
+  let { name, filename, documentId, contentType, kind, size } = ctx.body;
 
   // backwards compatability
   name = name || filename;
@@ -100,6 +100,7 @@ router.post('users.s3Upload', auth(), async ctx => {
     size,
     url,
     contentType,
+    documentId,
     teamId: user.teamId,
     userId: user.id,
   });
