@@ -10,11 +10,11 @@ export const uploadFile = async (
   file: File | Blob,
   option?: Options = { name: '' }
 ) => {
-  const filename = file instanceof File ? file.name : option.name;
+  const name = file instanceof File ? file.name : option.name;
   const response = await client.post('/users.s3Upload', {
-    kind: file.type,
+    contentType: file.type,
     size: file.size,
-    filename,
+    name,
   });
 
   invariant(response, 'Response should be available');

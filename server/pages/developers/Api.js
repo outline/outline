@@ -58,18 +58,18 @@ export default function Api() {
             </Description>
             <Arguments>
               <Argument
-                id="filename"
-                description="Filename of the uploaded file"
+                id="name"
+                description="Name of the uploaded file"
                 required
               />
               <Argument
-                id="kind"
-                description="Mimetype of the document"
+                id="contentType"
+                description="Content-type of the file"
                 required
               />
               <Argument
                 id="size"
-                description="Filesize of the document"
+                description="Size in bytes of the file"
                 required
               />
             </Arguments>
