@@ -42,6 +42,10 @@ export function parseDomain(url: string): ?Domain {
   return null;
 }
 
+export function getCookieDomain(domain: string) {
+  return process.env.SUBDOMAINS_ENABLED ? stripSubdomain(domain) : domain;
+}
+
 export function stripSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
   if (!parsed) return hostname;
