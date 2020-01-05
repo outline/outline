@@ -27,7 +27,7 @@ module.exports = {
           model: 'documents',
         },
       },
-      name: {
+      key: {
         type: Sequelize.STRING,
         allowNull: false,
       },

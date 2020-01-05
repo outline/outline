@@ -96,7 +96,7 @@ router.post('users.s3Upload', auth(), async ctx => {
   const url = `${endpoint}/${key}`;
 
   await Attachment.create({
-    name,
+    key,
     size,
     url,
     contentType,
