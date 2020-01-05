@@ -150,7 +150,7 @@ class SocketProvider extends React.Component<Props> {
           const collection = collections.get(collectionId) || {};
 
           if (event.event === 'collections.delete') {
-            documents.remove(collectionId);
+            documents.removeCollectionDocuments(collectionId);
             continue;
           }
 
