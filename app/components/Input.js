@@ -9,7 +9,7 @@ import Flex from 'shared/components/Flex';
 const RealTextarea = styled.textarea`
   border: 0;
   flex: 1;
-  padding: 8px 12px;
+  padding: 8px 12px 8px ${props => (props.hasIcon ? '8px' : '12px')};
   outline: none;
   background: none;
   color: ${props => props.theme.text};
@@ -23,7 +23,7 @@ const RealTextarea = styled.textarea`
 const RealInput = styled.input`
   border: 0;
   flex: 1;
-  padding: 8px 12px;
+  padding: 8px 12px 8px ${props => (props.hasIcon ? '8px' : '12px')};
   outline: none;
   background: none;
   color: ${props => props.theme.text};
@@ -149,6 +149,7 @@ class Input extends React.Component<Props> {
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
               type={type === 'textarea' ? undefined : type}
+              hasIcon={!!icon}
               {...rest}
             />
           </Outline>
