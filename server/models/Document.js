@@ -244,6 +244,7 @@ type SearchOptions = {
   dateFilter?: 'day' | 'week' | 'month' | 'year',
   collaboratorIds?: string[],
   includeArchived?: boolean,
+  includeDrafts?: boolean,
 };
 
 Document.searchForTeam = async (
@@ -351,7 +352,11 @@ Document.searchForUser = async (
     }
     ${options.includeArchived ? '' : '"archivedAt" IS NULL AND'}
     "deletedAt" IS NULL AND
-    ("publishedAt" IS NOT NULL OR "createdById" = :userId)
+    ${
+      options.includeDrafts
+        ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
+        : '"publishedAt" IS NOT NULL'
+    } 
   ORDER BY 
     "searchRanking" DESC,
     "updatedAt" DESC

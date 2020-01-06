@@ -188,6 +188,7 @@ class Search extends React.Component<Props> {
           limit: DEFAULT_PAGINATION_LIMIT,
           dateFilter: this.dateFilter,
           includeArchived: this.includeArchived,
+          includeDrafts: true,
           collectionId: this.collectionId,
           userId: this.userId,
         });

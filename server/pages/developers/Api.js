@@ -313,6 +313,7 @@ export default function Api() {
               <Argument id="userId" description="User ID" />
               <Argument id="collectionId" description="Collection ID" />
               <Argument id="includeArchived" description="Boolean" />
+              <Argument id="includeDrafts" description="Boolean" />
               <Argument
                 id="dateFilter"
                 description="Date range to consider (day, week, month or year)"
