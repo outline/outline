@@ -8,6 +8,7 @@ import Empty from 'components/Empty';
 import PageTitle from 'components/PageTitle';
 import Heading from 'components/Heading';
 import DocumentList from 'components/DocumentList';
+import InputSearch from 'components/InputSearch';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
@@ -62,6 +63,9 @@ class Starred extends React.Component<Props> {
         )}
         {showLoading && <ListPlaceholder />}
         <Actions align="center" justify="flex-end">
+          <Action>
+            <InputSearch />
+          </Action>
           <Action>
             <NewDocumentMenu />
           </Action>
