@@ -590,7 +590,7 @@ describe('#documents.search', async () => {
       body: {
         token: user.getJwtToken(),
         query: 'search term',
-        includeDrafts: true,
+        includeDrafts: 'true',
       },
     });
     const body = await res.json();
@@ -612,7 +612,7 @@ describe('#documents.search', async () => {
       body: {
         token: user.getJwtToken(),
         query: 'search term',
-        includeDrafts: true,
+        includeDrafts: 'true',
       },
     });
     const body = await res.json();
