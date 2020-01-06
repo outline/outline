@@ -7,6 +7,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import AuthStore from 'stores/AuthStore';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
 import Actions, { Action } from 'components/Actions';
+import InputSearch from 'components/InputSearch';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Tabs from 'components/Tabs';
@@ -65,6 +66,9 @@ class Dashboard extends React.Component<Props> {
           </Route>
         </Switch>
         <Actions align="center" justify="flex-end">
+          <Action>
+            <InputSearch />
+          </Action>
           <Action>
             <NewDocumentMenu />
           </Action>

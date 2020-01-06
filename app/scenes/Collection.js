@@ -29,6 +29,7 @@ import Heading from 'components/Heading';
 import Tooltip from 'components/Tooltip';
 import CenteredContent from 'components/CenteredContent';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
+import InputSearch from 'components/InputSearch';
 import Mask from 'components/Mask';
 import Button from 'components/Button';
 import HelpText from 'components/HelpText';
@@ -114,12 +115,19 @@ class CollectionScene extends React.Component<Props> {
   };
 
   renderActions() {
-    const can = this.props.policies.abilities(this.props.match.params.id);
+    const { match, policies } = this.props;
+    const can = policies.abilities(match.params.id);
 
     return (
       <Actions align="center" justify="flex-end">
         {can.update && (
           <React.Fragment>
+            <Action>
+              <InputSearch
+                placeholder="Search in collection…"
+                collectionId={match.params.id}
+              />
+            </Action>
             <Action>
               <Tooltip
                 tooltip="New document"
