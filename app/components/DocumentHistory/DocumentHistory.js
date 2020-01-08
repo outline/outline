@@ -4,7 +4,7 @@ import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import type { RouterHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import Waypoint from 'react-waypoint';
+import { Waypoint } from 'react-waypoint';
 import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
@@ -137,6 +137,7 @@ const Wrapper = styled(Flex)`
   border-left: 1px solid ${props => props.theme.divider};
   overflow: scroll;
   overscroll-behavior: none;
+  z-index: 1;
 `;
 
 export default inject('documents', 'revisions')(DocumentHistory);

@@ -2,8 +2,7 @@
 import * as React from 'react';
 import { observable, action } from 'mobx';
 import { observer } from 'mobx-react';
-import Waypoint from 'react-waypoint';
-
+import { Waypoint } from 'react-waypoint';
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import Document from 'models/Document';
 import DocumentList from 'components/DocumentList';

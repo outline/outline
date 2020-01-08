@@ -10,7 +10,7 @@ import HelpText from 'components/HelpText';
 import Document from 'models/Document';
 
 type Props = {
-  document?: Document,
+  document: Document,
   onSubmit: () => void,
 };
 
@@ -34,7 +34,6 @@ class DocumentShare extends React.Component<Props> {
 
   render() {
     const { document, onSubmit } = this.props;
-    if (!document) return null;
 
     return (
       <div>

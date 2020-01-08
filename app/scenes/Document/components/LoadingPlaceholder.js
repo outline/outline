@@ -12,10 +12,10 @@ const randomValues = Array.from(
   () => `${randomInteger(85, 100)}%`
 );
 
-const LoadingPlaceholder = (props: Object) => {
+const LoadingPlaceholder = () => {
   return (
     <Wrapper>
-      <Flex column auto {...props}>
+      <Flex column auto>
         <Mask style={{ width: randomValues[0] }} header />
         <Mask style={{ width: randomValues[1] }} />
         <Mask style={{ width: randomValues[2] }} />

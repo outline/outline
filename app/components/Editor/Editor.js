@@ -104,7 +104,7 @@ class Editor extends React.Component<Props> {
 }
 
 const StyledEditor = styled(RichMarkdownEditor)`
-  flex-grow: ${props => (props.grow ? 'initial' : '0')};
+  flex-grow: ${props => (props.grow ? 1 : 0)};
   justify-content: start;
 
   > div {

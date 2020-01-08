@@ -164,7 +164,7 @@ export default class Websockets {
           )
           .emit('join', {
             event: event.name,
-            roomId: collection.id,
+            collectionId: collection.id,
           });
       }
       case 'collections.update':
@@ -202,7 +202,7 @@ export default class Websockets {
         // tell any user clients to connect to the websocket channel for the collection
         return socketio.to(`user-${event.userId}`).emit('join', {
           event: event.name,
-          roomId: event.collectionId,
+          collectionId: event.collectionId,
         });
       }
       case 'collections.remove_user': {
@@ -216,7 +216,7 @@ export default class Websockets {
         // tell any user clients to disconnect from the websocket channel for the collection
         return socketio.to(`user-${event.userId}`).emit('leave', {
           event: event.name,
-          roomId: event.collectionId,
+          collectionId: event.collectionId,
         });
       }
       default:

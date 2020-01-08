@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import Waypoint from 'react-waypoint';
+import { Waypoint } from 'react-waypoint';
 
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import EventsStore from 'stores/EventsStore';

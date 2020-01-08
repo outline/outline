@@ -77,19 +77,11 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   leastRecentlyUpdatedInCollection(collectionId: string): Document[] {
-    return orderBy(
-      this.publishedInCollection(collectionId),
-      'updatedAt',
-      'asc'
-    );
+    return orderBy(this.inCollection(collectionId), 'updatedAt', 'asc');
   }
 
   recentlyUpdatedInCollection(collectionId: string): Document[] {
-    return orderBy(
-      this.publishedInCollection(collectionId),
-      'updatedAt',
-      'desc'
-    );
+    return orderBy(this.inCollection(collectionId), 'updatedAt', 'desc');
   }
 
   recentlyPublishedInCollection(collectionId: string): Document[] {
@@ -101,7 +93,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   alphabeticalInCollection(collectionId: string): Document[] {
-    return naturalSort(this.publishedInCollection(collectionId), 'title');
+    return naturalSort(this.inCollection(collectionId), 'title');
   }
 
   searchResults(query: string): SearchResult[] {
