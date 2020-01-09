@@ -99,7 +99,7 @@ class SettingsSidebar extends React.Component<Props> {
               />
               <SidebarLink
                 to="/settings/groups"
-                icon={<GroupIcon />}
+                icon={<UserIcon />}
                 exact={false}
                 label="Groups"
               />

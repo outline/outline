@@ -4,6 +4,7 @@ import AuthStore from './AuthStore';
 import CollectionsStore from './CollectionsStore';
 import DocumentsStore from './DocumentsStore';
 import EventsStore from './EventsStore';
+import GroupsStore from './GroupsStore';
 import IntegrationsStore from './IntegrationsStore';
 import MembershipsStore from './MembershipsStore';
 import NotificationSettingsStore from './NotificationSettingsStore';
@@ -31,6 +32,7 @@ export default class RootStore {
   ui: UiStore;
   users: UsersStore;
   views: ViewsStore;
+  groups: GroupsStore;
 
   constructor() {
     this.apiKeys = new ApiKeysStore(this);
@@ -38,6 +40,7 @@ export default class RootStore {
     this.collections = new CollectionsStore(this);
     this.documents = new DocumentsStore(this);
     this.events = new EventsStore(this);
+    this.groups = new GroupsStore(this);
     this.integrations = new IntegrationsStore(this);
     this.memberships = new MembershipsStore(this);
     this.notificationSettings = new NotificationSettingsStore(this);
@@ -64,5 +67,6 @@ export default class RootStore {
     this.shares.clear();
     this.users.clear();
     this.views.clear();
+    this.groups.clear();
   }
 }

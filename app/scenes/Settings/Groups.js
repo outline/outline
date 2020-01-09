@@ -13,129 +13,82 @@ import Invite from 'scenes/Invite';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
-import UserListItem from './components/UserListItem';
+import GroupListItem from './components/GroupListItem';
 import List from 'components/List';
-import Tabs, { Separator } from 'components/Tabs';
+import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
 
 import AuthStore from 'stores/AuthStore';
-import UsersStore from 'stores/UsersStore';
+import GroupsStore from 'stores/GroupsStore';
 import PoliciesStore from 'stores/PoliciesStore';
 
 type Props = {
   auth: AuthStore,
-  users: UsersStore,
+  groups: GroupsStore,
   policies: PoliciesStore,
   match: Object,
 };
 
 @observer
-class People extends React.Component<Props> {
-  @observable inviteModalOpen: boolean = false;
+class Groups extends React.Component<Props> {
+  // @observable inviteModalOpen: boolean = false;
 
   componentDidMount() {
-    this.props.users.fetchPage({ limit: 100 });
+    this.props.groups.fetchPage({ limit: 100 });
   }
 
-  handleInviteModalOpen = () => {
-    this.inviteModalOpen = true;
-  };
+  // handleInviteModalOpen = () => {
+  //   this.inviteModalOpen = true;
+  // };
 
-  handleInviteModalClose = () => {
-    this.inviteModalOpen = false;
-  };
+  // handleInviteModalClose = () => {
+  //   this.inviteModalOpen = false;
+  // };
 
   render() {
-    const { auth, policies, match } = this.props;
-    const { filter } = match.params;
-    const currentUser = auth.user;
-    const team = auth.team;
-    invariant(currentUser, 'User should exist');
-    invariant(team, 'Team should exist');
+    const { auth, policies, groups } = this.props;
 
-    let users = this.props.users.active;
-    if (filter === 'all') {
-      users = this.props.users.all;
-    } else if (filter === 'admins') {
-      users = this.props.users.admins;
-    } else if (filter === 'suspended') {
-      users = this.props.users.suspended;
-    } else if (filter === 'invited') {
-      users = this.props.users.invited;
-    }
-
-    const showLoading = this.props.users.isFetching && !users.length;
-    const showEmpty = this.props.users.isLoaded && !users.length;
-    const can = policies.abilities(team.id);
+    const showLoading = groups.isFetching && !groups.orderedData.length;
+    const showEmpty = groups.isLoaded && !groups.orderedData.length;
+    // TODO: add policies const can = policies.abilities(team.id);
 
     return (
       <CenteredContent>
         <PageTitle title="People" />
-        <h1>People</h1>
-        <HelpText>
-          Everyone that has signed into Outline appears here. It’s possible that
-          there are other users who have access through {team.signinMethods} but
-          haven’t signed in yet.
-        </HelpText>
+        <h1>Groups</h1>
+        <HelpText>Groups are fun for everyone.</HelpText>
+        {/* TODO: new group workflow */}
         <Button
           type="button"
           data-on="click"
           data-event-category="invite"
           data-event-action="peoplePage"
-          onClick={this.handleInviteModalOpen}
+          // onClick={this.handleInviteModalOpen}
           icon={<PlusIcon />}
           neutral
         >
-          Invite people…
+          New Group…
         </Button>
 
         <Tabs>
-          <Tab to="/settings/people" exact>
-            Active
+          <Tab to="/settings/groups" exact>
+            All Groups
           </Tab>
-          <Tab to="/settings/people/admins" exact>
-            Admins
-          </Tab>
-          {can.update && (
-            <Tab to="/settings/people/suspended" exact>
-              Suspended
-            </Tab>
-          )}
-          <Tab to="/settings/people/all" exact>
-            Everyone
-          </Tab>
-
-          {can.invite && (
-            <React.Fragment>
-              <Separator />
-              <Tab to="/settings/people/invited" exact>
-                Invited
-              </Tab>
-            </React.Fragment>
-          )}
         </Tabs>
+
         <List>
-          {users.map(user => (
-            <UserListItem
-              key={user.id}
-              user={user}
-              showMenu={can.update && currentUser.id !== user.id}
-            />
+          {groups.orderedData.map(group => (
+            // 1 TODO: list group items
+            <GroupListItem key={group.id} group={group} />
+            // 3 TODO: manage group workflow
           ))}
         </List>
-        {showEmpty && <Empty>No people to see here.</Empty>}
-        {showLoading && <ListPlaceholder count={5} />}
 
-        <Modal
-          title="Invite people"
-          onRequestClose={this.handleInviteModalClose}
-          isOpen={this.inviteModalOpen}
-        >
-          <Invite onSubmit={this.handleInviteModalClose} />
-        </Modal>
+        {showEmpty && <Empty>No groups to see here.</Empty>}
+        {showLoading && <ListPlaceholder count={5} />}
       </CenteredContent>
     );
   }
 }
 
-export default inject('auth', 'users', 'policies')(People);
+export default inject('auth', 'groups', 'policies')(Groups);
