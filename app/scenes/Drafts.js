@@ -9,6 +9,7 @@ import Empty from 'components/Empty';
 import PageTitle from 'components/PageTitle';
 import DocumentList from 'components/DocumentList';
 import Subheading from 'components/Subheading';
+import InputSearch from 'components/InputSearch';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
 import Actions, { Action } from 'components/Actions';
 import DocumentsStore from 'stores/DocumentsStore';
@@ -42,6 +43,9 @@ class Drafts extends React.Component<Props> {
           </React.Fragment>
         )}
         <Actions align="center" justify="flex-end">
+          <Action>
+            <InputSearch />
+          </Action>
           <Action>
             <NewDocumentMenu />
           </Action>
