@@ -43,6 +43,7 @@ router.post('views.create', auth(), async ctx => {
     ip: ctx.request.ip,
   });
 
+  view.user = user;
   ctx.body = {
     data: presentView(view),
   };
