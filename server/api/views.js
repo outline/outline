@@ -31,7 +31,7 @@ router.post('views.create', auth(), async ctx => {
   const document = await Document.findByPk(documentId, { userId: user.id });
   authorize(user, 'read', document);
 
-  await View.increment({ documentId, userId: user.id });
+  const view = await View.increment({ documentId, userId: user.id });
 
   await Event.create({
     name: 'views.create',
@@ -43,8 +43,9 @@ router.post('views.create', auth(), async ctx => {
     ip: ctx.request.ip,
   });
 
+  view.user = user;
   ctx.body = {
-    success: true,
+    data: presentView(view),
   };
 });
 
