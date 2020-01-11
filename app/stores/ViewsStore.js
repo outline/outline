@@ -5,7 +5,7 @@ import RootStore from './RootStore';
 import View from 'models/View';
 
 export default class ViewsStore extends BaseStore<View> {
-  actions = ['list'];
+  actions = ['list', 'create'];
 
   constructor(rootStore: RootStore) {
     super(rootStore, View);
