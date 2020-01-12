@@ -49,7 +49,7 @@ class DocumentShare extends React.Component<Props> {
           type="text"
           label="Share link"
           value={document.shareUrl || 'Loading…'}
-          disabled
+          readOnly
         />
         <CopyToClipboard
           text={document.shareUrl || ''}
