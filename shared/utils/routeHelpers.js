@@ -72,3 +72,7 @@ export function signin(service: string = 'slack'): string {
 export function settings(): string {
   return `/settings`;
 }
+
+export function groupSettings(): string {
+  return `/settings/groups`;
+}

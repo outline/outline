@@ -47,17 +47,21 @@ class Groups extends React.Component<Props> {
 
   render() {
     const { auth, policies, groups } = this.props;
+    const currentUser = auth.user;
+    const team = auth.team;
+    // ??? why do we need these invariants
+    invariant(currentUser, 'User should exist');
+    invariant(team, 'Team should exist');
 
     const showLoading = groups.isFetching && !groups.orderedData.length;
     const showEmpty = groups.isLoaded && !groups.orderedData.length;
-    // TODO: add policies const can = policies.abilities(team.id);
+    const can = policies.abilities(team.id);
 
     return (
       <CenteredContent>
         <PageTitle title="People" />
         <h1>Groups</h1>
         <HelpText>Groups are fun for everyone.</HelpText>
-        {/* TODO: new group workflow */}
         <Button
           type="button"
           data-on="click"
@@ -78,9 +82,7 @@ class Groups extends React.Component<Props> {
 
         <List>
           {groups.orderedData.map(group => (
-            // TODO: list group items - seems to be working, have to create some groups
-            <GroupListItem key={group.id} group={group} />
-            // 3 TODO: manage group workflow
+            <GroupListItem key={group.id} group={group} showMenu={can.group} />
           ))}
         </List>
 

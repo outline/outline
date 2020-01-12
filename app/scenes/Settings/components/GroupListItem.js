@@ -3,7 +3,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
-import UserMenu from 'menus/UserMenu';
+import GroupMenu from 'menus/GroupMenu';
 import Avatar from 'components/Avatar';
 import Badge from 'components/Badge';
 import UserProfile from 'scenes/UserProfile';
@@ -13,6 +13,7 @@ import Group from 'models/Group';
 
 type Props = {
   group: Group,
+  showMenu: boolean,
 };
 
 @observer
@@ -29,7 +30,7 @@ class GroupListItem extends React.Component<Props> {
   // };
 
   render() {
-    const { group } = this.props;
+    const { group, showMenu } = this.props;
 
     return (
       <ListItem
@@ -49,6 +50,7 @@ class GroupListItem extends React.Component<Props> {
         //   </React.Fragment>
         // }
         subtitle={<React.Fragment>10 members</React.Fragment>}
+        actions={showMenu ? <GroupMenu group={group} /> : undefined}
       />
     );
   }
