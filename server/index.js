@@ -6,7 +6,7 @@ import SocketAuth from 'socketio-auth';
 import socketRedisAdapter from 'socket.io-redis';
 import { getUserForJWT } from './utils/jwt';
 import { Document, Collection, View } from './models';
-import { client } from './redis';
+import { client, subscriber } from './redis';
 import app from './app';
 import policy from './policies';
 
@@ -24,7 +24,12 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
     cookie: false,
   });
 
-  io.adapter(socketRedisAdapter(process.env.REDIS_URL));
+  io.adapter(
+    socketRedisAdapter({
+      pubClient: client,
+      subClient: subscriber,
+    })
+  );
 
   SocketAuth(io, {
     authenticate: async (socket, data, callback) => {
