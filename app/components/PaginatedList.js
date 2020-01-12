@@ -88,7 +88,8 @@ class PaginatedList extends React.Component<Props> {
     const showLoading =
       this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
     const showEmpty = !items.length && !showLoading;
-    const showList = (this.isLoaded || this.isInitiallyLoaded) && !showLoading;
+    const showList =
+      (this.isLoaded || this.isInitiallyLoaded) && !showLoading && !showEmpty;
 
     return (
       <React.Fragment>

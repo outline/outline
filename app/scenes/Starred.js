@@ -29,22 +29,22 @@ class Starred extends React.Component<Props> {
       <CenteredContent column auto>
         <PageTitle title="Starred" />
         <Heading>Starred</Heading>
-        <React.Fragment>
-          <Tabs>
-            <Tab to="/starred" exact>
-              Recently Updated
-            </Tab>
-            <Tab to="/starred/alphabetical" exact>
-              Alphabetical
-            </Tab>
-          </Tabs>
-          <PaginatedDocumentList
-            empty={<Empty>You’ve not starred any documents yet.</Empty>}
-            fetch={fetchStarred}
-            documents={sort === 'alphabetical' ? starredAlphabetical : starred}
-            showCollection
-          />
-        </React.Fragment>
+        <PaginatedDocumentList
+          heading={
+            <Tabs>
+              <Tab to="/starred" exact>
+                Recently Updated
+              </Tab>
+              <Tab to="/starred/alphabetical" exact>
+                Alphabetical
+              </Tab>
+            </Tabs>
+          }
+          empty={<Empty>You’ve not starred any documents yet.</Empty>}
+          fetch={fetchStarred}
+          documents={sort === 'alphabetical' ? starredAlphabetical : starred}
+          showCollection
+        />
 
         <Actions align="center" justify="flex-end">
           <Action>
