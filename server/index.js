@@ -1,5 +1,4 @@
 // @flow
-import { promisify } from 'util';
 import http from 'http';
 import IO from 'socket.io';
 import SocketAuth from 'socketio-auth';
@@ -10,8 +9,6 @@ import { client, subscriber } from './redis';
 import app from './app';
 import policy from './policies';
 
-const redisHget = promisify(client.hget).bind(client);
-const redisHset = promisify(client.hset).bind(client);
 const server = http.createServer(app.callback());
 let io;
 
@@ -41,7 +38,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
 
         // store the mapping between socket id and user id in redis
         // so that it is accessible across multiple server nodes
-        await redisHset(socket.id, 'userId', user.id);
+        await client.hset(socket.id, 'userId', user.id);
 
         return callback(null, true);
       } catch (err) {
@@ -112,7 +109,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
                 // makes this easy.
                 let userIds = new Map();
                 for (const socketId of sockets) {
-                  const userId = await redisHget(socketId, 'userId');
+                  const userId = await client.hget(socketId, 'userId');
                   userIds.set(userId, userId);
                 }
                 socket.emit('document.presence', {
