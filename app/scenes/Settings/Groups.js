@@ -9,7 +9,7 @@ import Empty from 'components/Empty';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Modal from 'components/Modal';
 import Button from 'components/Button';
-import Invite from 'scenes/Invite';
+import GroupNew from 'scenes/GroupNew';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
@@ -31,19 +31,19 @@ type Props = {
 
 @observer
 class Groups extends React.Component<Props> {
-  // @observable inviteModalOpen: boolean = false;
+  @observable newGroupModalOpen: boolean = false;
 
   componentDidMount() {
     this.props.groups.fetchPage({ limit: 100 });
   }
 
-  // handleInviteModalOpen = () => {
-  //   this.inviteModalOpen = true;
-  // };
+  handleNewGroupModalOpen = () => {
+    this.newGroupModalOpen = true;
+  };
 
-  // handleInviteModalClose = () => {
-  //   this.inviteModalOpen = false;
-  // };
+  handleNewGroupModalClose = () => {
+    this.newGroupModalOpen = false;
+  };
 
   render() {
     const { auth, policies, groups } = this.props;
@@ -63,7 +63,7 @@ class Groups extends React.Component<Props> {
           data-on="click"
           data-event-category="invite"
           data-event-action="peoplePage"
-          // onClick={this.handleInviteModalOpen}
+          onClick={this.handleNewGroupModalOpen}
           icon={<PlusIcon />}
           neutral
         >
@@ -78,7 +78,7 @@ class Groups extends React.Component<Props> {
 
         <List>
           {groups.orderedData.map(group => (
-            // 1 TODO: list group items
+            // TODO: list group items - seems to be working, have to create some groups
             <GroupListItem key={group.id} group={group} />
             // 3 TODO: manage group workflow
           ))}
@@ -86,6 +86,14 @@ class Groups extends React.Component<Props> {
 
         {showEmpty && <Empty>No groups to see here.</Empty>}
         {showLoading && <ListPlaceholder count={5} />}
+
+        <Modal
+          title="Create a Group"
+          onRequestClose={this.handleNewGroupModalClose}
+          isOpen={this.newGroupModalOpen}
+        >
+          <GroupNew onSubmit={this.handleNewGroupModalClose} />
+        </Modal>
       </CenteredContent>
     );
   }
