@@ -2,20 +2,22 @@
 import * as React from 'react';
 import styled from 'styled-components';
 import { observable } from 'mobx';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import GroupMenu from 'menus/GroupMenu';
 import Modal from 'components/Modal';
 import GroupMembers from 'scenes/GroupMembers';
-import Avatar from 'components/Avatar';
-import Badge from 'components/Badge';
-import UserProfile from 'scenes/UserProfile';
+// import Avatar from 'components/Avatar';
+// import Badge from 'components/Badge';
+// import UserProfile from 'scenes/UserProfile';
 import ListItem from 'components/List/Item';
-import Time from 'shared/components/Time';
+// import Time from 'shared/components/Time';
 import Group from 'models/Group';
+import GroupMembershipsStore from 'stores/GroupMembershipsStore';
 
 type Props = {
   group: Group,
   showMenu: boolean,
+  groupMemberships: GroupMembershipsStore,
 };
 
 @observer
@@ -33,7 +35,8 @@ class GroupListItem extends React.Component<Props> {
   onEdit = () => {};
 
   render() {
-    const { group, showMenu } = this.props;
+    const { group, groupMemberships, showMenu } = this.props;
+    const membersCount = groupMemberships.inGroup(group.id).length;
 
     return (
       <React.Fragment>
@@ -41,7 +44,11 @@ class GroupListItem extends React.Component<Props> {
           title={
             <Title onClick={this.handleMembersModalOpen}>{group.name}</Title>
           }
-          subtitle={<React.Fragment>10 members</React.Fragment>}
+          subtitle={
+            <React.Fragment>
+              {membersCount} member{membersCount === 1 ? '' : 's'}
+            </React.Fragment>
+          }
           actions={
             showMenu ? (
               <GroupMenu
@@ -76,4 +83,4 @@ const Title = styled.span`
   }
 `;
 
-export default GroupListItem;
+export default inject('groupMemberships')(GroupListItem);

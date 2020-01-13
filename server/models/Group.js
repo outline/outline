@@ -38,7 +38,7 @@ const Group = sequelize.define(
 
 Group.associate = models => {
   Group.hasMany(models.GroupUser, {
-    as: 'memberships',
+    as: 'groupMemberships',
     foreignKey: 'groupId',
     onDelete: 'cascade',
     hooks: true,
@@ -56,6 +56,15 @@ Group.associate = models => {
     through: models.GroupUser,
     foreignKey: 'groupId',
   });
+  Group.addScope('defaultScope', () => ({
+    include: [
+      {
+        model: models.GroupUser,
+        as: 'groupMemberships',
+        required: false,
+      },
+    ],
+  }));
 };
 
 export default Group;

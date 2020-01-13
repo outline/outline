@@ -26,9 +26,18 @@ router.post('groups.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
+  const groupMemberships = await Promise.all(
+    groups.map(async group => {
+      return await group.getGroupMemberships();
+    })
+  );
+
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: groups.map(presentGroup),
+    data: {
+      groups: groups.map(presentGroup),
+      groupMemberships: groupMemberships.flat().map(presentGroupMembership),
+    },
     policies: presentPolicies(user, groups),
   };
 });

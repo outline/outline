@@ -1,6 +1,7 @@
 // @flow
 import invariant from 'invariant';
 import { action, runInAction } from 'mobx';
+import { filter, orderBy } from 'lodash';
 import { client } from 'utils/ApiClient';
 import BaseStore from './BaseStore';
 import RootStore from './RootStore';
@@ -63,5 +64,9 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
         this.remove(key);
       }
     });
+  };
+
+  inGroup = (groupId: string) => {
+    return filter(this.orderedData, member => member.groupId === groupId);
   };
 }

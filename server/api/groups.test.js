@@ -121,9 +121,11 @@ describe('#groups.list', async () => {
     expect(body).toMatchSnapshot();
   });
 
-  it('should return groups', async () => {
+  it('should return groups with memberships preloaded', async () => {
     const user = await buildUser();
     const group = await buildGroup({ teamId: user.teamId });
+
+    await group.addUser(user, { through: { createdById: user.id } });
 
     const res = await server.post('/api/groups.list', {
       body: { token: user.getJwtToken() },
@@ -131,8 +133,12 @@ describe('#groups.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].id).toEqual(group.id);
+    expect(body.data['groups'].length).toEqual(1);
+    expect(body.data['groups'][0].id).toEqual(group.id);
+
+    expect(body.data['groupMemberships'].length).toEqual(1);
+    expect(body.data['groupMemberships'][0].groupId).toEqual(group.id);
+
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
