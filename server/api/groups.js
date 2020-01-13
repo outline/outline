@@ -200,9 +200,9 @@ router.post('groups.add_user', auth(), async ctx => {
   });
 
   if (!membership) {
-    membership = await group.addUser(user, {
+    membership = (await group.addUser(user, {
       through: { createdById: ctx.state.user.id },
-    });
+    }))[0];
 
     await Event.create({
       name: 'groups.add_user',
@@ -217,7 +217,7 @@ router.post('groups.add_user', auth(), async ctx => {
   ctx.body = {
     data: {
       users: [presentUser(user)],
-      memberships: [presentGroupMembership(membership)],
+      groupMemberships: [presentGroupMembership(membership)],
     },
   };
 });

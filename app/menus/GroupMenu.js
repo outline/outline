@@ -17,7 +17,7 @@ type Props = {
   policies: PoliciesStore,
   group: Group,
   history: RouterHistory,
-  onMembers?: () => void,
+  onMembers: () => void,
   onOpen?: () => void,
   onClose?: () => void,
 };
@@ -77,16 +77,18 @@ class GroupMenu extends React.Component<Props> {
         <DropdownMenu onOpen={onOpen} onClose={onClose}>
           {group && (
             <React.Fragment>
-              {can.update && (
+              {
                 <DropdownMenuItem onClick={this.props.onMembers}>
                   Members…
                 </DropdownMenuItem>
-              )}
-              {can.update && <hr />}
+              }
+
+              {(can.update || can.delete) && <hr />}
 
               {can.update && (
                 <DropdownMenuItem onClick={this.onEdit}>Edit…</DropdownMenuItem>
               )}
+
               {can.delete && (
                 <DropdownMenuItem onClick={this.onDelete}>
                   Delete…

@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import GroupMenu from 'menus/GroupMenu';
+import Modal from 'components/Modal';
+import GroupMembers from 'scenes/GroupMembers';
 import Avatar from 'components/Avatar';
 import Badge from 'components/Badge';
 import UserProfile from 'scenes/UserProfile';
@@ -18,40 +20,51 @@ type Props = {
 
 @observer
 class GroupListItem extends React.Component<Props> {
-  // @observable profileOpen: boolean = false;
-  // maybe needs to handle open state for group list
+  @observable membersModalOpen: boolean = false;
 
-  // handleOpenProfile = () => {
-  //   this.profileOpen = true;
-  // };
+  handleMembersModalOpen = () => {
+    this.membersModalOpen = true;
+  };
 
-  // handleCloseProfile = () => {
-  //   this.profileOpen = false;
-  // };
+  handleMembersModalClose = () => {
+    this.membersModalOpen = false;
+  };
+
+  onEdit = () => {};
 
   render() {
     const { group, showMenu } = this.props;
 
     return (
-      <ListItem
-        title={<Title onClick={() => {}}>{group.name}</Title>}
-        // image={
-        //   <React.Fragment>
-        //     <Avatar
-        //       src={user.avatarUrl}
-        //       size={40}
-        //       onClick={this.handleOpenProfile}
-        //     />
-        //     <UserProfile
-        //       user={user}
-        //       isOpen={this.profileOpen}
-        //       onRequestClose={this.handleCloseProfile}
-        //     />
-        //   </React.Fragment>
-        // }
-        subtitle={<React.Fragment>10 members</React.Fragment>}
-        actions={showMenu ? <GroupMenu group={group} /> : undefined}
-      />
+      <React.Fragment>
+        <ListItem
+          title={
+            <Title onClick={this.handleMembersModalOpen}>{group.name}</Title>
+          }
+          subtitle={<React.Fragment>10 members</React.Fragment>}
+          actions={
+            showMenu ? (
+              <GroupMenu
+                group={group}
+                onMembers={this.handleMembersModalOpen}
+              />
+            ) : (
+              undefined
+            )
+          }
+        />
+        <Modal
+          title="Group Members"
+          onRequestClose={this.handleMembersModalClose}
+          isOpen={this.membersModalOpen}
+        >
+          <GroupMembers
+            group={group}
+            onSubmit={this.handleMembersModalClose}
+            onEdit={this.onEdit}
+          />
+        </Modal>
+      </React.Fragment>
     );
   }
 }

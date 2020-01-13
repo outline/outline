@@ -49,8 +49,8 @@ class GroupEdit extends React.Component<Props> {
     return (
       <form onSubmit={this.handleSubmit}>
         <HelpText>
-          You can edit the name at any time, however doing so often might
-          confuse your team mates.
+          You can edit the name of this group at any time, however doing so too
+          often might confuse your team mates.
         </HelpText>
         <Flex>
           <Input

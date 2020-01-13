@@ -53,7 +53,9 @@ class GroupNew extends React.Component<Props> {
     return (
       <form onSubmit={this.handleSubmit}>
         <HelpText>
-          Groups help you organize users into logical... groups.
+          Groups are for organizing your team. They work best when centered
+          around a function or a responsibility — Support or Engineering for
+          example.{' '}
         </HelpText>
         <Flex>
           <Input
@@ -66,7 +68,7 @@ class GroupNew extends React.Component<Props> {
             flex
           />
         </Flex>
-        <HelpText>You can add users after the group is created</HelpText>
+        <HelpText>You can add users to the group after it is created</HelpText>
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
           {this.isSaving ? 'Creating…' : 'Create'}

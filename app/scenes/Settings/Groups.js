@@ -61,18 +61,21 @@ class Groups extends React.Component<Props> {
       <CenteredContent>
         <PageTitle title="People" />
         <h1>Groups</h1>
-        <HelpText>Groups are fun for everyone.</HelpText>
-        <Button
-          type="button"
-          data-on="click"
-          data-event-category="invite"
-          data-event-action="peoplePage"
-          onClick={this.handleNewGroupModalOpen}
-          icon={<PlusIcon />}
-          neutral
-        >
-          New Group…
-        </Button>
+        <HelpText>Organize and manage your team using groups.</HelpText>
+
+        {can.group && (
+          <Button
+            type="button"
+            data-on="click"
+            data-event-category="invite"
+            data-event-action="peoplePage"
+            onClick={this.handleNewGroupModalOpen}
+            icon={<PlusIcon />}
+            neutral
+          >
+            New Group…
+          </Button>
+        )}
 
         <Tabs>
           <Tab to="/settings/groups" exact>
@@ -82,7 +85,7 @@ class Groups extends React.Component<Props> {
 
         <List>
           {groups.orderedData.map(group => (
-            <GroupListItem key={group.id} group={group} showMenu={can.group} />
+            <GroupListItem key={group.id} group={group} showMenu />
           ))}
         </List>
 
