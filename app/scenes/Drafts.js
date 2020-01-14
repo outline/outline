@@ -4,10 +4,9 @@ import { observer, inject } from 'mobx-react';
 
 import Heading from 'components/Heading';
 import CenteredContent from 'components/CenteredContent';
-import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Empty from 'components/Empty';
 import PageTitle from 'components/PageTitle';
-import DocumentList from 'components/DocumentList';
+import PaginatedDocumentList from 'components/PaginatedDocumentList';
 import Subheading from 'components/Subheading';
 import InputSearch from 'components/InputSearch';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
@@ -20,28 +19,22 @@ type Props = {
 
 @observer
 class Drafts extends React.Component<Props> {
-  componentDidMount() {
-    this.props.documents.fetchDrafts();
-  }
-
   render() {
-    const { isLoaded, isFetching, drafts } = this.props.documents;
-    const showLoading = !isLoaded && isFetching;
-    const showEmpty = isLoaded && !drafts.length;
+    const { fetchDrafts, drafts } = this.props.documents;
 
     return (
       <CenteredContent column auto>
         <PageTitle title="Drafts" />
         <Heading>Drafts</Heading>
-        {showEmpty ? (
-          <Empty>You’ve not got any drafts at the moment.</Empty>
-        ) : (
-          <React.Fragment>
-            <Subheading>Documents</Subheading>
-            <DocumentList documents={drafts} showDraft={false} showCollection />
-            {showLoading && <ListPlaceholder />}
-          </React.Fragment>
-        )}
+        <PaginatedDocumentList
+          heading={<Subheading>Documents</Subheading>}
+          empty={<Empty>You’ve not got any drafts at the moment.</Empty>}
+          fetch={fetchDrafts}
+          documents={drafts}
+          showDraft={false}
+          showCollection
+        />
+
         <Actions align="center" justify="flex-end">
           <Action>
             <InputSearch />

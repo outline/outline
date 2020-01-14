@@ -11,6 +11,7 @@ import { ListPlaceholder } from 'components/LoadingPlaceholder';
 type Props = {
   fetch?: (options: ?Object) => Promise<void>,
   options?: Object,
+  heading?: React.Node,
   empty?: React.Node,
   items: any[],
   renderItem: any => React.Node,
@@ -22,12 +23,19 @@ class PaginatedList extends React.Component<Props> {
   @observable isLoaded: boolean = false;
   @observable isFetchingMore: boolean = false;
   @observable isFetching: boolean = false;
+  @observable renderCount: number = DEFAULT_PAGINATION_LIMIT;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
 
   componentDidMount() {
     this.isInitiallyLoaded = !!this.props.items.length;
     this.fetchResults();
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.fetch !== this.props.fetch) {
+      this.fetchResults();
+    }
   }
 
   fetchResults = async () => {
@@ -48,6 +56,7 @@ class PaginatedList extends React.Component<Props> {
       this.offset += limit;
     }
 
+    this.renderCount += limit;
     this.isLoaded = true;
     this.isFetching = false;
     this.isFetchingMore = false;
@@ -55,34 +64,47 @@ class PaginatedList extends React.Component<Props> {
 
   @action
   loadMoreResults = async () => {
-    // Don't paginate if there aren't more results or we’re in the middle of fetching
+    // Don't paginate if there aren't more results or we’re currently fetching
     if (!this.allowLoadMore || this.isFetching) return;
 
-    this.isFetchingMore = true;
-    await this.fetchResults();
+    // If there are already cached results that we haven't yet rendered because
+    // of lazy rendering then show another page.
+    const leftToRender = this.props.items.length - this.renderCount;
+    if (leftToRender > 1) {
+      this.renderCount += DEFAULT_PAGINATION_LIMIT;
+    }
+
+    // If there are less than a pages results in the cache go ahead and fetch
+    // another page from the server
+    if (leftToRender <= DEFAULT_PAGINATION_LIMIT) {
+      this.isFetchingMore = true;
+      await this.fetchResults();
+    }
   };
 
   render() {
-    const { items, empty } = this.props;
+    const { items, heading, empty } = this.props;
 
     const showLoading =
       this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
-    const showEmpty = !items.length || showLoading;
-    const showList = (this.isLoaded || this.isInitiallyLoaded) && !showLoading;
+    const showEmpty = !items.length && !showLoading;
+    const showList =
+      (this.isLoaded || this.isInitiallyLoaded) && !showLoading && !showEmpty;
 
     return (
       <React.Fragment>
         {showEmpty && empty}
         {showList && (
           <React.Fragment>
+            {heading}
             <ArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
-              {items.map(this.props.renderItem)}
+              {items.slice(0, this.renderCount).map(this.props.renderItem)}
             </ArrowKeyNavigation>
             {this.allowLoadMore && (
-              <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+              <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
             )}
           </React.Fragment>
         )}
