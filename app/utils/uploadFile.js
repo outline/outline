@@ -4,17 +4,19 @@ import invariant from 'invariant';
 
 type Options = {
   name?: string,
+  documentId?: string,
 };
 
 export const uploadFile = async (
   file: File | Blob,
-  option?: Options = { name: '' }
+  options?: Options = { name: '' }
 ) => {
-  const filename = file instanceof File ? file.name : option.name;
+  const name = file instanceof File ? file.name : options.name;
   const response = await client.post('/users.s3Upload', {
-    kind: file.type,
+    documentId: options.documentId,
+    contentType: file.type,
     size: file.size,
-    filename,
+    name,
   });
 
   invariant(response, 'Response should be available');
@@ -35,11 +37,10 @@ export const uploadFile = async (
     formData.append('file', file);
   }
 
-  const options: Object = {
+  await fetch(data.uploadUrl, {
     method: 'post',
     body: formData,
-  };
-  await fetch(data.uploadUrl, options);
+  });
 
   return asset;
 };

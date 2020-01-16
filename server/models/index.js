@@ -1,5 +1,6 @@
 // @flow
 import ApiKey from './ApiKey';
+import Attachment from './Attachment';
 import Authentication from './Authentication';
 import Backlink from './Backlink';
 import Collection from './Collection';
@@ -18,6 +19,7 @@ import View from './View';
 
 const models = {
   ApiKey,
+  Attachment,
   Authentication,
   Backlink,
   Collection,
@@ -44,6 +46,7 @@ Object.keys(models).forEach(modelName => {
 
 export {
   ApiKey,
+  Attachment,
   Authentication,
   Backlink,
   Collection,
