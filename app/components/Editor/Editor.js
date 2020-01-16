@@ -15,7 +15,7 @@ import Embed from './Embed';
 import embeds from '../../embeds';
 
 type Props = {
-  documentId?: string,
+  id: string,
   defaultValue?: string,
   readOnly?: boolean,
   grow?: boolean,
@@ -29,8 +29,7 @@ class Editor extends React.Component<Props> {
   @observable redirectTo: ?string;
 
   onUploadImage = async (file: File) => {
-    const { documentId } = this.props;
-    const result = await uploadFile(file, { documentId });
+    const result = await uploadFile(file, { documentId: this.props.id });
     return result.url;
   };
 

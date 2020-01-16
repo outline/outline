@@ -297,7 +297,6 @@ class DocumentScene extends React.Component<Props> {
               )}
               <Editor
                 id={document.id}
-                documentId={document.id}
                 key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
                 defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
