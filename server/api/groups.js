@@ -3,6 +3,8 @@ import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { Op } from '../sequelize';
+import { MAX_AVATAR_DISPLAY } from '../../shared/constants';
+
 import {
   presentGroup,
   presentPolicies,
@@ -26,17 +28,15 @@ router.post('groups.list', auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const groupMemberships = await Promise.all(
-    groups.map(async group => {
-      return await group.getGroupMemberships();
-    })
-  );
-
   ctx.body = {
     pagination: ctx.state.pagination,
     data: {
       groups: groups.map(presentGroup),
-      groupMemberships: groupMemberships.flat().map(presentGroupMembership),
+      groupMemberships: groups
+        .map(g => g.groupMemberships)
+        .flat()
+        .map(presentGroupMembership)
+        .slice(0, MAX_AVATAR_DISPLAY),
     },
     policies: presentPolicies(user, groups),
   };

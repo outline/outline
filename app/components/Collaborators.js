@@ -5,6 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { sortBy } from 'lodash';
 import styled, { withTheme } from 'styled-components';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
+import { MAX_AVATAR_DISPLAY } from 'shared/constants';
 
 import Flex from 'shared/components/Flex';
 import Avatar from 'components/Avatar';
@@ -15,8 +16,6 @@ import UserProfile from 'scenes/UserProfile';
 import ViewsStore from 'stores/ViewsStore';
 import DocumentPresenceStore from 'stores/DocumentPresenceStore';
 import { EditIcon } from 'outline-icons';
-
-const MAX_DISPLAY = 6;
 
 type Props = {
   views: ViewsStore,
@@ -104,7 +103,7 @@ class Collaborators extends React.Component<Props> {
       .map(p => p.userId);
 
     // only show the most recent viewers, the rest can overflow
-    let mostRecentViewers = documentViews.slice(0, MAX_DISPLAY);
+    let mostRecentViewers = documentViews.slice(0, MAX_AVATAR_DISPLAY);
 
     // ensure currently present via websocket are always ordered first
     mostRecentViewers = sortBy(mostRecentViewers, view =>
