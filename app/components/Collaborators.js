@@ -1,21 +1,15 @@
 // @flow
 import * as React from 'react';
-import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { sortBy } from 'lodash';
 import styled, { withTheme } from 'styled-components';
-import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import { MAX_AVATAR_DISPLAY } from 'shared/constants';
 
 import Flex from 'shared/components/Flex';
-import Avatar from 'components/Avatar';
-import Tooltip from 'components/Tooltip';
+import AvatarWithPresence from 'components/AvatarWithPresence';
 import Document from 'models/Document';
-import User from 'models/User';
-import UserProfile from 'scenes/UserProfile';
 import ViewsStore from 'stores/ViewsStore';
 import DocumentPresenceStore from 'stores/DocumentPresenceStore';
-import { EditIcon } from 'outline-icons';
 
 type Props = {
   views: ViewsStore,
@@ -23,66 +17,6 @@ type Props = {
   document: Document,
   currentUserId: string,
 };
-
-@observer
-class AvatarWithPresence extends React.Component<{
-  user: User,
-  isPresent: boolean,
-  isEditing: boolean,
-  isCurrentUser: boolean,
-  lastViewedAt: string,
-}> {
-  @observable isOpen: boolean = false;
-
-  handleOpenProfile = () => {
-    this.isOpen = true;
-  };
-
-  handleCloseProfile = () => {
-    this.isOpen = false;
-  };
-
-  render() {
-    const {
-      user,
-      lastViewedAt,
-      isPresent,
-      isEditing,
-      isCurrentUser,
-    } = this.props;
-
-    return (
-      <React.Fragment>
-        <Tooltip
-          tooltip={
-            <Centered>
-              <strong>{user.name}</strong> {isCurrentUser && '(You)'}
-              <br />
-              {isPresent
-                ? isEditing ? 'currently editing' : 'currently viewing'
-                : `viewed ${distanceInWordsToNow(new Date(lastViewedAt))} ago`}
-            </Centered>
-          }
-          placement="bottom"
-        >
-          <AvatarWrapper isPresent={isPresent}>
-            <Avatar
-              src={user.avatarUrl}
-              onClick={this.handleOpenProfile}
-              size={32}
-              icon={isEditing ? <EditIcon size={16} color="#FFF" /> : undefined}
-            />
-          </AvatarWrapper>
-        </Tooltip>
-        <UserProfile
-          user={user}
-          isOpen={this.isOpen}
-          onRequestClose={this.handleCloseProfile}
-        />
-      </React.Fragment>
-    );
-  }
-}
 
 @observer
 class Collaborators extends React.Component<Props> {
@@ -135,22 +69,6 @@ class Collaborators extends React.Component<Props> {
     );
   }
 }
-
-const Centered = styled.div`
-  text-align: center;
-`;
-
-const AvatarWrapper = styled.div`
-  width: 32px;
-  height: 32px;
-  margin-right: -8px;
-  opacity: ${props => (props.isPresent ? 1 : 0.5)};
-  transition: opacity 250ms ease-in-out;
-
-  &:first-child {
-    margin-right: 0;
-  }
-`;
 
 const More = styled.div`
   min-width: 30px;
