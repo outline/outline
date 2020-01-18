@@ -33,10 +33,9 @@ router.post('groups.list', auth(), pagination(), async ctx => {
     data: {
       groups: groups.map(presentGroup),
       groupMemberships: groups
-        .map(g => g.groupMemberships)
+        .map(g => g.groupMemberships.slice(0, MAX_AVATAR_DISPLAY))
         .flat()
-        .map(presentGroupMembership)
-        .slice(0, MAX_AVATAR_DISPLAY),
+        .map(presentGroupMembership),
     },
     policies: presentPolicies(user, groups),
   };

@@ -6,13 +6,10 @@ import { observer, inject } from 'mobx-react';
 import { MAX_AVATAR_DISPLAY } from 'shared/constants';
 import GroupMenu from 'menus/GroupMenu';
 import Modal from 'components/Modal';
+import Flex from 'shared/components/Flex';
 import Facepile from 'components/Facepile';
 import GroupMembers from 'scenes/GroupMembers';
-// import Avatar from 'components/Avatar';
-// import Badge from 'components/Badge';
-// import UserProfile from 'scenes/UserProfile';
 import ListItem from 'components/List/Item';
-// import Time from 'shared/components/Time';
 import Group from 'models/Group';
 import GroupMembershipsStore from 'stores/GroupMembershipsStore';
 
@@ -45,7 +42,7 @@ class GroupListItem extends React.Component<Props> {
       .slice(0, MAX_AVATAR_DISPLAY)
       .map(gm => gm.user);
 
-    const overflow = membershipsInGroup.length - users.length;
+    const overflow = memberCount - users.length;
 
     return (
       <React.Fragment>
@@ -59,15 +56,16 @@ class GroupListItem extends React.Component<Props> {
             </React.Fragment>
           }
           actions={
-            <React.Fragment>
+            <Flex align="center">
               <Facepile users={users} overflow={overflow} />
+              &nbsp;&nbsp;
               {showMenu && (
                 <GroupMenu
                   group={group}
                   onMembers={this.handleMembersModalOpen}
                 />
               )}
-            </React.Fragment>
+            </Flex>
           }
         />
         <Modal

@@ -77,15 +77,8 @@ const Centered = styled.div`
 `;
 
 const AvatarWrapper = styled.div`
-  width: 32px;
-  height: 32px;
-  margin-right: -8px;
   opacity: ${props => (props.isPresent ? 1 : 0.5)};
   transition: opacity 250ms ease-in-out;
-
-  &:first-child {
-    margin-right: 0;
-  }
 `;
 
 export default AvatarWithPresence;
