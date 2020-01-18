@@ -61,6 +61,8 @@ Group.associate = models => {
       {
         association: 'groupMemberships',
         required: false,
+
+        include: [{ association: 'user' }],
       },
     ],
   });

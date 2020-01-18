@@ -1,5 +1,6 @@
 // @flow
 import { GroupUser } from '../models';
+import { presentUser } from '.';
 
 type GroupMembership = {
   id: string,
@@ -12,5 +13,6 @@ export default (membership: GroupUser): GroupMembership => {
     id: `${membership.userId}-${membership.groupId}`,
     userId: membership.userId,
     groupId: membership.groupId,
+    user: presentUser(membership.user),
   };
 };

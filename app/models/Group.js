@@ -4,6 +4,7 @@ import BaseModel from './BaseModel';
 class Group extends BaseModel {
   id: string;
   name: string;
+  memberCount: number;
 
   toJS = () => {
     return {

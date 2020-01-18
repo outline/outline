@@ -3,8 +3,10 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { MAX_AVATAR_DISPLAY } from 'shared/constants';
 import GroupMenu from 'menus/GroupMenu';
 import Modal from 'components/Modal';
+import Facepile from 'components/Facepile';
 import GroupMembers from 'scenes/GroupMembers';
 // import Avatar from 'components/Avatar';
 // import Badge from 'components/Badge';
@@ -36,7 +38,14 @@ class GroupListItem extends React.Component<Props> {
 
   render() {
     const { group, groupMemberships, showMenu } = this.props;
-    const membersCount = groupMemberships.inGroup(group.id).length;
+    const memberCount = group.memberCount;
+
+    const membershipsInGroup = groupMemberships.inGroup(group.id);
+    const users = membershipsInGroup
+      .slice(0, MAX_AVATAR_DISPLAY)
+      .map(gm => gm.user);
+
+    const overflow = membershipsInGroup.length - users.length;
 
     return (
       <React.Fragment>
@@ -46,18 +55,19 @@ class GroupListItem extends React.Component<Props> {
           }
           subtitle={
             <React.Fragment>
-              {membersCount} member{membersCount === 1 ? '' : 's'}
+              {memberCount} member{memberCount === 1 ? '' : 's'}
             </React.Fragment>
           }
           actions={
-            showMenu ? (
-              <GroupMenu
-                group={group}
-                onMembers={this.handleMembersModalOpen}
-              />
-            ) : (
-              undefined
-            )
+            <React.Fragment>
+              <Facepile users={users} overflow={overflow} />
+              {showMenu && (
+                <GroupMenu
+                  group={group}
+                  onMembers={this.handleMembersModalOpen}
+                />
+              )}
+            </React.Fragment>
           }
         />
         <Modal
