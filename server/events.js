@@ -1,5 +1,5 @@
 // @flow
-import Queue from 'bull';
+import { createQueue } from './utils/queue';
 import services from './services';
 
 export type UserEvent =
@@ -93,8 +93,8 @@ export type Event =
   | CollectionEvent
   | IntegrationEvent;
 
-const globalEventsQueue = new Queue('global events', process.env.REDIS_URL);
-const serviceEventsQueue = new Queue('service events', process.env.REDIS_URL);
+const globalEventsQueue = createQueue('global events');
+const serviceEventsQueue = createQueue('service events');
 
 // this queue processes global events and hands them off to service hooks
 globalEventsQueue.process(async job => {

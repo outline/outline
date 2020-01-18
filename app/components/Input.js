@@ -9,7 +9,7 @@ import Flex from 'shared/components/Flex';
 const RealTextarea = styled.textarea`
   border: 0;
   flex: 1;
-  padding: 8px 12px;
+  padding: 8px 12px 8px ${props => (props.hasIcon ? '8px' : '12px')};
   outline: none;
   background: none;
   color: ${props => props.theme.text};
@@ -23,10 +23,11 @@ const RealTextarea = styled.textarea`
 const RealInput = styled.input`
   border: 0;
   flex: 1;
-  padding: 8px 12px;
+  padding: 8px 12px 8px ${props => (props.hasIcon ? '8px' : '12px')};
   outline: none;
   background: none;
   color: ${props => props.theme.text};
+  height: 30px;
 
   &:disabled,
   &::placeholder {
@@ -45,10 +46,17 @@ const Wrapper = styled.div`
   max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : 'initial')};
 `;
 
+const IconWrapper = styled.span`
+  position: relative;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+`;
+
 export const Outline = styled(Flex)`
   display: flex;
   flex: 1;
-  margin: 0 0 16px;
+  margin: ${props => (props.margin !== undefined ? props.margin : '0 0 16px')};
   color: inherit;
   border-width: 1px;
   border-style: solid;
@@ -60,6 +68,7 @@ export const Outline = styled(Flex)`
         : props.theme.inputBorder};
   border-radius: 4px;
   font-weight: normal;
+  align-items: center;
 `;
 
 export const LabelText = styled.div`
@@ -75,28 +84,49 @@ export type Props = {
   labelHidden?: boolean,
   flex?: boolean,
   short?: boolean,
+  margin?: string | number,
+  icon?: React.Node,
+  onFocus?: (ev: SyntheticEvent<>) => void,
+  onBlur?: (ev: SyntheticEvent<>) => void,
 };
 
 @observer
 class Input extends React.Component<Props> {
+  input: ?HTMLInputElement;
   @observable focused: boolean = false;
 
-  handleBlur = () => {
+  handleBlur = (ev: SyntheticEvent<>) => {
     this.focused = false;
+    if (this.props.onBlur) {
+      this.props.onBlur(ev);
+    }
   };
 
-  handleFocus = () => {
+  handleFocus = (ev: SyntheticEvent<>) => {
     this.focused = true;
+    if (this.props.onFocus) {
+      this.props.onFocus(ev);
+    }
   };
+
+  focus() {
+    if (this.input) {
+      this.input.focus();
+    }
+  }
 
   render() {
     const {
       type = 'text',
+      icon,
       label,
+      margin,
       className,
       short,
       flex,
       labelHidden,
+      onFocus,
+      onBlur,
       ...rest
     } = this.props;
 
@@ -112,11 +142,14 @@ class Input extends React.Component<Props> {
             ) : (
               wrappedLabel
             ))}
-          <Outline focused={this.focused}>
+          <Outline focused={this.focused} margin={margin}>
+            {icon && <IconWrapper>{icon}</IconWrapper>}
             <InputComponent
+              ref={ref => (this.input = ref)}
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
               type={type === 'textarea' ? undefined : type}
+              hasIcon={!!icon}
               {...rest}
             />
           </Outline>

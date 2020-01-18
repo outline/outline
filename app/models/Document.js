@@ -158,8 +158,8 @@ export default class Document extends BaseModel {
   };
 
   @action
-  view = async () => {
-    await client.post('/views.create', { documentId: this.id });
+  view = () => {
+    return this.store.rootStore.views.create({ documentId: this.id });
   };
 
   @action

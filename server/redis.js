@@ -1,6 +1,7 @@
 // @flow
-import redis from 'redis';
+import Redis from 'ioredis';
 
-const client = redis.createClient(process.env.REDIS_URL);
+const client = new Redis(process.env.REDIS_URL);
+const subscriber = new Redis(process.env.REDIS_URL);
 
-export { client };
+export { client, subscriber };

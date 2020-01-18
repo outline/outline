@@ -99,6 +99,7 @@ class Profile extends React.Component<Props> {
         <form onSubmit={this.handleSubmit} ref={ref => (this.form = ref)}>
           <Input
             label="Full name"
+            autoComplete="name"
             value={this.name}
             onChange={this.handleNameChange}
             required

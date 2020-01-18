@@ -53,24 +53,28 @@ export default function Api() {
             <Description>
               You can upload small files and images as part of your documents.
               All files are stored using Amazon S3. Instead of uploading files
-              to Outline, you need to upload them directly to S3 with special
+              to Outline, you need to upload them directly to S3 with
               credentials which can be obtained through this endpoint.
             </Description>
             <Arguments>
               <Argument
-                id="filename"
-                description="Filename of the uploaded file"
+                id="name"
+                description="Name of the uploaded file"
                 required
               />
               <Argument
-                id="kind"
-                description="Mimetype of the document"
+                id="contentType"
+                description="Mimetype of the file"
                 required
               />
               <Argument
                 id="size"
-                description="Filesize of the document"
+                description="Size in bytes of the file"
                 required
+              />
+              <Argument
+                id="documentId"
+                description="UUID of the associated document"
               />
             </Arguments>
           </Method>
@@ -313,6 +317,7 @@ export default function Api() {
               <Argument id="userId" description="User ID" />
               <Argument id="collectionId" description="Collection ID" />
               <Argument id="includeArchived" description="Boolean" />
+              <Argument id="includeDrafts" description="Boolean" />
               <Argument
                 id="dateFilter"
                 description="Date range to consider (day, week, month or year)"

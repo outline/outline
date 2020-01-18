@@ -79,7 +79,7 @@ describe('#views.create', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.success).toBe(true);
+    expect(body.data.count).toBe(1);
   });
 
   it('should allow creating a view record for document in read-only collection', async () => {
@@ -100,7 +100,7 @@ describe('#views.create', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.success).toBe(true);
+    expect(body.data.count).toBe(1);
   });
 
   it('should require authentication', async () => {

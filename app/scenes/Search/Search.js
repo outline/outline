@@ -2,7 +2,7 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 import keydown from 'react-keydown';
-import Waypoint from 'react-waypoint';
+import { Waypoint } from 'react-waypoint';
 import { withRouter, Link } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
 import { PlusIcon } from 'outline-icons';
@@ -48,7 +48,8 @@ type Props = {
 class Search extends React.Component<Props> {
   firstDocument: ?DocumentPreview;
 
-  @observable query: string = '';
+  @observable
+  query: string = decodeURIComponent(this.props.match.params.term || '');
   @observable params: URLSearchParams = new URLSearchParams();
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
@@ -188,6 +189,7 @@ class Search extends React.Component<Props> {
           limit: DEFAULT_PAGINATION_LIMIT,
           dateFilter: this.dateFilter,
           includeArchived: this.includeArchived,
+          includeDrafts: true,
           collectionId: this.collectionId,
           userId: this.userId,
         });
