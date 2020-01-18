@@ -8,7 +8,6 @@ import {
   getSignature,
   publicS3Endpoint,
   makeCredential,
-  proxyS3Url,
 } from '../utils/s3';
 import { ValidationError } from '../errors';
 import { Attachment, Event, User, Team } from '../models';
@@ -88,6 +87,7 @@ router.post('users.s3Upload', auth(), async ctx => {
   ctx.assertPresent(size, 'size is required');
 
   const { user } = ctx.state;
+  const id = uuid.v4();
   const s3Key = uuid.v4();
   const key = `uploads/${user.id}/${s3Key}/${name}`;
   const credential = makeCredential();
@@ -95,10 +95,12 @@ router.post('users.s3Upload', auth(), async ctx => {
   const policy = makePolicy(credential, longDate);
   const endpoint = publicS3Endpoint();
   const acl = process.env.AWS_S3_ACL || 'private';
-  const url = acl === 'private' ? proxyS3Url(key) : `${endpoint}/${key}`;
+  const url = `${endpoint}/${key}`;
 
   await Attachment.create({
+    id,
     key,
+    acl,
     size,
     url,
     contentType,
@@ -122,7 +124,7 @@ router.post('users.s3Upload', auth(), async ctx => {
       form: {
         'Cache-Control': 'max-age=31557600',
         'Content-Type': contentType,
-        acl: 'public-read',
+        acl,
         key,
         policy,
         'x-amz-algorithm': 'AWS4-HMAC-SHA256',
@@ -133,7 +135,7 @@ router.post('users.s3Upload', auth(), async ctx => {
       asset: {
         contentType,
         name,
-        url,
+        url: `/api/images.info?id=${id}`,
         size,
       },
     },

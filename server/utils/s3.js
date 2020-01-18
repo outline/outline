@@ -115,14 +115,13 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
   }
 };
 
-export const proxyS3Url = (key: string) => `/api/images.info?key=${key}`;
-
 export const getSignedImageUrl = async (key: string) => {
   invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
 
   const params = {
     Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
+    Expires: 60,
   };
 
   return s3.getSignedUrl('getObject', params);
@@ -141,7 +140,6 @@ export const getImageByKey = async (key: string) => {
     if (process.env.NODE_ENV === 'production') {
       bugsnag.notify(err);
     } else {
-      // TODO: do something useful here perhaps?
       throw err;
     }
   }

@@ -3,24 +3,24 @@ import fs from 'fs';
 import JSZip from 'jszip';
 import tmp from 'tmp';
 import unescape from '../../shared/utils/unescape';
-import { Collection, Document } from '../models';
+import { Attachment, Collection, Document } from '../models';
 import { getImageByKey } from './s3';
-
-const proxyS3UrlRegex = /(?<=!\[.*\]\()(\/api\/images\.info\?key=.*)(?=\))/gi;
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
     const document = await Document.findByPk(doc.id);
     let text = unescape(document.text);
 
-    if (process.env.AWS_S3_ACL !== 'public-read') {
-      const matches = text.match(proxyS3UrlRegex);
-      if (matches !== null) {
-        for (const match of matches) {
-          const key = match.slice(21);
-          await addImageToArchive(zip, decodeURI(key));
-        }
-        text = text.replace(proxyS3UrlRegex, match => match.slice(21));
+    const attachments = await Attachment.findAll({
+      where: { documentId: document.id },
+      attributes: ['id', 'key'],
+    });
+
+    if (attachments !== null) {
+      for (const attachment of attachments) {
+        const key = attachment.key;
+        await addImageToArchive(zip, decodeURI(key));
+        text = text.replace(`/api/images.info?id=${attachment.id}`, key);
       }
     }
 
