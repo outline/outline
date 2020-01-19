@@ -13,15 +13,11 @@ async function addToArchive(zip, documents) {
 
     const attachments = await Attachment.findAll({
       where: { documentId: document.id },
-      attributes: ['id', 'key'],
     });
 
-    if (attachments !== null) {
-      for (const attachment of attachments) {
-        const key = attachment.key;
-        await addImageToArchive(zip, decodeURI(key));
-        text = text.replace(`/api/images.info?id=${attachment.id}`, key);
-      }
+    for (const attachment of attachments) {
+      await addImageToArchive(zip, attachment.key);
+      text = text.replace(attachment.redirectUrl, encodeURI(attachment.key));
     }
 
     zip.file(`${document.title}.md`, text);

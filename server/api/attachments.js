@@ -6,15 +6,14 @@ import { getSignedImageUrl } from '../utils/s3';
 
 const router = new Router();
 
-router.post('images.info', auth(), async ctx => {
+router.post('attachments.redirect', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
   const attachment = await Attachment.findByPk(id);
-  const redirectUrl =
-    attachment.acl === 'private'
-      ? await getSignedImageUrl(attachment.key)
-      : attachment.url;
-  ctx.redirect(redirectUrl);
+  const accessUrl = attachment.isPrivate
+    ? await getSignedImageUrl(attachment.key)
+    : attachment.url;
+  ctx.redirect(accessUrl);
 });
 
 export default router;

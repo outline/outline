@@ -87,7 +87,6 @@ router.post('users.s3Upload', auth(), async ctx => {
   ctx.assertPresent(size, 'size is required');
 
   const { user } = ctx.state;
-  const id = uuid.v4();
   const s3Key = uuid.v4();
   const key = `uploads/${user.id}/${s3Key}/${name}`;
   const credential = makeCredential();
@@ -97,8 +96,7 @@ router.post('users.s3Upload', auth(), async ctx => {
   const acl = process.env.AWS_S3_ACL || 'private';
   const url = `${endpoint}/${key}`;
 
-  await Attachment.create({
-    id,
+  const attachment = await Attachment.create({
     key,
     acl,
     size,
@@ -135,7 +133,7 @@ router.post('users.s3Upload', auth(), async ctx => {
       asset: {
         contentType,
         name,
-        url: `/api/images.info?id=${id}`,
+        url: attachment.redirectUrl,
         size,
       },
     },
