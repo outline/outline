@@ -105,7 +105,7 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
       .promise();
 
     const endpoint = publicS3Endpoint(true);
-    return AWS_S3_ACL === 'private' ? proxyS3Url(key) : `${endpoint}/${key}`;
+    return `${endpoint}/${key}`;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
       bugsnag.notify(err);
