@@ -18,7 +18,7 @@
     "test": "npm run test:app && npm run test:server",
     "test:app": "jest",
     "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
-    "test:watch": "jest --config=server/.jestconfig.json --runInBand --forceExit --watchAll"
+    "test:watch": "jest collections --config=server/.jestconfig.json --runInBand --forceExit --watchAll"
   },
   "jest": {
     "testURL": "http://localhost",

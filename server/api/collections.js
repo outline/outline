@@ -130,6 +130,35 @@ router.post('collections.add_group', auth(), async ctx => {
   };
 });
 
+router.post('collections.remove_group', auth(), async ctx => {
+  const { id, groupId } = ctx.body;
+  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(groupId, 'groupId is required');
+
+  const collection = await Collection.scope({
+    method: ['withMembership', ctx.state.user.id],
+  }).findByPk(id);
+  authorize(ctx.state.user, 'update', collection);
+
+  const group = await Group.findByPk(groupId);
+  authorize(ctx.state.user, 'read', group);
+
+  await collection.removeGroup(group);
+
+  await Event.create({
+    name: 'collections.remove_group',
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: ctx.state.user.id,
+    data: { name: group.name, groupId },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    success: true,
+  };
+});
+
 router.post('collections.add_user', auth(), async ctx => {
   const { id, userId, permission = 'read_write' } = ctx.body;
   ctx.assertUuid(id, 'id is required');
