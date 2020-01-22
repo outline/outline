@@ -5,6 +5,7 @@ import invariant from 'invariant';
 type Options = {
   name?: string,
   documentId?: string,
+  public?: boolean,
 };
 
 export const uploadFile = async (
@@ -13,6 +14,7 @@ export const uploadFile = async (
 ) => {
   const name = file instanceof File ? file.name : options.name;
   const response = await client.post('/users.s3Upload', {
+    public: options.public,
     documentId: options.documentId,
     contentType: file.type,
     size: file.size,

@@ -13,17 +13,20 @@ router.post('attachments.redirect', auth(), async ctx => {
   const { id } = ctx.body;
   ctx.assertPresent(id, 'id is required');
 
-  const attachment = await Attachment.findByPk(id);
   const user = ctx.state.user;
-  const document = await Document.findByPk(attachment.documentId, {
-    userId: user.id,
-  });
-  authorize(user, 'read', document);
+  const attachment = await Attachment.findByPk(id);
 
-  const accessUrl = attachment.isPrivate
-    ? await getSignedImageUrl(attachment.key)
-    : attachment.url;
-  ctx.redirect(accessUrl);
+  if (attachment.isPrivate) {
+    const document = await Document.findByPk(attachment.documentId, {
+      userId: user.id,
+    });
+    authorize(user, 'read', document);
+
+    const accessUrl = await getSignedImageUrl(attachment.key);
+    ctx.redirect(accessUrl);
+  } else {
+    ctx.redirect(attachment.url);
+  }
 });
 
 export default router;

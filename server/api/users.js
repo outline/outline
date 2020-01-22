@@ -17,6 +17,7 @@ import userInviter from '../commands/userInviter';
 import { presentUser } from '../presenters';
 import policy from '../policies';
 
+const AWS_S3_ACL = process.env.AWS_S3_ACL || 'private';
 const { authorize } = policy;
 const router = new Router();
 
@@ -61,12 +62,9 @@ router.post('users.info', auth(), async ctx => {
 router.post('users.update', auth(), async ctx => {
   const { user } = ctx.state;
   const { name, avatarUrl } = ctx.body;
-  const endpoint = publicS3Endpoint();
 
   if (name) user.name = name;
-  if (avatarUrl && avatarUrl.startsWith(`${endpoint}/uploads/${user.id}`)) {
-    user.avatarUrl = avatarUrl;
-  }
+  if (avatarUrl) user.avatarUrl = avatarUrl;
 
   await user.save();
 
@@ -89,11 +87,14 @@ router.post('users.s3Upload', auth(), async ctx => {
   const { user } = ctx.state;
   const s3Key = uuid.v4();
   const key = `uploads/${user.id}/${s3Key}/${name}`;
+  const acl =
+    ctx.body.public === undefined
+      ? AWS_S3_ACL
+      : ctx.body.public ? 'public-read' : 'private';
   const credential = makeCredential();
   const longDate = format(new Date(), 'YYYYMMDDTHHmmss\\Z');
-  const policy = makePolicy(credential, longDate);
+  const policy = makePolicy(credential, longDate, acl);
   const endpoint = publicS3Endpoint();
-  const acl = process.env.AWS_S3_ACL || 'private';
   const url = `${endpoint}/${key}`;
 
   const attachment = await Attachment.create({
