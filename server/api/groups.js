@@ -62,11 +62,14 @@ router.post('groups.create', auth(), async ctx => {
   const user = ctx.state.user;
 
   authorize(user, 'create', Group);
-  const group = await Group.create({
+  let group = await Group.create({
     name,
     teamId: user.teamId,
     createdById: user.id,
   });
+
+  // reload to get default scope
+  group = await Group.findByPk(group.id);
 
   await Event.create({
     name: 'groups.create',
@@ -194,11 +197,11 @@ router.post('groups.add_user', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const group = await Group.findByPk(id);
-  authorize(ctx.state.user, 'update', group);
-
   const user = await User.findByPk(userId);
   authorize(ctx.state.user, 'read', user);
+
+  let group = await Group.findByPk(id);
+  authorize(ctx.state.user, 'update', group);
 
   let membership = await GroupUser.findOne({
     where: {
@@ -208,9 +211,20 @@ router.post('groups.add_user', auth(), async ctx => {
   });
 
   if (!membership) {
-    membership = (await group.addUser(user, {
+    await group.addUser(user, {
       through: { createdById: ctx.state.user.id },
-    }))[0];
+    });
+
+    // reload to get default scope
+    membership = await GroupUser.findOne({
+      where: {
+        groupId: id,
+        userId,
+      },
+    });
+
+    // reload to get default scope
+    group = await Group.findByPk(id);
 
     await Event.create({
       name: 'groups.add_user',
@@ -226,6 +240,7 @@ router.post('groups.add_user', auth(), async ctx => {
     data: {
       users: [presentUser(user)],
       groupMemberships: [presentGroupMembership(membership)],
+      groups: [presentGroup(group)],
     },
   };
 });
@@ -235,7 +250,7 @@ router.post('groups.remove_user', auth(), async ctx => {
   ctx.assertUuid(id, 'id is required');
   ctx.assertUuid(userId, 'userId is required');
 
-  const group = await Group.findByPk(id);
+  let group = await Group.findByPk(id);
   authorize(ctx.state.user, 'update', group);
 
   const user = await User.findByPk(userId);
@@ -252,8 +267,13 @@ router.post('groups.remove_user', auth(), async ctx => {
     ip: ctx.request.ip,
   });
 
+  // reload to get default scope
+  group = await Group.findByPk(id);
+
   ctx.body = {
-    success: true,
+    data: {
+      groups: [presentGroup(group)],
+    },
   };
 });
 

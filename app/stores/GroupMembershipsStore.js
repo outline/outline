@@ -44,17 +44,23 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
     invariant(res && res.data, 'Group Membership data should be available');
 
     res.data.users.forEach(this.rootStore.users.add);
+    res.data.groups.forEach(this.rootStore.groups.add);
     res.data.groupMemberships.forEach(this.add);
   }
 
   @action
   async delete({ groupId, userId }: { groupId: string, userId: string }) {
-    await client.post('/groups.remove_user', {
+    const res = await client.post('/groups.remove_user', {
       id: groupId,
       userId,
     });
 
     this.remove(`${userId}-${groupId}`);
+
+    runInAction(`/groups.remove_user`, () => {
+      res.data.groups.forEach(this.rootStore.groups.add);
+      this.isLoaded = true;
+    });
   }
 
   @action

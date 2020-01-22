@@ -4,6 +4,7 @@ import Authentication from './Authentication';
 import Backlink from './Backlink';
 import Collection from './Collection';
 import CollectionUser from './CollectionUser';
+import CollectionGroup from './CollectionGroup';
 import Document from './Document';
 import Event from './Event';
 import Integration from './Integration';
@@ -23,6 +24,7 @@ const models = {
   Authentication,
   Backlink,
   Collection,
+  CollectionGroup,
   CollectionUser,
   Document,
   Event,
@@ -51,6 +53,7 @@ export {
   Authentication,
   Backlink,
   Collection,
+  CollectionGroup,
   CollectionUser,
   Document,
   Event,

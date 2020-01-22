@@ -9,8 +9,17 @@ import {
   presentUser,
   presentPolicies,
   presentMembership,
+  presentCollectionGroupMembership,
 } from '../presenters';
-import { Collection, CollectionUser, Team, Event, User } from '../models';
+import {
+  Collection,
+  CollectionUser,
+  CollectionGroup,
+  Team,
+  Event,
+  User,
+  Group,
+} from '../models';
 import { ValidationError } from '../errors';
 import { exportCollections } from '../logistics';
 import { archiveCollection, archiveCollections } from '../utils/zip';
@@ -68,6 +77,56 @@ router.post('collections.info', auth(), async ctx => {
   ctx.body = {
     data: presentCollection(collection),
     policies: presentPolicies(user, [collection]),
+  };
+});
+
+router.post('collections.add_group', auth(), async ctx => {
+  const { id, groupId, permission = 'read_write' } = ctx.body;
+  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(groupId, 'groupId is required');
+
+  const collection = await Collection.scope({
+    method: ['withMembership', ctx.state.user.id],
+  }).findByPk(id);
+  authorize(ctx.state.user, 'update', collection);
+
+  const group = await Group.findByPk(groupId);
+  authorize(ctx.state.user, 'read', group);
+
+  let membership = await CollectionGroup.findOne({
+    where: {
+      collectionId: id,
+      groupId,
+    },
+  });
+
+  if (!membership) {
+    membership = await CollectionGroup.create({
+      collectionId: id,
+      groupId,
+      permission,
+      createdById: ctx.state.user.id,
+    });
+  } else if (permission) {
+    membership.permission = permission;
+    await membership.save();
+  }
+
+  await Event.create({
+    name: 'collections.add_group',
+    collectionId: collection.id,
+    teamId: collection.teamId,
+    actorId: ctx.state.user.id,
+    data: { name: group.name, groupId },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    data: {
+      collectionGroupMemberships: [
+        presentCollectionGroupMembership(membership),
+      ],
+    },
   };
 });
 

@@ -107,6 +107,42 @@ class CollectionMembers extends React.Component<Props> {
           </HelpText>
         )}
 
+        {/* {collection.private && (
+          <React.Fragment>
+            <Subheading>Groups</Subheading>
+            <PaginatedList
+              key={key}
+              items={groups}
+              fetch={
+                collection.private ? memberships.fetchPage : users.fetchPage
+              }
+              options={collection.private ? { id: collection.id } : undefined}
+              renderItem={item => (
+                <MemberListItem
+                  key={item.id}
+                  user={item}
+                  membership={memberships.get(`${item.id}-${collection.id}`)}
+                  canEdit={collection.private && item.id !== user.id}
+                  onRemove={() => this.handleRemoveUser(item)}
+                  onUpdate={permission =>
+                    this.handleUpdateUser(item, permission)
+                  }
+                />
+              )}
+            />
+            <Modal
+              title={`Add people to ${collection.name}`}
+              onRequestClose={this.handleAddModalClose}
+              isOpen={this.addModalOpen}
+            >
+              <AddPeopleToCollection
+                collection={collection}
+                onSubmit={this.handleAddModalClose}
+              />
+            </Modal>
+          </React.Fragment>
+        )} */}
+
         <Subheading>Members</Subheading>
         <PaginatedList
           key={key}

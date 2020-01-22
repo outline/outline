@@ -15,6 +15,7 @@ import presentSlackAttachment from './slackAttachment';
 import presentPolicies from './policy';
 import presentGroup from './group';
 import presentGroupMembership from './groupMembership';
+import presentCollectionGroupMembership from './collectionGroupMembership';
 
 export {
   presentUser,
@@ -33,4 +34,5 @@ export {
   presentSlackAttachment,
   presentPolicies,
   presentGroupMembership,
+  presentCollectionGroupMembership,
 };

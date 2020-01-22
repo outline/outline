@@ -59,9 +59,19 @@ Collection.associate = models => {
     foreignKey: 'collectionId',
     onDelete: 'cascade',
   });
+  Collection.hasMany(models.CollectionGroup, {
+    as: 'collectionGroupMemberships',
+    foreignKey: 'collectionId',
+    onDelete: 'cascade',
+  });
   Collection.belongsToMany(models.User, {
     as: 'users',
     through: models.CollectionUser,
+    foreignKey: 'collectionId',
+  });
+  Collection.belongsToMany(models.Group, {
+    as: 'groups',
+    through: models.CollectionGroup,
     foreignKey: 'collectionId',
   });
   Collection.belongsTo(models.User, {

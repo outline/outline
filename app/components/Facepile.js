@@ -20,14 +20,16 @@ class Facepile extends React.Component<Props> {
     return (
       <Avatars>
         {overflow > 0 && <More>+{overflow}</More>}
-        {users.map(user => <AvatarWrapper>{renderAvatar(user)}</AvatarWrapper>)}
+        {users.map(user => (
+          <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
+        ))}
       </Avatars>
     );
   }
 }
 
 function renderDefaultAvatar(user: User) {
-  return <Avatar key={user.id} user={user} src={user.avatarUrl} size={32} />;
+  return <Avatar user={user} src={user.avatarUrl} size={32} />;
 }
 
 const AvatarWrapper = styled.div`

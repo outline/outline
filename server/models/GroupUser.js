@@ -24,6 +24,9 @@ GroupUser.associate = models => {
     as: 'createdBy',
     foreignKey: 'createdById',
   });
+  GroupUser.addScope('defaultScope', {
+    include: [{ association: 'user' }],
+  });
 };
 
 export default GroupUser;

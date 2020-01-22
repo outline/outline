@@ -133,11 +133,13 @@ describe('#groups.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
+
     expect(body.data['groups'].length).toEqual(1);
     expect(body.data['groups'][0].id).toEqual(group.id);
 
     expect(body.data['groupMemberships'].length).toEqual(1);
     expect(body.data['groupMemberships'][0].groupId).toEqual(group.id);
+    expect(body.data['groupMemberships'][0].user.id).toEqual(user.id);
 
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
@@ -238,6 +240,7 @@ describe('#groups.memberships', async () => {
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(user.id);
     expect(body.data.groupMemberships.length).toEqual(1);
+    expect(body.data.groupMemberships[0].user.id).toEqual(user.id);
   });
 
   it('should allow filtering members in group by name', async () => {
