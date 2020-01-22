@@ -5,6 +5,7 @@ import tmp from 'tmp';
 import unescape from '../../shared/utils/unescape';
 import { Attachment, Collection, Document } from '../models';
 import { getImageByKey } from './s3';
+import bugsnag from 'bugsnag';
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
@@ -30,8 +31,17 @@ async function addToArchive(zip, documents) {
 }
 
 async function addImageToArchive(zip, key) {
-  const img = await getImageByKey(key);
-  zip.file(key, img, { createFolders: true });
+  try {
+    const img = await getImageByKey(key);
+    zip.file(key, img, { createFolders: true });
+  } catch (err) {
+    if (process.env.NODE_ENV === 'production') {
+      bugsnag.notify(err);
+    } else {
+      // error during file retrieval
+      console.error(err);
+    }
+  }
 }
 
 async function archiveToPath(zip) {
