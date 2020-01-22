@@ -1,5 +1,5 @@
 // @flow
-import { User, Document, Collection, Team } from '../models';
+import { User, Document, Collection, Team, Attachment } from '../models';
 import { sequelize } from '../sequelize';
 
 export function flushdb() {
@@ -76,12 +76,26 @@ const seed = async () => {
   await document.publish();
   await collection.reload();
 
+  const attachment = await Attachment.create({
+    teamId: team.id,
+    userId: collection.creatorId,
+    documentId: document.id,
+    key: 'uploads/key/to/file.png',
+    url: 'https://redirect.url.com/uploads/key/to/file.png',
+    contentType: 'image/png',
+    size: 100,
+    acl: 'public-read',
+    createdAt: new Date('2018-01-02T00:00:00.000Z'),
+    updatedAt: new Date('2018-01-02T00:00:00.000Z'),
+  });
+
   return {
     user,
     admin,
     collection,
     document,
     team,
+    attachment,
   };
 };
 
