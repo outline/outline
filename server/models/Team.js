@@ -91,12 +91,18 @@ Team.associate = models => {
 
 const uploadAvatar = async model => {
   const endpoint = publicS3Endpoint();
+  const { avatarUrl } = model;
 
-  if (model.avatarUrl && !model.avatarUrl.startsWith(endpoint)) {
+  if (
+    avatarUrl &&
+    !avatarUrl.startsWith('/api') &&
+    !avatarUrl.startsWith(endpoint)
+  ) {
     try {
       const newUrl = await uploadToS3FromUrl(
-        model.avatarUrl,
-        `avatars/${model.id}/${uuid.v4()}`
+        avatarUrl,
+        `avatars/${model.id}/${uuid.v4()}`,
+        'public-read'
       );
       if (newUrl) model.avatarUrl = newUrl;
     } catch (err) {

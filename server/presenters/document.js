@@ -1,11 +1,29 @@
 // @flow
 import { takeRight } from 'lodash';
-import { User, Document } from '../models';
+import { User, Document, Attachment } from '../models';
+import { getSignedImageUrl } from '../utils/s3';
 import presentUser from './user';
 
 type Options = {
   isPublic?: boolean,
 };
+
+const attachmentRegex = /!\[.*\]\(\/api\/attachments\.redirect\?id=(?<id>.*)\)/gi;
+
+// replaces attachments.redirect urls with signed/authenticated url equivalents
+async function replaceImageAttachments(text) {
+  const attachmentIds = [...text.matchAll(attachmentRegex)].map(
+    match => match.groups && match.groups.id
+  );
+
+  for (const id of attachmentIds) {
+    const attachment = await Attachment.findByPk(id);
+    const accessUrl = await getSignedImageUrl(attachment.key);
+    text = text.replace(attachment.redirectUrl, accessUrl);
+  }
+
+  return text;
+}
 
 export default async function present(document: Document, options: ?Options) {
   options = {
@@ -13,12 +31,16 @@ export default async function present(document: Document, options: ?Options) {
     ...options,
   };
 
+  const text = options.isPublic
+    ? await replaceImageAttachments(document.text)
+    : document.text;
+
   const data = {
     id: document.id,
     url: document.url,
     urlId: document.urlId,
     title: document.title,
-    text: document.text,
+    text,
     emoji: document.emoji,
     createdAt: document.createdAt,
     createdBy: undefined,

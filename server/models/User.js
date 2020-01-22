@@ -128,12 +128,14 @@ const uploadAvatar = async model => {
 
   if (
     avatarUrl &&
+    !avatarUrl.startsWith('/api') &&
     !avatarUrl.startsWith(endpoint) &&
     !avatarUrl.startsWith(DEFAULT_AVATAR_HOST)
   ) {
     const newUrl = await uploadToS3FromUrl(
       avatarUrl,
-      `avatars/${model.id}/${uuid.v4()}`
+      `avatars/${model.id}/${uuid.v4()}`,
+      'public-read'
     );
     if (newUrl) model.avatarUrl = newUrl;
   }

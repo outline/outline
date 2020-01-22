@@ -11,7 +11,6 @@ const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
-const AWS_S3_ACL = process.env.AWS_S3_ACL || 'private';
 
 const s3 = new AWS.S3({
   s3ForcePathStyle: true,
@@ -38,13 +37,17 @@ export const makeCredential = () => {
   return credential;
 };
 
-export const makePolicy = (credential: string, longDate: string) => {
+export const makePolicy = (
+  credential: string,
+  longDate: string,
+  acl: string
+) => {
   const tomorrow = addHours(new Date(), 24);
   const policy = {
     conditions: [
       { bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME },
       ['starts-with', '$key', ''],
-      { acl: AWS_S3_ACL },
+      { acl },
       ['content-length-range', 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
       ['starts-with', '$Content-Type', 'image'],
       ['starts-with', '$Cache-Control', ''],
@@ -85,7 +88,11 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   }`;
 };
 
-export const uploadToS3FromUrl = async (url: string, key: string) => {
+export const uploadToS3FromUrl = async (
+  url: string,
+  key: string,
+  acl: string
+) => {
   invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
 
   try {
@@ -94,7 +101,7 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
     const buffer = await res.buffer();
     await s3
       .putObject({
-        ACL: AWS_S3_ACL,
+        ACL: acl,
         Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
         Key: key,
         ContentType: res.headers['content-type'],
