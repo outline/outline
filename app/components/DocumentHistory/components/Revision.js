@@ -43,7 +43,7 @@ class RevisionListItem extends React.Component<Props> {
           <StyledRevisionMenu
             document={document}
             revision={revision}
-            label={<MoreIcon color={theme.white} />}
+            label={<MoreIcon />}
           />
         )}
       </StyledNavLink>
@@ -68,6 +68,15 @@ const StyledNavLink = styled(NavLink)`
   padding: 8px 16px;
   font-size: 15px;
   position: relative;
+
+  &:focus,
+  &:active {
+    ${StyledRevisionMenu} {
+      svg {
+        fill: ${props => props.theme.white};
+      }
+    }
+  }
 `;
 
 const Author = styled(Flex)`
