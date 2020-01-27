@@ -5,6 +5,7 @@ import naturalSort from 'shared/utils/naturalSort';
 import Group from 'models/Group';
 import { client } from 'utils/ApiClient';
 import invariant from 'invariant';
+import { filter } from 'lodash';
 import { action, runInAction, computed } from 'mobx';
 import type { PaginationParams } from 'types';
 
@@ -38,4 +39,24 @@ export default class GroupsStore extends BaseStore<Group> {
       this.isFetching = false;
     }
   };
+
+  inCollection = (collectionId: string, query: string) => {
+    const memberships = filter(
+      this.rootStore.collectionGroupMemberships.orderedData,
+      member => member.collectionId === collectionId
+    );
+    const groupIds = memberships.map(member => member.groupId);
+    const groups = filter(this.orderedData, group =>
+      groupIds.includes(group.id)
+    );
+
+    if (!query) return groups;
+    return queriedGroups(groups, query);
+  };
+}
+
+function queriedGroups(groups, query) {
+  return filter(groups, group =>
+    group.name.toLowerCase().match(query.toLowerCase())
+  );
 }

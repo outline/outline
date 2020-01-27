@@ -1,12 +1,14 @@
 // @flow
 import * as React from 'react';
 import { observable } from 'mobx';
+import styled from 'styled-components';
 import { inject, observer } from 'mobx-react';
 import { PlusIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 import HelpText from 'components/HelpText';
 import Subheading from 'components/Subheading';
 import Button from 'components/Button';
+import Empty from 'components/Empty';
 import PaginatedList from 'components/PaginatedList';
 import Modal from 'components/Modal';
 import Collection from 'models/Collection';
@@ -16,6 +18,7 @@ import MembershipsStore from 'stores/MembershipsStore';
 import UsersStore from 'stores/UsersStore';
 import MemberListItem from './components/MemberListItem';
 import AddPeopleToCollection from './AddPeopleToCollection';
+import GroupsStore from 'stores/GroupsStore';
 
 type Props = {
   ui: UiStore,
@@ -23,6 +26,7 @@ type Props = {
   collection: Collection,
   users: UsersStore,
   memberships: MembershipsStore,
+  groups: GroupsStore,
   onEdit: () => void,
 };
 
@@ -64,7 +68,7 @@ class CollectionMembers extends React.Component<Props> {
   };
 
   render() {
-    const { collection, users, memberships, auth } = this.props;
+    const { collection, users, groups, memberships, auth } = this.props;
     const { user } = auth;
     if (!user) return null;
 
@@ -78,9 +82,10 @@ class CollectionMembers extends React.Component<Props> {
         {collection.private ? (
           <React.Fragment>
             <HelpText>
-              Choose which team members have access to view and edit documents
-              in the private <strong>{collection.name}</strong> collection. You
-              can make this collection visible to the entire team by{' '}
+              Choose which groups and team members have access to view and edit
+              documents in the private <strong>{collection.name}</strong>{' '}
+              collection. You can make this collection visible to the entire
+              team by{' '}
               <a role="button" onClick={this.props.onEdit}>
                 changing its visibility
               </a>.
@@ -92,7 +97,7 @@ class CollectionMembers extends React.Component<Props> {
                 icon={<PlusIcon />}
                 neutral
               >
-                Add people
+                Add groups
               </Button>
             </span>
           </React.Fragment>
@@ -107,16 +112,17 @@ class CollectionMembers extends React.Component<Props> {
           </HelpText>
         )}
 
-        {/* {collection.private && (
-          <React.Fragment>
+        {collection.private && (
+          <GroupsWrap>
             <Subheading>Groups</Subheading>
             <PaginatedList
               key={key}
-              items={groups}
+              items={groups.inCollection(collection.id)}
               fetch={
                 collection.private ? memberships.fetchPage : users.fetchPage
               }
               options={collection.private ? { id: collection.id } : undefined}
+              empty={<Empty>This collection has no groups.</Empty>}
               renderItem={item => (
                 <MemberListItem
                   key={item.id}
@@ -140,10 +146,26 @@ class CollectionMembers extends React.Component<Props> {
                 onSubmit={this.handleAddModalClose}
               />
             </Modal>
-          </React.Fragment>
-        )} */}
+          </GroupsWrap>
+        )}
+        {collection.private ? (
+          <React.Fragment>
+            <span>
+              <Button
+                type="button"
+                onClick={this.handleAddModalOpen}
+                icon={<PlusIcon />}
+                neutral
+              >
+                Add indivdual members
+              </Button>
+            </span>
 
-        <Subheading>Members</Subheading>
+            <Subheading>Individual Members</Subheading>
+          </React.Fragment>
+        ) : (
+          <Subheading>Members</Subheading>
+        )}
         <PaginatedList
           key={key}
           items={
@@ -179,4 +201,10 @@ class CollectionMembers extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'users', 'memberships', 'ui')(CollectionMembers);
+const GroupsWrap = styled.div`
+  margin-bottom: 30px;
+`;
+
+export default inject('auth', 'users', 'memberships', 'groups', 'ui')(
+  CollectionMembers
+);
