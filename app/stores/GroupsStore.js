@@ -53,6 +53,21 @@ export default class GroupsStore extends BaseStore<Group> {
     if (!query) return groups;
     return queriedGroups(groups, query);
   };
+
+  notInCollection = (collectionId: string, query: string = '') => {
+    const memberships = filter(
+      this.rootStore.collectionGroupMemberships.orderedData,
+      member => member.collectionId === collectionId
+    );
+    const groupIds = memberships.map(member => member.groupId);
+    const groups = filter(
+      this.orderedData,
+      group => !groupIds.includes(group.id)
+    );
+
+    if (!query) return groups;
+    return queriedGroups(groups, query);
+  };
 }
 
 function queriedGroups(groups, query) {

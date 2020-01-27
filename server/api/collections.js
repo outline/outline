@@ -9,6 +9,7 @@ import {
   presentUser,
   presentPolicies,
   presentMembership,
+  presentGroup,
   presentCollectionGroupMembership,
 } from '../presenters';
 import {
@@ -158,6 +159,68 @@ router.post('collections.remove_group', auth(), async ctx => {
     success: true,
   };
 });
+
+router.post(
+  'collections.group_memberships',
+  auth(),
+  pagination(),
+  async ctx => {
+    const { id, query, permission } = ctx.body;
+    ctx.assertUuid(id, 'id is required');
+
+    const user = ctx.state.user;
+    const collection = await Collection.scope({
+      method: ['withMembership', user.id],
+    }).findByPk(id);
+    authorize(user, 'read', collection);
+
+    let where = {
+      collectionId: id,
+    };
+
+    let groupWhere;
+
+    if (query) {
+      groupWhere = {
+        name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      };
+    }
+
+    if (permission) {
+      where = {
+        ...where,
+        permission,
+      };
+    }
+
+    const memberships = await CollectionGroup.findAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+      include: [
+        {
+          model: Group,
+          as: 'group',
+          where: groupWhere,
+          required: true,
+        },
+      ],
+    });
+
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data: {
+        collectionGroupMemberships: memberships.map(
+          presentCollectionGroupMembership
+        ),
+        groups: memberships.map(membership => presentGroup(membership.group)),
+      },
+    };
+  }
+);
 
 router.post('collections.add_user', auth(), async ctx => {
   const { id, userId, permission = 'read_write' } = ctx.body;

@@ -13,10 +13,11 @@ import GroupNew from 'scenes/GroupNew';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
-import GroupListItem from './components/GroupListItem';
+import GroupListItem from 'components/GroupListItem';
 import List from 'components/List';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
+import GroupMenu from 'menus/GroupMenu';
 
 import AuthStore from 'stores/AuthStore';
 import GroupsStore from 'stores/GroupsStore';
@@ -85,7 +86,14 @@ class Groups extends React.Component<Props> {
 
         <List>
           {groups.orderedData.map(group => (
-            <GroupListItem key={group.id} group={group} showMenu />
+            <GroupListItem
+              key={group.id}
+              group={group}
+              renderActions={({ openMembersModal }) => (
+                <GroupMenu group={group} onMembers={openMembersModal} />
+              )}
+              showFacepile
+            />
           ))}
         </List>
 

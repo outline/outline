@@ -4,19 +4,21 @@ import styled from 'styled-components';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { MAX_AVATAR_DISPLAY } from 'shared/constants';
-import GroupMenu from 'menus/GroupMenu';
 import Modal from 'components/Modal';
 import Flex from 'shared/components/Flex';
 import Facepile from 'components/Facepile';
 import GroupMembers from 'scenes/GroupMembers';
 import ListItem from 'components/List/Item';
 import Group from 'models/Group';
+import CollectionGroupMembership from 'models/CollectionGroupMembership';
 import GroupMembershipsStore from 'stores/GroupMembershipsStore';
 
 type Props = {
   group: Group,
-  showMenu: boolean,
   groupMemberships: GroupMembershipsStore,
+  membership?: CollectionGroupMembership,
+  showFacepile: boolean,
+  renderActions: ({ openMembersModal: () => void }) => React.Node,
 };
 
 @observer
@@ -31,10 +33,9 @@ class GroupListItem extends React.Component<Props> {
     this.membersModalOpen = false;
   };
 
-  onEdit = () => {};
-
   render() {
-    const { group, groupMemberships, showMenu } = this.props;
+    const { group, groupMemberships, showFacepile, renderActions } = this.props;
+
     const memberCount = group.memberCount;
 
     const membershipsInGroup = groupMemberships.inGroup(group.id);
@@ -57,14 +58,11 @@ class GroupListItem extends React.Component<Props> {
           }
           actions={
             <Flex align="center">
-              <Facepile users={users} overflow={overflow} />
-              &nbsp;&nbsp;
-              {showMenu && (
-                <GroupMenu
-                  group={group}
-                  onMembers={this.handleMembersModalOpen}
-                />
-              )}
+              {showFacepile && <Facepile users={users} overflow={overflow} />}
+
+              {renderActions({
+                openMembersModal: this.handleMembersModalOpen,
+              })}
             </Flex>
           }
         />
@@ -73,11 +71,7 @@ class GroupListItem extends React.Component<Props> {
           onRequestClose={this.handleMembersModalClose}
           isOpen={this.membersModalOpen}
         >
-          <GroupMembers
-            group={group}
-            onSubmit={this.handleMembersModalClose}
-            onEdit={this.onEdit}
-          />
+          <GroupMembers group={group} onSubmit={this.handleMembersModalClose} />
         </Modal>
       </React.Fragment>
     );

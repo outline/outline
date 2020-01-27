@@ -11,13 +11,17 @@ import Button from 'components/Button';
 import Empty from 'components/Empty';
 import PaginatedList from 'components/PaginatedList';
 import Modal from 'components/Modal';
+import GroupListItem from 'components/GroupListItem';
+import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import MembershipsStore from 'stores/MembershipsStore';
+import CollectionGroupMembershipsStore from 'stores/CollectionGroupMembershipsStore';
 import UsersStore from 'stores/UsersStore';
 import MemberListItem from './components/MemberListItem';
 import AddPeopleToCollection from './AddPeopleToCollection';
+import AddGroupsToCollection from './AddGroupsToCollection';
 import GroupsStore from 'stores/GroupsStore';
 
 type Props = {
@@ -26,20 +30,30 @@ type Props = {
   collection: Collection,
   users: UsersStore,
   memberships: MembershipsStore,
+  collectionGroupMemberships: CollectionGroupMembershipsStore,
   groups: GroupsStore,
   onEdit: () => void,
 };
 
 @observer
 class CollectionMembers extends React.Component<Props> {
-  @observable addModalOpen: boolean = false;
+  @observable addGroupModalOpen: boolean = false;
+  @observable addMemberModalOpen: boolean = false;
 
-  handleAddModalOpen = () => {
-    this.addModalOpen = true;
+  handleAddGroupModalOpen = () => {
+    this.addGroupModalOpen = true;
   };
 
-  handleAddModalClose = () => {
-    this.addModalOpen = false;
+  handleAddGroupModalClose = () => {
+    this.addGroupModalOpen = false;
+  };
+
+  handleAddMemberModalOpen = () => {
+    this.addMemberModalOpen = true;
+  };
+
+  handleAddMemberModalClose = () => {
+    this.addMemberModalOpen = false;
   };
 
   handleRemoveUser = user => {
@@ -67,8 +81,18 @@ class CollectionMembers extends React.Component<Props> {
     }
   };
 
+  handleRemoveGroup = group => {};
+  handleUpdateGroup = (group, permission) => {};
+
   render() {
-    const { collection, users, groups, memberships, auth } = this.props;
+    const {
+      collection,
+      users,
+      groups,
+      memberships,
+      collectionGroupMemberships,
+      auth,
+    } = this.props;
     const { user } = auth;
     if (!user) return null;
 
@@ -93,7 +117,7 @@ class CollectionMembers extends React.Component<Props> {
             <span>
               <Button
                 type="button"
-                onClick={this.handleAddModalOpen}
+                onClick={this.handleAddGroupModalOpen}
                 icon={<PlusIcon />}
                 neutral
               >
@@ -118,32 +142,44 @@ class CollectionMembers extends React.Component<Props> {
             <PaginatedList
               key={key}
               items={groups.inCollection(collection.id)}
-              fetch={
-                collection.private ? memberships.fetchPage : users.fetchPage
-              }
+              fetch={collectionGroupMemberships.fetchPage}
               options={collection.private ? { id: collection.id } : undefined}
               empty={<Empty>This collection has no groups.</Empty>}
-              renderItem={item => (
-                <MemberListItem
-                  key={item.id}
-                  user={item}
-                  membership={memberships.get(`${item.id}-${collection.id}`)}
-                  canEdit={collection.private && item.id !== user.id}
-                  onRemove={() => this.handleRemoveUser(item)}
+              renderItem={group => (
+                <GroupListItem
+                  key={group.id}
+                  group={group}
+                  // membership={collectionGroupMemberships.get(
+                  //   `${item.id}-${collection.id}`
+                  // )}
+                  onRemove={() => this.handleRemoveGroup(group)}
                   onUpdate={permission =>
-                    this.handleUpdateUser(item, permission)
+                    this.handleUpdateGroup(group, permission)
                   }
+                  renderActions={({ openMembersModal }) => (
+                    <DropdownMenu>
+                      <DropdownMenuItem onClick={openMembersModal}>
+                        Members...
+                      </DropdownMenuItem>
+                      <hr />
+                      <DropdownMenuItem
+                        onClick={() => this.handleRemoveGroup(group)}
+                      >
+                        Remove
+                      </DropdownMenuItem>
+                    </DropdownMenu>
+                  )}
                 />
               )}
             />
             <Modal
-              title={`Add people to ${collection.name}`}
-              onRequestClose={this.handleAddModalClose}
-              isOpen={this.addModalOpen}
+              title={`Add groups to ${collection.name}`}
+              onRequestClose={this.handleAddGroupModalClose}
+              isOpen={this.addGroupModalOpen}
             >
-              <AddPeopleToCollection
+              <AddGroupsToCollection
                 collection={collection}
-                onSubmit={this.handleAddModalClose}
+                onSubmit={this.handleAddGroupModalClose}
               />
             </Modal>
           </GroupsWrap>
@@ -153,7 +189,7 @@ class CollectionMembers extends React.Component<Props> {
             <span>
               <Button
                 type="button"
-                onClick={this.handleAddModalOpen}
+                onClick={this.handleAddMemberModalOpen}
                 icon={<PlusIcon />}
                 neutral
               >
@@ -188,12 +224,12 @@ class CollectionMembers extends React.Component<Props> {
         />
         <Modal
           title={`Add people to ${collection.name}`}
-          onRequestClose={this.handleAddModalClose}
-          isOpen={this.addModalOpen}
+          onRequestClose={this.handleAddMemberModalClose}
+          isOpen={this.addMemberModalOpen}
         >
           <AddPeopleToCollection
             collection={collection}
-            onSubmit={this.handleAddModalClose}
+            onSubmit={this.handleAddMemberModalClose}
           />
         </Modal>
       </Flex>
@@ -202,9 +238,14 @@ class CollectionMembers extends React.Component<Props> {
 }
 
 const GroupsWrap = styled.div`
-  margin-bottom: 30px;
+  margin-bottom: 50px;
 `;
 
-export default inject('auth', 'users', 'memberships', 'groups', 'ui')(
-  CollectionMembers
-);
+export default inject(
+  'auth',
+  'users',
+  'memberships',
+  'collectionGroupMemberships',
+  'groups',
+  'ui'
+)(CollectionMembers);

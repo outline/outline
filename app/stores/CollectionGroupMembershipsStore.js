@@ -21,11 +21,11 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/collections.groupMemberships`, params);
+      const res = await client.post(`/collections.group_memberships`, params);
 
       invariant(res && res.data, 'Data not available');
 
-      runInAction(`/collections.groupMemberships`, () => {
+      runInAction(`/collections.group_memberships`, () => {
         res.data.groups.forEach(this.rootStore.groups.add);
         res.data.collectionGroupMemberships.forEach(this.add);
         this.isLoaded = true;

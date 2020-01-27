@@ -42,7 +42,7 @@ export default class RootStore {
     this.apiKeys = new ApiKeysStore(this);
     this.auth = new AuthStore(this);
     this.collections = new CollectionsStore(this);
-    this.collectionGroupMemberships = new CollectionGroupMembershipsStore();
+    this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
     this.documents = new DocumentsStore(this);
     this.events = new EventsStore(this);
     this.groups = new GroupsStore(this);
