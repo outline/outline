@@ -73,9 +73,9 @@ class AddGroupsToCollection extends React.Component<Props> {
     return (
       <Flex column>
         <HelpText>
-          Need to create a new group?{' '}
+          Can’t find the group you’re looking for?{' '}
           <a role="button" onClick={this.handleNewGroupModalOpen}>
-            Create group
+            Create a group
           </a>.
         </HelpText>
 

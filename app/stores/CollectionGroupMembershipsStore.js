@@ -53,8 +53,7 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
     });
     invariant(res && res.data, 'Membership data should be available');
 
-    res.data.users.forEach(this.rootStore.users.add);
-    res.data.memberships.forEach(this.add);
+    res.data.collectionGroupMemberships.forEach(this.add);
   }
 
   @action

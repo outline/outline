@@ -24,7 +24,6 @@ type Props = {
   group: Group,
   users: UsersStore,
   groupMemberships: GroupMembershipsStore,
-  onEdit: () => void,
 };
 
 @observer
@@ -48,18 +47,6 @@ class GroupMembers extends React.Component<Props> {
       this.props.ui.showToast(`${user.name} was removed from the group`);
     } catch (err) {
       this.props.ui.showToast('Could not remove user');
-    }
-  };
-
-  handleUpdateUser = (user, permission) => {
-    try {
-      this.props.groupMemberships.create({
-        groupId: this.props.group.id,
-        userId: user.id,
-      });
-      this.props.ui.showToast(`${user.name} permissions were updated`);
-    } catch (err) {
-      this.props.ui.showToast('Could not update user');
     }
   };
 
@@ -98,9 +85,7 @@ class GroupMembers extends React.Component<Props> {
               key={item.id}
               user={item}
               membership={groupMemberships.get(`${item.id}-${group.id}`)}
-              canEdit
               onRemove={() => this.handleRemoveUser(item)}
-              onUpdate={permission => this.handleUpdateUser(item, permission)}
             />
           )}
         />

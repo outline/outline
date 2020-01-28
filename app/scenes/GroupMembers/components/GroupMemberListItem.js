@@ -13,19 +13,15 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 type Props = {
   user: User,
   groupMembership?: ?GroupMembership,
-  canEdit: boolean,
   onAdd?: () => void,
   onRemove?: () => void,
-  onUpdate?: (permission: string) => void,
 };
 
 const GroupMemberListItem = ({
   user,
   groupMembership,
   onRemove,
-  onUpdate,
   onAdd,
-  canEdit,
 }: Props) => {
   return (
     <ListItem
@@ -46,18 +42,16 @@ const GroupMemberListItem = ({
       image={<Avatar src={user.avatarUrl} size={32} />}
       actions={
         <Flex align="center">
-          {canEdit &&
-            onRemove && (
-              <DropdownMenu>
-                <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
-              </DropdownMenu>
-            )}
-          {canEdit &&
-            onAdd && (
-              <Button onClick={onAdd} neutral>
-                Add
-              </Button>
-            )}
+          {onRemove && (
+            <DropdownMenu>
+              <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
+            </DropdownMenu>
+          )}
+          {onAdd && (
+            <Button onClick={onAdd} neutral>
+              Add
+            </Button>
+          )}
         </Flex>
       }
     />

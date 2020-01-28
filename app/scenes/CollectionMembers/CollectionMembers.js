@@ -11,8 +11,7 @@ import Button from 'components/Button';
 import Empty from 'components/Empty';
 import PaginatedList from 'components/PaginatedList';
 import Modal from 'components/Modal';
-import GroupListItem from 'components/GroupListItem';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import CollectionGroupMemberListItem from './components/CollectionGroupMemberListItem';
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -81,8 +80,30 @@ class CollectionMembers extends React.Component<Props> {
     }
   };
 
-  handleRemoveGroup = group => {};
-  handleUpdateGroup = (group, permission) => {};
+  handleRemoveGroup = group => {
+    try {
+      this.props.collectionGroupMemberships.delete({
+        collectionId: this.props.collection.id,
+        groupId: group.id,
+      });
+      this.props.ui.showToast(`${group.name} was removed from the collection`);
+    } catch (err) {
+      this.props.ui.showToast('Could not remove group');
+    }
+  };
+
+  handleUpdateGroup = (group, permission) => {
+    try {
+      this.props.collectionGroupMemberships.create({
+        collectionId: this.props.collection.id,
+        groupId: group.id,
+        permission,
+      });
+      this.props.ui.showToast(`${group.name} permissions were updated`);
+    } catch (err) {
+      this.props.ui.showToast('Could not update user');
+    }
+  };
 
   render() {
     const {
@@ -146,29 +167,16 @@ class CollectionMembers extends React.Component<Props> {
               options={collection.private ? { id: collection.id } : undefined}
               empty={<Empty>This collection has no groups.</Empty>}
               renderItem={group => (
-                <GroupListItem
+                <CollectionGroupMemberListItem
                   key={group.id}
                   group={group}
-                  // membership={collectionGroupMemberships.get(
-                  //   `${item.id}-${collection.id}`
-                  // )}
+                  collectionGroupMembership={collectionGroupMemberships.get(
+                    `${group.id}-${collection.id}`
+                  )}
                   onRemove={() => this.handleRemoveGroup(group)}
                   onUpdate={permission =>
                     this.handleUpdateGroup(group, permission)
                   }
-                  renderActions={({ openMembersModal }) => (
-                    <DropdownMenu>
-                      <DropdownMenuItem onClick={openMembersModal}>
-                        Members...
-                      </DropdownMenuItem>
-                      <hr />
-                      <DropdownMenuItem
-                        onClick={() => this.handleRemoveGroup(group)}
-                      >
-                        Remove
-                      </DropdownMenuItem>
-                    </DropdownMenu>
-                  )}
                 />
               )}
             />
