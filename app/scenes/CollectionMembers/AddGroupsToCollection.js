@@ -11,7 +11,7 @@ import Input from 'components/Input';
 import Modal from 'components/Modal';
 import Empty from 'components/Empty';
 import PaginatedList from 'components/PaginatedList';
-import Invite from 'scenes/Invite';
+import GroupNew from 'scenes/GroupNew';
 import Collection from 'models/Collection';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -114,11 +114,11 @@ class AddGroupsToCollection extends React.Component<Props> {
           )}
         />
         <Modal
-          title="Invite people"
+          title="Create a Group"
           onRequestClose={this.handleNewGroupModalClose}
           isOpen={this.newGroupModalOpen}
         >
-          <Invite onSubmit={this.handleNewGroupModalClose} />
+          <GroupNew onSubmit={this.handleNewGroupModalClose} />
         </Modal>
       </Flex>
     );
