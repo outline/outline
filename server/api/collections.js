@@ -172,6 +172,7 @@ router.post(
     const collection = await Collection.scope({
       method: ['withMembership', user.id],
     }).findByPk(id);
+
     authorize(user, 'read', collection);
 
     let where = {

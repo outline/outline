@@ -50,7 +50,7 @@ class Groups extends React.Component<Props> {
     const { auth, policies, groups } = this.props;
     const currentUser = auth.user;
     const team = auth.team;
-    // ??? why do we need these invariants
+
     invariant(currentUser, 'User should exist');
     invariant(team, 'Team should exist');
 

@@ -78,7 +78,7 @@ export async function buildCollection(overrides: Object = {}) {
   }
 
   return Collection.create({
-    name: 'Test Collection',
+    name: `Test Collection ${count}`,
     description: 'Test collection description',
     creatorId: overrides.userId,
     type: 'atlas',
@@ -100,7 +100,7 @@ export async function buildGroup(overrides: Object = {}) {
   }
 
   return Group.create({
-    name: 'Test Group',
+    name: `Test Group ${count}`,
     createdById: overrides.userId,
     ...overrides,
   });

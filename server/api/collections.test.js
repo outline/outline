@@ -3,7 +3,7 @@ import TestServer from 'fetch-test-server';
 import app from '../app';
 import { flushdb, seed } from '../test/support';
 import { buildUser, buildGroup, buildCollection } from '../test/factories';
-import { Collection, CollectionUser } from '../models';
+import { Collection, CollectionUser, CollectionGroup } from '../models';
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
@@ -468,6 +468,155 @@ describe('#collections.users', async () => {
     const { collection } = await seed();
     const user = await buildUser();
     const res = await server.post('/api/collections.users', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe('#collections.group_memberships', async () => {
+  it('should return groups in private collection', async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    const collection = await buildCollection({
+      private: true,
+      teamId: user.teamId,
+    });
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read_write',
+    });
+
+    await CollectionGroup.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      groupId: group.id,
+      permission: 'read_write',
+    });
+
+    const res = await server.post('/api/collections.group_memberships', {
+      body: { token: user.getJwtToken(), id: collection.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+    expect(body.data.collectionGroupMemberships.length).toEqual(1);
+    expect(body.data.collectionGroupMemberships[0].permission).toEqual(
+      'read_write'
+    );
+  });
+
+  it('should allow filtering groups in collection by name', async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ name: 'will find', teamId: user.teamId });
+    const group2 = await buildGroup({ name: 'wont find', teamId: user.teamId });
+    const collection = await buildCollection({
+      private: true,
+      teamId: user.teamId,
+    });
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read_write',
+    });
+
+    await CollectionGroup.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      groupId: group.id,
+      permission: 'read_write',
+    });
+
+    await CollectionGroup.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      groupId: group2.id,
+      permission: 'read_write',
+    });
+
+    const res = await server.post('/api/collections.group_memberships', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        query: 'will',
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it('should allow filtering groups in collection by permission', async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    const group2 = await buildGroup({ teamId: user.teamId });
+    const collection = await buildCollection({
+      private: true,
+      teamId: user.teamId,
+    });
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read_write',
+    });
+
+    await CollectionGroup.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      groupId: group.id,
+      permission: 'read_write',
+    });
+
+    await CollectionGroup.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      groupId: group2.id,
+      permission: 'maintainer',
+    });
+
+    const res = await server.post('/api/collections.group_memberships', {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        permission: 'maintainer',
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group2.id);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/collections.group_memberships');
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      private: true,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post('/api/collections.group_memberships', {
       body: { token: user.getJwtToken(), id: collection.id },
     });
     expect(res.status).toEqual(403);
