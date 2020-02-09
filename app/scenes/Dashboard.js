@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
+import styled from 'styled-components';
 
 import DocumentsStore from 'stores/DocumentsStore';
 import AuthStore from 'stores/AuthStore';
@@ -12,6 +13,11 @@ import PageTitle from 'components/PageTitle';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
 import PaginatedDocumentList from '../components/PaginatedDocumentList';
+
+const Intro = styled.p`
+  font-size: 1.5rem;
+  margin-bottom: 1.5em;
+`
 
 type Props = {
   documents: DocumentsStore,
@@ -28,7 +34,8 @@ class Dashboard extends React.Component<Props> {
     return (
       <CenteredContent>
         <PageTitle title="Home" />
-        <h1>Home</h1>
+        <h1>Learn from our best work</h1>
+        <Intro>Explore examples of our work, find templates to get started quickly, read and write guides.</Intro>
         <Tabs>
           <Tab to="/dashboard" exact>
             Recently updated
