@@ -1,6 +1,7 @@
 import React from "react"
 import styled from "styled-components"
 // import theme from "../_theme"
+import { Link } from "react-router-dom"
 
 import t1 from "./1.jpg"
 import t2 from "./2.jpg"
@@ -9,7 +10,7 @@ import t4 from "./4.jpg"
 import t5 from "./5.jpg"
 
 const Outer = styled.nav`
-    padding: 30px 20px;
+    padding-bottom: 30px;
     display: grid;
     grid-row-gap: 20px;
     @media screen and (min-width: 300px){
@@ -28,7 +29,7 @@ const Outer = styled.nav`
     } */
 `
 
-const Tile = styled.a`
+const Tile = styled(Link)`
     text-align: center;
     /* box-shadow: 0px 3px 40px #D6CEE8; */
     border-radius: 5px;
@@ -50,7 +51,7 @@ const Tile = styled.a`
     }
     &:hover{
         box-shadow: 0px 6px 7px rgba(39, 34, 68, 0.2);
-        transform: translateY(-5px);
+        transform: translateY(-3px);
         .explore-by-team__image{
             filter: brightness(0.75)
         }
@@ -84,23 +85,23 @@ const Name = styled.p`
 
 const TeamFilmstrip = () =>
     <Outer>
-        <Tile href="/collections/7b74510b-d24b-42dc-baec-bad2b3a64890">
+        <Tile to="/collections/7b74510b-d24b-42dc-baec-bad2b3a64890">
             <Image src={t1} alt=""/>
             <Name>Service design</Name>
         </Tile>
-        <Tile href="/collections/c1789982-16d9-4c07-9f51-e63609c3278f">
+        <Tile to="/collections/c1789982-16d9-4c07-9f51-e63609c3278f">
             <Image src={t2} alt=""/>
             <Name>Product design</Name>
         </Tile>
-        <Tile href="/collections/10a1e1fe-f137-42a7-be8c-7b47e85a7c14">
+        <Tile to="/collections/10a1e1fe-f137-42a7-be8c-7b47e85a7c14">
             <Image src={t3} alt=""/>
             <Name>Delivery management</Name>
         </Tile>
-        <Tile href="/collections/3faa5e13-54a4-45a5-b579-eacf57290fb0">
+        <Tile to="/collections/3faa5e13-54a4-45a5-b579-eacf57290fb0">
             <Image src={t4} alt=""/>
             <Name>Design research</Name>
         </Tile>
-        <Tile href="/collections/a0297ff6-c731-46cb-aff7-adf9988a8433">
+        <Tile to="/collections/a0297ff6-c731-46cb-aff7-adf9988a8433">
             <Image src={t5} alt=""/>
             <Name>Consultancy and organisation design</Name>
         </Tile>
