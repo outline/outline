@@ -13,6 +13,7 @@ import PageTitle from 'components/PageTitle';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
 import PaginatedDocumentList from '../components/PaginatedDocumentList';
+import TeamFilmstrip from '../components/TeamFilmstrip';
 
 const Intro = styled.p`
   font-size: 1.5rem;
@@ -36,6 +37,7 @@ class Dashboard extends React.Component<Props> {
         <PageTitle title="Home" />
         <h1>Learn from our best work</h1>
         <Intro>Explore examples of our work, find templates to get started quickly, read and write guides.</Intro>
+        <TeamFilmstrip/>
         <Tabs>
           <Tab to="/dashboard" exact>
             Recently updated

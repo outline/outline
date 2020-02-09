@@ -85,23 +85,23 @@ const Name = styled.p`
 
 const TeamFilmstrip = () =>
     <Outer>
-        <Tile href="#service design">
+        <Tile href="/collections/7b74510b-d24b-42dc-baec-bad2b3a64890">
             <Image src={t1} alt=""/>
             <Name>Service design</Name>
         </Tile>
-        <Tile href="#product design">
+        <Tile href="/collections/c1789982-16d9-4c07-9f51-e63609c3278f">
             <Image src={t2} alt=""/>
             <Name>Product design</Name>
         </Tile>
-        <Tile href="#delivery management">
+        <Tile href="/collections/10a1e1fe-f137-42a7-be8c-7b47e85a7c14">
             <Image src={t3} alt=""/>
             <Name>Delivery management</Name>
         </Tile>
-        <Tile href="#design research">
+        <Tile href="/collections/3faa5e13-54a4-45a5-b579-eacf57290fb0">
             <Image src={t4} alt=""/>
             <Name>Design research</Name>
         </Tile>
-        <Tile href="#consultancy and organisation design">
+        <Tile href="/collections/a0297ff6-c731-46cb-aff7-adf9988a8433">
             <Image src={t5} alt=""/>
             <Name>Consultancy and organisation design</Name>
         </Tile>
