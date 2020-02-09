@@ -1,7 +1,13 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '../app';
-import { flushdb, seed } from '../test/support';
+import { flushdb } from '../test/support';
+import {
+  buildUser,
+  buildCollection,
+  buildAttachment,
+  buildDocument,
+} from '../test/factories';
 
 const server = new TestServer(app.callback());
 
@@ -15,7 +21,11 @@ describe('#attachments.redirect', async () => {
   });
 
   it('should return a redirect for an attachment belonging to a document user has access to', async () => {
-    const { user, attachment } = await seed();
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
     const res = await server.post('/api/attachments.redirect', {
       body: { token: user.getJwtToken(), id: attachment.id },
     });
@@ -24,9 +34,22 @@ describe('#attachments.redirect', async () => {
   });
 
   it('should always return a redirect for a public attachment', async () => {
-    const { user, collection, attachment } = await seed();
-    collection.private = true;
-    await collection.save();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      private: true,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+    });
 
     const res = await server.post('/api/attachments.redirect', {
       body: { token: user.getJwtToken(), id: attachment.id },
@@ -36,11 +59,21 @@ describe('#attachments.redirect', async () => {
   });
 
   it('should not return a redirect for a private attachment belonging to a document user does not have access to', async () => {
-    const { user, collection, attachment } = await seed();
-    collection.private = true;
-    await collection.save();
-    attachment.acl = 'private';
-    await attachment.save();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      private: true,
+    });
+    const document = await buildDocument({
+      teamId: collection.teamId,
+      userId: collection.userId,
+      collectionId: collection.id,
+    });
+    const attachment = await buildAttachment({
+      teamId: document.teamId,
+      userId: document.userId,
+      documentId: document.id,
+      acl: 'private',
+    });
 
     const res = await server.post('/api/attachments.redirect', {
       body: { token: user.getJwtToken(), id: attachment.id },
