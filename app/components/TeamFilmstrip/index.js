@@ -40,7 +40,7 @@ const Tile = styled(Link)`
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 15px;
+    padding: 10px;
     transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
     @media screen and (min-width: 700px){
         min-height: 130px;
@@ -73,14 +73,11 @@ const Image = styled.img`
 
 const Name = styled.p`
     margin-top: 0px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin-bottom: 0px;
     font-weight: bold;
     color: white;
     position: relative;
-    @media screen and (min-width: 800px){
-        font-size: 1.2rem;
-    }
 `
 
 const TeamFilmstrip = () =>
