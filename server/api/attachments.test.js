@@ -28,6 +28,7 @@ describe('#attachments.redirect', async () => {
     });
     const res = await server.post('/api/attachments.redirect', {
       body: { token: user.getJwtToken(), id: attachment.id },
+      redirect: 'manual',
     });
 
     expect(res.status).toEqual(302);
@@ -53,6 +54,7 @@ describe('#attachments.redirect', async () => {
 
     const res = await server.post('/api/attachments.redirect', {
       body: { token: user.getJwtToken(), id: attachment.id },
+      redirect: 'manual',
     });
 
     expect(res.status).toEqual(302);
