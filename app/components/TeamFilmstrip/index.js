@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import theme from "../_theme"
+// import theme from "../_theme"
 
 import t1 from "./1.jpg"
 import t2 from "./2.jpg"
@@ -9,7 +9,6 @@ import t4 from "./4.jpg"
 import t5 from "./5.jpg"
 
 const Outer = styled.nav`
-    max-width: ${theme.maxWidth};
     padding: 30px 20px;
     display: grid;
     grid-row-gap: 20px;
@@ -34,7 +33,7 @@ const Tile = styled.a`
     /* box-shadow: 0px 3px 40px #D6CEE8; */
     border-radius: 5px;
     text-decoration: none;
-    background: ${theme.purple};
+    background: #43387B;
     position: relative;
     min-height: 100px;
     display: flex;
@@ -47,7 +46,7 @@ const Tile = styled.a`
     }
     &:focus{
         outline: none;
-        background: ${theme.yellow};
+        background: #F7C745;
     }
     &:hover{
         box-shadow: 0px 6px 7px rgba(39, 34, 68, 0.2);
