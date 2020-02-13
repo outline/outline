@@ -58,8 +58,12 @@ router.get('/developers', ctx => renderpage(ctx, <Developers />));
 router.get('/developers/api', ctx => renderpage(ctx, <Api />));
 router.get('/changelog', async ctx => {
   const data = await fetch(
-    `https://api.github.com/repos/outline/outline/releases?access_token=${process
-      .env.GITHUB_ACCESS_TOKEN || ''}`
+    `https://api.github.com/repos/outline/outline/releases`,
+    {
+      headers: {
+        Authorization: `token ${process.env.GITHUB_ACCESS_TOKEN || ''}`,
+      },
+    }
   );
   const releases = await data.json();
   return renderpage(ctx, <Changelog releases={releases} />);
