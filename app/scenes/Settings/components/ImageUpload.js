@@ -49,10 +49,11 @@ class DropToImport extends React.Component<Props> {
     const canvas = this.avatarEditorRef.getImage();
     const imageBlob = dataUrlToBlob(canvas.toDataURL());
     try {
-      const asset = await uploadFile(imageBlob, {
+      const attachment = await uploadFile(imageBlob, {
         name: this.file.name,
+        public: true,
       });
-      this.props.onSuccess(asset.url);
+      this.props.onSuccess(attachment.url);
     } catch (err) {
       this.props.onError(err.message);
     } finally {

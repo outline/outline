@@ -40,6 +40,12 @@ const Attachment = sequelize.define(
       name: function() {
         return path.parse(this.key).base;
       },
+      redirectUrl: function() {
+        return `/api/attachments.redirect?id=${this.id}`;
+      },
+      isPrivate: function() {
+        return this.acl === 'private';
+      },
     },
   }
 );

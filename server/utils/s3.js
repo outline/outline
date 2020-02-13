@@ -12,6 +12,14 @@ const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
+const s3 = new AWS.S3({
+  s3ForcePathStyle: true,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
+  signatureVersion: 'v4',
+});
+
 const hmac = (key: string, message: string, encoding: any) => {
   return crypto
     .createHmac('sha256', key)
@@ -30,13 +38,17 @@ export const makeCredential = () => {
   return credential;
 };
 
-export const makePolicy = (credential: string, longDate: string) => {
+export const makePolicy = (
+  credential: string,
+  longDate: string,
+  acl: string
+) => {
   const tomorrow = addHours(new Date(), 24);
   const policy = {
     conditions: [
       { bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME },
       ['starts-with', '$key', ''],
-      { acl: 'public-read' },
+      { acl },
       ['content-length-range', 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
       ['starts-with', '$Content-Type', 'image'],
       ['starts-with', '$Cache-Control', ''],
@@ -77,13 +89,11 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   }`;
 };
 
-export const uploadToS3FromUrl = async (url: string, key: string) => {
-  const s3 = new AWS.S3({
-    s3ForcePathStyle: true,
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
-  });
+export const uploadToS3FromUrl = async (
+  url: string,
+  key: string,
+  acl: string
+) => {
   invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
 
   try {
@@ -92,7 +102,7 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
     const buffer = await res.buffer();
     await s3
       .putObject({
-        ACL: 'public-read',
+        ACL: acl,
         Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
         Key: key,
         ContentType: res.headers['content-type'],
@@ -104,6 +114,39 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
 
     const endpoint = publicS3Endpoint(true);
     return `${endpoint}/${key}`;
+  } catch (err) {
+    if (process.env.NODE_ENV === 'production') {
+      bugsnag.notify(err);
+    } else {
+      throw err;
+    }
+  }
+};
+
+export const getSignedImageUrl = async (key: string) => {
+  invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
+  const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
+
+  const params = {
+    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Key: key,
+    Expires: 60,
+  };
+
+  return isDocker
+    ? `${publicS3Endpoint()}/${key}`
+    : s3.getSignedUrl('getObject', params);
+};
+
+export const getImageByKey = async (key: string) => {
+  const params = {
+    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Key: key,
+  };
+
+  try {
+    const data = await s3.getObject(params).promise();
+    return data.Body;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
       bugsnag.notify(err);

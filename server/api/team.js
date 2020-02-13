@@ -1,7 +1,6 @@
 // @flow
 import Router from 'koa-router';
 import { Team } from '../models';
-import { publicS3Endpoint } from '../utils/s3';
 
 import auth from '../middlewares/authentication';
 import { presentTeam, presentPolicies } from '../presenters';
@@ -19,8 +18,6 @@ router.post('team.update', auth(), async ctx => {
     guestSignin,
     documentEmbeds,
   } = ctx.body;
-  const endpoint = publicS3Endpoint();
-
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
   authorize(user, 'update', team);
@@ -33,9 +30,7 @@ router.post('team.update', auth(), async ctx => {
   if (sharing !== undefined) team.sharing = sharing;
   if (documentEmbeds !== undefined) team.documentEmbeds = documentEmbeds;
   if (guestSignin !== undefined) team.guestSignin = guestSignin;
-  if (avatarUrl && avatarUrl.startsWith(`${endpoint}/uploads/${user.id}`)) {
-    team.avatarUrl = avatarUrl;
-  }
+  if (avatarUrl !== undefined) team.avatarUrl = avatarUrl;
   await team.save();
 
   ctx.body = {
