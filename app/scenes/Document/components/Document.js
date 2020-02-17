@@ -19,7 +19,6 @@ import { emojiToUrl } from 'utils/emoji';
 
 import Header from './Header';
 import DocumentMove from './DocumentMove';
-import Branding from './Branding';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import References from './References';
 import Loading from './Loading';
@@ -28,6 +27,7 @@ import MarkAsViewed from './MarkAsViewed';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingIndicator from 'components/LoadingIndicator';
 import PageTitle from 'components/PageTitle';
+import Branding from 'shared/components/Branding';
 import Notice from 'shared/components/Notice';
 import Time from 'shared/components/Time';
 
