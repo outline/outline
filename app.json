@@ -149,10 +149,6 @@
       "description": "An API key for bugsnag if you wish to collect error reporting (optional)",
       "required": false
     },
-    "GITHUB_ACCESS_TOKEN": {
-      "description": "An API token for GitHub, optional for self hosted (optional)",
-      "required": false
-    },
     "TEAM_LOGO": {
       "description": "A logo that will be displayed on the signed out home page",
       "required": false
