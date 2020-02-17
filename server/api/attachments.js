@@ -17,10 +17,12 @@ router.post('attachments.redirect', auth(), async ctx => {
   const attachment = await Attachment.findByPk(id);
 
   if (attachment.isPrivate) {
-    const document = await Document.findByPk(attachment.documentId, {
-      userId: user.id,
-    });
-    authorize(user, 'read', document);
+    if (attachment.documentId) {
+      const document = await Document.findByPk(attachment.documentId, {
+        userId: user.id,
+      });
+      authorize(user, 'read', document);
+    }
 
     const accessUrl = await getSignedImageUrl(attachment.key);
     ctx.redirect(accessUrl);
