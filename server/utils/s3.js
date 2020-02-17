@@ -5,7 +5,7 @@ import format from 'date-fns/format';
 import AWS from 'aws-sdk';
 import invariant from 'invariant';
 import fetch from 'isomorphic-fetch';
-import bugsnag from 'bugsnag';
+import * as Sentry from '@sentry/node';
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
@@ -116,7 +116,7 @@ export const uploadToS3FromUrl = async (
     return `${endpoint}/${key}`;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
-      bugsnag.notify(err);
+      Sentry.captureException(err);
     } else {
       throw err;
     }
@@ -149,7 +149,7 @@ export const getImageByKey = async (key: string) => {
     return data.Body;
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
-      bugsnag.notify(err);
+      Sentry.captureException(err);
     } else {
       throw err;
     }

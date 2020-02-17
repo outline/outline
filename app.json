@@ -145,8 +145,8 @@
       "description": "UA-xxxx (optional)",
       "required": false
     },
-    "BUGSNAG_KEY": {
-      "description": "An API key for bugsnag if you wish to collect error reporting (optional)",
+    "SENTRY_DSN": {
+      "description": "An API key for Sentry if you wish to collect error reporting (optional)",
       "required": false
     },
     "TEAM_LOGO": {

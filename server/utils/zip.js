@@ -2,10 +2,10 @@
 import fs from 'fs';
 import JSZip from 'jszip';
 import tmp from 'tmp';
+import * as Sentry from '@sentry/node';
 import unescape from '../../shared/utils/unescape';
 import { Attachment, Collection, Document } from '../models';
 import { getImageByKey } from './s3';
-import bugsnag from 'bugsnag';
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
@@ -36,7 +36,7 @@ async function addImageToArchive(zip, key) {
     zip.file(key, img, { createFolders: true });
   } catch (err) {
     if (process.env.NODE_ENV === 'production') {
-      bugsnag.notify(err);
+      Sentry.captureException(err);
     } else {
       // error during file retrieval
       console.error(err);

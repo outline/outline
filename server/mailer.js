@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import debug from 'debug';
-import bugsnag from 'bugsnag';
+import * as Sentry from '@sentry/node';
 import nodemailer from 'nodemailer';
 import Oy from 'oy-vey';
 import { createQueue } from './utils/queue';
@@ -83,7 +83,7 @@ export class Mailer {
           attachments: data.attachments,
         });
       } catch (err) {
-        bugsnag.notify(err);
+        Sentry.captureException(err);
         throw err; // Re-throw for queue to re-try
       }
     }

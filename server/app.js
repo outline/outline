@@ -10,8 +10,8 @@ import logger from 'koa-logger';
 import mount from 'koa-mount';
 import enforceHttps from 'koa-sslify';
 import Koa from 'koa';
-import bugsnag from 'bugsnag';
 import onerror from 'koa-onerror';
+import * as Sentry from '@sentry/node';
 import updates from './utils/updates';
 
 import auth from './auth';
@@ -45,12 +45,6 @@ if (process.env.NODE_ENV === 'development') {
         // switch into lazy mode
         // that means no watching, but recompilation on every request
         lazy: false,
-
-        // // watch options (only lazy: false)
-        // watchOptions: {
-        //   aggregateTimeout: 300,
-        //   poll: true
-        // },
 
         // public path to bind the middleware to
         // use the same as in webpack
@@ -89,23 +83,31 @@ if (process.env.NODE_ENV === 'development') {
 
   // trust header fields set by our proxy. eg X-Forwarded-For
   app.proxy = true;
+}
 
-  // catch errors in one place, automatically set status and response headers
-  onerror(app);
+// catch errors in one place, automatically set status and response headers
+onerror(app);
 
-  if (process.env.BUGSNAG_KEY) {
-    bugsnag.register(process.env.BUGSNAG_KEY, {
-      filters: ['authorization'],
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV,
+  });
+
+  app.on('error', (error, ctx) => {
+    // we don't need to report every time a request stops to the bug tracker
+    if (error.code === 'EPIPE' || error.code === 'ECONNRESET') {
+      console.warn('Connection error', { error });
+      return;
+    }
+
+    Sentry.withScope(function(scope) {
+      scope.addEventProcessor(function(event) {
+        return Sentry.Handlers.parseRequest(event, ctx.request);
+      });
+      Sentry.captureException(error);
     });
-    app.on('error', (error, ctx) => {
-      // we don't need to report every time a request stops to the bug tracker
-      if (error.code === 'EPIPE' || error.code === 'ECONNRESET') {
-        console.warn('Connection error', { error });
-      } else {
-        bugsnag.koaHandler(error, ctx);
-      }
-    });
-  }
+  });
 }
 
 app.use(mount('/auth', auth));

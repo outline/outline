@@ -53,8 +53,8 @@
     "SLACK_KEY": true,
     "DEPLOYMENT": true,
     "BASE_URL": true,
-    "BUGSNAG_KEY": true,
+    "SENTRY_DSN": true,
     "afterAll": true,
-    "Bugsnag": true
+    "Sentry": true
   }
 }
