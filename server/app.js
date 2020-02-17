@@ -124,7 +124,7 @@ app.use(
         "'unsafe-eval'",
         'gist.github.com',
         'www.google-analytics.com',
-        'd2wy8f7a9ursnm.cloudfront.net',
+        'browser.sentry-cdn.com',
       ],
       styleSrc: ["'self'", "'unsafe-inline'", 'github.githubassets.com'],
       imgSrc: ['*', 'data:', 'blob:'],
@@ -133,6 +133,7 @@ app.use(
         "'self'",
         process.env.AWS_S3_UPLOAD_BUCKET_URL.replace('s3:', 'localhost:'),
         'www.google-analytics.com',
+        'sentry.io',
       ]),
     },
   })
