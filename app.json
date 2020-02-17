@@ -112,6 +112,11 @@
       "description": "Region in which the above S3 bucket exists",
       "required": false
     },
+    "AWS_S3_ACL": {
+      "value": "private",
+      "description": "S3 canned ACL for document attachments",
+      "required": false
+    },
     "SMTP_HOST": {
       "description": "smtp.example.com (optional)",
       "required": false
