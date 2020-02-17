@@ -10,7 +10,7 @@ import logger from 'koa-logger';
 import mount from 'koa-mount';
 import enforceHttps from 'koa-sslify';
 import Koa from 'koa';
-import bugsnag from 'bugsnag';
+import Sentry from '@sentry/node';
 import onerror from 'koa-onerror';
 import updates from './utils/updates';
 
@@ -93,17 +93,25 @@ if (process.env.NODE_ENV === 'development') {
   // catch errors in one place, automatically set status and response headers
   onerror(app);
 
-  if (process.env.BUGSNAG_KEY) {
-    bugsnag.register(process.env.BUGSNAG_KEY, {
-      filters: ['authorization'],
+  if (process.env.SENTRY_DSN) {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV,
     });
+
     app.on('error', (error, ctx) => {
       // we don't need to report every time a request stops to the bug tracker
       if (error.code === 'EPIPE' || error.code === 'ECONNRESET') {
         console.warn('Connection error', { error });
-      } else {
-        bugsnag.koaHandler(error, ctx);
+        return;
       }
+
+      Sentry.withScope(function(scope) {
+        scope.addEventProcessor(function(event) {
+          return Sentry.Handlers.parseRequest(event, ctx.request);
+        });
+        Sentry.captureException(error);
+      });
     });
   }
 }

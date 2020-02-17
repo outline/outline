@@ -21,9 +21,8 @@ class ErrorBoundary extends React.Component<Props> {
   componentDidCatch(error: Error, info: Object) {
     this.error = error;
 
-    // Error handler is often blocked by the browser
-    if (window.Bugsnag) {
-      Bugsnag.notifyException(error, { react: info });
+    if (window.Sentry) {
+      Sentry.captureException(error);
     }
   }
 
@@ -41,7 +40,7 @@ class ErrorBoundary extends React.Component<Props> {
 
   render() {
     if (this.error) {
-      const isReported = !!window.Bugsnag;
+      const isReported = !!window.Sentry;
 
       return (
         <CenteredContent>
