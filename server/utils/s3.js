@@ -5,7 +5,7 @@ import format from 'date-fns/format';
 import AWS from 'aws-sdk';
 import invariant from 'invariant';
 import fetch from 'isomorphic-fetch';
-import Sentry from '@sentry/node';
+import * as Sentry from '@sentry/node';
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import debug from 'debug';
-import Sentry from '@sentry/node';
+import * as Sentry from '@sentry/node';
 import nodemailer from 'nodemailer';
 import Oy from 'oy-vey';
 import { createQueue } from './utils/queue';

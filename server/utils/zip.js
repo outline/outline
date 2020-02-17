@@ -2,7 +2,7 @@
 import fs from 'fs';
 import JSZip from 'jszip';
 import tmp from 'tmp';
-import Sentry from '@sentry/node';
+import * as Sentry from '@sentry/node';
 import unescape from '../../shared/utils/unescape';
 import { Attachment, Collection, Document } from '../models';
 import { getImageByKey } from './s3';
