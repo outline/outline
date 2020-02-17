@@ -14,7 +14,6 @@ import { NotFoundError } from './errors';
 import { Team } from './models';
 
 import Home from './pages/Home';
-import Changelog from './pages/Changelog';
 import Developers from './pages/developers';
 import Api from './pages/developers/Api';
 import SubdomainSignin from './pages/SubdomainSignin';
