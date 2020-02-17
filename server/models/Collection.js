@@ -89,6 +89,25 @@ Collection.associate = models => {
         where: { userId },
         required: false,
       },
+      {
+        model: models.CollectionGroup,
+        as: 'collectionGroupMemberships',
+        required: false,
+        // looking for groups that are members of this collection,
+        // and for which the userId is a member of, resulting in:
+        // CollectionGroup [inner join] Group [inner join] GroupUser
+        include: {
+          model: models.Group,
+          as: 'group',
+          required: true,
+          include: {
+            model: models.GroupUser,
+            as: 'groupMemberships',
+            required: true,
+            where: { userId },
+          },
+        },
+      },
     ],
   }));
 };
