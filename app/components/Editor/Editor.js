@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { Redirect } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { lighten } from 'polished';
@@ -20,6 +20,7 @@ type Props = {
   readOnly?: boolean,
   grow?: boolean,
   disableEmbeds?: boolean,
+  history: RouterHistory,
   forwardedRef: React.Ref<RichMarkdownEditor>,
   ui: UiStore,
 };
@@ -54,11 +55,7 @@ class Editor extends React.Component<Props> {
         }
       }
 
-      // protect against redirecting back to the same place
-      const currentLocation = window.location.pathname + window.location.hash;
-      if (currentLocation !== navigateTo) {
-        this.redirectTo = navigateTo;
-      }
+      this.props.history.push(navigateTo);
     } else {
       window.open(href, '_blank');
     }
@@ -85,8 +82,6 @@ class Editor extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
     return (
       <React.Fragment>
         <PrismStyles />
@@ -285,7 +280,9 @@ const EditorTooltip = ({ children, ...props }) => (
   </Tooltip>
 );
 
-export default withTheme(
-  // $FlowIssue - https://github.com/facebook/flow/issues/6103
-  React.forwardRef((props, ref) => <Editor {...props} forwardedRef={ref} />)
+export default withRouter(
+  withTheme(
+    // $FlowIssue - https://github.com/facebook/flow/issues/6103
+    React.forwardRef((props, ref) => <Editor {...props} forwardedRef={ref} />)
+  )
 );
