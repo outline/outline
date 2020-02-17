@@ -30,8 +30,17 @@ class InputRich extends React.Component<Props> {
   };
 
   loadEditor = async () => {
-    const EditorImport = await import('./Editor');
-    this.editorComponent = EditorImport.default;
+    try {
+      const EditorImport = await import('./Editor');
+      this.editorComponent = EditorImport.default;
+    } catch (err) {
+      console.error(err);
+
+      // If the editor bundle fails to load then reload the entire window. This
+      // can happen if a deploy happens between the user loading the initial JS
+      // bundle and the async-loaded editor JS bundle as the hash will change.
+      window.location.reload();
+    }
   };
 
   render() {
