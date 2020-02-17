@@ -92,6 +92,7 @@ if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV,
+    maxBreadcrumbs: 0,
   });
 
   app.on('error', (error, ctx) => {
