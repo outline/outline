@@ -15,7 +15,8 @@ class KeyedDocument extends React.Component<*> {
     // we only want to force a re-mount of the document component when the
     // document changes, not when the title does so only this portion is used
     // for the key.
-    const urlId = documentSlug ? documentSlug.split('-')[1] : undefined;
+    const urlParts = documentSlug ? documentSlug.split('-') : [];
+    const urlId = urlParts.length ? urlParts[urlParts.length - 1] : undefined;
 
     return <DataLoader key={urlId} {...this.props} />;
   }
