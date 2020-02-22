@@ -6,6 +6,7 @@ import mount from 'koa-mount';
 import Koa from 'koa';
 import bugsnag from 'bugsnag';
 import onerror from 'koa-onerror';
+import passport from 'koa-passport';
 import updates from './utils/updates';
 
 import auth from './auth';
@@ -83,6 +84,8 @@ if (process.env.NODE_ENV === 'development') {
     app.on('error', bugsnag.koaHandler);
   }
 }
+
+app.use(passport.initialize());
 
 app.use(mount('/auth', auth));
 app.use(mount('/api', api));

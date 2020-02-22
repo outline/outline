@@ -1,8 +1,52 @@
 // @flow
 import JWT from 'jsonwebtoken';
 import { type Context } from 'koa';
+import passport from 'koa-passport';
 import { User, ApiKey } from '../models';
 import { AuthenticationError, UserSuspendedError } from '../errors';
+
+/**
+ * secureUserFromToken decodes the given token, looks up the user
+ * and verifies using the user's jwtSecret.
+ * @throws {AuthenticationError} Only AuthenticationError can be thrown,
+ * which is save to be thrown inside a koa handler to be handled in the
+ * error handler.
+ */
+async function secureUserFromToken(token: string): User {
+  let payload: ?{ id?: string };
+  try {
+    payload = JWT.decode(token);
+  } catch (e) {
+    throw new AuthenticationError('Unable to decode JWT token');
+  }
+
+  if (!payload) {
+    throw new AuthenticationError('Invalid token');
+  }
+
+  const user = await User.findById(payload.id);
+  try {
+    JWT.verify(token, user.jwtSecret);
+  } catch (e) {
+    throw new AuthenticationError('Invalid token');
+  }
+
+  return user;
+}
+
+passport.serializeUser(async function(user: User, done: Function) {
+  done(null, user.getJwtToken());
+});
+passport.deserializeUser(async function(token: string, done: Function) {
+  let user;
+  try {
+    user = await secureUserFromToken(token);
+  } catch (e) {
+    return done(e);
+  }
+
+  done(null, user);
+});
 
 export default function auth(options?: { required?: boolean } = {}) {
   return async function authMiddleware(ctx: Context, next: () => Promise<*>) {
@@ -56,24 +100,13 @@ export default function auth(options?: { required?: boolean } = {}) {
         user = await User.findById(apiKey.userId);
         if (!user) throw new AuthenticationError('Invalid API key');
       } else {
-        // JWT
-        // Get user without verifying payload signature
-        let payload;
-        try {
-          payload = JWT.decode(token);
-        } catch (e) {
-          throw new AuthenticationError('Unable to decode JWT token');
-        }
+        // JWT Token
 
-        if (!payload) throw new AuthenticationError('Invalid token');
-
-        user = await User.findById(payload.id);
-
-        try {
-          JWT.verify(token, user.jwtSecret);
-        } catch (e) {
-          throw new AuthenticationError('Invalid token');
-        }
+        // save to be called without try-catch as
+        // it can only throw an AuthorizationError
+        // which is handled correctly in the error
+        // handler
+        user = await secureUserFromToken(token);
       }
 
       if (user.isSuspended) {
