@@ -138,6 +138,7 @@
     "normalizr": "2.0.1",
     "outline-icons": "^1.3.2",
     "oy-vey": "^0.10.0",
+    "passport-slack": "^0.0.7",
     "pg": "^6.1.5",
     "pg-hstore": "2.3.2",
     "polished": "1.2.1",

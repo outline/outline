@@ -1,71 +1,71 @@
 // @flow
 import Router from 'koa-router';
 import auth from '../middlewares/authentication';
-import addHours from 'date-fns/add_hours';
+import { authorize } from '../utils/authorize';
 import addMonths from 'date-fns/add_months';
-import { slackAuth } from '../../shared/utils/routeHelpers';
 import { Authentication, Integration, User, Team } from '../models';
 import * as Slack from '../slack';
+
+import { Strategy as SlackStrategy } from 'passport-slack';
+import passport from 'koa-passport';
+
+passport.use(
+  new SlackStrategy(
+    {
+      clientID: process.env.SLACK_KEY,
+      clientSecret: process.env.SLACK_SECRET,
+      state: true, // undocumented option from peer-dependency passport-oauth
+    },
+    async (accessToken, refreshToken, data, done) => {
+      const [team, isFirstUser] = await Team.findOrCreate({
+        where: {
+          slackId: data.team.id,
+        },
+        defaults: {
+          name: data.team.name,
+          avatarUrl: data.team.image_88,
+        },
+      });
+
+      const [user] = await User.findOrCreate({
+        where: {
+          service: 'slack',
+          serviceId: data.user.id,
+          teamId: team.id,
+        },
+        defaults: {
+          name: data.user.name,
+          email: data.user.email,
+          isAdmin: isFirstUser,
+          avatarUrl: data.user.image_192,
+        },
+      });
+
+      if (isFirstUser) {
+        await team.createFirstCollection(user.id);
+      }
+
+      done(null, user);
+    }
+  )
+);
 
 const router = new Router();
 
 // start the oauth process and redirect user to Slack
-router.get('slack', async ctx => {
-  const state = Math.random()
-    .toString(36)
-    .substring(7);
-
-  ctx.cookies.set('state', state, {
-    httpOnly: false,
-    expires: addHours(new Date(), 1),
-  });
-  ctx.redirect(slackAuth(state));
-});
+router.get('slack', passport.authenticate('slack'));
 
 // signin callback from Slack
 router.get('slack.callback', async ctx => {
-  const { code, error, state } = ctx.request.query;
-  ctx.assertPresent(code || error, 'code is required');
-  ctx.assertPresent(state, 'state is required');
-
-  if (state !== ctx.cookies.get('state') || error) {
+  let user: User;
+  try {
+    user = (await authorize('slack', ctx)).User;
+  } catch (e) {
     ctx.redirect('/?notice=auth-error');
     return;
   }
 
-  const data = await Slack.oauthAccess(code);
-
-  const [team, isFirstUser] = await Team.findOrCreate({
-    where: {
-      slackId: data.team.id,
-    },
-    defaults: {
-      name: data.team.name,
-      avatarUrl: data.team.image_88,
-    },
-  });
-
-  const [user] = await User.findOrCreate({
-    where: {
-      service: 'slack',
-      serviceId: data.user.id,
-      teamId: team.id,
-    },
-    defaults: {
-      name: data.user.name,
-      email: data.user.email,
-      isAdmin: isFirstUser,
-      avatarUrl: data.user.image_192,
-    },
-  });
-
-  if (isFirstUser) {
-    await team.createFirstCollection(user.id);
-  }
-
-  // not awaiting the promise here so that the request is not blocked
   user.updateSignedIn(ctx.request.ip);
-
   ctx.cookies.set('lastSignedIn', 'slack', {
     httpOnly: false,
     expires: new Date('2100'),
