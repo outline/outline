@@ -222,7 +222,7 @@ class DocumentScene extends React.Component<Props> {
       return <Loading location={location} />;
     }
 
-    const embedsDisabled = team && !team.documentEmbeds;
+    const disableEmbeds = team && team.documentEmbeds === false;
 
     return (
       <ErrorBoundary>
@@ -297,10 +297,10 @@ class DocumentScene extends React.Component<Props> {
               )}
               <Editor
                 id={document.id}
-                key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
+                key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
                 defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
-                disableEmbeds={embedsDisabled}
+                disableEmbeds={disableEmbeds}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.props.onSearchLink}
