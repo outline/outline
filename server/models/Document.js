@@ -172,16 +172,10 @@ Document.associate = models => {
       return {
         include: [
           {
-            model: models.Collection,
+            model: models.Collection.scope({
+              method: ['withMembership', userId],
+            }),
             as: 'collection',
-            include: [
-              {
-                model: models.CollectionUser,
-                as: 'memberships',
-                where: { userId },
-                required: false,
-              },
-            ],
           },
         ],
       };

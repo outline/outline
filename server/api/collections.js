@@ -446,9 +446,11 @@ router.post('collections.update', auth(), async ctx => {
   }
 
   const user = ctx.state.user;
+
   const collection = await Collection.scope({
     method: ['withMembership', user.id],
   }).findByPk(id);
+
   authorize(user, 'update', collection);
 
   // we're making this collection private right now, ensure that the current
@@ -472,6 +474,7 @@ router.post('collections.update', auth(), async ctx => {
   collection.description = description;
   collection.color = color;
   collection.private = isPrivate;
+
   await collection.save();
 
   await Event.create({
@@ -486,11 +489,7 @@ router.post('collections.update', auth(), async ctx => {
   // must reload to update collection membership for correct policy calculation
   // if the privacy level has changed. Otherwise skip this query for speed.
   if (isPrivacyChanged) {
-    await collection.reload({
-      scope: {
-        method: ['withMembership', user.id],
-      },
-    });
+    await collection.reload();
   }
 
   ctx.body = {
@@ -529,6 +528,7 @@ router.post('collections.delete', auth(), async ctx => {
   const collection = await Collection.scope({
     method: ['withMembership', user.id],
   }).findByPk(id);
+
   authorize(user, 'delete', collection);
 
   const total = await Collection.count();

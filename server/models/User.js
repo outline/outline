@@ -72,22 +72,22 @@ User.associate = models => {
 
 // Instance methods
 User.prototype.collectionIds = async function(paranoid: boolean = true) {
-  let models = await Collection.findAll({
+  const collectionStubs = await Collection.scope({
+    method: ['withMembership', this.id],
+  }).findAll({
     attributes: ['id', 'private'],
     where: { teamId: this.teamId },
-    include: [
-      {
-        model: User,
-        as: 'users',
-        where: { id: this.id },
-        required: false,
-      },
-    ],
     paranoid,
   });
 
-  // Filter collections that are private and don't have an association
-  return models.filter(c => !c.private || c.users.length).map(c => c.id);
+  return collectionStubs
+    .filter(
+      c =>
+        !c.private ||
+        c.memberships.length > 0 ||
+        c.collectionGroupMemberships.length > 0
+    )
+    .map(c => c.id);
 };
 
 User.prototype.updateActiveAt = function(ip) {
