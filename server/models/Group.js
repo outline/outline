@@ -25,6 +25,7 @@ const Group = sequelize.define(
       isUniqueNameInTeam: async function() {
         const foundItem = await Group.findOne({
           where: {
+            teamId: this.teamId,
             name: { [Op.iLike]: this.name },
             id: { [Op.not]: this.id },
           },
