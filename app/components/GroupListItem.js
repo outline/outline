@@ -67,7 +67,7 @@ class GroupListItem extends React.Component<Props> {
           }
         />
         <Modal
-          title="Group Members"
+          title="Group members"
           onRequestClose={this.handleMembersModalClose}
           isOpen={this.membersModalOpen}
         >
