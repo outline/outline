@@ -128,6 +128,7 @@ router.post('groups.delete', auth(), async ctx => {
   await Event.create({
     name: 'groups.delete',
     actorId: user.id,
+    modelId: group.id,
     teamId: group.teamId,
     data: { name: group.name },
     ip: ctx.request.ip,
