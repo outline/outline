@@ -4,7 +4,7 @@ import keydown from 'react-keydown';
 import { observer } from 'mobx-react';
 import { observable } from 'mobx';
 import { withRouter, type RouterHistory } from 'react-router-dom';
-import { withTheme } from 'styled-components';
+import styled, { withTheme } from 'styled-components';
 import { SearchIcon } from 'outline-icons';
 import { searchUrl } from 'utils/routeHelpers';
 import Input from './Input';
@@ -49,7 +49,7 @@ class InputSearch extends React.Component<Props> {
     const { theme, placeholder = 'Search…' } = this.props;
 
     return (
-      <Input
+      <InputMaxWidth
         ref={ref => (this.input = ref)}
         type="search"
         placeholder={placeholder}
@@ -66,5 +66,9 @@ class InputSearch extends React.Component<Props> {
     );
   }
 }
+
+const InputMaxWidth = styled(Input)`
+  max-width: 30vw;
+`;
 
 export default withTheme(withRouter(InputSearch));
