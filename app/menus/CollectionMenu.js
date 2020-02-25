@@ -105,7 +105,7 @@ class CollectionMenu extends React.Component<Props> {
         </VisuallyHidden>
 
         <Modal
-          title="Collection Permissions"
+          title="Collection permissions"
           onRequestClose={this.handleMembersModalClose}
           isOpen={this.membersModalOpen}
         >
