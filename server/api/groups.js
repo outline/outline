@@ -104,6 +104,7 @@ router.post('groups.update', auth(), async ctx => {
       name: 'groups.update',
       teamId: user.teamId,
       actorId: user.id,
+      modelId: group.id,
       data: { name },
       ip: ctx.request.ip,
     });
