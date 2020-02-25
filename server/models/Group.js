@@ -20,6 +20,7 @@ const Group = sequelize.define(
   },
   {
     timestamps: true,
+    paranoid: true,
     validate: {
       isUniqueNameInTeam: async function() {
         const foundItem = await Group.findOne({
