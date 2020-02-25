@@ -511,7 +511,7 @@ describe('#collections.create', async () => {
   it('should create collection', async () => {
     const { user } = await seed();
     const res = await server.post('/api/collections.create', {
-      body: { token: user.getJwtToken(), name: 'Test', type: 'atlas' },
+      body: { token: user.getJwtToken(), name: 'Test' },
     });
     const body = await res.json();
 
@@ -519,6 +519,22 @@ describe('#collections.create', async () => {
     expect(body.data.id).toBeTruthy();
     expect(body.data.name).toBe('Test');
     expect(body.policies.length).toBe(1);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.export).toBeTruthy();
+  });
+
+  it('should return correct policies with private collection', async () => {
+    const { user } = await seed();
+    const res = await server.post('/api/collections.create', {
+      body: { token: user.getJwtToken(), name: 'Test', private: true },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.private).toBeTruthy();
+    expect(body.policies.length).toBe(1);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.export).toBeTruthy();
   });
 });
 
