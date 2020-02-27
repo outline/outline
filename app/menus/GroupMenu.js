@@ -24,7 +24,6 @@ type Props = {
 
 @observer
 class GroupMenu extends React.Component<Props> {
-  file: ?HTMLInputElement;
   @observable editModalOpen: boolean = false;
   @observable deleteModalOpen: boolean = false;
 
