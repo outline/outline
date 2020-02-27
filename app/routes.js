@@ -43,8 +43,9 @@ export default function Routes() {
         <SocketProvider>
           <Layout>
             <Switch>
-              <Route path="/dashboard/:tab" component={Dashboard} />
-              <Route path="/dashboard" component={Dashboard} />
+              <Redirect from="/dashboard" to="/home" />
+              <Route path="/home/:tab" component={Dashboard} />
+              <Route path="/home" component={Dashboard} />
               <Route exact path="/starred" component={Starred} />
               <Route exact path="/starred/:sort" component={Starred} />
               <Route exact path="/drafts" component={Drafts} />

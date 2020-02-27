@@ -26,7 +26,7 @@ export const ExportEmail = () => {
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${process.env.URL}/dashboard`}>Go to dashboard</Button>
+          <Button href={`${process.env.URL}/home`}>Go to dashboard</Button>
         </p>
       </Body>
 

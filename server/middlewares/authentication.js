@@ -134,7 +134,7 @@ export default function auth(options?: { required?: boolean } = {}) {
           httpOnly: false,
           expires,
         });
-        ctx.redirect(`${team.url}/dashboard${isFirstSignin ? '?welcome' : ''}`);
+        ctx.redirect(`${team.url}/home${isFirstSignin ? '?welcome' : ''}`);
       }
     };
 
