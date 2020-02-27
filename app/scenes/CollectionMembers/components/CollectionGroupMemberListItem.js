@@ -45,7 +45,7 @@ const MemberListItem = ({
           <ButtonWrap>
             <DropdownMenu>
               <DropdownMenuItem onClick={openMembersModal}>
-                Members...
+                Members…
               </DropdownMenuItem>
               <hr />
               <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
