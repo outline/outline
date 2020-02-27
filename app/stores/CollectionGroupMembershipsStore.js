@@ -25,7 +25,7 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
 
       invariant(res && res.data, 'Data not available');
 
-      runInAction(`/collections.group_memberships`, () => {
+      runInAction(`CollectionGroupMembershipsStore#fetchPage`, () => {
         res.data.groups.forEach(this.rootStore.groups.add);
         res.data.collectionGroupMemberships.forEach(this.add);
         this.isLoaded = true;

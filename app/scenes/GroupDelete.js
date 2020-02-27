@@ -44,8 +44,8 @@ class GroupDelete extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Are you sure about that? Deleting the <strong>{group.name}</strong>{' '}
-            will cause its members to lose access to collections and documents
-            that it is assigned to.
+            group will cause its members to lose access to collections and
+            documents that it is associated with.
           </HelpText>
           <Button type="submit" danger>
             {this.isDeleting ? 'Deleting…' : 'I’m sure – Delete'}

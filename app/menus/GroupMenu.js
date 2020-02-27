@@ -77,11 +77,9 @@ class GroupMenu extends React.Component<Props> {
         <DropdownMenu onOpen={onOpen} onClose={onClose}>
           {group && (
             <React.Fragment>
-              {
-                <DropdownMenuItem onClick={this.props.onMembers}>
-                  Members…
-                </DropdownMenuItem>
-              }
+              <DropdownMenuItem onClick={this.props.onMembers}>
+                Members…
+              </DropdownMenuItem>
 
               {(can.update || can.delete) && <hr />}
 

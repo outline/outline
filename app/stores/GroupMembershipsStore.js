@@ -24,7 +24,7 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
 
       invariant(res && res.data, 'Data not available');
 
-      runInAction(`/groups.memberships`, () => {
+      runInAction(`GroupMembershipsStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
         res.data.groupMemberships.forEach(this.add);
         this.isLoaded = true;
@@ -57,7 +57,7 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
 
     this.remove(`${userId}-${groupId}`);
 
-    runInAction(`/groups.remove_user`, () => {
+    runInAction(`GroupMembershipsStore#delete`, () => {
       res.data.groups.forEach(this.rootStore.groups.add);
       this.isLoaded = true;
     });

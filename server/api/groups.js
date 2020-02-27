@@ -232,6 +232,7 @@ router.post('groups.add_user', auth(), async ctx => {
       name: 'groups.add_user',
       userId,
       teamId: user.teamId,
+      modelId: group.id,
       actorId: ctx.state.user.id,
       data: { name: user.name },
       ip: ctx.request.ip,
@@ -261,8 +262,9 @@ router.post('groups.remove_user', auth(), async ctx => {
   await group.removeUser(user);
 
   await Event.create({
-    name: 'collections.remove_user',
+    name: 'groups.remove_user',
     userId,
+    modelId: group.id,
     teamId: user.teamId,
     actorId: ctx.state.user.id,
     data: { name: user.name },

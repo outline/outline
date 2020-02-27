@@ -28,7 +28,7 @@ export default class GroupsStore extends BaseStore<Group> {
 
       invariant(res && res.data, 'Data not available');
 
-      runInAction(`/groups.list`, () => {
+      runInAction(`GroupsStore#fetchPage`, () => {
         this.addPolicies(res.policies);
         res.data.groups.forEach(this.add);
         res.data.groupMemberships.forEach(this.rootStore.groupMemberships.add);

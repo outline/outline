@@ -62,6 +62,7 @@ class AddGroupsToCollection extends React.Component<Props> {
       this.props.ui.showToast(`${group.name} was added to the collection`);
     } catch (err) {
       this.props.ui.showToast('Could not add user');
+      console.error(err);
     }
   };
 

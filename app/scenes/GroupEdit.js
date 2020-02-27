@@ -20,7 +20,7 @@ type Props = {
 
 @observer
 class GroupEdit extends React.Component<Props> {
-  @observable name: string = '';
+  @observable name: string = this.props.group.name;
   @observable isSaving: boolean;
 
   componentDidMount() {
