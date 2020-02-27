@@ -68,7 +68,7 @@ class GroupNew extends React.Component<Props> {
             flex
           />
         </Flex>
-        <HelpText>You can add users to the group after it is created</HelpText>
+        <HelpText>You’ll be able to add people to the group after it is created</HelpText>
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
           {this.isSaving ? 'Creating…' : 'Create'}
