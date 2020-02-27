@@ -280,9 +280,9 @@ const EditorTooltip = ({ children, ...props }) => (
   </Tooltip>
 );
 
-export default withRouter(
-  withTheme(
-    // $FlowIssue - https://github.com/facebook/flow/issues/6103
-    React.forwardRef((props, ref) => <Editor {...props} forwardedRef={ref} />)
-  )
-);
+const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
+
+// $FlowIssue - https://github.com/facebook/flow/issues/6103
+export default React.forwardRef((props, ref) => (
+  <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
+));
