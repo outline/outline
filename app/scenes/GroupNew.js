@@ -55,7 +55,7 @@ class GroupNew extends React.Component<Props> {
         <HelpText>
           Groups are for organizing your team. They work best when centered
           around a function or a responsibility — Support or Engineering for
-          example.{' '}
+          example.
         </HelpText>
         <Flex>
           <Input
