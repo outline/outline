@@ -2,7 +2,7 @@
 import Document from 'models/Document';
 
 export function homeUrl(): string {
-  return '/dashboard';
+  return '/home';
 }
 
 export function starredUrl(): string {

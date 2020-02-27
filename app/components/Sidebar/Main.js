@@ -81,7 +81,7 @@ class MainSidebar extends React.Component<Props> {
           <Scrollable shadow>
             <Section>
               <SidebarLink
-                to="/dashboard"
+                to="/home"
                 icon={<HomeIcon />}
                 exact={false}
                 label="Home"

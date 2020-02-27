@@ -31,16 +31,16 @@ class Dashboard extends React.Component<Props> {
         <PageTitle title="Home" />
         <h1>Home</h1>
         <Tabs>
-          <Tab to="/dashboard" exact>
+          <Tab to="/home" exact>
             Recently updated
           </Tab>
-          <Tab to="/dashboard/recent" exact>
+          <Tab to="/home/recent" exact>
             Recently viewed
           </Tab>
-          <Tab to="/dashboard/created">Created by me</Tab>
+          <Tab to="/home/created">Created by me</Tab>
         </Tabs>
         <Switch>
-          <Route path="/dashboard/recent">
+          <Route path="/home/recent">
             <PaginatedDocumentList
               key="recent"
               documents={documents.recentlyViewed}
@@ -48,7 +48,7 @@ class Dashboard extends React.Component<Props> {
               showCollection
             />
           </Route>
-          <Route path="/dashboard/created">
+          <Route path="/home/created">
             <PaginatedDocumentList
               key="created"
               documents={documents.createdByUser(user)}
@@ -57,7 +57,7 @@ class Dashboard extends React.Component<Props> {
               showCollection
             />
           </Route>
-          <Route path="/dashboard">
+          <Route path="/home">
             <PaginatedDocumentList
               documents={documents.recentlyUpdated}
               fetch={documents.fetchRecentlyUpdated}
