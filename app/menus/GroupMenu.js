@@ -63,7 +63,7 @@ class GroupMenu extends React.Component<Props> {
         </Modal>
 
         <Modal
-          title="Delete Group"
+          title="Delete group"
           onRequestClose={this.handleDeleteModalClose}
           isOpen={this.deleteModalOpen}
         >
