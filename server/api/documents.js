@@ -395,7 +395,6 @@ router.post('documents.info', auth({ required: false }), async ctx => {
     document = await Document.findByPk(
       id,
       user ? { userId: user.id } : undefined
-      // XXX: this seems crazy to me, like you can only find the doc if you created it?
     );
     authorize(user, 'read', document);
   }
