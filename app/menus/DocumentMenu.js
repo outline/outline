@@ -185,7 +185,7 @@ class DocumentMenu extends React.Component<Props> {
             </DropdownMenuItem>
           </React.Fragment>
         )}
-        {can.update && (
+        {can.createChildDocument && (
           <DropdownMenuItem
             onClick={this.handleNewChild}
             title="Create a nested document inside the current document"

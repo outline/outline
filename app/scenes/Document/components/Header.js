@@ -230,7 +230,7 @@ class Header extends React.Component<Props> {
             </Action>
           )}
           {canEdit &&
-            !isDraft && (
+            can.createChildDocument && (
               <Action>
                 <NewChildDocumentMenu
                   document={document}
