@@ -42,7 +42,11 @@ class Sidebar extends React.Component<Props> {
           onClick={this.toggleSidebar}
           mobileSidebarVisible={ui.mobileSidebarVisible}
         >
-          {ui.mobileSidebarVisible ? <CloseIcon /> : <MenuIcon />}
+          {ui.mobileSidebarVisible ? (
+            <CloseIcon size={32} />
+          ) : (
+            <MenuIcon size={32} />
+          )}
         </Toggle>
         {children}
       </Container>
@@ -106,7 +110,6 @@ const Toggle = styled.a`
   right: ${props => (props.mobileSidebarVisible ? 0 : 'auto')};
   z-index: 1;
   margin: 12px;
-  height: 32px;
 
   ${breakpoint('tablet')`
     display: none;

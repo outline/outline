@@ -69,6 +69,7 @@ export const Outline = styled(Flex)`
   border-radius: 4px;
   font-weight: normal;
   align-items: center;
+  overflow: hidden;
 `;
 
 export const LabelText = styled.div`
