@@ -101,7 +101,7 @@ class Groups extends React.Component<Props> {
         {showLoading && <ListPlaceholder count={5} />}
 
         <Modal
-          title="Create a Group"
+          title="Create a group"
           onRequestClose={this.handleNewGroupModalClose}
           isOpen={this.newGroupModalOpen}
         >

@@ -24,7 +24,6 @@ type Props = {
 
 @observer
 class GroupMenu extends React.Component<Props> {
-  file: ?HTMLInputElement;
   @observable editModalOpen: boolean = false;
   @observable deleteModalOpen: boolean = false;
 
@@ -53,7 +52,7 @@ class GroupMenu extends React.Component<Props> {
     return (
       <React.Fragment>
         <Modal
-          title="Edit Group"
+          title="Edit group"
           onRequestClose={this.handleEditModalClose}
           isOpen={this.editModalOpen}
         >
@@ -64,7 +63,7 @@ class GroupMenu extends React.Component<Props> {
         </Modal>
 
         <Modal
-          title="Delete Group"
+          title="Delete group"
           onRequestClose={this.handleDeleteModalClose}
           isOpen={this.deleteModalOpen}
         >

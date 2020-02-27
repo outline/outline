@@ -55,7 +55,7 @@ class GroupNew extends React.Component<Props> {
         <HelpText>
           Groups are for organizing your team. They work best when centered
           around a function or a responsibility — Support or Engineering for
-          example.{' '}
+          example.
         </HelpText>
         <Flex>
           <Input
@@ -68,7 +68,7 @@ class GroupNew extends React.Component<Props> {
             flex
           />
         </Flex>
-        <HelpText>You can add users to the group after it is created</HelpText>
+        <HelpText>You’ll be able to add people to the group after it is created</HelpText>
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
           {this.isSaving ? 'Creating…' : 'Create'}

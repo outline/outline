@@ -115,7 +115,7 @@ class AddGroupsToCollection extends React.Component<Props> {
           )}
         />
         <Modal
-          title="Create a Group"
+          title="Create a group"
           onRequestClose={this.handleNewGroupModalClose}
           isOpen={this.newGroupModalOpen}
         >

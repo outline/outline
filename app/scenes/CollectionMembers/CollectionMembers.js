@@ -201,7 +201,7 @@ class CollectionMembers extends React.Component<Props> {
                 icon={<PlusIcon />}
                 neutral
               >
-                Add indivdual members
+                Add individual members
               </Button>
             </span>
 
