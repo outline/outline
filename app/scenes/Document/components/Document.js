@@ -65,7 +65,7 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  getEditorText: () => string;
+  getEditorText: () => string = () => this.props.document.text;
 
   @observable editorComponent = EditorImport;
   @observable isUploading: boolean = false;
@@ -78,6 +78,10 @@ class DocumentScene extends React.Component<Props> {
   constructor(props) {
     super();
     this.loadEditor();
+  }
+
+  componentDidMount() {
+    this.updateIsDirty();
   }
 
   @keydown('m')
@@ -179,14 +183,16 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ done: false, autosave: true });
   }, AUTOSAVE_DELAY);
 
-  updateIsDirty = debounce(() => {
+  updateIsDirty = () => {
     const { document } = this.props;
     const editorText = this.getEditorText().trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty = editorText === '#';
+    this.isEmpty = !editorText || editorText === '#';
     this.isDirty = !!document && editorText !== document.text.trim();
-  }, IS_DIRTY_DELAY);
+  };
+
+  updateIsDirtyDebounced = debounce(this.updateIsDirty, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
     this.isUploading = true;
@@ -198,7 +204,7 @@ class DocumentScene extends React.Component<Props> {
 
   onChange = getEditorText => {
     this.getEditorText = getEditorText;
-    this.updateIsDirty();
+    this.updateIsDirtyDebounced();
     this.autosave();
   };
 
