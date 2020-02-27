@@ -52,7 +52,7 @@ class GroupMenu extends React.Component<Props> {
     return (
       <React.Fragment>
         <Modal
-          title="Edit Group"
+          title="Edit group"
           onRequestClose={this.handleEditModalClose}
           isOpen={this.editModalOpen}
         >
