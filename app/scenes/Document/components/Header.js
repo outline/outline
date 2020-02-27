@@ -190,7 +190,8 @@ class Header extends React.Component<Props> {
             </React.Fragment>
           )}
           {can.update &&
-            isDraft && (
+            isDraft &&
+            !isRevision && (
               <Action>
                 <Tooltip
                   tooltip="Publish"
