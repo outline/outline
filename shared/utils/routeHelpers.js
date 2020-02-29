@@ -62,7 +62,7 @@ export function developers(): string {
 }
 
 export function changelog(): string {
-  return `${process.env.URL}/changelog`;
+  return `https://www.getoutline.com/changelog`;
 }
 
 export function signin(service: string = 'slack'): string {
