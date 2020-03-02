@@ -42,7 +42,6 @@ Group.associate = models => {
   Group.hasMany(models.GroupUser, {
     as: 'groupMemberships',
     foreignKey: 'groupId',
-    onDelete: 'cascade',
     hooks: true,
   });
   Group.belongsTo(models.Team, {

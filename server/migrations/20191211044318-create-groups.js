@@ -41,6 +41,7 @@ module.exports = {
     });
 
     await queryInterface.addIndex("groups", ["teamId"]);
+    await queryInterface.addIndex("groups", ["deletedAt"]);
   },
 
   down: async (queryInterface, Sequelize) => {

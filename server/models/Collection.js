@@ -1,5 +1,5 @@
 // @flow
-import { find, remove } from 'lodash';
+import { find, concat, remove } from 'lodash';
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
@@ -116,6 +116,39 @@ Collection.associate = models => {
       },
     ],
   }));
+  Collection.addScope('withAllMemberships', {
+    include: [
+      {
+        model: models.CollectionUser,
+        as: 'memberships',
+        required: false,
+      },
+      {
+        model: models.CollectionGroup,
+        as: 'collectionGroupMemberships',
+        required: false,
+
+        // use of "separate" property: sequelize breaks when there are
+        // nested "includes" with alternating values for "required"
+        // see https://github.com/sequelize/sequelize/issues/9869
+        separate: true,
+
+        // include for groups that are members of this collection,
+        // of which userId is a member of, resulting in:
+        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+        include: {
+          model: models.Group,
+          as: 'group',
+          required: true,
+          include: {
+            model: models.GroupUser,
+            as: 'groupMemberships',
+            required: true,
+          },
+        },
+      },
+    ],
+  });
 };
 
 Collection.addHook('afterDestroy', async (model: Collection) => {
@@ -141,6 +174,24 @@ Collection.addHook('afterCreate', (model: Collection, options) => {
     });
   }
 });
+
+// Class methods
+
+// get all the membership relationshps a user could have with the collection
+// TODO: test this thing!
+Collection.membershipUserIds = async (collectionId: string) => {
+  const collection = Collection.scope('withAllMemberships').findByPk(
+    collectionId
+  );
+
+  const groupMemberships = collection.collectionGroupMemberships
+    .map(cgm => cgm.groupMemberships)
+    .flat();
+
+  return concat(groupMemberships, collection.memberships).map(
+    membership => membership.userId
+  );
+};
 
 // Instance methods
 

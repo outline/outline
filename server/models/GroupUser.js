@@ -6,6 +6,7 @@ const GroupUser = sequelize.define(
   {},
   {
     timestamps: true,
+    paranoid: true,
   }
 );
 

@@ -228,4 +228,7 @@ describe('#removeDocument', () => {
     });
     expect(collectionDocuments.count).toBe(1);
   });
+
+  // TODO: test this thing!
+  test('should return user membership Ids', async () => {});
 });

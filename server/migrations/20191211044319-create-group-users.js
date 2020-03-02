@@ -31,11 +31,16 @@ module.exports = {
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false
+      },
+      deletedAt: {
+        type: Sequelize.DATE,
+        allowNull: true
       }
     });
 
     await queryInterface.addIndex("group_users", ["groupId", "userId"]);
     await queryInterface.addIndex("group_users", ["userId"]);
+    await queryInterface.addIndex("group_users", ["deletedAt"]);
   },
 
   down: async (queryInterface, Sequelize) => {
