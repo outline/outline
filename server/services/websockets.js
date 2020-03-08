@@ -8,6 +8,8 @@ import {
   GroupUser,
 } from '../models';
 import { socketio } from '../';
+import { Op } from '../sequelize';
+import subHours from 'date-fns/sub_hours';
 
 export default class Websockets {
   async on(event: Event) {
@@ -377,12 +379,28 @@ export default class Websockets {
         return;
       }
       case 'groups.delete': {
+        // we the users and collection relations that were just severed as a result of the group deletion
+        // since there are cascading deletes, we approximate this by looking for the recently deleted
+        // items in the GroupUser and CollectionGroup tables
+
         const groupUsers = await GroupUser.find({
-          where: { groupId: event.modelId },
+          paranoid: false,
+          where: {
+            groupId: event.modelId,
+            deletedAt: {
+              [Op.gt]: subHours(new Date(), 1),
+            },
+          },
         });
 
         const collectionGroupMemberships = CollectionGroup.find({
-          where: { groupId: event.modelId },
+          paranoid: false,
+          where: {
+            groupId: event.modelId,
+            deletedAt: {
+              [Op.gt]: subHours(new Date(), 1),
+            },
+          },
         });
 
         for (const collectionGroup of collectionGroupMemberships) {
@@ -392,9 +410,16 @@ export default class Websockets {
 
           for (const groupUser of groupUsers) {
             if (membershipUserIds.includes(groupUser.userId)) {
-              // emit an add
+              // the user still has access through some means...
+              // treat this like an add, so that the client re-syncs policies
+              socketio
+                .to(`user-${groupUser.userId}`)
+                .emit('collections.add_user', {
+                  event: event.name,
+                  userId: groupUser.userId,
+                  collectionId: collectionGroup.collectionId,
+                });
             } else {
-              // emit remove stuff
               // let everyone with access to the collection know a user was removed
               socketio
                 .to(`collection-${collectionGroup.collectionId}`)
@@ -405,14 +430,16 @@ export default class Websockets {
                 });
 
               // tell any user clients to disconnect from the websocket channel for the collection
-              return socketio.to(`user-${event.userId}`).emit('leave', {
+              socketio.to(`user-${groupUser.userId}`).emit('leave', {
                 event: event.name,
-                collectionId: event.collectionId,
+                collectionId: collectionGroup.collectionId,
               });
             }
           }
         }
+        return;
       }
+
       default:
     }
   }

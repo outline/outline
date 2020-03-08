@@ -14,6 +14,7 @@ const CollectionGroup = sequelize.define(
   },
   {
     timestamps: true,
+    paranoid: true,
   }
 );
 
