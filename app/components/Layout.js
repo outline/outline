@@ -71,7 +71,7 @@ class Layout extends React.Component<Props> {
     window.document.body.style.background = this.props.theme.background;
   }
 
-  @keydown(['/', 't', 'meta+k'])
+  @keydown(['/', 'meta+k'])
   goToSearch(ev) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -80,6 +80,7 @@ class Layout extends React.Component<Props> {
 
   @keydown('d')
   goToDashboard() {
+    if (this.props.ui.editMode) return;
     this.redirectTo = homeUrl();
   }
 

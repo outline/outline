@@ -36,8 +36,6 @@ import AuthStore from 'stores/AuthStore';
 import Document from 'models/Document';
 import Revision from 'models/Revision';
 
-import schema from '../schema';
-
 let EditorImport;
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
@@ -86,6 +84,8 @@ class DocumentScene extends React.Component<Props> {
 
   @keydown('m')
   goToMove(ev) {
+    if (!this.props.readOnly) return;
+
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -96,6 +96,8 @@ class DocumentScene extends React.Component<Props> {
 
   @keydown('e')
   goToEdit(ev) {
+    if (!this.props.readOnly) return;
+
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -114,6 +116,8 @@ class DocumentScene extends React.Component<Props> {
 
   @keydown('h')
   goToHistory(ev) {
+    if (!this.props.readOnly) return;
+
     ev.preventDefault();
     const { document, revision } = this.props;
 
@@ -317,7 +321,6 @@ class DocumentScene extends React.Component<Props> {
                 readOnly={readOnly || document.isArchived}
                 toc={!revision}
                 ui={this.props.ui}
-                schema={schema}
               />
               {readOnly &&
                 !isShare &&

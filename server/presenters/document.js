@@ -25,6 +25,10 @@ async function replaceImageAttachments(text) {
   return text;
 }
 
+function migrateToNewEditor(text) {
+  return text.replace(/\n\n\n/g, '\n\\\n');
+}
+
 export default async function present(document: Document, options: ?Options) {
   options = {
     isPublic: false,
@@ -40,7 +44,7 @@ export default async function present(document: Document, options: ?Options) {
     url: document.url,
     urlId: document.urlId,
     title: document.title,
-    text,
+    text: migrateToNewEditor(text),
     emoji: document.emoji,
     createdAt: document.createdAt,
     createdBy: undefined,
