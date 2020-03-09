@@ -1,5 +1,5 @@
 // @flow
-import { find, concat, remove } from 'lodash';
+import { find, concat, remove, uniq } from 'lodash';
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
@@ -178,19 +178,21 @@ Collection.addHook('afterCreate', (model: Collection, options) => {
 // Class methods
 
 // get all the membership relationshps a user could have with the collection
-// TODO: test this thing!
 Collection.membershipUserIds = async (collectionId: string) => {
-  const collection = Collection.scope('withAllMemberships').findByPk(
+  const collection = await Collection.scope('withAllMemberships').findByPk(
     collectionId
   );
 
   const groupMemberships = collection.collectionGroupMemberships
-    .map(cgm => cgm.groupMemberships)
+    .map(cgm => cgm.group.groupMemberships)
     .flat();
 
-  return concat(groupMemberships, collection.memberships).map(
-    membership => membership.userId
-  );
+  const membershipUserIds = concat(
+    groupMemberships,
+    collection.memberships
+  ).map(membership => membership.userId);
+
+  return uniq(membershipUserIds);
 };
 
 // Instance methods

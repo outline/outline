@@ -1,5 +1,6 @@
 // @flow
 import { Op, DataTypes, sequelize } from '../sequelize';
+import { CollectionGroup, GroupUser } from '../models';
 
 const Group = sequelize.define(
   'group',
@@ -42,7 +43,10 @@ Group.associate = models => {
   Group.hasMany(models.GroupUser, {
     as: 'groupMemberships',
     foreignKey: 'groupId',
-    hooks: true,
+  });
+  Group.hasMany(models.CollectionGroup, {
+    as: 'collectionGroupMemberships',
+    foreignKey: 'groupId',
   });
   Group.belongsTo(models.Team, {
     as: 'team',
@@ -67,5 +71,13 @@ Group.associate = models => {
     order: [['name', 'ASC']],
   });
 };
+
+// Cascade deletes to group and collection relations
+Group.addHook('afterDestroy', async (group, options) => {
+  if (!group.deletedAt) return;
+
+  await GroupUser.destroy({ where: { groupId: group.id } });
+  await CollectionGroup.destroy({ where: { groupId: group.id } });
+});
 
 export default Group;
