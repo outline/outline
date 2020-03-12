@@ -58,7 +58,13 @@ class GroupListItem extends React.Component<Props> {
           }
           actions={
             <Flex align="center">
-              {showFacepile && <Facepile users={users} overflow={overflow} />}
+              {showFacepile && (
+                <Facepile
+                  onClick={this.handleMembersModalOpen}
+                  users={users}
+                  overflow={overflow}
+                />
+              )}
               &nbsp;
               {renderActions({
                 openMembersModal: this.handleMembersModalOpen,

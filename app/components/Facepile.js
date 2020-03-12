@@ -21,10 +21,11 @@ class Facepile extends React.Component<Props> {
       overflow,
       size = 32,
       renderAvatar = renderDefaultAvatar,
+      ...rest
     } = this.props;
 
     return (
-      <Avatars>
+      <Avatars {...rest}>
         {overflow > 0 && (
           <More size={size}>
             <span>+{overflow}</span>
