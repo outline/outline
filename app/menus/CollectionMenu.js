@@ -134,7 +134,7 @@ class CollectionMenu extends React.Component<Props> {
               )}
               {can.update && (
                 <DropdownMenuItem onClick={this.onPermissions}>
-                  Members…
+                  Permissions…
                 </DropdownMenuItem>
               )}
               {can.export && (

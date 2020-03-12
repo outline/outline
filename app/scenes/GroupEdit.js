@@ -23,10 +23,6 @@ class GroupEdit extends React.Component<Props> {
   @observable name: string = this.props.group.name;
   @observable isSaving: boolean;
 
-  componentDidMount() {
-    this.name = this.props.group.name;
-  }
-
   handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.isSaving = true;
