@@ -68,8 +68,6 @@ class Groups extends React.Component<Props> {
           <Button
             type="button"
             data-on="click"
-            data-event-category="invite"
-            data-event-action="peoplePage"
             onClick={this.handleNewGroupModalOpen}
             icon={<PlusIcon />}
             neutral
