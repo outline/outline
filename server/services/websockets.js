@@ -214,7 +214,7 @@ export default class Websockets {
         });
       }
       case 'collections.remove_user': {
-        const membershipUserIds = Collection.membershipUserIds(
+        const membershipUserIds = await Collection.membershipUserIds(
           event.collectionId
         );
 
@@ -269,7 +269,7 @@ export default class Websockets {
       }
       case 'collections.remove_group': {
         const group = await Group.findByPk(event.data.groupId);
-        const membershipUserIds = Collection.membershipUserIds(
+        const membershipUserIds = await Collection.membershipUserIds(
           event.collectionId
         );
 
@@ -305,7 +305,7 @@ export default class Websockets {
       }
       case 'groups.add_user': {
         // do an add user for every collection that the group is a part of
-        const collectionGroupMemberships = CollectionGroup.find({
+        const collectionGroupMemberships = await CollectionGroup.findAll({
           where: { groupId: event.modelId },
         });
 
@@ -336,7 +336,7 @@ export default class Websockets {
         return;
       }
       case 'groups.remove_user': {
-        const collectionGroupMemberships = CollectionGroup.find({
+        const collectionGroupMemberships = await CollectionGroup.findAll({
           where: { groupId: event.modelId },
         });
 
@@ -383,7 +383,7 @@ export default class Websockets {
         // since there are cascading deletes, we approximate this by looking for the recently deleted
         // items in the GroupUser and CollectionGroup tables
 
-        const groupUsers = await GroupUser.find({
+        const groupUsers = await GroupUser.findAll({
           paranoid: false,
           where: {
             groupId: event.modelId,
@@ -393,7 +393,7 @@ export default class Websockets {
           },
         });
 
-        const collectionGroupMemberships = CollectionGroup.find({
+        const collectionGroupMemberships = await CollectionGroup.findAll({
           paranoid: false,
           where: {
             groupId: event.modelId,
@@ -404,7 +404,7 @@ export default class Websockets {
         });
 
         for (const collectionGroup of collectionGroupMemberships) {
-          const membershipUserIds = Collection.membershipUserIds(
+          const membershipUserIds = await Collection.membershipUserIds(
             collectionGroup.collectionId
           );
 

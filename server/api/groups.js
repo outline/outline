@@ -19,7 +19,7 @@ const router = new Router();
 
 router.post('groups.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
-  let groups = await Group.findAll({
+  const groups = await Group.findAll({
     where: {
       teamId: user.teamId,
     },
