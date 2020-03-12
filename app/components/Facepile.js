@@ -8,6 +8,7 @@ import User from 'models/User';
 
 type Props = {
   users: User[],
+  size?: number,
   overflow: number,
   renderAvatar: (user: User) => React.Node,
 };
@@ -15,11 +16,20 @@ type Props = {
 @observer
 class Facepile extends React.Component<Props> {
   render() {
-    const { users, overflow, renderAvatar = renderDefaultAvatar } = this.props;
+    const {
+      users,
+      overflow,
+      size = 32,
+      renderAvatar = renderDefaultAvatar,
+    } = this.props;
 
     return (
       <Avatars>
-        {overflow > 0 && <More>+{overflow}</More>}
+        {overflow > 0 && (
+          <More size={size}>
+            <span>+{overflow}</span>
+          </More>
+        )}
         {users.map(user => (
           <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
         ))}
@@ -34,20 +44,24 @@ function renderDefaultAvatar(user: User) {
 
 const AvatarWrapper = styled.div`
   margin-right: -8px;
+
   &:first-child {
     margin-right: 0;
   }
 `;
 
 const More = styled.div`
-  min-width: 30px;
-  height: 24px;
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: ${props => props.size}px;
+  height: ${props => props.size}px;
+  border-radius: 100%;
   background: ${props => props.theme.slate};
   color: ${props => props.theme.text};
   border: 2px solid ${props => props.theme.background};
   text-align: center;
-  line-height: 20px;
   font-size: 11px;
   font-weight: 600;
 `;
