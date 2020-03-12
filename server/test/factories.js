@@ -8,6 +8,7 @@ import {
   Collection,
   Group,
   GroupUser,
+  Attachment,
 } from '../models';
 import uuid from 'uuid';
 
@@ -149,6 +150,41 @@ export async function buildDocument(overrides: Object = {}) {
     publishedAt: new Date(),
     lastModifiedById: overrides.userId,
     createdById: overrides.userId,
+    ...overrides,
+  });
+}
+
+export async function buildAttachment(overrides: Object = {}) {
+  count++;
+
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.collectionId) {
+    const collection = await buildCollection(overrides);
+    overrides.collectionId = collection.id;
+  }
+
+  if (!overrides.documentId) {
+    const document = await buildDocument(overrides);
+    overrides.documentId = document.id;
+  }
+
+  return Attachment.create({
+    key: `uploads/key/to/file ${count}.png`,
+    url: `https://redirect.url.com/uploads/key/to/file ${count}.png`,
+    contentType: 'image/png',
+    size: 100,
+    acl: 'public-read',
+    createdAt: new Date('2018-01-02T00:00:00.000Z'),
+    updatedAt: new Date('2018-01-02T00:00:00.000Z'),
     ...overrides,
   });
 }

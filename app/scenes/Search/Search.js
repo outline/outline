@@ -48,7 +48,8 @@ type Props = {
 class Search extends React.Component<Props> {
   firstDocument: ?DocumentPreview;
 
-  @observable query: string = '';
+  @observable
+  query: string = decodeURIComponent(this.props.match.params.term || '');
   @observable params: URLSearchParams = new URLSearchParams();
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;

@@ -19,11 +19,15 @@ class DocumentEditor extends React.Component<Props> {
   }
 
   focusAtStart = () => {
-    if (this.editor) this.editor.focusAtStart();
+    if (this.editor) {
+      this.editor.focusAtStart();
+    }
   };
 
   focusAtEnd = () => {
-    if (this.editor) this.editor.focusAtEnd();
+    if (this.editor) {
+      this.editor.focusAtEnd();
+    }
   };
 
   render() {
@@ -33,6 +37,7 @@ class DocumentEditor extends React.Component<Props> {
       <React.Fragment>
         <Editor
           ref={ref => (this.editor = ref)}
+          autoFocus={!this.props.defaultValue}
           plugins={plugins}
           grow={!readOnly}
           {...this.props}

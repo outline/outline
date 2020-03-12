@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react';
 import debug from 'debug';
-import bugsnag from 'bugsnag';
+import * as Sentry from '@sentry/node';
 import nodemailer from 'nodemailer';
 import Oy from 'oy-vey';
-import Queue from 'bull';
+import { createQueue } from './utils/queue';
 import { baseStyles } from './emails/components/EmailLayout';
 import { WelcomeEmail, welcomeEmailText } from './emails/WelcomeEmail';
 import { ExportEmail, exportEmailText } from './emails/ExportEmail';
@@ -83,7 +83,7 @@ export class Mailer {
           attachments: data.attachments,
         });
       } catch (err) {
-        bugsnag.notify(err);
+        Sentry.captureException(err);
         throw err; // Re-throw for queue to re-try
       }
     }
@@ -182,7 +182,7 @@ export class Mailer {
 const mailer = new Mailer();
 export default mailer;
 
-export const mailerQueue = new Queue('email', process.env.REDIS_URL);
+export const mailerQueue = createQueue('email');
 
 mailerQueue.process(async (job: EmailJob) => {
   // $FlowIssue flow doesn't like dynamic values

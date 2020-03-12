@@ -9,7 +9,7 @@ type Props = {
 };
 
 const Home = observer(({ auth }: Props) => {
-  if (auth.authenticated) return <Redirect to="/dashboard" />;
+  if (auth.authenticated) return <Redirect to="/home" />;
   auth.logout(true);
   return null;
 });

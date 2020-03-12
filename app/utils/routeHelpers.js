@@ -2,7 +2,7 @@
 import Document from 'models/Document';
 
 export function homeUrl(): string {
-  return '/dashboard';
+  return '/home';
 }
 
 export function starredUrl(): string {
@@ -64,9 +64,14 @@ export function newDocumentUrl(
   return route;
 }
 
-export function searchUrl(query?: string): string {
-  if (query) return `/search/${encodeURIComponent(query)}`;
-  return `/search`;
+export function searchUrl(query?: string, collectionId?: string): string {
+  let route = '/search';
+  if (query) route += `/${encodeURIComponent(query)}`;
+
+  if (collectionId) {
+    route += `?collectionId=${collectionId}`;
+  }
+  return route;
 }
 
 export function notFoundUrl(): string {

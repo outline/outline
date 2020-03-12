@@ -133,6 +133,7 @@ const Loading = styled.div`
 `;
 
 const Wrapper = styled(Flex)`
+  background: ${props => props.theme.background};
   min-width: ${props => props.theme.sidebarWidth};
   border-left: 1px solid ${props => props.theme.divider};
   overflow: scroll;

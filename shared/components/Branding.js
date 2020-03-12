@@ -1,11 +1,15 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
-import OutlineLogo from 'shared/components/OutlineLogo';
+import OutlineLogo from './OutlineLogo';
 
-function Branding() {
+type Props = {
+  href?: string,
+};
+
+function Branding({ href = process.env.URL }: Props) {
   return (
-    <Link href={process.env.URL}>
+    <Link href={href}>
       <OutlineLogo size={16} fill="#000" />&nbsp;Outline
     </Link>
   );

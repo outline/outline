@@ -19,7 +19,6 @@ import { emojiToUrl } from 'utils/emoji';
 
 import Header from './Header';
 import DocumentMove from './DocumentMove';
-import Branding from './Branding';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import References from './References';
 import Loading from './Loading';
@@ -28,6 +27,7 @@ import MarkAsViewed from './MarkAsViewed';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingIndicator from 'components/LoadingIndicator';
 import PageTitle from 'components/PageTitle';
+import Branding from 'shared/components/Branding';
 import Notice from 'shared/components/Notice';
 import Time from 'shared/components/Time';
 
@@ -65,7 +65,7 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  getEditorText: () => string;
+  getEditorText: () => string = () => this.props.document.text;
 
   @observable editorComponent = EditorImport;
   @observable isUploading: boolean = false;
@@ -78,6 +78,10 @@ class DocumentScene extends React.Component<Props> {
   constructor(props) {
     super();
     this.loadEditor();
+  }
+
+  componentDidMount() {
+    this.updateIsDirty();
   }
 
   @keydown('m')
@@ -179,14 +183,16 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ done: false, autosave: true });
   }, AUTOSAVE_DELAY);
 
-  updateIsDirty = debounce(() => {
+  updateIsDirty = () => {
     const { document } = this.props;
     const editorText = this.getEditorText().trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty = editorText === '#';
+    this.isEmpty = !editorText || editorText === '#';
     this.isDirty = !!document && editorText !== document.text.trim();
-  }, IS_DIRTY_DELAY);
+  };
+
+  updateIsDirtyDebounced = debounce(this.updateIsDirty, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
     this.isUploading = true;
@@ -198,7 +204,7 @@ class DocumentScene extends React.Component<Props> {
 
   onChange = getEditorText => {
     this.getEditorText = getEditorText;
-    this.updateIsDirty();
+    this.updateIsDirtyDebounced();
     this.autosave();
   };
 
@@ -222,7 +228,7 @@ class DocumentScene extends React.Component<Props> {
       return <Loading location={location} />;
     }
 
-    const embedsDisabled = team && !team.documentEmbeds;
+    const disableEmbeds = team && team.documentEmbeds === false;
 
     return (
       <ErrorBoundary>
@@ -297,10 +303,10 @@ class DocumentScene extends React.Component<Props> {
               )}
               <Editor
                 id={document.id}
-                key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
+                key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
                 defaultValue={revision ? revision.text : document.text}
                 pretitle={document.emoji}
-                disableEmbeds={embedsDisabled}
+                disableEmbeds={disableEmbeds}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.props.onSearchLink}

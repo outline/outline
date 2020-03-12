@@ -133,7 +133,7 @@ class DocumentMove extends React.Component<Props> {
               <Section column>
                 <Labeled label="Choose a new location">
                   <Input
-                    type="text"
+                    type="search"
                     placeholder="Search collections & documents…"
                     onKeyDown={this.handleKeyDown}
                     onChange={this.handleFilter}

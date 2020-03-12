@@ -32,15 +32,16 @@ const router = new Router();
 router.post('collections.create', auth(), async ctx => {
   const { name, color, description, type } = ctx.body;
   const isPrivate = ctx.body.private;
-
   ctx.assertPresent(name, 'name is required');
-  if (color)
+
+  if (color) {
     ctx.assertHexColor(color, 'Invalid hex value (please use format #FFFFFF)');
+  }
 
   const user = ctx.state.user;
   authorize(user, 'create', Collection);
 
-  const collection = await Collection.create({
+  let collection = await Collection.create({
     name,
     description,
     color,
@@ -58,6 +59,13 @@ router.post('collections.create', auth(), async ctx => {
     data: { name },
     ip: ctx.request.ip,
   });
+
+  // we must reload the collection to get memberships for policy presenter
+  if (isPrivate) {
+    collection = await Collection.scope({
+      method: ['withMembership', user.id],
+    }).findByPk(collection.id);
+  }
 
   ctx.body = {
     data: presentCollection(collection),

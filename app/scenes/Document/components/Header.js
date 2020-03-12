@@ -190,7 +190,8 @@ class Header extends React.Component<Props> {
             </React.Fragment>
           )}
           {can.update &&
-            isDraft && (
+            isDraft &&
+            !isRevision && (
               <Action>
                 <Tooltip
                   tooltip="Publish"
@@ -229,7 +230,7 @@ class Header extends React.Component<Props> {
             </Action>
           )}
           {canEdit &&
-            !isDraft && (
+            can.createChildDocument && (
               <Action>
                 <NewChildDocumentMenu
                   document={document}

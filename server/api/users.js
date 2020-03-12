@@ -9,13 +9,14 @@ import {
   publicS3Endpoint,
   makeCredential,
 } from '../utils/s3';
-import { Event, User, Team } from '../models';
+import { Attachment, Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import userInviter from '../commands/userInviter';
 import { presentUser } from '../presenters';
 import policy from '../policies';
 
+const AWS_S3_ACL = process.env.AWS_S3_ACL || 'private';
 const { authorize } = policy;
 const router = new Router();
 
@@ -60,12 +61,9 @@ router.post('users.info', auth(), async ctx => {
 router.post('users.update', auth(), async ctx => {
   const { user } = ctx.state;
   const { name, avatarUrl } = ctx.body;
-  const endpoint = publicS3Endpoint();
 
   if (name) user.name = name;
-  if (avatarUrl && avatarUrl.startsWith(`${endpoint}/uploads/${user.id}`)) {
-    user.avatarUrl = avatarUrl;
-  }
+  if (avatarUrl) user.avatarUrl = avatarUrl;
 
   await user.save();
 
@@ -75,29 +73,45 @@ router.post('users.update', auth(), async ctx => {
 });
 
 router.post('users.s3Upload', auth(), async ctx => {
-  const { filename, kind, size } = ctx.body;
-  ctx.assertPresent(filename, 'filename is required');
-  ctx.assertPresent(kind, 'kind is required');
+  let { name, filename, documentId, contentType, kind, size } = ctx.body;
+
+  // backwards compatability
+  name = name || filename;
+  contentType = contentType || kind;
+
+  ctx.assertPresent(name, 'name is required');
+  ctx.assertPresent(contentType, 'contentType is required');
   ctx.assertPresent(size, 'size is required');
 
+  const { user } = ctx.state;
   const s3Key = uuid.v4();
-  const key = `uploads/${ctx.state.user.id}/${s3Key}/${filename}`;
+  const key = `uploads/${user.id}/${s3Key}/${name}`;
+  const acl =
+    ctx.body.public === undefined
+      ? AWS_S3_ACL
+      : ctx.body.public ? 'public-read' : 'private';
   const credential = makeCredential();
   const longDate = format(new Date(), 'YYYYMMDDTHHmmss\\Z');
-  const policy = makePolicy(credential, longDate);
+  const policy = makePolicy(credential, longDate, acl);
   const endpoint = publicS3Endpoint();
   const url = `${endpoint}/${key}`;
 
+  const attachment = await Attachment.create({
+    key,
+    acl,
+    size,
+    url,
+    contentType,
+    documentId,
+    teamId: user.teamId,
+    userId: user.id,
+  });
+
   await Event.create({
     name: 'user.s3Upload',
-    data: {
-      filename,
-      kind,
-      size,
-      url,
-    },
-    teamId: ctx.state.user.teamId,
-    userId: ctx.state.user.id,
+    data: { name },
+    teamId: user.teamId,
+    userId: user.id,
     ip: ctx.request.ip,
   });
 
@@ -107,8 +121,8 @@ router.post('users.s3Upload', auth(), async ctx => {
       uploadUrl: endpoint,
       form: {
         'Cache-Control': 'max-age=31557600',
-        'Content-Type': kind,
-        acl: 'public-read',
+        'Content-Type': contentType,
+        acl,
         key,
         policy,
         'x-amz-algorithm': 'AWS4-HMAC-SHA256',
@@ -117,9 +131,9 @@ router.post('users.s3Upload', auth(), async ctx => {
         'x-amz-signature': getSignature(policy),
       },
       asset: {
-        contentType: kind,
-        name: filename,
-        url,
+        contentType,
+        name,
+        url: attachment.redirectUrl,
         size,
       },
     },

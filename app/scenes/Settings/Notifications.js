@@ -105,7 +105,7 @@ class Notifications extends React.Component<Props> {
           type="email"
           value={user.email}
           label="Email address"
-          disabled
+          readOnly
           short
         />
 
