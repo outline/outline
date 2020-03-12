@@ -54,6 +54,7 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
       id: groupId,
       userId,
     });
+    invariant(res && res.data, 'Group Membership data should be available');
 
     this.remove(`${userId}-${groupId}`);
 
