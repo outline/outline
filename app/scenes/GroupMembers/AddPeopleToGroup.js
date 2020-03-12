@@ -83,6 +83,7 @@ class AddPeopleToGroup extends React.Component<Props> {
           onChange={this.handleFilter}
           label="Search people"
           labelHidden
+          autoFocus
           flex
         />
         <PaginatedList

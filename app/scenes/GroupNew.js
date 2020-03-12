@@ -37,7 +37,6 @@ class GroupNew extends React.Component<Props> {
     try {
       await group.save();
       this.props.onSubmit();
-      this.props.history.push(group.url);
     } catch (err) {
       this.props.ui.showToast(err.message);
     } finally {
@@ -69,7 +68,7 @@ class GroupNew extends React.Component<Props> {
           />
         </Flex>
         <HelpText>
-          You’ll be able to add people to the group after it is created
+          You’ll be able to add people to the group after it is created.
         </HelpText>
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
