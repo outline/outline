@@ -3,3 +3,10 @@ tasks:
     command: npm run dev
 image:
   file: .gitpod.Dockerfile
+ports:
+  - port: 3000
+    onOpen: open-preview
+  - port: 6379
+    onOpen: ignore
+  - port: 5432
+    onOpen: ignore
