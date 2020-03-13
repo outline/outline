@@ -1,0 +1,5 @@
+tasks:
+  - init: npm install && npm run build:webpack && npm run sequelize:migrate
+    command: npm run dev
+image:
+  file: .gitpod.Dockerfile
