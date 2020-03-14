@@ -160,4 +160,4 @@ If you’re looking for ways to get started, here's a list of ways to help us im
 
 ## License
 
-Outline is [BSD licensed](https://github.com/outline/outline/blob/master/LICENSE).
+Outline is [BSL 1.1 licensed](https://github.com/outline/outline/blob/master/LICENSE).
