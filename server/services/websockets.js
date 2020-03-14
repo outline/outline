@@ -288,7 +288,7 @@ export default class Websockets {
             // let users in the channel know they were removed
             socketio
               .to(`user-${groupMembership.userId}`)
-              .emit('collection.remove_user', {
+              .emit('collections.remove_user', {
                 event: event.name,
                 userId: groupMembership.userId,
                 collectionId: event.collectionId,
@@ -312,7 +312,7 @@ export default class Websockets {
         for (const collectionGroup of collectionGroupMemberships) {
           // the user being added isn't yet in the websocket channel for the collection
           // so they need to be notified separately
-          socketio.to(`user-${event.userId}`).emit('collection.add_user', {
+          socketio.to(`user-${event.userId}`).emit('collections.add_user', {
             event: event.name,
             userId: event.userId,
             collectionId: collectionGroup.collectionId,
@@ -321,7 +321,7 @@ export default class Websockets {
           // let everyone with access to the collection know a user was added
           socketio
             .to(`collection-${collectionGroup.collectionId}`)
-            .emit('collection.add_user', {
+            .emit('collections.add_user', {
               event: event.name,
               userId: event.userId,
               collectionId: collectionGroup.collectionId,
@@ -423,7 +423,7 @@ export default class Websockets {
               // let everyone with access to the collection know a user was removed
               socketio
                 .to(`collection-${collectionGroup.collectionId}`)
-                .emit('collection.remove_user', {
+                .emit('collections.remove_user', {
                   event: event.name,
                   userId: groupUser.userId,
                   collectionId: collectionGroup.collectionId,
