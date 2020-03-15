@@ -303,6 +303,22 @@ export default class Websockets {
         }
         return;
       }
+      case 'groups.create':
+      case 'groups.update': {
+        const group = await Group.findByPk(event.modelId, {
+          paranoid: false,
+        });
+
+        return socketio.to(`team-${group.teamId}`).emit('entities', {
+          event: event.name,
+          groupIds: [
+            {
+              id: group.id,
+              updatedAt: group.updatedAt,
+            },
+          ],
+        });
+      }
       case 'groups.add_user': {
         // do an add user for every collection that the group is a part of
         const collectionGroupMemberships = await CollectionGroup.findAll({
@@ -379,10 +395,23 @@ export default class Websockets {
         return;
       }
       case 'groups.delete': {
+        const group = await Group.findByPk(event.modelId, {
+          paranoid: false,
+        });
+
+        socketio.to(`team-${group.teamId}`).emit('entities', {
+          event: event.name,
+          groupIds: [
+            {
+              id: group.id,
+              updatedAt: group.updatedAt,
+            },
+          ],
+        });
+
         // we the users and collection relations that were just severed as a result of the group deletion
         // since there are cascading deletes, we approximate this by looking for the recently deleted
         // items in the GroupUser and CollectionGroup tables
-
         const groupUsers = await GroupUser.findAll({
           paranoid: false,
           where: {
