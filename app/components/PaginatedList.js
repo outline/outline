@@ -27,8 +27,12 @@ class PaginatedList extends React.Component<Props> {
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
 
+  constructor(props: Props) {
+    super(props);
+    this.isInitiallyLoaded = this.props.items.length > 0;
+  }
+
   componentDidMount() {
-    this.isInitiallyLoaded = !!this.props.items.length;
     this.fetchResults();
   }
 

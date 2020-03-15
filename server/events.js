@@ -78,6 +78,33 @@ export type CollectionEvent =
       collectionId: string,
       teamId: string,
       actorId: string,
+    }
+  | {
+      name: 'collections.add_group' | 'collections.remove_group',
+      collectionId: string,
+      teamId: string,
+      actorId: string,
+      data: { name: string, groupId: string },
+      ip: string,
+    };
+
+export type GroupEvent =
+  | {
+      name: 'groups.create' | 'groups.delete' | 'groups.update',
+      actorId: string,
+      modelId: string,
+      teamId: string,
+      data: { name: string },
+      ip: string,
+    }
+  | {
+      name: 'groups.add_user' | 'groups.remove_user',
+      actorId: string,
+      userId: string,
+      modelId: string,
+      teamId: string,
+      data: { name: string },
+      ip: string,
     };
 
 export type IntegrationEvent = {
@@ -91,7 +118,8 @@ export type Event =
   | UserEvent
   | DocumentEvent
   | CollectionEvent
-  | IntegrationEvent;
+  | IntegrationEvent
+  | GroupEvent;
 
 const globalEventsQueue = createQueue('global events');
 const serviceEventsQueue = createQueue('service events');

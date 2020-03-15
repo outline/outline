@@ -7160,6 +7160,11 @@ outline-icons@^1.10.0:
   resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.10.0.tgz#3c8e6957429e2b04c9d0fc72fe72e473813ce5bd"
   integrity sha512-1o3SnjzawEIh+QkZ6GHxPckuV+Tk5m5R2tjGY0CtosF3YA7JbgQ2jQrZdQsrqLzLa1j07f1bTEbAjGdbnunLpg==
 
+outline-icons@^1.13.0:
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.13.0.tgz#61ea3824a2ec23ea91bb636aa7e1ba6ebf0c2da6"
+  integrity sha512-kG/3ugK8lqAz0b4n8yiuw3XENqoIlTguYQ/NiU5A4ccbOV16HESBVau6ftwIoLbHbio6vEMdRNRwD4GQFtUDFw==
+
 oy-vey@^0.10.0:
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/oy-vey/-/oy-vey-0.10.0.tgz#16160f837f0ea3d0340adfc2377ba93d1ed9ce76"

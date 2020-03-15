@@ -105,7 +105,7 @@ class CollectionMenu extends React.Component<Props> {
         </VisuallyHidden>
 
         <Modal
-          title="Collection members"
+          title="Collection permissions"
           onRequestClose={this.handleMembersModalClose}
           isOpen={this.membersModalOpen}
         >
@@ -134,7 +134,7 @@ class CollectionMenu extends React.Component<Props> {
               )}
               {can.update && (
                 <DropdownMenuItem onClick={this.onPermissions}>
-                  Members…
+                  Permissions…
                 </DropdownMenuItem>
               )}
               {can.export && (

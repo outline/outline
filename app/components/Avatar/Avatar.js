@@ -39,11 +39,11 @@ class Avatar extends React.Component<Props> {
   }
 }
 
-const AvatarWrapper = styled.span`
+const AvatarWrapper = styled.div`
   position: relative;
 `;
 
-const IconWrapper = styled.span`
+const IconWrapper = styled.div`
   display: flex;
   position: absolute;
   bottom: -2px;
@@ -56,6 +56,7 @@ const IconWrapper = styled.span`
 `;
 
 const CircleImg = styled.img`
+  display: block;
   width: ${props => props.size}px;
   height: ${props => props.size}px;
   border-radius: 50%;

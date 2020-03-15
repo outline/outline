@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import uuid from 'uuid';
 import JWT from 'jsonwebtoken';
 import subMinutes from 'date-fns/sub_minutes';
+import { ValidationError } from '../errors';
 import { DataTypes, sequelize, encryptedFields } from '../sequelize';
 import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
 import { sendEmail } from '../mailer';
@@ -71,22 +72,22 @@ User.associate = models => {
 
 // Instance methods
 User.prototype.collectionIds = async function(paranoid: boolean = true) {
-  let models = await Collection.findAll({
+  const collectionStubs = await Collection.scope({
+    method: ['withMembership', this.id],
+  }).findAll({
     attributes: ['id', 'private'],
     where: { teamId: this.teamId },
-    include: [
-      {
-        model: User,
-        as: 'users',
-        where: { id: this.id },
-        required: false,
-      },
-    ],
     paranoid,
   });
 
-  // Filter collections that are private and don't have an association
-  return models.filter(c => !c.private || c.users.length).map(c => c.id);
+  return collectionStubs
+    .filter(
+      c =>
+        !c.private ||
+        c.memberships.length > 0 ||
+        c.collectionGroupMemberships.length > 0
+    )
+    .map(c => c.id);
 };
 
 User.prototype.updateActiveAt = function(ip) {
@@ -186,7 +187,7 @@ const checkLastAdmin = async model => {
     const adminCount = await User.count({ where: { isAdmin: true, teamId } });
 
     if (userCount > 1 && adminCount <= 1) {
-      throw new Error(
+      throw new ValidationError(
         'Cannot delete account as only admin. Please transfer admin permissions to another user and try again.'
       );
     }

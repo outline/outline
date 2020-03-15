@@ -81,10 +81,15 @@ Event.AUDIT_EVENTS = [
   'documents.delete',
   'shares.create',
   'shares.revoke',
+  'groups.create',
+  'groups.update',
+  'groups.delete',
   'collections.create',
   'collections.update',
   'collections.add_user',
   'collections.remove_user',
+  'collections.add_group',
+  'collections.remove_group',
   'collections.delete',
 ];
 

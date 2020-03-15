@@ -6,6 +6,7 @@ import { find } from 'lodash';
 import io from 'socket.io-client';
 import DocumentsStore from 'stores/DocumentsStore';
 import CollectionsStore from 'stores/CollectionsStore';
+import GroupsStore from 'stores/GroupsStore';
 import MembershipsStore from 'stores/MembershipsStore';
 import DocumentPresenceStore from 'stores/DocumentPresenceStore';
 import PoliciesStore from 'stores/PoliciesStore';
@@ -19,6 +20,7 @@ type Props = {
   children: React.Node,
   documents: DocumentsStore,
   collections: CollectionsStore,
+  groups: GroupsStore,
   memberships: MembershipsStore,
   presence: DocumentPresenceStore,
   policies: PoliciesStore,
@@ -44,6 +46,7 @@ class SocketProvider extends React.Component<Props> {
       ui,
       documents,
       collections,
+      groups,
       memberships,
       policies,
       presence,
@@ -173,6 +176,28 @@ class SocketProvider extends React.Component<Props> {
           }
         }
       }
+
+      if (event.groupIds) {
+        for (const groupDescriptor of event.groupIds) {
+          const groupId = groupDescriptor.id;
+          const group = groups.get(groupId) || {};
+
+          // if we already have the latest version (it was us that performed
+          // the change) then we don't need to update anything either.
+          const { updatedAt } = group;
+          if (updatedAt === groupDescriptor.updatedAt) {
+            continue;
+          }
+
+          try {
+            await groups.fetch(groupId, { force: true });
+          } catch (err) {
+            if (err.statusCode === 404 || err.statusCode === 403) {
+              groups.remove(groupId);
+            }
+          }
+        }
+      }
     });
 
     this.socket.on('documents.star', event => {
@@ -270,6 +295,7 @@ export default inject(
   'ui',
   'documents',
   'collections',
+  'groups',
   'memberships',
   'presence',
   'policies',

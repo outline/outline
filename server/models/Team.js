@@ -11,6 +11,7 @@ import {
   RESERVED_SUBDOMAINS,
 } from '../../shared/utils/domains';
 import parseTitle from '../../shared/utils/parseTitle';
+import { ValidationError } from '../errors';
 
 import Collection from './Collection';
 import Document from './Document';
@@ -181,13 +182,13 @@ Team.prototype.removeAdmin = async function(user: User) {
   if (res.count >= 1) {
     return user.update({ isAdmin: false });
   } else {
-    throw new Error('At least one admin is required');
+    throw new ValidationError('At least one admin is required');
   }
 };
 
 Team.prototype.suspendUser = async function(user: User, admin: User) {
   if (user.id === admin.id)
-    throw new Error('Unable to suspend the current user');
+    throw new ValidationError('Unable to suspend the current user');
   return user.update({
     suspendedById: admin.id,
     suspendedAt: new Date(),

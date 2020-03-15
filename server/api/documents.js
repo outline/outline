@@ -121,6 +121,7 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   const collection = await Collection.scope({
     method: ['withMembership', user.id],
   }).findByPk(collectionId);
+
   authorize(user, 'read', collection);
 
   const starredScope = { method: ['withStarred', user.id] };

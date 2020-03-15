@@ -172,16 +172,10 @@ Document.associate = models => {
       return {
         include: [
           {
-            model: models.Collection,
+            model: models.Collection.scope({
+              method: ['withMembership', userId],
+            }),
             as: 'collection',
-            include: [
-              {
-                model: models.CollectionUser,
-                as: 'memberships',
-                where: { userId },
-                required: false,
-              },
-            ],
           },
         ],
       };
@@ -269,7 +263,7 @@ Document.searchForTeam = async (
       "collectionId" IN(:collectionIds) AND
       "deletedAt" IS NULL AND
       "publishedAt" IS NOT NULL
-    ORDER BY 
+    ORDER BY
       "searchRanking" DESC,
       "updatedAt" DESC
     LIMIT :limit
@@ -356,8 +350,8 @@ Document.searchForUser = async (
       options.includeDrafts
         ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
         : '"publishedAt" IS NOT NULL'
-    } 
-  ORDER BY 
+    }
+  ORDER BY
     "searchRanking" DESC,
     "updatedAt" DESC
   LIMIT :limit

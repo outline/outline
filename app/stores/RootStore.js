@@ -4,6 +4,8 @@ import AuthStore from './AuthStore';
 import CollectionsStore from './CollectionsStore';
 import DocumentsStore from './DocumentsStore';
 import EventsStore from './EventsStore';
+import GroupsStore from './GroupsStore';
+import GroupMembershipsStore from './GroupMembershipsStore';
 import IntegrationsStore from './IntegrationsStore';
 import MembershipsStore from './MembershipsStore';
 import NotificationSettingsStore from './NotificationSettingsStore';
@@ -14,13 +16,17 @@ import SharesStore from './SharesStore';
 import UiStore from './UiStore';
 import UsersStore from './UsersStore';
 import ViewsStore from './ViewsStore';
+import CollectionGroupMembershipsStore from './CollectionGroupMembershipsStore';
 
 export default class RootStore {
   apiKeys: ApiKeysStore;
   auth: AuthStore;
   collections: CollectionsStore;
+  collectionGroupMemberships: CollectionGroupMembershipsStore;
   documents: DocumentsStore;
   events: EventsStore;
+  groups: GroupsStore;
+  groupMemberships: GroupMembershipsStore;
   integrations: IntegrationsStore;
   memberships: MembershipsStore;
   notificationSettings: NotificationSettingsStore;
@@ -36,8 +42,11 @@ export default class RootStore {
     this.apiKeys = new ApiKeysStore(this);
     this.auth = new AuthStore(this);
     this.collections = new CollectionsStore(this);
+    this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
     this.documents = new DocumentsStore(this);
     this.events = new EventsStore(this);
+    this.groups = new GroupsStore(this);
+    this.groupMemberships = new GroupMembershipsStore(this);
     this.integrations = new IntegrationsStore(this);
     this.memberships = new MembershipsStore(this);
     this.notificationSettings = new NotificationSettingsStore(this);
@@ -52,9 +61,13 @@ export default class RootStore {
 
   logout() {
     this.apiKeys.clear();
+    // this.auth omitted for reasons...
     this.collections.clear();
+    this.collectionGroupMemberships.clear();
     this.documents.clear();
     this.events.clear();
+    this.groups.clear();
+    this.groupMemberships.clear();
     this.integrations.clear();
     this.memberships.clear();
     this.notificationSettings.clear();
@@ -62,6 +75,7 @@ export default class RootStore {
     this.policies.clear();
     this.revisions.clear();
     this.shares.clear();
+    // this.ui omitted to keep ui settings between sessions
     this.users.clear();
     this.views.clear();
   }

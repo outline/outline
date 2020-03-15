@@ -49,7 +49,7 @@ const MemberListItem = ({
           {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
         </React.Fragment>
       }
-      image={<Avatar src={user.avatarUrl} size={32} />}
+      image={<Avatar src={user.avatarUrl} size={40} />}
       actions={
         <Flex align="center">
           {canEdit &&
