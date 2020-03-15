@@ -6,6 +6,8 @@ import { inject, observer } from 'mobx-react';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import HelpText from 'components/HelpText';
+import Modal from 'components/Modal';
+import GroupMembers from 'scenes/GroupMembers';
 import Flex from 'shared/components/Flex';
 
 import Group from 'models/Group';
@@ -23,6 +25,7 @@ type Props = {
 class GroupNew extends React.Component<Props> {
   @observable name: string = '';
   @observable isSaving: boolean;
+  @observable group: Group;
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
@@ -35,8 +38,7 @@ class GroupNew extends React.Component<Props> {
     );
 
     try {
-      await group.save();
-      this.props.onSubmit();
+      this.group = await group.save();
     } catch (err) {
       this.props.ui.showToast(err.message);
     } finally {
@@ -50,31 +52,38 @@ class GroupNew extends React.Component<Props> {
 
   render() {
     return (
-      <form onSubmit={this.handleSubmit}>
-        <HelpText>
-          Groups are for organizing your team. They work best when centered
-          around a function or a responsibility — Support or Engineering for
-          example.
-        </HelpText>
-        <Flex>
-          <Input
-            type="text"
-            label="Name"
-            onChange={this.handleNameChange}
-            value={this.name}
-            required
-            autoFocus
-            flex
-          />
-        </Flex>
-        <HelpText>
-          You’ll be able to add people to the group after it is created.
-        </HelpText>
+      <React.Fragment>
+        <form onSubmit={this.handleSubmit}>
+          <HelpText>
+            Groups are for organizing your team. They work best when centered
+            around a function or a responsibility — Support or Engineering for
+            example.
+          </HelpText>
+          <Flex>
+            <Input
+              type="text"
+              label="Name"
+              onChange={this.handleNameChange}
+              value={this.name}
+              required
+              autoFocus
+              flex
+            />
+          </Flex>
+          <HelpText>You’ll be able to add people to the group next.</HelpText>
 
-        <Button type="submit" disabled={this.isSaving || !this.name}>
-          {this.isSaving ? 'Creating…' : 'Create'}
-        </Button>
-      </form>
+          <Button type="submit" disabled={this.isSaving || !this.name}>
+            {this.isSaving ? 'Creating…' : 'Continue'}
+          </Button>
+        </form>
+        <Modal
+          title="Group members"
+          onRequestClose={this.props.onSubmit}
+          isOpen={!!this.group}
+        >
+          <GroupMembers group={this.group} />
+        </Modal>
+      </React.Fragment>
     );
   }
 }

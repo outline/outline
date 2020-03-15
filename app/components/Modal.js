@@ -41,6 +41,12 @@ const GlobalStyles = createGlobalStyle`
         margin-left: 24px;
       }
     }
+
+    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal + .ReactModalPortal {
+      .ReactModal__Overlay {
+        margin-left: 36px;
+      }
+    }
   `};
 
   .ReactModal__Body--open {
