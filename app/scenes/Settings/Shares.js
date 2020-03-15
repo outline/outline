@@ -6,6 +6,7 @@ import SharesStore from 'stores/SharesStore';
 import AuthStore from 'stores/AuthStore';
 
 import ShareListItem from './components/ShareListItem';
+import Empty from 'components/Empty';
 import List from 'components/List';
 import CenteredContent from 'components/CenteredContent';
 import Subheading from 'components/Subheading';
@@ -48,15 +49,15 @@ class Shares extends React.Component<Props> {
               sharing in <Link to="/settings/security">security settings</Link>.
             </HelpText>
           )}
-        {hasSharedDocuments && (
-          <React.Fragment>
-            <Subheading>Shared Documents</Subheading>
-            <List>
-              {shares.orderedData.map(share => (
-                <ShareListItem key={share.id} share={share} />
-              ))}
-            </List>
-          </React.Fragment>
+        <Subheading>Shared Documents</Subheading>
+        {hasSharedDocuments ? (
+          <List>
+            {shares.orderedData.map(share => (
+              <ShareListItem key={share.id} share={share} />
+            ))}
+          </List>
+        ) : (
+          <Empty>No share links, yet.</Empty>
         )}
       </CenteredContent>
     );

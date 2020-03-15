@@ -15,6 +15,7 @@ import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import GroupMembershipsStore from 'stores/GroupMembershipsStore';
 import UsersStore from 'stores/UsersStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import GroupMemberListItem from './components/GroupMemberListItem';
 import AddPeopleToGroup from './AddPeopleToGroup';
 
@@ -23,6 +24,7 @@ type Props = {
   auth: AuthStore,
   group: Group,
   users: UsersStore,
+  policies: PoliciesStore,
   groupMemberships: GroupMembershipsStore,
 };
 
@@ -51,28 +53,36 @@ class GroupMembers extends React.Component<Props> {
   };
 
   render() {
-    const { group, users, groupMemberships, auth } = this.props;
+    const { group, users, groupMemberships, policies, auth } = this.props;
     const { user } = auth;
     if (!user) return null;
 
+    const can = policies.abilities(group.id);
+
     return (
       <Flex column>
-        <React.Fragment>
+        {can.update ? (
+          <React.Fragment>
+            <HelpText>
+              Choose which team members belong in the{' '}
+              <strong>{group.name}</strong> group.
+            </HelpText>
+            <span>
+              <Button
+                type="button"
+                onClick={this.handleAddModalOpen}
+                icon={<PlusIcon />}
+                neutral
+              >
+                Add people
+              </Button>
+            </span>
+          </React.Fragment>
+        ) : (
           <HelpText>
-            Choose which team members belong in the{' '}
-            <strong>{group.name}</strong> group.
+            Listing team members in the <strong>{group.name}</strong> group.
           </HelpText>
-          <span>
-            <Button
-              type="button"
-              onClick={this.handleAddModalOpen}
-              icon={<PlusIcon />}
-              neutral
-            >
-              Add people
-            </Button>
-          </span>
-        </React.Fragment>
+        )}
 
         <Subheading>Members</Subheading>
         <PaginatedList
@@ -85,20 +95,29 @@ class GroupMembers extends React.Component<Props> {
               key={item.id}
               user={item}
               membership={groupMemberships.get(`${item.id}-${group.id}`)}
-              onRemove={() => this.handleRemoveUser(item)}
+              onRemove={
+                can.update ? () => this.handleRemoveUser(item) : undefined
+              }
             />
           )}
         />
-        <Modal
-          title={`Add people to ${group.name}`}
-          onRequestClose={this.handleAddModalClose}
-          isOpen={this.addModalOpen}
-        >
-          <AddPeopleToGroup group={group} onSubmit={this.handleAddModalClose} />
-        </Modal>
+        {can.update && (
+          <Modal
+            title={`Add people to ${group.name}`}
+            onRequestClose={this.handleAddModalClose}
+            isOpen={this.addModalOpen}
+          >
+            <AddPeopleToGroup
+              group={group}
+              onSubmit={this.handleAddModalClose}
+            />
+          </Modal>
+        )}
       </Flex>
     );
   }
 }
 
-export default inject('auth', 'users', 'groupMemberships', 'ui')(GroupMembers);
+export default inject('auth', 'users', 'policies', 'groupMemberships', 'ui')(
+  GroupMembers
+);
