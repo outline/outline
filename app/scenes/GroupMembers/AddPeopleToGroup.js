@@ -50,9 +50,9 @@ class AddPeopleToGroup extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddUser = user => {
+  handleAddUser = async user => {
     try {
-      this.props.groupMemberships.create({
+      await this.props.groupMemberships.create({
         groupId: this.props.group.id,
         userId: user.id,
       });

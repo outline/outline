@@ -13,8 +13,8 @@ import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 type Props = {
   user: User,
   groupMembership?: ?GroupMembership,
-  onAdd?: () => void,
-  onRemove?: () => void,
+  onAdd?: () => Promise<void>,
+  onRemove?: () => Promise<void>,
 };
 
 const GroupMemberListItem = ({

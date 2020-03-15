@@ -38,9 +38,9 @@ class GroupMembers extends React.Component<Props> {
     this.addModalOpen = false;
   };
 
-  handleRemoveUser = user => {
+  handleRemoveUser = async user => {
     try {
-      this.props.groupMemberships.delete({
+      await this.props.groupMemberships.delete({
         groupId: this.props.group.id,
         userId: user.id,
       });
