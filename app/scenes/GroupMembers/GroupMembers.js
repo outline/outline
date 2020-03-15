@@ -64,8 +64,9 @@ class GroupMembers extends React.Component<Props> {
         {can.update ? (
           <React.Fragment>
             <HelpText>
-              Choose which team members belong in the{' '}
-              <strong>{group.name}</strong> group.
+              Add and remove team members in the <strong>{group.name}</strong>{' '}
+              group. Adding people to the group will give them access to any
+              collections this group has been given access to.
             </HelpText>
             <span>
               <Button
@@ -74,7 +75,7 @@ class GroupMembers extends React.Component<Props> {
                 icon={<PlusIcon />}
                 neutral
               >
-                Add people
+                Add people…
               </Button>
             </span>
           </React.Fragment>

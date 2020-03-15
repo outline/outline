@@ -70,9 +70,10 @@ class AddPeopleToGroup extends React.Component<Props> {
     return (
       <Flex column>
         <HelpText>
-          Need to add someone who’s not yet on the team yet?{' '}
+          Add team members below to give them access to the group. Need to add
+          someone who’s not yet on the team yet?{' '}
           <a role="button" onClick={this.handleInviteModalOpen}>
-            Invite people to {team.name}
+            Invite them to {team.name}
           </a>.
         </HelpText>
 

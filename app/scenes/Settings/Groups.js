@@ -62,17 +62,18 @@ class Groups extends React.Component<Props> {
       <CenteredContent>
         <PageTitle title="People" />
         <h1>Groups</h1>
-        <HelpText>Organize and manage your team using groups.</HelpText>
+        <HelpText>
+          Groups can be used to organize and manage the people on your team.
+        </HelpText>
 
         {can.group && (
           <Button
             type="button"
-            data-on="click"
             onClick={this.handleNewGroupModalOpen}
             icon={<PlusIcon />}
             neutral
           >
-            New Group…
+            New group…
           </Button>
         )}
 
