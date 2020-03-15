@@ -19,7 +19,8 @@ const router = new Router();
 
 router.post('groups.list', auth(), pagination(), async ctx => {
   const user = ctx.state.user;
-  const groups = await Group.findAll({
+
+  let groups = await Group.findAll({
     where: {
       teamId: user.teamId,
     },
@@ -27,6 +28,12 @@ router.post('groups.list', auth(), pagination(), async ctx => {
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+
+  if (!user.isAdmin) {
+    groups = groups.filter(
+      group => group.groupMemberships.filter(gm => gm.userId === user.id).length
+    );
+  }
 
   ctx.body = {
     pagination: ctx.state.pagination,

@@ -18,5 +18,9 @@ allow(User, ['update', 'delete'], Group, (actor, group) => {
 
 allow(User, ['read'], Group, (actor, group) => {
   if (!group || actor.teamId !== group.teamId) return false;
-  return true;
+  if (actor.isAdmin) return true;
+  if (group.groupMemberships.filter(gm => gm.userId === actor.id).length) {
+    return true;
+  }
+  return false;
 });
