@@ -38,16 +38,6 @@ if (process.env.SLACK_KEY) {
   }
 }
 
-if (process.env.SLACK_APP_ID) {
-  if (!process.env.SLACK_VERIFICATION_TOKEN) {
-    console.error(
-      `The SLACK_VERIFICATION_TOKEN env variable must be set when using the Slack slash command`
-    );
-    // $FlowFixMe
-    process.exit(1);
-  }
-}
-
 if (!process.env.URL) {
   console.error(
     'The URL env variable must be set to the externally accessible URL, e.g (https://www.getoutline.com)'
