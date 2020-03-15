@@ -281,7 +281,7 @@ describe('#collections.add_user', async () => {
 
 describe('#collections.add_group', async () => {
   it('should add group to collection', async () => {
-    const user = await buildUser();
+    const user = await buildUser({ isAdmin: true });
     const collection = await buildCollection({
       teamId: user.teamId,
       userId: user.id,
@@ -344,7 +344,7 @@ describe('#collections.add_group', async () => {
 
 describe('#collections.remove_group', async () => {
   it('should remove group from collection', async () => {
-    const user = await buildUser();
+    const user = await buildUser({ isAdmin: true });
     const collection = await buildCollection({
       teamId: user.teamId,
       userId: user.id,

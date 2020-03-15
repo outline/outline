@@ -147,17 +147,44 @@ describe('#groups.list', async () => {
 });
 
 describe('#groups.info', async () => {
-  it('should return group', async () => {
+  it('should return group if admin', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const group = await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post('/api/groups.info', {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(group.id);
+  });
+
+  it('should return group if member', async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    await group.addUser(user, { through: { createdById: user.id } });
+
+    const res = await server.post('/api/groups.info', {
+      body: { token: user.getJwtToken(), id: group.id },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(group.id);
+  });
+
+  it('should not return group if non-member, non-admin', async () => {
     const user = await buildUser();
     const group = await buildGroup({ teamId: user.teamId });
 
     const res = await server.post('/api/groups.info', {
       body: { token: user.getJwtToken(), id: group.id },
     });
-    const body = await res.json();
 
-    expect(res.status).toEqual(200);
-    expect(body.data.id).toEqual(group.id);
+    expect(res.status).toEqual(403);
   });
 
   it('should require authentication', async () => {
