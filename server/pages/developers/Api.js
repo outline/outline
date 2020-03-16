@@ -233,13 +233,48 @@ export default function Api() {
           </Method>
 
           <Method
+            method="collections.add_group"
+            label="Add a group to collection"
+          >
+            <Description>
+              This method allows you to give all users in a group access to a
+              collection.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
+              <Argument
+                id="groupId"
+                description="Group ID to add to the collection"
+              />
+            </Arguments>
+          </Method>
+
+          <Method
+            method="collections.remove_group"
+            label="Remove a group from collection"
+          >
+            <Description>
+              This method allows you to revoke all users in a group access to a
+              collection. Note that users in the group may still retain access
+              through other groups or individual memberships.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
+              <Argument
+                id="groupId"
+                description="Group ID to remove from the collection"
+              />
+            </Arguments>
+          </Method>
+
+          <Method
             method="collections.memberships"
             label="List collection members"
           >
             <Description>
-              This method allows you to list a collections memberships. This is
-              both a collections maintainers, and user permissions for read and
-              write if the collection is private
+              This method allows you to list a collections individual
+              memberships. This is both a collections maintainers, and user
+              permissions for read and write if the collection is private
             </Description>
             <Arguments pagination>
               <Argument id="id" description="Collection ID" required />
@@ -248,6 +283,21 @@ export default function Api() {
                 id="permission"
                 description="Filter results by permission"
               />
+            </Arguments>
+          </Method>
+
+          <Method
+            method="collections.group_memberships"
+            label="List collection group members"
+          >
+            <Description>
+              This method allows you to list a collections group memberships.
+              This is the list of groups that have been given access to the
+              collection.
+            </Description>
+            <Arguments pagination>
+              <Argument id="id" description="Collection ID" required />
+              <Argument id="query" description="Filter results by group name" />
             </Arguments>
           </Method>
 
@@ -629,6 +679,97 @@ export default function Api() {
             </Arguments>
           </Method>
 
+          <Method method="groups.create" label="Create a group">
+            <Description>
+              This method allows you to create a new group to organize people in
+              the team.
+            </Description>
+            <Arguments pagination>
+              <Argument
+                id="name"
+                description="The name of the group"
+                required
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.update" label="Update a group">
+            <Description>
+              This method allows you to update an existing group. At this time
+              the only field that can be edited is the name.
+            </Description>
+            <Arguments pagination>
+              <Argument id="id" description="Group ID" required />
+              <Argument
+                id="name"
+                description="The name of the group"
+                required
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.delete" label="Delete a group">
+            <Description>
+              Deleting a group will cause all of its members to lose access to
+              any collections the group has been given access to. This action
+              can’t be undone so please be careful.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Group ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.info" label="Get a group">
+            <Description>Returns detailed information on a group.</Description>
+            <Arguments>
+              <Argument id="id" description="Group ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.list" label="List groups">
+            <Description>
+              List all groups the current user has access to.
+            </Description>
+            <Arguments pagination />
+          </Method>
+
+          <Method
+            method="groups.memberships"
+            label="List the group memberships"
+          >
+            <Description>
+              List members in a group, the query parameter allows filtering by
+              user name.
+            </Description>
+            <Arguments pagination>
+              <Argument id="id" description="Group ID" />
+              <Argument id="query" description="Search query" />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.add_user" label="Add a group member">
+            <Description>
+              This method allows you to add a user to a group.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Group ID" required />
+              <Argument id="userId" description="User ID to add to the group" />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.remove_user" label="Remove a group member">
+            <Description>
+              This method allows you to remove a user from a group.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Group ID" required />
+              <Argument
+                id="userId"
+                description="User ID to remove from the group"
+              />
+            </Arguments>
+          </Method>
+
           <Method method="shares.list" label="List shared document links">
             <Description>
               List all your currently shared document links.
@@ -783,10 +924,7 @@ const Arguments = (props: ArgumentsProps) => (
     </thead>
     <tbody>
       <Argument id="token" description="Authentication token" required />
-      {props.pagination && (
-        // $FlowIssue
-        <PaginationArguments />
-      )}
+      {props.pagination && <PaginationArguments />}
       {props.children}
     </tbody>
   </Table>

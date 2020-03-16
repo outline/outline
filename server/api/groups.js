@@ -148,20 +148,14 @@ router.post('groups.delete', auth(), async ctx => {
 });
 
 router.post('groups.memberships', auth(), pagination(), async ctx => {
-  const { id, query, permission } = ctx.body;
+  const { id, query } = ctx.body;
   ctx.assertUuid(id, 'id is required');
 
   const user = ctx.state.user;
   const group = await Group.findByPk(id);
-
   authorize(user, 'read', group);
 
-  let where = {
-    groupId: id,
-  };
-
   let userWhere;
-
   if (query) {
     userWhere = {
       name: {
@@ -170,15 +164,8 @@ router.post('groups.memberships', auth(), pagination(), async ctx => {
     };
   }
 
-  if (permission) {
-    where = {
-      ...where,
-      permission,
-    };
-  }
-
   const memberships = await GroupUser.findAll({
-    where,
+    where: { groupId: id },
     order: [['createdAt', 'DESC']],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,

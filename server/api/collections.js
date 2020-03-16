@@ -173,7 +173,7 @@ router.post(
   auth(),
   pagination(),
   async ctx => {
-    const { id, query, permission } = ctx.body;
+    const { id, query } = ctx.body;
     ctx.assertUuid(id, 'id is required');
 
     const user = ctx.state.user;
@@ -182,11 +182,6 @@ router.post(
     }).findByPk(id);
 
     authorize(user, 'read', collection);
-
-    let where = {
-      collectionId: id,
-    };
-
     let groupWhere;
 
     if (query) {
@@ -197,15 +192,8 @@ router.post(
       };
     }
 
-    if (permission) {
-      where = {
-        ...where,
-        permission,
-      };
-    }
-
     const memberships = await CollectionGroup.findAll({
-      where,
+      where: { collectionId: id },
       order: [['createdAt', 'DESC']],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
