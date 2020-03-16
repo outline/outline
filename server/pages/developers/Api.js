@@ -298,6 +298,10 @@ export default function Api() {
             <Arguments pagination>
               <Argument id="id" description="Collection ID" required />
               <Argument id="query" description="Filter results by group name" />
+              <Argument
+                id="permission"
+                description="Filter results by permission"
+              />
             </Arguments>
           </Method>
 
