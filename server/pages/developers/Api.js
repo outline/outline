@@ -45,7 +45,7 @@ export default function Api() {
               the token.
             </Description>
             <Arguments>
-              <Argument id="id" description="Collection id" required />
+              <Argument id="id" description="Collection ID" required />
             </Arguments>
           </Method>
 
@@ -74,7 +74,7 @@ export default function Api() {
               />
               <Argument
                 id="documentId"
-                description="UUID of the associated document"
+                description="ID of the associated document"
               />
             </Arguments>
           </Method>
@@ -144,7 +144,7 @@ export default function Api() {
               Returns detailed information on a document collection.
             </Description>
             <Arguments>
-              <Argument id="id" description="Collection id" required />
+              <Argument id="id" description="Collection ID" required />
             </Arguments>
           </Method>
 
@@ -169,7 +169,7 @@ export default function Api() {
               folders inside the zip file.
             </Description>
             <Arguments>
-              <Argument id="id" description="Collection id" required />
+              <Argument id="id" description="Collection ID" required />
             </Arguments>
           </Method>
 
@@ -234,10 +234,10 @@ export default function Api() {
 
           <Method
             method="collections.add_group"
-            label="Add a group to collection"
+            label="Add a group to a collection"
           >
             <Description>
-              This method allows you to give all users in a group access to a
+              This method allows you to give all members in a group access to a
               collection.
             </Description>
             <Arguments>
@@ -251,12 +251,12 @@ export default function Api() {
 
           <Method
             method="collections.remove_group"
-            label="Remove a group from collection"
+            label="Remove a group from a collection"
           >
             <Description>
-              This method allows you to revoke all users in a group access to a
-              collection. Note that users in the group may still retain access
-              through other groups or individual memberships.
+              This method allows you to revoke all members in a group access to
+              a collection. Note that members of the group may still retain
+              access through other groups or individual memberships.
             </Description>
             <Arguments>
               <Argument id="id" description="Collection ID" required />
