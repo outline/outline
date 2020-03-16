@@ -37,6 +37,7 @@ const createRevision = (doc, options = {}) => {
       title: doc.title,
       text: doc.text,
       userId: doc.lastModifiedById,
+      editorVersion: doc.editorVersion,
       documentId: doc.id,
     },
     {
@@ -91,6 +92,7 @@ const Document = sequelize.define(
         },
       },
     },
+    editorVersion: DataTypes.STRING,
     text: DataTypes.TEXT,
     isWelcome: { type: DataTypes.BOOLEAN, defaultValue: false },
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },

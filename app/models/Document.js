@@ -1,5 +1,6 @@
 // @flow
 import { action, set, computed } from 'mobx';
+import pkg from 'rich-markdown-editor/package.json';
 import addDays from 'date-fns/add_days';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
@@ -180,6 +181,7 @@ export default class Document extends BaseModel {
     try {
       if (isCreating) {
         return await this.store.create({
+          editorVersion: pkg.version,
           parentDocumentId: this.parentDocumentId,
           collectionId: this.collectionId,
           title: this.title,
@@ -193,6 +195,7 @@ export default class Document extends BaseModel {
         title: this.title,
         text: this.text,
         lastRevision: this.revision,
+        editorVersion: pkg.version,
         ...options,
       });
     } finally {
