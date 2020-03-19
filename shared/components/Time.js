@@ -9,12 +9,10 @@ let callbacks = [];
 // This is a shared timer that fires every second, used for
 // updating all Time components across the page all at once.
 setInterval(() => {
-  for (let callback of callbacks) {
-    callback();
-  }
+  callbacks.forEach(cb => cb());
 }, 1000 * 60);
 
-function eachSecond(fn) {
+function eachMinute(fn) {
   callbacks.push(fn);
 
   return () => {
@@ -27,20 +25,39 @@ type Props = {
   children?: React.Node,
 };
 
-function Time({ dateTime, children }: Props) {
-  const [autoUpdatingDateTime, setAutoUpdatingDateTime] = React.useState(dateTime);
+type State = {
+  autoUpdatingDateTime: string
+}
 
-  React.useEffect(() => {
-    return eachSecond(() => {
-      setAutoUpdatingDateTime(autoUpdatingDateTime + (1000 * 60));
-    })
-  }, []);
+class Time extends React.Component<Props, State> {
+  removeEachMinuteCallback: () => void;
 
-  return (
-    <Tooltip tooltip={format(autoUpdatingDateTime, 'MMMM Do, YYYY h:mm a')} placement="bottom">
-      <time dateTime={autoUpdatingDateTime}>{children || distanceInWordsToNow(autoUpdatingDateTime)}</time>
-    </Tooltip>
-  );
+  state = {
+    autoUpdatingDateTime: this.props.dateTime
+  }
+
+  componentDidMount() {
+    this.removeEachMinuteCallback = eachMinute(() => {
+      this.setState({
+        autoUpdatingDateTime:
+          new Date(
+            Date.parse(this.state.autoUpdatingDateTime) + (1000 * 60)
+          ).toString()
+        });
+    });
+  }
+
+  componentWillUnmount() {
+    this.removeEachMinuteCallback();
+  }
+
+  render() {
+    return (
+      <Tooltip tooltip={format(this.state.autoUpdatingDateTime, 'MMMM Do, YYYY h:mm a')} placement="bottom">
+        <time dateTime={this.state.autoUpdatingDateTime}>{this.props.children || distanceInWordsToNow(this.state.autoUpdatingDateTime)}</time>
+      </Tooltip>
+    );
+  }
 }
 
 export default Time;
