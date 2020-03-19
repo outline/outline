@@ -28,7 +28,7 @@ type Props = {
 };
 
 function Time({ dateTime, children }: Props) {
-  const [autoUpdatingDateTime, setAutoUpdatingDateTime] = React.useState(datetime);
+  const [autoUpdatingDateTime, setAutoUpdatingDateTime] = React.useState(dateTime);
 
   React.useEffect(() => {
     return eachSecond(() => {
@@ -37,8 +37,8 @@ function Time({ dateTime, children }: Props) {
   }, []);
 
   return (
-    <Tooltip tooltip={format(date, 'MMMM Do, YYYY h:mm a')} placement="bottom">
-      <time dateTime={autoUpdatingDateTime}>{children || distanceInWordsToNow(date)}</time>
+    <Tooltip tooltip={format(autoUpdatingDateTime, 'MMMM Do, YYYY h:mm a')} placement="bottom">
+      <time dateTime={autoUpdatingDateTime}>{children || distanceInWordsToNow(autoUpdatingDateTime)}</time>
     </Tooltip>
   );
 }
