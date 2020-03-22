@@ -99,7 +99,7 @@ router.post('hooks.interactive', async ctx => {
 
 // triggered by the /outline command in Slack
 router.post('hooks.slack', async ctx => {
-  const { token, team_id, user_id, text } = ctx.body;
+  const { token, team_id, user_id, text = "" } = ctx.body;
   ctx.assertPresent(token, 'token is required');
   ctx.assertPresent(team_id, 'team_id is required');
   ctx.assertPresent(user_id, 'user_id is required');
