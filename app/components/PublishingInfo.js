@@ -26,7 +26,7 @@ type Props = {
   showCollection?: boolean,
   showPublished?: boolean,
   document: Document,
-  views?: number,
+  children: React.Node,
 };
 
 function PublishingInfo({
@@ -34,6 +34,8 @@ function PublishingInfo({
   showPublished,
   showCollection,
   document,
+  children,
+  ...rest
 }: Props) {
   const {
     modifiedSinceViewed,
@@ -83,7 +85,7 @@ function PublishingInfo({
   const collection = collections.get(document.collectionId);
 
   return (
-    <Container align="center">
+    <Container align="center" {...rest}>
       {updatedBy.name}&nbsp;
       {content}
       {showCollection &&
@@ -95,6 +97,7 @@ function PublishingInfo({
             </strong>
           </span>
         )}
+      {children}
     </Container>
   );
 }

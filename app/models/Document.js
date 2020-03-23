@@ -39,31 +39,14 @@ export default class Document extends BaseModel {
   shareUrl: ?string;
   revision: number;
 
-  constructor(data?: Object = {}, store: DocumentsStore) {
-    super(data, store);
-    this.updateTitle();
-  }
-
-  @action
-  updateTitle() {
-    const { title, emoji } = parseTitle(this.text);
-
-    if (title) {
-      set(this, { title, emoji });
-    }
+  get emoji() {
+    const { emoji } = parseTitle(this.title);
+    return emoji;
   }
 
   @computed
   get isOnlyTitle(): boolean {
-    const { title } = parseTitle(this.text);
-
-    // find and extract title
-    const trimmedBody = this.text
-      .trim()
-      .replace(/^#/, '')
-      .trim();
-
-    return unescape(trimmedBody) === title;
+    return !this.text.trim();
   }
 
   @computed
@@ -111,7 +94,6 @@ export default class Document extends BaseModel {
   @action
   updateFromJson = data => {
     set(this, data);
-    this.updateTitle();
   };
 
   archive = () => {
@@ -176,7 +158,6 @@ export default class Document extends BaseModel {
 
     const isCreating = !this.id;
     this.isSaving = true;
-    this.updateTitle();
 
     try {
       if (isCreating) {

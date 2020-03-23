@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { schema } from 'rich-markdown-editor';
 import { Prompt, Route, withRouter } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
 import keydown from 'react-keydown';
@@ -35,8 +36,6 @@ import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import Document from 'models/Document';
 import Revision from 'models/Revision';
-
-import schema from '../schema';
 
 let EditorImport;
 const AUTOSAVE_DELAY = 3000;
@@ -74,9 +73,11 @@ class DocumentScene extends React.Component<Props> {
   @observable isDirty: boolean = false;
   @observable isEmpty: boolean = true;
   @observable moveModalOpen: boolean = false;
+  @observable title: string;
 
   constructor(props) {
     super();
+    this.title = props.revision ? props.revision.title : props.document.title;
     this.loadEditor();
   }
 
@@ -160,6 +161,7 @@ class DocumentScene extends React.Component<Props> {
     // prevent autosave if nothing has changed
     if (options.autosave && document.text.trim() === text.trim()) return;
 
+    document.title = this.title;
     document.text = text;
 
     let isNew = !document.id;
@@ -186,10 +188,12 @@ class DocumentScene extends React.Component<Props> {
   updateIsDirty = () => {
     const { document } = this.props;
     const editorText = this.getEditorText().trim();
+    const titleChanged = this.title !== document.title;
+    const bodyChanged = editorText !== document.text.trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty = !editorText || editorText === '#';
-    this.isDirty = !!document && editorText !== document.text.trim();
+    this.isEmpty = (!editorText || editorText === '#') && !this.title;
+    this.isDirty = bodyChanged || titleChanged;
   };
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, IS_DIRTY_DELAY);
@@ -204,6 +208,12 @@ class DocumentScene extends React.Component<Props> {
 
   onChange = getEditorText => {
     this.getEditorText = getEditorText;
+    this.updateIsDirtyDebounced();
+    this.autosave();
+  };
+
+  onChangeTitle = event => {
+    this.title = event.target.value;
     this.updateIsDirtyDebounced();
     this.autosave();
   };
@@ -304,12 +314,14 @@ class DocumentScene extends React.Component<Props> {
               <Editor
                 id={document.id}
                 key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
+                title={this.title}
+                document={document}
                 defaultValue={revision ? revision.text : document.text}
-                pretitle={document.emoji}
                 disableEmbeds={disableEmbeds}
                 onImageUploadStart={this.onImageUploadStart}
                 onImageUploadStop={this.onImageUploadStop}
                 onSearchLink={this.props.onSearchLink}
+                onChangeTitle={this.onChangeTitle}
                 onChange={this.onChange}
                 onSave={this.onSave}
                 onPublish={this.onPublish}

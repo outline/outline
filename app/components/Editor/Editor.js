@@ -112,7 +112,7 @@ const StyledEditor = styled(RichMarkdownEditor)`
       visibility: hidden;
     }
   }
-  p:nth-child(2):last-child {
+  p:nth-child(1):last-child {
     ${Placeholder} {
       visibility: visible;
     }
