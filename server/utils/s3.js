@@ -123,6 +123,15 @@ export const uploadToS3FromUrl = async (
   }
 };
 
+export const deleteFromS3 = (key: string) => {
+  return s3
+    .deleteObject({
+      Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+      Key: key,
+    })
+    .promise();
+};
+
 export const getSignedImageUrl = async (key: string) => {
   invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
