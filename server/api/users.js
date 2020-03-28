@@ -9,7 +9,7 @@ import {
   publicS3Endpoint,
   makeCredential,
 } from '../utils/s3';
-import { Attachment, Event, User, Team } from '../models';
+import { Document, Attachment, Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import userInviter from '../commands/userInviter';
@@ -95,6 +95,11 @@ router.post('users.s3Upload', auth(), async ctx => {
   const policy = makePolicy(credential, longDate, acl);
   const endpoint = publicS3Endpoint();
   const url = `${endpoint}/${key}`;
+
+  if (documentId) {
+    const document = await Document.findByPk(documentId, { userId: user.id });
+    authorize(user, 'update', document);
+  }
 
   const attachment = await Attachment.create({
     key,
