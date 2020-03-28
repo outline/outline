@@ -3,7 +3,7 @@ import Router from 'koa-router';
 import auth from '../middlewares/authentication';
 import { Attachment, Document } from '../models';
 import { getSignedImageUrl } from '../utils/s3';
-
+import { NotFoundError } from '../errors';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -15,6 +15,9 @@ router.post('attachments.redirect', auth(), async ctx => {
 
   const user = ctx.state.user;
   const attachment = await Attachment.findByPk(id);
+  if (!attachment) {
+    throw new NotFoundError();
+  }
 
   if (attachment.isPrivate) {
     if (attachment.documentId) {
