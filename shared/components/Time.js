@@ -17,7 +17,7 @@ function eachMinute(fn) {
 
   return () => {
     callbacks = callbacks.filter(cb => cb !== fn);
-  }
+  };
 }
 
 type Props = {
@@ -29,7 +29,9 @@ class Time extends React.Component<Props> {
   removeEachMinuteCallback: () => void;
 
   componentDidMount() {
-    this.removeEachMinuteCallback = eachMinute(this.forceUpdate);
+    this.removeEachMinuteCallback = eachMinute(() => {
+      this.forceUpdate();
+    });
   }
 
   componentWillUnmount() {
@@ -38,7 +40,10 @@ class Time extends React.Component<Props> {
 
   render() {
     return (
-      <Tooltip tooltip={format(this.props.dateTime, 'MMMM Do, YYYY h:mm a')} placement="bottom">
+      <Tooltip
+        tooltip={format(this.props.dateTime, 'MMMM Do, YYYY h:mm a')}
+        placement="bottom"
+      >
         <time dateTime={this.props.dateTime}>
           {this.props.children || distanceInWordsToNow(this.props.dateTime)}
         </time>
