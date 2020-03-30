@@ -85,7 +85,7 @@ class DocumentEditor extends React.Component<Props> {
 }
 
 const Meta = styled(PublishingInfo)`
-  margin: -12px 0 2em 0;
+  margin: -12px 0 1em 0;
   font-size: 14px;
 `;
 

@@ -28,7 +28,7 @@ async function replaceImageAttachments(text) {
 // previously titles were stored in the text and title fields. To account for old
 // documents we need to strip the duplicate title.
 function removeTitle(text) {
-  return text.replace(/^#(.*)\n/, '');
+  return text.replace(/^#\s(.*)\n/, '');
 }
 
 export default async function present(document: Document, options: ?Options) {

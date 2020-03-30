@@ -7,6 +7,7 @@ import Flex from 'shared/components/Flex';
 import Time from 'shared/components/Time';
 import Breadcrumb from 'shared/components/Breadcrumb';
 import CollectionsStore from 'stores/CollectionsStore';
+import AuthStore from 'stores/AuthStore';
 
 const Container = styled(Flex)`
   color: ${props => props.theme.textTertiary};
@@ -23,6 +24,7 @@ const Modified = styled.span`
 
 type Props = {
   collections: CollectionsStore,
+  auth: AuthStore,
   showCollection?: boolean,
   showPublished?: boolean,
   document: Document,
@@ -30,6 +32,7 @@ type Props = {
 };
 
 function PublishingInfo({
+  auth,
   collections,
   showPublished,
   showCollection,
@@ -83,10 +86,11 @@ function PublishingInfo({
   }
 
   const collection = collections.get(document.collectionId);
+  const isMe = auth.user && auth.user.id === updatedBy.id;
 
   return (
     <Container align="center" {...rest}>
-      {updatedBy.name}&nbsp;
+      {isMe ? 'You' : updatedBy.name}&nbsp;
       {content}
       {showCollection &&
         collection && (
@@ -102,4 +106,4 @@ function PublishingInfo({
   );
 }
 
-export default inject('collections')(PublishingInfo);
+export default inject('collections', 'auth')(PublishingInfo);
