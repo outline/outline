@@ -15,18 +15,13 @@ type Props = {|
   defaultValue: string,
   document: Document,
   views: ViewsStore,
+  isDraft: boolean,
   readOnly?: boolean,
 |};
 
 @observer
 class DocumentEditor extends React.Component<Props> {
   editor: ?Editor;
-
-  componentDidMount() {
-    if (!this.props.defaultValue) {
-      setImmediate(this.focusAtStart);
-    }
-  }
 
   focusAtStart = () => {
     if (this.editor) {
@@ -48,7 +43,14 @@ class DocumentEditor extends React.Component<Props> {
   };
 
   render() {
-    const { views, title, document, onChangeTitle, readOnly } = this.props;
+    const {
+      views,
+      document,
+      title,
+      onChangeTitle,
+      isDraft,
+      readOnly,
+    } = this.props;
     const totalViews = views.countForDocument(document.id);
 
     return (
@@ -60,20 +62,20 @@ class DocumentEditor extends React.Component<Props> {
           placeholder="Start with a title…"
           value={title}
           readOnly={readOnly}
+          autoFocus={!title}
         />
         <Meta document={document}>
-          {totalViews ? (
+          {totalViews && !isDraft ? (
             <React.Fragment>
-              &nbsp;&middot; Viewed {totalViews} time{totalViews === 1
-                ? ''
-                : 's'}
+              &nbsp;&middot; Viewed{' '}
+              {totalViews === 1 ? 'once' : `${totalViews} times`}
             </React.Fragment>
           ) : null}
         </Meta>
         <Editor
           ref={ref => (this.editor = ref)}
-          autoFocus={!this.props.defaultValue}
-          placeholder="…the rest is your canvas"
+          autoFocus={title && !this.props.defaultValue}
+          placeholder="…the rest is up to you"
           plugins={plugins}
           grow={!readOnly}
           {...this.props}

@@ -149,6 +149,7 @@ class Header extends React.Component<Props> {
                 <Status>Saving…</Status>
               </Action>
             )}
+          &nbsp;
           <Collaborators
             document={document}
             currentUserId={auth.user ? auth.user.id : undefined}
@@ -249,7 +250,6 @@ class Header extends React.Component<Props> {
                 />
               </Action>
             )}
-
           {!isEditing && (
             <React.Fragment>
               <Separator />

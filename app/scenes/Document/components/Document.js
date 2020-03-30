@@ -77,7 +77,7 @@ class DocumentScene extends React.Component<Props> {
 
   constructor(props) {
     super();
-    this.title = props.revision ? props.revision.title : props.document.title;
+    this.title = props.document.title;
     this.loadEditor();
   }
 
@@ -154,14 +154,20 @@ class DocumentScene extends React.Component<Props> {
 
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
+    const title = this.title;
 
     // prevent save before anything has been written (single hash is empty doc)
-    if (text.trim() === '#') return;
+    if (text.trim() === '' && title.trim === '') return;
 
     // prevent autosave if nothing has changed
-    if (options.autosave && document.text.trim() === text.trim()) return;
+    if (
+      options.autosave &&
+      document.text.trim() === text.trim() &&
+      document.title.trim() === title.trim()
+    )
+      return;
 
-    document.title = this.title;
+    document.title = title;
     document.text = text;
 
     let isNew = !document.id;
@@ -313,8 +319,9 @@ class DocumentScene extends React.Component<Props> {
               )}
               <Editor
                 id={document.id}
+                isDraft={document.isDraft}
                 key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
-                title={this.title}
+                title={revision ? revision.title : this.title}
                 document={document}
                 defaultValue={revision ? revision.text : document.text}
                 disableEmbeds={disableEmbeds}
