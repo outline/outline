@@ -37,10 +37,12 @@ In development you can quickly get an environment running using Docker by follow
 1. Register a Slack app at https://api.slack.com/apps
 1. Copy the file `.env.sample` to `.env`
 1. Fill out the following fields:
-    1. `SECRET_KEY` (follow instructions in the comments of `.env`)
+    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
     1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET`
-1. Add `http://localhost:3000/auth/slack.callback` as an Oauth callback URL in Slack App settings
+    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
+1. Configure your Slack app's Oauth & Permissions settings 
+    1. Add `http://localhost:3000/auth/slack.callback` as an Oauth redirect URL
+    1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
 
 
@@ -54,9 +56,9 @@ For a self-hosted production installation there is more flexibility, but these a
 
 1. Build the web app with `yarn build:webpack` or `npm run build:webpack`
 1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
-    1. `SECRET_KEY` (follow instructions in the comments of `.env`)
+    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
     1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET`
+    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
     1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
     1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
     1. `URL` (the public facing URL of your installation)
