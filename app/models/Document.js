@@ -196,7 +196,10 @@ export default class Document extends BaseModel {
     // Ensure the document is upto date with latest server contents
     await this.fetch();
 
-    const blob = new Blob([unescape(this.text)], { type: 'text/markdown' });
+    const body = unescape(this.text);
+    const blob = new Blob([`# ${this.title}\n\n${body}`], {
+      type: 'text/markdown',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
 

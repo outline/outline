@@ -433,6 +433,16 @@ Document.addHook('afterCreate', async model => {
 
 // Instance methods
 
+Document.prototype.toMarkdown = function() {
+  const text = unescape(this.text);
+
+  if (this.version) {
+    return `# ${this.title}\n\n${text}`;
+  }
+
+  return text;
+};
+
 Document.prototype.migrateVersion = function() {
   // migrate from document version 0 -> 1 means removing the title from the
   // document text attribute.
