@@ -152,7 +152,7 @@ class DocumentPreview extends React.Component<Props> {
         {...rest}
       >
         <Heading>
-          <Title text={document.title} highlight={highlight} />
+          <Title text={document.title || 'Untitled'} highlight={highlight} />
           {!document.isDraft &&
             !document.isArchived && (
               <Actions>

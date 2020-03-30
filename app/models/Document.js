@@ -206,7 +206,7 @@ export default class Document extends BaseModel {
     // Firefox support requires the anchor tag be in the DOM to trigger the dl
     if (document.body) document.body.appendChild(a);
     a.href = url;
-    a.download = `${this.title}.md`;
+    a.download = `${this.title || 'Untitled'}.md`;
     a.click();
   };
 }

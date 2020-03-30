@@ -60,7 +60,7 @@ class DocumentEditor extends React.Component<Props> {
           onChange={onChangeTitle}
           onKeyDown={this.handleTitleKeyDown}
           placeholder="Start with a title…"
-          value={title}
+          value={!title && readOnly ? 'Untitled' : title}
           readOnly={readOnly}
           autoFocus={!title}
         />
