@@ -5,6 +5,7 @@ import { inject, observer } from 'mobx-react';
 import Editor from 'components/Editor';
 import PublishingInfo from 'components/PublishingInfo';
 import ClickablePadding from 'components/ClickablePadding';
+import parseTitle from 'shared/utils/parseTitle';
 import ViewsStore from 'stores/ViewsStore';
 import Document from 'models/Document';
 import plugins from './plugins';
@@ -52,6 +53,10 @@ class DocumentEditor extends React.Component<Props> {
       readOnly,
     } = this.props;
     const totalViews = views.countForDocument(document.id);
+    const { emoji } = parseTitle(title);
+    const startsWithEmojiAndSpace = !!(
+      emoji && title.match(new RegExp(`^${emoji}\\s`))
+    );
 
     return (
       <React.Fragment>
@@ -61,6 +66,7 @@ class DocumentEditor extends React.Component<Props> {
           onKeyDown={this.handleTitleKeyDown}
           placeholder="Start with a title…"
           value={!title && readOnly ? 'Untitled' : title}
+          offsetLeft={startsWithEmojiAndSpace}
           readOnly={readOnly}
           autoFocus={!title}
         />
@@ -95,6 +101,7 @@ const Title = styled('input')`
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
+  margin-left: ${props => (props.offsetLeft ? '-1.2em' : 0)};
   color: ${props => props.theme.text};
   font-size: 2.25em;
   font-weight: 500;
