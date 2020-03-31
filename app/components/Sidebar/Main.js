@@ -8,6 +8,7 @@ import {
   EditIcon,
   SearchIcon,
   StarredIcon,
+  TrashIcon,
   PlusIcon,
 } from 'outline-icons';
 
@@ -62,7 +63,7 @@ class MainSidebar extends React.Component<Props> {
     if (!user || !team) return null;
 
     const draftDocumentsCount = documents.drafts.length;
-    const can = policies.abilties(team.id);
+    const can = policies.abilities(team.id);
 
     return (
       <Sidebar>
@@ -80,7 +81,7 @@ class MainSidebar extends React.Component<Props> {
           <Scrollable shadow>
             <Section>
               <SidebarLink
-                to="/dashboard"
+                to="/home"
                 icon={<HomeIcon />}
                 exact={false}
                 label="Home"
@@ -111,7 +112,10 @@ class MainSidebar extends React.Component<Props> {
                   </Drafts>
                 }
                 active={
-                  documents.active ? !documents.active.publishedAt : undefined
+                  documents.active
+                    ? !documents.active.publishedAt &&
+                      !documents.active.isDeleted
+                    : undefined
                 }
               />
             </Section>
@@ -125,7 +129,18 @@ class MainSidebar extends React.Component<Props> {
                 exact={false}
                 label="Archive"
                 active={
-                  documents.active ? documents.active.isArchived : undefined
+                  documents.active
+                    ? documents.active.isArchived && !documents.active.isDeleted
+                    : undefined
+                }
+              />
+              <SidebarLink
+                to="/trash"
+                icon={<TrashIcon />}
+                exact={false}
+                label="Trash"
+                active={
+                  documents.active ? documents.active.isDeleted : undefined
                 }
               />
               {can.invite && (

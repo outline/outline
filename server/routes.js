@@ -1,7 +1,5 @@
 // @flow
 import * as React from 'react';
-import fs from 'fs-extra';
-import { find } from 'lodash';
 import path from 'path';
 import Koa from 'koa';
 import Router from 'koa-router';
@@ -16,13 +14,6 @@ import { NotFoundError } from './errors';
 import { Team } from './models';
 
 import Home from './pages/Home';
-import About from './pages/About';
-import Changelog from './pages/Changelog';
-import Privacy from './pages/Privacy';
-import Pricing from './pages/Pricing';
-import Integrations from './pages/integrations';
-import integrations from './pages/integrations/content';
-import Integration from './pages/integrations/Integration';
 import Developers from './pages/developers';
 import Api from './pages/developers/Api';
 import SubdomainSignin from './pages/SubdomainSignin';
@@ -62,34 +53,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // static pages
-router.get('/about', ctx => renderpage(ctx, <About />));
-router.get('/pricing', ctx => renderpage(ctx, <Pricing />));
 router.get('/developers', ctx => renderpage(ctx, <Developers />));
 router.get('/developers/api', ctx => renderpage(ctx, <Api />));
-router.get('/privacy', ctx => renderpage(ctx, <Privacy />));
-router.get('/integrations/:slug', async ctx => {
-  const slug = ctx.params.slug;
-  const integration = find(integrations, i => i.slug === slug);
-  if (!integration) throw new Error('Not found');
-
-  const content = await fs.readFile(
-    path.resolve(__dirname, `pages/integrations/${slug}.md`)
-  );
-
-  return renderpage(
-    ctx,
-    <Integration integration={integration} content={content} />
-  );
-});
-router.get('/integrations', ctx => renderpage(ctx, <Integrations />));
-router.get('/changelog', async ctx => {
-  const data = await fetch(
-    `https://api.github.com/repos/outline/outline/releases?access_token=${process
-      .env.GITHUB_ACCESS_TOKEN || ''}`
-  );
-  const releases = await data.json();
-  return renderpage(ctx, <Changelog releases={releases} />);
-});
 
 // home page
 router.get('/', async ctx => {
@@ -122,6 +87,7 @@ router.get('/', async ctx => {
         ctx,
         <SubdomainSignin
           team={team}
+          guest={ctx.request.query.guest}
           notice={ctx.request.query.notice}
           lastSignedIn={lastSignedIn}
           googleSigninEnabled={!!process.env.GOOGLE_CLIENT_ID}

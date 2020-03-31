@@ -114,14 +114,17 @@ export default class BaseStore<T: BaseModel> {
   }
 
   @action
-  async delete(item: T) {
+  async delete(item: T, options?: Object = {}) {
     if (!this.actions.includes('delete')) {
       throw new Error(`Cannot delete ${this.modelName}`);
     }
     this.isSaving = true;
 
     try {
-      await client.post(`/${this.modelName}s.delete`, { id: item.id });
+      await client.post(`/${this.modelName}s.delete`, {
+        id: item.id,
+        ...options,
+      });
       return this.remove(item.id);
     } finally {
       this.isSaving = false;
@@ -145,13 +148,18 @@ export default class BaseStore<T: BaseModel> {
 
       this.addPolicies(res.policies);
       return this.add(res.data);
+    } catch (err) {
+      if (err.statusCode === 403) {
+        this.remove(id);
+      }
+      throw err;
     } finally {
       this.isFetching = false;
     }
   }
 
   @action
-  async fetchPage(params: ?PaginationParams): Promise<*> {
+  fetchPage = async (params: ?PaginationParams): Promise<*> => {
     if (!this.actions.includes('list')) {
       throw new Error(`Cannot list ${this.modelName}`);
     }
@@ -171,7 +179,7 @@ export default class BaseStore<T: BaseModel> {
     } finally {
       this.isFetching = false;
     }
-  }
+  };
 
   @computed
   get orderedData(): T[] {

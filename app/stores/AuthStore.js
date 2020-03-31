@@ -29,8 +29,8 @@ export default class AuthStore {
     }
 
     this.rootStore = rootStore;
-    this.user = data.user;
-    this.team = data.team;
+    this.user = new User(data.user);
+    this.team = new Team(data.team);
     this.token = getCookie('accessToken');
 
     if (this.token) setImmediate(() => this.fetch());
@@ -72,16 +72,15 @@ export default class AuthStore {
       runInAction('AuthStore#fetch', () => {
         this.addPolicies(res.policies);
         const { user, team } = res.data;
-        this.user = user;
-        this.team = team;
+        this.user = new User(user);
+        this.team = new Team(team);
 
-        if (window.Bugsnag) {
-          Bugsnag.user = {
-            id: user.id,
-            name: user.name,
-            teamId: team.id,
-            team: team.name,
-          };
+        if (window.Sentry) {
+          Sentry.configureScope(function(scope) {
+            scope.setUser({ id: user.id });
+            scope.setExtra('team', team.name);
+            scope.setExtra('teamId', team.id);
+          });
         }
 
         // If we came from a redirect then send the user immediately there
@@ -141,7 +140,7 @@ export default class AuthStore {
 
       runInAction('AuthStore#updateTeam', () => {
         this.addPolicies(res.policies);
-        this.team = res.data;
+        this.team = new Team(res.data);
       });
     } finally {
       this.isSaving = false;

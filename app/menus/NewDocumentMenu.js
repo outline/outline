@@ -7,12 +7,14 @@ import { PlusIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
 
 import { newDocumentUrl } from 'utils/routeHelpers';
 import CollectionsStore from 'stores/CollectionsStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
 import Button from 'components/Button';
 
 type Props = {
   label?: React.Node,
   collections: CollectionsStore,
+  policies: PoliciesStore,
 };
 
 @observer
@@ -38,7 +40,7 @@ class NewDocumentMenu extends React.Component<Props> {
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { collections, label, ...rest } = this.props;
+    const { collections, policies, label, ...rest } = this.props;
 
     return (
       <DropdownMenu
@@ -53,22 +55,27 @@ class NewDocumentMenu extends React.Component<Props> {
         {...rest}
       >
         <DropdownMenuItem disabled>Choose a collection…</DropdownMenuItem>
-        {collections.orderedData.map(collection => (
-          <DropdownMenuItem
-            key={collection.id}
-            onClick={() => this.handleNewDocument(collection.id)}
-          >
-            {collection.private ? (
-              <PrivateCollectionIcon color={collection.color} />
-            ) : (
-              <CollectionIcon color={collection.color} />
-            )}{' '}
-            {collection.name}
-          </DropdownMenuItem>
-        ))}
+        {collections.orderedData.map(collection => {
+          const can = policies.abilities(collection.id);
+
+          return (
+            <DropdownMenuItem
+              key={collection.id}
+              onClick={() => this.handleNewDocument(collection.id)}
+              disabled={!can.update}
+            >
+              {collection.private ? (
+                <PrivateCollectionIcon color={collection.color} />
+              ) : (
+                <CollectionIcon color={collection.color} />
+              )}{' '}
+              {collection.name}
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenu>
     );
   }
 }
 
-export default inject('collections')(NewDocumentMenu);
+export default inject('collections', 'policies')(NewDocumentMenu);

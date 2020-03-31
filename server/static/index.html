@@ -33,11 +33,18 @@
   </head>
   <body>
     <div id="root"></div>
+    <script
+      src="https://browser.sentry-cdn.com/5.12.1/bundle.min.js"
+      integrity="sha384-y+an4eARFKvjzOivf/Z7JtMJhaN6b+lLQ5oFbBbUwZNNVir39cYtkjW1r6Xjbxg3"
+      crossorigin="anonymous"
+    >
+    </script>
     <script>
+      Sentry.init({ dsn: '<%= SENTRY_DSN %>' });
+
       if (window.localStorage.getItem("theme") === "dark") {
         window.document.querySelector('#root').style.background = "#111319";
       }
     </script>
-    <script src="//d2wy8f7a9ursnm.cloudfront.net/bugsnag-3.min.js" data-apikey="<%= BUGSNAG_KEY %>"></script>
   </body>
 </html>

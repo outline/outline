@@ -2,8 +2,9 @@
 import { uniqBy } from 'lodash';
 import { User, Event, Team } from '../models';
 import mailer from '../mailer';
+import { sequelize } from '../sequelize';
 
-type Invite = { name: string, email: string };
+type Invite = { name: string, email: string, guest: boolean };
 
 export default async function userInviter({
   user,
@@ -13,17 +14,25 @@ export default async function userInviter({
   user: User,
   invites: Invite[],
   ip: string,
-}): Promise<{ sent: Invite[] }> {
+}): Promise<{ sent: Invite[], users: User[] }> {
   const team = await Team.findByPk(user.teamId);
 
-  // filter out empties, duplicates and non-emails
-  const compactedInvites = uniqBy(
-    invites.filter(invite => !!invite.email.trim() && invite.email.match('@')),
+  // filter out empties and obvious non-emails
+  const compactedInvites = invites.filter(
+    invite => !!invite.email.trim() && invite.email.match('@')
+  );
+
+  // normalize to lowercase and remove duplicates
+  const normalizedInvites = uniqBy(
+    compactedInvites.map(invite => ({
+      ...invite,
+      email: invite.email.toLowerCase(),
+    })),
     'email'
   );
-  const emails = compactedInvites.map(invite => invite.email);
 
-  // filter out existing users
+  // filter out any existing users in the system
+  const emails = normalizedInvites.map(invite => invite.email);
   const existingUsers = await User.findAll({
     where: {
       teamId: user.teamId,
@@ -31,33 +40,56 @@ export default async function userInviter({
     },
   });
   const existingEmails = existingUsers.map(user => user.email);
-  const filteredInvites = compactedInvites.filter(
+  const filteredInvites = normalizedInvites.filter(
     invite => !existingEmails.includes(invite.email)
   );
 
-  // send and record invites
+  let users = [];
+
+  // send and record remaining invites
   await Promise.all(
     filteredInvites.map(async invite => {
-      await Event.create({
-        name: 'users.invite',
-        actorId: user.id,
-        teamId: user.teamId,
-        data: {
-          email: invite.email,
+      const transaction = await sequelize.transaction();
+      try {
+        const newUser = await User.create(
+          {
+            teamId: user.teamId,
+            name: invite.name,
+            email: invite.email,
+            service: null,
+          },
+          { transaction }
+        );
+        users.push(newUser);
+        await Event.create(
+          {
+            name: 'users.invite',
+            actorId: user.id,
+            teamId: user.teamId,
+            data: {
+              email: invite.email,
+              name: invite.name,
+            },
+            ip,
+          },
+          { transaction }
+        );
+        await mailer.invite({
+          to: invite.email,
           name: invite.name,
-        },
-        ip,
-      });
-      await mailer.invite({
-        to: invite.email,
-        name: invite.name,
-        actorName: user.name,
-        actorEmail: user.email,
-        teamName: team.name,
-        teamUrl: team.url,
-      });
+          guest: invite.guest,
+          actorName: user.name,
+          actorEmail: user.email,
+          teamName: team.name,
+          teamUrl: team.url,
+        });
+        await transaction.commit();
+      } catch (err) {
+        await transaction.rollback();
+        throw err;
+      }
     })
   );
 
-  return { sent: filteredInvites };
+  return { sent: filteredInvites, users };
 }

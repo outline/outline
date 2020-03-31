@@ -21,7 +21,7 @@ To get started, head to your dashboard and try creating a collection to help doc
 
 You can also import existing Markdown documents by dragging and dropping them to your collections.
 
-${teamUrl}/dashboard
+${teamUrl}/home
 `;
 
 export const WelcomeEmail = ({ teamUrl }: Props) => {
@@ -43,7 +43,7 @@ export const WelcomeEmail = ({ teamUrl }: Props) => {
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${teamUrl}/dashboard`}>View my dashboard</Button>
+          <Button href={`${teamUrl}/home`}>View my dashboard</Button>
         </p>
       </Body>
 

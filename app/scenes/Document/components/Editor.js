@@ -4,10 +4,10 @@ import Editor from 'components/Editor';
 import ClickablePadding from 'components/ClickablePadding';
 import plugins from './plugins';
 
-type Props = {
+type Props = {|
   defaultValue?: string,
   readOnly?: boolean,
-};
+|};
 
 class DocumentEditor extends React.Component<Props> {
   editor: ?Editor;
@@ -19,11 +19,15 @@ class DocumentEditor extends React.Component<Props> {
   }
 
   focusAtStart = () => {
-    if (this.editor) this.editor.focusAtStart();
+    if (this.editor) {
+      this.editor.focusAtStart();
+    }
   };
 
   focusAtEnd = () => {
-    if (this.editor) this.editor.focusAtEnd();
+    if (this.editor) {
+      this.editor.focusAtEnd();
+    }
   };
 
   render() {
@@ -33,13 +37,12 @@ class DocumentEditor extends React.Component<Props> {
       <React.Fragment>
         <Editor
           ref={ref => (this.editor = ref)}
+          autoFocus={!this.props.defaultValue}
           plugins={plugins}
+          grow={!readOnly}
           {...this.props}
         />
-        <ClickablePadding
-          onClick={!readOnly ? this.focusAtEnd : undefined}
-          grow
-        />
+        {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
       </React.Fragment>
     );
   }

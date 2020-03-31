@@ -12,6 +12,6 @@ If you’re comfortable writing markdown then all of the usual shortcuts are sup
 
 ## Blocks
 
-The editor supports a variety of content blocks including images, tables, lists, quotes, and more. You can also drag and drop images to include them in your document or paste a link to embed content from one of the many supported [integrations](/integrations)
+The editor supports a variety of content blocks including images, tables, lists, quotes, and more. You can also drag and drop images to include them in your document or paste a link to embed content from one of the many supported [integrations](https://www.getoutline.com/integrations)
 
 *Tip:* Headings are collapsible, just click the arrow to the left of any heading to temporarily hide the content below.

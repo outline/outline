@@ -7,6 +7,7 @@ export const Action = styled(Flex)`
   justify-content: center;
   align-items: center;
   padding: 0 0 0 12px;
+  height: 32px;
   font-size: 15px;
   flex-shrink: 0;
 
@@ -17,6 +18,7 @@ export const Action = styled(Flex)`
 `;
 
 export const Separator = styled.div`
+  flex-shrink: 0;
   margin-left: 12px;
   width: 1px;
   height: 28px;

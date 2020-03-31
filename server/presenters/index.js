@@ -9,9 +9,13 @@ import presentApiKey from './apiKey';
 import presentShare from './share';
 import presentTeam from './team';
 import presentIntegration from './integration';
+import presentMembership from './membership';
 import presentNotificationSetting from './notificationSetting';
 import presentSlackAttachment from './slackAttachment';
 import presentPolicies from './policy';
+import presentGroup from './group';
+import presentGroupMembership from './groupMembership';
+import presentCollectionGroupMembership from './collectionGroupMembership';
 
 export {
   presentUser,
@@ -23,8 +27,12 @@ export {
   presentApiKey,
   presentShare,
   presentTeam,
+  presentGroup,
   presentIntegration,
+  presentMembership,
   presentNotificationSetting,
   presentSlackAttachment,
   presentPolicies,
+  presentGroupMembership,
+  presentCollectionGroupMembership,
 };

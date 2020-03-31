@@ -2,7 +2,7 @@
 import Router from 'koa-router';
 import { escapeRegExp } from 'lodash';
 import { AuthenticationError, InvalidRequestError } from '../errors';
-import { Authentication, Document, User, Team } from '../models';
+import { Authentication, Document, User, Team, Collection } from '../models';
 import { presentSlackAttachment } from '../presenters';
 import * as Slack from '../slack';
 const router = new Router();
@@ -58,15 +58,18 @@ router.post('hooks.interactive', async ctx => {
   ctx.assertPresent(token, 'token is required');
   ctx.assertPresent(callback_id, 'callback_id is required');
 
-  if (token !== process.env.SLACK_VERIFICATION_TOKEN)
+  if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
     throw new AuthenticationError('Invalid verification token');
+  }
 
-  const user = await User.findOne({
-    where: { service: 'slack', serviceId: data.user.id },
+  const team = await Team.findOne({
+    where: { slackId: data.team.id },
   });
-  if (!user) {
+
+  if (!team) {
     ctx.body = {
-      text: 'Sorry, we couldn’t find your user on this team in Outline.',
+      text:
+        'Sorry, we couldn’t find an integration for your team. Head to your Outline settings to set one up.',
       response_type: 'ephemeral',
       replace_original: false,
     };
@@ -75,26 +78,30 @@ router.post('hooks.interactive', async ctx => {
 
   // we find the document based on the users teamId to ensure access
   const document = await Document.findOne({
-    where: { id: data.callback_id, teamId: user.teamId },
+    where: {
+      id: data.callback_id,
+      teamId: team.id,
+    },
   });
   if (!document) throw new InvalidRequestError('Invalid document');
 
-  const team = await Team.findByPk(user.teamId);
+  const collection = await Collection.findByPk(document.collectionId);
 
   // respond with a public message that will be posted in the original channel
   ctx.body = {
     response_type: 'in_channel',
     replace_original: false,
     attachments: [
-      presentSlackAttachment(document, team, document.getSummary()),
+      presentSlackAttachment(document, collection, team, document.getSummary()),
     ],
   };
 });
 
 // triggered by the /outline command in Slack
 router.post('hooks.slack', async ctx => {
-  const { token, user_id, text } = ctx.body;
+  const { token, team_id, user_id, text = '' } = ctx.body;
   ctx.assertPresent(token, 'token is required');
+  ctx.assertPresent(team_id, 'team_id is required');
   ctx.assertPresent(user_id, 'user_id is required');
 
   if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
@@ -116,24 +123,32 @@ router.post('hooks.slack', async ctx => {
     return;
   }
 
-  const user = await User.findOne({
-    where: {
-      service: 'slack',
-      serviceId: user_id,
-    },
+  const team = await Team.findOne({
+    where: { slackId: team_id },
   });
-  if (!user) {
+  if (!team) {
     ctx.body = {
       response_type: 'ephemeral',
-      text: 'Sorry, we couldn’t find your user – have you signed into Outline?',
+      text:
+        'Sorry, we couldn’t find an integration for your team. Head to your Outline settings to set one up.',
     };
     return;
   }
 
-  const team = await Team.findByPk(user.teamId);
-  const results = await Document.searchForUser(user, text, {
-    limit: 5,
+  const user = await User.findOne({
+    where: {
+      teamId: team.id,
+      service: 'slack',
+      serviceId: user_id,
+    },
   });
+
+  const options = {
+    limit: 5,
+  };
+  const results = user
+    ? await Document.searchForUser(user, text, options)
+    : await Document.searchForTeam(team, text, options);
 
   if (results.length) {
     const attachments = [];
@@ -145,6 +160,7 @@ router.post('hooks.slack', async ctx => {
       attachments.push(
         presentSlackAttachment(
           result.document,
+          result.document.collection,
           team,
           queryIsInTitle ? undefined : result.context,
           process.env.SLACK_MESSAGE_ACTIONS

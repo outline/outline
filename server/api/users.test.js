@@ -11,8 +11,24 @@ beforeEach(flushdb);
 afterAll(server.close);
 
 describe('#users.list', async () => {
+  it('should allow filtering by user name', async () => {
+    const user = await buildUser({ name: 'Tester' });
+
+    const res = await server.post('/api/users.list', {
+      body: {
+        query: 'test',
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
   it('should return teams paginated user list', async () => {
-    const { admin } = await seed();
+    const { admin, user } = await seed();
 
     const res = await server.post('/api/users.list', {
       body: { token: admin.getJwtToken() },
@@ -20,18 +36,24 @@ describe('#users.list', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
+    expect(body.data.length).toEqual(2);
+    expect(body.data[0].id).toEqual(user.id);
+    expect(body.data[1].id).toEqual(admin.id);
   });
 
   it('should require admin for detailed info', async () => {
-    const { user } = await seed();
+    const { user, admin } = await seed();
     const res = await server.post('/api/users.list', {
       body: { token: user.getJwtToken() },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
+    expect(body.data.length).toEqual(2);
+    expect(body.data[0].email).toEqual(undefined);
+    expect(body.data[1].email).toEqual(undefined);
+    expect(body.data[0].id).toEqual(user.id);
+    expect(body.data[1].id).toEqual(admin.id);
   });
 });
 
@@ -50,6 +72,26 @@ describe('#users.info', async () => {
 
   it('should require authentication', async () => {
     const res = await server.post('/api/users.info');
+    expect(res.status).toEqual(401);
+  });
+});
+
+describe('#users.invite', async () => {
+  it('should return sent invites', async () => {
+    const user = await buildUser();
+    const res = await server.post('/api/users.invite', {
+      body: {
+        token: user.getJwtToken(),
+        invites: [{ email: 'test@example.com', name: 'Test', guest: false }],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.sent.length).toEqual(1);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/users.invite');
     expect(res.status).toEqual(401);
   });
 });
@@ -89,6 +131,27 @@ describe('#users.delete', async () => {
     expect(res.status).toEqual(200);
   });
 
+  it('should allow deleting pending user account with admin', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const pending = await buildUser({
+      teamId: user.teamId,
+      lastActiveAt: null,
+    });
+    const res = await server.post('/api/users.delete', {
+      body: { token: user.getJwtToken(), id: pending.id, confirmation: true },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it('should not allow deleting another user account', async () => {
+    const user = await buildUser({ isAdmin: true });
+    const user2 = await buildUser({ teamId: user.teamId });
+    const res = await server.post('/api/users.delete', {
+      body: { token: user.getJwtToken(), id: user2.id, confirmation: true },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it('should require authentication', async () => {
     const res = await server.post('/api/users.delete');
     const body = await res.json();
@@ -107,7 +170,7 @@ describe('#users.update', async () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
+    expect(body.data.name).toEqual('New name');
   });
 
   it('should require authentication', async () => {
@@ -161,7 +224,7 @@ describe('#users.demote', async () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("shouldn't demote admins if only one available ", async () => {
+  it('should not demote admins if only one available', async () => {
     const admin = await buildUser({ isAdmin: true });
 
     const res = await server.post('/api/users.demote', {
@@ -204,7 +267,7 @@ describe('#users.suspend', async () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("shouldn't allow suspending the user themselves", async () => {
+  it('should not allow suspending the user themselves', async () => {
     const admin = await buildUser({ isAdmin: true });
     const res = await server.post('/api/users.suspend', {
       body: {

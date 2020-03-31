@@ -26,7 +26,7 @@ type Props = {
 
 const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
   const collection = collections.get(document.collectionId);
-  if (!collection) return null;
+  if (!collection) return <div />;
 
   const path = collection.pathToDocument(document).slice(0, -1);
 

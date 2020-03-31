@@ -30,6 +30,10 @@ const Wrapper = styled.li`
   padding: ${props => (props.compact ? '8px' : '12px')} 0;
   margin: 0;
   border-bottom: 1px solid ${props => props.theme.divider};
+
+  &:last-child {
+    border-bottom: 0;
+  }
 `;
 
 const Image = styled(Flex)`
@@ -38,6 +42,7 @@ const Image = styled(Flex)`
   align-items: center;
   user-select: none;
   flex-shrink: 0;
+  align-self: flex-start;
 `;
 
 const Heading = styled.p`

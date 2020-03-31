@@ -22,11 +22,13 @@ class Security extends React.Component<Props> {
 
   @observable sharing: boolean;
   @observable documentEmbeds: boolean;
+  @observable guestSignin: boolean;
 
   componentDidMount() {
     const { auth } = this.props;
     if (auth.team) {
       this.documentEmbeds = auth.team.documentEmbeds;
+      this.guestSignin = auth.team.guestSignin;
       this.sharing = auth.team.sharing;
     }
   }
@@ -39,12 +41,16 @@ class Security extends React.Component<Props> {
       case 'documentEmbeds':
         this.documentEmbeds = ev.target.checked;
         break;
+      case 'guestSignin':
+        this.guestSignin = ev.target.checked;
+        break;
       default:
     }
 
     await this.props.auth.updateTeam({
       sharing: this.sharing,
       documentEmbeds: this.documentEmbeds,
+      guestSignin: this.guestSignin,
     });
     this.showSuccessMessage();
   };
@@ -54,6 +60,8 @@ class Security extends React.Component<Props> {
   }, 500);
 
   render() {
+    const { team } = this.props.auth;
+
     return (
       <CenteredContent>
         <PageTitle title="Security" />
@@ -63,6 +71,15 @@ class Security extends React.Component<Props> {
           knowledgebase.
         </HelpText>
 
+        <Checkbox
+          label="Allow guest invites"
+          name="guestSignin"
+          checked={this.guestSignin}
+          onChange={this.handleChange}
+          note={`When enabled guests can be invited by email address and are able to signin without ${
+            team ? team.signinMethods : 'SSO'
+          }`}
+        />
         <Checkbox
           label="Public document sharing"
           name="sharing"

@@ -45,7 +45,7 @@ export default function Api() {
               the token.
             </Description>
             <Arguments>
-              <Argument id="id" description="Collection id" required />
+              <Argument id="id" description="Collection ID" required />
             </Arguments>
           </Method>
 
@@ -53,24 +53,28 @@ export default function Api() {
             <Description>
               You can upload small files and images as part of your documents.
               All files are stored using Amazon S3. Instead of uploading files
-              to Outline, you need to upload them directly to S3 with special
+              to Outline, you need to upload them directly to S3 with
               credentials which can be obtained through this endpoint.
             </Description>
             <Arguments>
               <Argument
-                id="filename"
-                description="Filename of the uploaded file"
+                id="name"
+                description="Name of the uploaded file"
                 required
               />
               <Argument
-                id="kind"
-                description="Mimetype of the document"
+                id="contentType"
+                description="Mimetype of the file"
                 required
               />
               <Argument
                 id="size"
-                description="Filesize of the document"
+                description="Size in bytes of the file"
                 required
+              />
+              <Argument
+                id="documentId"
+                description="ID of the associated document"
               />
             </Arguments>
           </Method>
@@ -140,7 +144,7 @@ export default function Api() {
               Returns detailed information on a document collection.
             </Description>
             <Arguments>
-              <Argument id="id" description="Collection id" required />
+              <Argument id="id" description="Collection ID" required />
             </Arguments>
           </Method>
 
@@ -165,7 +169,7 @@ export default function Api() {
               folders inside the zip file.
             </Description>
             <Arguments>
-              <Argument id="id" description="Collection id" required />
+              <Argument id="id" description="Collection ID" required />
             </Arguments>
           </Method>
 
@@ -228,13 +232,76 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method method="collections.users" label="List collection members">
+          <Method
+            method="collections.add_group"
+            label="Add a group to a collection"
+          >
             <Description>
-              This method allows you to list users with access to a private
+              This method allows you to give all members in a group access to a
               collection.
             </Description>
             <Arguments>
               <Argument id="id" description="Collection ID" required />
+              <Argument
+                id="groupId"
+                description="Group ID to add to the collection"
+              />
+            </Arguments>
+          </Method>
+
+          <Method
+            method="collections.remove_group"
+            label="Remove a group from a collection"
+          >
+            <Description>
+              This method allows you to revoke all members in a group access to
+              a collection. Note that members of the group may still retain
+              access through other groups or individual memberships.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Collection ID" required />
+              <Argument
+                id="groupId"
+                description="Group ID to remove from the collection"
+              />
+            </Arguments>
+          </Method>
+
+          <Method
+            method="collections.memberships"
+            label="List collection members"
+          >
+            <Description>
+              This method allows you to list a collections individual
+              memberships. This is both a collections maintainers, and user
+              permissions for read and write if the collection is private
+            </Description>
+            <Arguments pagination>
+              <Argument id="id" description="Collection ID" required />
+              <Argument id="query" description="Filter results by user name" />
+              <Argument
+                id="permission"
+                description="Filter results by permission"
+              />
+            </Arguments>
+          </Method>
+
+          <Method
+            method="collections.group_memberships"
+            label="List collection group members"
+          >
+            <Description>
+              This method allows you to list a collections group memberships.
+              This is the list of groups that have been given access to the
+              collection.
+            </Description>
+            <Arguments pagination>
+              <Argument id="id" description="Collection ID" required />
+              <Argument id="query" description="Filter results by group name" />
+              <Argument
+                id="permission"
+                description="Filter results by permission"
+              />
             </Arguments>
           </Method>
 
@@ -259,6 +326,10 @@ export default function Api() {
               <Argument
                 id="backlinkDocumentId"
                 description="Backlinked document ID to filter by"
+              />
+              <Argument
+                id="parentDocumentId"
+                description="Parent document ID to filter by"
               />
             </Arguments>
           </Method>
@@ -300,6 +371,7 @@ export default function Api() {
               <Argument id="userId" description="User ID" />
               <Argument id="collectionId" description="Collection ID" />
               <Argument id="includeArchived" description="Boolean" />
+              <Argument id="includeDrafts" description="Boolean" />
               <Argument
                 id="dateFilter"
                 description="Date range to consider (day, week, month or year)"
@@ -430,7 +502,7 @@ export default function Api() {
 
           <Method method="documents.archive" label="Archive a document">
             <Description>
-              Archive a document and all of its child documents, if any.
+              Archive a document and all of its nested documents, if any.
             </Description>
             <Arguments>
               <Argument
@@ -443,7 +515,7 @@ export default function Api() {
 
           <Method method="documents.delete" label="Delete a document">
             <Description>
-              Permanantly delete a document and all of its child documents, if
+              Permanently delete a document and all of its nested documents, if
               any.
             </Description>
             <Arguments>
@@ -570,7 +642,13 @@ export default function Api() {
             label="Get pinned documents for a collection"
           >
             <Description>Return pinned documents for a collection</Description>
-            <Arguments pagination />
+            <Arguments pagination>
+              <Argument
+                id="collectionId"
+                description="Collection ID"
+                required
+              />
+            </Arguments>
           </Method>
 
           <Method
@@ -601,6 +679,97 @@ export default function Api() {
                 id="id"
                 description="Document ID or URI identifier"
                 required
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.create" label="Create a group">
+            <Description>
+              This method allows you to create a new group to organize people in
+              the team.
+            </Description>
+            <Arguments pagination>
+              <Argument
+                id="name"
+                description="The name of the group"
+                required
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.update" label="Update a group">
+            <Description>
+              This method allows you to update an existing group. At this time
+              the only field that can be edited is the name.
+            </Description>
+            <Arguments pagination>
+              <Argument id="id" description="Group ID" required />
+              <Argument
+                id="name"
+                description="The name of the group"
+                required
+              />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.delete" label="Delete a group">
+            <Description>
+              Deleting a group will cause all of its members to lose access to
+              any collections the group has been given access to. This action
+              can’t be undone so please be careful.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Group ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.info" label="Get a group">
+            <Description>Returns detailed information on a group.</Description>
+            <Arguments>
+              <Argument id="id" description="Group ID" required />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.list" label="List groups">
+            <Description>
+              List all groups the current user has access to.
+            </Description>
+            <Arguments pagination />
+          </Method>
+
+          <Method
+            method="groups.memberships"
+            label="List the group memberships"
+          >
+            <Description>
+              List members in a group, the query parameter allows filtering by
+              user name.
+            </Description>
+            <Arguments pagination>
+              <Argument id="id" description="Group ID" />
+              <Argument id="query" description="Search query" />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.add_user" label="Add a group member">
+            <Description>
+              This method allows you to add a user to a group.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Group ID" required />
+              <Argument id="userId" description="User ID to add to the group" />
+            </Arguments>
+          </Method>
+
+          <Method method="groups.remove_user" label="Remove a group member">
+            <Description>
+              This method allows you to remove a user from a group.
+            </Description>
+            <Arguments>
+              <Argument id="id" description="Group ID" required />
+              <Argument
+                id="userId"
+                description="User ID to remove from the group"
               />
             </Arguments>
           </Method>
@@ -759,10 +928,7 @@ const Arguments = (props: ArgumentsProps) => (
     </thead>
     <tbody>
       <Argument id="token" description="Authentication token" required />
-      {props.pagination && (
-        // $FlowIssue
-        <PaginationArguments />
-      )}
+      {props.pagination && <PaginationArguments />}
       {props.children}
     </tbody>
   </Table>

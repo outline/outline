@@ -3,12 +3,13 @@
 exports[`#users.activate should activate a suspended user 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
+    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
     "isSuspended": false,
+    "lastActiveAt": null,
     "name": "User 1",
   },
   "ok": true,
@@ -37,16 +38,26 @@ Object {
 exports[`#users.demote should demote an admin 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
+    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
     "isSuspended": false,
+    "lastActiveAt": null,
     "name": "User 1",
   },
   "ok": true,
   "status": 200,
+}
+`;
+
+exports[`#users.demote should not demote admins if only one available 1`] = `
+Object {
+  "error": "validation_error",
+  "message": "At least one admin is required",
+  "ok": false,
+  "status": 400,
 }
 `;
 
@@ -59,86 +70,16 @@ Object {
 }
 `;
 
-exports[`#users.demote shouldn't demote admins if only one available  1`] = `
-Object {
-  "error": "validation_error",
-  "message": "At least one admin is required",
-  "ok": false,
-  "status": 400,
-}
-`;
-
-exports[`#users.list should require admin for detailed info 1`] = `
-Object {
-  "data": Array [
-    Object {
-      "avatarUrl": "http://example.com/avatar.png",
-      "createdAt": "2018-01-02T00:00:00.000Z",
-      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-      "isAdmin": false,
-      "isSuspended": false,
-      "name": "User 1",
-    },
-    Object {
-      "avatarUrl": "http://example.com/avatar.png",
-      "createdAt": "2018-01-01T00:00:00.000Z",
-      "id": "fa952cff-fa64-4d42-a6ea-6955c9689046",
-      "isAdmin": true,
-      "isSuspended": false,
-      "name": "Admin User",
-    },
-  ],
-  "ok": true,
-  "pagination": Object {
-    "limit": 15,
-    "nextPath": "/api/users.list?limit=15&offset=15",
-    "offset": 0,
-  },
-  "status": 200,
-}
-`;
-
-exports[`#users.list should return teams paginated user list 1`] = `
-Object {
-  "data": Array [
-    Object {
-      "avatarUrl": "http://example.com/avatar.png",
-      "createdAt": "2018-01-02T00:00:00.000Z",
-      "email": "user1@example.com",
-      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-      "isAdmin": false,
-      "isSuspended": false,
-      "name": "User 1",
-    },
-    Object {
-      "avatarUrl": "http://example.com/avatar.png",
-      "createdAt": "2018-01-01T00:00:00.000Z",
-      "email": "admin@example.com",
-      "id": "fa952cff-fa64-4d42-a6ea-6955c9689046",
-      "isAdmin": true,
-      "isSuspended": false,
-      "name": "Admin User",
-    },
-  ],
-  "ok": true,
-  "pagination": Object {
-    "limit": 15,
-    "nextPath": "/api/users.list?limit=15&offset=15",
-    "offset": 0,
-  },
-  "status": 200,
-}
-`;
-
 exports[`#users.promote should promote a new admin 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
+    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": true,
     "isSuspended": false,
+    "lastActiveAt": null,
     "name": "User 1",
   },
   "ok": true,
@@ -155,6 +96,15 @@ Object {
 }
 `;
 
+exports[`#users.suspend should not allow suspending the user themselves 1`] = `
+Object {
+  "error": "validation_error",
+  "message": "Unable to suspend the current user",
+  "ok": false,
+  "status": 400,
+}
+`;
+
 exports[`#users.suspend should require admin 1`] = `
 Object {
   "error": "admin_required",
@@ -167,25 +117,17 @@ Object {
 exports[`#users.suspend should suspend an user 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
+    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
     "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
     "isAdmin": false,
     "isSuspended": true,
+    "lastActiveAt": null,
     "name": "User 1",
   },
   "ok": true,
   "status": 200,
-}
-`;
-
-exports[`#users.suspend shouldn't allow suspending the user themselves 1`] = `
-Object {
-  "error": "validation_error",
-  "message": "Unable to suspend the current user",
-  "ok": false,
-  "status": 400,
 }
 `;
 
@@ -195,21 +137,5 @@ Object {
   "message": "Authentication required",
   "ok": false,
   "status": 401,
-}
-`;
-
-exports[`#users.update should update user profile information 1`] = `
-Object {
-  "data": Object {
-    "avatarUrl": "http://example.com/avatar.png",
-    "createdAt": "2018-01-02T00:00:00.000Z",
-    "email": "user1@example.com",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "isAdmin": false,
-    "isSuspended": false,
-    "name": "New name",
-  },
-  "ok": true,
-  "status": 200,
 }
 `;

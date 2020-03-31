@@ -87,7 +87,7 @@
       "required": false
     },
     "AWS_ACCESS_KEY_ID": {
-      "description": "Needed to save file uploads. Optional for dev / testing.",
+      "description": "Needed to save file uploads. Optional for development / testing",
       "required": false
     },
     "AWS_SECRET_ACCESS_KEY": {
@@ -105,6 +105,16 @@
     "AWS_S3_UPLOAD_MAX_SIZE": {
       "description": "Maximum file upload size in bytes",
       "value": "26214400",
+      "required": false
+    },
+    "AWS_REGION": {
+      "value": "us-east-1",
+      "description": "Region in which the above S3 bucket exists",
+      "required": false
+    },
+    "AWS_S3_ACL": {
+      "value": "private",
+      "description": "S3 canned ACL for document attachments",
       "required": false
     },
     "SMTP_HOST": {
@@ -135,12 +145,12 @@
       "description": "UA-xxxx (optional)",
       "required": false
     },
-    "BUGSNAG_KEY": {
-      "description": "An API key for bugsnag if you wish to collect error reporting (optional)",
+    "SENTRY_DSN": {
+      "description": "An API key for Sentry if you wish to collect error reporting (optional)",
       "required": false
     },
-    "GITHUB_ACCESS_TOKEN": {
-      "description": "An API token for GitHub, optional for self hosted (optional)",
+    "TEAM_LOGO": {
+      "description": "A logo that will be displayed on the signed out home page",
       "required": false
     }
   }

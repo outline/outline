@@ -9,6 +9,7 @@ import {
   PadlockIcon,
   CodeIcon,
   UserIcon,
+  GroupIcon,
   LinkIcon,
   TeamIcon,
   BulletedListIcon,
@@ -43,7 +44,7 @@ class SettingsSidebar extends React.Component<Props> {
     const { team } = auth;
     if (!team) return null;
 
-    const can = policies.abilties(team.id);
+    const can = policies.abilities(team.id);
 
     return (
       <Sidebar>
@@ -95,6 +96,12 @@ class SettingsSidebar extends React.Component<Props> {
                 icon={<UserIcon />}
                 exact={false}
                 label="People"
+              />
+              <SidebarLink
+                to="/settings/groups"
+                icon={<GroupIcon />}
+                exact={false}
+                label="Groups"
               />
               <SidebarLink
                 to="/settings/shares"

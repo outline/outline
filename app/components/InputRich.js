@@ -3,7 +3,7 @@ import * as React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import styled, { withTheme } from 'styled-components';
-import Input, { LabelText, Outline } from 'components/Input';
+import { LabelText, Outline } from 'components/Input';
 
 type Props = {
   label: string,
@@ -30,8 +30,17 @@ class InputRich extends React.Component<Props> {
   };
 
   loadEditor = async () => {
-    const EditorImport = await import('./Editor');
-    this.editorComponent = EditorImport.default;
+    try {
+      const EditorImport = await import('./Editor');
+      this.editorComponent = EditorImport.default;
+    } catch (err) {
+      console.error(err);
+
+      // If the editor bundle fails to load then reload the entire window. This
+      // can happen if a deploy happens between the user loading the initial JS
+      // bundle and the async-loaded editor JS bundle as the hash will change.
+      window.location.reload();
+    }
   };
 
   render() {
@@ -41,26 +50,23 @@ class InputRich extends React.Component<Props> {
     return (
       <React.Fragment>
         <LabelText>{label}</LabelText>
-        {Editor ? (
-          <StyledOutline
-            maxHeight={maxHeight}
-            minHeight={minHeight}
-            focused={this.focused}
-          >
+
+        <StyledOutline
+          maxHeight={maxHeight}
+          minHeight={minHeight}
+          focused={this.focused}
+        >
+          {Editor ? (
             <Editor
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
+              grow
               {...rest}
             />
-          </StyledOutline>
-        ) : (
-          <Input
-            maxHeight={maxHeight}
-            minHeight={minHeight}
-            placeholder="Loading…"
-            disabled
-          />
-        )}
+          ) : (
+            'Loading…'
+          )}
+        </StyledOutline>
       </React.Fragment>
     );
   }

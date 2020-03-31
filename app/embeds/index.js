@@ -5,6 +5,8 @@ import Codepen from './Codepen';
 import Figma from './Figma';
 import Framer from './Framer';
 import Gist from './Gist';
+import GoogleDocs from './GoogleDocs';
+import GoogleSheets from './GoogleSheets';
 import GoogleSlides from './GoogleSlides';
 import InVision from './InVision';
 import Loom from './Loom';
@@ -28,6 +30,8 @@ export default {
   Figma,
   Framer,
   Gist,
+  GoogleDocs,
+  GoogleSheets,
   GoogleSlides,
   InVision,
   Loom,

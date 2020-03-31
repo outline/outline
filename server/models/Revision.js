@@ -7,6 +7,7 @@ const Revision = sequelize.define('revision', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  editorVersion: DataTypes.STRING,
   title: DataTypes.STRING,
   text: DataTypes.TEXT,
 });

@@ -109,6 +109,7 @@ class Details extends React.Component<Props> {
           <Input
             label="Name"
             name="name"
+            autoComplete="organization"
             value={this.name}
             onChange={this.handleNameChange}
             required

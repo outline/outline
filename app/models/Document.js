@@ -1,5 +1,7 @@
 // @flow
 import { action, set, computed } from 'mobx';
+import pkg from 'rich-markdown-editor/package.json';
+import addDays from 'date-fns/add_days';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
 import parseTitle from 'shared/utils/parseTitle';
@@ -44,7 +46,24 @@ export default class Document extends BaseModel {
 
   @action
   updateTitle() {
-    set(this, parseTitle(this.text));
+    const { title, emoji } = parseTitle(this.text);
+
+    if (title) {
+      set(this, { title, emoji });
+    }
+  }
+
+  @computed
+  get isOnlyTitle(): boolean {
+    const { title } = parseTitle(this.text);
+
+    // find and extract title
+    const trimmedBody = this.text
+      .trim()
+      .replace(/^#/, '')
+      .trim();
+
+    return unescape(trimmedBody) === title;
   }
 
   @computed
@@ -70,6 +89,15 @@ export default class Document extends BaseModel {
   @computed
   get isDraft(): boolean {
     return !this.publishedAt;
+  }
+
+  @computed
+  get permanentlyDeletedAt(): ?string {
+    if (!this.deletedAt) {
+      return undefined;
+    }
+
+    return addDays(new Date(this.deletedAt), 30).toString();
   }
 
   @action
@@ -98,7 +126,9 @@ export default class Document extends BaseModel {
   pin = async () => {
     this.pinned = true;
     try {
-      await this.store.pin(this);
+      const res = await this.store.pin(this);
+      invariant(res && res.data, 'Data should be available');
+      this.updateFromJson(res.data);
     } catch (err) {
       this.pinned = false;
       throw err;
@@ -109,7 +139,9 @@ export default class Document extends BaseModel {
   unpin = async () => {
     this.pinned = false;
     try {
-      await this.store.unpin(this);
+      const res = await this.store.unpin(this);
+      invariant(res && res.data, 'Data should be available');
+      this.updateFromJson(res.data);
     } catch (err) {
       this.pinned = true;
       throw err;
@@ -127,8 +159,8 @@ export default class Document extends BaseModel {
   };
 
   @action
-  view = async () => {
-    await client.post('/views.create', { documentId: this.id });
+  view = () => {
+    return this.store.rootStore.views.create({ documentId: this.id });
   };
 
   @action
@@ -143,13 +175,13 @@ export default class Document extends BaseModel {
     if (this.isSaving) return this;
 
     const isCreating = !this.id;
-    const wasDraft = !this.publishedAt;
     this.isSaving = true;
     this.updateTitle();
 
     try {
       if (isCreating) {
         return await this.store.create({
+          editorVersion: pkg.version,
           parentDocumentId: this.parentDocumentId,
           collectionId: this.collectionId,
           title: this.title,
@@ -163,14 +195,10 @@ export default class Document extends BaseModel {
         title: this.title,
         text: this.text,
         lastRevision: this.revision,
+        editorVersion: pkg.version,
         ...options,
       });
     } finally {
-      if (wasDraft && options.publish) {
-        this.store.rootStore.collections.fetch(this.collectionId, {
-          force: true,
-        });
-      }
       this.isSaving = false;
     }
   };

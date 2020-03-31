@@ -10,6 +10,7 @@ export default function present(team: Team) {
     googleConnected: !!team.googleId,
     sharing: team.sharing,
     documentEmbeds: team.documentEmbeds,
+    guestSignin: team.guestSignin,
     subdomain: team.subdomain,
     url: team.url,
   };

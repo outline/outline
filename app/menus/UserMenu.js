@@ -1,10 +1,8 @@
 // @flow
 import * as React from 'react';
 import { inject, observer } from 'mobx-react';
-import { MoreIcon } from 'outline-icons';
 
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import NudeButton from 'components/NudeButton';
 import UsersStore from 'stores/UsersStore';
 import User from 'models/User';
 
@@ -44,12 +42,18 @@ class UserMenu extends React.Component<Props> {
     const { user, users } = this.props;
     if (
       !window.confirm(
-        "Are you want to suspend this account? Suspended users won't be able to access Outline."
+        'Are you want to suspend this account? Suspended users will be prevented from logging in.'
       )
     ) {
       return;
     }
     users.suspend(user);
+  };
+
+  handleRevoke = (ev: SyntheticEvent<>) => {
+    ev.preventDefault();
+    const { user, users } = this.props;
+    users.delete(user, { confirmation: true });
   };
 
   handleActivate = (ev: SyntheticEvent<>) => {
@@ -62,13 +66,7 @@ class UserMenu extends React.Component<Props> {
     const { user } = this.props;
 
     return (
-      <DropdownMenu
-        label={
-          <NudeButton>
-            <MoreIcon />
-          </NudeButton>
-        }
-      >
+      <DropdownMenu>
         {!user.isSuspended &&
           (user.isAdmin ? (
             <DropdownMenuItem onClick={this.handleDemote}>
@@ -79,15 +77,21 @@ class UserMenu extends React.Component<Props> {
               Make {user.name} an admin…
             </DropdownMenuItem>
           ))}
-        {user.isSuspended ? (
-          <DropdownMenuItem onClick={this.handleActivate}>
-            Activate account
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={this.handleSuspend}>
-            Suspend account…
+        {!user.lastActiveAt && (
+          <DropdownMenuItem onClick={this.handleRevoke}>
+            Revoke invite…
           </DropdownMenuItem>
         )}
+        {user.lastActiveAt &&
+          (user.isSuspended ? (
+            <DropdownMenuItem onClick={this.handleActivate}>
+              Activate account
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onClick={this.handleSuspend}>
+              Suspend account…
+            </DropdownMenuItem>
+          ))}
       </DropdownMenu>
     );
   }

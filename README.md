@@ -23,7 +23,7 @@ Outline requires the following dependencies:
 
 - Node.js >= 12
 - Postgres >=9.5
-- Redis
+- Redis >= 4
 - AWS S3 storage bucket for media and other attachments
 - Slack or Google developer application for authentication
 
@@ -37,10 +37,12 @@ In development you can quickly get an environment running using Docker by follow
 1. Register a Slack app at https://api.slack.com/apps
 1. Copy the file `.env.sample` to `.env`
 1. Fill out the following fields:
-    1. `SECRET_KEY` (follow instructions in the comments of `.env`)
+    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
     1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET`
-1. Add `http://localhost:3000/auth/slack.callback` as an Oauth callback URL in Slack App settings
+    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
+1. Configure your Slack app's Oauth & Permissions settings 
+    1. Add `http://localhost:3000/auth/slack.callback` as an Oauth redirect URL
+    1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
 
 
@@ -53,10 +55,10 @@ For a self-hosted production installation there is more flexibility, but these a
    > Requires [Node.js, npm](https://nodejs.org/) and [yarn](https://yarnpkg.com) installed
 
 1. Build the web app with `yarn build:webpack` or `npm run build:webpack`
-1. Copy the file `.env.sample` to `.env` and fill out at least the essential fields:
-    1. `SECRET_KEY` (follow instructions in the comments of `.env`)
+1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
+    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
     1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET`
+    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
     1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
     1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
     1. `URL` (the public facing URL of your installation)
@@ -148,7 +150,7 @@ yarn test:app
 
 Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
 
-However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in our [Spectrum community](https://spectrum.chat/outline). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster! Take a look at our [roadmap](https://www.getoutline.com/share/3e6cb2b5-d68b-4ad8-8900-062476820311).
+However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in our [Spectrum community](https://spectrum.chat/outline). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster!
 
 If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
 
@@ -160,4 +162,4 @@ If you’re looking for ways to get started, here's a list of ways to help us im
 
 ## License
 
-Outline is [BSD licensed](https://github.com/outline/outline/blob/master/LICENSE).
+Outline is [BSL 1.1 licensed](https://github.com/outline/outline/blob/master/LICENSE).

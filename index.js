@@ -29,15 +29,13 @@ if (process.env.AWS_ACCESS_KEY_ID) {
 }
 
 if (process.env.SLACK_KEY) {
-  ['SLACK_SECRET', 'SLACK_VERIFICATION_TOKEN', 'SLACK_APP_ID'].forEach(key => {
-    if (!process.env[key]) {
-      console.error(
-        `The ${key} env variable must be set when using the Slack integration`
-      );
-      // $FlowFixMe
-      process.exit(1);
-    }
-  });
+  if (!process.env.SLACK_SECRET) {
+    console.error(
+      `The SLACK_SECRET env variable must be set when using Slack Sign In`
+    );
+    // $FlowFixMe
+    process.exit(1);
+  }
 }
 
 if (!process.env.URL) {

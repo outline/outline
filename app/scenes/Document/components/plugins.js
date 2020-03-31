@@ -1,6 +1,7 @@
 // @flow
 import { Node, Editor } from 'slate';
 import Placeholder from 'rich-markdown-editor/lib/plugins/Placeholder';
+import isModKey from 'rich-markdown-editor/lib/lib/isModKey';
 
 export default [
   Placeholder({
@@ -25,4 +26,13 @@ export default [
       return true;
     },
   }),
+  {
+    onKeyDown(ev: SyntheticKeyboardEvent<>, editor: Editor, next: Function) {
+      if (ev.key === 'p' && ev.shiftKey && isModKey(ev)) {
+        return editor.props.onPublish(ev);
+      }
+
+      return next();
+    },
+  },
 ];

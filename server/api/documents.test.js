@@ -1,7 +1,14 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from 'fetch-test-server';
 import app from '../app';
-import { Document, View, Star, Revision, Backlink } from '../models';
+import {
+  Document,
+  View,
+  Star,
+  Revision,
+  Backlink,
+  CollectionUser,
+} from '../models';
 import { flushdb, seed } from '../test/support';
 import {
   buildShare,
@@ -40,9 +47,12 @@ describe('#documents.info', async () => {
   });
 
   it('should not return published document in collection not a member of', async () => {
-    const { user, document, collection } = await seed();
-    collection.private = true;
-    await collection.save();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      private: true,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({ collectionId: collection.id });
 
     const res = await server.post('/api/documents.info', {
       body: { token: user.getJwtToken(), id: document.id },
@@ -274,6 +284,30 @@ describe('#documents.list', async () => {
     expect(body.data.length).toEqual(1);
   });
 
+  it('should allow filtering to private collection', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read',
+    });
+
+    const res = await server.post('/api/documents.list', {
+      body: {
+        token: user.getJwtToken(),
+        collection: collection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
   it('should return backlinks', async () => {
     const { user, document } = await seed();
     const anotherDoc = await buildDocument({
@@ -305,6 +339,67 @@ describe('#documents.list', async () => {
 
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe('#documents.pinned', async () => {
+  it('should return pinned documents', async () => {
+    const { user, document } = await seed();
+    document.pinnedById = user.id;
+    await document.save();
+
+    const res = await server.post('/api/documents.pinned', {
+      body: { token: user.getJwtToken(), collectionId: document.collectionId },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it('should return pinned documents in private collections member of', async () => {
+    const { user, collection, document } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    document.pinnedById = user.id;
+    await document.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read_write',
+    });
+
+    const res = await server.post('/api/documents.pinned', {
+      body: { token: user.getJwtToken(), collectionId: document.collectionId },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it('should not return pinned documents in private collections not a member of', async () => {
+    const collection = await buildCollection({
+      private: true,
+    });
+
+    const user = await buildUser({ teamId: collection.teamId });
+
+    const res = await server.post('/api/documents.pinned', {
+      body: { token: user.getJwtToken(), collectionId: collection.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it('should require authentication', async () => {
+    const res = await server.post('/api/documents.pinned');
+    expect(res.status).toEqual(401);
   });
 });
 
@@ -467,7 +562,28 @@ describe('#documents.search', async () => {
     expect(body.data[0].document.id).toEqual(firstResult.id);
   });
 
-  it('should return draft documents created by user', async () => {
+  it('should not return draft documents', async () => {
+    const { user } = await seed();
+    await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      publishedAt: null,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post('/api/documents.search', {
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it('should return draft documents created by user if chosen', async () => {
     const { user } = await seed();
     const document = await buildDocument({
       title: 'search term',
@@ -477,7 +593,11 @@ describe('#documents.search', async () => {
       teamId: user.teamId,
     });
     const res = await server.post('/api/documents.search', {
-      body: { token: user.getJwtToken(), query: 'search term' },
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        includeDrafts: 'true',
+      },
     });
     const body = await res.json();
 
@@ -495,7 +615,11 @@ describe('#documents.search', async () => {
       teamId: user.teamId,
     });
     const res = await server.post('/api/documents.search', {
-      body: { token: user.getJwtToken(), query: 'search term' },
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        includeDrafts: 'true',
+      },
     });
     const body = await res.json();
 
@@ -566,6 +690,39 @@ describe('#documents.search', async () => {
         token: user.getJwtToken(),
         query: 'search term',
         userId: user.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.id).toEqual(document.id);
+  });
+
+  it('should return documents for a specific private collection', async () => {
+    const { user, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read',
+    });
+
+    const document = await buildDocument({
+      title: 'search term',
+      text: 'search term',
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post('/api/documents.search', {
+      body: {
+        token: user.getJwtToken(),
+        query: 'search term',
+        collectionId: collection.id,
       },
     });
     const body = await res.json();
@@ -817,6 +974,7 @@ describe('#documents.pin', async () => {
       body: { token: user.getJwtToken(), id: document.id },
     });
     const body = await res.json();
+    expect(res.status).toEqual(200);
     expect(body.data.pinned).toEqual(true);
   });
 
@@ -935,6 +1093,7 @@ describe('#documents.unpin', async () => {
       body: { token: user.getJwtToken(), id: document.id },
     });
     const body = await res.json();
+    expect(res.status).toEqual(200);
     expect(body.data.pinned).toEqual(false);
   });
 
@@ -1036,23 +1195,7 @@ describe('#documents.create', async () => {
     const newDocument = await Document.findByPk(body.data.id);
     expect(res.status).toEqual(200);
     expect(newDocument.parentDocumentId).toBe(null);
-    expect(newDocument.collection.id).toBe(collection.id);
-  });
-
-  it('should fallback to a default title', async () => {
-    const { user, collection } = await seed();
-    const res = await server.post('/api/documents.create', {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: collection.id,
-        title: ' ',
-        text: ' ',
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.title).toBe('Untitled document');
-    expect(body.data.text).toBe('# Untitled document');
+    expect(newDocument.collectionId).toBe(collection.id);
   });
 
   it('should not allow very long titles', async () => {
@@ -1142,6 +1285,38 @@ describe('#documents.update', async () => {
     expect(body.data.text).toBe('Updated text');
   });
 
+  it('should allow publishing document in private collection', async () => {
+    const { user, collection, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: 'read_write',
+    });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: 'Updated title',
+        text: 'Updated text',
+        lastRevision: document.revision,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.publishedAt).toBeTruthy();
+    expect(body.policies[0].abilities.update).toEqual(true);
+  });
+
   it('should not edit archived document', async () => {
     const { user, document } = await seed();
     await document.archive();
@@ -1181,25 +1356,6 @@ describe('#documents.update', async () => {
 
     const revisionRecords = await Revision.count();
     expect(revisionRecords).toBe(prevRevisionRecords);
-  });
-
-  it('should fallback to a default title', async () => {
-    const { user, document } = await seed();
-
-    const res = await server.post('/api/documents.update', {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        title: ' ',
-        text: ' ',
-        lastRevision: document.revision,
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.title).toBe('Untitled document');
-    expect(body.data.text).toBe('# Untitled document');
   });
 
   it('should fail if document lastRevision does not match', async () => {
@@ -1252,23 +1408,54 @@ describe('#documents.update', async () => {
     expect(body.data.title).toBe('Updated title');
   });
 
-  it('should require authentication', async () => {
-    const { document } = await seed();
-    const res = await server.post('/api/documents.update', {
-      body: { id: document.id, text: 'Updated' },
+  it('allows editing by read-write collection user', async () => {
+    const { user, document, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read_write',
     });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: 'Changed text',
+        lastRevision: document.revision,
+      },
+    });
+
     const body = await res.json();
 
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
+    expect(res.status).toEqual(200);
+    expect(body.data.text).toBe('Changed text');
   });
 
-  it('should require authorization', async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post('/api/documents.update', {
-      body: { token: user.getJwtToken(), id: document.id, text: 'Updated' },
+  it('does not allow editing by read-only collection user', async () => {
+    const { user, document, collection } = await seed();
+    collection.private = true;
+    await collection.save();
+
+    await CollectionUser.create({
+      collectionId: collection.id,
+      userId: user.id,
+      createdById: user.id,
+      permission: 'read',
     });
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: 'Changed text',
+        lastRevision: document.revision,
+      },
+    });
+
     expect(res.status).toEqual(403);
   });
 
@@ -1306,6 +1493,26 @@ describe('#documents.update', async () => {
 
     expect(res.status).toEqual(400);
     expect(body).toMatchSnapshot();
+  });
+
+  it('should require authentication', async () => {
+    const { document } = await seed();
+    const res = await server.post('/api/documents.update', {
+      body: { id: document.id, text: 'Updated' },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it('should require authorization', async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post('/api/documents.update', {
+      body: { token: user.getJwtToken(), id: document.id, text: 'Updated' },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 

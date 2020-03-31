@@ -57,34 +57,22 @@ export function features(): string {
   return `${process.env.URL}/#features`;
 }
 
-export function pricing(): string {
-  return `${process.env.URL}/pricing`;
-}
-
 export function developers(): string {
   return `${process.env.URL}/developers`;
 }
 
 export function changelog(): string {
-  return `${process.env.URL}/changelog`;
+  return `https://www.getoutline.com/changelog`;
 }
 
 export function signin(service: string = 'slack'): string {
   return `${process.env.URL}/auth/${service}`;
 }
 
-export function about(): string {
-  return `${process.env.URL}/about`;
-}
-
-export function integrations(): string {
-  return `${process.env.URL}/integrations`;
-}
-
-export function privacy(): string {
-  return `${process.env.URL}/privacy`;
-}
-
 export function settings(): string {
   return `/settings`;
+}
+
+export function groupSettings(): string {
+  return `/settings/groups`;
 }

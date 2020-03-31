@@ -18,11 +18,11 @@ export default (user: User, options: Options = {}): ?UserPresentation => {
   const userData = {};
   userData.id = user.id;
   userData.createdAt = user.createdAt;
+  userData.lastActiveAt = user.lastActiveAt;
   userData.name = user.name;
   userData.isAdmin = user.isAdmin;
   userData.isSuspended = user.isSuspended;
-  userData.avatarUrl =
-    user.avatarUrl || (user.slackData ? user.slackData.image_192 : null);
+  userData.avatarUrl = user.avatarUrl;
 
   if (options.includeDetails) {
     userData.email = user.email;

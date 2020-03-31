@@ -6,11 +6,20 @@ import Flex from 'shared/components/Flex';
 
 type Props = {
   onChange: string => void,
+  defaultValue?: string,
   theme: Object,
 };
 
 class SearchField extends React.Component<Props> {
   input: ?HTMLInputElement;
+
+  componentDidMount() {
+    if (this.props && this.input) {
+      // ensure that focus is placed at end of input
+      const len = (this.props.defaultValue || '').length;
+      this.input.setSelectionRange(len, len);
+    }
+  }
 
   handleChange = (ev: SyntheticEvent<HTMLInputElement>) => {
     this.props.onChange(ev.currentTarget.value ? ev.currentTarget.value : '');
@@ -34,7 +43,7 @@ class SearchField extends React.Component<Props> {
           ref={ref => (this.input = ref)}
           onChange={this.handleChange}
           spellCheck="false"
-          placeholder="search…"
+          placeholder="Search…"
           type="search"
           autoFocus
         />

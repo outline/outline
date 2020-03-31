@@ -3,20 +3,20 @@ import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { MoreIcon } from 'outline-icons';
 
 import Document from 'models/Document';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import CollectionStore from 'stores/CollectionsStore';
+import PoliciesStore from 'stores/PoliciesStore';
 import {
+  documentUrl,
   documentMoveUrl,
   documentEditUrl,
   documentHistoryUrl,
   newDocumentUrl,
 } from 'utils/routeHelpers';
 import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import NudeButton from 'components/NudeButton';
 
 type Props = {
   ui: UiStore,
@@ -24,7 +24,9 @@ type Props = {
   position?: 'left' | 'right' | 'center',
   document: Document,
   collections: CollectionStore,
+  policies: PoliciesStore,
   className: string,
+  isRevision?: boolean,
   showPrint?: boolean,
   showToggleEmbeds?: boolean,
   showPin?: boolean,
@@ -51,7 +53,11 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   handleDocumentHistory = () => {
-    this.redirectTo = documentHistoryUrl(this.props.document);
+    if (this.props.isRevision) {
+      this.redirectTo = documentUrl(this.props.document);
+    } else {
+      this.redirectTo = documentHistoryUrl(this.props.document);
+    }
   };
 
   handleMove = (ev: SyntheticEvent<>) => {
@@ -89,10 +95,12 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   handleStar = (ev: SyntheticEvent<>) => {
+    ev.stopPropagation();
     this.props.document.star();
   };
 
   handleUnstar = (ev: SyntheticEvent<>) => {
+    ev.stopPropagation();
     this.props.document.unstar();
   };
 
@@ -111,6 +119,7 @@ class DocumentMenu extends React.Component<Props> {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
     const {
+      policies,
       document,
       position,
       className,
@@ -120,110 +129,97 @@ class DocumentMenu extends React.Component<Props> {
       onOpen,
       onClose,
     } = this.props;
-    const canShareDocuments = auth.team && auth.team.sharing;
 
-    if (document.isArchived) {
-      return (
-        <DropdownMenu
-          label={
-            <NudeButton>
-              <MoreIcon />
-            </NudeButton>
-          }
-          className={className}
-        >
-          <DropdownMenuItem onClick={this.handleRestore}>
-            Restore
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={this.handleDelete}>
-            Delete…
-          </DropdownMenuItem>
-        </DropdownMenu>
-      );
-    }
+    const can = policies.abilities(document.id);
+    const canShareDocuments = can.share && auth.team && auth.team.sharing;
+    const canViewHistory = can.read && !can.restore;
 
     return (
       <DropdownMenu
-        label={
-          <NudeButton>
-            <MoreIcon />
-          </NudeButton>
-        }
         className={className}
         position={position}
         onOpen={onOpen}
         onClose={onClose}
       >
-        {!document.isDraft ? (
-          <React.Fragment>
-            {showPin &&
-              (document.pinned ? (
+        {(can.unarchive || can.restore) && (
+          <DropdownMenuItem onClick={this.handleRestore}>
+            Restore
+          </DropdownMenuItem>
+        )}
+        {showPin &&
+          (document.pinned
+            ? can.unpin && (
                 <DropdownMenuItem onClick={this.handleUnpin}>
                   Unpin
                 </DropdownMenuItem>
-              ) : (
+              )
+            : can.pin && (
                 <DropdownMenuItem onClick={this.handlePin}>
                   Pin to collection
                 </DropdownMenuItem>
               ))}
-            {document.isStarred ? (
+        {document.isStarred
+          ? can.unstar && (
               <DropdownMenuItem onClick={this.handleUnstar}>
                 Unstar
               </DropdownMenuItem>
-            ) : (
+            )
+          : can.star && (
               <DropdownMenuItem onClick={this.handleStar}>
                 Star
               </DropdownMenuItem>
             )}
-            {canShareDocuments && (
-              <DropdownMenuItem
-                onClick={this.handleShareLink}
-                title="Create a public share link"
-              >
-                Share link…
-              </DropdownMenuItem>
-            )}
+        {canShareDocuments && (
+          <DropdownMenuItem
+            onClick={this.handleShareLink}
+            title="Create a public share link"
+          >
+            Share link…
+          </DropdownMenuItem>
+        )}
+        {canViewHistory && (
+          <React.Fragment>
             <hr />
             <DropdownMenuItem onClick={this.handleDocumentHistory}>
               Document history
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={this.handleNewChild}
-              title="Create a new child document for the current document"
-            >
-              New child document
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={this.handleDuplicate}>
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={this.handleArchive}>
-              Archive
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={this.handleDelete}>
-              Delete…
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
-          </React.Fragment>
-        ) : (
-          <React.Fragment>
-            {canShareDocuments && (
-              <DropdownMenuItem
-                onClick={this.handleShareLink}
-                title="Create a public share link"
-              >
-                Share link…
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={this.handleDelete}>
-              Delete…
-            </DropdownMenuItem>
           </React.Fragment>
         )}
+        {can.createChildDocument && (
+          <DropdownMenuItem
+            onClick={this.handleNewChild}
+            title="Create a nested document inside the current document"
+          >
+            New nested document
+          </DropdownMenuItem>
+        )}
+        {can.update && (
+          <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
+        )}
+        {can.update && (
+          <DropdownMenuItem onClick={this.handleDuplicate}>
+            Duplicate
+          </DropdownMenuItem>
+        )}
+        {can.archive && (
+          <DropdownMenuItem onClick={this.handleArchive}>
+            Archive
+          </DropdownMenuItem>
+        )}
+        {can.delete && (
+          <DropdownMenuItem onClick={this.handleDelete}>
+            Delete…
+          </DropdownMenuItem>
+        )}
+        {can.move && (
+          <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
+        )}
         <hr />
-        <DropdownMenuItem onClick={this.handleExport}>
-          Download
-        </DropdownMenuItem>
+        {can.download && (
+          <DropdownMenuItem onClick={this.handleExport}>
+            Download
+          </DropdownMenuItem>
+        )}
         {showPrint && (
           <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
         )}
@@ -232,4 +228,4 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject('ui', 'auth', 'collections')(DocumentMenu);
+export default inject('ui', 'auth', 'collections', 'policies')(DocumentMenu);

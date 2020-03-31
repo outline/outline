@@ -44,10 +44,11 @@ export default class Embed extends React.Component<*> {
 }
 
 const Container = styled.div`
+  text-align: center;
   animation: ${fadeIn} 500ms ease-in-out;
   line-height: 0;
 
   border-radius: 3px;
   box-shadow: ${props =>
-    props.isSelected ? `0 0 0 2px ${props.theme.primary}` : 'none'};
+    props.isSelected ? `0 0 0 2px ${props.theme.selected}` : 'none'};
 `;

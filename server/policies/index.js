@@ -1,5 +1,5 @@
 // @flow
-import { Team, User, Collection, Document } from '../models';
+import { Team, User, Collection, Document, Group } from '../models';
 import policy from './policy';
 import './apiKey';
 import './collection';
@@ -9,6 +9,7 @@ import './notificationSetting';
 import './share';
 import './user';
 import './team';
+import './group';
 
 const { can, abilities } = policy;
 
@@ -17,13 +18,13 @@ type Policy = {
 };
 
 /*
-* Given a user and a model – output an object which describes the actions the 
+* Given a user and a model – output an object which describes the actions the
 * user may take against the model. This serialized policy is used for testing
 * and sent in API responses to allow clients to adjust which UI is displayed.
 */
 export function serialize(
   model: User,
-  target: Team | Collection | Document
+  target: Team | Collection | Document | Group
 ): Policy {
   let output = {};
 
