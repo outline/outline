@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { inject } from 'mobx-react';
+import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
 import Document from 'models/Document';
 import Flex from 'shared/components/Flex';
@@ -106,4 +106,4 @@ function PublishingInfo({
   );
 }
 
-export default inject('collections', 'auth')(PublishingInfo);
+export default inject('collections', 'auth')(observer(PublishingInfo));
