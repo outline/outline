@@ -44,13 +44,13 @@ function PublishingInfo({
     modifiedSinceViewed,
     updatedAt,
     updatedBy,
+    createdAt,
     publishedAt,
     archivedAt,
     deletedAt,
     isDraft,
   } = document;
 
-  const neverUpdated = publishedAt === updatedAt;
   let content;
 
   if (deletedAt) {
@@ -65,7 +65,13 @@ function PublishingInfo({
         archived <Time dateTime={archivedAt} /> ago
       </span>
     );
-  } else if (publishedAt && (neverUpdated || showPublished)) {
+  } else if (createdAt === updatedAt) {
+    content = (
+      <span>
+        created <Time dateTime={updatedAt} /> ago
+      </span>
+    );
+  } else if (publishedAt && (publishedAt === updatedAt || showPublished)) {
     content = (
       <span>
         published <Time dateTime={publishedAt} /> ago
