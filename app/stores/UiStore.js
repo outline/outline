@@ -17,6 +17,7 @@ class UiStore {
   @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
+  @observable tocOpen: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
   @observable toasts: Map<string, Toast> = new Map();
 
@@ -64,6 +65,16 @@ class UiStore {
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
     this.activeCollectionId = undefined;
+  };
+
+  @action
+  enableTOC = () => {
+    this.tocOpen = true;
+  };
+
+  @action
+  disableTOC = () => {
+    this.tocOpen = false;
   };
 
   @action

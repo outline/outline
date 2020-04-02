@@ -39,7 +39,7 @@ class DocumentEditor extends React.Component<Props> {
           ref={ref => (this.editor = ref)}
           autoFocus={!this.props.defaultValue}
           plugins={plugins}
-          grow={!readOnly}
+          grow
           {...this.props}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}

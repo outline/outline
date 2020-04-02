@@ -1,9 +1,11 @@
 // @flow
 import { action, set, computed } from 'mobx';
+import { filter } from 'lodash';
 import pkg from 'rich-markdown-editor/package.json';
 import addDays from 'date-fns/add_days';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
+import slugify from 'shared/utils/slugify';
 import parseTitle from 'shared/utils/parseTitle';
 import unescape from 'shared/utils/unescape';
 import BaseModel from 'models/BaseModel';
@@ -51,6 +53,29 @@ export default class Document extends BaseModel {
     if (title) {
       set(this, { title, emoji });
     }
+  }
+
+  @computed
+  get headings() {
+    const regex = /^(#{1,6})\s(.*)$/gm;
+
+    let match;
+    let output = [];
+    while ((match = regex.exec(this.text)) !== null) {
+      if (!match) continue;
+
+      const level = match[1].length;
+      const title = match[2];
+
+      let slug = slugify(title);
+      const existing = filter(output, { slug });
+      if (existing.length) {
+        slug = `${slug}-${existing.length}`;
+      }
+      output.push({ level, title, slug });
+    }
+
+    return output;
   }
 
   @computed

@@ -289,7 +289,7 @@ const Actions = styled(Flex)`
   right: 0;
   left: 0;
   z-index: 1;
-  background: ${props => transparentize(0.1, props.theme.background)};
+  background: ${props => transparentize(0.2, props.theme.background)};
   box-shadow: 0 1px 0
     ${props =>
       props.isCompact
@@ -298,7 +298,7 @@ const Actions = styled(Flex)`
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
 
   @media print {
     display: none;

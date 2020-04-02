@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { BulletedListIcon } from 'outline-icons';
 import { Prompt, Route, withRouter } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
 import keydown from 'react-keydown';
@@ -23,6 +24,7 @@ import KeyboardShortcuts from './KeyboardShortcuts';
 import References from './References';
 import Loading from './Loading';
 import Container from './Container';
+import Contents from './Contents';
 import MarkAsViewed from './MarkAsViewed';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -219,7 +221,15 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    const { document, revision, readOnly, location, auth, match } = this.props;
+    const {
+      document,
+      revision,
+      readOnly,
+      location,
+      auth,
+      ui,
+      match,
+    } = this.props;
     const team = auth.team;
     const Editor = this.editorComponent;
     const isShare = match.params.shareId;
@@ -279,7 +289,12 @@ class DocumentScene extends React.Component<Props> {
                 onSave={this.onSave}
               />
             )}
-            <MaxWidth archived={document.isArchived} column auto>
+            <MaxWidth
+              archived={document.isArchived}
+              tocOpen={ui.tocOpen}
+              column
+              auto
+            >
               {document.archivedAt &&
                 !document.deletedAt && (
                   <Notice muted>
@@ -301,24 +316,31 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <Editor
-                id={document.id}
-                key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
-                defaultValue={revision ? revision.text : document.text}
-                pretitle={document.emoji}
-                disableEmbeds={disableEmbeds}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onSearchLink={this.props.onSearchLink}
-                onChange={this.onChange}
-                onSave={this.onSave}
-                onPublish={this.onPublish}
-                onCancel={this.goBack}
-                readOnly={readOnly || document.isArchived}
-                toc={!revision}
-                ui={this.props.ui}
-                schema={schema}
-              />
+              <span onClick={ui.tocOpen ? ui.disableTOC : ui.enableTOC}>
+                <BulletedListIcon />
+              </span>
+
+              <Flex>
+                {ui.tocOpen && <Contents document={document} />}
+                <Editor
+                  id={document.id}
+                  key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
+                  defaultValue={revision ? revision.text : document.text}
+                  pretitle={document.emoji}
+                  disableEmbeds={disableEmbeds}
+                  onImageUploadStart={this.onImageUploadStart}
+                  onImageUploadStop={this.onImageUploadStop}
+                  onSearchLink={this.props.onSearchLink}
+                  onChange={this.onChange}
+                  onSave={this.onSave}
+                  onPublish={this.onPublish}
+                  onCancel={this.goBack}
+                  readOnly={readOnly || document.isArchived}
+                  ui={this.props.ui}
+                  schema={schema}
+                />
+              </Flex>
+
               {readOnly &&
                 !isShare &&
                 !revision && (
@@ -352,7 +374,7 @@ const MaxWidth = styled(Flex)`
   ${breakpoint('tablet')`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: 46em;
+    max-width: ${props => (props.tocOpen ? '62em' : '46em')};
     box-sizing: content-box;
   `};
 `;
