@@ -316,12 +316,14 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <span onClick={ui.tocOpen ? ui.disableTOC : ui.enableTOC}>
-                <BulletedListIcon />
-              </span>
+              {readOnly && (
+                <span onClick={ui.tocOpen ? ui.disableTOC : ui.enableTOC}>
+                  <BulletedListIcon />
+                </span>
+              )}
 
               <Flex>
-                {ui.tocOpen && <Contents document={document} />}
+                {ui.tocOpen && readOnly && <Contents document={document} />}
                 <Editor
                   id={document.id}
                   key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
