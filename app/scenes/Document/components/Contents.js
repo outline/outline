@@ -15,8 +15,8 @@ export default function Contents({ document }: Props) {
   const headings = document.headings;
 
   // $FlowFixMe
-  const [activeSlug, setActiveSlug] = React.useState(headings[0].slug);
-  const position = useWindowScrollPosition({ throttle: 250 });
+  const [activeSlug, setActiveSlug] = React.useState();
+  const position = useWindowScrollPosition({ throttle: 100 });
 
   // $FlowFixMe
   React.useEffect(
@@ -76,6 +76,7 @@ const Wrapper = styled('div')`
   box-shadow: 1px 0 0 ${props => darken(0.05, props.theme.sidebarBackground)};
   margin-top: 40px;
   margin-right: 2em;
+  min-height: 40px;
 `;
 
 const ListItem = styled('li')`
