@@ -55,6 +55,7 @@
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "dependencies": {
+    "@rehooks/window-scroll-position": "^1.0.1",
     "@sentry/node": "^5.12.2",
     "@tippy.js/react": "^2.2.2",
     "@tommoor/remove-markdown": "0.3.1",
