@@ -5,7 +5,6 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { BulletedListIcon } from 'outline-icons';
 import { Prompt, Route, withRouter } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
 import keydown from 'react-keydown';
@@ -291,7 +290,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <MaxWidth
               archived={document.isArchived}
-              tocOpen={ui.tocOpen}
+              tocVisible={ui.tocVisible}
               column
               auto
             >
@@ -316,14 +315,8 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              {readOnly && (
-                <span onClick={ui.tocOpen ? ui.disableTOC : ui.enableTOC}>
-                  <BulletedListIcon />
-                </span>
-              )}
-
               <Flex>
-                {ui.tocOpen && readOnly && <Contents document={document} />}
+                {ui.tocVisible && readOnly && <Contents document={document} />}
                 <Editor
                   id={document.id}
                   key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
@@ -376,7 +369,7 @@ const MaxWidth = styled(Flex)`
   ${breakpoint('tablet')`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: ${props => (props.tocOpen ? '64em' : '46em')};
+    max-width: ${props => (props.tocVisible ? '64em' : '46em')};
     box-sizing: content-box;
   `};
 `;

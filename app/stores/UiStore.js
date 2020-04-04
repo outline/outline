@@ -17,7 +17,7 @@ class UiStore {
   @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
-  @observable tocOpen: boolean = false;
+  @observable tocVisible: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
   @observable toasts: Map<string, Toast> = new Map();
 
@@ -68,13 +68,13 @@ class UiStore {
   };
 
   @action
-  enableTOC = () => {
-    this.tocOpen = true;
+  showTableOfContents = () => {
+    this.tocVisible = true;
   };
 
   @action
-  disableTOC = () => {
-    this.tocOpen = false;
+  hideTableOfContents = () => {
+    this.tocVisible = false;
   };
 
   @action
