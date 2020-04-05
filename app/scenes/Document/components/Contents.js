@@ -43,6 +43,15 @@ export default function Contents({ document }: Props) {
     [position]
   );
 
+  // calculate the minimum heading level and adjust all the headings to make
+  // that the top-most. This prevents the contents from being weirdly indented
+  // if all of the headings in the document are level 3, for example.
+  const minHeading = headings.reduce(
+    (memo, heading) => (heading.level < memo ? heading.level : memo),
+    Infinity
+  );
+  const headingAdjustment = minHeading - 1;
+
   return (
     <div>
       <Wrapper>
@@ -52,7 +61,7 @@ export default function Contents({ document }: Props) {
             {headings.map(heading => (
               <ListItem
                 key={heading.slug}
-                level={heading.level}
+                level={heading.level - headingAdjustment}
                 active={activeSlug === heading.slug}
               >
                 <Link href={`#${heading.slug}`}>{heading.title}</Link>
