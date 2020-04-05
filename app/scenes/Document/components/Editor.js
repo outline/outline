@@ -105,6 +105,7 @@ const Meta = styled(PublishingInfo)`
 `;
 
 const Title = styled('input')`
+  z-index: 1;
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
