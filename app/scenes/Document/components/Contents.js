@@ -24,9 +24,7 @@ export default function Contents({ document }: Props) {
   // $FlowFixMe
   React.useEffect(
     () => {
-      const keys = Object.keys(headings);
-
-      for (const key of keys) {
+      for (let key = 0; key < headings.length; key++) {
         const heading = headings[key];
         const element = window.document.getElementById(
           decodeURIComponent(heading.slug)
