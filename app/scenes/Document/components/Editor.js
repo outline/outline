@@ -5,6 +5,7 @@ import { inject, observer } from 'mobx-react';
 import Editor from 'components/Editor';
 import PublishingInfo from 'components/PublishingInfo';
 import ClickablePadding from 'components/ClickablePadding';
+import Flex from 'shared/components/Flex';
 import parseTitle from 'shared/utils/parseTitle';
 import ViewsStore from 'stores/ViewsStore';
 import Document from 'models/Document';
@@ -59,7 +60,7 @@ class DocumentEditor extends React.Component<Props> {
     );
 
     return (
-      <React.Fragment>
+      <Flex column>
         <Title
           type="text"
           onChange={onChangeTitle}
@@ -87,7 +88,7 @@ class DocumentEditor extends React.Component<Props> {
           {...this.props}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-      </React.Fragment>
+      </Flex>
     );
   }
 }

@@ -365,7 +365,6 @@ class DocumentScene extends React.Component<Props> {
                   onPublish={this.onPublish}
                   onCancel={this.goBack}
                   readOnly={readOnly || document.isArchived}
-                  toc={!revision}
                   ui={this.props.ui}
                   schema={schema}
                 />
