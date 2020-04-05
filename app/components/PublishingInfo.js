@@ -92,11 +92,11 @@ function PublishingInfo({
   }
 
   const collection = collections.get(document.collectionId);
-  const isMe = auth.user && auth.user.id === updatedBy.id;
+  const updatedByMe = auth.user && auth.user.id === updatedBy.id;
 
   return (
     <Container align="center" {...rest}>
-      {isMe ? 'You' : updatedBy.name}&nbsp;
+      {updatedByMe ? 'You' : updatedBy.name}&nbsp;
       {content}
       {showCollection &&
         collection && (
