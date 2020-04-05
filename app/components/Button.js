@@ -23,7 +23,7 @@ const RealButton = styled.button`
   user-select: none;
 
   svg {
-    fill: ${props => props.theme.buttonText};
+    fill: ${props => props.iconColor || props.theme.buttonText};
   }
 
   &::-moz-focus-inner {
@@ -53,11 +53,17 @@ const RealButton = styled.button`
     `
     background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.buttonNeutralText};
-    box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px;
-    border: 1px solid ${darken(0.1, props.theme.buttonNeutralBackground)};
+    box-shadow: ${
+      props.borderOnHover ? 'none' : 'rgba(0, 0, 0, 0.07) 0px 1px 2px'
+    };
+    border: 1px solid ${
+      props.borderOnHover
+        ? 'transparent'
+        : darken(0.1, props.theme.buttonNeutralBackground)
+    };
 
     svg {
-      fill: ${props.theme.buttonNeutralText};
+      fill: ${props.iconColor || props.theme.buttonNeutralText};
     }
 
     &:hover {
@@ -109,17 +115,20 @@ export const Inner = styled.span`
   justify-content: center;
   align-items: center;
 
-  ${props => props.hasIcon && 'padding-left: 4px;'};
+  ${props => props.hasIcon && props.hasText && 'padding-left: 4px;'};
+  ${props => props.hasIcon && !props.hasText && 'padding: 0 4px;'};
 `;
 
 export type Props = {
   type?: string,
   value?: string,
   icon?: React.Node,
+  iconColor?: string,
   className?: string,
   children?: React.Node,
   innerRef?: React.ElementRef<any>,
   disclosure?: boolean,
+  borderOnHover?: boolean,
 };
 
 function Button({
@@ -136,7 +145,7 @@ function Button({
 
   return (
     <RealButton type={type} ref={innerRef} {...rest}>
-      <Inner hasIcon={hasIcon} disclosure={disclosure}>
+      <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
         {hasIcon && icon}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
         {disclosure && <ExpandedIcon />}

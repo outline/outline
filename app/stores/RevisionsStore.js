@@ -37,14 +37,13 @@ export default class RevisionsStore extends BaseStore<Revision> {
         revisionId: id,
       });
       invariant(res && res.data, 'Revision not available');
-      const { data } = res;
+      this.add(res.data);
 
       runInAction('RevisionsStore#fetch', () => {
-        this.data.set(data.id, data);
         this.isLoaded = true;
       });
 
-      return data;
+      return this.data.get(res.data.id);
     } finally {
       this.isFetching = false;
     }
@@ -58,9 +57,7 @@ export default class RevisionsStore extends BaseStore<Revision> {
       const res = await client.post('/documents.revisions', options);
       invariant(res && res.data, 'Document revisions not available');
       runInAction('RevisionsStore#fetchPage', () => {
-        res.data.forEach(revision => {
-          this.data.set(revision.id, revision);
-        });
+        res.data.forEach(revision => this.add(revision));
         this.isLoaded = true;
       });
       return res.data;
