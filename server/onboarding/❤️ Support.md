@@ -1,6 +1,8 @@
-We hate bugs as much as you and do everything possible to keep the app bug-free. Help us out by getting in touch with the team if you see any problems with Outline. You can email [hello@getoutline.com](mailto:hello@getoutline.com) directly and we’ll get back to you (hopefully with a fix!) as soon as possible.
+We hate bugs as much as you and do everything possible to keep the application bug-free and performant. If you see any problems with Outline please get in touch with the team – you can email [hello@getoutline.com](mailto:hello@getoutline.com) directly and we’ll get back to you (hopefully with a fix!) as soon as possible.
 
-If you already have a GitHub account then you can also submit issues directly to the development team on our [open issue tracker](https://github.com/outline/outline/issues).
+## GitHub
+
+If you have a GitHub account then you can also submit issues directly to the development team on our [open issue tracker](https://github.com/outline/outline/issues).
 
 ## Ideas
 

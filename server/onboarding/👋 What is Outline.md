@@ -14,4 +14,4 @@ Outline allows you to organize documents in "collections", for example these cou
 
 ## Search
 
-Outline is built to be crazy fast, and that includes [search](/search). You can start searching from anywhere with the `CMD+K` shortcut. Then filter by time, author, and more to get to the info you need.
+Outline is built from the ground up to be really fast, and that includes [search](/search). You can start searching from anywhere with the `CMD+K` shortcut – then filter by time, author, and more to find the information you need. Or you can search from within Slack with the `/outline` slash command.
