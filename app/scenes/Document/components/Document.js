@@ -261,7 +261,7 @@ class DocumentScene extends React.Component<Props> {
     } = this.props;
     const team = auth.team;
     const Editor = this.editorComponent;
-    const isShare = match.params.shareId;
+    const isShare = !!match.params.shareId;
 
     if (!Editor) {
       return <Loading location={location} />;
@@ -407,7 +407,6 @@ const MaxWidth = styled(Flex)`
 
   ${breakpoint('desktopLarge')`
     max-width: calc(48px + 46em);
-    box-sizing: 
   `};
 `;
 
