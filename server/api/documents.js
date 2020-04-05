@@ -439,7 +439,7 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   authorize(user, 'read', document);
 
   const revisions = await Revision.findAll({
-    where: { documentId: id },
+    where: { documentId: document.id },
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,

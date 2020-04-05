@@ -30,27 +30,10 @@ class DocumentHistory extends React.Component<Props> {
   @observable isFetching: boolean = false;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
-  @observable document: Document;
-
-  constructor(props) {
-    super();
-    this.document = props.documents.getByUrl(props.match.params.documentSlug);
-  }
 
   async componentDidMount() {
     await this.loadMoreResults();
     this.selectFirstRevision();
-  }
-
-  async componentWillReceiveProps(nextProps) {
-    const document = nextProps.documents.getByUrl(
-      nextProps.match.params.documentSlug
-    );
-    if (!this.document && document) {
-      this.document = document;
-      await this.loadMoreResults();
-      this.selectFirstRevision();
-    }
   }
 
   fetchResults = async () => {
@@ -60,7 +43,7 @@ class DocumentHistory extends React.Component<Props> {
     const results = await this.props.revisions.fetchPage({
       limit,
       offset: this.offset,
-      id: this.document.id,
+      id: this.props.match.params.documentSlug,
     });
 
     if (
@@ -78,8 +61,13 @@ class DocumentHistory extends React.Component<Props> {
 
   selectFirstRevision = () => {
     if (this.revisions.length) {
+      const document = this.props.documents.getByUrl(
+        this.props.match.params.documentSlug
+      );
+      if (!document) return;
+
       this.props.history.replace(
-        documentHistoryUrl(this.document, this.revisions[0].id)
+        documentHistoryUrl(document, this.revisions[0].id)
       );
     }
   };
@@ -87,17 +75,23 @@ class DocumentHistory extends React.Component<Props> {
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
-    if (!this.allowLoadMore || this.isFetching || !this.document) return;
+    if (!this.allowLoadMore || this.isFetching) return;
     await this.fetchResults();
   };
 
   get revisions() {
-    if (!this.document) return [];
-    return this.props.revisions.getDocumentRevisions(this.document.id);
+    const document = this.props.documents.getByUrl(
+      this.props.match.params.documentSlug
+    );
+    if (!document) return [];
+    return this.props.revisions.getDocumentRevisions(document.id);
   }
 
   render() {
-    const showLoading = !this.isLoaded && this.isFetching;
+    const document = this.props.documents.getByUrl(
+      this.props.match.params.documentSlug
+    );
+    const showLoading = (!this.isLoaded && this.isFetching) || !document;
 
     return (
       <Sidebar>
@@ -115,7 +109,7 @@ class DocumentHistory extends React.Component<Props> {
                 <Revision
                   key={revision.id}
                   revision={revision}
-                  document={this.document}
+                  document={document}
                   showMenu={index !== 0}
                 />
               ))}
