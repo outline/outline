@@ -10,7 +10,6 @@ import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
 } from '../../shared/utils/domains';
-import parseTitle from '../../shared/utils/parseTitle';
 import { ValidationError } from '../errors';
 
 import Collection from './Collection';
