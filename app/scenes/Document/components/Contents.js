@@ -51,6 +51,7 @@ export default function Contents({ document }: Props) {
           <List>
             {headings.map(heading => (
               <ListItem
+                key={heading.slug}
                 level={heading.level}
                 active={activeSlug === heading.slug}
               >

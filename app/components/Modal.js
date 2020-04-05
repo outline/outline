@@ -147,7 +147,7 @@ const Close = styled(NudeButton)`
 `;
 
 const Back = styled(NudeButton)`
-  position: absolute;
+  position: fixed;
   display: none;
   align-items: center;
   top: 2rem;
