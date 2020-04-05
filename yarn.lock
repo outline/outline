@@ -208,6 +208,13 @@
   dependencies:
     "@types/node" "^12.11.1"
 
+"@rehooks/window-scroll-position@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@rehooks/window-scroll-position/-/window-scroll-position-1.0.1.tgz#3cb80f22cbf9cdbd2041b5236ae1fce8245b2f1c"
+  integrity sha512-+7uUcU2DBzXW4ygKTCqjCrtT4Nq0f+hNxQvAw69pXSBc7DbqmzfpxrYu27dT4tXrUKSQPFPpo5AdMv2oUJVM7g==
+  dependencies:
+    lodash.throttle "^4.1.1"
+
 "@sentry/apm@5.12.3":
   version "5.12.3"
   resolved "https://registry.yarnpkg.com/@sentry/apm/-/apm-5.12.3.tgz#23a5e9c771a8748f59426a1d0f8b1fbb9b72a717"
@@ -6252,6 +6259,11 @@ lodash.sortby@^4.7.0:
   resolved "https://registry.yarnpkg.com/lodash.sortby/-/lodash.sortby-4.7.0.tgz#edd14c824e2cc9c1e0b0a1b42bb5210516a42438"
   integrity sha1-7dFMgk4sycHgsKG0K7UhBRakJDg=
 
+lodash.throttle@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/lodash.throttle/-/lodash.throttle-4.1.1.tgz#c23e91b710242ac70c37f1e1cda9274cc39bf2f4"
+  integrity sha1-wj6RtxAkKscMN/HhzaknTMOb8vQ=
+
 lodash.uniq@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
@@ -7160,10 +7172,10 @@ outline-icons@^1.10.0:
   resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.10.0.tgz#3c8e6957429e2b04c9d0fc72fe72e473813ce5bd"
   integrity sha512-1o3SnjzawEIh+QkZ6GHxPckuV+Tk5m5R2tjGY0CtosF3YA7JbgQ2jQrZdQsrqLzLa1j07f1bTEbAjGdbnunLpg==
 
-outline-icons@^1.13.0:
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.13.0.tgz#61ea3824a2ec23ea91bb636aa7e1ba6ebf0c2da6"
-  integrity sha512-kG/3ugK8lqAz0b4n8yiuw3XENqoIlTguYQ/NiU5A4ccbOV16HESBVau6ftwIoLbHbio6vEMdRNRwD4GQFtUDFw==
+outline-icons@^1.14.0:
+  version "1.14.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.14.0.tgz#1f737fa6d58e8ccf0f1d1f4287832e0c4d6656ad"
+  integrity sha512-LaFgl5i8wBm7Ud7aXH+VR/3NNJy7UvUih+gu1S2vyYawFHnGkfh1/EwQ2LcrNOLUXr/pH+I5g9UhSeUnCDkCFg==
 
 oy-vey@^0.10.0:
   version "0.10.0"

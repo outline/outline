@@ -23,6 +23,7 @@ import KeyboardShortcuts from './KeyboardShortcuts';
 import References from './References';
 import Loading from './Loading';
 import Container from './Container';
+import Contents from './Contents';
 import MarkAsViewed from './MarkAsViewed';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -132,6 +133,20 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ publish: true, done: true });
   }
 
+  @keydown('meta+ctrl+h')
+  onToggleTableOfContents(ev) {
+    if (!this.props.readOnly) return;
+
+    ev.preventDefault();
+    const { ui } = this.props;
+
+    if (ui.tocVisible) {
+      ui.hideTableOfContents();
+    } else {
+      ui.showTableOfContents();
+    }
+  }
+
   loadEditor = async () => {
     if (this.editorComponent) return;
 
@@ -219,7 +234,15 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    const { document, revision, readOnly, location, auth, match } = this.props;
+    const {
+      document,
+      revision,
+      readOnly,
+      location,
+      auth,
+      ui,
+      match,
+    } = this.props;
     const team = auth.team;
     const Editor = this.editorComponent;
     const isShare = match.params.shareId;
@@ -279,7 +302,12 @@ class DocumentScene extends React.Component<Props> {
                 onSave={this.onSave}
               />
             )}
-            <MaxWidth archived={document.isArchived} column auto>
+            <MaxWidth
+              archived={document.isArchived}
+              tocVisible={ui.tocVisible}
+              column
+              auto
+            >
               {document.archivedAt &&
                 !document.deletedAt && (
                   <Notice muted>
@@ -301,24 +329,28 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <Editor
-                id={document.id}
-                key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
-                defaultValue={revision ? revision.text : document.text}
-                pretitle={document.emoji}
-                disableEmbeds={disableEmbeds}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onSearchLink={this.props.onSearchLink}
-                onChange={this.onChange}
-                onSave={this.onSave}
-                onPublish={this.onPublish}
-                onCancel={this.goBack}
-                readOnly={readOnly || document.isArchived}
-                toc={!revision}
-                ui={this.props.ui}
-                schema={schema}
-              />
+              <Flex>
+                {ui.tocVisible &&
+                  readOnly && <Contents document={revision || document} />}
+                <Editor
+                  id={document.id}
+                  key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
+                  defaultValue={revision ? revision.text : document.text}
+                  pretitle={document.emoji}
+                  disableEmbeds={disableEmbeds}
+                  onImageUploadStart={this.onImageUploadStart}
+                  onImageUploadStop={this.onImageUploadStop}
+                  onSearchLink={this.props.onSearchLink}
+                  onChange={this.onChange}
+                  onSave={this.onSave}
+                  onPublish={this.onPublish}
+                  onCancel={this.goBack}
+                  readOnly={readOnly || document.isArchived}
+                  ui={this.props.ui}
+                  schema={schema}
+                />
+              </Flex>
+
               {readOnly &&
                 !isShare &&
                 !revision && (
@@ -352,8 +384,11 @@ const MaxWidth = styled(Flex)`
   ${breakpoint('tablet')`	
     padding: 0 24px;
     margin: 4px auto 12px;
+    max-width: ${props => (props.tocVisible ? '64em' : '46em')};
+  `};
+
+  ${breakpoint('desktopLarge')`
     max-width: 46em;
-    box-sizing: content-box;
   `};
 `;
 

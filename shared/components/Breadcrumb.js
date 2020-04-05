@@ -81,7 +81,6 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
 });
 
 const Wrapper = styled(Flex)`
-  width: 33.3%;
   display: none;
 
   ${breakpoint('tablet')`	
@@ -101,7 +100,7 @@ const SmallSlash = styled(GoToIcon)`
   opacity: 0.25;
 `;
 
-const Slash = styled(GoToIcon)`
+export const Slash = styled(GoToIcon)`
   flex-shrink: 0;
   opacity: 0.25;
 `;
