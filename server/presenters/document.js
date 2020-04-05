@@ -31,7 +31,9 @@ export default async function present(document: Document, options: ?Options) {
     ...options,
   };
 
-  const text = options.isPublic
+  await document.migrateVersion();
+
+  let text = options.isPublic
     ? await replaceImageAttachments(document.text)
     : document.text;
 

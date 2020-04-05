@@ -40,18 +40,9 @@ export default class Document extends BaseModel {
   shareUrl: ?string;
   revision: number;
 
-  constructor(data?: Object = {}, store: DocumentsStore) {
-    super(data, store);
-    this.updateTitle();
-  }
-
-  @action
-  updateTitle() {
-    const { title, emoji } = parseTitle(this.text);
-
-    if (title) {
-      set(this, { title, emoji });
-    }
+  get emoji() {
+    const { emoji } = parseTitle(this.title);
+    return emoji;
   }
 
   @computed
@@ -61,15 +52,7 @@ export default class Document extends BaseModel {
 
   @computed
   get isOnlyTitle(): boolean {
-    const { title } = parseTitle(this.text);
-
-    // find and extract title
-    const trimmedBody = this.text
-      .trim()
-      .replace(/^#/, '')
-      .trim();
-
-    return unescape(trimmedBody) === title;
+    return !this.text.trim();
   }
 
   @computed
@@ -117,7 +100,6 @@ export default class Document extends BaseModel {
   @action
   updateFromJson = data => {
     set(this, data);
-    this.updateTitle();
   };
 
   archive = () => {
@@ -182,7 +164,6 @@ export default class Document extends BaseModel {
 
     const isCreating = !this.id;
     this.isSaving = true;
-    this.updateTitle();
 
     try {
       if (isCreating) {
@@ -221,14 +202,17 @@ export default class Document extends BaseModel {
     // Ensure the document is upto date with latest server contents
     await this.fetch();
 
-    const blob = new Blob([unescape(this.text)], { type: 'text/markdown' });
+    const body = unescape(this.text);
+    const blob = new Blob([`# ${this.title}\n\n${body}`], {
+      type: 'text/markdown',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
 
     // Firefox support requires the anchor tag be in the DOM to trigger the dl
     if (document.body) document.body.appendChild(a);
     a.href = url;
-    a.download = `${this.title}.md`;
+    a.download = `${this.title || 'Untitled'}.md`;
     a.click();
   };
 }

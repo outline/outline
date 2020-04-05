@@ -113,7 +113,7 @@ const StyledEditor = styled(RichMarkdownEditor)`
       visibility: hidden;
     }
   }
-  p:nth-child(2):last-child {
+  p:nth-child(1):last-child {
     ${Placeholder} {
       visibility: visible;
     }
@@ -130,6 +130,15 @@ const StyledEditor = styled(RichMarkdownEditor)`
         text-decoration: none;
       }
     }
+  }
+
+  h1:first-child,
+  h2:first-child,
+  h3:first-child,
+  h4:first-child,
+  h5:first-child,
+  h6:first-child {
+    margin-top: 0;
   }
 `;
 

@@ -3,14 +3,13 @@ import fs from 'fs';
 import JSZip from 'jszip';
 import tmp from 'tmp';
 import * as Sentry from '@sentry/node';
-import unescape from '../../shared/utils/unescape';
 import { Attachment, Collection, Document } from '../models';
 import { getImageByKey } from './s3';
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
     const document = await Document.findByPk(doc.id);
-    let text = unescape(document.text);
+    let text = document.toMarkdown();
 
     const attachments = await Attachment.findAll({
       where: { documentId: document.id },
@@ -21,7 +20,7 @@ async function addToArchive(zip, documents) {
       text = text.replace(attachment.redirectUrl, encodeURI(attachment.key));
     }
 
-    zip.file(`${document.title}.md`, text);
+    zip.file(`${document.title || 'Untitled'}.md`, text);
 
     if (doc.children && doc.children.length) {
       const folder = zip.folder(document.title);

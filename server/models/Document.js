@@ -17,7 +17,8 @@ import Revision from './Revision';
 const Op = Sequelize.Op;
 const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
-const DEFAULT_TITLE = 'Untitled';
+
+export const DOCUMENT_VERSION = 1;
 
 slug.defaults.mode = 'rfc3986';
 const slugify = text =>
@@ -38,6 +39,7 @@ const createRevision = (doc, options = {}) => {
       text: doc.text,
       userId: doc.lastModifiedById,
       editorVersion: doc.editorVersion,
+      version: doc.version,
       documentId: doc.id,
     },
     {
@@ -50,16 +52,19 @@ const createUrlId = doc => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
 };
 
+const beforeCreate = async doc => {
+  doc.version = DOCUMENT_VERSION;
+  return beforeSave(doc);
+};
+
 const beforeSave = async doc => {
-  const { emoji, title } = parseTitle(doc.text);
+  const { emoji } = parseTitle(doc.text);
 
   // emoji in the title is split out for easier display
   doc.emoji = emoji;
 
   // ensure documents have a title
-  if (!title) {
-    doc.title = DEFAULT_TITLE;
-  }
+  doc.title = doc.title || '';
 
   // add the current user as a collaborator on this doc
   if (!doc.collaboratorIds) doc.collaboratorIds = [];
@@ -92,6 +97,7 @@ const Document = sequelize.define(
         },
       },
     },
+    version: DataTypes.SMALLINT,
     editorVersion: DataTypes.STRING,
     text: DataTypes.TEXT,
     isWelcome: { type: DataTypes.BOOLEAN, defaultValue: false },
@@ -105,7 +111,7 @@ const Document = sequelize.define(
     paranoid: true,
     hooks: {
       beforeValidate: createUrlId,
-      beforeCreate: beforeSave,
+      beforeCreate: beforeCreate,
       beforeUpdate: beforeSave,
       afterCreate: createRevision,
       afterUpdate: createRevision,
@@ -426,6 +432,26 @@ Document.addHook('afterCreate', async model => {
 });
 
 // Instance methods
+
+Document.prototype.toMarkdown = function() {
+  const text = unescape(this.text);
+
+  if (this.version) {
+    return `# ${this.title}\n\n${text}`;
+  }
+
+  return text;
+};
+
+Document.prototype.migrateVersion = function() {
+  // migrate from document version 0 -> 1 means removing the title from the
+  // document text attribute.
+  if (!this.version) {
+    this.text = this.text.replace(/^#\s(.*)\n/, '');
+    this.version = 1;
+    return this.save({ silent: true, hooks: false });
+  }
+};
 
 // Note: This method marks the document and it's children as deleted
 // in the database, it does not permanantly delete them OR remove
