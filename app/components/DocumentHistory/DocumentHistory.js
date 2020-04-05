@@ -10,7 +10,6 @@ import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import RevisionsStore from 'stores/RevisionsStore';
-import Document from 'models/Document';
 
 import Flex from 'shared/components/Flex';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
