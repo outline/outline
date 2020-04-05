@@ -6,11 +6,12 @@ import useWindowScrollPosition from '@rehooks/window-scroll-position';
 import HelpText from 'components/HelpText';
 import styled from 'styled-components';
 import Document from 'models/Document';
+import Revision from 'models/Revision';
 
 const HEADING_OFFSET = 20;
 
 type Props = {
-  document: Document,
+  document: Revision | Document,
 };
 
 export default function Contents({ document }: Props) {

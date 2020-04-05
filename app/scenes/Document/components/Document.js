@@ -330,7 +330,8 @@ class DocumentScene extends React.Component<Props> {
                 </Notice>
               )}
               <Flex>
-                {ui.tocVisible && readOnly && <Contents document={document} />}
+                {ui.tocVisible &&
+                  readOnly && <Contents document={revision || document} />}
                 <Editor
                   id={document.id}
                   key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
