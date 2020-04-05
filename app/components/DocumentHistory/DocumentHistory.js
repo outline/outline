@@ -100,30 +100,32 @@ class DocumentHistory extends React.Component<Props> {
     const showLoading = !this.isLoaded && this.isFetching;
 
     return (
-      <Wrapper column>
-        {showLoading ? (
-          <Loading>
-            <ListPlaceholder count={5} />
-          </Loading>
-        ) : (
-          <ArrowKeyNavigation
-            mode={ArrowKeyNavigation.mode.VERTICAL}
-            defaultActiveChildIndex={0}
-          >
-            {this.revisions.map((revision, index) => (
-              <Revision
-                key={revision.id}
-                revision={revision}
-                document={this.document}
-                showMenu={index !== 0}
-              />
-            ))}
-          </ArrowKeyNavigation>
-        )}
-        {this.allowLoadMore && (
-          <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
-        )}
-      </Wrapper>
+      <Sidebar>
+        <Wrapper column>
+          {showLoading ? (
+            <Loading>
+              <ListPlaceholder count={5} />
+            </Loading>
+          ) : (
+            <ArrowKeyNavigation
+              mode={ArrowKeyNavigation.mode.VERTICAL}
+              defaultActiveChildIndex={0}
+            >
+              {this.revisions.map((revision, index) => (
+                <Revision
+                  key={revision.id}
+                  revision={revision}
+                  document={this.document}
+                  showMenu={index !== 0}
+                />
+              ))}
+            </ArrowKeyNavigation>
+          )}
+          {this.allowLoadMore && (
+            <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+          )}
+        </Wrapper>
+      </Sidebar>
     );
   }
 }
@@ -133,6 +135,16 @@ const Loading = styled.div`
 `;
 
 const Wrapper = styled(Flex)`
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  min-width: ${props => props.theme.sidebarWidth};
+  overflow: scroll;
+  overscroll-behavior: none;
+`;
+
+const Sidebar = styled(Flex)`
   background: ${props => props.theme.background};
   min-width: ${props => props.theme.sidebarWidth};
   border-left: 1px solid ${props => props.theme.divider};
