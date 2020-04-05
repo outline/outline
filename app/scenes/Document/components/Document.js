@@ -370,7 +370,10 @@ const MaxWidth = styled(Flex)`
     padding: 0 24px;
     margin: 4px auto 12px;
     max-width: ${props => (props.tocVisible ? '64em' : '46em')};
-    box-sizing: content-box;
+  `};
+
+  ${breakpoint('desktopLarge')`
+    max-width: 46em;
   `};
 `;
 
