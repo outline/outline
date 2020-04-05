@@ -139,7 +139,7 @@ export class Mailer {
   ) => {
     this.sendMail({
       to: opts.to,
-      title: `"${opts.document.title}" ${opts.eventName}`,
+      title: `“${opts.document.title}” ${opts.eventName}`,
       previewText: `${opts.actor.name} ${opts.eventName} a new document`,
       html: <DocumentNotificationEmail {...opts} />,
       text: documentNotificationEmailText(opts),
@@ -151,7 +151,7 @@ export class Mailer {
   ) => {
     this.sendMail({
       to: opts.to,
-      title: `"${opts.collection.name}" ${opts.eventName}`,
+      title: `“${opts.collection.name}” ${opts.eventName}`,
       previewText: `${opts.actor.name} ${opts.eventName} a collection`,
       html: <CollectionNotificationEmail {...opts} />,
       text: collectionNotificationEmailText(opts),
