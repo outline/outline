@@ -1,5 +1,3 @@
-# 🚀 Integrations & API
-
 ## Integrations
 
 Outline supports tons of the most popular tools on the market out of the box. Just paste links to a YouTube video, Figma design, or Realtimeboard to get instant live-embeds in your documents.

@@ -1,5 +1,3 @@
-# 👋 What is Outline
-
 Outline is a place to build your team knowledge base, you could think of it like your team’s shared library – a place for important documentation, notes, and ideas to live and be discovered. Some things you might want to keep in Outline:
 
 - Documentation

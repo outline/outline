@@ -1,5 +1,3 @@
-# 📝 Our Editor
-
 The heart of Outline is the document editor. We let you write in the way that you prefer – be it Markdown, WYSIWYG, or taking advantage of the many keyboard shortcuts.
 
 ![The formatting toolbar](https://s3.amazonaws.com/dev.beautifulatlas.com/uploads/e2b85962-ca66-4e4c-90d3-b32d30f0610c/754830c0-2aca-467c-82de-2fd6e990b696/Group.png)
