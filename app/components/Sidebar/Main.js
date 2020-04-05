@@ -45,11 +45,13 @@ class MainSidebar extends React.Component<Props> {
     this.props.documents.fetchDrafts();
   }
 
-  handleCreateCollection = () => {
+  handleCreateCollection = (ev: SyntheticEvent<>) => {
+    ev.preventDefault();
     this.props.ui.setActiveModal('collection-new');
   };
 
-  handleInviteModalOpen = () => {
+  handleInviteModalOpen = (ev: SyntheticEvent<>) => {
+    ev.preventDefault();
     this.inviteModalOpen = true;
   };
 
@@ -145,6 +147,7 @@ class MainSidebar extends React.Component<Props> {
               />
               {can.invite && (
                 <SidebarLink
+                  to="/settings/people"
                   onClick={this.handleInviteModalOpen}
                   icon={<PlusIcon />}
                   label="Invite people…"
