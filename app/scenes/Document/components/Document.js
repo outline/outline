@@ -384,11 +384,12 @@ const MaxWidth = styled(Flex)`
   ${breakpoint('tablet')`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: ${props => (props.tocVisible ? '64em' : '46em')};
+    max-width: calc(48px + ${props => (props.tocVisible ? '64em' : '46em')});
   `};
 
   ${breakpoint('desktopLarge')`
-    max-width: 46em;
+    max-width: calc(48px + 46em);
+    box-sizing: 
   `};
 `;
 
