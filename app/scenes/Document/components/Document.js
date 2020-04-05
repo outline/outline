@@ -133,6 +133,20 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ publish: true, done: true });
   }
 
+  @keydown('meta+ctrl+h')
+  onToggleTableOfContents(ev) {
+    if (!this.props.readOnly) return;
+
+    ev.preventDefault();
+    const { ui } = this.props;
+
+    if (ui.tocVisible) {
+      ui.hideTableOfContents();
+    } else {
+      ui.showTableOfContents();
+    }
+  }
+
   loadEditor = async () => {
     if (this.editorComponent) return;
 

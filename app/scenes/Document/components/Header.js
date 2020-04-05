@@ -146,6 +146,7 @@ class Header extends React.Component<Props> {
               <Slash />
               <Tooltip
                 tooltip={ui.tocVisible ? 'Hide contents' : 'Show contents'}
+                shortcut={`ctrl+${meta}+h`}
                 delay={250}
                 placement="bottom"
               >
@@ -157,7 +158,6 @@ class Header extends React.Component<Props> {
                   }
                   icon={<TableOfContentsIcon />}
                   iconColor="currentColor"
-                  title="Table of contents"
                   borderOnHover
                   neutral
                   small
