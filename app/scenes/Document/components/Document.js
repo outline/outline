@@ -151,9 +151,17 @@ class DocumentScene extends React.Component<Props> {
   loadEditor = async () => {
     if (this.editorComponent) return;
 
-    const Imported = await import('./Editor');
-    EditorImport = Imported.default;
-    this.editorComponent = EditorImport;
+    try {
+      const EditorImport = await import('./Editor');
+      this.editorComponent = EditorImport.default;
+    } catch (err) {
+      console.error(err);
+
+      // If the editor bundle fails to load then reload the entire window. This
+      // can happen if a deploy happens between the user loading the initial JS
+      // bundle and the async-loaded editor JS bundle as the hash will change.
+      window.location.reload();
+    }
   };
 
   handleCloseMoveModal = () => (this.moveModalOpen = false);
