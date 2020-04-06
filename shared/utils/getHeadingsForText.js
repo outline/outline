@@ -1,6 +1,7 @@
 // @flow
 import { filter } from 'lodash';
 import slugify from 'shared/utils/slugify';
+import unescape from 'shared/utils/unescape';
 
 export default function getHeadingsForText(
   text: string
@@ -13,7 +14,7 @@ export default function getHeadingsForText(
     if (!match) continue;
 
     const level = match[1].length;
-    const title = match[2];
+    const title = unescape(match[2]);
 
     let slug = slugify(title);
     const existing = filter(output, { slug });
