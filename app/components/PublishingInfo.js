@@ -51,6 +51,12 @@ function PublishingInfo({
     isDraft,
   } = document;
 
+  // Prevent meta information from displaying if updatedBy is not available.
+  // Currently the situation where this is true is rendering share links.
+  if (!updatedBy) {
+    return null;
+  }
+
   let content;
 
   if (deletedAt) {
