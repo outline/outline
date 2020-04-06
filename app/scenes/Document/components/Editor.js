@@ -66,7 +66,7 @@ class DocumentEditor extends React.Component<Props> {
     );
 
     return (
-      <Flex column>
+      <Flex auto column>
         <Title
           type="text"
           onChange={onChangeTitle}
