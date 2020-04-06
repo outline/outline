@@ -25,12 +25,6 @@ type Props = {|
 class DocumentEditor extends React.Component<Props> {
   editor: ?Editor;
 
-  componentDidMount() {
-    if (this.props.title) {
-      setImmediate(this.focusAtStart);
-    }
-  }
-
   focusAtStart = () => {
     if (this.editor) {
       this.editor.focusAtStart();

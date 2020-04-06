@@ -345,7 +345,7 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <Flex>
+              <Flex auto={!readOnly}>
                 {ui.tocVisible &&
                   readOnly && <Contents document={revision || document} />}
                 <Editor
