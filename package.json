@@ -55,6 +55,7 @@
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "dependencies": {
+    "@rehooks/window-scroll-position": "^1.0.1",
     "@sentry/node": "^5.12.2",
     "@tippy.js/react": "^2.2.2",
     "@tommoor/remove-markdown": "0.3.1",
@@ -119,7 +120,7 @@
     "mobx-react": "^5.4.2",
     "natural-sort": "^1.0.0",
     "nodemailer": "^4.4.0",
-    "outline-icons": "^1.13.0",
+    "outline-icons": "^1.14.0",
     "oy-vey": "^0.10.0",
     "pg": "^6.1.5",
     "pg-hstore": "2.3.2",
@@ -138,7 +139,7 @@
     "react-portal": "^4.0.0",
     "react-router-dom": "^5.1.2",
     "react-waypoint": "^9.0.2",
-    "rich-markdown-editor": "^10.0.0-3",
+    "rich-markdown-editor": "^10.0.0-4",
     "sequelize": "^5.21.1",
     "sequelize-cli": "^5.5.0",
     "sequelize-encrypted": "^0.1.0",

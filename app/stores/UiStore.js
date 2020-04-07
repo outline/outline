@@ -1,24 +1,46 @@
 // @flow
 import { v4 } from 'uuid';
 import { orderBy } from 'lodash';
-import { observable, action, computed } from 'mobx';
+import { observable, action, autorun, computed } from 'mobx';
 import Document from 'models/Document';
 import Collection from 'models/Collection';
 import type { Toast } from '../types';
 
+const UI_STORE = 'UI_STORE';
+
 class UiStore {
-  @observable
-  theme: 'light' | 'dark' = (window.localStorage &&
-    window.localStorage.getItem('theme')) ||
-    'light';
+  @observable theme: 'light' | 'dark';
   @observable activeModalName: ?string;
   @observable activeModalProps: ?Object;
   @observable activeDocumentId: ?string;
   @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
+  @observable tocVisible: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
   @observable toasts: Map<string, Toast> = new Map();
+
+  constructor() {
+    // Rehydrate
+    let data = {};
+    try {
+      data = JSON.parse(localStorage.getItem(UI_STORE) || '{}');
+    } catch (_) {
+      // no-op Safari private mode
+    }
+
+    // persisted keys
+    this.tocVisible = data.tocVisible;
+    this.theme = data.theme || 'light';
+
+    autorun(() => {
+      try {
+        localStorage.setItem(UI_STORE, this.asJson);
+      } catch (_) {
+        // no-op Safari private mode
+      }
+    });
+  }
 
   @action
   toggleDarkMode = () => {
@@ -64,6 +86,16 @@ class UiStore {
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
     this.activeCollectionId = undefined;
+  };
+
+  @action
+  showTableOfContents = () => {
+    this.tocVisible = true;
+  };
+
+  @action
+  hideTableOfContents = () => {
+    this.tocVisible = false;
   };
 
   @action
@@ -124,6 +156,14 @@ class UiStore {
   @computed
   get orderedToasts(): Toast[] {
     return orderBy(Array.from(this.toasts.values()), 'createdAt', 'desc');
+  }
+
+  @computed
+  get asJson(): string {
+    return JSON.stringify({
+      tocVisible: this.tocVisible,
+      theme: this.theme,
+    });
   }
 }
 

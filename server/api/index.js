@@ -12,6 +12,7 @@ import views from './views';
 import hooks from './hooks';
 import apiKeys from './apiKeys';
 import shares from './shares';
+import groups from './groups';
 import team from './team';
 import integrations from './integrations';
 import notificationSettings from './notificationSettings';
@@ -51,6 +52,8 @@ router.use('/', integrations.routes());
 router.use('/', notificationSettings.routes());
 router.use('/', attachments.routes());
 router.use('/', utils.routes());
+router.use('/', groups.routes());
+
 router.post('*', ctx => {
   ctx.throw(new NotFoundError('Endpoint not found'));
 });

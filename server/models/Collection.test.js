@@ -1,6 +1,12 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import { flushdb, seed } from '../test/support';
 import { Collection, Document } from '../models';
+import {
+  buildUser,
+  buildGroup,
+  buildCollection,
+  buildTeam,
+} from '../test/factories';
 import uuid from 'uuid';
 
 beforeEach(flushdb);
@@ -227,5 +233,46 @@ describe('#removeDocument', () => {
       },
     });
     expect(collectionDocuments.count).toBe(1);
+  });
+});
+
+describe('#membershipUserIds', () => {
+  test('should return collection and group memberships', async () => {
+    const team = await buildTeam();
+    const teamId = team.id;
+
+    // Make 6 users
+    const users = await Promise.all(
+      Array(6)
+        .fill()
+        .map(() => {
+          return buildUser({ teamId });
+        })
+    );
+
+    const collection = await buildCollection({
+      userId: users[0].id,
+      private: true,
+      teamId,
+    });
+
+    const group1 = await buildGroup({ teamId });
+    const group2 = await buildGroup({ teamId });
+
+    const createdById = users[0].id;
+
+    await group1.addUser(users[0], { through: { createdById } });
+    await group1.addUser(users[1], { through: { createdById } });
+    await group2.addUser(users[2], { through: { createdById } });
+    await group2.addUser(users[3], { through: { createdById } });
+
+    await collection.addUser(users[4], { through: { createdById } });
+    await collection.addUser(users[5], { through: { createdById } });
+
+    await collection.addGroup(group1, { through: { createdById } });
+    await collection.addGroup(group2, { through: { createdById } });
+
+    const membershipUserIds = await Collection.membershipUserIds(collection.id);
+    expect(membershipUserIds.length).toBe(6);
   });
 });

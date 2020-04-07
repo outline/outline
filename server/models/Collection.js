@@ -1,5 +1,5 @@
 // @flow
-import { find, remove } from 'lodash';
+import { find, concat, remove, uniq } from 'lodash';
 import slug from 'slug';
 import randomstring from 'randomstring';
 import { DataTypes, sequelize } from '../sequelize';
@@ -59,9 +59,19 @@ Collection.associate = models => {
     foreignKey: 'collectionId',
     onDelete: 'cascade',
   });
+  Collection.hasMany(models.CollectionGroup, {
+    as: 'collectionGroupMemberships',
+    foreignKey: 'collectionId',
+    onDelete: 'cascade',
+  });
   Collection.belongsToMany(models.User, {
     as: 'users',
     through: models.CollectionUser,
+    foreignKey: 'collectionId',
+  });
+  Collection.belongsToMany(models.Group, {
+    as: 'groups',
+    through: models.CollectionGroup,
     foreignKey: 'collectionId',
   });
   Collection.belongsTo(models.User, {
@@ -79,8 +89,66 @@ Collection.associate = models => {
         where: { userId },
         required: false,
       },
+      {
+        model: models.CollectionGroup,
+        as: 'collectionGroupMemberships',
+        required: false,
+
+        // use of "separate" property: sequelize breaks when there are
+        // nested "includes" with alternating values for "required"
+        // see https://github.com/sequelize/sequelize/issues/9869
+        separate: true,
+
+        // include for groups that are members of this collection,
+        // of which userId is a member of, resulting in:
+        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+        include: {
+          model: models.Group,
+          as: 'group',
+          required: true,
+          include: {
+            model: models.GroupUser,
+            as: 'groupMemberships',
+            required: true,
+            where: { userId },
+          },
+        },
+      },
     ],
   }));
+  Collection.addScope('withAllMemberships', {
+    include: [
+      {
+        model: models.CollectionUser,
+        as: 'memberships',
+        required: false,
+      },
+      {
+        model: models.CollectionGroup,
+        as: 'collectionGroupMemberships',
+        required: false,
+
+        // use of "separate" property: sequelize breaks when there are
+        // nested "includes" with alternating values for "required"
+        // see https://github.com/sequelize/sequelize/issues/9869
+        separate: true,
+
+        // include for groups that are members of this collection,
+        // of which userId is a member of, resulting in:
+        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+        include: {
+          model: models.Group,
+          as: 'group',
+          required: true,
+          include: {
+            model: models.GroupUser,
+            as: 'groupMemberships',
+            required: true,
+          },
+        },
+      },
+    ],
+  });
 };
 
 Collection.addHook('afterDestroy', async (model: Collection) => {
@@ -106,6 +174,26 @@ Collection.addHook('afterCreate', (model: Collection, options) => {
     });
   }
 });
+
+// Class methods
+
+// get all the membership relationshps a user could have with the collection
+Collection.membershipUserIds = async (collectionId: string) => {
+  const collection = await Collection.scope('withAllMemberships').findByPk(
+    collectionId
+  );
+
+  const groupMemberships = collection.collectionGroupMemberships
+    .map(cgm => cgm.group.groupMemberships)
+    .flat();
+
+  const membershipUserIds = concat(
+    groupMemberships,
+    collection.memberships
+  ).map(membership => membership.userId);
+
+  return uniq(membershipUserIds);
+};
 
 // Instance methods
 

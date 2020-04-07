@@ -47,9 +47,12 @@ describe('#documents.info', async () => {
   });
 
   it('should not return published document in collection not a member of', async () => {
-    const { user, document, collection } = await seed();
-    collection.private = true;
-    await collection.save();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      private: true,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({ collectionId: collection.id });
 
     const res = await server.post('/api/documents.info', {
       body: { token: user.getJwtToken(), id: document.id },
@@ -381,13 +384,16 @@ describe('#documents.pinned', async () => {
   });
 
   it('should not return pinned documents in private collections not a member of', async () => {
-    const { user, collection } = await seed();
-    collection.private = true;
-    await collection.save();
+    const collection = await buildCollection({
+      private: true,
+    });
+
+    const user = await buildUser({ teamId: collection.teamId });
 
     const res = await server.post('/api/documents.pinned', {
       body: { token: user.getJwtToken(), collectionId: collection.id },
     });
+
     expect(res.status).toEqual(403);
   });
 

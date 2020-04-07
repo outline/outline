@@ -41,6 +41,12 @@ const GlobalStyles = createGlobalStyle`
         margin-left: 24px;
       }
     }
+
+    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal + .ReactModalPortal {
+      .ReactModal__Overlay {
+        margin-left: 36px;
+      }
+    }
   `};
 
   .ReactModal__Body--open {
@@ -141,7 +147,7 @@ const Close = styled(NudeButton)`
 `;
 
 const Back = styled(NudeButton)`
-  position: absolute;
+  position: fixed;
   display: none;
   align-items: center;
   top: 2rem;

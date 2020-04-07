@@ -10,7 +10,6 @@ import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
 import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import DocumentsStore from 'stores/DocumentsStore';
 import RevisionsStore from 'stores/RevisionsStore';
-import Document from 'models/Document';
 
 import Flex from 'shared/components/Flex';
 import { ListPlaceholder } from 'components/LoadingPlaceholder';
@@ -30,27 +29,10 @@ class DocumentHistory extends React.Component<Props> {
   @observable isFetching: boolean = false;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
-  @observable document: Document;
-
-  constructor(props) {
-    super();
-    this.document = props.documents.getByUrl(props.match.params.documentSlug);
-  }
 
   async componentDidMount() {
     await this.loadMoreResults();
     this.selectFirstRevision();
-  }
-
-  async componentWillReceiveProps(nextProps) {
-    const document = nextProps.documents.getByUrl(
-      nextProps.match.params.documentSlug
-    );
-    if (!this.document && document) {
-      this.document = document;
-      await this.loadMoreResults();
-      this.selectFirstRevision();
-    }
   }
 
   fetchResults = async () => {
@@ -60,7 +42,7 @@ class DocumentHistory extends React.Component<Props> {
     const results = await this.props.revisions.fetchPage({
       limit,
       offset: this.offset,
-      id: this.document.id,
+      id: this.props.match.params.documentSlug,
     });
 
     if (
@@ -78,8 +60,13 @@ class DocumentHistory extends React.Component<Props> {
 
   selectFirstRevision = () => {
     if (this.revisions.length) {
+      const document = this.props.documents.getByUrl(
+        this.props.match.params.documentSlug
+      );
+      if (!document) return;
+
       this.props.history.replace(
-        documentHistoryUrl(this.document, this.revisions[0].id)
+        documentHistoryUrl(document, this.revisions[0].id)
       );
     }
   };
@@ -87,43 +74,51 @@ class DocumentHistory extends React.Component<Props> {
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
-    if (!this.allowLoadMore || this.isFetching || !this.document) return;
+    if (!this.allowLoadMore || this.isFetching) return;
     await this.fetchResults();
   };
 
   get revisions() {
-    if (!this.document) return [];
-    return this.props.revisions.getDocumentRevisions(this.document.id);
+    const document = this.props.documents.getByUrl(
+      this.props.match.params.documentSlug
+    );
+    if (!document) return [];
+    return this.props.revisions.getDocumentRevisions(document.id);
   }
 
   render() {
-    const showLoading = !this.isLoaded && this.isFetching;
+    const document = this.props.documents.getByUrl(
+      this.props.match.params.documentSlug
+    );
+    const showLoading = (!this.isLoaded && this.isFetching) || !document;
 
     return (
-      <Wrapper column>
-        {showLoading ? (
-          <Loading>
-            <ListPlaceholder count={5} />
-          </Loading>
-        ) : (
-          <ArrowKeyNavigation
-            mode={ArrowKeyNavigation.mode.VERTICAL}
-            defaultActiveChildIndex={0}
-          >
-            {this.revisions.map((revision, index) => (
-              <Revision
-                key={revision.id}
-                revision={revision}
-                document={this.document}
-                showMenu={index !== 0}
-              />
-            ))}
-          </ArrowKeyNavigation>
-        )}
-        {this.allowLoadMore && (
-          <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
-        )}
-      </Wrapper>
+      <Sidebar>
+        <Wrapper column>
+          {showLoading ? (
+            <Loading>
+              <ListPlaceholder count={5} />
+            </Loading>
+          ) : (
+            <ArrowKeyNavigation
+              mode={ArrowKeyNavigation.mode.VERTICAL}
+              defaultActiveChildIndex={0}
+            >
+              {this.revisions.map((revision, index) => (
+                <Revision
+                  key={revision.id}
+                  revision={revision}
+                  document={document}
+                  showMenu={index !== 0}
+                />
+              ))}
+            </ArrowKeyNavigation>
+          )}
+          {this.allowLoadMore && (
+            <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+          )}
+        </Wrapper>
+      </Sidebar>
     );
   }
 }
@@ -133,6 +128,16 @@ const Loading = styled.div`
 `;
 
 const Wrapper = styled(Flex)`
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  min-width: ${props => props.theme.sidebarWidth};
+  overflow: scroll;
+  overscroll-behavior: none;
+`;
+
+const Sidebar = styled(Flex)`
   background: ${props => props.theme.background};
   min-width: ${props => props.theme.sidebarWidth};
   border-left: 1px solid ${props => props.theme.divider};

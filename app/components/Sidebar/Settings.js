@@ -9,6 +9,7 @@ import {
   PadlockIcon,
   CodeIcon,
   UserIcon,
+  GroupIcon,
   LinkIcon,
   TeamIcon,
   BulletedListIcon,
@@ -95,6 +96,12 @@ class SettingsSidebar extends React.Component<Props> {
                 icon={<UserIcon />}
                 exact={false}
                 label="People"
+              />
+              <SidebarLink
+                to="/settings/groups"
+                icon={<GroupIcon />}
+                exact={false}
+                label="Groups"
               />
               <SidebarLink
                 to="/settings/shares"

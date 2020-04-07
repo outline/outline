@@ -1,7 +1,13 @@
 // @flow
 import { Op } from '../sequelize';
 import type { DocumentEvent, CollectionEvent, Event } from '../events';
-import { Document, Collection, User, NotificationSetting } from '../models';
+import {
+  Document,
+  Team,
+  Collection,
+  User,
+  NotificationSetting,
+} from '../models';
 import mailer from '../mailer';
 
 export default class Notifications {
@@ -29,6 +35,9 @@ export default class Notifications {
     const { collection } = document;
     if (!collection) return;
 
+    const team = await Team.findByPk(document.teamId);
+    if (!team) return;
+
     const notificationSettings = await NotificationSetting.findAll({
       where: {
         userId: {
@@ -51,11 +60,11 @@ export default class Notifications {
 
     notificationSettings.forEach(setting => {
       // For document updates we only want to send notifications if
-      // the document creator matches the notification setting.
+      // the document has been edited by the user with this notification setting
       // This could be replaced with ability to "follow" in the future
       if (
         event.name === 'documents.update' &&
-        document.createdById !== setting.userId
+        !document.collaboratorIds.includes(setting.userId)
       ) {
         return;
       }
@@ -64,6 +73,7 @@ export default class Notifications {
         to: setting.user.email,
         eventName,
         document,
+        team,
         collection,
         actor: document.updatedBy,
         unsubscribeUrl: setting.unsubscribeUrl,

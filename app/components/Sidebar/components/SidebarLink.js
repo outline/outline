@@ -157,7 +157,7 @@ const Wrapper = styled(Flex)`
 const Label = styled.div`
   position: relative;
   width: 100%;
-  max-height: 4.4em;
+  max-height: 4.8em;
   line-height: 1.6;
 `;
 

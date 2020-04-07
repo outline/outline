@@ -121,6 +121,7 @@ router.post('documents.pinned', auth(), pagination(), async ctx => {
   const collection = await Collection.scope({
     method: ['withMembership', user.id],
   }).findByPk(collectionId);
+
   authorize(user, 'read', collection);
 
   const starredScope = { method: ['withStarred', user.id] };
@@ -424,7 +425,7 @@ router.post('documents.revision', auth(), async ctx => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: presentRevision(revision),
+    data: await presentRevision(revision),
   };
 });
 
@@ -438,15 +439,19 @@ router.post('documents.revisions', auth(), pagination(), async ctx => {
   authorize(user, 'read', document);
 
   const revisions = await Revision.findAll({
-    where: { documentId: id },
+    where: { documentId: document.id },
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
 
+  const data = await Promise.all(
+    revisions.map(revision => presentRevision(revision))
+  );
+
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: revisions.map(presentRevision),
+    data,
   };
 });
 
@@ -687,6 +692,7 @@ router.post('documents.create', auth(), async ctx => {
   const {
     title = '',
     text = '',
+    editorVersion,
     publish,
     collectionId,
     parentDocumentId,
@@ -725,6 +731,7 @@ router.post('documents.create', auth(), async ctx => {
 
   let document = await Document.create({
     parentDocumentId,
+    editorVersion,
     collectionId: collection.id,
     teamId: user.teamId,
     userId: user.id,
@@ -780,6 +787,7 @@ router.post('documents.update', auth(), async ctx => {
     publish,
     autosave,
     done,
+    editorVersion,
     lastRevision,
     append,
   } = ctx.body;
@@ -797,6 +805,7 @@ router.post('documents.update', auth(), async ctx => {
 
   // Update document
   if (title) document.title = title;
+  if (editorVersion) document.editorVersion = editorVersion;
 
   if (append) {
     document.text += text;
