@@ -1,7 +1,7 @@
 // @flow
 import JWT from 'jsonwebtoken';
 import { type Context } from 'koa';
-import { User, ApiKey } from '../models';
+import { Event, User, ApiKey } from '../models';
 import { getUserForJWT } from '../utils/jwt';
 import { AuthenticationError, UserSuspendedError } from '../errors';
 import addMonths from 'date-fns/add_months';
@@ -82,6 +82,19 @@ export default function auth(options?: { required?: boolean } = {}) {
     }
 
     ctx.signIn = async (user, team, service, isFirstSignin = false) => {
+      if (isFirstSignin) {
+        await Event.create({
+          name: 'users.create',
+          actorId: user.id,
+          userId: user.id,
+          teamId: team.id,
+          data: {
+            name: user.name,
+            service: service,
+          },
+          ip: ctx.request.ip,
+        });
+      }
       if (user.isSuspended) {
         return ctx.redirect('/?notice=suspended');
       }
