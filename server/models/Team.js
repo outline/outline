@@ -153,6 +153,7 @@ Team.prototype.provisionFirstCollection = async function(userId) {
       'utf8'
     );
     const document = await Document.create({
+      version: 1,
       isWelcome: true,
       parentDocumentId: null,
       collectionId: collection.id,
