@@ -53,7 +53,7 @@ const createUrlId = doc => {
 };
 
 const beforeCreate = async doc => {
-  if (!doc.version) {
+  if (doc.version === undefined) {
     doc.version = DOCUMENT_VERSION;
   }
   return beforeSave(doc);
@@ -599,10 +599,17 @@ Document.prototype.getTimestamp = function() {
 };
 
 Document.prototype.getSummary = function() {
-  const value = Markdown.deserialize(this.text);
-  const plain = Plain.serialize(value);
+  const plain = removeMarkdown(unescape(this.text), {
+    stripHTML: false,
+  });
   const lines = compact(plain.split('\n'));
-  return lines.length >= 1 ? lines[1] : '';
+  const notEmpty = lines.length >= 1;
+
+  if (this.version) {
+    return notEmpty ? lines[0] : '';
+  }
+
+  return notEmpty ? lines[1] : '';
 };
 
 Document.prototype.toJSON = function() {

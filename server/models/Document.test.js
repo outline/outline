@@ -5,6 +5,30 @@ import { buildDocument } from '../test/factories';
 beforeEach(flushdb);
 beforeEach(jest.resetAllMocks);
 
+describe('#getSummary', () => {
+  test('should strip markdown', async () => {
+    const document = await buildDocument({
+      version: 1,
+      text: `*paragraph*
+
+paragraph 2`,
+    });
+
+    expect(document.getSummary()).toBe('paragraph');
+  });
+
+  test('should strip title when no version', async () => {
+    const document = await buildDocument({
+      version: null,
+      text: `# Heading
+      
+*paragraph*`,
+    });
+
+    expect(document.getSummary()).toBe('paragraph');
+  });
+});
+
 describe('#migrateVersion', () => {
   test('should maintain empty paragraph under headings', async () => {
     const document = await buildDocument({
