@@ -2,8 +2,6 @@
 import slug from 'slug';
 import { map, find, compact, uniq } from 'lodash';
 import randomstring from 'randomstring';
-import MarkdownSerializer from 'slate-md-serializer';
-import Plain from 'slate-plain-serializer';
 import Sequelize, { type Transaction } from 'sequelize';
 import removeMarkdown from '@tommoor/remove-markdown';
 
@@ -15,7 +13,6 @@ import unescape from '../../shared/utils/unescape';
 import Revision from './Revision';
 
 const Op = Sequelize.Op;
-const Markdown = new MarkdownSerializer();
 const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
 
 export const DOCUMENT_VERSION = 2;
