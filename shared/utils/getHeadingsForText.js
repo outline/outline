@@ -1,7 +1,7 @@
 // @flow
 import { filter } from 'lodash';
-import slugify from 'shared/utils/slugify';
-import unescape from 'shared/utils/unescape';
+import slugify from './slugify';
+import unescape from './unescape';
 
 export default function getHeadingsForText(
   text: string
