@@ -9,7 +9,6 @@ import Flex from 'shared/components/Flex';
 import parseTitle from 'shared/utils/parseTitle';
 import ViewsStore from 'stores/ViewsStore';
 import Document from 'models/Document';
-import plugins from './plugins';
 
 type Props = {|
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
@@ -83,7 +82,6 @@ class DocumentEditor extends React.Component<Props> {
           ref={ref => (this.editor = ref)}
           autoFocus={title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
-          plugins={plugins}
           grow
           {...this.props}
         />
