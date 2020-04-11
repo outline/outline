@@ -97,6 +97,7 @@ export const light = {
 
   buttonNeutralBackground: colors.white,
   buttonNeutralText: colors.almostBlack,
+  buttonNeutralBorder: darken(0.15, colors.white),
 
   tooltipBackground: colors.almostBlack,
   tooltipText: colors.white,
@@ -148,6 +149,7 @@ export const dark = {
 
   buttonNeutralBackground: colors.almostBlack,
   buttonNeutralText: colors.white,
+  buttonNeutralBorder: colors.slateDark,
 
   tooltipBackground: colors.white,
   tooltipText: colors.lightBlack,
