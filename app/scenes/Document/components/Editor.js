@@ -103,6 +103,9 @@ const Title = styled('input')`
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
+  text: ${props => props.theme.text};
+  background: ${props => props.theme.background};
+  transition: ${props => props.theme.backgroundTransition};
   margin-left: ${props => (props.offsetLeft ? '-1.2em' : 0)};
   color: ${props => props.theme.text};
   font-size: 2.25em;
