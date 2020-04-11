@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { observable } from 'mobx';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import styled from 'styled-components';
 import Dropzone from 'react-dropzone';
 import LoadingIndicator from 'components/LoadingIndicator';
@@ -10,6 +10,7 @@ import Modal from 'components/Modal';
 import Button from 'components/Button';
 import AvatarEditor from 'react-avatar-editor';
 import { uploadFile, dataUrlToBlob } from 'utils/uploadFile';
+import UiStore from 'stores/UiStore';
 
 type Props = {
   children?: React.Node,
@@ -17,10 +18,11 @@ type Props = {
   onError: string => void,
   submitText: string,
   borderRadius: number,
+  ui: UiStore,
 };
 
 @observer
-class DropToImport extends React.Component<Props> {
+class ImageUpload extends React.Component<Props> {
   @observable isUploading: boolean = false;
   @observable isCropping: boolean = false;
   @observable zoom: number = 1;
@@ -75,7 +77,7 @@ class DropToImport extends React.Component<Props> {
   };
 
   renderCropping() {
-    const { submitText } = this.props;
+    const { ui, submitText } = this.props;
 
     return (
       <Modal isOpen onRequestClose={this.handleClose} title="">
@@ -89,7 +91,9 @@ class DropToImport extends React.Component<Props> {
               height={250}
               border={25}
               borderRadius={this.props.borderRadius}
-              color={[255, 255, 255, 0.6]} // RGBA
+              color={
+                ui.theme === 'light' ? [255, 255, 255, 0.6] : [0, 0, 0, 0.6]
+              } // RGBA
               scale={this.zoom}
               rotate={0}
             />
@@ -150,7 +154,7 @@ const RangeInput = styled.input`
     height: 16px;
     width: 16px;
     border-radius: 50%;
-    background: black;
+    background: ${props => props.theme.text};
     cursor: pointer;
   }
 
@@ -163,4 +167,4 @@ const CropButton = styled(Button)`
   width: 300px;
 `;
 
-export default DropToImport;
+export default inject('ui')(ImageUpload);
