@@ -57,9 +57,7 @@ const RealButton = styled.button`
       props.borderOnHover ? 'none' : 'rgba(0, 0, 0, 0.07) 0px 1px 2px'
     };
     border: 1px solid ${
-      props.borderOnHover
-        ? 'transparent'
-        : darken(0.1, props.theme.buttonNeutralBackground)
+      props.borderOnHover ? 'transparent' : props.theme.buttonNeutralBorder
     };
 
     svg {
@@ -68,7 +66,7 @@ const RealButton = styled.button`
 
     &:hover {
       background: ${darken(0.05, props.theme.buttonNeutralBackground)};
-      border: 1px solid ${darken(0.15, props.theme.buttonNeutralBackground)};
+      border: 1px solid ${props.theme.buttonNeutralBorder};
     }
 
     &:focus {
