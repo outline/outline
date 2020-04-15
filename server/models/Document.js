@@ -1,5 +1,4 @@
 // @flow
-import slug from 'slug';
 import { map, find, compact, uniq } from 'lodash';
 import randomstring from 'randomstring';
 import MarkdownSerializer from 'slate-md-serializer';
@@ -12,6 +11,7 @@ import { Collection, User } from '../models';
 import { DataTypes, sequelize } from '../sequelize';
 import parseTitle from '../../shared/utils/parseTitle';
 import unescape from '../../shared/utils/unescape';
+import slugify from '../utils/slugify';
 import Revision from './Revision';
 
 const Op = Sequelize.Op;
@@ -20,18 +20,17 @@ const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
 
 export const DOCUMENT_VERSION = 1;
 
-slug.defaults.mode = 'rfc3986';
-const slugify = text =>
-  slug(text, {
-    remove: /[.]/g,
-  });
-
 const createRevision = (doc, options = {}) => {
   // we don't create revisions for autosaves
   if (options.autosave) return;
 
   // we don't create revisions if identical to previous
-  if (doc.text === doc.previous('text')) return;
+  if (
+    doc.text === doc.previous('text') &&
+    doc.title === doc.previous('title')
+  ) {
+    return;
+  }
 
   return Revision.create(
     {
