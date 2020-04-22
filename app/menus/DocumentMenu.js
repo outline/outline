@@ -123,6 +123,7 @@ class DocumentMenu extends React.Component<Props> {
       document,
       position,
       className,
+      showToggleEmbeds,
       showPrint,
       showPin,
       auth,
@@ -176,6 +177,19 @@ class DocumentMenu extends React.Component<Props> {
           >
             Share link…
           </DropdownMenuItem>
+        )}
+        {showToggleEmbeds && (
+          <React.Fragment>
+            {document.embedsDisabled ? (
+              <DropdownMenuItem onClick={document.enableEmbeds}>
+                Enable embeds
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={document.disableEmbeds}>
+                Disable embeds
+              </DropdownMenuItem>
+            )}
+          </React.Fragment>
         )}
         {canViewHistory && (
           <React.Fragment>
