@@ -1,5 +1,5 @@
 // @flow
-import { action, set, computed } from 'mobx';
+import { action, set, observable, computed } from 'mobx';
 import pkg from 'rich-markdown-editor/package.json';
 import addDays from 'date-fns/add_days';
 import invariant from 'invariant';
@@ -15,7 +15,8 @@ import DocumentsStore from 'stores/DocumentsStore';
 type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
 export default class Document extends BaseModel {
-  isSaving: boolean;
+  @observable isSaving: boolean = false;
+  @observable embedsDisabled: boolean = false;
   store: DocumentsStore;
 
   collaborators: User[];
@@ -108,6 +109,17 @@ export default class Document extends BaseModel {
 
   restore = (revision: Revision) => {
     return this.store.restore(this, revision);
+  };
+
+  @action
+  enableEmbeds = () => {
+    this.embedsDisabled = false;
+  };
+
+  @action
+  disableEmbeds = () => {
+    this.embedsDisabled = true;
+    debugger;
   };
 
   @action

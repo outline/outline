@@ -275,7 +275,8 @@ class DocumentScene extends React.Component<Props> {
       return <Loading location={location} />;
     }
 
-    const disableEmbeds = team && team.documentEmbeds === false;
+    const disableEmbeds =
+      (team && team.documentEmbeds === false) || document.embedsDisabled;
 
     return (
       <ErrorBoundary>
