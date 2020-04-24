@@ -10,6 +10,28 @@ beforeEach(flushdb);
 beforeEach(jest.resetAllMocks);
 
 describe('documents.update', () => {
+  test('should not fail on a document with no previous revisions', async () => {
+    const otherDocument = await buildDocument();
+    const document = await buildDocument({
+      text: `[this is a link](${otherDocument.url})`,
+    });
+
+    await Backlinks.on({
+      name: 'documents.update',
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      data: { autosave: false },
+    });
+
+    const backlinks = await Backlink.findAll({
+      where: { reverseDocumentId: document.id },
+    });
+
+    expect(backlinks.length).toBe(1);
+  });
+
   test('should create new backlink records', async () => {
     const otherDocument = await buildDocument();
     const document = await buildDocument();

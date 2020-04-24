@@ -72,17 +72,24 @@ export default class Backlinks {
         // delete any backlinks that were removed
         await Promise.all(
           removedLinkIds.map(async linkId => {
-            const document = await Document.findByPk(linkId);
-            await Backlink.destroy({
-              where: {
-                documentId: document.id,
-                reverseDocumentId: event.documentId,
-              },
+            const document = await Document.findByPk(linkId, {
+              paranoid: false,
             });
+            if (document) {
+              await Backlink.destroy({
+                where: {
+                  documentId: document.id,
+                  reverseDocumentId: event.documentId,
+                },
+              });
+            }
           })
         );
 
-        if (currentRevision.title === previousRevision.title) {
+        if (
+          !previousRevision ||
+          currentRevision.title === previousRevision.title
+        ) {
           break;
         }
 
