@@ -146,7 +146,7 @@ const Pre = styled.pre`
   background: #f9fbfc;
   border-radius: 4px;
   border: 1px solid #e8ebed;
-  overflow: scroll;
+  overflow: auto;
 `;
 
 const Code = styled.code`
