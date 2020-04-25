@@ -97,7 +97,7 @@ const Container = styled(Flex)`
     left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
     width: ${props => props.theme.sidebarWidth};
     margin: 0;
-    z-index: 2;
+    z-index: 3;
   `};
 `;
 
