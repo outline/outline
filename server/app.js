@@ -94,22 +94,26 @@ if (process.env.SENTRY_DSN) {
     environment: process.env.NODE_ENV,
     maxBreadcrumbs: 0,
   });
+}
 
-  app.on('error', (error, ctx) => {
-    // we don't need to report every time a request stops to the bug tracker
-    if (error.code === 'EPIPE' || error.code === 'ECONNRESET') {
-      console.warn('Connection error', { error });
-      return;
-    }
+app.on('error', (error, ctx) => {
+  // we don't need to report every time a request stops to the bug tracker
+  if (error.code === 'EPIPE' || error.code === 'ECONNRESET') {
+    console.warn('Connection error', { error });
+    return;
+  }
 
+  if (process.env.SENTRY_DSN) {
     Sentry.withScope(function(scope) {
       scope.addEventProcessor(function(event) {
         return Sentry.Handlers.parseRequest(event, ctx.request);
       });
       Sentry.captureException(error);
     });
-  });
-}
+  } else {
+    console.error(error);
+  }
+});
 
 app.use(mount('/auth', auth));
 app.use(mount('/api', api));
