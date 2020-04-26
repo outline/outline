@@ -123,7 +123,7 @@
     "nodemailer": "^4.4.0",
     "outline-icons": "^1.14.0",
     "oy-vey": "^0.10.0",
-    "passport-slack": "^0.0.7",
+    "passport-oauth": "^1.0.0",
     "pg": "^6.1.5",
     "pg-hstore": "2.3.2",
     "polished": "1.2.1",
