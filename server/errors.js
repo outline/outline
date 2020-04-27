@@ -45,3 +45,18 @@ export function ParamRequiredError(
 export function ValidationError(message: string = 'Validation failed') {
   return httpErrors(400, message, { id: 'validation_error' });
 }
+
+export function customError<T>(message: string, init: T) {
+  return class extends Error {
+    data: T;
+    constructor(data?: T) {
+      super(message);
+      this.name = message;
+      if (data) {
+        this.data = data;
+      } else {
+        this.data = init;
+      }
+    }
+  }
+}

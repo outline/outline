@@ -1,57 +1,48 @@
 // @flow
 import Sequelize from 'sequelize';
 import crypto from 'crypto';
-import Router from 'koa-router';
+import Router, { type Context } from 'koa-router';
+import fetch from 'isomorphic-fetch';
+import { mountOAuth2Passport, type DeserializedData } from '../utils/passport';
 import { capitalize } from 'lodash';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Team, Event } from '../models';
 import auth from '../middlewares/authentication';
+import { customError } from "../errors";
 
-const Op = Sequelize.Op;
+const GoogleHDError = customError<string>("google-hd", "");
+const HDNotAllowedError = customError<string>("hd-not-allowed", "");
 
-const router = new Router();
-const client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  `${process.env.URL}/auth/google.callback`
-);
+async function json<T>(input: string | Request | URL, init?: RequestOptions): Promise<T> {
+  const res = await fetch(input, init);
+  return await res.json();
+} 
+
+async function handleAuthorizeFailed(ctx: Context, err: Error) {
+  switch (true) {
+    case err instanceof GoogleHDError:
+    case err instanceof HDNotAllowedError:
+      ctx.redirect(`/?notice=${err.name}`);
+      break;
+    default:
+      throw err;
+  }
+}
+
 const allowedDomainsEnv = process.env.GOOGLE_ALLOWED_DOMAINS;
-
-// start the oauth process and redirect user to Google
-router.get('google', async ctx => {
-  // Generate the url that will be used for the consent dialog.
-  const authorizeUrl = client.generateAuthUrl({
-    access_type: 'offline',
-    scope: [
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',
-    ],
-    prompt: 'consent',
-  });
-  ctx.redirect(authorizeUrl);
-});
-
-// signin callback from Google
-router.get('google.callback', auth({ required: false }), async ctx => {
-  const { code } = ctx.request.query;
-  ctx.assertPresent(code, 'code is required');
-  const response = await client.getToken(code);
-  client.setCredentials(response.tokens);
-
-  const profile = await client.request({
-    url: 'https://www.googleapis.com/oauth2/v1/userinfo',
+async function deserializeGoogleToken(req: Request, accessToken, refreshToken: string): Promise<DeserializedData> {
+  const profile = await json<any>("https://www.googleapis.com/oauth2/v1/userinfo", {
+    authorization: `Bearer ${accessToken}`,
   });
 
   if (!profile.data.hd) {
-    ctx.redirect('/?notice=google-hd');
-    return;
+    throw new GoogleHDError();
   }
 
   // allow all domains by default if the env is not set
   const allowedDomains = allowedDomainsEnv && allowedDomainsEnv.split(',');
   if (allowedDomains && !allowedDomains.includes(profile.data.hd)) {
-    ctx.redirect('/?notice=hd-not-allowed');
-    return;
+    throw new HDNotAllowedError();
   }
 
   const googleId = profile.data.hd;
@@ -70,97 +61,41 @@ router.get('google.callback', auth({ required: false }), async ctx => {
   const cbResponse = await fetch(cbUrl);
   const avatarUrl = cbResponse.status === 200 ? cbUrl : tileyUrl;
 
-  const [team, isFirstUser] = await Team.findOrCreate({
-    where: {
-      googleId,
+  return {
+    _user: {
+      id: profile.data.id,
+      name: profile.data.name,
+      email: profile.data.email,
+      avatarUrl: profile.data.picture,
     },
-    defaults: {
+    _team: {
+      id: profile.data.hd,
       name: teamName,
       avatarUrl,
-    },
-  });
-
-  try {
-    const [user, isFirstSignin] = await User.findOrCreate({
-      where: {
-        [Op.or]: [
-          {
-            service: 'google',
-            serviceId: profile.data.id,
-          },
-          {
-            service: { [Op.eq]: null },
-            email: profile.data.email,
-          },
-        ],
-        teamId: team.id,
-      },
-      defaults: {
-        service: 'google',
-        serviceId: profile.data.id,
-        name: profile.data.name,
-        email: profile.data.email,
-        isAdmin: isFirstUser,
-        avatarUrl: profile.data.picture,
-      },
-    });
-
-    // update the user with fresh details if they just accepted an invite
-    if (!user.serviceId || !user.service) {
-      await user.update({
-        service: 'google',
-        serviceId: profile.data.id,
-        avatarUrl: profile.data.picture,
-      });
     }
-
-    // update email address if it's changed in Google
-    if (!isFirstSignin && profile.data.email !== user.email) {
-      await user.update({ email: profile.data.email });
-    }
-
-    if (isFirstUser) {
-      await team.provisionFirstCollection(user.id);
-      await team.provisionSubdomain(hostname);
-    }
-
-    if (isFirstSignin) {
-      await Event.create({
-        name: 'users.create',
-        actorId: user.id,
-        userId: user.id,
-        teamId: team.id,
-        data: {
-          name: user.name,
-          service: 'google',
-        },
-        ip: ctx.request.ip,
-      });
-    }
-
-    // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, 'google', isFirstSignin);
-  } catch (err) {
-    if (err instanceof Sequelize.UniqueConstraintError) {
-      const exists = await User.findOne({
-        where: {
-          service: 'email',
-          email: profile.data.email,
-          teamId: team.id,
-        },
-      });
-
-      if (exists) {
-        ctx.redirect(`${team.url}?notice=email-auth-required`);
-      } else {
-        ctx.redirect(`${team.url}?notice=auth-error`);
-      }
-
-      return;
-    }
-
-    throw err;
   }
-});
+}
+
+const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
+  "google", 
+  deserializeGoogleToken, 
+  {
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    tokenURL: "https://oauth2.googleapis.com/token",
+    authorizationURL: "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent",
+    column: "googleId",
+    scopes: [
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email',
+    ],
+    authorizeFailedHook: [handleAuthorizeFailed],
+  },
+);
+
+const Op = Sequelize.Op;
+const router = new Router();
+router.get('google', authorizeHandler);
+router.get('google.callback', ...callbackHandlers);
 
 export default router;

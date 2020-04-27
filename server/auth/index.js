@@ -7,10 +7,10 @@ import auth from '../middlewares/authentication';
 import addMonths from 'date-fns/add_months';
 import { Team } from '../models';
 import { stripSubdomain } from '../../shared/utils/domains';
-import { strategies } from './strategies';
 
 import slack from './slack';
 import google from './google';
+import discord from './discord';
 import email from './email';
 
 const app = new Koa();
@@ -19,14 +19,7 @@ const router = new Router();
 router.use('/', slack.routes());
 router.use('/', google.routes());
 router.use('/', email.routes());
-
-Object.keys(strategies)
-  .map(name => ({ name, construct: strategies[name] }))
-  .forEach((strategy) => {
-    const strategyRouter = new Router();
-    strategy.construct(strategyRouter);
-    router.use('/', strategyRouter.routes());
-});
+router.use('/', discord.routes());
 
 router.get('/redirect', auth(), async ctx => {
   const user = ctx.state.user;

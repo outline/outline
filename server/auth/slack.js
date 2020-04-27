@@ -1,6 +1,8 @@
 // @flow
 import Sequelize from 'sequelize';
 import Router from 'koa-router';
+import fetch from 'isomorphic-fetch';
+import { mountOAuth2Passport, type DeserializedData } from '../utils/passport';
 import auth from '../middlewares/authentication';
 import addHours from 'date-fns/add_hours';
 import { stripSubdomain } from '../../shared/utils/domains';
@@ -15,133 +17,49 @@ import {
 } from '../models';
 import * as Slack from '../slack';
 
-const Op = Sequelize.Op;
-const router = new Router();
+async function deserializeSlackToken(req: Request, accessToken, refreshToken: string): Promise<DeserializedData> {
+  const response = await fetch(
+    `https://slack.com/api/users.identity?token=${accessToken}`
+  );
 
-// start the oauth process and redirect user to Slack
-router.get('slack', async ctx => {
-  const state = Math.random()
-    .toString(36)
-    .substring(7);
-
-  ctx.cookies.set('state', state, {
-    httpOnly: false,
-    expires: addHours(new Date(), 1),
-    domain: stripSubdomain(ctx.request.hostname),
-  });
-  ctx.redirect(slackAuth(state));
-});
-
-// signin callback from Slack
-router.get('slack.callback', auth({ required: false }), async ctx => {
-  const { code, error, state } = ctx.request.query;
-  ctx.assertPresent(code || error, 'code is required');
-  ctx.assertPresent(state, 'state is required');
-
-  if (state !== ctx.cookies.get('state')) {
-    ctx.redirect('/?notice=auth-error&error=state_mismatch');
-    return;
-  }
-  if (error) {
-    ctx.redirect(`/?notice=auth-error&error=${error}`);
-    return;
+  const data = await response.json();
+  if (!data.ok) {
+    throw new Error("failed to import");
   }
 
-  const data = await Slack.oauthAccess(code);
-
-  const [team, isFirstUser] = await Team.findOrCreate({
-    where: {
-      slackId: data.team.id,
+  return {
+    _user: {
+      id: data.user.id,
+      name: data.user.name,
+      email: data.user.email,
+      avatarUrl: data.user.image_192,
     },
-    defaults: {
+    _team: {
+      id: data.team.id,
       name: data.team.name,
       avatarUrl: data.team.image_88,
     },
-  });
+  };
+} 
 
-  try {
-    const [user, isFirstSignin] = await User.findOrCreate({
-      where: {
-        [Op.or]: [
-          {
-            service: 'slack',
-            serviceId: data.user.id,
-          },
-          {
-            service: { [Op.eq]: null },
-            email: data.user.email,
-          },
-        ],
-        teamId: team.id,
-      },
-      defaults: {
-        service: 'slack',
-        serviceId: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        isAdmin: isFirstUser,
-        avatarUrl: data.user.image_192,
-      },
-    });
+const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
+  "slack", 
+  deserializeSlackToken, 
+  {
+    clientID: process.env.SLACK_KEY,
+    clientSecret: process.env.SLACK_SECRET,
+    tokenURL: "https://slack.com/api/oauth.access",
+    authorizationURL: "https://slack.com/oauth/authorize",
+    scopes: ["identity.basic", "identity.email", "identity.avatar", "identity.team"],
+    column: "slackId",
+  },
+);
 
-    // update the user with fresh details if they just accepted an invite
-    if (!user.serviceId || !user.service) {
-      await user.update({
-        service: 'slack',
-        serviceId: data.user.id,
-        avatarUrl: data.user.image_192,
-      });
-    }
+const Op = Sequelize.Op;
+const router = new Router();
 
-    // update email address if it's changed in Slack
-    if (!isFirstSignin && data.user.email !== user.email) {
-      await user.update({ email: data.user.email });
-    }
-
-    if (isFirstUser) {
-      await team.provisionFirstCollection(user.id);
-      await team.provisionSubdomain(data.team.domain);
-    }
-
-    if (isFirstSignin) {
-      await Event.create({
-        name: 'users.create',
-        actorId: user.id,
-        userId: user.id,
-        teamId: team.id,
-        data: {
-          name: user.name,
-          service: 'slack',
-        },
-        ip: ctx.request.ip,
-      });
-    }
-
-    // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, 'slack', isFirstSignin);
-  } catch (err) {
-    if (err instanceof Sequelize.UniqueConstraintError) {
-      const exists = await User.findOne({
-        where: {
-          service: 'email',
-          email: data.user.email,
-          teamId: team.id,
-        },
-      });
-
-      if (exists) {
-        ctx.redirect(`${team.url}?notice=email-auth-required`);
-      } else {
-        ctx.redirect(`${team.url}?notice=auth-error`);
-      }
-
-      return;
-    }
-
-    throw err;
-  }
-});
-
+router.get("slack", authorizeHandler);
+router.get("slack.callback", ...callbackHandlers);
 router.get('slack.commands', auth({ required: false }), async ctx => {
   const { code, state, error } = ctx.request.query;
   const user = ctx.state.user;

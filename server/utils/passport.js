@@ -8,57 +8,172 @@ import { User, Team, Event } from '../models';
 import * as crypto from 'crypto';
 import addHours from 'date-fns/add_hours';
 
-export function mountNativePassport(service: string, strategy: any, opts: {
+type TPossiblyArray<T> = T | Array<T>;
+type ContextVoidHookSet = TPossiblyArray<(ctx: Context) => Promise<void> | void>;
+type PassportNoErrHookSet = TPossiblyArray<(ctx: Context, result: any, info: string, status: string) => Promise<void> | void>;
+type PassportErrHookSet = TPossiblyArray<(ctx: Context, err: Error, result: ?any, info: ?string, status: ?string) => Promise<void> | void>;
+
+export type NativePassportOptions = {
+
+  // authorizeRequest is by default true.
+  // Set to false to disable authorization.
   authorizeRequest?: bool,
-  preAuthorizeHook?: (ctx: Context) => Promise<void> | void,
-  postAuthorizeHook?: (ctx: Context) => Promise<void> | void,
-  authorizeSucceededHook?: (ctx: Context, result: any, info: string, status: string) => Promise<void> | void,
-  authorizeFailedHook?: (ctx: Context, err: Error, result: any, info: string, status: string) => Promise<void> | void,
-} = { authorizeRequest: true }) {
+
+  // preAuthorizeHook is a set of hooks which
+  // run before the passport.authorize() is 
+  // called. Use it to validate the request
+  preAuthorizeHook?: ContextVoidHookSet,
+
+  // postAuthorizeHook is a set of hooks which
+  // run after passport.authorize() was called 
+  // and when no errors occured.
+  postAuthorizeHook?: ContextVoidHookSet,
+
+  // authorizeSucceededHook is a set of hooks 
+  // which process the passport.authorize() 
+  // results. Throwing errors here will stop the 
+  // authorizeSucceededHook queue of pending hooks 
+  // and start the authorizeFailedHook queue. 
+  // Ultimatively, if not handled, the error will 
+  // bubble up to the general koa error handler.
+  // If you want to define your own errors, so that
+  // your custom authorizeFailedHook can identify it,
+  // using customError() from ./errors.js
+  authorizeSucceededHook?: PassportNoErrHookSet,
+
+  // authorizeFailedHook is a set of hooks
+  // which process errors from either
+  // passport.authorize() or from the 
+  // authorizeSucceededHooks. If one handled the error,
+  // it is supposed to just return. If one is not
+  // responsible for handling the error, it is 
+  // supposed to throw the error again.
+  // Ultimatively, if not handled, the error will 
+  // bubble up to the general koa error handler
+  authorizeFailedHook?: PassportErrHookSet,
+}
+
+export function mountNativePassport(service: string, strategy: any, opts: NativePassportOptions = { authorizeRequest: true }) {
+
+  // ensure that opts.xxxHook are actually arrays
+  if (opts.preAuthorizeHook && !(opts.preAuthorizeHook instanceof Array)) {
+    opts.preAuthorizeHook = [opts.preAuthorizeHook];
+  }
+  if (opts.postAuthorizeHook && !(opts.postAuthorizeHook instanceof Array)) {
+    opts.postAuthorizeHook = [opts.postAuthorizeHook];
+  }
+  if (opts.authorizeSucceededHook && !(opts.authorizeSucceededHook instanceof Array)) {
+    opts.authorizeSucceededHook = [opts.authorizeSucceededHook];
+  }
+  if (opts.authorizeFailedHook && !(opts.authorizeFailedHook instanceof Array)) {
+    opts.authorizeFailedHook = [opts.authorizeFailedHook];
+  }
 
   passport.use(service, strategy);
-  return [passport.authenticate(service), [auth({ required: false }), async ctx => {
-    if (opts.preAuthorizeHook) {
-      try {
-        await opts.preAuthorizeHook(ctx);
-      } catch(err) {
-        return;
-      }
-    }
+  return [
+    /*
+     * passport.authenticate(service) is called to initiate 
+     * the authentication process. In OAuth2-processes, this
+     * includes generating a state parameter and redirecting
+     * to the authentication provider 
+     */
+    passport.authenticate(service),
 
-    if (opts.authorizeRequest) {
-      try {
-        const { err, result, info, status } = await new Promise((resolve, reject) => {
-          passport.authorize(service, (err: Error, result: any, info: string, status: string) => {
-            resolve({
-              err: err,
-              result: result,
-              info: info,
-              status: status,
-            });
-          })
-        });
-        if (err && opts.authorizeFailedHook) {
-          await opts.authorizeFailedHook(err, result, info, status);
-        } else {
-          await opts.authorizeSucceededHook(result, info, status);
+    /*
+     * These handlers are the callback handlers. 
+     * auth({ required: false}) appends the ctx.signIn() method.
+     * The custom handler uses a sophisticated routing structure
+     * to execute all hooks and call a awaitable
+     * passport.authorize(). The wrapped passport method should
+     * never reject, we will take care of that in our
+     * authorizeFailedHooks.
+     */
+    [auth({ required: false }), async (ctx: Context) => {
+
+      // Call the preAuthorizeHooks if present. If something is
+      // thrown in them, it will instantly bubble up to the global
+      // koa handler.
+      if (opts.preAuthorizeHook && /* ensure type no-op */ opts.preAuthorizeHook instanceof Array) {
+        for(let i = 0; i < opts.preAuthorizeHook.length; i++) {
+          await opts.preAuthorizeHook[i](ctx);
         }
-      } catch(err) {
-        if (opts.authorizeFailedHook) {
-          await opts.authorizeFailedHook(err);
-        } else {
+      }
+
+      if (opts.authorizeRequest) {
+        let srcErr: Error;
+        let errSrcIsErrHook = false;
+        try {
+          
+          // extract the authorize results from passport
+          const { err, result, info, status } = await new Promise((resolve, reject) => {
+            passport.authorize(service, (err: Error, result: any, info: string, status: string) => {
+              resolve({ err, result, info, status });
+            })
+          });
+          srcErr = err;
+
+          if (err) {
+
+            // [1] If there was an error, handle if possible. Otherwise throw it.
+            // By throwing the error in the fail hook, it indicates that it is 
+            // not responsible for handling. If it throws another error
+            // something bad happend, so the error is thrown in [2]. If nothing happens,
+            // the error must be resolved. Because there was an error, the postAuthorizeHook
+            // won't be called, so return.
+            if (opts.authorizeFailedHook && /* ensure type no-op */ opts.authorizeFailedHook instanceof Array) {
+              if (opts.authorizeFailedHook.length > 0) {
+                errSrcIsErrHook = true;
+                await opts.authorizeFailedHook[0](ctx, err, result, info, status);
+                return;
+              }
+            }
+
+            // Error was not handled here, try to handle it in the catch handler.
+            throw err;
+          } else if (opts.authorizeSucceededHook && /* ensure type no-op */ opts.authorizeSucceededHook instanceof Array) {
+            for (let i = 0; i < opts.authorizeSucceededHook.length; i++) {
+              await opts.authorizeSucceededHook[i](ctx, result, info, status);
+            }
+          }
+        } catch(err) {
+
+          // [2] Throw the error if it is not the actual srcErr
+          // from passport
+          if (errSrcIsErrHook && err !== srcErr) {
+            throw err;
+          }
+
+          if (opts.authorizeFailedHook && /* ensure type no-op */ opts.authorizeFailedHook instanceof Array) {
+            if (opts.authorizeFailedHook.length > 1) {
+              for (let i = 1; i < opts.authorizeFailedHook.length; i++) {
+
+                // You can find an explanation on what happens here above at [1]
+                try {
+                  await opts.authorizeFailedHook[i](ctx, err);
+                  return;
+                } catch(intermediateError) {
+                  if (err !== intermediateError) {
+                    // Something else happend, bubble up.
+                    throw intermediateError;
+                  }
+                }
+              }
+            }
+          }
+
+          // Something was not handled, bubble up.
           throw err;
         }
       }
-    }
 
-     if (opts.postAuthorizeHook) {
-      try {
-        await opts.postAuthorizeHook(ctx);
-      } catch(err) {
-        return;
+      // Call the postAuthorizeHooks if present. If something is
+      // thrown in them, it will instantly bubble up to the global
+      // koa handler.
+      if (opts.postAuthorizeHook && /* ensure type no-op */ opts.postAuthorizeHook instanceof Array) {
+        for (let i = 0; i < opts.postAuthorizeHook.length; i++) {
+          await opts.postAuthorizeHook[i](ctx);
+        }
       }
-    }
   }]];
 }
 
@@ -123,57 +238,57 @@ StateStore.prototype.verify = function(
   callback(null, true);
 };
 
-export type Deserialized = {
-  user: {
+export type DeserializedData = {
+  _user: {
     id: string,
     name: string,
     email: string,
     avatarUrl: string,
   },
-  team: {
+  _team: {
     id: string,
     name: string,
     avatarUrl: string,
-  }
+  },
 }
 
-export type DeserializedUser = {
-  id: string,
-  name: string,
-  email: string,
-  avatarUrl: string,
-}
+export type DeserializeTokenFn = (req: Request, accessToken: string, refreshToken: string) => Promise<DeserializedData> | DeserializedData;
 
-export type DeserializedTeam = {
-  id: string,
-  name: string,
-  avatarUrl: string,
-}
-
-export type DeserializeTokenFn = (accessToken: string, refreshToken: string) => Promise<{
-  user: DeserializedUser,
-  team: DeserializedTeam,
-}>
-
-type AuthorizationResult = {
+type AuthorizationResult = DeserializedData & {
   user: User,
   isNewUser: boolean,
-  rawUser: DeserializedUser,
   team: Team,
   isNewTeam: boolean,
-  rawTeam: DeserializedTeam,
 }
 
-export function mountOAuth2Passport(service: string, deserializeToken: DeserializeTokenFn, opts: {
+export type OAuth2PassportOptions = NativePassportOptions & {
   clientID: string,
   clientSecret: string,
   tokenURL: string,
   authorizationURL: string,
   callbackURL?: string,
-  scopes?: string[],
+  scope?: string[],
+  scopeSeparator?: string,
   state?: string,
   column: 'slackId' | 'googleId',
-}) {
+}
+
+const Op = Sequelize.Op;
+export function mountOAuth2Passport(service: string, deserializeToken: DeserializeTokenFn, opts: OAuth2PassportOptions) {
+
+  // ensure that opts.xxxHook are actually arrays
+  if (opts.preAuthorizeHook && !(opts.preAuthorizeHook instanceof Array)) {
+    opts.preAuthorizeHook = [opts.preAuthorizeHook];
+  }
+  if (opts.postAuthorizeHook && !(opts.postAuthorizeHook instanceof Array)) {
+    opts.postAuthorizeHook = [opts.postAuthorizeHook];
+  }
+  if (opts.authorizeSucceededHook && !(opts.authorizeSucceededHook instanceof Array)) {
+    opts.authorizeSucceededHook = [opts.authorizeSucceededHook];
+  }
+  if (opts.authorizeFailedHook && !(opts.authorizeFailedHook instanceof Array)) {
+    opts.authorizeFailedHook = [opts.authorizeFailedHook];
+  }
 
   // Validate state parameter before authorizing
   async function preAuthorizeHook(ctx: Context) {
@@ -198,7 +313,7 @@ export function mountOAuth2Passport(service: string, deserializeToken: Deseriali
   }
 
   // Called when authorization failed
-  async function authorizeFailedHook(ctx: Context, err: Error, result: AuthorizationResult, info: string, status: string) {
+  async function authorizeFailedHook(ctx: Context, err: Error, result: ?AuthorizationResult, info: ?string, status: ?string) {
     if (result && result.user && result.team && err instanceof Sequelize.UniqueConstraintError) {
       const exists = await User.findOne({
         where: {
@@ -209,102 +324,134 @@ export function mountOAuth2Passport(service: string, deserializeToken: Deseriali
       });
 
       if (exists) {
-        ctx.redirect(`${team.url}?notice=email-auth-required`);
+        ctx.redirect(`${result.team.url}?notice=email-auth-required`);
       } else {
-        ctx.redirect(`${team.url}?notice=auth-error`);
+        ctx.redirect(`${result.team.url}?notice=auth-error`);
       }
 
       return;
     }
 
-    // will bubble through passport onto the koa stack handler
+    // will bubble through passport and maybe to the koa stack handler
     throw err;
   }
 
   // Called by passport.js when accessToken and refreshToken were obtained
-  async function importUser(accessToken: string, refreshToken: string, _: any, done: (err: ?Error, result: AuthorizationResult) => void) {
-    
+  async function importUser(req: Request, accessToken: string, refreshToken: string, _: any, done: (err: ?Error, result: AuthorizationResult) => void) {
+
     let err: ?Error;
-    let result: AuthorizationResult = {};
+    let data: AuthorizationResult = {
+      user: null,
+      team: null,
+      isNewUser: false,
+      isNewTeam: false,
+
+      // $FlowIssue
+      _user: {},
+
+      // $FlowIssue
+      _team: {}
+    }
     try {
-      const { rawUser, rawTeam } = await deserializeToken(accessToken, refreshToken);
-      result = { ...result, rawUser, rawTeam };
+      data = {
+        ... data,
+        ... (await deserializeToken(req, accessToken, refreshToken)),
+      }
 
       const [team, isNewTeam] = await Team.findOrCreate({
         where: {
-          [opts.column || 'slackId']: rawTeam.id,
+          [opts.column || 'slackId']: data._team.id,
         },
         defaults: {
-          name: rawTeam.name,
-          avatarUrl: rawTeam.avatarUrl,
+          name: data._team.name,
+          avatarUrl: data._team.avatarUrl,
         },
       });
-      result = { ...result, team, isNewTeam };
-
+      data = {...data, team, isNewTeam}
+      
       const [user, isNewUser] = await User.findOrCreate({
         where: {
           [Op.or]: [
             {
               service: service,
-              serviceId: rawUser.id,
+              serviceId: data._user.id,
             },
             {
               service: { [Op.eq]: null },
-              email: rawUser.email,
+              email: data._user.email,
             },
           ],
           teamId: team.id,
         },
         defaults: {
           service: service,
-          serviceId: rawUser.id,
-          name: rawUser.name,
-          email: rawUser.email,
+          serviceId: data._user.id,
+          name: data._user.name,
+          email: data._user.email,
           isAdmin: isNewTeam,
-          avatarUrl: rawUser.avatarUrl,
+          avatarUrl: data._user.avatarUrl,
         },
       });
-      result = { ...result, user, isNewUser };
+      data = { ...data, user, isNewUser };
 
       // update the user with fresh details if they just accepted an invite
       if (!user.serviceId || !user.service) {
         await user.update({
           service: service,
-          serviceId: rawUser.id,
-          avatarUrl: rawUser.avatarUrl,
+          serviceId: data._user.id,
+          avatarUrl: data._user.avatarUrl,
         });
       }
 
       // update email address if it's changed
-      if (!isFirstSignin && rawUser.email !== user.email) {
-        await user.update({ email: rawUser.email });
+      if (!isNewUser && data._user.email !== user.email) {
+        await user.update({ email: data._user.email });
       }
 
       if (isNewTeam) {
         await team.provisionFirstCollection(user.id);
         await team.provisionSubdomain(team.domain);
       }
+
+      if (isNewUser) {
+        await Event.create({
+          name: 'users.create',
+          actorId: user.id,
+          userId: user.id,
+          teamId: team.id,
+          data: {
+            name: user.name,
+            service: service,
+          },
+          // $FlowIssue
+          ip: req.connection.remoteAddress,
+        });
+      }
     } catch(caughtError) {
-      err = caughtError;
+      err = caughtError
     }
 
-    return done(err, result);
+    return done(err, data);
   }
 
   const strategy = new OAuth2Strategy({
-    clientID: opts.clientId,
+    clientID: opts.clientID,
     clientSecret: opts.clientSecret,
-    tokenURL: opts.tokenUrl,
+    tokenURL: opts.tokenURL,
     authorizationURL: opts.authorizationURL,
     callbackURL: opts.callbackURL || `${process.env.URL || ''}/auth/${service}.callback`,
     state: true,
-    store: new StateStore({ key: opts.state || 'state' });
+    store: new StateStore({ key: opts.state || 'state' }),
+    scope:opts.scope,
+    scopeSeparator: opts.scopeSeparator,
+    passReqToCallback: true,
   }, importUser);
 
   return mountNativePassport(service, strategy, {
     authorizeRequest: true,
-    preAuthorizeHook: preAuthorizeHook,
-    authorizeSucceededHook: authorizeSucceededHook,
-    authorizeFailedHook: authorizeFailedHook,
+    preAuthorizeHook: [ ...(opts.preAuthorizeHook || []), preAuthorizeHook],
+    postAuthorizeHook: opts.postAuthorizeHook,
+    authorizeSucceededHook: [authorizeSucceededHook, ...(opts.authorizeSucceededHook || [])],
+    authorizeFailedHook: [authorizeFailedHook, ...(opts.authorizeFailedHook || [])],
   });
 }
