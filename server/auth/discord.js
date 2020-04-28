@@ -53,22 +53,24 @@ async function deserializeDiscordToken(accessToken, refreshToken: string): Promi
   };
 }
 
-const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
-  "discord", 
-  deserializeDiscordToken, 
-  {
-    clientID: process.env.DISCORD_CLIENT_ID,
-    clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    tokenURL: 'https://discordapp.com/api/oauth2/token',
-    authorizationURL: 'https://discordapp.com/api/oauth2/authorize',
-    scope: ["identify", "email", "guilds"],
-    column: 'slackId',
-    authorizeFailedHook: [handleAuthorizeFailed],
-  },
-);
-
 const router = new Router();
-router.get('discord', authorizeHandler);
-router.get('discord.callback', ...callbackHandlers);
+if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
+  const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
+    "discord", 
+    deserializeDiscordToken, 
+    {
+      clientID: process.env.DISCORD_CLIENT_ID,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET,
+      tokenURL: 'https://discordapp.com/api/oauth2/token',
+      authorizationURL: 'https://discordapp.com/api/oauth2/authorize',
+      scope: ["identify", "email", "guilds"],
+      column: 'slackId',
+      authorizeFailedHook: [handleAuthorizeFailed],
+    },
+  );
+
+  router.get('discord', authorizeHandler);
+  router.get('discord.callback', ...callbackHandlers);
+}
 
 export default router;
