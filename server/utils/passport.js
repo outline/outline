@@ -336,7 +336,7 @@ export type OAuth2PassportOptions = NativePassportOptions<AuthorizationResult> &
   authorizationURL: string,
   callbackURL?: string,
   scope?: string[],
-  customHeaders: { [x: string]: any },
+  customHeaders?: { [x: string]: any },
   scopeSeparator?: string,
   state?: string,
   column: 'slackId' | 'googleId',
