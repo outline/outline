@@ -16,12 +16,14 @@ type ContextVoidHookSet = TPossiblyArray<(ctx: Context) => Promise<void> | void>
 // eslint-disable-next-line prettier/prettier
 type PassportNoErrHookSet<R> = TPossiblyArray<(ctx: Context, result: R, info: string, status: string) => Promise<void> | void>;
 // eslint-disable-next-line prettier/prettier
+type PassportNoErrPossiblyVoidHookSet<R> = TPossiblyArray<(ctx: Context, result: ?R, info: ?string, status: ?string) => Promise<void> | void>;
+// eslint-disable-next-line prettier/prettier
 type PassportErrHookSet<R> = TPossiblyArray<(ctx: Context, err: Error, result: ?R, info: ?string, status: ?string) => Promise<void> | void>;
 
 export type NativePassportOptions<R> = {
   // authorizeRequest is by default true.
   // Set to false to disable authorization.
-  authorizeRequest?: booleanean,
+  authorizeRequest?: boolean,
 
   // preAuthorizeHook is a set of hooks which
   // run before the passport.authorize() is
@@ -31,7 +33,7 @@ export type NativePassportOptions<R> = {
   // postAuthorizeHook is a set of hooks which
   // run after passport.authorize() was called
   // and when no errors occured.
-  postAuthorizeHook?: PassportNoErrHookSet<R>,
+  postAuthorizeHook?: PassportNoErrPossiblyVoidHookSet<R>,
 
   // authorizeSucceededHook is a set of hooks
   // which process the passport.authorize()
@@ -117,9 +119,9 @@ export function mountNativePassport<R>(
           }
         }
 
-        let succeededResult: R;
-        let succeededInfo: string;
-        let succeededStatus: string;
+        let srcResult: R;
+        let srcInfo: string;
+        let srcStatus: string;
 
         if (opts.authorizeRequest) {
           let srcErr: Error;
@@ -137,6 +139,9 @@ export function mountNativePassport<R>(
               }
             );
             srcErr = err;
+            srcResult = result;
+            srcInfo = info;
+            srcStatus = status;
 
             if (err) {
               // [1] If there was an error, handle if possible. Otherwise throw it.
@@ -173,11 +178,6 @@ export function mountNativePassport<R>(
               for (let i = 0; i < opts.authorizeSucceededHook.length; i++) {
                 await opts.authorizeSucceededHook[i](ctx, result, info, status);
               }
-
-              // set values for postAuthorizeHook
-              succeededResult = result;
-              succeededInfo = info;
-              succeededStatus = status;
             }
           } catch (err) {
             // [2] Throw the error if it is not the actual srcErr
@@ -194,7 +194,13 @@ export function mountNativePassport<R>(
                 for (let i = 1; i < opts.authorizeFailedHook.length; i++) {
                   // You can find an explanation on what happens here above at [1]
                   try {
-                    await opts.authorizeFailedHook[i](ctx, err);
+                    await opts.authorizeFailedHook[i](
+                      ctx,
+                      err,
+                      srcResult,
+                      srcInfo,
+                      srcStatus
+                    );
                     return;
                   } catch (intermediateError) {
                     if (err !== intermediateError) {
@@ -219,12 +225,7 @@ export function mountNativePassport<R>(
           /* ensure type no-op */ opts.postAuthorizeHook instanceof Array
         ) {
           for (let i = 0; i < opts.postAuthorizeHook.length; i++) {
-            await opts.postAuthorizeHook[i](
-              ctx,
-              succeededResult,
-              succeededInfo,
-              succeededStatus
-            );
+            await opts.postAuthorizeHook[i](ctx, srcResult, srcInfo, srcStatus);
           }
         }
       },
@@ -327,7 +328,8 @@ type AuthorizationResult = DeserializedData & {
   isNewTeam: boolean,
 };
 
-export type OAuth2PassportOptions = NativePassportOptions & {
+// eslint-disable-next-line prettier/prettier
+export type OAuth2PassportOptions = NativePassportOptions<AuthorizationResult> & {
   clientID: string,
   clientSecret: string,
   tokenURL: string,
@@ -406,9 +408,9 @@ export function mountOAuth2Passport(
   // Called when succeeded. Use it to get access to the ctx object.
   async function postAuthorizeHook(
     ctx: Context,
-    result: AuthorizationResult,
-    info: string,
-    status: string
+    result: ?AuthorizationResult,
+    info: ?string,
+    status: ?string
   ) {
     if (result && result.user && result.team && result.isNewUser) {
       await Event.create({
@@ -468,10 +470,12 @@ export function mountOAuth2Passport(
 
           return;
         }
+        break;
       default:
-        // will bubble through passport and maybe to the koa stack handler
-        throw err;
+        break;
     }
+    // will bubble through passport and maybe to the koa stack handler
+    throw err;
   }
 
   // Called by passport.js when accessToken and refreshToken were obtained

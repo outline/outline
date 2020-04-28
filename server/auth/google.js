@@ -36,15 +36,11 @@ async function deserializeGoogleToken(
   accessToken,
   refreshToken: string
 ): Promise<DeserializedData> {
-  const profile =
-    (await json) <
-    any >
-    ('https://www.googleapis.com/oauth2/v1/userinfo',
-    {
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-      },
-    });
+  const profile = await json('https://www.googleapis.com/oauth2/v1/userinfo', {
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   if (!profile.data.hd) {
     throw new GoogleHDError();
