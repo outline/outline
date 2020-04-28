@@ -1,22 +1,24 @@
 // @flow
-import Sequelize from 'sequelize';
 import crypto from 'crypto';
 import Router, { type Context } from 'koa-router';
 import fetch from 'isomorphic-fetch';
 import { mountOAuth2Passport, type DeserializedData } from '../utils/passport';
 import { capitalize } from 'lodash';
-import { OAuth2Client } from 'google-auth-library';
-import { User, Team, Event } from '../models';
-import auth from '../middlewares/authentication';
-import { customError } from "../errors";
+import { customError } from '../errors';
 
-class GoogleHDError extends customError("GoogleHDError", "google-hd") {}
-class HDNotAllowedError extends customError("HDNotAllowedError", "hd-not-allowed") {}
+class GoogleHDError extends customError('GoogleHDError', 'google-hd') {}
+class HDNotAllowedError extends customError(
+  'HDNotAllowedError',
+  'hd-not-allowed'
+) {}
 
-async function json<T>(input: string | Request | URL, init?: RequestOptions): Promise<T> {
+async function json<T>(
+  input: string | Request | URL,
+  init?: RequestOptions
+): Promise<T> {
   const res = await fetch(input, init);
   return await res.json();
-} 
+}
 
 async function handleAuthorizeFailed(ctx: Context, err: Error) {
   switch (true) {
@@ -30,12 +32,19 @@ async function handleAuthorizeFailed(ctx: Context, err: Error) {
 }
 
 const allowedDomainsEnv = process.env.GOOGLE_ALLOWED_DOMAINS;
-async function deserializeGoogleToken(accessToken, refreshToken: string): Promise<DeserializedData> {
-  const profile = await json<any>("https://www.googleapis.com/oauth2/v1/userinfo", {
-    headers: {
-      authorization: `Bearer ${accessToken}`,
-    }
-  });
+async function deserializeGoogleToken(
+  accessToken,
+  refreshToken: string
+): Promise<DeserializedData> {
+  const profile =
+    (await json) <
+    any >
+    ('https://www.googleapis.com/oauth2/v1/userinfo',
+    {
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
 
   if (!profile.data.hd) {
     throw new GoogleHDError();
@@ -74,28 +83,28 @@ async function deserializeGoogleToken(accessToken, refreshToken: string): Promis
       id: profile.data.hd,
       name: teamName,
       avatarUrl,
-    }
-  }
+    },
+  };
 }
 
-const Op = Sequelize.Op;
 const router = new Router();
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
-    "google", 
-    deserializeGoogleToken, 
+    'google',
+    deserializeGoogleToken,
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      tokenURL: "https://oauth2.googleapis.com/token",
-      authorizationURL: "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent",
-      column: "googleId",
+      tokenURL: 'https://oauth2.googleapis.com/token',
+      authorizationURL:
+        'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent',
+      column: 'googleId',
       scope: [
         'https://www.googleapis.com/auth/userinfo.profile',
         'https://www.googleapis.com/auth/userinfo.email',
       ],
       authorizeFailedHook: [handleAuthorizeFailed],
-    },
+    }
   );
 
   router.get('google', authorizeHandler);

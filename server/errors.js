@@ -46,13 +46,13 @@ export function ValidationError(message: string = 'Validation failed') {
   return httpErrors(400, message, { id: 'validation_error' });
 }
 
-export function customError<T>(name: string, message: string) {
+export function customError(name: string, message: string) {
   class ExtendableError {
     name: string;
     message: string;
     stack: string;
     constructor(message: string) {
-      this.name = "ExtendableError";
+      this.name = 'ExtendableError';
       this.message = message;
       this.stack = new Error().stack;
     }
@@ -68,5 +68,5 @@ export function customError<T>(name: string, message: string) {
       super(message);
       this.name = name;
     }
-  }
+  };
 }

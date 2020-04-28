@@ -1,30 +1,22 @@
 // @flow
-import Sequelize from 'sequelize';
 import Router from 'koa-router';
 import fetch from 'isomorphic-fetch';
 import { mountOAuth2Passport, type DeserializedData } from '../utils/passport';
 import auth from '../middlewares/authentication';
-import addHours from 'date-fns/add_hours';
-import { stripSubdomain } from '../../shared/utils/domains';
-import { slackAuth } from '../../shared/utils/routeHelpers';
-import {
-  Authentication,
-  Collection,
-  Integration,
-  User,
-  Event,
-  Team,
-} from '../models';
+import { Authentication, Collection, Integration, Team } from '../models';
 import * as Slack from '../slack';
 
-async function deserializeSlackToken(accessToken, refreshToken: string): Promise<DeserializedData> {
+async function deserializeSlackToken(
+  accessToken,
+  refreshToken: string
+): Promise<DeserializedData> {
   const response = await fetch(
     `https://slack.com/api/users.identity?token=${accessToken}`
   );
 
   const data = await response.json();
   if (!data.ok) {
-    throw new Error("failed to import");
+    throw new Error('failed to import');
   }
 
   return {
@@ -40,27 +32,30 @@ async function deserializeSlackToken(accessToken, refreshToken: string): Promise
       avatarUrl: data.team.image_88,
     },
   };
-} 
+}
 
-const Op = Sequelize.Op;
 const router = new Router();
-
 if (process.env.SLACK_KEY && process.env.SLACK_SECRET) {
   const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
-    "slack", 
-    deserializeSlackToken, 
+    'slack',
+    deserializeSlackToken,
     {
       clientID: process.env.SLACK_KEY,
       clientSecret: process.env.SLACK_SECRET,
-      tokenURL: "https://slack.com/api/oauth.access",
-      authorizationURL: "https://slack.com/oauth/authorize",
-      scope: ["identity.basic", "identity.email", "identity.avatar", "identity.team"],
-      column: "slackId",
-    },
+      tokenURL: 'https://slack.com/api/oauth.access',
+      authorizationURL: 'https://slack.com/oauth/authorize',
+      scope: [
+        'identity.basic',
+        'identity.email',
+        'identity.avatar',
+        'identity.team',
+      ],
+      column: 'slackId',
+    }
   );
 
-  router.get("slack", authorizeHandler);
-  router.get("slack.callback", ...callbackHandlers);
+  router.get('slack', authorizeHandler);
+  router.get('slack.callback', ...callbackHandlers);
 }
 
 router.get('slack.commands', auth({ required: false }), async ctx => {
