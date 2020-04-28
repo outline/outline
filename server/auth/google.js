@@ -10,8 +10,8 @@ import { User, Team, Event } from '../models';
 import auth from '../middlewares/authentication';
 import { customError } from "../errors";
 
-const GoogleHDError = customError<string>("google-hd", "");
-const HDNotAllowedError = customError<string>("hd-not-allowed", "");
+class GoogleHDError extends customError("GoogleHDError", "google-hd") {}
+class HDNotAllowedError extends customError("HDNotAllowedError", "hd-not-allowed") {}
 
 async function json<T>(input: string | Request | URL, init?: RequestOptions): Promise<T> {
   const res = await fetch(input, init);
@@ -30,9 +30,11 @@ async function handleAuthorizeFailed(ctx: Context, err: Error) {
 }
 
 const allowedDomainsEnv = process.env.GOOGLE_ALLOWED_DOMAINS;
-async function deserializeGoogleToken(req: Request, accessToken, refreshToken: string): Promise<DeserializedData> {
+async function deserializeGoogleToken(accessToken, refreshToken: string): Promise<DeserializedData> {
   const profile = await json<any>("https://www.googleapis.com/oauth2/v1/userinfo", {
-    authorization: `Bearer ${accessToken}`,
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    }
   });
 
   if (!profile.data.hd) {
@@ -76,26 +78,28 @@ async function deserializeGoogleToken(req: Request, accessToken, refreshToken: s
   }
 }
 
-const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
-  "google", 
-  deserializeGoogleToken, 
-  {
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    tokenURL: "https://oauth2.googleapis.com/token",
-    authorizationURL: "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent",
-    column: "googleId",
-    scopes: [
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',
-    ],
-    authorizeFailedHook: [handleAuthorizeFailed],
-  },
-);
-
 const Op = Sequelize.Op;
 const router = new Router();
-router.get('google', authorizeHandler);
-router.get('google.callback', ...callbackHandlers);
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
+    "google", 
+    deserializeGoogleToken, 
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      tokenURL: "https://oauth2.googleapis.com/token",
+      authorizationURL: "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent",
+      column: "googleId",
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ],
+      authorizeFailedHook: [handleAuthorizeFailed],
+    },
+  );
+
+  router.get('google', authorizeHandler);
+  router.get('google.callback', ...callbackHandlers);
+}
 
 export default router;

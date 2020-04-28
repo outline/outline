@@ -17,7 +17,7 @@ import {
 } from '../models';
 import * as Slack from '../slack';
 
-async function deserializeSlackToken(req: Request, accessToken, refreshToken: string): Promise<DeserializedData> {
+async function deserializeSlackToken(accessToken, refreshToken: string): Promise<DeserializedData> {
   const response = await fetch(
     `https://slack.com/api/users.identity?token=${accessToken}`
   );
@@ -42,24 +42,27 @@ async function deserializeSlackToken(req: Request, accessToken, refreshToken: st
   };
 } 
 
-const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
-  "slack", 
-  deserializeSlackToken, 
-  {
-    clientID: process.env.SLACK_KEY,
-    clientSecret: process.env.SLACK_SECRET,
-    tokenURL: "https://slack.com/api/oauth.access",
-    authorizationURL: "https://slack.com/oauth/authorize",
-    scopes: ["identity.basic", "identity.email", "identity.avatar", "identity.team"],
-    column: "slackId",
-  },
-);
-
 const Op = Sequelize.Op;
 const router = new Router();
 
-router.get("slack", authorizeHandler);
-router.get("slack.callback", ...callbackHandlers);
+if (process.env.SLACK_KEY && process.env.SLACK_SECRET) {
+  const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
+    "slack", 
+    deserializeSlackToken, 
+    {
+      clientID: process.env.SLACK_KEY,
+      clientSecret: process.env.SLACK_SECRET,
+      tokenURL: "https://slack.com/api/oauth.access",
+      authorizationURL: "https://slack.com/oauth/authorize",
+      scope: ["identity.basic", "identity.email", "identity.avatar", "identity.team"],
+      column: "slackId",
+    },
+  );
+
+  router.get("slack", authorizeHandler);
+  router.get("slack.callback", ...callbackHandlers);
+}
+
 router.get('slack.commands', auth({ required: false }), async ctx => {
   const { code, state, error } = ctx.request.query;
   const user = ctx.state.user;

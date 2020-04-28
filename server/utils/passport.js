@@ -5,8 +5,9 @@ import auth from '../middlewares/authentication';
 import { OAuth2Strategy } from 'passport-oauth';
 import { type Context } from 'koa';
 import { User, Team, Event } from '../models';
-import * as crypto from 'crypto';
+import crypto from 'crypto';
 import addHours from 'date-fns/add_hours';
+import { customError } from "../errors";
 
 type TPossiblyArray<T> = T | Array<T>;
 type ContextVoidHookSet = TPossiblyArray<(ctx: Context) => Promise<void> | void>;
@@ -70,6 +71,7 @@ export function mountNativePassport(service: string, strategy: any, opts: Native
   }
 
   passport.use(service, strategy);
+
   return [
     /*
      * passport.authenticate(service) is called to initiate 
@@ -108,7 +110,7 @@ export function mountNativePassport(service: string, strategy: any, opts: Native
           const { err, result, info, status } = await new Promise((resolve, reject) => {
             passport.authorize(service, (err: Error, result: any, info: string, status: string) => {
               resolve({ err, result, info, status });
-            })
+            })(ctx);
           });
           srcErr = err;
 
@@ -145,8 +147,7 @@ export function mountNativePassport(service: string, strategy: any, opts: Native
 
           if (opts.authorizeFailedHook && /* ensure type no-op */ opts.authorizeFailedHook instanceof Array) {
             if (opts.authorizeFailedHook.length > 1) {
-              for (let i = 1; i < opts.authorizeFailedHook.length; i++) {
-
+              for (let i = 1; i < opts.authorizeFailedHook.length; i++) {                
                 // You can find an explanation on what happens here above at [1]
                 try {
                   await opts.authorizeFailedHook[i](ctx, err);
@@ -178,6 +179,8 @@ export function mountNativePassport(service: string, strategy: any, opts: Native
 }
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+class UnableToVerifyError extends customError("UnableToVerifyError", "state_is_required") {}
+class InvalidStateError extends customError("InvalidStateError", "state_mismatch") {}
 
 function uniqueId(length: number) {
   const bytes = crypto.pseudoRandomBytes(length);
@@ -219,7 +222,7 @@ StateStore.prototype.verify = function(
 ) {
   const state = req.cookies.get(this.key);
   if (!state) {
-    return callback(null, false, {
+    return callback(new UnableToVerifyError(), false, {
       message: 'Unable to verify authorization request state.',
     });
   }
@@ -229,8 +232,8 @@ StateStore.prototype.verify = function(
     expires: removeDays(new Date(), 1),
   });
 
-  if (state.handle !== providedState) {
-    return callback(null, false, {
+  if (state !== providedState) {
+    return callback(new InvalidStateError(), false, {
       message: 'Invalid authorization request state.',
     });
   }
@@ -252,7 +255,7 @@ export type DeserializedData = {
   },
 }
 
-export type DeserializeTokenFn = (req: Request, accessToken: string, refreshToken: string) => Promise<DeserializedData> | DeserializedData;
+export type DeserializeTokenFn = (accessToken: string, refreshToken: string) => Promise<DeserializedData> | DeserializedData;
 
 type AuthorizationResult = DeserializedData & {
   user: User,
@@ -313,32 +316,40 @@ export function mountOAuth2Passport(service: string, deserializeToken: Deseriali
   }
 
   // Called when authorization failed
-  async function authorizeFailedHook(ctx: Context, err: Error, result: ?AuthorizationResult, info: ?string, status: ?string) {
-    if (result && result.user && result.team && err instanceof Sequelize.UniqueConstraintError) {
-      const exists = await User.findOne({
-        where: {
-          service: 'email',
-          email: result.user.email,
-          teamId: result.team.id,
-        },
-      });
+  async function authorizeFailedHook(ctx: Context, err: any, result: ?AuthorizationResult, info: ?string, status: ?string) {
+    switch (true) {
+      case err instanceof UnableToVerifyError:
+      case err instanceof InvalidStateError:
+        ctx.redirect(`/?notice=auth-error&error=${err.message}`);
+        return
 
-      if (exists) {
-        ctx.redirect(`${result.team.url}?notice=email-auth-required`);
-      } else {
-        ctx.redirect(`${result.team.url}?notice=auth-error`);
-      }
+      case err instanceof Sequelize.UniqueConstraintError:
+        if (result && result.user && result.team) {
+          const exists = await User.findOne({
+            where: {
+              service: 'email',
+              email: result.user.email,
+              teamId: result.team.id,
+            },
+          });
 
-      return;
+          if (exists) {
+            ctx.redirect(`${result.team.url}?notice=email-auth-required`);
+          } else {
+            ctx.redirect(`${result.team.url}?notice=auth-error`);
+          }
+
+          return;
+        }
+      default:
+
+        // will bubble through passport and maybe to the koa stack handler
+        throw err;
     }
-
-    // will bubble through passport and maybe to the koa stack handler
-    throw err;
   }
 
   // Called by passport.js when accessToken and refreshToken were obtained
-  async function importUser(req: Request, accessToken: string, refreshToken: string, _: any, done: (err: ?Error, result: AuthorizationResult) => void) {
-
+  async function importUser(accessToken: string, refreshToken: string, _: any, done: (err: ?Error, result: AuthorizationResult) => void) {
     let err: ?Error;
     let data: AuthorizationResult = {
       user: null,
@@ -355,7 +366,7 @@ export function mountOAuth2Passport(service: string, deserializeToken: Deseriali
     try {
       data = {
         ... data,
-        ... (await deserializeToken(req, accessToken, refreshToken)),
+        ... (await deserializeToken(accessToken, refreshToken)),
       }
 
       const [team, isNewTeam] = await Team.findOrCreate({
@@ -442,9 +453,8 @@ export function mountOAuth2Passport(service: string, deserializeToken: Deseriali
     callbackURL: opts.callbackURL || `${process.env.URL || ''}/auth/${service}.callback`,
     state: true,
     store: new StateStore({ key: opts.state || 'state' }),
-    scope:opts.scope,
+    scope: opts.scope,
     scopeSeparator: opts.scopeSeparator,
-    passReqToCallback: true,
   }, importUser);
 
   return mountNativePassport(service, strategy, {

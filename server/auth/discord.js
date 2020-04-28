@@ -4,14 +4,14 @@ import fetch from 'isomorphic-fetch';
 import { mountOAuth2Passport, type DeserializedData } from '../utils/passport';
 import { customError } from "../errors";
 
-const AccountNotOwnerOfAGuildError = customError<string>("notice=auth-error&error=state_mismatch", "")
+class AccountNotOwnerOfAGuildError extends customError("AccountNotOwnerOfAGuildError", "notice=auth-error&error=state_mismatch") {};
 
-async function json<T>(input: string | Request | URL, init?: RequestOptions): Promise<T> {
+async function json(input: string | Request | URL, init?: RequestOptions): Promise<any> {
   const res = await fetch(input, init);
   return await res.json();
 } 
 
-async function handleAuthorizeFailed(ctx: Context, err: Error) {
+async function handleAuthorizeFailed(ctx: Context, err: any) {
   if (err instanceof AccountNotOwnerOfAGuildError) {
     ctx.redirect(`/?${err.name}`);
     return;
@@ -20,12 +20,16 @@ async function handleAuthorizeFailed(ctx: Context, err: Error) {
   throw err;
 }
 
-async function deserializeDiscordToken(req: Request, accessToken, refreshToken: string): Promise<DeserializedData> {
-  const user = await json<any>("https://discordapp.com/api/users/@me", {
-    authorization: `Bearer ${accessToken}`,
+async function deserializeDiscordToken(accessToken, refreshToken: string): Promise<DeserializedData> {
+  const user = await json(`https://discordapp.com/api/users/@me`, {
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
   })
-  const guilds = await json<any>("https://discordapp.com/api/users/@me/guilds", {
-    authorization: `Bearer ${accessToken}`,
+  const guilds = await json(`https://discordapp.com/api/users/@me/guilds`, {
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
   });
   
   const guild: ?{ id: string, name: string, icon: string } = (guilds =>
@@ -57,7 +61,7 @@ const [authorizeHandler, callbackHandlers] = mountOAuth2Passport(
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
     tokenURL: 'https://discordapp.com/api/oauth2/token',
     authorizationURL: 'https://discordapp.com/api/oauth2/authorize',
-    scopes: ["identify", "email", "guilds"],
+    scope: ["identify", "email", "guilds"],
     column: 'slackId',
     authorizeFailedHook: [handleAuthorizeFailed],
   },
