@@ -2,7 +2,9 @@
 import * as React from 'react';
 import Frame from './components/Frame';
 
-const URL_REGEX = new RegExp('^https?://docs.google.com/presentation/d/(.*)$');
+const URL_REGEX = new RegExp(
+  '^https?://docs.google.com/presentation/d/(.*)/pub(.*)$'
+);
 
 type Props = {
   url: string,

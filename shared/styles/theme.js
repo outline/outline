@@ -5,6 +5,7 @@ const colors = {
   almostBlack: '#111319',
   lightBlack: '#2F3336',
   almostWhite: '#E6E6E6',
+  veryDarkBlue: '#08090C',
 
   slate: '#9BA6B2',
   slateLight: '#DAE1E9',
@@ -52,6 +53,13 @@ export const base = {
   selected: colors.primary,
   buttonBackground: colors.primary,
   buttonText: colors.white,
+
+  breakpoints: {
+    mobile: 0, // targeting all devices
+    tablet: 737, // targeting devices that are larger than the iPhone 6 Plus (which is 736px in landscape mode)
+    desktop: 1025, // targeting devices that are larger than the iPad (which is 1024px in landscape mode)
+    desktopLarge: 1600,
+  },
 };
 
 export const light = {
@@ -68,6 +76,7 @@ export const light = {
   sidebarBackground: colors.warmGrey,
   sidebarItemBackground: colors.black05,
   sidebarText: 'rgb(78, 92, 110)',
+  shadow: 'rgba(0, 0, 0, 0.2)',
 
   menuBackground: colors.white,
   menuShadow:
@@ -88,6 +97,7 @@ export const light = {
 
   buttonNeutralBackground: colors.white,
   buttonNeutralText: colors.almostBlack,
+  buttonNeutralBorder: darken(0.15, colors.white),
 
   tooltipBackground: colors.almostBlack,
   tooltipText: colors.white,
@@ -115,9 +125,10 @@ export const dark = {
   textTertiary: colors.slate,
   placeholder: darken(0.5, '#B1BECC'),
 
-  sidebarBackground: colors.black50,
-  sidebarItemBackground: colors.black50,
+  sidebarBackground: colors.veryDarkBlue,
+  sidebarItemBackground: colors.veryDarkBlue,
   sidebarText: colors.slate,
+  shadow: 'rgba(0, 0, 0, 0.6)',
 
   menuBackground: lighten(0.015, colors.almostBlack),
   menuShadow:
@@ -138,6 +149,7 @@ export const dark = {
 
   buttonNeutralBackground: colors.almostBlack,
   buttonNeutralText: colors.white,
+  buttonNeutralBorder: colors.slateDark,
 
   tooltipBackground: colors.white,
   tooltipText: colors.lightBlack,

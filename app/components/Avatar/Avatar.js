@@ -8,6 +8,7 @@ import placeholder from './placeholder.png';
 type Props = {
   src: string,
   size: number,
+  icon?: React.Node,
 };
 
 @observer
@@ -23,19 +24,39 @@ class Avatar extends React.Component<Props> {
   };
 
   render() {
-    const { src, ...rest } = this.props;
+    const { src, icon, ...rest } = this.props;
 
     return (
-      <CircleImg
-        onError={this.handleError}
-        src={this.error ? placeholder : src}
-        {...rest}
-      />
+      <AvatarWrapper>
+        <CircleImg
+          onError={this.handleError}
+          src={this.error ? placeholder : src}
+          {...rest}
+        />
+        {icon && <IconWrapper>{icon}</IconWrapper>}
+      </AvatarWrapper>
     );
   }
 }
 
+const AvatarWrapper = styled.div`
+  position: relative;
+`;
+
+const IconWrapper = styled.div`
+  display: flex;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: ${props => props.theme.primary};
+  border: 2px solid ${props => props.theme.background};
+  border-radius: 100%;
+  width: 20px;
+  height: 20px;
+`;
+
 const CircleImg = styled.img`
+  display: block;
   width: ${props => props.size}px;
   height: ${props => props.size}px;
   border-radius: 50%;

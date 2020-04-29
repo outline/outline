@@ -18,7 +18,7 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
   return (
     <ListItem
       title={user.name}
-      image={<Avatar src={user.avatarUrl} size={32} />}
+      image={<Avatar src={user.avatarUrl} size={40} />}
       subtitle={
         <React.Fragment>
           {user.lastActiveAt ? (

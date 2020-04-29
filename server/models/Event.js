@@ -62,6 +62,8 @@ Event.ACTIVITY_EVENTS = [
 ];
 
 Event.AUDIT_EVENTS = [
+  'api_keys.create',
+  'api_keys.delete',
   'users.create',
   'users.promote',
   'users.demote',
@@ -79,10 +81,15 @@ Event.AUDIT_EVENTS = [
   'documents.delete',
   'shares.create',
   'shares.revoke',
+  'groups.create',
+  'groups.update',
+  'groups.delete',
   'collections.create',
   'collections.update',
   'collections.add_user',
   'collections.remove_user',
+  'collections.add_group',
+  'collections.remove_group',
   'collections.delete',
 ];
 

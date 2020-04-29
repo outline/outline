@@ -96,8 +96,8 @@ const Floating = styled('div')`
 
 const Swatch = styled('div')`
   display: inline-block;
-  width: 40px;
-  height: 36px;
+  width: 48px;
+  height: 32px;
   border: 1px solid ${({ active, color }) => (active ? 'white' : 'transparent')};
   border-radius: 4px;
   background: ${({ color }) => color};

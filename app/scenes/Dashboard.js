@@ -8,6 +8,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import AuthStore from 'stores/AuthStore';
 import NewDocumentMenu from 'menus/NewDocumentMenu';
 import Actions, { Action } from 'components/Actions';
+import InputSearch from 'components/InputSearch';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import Tabs from 'components/Tabs';
@@ -39,16 +40,16 @@ class Dashboard extends React.Component<Props> {
         <Intro>Explore examples of our work, find templates to get started quickly, read and write guides.</Intro>
         <TeamFilmstrip/>
         <Tabs>
-          <Tab to="/dashboard" exact>
+          <Tab to="/home" exact>
             Recently updated
           </Tab>
-          <Tab to="/dashboard/recent" exact>
+          <Tab to="/home/recent" exact>
             Recently viewed
           </Tab>
-          <Tab to="/dashboard/created">Created by me</Tab>
+          <Tab to="/home/created">Created by me</Tab>
         </Tabs>
         <Switch>
-          <Route path="/dashboard/recent">
+          <Route path="/home/recent">
             <PaginatedDocumentList
               key="recent"
               documents={documents.recentlyViewed}
@@ -56,7 +57,7 @@ class Dashboard extends React.Component<Props> {
               showCollection
             />
           </Route>
-          <Route path="/dashboard/created">
+          <Route path="/home/created">
             <PaginatedDocumentList
               key="created"
               documents={documents.createdByUser(user)}
@@ -65,7 +66,7 @@ class Dashboard extends React.Component<Props> {
               showCollection
             />
           </Route>
-          <Route path="/dashboard">
+          <Route path="/home">
             <PaginatedDocumentList
               documents={documents.recentlyUpdated}
               fetch={documents.fetchRecentlyUpdated}
@@ -74,6 +75,9 @@ class Dashboard extends React.Component<Props> {
           </Route>
         </Switch>
         <Actions align="center" justify="flex-end">
+          <Action>
+            <InputSearch />
+          </Action>
           <Action>
             <NewDocumentMenu />
           </Action>

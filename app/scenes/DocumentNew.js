@@ -4,7 +4,7 @@ import { inject } from 'mobx-react';
 import type { RouterHistory, Location } from 'react-router-dom';
 import Flex from 'shared/components/Flex';
 import CenteredContent from 'components/CenteredContent';
-import LoadingPlaceholder from 'scenes/Document/components/LoadingPlaceholder';
+import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import DocumentsStore from 'stores/DocumentsStore';
 import UiStore from 'stores/UiStore';
 import { documentEditUrl } from 'utils/routeHelpers';

@@ -42,6 +42,11 @@ function KeyboardShortcuts() {
         <Label>Jump to dashboard</Label>
 
         <Keys>
+          <Key>{meta}</Key> + <Key>Ctrl</Key> + <Key>h</Key>
+        </Keys>
+        <Label>Table of contents</Label>
+
+        <Keys>
           <Key>?</Key>
         </Keys>
         <Label>Open this guide</Label>

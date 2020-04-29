@@ -14,6 +14,18 @@ type Props = {
 
 const description = event => {
   switch (event.name) {
+    case 'api_keys.create':
+      return (
+        <React.Fragment>
+          Created the API token <strong>{event.data.name}</strong>
+        </React.Fragment>
+      );
+    case 'api_keys.delete':
+      return (
+        <React.Fragment>
+          Revoked the API token <strong>{event.data.name}</strong>
+        </React.Fragment>
+      );
     case 'teams.create':
       return 'Created the team';
     case 'shares.create':
@@ -66,19 +78,39 @@ const description = event => {
       );
     case 'users.delete':
       return 'Deleted their account';
-    case 'collections.add_user':
+    case 'groups.create':
       return (
         <React.Fragment>
-          Added {event.data.name} to a private{' '}
+          Created the group <strong>{event.data.name}</strong>
+        </React.Fragment>
+      );
+    case 'groups.update':
+      return (
+        <React.Fragment>
+          Update the group <strong>{event.data.name}</strong>
+        </React.Fragment>
+      );
+    case 'groups.delete':
+      return (
+        <React.Fragment>
+          Deleted the group <strong>{event.data.name}</strong>
+        </React.Fragment>
+      );
+    case 'collections.add_user':
+    case 'collections.add_group':
+      return (
+        <React.Fragment>
+          Granted <strong>{event.data.name}</strong> access to a{' '}
           <Link to={`/collections/${event.collectionId || ''}`}>
             collection
           </Link>
         </React.Fragment>
       );
     case 'collections.remove_user':
+    case 'collections.remove_group':
       return (
         <React.Fragment>
-          Remove {event.data.name} from a private{' '}
+          Revoked <strong>{event.data.name}</strong> access to a{' '}
           <Link to={`/collections/${event.collectionId || ''}`}>
             collection
           </Link>

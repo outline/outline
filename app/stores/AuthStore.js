@@ -75,13 +75,12 @@ export default class AuthStore {
         this.user = new User(user);
         this.team = new Team(team);
 
-        if (window.Bugsnag) {
-          Bugsnag.user = {
-            id: user.id,
-            name: user.name,
-            teamId: team.id,
-            team: team.name,
-          };
+        if (window.Sentry) {
+          Sentry.configureScope(function(scope) {
+            scope.setUser({ id: user.id });
+            scope.setExtra('team', team.name);
+            scope.setExtra('teamId', team.id);
+          });
         }
 
         // If we came from a redirect then send the user immediately there

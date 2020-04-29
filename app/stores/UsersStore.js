@@ -82,11 +82,9 @@ export default class UsersStore extends BaseStore<User> {
     );
     const userIds = memberships.map(member => member.userId);
     const users = filter(this.orderedData, user => !userIds.includes(user.id));
-    if (!query) return users;
 
-    return filter(users, user =>
-      user.name.toLowerCase().match(query.toLowerCase())
-    );
+    if (!query) return users;
+    return queriedUsers(users, query);
   };
 
   inCollection = (collectionId: string, query: string) => {
@@ -98,10 +96,31 @@ export default class UsersStore extends BaseStore<User> {
     const users = filter(this.orderedData, user => userIds.includes(user.id));
 
     if (!query) return users;
+    return queriedUsers(users, query);
+  };
 
-    return filter(users, user =>
-      user.name.toLowerCase().match(query.toLowerCase())
+  notInGroup = (groupId: string, query: string = '') => {
+    const memberships = filter(
+      this.rootStore.groupMemberships.orderedData,
+      member => member.groupId === groupId
     );
+    const userIds = memberships.map(member => member.userId);
+    const users = filter(this.orderedData, user => !userIds.includes(user.id));
+
+    if (!query) return users;
+    return queriedUsers(users, query);
+  };
+
+  inGroup = (groupId: string, query: string) => {
+    const groupMemberships = filter(
+      this.rootStore.groupMemberships.orderedData,
+      member => member.groupId === groupId
+    );
+    const userIds = groupMemberships.map(member => member.userId);
+    const users = filter(this.orderedData, user => userIds.includes(user.id));
+
+    if (!query) return users;
+    return queriedUsers(users, query);
   };
 
   actionOnUser = async (action: string, user: User) => {
@@ -115,4 +134,10 @@ export default class UsersStore extends BaseStore<User> {
       this.add(res.data);
     });
   };
+}
+
+function queriedUsers(users, query) {
+  return filter(users, user =>
+    user.name.toLowerCase().match(query.toLowerCase())
+  );
 }

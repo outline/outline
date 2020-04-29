@@ -7,6 +7,7 @@ import AuthNotices from './components/AuthNotices';
 import Hero from './components/Hero';
 import HeroText from './components/HeroText';
 import SigninButtons from './components/SigninButtons';
+import Branding from '../../shared/components/Branding';
 import { githubUrl } from '../../shared/utils/routeHelpers';
 
 type Props = {
@@ -34,11 +35,9 @@ function Home(props: Props) {
           <p>
             <SigninButtons {...props} />
           </p>
-          <p>
-            <a href={githubUrl()}>Powered by Outline</a>
-          </p>
         </Hero>
       </Grid>
+      <Branding href={githubUrl()} />
     </span>
   );
 }
