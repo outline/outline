@@ -22,16 +22,20 @@ router.use('/', email.routes());
 router.get('/redirect', auth(), async ctx => {
   const user = ctx.state.user;
 
-  // transfer access token cookie from root to subdomain
-  ctx.cookies.set('accessToken', undefined, {
-    httpOnly: true,
-    domain: stripSubdomain(ctx.request.hostname),
-  });
+  // transfer access token cookie from root to subdomain,
+  // only if it exists already. Otherwise we would
+  // convert an api-token to an access-token.
+  if (ctx.cookies.get('accessToken') !== '') {
+    ctx.cookies.set('accessToken', undefined, {
+      httpOnly: true,
+      domain: stripSubdomain(ctx.request.hostname),
+    });
 
-  ctx.cookies.set('accessToken', user.getJwtToken(), {
-    httpOnly: false,
-    expires: addMonths(new Date(), 3),
-  });
+    ctx.cookies.set('accessToken', user.getJwtToken(), {
+      httpOnly: false,
+      expires: addMonths(new Date(), 3),
+    });
+  }
 
   const team = await Team.findByPk(user.teamId);
   ctx.redirect(`${team.url}/home`);
