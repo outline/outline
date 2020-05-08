@@ -129,6 +129,7 @@
     "randomstring": "1.1.5",
     "raw-loader": "^0.5.1",
     "react": "^16.8.6",
+    "react-autosize-textarea": "^6.0.0",
     "react-avatar-editor": "^10.3.0",
     "react-color": "^2.17.3",
     "react-dom": "^16.8.6",
