@@ -1495,6 +1495,24 @@ describe('#documents.update', async () => {
     expect(body).toMatchSnapshot();
   });
 
+  it('should allow setting empty text', async () => {
+    const { user, document } = await seed();
+
+    const res = await server.post('/api/documents.update', {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        lastRevision: document.revision,
+        title: 'Updated Title',
+        text: '',
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.text).toBe('');
+  });
+
   it('should require authentication', async () => {
     const { document } = await seed();
     const res = await server.post('/api/documents.update', {
