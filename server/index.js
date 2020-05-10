@@ -3,10 +3,9 @@ import http from 'http';
 import IO from 'socket.io';
 import SocketAuth from 'socketio-auth';
 import socketRedisAdapter from 'socket.io-redis';
-import { AuthenticationError } from './errors';
-import { getUserForJWT } from './utils/jwt';
-import { Document, Collection, View, ApiKey, User } from './models';
+import { Document, Collection, View } from './models';
 import { client, subscriber } from './redis';
+import { extractUserFromToken } from './middlewares/authentication';
 import app from './app';
 import policy from './policies';
 
@@ -34,28 +33,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
       const { token } = data;
 
       try {
-        let user;
-        if (String(token).match(/^[\w]{38}$/)) {
-          // API key
-          let apiKey;
-          try {
-            apiKey = await ApiKey.findOne({
-              where: {
-                secret: token,
-              },
-            });
-          } catch (e) {
-            throw new AuthenticationError('Invalid API key');
-          }
-
-          if (!apiKey) throw new AuthenticationError('Invalid API key');
-
-          user = await User.findByPk(apiKey.userId);
-          if (!user) throw new AuthenticationError('Invalid API key');
-        } else {
-          // JWT
-          user = await getUserForJWT(token);
-        }
+        const user = await extractUserFromToken(token);
 
         socket.client.user = user;
 

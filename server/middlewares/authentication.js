@@ -8,69 +8,79 @@ import addMonths from 'date-fns/add_months';
 import addMinutes from 'date-fns/add_minutes';
 import { stripSubdomain } from '../../shared/utils/domains';
 
-export default function auth(options?: { required?: boolean } = {}) {
-  return async function authMiddleware(ctx: Context, next: () => Promise<*>) {
-    let token;
+function extractTokenFromCtx(ctx: Context): any {
+  const authorizationHeader = ctx.request.get('authorization');
+  if (authorizationHeader) {
+    const parts = authorizationHeader.split(' ');
+    if (parts.length === 2) {
+      const scheme = parts[0];
+      const credentials = parts[1];
 
-    const authorizationHeader = ctx.request.get('authorization');
-    if (authorizationHeader) {
-      const parts = authorizationHeader.split(' ');
-      if (parts.length === 2) {
-        const scheme = parts[0];
-        const credentials = parts[1];
-
-        if (/^Bearer$/i.test(scheme)) {
-          token = credentials;
-        }
-      } else {
-        throw new AuthenticationError(
-          `Bad Authorization header format. Format is "Authorization: Bearer <token>"`
-        );
+      if (/^Bearer$/i.test(scheme)) {
+        return credentials;
       }
-      // $FlowFixMe
-    } else if (ctx.body && ctx.body.token) {
-      token = ctx.body.token;
-    } else if (ctx.request.query.token) {
-      token = ctx.request.query.token;
     } else {
-      token = ctx.cookies.get('accessToken');
+      throw new AuthenticationError(
+        `Bad Authorization header format. Format is "Authorization: Bearer <token>"`
+      );
+    }
+    // $FlowFixMe
+  } else if (ctx.body && ctx.body.token) {
+    return ctx.body.token;
+  } else if (ctx.request.query.token) {
+    return ctx.request.query.token;
+  } else {
+    return ctx.cookies.get('accessToken');
+  }
+
+  return null;
+}
+
+export async function extractUserFromToken(token: any): Promise<User> {
+  let user;
+  if (String(token).match(/^[\w]{38}$/)) {
+    // API key
+    let apiKey;
+    try {
+      apiKey = await ApiKey.findOne({
+        where: {
+          secret: token,
+        },
+      });
+    } catch (e) {
+      throw new AuthenticationError('Invalid API key');
     }
 
+    if (!apiKey) throw new AuthenticationError('Invalid API key');
+
+    user = await User.findByPk(apiKey.userId);
+    if (!user) throw new AuthenticationError('Invalid API key');
+  } else {
+    // JWT
+    user = await getUserForJWT(token);
+  }
+
+  if (user.isSuspended) {
+    const suspendingAdmin = await User.findOne({
+      where: { id: user.suspendedById },
+      paranoid: false,
+    });
+    throw new UserSuspendedError({ adminEmail: suspendingAdmin.email });
+  }
+
+  return user;
+}
+
+export default function auth(options?: { required?: boolean } = {}) {
+  return async function authMiddleware(ctx: Context, next: () => Promise<*>) {
+    const token = extractTokenFromCtx(ctx);
     if (!token && options.required !== false) {
       throw new AuthenticationError('Authentication required');
     }
 
     let user;
     if (token) {
-      if (String(token).match(/^[\w]{38}$/)) {
-        // API key
-        let apiKey;
-        try {
-          apiKey = await ApiKey.findOne({
-            where: {
-              secret: token,
-            },
-          });
-        } catch (e) {
-          throw new AuthenticationError('Invalid API key');
-        }
-
-        if (!apiKey) throw new AuthenticationError('Invalid API key');
-
-        user = await User.findByPk(apiKey.userId);
-        if (!user) throw new AuthenticationError('Invalid API key');
-      } else {
-        // JWT
-        user = await getUserForJWT(token);
-      }
-
-      if (user.isSuspended) {
-        const suspendingAdmin = await User.findOne({
-          where: { id: user.suspendedById },
-          paranoid: false,
-        });
-        throw new UserSuspendedError({ adminEmail: suspendingAdmin.email });
-      }
+      user = await extractUserFromToken(token);
 
       // not awaiting the promise here so that the request is not blocked
       user.updateActiveAt(ctx.request.ip);
