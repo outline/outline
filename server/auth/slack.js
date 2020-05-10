@@ -44,6 +44,12 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   ctx.assertPresent(code || error, 'code is required');
   ctx.assertPresent(state, 'state is required');
 
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>');
+  console.log('STATE: ', state);
+  console.log('<<<<<<<<<<<<<<<<<<<<<<<');
+  console.log('COOK STATE: ', ctx.cookies.get('state'));
+  console.log('<<<<<<<<<<<<<<<<<<<<<<<');
+
   if (state !== ctx.cookies.get('state')) {
     ctx.redirect('/?notice=auth-error&error=state_mismatch');
     return;
