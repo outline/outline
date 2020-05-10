@@ -49,6 +49,7 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
   console.log('<<<<<<<<<<<<<<<<<<<<<<<');
   console.log('COOK STATE: ', ctx.cookies.get('state'));
   console.log('<<<<<<<<<<<<<<<<<<<<<<<');
+  console.log('error: ', error);
 
   if (state !== ctx.cookies.get('state')) {
     ctx.redirect('/?notice=auth-error&error=state_mismatch');
