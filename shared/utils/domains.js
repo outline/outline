@@ -43,7 +43,11 @@ export function parseDomain(url: string): ?Domain {
 }
 
 export function getCookieDomain(domain: string) {
-  return process.env.SUBDOMAINS_ENABLED ? stripSubdomain(domain) : domain;
+  // TODO: All the process.env parsing needs centralizing
+  return process.env.SUBDOMAINS_ENABLED === 'true' ||
+    process.env.SUBDOMAINS_ENABLED === true
+    ? stripSubdomain(domain)
+    : domain;
 }
 
 export function stripSubdomain(hostname: string) {
