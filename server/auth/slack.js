@@ -62,8 +62,6 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
 
   const data = await Slack.oauthAccess(code);
 
-  console.log('[1] >>>>>>>>>>>>>>>>>');
-
   const [team, isFirstUser] = await Team.findOrCreate({
     where: {
       slackId: data.team.id,
@@ -73,8 +71,6 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
       avatarUrl: data.team.image_88,
     },
   });
-
-  console.log('[2] >>>>>>>>>>>>>>>>>');
 
   try {
     const [user, isFirstSignin] = await User.findOrCreate({
@@ -101,12 +97,8 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
       },
     });
 
-    console.log('[3] >>>>>>>>>>>>>>>>>');
-
     // update the user with fresh details if they just accepted an invite
     if (!user.serviceId || !user.service) {
-      console.log('[4] >>>>>>>>>>>>>>>>>');
-
       await user.update({
         service: 'slack',
         serviceId: data.user.id,
@@ -114,21 +106,15 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
       });
     }
 
-    console.log('[5] >>>>>>>>>>>>>>>>>');
-
     // update email address if it's changed in Slack
     if (!isFirstSignin && data.user.email !== user.email) {
       await user.update({ email: data.user.email });
     }
 
-    console.log('[6] >>>>>>>>>>>>>>>>>');
-
     if (isFirstUser) {
       await team.provisionFirstCollection(user.id);
       await team.provisionSubdomain(data.team.domain);
     }
-
-    console.log('[7] >>>>>>>>>>>>>>>>>');
 
     if (isFirstSignin) {
       await Event.create({
@@ -144,12 +130,8 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
       });
     }
 
-    console.log('[8] >>>>>>>>>>>>>>>>>');
-
     // set cookies on response and redirect to team subdomain
     ctx.signIn(user, team, 'slack', isFirstSignin);
-
-    console.log('[9] >>>>>>>>>>>>>>>>>');
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
       const exists = await User.findOne({
@@ -163,8 +145,6 @@ router.get('slack.callback', auth({ required: false }), async ctx => {
       if (exists) {
         ctx.redirect(`${team.url}?notice=email-auth-required`);
       } else {
-        console.log('[10] >>>>>>>>>>>>>>>>>');
-
         ctx.redirect(`${team.url}?notice=auth-error`);
       }
 
