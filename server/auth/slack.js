@@ -24,6 +24,12 @@ router.get('slack', async ctx => {
     .toString(36)
     .substring(7);
 
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>');
+  console.log('hostname: ', ctx.request.hostname);
+  console.log('<<<<<<<<<<<<<<<<<<<<<<<');
+  console.log('hostname: ', ctx.request);
+  console.log('<<<<<<<<<<<<<<<<<<<<<<<');
+
   ctx.cookies.set('state', state, {
     httpOnly: false,
     expires: addHours(new Date(), 1),
