@@ -48,13 +48,15 @@
     ]
   },
   "engines": {
-    "node": ">= 12"
+    "node": ">= 12 <14"
   },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "dependencies": {
+    "@rehooks/window-scroll-position": "^1.0.1",
+    "@sentry/node": "^5.12.2",
     "@tippy.js/react": "^2.2.2",
     "@tommoor/remove-markdown": "0.3.1",
     "autotrack": "^2.4.1",
@@ -77,7 +79,6 @@
     "babel-regenerator-runtime": "6.5.0",
     "boundless-arrow-key-navigation": "^1.0.4",
     "boundless-popover": "^1.0.4",
-    "bugsnag": "^1.7.0",
     "bull": "^3.5.2",
     "cancan": "3.1.0",
     "copy-to-clipboard": "^3.0.6",
@@ -95,6 +96,7 @@
     "immutable": "^3.8.2",
     "imports-loader": "0.6.5",
     "invariant": "^2.2.2",
+    "ioredis": "^4.14.1",
     "isomorphic-fetch": "2.2.1",
     "js-search": "^1.4.2",
     "json-loader": "0.5.4",
@@ -118,7 +120,7 @@
     "mobx-react": "^5.4.2",
     "natural-sort": "^1.0.0",
     "nodemailer": "^4.4.0",
-    "outline-icons": "^1.10.0",
+    "outline-icons": "^1.14.0",
     "oy-vey": "^0.10.0",
     "pg": "^6.1.5",
     "pg-hstore": "2.3.2",
@@ -127,18 +129,17 @@
     "randomstring": "1.1.5",
     "raw-loader": "^0.5.1",
     "react": "^16.8.6",
+    "react-autosize-textarea": "^6.0.0",
     "react-avatar-editor": "^10.3.0",
     "react-color": "^2.17.3",
     "react-dom": "^16.8.6",
     "react-dropzone": "4.2.1",
     "react-helmet": "^5.2.0",
     "react-keydown": "^1.7.3",
-    "react-markdown": "^3.0.2",
     "react-modal": "^3.1.2",
     "react-portal": "^4.0.0",
     "react-router-dom": "^5.1.2",
     "react-waypoint": "^9.0.2",
-    "redis": "^2.6.2",
     "rich-markdown-editor": "^9.11.1",
     "sequelize": "^5.21.1",
     "sequelize-cli": "^5.5.0",

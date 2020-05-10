@@ -34,7 +34,7 @@ router.get('/redirect', auth(), async ctx => {
   });
 
   const team = await Team.findByPk(user.teamId);
-  ctx.redirect(`${team.url}/dashboard`);
+  ctx.redirect(`${team.url}/home`);
 });
 
 app.use(bodyParser());

@@ -42,6 +42,7 @@ const Image = styled(Flex)`
   align-items: center;
   user-select: none;
   flex-shrink: 0;
+  align-self: flex-start;
 `;
 
 const Heading = styled.p`

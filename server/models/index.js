@@ -1,12 +1,16 @@
 // @flow
 import ApiKey from './ApiKey';
+import Attachment from './Attachment';
 import Authentication from './Authentication';
 import Backlink from './Backlink';
 import Collection from './Collection';
 import CollectionUser from './CollectionUser';
+import CollectionGroup from './CollectionGroup';
 import Document from './Document';
 import Event from './Event';
 import Integration from './Integration';
+import Group from './Group';
+import GroupUser from './GroupUser';
 import Notification from './Notification';
 import NotificationSetting from './NotificationSetting';
 import Revision from './Revision';
@@ -18,12 +22,16 @@ import View from './View';
 
 const models = {
   ApiKey,
+  Attachment,
   Authentication,
   Backlink,
   Collection,
+  CollectionGroup,
   CollectionUser,
   Document,
   Event,
+  Group,
+  GroupUser,
   Integration,
   Notification,
   NotificationSetting,
@@ -44,12 +52,16 @@ Object.keys(models).forEach(modelName => {
 
 export {
   ApiKey,
+  Attachment,
   Authentication,
   Backlink,
   Collection,
+  CollectionGroup,
   CollectionUser,
   Document,
   Event,
+  Group,
+  GroupUser,
   Integration,
   Notification,
   NotificationSetting,

@@ -1,10 +1,12 @@
+
+
 <p align="center">
   <img src="https://user-images.githubusercontent.com/31465/34380645-bd67f474-eb0b-11e7-8d03-0151c1730654.png" height="29" />
 </p>
 <p align="center">
   <i>An open, extensible, wiki for your team built using React and Node.js.<br/>Try out Outline using our hosted version at <a href="https://www.getoutline.com">www.getoutline.com</a>.</i>
   <br/>
-  <img src="https://user-images.githubusercontent.com/31465/34456332-51e41eb0-ed9c-11e7-9fa9-20e7fa946494.jpg" alt="Outline" width="800" />
+  <img src="https://user-images.githubusercontent.com/380914/78513257-153ae080-775f-11ea-9b49-1e1939451a3e.png" alt="Outline" width="800" />
 </p>
 <p align="center">
   <a href="https://circleci.com/gh/outline/outline" rel="nofollow"><img src="https://circleci.com/gh/outline/outline.svg?style=shield&amp;circle-token=c0c4c2f39990e277385d5c1ae96169c409eb887a"></a>
@@ -37,10 +39,12 @@ In development you can quickly get an environment running using Docker by follow
 1. Register a Slack app at https://api.slack.com/apps
 1. Copy the file `.env.sample` to `.env`
 1. Fill out the following fields:
-    1. `SECRET_KEY` (follow instructions in the comments of `.env`)
+    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
     1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET`
-1. Add `http://localhost:3000/auth/slack.callback` as an Oauth callback URL in Slack App settings
+    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
+1. Configure your Slack app's Oauth & Permissions settings 
+    1. Add `http://localhost:3000/auth/slack.callback` as an Oauth redirect URL
+    1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
 
 
@@ -54,9 +58,9 @@ For a self-hosted production installation there is more flexibility, but these a
 
 1. Build the web app with `yarn build:webpack` or `npm run build:webpack`
 1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
-    1. `SECRET_KEY` (follow instructions in the comments of `.env`)
+    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
     1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET`
+    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
     1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
     1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
     1. `URL` (the public facing URL of your installation)
@@ -160,4 +164,4 @@ If you’re looking for ways to get started, here's a list of ways to help us im
 
 ## License
 
-Outline is [BSD licensed](https://github.com/outline/outline/blob/master/LICENSE).
+Outline is [BSL 1.1 licensed](https://github.com/outline/outline/blob/master/LICENSE).

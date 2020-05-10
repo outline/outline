@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { schema } from 'rich-markdown-editor';
 import { Prompt, Route, withRouter } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
 import keydown from 'react-keydown';
@@ -19,15 +20,16 @@ import { emojiToUrl } from 'utils/emoji';
 
 import Header from './Header';
 import DocumentMove from './DocumentMove';
-import Branding from './Branding';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import References from './References';
 import Loading from './Loading';
 import Container from './Container';
+import Contents from './Contents';
 import MarkAsViewed from './MarkAsViewed';
 import ErrorBoundary from 'components/ErrorBoundary';
 import LoadingIndicator from 'components/LoadingIndicator';
 import PageTitle from 'components/PageTitle';
+import Branding from 'shared/components/Branding';
 import Notice from 'shared/components/Notice';
 import Time from 'shared/components/Time';
 
@@ -35,8 +37,6 @@ import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import Document from 'models/Document';
 import Revision from 'models/Revision';
-
-import schema from '../schema';
 
 let EditorImport;
 const AUTOSAVE_DELAY = 3000;
@@ -65,7 +65,7 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
-  getEditorText: () => string;
+  getEditorText: () => string = () => this.props.document.text;
 
   @observable editorComponent = EditorImport;
   @observable isUploading: boolean = false;
@@ -74,10 +74,16 @@ class DocumentScene extends React.Component<Props> {
   @observable isDirty: boolean = false;
   @observable isEmpty: boolean = true;
   @observable moveModalOpen: boolean = false;
+  @observable title: string;
 
   constructor(props) {
     super();
+    this.title = props.document.title;
     this.loadEditor();
+  }
+
+  componentDidMount() {
+    this.updateIsDirty();
   }
 
   @keydown('m')
@@ -128,12 +134,34 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ publish: true, done: true });
   }
 
+  @keydown('meta+ctrl+h')
+  onToggleTableOfContents(ev) {
+    if (!this.props.readOnly) return;
+
+    ev.preventDefault();
+    const { ui } = this.props;
+
+    if (ui.tocVisible) {
+      ui.hideTableOfContents();
+    } else {
+      ui.showTableOfContents();
+    }
+  }
+
   loadEditor = async () => {
     if (this.editorComponent) return;
 
-    const Imported = await import('./Editor');
-    EditorImport = Imported.default;
-    this.editorComponent = EditorImport;
+    try {
+      const EditorImport = await import('./Editor');
+      this.editorComponent = EditorImport.default;
+    } catch (err) {
+      console.error(err);
+
+      // If the editor bundle fails to load then reload the entire window. This
+      // can happen if a deploy happens between the user loading the initial JS
+      // bundle and the async-loaded editor JS bundle as the hash will change.
+      window.location.reload();
+    }
   };
 
   handleCloseMoveModal = () => (this.moveModalOpen = false);
@@ -149,13 +177,20 @@ class DocumentScene extends React.Component<Props> {
 
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
+    const title = this.title;
 
     // prevent save before anything has been written (single hash is empty doc)
-    if (text.trim() === '#') return;
+    if (text.trim() === '' && title.trim === '') return;
 
     // prevent autosave if nothing has changed
-    if (options.autosave && document.text.trim() === text.trim()) return;
+    if (
+      options.autosave &&
+      document.text.trim() === text.trim() &&
+      document.title.trim() === title.trim()
+    )
+      return;
 
+    document.title = title;
     document.text = text;
 
     let isNew = !document.id;
@@ -179,14 +214,18 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ done: false, autosave: true });
   }, AUTOSAVE_DELAY);
 
-  updateIsDirty = debounce(() => {
+  updateIsDirty = () => {
     const { document } = this.props;
     const editorText = this.getEditorText().trim();
+    const titleChanged = this.title !== document.title;
+    const bodyChanged = editorText !== document.text.trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty = editorText === '#';
-    this.isDirty = !!document && editorText !== document.text.trim();
-  }, IS_DIRTY_DELAY);
+    this.isEmpty = (!editorText || editorText === '#') && !this.title;
+    this.isDirty = bodyChanged || titleChanged;
+  };
+
+  updateIsDirtyDebounced = debounce(this.updateIsDirty, IS_DIRTY_DELAY);
 
   onImageUploadStart = () => {
     this.isUploading = true;
@@ -198,7 +237,13 @@ class DocumentScene extends React.Component<Props> {
 
   onChange = getEditorText => {
     this.getEditorText = getEditorText;
-    this.updateIsDirty();
+    this.updateIsDirtyDebounced();
+    this.autosave();
+  };
+
+  onChangeTitle = event => {
+    this.title = event.target.value;
+    this.updateIsDirtyDebounced();
     this.autosave();
   };
 
@@ -213,16 +258,25 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    const { document, revision, readOnly, location, auth, match } = this.props;
+    const {
+      document,
+      revision,
+      readOnly,
+      location,
+      auth,
+      ui,
+      match,
+    } = this.props;
     const team = auth.team;
     const Editor = this.editorComponent;
-    const isShare = match.params.shareId;
+    const isShare = !!match.params.shareId;
 
     if (!Editor) {
       return <Loading location={location} />;
     }
 
-    const embedsDisabled = team && !team.documentEmbeds;
+    const disableEmbeds =
+      (team && team.documentEmbeds === false) || document.embedsDisabled;
 
     return (
       <ErrorBoundary>
@@ -273,7 +327,12 @@ class DocumentScene extends React.Component<Props> {
                 onSave={this.onSave}
               />
             )}
-            <MaxWidth archived={document.isArchived} column auto>
+            <MaxWidth
+              archived={document.isArchived}
+              tocVisible={ui.tocVisible}
+              column
+              auto
+            >
               {document.archivedAt &&
                 !document.deletedAt && (
                   <Notice muted>
@@ -295,24 +354,30 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Notice>
               )}
-              <Editor
-                id={document.id}
-                key={embedsDisabled ? 'embeds-disabled' : 'embeds-enabled'}
-                defaultValue={revision ? revision.text : document.text}
-                pretitle={document.emoji}
-                disableEmbeds={embedsDisabled}
-                onImageUploadStart={this.onImageUploadStart}
-                onImageUploadStop={this.onImageUploadStop}
-                onSearchLink={this.props.onSearchLink}
-                onChange={this.onChange}
-                onSave={this.onSave}
-                onPublish={this.onPublish}
-                onCancel={this.goBack}
-                readOnly={readOnly || document.isArchived}
-                toc={!revision}
-                ui={this.props.ui}
-                schema={schema}
-              />
+              <Flex auto={!readOnly}>
+                {ui.tocVisible &&
+                  readOnly && <Contents document={revision || document} />}
+                <Editor
+                  id={document.id}
+                  isDraft={document.isDraft}
+                  key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
+                  title={revision ? revision.title : this.title}
+                  document={document}
+                  defaultValue={revision ? revision.text : document.text}
+                  disableEmbeds={disableEmbeds}
+                  onImageUploadStart={this.onImageUploadStart}
+                  onImageUploadStop={this.onImageUploadStop}
+                  onSearchLink={this.props.onSearchLink}
+                  onChangeTitle={this.onChangeTitle}
+                  onChange={this.onChange}
+                  onSave={this.onSave}
+                  onPublish={this.onPublish}
+                  onCancel={this.goBack}
+                  readOnly={readOnly || document.isArchived}
+                  ui={this.props.ui}
+                  schema={schema}
+                />
+              </Flex>
               {readOnly &&
                 !isShare &&
                 !revision && (
@@ -346,8 +411,11 @@ const MaxWidth = styled(Flex)`
   ${breakpoint('tablet')`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: 46em;
-    box-sizing: content-box;
+    max-width: calc(48px + ${props => (props.tocVisible ? '64em' : '46em')});
+  `};
+
+  ${breakpoint('desktopLarge')`
+    max-width: calc(48px + 46em);
   `};
 `;
 

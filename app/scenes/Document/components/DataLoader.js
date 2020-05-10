@@ -53,9 +53,8 @@ class DataLoader extends React.Component<Props> {
     }
 
     // Also need to load the revision if it changes
-    if (
-      prevProps.match.params.revisionId !== this.props.match.params.revisionId
-    ) {
+    const { revisionId } = this.props.match.params;
+    if (prevProps.match.params.revisionId !== revisionId && revisionId) {
       this.loadRevision();
     }
   }

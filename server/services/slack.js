@@ -102,7 +102,9 @@ export default class Slack {
       },
       body: JSON.stringify({
         text,
-        attachments: [presentSlackAttachment(document, team)],
+        attachments: [
+          presentSlackAttachment(document, document.collection, team),
+        ],
       }),
     });
   }

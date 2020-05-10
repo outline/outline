@@ -14,7 +14,6 @@ import { NotFoundError } from './errors';
 import { Team } from './models';
 
 import Home from './pages/Home';
-import Changelog from './pages/Changelog';
 import Developers from './pages/developers';
 import Api from './pages/developers/Api';
 import SubdomainSignin from './pages/SubdomainSignin';
@@ -56,14 +55,6 @@ if (process.env.NODE_ENV === 'production') {
 // static pages
 router.get('/developers', ctx => renderpage(ctx, <Developers />));
 router.get('/developers/api', ctx => renderpage(ctx, <Api />));
-router.get('/changelog', async ctx => {
-  const data = await fetch(
-    `https://api.github.com/repos/outline/outline/releases?access_token=${process
-      .env.GITHUB_ACCESS_TOKEN || ''}`
-  );
-  const releases = await data.json();
-  return renderpage(ctx, <Changelog releases={releases} />);
-});
 
 // home page
 router.get('/', async ctx => {

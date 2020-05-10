@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { Redirect } from 'react-router-dom';
+import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { lighten } from 'polished';
@@ -15,10 +15,12 @@ import Embed from './Embed';
 import embeds from '../../embeds';
 
 type Props = {
+  id: string,
   defaultValue?: string,
   readOnly?: boolean,
   grow?: boolean,
   disableEmbeds?: boolean,
+  history: RouterHistory,
   forwardedRef: React.Ref<RichMarkdownEditor>,
   ui: UiStore,
 };
@@ -28,7 +30,7 @@ class Editor extends React.Component<Props> {
   @observable redirectTo: ?string;
 
   onUploadImage = async (file: File) => {
-    const result = await uploadFile(file);
+    const result = await uploadFile(file, { documentId: this.props.id });
     return result.url;
   };
 
@@ -53,11 +55,7 @@ class Editor extends React.Component<Props> {
         }
       }
 
-      // protect against redirecting back to the same place
-      const currentLocation = window.location.pathname + window.location.hash;
-      if (currentLocation !== navigateTo) {
-        this.redirectTo = navigateTo;
-      }
+      this.props.history.push(navigateTo);
     } else {
       window.open(href, '_blank');
     }
@@ -84,8 +82,6 @@ class Editor extends React.Component<Props> {
   };
 
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
     return (
       <React.Fragment>
         <PrismStyles />
@@ -96,6 +92,7 @@ class Editor extends React.Component<Props> {
           onShowToast={this.onShowToast}
           getLinkComponent={this.getLinkComponent}
           tooltip={EditorTooltip}
+          toc={false}
           {...this.props}
         />
       </React.Fragment>
@@ -116,7 +113,7 @@ const StyledEditor = styled(RichMarkdownEditor)`
       visibility: hidden;
     }
   }
-  p:nth-child(2):last-child {
+  p:nth-child(1):last-child {
     ${Placeholder} {
       visibility: visible;
     }
@@ -133,6 +130,15 @@ const StyledEditor = styled(RichMarkdownEditor)`
         text-decoration: none;
       }
     }
+  }
+
+  h1:first-child,
+  h2:first-child,
+  h3:first-child,
+  h4:first-child,
+  h5:first-child,
+  h6:first-child {
+    margin-top: 0;
   }
 `;
 
@@ -284,7 +290,9 @@ const EditorTooltip = ({ children, ...props }) => (
   </Tooltip>
 );
 
-export default withTheme(
-  // $FlowIssue - https://github.com/facebook/flow/issues/6103
-  React.forwardRef((props, ref) => <Editor {...props} forwardedRef={ref} />)
-);
+const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
+
+// $FlowIssue - https://github.com/facebook/flow/issues/6103
+export default React.forwardRef((props, ref) => (
+  <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
+));

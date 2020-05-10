@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import { User, Document, Collection } from '../models';
+import { User, Document, Team, Collection } from '../models';
 import EmailTemplate from './components/EmailLayout';
 import Body from './components/Body';
 import Button from './components/Button';
@@ -11,6 +11,7 @@ import EmptySpace from './components/EmptySpace';
 
 export type Props = {
   actor: User,
+  team: Team,
   document: Document,
   collection: Collection,
   eventName: string,
@@ -19,6 +20,7 @@ export type Props = {
 
 export const documentNotificationEmailText = ({
   actor,
+  team,
   document,
   collection,
   eventName = 'published',
@@ -29,11 +31,12 @@ ${actor.name} ${eventName} the document "${document.title}", in the ${
   collection.name
 } collection.
 
-Open Document: ${process.env.URL}${document.url}
+Open Document: ${team.url}${document.url}
 `;
 
 export const DocumentNotificationEmail = ({
   actor,
+  team,
   document,
   collection,
   eventName = 'published',
@@ -56,9 +59,7 @@ export const DocumentNotificationEmail = ({
         <p>{document.getSummary()}</p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${process.env.URL}${document.url}`}>
-            Open Document
-          </Button>
+          <Button href={`${team.url}${document.url}`}>Open Document</Button>
         </p>
       </Body>
 

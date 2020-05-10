@@ -12,6 +12,7 @@ const ApiKey = sequelize.define(
     },
     name: DataTypes.STRING,
     secret: { type: DataTypes.STRING, unique: true },
+    // TODO: remove this, as it's redundant with associate below
     userId: {
       type: DataTypes.UUID,
       allowNull: false,

@@ -6,17 +6,16 @@ import { observer, inject } from 'mobx-react';
 import { PlusIcon } from 'outline-icons';
 
 import Empty from 'components/Empty';
-import { ListPlaceholder } from 'components/LoadingPlaceholder';
 import Modal from 'components/Modal';
 import Button from 'components/Button';
 import Invite from 'scenes/Invite';
 import CenteredContent from 'components/CenteredContent';
 import PageTitle from 'components/PageTitle';
 import HelpText from 'components/HelpText';
-import UserListItem from './components/UserListItem';
-import List from 'components/List';
+import PaginatedList from 'components/PaginatedList';
 import Tabs, { Separator } from 'components/Tabs';
 import Tab from 'components/Tab';
+import UserListItem from './components/UserListItem';
 
 import AuthStore from 'stores/AuthStore';
 import UsersStore from 'stores/UsersStore';
@@ -32,10 +31,6 @@ type Props = {
 @observer
 class People extends React.Component<Props> {
   @observable inviteModalOpen: boolean = false;
-
-  componentDidMount() {
-    this.props.users.fetchPage({ limit: 100 });
-  }
 
   handleInviteModalOpen = () => {
     this.inviteModalOpen = true;
@@ -64,8 +59,6 @@ class People extends React.Component<Props> {
       users = this.props.users.invited;
     }
 
-    const showLoading = this.props.users.isFetching && !users.length;
-    const showEmpty = this.props.users.isLoaded && !users.length;
     const can = policies.abilities(team.id);
 
     return (
@@ -114,17 +107,18 @@ class People extends React.Component<Props> {
             </React.Fragment>
           )}
         </Tabs>
-        <List>
-          {users.map(user => (
+        <PaginatedList
+          items={users}
+          empty={<Empty>No people to see here.</Empty>}
+          fetch={this.props.users.fetchPage}
+          renderItem={item => (
             <UserListItem
-              key={user.id}
-              user={user}
-              showMenu={can.update && currentUser.id !== user.id}
+              key={item.id}
+              user={item}
+              showMenu={can.update && currentUser.id !== item.id}
             />
-          ))}
-        </List>
-        {showEmpty && <Empty>No people to see here.</Empty>}
-        {showLoading && <ListPlaceholder count={5} />}
+          )}
+        />
 
         <Modal
           title="Invite people"

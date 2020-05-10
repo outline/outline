@@ -142,7 +142,7 @@ const Container = styled(Flex)`
   background: ${props => props.theme.background};
   transition: ${props => props.theme.backgroundTransition};
   position: relative;
-  width: 100vw;
+  width: 100%;
   min-height: 100%;
 `;
 

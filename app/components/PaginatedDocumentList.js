@@ -1,12 +1,9 @@
 // @flow
 import * as React from 'react';
-import { observable, action } from 'mobx';
 import { observer } from 'mobx-react';
-import { Waypoint } from 'react-waypoint';
-import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
 import Document from 'models/Document';
-import DocumentList from 'components/DocumentList';
-import { ListPlaceholder } from 'components/LoadingPlaceholder';
+import DocumentPreview from 'components/DocumentPreview';
+import PaginatedList from 'components/PaginatedList';
 
 type Props = {
   documents: Document[],
@@ -18,79 +15,20 @@ type Props = {
 
 @observer
 class PaginatedDocumentList extends React.Component<Props> {
-  isInitiallyLoaded: boolean = false;
-  @observable isLoaded: boolean = false;
-  @observable isFetchingMore: boolean = false;
-  @observable isFetching: boolean = false;
-  @observable offset: number = 0;
-  @observable allowLoadMore: boolean = true;
-
-  componentDidMount() {
-    this.isInitiallyLoaded = !!this.props.documents.length;
-    this.fetchResults();
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.fetch !== this.props.fetch) {
-      this.fetchResults();
-    }
-  }
-
-  fetchResults = async () => {
-    this.isFetching = true;
-
-    const limit = DEFAULT_PAGINATION_LIMIT;
-    const results = await this.props.fetch({
-      limit,
-      offset: this.offset,
-      ...this.props.options,
-    });
-
-    if (
-      results &&
-      (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT)
-    ) {
-      this.allowLoadMore = false;
-    } else {
-      this.offset += DEFAULT_PAGINATION_LIMIT;
-    }
-
-    this.isLoaded = true;
-    this.isFetching = false;
-    this.isFetchingMore = false;
-  };
-
-  @action
-  loadMoreResults = async () => {
-    // Don't paginate if there aren't more results or we’re in the middle of fetching
-    if (!this.allowLoadMore || this.isFetching) return;
-
-    this.isFetchingMore = true;
-    await this.fetchResults();
-  };
-
   render() {
     const { empty, heading, documents, fetch, options, ...rest } = this.props;
-    const showLoading =
-      this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
-    const showEmpty = !documents.length && !showLoading;
-    const showList =
-      (this.isLoaded || this.isInitiallyLoaded) && !showLoading && !showEmpty;
 
     return (
-      <React.Fragment>
-        {showEmpty && empty}
-        {showList && (
-          <React.Fragment>
-            {heading}
-            <DocumentList documents={documents} {...rest} />
-            {this.allowLoadMore && (
-              <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
-            )}
-          </React.Fragment>
+      <PaginatedList
+        items={documents}
+        empty={empty}
+        heading={heading}
+        fetch={fetch}
+        options={options}
+        renderItem={item => (
+          <DocumentPreview key={item.id} document={item} {...rest} />
         )}
-        {showLoading && <ListPlaceholder count={5} />}
-      </React.Fragment>
+      />
     );
   }
 }

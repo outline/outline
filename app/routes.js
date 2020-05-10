@@ -16,6 +16,7 @@ import Details from 'scenes/Settings/Details';
 import Notifications from 'scenes/Settings/Notifications';
 import Security from 'scenes/Settings/Security';
 import People from 'scenes/Settings/People';
+import Groups from 'scenes/Settings/Groups';
 import Slack from 'scenes/Settings/Slack';
 import Zapier from 'scenes/Settings/Zapier';
 import Shares from 'scenes/Settings/Shares';
@@ -43,8 +44,9 @@ export default function Routes() {
         <SocketProvider>
           <Layout>
             <Switch>
-              <Route path="/dashboard/:tab" component={Dashboard} />
-              <Route path="/dashboard" component={Dashboard} />
+              <Redirect from="/dashboard" to="/home" />
+              <Route path="/home/:tab" component={Dashboard} />
+              <Route path="/home" component={Dashboard} />
               <Route exact path="/starred" component={Starred} />
               <Route exact path="/starred/:sort" component={Starred} />
               <Route exact path="/drafts" component={Drafts} />
@@ -55,6 +57,7 @@ export default function Routes() {
               <Route exact path="/settings/security" component={Security} />
               <Route exact path="/settings/people" component={People} />
               <Route exact path="/settings/people/:filter" component={People} />
+              <Route exact path="/settings/groups" component={Groups} />
               <Route exact path="/settings/shares" component={Shares} />
               <Route exact path="/settings/tokens" component={Tokens} />
               <Route exact path="/settings/events" component={Events} />

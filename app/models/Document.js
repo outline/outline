@@ -1,8 +1,10 @@
 // @flow
-import { action, set, computed } from 'mobx';
+import { action, set, observable, computed } from 'mobx';
+import pkg from 'rich-markdown-editor/package.json';
 import addDays from 'date-fns/add_days';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
+import getHeadingsForText from 'shared/utils/getHeadingsForText';
 import parseTitle from 'shared/utils/parseTitle';
 import unescape from 'shared/utils/unescape';
 import BaseModel from 'models/BaseModel';
@@ -13,7 +15,8 @@ import DocumentsStore from 'stores/DocumentsStore';
 type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
 
 export default class Document extends BaseModel {
-  isSaving: boolean;
+  @observable isSaving: boolean = false;
+  @observable embedsDisabled: boolean = false;
   store: DocumentsStore;
 
   collaborators: User[];
@@ -38,31 +41,19 @@ export default class Document extends BaseModel {
   shareUrl: ?string;
   revision: number;
 
-  constructor(data?: Object = {}, store: DocumentsStore) {
-    super(data, store);
-    this.updateTitle();
+  get emoji() {
+    const { emoji } = parseTitle(this.title);
+    return emoji;
   }
 
-  @action
-  updateTitle() {
-    const { title, emoji } = parseTitle(this.text);
-
-    if (title) {
-      set(this, { title, emoji });
-    }
+  @computed
+  get headings() {
+    return getHeadingsForText(this.text);
   }
 
   @computed
   get isOnlyTitle(): boolean {
-    const { title } = parseTitle(this.text);
-
-    // find and extract title
-    const trimmedBody = this.text
-      .trim()
-      .replace(/^#/, '')
-      .trim();
-
-    return unescape(trimmedBody) === title;
+    return !this.text.trim();
   }
 
   @computed
@@ -110,7 +101,6 @@ export default class Document extends BaseModel {
   @action
   updateFromJson = data => {
     set(this, data);
-    this.updateTitle();
   };
 
   archive = () => {
@@ -119,6 +109,17 @@ export default class Document extends BaseModel {
 
   restore = (revision: Revision) => {
     return this.store.restore(this, revision);
+  };
+
+  @action
+  enableEmbeds = () => {
+    this.embedsDisabled = false;
+  };
+
+  @action
+  disableEmbeds = () => {
+    this.embedsDisabled = true;
+    debugger;
   };
 
   @action
@@ -158,8 +159,8 @@ export default class Document extends BaseModel {
   };
 
   @action
-  view = async () => {
-    await client.post('/views.create', { documentId: this.id });
+  view = () => {
+    return this.store.rootStore.views.create({ documentId: this.id });
   };
 
   @action
@@ -175,11 +176,11 @@ export default class Document extends BaseModel {
 
     const isCreating = !this.id;
     this.isSaving = true;
-    this.updateTitle();
 
     try {
       if (isCreating) {
         return await this.store.create({
+          editorVersion: pkg.version,
           parentDocumentId: this.parentDocumentId,
           collectionId: this.collectionId,
           title: this.title,
@@ -193,6 +194,7 @@ export default class Document extends BaseModel {
         title: this.title,
         text: this.text,
         lastRevision: this.revision,
+        editorVersion: pkg.version,
         ...options,
       });
     } finally {
@@ -212,14 +214,17 @@ export default class Document extends BaseModel {
     // Ensure the document is upto date with latest server contents
     await this.fetch();
 
-    const blob = new Blob([unescape(this.text)], { type: 'text/markdown' });
+    const body = unescape(this.text);
+    const blob = new Blob([`# ${this.title}\n\n${body}`], {
+      type: 'text/markdown',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
 
     // Firefox support requires the anchor tag be in the DOM to trigger the dl
     if (document.body) document.body.appendChild(a);
     a.href = url;
-    a.download = `${this.title}.md`;
+    a.download = `${this.title || 'Untitled'}.md`;
     a.click();
   };
 }

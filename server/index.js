@@ -1,17 +1,14 @@
 // @flow
-import { promisify } from 'util';
 import http from 'http';
 import IO from 'socket.io';
 import SocketAuth from 'socketio-auth';
 import socketRedisAdapter from 'socket.io-redis';
 import { getUserForJWT } from './utils/jwt';
 import { Document, Collection, View } from './models';
-import { client } from './redis';
+import { client, subscriber } from './redis';
 import app from './app';
 import policy from './policies';
 
-const redisHget = promisify(client.hget).bind(client);
-const redisHset = promisify(client.hset).bind(client);
 const server = http.createServer(app.callback());
 let io;
 
@@ -24,7 +21,12 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
     cookie: false,
   });
 
-  io.adapter(socketRedisAdapter(process.env.REDIS_URL));
+  io.adapter(
+    socketRedisAdapter({
+      pubClient: client,
+      subClient: subscriber,
+    })
+  );
 
   SocketAuth(io, {
     authenticate: async (socket, data, callback) => {
@@ -36,7 +38,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
 
         // store the mapping between socket id and user id in redis
         // so that it is accessible across multiple server nodes
-        await redisHset(socket.id, 'userId', user.id);
+        await client.hset(socket.id, 'userId', user.id);
 
         return callback(null, true);
       } catch (err) {
@@ -107,7 +109,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
                 // makes this easy.
                 let userIds = new Map();
                 for (const socketId of sockets) {
-                  const userId = await redisHget(socketId, 'userId');
+                  const userId = await client.hget(socketId, 'userId');
                   userIds.set(userId, userId);
                 }
                 socket.emit('document.presence', {
