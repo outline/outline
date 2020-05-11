@@ -18,6 +18,7 @@ type Props = {
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
+  giteaSigninEnabled: boolean,
   hostname: string,
 };
 
@@ -28,10 +29,12 @@ function SubdomainSignin({
   notice,
   googleSigninEnabled,
   slackSigninEnabled,
+  giteaSigninEnabled,
   hostname,
 }: Props) {
   googleSigninEnabled = !!team.googleId && googleSigninEnabled;
   slackSigninEnabled = !!team.slackId && slackSigninEnabled;
+  giteaSigninEnabled = !!team.giteaId && giteaSigninEnabled;
 
   const guestSigninEnabled = team.guestSignin;
   const guestSigninForm = (
@@ -70,6 +73,7 @@ function SubdomainSignin({
                 <SigninButtons
                   googleSigninEnabled={googleSigninEnabled}
                   slackSigninEnabled={slackSigninEnabled}
+                  giteaSigninEnabled={giteaSigninEnabled}
                   lastSignedIn={signinHint}
                 />
               </p>
@@ -84,6 +88,7 @@ function SubdomainSignin({
                 <SigninButtons
                   googleSigninEnabled={googleSigninEnabled}
                   slackSigninEnabled={slackSigninEnabled}
+                  giteaSigninEnabled={giteaSigninEnabled}
                   lastSignedIn={signinHint}
                 />
               </p>

@@ -7,6 +7,7 @@ import Flex from '../../../shared/components/Flex';
 import Notice from '../../../shared/components/Notice';
 import GoogleLogo from '../../../shared/components/GoogleLogo';
 import SlackLogo from '../../../shared/components/SlackLogo';
+import GiteaLogo from '../../../shared/components/GiteaLogo';
 import breakpoint from 'styled-components-breakpoint';
 
 type Props = {
@@ -14,18 +15,21 @@ type Props = {
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
   guestSigninEnabled?: boolean,
+  giteaSigninEnabled: boolean,
 };
 
 const SigninButtons = ({
   lastSignedIn,
   slackSigninEnabled,
   googleSigninEnabled,
+  giteaSigninEnabled,
   guestSigninEnabled,
 }: Props) => {
   return (
     <Wrapper>
       {!slackSigninEnabled &&
-        !googleSigninEnabled && (
+        !googleSigninEnabled &&
+        !giteaSigninEnabled && (
           <Notice>
             Neither Slack or Google sign in is enabled. You must configure at
             least one authentication method to sign in to Outline.
@@ -51,6 +55,17 @@ const SigninButtons = ({
           <LastLogin>
             {lastSignedIn === 'google' &&
               'You signed in with Google previously'}
+          </LastLogin>
+        </Column>
+      )}
+      {giteaSigninEnabled && (
+        <Column column>
+          <Button href={signin('gitea')}>
+            <GiteaLogo />
+            <Spacer>Sign In with Gitea</Spacer>
+          </Button>
+          <LastLogin>
+            {lastSignedIn === 'Gitea' && 'You signed in with Gitea previously'}
           </LastLogin>
         </Column>
       )}

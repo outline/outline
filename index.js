@@ -38,6 +38,22 @@ if (process.env.SLACK_KEY) {
   }
 }
 
+if (process.env.GITEA_KEY) {
+  if (!process.env.GITEA_SECRET) {
+    console.error(
+      `The GITEA_SECRET env variable must be set when using Gitea Sign In`
+    );
+    // $FlowFixMe
+    process.exit(1);
+  }
+  if (!process.env.GITEA_URL) {
+    console.warn(
+      `The GITEA_URL env variable is not set when using Gitea Sign In and defaulting to https://gitea.com`
+    );
+    process.env.GITEA_URL="https://gitea.com"
+  }
+}
+
 if (!process.env.URL) {
   console.error(
     'The URL env variable must be set to the externally accessible URL, e.g (https://www.getoutline.com)'

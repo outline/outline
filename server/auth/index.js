@@ -10,6 +10,7 @@ import { stripSubdomain } from '../../shared/utils/domains';
 
 import slack from './slack';
 import google from './google';
+import gitea from './gitea';
 import email from './email';
 
 const app = new Koa();
@@ -17,6 +18,7 @@ const router = new Router();
 
 router.use('/', slack.routes());
 router.use('/', google.routes());
+router.use('/', gitea.routes());
 router.use('/', email.routes());
 
 router.get('/redirect', auth(), async ctx => {
