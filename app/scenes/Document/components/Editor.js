@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import styled from 'styled-components';
+import Textarea from 'react-autosize-textarea';
 import { inject, observer } from 'mobx-react';
 import Editor from 'components/Editor';
 import PublishingInfo from 'components/PublishingInfo';
@@ -66,9 +67,10 @@ class DocumentEditor extends React.Component<Props> {
           onKeyDown={this.handleTitleKeyDown}
           placeholder="Start with a title…"
           value={!title && readOnly ? 'Untitled' : title}
-          offsetLeft={startsWithEmojiAndSpace}
+          offset={startsWithEmojiAndSpace}
           readOnly={readOnly}
           autoFocus={!title}
+          maxLength={100}
         />
         <Meta document={document}>
           {totalViews && !isDraft ? (
@@ -96,7 +98,7 @@ const Meta = styled(PublishingInfo)`
   font-size: 14px;
 `;
 
-const Title = styled('input')`
+const Title = styled(Textarea)`
   z-index: 1;
   line-height: 1.25;
   margin-top: 1em;
@@ -104,13 +106,14 @@ const Title = styled('input')`
   text: ${props => props.theme.text};
   background: ${props => props.theme.background};
   transition: ${props => props.theme.backgroundTransition};
-  margin-left: ${props => (props.offsetLeft ? '-1.2em' : 0)};
+  margin-left: ${props => (props.offset ? '-1.2em' : 0)};
   color: ${props => props.theme.text};
   font-size: 2.25em;
   font-weight: 500;
   outline: none;
   border: 0;
   padding: 0;
+  resize: none;
 
   &::placeholder {
     color: ${props => props.theme.placeholder};

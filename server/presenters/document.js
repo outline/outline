@@ -18,8 +18,10 @@ async function replaceImageAttachments(text) {
 
   for (const id of attachmentIds) {
     const attachment = await Attachment.findByPk(id);
-    const accessUrl = await getSignedImageUrl(attachment.key);
-    text = text.replace(attachment.redirectUrl, accessUrl);
+    if (attachment) {
+      const accessUrl = await getSignedImageUrl(attachment.key);
+      text = text.replace(attachment.redirectUrl, accessUrl);
+    }
   }
 
   return text;

@@ -83,7 +83,9 @@ export class Mailer {
           attachments: data.attachments,
         });
       } catch (err) {
-        Sentry.captureException(err);
+        if (process.env.SENTRY_DSN) {
+          Sentry.captureException(err);
+        }
         throw err; // Re-throw for queue to re-try
       }
     }

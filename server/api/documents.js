@@ -809,7 +809,7 @@ router.post('documents.update', auth(), async ctx => {
 
   if (append) {
     document.text += text;
-  } else if (text) {
+  } else if (text !== undefined) {
     document.text = text;
   }
   document.lastModifiedById = user.id;

@@ -76,7 +76,7 @@ const StyledOutline = styled(Outline)`
   padding: 8px 12px;
   min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : '0')};
   max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : 'auto')};
-  overflow: scroll;
+  overflow-y: auto;
 
   > * {
     display: block;

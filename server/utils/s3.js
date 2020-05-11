@@ -115,7 +115,7 @@ export const uploadToS3FromUrl = async (
     const endpoint = publicS3Endpoint(true);
     return `${endpoint}/${key}`;
   } catch (err) {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.SENTRY_DSN) {
       Sentry.captureException(err);
     } else {
       throw err;
@@ -157,7 +157,7 @@ export const getImageByKey = async (key: string) => {
     const data = await s3.getObject(params).promise();
     return data.Body;
   } catch (err) {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.SENTRY_DSN) {
       Sentry.captureException(err);
     } else {
       throw err;

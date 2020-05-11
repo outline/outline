@@ -34,12 +34,11 @@ async function addImageToArchive(zip, key) {
     const img = await getImageByKey(key);
     zip.file(key, img, { createFolders: true });
   } catch (err) {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.SENTRY_DSN) {
       Sentry.captureException(err);
-    } else {
-      // error during file retrieval
-      console.error(err);
     }
+    // error during file retrieval
+    console.error(err);
   }
 }
 
