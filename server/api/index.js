@@ -25,6 +25,7 @@ import validation from '../middlewares/validation';
 import methodOverride from '../middlewares/methodOverride';
 import cache from './middlewares/cache';
 import apiWrapper from './middlewares/apiWrapper';
+import editor from './middlewares/editor';
 
 const api = new Koa();
 const router = new Router();
@@ -36,6 +37,7 @@ api.use(methodOverride());
 api.use(cache());
 api.use(validation());
 api.use(apiWrapper());
+api.use(editor());
 
 // routes
 router.use('/', auth.routes());
