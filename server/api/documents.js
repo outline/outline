@@ -692,12 +692,13 @@ router.post('documents.create', auth(), async ctx => {
   const {
     title = '',
     text = '',
-    editorVersion,
     publish,
     collectionId,
     parentDocumentId,
     index,
   } = ctx.body;
+  const editorVersion = ctx.headers['x-editor-version'];
+
   ctx.assertUuid(collectionId, 'collectionId must be an uuid');
   if (parentDocumentId) {
     ctx.assertUuid(parentDocumentId, 'parentDocumentId must be an uuid');
@@ -787,10 +788,11 @@ router.post('documents.update', auth(), async ctx => {
     publish,
     autosave,
     done,
-    editorVersion,
     lastRevision,
     append,
   } = ctx.body;
+  const editorVersion = ctx.headers['x-editor-version'];
+
   ctx.assertPresent(id, 'id is required');
   ctx.assertPresent(title || text, 'title or text is required');
   if (append) ctx.assertPresent(text, 'Text is required while appending');

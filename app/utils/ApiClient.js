@@ -1,4 +1,5 @@
 // @flow
+import pkg from 'rich-markdown-editor/package.json';
 import { map, trim } from 'lodash';
 import invariant from 'invariant';
 import stores from 'stores';
@@ -41,6 +42,7 @@ class ApiClient {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       'cache-control': 'no-cache',
+      'x-editor-version': pkg.version,
       pragma: 'no-cache',
     });
     if (stores.auth.authenticated) {
@@ -98,6 +100,11 @@ class ApiClient {
       error.data = parsed.data;
     } catch (_err) {
       // we're trying to parse an error so JSON may not be valid
+    }
+
+    if (response.status === 400 && error.error === 'editor_update_required') {
+      window.location.reload(true);
+      return;
     }
 
     throw error;
