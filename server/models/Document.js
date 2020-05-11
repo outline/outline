@@ -258,6 +258,11 @@ Document.searchForTeam = async (
   const wildcardQuery = `${sequelize.escape(query)}:*`;
   const collectionIds = await team.collectionIds();
 
+  // If the team has access no public collections then shortcircuit the rest of this
+  if (!collectionIds.length) {
+    return [];
+  }
+
   // Build the SQL query to get documentIds, ranking, and search term context
   const sql = `
     SELECT
@@ -326,6 +331,11 @@ Document.searchForUser = async (
     collectionIds = [options.collectionId];
   } else {
     collectionIds = await user.collectionIds();
+  }
+
+  // If the user has access to no collections then shortcircuit the rest of this
+  if (!collectionIds.length) {
+    return [];
   }
 
   let dateFilter;
