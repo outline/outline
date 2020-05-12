@@ -5,7 +5,8 @@ import { EditorUpdateError } from '../../errors';
 
 export default function editor() {
   return async function editorMiddleware(ctx: Context, next: () => Promise<*>) {
-    if (ctx.headers['x-editor-version'] !== pkg.version) {
+    const editorVersion = ctx.headers['x-editor-version'];
+    if (editorVersion && editorVersion !== pkg.version) {
       throw new EditorUpdateError();
     }
     return next();
