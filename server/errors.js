@@ -45,3 +45,9 @@ export function ParamRequiredError(
 export function ValidationError(message: string = 'Validation failed') {
   return httpErrors(400, message, { id: 'validation_error' });
 }
+
+export function EditorUpdateError(
+  message: string = 'The client editor is out of date and must be reloaded'
+) {
+  return httpErrors(400, message, { id: 'editor_update_required' });
+}
