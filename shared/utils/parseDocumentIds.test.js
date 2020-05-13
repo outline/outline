@@ -1,14 +1,32 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import parseDocumentIds from './parseDocumentIds';
 
-it('should return an array of document ids', () => {
+it('should not return non links', () => {
   expect(parseDocumentIds(`# Header`).length).toBe(0);
-  expect(
-    parseDocumentIds(`# Header
+});
+
+it('should return an array of document ids', () => {
+  const result = parseDocumentIds(`# Header
   
   [internal](/doc/test-456733)
-  `)[0]
-  ).toBe('test-456733');
+  `);
+
+  expect(result.length).toBe(1);
+  expect(result[0]).toBe('test-456733');
+});
+
+it('should not return duplicate document ids', () => {
+  expect(parseDocumentIds(`# Header`).length).toBe(0);
+
+  const result = parseDocumentIds(`# Header
+  
+  [internal](/doc/test-456733)
+
+  [another link to the same doc](/doc/test-456733)
+  `);
+
+  expect(result.length).toBe(1);
+  expect(result[0]).toBe('test-456733');
 });
 
 it('should not return non document links', () => {

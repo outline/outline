@@ -17,7 +17,11 @@ export default function parseDocumentIds(text: string): string[] {
           if (href.startsWith('/doc')) {
             const tokens = href.replace(/\/$/, '').split('/');
             const lastToken = tokens[tokens.length - 1];
-            links.push(lastToken);
+
+            // don't return the same link more than once
+            if (!links.includes(lastToken)) {
+              links.push(lastToken);
+            }
           }
         }
       });
