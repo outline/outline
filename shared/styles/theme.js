@@ -46,6 +46,8 @@ export const base = {
   ...spacing,
   fontFamily:
     "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen, Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif",
+  fontFamilyMono:
+    "'SFMono-Regular',Consolas,'Liberation Mono', Menlo, Courier,monospace",
   fontWeight: 400,
   backgroundTransition: 'background 100ms ease-in-out',
   zIndex: 100,
@@ -53,6 +55,15 @@ export const base = {
   selected: colors.primary,
   buttonBackground: colors.primary,
   buttonText: colors.white,
+  textHighlight: '#B3E7FF',
+
+  blockToolbarBackground: colors.white,
+  blockToolbarTrigger: colors.slate,
+  blockToolbarTriggerIcon: colors.white,
+  blockToolbarItem: colors.almostBlack,
+  blockToolbarText: colors.almostBlack,
+  blockToolbarHoverBackground: colors.slateLight,
+  blockToolbarDivider: colors.slateLight,
 
   breakpoints: {
     mobile: 0, // targeting all devices
@@ -102,11 +113,6 @@ export const light = {
   tooltipBackground: colors.almostBlack,
   tooltipText: colors.white,
 
-  blockToolbarBackground: colors.smoke,
-  blockToolbarTrigger: colors.slate,
-  blockToolbarTriggerIcon: colors.white,
-  blockToolbarItem: colors.almostBlack,
-
   quote: colors.slateLight,
   codeBackground: colors.smoke,
   codeBorder: colors.smokeDark,
@@ -153,11 +159,6 @@ export const dark = {
 
   tooltipBackground: colors.white,
   tooltipText: colors.lightBlack,
-
-  blockToolbarBackground: colors.white,
-  blockToolbarTrigger: colors.almostWhite,
-  blockToolbarTriggerIcon: colors.almostBlack,
-  blockToolbarItem: colors.lightBlack,
 
   quote: colors.almostWhite,
   codeBackground: colors.almostBlack,
