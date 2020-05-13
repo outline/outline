@@ -1,6 +1,5 @@
 // @flow
 import { action, set, observable, computed } from 'mobx';
-import pkg from 'rich-markdown-editor/package.json';
 import addDays from 'date-fns/add_days';
 import invariant from 'invariant';
 import { client } from 'utils/ApiClient';
