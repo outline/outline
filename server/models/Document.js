@@ -1,5 +1,6 @@
 // @flow
 import { map, find, compact, uniq } from 'lodash';
+import MarkdownSerializer from 'slate-md-serializer';
 import randomstring from 'randomstring';
 import Sequelize, { type Transaction } from 'sequelize';
 import removeMarkdown from '@tommoor/remove-markdown';
@@ -14,6 +15,7 @@ import Revision from './Revision';
 
 const Op = Sequelize.Op;
 const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
+const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
 
@@ -454,22 +456,18 @@ Document.prototype.toMarkdown = function() {
 Document.prototype.migrateVersion = function() {
   let migrated = false;
 
-  // migrate from document version 0 -> 1 means removing the title from the
-  // document text attribute.
+  // migrate from document version 0 -> 1
   if (!this.version) {
+    // removing the title from the document text attribute
     this.text = this.text.replace(/^#\s(.*)\n/, '');
     this.version = 1;
     migrated = true;
   }
 
-  // encode empty paragraphs with a hardbreak "\"
-  // task lists changed from "[ ]" to "- [ ]"
+  // migrate from document version 1 -> 2
   if (this.version === 1) {
-    this.text = this.text
-      .replace(/^(([\w->*_])(.*))?\n(\n|$)/gm, '$1\n\n\\$4')
-      .replace(/\\\n(\n|$)/g, '\\\n\\$1')
-      .replace(/^(\s+)?\[([x\s])\]/gim, '$1- [$2]');
-
+    const nodes = serializer.deserialize(this.text);
+    this.text = serializer.serialize(nodes, { version: 2 });
     this.version = 2;
     migrated = true;
   }

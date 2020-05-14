@@ -90,33 +90,53 @@ paragraph`,
 paragraph`);
   });
 
+  test('should add breaks with non-latin characters', async () => {
+    const document = await buildDocument({
+      version: 1,
+      text: `除。
+
+通`,
+    });
+    await document.migrateVersion();
+    expect(document.text).toBe(`除。
+
+\\
+通`);
+  });
+
   test('should update task list formatting', async () => {
     const document = await buildDocument({
       version: 1,
-      text: `[ ] list item`,
+      text: `[ ] list item
+`,
     });
     await document.migrateVersion();
-    expect(document.text).toBe(`- [ ] list item`);
+    expect(document.text).toBe(`- [ ] list item
+`);
   });
 
   test('should update task list with multiple items', async () => {
     const document = await buildDocument({
       version: 1,
       text: `[ ] list item
-[ ] list item 2`,
+[ ] list item 2
+`,
     });
     await document.migrateVersion();
     expect(document.text).toBe(`- [ ] list item
-- [ ] list item 2`);
+- [ ] list item 2
+`);
   });
 
   test('should update checked task list formatting', async () => {
     const document = await buildDocument({
       version: 1,
-      text: `[x] list item`,
+      text: `[x] list item
+`,
     });
     await document.migrateVersion();
-    expect(document.text).toBe(`- [x] list item`);
+    expect(document.text).toBe(`- [x] list item
+`);
   });
 
   test('should update nested task list formatting', async () => {
@@ -124,12 +144,14 @@ paragraph`);
       version: 1,
       text: `[x] list item
   [ ] list item
-    [X] list item`,
+  [x] list item
+`,
     });
     await document.migrateVersion();
     expect(document.text).toBe(`- [x] list item
-  - [ ] list item
-    - [X] list item`);
+   - [ ] list item
+   - [x] list item
+`);
   });
 });
 
