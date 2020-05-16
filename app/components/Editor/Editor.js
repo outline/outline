@@ -113,15 +113,6 @@ const StyledEditor = styled(RichMarkdownEditor)`
       }
     }
   }
-
-  h1:first-child,
-  h2:first-child,
-  h3:first-child,
-  h4:first-child,
-  h5:first-child,
-  h6:first-child {
-    margin-top: 0;
-  }
 `;
 
 const EditorTooltip = ({ children, ...props }) => (
