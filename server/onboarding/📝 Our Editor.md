@@ -1,18 +1,20 @@
 The heart of Outline is the document editor. We let you write in whichever way you prefer – be it Markdown, WYSIWYG, or taking advantage of the many keyboard shortcuts.
 
-![The formatting toolbar](https://s3.amazonaws.com/dev.beautifulatlas.com/uploads/e2b85962-ca66-4e4c-90d3-b32d30f0610c/754830c0-2aca-467c-82de-2fd6e990b696/Group.png)
-
 ## Markdown
 
-If you’re comfortable writing markdown then all of the usual shortcuts are supported, for example type \*\*bold\*\* and hit `space` to instantly create bold text. If you forget some syntax or are after a refresher, simply type `?` to access the keyboard shortcut help.
+If you’re comfortable writing markdown then all of the shortcuts you are used to are supported, for example type \*\*bold\*\* to instantly create bold text. If you forget some syntax or are after a quick refresher hit the keyboard icon in the bottom right hand corner for our guide. Learning some of the key Markdown shortcuts will make using Outline faster and more enjoyable!
 
-*Tip:* You can even paste markdown from elsewhere directly into a document.
+![The formatting toolbar](/images/screenshots/formatting-toolbar.png)
 
-## Blocks
+*Tip:* You can also paste markdown or html from elsewhere directly into a document.
 
-The editor supports a variety of content blocks including images, tables, lists, quotes, and more. You can also drag and drop images to include them in your document or paste a link to embed content from one of the many supported [integrations](https://www.getoutline.com/integrations)
+## Rich documents
 
-*Tip:* Headings are collapsible, just click the arrow to the left of any heading to temporarily hide the content below.
+The editor supports a variety of content blocks including images, tables, lists, quotes, videos, and more. Type "/" on an empty line or click on the "+" icon to trigger the block insert menu, you can keep typing to filter it down.
+
+You can also drag and drop images to include them in your document or paste a link to embed content from one of the many supported [integrations](https://www.getoutline.com/integrations)
+
+![The block menu](/images/screenshots/block-menu.png)
 
 ## References
 
