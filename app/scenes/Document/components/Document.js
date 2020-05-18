@@ -369,7 +369,11 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 <Editor
                   id={document.id}
-                  ref={ref => (this.editor = ref)}
+                  ref={ref => {
+                    if (ref) {
+                      this.editor = ref;
+                    }
+                  }}
                   isDraft={document.isDraft}
                   key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
                   title={revision ? revision.title : this.title}
