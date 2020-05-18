@@ -33,8 +33,11 @@ Outline requires the following dependencies:
 
 In development you can quickly get an environment running using Docker by following these steps:
 
+1. Install these dependencies if you don't already have them
+  1. [Docker for Desktop](https://www.docker.com)
+  1. [Node.js](https://nodejs.org/) (v12 LTS preferred)
+  1. [Yarn](https://yarnpkg.com)
 1. Clone this repo
-1. Install [Docker for Desktop](https://www.docker.com) if you don't already have it
 1. Register a Slack app at https://api.slack.com/apps
 1. Copy the file `.env.sample` to `.env`
 1. Fill out the following fields:
@@ -53,7 +56,7 @@ For a self-hosted production installation there is more flexibility, but these a
 
 1. Clone this repo and install dependencies with `yarn` or `npm install`
 
-   > Requires [Node.js, npm](https://nodejs.org/) and [yarn](https://yarnpkg.com) installed
+   > Requires [Node.js](https://nodejs.org/) and [yarn](https://yarnpkg.com) installed
 
 1. Build the web app with `yarn build:webpack` or `npm run build:webpack`
 1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
