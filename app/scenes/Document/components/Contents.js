@@ -31,12 +31,12 @@ export default function Contents({ headings }: Props) {
           if (bounding.top > HEADING_OFFSET) {
             const last = headings[Math.max(0, key - 1)];
             setActiveSlug(last.id);
-            break;
+            return;
           }
         }
       }
     },
-    [position]
+    [position, headings]
   );
 
   // calculate the minimum heading level and adjust all the headings to make
