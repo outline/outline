@@ -143,7 +143,7 @@ export const dark = {
 
   link: colors.almostWhite,
   text: colors.almostWhite,
-  textSecondary: lighten(0.2, colors.slate),
+  textSecondary: lighten(0.1, colors.slate),
   textTertiary: colors.slate,
   placeholder: darken(0.5, '#B1BECC'),
 
@@ -177,8 +177,9 @@ export const dark = {
   tooltipText: colors.lightBlack,
 
   quote: colors.almostWhite,
-  codeBackground: colors.almostBlack,
+  codeBackground: colors.black,
   codeBorder: colors.black50,
+  codeString: '#3d8fd1',
   embedBorder: colors.black50,
   horizontalRule: darken(0.2, colors.slate),
 };
