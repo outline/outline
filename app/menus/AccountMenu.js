@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { MoonIcon } from 'outline-icons';
+import { SunIcon, MoonIcon } from 'outline-icons';
 import styled, { withTheme } from 'styled-components';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -84,12 +84,17 @@ class AccountMenu extends React.Component<Props> {
           </DropdownMenuItem>
           <hr />
           <DropdownMenuItem onClick={ui.toggleDarkMode}>
-            <NightMode justify="space-between">
-              Night Mode{' '}
-              <MoonIcon
-                color={isLightTheme ? theme.textSecondary : theme.primary}
-              />
-            </NightMode>
+            <ChangeTheme justify="space-between">
+              {isLightTheme ? (
+                <React.Fragment>
+                  Dark theme <MoonIcon />
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  Light theme <SunIcon />
+                </React.Fragment>
+              )}
+            </ChangeTheme>
           </DropdownMenuItem>
           <hr />
           <DropdownMenuItem onClick={this.handleLogout}>
@@ -101,7 +106,7 @@ class AccountMenu extends React.Component<Props> {
   }
 }
 
-const NightMode = styled(Flex)`
+const ChangeTheme = styled(Flex)`
   width: 100%;
 `;
 
