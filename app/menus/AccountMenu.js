@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { SunIcon, MoonIcon } from 'outline-icons';
-import styled, { withTheme } from 'styled-components';
+import styled from 'styled-components';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
 import Flex from 'shared/components/Flex';
@@ -24,7 +24,6 @@ type Props = {
   label: React.Node,
   ui: UiStore,
   auth: AuthStore,
-  theme: Object,
 };
 
 @observer
@@ -44,7 +43,7 @@ class AccountMenu extends React.Component<Props> {
   };
 
   render() {
-    const { ui, theme } = this.props;
+    const { ui } = this.props;
     const isLightTheme = ui.theme === 'light';
 
     return (
@@ -110,4 +109,4 @@ const ChangeTheme = styled(Flex)`
   width: 100%;
 `;
 
-export default inject('ui', 'auth')(withTheme(AccountMenu));
+export default inject('ui', 'auth')(AccountMenu);
