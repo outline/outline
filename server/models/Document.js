@@ -100,6 +100,11 @@ const Document = sequelize.define(
     version: DataTypes.SMALLINT,
     editorVersion: DataTypes.STRING,
     text: DataTypes.TEXT,
+
+    // backup contains a record of text at the moment it was converted to v2
+    // this is a safety measure during deployment of new editor and will be
+    // dropped in a future update
+    backup: DataTypes.TEXT,
     isWelcome: { type: DataTypes.BOOLEAN, defaultValue: false },
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     archivedAt: DataTypes.DATE,
@@ -467,6 +472,7 @@ Document.prototype.migrateVersion = function() {
   // migrate from document version 1 -> 2
   if (this.version === 1) {
     const nodes = serializer.deserialize(this.text);
+    this.backup = this.text;
     this.text = serializer.serialize(nodes, { version: 2 });
     this.version = 2;
     migrated = true;
