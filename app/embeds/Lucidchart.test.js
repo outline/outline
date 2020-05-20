@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Lucidchart } = embeds;
+import Lucidchart from './Lucidchart';
 
 describe('Lucidchart', () => {
   const match = Lucidchart.ENABLED[0];

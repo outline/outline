@@ -5,18 +5,14 @@ import breakpoint from 'styled-components-breakpoint';
 import useWindowScrollPosition from '@rehooks/window-scroll-position';
 import HelpText from 'components/HelpText';
 import styled from 'styled-components';
-import Document from 'models/Document';
-import Revision from 'models/Revision';
 
 const HEADING_OFFSET = 20;
 
 type Props = {
-  document: Revision | Document,
+  headings: { title: string, level: number, id: string }[],
 };
 
-export default function Contents({ document }: Props) {
-  const headings = document.headings;
-
+export default function Contents({ headings }: Props) {
   // $FlowFixMe
   const [activeSlug, setActiveSlug] = React.useState();
   const position = useWindowScrollPosition({ throttle: 100 });
@@ -27,20 +23,20 @@ export default function Contents({ document }: Props) {
       for (let key = 0; key < headings.length; key++) {
         const heading = headings[key];
         const element = window.document.getElementById(
-          decodeURIComponent(heading.slug)
+          decodeURIComponent(heading.id)
         );
 
         if (element) {
           const bounding = element.getBoundingClientRect();
           if (bounding.top > HEADING_OFFSET) {
             const last = headings[Math.max(0, key - 1)];
-            setActiveSlug(last.slug);
-            break;
+            setActiveSlug(last.id);
+            return;
           }
         }
       }
     },
-    [position]
+    [position, headings]
   );
 
   // calculate the minimum heading level and adjust all the headings to make
@@ -60,11 +56,11 @@ export default function Contents({ document }: Props) {
           <List>
             {headings.map(heading => (
               <ListItem
-                key={heading.slug}
+                key={heading.id}
                 level={heading.level - headingAdjustment}
-                active={activeSlug === heading.slug}
+                active={activeSlug === heading.id}
               >
-                <Link href={`#${heading.slug}`}>{heading.title}</Link>
+                <Link href={`#${heading.id}`}>{heading.title}</Link>
               </ListItem>
             ))}
           </List>

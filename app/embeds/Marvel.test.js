@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Marvel } = embeds;
+import Marvel from './Marvel';
 
 describe('Marvel', () => {
   const match = Marvel.ENABLED[0];

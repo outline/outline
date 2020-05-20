@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Mindmeister } = embeds;
+import Mindmeister from './Mindmeister';
 
 describe('Mindmeister', () => {
   const match = Mindmeister.ENABLED[0];

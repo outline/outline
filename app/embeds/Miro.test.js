@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Miro } = embeds;
+import Miro from './Miro';
 
 describe('Miro', () => {
   const match = Miro.ENABLED[0];

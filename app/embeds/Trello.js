@@ -2,18 +2,20 @@
 import * as React from 'react';
 import Frame from './components/Frame';
 
-const URL_REGEX = /^https:\/\/trello.com\/(c|b)\/(.*)$/;
+const URL_REGEX = /^https:\/\/trello.com\/(c|b)\/([^/]*)(.*)?$/;
 
-type Props = {
-  url: string,
-  matches: string[],
-};
+type Props = {|
+  attrs: {|
+    href: string,
+    matches: string[],
+  |},
+|};
 
 export default class Trello extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
-    const { matches } = this.props;
+    const { matches } = this.props.attrs;
     const objectId = matches[2];
 
     if (matches[1] === 'c') {

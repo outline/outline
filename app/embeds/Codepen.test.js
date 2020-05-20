@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Codepen } = embeds;
+import Codepen from './Codepen';
 
 describe('Codepen', () => {
   const match = Codepen.ENABLED[0];

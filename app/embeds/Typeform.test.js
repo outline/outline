@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Typeform } = embeds;
+import Typeform from './Typeform';
 
 describe('Typeform', () => {
   const match = Typeform.ENABLED[0];

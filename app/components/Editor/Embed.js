@@ -6,7 +6,7 @@ import embeds from '../../embeds';
 
 export default class Embed extends React.Component<*> {
   get url(): string {
-    return this.props.node.data.get('href');
+    return this.props.attrs.href;
   }
 
   getMatchResults(): ?{ component: *, matches: string[] } {
@@ -26,16 +26,12 @@ export default class Embed extends React.Component<*> {
     const result = this.getMatchResults();
     if (!result) return null;
 
-    const { attributes, isSelected, children } = this.props;
+    const { isSelected, children } = this.props;
     const { component, matches } = result;
     const EmbedComponent = component;
 
     return (
-      <Container
-        contentEditable={false}
-        isSelected={isSelected}
-        {...attributes}
-      >
+      <Container contentEditable={false} isSelected={isSelected}>
         <EmbedComponent matches={matches} url={this.url} />
         {children}
       </Container>

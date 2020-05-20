@@ -9,10 +9,6 @@
 .*/node_modules/polished/.*
 .*/node_modules/react-side-effect/.*
 .*/node_modules/fbjs/.*
-.*/node_modules/slate-edit-code/example/.*
-.*/node_modules/slate-edit-code/lib/.*
-.*/node_modules/slate-edit-list/.*
-.*/node_modules/slate-prism/.*
 .*/node_modules/config-chain/.*
 .*/server/scripts/.*
 *.test.js

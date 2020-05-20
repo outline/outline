@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Vimeo } = embeds;
+import Vimeo from './Vimeo';
 
 describe('Vimeo', () => {
   const match = Vimeo.ENABLED[0];

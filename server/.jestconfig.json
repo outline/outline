@@ -2,7 +2,8 @@
   "verbose": true,
   "rootDir": "..",
   "roots": [
-    "<rootDir>/server"
+    "<rootDir>/server",
+    "<rootDir>/shared"
   ],
   "setupFiles": [
     "<rootDir>/__mocks__/console.js",

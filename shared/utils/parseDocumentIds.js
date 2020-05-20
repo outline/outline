@@ -1,29 +1,39 @@
 // @flow
-import MarkdownSerializer from 'slate-md-serializer';
-const Markdown = new MarkdownSerializer();
+import { parser } from 'rich-markdown-editor';
 
 export default function parseDocumentIds(text: string): string[] {
-  const value = Markdown.deserialize(text);
+  const value = parser.parse(text);
   let links = [];
 
   function findLinks(node) {
-    if (node.type === 'link') {
-      const href = node.data.get('href');
+    // get text nodes
+    if (node.type.name === 'text') {
+      // get marks for text nodes
+      node.marks.forEach(mark => {
+        // any of the marks links?
+        if (mark.type.name === 'link') {
+          const { href } = mark.attrs;
+          // any of the links to other docs?
+          if (href.startsWith('/doc')) {
+            const tokens = href.replace(/\/$/, '').split('/');
+            const lastToken = tokens[tokens.length - 1];
 
-      if (href.startsWith('/doc')) {
-        const tokens = href.replace(/\/$/, '').split('/');
-        const lastToken = tokens[tokens.length - 1];
-        links.push(lastToken);
-      }
+            // don't return the same link more than once
+            if (!links.includes(lastToken)) {
+              links.push(lastToken);
+            }
+          }
+        }
+      });
     }
 
-    if (!node.nodes) {
+    if (!node.content.size) {
       return;
     }
 
-    node.nodes.forEach(findLinks);
+    node.content.descendants(findLinks);
   }
 
-  findLinks(value.document);
+  findLinks(value);
   return links;
 }

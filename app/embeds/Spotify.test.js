@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Spotify } = embeds;
+import Spotify from './Spotify';
 
 describe('Spotify', () => {
   const match = Spotify.ENABLED[0];

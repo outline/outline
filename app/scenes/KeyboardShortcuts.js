@@ -148,6 +148,8 @@ function KeyboardShortcuts() {
         <Label>Strikethrough</Label>
         <Keys>{'`code`'}</Keys>
         <Label>Inline code</Label>
+        <Keys>==highlight==</Keys>
+        <Label>highlight</Label>
       </List>
     </Flex>
   );

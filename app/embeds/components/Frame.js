@@ -35,7 +35,7 @@ class Frame extends React.Component<Props> {
     const {
       border,
       width = '100%',
-      height = '400',
+      height = '400px',
       forwardedRef,
       ...rest
     } = this.props;

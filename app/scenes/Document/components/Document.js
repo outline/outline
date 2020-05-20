@@ -5,7 +5,6 @@ import styled from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { schema } from 'rich-markdown-editor';
 import { Prompt, Route, withRouter } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
 import keydown from 'react-keydown';
@@ -65,6 +64,7 @@ type Props = {
 
 @observer
 class DocumentScene extends React.Component<Props> {
+  @observable editor: ?any;
   getEditorText: () => string = () => this.props.document.text;
 
   @observable editorComponent = EditorImport;
@@ -88,6 +88,8 @@ class DocumentScene extends React.Component<Props> {
 
   @keydown('m')
   goToMove(ev) {
+    if (!this.props.readOnly) return;
+
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -98,6 +100,8 @@ class DocumentScene extends React.Component<Props> {
 
   @keydown('e')
   goToEdit(ev) {
+    if (!this.props.readOnly) return;
+
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -116,6 +120,8 @@ class DocumentScene extends React.Component<Props> {
 
   @keydown('h')
   goToHistory(ev) {
+    if (!this.props.readOnly) return;
+
     ev.preventDefault();
     const { document, revision } = this.props;
 
@@ -356,9 +362,18 @@ class DocumentScene extends React.Component<Props> {
               )}
               <Flex auto={!readOnly}>
                 {ui.tocVisible &&
-                  readOnly && <Contents document={revision || document} />}
+                  readOnly && (
+                    <Contents
+                      headings={this.editor ? this.editor.getHeadings() : []}
+                    />
+                  )}
                 <Editor
                   id={document.id}
+                  ref={ref => {
+                    if (ref) {
+                      this.editor = ref;
+                    }
+                  }}
                   isDraft={document.isDraft}
                   key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
                   title={revision ? revision.title : this.title}
@@ -375,7 +390,6 @@ class DocumentScene extends React.Component<Props> {
                   onCancel={this.goBack}
                   readOnly={readOnly || document.isArchived}
                   ui={this.props.ui}
-                  schema={schema}
                 />
               </Flex>
               {readOnly &&

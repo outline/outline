@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { InVision } = embeds;
+import InVision from './InVision';
 
 describe('InVision', () => {
   const match = InVision.ENABLED[0];

@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Framer } = embeds;
+import Framer from './Framer';
 
 describe('Framer', () => {
   const match = Framer.ENABLED[0];

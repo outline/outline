@@ -46,6 +46,8 @@ export const base = {
   ...spacing,
   fontFamily:
     "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen, Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif",
+  fontFamilyMono:
+    "'SFMono-Regular',Consolas,'Liberation Mono', Menlo, Courier,monospace",
   fontWeight: 400,
   backgroundTransition: 'background 100ms ease-in-out',
   zIndex: 100,
@@ -53,6 +55,31 @@ export const base = {
   selected: colors.primary,
   buttonBackground: colors.primary,
   buttonText: colors.white,
+  textHighlight: '#B3E7FF',
+
+  codeComment: '#6a737d',
+  codePunctuation: '#5e6687',
+  codeNumber: '#d73a49',
+  codeProperty: '#c08b30',
+  codeTag: '#3d8fd1',
+  codeString: '#032f62',
+  codeSelector: '#6679cc',
+  codeAttr: '#c76b29',
+  codeEntity: '#22a2c9',
+  codeKeyword: '#d73a49',
+  codeFunction: '#6f42c1',
+  codeStatement: '#22a2c9',
+  codePlaceholder: '#3d8fd1',
+  codeInserted: '#202746',
+  codeImportant: '#c94922',
+
+  blockToolbarBackground: colors.white,
+  blockToolbarTrigger: colors.slate,
+  blockToolbarTriggerIcon: colors.white,
+  blockToolbarItem: colors.almostBlack,
+  blockToolbarText: colors.almostBlack,
+  blockToolbarHoverBackground: colors.slateLight,
+  blockToolbarDivider: colors.slateLight,
 
   breakpoints: {
     mobile: 0, // targeting all devices
@@ -102,11 +129,6 @@ export const light = {
   tooltipBackground: colors.almostBlack,
   tooltipText: colors.white,
 
-  blockToolbarBackground: colors.smoke,
-  blockToolbarTrigger: colors.slate,
-  blockToolbarTriggerIcon: colors.white,
-  blockToolbarItem: colors.almostBlack,
-
   quote: colors.slateLight,
   codeBackground: colors.smoke,
   codeBorder: colors.smokeDark,
@@ -121,7 +143,7 @@ export const dark = {
 
   link: colors.almostWhite,
   text: colors.almostWhite,
-  textSecondary: lighten(0.2, colors.slate),
+  textSecondary: lighten(0.1, colors.slate),
   textTertiary: colors.slate,
   placeholder: darken(0.5, '#B1BECC'),
 
@@ -154,14 +176,10 @@ export const dark = {
   tooltipBackground: colors.white,
   tooltipText: colors.lightBlack,
 
-  blockToolbarBackground: colors.white,
-  blockToolbarTrigger: colors.almostWhite,
-  blockToolbarTriggerIcon: colors.almostBlack,
-  blockToolbarItem: colors.lightBlack,
-
   quote: colors.almostWhite,
-  codeBackground: colors.almostBlack,
+  codeBackground: colors.black,
   codeBorder: colors.black50,
+  codeString: '#3d8fd1',
   embedBorder: colors.black50,
   horizontalRule: darken(0.2, colors.slate),
 };
