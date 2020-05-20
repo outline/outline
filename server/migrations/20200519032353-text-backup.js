@@ -7,7 +7,7 @@ module.exports = {
       allowNull: true,
     });
     await queryInterface.addColumn('revisions', 'backup', {
-      type: Sequelize.SMALLINT,
+      type: Sequelize.TEXT,
       allowNull: true,
     });
   },
