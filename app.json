@@ -44,11 +44,6 @@
       "value": "true",
       "required": true
     },
-    "SUBDOMAINS_ENABLED": {
-      "value": "false",
-      "required": true,
-      "description": "Allows each team to have a different subdomain. Not recommend when self hosting"
-    },
     "WEBSOCKETS_ENABLED": {
       "value": "true",
       "required": true,

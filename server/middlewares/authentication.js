@@ -6,7 +6,7 @@ import { getUserForJWT } from '../utils/jwt';
 import { AuthenticationError, UserSuspendedError } from '../errors';
 import addMonths from 'date-fns/add_months';
 import addMinutes from 'date-fns/add_minutes';
-import { stripSubdomain } from '../../shared/utils/domains';
+import { getCookieDomain } from '../../shared/utils/domains';
 
 export default function auth(options?: { required?: boolean } = {}) {
   return async function authMiddleware(ctx: Context, next: () => Promise<*>) {
@@ -89,7 +89,7 @@ export default function auth(options?: { required?: boolean } = {}) {
       // update the database when the user last signed in
       user.updateSignedIn(ctx.request.ip);
 
-      const domain = stripSubdomain(ctx.request.hostname);
+      const domain = getCookieDomain(ctx.request.hostname);
       const expires = addMonths(new Date(), 3);
 
       // set a cookie for which service we last signed in with. This is

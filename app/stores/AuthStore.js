@@ -3,7 +3,7 @@ import { observable, action, computed, autorun, runInAction } from 'mobx';
 import invariant from 'invariant';
 import { getCookie, setCookie, removeCookie } from 'tiny-cookie';
 import { client } from 'utils/ApiClient';
-import { stripSubdomain } from 'shared/utils/domains';
+import { getCookieDomain } from 'shared/utils/domains';
 import RootStore from 'stores/RootStore';
 import User from 'models/User';
 import Team from 'models/Team';
@@ -174,7 +174,7 @@ export default class AuthStore {
       delete sessions[team.id];
 
       setCookie('sessions', JSON.stringify(sessions), {
-        domain: stripSubdomain(window.location.hostname),
+        domain: getCookieDomain(window.location.hostname),
       });
       this.team = null;
     }
