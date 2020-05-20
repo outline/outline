@@ -102,7 +102,7 @@ const SmallSlash = styled(GoToIcon)`
 
 export const Slash = styled(GoToIcon)`
   flex-shrink: 0;
-  opacity: 0.25;
+  fill: ${props => props.theme.divider};
 `;
 
 const Overflow = styled(MoreIcon)`
