@@ -6,9 +6,12 @@ const URL_REGEX = new RegExp(
   '^https?://docs.google.com/presentation/d/(.*)/pub(.*)$'
 );
 
-type Props = {
-  url: string,
-};
+type Props = {|
+  attrs: {|
+    href: string,
+    matches: string[],
+  |},
+|};
 
 export default class GoogleSlides extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
@@ -16,7 +19,7 @@ export default class GoogleSlides extends React.Component<Props> {
   render() {
     return (
       <Frame
-        src={this.props.url.replace('/pub', '/embed')}
+        src={this.props.attrs.href.replace('/pub', '/embed')}
         title="Google Slides Embed"
         border
       />

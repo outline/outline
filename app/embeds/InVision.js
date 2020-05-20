@@ -11,19 +11,22 @@ const IMAGE_REGEX = new RegExp(
   '^https://(opal.invisionapp.com/static-signed/live-embed/.*)$'
 );
 
-type Props = {
-  url: string,
-};
+type Props = {|
+  attrs: {|
+    href: string,
+    matches: string[],
+  |},
+|};
 
 export default class InVision extends React.Component<Props> {
   static ENABLED = [IFRAME_REGEX, IMAGE_REGEX];
 
   render() {
-    if (IMAGE_REGEX.test(this.props.url)) {
+    if (IMAGE_REGEX.test(this.props.attrs.href)) {
       return (
         <ImageZoom
           image={{
-            src: this.props.url,
+            src: this.props.attrs.href,
             alt: 'InVision Embed',
             style: {
               maxWidth: '100%',
@@ -34,6 +37,6 @@ export default class InVision extends React.Component<Props> {
         />
       );
     }
-    return <Frame src={this.props.url} title="InVision Embed" />;
+    return <Frame src={this.props.attrs.href} title="InVision Embed" />;
   }
 }

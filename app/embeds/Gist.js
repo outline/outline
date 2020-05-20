@@ -5,9 +5,12 @@ const URL_REGEX = new RegExp(
   '^https://gist.github.com/([a-zd](?:[a-zd]|-(?=[a-zd])){0,38})/(.*)$'
 );
 
-type Props = {
-  url: string,
-};
+type Props = {|
+  attrs: {|
+    href: string,
+    matches: string[],
+  |},
+|};
 
 class Gist extends React.Component<Props> {
   iframeNode: ?HTMLIFrameElement;
@@ -19,7 +22,7 @@ class Gist extends React.Component<Props> {
   }
 
   get id() {
-    const gistUrl = new URL(this.props.url);
+    const gistUrl = new URL(this.props.attrs.href);
     return gistUrl.pathname.split('/')[2];
   }
 

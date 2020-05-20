@@ -64,20 +64,6 @@ class Editor extends React.Component<Props> {
     this.props.ui.showToast(message);
   };
 
-  getLinkComponent = url => {
-    if (this.props.disableEmbeds) return;
-    const keys = Object.keys(embeds);
-
-    for (const key of keys) {
-      const component = embeds[key];
-
-      for (const host of component.ENABLED) {
-        const matches = url.match(host);
-        if (matches) return Embed;
-      }
-    }
-  };
-
   render() {
     return (
       <StyledEditor
@@ -85,7 +71,7 @@ class Editor extends React.Component<Props> {
         uploadImage={this.onUploadImage}
         onClickLink={this.onClickLink}
         onShowToast={this.onShowToast}
-        getLinkComponent={this.getLinkComponent}
+        embeds={this.props.disableEmbeds ? [] : embeds}
         tooltip={EditorTooltip}
         {...this.props}
       />
