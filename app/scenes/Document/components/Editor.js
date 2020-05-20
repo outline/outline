@@ -65,7 +65,7 @@ class DocumentEditor extends React.Component<Props> {
           onKeyDown={this.handleTitleKeyDown}
           placeholder="Start with a title…"
           value={!title && readOnly ? 'Untitled' : title}
-          offset={startsWithEmojiAndSpace}
+          style={startsWithEmojiAndSpace ? { marginLeft: '-1.2em' } : undefined}
           readOnly={readOnly}
           autoFocus={!title}
           maxLength={100}
@@ -92,7 +92,6 @@ const Title = styled(Textarea)`
   text: ${props => props.theme.text};
   background: ${props => props.theme.background};
   transition: ${props => props.theme.backgroundTransition};
-  margin-left: ${props => (props.offset ? '-1.2em' : 0)};
   color: ${props => props.theme.text};
   font-size: 2.25em;
   font-weight: 500;
