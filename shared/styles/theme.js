@@ -129,6 +129,9 @@ export const light = {
   tooltipBackground: colors.almostBlack,
   tooltipText: colors.white,
 
+  toastBackground: colors.almostBlack,
+  toastText: colors.white,
+
   quote: colors.slateLight,
   codeBackground: colors.smoke,
   codeBorder: colors.smokeDark,
@@ -175,6 +178,9 @@ export const dark = {
 
   tooltipBackground: colors.white,
   tooltipText: colors.lightBlack,
+
+  toastBackground: colors.white,
+  toastText: colors.lightBlack,
 
   quote: colors.almostWhite,
   codeBackground: colors.black,

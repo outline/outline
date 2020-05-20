@@ -61,13 +61,13 @@ const Action = styled.span`
   height: 100%;
   text-transform: uppercase;
   font-size: 12px;
-  color: ${props => props.theme.white};
-  background: ${props => darken(0.05, props.theme[props.type])};
+  color: ${props => props.theme.toastText};
+  background: ${props => darken(0.05, props.theme.toastBackground)};
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
 
   &:hover {
-    background: ${props => darken(0.1, props.theme[props.type])};
+    background: ${props => darken(0.1, props.theme.toastBackground)};
   }
 `;
 
@@ -76,14 +76,14 @@ const Container = styled.div`
   align-items: center;
   animation: ${fadeAndScaleIn} 100ms ease;
   margin: 8px 0;
-  color: ${props => props.theme.white};
-  background: ${props => props.theme[props.type]};
+  color: ${props => props.theme.toastText};
+  background: ${props => props.theme.toastBackground};
   font-size: 15px;
   border-radius: 5px;
   cursor: default;
 
   &:hover {
-    background: ${props => darken(0.05, props.theme[props.type])};
+    background: ${props => darken(0.05, props.theme.toastBackground)};
   }
 `;
 
