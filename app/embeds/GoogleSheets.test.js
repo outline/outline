@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { GoogleSheets } = embeds;
+import GoogleSheets from './GoogleSheets';
 
 describe('GoogleSheets', () => {
   const match = GoogleSheets.ENABLED[0];

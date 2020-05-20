@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Figma } = embeds;
+import Figma from './Figma';
 
 describe('Figma', () => {
   const match = Figma.ENABLED[0];

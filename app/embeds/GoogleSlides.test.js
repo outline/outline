@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { GoogleSlides } = embeds;
+import GoogleSlides from './GoogleSlides';
 
 describe('GoogleSlides', () => {
   const match = GoogleSlides.ENABLED[0];

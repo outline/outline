@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Abstract } = embeds;
+import Abstract from './Abstract';
 
 describe('Abstract', () => {
   const match = Abstract.ENABLED[0];

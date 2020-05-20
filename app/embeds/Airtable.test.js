@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Airtable } = embeds;
+import Airtable from './Airtable';
 
 describe('Airtable', () => {
   const match = Airtable.ENABLED[0];

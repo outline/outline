@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Loom } = embeds;
+import Loom from './Loom';
 
 describe('Loom', () => {
   const match = Loom.ENABLED[0];

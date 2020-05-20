@@ -10,8 +10,9 @@ import { uploadFile } from 'utils/uploadFile';
 import isInternalUrl from 'utils/isInternalUrl';
 import Tooltip from 'components/Tooltip';
 import UiStore from 'stores/UiStore';
-import Embed from './Embed';
 import embeds from '../../embeds';
+
+const EMPTY_ARRAY = [];
 
 type Props = {
   id: string,
@@ -71,7 +72,7 @@ class Editor extends React.Component<Props> {
         uploadImage={this.onUploadImage}
         onClickLink={this.onClickLink}
         onShowToast={this.onShowToast}
-        embeds={this.props.disableEmbeds ? [] : embeds}
+        embeds={this.props.disableEmbeds ? EMPTY_ARRAY : embeds}
         tooltip={EditorTooltip}
         {...this.props}
       />

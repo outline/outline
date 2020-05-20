@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Gist } = embeds;
+import Gist from './Gist';
 
 describe('Gist', () => {
   const match = Gist.ENABLED[0];

@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { YouTube } = embeds;
+import YouTube from './YouTube';
 
 describe('YouTube', () => {
   const match = YouTube.ENABLED[0];

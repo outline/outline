@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { ModeAnalytics } = embeds;
+import ModeAnalytics from './ModeAnalytics';
 
 describe('ModeAnalytics', () => {
   const match = ModeAnalytics.ENABLED[0];

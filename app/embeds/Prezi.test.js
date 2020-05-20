@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import embeds from '.';
-
-const { Prezi } = embeds;
+import Prezi from './Prezi';
 
 describe('Prezi', () => {
   const match = Prezi.ENABLED[0];
