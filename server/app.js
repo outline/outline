@@ -137,6 +137,7 @@ app.use(
       ],
       styleSrc: ["'self'", "'unsafe-inline'", 'github.githubassets.com'],
       imgSrc: ['*', 'data:', 'blob:'],
+      fontSrc: ['*', 'data:'],
       frameSrc: ['*'],
       connectSrc: compact([
         "'self'",
