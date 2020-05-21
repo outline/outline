@@ -299,6 +299,10 @@ router.post('documents.starred', auth(), pagination(), async ctx => {
         },
         include: [
           {
+            model: Collection,
+            as: 'collection',
+          },
+          {
             model: Star,
             as: 'starred',
             where: {
