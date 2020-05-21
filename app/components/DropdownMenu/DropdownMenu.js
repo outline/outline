@@ -31,6 +31,7 @@ type Props = {
 @observer
 class DropdownMenu extends React.Component<Props> {
   id: string = `menu${counter++}`;
+  closeTimeout: TimeoutID;
 
   @observable top: ?number;
   @observable bottom: ?number;
@@ -134,6 +135,19 @@ class DropdownMenu extends React.Component<Props> {
     this.forceUpdate();
   }
 
+  closeAfterTimeout = (closePortal: () => void) => () => {
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+    }
+    this.closeTimeout = setTimeout(closePortal, 500);
+  };
+
+  clearCloseTimeout = () => {
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+    }
+  };
+
   render() {
     const { className, hover, label, children } = this.props;
 
@@ -148,7 +162,11 @@ class DropdownMenu extends React.Component<Props> {
           {({ closePortal, openPortal, isOpen, portal }) => (
             <React.Fragment>
               <Label
-                onMouseOver={
+                onMouseMove={hover ? this.clearCloseTimeout : undefined}
+                onMouseOut={
+                  hover ? this.closeAfterTimeout(closePortal) : undefined
+                }
+                onMouseEnter={
                   hover ? this.handleOpen(openPortal, closePortal) : undefined
                 }
                 onClick={
@@ -178,6 +196,10 @@ class DropdownMenu extends React.Component<Props> {
                 >
                   <Menu
                     ref={this.menuRef}
+                    onMouseMove={hover ? this.clearCloseTimeout : undefined}
+                    onMouseOut={
+                      hover ? this.closeAfterTimeout(closePortal) : undefined
+                    }
                     onClick={
                       typeof children === 'function'
                         ? undefined

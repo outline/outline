@@ -82,7 +82,6 @@ class AccountMenu extends React.Component<Props> {
           </DropdownMenuItem>
           <hr />
           <DropdownMenu
-            hover
             position="right"
             style={{
               left: 170,
@@ -97,6 +96,7 @@ class AccountMenu extends React.Component<Props> {
                 </ChangeTheme>
               </DropdownMenuItem>
             }
+            hover
           >
             <DropdownMenuItem
               onClick={() => ui.setTheme('system')}
