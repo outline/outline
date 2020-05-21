@@ -23,6 +23,7 @@ type Props = {
   onClose?: () => void,
   children?: Children,
   className?: string,
+  hover?: boolean,
   style?: Object,
   position?: 'left' | 'right' | 'center',
 };
@@ -72,7 +73,7 @@ class DropdownMenu extends React.Component<Props> {
         this.initPosition();
 
         // attempt to keep only one flyout menu open at once
-        if (previousClosePortal) {
+        if (previousClosePortal && !this.props.hover) {
           previousClosePortal();
         }
         previousClosePortal = closePortal;
@@ -134,7 +135,7 @@ class DropdownMenu extends React.Component<Props> {
   }
 
   render() {
-    const { className, label, children } = this.props;
+    const { className, hover, label, children } = this.props;
 
     return (
       <div className={className}>
@@ -146,7 +147,14 @@ class DropdownMenu extends React.Component<Props> {
         >
           {({ closePortal, openPortal, isOpen, portal }) => (
             <React.Fragment>
-              <Label onClick={this.handleOpen(openPortal, closePortal)}>
+              <Label
+                onMouseOver={
+                  hover ? this.handleOpen(openPortal, closePortal) : undefined
+                }
+                onClick={
+                  hover ? undefined : this.handleOpen(openPortal, closePortal)
+                }
+              >
                 {label || (
                   <NudeButton
                     id={`${this.id}button`}
@@ -216,6 +224,7 @@ const Position = styled.div`
   z-index: 1000;
   transform: ${props =>
     props.position === 'center' ? 'translateX(-50%)' : 'initial'};
+  pointer-events: none;
 `;
 
 const Menu = styled.div`
@@ -228,6 +237,7 @@ const Menu = styled.div`
   overflow: hidden;
   overflow-y: auto;
   box-shadow: ${props => props.theme.menuShadow};
+  pointer-events: all;
 
   @media print {
     display: none;

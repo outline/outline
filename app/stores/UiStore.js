@@ -9,7 +9,8 @@ import type { Toast } from '../types';
 const UI_STORE = 'UI_STORE';
 
 class UiStore {
-  @observable theme: 'light' | 'dark';
+  @observable theme: 'light' | 'dark' | 'system';
+  @observable systemTheme: 'light' | 'dark';
   @observable activeModalName: ?string;
   @observable activeModalProps: ?Object;
   @observable activeDocumentId: ?string;
@@ -29,9 +30,19 @@ class UiStore {
       // no-op Safari private mode
     }
 
+    let colorSchemeQueryList = window.matchMedia(
+      '(prefers-color-scheme: dark)'
+    );
+    const setSystemTheme = event => {
+      this.systemTheme = event.matches ? 'dark' : 'light';
+    };
+
+    setSystemTheme(colorSchemeQueryList);
+    colorSchemeQueryList.addListener(setSystemTheme);
+
     // persisted keys
     this.tocVisible = data.tocVisible;
-    this.theme = data.theme || 'light';
+    this.theme = data.theme || 'system';
 
     autorun(() => {
       try {
@@ -43,8 +54,8 @@ class UiStore {
   }
 
   @action
-  toggleDarkMode = () => {
-    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+  setTheme = (theme: 'light' | 'dark' | 'system') => {
+    this.theme = theme;
 
     if (window.localStorage) {
       window.localStorage.setItem('theme', this.theme);
@@ -152,6 +163,15 @@ class UiStore {
   removeToast = (id: string) => {
     this.toasts.delete(id);
   };
+
+  @computed
+  get resolvedTheme(): 'dark' | 'light' {
+    if (this.theme === 'system') {
+      return this.systemTheme;
+    }
+
+    return this.theme;
+  }
 
   @computed
   get orderedToasts(): Toast[] {

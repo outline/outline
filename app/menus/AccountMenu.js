@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { SunIcon, MoonIcon } from 'outline-icons';
+import { SunIcon, MoonIcon, EyeIcon, CheckmarkIcon } from 'outline-icons';
 import styled from 'styled-components';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -82,19 +82,42 @@ class AccountMenu extends React.Component<Props> {
             Report a bug
           </DropdownMenuItem>
           <hr />
-          <DropdownMenuItem onClick={ui.toggleDarkMode}>
-            <ChangeTheme justify="space-between">
-              {isLightTheme ? (
-                <React.Fragment>
-                  Dark theme <MoonIcon />
-                </React.Fragment>
-              ) : (
-                <React.Fragment>
-                  Light theme <SunIcon />
-                </React.Fragment>
-              )}
-            </ChangeTheme>
-          </DropdownMenuItem>
+          <DropdownMenu
+            hover
+            position="right"
+            style={{
+              left: 170,
+              position: 'relative',
+              top: -34,
+            }}
+            label={
+              <DropdownMenuItem>
+                <ChangeTheme justify="space-between">
+                  Appearance
+                  {ui.resolvedTheme === 'light' ? <SunIcon /> : <MoonIcon />}
+                </ChangeTheme>
+              </DropdownMenuItem>
+            }
+          >
+            <DropdownMenuItem
+              onClick={() => ui.setTheme('system')}
+              selected={ui.theme === 'system'}
+            >
+              System
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => ui.setTheme('light')}
+              selected={ui.theme === 'light'}
+            >
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => ui.setTheme('dark')}
+              selected={ui.theme === 'dark'}
+            >
+              Dark
+            </DropdownMenuItem>
+          </DropdownMenu>
           <hr />
           <DropdownMenuItem onClick={this.handleLogout}>
             Log out
