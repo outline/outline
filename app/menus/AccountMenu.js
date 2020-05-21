@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { SunIcon, MoonIcon, EyeIcon, CheckmarkIcon } from 'outline-icons';
+import { SunIcon, MoonIcon } from 'outline-icons';
 import styled from 'styled-components';
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
@@ -44,7 +44,6 @@ class AccountMenu extends React.Component<Props> {
 
   render() {
     const { ui } = this.props;
-    const isLightTheme = ui.theme === 'light';
 
     return (
       <React.Fragment>
