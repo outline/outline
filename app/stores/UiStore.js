@@ -9,7 +9,10 @@ import type { Toast } from '../types';
 const UI_STORE = 'UI_STORE';
 
 class UiStore {
+  // theme represents the users UI preference (defaults to system)
   @observable theme: 'light' | 'dark' | 'system';
+
+  // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable systemTheme: 'light' | 'dark';
   @observable activeModalName: ?string;
   @observable activeModalProps: ?Object;
@@ -30,15 +33,18 @@ class UiStore {
       // no-op Safari private mode
     }
 
-    let colorSchemeQueryList = window.matchMedia(
+    // system theme listeners
+    const colorSchemeQueryList = window.matchMedia(
       '(prefers-color-scheme: dark)'
     );
+
     const setSystemTheme = event => {
       this.systemTheme = event.matches ? 'dark' : 'light';
     };
-
     setSystemTheme(colorSchemeQueryList);
-    colorSchemeQueryList.addListener(setSystemTheme);
+    if (colorSchemeQueryList.addListener) {
+      colorSchemeQueryList.addListener(setSystemTheme);
+    }
 
     // persisted keys
     this.tocVisible = data.tocVisible;

@@ -26,7 +26,11 @@ const DropdownMenuItem = ({
       {...rest}
     >
       {selected !== undefined && (
-        <CheckmarkIcon color={selected === false ? 'transparent' : undefined} />
+        <React.Fragment>
+          <CheckmarkIcon
+            color={selected === false ? 'transparent' : undefined}
+          />&nbsp;
+        </React.Fragment>
       )}
       {children}
     </MenuItem>
