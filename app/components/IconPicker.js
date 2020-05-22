@@ -100,7 +100,6 @@ class IconPicker extends React.Component<Props> {
           <LabelText>Icon</LabelText>
         </label>
         <DropdownMenu
-          position="right"
           label={
             <LabelButton>
               <Component role="button" color={this.props.color} size={30} />
