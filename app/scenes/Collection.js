@@ -5,13 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { Redirect, Link, Switch, Route } from 'react-router-dom';
 
 import styled, { withTheme } from 'styled-components';
-import {
-  CollectionIcon,
-  PrivateCollectionIcon,
-  NewDocumentIcon,
-  PlusIcon,
-  PinIcon,
-} from 'outline-icons';
+import { NewDocumentIcon, PlusIcon, PinIcon } from 'outline-icons';
 import RichMarkdownEditor from 'rich-markdown-editor';
 
 import { newDocumentUrl, collectionUrl } from 'utils/routeHelpers';
@@ -42,6 +36,7 @@ import CollectionMembers from 'scenes/CollectionMembers';
 import Tabs from 'components/Tabs';
 import Tab from 'components/Tab';
 import PaginatedDocumentList from 'components/PaginatedDocumentList';
+import CollectionIcon from 'components/CollectionIcon';
 
 type Props = {
   ui: UiStore,
@@ -210,19 +205,7 @@ class CollectionScene extends React.Component<Props> {
             ) : (
               <React.Fragment>
                 <Heading>
-                  {collection.private ? (
-                    <PrivateCollectionIcon
-                      color={collection.color}
-                      size={40}
-                      expanded
-                    />
-                  ) : (
-                    <CollectionIcon
-                      color={collection.color}
-                      size={40}
-                      expanded
-                    />
-                  )}{' '}
+                  <CollectionIcon collection={collection} size={40} expanded />{' '}
                   {collection.name}
                 </Heading>
 

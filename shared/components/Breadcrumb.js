@@ -4,19 +4,14 @@ import { observer, inject } from 'mobx-react';
 import breakpoint from 'styled-components-breakpoint';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import {
-  CollectionIcon,
-  PrivateCollectionIcon,
-  PadlockIcon,
-  GoToIcon,
-  MoreIcon,
-} from 'outline-icons';
+import { PadlockIcon, GoToIcon, MoreIcon } from 'outline-icons';
 
 import Document from 'models/Document';
 import CollectionsStore from 'stores/CollectionsStore';
 import { collectionUrl } from 'utils/routeHelpers';
 import Flex from 'shared/components/Flex';
 import BreadcrumbMenu from './BreadcrumbMenu';
+import CollectionIcon from 'components/CollectionIcon';
 
 type Props = {
   document: Document,
@@ -56,11 +51,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
   return (
     <Wrapper justify="flex-start" align="center">
       <CollectionName to={collectionUrl(collection.id)}>
-        {collection.private ? (
-          <PrivateCollectionIcon color={collection.color} expanded />
-        ) : (
-          <CollectionIcon color={collection.color} expanded />
-        )}{' '}
+        <CollectionIcon collection={collection} expanded />{' '}
         <span>{collection.name}</span>
       </CollectionName>
       {isNestedDocument && (

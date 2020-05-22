@@ -8,6 +8,7 @@ import Switch from 'components/Switch';
 import Input from 'components/Input';
 import InputRich from 'components/InputRich';
 import ColorPicker from 'components/ColorPicker';
+import IconPicker from 'components/IconPicker';
 import HelpText from 'components/HelpText';
 import Flex from 'shared/components/Flex';
 
@@ -26,6 +27,7 @@ type Props = {
 class CollectionNew extends React.Component<Props> {
   @observable name: string = '';
   @observable description: string = '';
+  @observable icon: string = '';
   @observable color: string = '#4E5C6E';
   @observable private: boolean = false;
   @observable isSaving: boolean;
@@ -37,6 +39,7 @@ class CollectionNew extends React.Component<Props> {
       {
         name: this.name,
         description: this.description,
+        icon: this.icon,
         color: this.color,
         private: this.private,
       },
@@ -66,8 +69,12 @@ class CollectionNew extends React.Component<Props> {
     this.private = ev.target.checked;
   };
 
-  handleColor = (color: string) => {
+  handleColorChange = (color: string) => {
     this.color = color;
+  };
+
+  handleIconChange = (icon: string) => {
+    this.icon = icon;
   };
 
   render() {
@@ -88,7 +95,14 @@ class CollectionNew extends React.Component<Props> {
             autoFocus
             flex
           />
-          &nbsp;<ColorPicker onChange={this.handleColor} value={this.color} />
+          &nbsp;<ColorPicker
+            onChange={this.handleColorChange}
+            value={this.color}
+          />
+          &nbsp;<IconPicker
+            onChange={this.handleIconChange}
+            value={this.icon}
+          />
         </Flex>
         <InputRich
           label="Description"
