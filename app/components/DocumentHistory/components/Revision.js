@@ -16,14 +16,15 @@ import { documentHistoryUrl } from 'utils/routeHelpers';
 
 type Props = {
   theme: Object,
-  showMenu: () => void,
+  showMenu: boolean,
+  selected: boolean,
   document: Document,
   revision: Revision,
 };
 
 class RevisionListItem extends React.Component<Props> {
   render() {
-    const { revision, document, showMenu, theme } = this.props;
+    const { revision, document, showMenu, selected, theme } = this.props;
 
     return (
       <StyledNavLink
@@ -43,7 +44,9 @@ class RevisionListItem extends React.Component<Props> {
           <StyledRevisionMenu
             document={document}
             revision={revision}
-            label={<MoreIcon color={theme.white} />}
+            label={
+              <MoreIcon color={selected ? theme.white : theme.textTertiary} />
+            }
           />
         )}
       </StyledNavLink>
@@ -59,7 +62,7 @@ const StyledAvatar = styled(Avatar)`
 const StyledRevisionMenu = styled(RevisionMenu)`
   position: absolute;
   right: 16px;
-  top: 16px;
+  top: 20px;
 `;
 
 const StyledNavLink = styled(NavLink)`

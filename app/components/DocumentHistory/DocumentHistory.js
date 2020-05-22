@@ -110,6 +110,7 @@ class DocumentHistory extends React.Component<Props> {
                   revision={revision}
                   document={document}
                   showMenu={index !== 0}
+                  selected={this.props.match.params.revisionId === revision.id}
                 />
               ))}
             </ArrowKeyNavigation>

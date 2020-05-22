@@ -17,6 +17,7 @@ type Props = {
   document: Document,
   revision: Revision,
   className?: string,
+  label: React.Node,
   ui: UiStore,
 };
 
@@ -33,14 +34,19 @@ class RevisionMenu extends React.Component<Props> {
   };
 
   render() {
-    const { className, onOpen, onClose } = this.props;
+    const { className, label, onOpen, onClose } = this.props;
     const url = `${window.location.origin}${documentHistoryUrl(
       this.props.document,
       this.props.revision.id
     )}`;
 
     return (
-      <DropdownMenu onOpen={onOpen} onClose={onClose} className={className}>
+      <DropdownMenu
+        onOpen={onOpen}
+        onClose={onClose}
+        className={className}
+        label={label}
+      >
         <DropdownMenuItem onClick={this.handleRestore}>
           Restore version
         </DropdownMenuItem>
