@@ -7,7 +7,6 @@ import Button from 'components/Button';
 import Switch from 'components/Switch';
 import Input from 'components/Input';
 import InputRich from 'components/InputRich';
-import ColorPicker from 'components/ColorPicker';
 import IconPicker from 'components/IconPicker';
 import HelpText from 'components/HelpText';
 import Flex from 'shared/components/Flex';
@@ -69,11 +68,8 @@ class CollectionNew extends React.Component<Props> {
     this.private = ev.target.checked;
   };
 
-  handleColorChange = (color: string) => {
+  handleChange = (color: string, icon: string) => {
     this.color = color;
-  };
-
-  handleIconChange = (icon: string) => {
     this.icon = icon;
   };
 
@@ -95,13 +91,11 @@ class CollectionNew extends React.Component<Props> {
             autoFocus
             flex
           />
-          &nbsp;<ColorPicker
-            onChange={this.handleColorChange}
-            value={this.color}
-          />
-          &nbsp;<IconPicker
-            onChange={this.handleIconChange}
-            value={this.icon}
+          &nbsp;
+          <IconPicker
+            onChange={this.handleChange}
+            color={this.color}
+            icon={this.icon}
           />
         </Flex>
         <InputRich

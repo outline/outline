@@ -14,6 +14,7 @@ import {
   MoonIcon,
   SunIcon,
 } from 'outline-icons';
+import Collection from 'models/Collection';
 
 const icons = {
   collection: CollectionIcon,
@@ -29,7 +30,17 @@ const icons = {
   sun: SunIcon,
 };
 
-export default function ResolvedCollectionIcon({ collection, expanded, size }) {
+type Props = {
+  collection: Collection,
+  expanded?: boolean,
+  size?: number,
+};
+
+export default function ResolvedCollectionIcon({
+  collection,
+  expanded,
+  size,
+}: Props) {
   if (collection.icon) {
     const Component = icons[collection.icon];
     return <Component color={collection.color} size={size} />;

@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
+import { TwitterPicker } from 'react-color';
 import {
   CollectionIcon,
   AcademicCapIcon,
@@ -9,6 +10,7 @@ import {
   BuildingBlocksIcon,
   CloudIcon,
   CodeIcon,
+  EditIcon,
   EyeIcon,
   PadlockIcon,
   PaletteIcon,
@@ -16,8 +18,10 @@ import {
   SunIcon,
 } from 'outline-icons';
 import styled from 'styled-components';
-import Fade from 'components/Fade';
 import { LabelText } from 'components/Input';
+import { DropdownMenu } from 'components/DropdownMenu';
+import NudeButton from 'components/NudeButton';
+import Flex from 'shared/components/Flex';
 
 const icons = {
   collection: CollectionIcon,
@@ -29,14 +33,33 @@ const icons = {
   eye: EyeIcon,
   padlock: PadlockIcon,
   palette: PaletteIcon,
+  pencil: EditIcon,
   moon: MoonIcon,
   sun: SunIcon,
 };
 
+const colors = [
+  '#4E5C6E',
+  '#0366d6',
+  '#7F6BFF',
+  '#E76F51',
+  '#FC2D2D',
+  '#FFBE0B',
+  '#2A9D8F',
+  '#00D084',
+  '#EE84F0',
+  '#2F362F',
+];
+
 type Props = {
-  onChange: (icon: string) => void,
-  value?: string,
+  onChange: (color: string, icon: string) => void,
+  icon: string,
+  color: string,
 };
+
+function preventEventBubble(event) {
+  event.stopPropagation();
+}
 
 @observer
 class IconPicker extends React.Component<Props> {
@@ -69,46 +92,76 @@ class IconPicker extends React.Component<Props> {
   };
 
   render() {
-    const Component = icons[this.props.value || 'collection'];
+    const Component = icons[this.props.icon || 'collection'];
 
     return (
       <Wrapper ref={ref => (this.node = ref)}>
         <label>
           <LabelText>Icon</LabelText>
         </label>
-        <Component
-          role="button"
-          onClick={this.isOpen ? this.handleClose : this.handleOpen}
-        />
-        <Floating>
-          {this.isOpen && (
-            <Fade>
-              {Object.keys(icons).map(name => {
-                const Component = icons[name];
-                return (
-                  <Component
-                    onClick={() => this.props.onChange(name)}
-                    size={30}
-                  />
-                );
-              })}
-            </Fade>
-          )}
-        </Floating>
+        <DropdownMenu
+          position="right"
+          label={
+            <LabelButton>
+              <Component role="button" color={this.props.color} size={30} />
+            </LabelButton>
+          }
+        >
+          <Icons onClick={preventEventBubble}>
+            {Object.keys(icons).map(name => {
+              const Component = icons[name];
+              return (
+                <IconButton
+                  key={name}
+                  onClick={() => this.props.onChange(this.props.color, name)}
+                  style={{ width: 30, height: 30 }}
+                >
+                  <Component color={this.props.color} size={30} />
+                </IconButton>
+              );
+            })}
+          </Icons>
+          <Flex onClick={preventEventBubble}>
+            <ColorPicker
+              color={this.props.color}
+              onChange={color =>
+                this.props.onChange(color.hex, this.props.icon)
+              }
+              colors={colors}
+              triangle="hide"
+            />
+          </Flex>
+        </DropdownMenu>
       </Wrapper>
     );
   }
 }
 
+const Icons = styled.div`
+  padding: 15px 9px 9px 15px;
+  width: 276px;
+`;
+
+const LabelButton = styled(NudeButton)`
+  border: 1px solid ${props => props.theme.inputBorder};
+  width: 32px;
+  height: 32px;
+`;
+
+const IconButton = styled(NudeButton)`
+  border-radius: 4px;
+  margin: 0px 6px 6px 0px;
+  width: 30px;
+  height: 30px;
+`;
+
+const ColorPicker = styled(TwitterPicker)`
+  box-shadow: none !important;
+`;
+
 const Wrapper = styled('div')`
   display: inline-block;
   position: relative;
-`;
-const Floating = styled('div')`
-  position: absolute;
-  top: 60px;
-  right: 0;
-  z-index: 1;
 `;
 
 export default IconPicker;

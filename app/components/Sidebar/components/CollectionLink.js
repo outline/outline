@@ -44,7 +44,7 @@ class CollectionLink extends React.Component<Props> {
         <SidebarLink
           key={collection.id}
           to={collection.url}
-          icon={<CollectionIcon collection={collection} />}
+          icon={<CollectionIcon collection={collection} expanded={expanded} />}
           iconColor={collection.color}
           expanded={expanded}
           hideDisclosure
