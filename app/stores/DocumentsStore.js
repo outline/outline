@@ -358,12 +358,14 @@ export default class DocumentsStore extends BaseStore<Document> {
   move = async (
     document: Document,
     collectionId: string,
-    parentDocumentId: ?string
+    parentDocumentId: ?string,
+    index: ?number
   ) => {
     const res = await client.post('/documents.move', {
       id: document.id,
       collectionId,
       parentDocumentId,
+      index: String(index),
     });
     invariant(res && res.data, 'Data not available');
 
