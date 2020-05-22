@@ -309,6 +309,7 @@ const BreadcrumbAndContents = styled(Flex)`
 
   ${breakpoint('tablet')`	
     display: flex;
+    width: 33.3%;
   `};
 `;
 
