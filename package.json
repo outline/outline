@@ -131,6 +131,7 @@
     "react": "^16.8.6",
     "react-autosize-textarea": "^6.0.0",
     "react-avatar-editor": "^10.3.0",
+    "react-beautiful-dnd": "^13.0.0",
     "react-color": "^2.17.3",
     "react-dom": "^16.8.6",
     "react-dropzone": "4.2.1",
