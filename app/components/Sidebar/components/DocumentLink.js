@@ -1,8 +1,14 @@
 // @flow
 import * as React from 'react';
-import { observer } from 'mobx-react';
+import { observer, Observer } from 'mobx-react';
 import { observable } from 'mobx';
 import styled from 'styled-components';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from 'react-beautiful-dnd';
 import Document from 'models/Document';
 import DocumentMenu from 'menus/DocumentMenu';
 import SidebarLink from './SidebarLink';
@@ -58,6 +64,31 @@ class DocumentLink extends React.Component<Props> {
 
   hasChildDocuments = () => {
     return !!this.props.node.children.length;
+  };
+
+  reorder = (result: DropResult) => {
+    // Bail out early if result doesn't have a destination data
+    if (!result.destination) {
+      return;
+    }
+
+    // Bail out early if no changes
+    if (
+      result.destination.droppableId === result.source.droppableId &&
+      result.destination.index === result.source.index
+    ) {
+      return;
+    }
+
+    const { collection, node, documents } = this.props;
+    const document = node.children.find(({ id }) => id === result.draggableId);
+
+    // Bail out if document doesn't exist
+    if (!document) {
+      return;
+    }
+
+    documents.move(document, collection.id, node.id, result.destination.index);
   };
 
   render() {
@@ -116,19 +147,46 @@ class DocumentLink extends React.Component<Props> {
             }
           >
             {this.hasChildDocuments() && (
-              <DocumentChildren column>
-                {node.children.map(childNode => (
-                  <DocumentLink
-                    key={childNode.id}
-                    collection={collection}
-                    node={childNode}
-                    documents={documents}
-                    activeDocument={activeDocument}
-                    prefetchDocument={prefetchDocument}
-                    depth={depth + 1}
-                  />
-                ))}
-              </DocumentChildren>
+              <DragDropContext onDragEnd={this.reorder}>
+                <Droppable droppableId={`droppable-document-${node.id}`}>
+                  {(provided, snapshot) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                      <DocumentChildren column>
+                        <Observer>
+                          {() =>
+                            node.children.map((childNode, index) => (
+                              <Draggable
+                                key={childNode.id}
+                                draggableId={childNode.id}
+                                index={index}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                  >
+                                    <DocumentLink
+                                      key={childNode.id}
+                                      collection={collection}
+                                      node={childNode}
+                                      documents={documents}
+                                      activeDocument={activeDocument}
+                                      prefetchDocument={prefetchDocument}
+                                      depth={depth + 1}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))
+                          }
+                        </Observer>
+                      </DocumentChildren>
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             )}
           </SidebarLink>
         </DropToImport>
