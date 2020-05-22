@@ -23,15 +23,20 @@ router.get('/redirect', auth(), async ctx => {
   const user = ctx.state.user;
 
   // transfer access token cookie from root to subdomain
-  ctx.cookies.set('accessToken', undefined, {
-    httpOnly: true,
-    domain: getCookieDomain(ctx.request.hostname),
-  });
+  const rootToken = ctx.cookies.get('accessToken');
+  const jwtToken = user.getJwtToken();
 
-  ctx.cookies.set('accessToken', user.getJwtToken(), {
-    httpOnly: false,
-    expires: addMonths(new Date(), 3),
-  });
+  if (rootToken === jwtToken) {
+    ctx.cookies.set('accessToken', undefined, {
+      httpOnly: true,
+      domain: getCookieDomain(ctx.request.hostname),
+    });
+
+    ctx.cookies.set('accessToken', jwtToken, {
+      httpOnly: false,
+      expires: addMonths(new Date(), 3),
+    });
+  }
 
   const team = await Team.findByPk(user.teamId);
   ctx.redirect(`${team.url}/home`);
