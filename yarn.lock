@@ -8581,10 +8581,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^10.0.1:
-  version "10.0.1"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-10.0.1.tgz#17c7977c0bf46e55f297f2cbbb73e80d86242b84"
-  integrity sha512-r6w+ef7o3JOzPon88Suf2NZ5aE+CKF3Hc1okWW/Ajxmn38ImS7A0VFUq847ytz7nscVYiFpTO7Qo1TOBJqfFyg==
+rich-markdown-editor@^10.0.2-0:
+  version "10.0.2-0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-10.0.2-0.tgz#b2ec2320e9dd5f6d082bc820e08ac6787f237df4"
+  integrity sha512-ozFUbpIZtBjeOWhw/AEuU5rJkxBcUazawsAIiUtTiHqOsTH+ntllnh+4bIelp7K927vlUrbz4IIcHVRwM2WXVw==
   dependencies:
     copy-to-clipboard "^3.0.8"
     lodash "^4.17.11"
@@ -8950,10 +8950,10 @@ slash@^1.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-1.0.0.tgz#c41f2f6c39fc16d1cd17ad4b5d896114ae470d55"
   integrity sha1-xB8vbDn8FtHNF61LXYlhFK5HDVU=
 
-slate-md-serializer@5.5.0:
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.5.0.tgz#404fb37a49b636ab08622c06b2b24dabc1edb29e"
-  integrity sha512-uNTLrmT3xVmycJXMOIIFOvWHquph+k+6MhjraQzedyq6zoxkg/y/S6/MGJf82QVC9dZAddL9jBrDeXQ4CStvFw==
+slate-md-serializer@5.5.2:
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.5.2.tgz#2084ce82b1785efe6dcf7e5372c31047d1fd9bcd"
+  integrity sha512-CC/Hesxn7lGHkxxXXNhVMvAWsF4uSBXMc4vwhv+hk6n3uBu1rj2kpR4Rlwm5ZN6kLojkL1J86FCqEhKWk2Yb3Q==
   dependencies:
     hashtag-regex "^2.0.0"
 
