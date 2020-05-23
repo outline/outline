@@ -145,7 +145,7 @@
     "sequelize-cli": "^5.5.0",
     "sequelize-encrypted": "^0.1.0",
     "slate": "0.45.0",
-    "slate-md-serializer": "5.5.0",
+    "slate-md-serializer": "5.5.2",
     "slug": "^1.0.0",
     "socket.io": "^2.2.0",
     "socket.io-redis": "^5.2.0",
