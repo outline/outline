@@ -8950,10 +8950,10 @@ slash@^1.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-1.0.0.tgz#c41f2f6c39fc16d1cd17ad4b5d896114ae470d55"
   integrity sha1-xB8vbDn8FtHNF61LXYlhFK5HDVU=
 
-slate-md-serializer@5.5.3:
-  version "5.5.3"
-  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.5.3.tgz#fa27ec39b56a1c3015543a21c409b1ede6cf6025"
-  integrity sha512-nOobks2pswPwudVfLOE8a/L8bv39CLB3zzQ8wsbpbF9fEgtFom4cDfGKuI9fjmezorKCkdgPDuqsgEiG9374VA==
+slate-md-serializer@5.5.4:
+  version "5.5.4"
+  resolved "https://registry.yarnpkg.com/slate-md-serializer/-/slate-md-serializer-5.5.4.tgz#33d91378ce2c678585f7925ab4f054680816b1f0"
+  integrity sha512-qDRUsY0QEa5NWE8MRkCWVQxKvStFY31icsv2Ar24rJIHznS6nnsn8ZHmcTGtAiHUwYFuTT2jNLpkN6iDml+qMw==
   dependencies:
     hashtag-regex "^2.0.0"
 
