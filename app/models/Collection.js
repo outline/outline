@@ -100,6 +100,58 @@ export default class Collection extends BaseModel {
     return [];
   }
 
+  @action
+  addDocumentToStructure(
+    document: NavigationNode,
+    parentDocumentId: ?string,
+    index: ?number
+  ) {
+    if (!parentDocumentId) {
+      this.documents.splice(
+        index !== undefined ? index : this.documents.length,
+        0,
+        document
+      );
+    } else {
+      const recursivelyAddDocument = nodes => {
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i].id === parentDocumentId) {
+            nodes[i].children.splice(
+              index !== undefined ? index : nodes[i].children.length,
+              0,
+              document
+            );
+            return true;
+          }
+
+          const isAdded = recursivelyAddDocument(nodes[i].children);
+          if (isAdded) return true;
+        }
+      };
+
+      recursivelyAddDocument(this.documents);
+    }
+  }
+
+  @action
+  removeDocumentInStructure(documentId: string) {
+    const recursivelyRemoveDocument = nodes => {
+      const index = nodes.findIndex(item => item.id === documentId);
+      if (index !== -1) {
+        nodes.splice(index, 1);
+        return true;
+      }
+
+      for (let i = 0; i < nodes.length; i++) {
+        const isFound = recursivelyRemoveDocument(nodes[i].children);
+        if (isFound) return true;
+      }
+      return false;
+    };
+
+    return recursivelyRemoveDocument(this.documents);
+  }
+
   toJS = () => {
     return pick(this, ['id', 'name', 'color', 'description', 'private']);
   };

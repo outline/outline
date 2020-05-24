@@ -56,7 +56,7 @@ class CollectionLink extends React.Component<Props> {
     }
 
     documents.move(
-      document,
+      documents.get(document.id),
       collection.id,
       undefined,
       result.destination.index

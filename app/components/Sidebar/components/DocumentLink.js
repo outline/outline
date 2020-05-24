@@ -88,7 +88,12 @@ class DocumentLink extends React.Component<Props> {
       return;
     }
 
-    documents.move(document, collection.id, node.id, result.destination.index);
+    documents.move(
+      documents.get(document.id),
+      collection.id,
+      node.id,
+      result.destination.index
+    );
   };
 
   render() {
