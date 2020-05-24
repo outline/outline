@@ -108,16 +108,18 @@ export default class Collection extends BaseModel {
   ) {
     if (!parentDocumentId) {
       this.documents.splice(
-        index !== undefined ? index : this.documents.length,
+        index !== undefined && index !== null ? index : this.documents.length,
         0,
         document
       );
     } else {
-      const recursivelyAddDocument = nodes => {
+      const recursivelyAddDocument = (nodes: NavigationNode[]) => {
         for (let i = 0; i < nodes.length; i++) {
           if (nodes[i].id === parentDocumentId) {
             nodes[i].children.splice(
-              index !== undefined ? index : nodes[i].children.length,
+              index !== undefined && index !== null
+                ? index
+                : nodes[i].children.length,
               0,
               document
             );

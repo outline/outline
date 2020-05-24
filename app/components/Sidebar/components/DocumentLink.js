@@ -3,12 +3,8 @@ import * as React from 'react';
 import { observer, Observer } from 'mobx-react';
 import { observable } from 'mobx';
 import styled from 'styled-components';
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import type { DropResult } from 'react-beautiful-dnd';
 import Document from 'models/Document';
 import DocumentMenu from 'menus/DocumentMenu';
 import SidebarLink from './SidebarLink';

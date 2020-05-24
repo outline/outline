@@ -3,12 +3,8 @@ import * as React from 'react';
 import { observer, Observer } from 'mobx-react';
 import { observable } from 'mobx';
 import { CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import type { DropResult } from 'react-beautiful-dnd';
 import Collection from 'models/Collection';
 import Document from 'models/Document';
 import CollectionMenu from 'menus/CollectionMenu';
