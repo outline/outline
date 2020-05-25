@@ -104,7 +104,7 @@ class DocumentLink extends React.Component<Props> {
             }}
             expanded={showChildren ? true : undefined}
             hideDisclosure={hideDisclosure}
-            label={node.title}
+            label={node.title || 'Untitled'}
             depth={depth}
             exact={false}
             menuOpen={this.menuOpen}
