@@ -91,7 +91,7 @@ class SidebarLink extends React.Component<Props> {
           </Label>
           {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
         </StyledNavLink>
-        {this.expanded && children}
+        <ChildrenWrapper expanded={this.expanded}>{children}</ChildrenWrapper>
       </Wrapper>
     );
   }
@@ -167,5 +167,9 @@ const Disclosure = styled(CollapsedIcon)`
 
   ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'};
 `;
+
+const ChildrenWrapper = styled.div(({ expanded }) => ({
+  display: expanded ? 'block' : 'none',
+}));
 
 export default withRouter(withTheme(SidebarLink));
