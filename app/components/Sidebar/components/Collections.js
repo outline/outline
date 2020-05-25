@@ -4,7 +4,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter, type RouterHistory } from 'react-router-dom';
 import keydown from 'react-keydown';
 import { DragDropContext } from 'react-beautiful-dnd';
-import type { DropResult } from 'react-beautiful-dnd';
+import type { DropResult, DragStart } from 'react-beautiful-dnd';
 import Flex from 'shared/components/Flex';
 import { PlusIcon } from 'outline-icons';
 import { newDocumentUrl } from 'utils/routeHelpers';
@@ -24,6 +24,8 @@ import PoliciesStore from 'stores/PoliciesStore';
 import UiStore from 'stores/UiStore';
 import DocumentsStore from 'stores/DocumentsStore';
 
+export const DraggingDocumentIdContext = React.createContext();
+
 type Props = {
   history: RouterHistory,
   policies: PoliciesStore,
@@ -33,8 +35,13 @@ type Props = {
   ui: UiStore,
 };
 
+type State = {
+  draggingDocumentId?: string,
+};
+
 @observer
-class Collections extends React.Component<Props> {
+class Collections extends React.Component<Props, State> {
+  state: State = {};
   isPreloaded: boolean = !!this.props.collections.orderedData.length;
 
   componentDidMount() {
@@ -57,6 +64,12 @@ class Collections extends React.Component<Props> {
 
     this.props.history.push(newDocumentUrl(activeCollectionId));
   }
+
+  handleDragStart = (initial: DragStart) => {
+    this.setState({
+      draggingDocumentId: initial.draggableId,
+    });
+  };
 
   reorder = (result: DropResult) => {
     this.setState({
@@ -136,21 +149,27 @@ class Collections extends React.Component<Props> {
 
   render() {
     const { collections, ui, documents } = this.props;
+    const { draggingDocumentId } = this.state;
 
     const content = (
       <Flex column>
         <Header>Collections</Header>
-        <DragDropContext onDragEnd={this.reorder}>
-          {collections.orderedData.map(collection => (
-            <CollectionLink
-              key={collection.id}
-              documents={documents}
-              collection={collection}
-              activeDocument={documents.active}
-              prefetchDocument={documents.prefetchDocument}
-              ui={ui}
-            />
-          ))}
+        <DragDropContext
+          onDragStart={this.handleDragStart}
+          onDragEnd={this.reorder}
+        >
+          <DraggingDocumentIdContext.Provider value={draggingDocumentId}>
+            {collections.orderedData.map(collection => (
+              <CollectionLink
+                key={collection.id}
+                documents={documents}
+                collection={collection}
+                activeDocument={documents.active}
+                prefetchDocument={documents.prefetchDocument}
+                ui={ui}
+              />
+            ))}
+          </DraggingDocumentIdContext.Provider>
         </DragDropContext>
         <SidebarLink
           to="/collections"

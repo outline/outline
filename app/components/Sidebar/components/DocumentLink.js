@@ -14,6 +14,7 @@ import Collection from 'models/Collection';
 import DocumentsStore from 'stores/DocumentsStore';
 import Flex from 'shared/components/Flex';
 import { type NavigationNode } from 'types';
+import { DraggingDocumentIdContext } from './Collections';
 
 type Props = {
   node: NavigationNode,
@@ -23,6 +24,7 @@ type Props = {
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
   depth: number,
+  isDropDisabled?: boolean,
 };
 
 @observer
@@ -71,6 +73,7 @@ class DocumentLink extends React.Component<Props> {
       activeDocumentRef,
       prefetchDocument,
       depth,
+      isDropDisabled,
     } = this.props;
 
     const showChildren = !!(
@@ -123,41 +126,55 @@ class DocumentLink extends React.Component<Props> {
               )
             }
           >
-            <Droppable collectionId={collection.id} documentId={node.id}>
-              {this.hasChildDocuments() && (
-                <DocumentChildren column>
-                  <Observer>
-                    {() =>
-                      node.children.map((childNode, index) => (
-                        <Draggable
-                          key={childNode.id}
-                          draggableId={childNode.id}
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              <DocumentLink
+            <DraggingDocumentIdContext.Consumer>
+              {draggingDocumentId => {
+                const disableChildDrops =
+                  isDropDisabled || draggingDocumentId === node.id;
+
+                return (
+                  <Droppable
+                    collectionId={collection.id}
+                    documentId={node.id}
+                    isDropDisabled={disableChildDrops}
+                  >
+                    {this.hasChildDocuments() && (
+                      <DocumentChildren column>
+                        <Observer>
+                          {() =>
+                            node.children.map((childNode, index) => (
+                              <Draggable
                                 key={childNode.id}
-                                collection={collection}
-                                node={childNode}
-                                documents={documents}
-                                activeDocument={activeDocument}
-                                prefetchDocument={prefetchDocument}
-                                depth={depth + 1}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))
-                    }
-                  </Observer>
-                </DocumentChildren>
-              )}
-            </Droppable>
+                                draggableId={childNode.id}
+                                index={index}
+                              >
+                                {provided => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                  >
+                                    <DocumentLink
+                                      key={childNode.id}
+                                      collection={collection}
+                                      node={childNode}
+                                      documents={documents}
+                                      activeDocument={activeDocument}
+                                      prefetchDocument={prefetchDocument}
+                                      depth={depth + 1}
+                                      isDropDisabled={disableChildDrops}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))
+                          }
+                        </Observer>
+                      </DocumentChildren>
+                    )}
+                  </Droppable>
+                );
+              }}
+            </DraggingDocumentIdContext.Consumer>
           </SidebarLink>
         </DropToImport>
       </Flex>

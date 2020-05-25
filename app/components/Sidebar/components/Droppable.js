@@ -11,6 +11,7 @@ import {
 type Props = {
   collectionId: string,
   documentId?: string,
+  isDropDisabled?: boolean,
   children?: React.Node,
 };
 
@@ -20,7 +21,7 @@ class Droppable extends React.Component<Props> {
   };
 
   render() {
-    const { collectionId, documentId, children } = this.props;
+    const { collectionId, documentId, isDropDisabled, children } = this.props;
     let droppableId;
 
     if (documentId) {
@@ -32,7 +33,7 @@ class Droppable extends React.Component<Props> {
     }
 
     return (
-      <dnd.Droppable droppableId={droppableId}>
+      <dnd.Droppable droppableId={droppableId} isDropDisabled={isDropDisabled}>
         {(provided, snapshot) => (
           <DropContainer
             isDraggingOver={snapshot.isDraggingOver}
