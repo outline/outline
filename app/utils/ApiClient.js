@@ -104,10 +104,9 @@ class ApiClient {
 
     if (response.status === 400 && error.error === 'editor_update_required') {
       window.location.reload(true);
-      return;
     }
 
-    throw error;
+    throw new Error(error.message);
   };
 
   get = (path: string, data: ?Object, options?: Object) => {
