@@ -1,4 +1,5 @@
 // @flow
+import * as Sentry from '@sentry/node';
 import { createQueue } from './utils/queue';
 import services from './services';
 
@@ -144,7 +145,16 @@ serviceEventsQueue.process(async job => {
   const service = services[event.service];
 
   if (service.on) {
-    service.on(event);
+    service.on(event).catch(error => {
+      if (process.env.SENTRY_DSN) {
+        Sentry.withScope(function(scope) {
+          scope.setExtra('event', event);
+          Sentry.captureException(error);
+        });
+      } else {
+        throw error;
+      }
+    });
   }
 });
 
