@@ -19,7 +19,7 @@ import { emojiToUrl } from 'utils/emoji';
 
 import Header from './Header';
 import DocumentMove from './DocumentMove';
-import KeyboardShortcuts from './KeyboardShortcuts';
+import KeyboardShortcutsButton from './KeyboardShortcutsButton';
 import References from './References';
 import Loading from './Loading';
 import Container from './Container';
@@ -405,7 +405,7 @@ class DocumentScene extends React.Component<Props> {
             </MaxWidth>
           </Container>
         </Container>
-        {isShare ? <Branding /> : <KeyboardShortcuts />}
+        {isShare ? <Branding /> : <KeyboardShortcutsButton />}
       </ErrorBoundary>
     );
   }
