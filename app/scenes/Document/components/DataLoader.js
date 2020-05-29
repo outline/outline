@@ -17,6 +17,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import PoliciesStore from 'stores/PoliciesStore';
 import RevisionsStore from 'stores/RevisionsStore';
 import UiStore from 'stores/UiStore';
+import { OfflineError } from 'utils/errors';
 
 type Props = {|
   match: Object,
@@ -47,7 +48,7 @@ class DataLoader extends React.Component<Props> {
     if (this.document) {
       const policy = this.props.policies.get(this.document.id);
 
-      if (!policy) {
+      if (!policy && !this.error) {
         this.loadDocument();
       }
     }
@@ -131,7 +132,11 @@ class DataLoader extends React.Component<Props> {
     const { location, policies, ui } = this.props;
 
     if (this.error) {
-      return navigator.onLine ? <Error404 /> : <ErrorOffline />;
+      return this.error instanceof OfflineError ? (
+        <ErrorOffline />
+      ) : (
+        <Error404 />
+      );
     }
 
     const document = this.document;
