@@ -93,6 +93,13 @@ if (process.env.SENTRY_DSN) {
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV,
     maxBreadcrumbs: 0,
+    ignoreErrors: [
+      // emitted by Koa when bots attempt to snoop on paths such as wp-admin
+      // or the user submits a bad request. These are expected in normal running
+      // of the application
+      'BadRequestError',
+      'UnauthorizedError',
+    ],
   });
 }
 

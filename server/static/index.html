@@ -40,7 +40,16 @@
     >
     </script>
     <script>
-      Sentry.init({ dsn: '<%= SENTRY_DSN %>' });
+      Sentry.init({
+        dsn: '<%= SENTRY_DSN %>',
+        ignoreErrors: [
+          'AuthorizationError',
+          'NetworkError',
+          'NotFoundError',
+          'OfflineError',
+          'UpdateRequiredError',
+        ],
+      });
 
       if (window.localStorage.getItem("theme") === "dark") {
         window.document.querySelector('#root').style.background = "#111319";
