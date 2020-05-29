@@ -10,8 +10,6 @@ import {
 import Layout from '../pages/components/Layout';
 import { light } from '../../shared/styles/theme';
 
-const sheet = new ServerStyleSheet();
-
 export default function renderpage(ctx: Object, children: React.Node) {
   let sessions = {};
   try {
@@ -22,6 +20,7 @@ export default function renderpage(ctx: Object, children: React.Node) {
     console.error(`Sessions cookie could not be parsed: ${err}`);
   }
 
+  const sheet = new ServerStyleSheet();
   const loggedIn = !!(
     ctx.cookies.get('accessToken') || Object.keys(sessions).length
   );
