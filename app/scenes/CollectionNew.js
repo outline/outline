@@ -7,7 +7,7 @@ import Button from 'components/Button';
 import Switch from 'components/Switch';
 import Input from 'components/Input';
 import InputRich from 'components/InputRich';
-import IconPicker from 'components/IconPicker';
+import IconPicker, { icons } from 'components/IconPicker';
 import HelpText from 'components/HelpText';
 import Flex from 'shared/components/Flex';
 
@@ -60,6 +60,22 @@ class CollectionNew extends React.Component<Props> {
     this.name = ev.target.value;
   };
 
+  handleNameBlur = () => {
+    // If the user hasn't picked an icon yet, go ahead and suggest one based on
+    // the name of the collection. It's the little things sometimes.
+    if (!this.icon) {
+      const keys = Object.keys(icons);
+      for (const key of keys) {
+        const icon = icons[key];
+
+        if (icon.keywords.includes(this.name.toLowerCase())) {
+          this.icon = key;
+          break;
+        }
+      }
+    }
+  };
+
   handleDescriptionChange = getValue => {
     this.description = getValue();
   };
@@ -85,6 +101,7 @@ class CollectionNew extends React.Component<Props> {
           <Input
             type="text"
             label="Name"
+            onBlur={this.handleNameBlur}
             onChange={this.handleNameChange}
             value={this.name}
             required

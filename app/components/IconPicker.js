@@ -23,19 +23,55 @@ import { DropdownMenu } from 'components/DropdownMenu';
 import NudeButton from 'components/NudeButton';
 import Flex from 'shared/components/Flex';
 
-const icons = {
-  collection: CollectionIcon,
-  academicCap: AcademicCapIcon,
-  beaker: BeakerIcon,
-  buildingBlocks: BuildingBlocksIcon,
-  cloud: CloudIcon,
-  code: CodeIcon,
-  eye: EyeIcon,
-  padlock: PadlockIcon,
-  palette: PaletteIcon,
-  pencil: EditIcon,
-  moon: MoonIcon,
-  sun: SunIcon,
+export const icons = {
+  collection: {
+    component: CollectionIcon,
+    keywords: 'collection',
+  },
+  academicCap: {
+    component: AcademicCapIcon,
+    keywords: 'learn teach lesson guide',
+  },
+  beaker: {
+    component: BeakerIcon,
+    keywords: 'lab research',
+  },
+  buildingBlocks: {
+    component: BuildingBlocksIcon,
+    keywords: 'app blocks',
+  },
+  cloud: {
+    component: CloudIcon,
+    keywords: 'cloud service',
+  },
+  code: {
+    component: CodeIcon,
+    keywords: 'developer api code',
+  },
+  eye: {
+    component: EyeIcon,
+    keywords: 'eye view',
+  },
+  padlock: {
+    component: PadlockIcon,
+    keywords: 'padlock private',
+  },
+  palette: {
+    component: PaletteIcon,
+    keywords: 'design palette art brand',
+  },
+  pencil: {
+    component: EditIcon,
+    keywords: 'copy writing post',
+  },
+  moon: {
+    component: MoonIcon,
+    keywords: 'night moon',
+  },
+  sun: {
+    component: SunIcon,
+    keywords: 'day sun',
+  },
 };
 
 const colors = [
@@ -92,7 +128,7 @@ class IconPicker extends React.Component<Props> {
   };
 
   render() {
-    const Component = icons[this.props.icon || 'collection'];
+    const Component = icons[this.props.icon || 'collection'].component;
 
     return (
       <Wrapper ref={ref => (this.node = ref)}>
@@ -108,7 +144,7 @@ class IconPicker extends React.Component<Props> {
         >
           <Icons onClick={preventEventBubble}>
             {Object.keys(icons).map(name => {
-              const Component = icons[name];
+              const Component = icons[name].component;
               return (
                 <IconButton
                   key={name}
@@ -156,6 +192,7 @@ const IconButton = styled(NudeButton)`
 
 const ColorPicker = styled(TwitterPicker)`
   box-shadow: none !important;
+  background: transparent !important;
 `;
 
 const Wrapper = styled('div')`

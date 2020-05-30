@@ -253,6 +253,10 @@ const Menu = styled.div`
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: ${props => (props.left !== undefined ? '25%' : '75%')} 0;
   background: ${props => props.theme.menuBackground};
+  ${props =>
+    props.theme.menuBorder
+      ? `border: 1px solid ${props.theme.menuBorder}`
+      : ''};
   border-radius: 2px;
   padding: 0.5em 0;
   min-width: 180px;
@@ -260,6 +264,10 @@ const Menu = styled.div`
   overflow-y: auto;
   box-shadow: ${props => props.theme.menuShadow};
   pointer-events: all;
+
+  hr {
+    margin: 0.5em 12px;
+  }
 
   @media print {
     display: none;
