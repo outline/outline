@@ -281,6 +281,7 @@ class DocumentScene extends React.Component<Props> {
       return <Loading location={location} />;
     }
 
+    const value = revision ? revision.text : document.text;
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
@@ -378,7 +379,8 @@ class DocumentScene extends React.Component<Props> {
                   key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
                   title={revision ? revision.title : this.title}
                   document={document}
-                  defaultValue={revision ? revision.text : document.text}
+                  value={readOnly ? value : undefined}
+                  defaultValue={value}
                   disableEmbeds={disableEmbeds}
                   onImageUploadStart={this.onImageUploadStart}
                   onImageUploadStop={this.onImageUploadStop}
