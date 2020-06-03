@@ -10,7 +10,12 @@ import Revision from 'models/Revision';
 import User from 'models/User';
 import DocumentsStore from 'stores/DocumentsStore';
 
-type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
+type SaveOptions = {
+  publish?: boolean,
+  done?: boolean,
+  autosave?: boolean,
+  lastRevision?: number,
+};
 
 export default class Document extends BaseModel {
   @observable isSaving: boolean = false;
@@ -185,7 +190,7 @@ export default class Document extends BaseModel {
         id: this.id,
         title: this.title,
         text: this.text,
-        lastRevision: this.revision,
+        lastRevision: options.lastRevision,
         ...options,
       });
     } finally {
