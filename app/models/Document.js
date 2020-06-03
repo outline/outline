@@ -186,13 +186,17 @@ export default class Document extends BaseModel {
         });
       }
 
-      return await this.store.update({
-        id: this.id,
-        title: this.title,
-        text: this.text,
-        lastRevision: options.lastRevision,
-        ...options,
-      });
+      if (options.lastRevision) {
+        return await this.store.update({
+          id: this.id,
+          title: this.title,
+          text: this.text,
+          lastRevision: options.lastRevision,
+          ...options,
+        });
+      }
+
+      throw new Error('Attempting to update without a lastRevision');
     } finally {
       this.isSaving = false;
     }
