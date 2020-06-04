@@ -79,13 +79,11 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   const hasNewUrls = process.env.AWS_S3_UPLOAD_BUCKET_URL_INTERNAL;
   // previously, there was only AWS_S3_UPLOAD_BUCKET_URL - https://github.com/outline/outline/issues/1296
   if (hasNewUrls) {
-    let host = isServerUpload ?
-      process.env.AWS_S3_UPLOAD_BUCKET_URL_INTERNAL :
-      process.env.AWS_S3_UPLOAD_BUCKET_URL;
+    let host = isServerUpload
+      ? process.env.AWS_S3_UPLOAD_BUCKET_URL_INTERNAL
+      : process.env.AWS_S3_UPLOAD_BUCKET_URL;
     host = host.replace(/\/$/, ''); // remove trailing slash
-    return `${host}/${isServerUpload && isDocker ? 's3/' : ''}${
-      process.env.AWS_S3_UPLOAD_BUCKET_NAME
-      }`;
+    return `${host}/${process.env.AWS_S3_UPLOAD_BUCKET_NAME}`;
   } else {
     // lose trailing slash if there is one and convert fake-s3 url to localhost
     // for access outside of docker containers in local development
@@ -97,7 +95,7 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
 
     return `${host}/${isServerUpload && isDocker ? 's3/' : ''}${
       process.env.AWS_S3_UPLOAD_BUCKET_NAME
-      }`;
+    }`;
   }
 };
 
