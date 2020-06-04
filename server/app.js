@@ -147,7 +147,9 @@ app.use(
       frameSrc: ['*'],
       connectSrc: compact([
         "'self'",
-        process.env.AWS_S3_UPLOAD_BUCKET_URL.replace('s3:', 'localhost:'),
+        !process.env.AWS_S3_UPLOAD_BUCKET_URL_INTERNAL ? // https://github.com/outline/outline/issues/1296
+          process.env.AWS_S3_UPLOAD_BUCKET_URL.replace('s3:', 'localhost:') :
+          process.env.AWS_S3_UPLOAD_BUCKET_URL,
         'www.google-analytics.com',
         'sentry.io',
       ]),
