@@ -14,12 +14,13 @@ import {
   documentMoveUrl,
   documentHistoryUrl,
   documentEditUrl,
+  documentUrl,
 } from 'utils/routeHelpers';
 import { emojiToUrl } from 'utils/emoji';
 
 import Header from './Header';
 import DocumentMove from './DocumentMove';
-import KeyboardShortcuts from './KeyboardShortcuts';
+import KeyboardShortcutsButton from './KeyboardShortcutsButton';
 import References from './References';
 import Loading from './Loading';
 import Container from './Container';
@@ -74,16 +75,41 @@ class DocumentScene extends React.Component<Props> {
   @observable isDirty: boolean = false;
   @observable isEmpty: boolean = true;
   @observable moveModalOpen: boolean = false;
+  @observable lastRevision: number;
   @observable title: string;
 
   constructor(props) {
     super();
     this.title = props.document.title;
+    this.lastRevision = props.document.revision;
     this.loadEditor();
   }
 
   componentDidMount() {
     this.updateIsDirty();
+  }
+
+  componentDidUpdate(prevProps) {
+    const { auth, document } = this.props;
+
+    if (this.props.readOnly) {
+      this.lastRevision = document.revision;
+    } else if (prevProps.document.revision !== this.lastRevision) {
+      if (auth.user && document.updatedBy.id !== auth.user.id) {
+        this.props.ui.showToast(
+          `Document updated by ${document.updatedBy.name}`,
+          {
+            timeout: 30 * 1000,
+            action: {
+              text: 'Reload',
+              onClick: () => {
+                window.location.href = documentUrl(document);
+              },
+            },
+          }
+        );
+      }
+    }
   }
 
   @keydown('m')
@@ -174,7 +200,11 @@ class DocumentScene extends React.Component<Props> {
   handleOpenMoveModal = () => (this.moveModalOpen = true);
 
   onSave = async (
-    options: { done?: boolean, publish?: boolean, autosave?: boolean } = {}
+    options: {
+      done?: boolean,
+      publish?: boolean,
+      autosave?: boolean,
+    } = {}
   ) => {
     const { document } = this.props;
 
@@ -202,17 +232,27 @@ class DocumentScene extends React.Component<Props> {
     let isNew = !document.id;
     this.isSaving = true;
     this.isPublishing = !!options.publish;
-    const savedDocument = await document.save(options);
-    this.isDirty = false;
-    this.isSaving = false;
-    this.isPublishing = false;
 
-    if (options.done) {
-      this.props.history.push(savedDocument.url);
-      this.props.ui.setActiveDocument(savedDocument);
-    } else if (isNew) {
-      this.props.history.push(documentEditUrl(savedDocument));
-      this.props.ui.setActiveDocument(savedDocument);
+    try {
+      const savedDocument = await document.save({
+        ...options,
+        lastRevision: this.lastRevision,
+      });
+      this.isDirty = false;
+      this.lastRevision = savedDocument.revision;
+
+      if (options.done) {
+        this.props.history.push(savedDocument.url);
+        this.props.ui.setActiveDocument(savedDocument);
+      } else if (isNew) {
+        this.props.history.push(documentEditUrl(savedDocument));
+        this.props.ui.setActiveDocument(savedDocument);
+      }
+    } catch (err) {
+      this.props.ui.showToast(err.message);
+    } finally {
+      this.isSaving = false;
+      this.isPublishing = false;
     }
   };
 
@@ -281,6 +321,7 @@ class DocumentScene extends React.Component<Props> {
       return <Loading location={location} />;
     }
 
+    const value = revision ? revision.text : document.text;
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
@@ -378,7 +419,8 @@ class DocumentScene extends React.Component<Props> {
                   key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
                   title={revision ? revision.title : this.title}
                   document={document}
-                  defaultValue={revision ? revision.text : document.text}
+                  value={readOnly ? value : undefined}
+                  defaultValue={value}
                   disableEmbeds={disableEmbeds}
                   onImageUploadStart={this.onImageUploadStart}
                   onImageUploadStop={this.onImageUploadStop}
@@ -405,7 +447,7 @@ class DocumentScene extends React.Component<Props> {
             </MaxWidth>
           </Container>
         </Container>
-        {isShare ? <Branding /> : <KeyboardShortcuts />}
+        {isShare ? <Branding /> : <KeyboardShortcutsButton />}
       </ErrorBoundary>
     );
   }

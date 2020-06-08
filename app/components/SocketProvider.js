@@ -128,22 +128,6 @@ class SocketProvider extends React.Component<Props> {
               });
             }
           }
-
-          // TODO: Move this to the document scene once data loading
-          // has been refactored to be friendlier there.
-          if (
-            auth.user &&
-            documentId === ui.activeDocumentId &&
-            document.updatedBy.id !== auth.user.id
-          ) {
-            ui.showToast(`Document updated by ${document.updatedBy.name}`, {
-              timeout: 30 * 1000,
-              action: {
-                text: 'Refresh',
-                onClick: () => window.location.reload(),
-              },
-            });
-          }
         }
       }
 

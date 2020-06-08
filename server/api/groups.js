@@ -40,7 +40,11 @@ router.post('groups.list', auth(), pagination(), async ctx => {
     data: {
       groups: groups.map(presentGroup),
       groupMemberships: groups
-        .map(g => g.groupMemberships.slice(0, MAX_AVATAR_DISPLAY))
+        .map(g =>
+          g.groupMemberships
+            .filter(membership => !!membership.user)
+            .slice(0, MAX_AVATAR_DISPLAY)
+        )
         .flat()
         .map(presentGroupMembership),
     },
