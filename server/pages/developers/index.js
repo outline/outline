@@ -48,7 +48,7 @@ export default function Developers() {
               small adjustments, including breaking changes to the API.
             </p>
 
-            <h2>Making requests</h2>
+            <h2 id="requests">Making requests</h2>
             <p>
               Outline’s API follows simple RPC style conventions where each API
               endpoint is a method on{' '}
@@ -93,7 +93,7 @@ export default function Developers() {
               </Code>
             </Pre>
 
-            <h2>Authentication</h2>
+            <h2 id="authentication">Authentication</h2>
 
             <p>
               To access private API endpoints, you must provide a valid API key.
@@ -116,7 +116,7 @@ export default function Developers() {
               resources and they can be called without an API key.
             </p>
 
-            <h2>Errors</h2>
+            <h2 id="errors">Errors</h2>
 
             <p>
               All successful API requests will be returned with <Code>200</Code>{' '}
