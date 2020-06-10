@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { debounce } from 'lodash';
-import styled from 'styled-components';
+import styled, { withTheme } from 'styled-components';
 import breakpoint from 'styled-components-breakpoint';
 import { observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
@@ -59,6 +59,7 @@ type Props = {
   revision: Revision,
   readOnly: boolean,
   onSearchLink: (term: string) => mixed,
+  theme: Object,
   auth: AuthStore,
   ui: UiStore,
 };
@@ -87,6 +88,7 @@ class DocumentScene extends React.Component<Props> {
 
   componentDidMount() {
     this.updateIsDirty();
+    this.updateBackground();
   }
 
   componentDidUpdate(prevProps) {
@@ -110,6 +112,14 @@ class DocumentScene extends React.Component<Props> {
         );
       }
     }
+
+    this.updateBackground();
+  }
+
+  updateBackground() {
+    // ensure the wider page color always matches the theme. This is to
+    // account for share links which don't sit in the wider Layout component
+    window.document.body.style.background = this.props.theme.background;
   }
 
   @keydown('m')
@@ -327,7 +337,7 @@ class DocumentScene extends React.Component<Props> {
 
     return (
       <ErrorBoundary>
-        <Container
+        <Background
           key={revision ? revision.id : document.id}
           isShare={isShare}
           column
@@ -446,12 +456,17 @@ class DocumentScene extends React.Component<Props> {
                 )}
             </MaxWidth>
           </Container>
-        </Container>
+        </Background>
         {isShare ? <Branding /> : <KeyboardShortcutsButton />}
       </ErrorBoundary>
     );
   }
 }
+
+const Background = styled(Container)`
+  background: ${props => props.theme.background};
+  transition: ${props => props.theme.backgroundTransition};
+`;
 
 const ReferencesWrapper = styled('div')`
   margin-top: ${props => (props.isOnlyTitle ? -45 : 16)}px;
@@ -476,5 +491,7 @@ const MaxWidth = styled(Flex)`
 `;
 
 export default withRouter(
-  inject('ui', 'auth', 'documents', 'policies', 'revisions')(DocumentScene)
+  inject('ui', 'auth', 'documents', 'policies', 'revisions')(
+    withTheme(DocumentScene)
+  )
 );

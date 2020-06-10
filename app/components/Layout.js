@@ -57,6 +57,11 @@ class Layout extends React.Component<Props> {
     }
   }
 
+  updateBackground() {
+    // ensure the wider page color always matches the theme
+    window.document.body.style.background = this.props.theme.background;
+  }
+
   @keydown('shift+/')
   handleOpenKeyboardShortcuts() {
     if (this.props.ui.editMode) return;
@@ -66,11 +71,6 @@ class Layout extends React.Component<Props> {
   handleCloseKeyboardShortcuts = () => {
     this.keyboardShortcutsOpen = false;
   };
-
-  updateBackground() {
-    // ensure the wider page color always matches the theme
-    window.document.body.style.background = this.props.theme.background;
-  }
 
   @keydown(['t', '/', 'meta+k'])
   goToSearch(ev) {
