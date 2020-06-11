@@ -26,6 +26,11 @@ export default class UsersStore extends BaseStore<User> {
   }
 
   @computed
+  get activeOrInvited(): User[] {
+    return filter(this.orderedData, user => !user.isSuspended);
+  }
+
+  @computed
   get invited(): User[] {
     return filter(this.orderedData, user => !user.lastActiveAt);
   }
@@ -81,7 +86,10 @@ export default class UsersStore extends BaseStore<User> {
       member => member.collectionId === collectionId
     );
     const userIds = memberships.map(member => member.userId);
-    const users = filter(this.orderedData, user => !userIds.includes(user.id));
+    const users = filter(
+      this.activeOrInvited,
+      user => !userIds.includes(user.id)
+    );
 
     if (!query) return users;
     return queriedUsers(users, query);
@@ -93,7 +101,9 @@ export default class UsersStore extends BaseStore<User> {
       member => member.collectionId === collectionId
     );
     const userIds = memberships.map(member => member.userId);
-    const users = filter(this.orderedData, user => userIds.includes(user.id));
+    const users = filter(this.activeOrInvited, user =>
+      userIds.includes(user.id)
+    );
 
     if (!query) return users;
     return queriedUsers(users, query);
@@ -105,7 +115,10 @@ export default class UsersStore extends BaseStore<User> {
       member => member.groupId === groupId
     );
     const userIds = memberships.map(member => member.userId);
-    const users = filter(this.orderedData, user => !userIds.includes(user.id));
+    const users = filter(
+      this.activeOrInvited,
+      user => !userIds.includes(user.id)
+    );
 
     if (!query) return users;
     return queriedUsers(users, query);
@@ -117,7 +130,9 @@ export default class UsersStore extends BaseStore<User> {
       member => member.groupId === groupId
     );
     const userIds = groupMemberships.map(member => member.userId);
-    const users = filter(this.orderedData, user => userIds.includes(user.id));
+    const users = filter(this.activeOrInvited, user =>
+      userIds.includes(user.id)
+    );
 
     if (!query) return users;
     return queriedUsers(users, query);

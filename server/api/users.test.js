@@ -14,6 +14,13 @@ describe('#users.list', async () => {
   it('should allow filtering by user name', async () => {
     const user = await buildUser({ name: 'Tester' });
 
+    // suspended user should not be returned
+    await buildUser({
+      name: 'Tester',
+      teamId: user.teamId,
+      suspendedAt: new Date(),
+    });
+
     const res = await server.post('/api/users.list', {
       body: {
         query: 'test',
@@ -24,6 +31,29 @@ describe('#users.list', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
+  it('should allow including suspended', async () => {
+    const user = await buildUser({ name: 'Tester' });
+    const suspended = await buildUser({
+      name: 'Tester',
+      teamId: user.teamId,
+      suspendedAt: new Date(),
+    });
+
+    const res = await server.post('/api/users.list', {
+      body: {
+        query: 'test',
+        includeSuspended: true,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+    expect(body.data[1].id).toEqual(suspended.id);
     expect(body.data[0].id).toEqual(user.id);
   });
 
