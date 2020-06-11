@@ -21,12 +21,21 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post('users.list', auth(), pagination(), async ctx => {
-  const { query } = ctx.body;
+  const { query, includeSuspended = false } = ctx.body;
   const user = ctx.state.user;
 
   let where = {
     teamId: user.teamId,
   };
+
+  if (!includeSuspended) {
+    where = {
+      ...where,
+      suspendedAt: {
+        [Op.eq]: null,
+      },
+    };
+  }
 
   if (query) {
     where = {
