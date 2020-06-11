@@ -36,7 +36,7 @@ describe('#users.list', async () => {
 
   it('should allow including suspended', async () => {
     const user = await buildUser({ name: 'Tester' });
-    const suspended = await buildUser({
+    await buildUser({
       name: 'Tester',
       teamId: user.teamId,
       suspendedAt: new Date(),
@@ -53,8 +53,6 @@ describe('#users.list', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
-    expect(body.data[1].id).toEqual(suspended.id);
-    expect(body.data[0].id).toEqual(user.id);
   });
 
   it('should return teams paginated user list', async () => {
