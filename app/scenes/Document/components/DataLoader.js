@@ -73,10 +73,12 @@ class DataLoader extends React.Component<Props> {
   onSearchLink = async (term: string) => {
     const results = await this.props.documents.search(term);
 
-    return results.map((result, index) => ({
-      title: result.document.title,
-      url: result.document.url,
-    }));
+    return results
+      .filter(result => result.document.title)
+      .map((result, index) => ({
+        title: result.document.title,
+        url: result.document.url,
+      }));
   };
 
   loadRevision = async () => {
