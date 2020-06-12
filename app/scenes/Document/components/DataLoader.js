@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import invariant from 'invariant';
 import { withRouter } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
@@ -73,10 +74,26 @@ class DataLoader extends React.Component<Props> {
   onSearchLink = async (term: string) => {
     const results = await this.props.documents.search(term);
 
-    return results.map((result, index) => ({
-      title: result.document.title,
-      url: result.document.url,
-    }));
+    return results
+      .filter(result => result.document.title)
+      .map((result, index) => ({
+        title: result.document.title,
+        url: result.document.url,
+      }));
+  };
+
+  onCreateLink = async (title: string) => {
+    const document = this.document;
+    invariant(document, 'document must be loaded to create link');
+
+    const newDocument = await this.props.documents.create({
+      collectionId: document.collectionId,
+      parentDocumentId: document.parentDocumentId,
+      title,
+      text: '',
+    });
+
+    return newDocument.url;
   };
 
   loadRevision = async () => {
@@ -165,6 +182,7 @@ class DataLoader extends React.Component<Props> {
           location={location}
           readOnly={!this.isEditing}
           onSearchLink={this.onSearchLink}
+          onCreateLink={this.onCreateLink}
         />
       </SocketPresence>
     );

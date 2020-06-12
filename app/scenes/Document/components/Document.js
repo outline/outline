@@ -58,7 +58,8 @@ type Props = {
   document: Document,
   revision: Revision,
   readOnly: boolean,
-  onSearchLink: (term: string) => mixed,
+  onCreateLink: (title: string) => string,
+  onSearchLink: (term: string) => any,
   theme: Object,
   auth: AuthStore,
   ui: UiStore,
@@ -435,6 +436,7 @@ class DocumentScene extends React.Component<Props> {
                   onImageUploadStart={this.onImageUploadStart}
                   onImageUploadStop={this.onImageUploadStop}
                   onSearchLink={this.props.onSearchLink}
+                  onCreateLink={this.props.onCreateLink}
                   onChangeTitle={this.onChangeTitle}
                   onChange={this.onChange}
                   onSave={this.onSave}
@@ -491,7 +493,5 @@ const MaxWidth = styled(Flex)`
 `;
 
 export default withRouter(
-  inject('ui', 'auth', 'documents', 'policies', 'revisions')(
-    withTheme(DocumentScene)
-  )
+  inject('ui', 'auth', 'policies', 'revisions')(withTheme(DocumentScene))
 );
