@@ -35,6 +35,7 @@ import Time from 'shared/components/Time';
 
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
+import DocumentsStore from 'stores/DocumentsStore';
 import Document from 'models/Document';
 import Revision from 'models/Revision';
 
@@ -60,6 +61,7 @@ type Props = {
   readOnly: boolean,
   onSearchLink: (term: string) => mixed,
   theme: Object,
+  documents: DocumentsStore,
   auth: AuthStore,
   ui: UiStore,
 };
@@ -313,6 +315,17 @@ class DocumentScene extends React.Component<Props> {
     this.props.history.push(url);
   };
 
+  onCreateLink = async (title: string) => {
+    const document = await this.props.documents.create({
+      collectionId: this.props.document.collectionId,
+      parentDocumentId: this.props.document.parentDocumentId,
+      title,
+      text: '',
+    });
+
+    return document.url;
+  };
+
   render() {
     const {
       document,
@@ -437,6 +450,7 @@ class DocumentScene extends React.Component<Props> {
                   onSearchLink={this.props.onSearchLink}
                   onChangeTitle={this.onChangeTitle}
                   onChange={this.onChange}
+                  onCreateLink={this.onCreateLink}
                   onSave={this.onSave}
                   onPublish={this.onPublish}
                   onCancel={this.goBack}
