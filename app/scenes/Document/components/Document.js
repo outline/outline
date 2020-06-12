@@ -35,7 +35,6 @@ import Time from 'shared/components/Time';
 
 import UiStore from 'stores/UiStore';
 import AuthStore from 'stores/AuthStore';
-import DocumentsStore from 'stores/DocumentsStore';
 import Document from 'models/Document';
 import Revision from 'models/Revision';
 
@@ -59,9 +58,9 @@ type Props = {
   document: Document,
   revision: Revision,
   readOnly: boolean,
-  onSearchLink: (term: string) => mixed,
+  onCreateLink: (title: string) => string,
+  onSearchLink: (term: string) => any,
   theme: Object,
-  documents: DocumentsStore,
   auth: AuthStore,
   ui: UiStore,
 };
@@ -315,17 +314,6 @@ class DocumentScene extends React.Component<Props> {
     this.props.history.push(url);
   };
 
-  onCreateLink = async (title: string) => {
-    const document = await this.props.documents.create({
-      collectionId: this.props.document.collectionId,
-      parentDocumentId: this.props.document.parentDocumentId,
-      title,
-      text: '',
-    });
-
-    return document.url;
-  };
-
   render() {
     const {
       document,
@@ -448,9 +436,9 @@ class DocumentScene extends React.Component<Props> {
                   onImageUploadStart={this.onImageUploadStart}
                   onImageUploadStop={this.onImageUploadStop}
                   onSearchLink={this.props.onSearchLink}
+                  onCreateLink={this.props.onCreateLink}
                   onChangeTitle={this.onChangeTitle}
                   onChange={this.onChange}
-                  onCreateLink={this.onCreateLink}
                   onSave={this.onSave}
                   onPublish={this.onPublish}
                   onCancel={this.goBack}
@@ -505,7 +493,5 @@ const MaxWidth = styled(Flex)`
 `;
 
 export default withRouter(
-  inject('ui', 'auth', 'documents', 'policies', 'revisions')(
-    withTheme(DocumentScene)
-  )
+  inject('ui', 'auth', 'policies', 'revisions')(withTheme(DocumentScene))
 );
