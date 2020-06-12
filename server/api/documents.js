@@ -864,6 +864,7 @@ router.post('documents.update', auth(), async ctx => {
     });
   }
 
+  document.updatedBy = user;
   document.collection = collection;
 
   ctx.body = {

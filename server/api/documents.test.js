@@ -1410,20 +1410,20 @@ describe('#documents.update', async () => {
   });
 
   it('allows editing by read-write collection user', async () => {
-    const { user, document, collection } = await seed();
+    const { admin, document, collection } = await seed();
     collection.private = true;
     await collection.save();
 
     await CollectionUser.create({
       collectionId: collection.id,
-      userId: user.id,
-      createdById: user.id,
+      userId: admin.id,
+      createdById: admin.id,
       permission: 'read_write',
     });
 
     const res = await server.post('/api/documents.update', {
       body: {
-        token: user.getJwtToken(),
+        token: admin.getJwtToken(),
         id: document.id,
         text: 'Changed text',
         lastRevision: document.revision,
@@ -1434,6 +1434,7 @@ describe('#documents.update', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.text).toBe('Changed text');
+    expect(body.data.updatedBy.id).toBe(admin.id);
   });
 
   it('does not allow editing by read-only collection user', async () => {
@@ -1476,6 +1477,7 @@ describe('#documents.update', async () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.text).toBe(document.text + 'Additional text');
+    expect(body.data.updatedBy.id).toBe(user.id);
   });
 
   it('should require text while appending', async () => {
