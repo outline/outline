@@ -7,7 +7,6 @@ import documentMover from '../commands/documentMover';
 import {
   presentDocument,
   presentCollection,
-  presentRevision,
   presentPolicies,
 } from '../presenters';
 import {
