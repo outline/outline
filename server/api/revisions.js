@@ -4,6 +4,7 @@ import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import { presentRevision } from '../presenters';
 import { Document, Revision } from '../models';
+import { NotFoundError } from '../errors';
 import policy from '../policies';
 
 const { authorize } = policy;
@@ -15,6 +16,10 @@ router.post('revisions.info', auth(), async ctx => {
 
   const user = ctx.state.user;
   const revision = await Revision.findByPk(id);
+  if (!revision) {
+    throw new NotFoundError();
+  }
+
   const document = await Document.findByPk(revision.documentId, {
     userId: user.id,
   });
