@@ -527,20 +527,6 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method method="documents.info" label="Get a document">
-            <Description>
-              Get a document with its ID or URL identifier from user’s
-              collections.
-            </Description>
-            <Arguments>
-              <Argument
-                id="id"
-                description="Document ID or URI identifier"
-                required
-              />
-            </Arguments>
-          </Method>
-
           <Method
             method="documents.restore"
             label="Restore a previous revision"
@@ -677,7 +663,7 @@ export default function Api() {
               This method allows you to create a new group to organize people in
               the team.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument
                 id="name"
                 description="The name of the group"
@@ -691,7 +677,7 @@ export default function Api() {
               This method allows you to update an existing group. At this time
               the only field that can be edited is the name.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument id="id" description="Group ID" required />
               <Argument
                 id="name"
