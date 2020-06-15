@@ -651,32 +651,21 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method
-            method="documents.revision"
-            label="Get revision for a document"
-          >
+          <Method method="revisions.info" label="Get revision for a document">
             <Description>Return a specific revision of a document.</Description>
             <Arguments>
-              <Argument
-                id="id"
-                description="Document ID or URI identifier"
-                required
-              />
-              <Argument id="revisionId" description="Revision ID" required />
+              <Argument id="id" description="Revision ID" required />
             </Arguments>
           </Method>
 
-          <Method
-            method="documents.revisions"
-            label="Get revisions for a document"
-          >
+          <Method method="revisions.list" label="Get revisions for a document">
             <Description>
               Return revisions for a document. Upon each edit, a new revision is
               stored.
             </Description>
             <Arguments pagination>
               <Argument
-                id="id"
+                id="documentId"
                 description="Document ID or URI identifier"
                 required
               />
