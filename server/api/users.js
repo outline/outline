@@ -21,7 +21,9 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post('users.list', auth(), pagination(), async ctx => {
-  const { query, includeSuspended = false } = ctx.body;
+  const { sort = 'createdAt', query, includeSuspended = false } = ctx.body;
+  let direction = ctx.body.direction;
+  if (direction !== 'ASC') direction = 'DESC';
   const user = ctx.state.user;
 
   let where = {
@@ -48,7 +50,7 @@ router.post('users.list', auth(), pagination(), async ctx => {
 
   const users = await User.findAll({
     where,
-    order: [['createdAt', 'DESC']],
+    order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
