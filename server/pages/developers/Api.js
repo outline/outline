@@ -84,7 +84,7 @@ export default function Api() {
               Promote a user to be a team admin. This endpoint is only available
               for admin users.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument id="id" description="User ID to be promoted" required />
             </Arguments>
           </Method>
@@ -95,7 +95,7 @@ export default function Api() {
               is always required. This endpoint is only available for admin
               users.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument id="id" description="User ID to be demoted" required />
             </Arguments>
           </Method>
@@ -105,7 +105,7 @@ export default function Api() {
               Admin can suspend users to reduce the number of accounts on their
               billing plan or prevent them from accessing documention.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument
                 id="id"
                 description="User ID to be suspended"
@@ -122,7 +122,7 @@ export default function Api() {
               Admin can re-active a suspended user. This will update the billing
               plan and re-enable their access to the documention.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument
                 id="id"
                 description="User ID to be activated"
