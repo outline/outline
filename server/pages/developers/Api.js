@@ -49,7 +49,7 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method method="users.s3Upload" label="Get S3 upload credentials">
+          <Method method="attachments.create" label="Get S3 upload credentials">
             <Description>
               You can upload small files and images as part of your documents.
               All files are stored using Amazon S3. Instead of uploading files
