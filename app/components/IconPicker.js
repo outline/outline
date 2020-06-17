@@ -5,6 +5,7 @@ import { observer } from 'mobx-react';
 import { TwitterPicker } from 'react-color';
 import {
   CollectionIcon,
+  CoinsIcon,
   AcademicCapIcon,
   BeakerIcon,
   BuildingBlocksIcon,
@@ -12,10 +13,15 @@ import {
   CodeIcon,
   EditIcon,
   EyeIcon,
+  LeafIcon,
+  LightBulbIcon,
+  MoonIcon,
+  NotepadIcon,
   PadlockIcon,
   PaletteIcon,
-  MoonIcon,
+  QuestionMarkIcon,
   SunIcon,
+  VehicleIcon,
 } from 'outline-icons';
 import styled from 'styled-components';
 import { LabelText } from 'components/Input';
@@ -27,6 +33,10 @@ export const icons = {
   collection: {
     component: CollectionIcon,
     keywords: 'collection',
+  },
+  coins: {
+    component: CoinsIcon,
+    keywords: 'coins money cash',
   },
   academicCap: {
     component: AcademicCapIcon,
@@ -52,6 +62,22 @@ export const icons = {
     component: EyeIcon,
     keywords: 'eye view',
   },
+  leaf: {
+    component: LeafIcon,
+    keywords: 'leaf plant',
+  },
+  lightbulb: {
+    component: LightBulbIcon,
+    keywords: 'lightbulb idea',
+  },
+  moon: {
+    component: MoonIcon,
+    keywords: 'night moon',
+  },
+  notepad: {
+    component: NotepadIcon,
+    keywords: 'journal notepad write',
+  },
   padlock: {
     component: PadlockIcon,
     keywords: 'padlock private',
@@ -64,13 +90,17 @@ export const icons = {
     component: EditIcon,
     keywords: 'copy writing post',
   },
-  moon: {
-    component: MoonIcon,
-    keywords: 'night moon',
+  question: {
+    component: QuestionMarkIcon,
+    keywords: 'question help support',
   },
   sun: {
     component: SunIcon,
     keywords: 'day sun',
+  },
+  vehicle: {
+    component: VehicleIcon,
+    keywords: 'truck car travel',
   },
 };
 

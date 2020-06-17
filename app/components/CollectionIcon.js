@@ -2,36 +2,10 @@
 import * as React from 'react';
 import { inject, observer } from 'mobx-react';
 import { invert, getLuminance } from 'polished';
-import {
-  PrivateCollectionIcon,
-  CollectionIcon,
-  AcademicCapIcon,
-  BeakerIcon,
-  BuildingBlocksIcon,
-  CloudIcon,
-  CodeIcon,
-  EyeIcon,
-  PadlockIcon,
-  PaletteIcon,
-  MoonIcon,
-  SunIcon,
-} from 'outline-icons';
+import { PrivateCollectionIcon, CollectionIcon } from 'outline-icons';
 import Collection from 'models/Collection';
+import { icons } from 'components/IconPicker';
 import UiStore from 'stores/UiStore';
-
-const icons = {
-  collection: CollectionIcon,
-  academicCap: AcademicCapIcon,
-  beaker: BeakerIcon,
-  buildingBlocks: BuildingBlocksIcon,
-  cloud: CloudIcon,
-  code: CodeIcon,
-  eye: EyeIcon,
-  padlock: PadlockIcon,
-  palette: PaletteIcon,
-  moon: MoonIcon,
-  sun: SunIcon,
-};
 
 type Props = {
   collection: Collection,
@@ -50,10 +24,16 @@ function ResolvedCollectionIcon({ collection, expanded, size, ui }: Props) {
         : invert(collection.color)
       : collection.color;
 
-  if (collection.icon) {
-    const Component = icons[collection.icon];
-    return <Component color={color} size={size} />;
-  } else if (collection.private) {
+  if (collection.icon && collection.icon !== 'collection') {
+    try {
+      const Component = icons[collection.icon].component;
+      return <Component color={color} size={size} />;
+    } catch (error) {
+      console.warn('Failed to render custom icon ' + collection.icon);
+    }
+  }
+
+  if (collection.private) {
     return (
       <PrivateCollectionIcon color={color} expanded={expanded} size={size} />
     );
