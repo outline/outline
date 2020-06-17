@@ -173,7 +173,10 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method method="collections.exportAll" label="Export all collections">
+          <Method
+            method="collections.export_all"
+            label="Export all collections"
+          >
             <Description>
               Returns a zip file of all the collections or creates an async job
               to send a zip file via email to the authenticated user. If
