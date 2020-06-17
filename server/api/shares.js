@@ -11,6 +11,19 @@ const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
 
+router.post('shares.info', auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertUuid(id, 'id is required');
+
+  const user = ctx.state.user;
+  const share = await Share.findByPk(id);
+  authorize(user, 'read', share);
+
+  ctx.body = {
+    data: presentShare(share),
+  };
+});
+
 router.post('shares.list', auth(), pagination(), async ctx => {
   let { sort = 'updatedAt', direction } = ctx.body;
   if (direction !== 'ASC') direction = 'DESC';

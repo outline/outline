@@ -31,10 +31,21 @@ class Gist extends React.Component<Props> {
     const iframe = this.iframeNode;
     if (!iframe) return;
 
+    // We need to add some temporary content to the iframe for the document
+    // to be available, otherwise it's undefined on first load
+    const temp = document.getElementById('gist');
+    if (temp) {
+      temp.innerHTML = '';
+      temp.appendChild(iframe);
+    }
+
     // $FlowFixMe
     let doc = iframe.document;
-    if (iframe.contentDocument) doc = iframe.contentDocument;
-    else if (iframe.contentWindow) doc = iframe.contentWindow.document;
+    if (iframe.contentDocument) {
+      doc = iframe.contentDocument;
+    } else if (iframe.contentWindow) {
+      doc = iframe.contentWindow.document;
+    }
 
     const gistLink = `https://gist.github.com/${id}.js`;
     const gistScript = `<script type="text/javascript" src="${

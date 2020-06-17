@@ -45,7 +45,9 @@ class UserProfile extends React.Component<Props> {
       >
         <Flex column>
           <Meta>
-            {isCurrentUser ? 'You joined' : 'Joined'}{' '}
+            {isCurrentUser
+              ? 'You joined'
+              : user.lastActiveAt ? 'Joined' : 'Invited'}{' '}
             {distanceInWordsToNow(new Date(user.createdAt))} ago.
             {user.isAdmin && (
               <StyledBadge admin={user.isAdmin}>Admin</StyledBadge>

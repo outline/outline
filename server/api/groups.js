@@ -18,13 +18,16 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post('groups.list', auth(), pagination(), async ctx => {
+  const { sort = 'updatedAt' } = ctx.body;
+  let direction = ctx.body.direction;
+  if (direction !== 'ASC') direction = 'DESC';
   const user = ctx.state.user;
 
   let groups = await Group.findAll({
     where: {
       teamId: user.teamId,
     },
-    order: [['updatedAt', 'DESC']],
+    order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
@@ -40,7 +43,11 @@ router.post('groups.list', auth(), pagination(), async ctx => {
     data: {
       groups: groups.map(presentGroup),
       groupMemberships: groups
-        .map(g => g.groupMemberships.slice(0, MAX_AVATAR_DISPLAY))
+        .map(g =>
+          g.groupMemberships
+            .filter(membership => !!membership.user)
+            .slice(0, MAX_AVATAR_DISPLAY)
+        )
         .flat()
         .map(presentGroupMembership),
     },

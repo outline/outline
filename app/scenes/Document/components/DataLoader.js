@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react';
+import invariant from 'invariant';
 import { withRouter } from 'react-router-dom';
 import type { Location, RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
@@ -17,6 +18,7 @@ import DocumentsStore from 'stores/DocumentsStore';
 import PoliciesStore from 'stores/PoliciesStore';
 import RevisionsStore from 'stores/RevisionsStore';
 import UiStore from 'stores/UiStore';
+import { OfflineError } from 'utils/errors';
 
 type Props = {|
   match: Object,
@@ -47,7 +49,7 @@ class DataLoader extends React.Component<Props> {
     if (this.document) {
       const policy = this.props.policies.get(this.document.id);
 
-      if (!policy) {
+      if (!policy && !this.error) {
         this.loadDocument();
       }
     }
@@ -72,18 +74,31 @@ class DataLoader extends React.Component<Props> {
   onSearchLink = async (term: string) => {
     const results = await this.props.documents.search(term);
 
-    return results.map((result, index) => ({
-      title: result.document.title,
-      url: result.document.url,
-    }));
+    return results
+      .filter(result => result.document.title)
+      .map((result, index) => ({
+        title: result.document.title,
+        url: result.document.url,
+      }));
+  };
+
+  onCreateLink = async (title: string) => {
+    const document = this.document;
+    invariant(document, 'document must be loaded to create link');
+
+    const newDocument = await this.props.documents.create({
+      collectionId: document.collectionId,
+      parentDocumentId: document.parentDocumentId,
+      title,
+      text: '',
+    });
+
+    return newDocument.url;
   };
 
   loadRevision = async () => {
-    const { documentSlug, revisionId } = this.props.match.params;
-
-    this.revision = await this.props.revisions.fetch(documentSlug, {
-      revisionId,
-    });
+    const { revisionId } = this.props.match.params;
+    this.revision = await this.props.revisions.fetch(revisionId);
   };
 
   loadDocument = async () => {
@@ -131,7 +146,11 @@ class DataLoader extends React.Component<Props> {
     const { location, policies, ui } = this.props;
 
     if (this.error) {
-      return navigator.onLine ? <Error404 /> : <ErrorOffline />;
+      return this.error instanceof OfflineError ? (
+        <ErrorOffline />
+      ) : (
+        <Error404 />
+      );
     }
 
     const document = this.document;
@@ -160,6 +179,7 @@ class DataLoader extends React.Component<Props> {
           location={location}
           readOnly={!this.isEditing}
           onSearchLink={this.onSearchLink}
+          onCreateLink={this.onCreateLink}
         />
       </SocketPresence>
     );

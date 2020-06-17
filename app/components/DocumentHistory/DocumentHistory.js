@@ -42,7 +42,7 @@ class DocumentHistory extends React.Component<Props> {
     const results = await this.props.revisions.fetchPage({
       limit,
       offset: this.offset,
-      id: this.props.match.params.documentSlug,
+      documentId: this.props.match.params.documentSlug,
     });
 
     if (

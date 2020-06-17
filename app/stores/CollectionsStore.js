@@ -105,6 +105,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   export = () => {
-    return client.post('/collections.exportAll');
+    return client.post('/collections.export_all');
   };
 }

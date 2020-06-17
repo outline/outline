@@ -144,6 +144,33 @@ describe('#groups.list', async () => {
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
+
+  it('should return groups when membership user is deleted', async () => {
+    const me = await buildUser();
+    const user = await buildUser({ teamId: me.teamId });
+    const group = await buildGroup({ teamId: user.teamId });
+
+    await group.addUser(user, { through: { createdById: me.id } });
+    await group.addUser(me, { through: { createdById: me.id } });
+    await user.destroy();
+
+    const res = await server.post('/api/groups.list', {
+      body: { token: me.getJwtToken() },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+
+    expect(body.data['groups'].length).toEqual(1);
+    expect(body.data['groups'][0].id).toEqual(group.id);
+
+    expect(body.data['groupMemberships'].length).toEqual(1);
+    expect(body.data['groupMemberships'][0].groupId).toEqual(group.id);
+    expect(body.data['groupMemberships'][0].user.id).toEqual(me.id);
+
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+  });
 });
 
 describe('#groups.info', async () => {
@@ -273,10 +300,14 @@ describe('#groups.memberships', async () => {
   it('should allow filtering members in group by name', async () => {
     const user = await buildUser();
     const user2 = await buildUser({ name: "Won't find" });
+    const user3 = await buildUser({ teamId: user.teamId, name: 'Deleted' });
     const group = await buildGroup({ teamId: user.teamId });
 
     await group.addUser(user, { through: { createdById: user.id } });
     await group.addUser(user2, { through: { createdById: user.id } });
+    await group.addUser(user3, { through: { createdById: user.id } });
+
+    await user3.destroy();
 
     const res = await server.post('/api/groups.memberships', {
       body: {

@@ -13,7 +13,7 @@ export const uploadFile = async (
   options?: Options = { name: '' }
 ) => {
   const name = file instanceof File ? file.name : options.name;
-  const response = await client.post('/users.s3Upload', {
+  const response = await client.post('/attachments.create', {
     public: options.public,
     documentId: options.documentId,
     contentType: file.type,
@@ -24,7 +24,7 @@ export const uploadFile = async (
   invariant(response, 'Response should be available');
 
   const data = response.data;
-  const asset = data.asset;
+  const attachment = data.attachment;
   const formData = new FormData();
 
   for (const key in data.form) {
@@ -44,7 +44,7 @@ export const uploadFile = async (
     body: formData,
   });
 
-  return asset;
+  return attachment;
 };
 
 export const dataUrlToBlob = (dataURL: string) => {

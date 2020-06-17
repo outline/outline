@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { observer, inject } from 'mobx-react';
 import type { RouterHistory } from 'react-router-dom';
+import styled from 'styled-components';
 import {
   DocumentIcon,
   EmailIcon,
@@ -13,6 +14,7 @@ import {
   LinkIcon,
   TeamIcon,
   BulletedListIcon,
+  ExpandedIcon,
 } from 'outline-icons';
 import ZapierIcon from './icons/Zapier';
 import SlackIcon from './icons/Slack';
@@ -49,7 +51,11 @@ class SettingsSidebar extends React.Component<Props> {
     return (
       <Sidebar>
         <HeaderBlock
-          subheading="◄ Return to App"
+          subheading={
+            <ReturnToApp align="center">
+              <BackIcon /> Return to App
+            </ReturnToApp>
+          }
           teamName={team.name}
           logoUrl={team.avatarUrl}
           onClick={this.returnToDashboard}
@@ -144,5 +150,14 @@ class SettingsSidebar extends React.Component<Props> {
     );
   }
 }
+
+const BackIcon = styled(ExpandedIcon)`
+  transform: rotate(90deg);
+  margin-left: -8px;
+`;
+
+const ReturnToApp = styled(Flex)`
+  height: 16px;
+`;
 
 export default inject('auth', 'policies')(SettingsSidebar);

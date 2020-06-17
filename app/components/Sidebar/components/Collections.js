@@ -10,6 +10,7 @@ import { newDocumentUrl } from 'utils/routeHelpers';
 import Header from './Header';
 import SidebarLink from './SidebarLink';
 import CollectionLink from './CollectionLink';
+import CollectionsLoading from './CollectionsLoading';
 import Fade from 'components/Fade';
 
 import CollectionsStore from 'stores/CollectionsStore';
@@ -55,8 +56,7 @@ class Collections extends React.Component<Props> {
     const { collections, ui, documents } = this.props;
 
     const content = (
-      <Flex column>
-        <Header>Collections</Header>
+      <React.Fragment>
         {collections.orderedData.map(collection => (
           <CollectionLink
             key={collection.id}
@@ -74,12 +74,22 @@ class Collections extends React.Component<Props> {
           label="New collection…"
           exact
         />
-      </Flex>
+      </React.Fragment>
     );
 
     return (
-      collections.isLoaded &&
-      (this.isPreloaded ? content : <Fade>{content}</Fade>)
+      <Flex column>
+        <Header>Collections</Header>
+        {collections.isLoaded ? (
+          this.isPreloaded ? (
+            content
+          ) : (
+            <Fade>{content}</Fade>
+          )
+        ) : (
+          <CollectionsLoading />
+        )}
+      </Flex>
     );
   }
 }

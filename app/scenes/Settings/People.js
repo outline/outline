@@ -40,6 +40,10 @@ class People extends React.Component<Props> {
     this.inviteModalOpen = false;
   };
 
+  fetchPage = params => {
+    return this.props.users.fetchPage({ ...params, includeSuspended: true });
+  };
+
   render() {
     const { auth, policies, match } = this.props;
     const { filter } = match.params;
@@ -110,7 +114,7 @@ class People extends React.Component<Props> {
         <PaginatedList
           items={users}
           empty={<Empty>No people to see here.</Empty>}
-          fetch={this.props.users.fetchPage}
+          fetch={this.fetchPage}
           renderItem={item => (
             <UserListItem
               key={item.id}
