@@ -176,9 +176,9 @@ describe('#collections.export', async () => {
   });
 });
 
-describe('#collections.exportAll', async () => {
+describe('#collections.export_all', async () => {
   it('should require authentication', async () => {
-    const res = await server.post('/api/collections.exportAll');
+    const res = await server.post('/api/collections.export_all');
     const body = await res.json();
 
     expect(res.status).toEqual(401);
@@ -187,7 +187,7 @@ describe('#collections.exportAll', async () => {
 
   it('should require authorization', async () => {
     const user = await buildUser();
-    const res = await server.post('/api/collections.exportAll', {
+    const res = await server.post('/api/collections.export_all', {
       body: { token: user.getJwtToken() },
     });
     expect(res.status).toEqual(403);
@@ -195,7 +195,7 @@ describe('#collections.exportAll', async () => {
 
   it('should return success', async () => {
     const { admin } = await seed();
-    const res = await server.post('/api/collections.exportAll', {
+    const res = await server.post('/api/collections.export_all', {
       body: { token: admin.getJwtToken() },
     });
 
@@ -204,7 +204,7 @@ describe('#collections.exportAll', async () => {
 
   it('should allow downloading directly', async () => {
     const { admin } = await seed();
-    const res = await server.post('/api/collections.exportAll', {
+    const res = await server.post('/api/collections.export_all', {
       body: { token: admin.getJwtToken(), download: true },
     });
 

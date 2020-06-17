@@ -410,7 +410,7 @@ router.post('collections.export', auth(), async ctx => {
   ctx.body = fs.createReadStream(filePath);
 });
 
-router.post('collections.exportAll', auth(), async ctx => {
+router.post('collections.export_all', auth(), async ctx => {
   const { download = false } = ctx.body;
 
   const user = ctx.state.user;

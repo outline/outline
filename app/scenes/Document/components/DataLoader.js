@@ -97,11 +97,8 @@ class DataLoader extends React.Component<Props> {
   };
 
   loadRevision = async () => {
-    const { documentSlug, revisionId } = this.props.match.params;
-
-    this.revision = await this.props.revisions.fetch(documentSlug, {
-      revisionId,
-    });
+    const { revisionId } = this.props.match.params;
+    this.revision = await this.props.revisions.fetch(revisionId);
   };
 
   loadDocument = async () => {

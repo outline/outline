@@ -267,7 +267,7 @@ class CollectionScene extends React.Component<Props> {
                         collection.id
                       )}
                       fetch={documents.fetchAlphabetical}
-                      options={{ collection: collection.id }}
+                      options={{ collectionId: collection.id }}
                       showPin
                     />
                   </Route>
@@ -278,7 +278,7 @@ class CollectionScene extends React.Component<Props> {
                         collection.id
                       )}
                       fetch={documents.fetchLeastRecentlyUpdated}
-                      options={{ collection: collection.id }}
+                      options={{ collectionId: collection.id }}
                       showPin
                     />
                   </Route>
@@ -289,7 +289,7 @@ class CollectionScene extends React.Component<Props> {
                         collection.id
                       )}
                       fetch={documents.fetchRecentlyPublished}
-                      options={{ collection: collection.id }}
+                      options={{ collectionId: collection.id }}
                       showPublished
                       showPin
                     />
@@ -300,7 +300,7 @@ class CollectionScene extends React.Component<Props> {
                         collection.id
                       )}
                       fetch={documents.fetchRecentlyUpdated}
-                      options={{ collection: collection.id }}
+                      options={{ collectionId: collection.id }}
                       showPin
                     />
                   </Route>

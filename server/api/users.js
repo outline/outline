@@ -1,27 +1,20 @@
 // @flow
-import uuid from 'uuid';
 import Router from 'koa-router';
-import format from 'date-fns/format';
 import { Op } from '../sequelize';
-import {
-  makePolicy,
-  getSignature,
-  publicS3Endpoint,
-  makeCredential,
-} from '../utils/s3';
-import { Document, Attachment, Event, User, Team } from '../models';
+import { Event, User, Team } from '../models';
 import auth from '../middlewares/authentication';
 import pagination from './middlewares/pagination';
 import userInviter from '../commands/userInviter';
 import { presentUser } from '../presenters';
 import policy from '../policies';
 
-const AWS_S3_ACL = process.env.AWS_S3_ACL || 'private';
 const { authorize } = policy;
 const router = new Router();
 
 router.post('users.list', auth(), pagination(), async ctx => {
-  const { query, includeSuspended = false } = ctx.body;
+  const { sort = 'createdAt', query, includeSuspended = false } = ctx.body;
+  let direction = ctx.body.direction;
+  if (direction !== 'ASC') direction = 'DESC';
   const user = ctx.state.user;
 
   let where = {
@@ -48,7 +41,7 @@ router.post('users.list', auth(), pagination(), async ctx => {
 
   const users = await User.findAll({
     where,
-    order: [['createdAt', 'DESC']],
+    order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
@@ -78,79 +71,6 @@ router.post('users.update', auth(), async ctx => {
 
   ctx.body = {
     data: presentUser(user, { includeDetails: true }),
-  };
-});
-
-router.post('users.s3Upload', auth(), async ctx => {
-  let { name, filename, documentId, contentType, kind, size } = ctx.body;
-
-  // backwards compatability
-  name = name || filename;
-  contentType = contentType || kind;
-
-  ctx.assertPresent(name, 'name is required');
-  ctx.assertPresent(contentType, 'contentType is required');
-  ctx.assertPresent(size, 'size is required');
-
-  const { user } = ctx.state;
-  const s3Key = uuid.v4();
-  const key = `uploads/${user.id}/${s3Key}/${name}`;
-  const acl =
-    ctx.body.public === undefined
-      ? AWS_S3_ACL
-      : ctx.body.public ? 'public-read' : 'private';
-  const credential = makeCredential();
-  const longDate = format(new Date(), 'YYYYMMDDTHHmmss\\Z');
-  const policy = makePolicy(credential, longDate, acl);
-  const endpoint = publicS3Endpoint();
-  const url = `${endpoint}/${key}`;
-
-  if (documentId) {
-    const document = await Document.findByPk(documentId, { userId: user.id });
-    authorize(user, 'update', document);
-  }
-
-  const attachment = await Attachment.create({
-    key,
-    acl,
-    size,
-    url,
-    contentType,
-    documentId,
-    teamId: user.teamId,
-    userId: user.id,
-  });
-
-  await Event.create({
-    name: 'user.s3Upload',
-    data: { name },
-    teamId: user.teamId,
-    userId: user.id,
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    data: {
-      maxUploadSize: process.env.AWS_S3_UPLOAD_MAX_SIZE,
-      uploadUrl: endpoint,
-      form: {
-        'Cache-Control': 'max-age=31557600',
-        'Content-Type': contentType,
-        acl,
-        key,
-        policy,
-        'x-amz-algorithm': 'AWS4-HMAC-SHA256',
-        'x-amz-credential': credential,
-        'x-amz-date': longDate,
-        'x-amz-signature': getSignature(policy),
-      },
-      asset: {
-        contentType,
-        name,
-        url: attachment.redirectUrl,
-        size,
-      },
-    },
   };
 });
 

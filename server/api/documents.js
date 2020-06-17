@@ -7,7 +7,6 @@ import documentMover from '../commands/documentMover';
 import {
   presentDocument,
   presentCollection,
-  presentRevision,
   presentPolicies,
 } from '../presenters';
 import {
@@ -31,8 +30,10 @@ const router = new Router();
 
 router.post('documents.list', auth(), pagination(), async ctx => {
   const { sort = 'updatedAt', backlinkDocumentId, parentDocumentId } = ctx.body;
-  const collectionId = ctx.body.collection;
-  const createdById = ctx.body.user;
+
+  // collection and user are here for backwards compatablity
+  const collectionId = ctx.body.collectionId || ctx.body.collection;
+  const createdById = ctx.body.userId || ctx.body.user;
   let direction = ctx.body.direction;
   if (direction !== 'ASC') direction = 'DESC';
 
@@ -411,54 +412,6 @@ router.post('documents.info', auth({ required: false }), async ctx => {
   };
 });
 
-router.post('documents.revision', auth(), async ctx => {
-  let { id, revisionId } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
-  ctx.assertPresent(revisionId, 'revisionId is required');
-
-  const user = ctx.state.user;
-  const document = await Document.findByPk(id, { userId: user.id });
-  authorize(user, 'read', document);
-
-  const revision = await Revision.findOne({
-    where: {
-      id: revisionId,
-      documentId: document.id,
-    },
-  });
-
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data: await presentRevision(revision),
-  };
-});
-
-router.post('documents.revisions', auth(), pagination(), async ctx => {
-  let { id, sort = 'updatedAt', direction } = ctx.body;
-  if (direction !== 'ASC') direction = 'DESC';
-  ctx.assertPresent(id, 'id is required');
-
-  const user = ctx.state.user;
-  const document = await Document.findByPk(id, { userId: user.id });
-  authorize(user, 'read', document);
-
-  const revisions = await Revision.findAll({
-    where: { documentId: document.id },
-    order: [[sort, direction]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
-
-  const data = await Promise.all(
-    revisions.map(revision => presentRevision(revision))
-  );
-
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data,
-  };
-});
-
 router.post('documents.restore', auth(), async ctx => {
   const { id, revisionId } = ctx.body;
   ctx.assertPresent(id, 'id is required');
@@ -667,6 +620,10 @@ router.post('documents.star', auth(), async ctx => {
     data: { title: document.title },
     ip: ctx.request.ip,
   });
+
+  ctx.body = {
+    success: true,
+  };
 });
 
 router.post('documents.unstar', auth(), async ctx => {
@@ -690,6 +647,10 @@ router.post('documents.unstar', auth(), async ctx => {
     data: { title: document.title },
     ip: ctx.request.ip,
   });
+
+  ctx.body = {
+    success: true,
+  };
 });
 
 router.post('documents.create', auth(), async ctx => {
@@ -925,8 +886,8 @@ router.post('documents.move', auth(), async ctx => {
       collections: await Promise.all(
         collections.map(collection => presentCollection(collection))
       ),
-      policies: presentPolicies(user, documents),
     },
+    policies: presentPolicies(user, documents),
   };
 });
 
