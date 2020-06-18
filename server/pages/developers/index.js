@@ -54,7 +54,7 @@ export default function Developers() {
               endpoint is a method on{' '}
               <Code>https://www.getoutline.com/api/&lt;METHOD&gt;</Code>. Both{' '}
               <Code>GET</Code> and <Code>POST</Code> methods are supported but
-              it’s recommeded that you make all call using <Code>POST</Code>.
+              it’s recommended that you make all calls using <Code>POST</Code>.
               Only HTTPS is supported in production.
             </p>
 
