@@ -472,6 +472,10 @@ const Background = styled(Container)`
 
 const ReferencesWrapper = styled('div')`
   margin-top: ${props => (props.isOnlyTitle ? -45 : 16)}px;
+
+  @media print {
+    display: none;
+  }
 `;
 
 const MaxWidth = styled(Flex)`
