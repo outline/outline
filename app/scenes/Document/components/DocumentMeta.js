@@ -30,6 +30,10 @@ function DocumentMeta({ views, isDraft, document }: Props) {
 const Meta = styled(PublishingInfo)`
   margin: -12px 0 2em 0;
   font-size: 14px;
+
+  @media print {
+    display: none;
+  }
 `;
 
 export default inject('views')(DocumentMeta);
