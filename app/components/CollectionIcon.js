@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { inject, observer } from 'mobx-react';
-import { invert, grayscale, getLuminance } from 'polished';
+import { getLuminance } from 'polished';
 import { PrivateCollectionIcon, CollectionIcon } from 'outline-icons';
 import Collection from 'models/Collection';
 import { icons } from 'components/IconPicker';
