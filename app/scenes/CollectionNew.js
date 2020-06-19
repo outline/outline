@@ -3,6 +3,7 @@ import * as React from 'react';
 import { withRouter, type RouterHistory } from 'react-router-dom';
 import { observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
+import { intersection } from 'lodash';
 import Button from 'components/Button';
 import Switch from 'components/Switch';
 import Input from 'components/Input';
@@ -30,6 +31,7 @@ class CollectionNew extends React.Component<Props> {
   @observable color: string = '#4E5C6E';
   @observable private: boolean = false;
   @observable isSaving: boolean;
+  hasOpenedIconPicker: boolean = false;
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
@@ -58,22 +60,29 @@ class CollectionNew extends React.Component<Props> {
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
     this.name = ev.target.value;
-  };
 
-  handleNameBlur = () => {
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
     // the name of the collection. It's the little things sometimes.
-    if (!this.icon) {
+    if (!this.hasOpenedIconPicker) {
       const keys = Object.keys(icons);
       for (const key of keys) {
         const icon = icons[key];
+        const keywords = icon.keywords.split(' ');
+        const namewords = this.name.toLowerCase().split(' ');
+        const matches = intersection(namewords, keywords);
 
-        if (icon.keywords.includes(this.name.toLowerCase())) {
+        if (matches.length > 0) {
           this.icon = key;
-          break;
+          return;
         }
       }
+
+      this.icon = 'collection';
     }
+  };
+
+  handleIconPickerOpen = () => {
+    this.hasOpenedIconPicker = true;
   };
 
   handleDescriptionChange = getValue => {
@@ -110,6 +119,7 @@ class CollectionNew extends React.Component<Props> {
           />
           &nbsp;
           <IconPicker
+            onOpen={this.handleIconPickerOpen}
             onChange={this.handleChange}
             color={this.color}
             icon={this.icon}

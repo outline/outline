@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react';
 import { inject, observer } from 'mobx-react';
-import { invert, getLuminance } from 'polished';
+import { invert, grayscale, getLuminance } from 'polished';
 import { PrivateCollectionIcon, CollectionIcon } from 'outline-icons';
 import Collection from 'models/Collection';
 import { icons } from 'components/IconPicker';
@@ -19,9 +19,9 @@ function ResolvedCollectionIcon({ collection, expanded, size, ui }: Props) {
   // otherwise it will be impossible to see against the dark background.
   const color =
     ui.resolvedTheme === 'dark'
-      ? getLuminance(collection.color) > 0.1
+      ? getLuminance(collection.color) > 0.12
         ? collection.color
-        : invert(collection.color)
+        : 'currentColor'
       : collection.color;
 
   if (collection.icon && collection.icon !== 'collection') {

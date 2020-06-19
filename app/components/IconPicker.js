@@ -36,27 +36,27 @@ export const icons = {
   },
   coins: {
     component: CoinsIcon,
-    keywords: 'coins money cash',
+    keywords: 'coins money finance sales income revenue cash',
   },
   academicCap: {
     component: AcademicCapIcon,
-    keywords: 'learn teach lesson guide',
+    keywords: 'learn teach lesson guide tutorial onboarding training',
   },
   beaker: {
     component: BeakerIcon,
-    keywords: 'lab research',
+    keywords: 'lab research experiment test',
   },
   buildingBlocks: {
     component: BuildingBlocksIcon,
-    keywords: 'app blocks',
+    keywords: 'app blocks product prototype',
   },
   cloud: {
     component: CloudIcon,
-    keywords: 'cloud service',
+    keywords: 'cloud service aws infrastructure',
   },
   code: {
     component: CodeIcon,
-    keywords: 'developer api code',
+    keywords: 'developer api code development engineering programming',
   },
   eye: {
     component: EyeIcon,
@@ -64,7 +64,7 @@ export const icons = {
   },
   leaf: {
     component: LeafIcon,
-    keywords: 'leaf plant',
+    keywords: 'leaf plant outdoors nature ecosystem climate',
   },
   lightbulb: {
     component: LightBulbIcon,
@@ -72,15 +72,15 @@ export const icons = {
   },
   moon: {
     component: MoonIcon,
-    keywords: 'night moon',
+    keywords: 'night moon dark',
   },
   notepad: {
     component: NotepadIcon,
-    keywords: 'journal notepad write',
+    keywords: 'journal notepad write notes',
   },
   padlock: {
     component: PadlockIcon,
-    keywords: 'padlock private',
+    keywords: 'padlock private security authentication authorization auth',
   },
   palette: {
     component: PaletteIcon,
@@ -88,19 +88,19 @@ export const icons = {
   },
   pencil: {
     component: EditIcon,
-    keywords: 'copy writing post',
+    keywords: 'copy writing post blog',
   },
   question: {
     component: QuestionMarkIcon,
-    keywords: 'question help support',
+    keywords: 'question help support faq',
   },
   sun: {
     component: SunIcon,
-    keywords: 'day sun',
+    keywords: 'day sun weather',
   },
   vehicle: {
     component: VehicleIcon,
-    keywords: 'truck car travel',
+    keywords: 'truck car travel transport',
   },
 };
 
@@ -118,6 +118,7 @@ const colors = [
 ];
 
 type Props = {
+  onOpen?: () => void,
   onChange: (color: string, icon: string) => void,
   icon: string,
   color: string,
@@ -146,6 +147,10 @@ class IconPicker extends React.Component<Props> {
 
   handleOpen = () => {
     this.isOpen = true;
+
+    if (this.props.onOpen) {
+      this.props.onOpen();
+    }
   };
 
   handleClickOutside = (ev: SyntheticMouseEvent<>) => {
