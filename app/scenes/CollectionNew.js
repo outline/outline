@@ -110,7 +110,6 @@ class CollectionNew extends React.Component<Props> {
           <Input
             type="text"
             label="Name"
-            onBlur={this.handleNameBlur}
             onChange={this.handleNameChange}
             value={this.name}
             required
