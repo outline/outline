@@ -47,6 +47,12 @@ const Collection = sequelize.define(
   }
 );
 
+Collection.addHook('beforeSave', async model => {
+  if (model.icon === 'collection') {
+    model.icon = null;
+  }
+});
+
 // Class methods
 
 Collection.associate = models => {
