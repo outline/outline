@@ -149,6 +149,7 @@ app.use(
         "'self'",
         process.env.AWS_S3_UPLOAD_BUCKET_URL.replace('s3:', 'localhost:'),
         'www.google-analytics.com',
+        'api.github.com',
         'sentry.io',
       ]),
     },

@@ -9,6 +9,7 @@ import Flex from 'shared/components/Flex';
 
 type Props = {
   to?: string | Object,
+  href?: string | Object,
   onClick?: (SyntheticEvent<>) => void,
   children?: React.Node,
   icon?: React.Node,
@@ -63,6 +64,7 @@ class SidebarLink extends React.Component<Props> {
       menuOpen,
       hideDisclosure,
       exact,
+      href,
     } = this.props;
     const showDisclosure = !!children && !hideDisclosure;
     const activeStyle = {
@@ -80,7 +82,8 @@ class SidebarLink extends React.Component<Props> {
           onClick={onClick}
           exact={exact !== false}
           to={to}
-          as={to ? undefined : 'div'}
+          as={to ? undefined : href ? 'a' : 'div'}
+          href={href}
         >
           {icon && <IconWrapper>{icon}</IconWrapper>}
           <Label onClick={this.handleExpand}>
