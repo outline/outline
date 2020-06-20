@@ -84,7 +84,7 @@ class MainSidebar extends React.Component<Props> {
             <Section>
               <SidebarLink
                 to="/home"
-                icon={<HomeIcon />}
+                icon={<HomeIcon color="currentColor" />}
                 exact={false}
                 label="Home"
               />
@@ -93,19 +93,19 @@ class MainSidebar extends React.Component<Props> {
                   pathname: '/search',
                   state: { fromMenu: true },
                 }}
-                icon={<SearchIcon />}
+                icon={<SearchIcon color="currentColor" />}
                 label="Search"
                 exact={false}
               />
               <SidebarLink
                 to="/starred"
-                icon={<StarredIcon />}
+                icon={<StarredIcon color="currentColor" />}
                 exact={false}
                 label="Starred"
               />
               <SidebarLink
                 to="/drafts"
-                icon={<EditIcon />}
+                icon={<EditIcon color="currentColor" />}
                 label={
                   <Drafts align="center">
                     Drafts{draftDocumentsCount > 0 && (
@@ -127,7 +127,7 @@ class MainSidebar extends React.Component<Props> {
             <Section>
               <SidebarLink
                 to="/archive"
-                icon={<ArchiveIcon />}
+                icon={<ArchiveIcon color="currentColor" />}
                 exact={false}
                 label="Archive"
                 active={
@@ -138,7 +138,7 @@ class MainSidebar extends React.Component<Props> {
               />
               <SidebarLink
                 to="/trash"
-                icon={<TrashIcon />}
+                icon={<TrashIcon color="currentColor" />}
                 exact={false}
                 label="Trash"
                 active={
@@ -149,7 +149,7 @@ class MainSidebar extends React.Component<Props> {
                 <SidebarLink
                   to="/settings/people"
                   onClick={this.handleInviteModalOpen}
-                  icon={<PlusIcon />}
+                  icon={<PlusIcon color="currentColor" />}
                   label="Invite people…"
                 />
               )}

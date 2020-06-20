@@ -13,6 +13,7 @@ export default class Collection extends BaseModel {
   id: string;
   name: string;
   description: string;
+  icon: string;
   color: string;
   private: boolean;
   type: 'atlas' | 'journal';
@@ -101,7 +102,14 @@ export default class Collection extends BaseModel {
   }
 
   toJS = () => {
-    return pick(this, ['id', 'name', 'color', 'description', 'private']);
+    return pick(this, [
+      'id',
+      'name',
+      'color',
+      'description',
+      'icon',
+      'private',
+    ]);
   };
 
   export = () => {

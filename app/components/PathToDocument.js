@@ -2,12 +2,13 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import styled from 'styled-components';
-import { GoToIcon, CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
+import { GoToIcon } from 'outline-icons';
 import Flex from 'shared/components/Flex';
 
 import Document from 'models/Document';
 import Collection from 'models/Collection';
 import type { DocumentPath } from 'stores/CollectionsStore';
+import CollectionIcon from 'components/CollectionIcon';
 
 type Props = {
   result: DocumentPath,
@@ -41,12 +42,7 @@ class PathToDocument extends React.Component<Props> {
 
     return (
       <Component ref={ref} onClick={this.handleClick} href="" selectable>
-        {collection &&
-          (collection.private ? (
-            <PrivateCollectionIcon color={collection.color} />
-          ) : (
-            <CollectionIcon color={collection.color} />
-          ))}
+        {collection && <CollectionIcon collection={collection} />}
         {result.path
           .map(doc => <Title key={doc.id}>{doc.title}</Title>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}

@@ -19,6 +19,7 @@ const Collection = sequelize.define(
     urlId: { type: DataTypes.STRING, unique: true },
     name: DataTypes.STRING,
     description: DataTypes.STRING,
+    icon: DataTypes.STRING,
     color: DataTypes.STRING,
     private: DataTypes.BOOLEAN,
     maintainerApprovalRequired: DataTypes.BOOLEAN,
@@ -45,6 +46,12 @@ const Collection = sequelize.define(
     },
   }
 );
+
+Collection.addHook('beforeSave', async model => {
+  if (model.icon === 'collection') {
+    model.icon = null;
+  }
+});
 
 // Class methods
 
