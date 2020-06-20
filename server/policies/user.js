@@ -1,28 +1,28 @@
 // @flow
-import policy from './policy';
-import { User } from '../models';
-import { AdminRequiredError } from '../errors';
+import policy from "./policy";
+import { User } from "../models";
+import { AdminRequiredError } from "../errors";
 
 const { allow } = policy;
 
 allow(
   User,
-  'read',
+  "read",
   User,
   (actor, user) => user && user.teamId === actor.teamId
 );
 
-allow(User, 'invite', User, actor => {
+allow(User, "invite", User, actor => {
   return true;
 });
 
-allow(User, 'update', User, (actor, user) => {
+allow(User, "update", User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
   if (user.id === actor.id) return true;
   throw new AdminRequiredError();
 });
 
-allow(User, 'delete', User, (actor, user) => {
+allow(User, "delete", User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) return false;
   if (user.id === actor.id) return true;
   if (actor.isAdmin && !user.lastActiveAt) return true;
@@ -31,7 +31,7 @@ allow(User, 'delete', User, (actor, user) => {
 
 allow(
   User,
-  ['promote', 'demote', 'activate', 'suspend'],
+  ["promote", "demote", "activate", "suspend"],
   User,
   (actor, user) => {
     if (!user || user.teamId !== actor.teamId) return false;

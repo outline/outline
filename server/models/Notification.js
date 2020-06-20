@@ -1,8 +1,8 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
+import { DataTypes, sequelize } from "../sequelize";
 
 const Notification = sequelize.define(
-  'notification',
+  "notification",
   {
     id: {
       type: DataTypes.UUID,
@@ -24,12 +24,12 @@ const Notification = sequelize.define(
 
 Notification.associate = models => {
   Notification.belongsTo(models.User, {
-    as: 'actor',
-    foreignKey: 'actorId',
+    as: "actor",
+    foreignKey: "actorId",
   });
   Notification.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
+    as: "user",
+    foreignKey: "userId",
   });
 };
 

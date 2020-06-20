@@ -1,19 +1,19 @@
 // @flow
-import Sequelize from 'sequelize';
-import Router from 'koa-router';
-import auth from '../middlewares/authentication';
-import pagination from './middlewares/pagination';
-import { presentEvent } from '../presenters';
-import { Event, Team, User } from '../models';
-import policy from '../policies';
+import Sequelize from "sequelize";
+import Router from "koa-router";
+import auth from "../middlewares/authentication";
+import pagination from "./middlewares/pagination";
+import { presentEvent } from "../presenters";
+import { Event, Team, User } from "../models";
+import policy from "../policies";
 
 const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
 
-router.post('events.list', auth(), pagination(), async ctx => {
-  let { sort = 'createdAt', direction, auditLog = false } = ctx.body;
-  if (direction !== 'ASC') direction = 'DESC';
+router.post("events.list", auth(), pagination(), async ctx => {
+  let { sort = "createdAt", direction, auditLog = false } = ctx.body;
+  if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;
   const paranoid = false;
@@ -33,7 +33,7 @@ router.post('events.list', auth(), pagination(), async ctx => {
   };
 
   if (auditLog) {
-    authorize(user, 'auditLog', Team);
+    authorize(user, "auditLog", Team);
     where.name = Event.AUDIT_EVENTS;
   }
 
@@ -43,7 +43,7 @@ router.post('events.list', auth(), pagination(), async ctx => {
     include: [
       {
         model: User,
-        as: 'actor',
+        as: "actor",
         paranoid: false,
       },
     ],

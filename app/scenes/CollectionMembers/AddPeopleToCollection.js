@@ -1,21 +1,21 @@
 // @flow
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
-import { observable } from 'mobx';
-import { debounce } from 'lodash';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import Input from 'components/Input';
-import Modal from 'components/Modal';
-import Empty from 'components/Empty';
-import PaginatedList from 'components/PaginatedList';
-import Invite from 'scenes/Invite';
-import Collection from 'models/Collection';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import UsersStore from 'stores/UsersStore';
-import MembershipsStore from 'stores/MembershipsStore';
-import MemberListItem from './components/MemberListItem';
+import * as React from "react";
+import { inject, observer } from "mobx-react";
+import { observable } from "mobx";
+import { debounce } from "lodash";
+import Flex from "shared/components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import Modal from "components/Modal";
+import Empty from "components/Empty";
+import PaginatedList from "components/PaginatedList";
+import Invite from "scenes/Invite";
+import Collection from "models/Collection";
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import UsersStore from "stores/UsersStore";
+import MembershipsStore from "stores/MembershipsStore";
+import MemberListItem from "./components/MemberListItem";
 
 type Props = {
   ui: UiStore,
@@ -29,7 +29,7 @@ type Props = {
 @observer
 class AddPeopleToCollection extends React.Component<Props> {
   @observable inviteModalOpen: boolean = false;
-  @observable query: string = '';
+  @observable query: string = "";
 
   handleInviteModalOpen = () => {
     this.inviteModalOpen = true;
@@ -55,11 +55,11 @@ class AddPeopleToCollection extends React.Component<Props> {
       this.props.memberships.create({
         collectionId: this.props.collection.id,
         userId: user.id,
-        permission: 'read_write',
+        permission: "read_write",
       });
       this.props.ui.showToast(`${user.name} was added to the collection`);
     } catch (err) {
-      this.props.ui.showToast('Could not add user');
+      this.props.ui.showToast("Could not add user");
     }
   };
 
@@ -71,7 +71,7 @@ class AddPeopleToCollection extends React.Component<Props> {
     return (
       <Flex column>
         <HelpText>
-          Need to add someone who’s not yet on the team yet?{' '}
+          Need to add someone who’s not yet on the team yet?{" "}
           <a role="button" onClick={this.handleInviteModalOpen}>
             Invite people to {team.name}
           </a>.
@@ -118,6 +118,6 @@ class AddPeopleToCollection extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'users', 'memberships', 'ui')(
+export default inject("auth", "users", "memberships", "ui")(
   AddPeopleToCollection
 );

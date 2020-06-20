@@ -1,16 +1,16 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { Link } from 'react-router-dom';
-import { StarredIcon } from 'outline-icons';
-import styled, { withTheme } from 'styled-components';
-import Flex from 'shared/components/Flex';
-import Badge from 'components/Badge';
-import Tooltip from 'components/Tooltip';
-import Highlight from 'components/Highlight';
-import PublishingInfo from 'components/PublishingInfo';
-import DocumentMenu from 'menus/DocumentMenu';
-import Document from 'models/Document';
+import * as React from "react";
+import { observer } from "mobx-react";
+import { Link } from "react-router-dom";
+import { StarredIcon } from "outline-icons";
+import styled, { withTheme } from "styled-components";
+import Flex from "shared/components/Flex";
+import Badge from "components/Badge";
+import Tooltip from "components/Tooltip";
+import Highlight from "components/Highlight";
+import PublishingInfo from "components/PublishingInfo";
+import DocumentMenu from "menus/DocumentMenu";
+import Document from "models/Document";
 
 type Props = {
   document: Document,
@@ -26,7 +26,7 @@ const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
   <StarredIcon color={theme.text} {...props} />
 ))`
   flex-shrink: 0;
-  opacity: ${props => (props.solid ? '1 !important' : 0)};
+  opacity: ${props => (props.solid ? "1 !important" : 0)};
   transition: all 100ms ease-in-out;
 
   &:hover {
@@ -82,8 +82,8 @@ const Heading = styled.h3`
   margin-bottom: 0.25em;
   overflow: hidden;
   white-space: nowrap;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
 const Actions = styled(Flex)`
@@ -124,7 +124,7 @@ class DocumentPreview extends React.Component<Props> {
   replaceResultMarks = (tag: string) => {
     // don't use SEARCH_RESULT_REGEX here as it causes
     // an infinite loop to trigger a regex inside it's own callback
-    return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, '$1');
+    return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
   };
 
   render() {
@@ -152,7 +152,7 @@ class DocumentPreview extends React.Component<Props> {
         {...rest}
       >
         <Heading>
-          <Title text={document.title || 'Untitled'} highlight={highlight} />
+          <Title text={document.title || "Untitled"} highlight={highlight} />
           {!document.isDraft &&
             !document.isArchived && (
               <Actions>

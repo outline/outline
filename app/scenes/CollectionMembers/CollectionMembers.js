@@ -1,27 +1,27 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import styled from 'styled-components';
-import { inject, observer } from 'mobx-react';
-import { PlusIcon } from 'outline-icons';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import Subheading from 'components/Subheading';
-import Button from 'components/Button';
-import Empty from 'components/Empty';
-import PaginatedList from 'components/PaginatedList';
-import Modal from 'components/Modal';
-import CollectionGroupMemberListItem from './components/CollectionGroupMemberListItem';
-import Collection from 'models/Collection';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import MembershipsStore from 'stores/MembershipsStore';
-import CollectionGroupMembershipsStore from 'stores/CollectionGroupMembershipsStore';
-import UsersStore from 'stores/UsersStore';
-import MemberListItem from './components/MemberListItem';
-import AddPeopleToCollection from './AddPeopleToCollection';
-import AddGroupsToCollection from './AddGroupsToCollection';
-import GroupsStore from 'stores/GroupsStore';
+import * as React from "react";
+import { observable } from "mobx";
+import styled from "styled-components";
+import { inject, observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
+import Flex from "shared/components/Flex";
+import HelpText from "components/HelpText";
+import Subheading from "components/Subheading";
+import Button from "components/Button";
+import Empty from "components/Empty";
+import PaginatedList from "components/PaginatedList";
+import Modal from "components/Modal";
+import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
+import Collection from "models/Collection";
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import MembershipsStore from "stores/MembershipsStore";
+import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
+import UsersStore from "stores/UsersStore";
+import MemberListItem from "./components/MemberListItem";
+import AddPeopleToCollection from "./AddPeopleToCollection";
+import AddGroupsToCollection from "./AddGroupsToCollection";
+import GroupsStore from "stores/GroupsStore";
 
 type Props = {
   ui: UiStore,
@@ -63,7 +63,7 @@ class CollectionMembers extends React.Component<Props> {
       });
       this.props.ui.showToast(`${user.name} was removed from the collection`);
     } catch (err) {
-      this.props.ui.showToast('Could not remove user');
+      this.props.ui.showToast("Could not remove user");
     }
   };
 
@@ -76,7 +76,7 @@ class CollectionMembers extends React.Component<Props> {
       });
       this.props.ui.showToast(`${user.name} permissions were updated`);
     } catch (err) {
-      this.props.ui.showToast('Could not update user');
+      this.props.ui.showToast("Could not update user");
     }
   };
 
@@ -88,7 +88,7 @@ class CollectionMembers extends React.Component<Props> {
       });
       this.props.ui.showToast(`${group.name} was removed from the collection`);
     } catch (err) {
-      this.props.ui.showToast('Could not remove group');
+      this.props.ui.showToast("Could not remove group");
     }
   };
 
@@ -101,7 +101,7 @@ class CollectionMembers extends React.Component<Props> {
       });
       this.props.ui.showToast(`${group.name} permissions were updated`);
     } catch (err) {
-      this.props.ui.showToast('Could not update user');
+      this.props.ui.showToast("Could not update user");
     }
   };
 
@@ -120,7 +120,7 @@ class CollectionMembers extends React.Component<Props> {
     const key = memberships.orderedData
       .map(m => m.permission)
       .concat(collection.private)
-      .join('-');
+      .join("-");
 
     return (
       <Flex column>
@@ -128,9 +128,9 @@ class CollectionMembers extends React.Component<Props> {
           <React.Fragment>
             <HelpText>
               Choose which groups and team members have access to view and edit
-              documents in the private <strong>{collection.name}</strong>{' '}
+              documents in the private <strong>{collection.name}</strong>{" "}
               collection. You can make this collection visible to the entire
-              team by{' '}
+              team by{" "}
               <a role="button" onClick={this.props.onEdit}>
                 changing its visibility
               </a>.
@@ -150,7 +150,7 @@ class CollectionMembers extends React.Component<Props> {
           <HelpText>
             The <strong>{collection.name}</strong> collection is accessible by
             everyone on the team. If you want to limit who can view the
-            collection,{' '}
+            collection,{" "}
             <a role="button" onClick={this.props.onEdit}>
               make it private
             </a>.
@@ -250,10 +250,10 @@ const GroupsWrap = styled.div`
 `;
 
 export default inject(
-  'auth',
-  'users',
-  'memberships',
-  'collectionGroupMemberships',
-  'groups',
-  'ui'
+  "auth",
+  "users",
+  "memberships",
+  "collectionGroupMemberships",
+  "groups",
+  "ui"
 )(CollectionMembers);

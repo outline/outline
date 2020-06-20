@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
-const URL_REGEX = new RegExp('^https://marvelapp.com/([A-Za-z0-9-]{6})/?$');
+const URL_REGEX = new RegExp("^https://marvelapp.com/([A-Za-z0-9-]{6})/?$");
 
 type Props = {|
   attrs: {|

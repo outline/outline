@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import Avatar from 'components/Avatar';
-import Flex from 'shared/components/Flex';
-import Time from 'shared/components/Time';
-import Badge from 'components/Badge';
-import Button from 'components/Button';
-import ListItem from 'components/List/Item';
-import User from 'models/User';
-import GroupMembership from 'models/GroupMembership';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import * as React from "react";
+import Avatar from "components/Avatar";
+import Flex from "shared/components/Flex";
+import Time from "shared/components/Time";
+import Badge from "components/Badge";
+import Button from "components/Button";
+import ListItem from "components/List/Item";
+import User from "models/User";
+import GroupMembership from "models/GroupMembership";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
   user: User,
@@ -33,7 +33,7 @@ const GroupMemberListItem = ({
               Active <Time dateTime={user.lastActiveAt} /> ago
             </React.Fragment>
           ) : (
-            'Never signed in'
+            "Never signed in"
           )}
           {!user.lastActiveAt && <Badge>Invited</Badge>}
           {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}

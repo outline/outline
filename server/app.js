@@ -1,35 +1,35 @@
 // @flow
-import compress from 'koa-compress';
-import { compact } from 'lodash';
+import compress from "koa-compress";
+import { compact } from "lodash";
 import helmet, {
   contentSecurityPolicy,
   dnsPrefetchControl,
   referrerPolicy,
-} from 'koa-helmet';
-import logger from 'koa-logger';
-import mount from 'koa-mount';
-import enforceHttps from 'koa-sslify';
-import Koa from 'koa';
-import onerror from 'koa-onerror';
-import * as Sentry from '@sentry/node';
-import updates from './utils/updates';
+} from "koa-helmet";
+import logger from "koa-logger";
+import mount from "koa-mount";
+import enforceHttps from "koa-sslify";
+import Koa from "koa";
+import onerror from "koa-onerror";
+import * as Sentry from "@sentry/node";
+import updates from "./utils/updates";
 
-import auth from './auth';
-import api from './api';
-import emails from './emails';
-import routes from './routes';
+import auth from "./auth";
+import api from "./api";
+import emails from "./emails";
+import routes from "./routes";
 
 const app = new Koa();
 
 app.use(compress());
 
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   /* eslint-disable global-require */
-  const convert = require('koa-convert');
-  const webpack = require('webpack');
-  const devMiddleware = require('koa-webpack-dev-middleware');
-  const hotMiddleware = require('koa-webpack-hot-middleware');
-  const config = require('../webpack.config.dev');
+  const convert = require("koa-convert");
+  const webpack = require("webpack");
+  const devMiddleware = require("koa-webpack-dev-middleware");
+  const hotMiddleware = require("koa-webpack-hot-middleware");
+  const config = require("../webpack.config.dev");
   const compile = webpack(config);
   /* eslint-enable global-require */
 
@@ -61,24 +61,24 @@ if (process.env.NODE_ENV === 'development') {
     convert(
       hotMiddleware(compile, {
         log: console.log, // eslint-disable-line
-        path: '/__webpack_hmr',
+        path: "/__webpack_hmr",
         heartbeat: 10 * 1000,
       })
     )
   );
   app.use(logger());
 
-  app.use(mount('/emails', emails));
-} else if (process.env.NODE_ENV === 'production') {
+  app.use(mount("/emails", emails));
+} else if (process.env.NODE_ENV === "production") {
   // Force redirect to HTTPS protocol unless explicitly disabled
-  if (process.env.FORCE_HTTPS !== 'false') {
+  if (process.env.FORCE_HTTPS !== "false") {
     app.use(
       enforceHttps({
         trustProtoHeader: true,
       })
     );
   } else {
-    console.warn('Enforced https was disabled with FORCE_HTTPS env variable');
+    console.warn("Enforced https was disabled with FORCE_HTTPS env variable");
   }
 
   // trust header fields set by our proxy. eg X-Forwarded-For
@@ -97,24 +97,24 @@ if (process.env.SENTRY_DSN) {
       // emitted by Koa when bots attempt to snoop on paths such as wp-admin
       // or the user submits a bad request. These are expected in normal running
       // of the application
-      'BadRequestError',
-      'UnauthorizedError',
+      "BadRequestError",
+      "UnauthorizedError",
     ],
   });
 }
 
-app.on('error', (error, ctx) => {
+app.on("error", (error, ctx) => {
   // we don't need to report every time a request stops to the bug tracker
-  if (error.code === 'EPIPE' || error.code === 'ECONNRESET') {
-    console.warn('Connection error', { error });
+  if (error.code === "EPIPE" || error.code === "ECONNRESET") {
+    console.warn("Connection error", { error });
     return;
   }
 
   if (process.env.SENTRY_DSN) {
     Sentry.withScope(function(scope) {
-      const requestId = ctx.headers['x-request-id'];
+      const requestId = ctx.headers["x-request-id"];
       if (requestId) {
-        scope.setTag('request_id', requestId);
+        scope.setTag("request_id", requestId);
       }
       scope.addEventProcessor(function(event) {
         return Sentry.Handlers.parseRequest(event, ctx.request);
@@ -126,8 +126,8 @@ app.on('error', (error, ctx) => {
   }
 });
 
-app.use(mount('/auth', auth));
-app.use(mount('/api', api));
+app.use(mount("/auth", auth));
+app.use(mount("/api", api));
 
 app.use(helmet());
 app.use(
@@ -138,25 +138,25 @@ app.use(
         "'self'",
         "'unsafe-inline'",
         "'unsafe-eval'",
-        'gist.github.com',
-        'www.google-analytics.com',
-        'browser.sentry-cdn.com',
+        "gist.github.com",
+        "www.google-analytics.com",
+        "browser.sentry-cdn.com",
       ],
-      styleSrc: ["'self'", "'unsafe-inline'", 'github.githubassets.com'],
-      imgSrc: ['*', 'data:', 'blob:'],
-      frameSrc: ['*'],
+      styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
+      imgSrc: ["*", "data:", "blob:"],
+      frameSrc: ["*"],
       connectSrc: compact([
         "'self'",
-        process.env.AWS_S3_UPLOAD_BUCKET_URL.replace('s3:', 'localhost:'),
-        'www.google-analytics.com',
-        'api.github.com',
-        'sentry.io',
+        process.env.AWS_S3_UPLOAD_BUCKET_URL.replace("s3:", "localhost:"),
+        "www.google-analytics.com",
+        "api.github.com",
+        "sentry.io",
       ]),
     },
   })
 );
 app.use(dnsPrefetchControl({ allow: true }));
-app.use(referrerPolicy({ policy: 'no-referrer' }));
+app.use(referrerPolicy({ policy: "no-referrer" }));
 app.use(mount(routes));
 
 /**
@@ -165,8 +165,8 @@ app.use(mount(routes));
  * Set ENABLE_UPDATES=false to disable them for your installation
  */
 if (
-  process.env.ENABLE_UPDATES !== 'false' &&
-  process.env.NODE_ENV === 'production'
+  process.env.ENABLE_UPDATES !== "false" &&
+  process.env.NODE_ENV === "production"
 ) {
   updates();
   setInterval(updates, 24 * 3600 * 1000);

@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import styled from 'styled-components';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import styled from "styled-components";
 
 type Props = {
   src?: string,
@@ -34,12 +34,12 @@ class Frame extends React.Component<Props> {
   render() {
     const {
       border,
-      width = '100%',
-      height = '400px',
+      width = "100%",
+      height = "400px",
       forwardedRef,
       ...rest
     } = this.props;
-    const Component = border ? StyledIframe : 'iframe';
+    const Component = border ? StyledIframe : "iframe";
 
     return (
       <Rounded width={width} height={height}>

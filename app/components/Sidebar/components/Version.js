@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import Badge from 'components/Badge';
-import SidebarLink from './SidebarLink';
-import { version } from '../../../../package.json';
+import * as React from "react";
+import styled from "styled-components";
+import Badge from "components/Badge";
+import SidebarLink from "./SidebarLink";
+import { version } from "../../../../package.json";
 
 export default function Version() {
   // $FlowFixMe
@@ -14,7 +14,7 @@ export default function Version() {
     async function loadReleases() {
       let out = 0;
       const res = await fetch(
-        'https://api.github.com/repos/outline/outline/releases'
+        "https://api.github.com/repos/outline/outline/releases"
       );
       const releases = await res.json();
       for (const release of releases) {
@@ -37,9 +37,9 @@ export default function Version() {
           <br />
           <LilBadge>
             {releasesBehind === 0
-              ? 'Up to date'
+              ? "Up to date"
               : `${releasesBehind} version${
-                  releasesBehind === 1 ? '' : 's'
+                  releasesBehind === 1 ? "" : "s"
                 } behind`}
           </LilBadge>
         </React.Fragment>

@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
-const URL_REGEX = new RegExp('https?://open.spotify.com/(.*)$');
+const URL_REGEX = new RegExp("https?://open.spotify.com/(.*)$");
 
 type Props = {|
   attrs: {|
@@ -18,12 +18,12 @@ export default class Spotify extends React.Component<Props> {
       const parsed = new URL(this.props.attrs.href);
       return parsed.pathname;
     } catch (err) {
-      return '';
+      return "";
     }
   }
 
   render() {
-    const normalizedPath = this.pathname.replace(/^\/embed/, '/');
+    const normalizedPath = this.pathname.replace(/^\/embed/, "/");
 
     return (
       <Frame

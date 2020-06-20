@@ -1,14 +1,14 @@
 // @flow
-import { difference } from 'lodash';
-import type { DocumentEvent } from '../events';
-import { Document, Revision, Backlink } from '../models';
-import parseDocumentIds from '../../shared/utils/parseDocumentIds';
-import slugify from '../utils/slugify';
+import { difference } from "lodash";
+import type { DocumentEvent } from "../events";
+import { Document, Revision, Backlink } from "../models";
+import parseDocumentIds from "../../shared/utils/parseDocumentIds";
+import slugify from "../utils/slugify";
 
 export default class Backlinks {
   async on(event: DocumentEvent) {
     switch (event.name) {
-      case 'documents.publish': {
+      case "documents.publish": {
         const document = await Document.findByPk(event.documentId);
         const linkIds = parseDocumentIds(document.text);
 
@@ -31,7 +31,7 @@ export default class Backlinks {
 
         break;
       }
-      case 'documents.update': {
+      case "documents.update": {
         // no-op for now
         if (event.data.autosave) return;
 
@@ -41,7 +41,7 @@ export default class Backlinks {
 
         const [currentRevision, previousRevision] = await Revision.findAll({
           where: { documentId: event.documentId },
-          order: [['createdAt', 'desc']],
+          order: [["createdAt", "desc"]],
           limit: 2,
         });
         const previousLinkIds = previousRevision
@@ -98,7 +98,7 @@ export default class Backlinks {
           where: {
             documentId: event.documentId,
           },
-          include: [{ model: Document, as: 'reverseDocument' }],
+          include: [{ model: Document, as: "reverseDocument" }],
         });
 
         await Promise.all(
@@ -123,7 +123,7 @@ export default class Backlinks {
 
         break;
       }
-      case 'documents.delete': {
+      case "documents.delete": {
         await Backlink.destroy({
           where: {
             reverseDocumentId: event.documentId,

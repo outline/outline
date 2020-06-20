@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import Checkbox from 'components/Checkbox';
-import NotificationSetting from 'models/NotificationSetting';
+import * as React from "react";
+import Checkbox from "components/Checkbox";
+import NotificationSetting from "models/NotificationSetting";
 
 type Props = {
   setting?: NotificationSetting,

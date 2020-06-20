@@ -1,23 +1,23 @@
 // @flow
-import * as React from 'react';
-import ReactDOM from 'react-dom';
-import { observable, computed } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { Search } from 'js-search';
-import { last } from 'lodash';
-import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
-import styled from 'styled-components';
+import * as React from "react";
+import ReactDOM from "react-dom";
+import { observable, computed } from "mobx";
+import { observer, inject } from "mobx-react";
+import { Search } from "js-search";
+import { last } from "lodash";
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
+import styled from "styled-components";
 
-import Modal from 'components/Modal';
-import Input from 'components/Input';
-import Labeled from 'components/Labeled';
-import PathToDocument from 'components/PathToDocument';
-import Flex from 'shared/components/Flex';
+import Modal from "components/Modal";
+import Input from "components/Input";
+import Labeled from "components/Labeled";
+import PathToDocument from "components/PathToDocument";
+import Flex from "shared/components/Flex";
 
-import Document from 'models/Document';
-import DocumentsStore from 'stores/DocumentsStore';
-import UiStore from 'stores/UiStore';
-import CollectionsStore, { type DocumentPath } from 'stores/CollectionsStore';
+import Document from "models/Document";
+import DocumentsStore from "stores/DocumentsStore";
+import UiStore from "stores/UiStore";
+import CollectionsStore, { type DocumentPath } from "stores/CollectionsStore";
 
 const MAX_RESULTS = 8;
 
@@ -39,8 +39,8 @@ class DocumentMove extends React.Component<Props> {
   get searchIndex() {
     const { collections } = this.props;
     const paths = collections.pathsToDocuments;
-    const index = new Search('id');
-    index.addIndex('title');
+    const index = new Search("id");
+    index.addIndex("title");
 
     // Build index
     const indexeableDocuments = [];
@@ -90,7 +90,7 @@ class DocumentMove extends React.Component<Props> {
   };
 
   handleSuccess = () => {
-    this.props.ui.showToast('Document moved');
+    this.props.ui.showToast("Document moved");
     this.props.onRequestClose();
   };
 
@@ -180,4 +180,4 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
-export default inject('documents', 'collections', 'ui')(DocumentMove);
+export default inject("documents", "collections", "ui")(DocumentMove);

@@ -1,5 +1,5 @@
 // @flow
-import { CollectionUser } from '../models';
+import { CollectionUser } from "../models";
 
 type Membership = {
   id: string,

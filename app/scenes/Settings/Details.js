@@ -1,18 +1,18 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import styled from "styled-components";
 
-import AuthStore from 'stores/AuthStore';
-import UiStore from 'stores/UiStore';
-import ImageUpload from './components/ImageUpload';
-import Input, { LabelText } from 'components/Input';
-import Button from 'components/Button';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
-import Flex from 'shared/components/Flex';
+import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
+import ImageUpload from "./components/ImageUpload";
+import Input, { LabelText } from "components/Input";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import HelpText from "components/HelpText";
+import Flex from "shared/components/Flex";
 
 type Props = {
   auth: AuthStore,
@@ -49,7 +49,7 @@ class Details extends React.Component<Props> {
         avatarUrl: this.avatarUrl,
         subdomain: this.subdomain,
       });
-      this.props.ui.showToast('Settings saved');
+      this.props.ui.showToast("Settings saved");
     } catch (err) {
       this.props.ui.showToast(err.message);
     }
@@ -68,7 +68,7 @@ class Details extends React.Component<Props> {
   };
 
   handleAvatarError = (error: ?string) => {
-    this.props.ui.showToast(error || 'Unable to upload new logo');
+    this.props.ui.showToast(error || "Unable to upload new logo");
   };
 
   get isValid() {
@@ -120,7 +120,7 @@ class Details extends React.Component<Props> {
               <Input
                 label="Subdomain"
                 name="subdomain"
-                value={this.subdomain || ''}
+                value={this.subdomain || ""}
                 onChange={this.handleSubdomainChange}
                 autoComplete="off"
                 minLength={4}
@@ -129,14 +129,14 @@ class Details extends React.Component<Props> {
               />
               {this.subdomain && (
                 <HelpText small>
-                  Your knowledgebase will be accessible at{' '}
+                  Your knowledgebase will be accessible at{" "}
                   <strong>{this.subdomain}.getoutline.com</strong>
                 </HelpText>
               )}
             </React.Fragment>
           )}
           <Button type="submit" disabled={isSaving || !this.isValid}>
-            {isSaving ? 'Saving…' : 'Save'}
+            {isSaving ? "Saving…" : "Save"}
           </Button>
         </form>
       </CenteredContent>
@@ -183,4 +183,4 @@ const Avatar = styled.img`
   ${avatarStyles};
 `;
 
-export default inject('auth', 'ui')(Details);
+export default inject("auth", "ui")(Details);

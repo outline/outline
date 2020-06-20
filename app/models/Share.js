@@ -1,6 +1,6 @@
 // @flow
-import BaseModel from './BaseModel';
-import User from './User';
+import BaseModel from "./BaseModel";
+import User from "./User";
 
 class Share extends BaseModel {
   id: string;

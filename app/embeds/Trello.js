@@ -1,6 +1,6 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
 const URL_REGEX = /^https:\/\/trello.com\/(c|b)\/([^/]*)(.*)?$/;
 
@@ -18,7 +18,7 @@ export default class Trello extends React.Component<Props> {
     const { matches } = this.props.attrs;
     const objectId = matches[2];
 
-    if (matches[1] === 'c') {
+    if (matches[1] === "c") {
       return (
         <Frame
           width="316px"

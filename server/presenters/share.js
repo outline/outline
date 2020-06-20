@@ -1,6 +1,6 @@
 // @flow
-import { Share } from '../models';
-import { presentUser } from '.';
+import { Share } from "../models";
+import { presentUser } from ".";
 
 export default function present(share: Share) {
   return {

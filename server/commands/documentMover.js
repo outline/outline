@@ -1,7 +1,7 @@
 // @flow
-import { Document, Collection, Event } from '../models';
-import { sequelize } from '../sequelize';
-import { type Context } from 'koa';
+import { Document, Collection, Event } from "../models";
+import { sequelize } from "../sequelize";
+import { type Context } from "koa";
 
 export default async function documentMover({
   user,
@@ -77,7 +77,7 @@ export default async function documentMover({
     await transaction.commit();
 
     await Event.create({
-      name: 'documents.move',
+      name: "documents.move",
       actorId: user.id,
       documentId: document.id,
       collectionId,

@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import fs from 'fs';
-import path from 'path';
-import webpackConfig from '../../webpack.config';
+import * as React from "react";
+import fs from "fs";
+import path from "path";
+import webpackConfig from "../../webpack.config";
 
 const PUBLIC_PATH = webpackConfig.output.publicPath;
 
@@ -16,13 +16,13 @@ const prefetchTags = [
 
 try {
   const manifest = fs.readFileSync(
-    path.join(__dirname, '../../dist/manifest.json'),
-    'utf8'
+    path.join(__dirname, "../../dist/manifest.json"),
+    "utf8"
   );
   const manifestData = JSON.parse(manifest);
   Object.values(manifestData).forEach(filename => {
-    if (typeof filename !== 'string') return;
-    if (filename.endsWith('.js')) {
+    if (typeof filename !== "string") return;
+    if (filename.endsWith(".js")) {
       prefetchTags.push(
         <link
           rel="prefetch"
@@ -31,7 +31,7 @@ try {
           as="script"
         />
       );
-    } else if (filename.endsWith('.css')) {
+    } else if (filename.endsWith(".css")) {
       prefetchTags.push(
         <link
           rel="prefetch"

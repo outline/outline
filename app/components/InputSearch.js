@@ -1,13 +1,13 @@
 // @flow
-import * as React from 'react';
-import keydown from 'react-keydown';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import styled, { withTheme } from 'styled-components';
-import { SearchIcon } from 'outline-icons';
-import { searchUrl } from 'utils/routeHelpers';
-import Input from './Input';
+import * as React from "react";
+import keydown from "react-keydown";
+import { observer } from "mobx-react";
+import { observable } from "mobx";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import styled, { withTheme } from "styled-components";
+import { SearchIcon } from "outline-icons";
+import { searchUrl } from "utils/routeHelpers";
+import Input from "./Input";
 
 type Props = {
   history: RouterHistory,
@@ -21,7 +21,7 @@ class InputSearch extends React.Component<Props> {
   input: ?Input;
   @observable focused: boolean = false;
 
-  @keydown('meta+f')
+  @keydown("meta+f")
   focus(ev) {
     ev.preventDefault();
 
@@ -46,7 +46,7 @@ class InputSearch extends React.Component<Props> {
   };
 
   render() {
-    const { theme, placeholder = 'Search…' } = this.props;
+    const { theme, placeholder = "Search…" } = this.props;
 
     return (
       <InputMaxWidth

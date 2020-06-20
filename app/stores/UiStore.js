@@ -1,19 +1,19 @@
 // @flow
-import { v4 } from 'uuid';
-import { orderBy } from 'lodash';
-import { observable, action, autorun, computed } from 'mobx';
-import Document from 'models/Document';
-import Collection from 'models/Collection';
-import type { Toast } from '../types';
+import { v4 } from "uuid";
+import { orderBy } from "lodash";
+import { observable, action, autorun, computed } from "mobx";
+import Document from "models/Document";
+import Collection from "models/Collection";
+import type { Toast } from "../types";
 
-const UI_STORE = 'UI_STORE';
+const UI_STORE = "UI_STORE";
 
 class UiStore {
   // theme represents the users UI preference (defaults to system)
-  @observable theme: 'light' | 'dark' | 'system';
+  @observable theme: "light" | "dark" | "system";
 
   // systemTheme represents the system UI theme (Settings -> General in macOS)
-  @observable systemTheme: 'light' | 'dark';
+  @observable systemTheme: "light" | "dark";
   @observable activeModalName: ?string;
   @observable activeModalProps: ?Object;
   @observable activeDocumentId: ?string;
@@ -28,18 +28,18 @@ class UiStore {
     // Rehydrate
     let data = {};
     try {
-      data = JSON.parse(localStorage.getItem(UI_STORE) || '{}');
+      data = JSON.parse(localStorage.getItem(UI_STORE) || "{}");
     } catch (_) {
       // no-op Safari private mode
     }
 
     // system theme listeners
     const colorSchemeQueryList = window.matchMedia(
-      '(prefers-color-scheme: dark)'
+      "(prefers-color-scheme: dark)"
     );
 
     const setSystemTheme = event => {
-      this.systemTheme = event.matches ? 'dark' : 'light';
+      this.systemTheme = event.matches ? "dark" : "light";
     };
     setSystemTheme(colorSchemeQueryList);
     if (colorSchemeQueryList.addListener) {
@@ -48,7 +48,7 @@ class UiStore {
 
     // persisted keys
     this.tocVisible = data.tocVisible;
-    this.theme = data.theme || 'system';
+    this.theme = data.theme || "system";
 
     autorun(() => {
       try {
@@ -60,11 +60,11 @@ class UiStore {
   }
 
   @action
-  setTheme = (theme: 'light' | 'dark' | 'system') => {
+  setTheme = (theme: "light" | "dark" | "system") => {
     this.theme = theme;
 
     if (window.localStorage) {
-      window.localStorage.setItem('theme', this.theme);
+      window.localStorage.setItem("theme", this.theme);
     }
   };
 
@@ -149,7 +149,7 @@ class UiStore {
   showToast = (
     message: string,
     options?: {
-      type?: 'warning' | 'error' | 'info' | 'success',
+      type?: "warning" | "error" | "info" | "success",
       timeout?: number,
       action?: {
         text: string,
@@ -171,8 +171,8 @@ class UiStore {
   };
 
   @computed
-  get resolvedTheme(): 'dark' | 'light' {
-    if (this.theme === 'system') {
+  get resolvedTheme(): "dark" | "light" {
+    if (this.theme === "system") {
       return this.systemTheme;
     }
 
@@ -181,7 +181,7 @@ class UiStore {
 
   @computed
   get orderedToasts(): Toast[] {
-    return orderBy(Array.from(this.toasts.values()), 'createdAt', 'desc');
+    return orderBy(Array.from(this.toasts.values()), "createdAt", "desc");
   }
 
   @computed

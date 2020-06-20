@@ -1,5 +1,5 @@
 // @flow
-import ExtendableError from 'es6-error';
+import ExtendableError from "es6-error";
 
 export class AuthorizationError extends ExtendableError {}
 export class NetworkError extends ExtendableError {}

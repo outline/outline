@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import Button from 'components/Button';
-import ListItem from 'components/List/Item';
-import ApiKey from 'models/ApiKey';
+import * as React from "react";
+import Button from "components/Button";
+import ListItem from "components/List/Item";
+import ApiKey from "models/ApiKey";
 
 type Props = {
   token: ApiKey,

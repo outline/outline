@@ -1,11 +1,11 @@
 // @flow
-import Sequelize from 'sequelize';
-import crypto from 'crypto';
-import Router from 'koa-router';
-import { capitalize } from 'lodash';
-import { OAuth2Client } from 'google-auth-library';
-import { User, Team, Event } from '../models';
-import auth from '../middlewares/authentication';
+import Sequelize from "sequelize";
+import crypto from "crypto";
+import Router from "koa-router";
+import { capitalize } from "lodash";
+import { OAuth2Client } from "google-auth-library";
+import { User, Team, Event } from "../models";
+import auth from "../middlewares/authentication";
 
 const Op = Sequelize.Op;
 
@@ -18,51 +18,51 @@ const client = new OAuth2Client(
 const allowedDomainsEnv = process.env.GOOGLE_ALLOWED_DOMAINS;
 
 // start the oauth process and redirect user to Google
-router.get('google', async ctx => {
+router.get("google", async ctx => {
   // Generate the url that will be used for the consent dialog.
   const authorizeUrl = client.generateAuthUrl({
-    access_type: 'offline',
+    access_type: "offline",
     scope: [
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
     ],
-    prompt: 'consent',
+    prompt: "consent",
   });
   ctx.redirect(authorizeUrl);
 });
 
 // signin callback from Google
-router.get('google.callback', auth({ required: false }), async ctx => {
+router.get("google.callback", auth({ required: false }), async ctx => {
   const { code } = ctx.request.query;
-  ctx.assertPresent(code, 'code is required');
+  ctx.assertPresent(code, "code is required");
   const response = await client.getToken(code);
   client.setCredentials(response.tokens);
 
   const profile = await client.request({
-    url: 'https://www.googleapis.com/oauth2/v1/userinfo',
+    url: "https://www.googleapis.com/oauth2/v1/userinfo",
   });
 
   if (!profile.data.hd) {
-    ctx.redirect('/?notice=google-hd');
+    ctx.redirect("/?notice=google-hd");
     return;
   }
 
   // allow all domains by default if the env is not set
-  const allowedDomains = allowedDomainsEnv && allowedDomainsEnv.split(',');
+  const allowedDomains = allowedDomainsEnv && allowedDomainsEnv.split(",");
   if (allowedDomains && !allowedDomains.includes(profile.data.hd)) {
-    ctx.redirect('/?notice=hd-not-allowed');
+    ctx.redirect("/?notice=hd-not-allowed");
     return;
   }
 
   const googleId = profile.data.hd;
-  const hostname = profile.data.hd.split('.')[0];
+  const hostname = profile.data.hd.split(".")[0];
   const teamName = capitalize(hostname);
 
   // attempt to get logo from Clearbit API. If one doesn't exist then
   // fall back to using tiley to generate a placeholder logo
-  const hash = crypto.createHash('sha256');
+  const hash = crypto.createHash("sha256");
   hash.update(googleId);
-  const hashedGoogleId = hash.digest('hex');
+  const hashedGoogleId = hash.digest("hex");
   const cbUrl = `https://logo.clearbit.com/${profile.data.hd}`;
   const tileyUrl = `https://tiley.herokuapp.com/avatar/${hashedGoogleId}/${
     teamName[0]
@@ -85,7 +85,7 @@ router.get('google.callback', auth({ required: false }), async ctx => {
       where: {
         [Op.or]: [
           {
-            service: 'google',
+            service: "google",
             serviceId: profile.data.id,
           },
           {
@@ -96,7 +96,7 @@ router.get('google.callback', auth({ required: false }), async ctx => {
         teamId: team.id,
       },
       defaults: {
-        service: 'google',
+        service: "google",
         serviceId: profile.data.id,
         name: profile.data.name,
         email: profile.data.email,
@@ -108,7 +108,7 @@ router.get('google.callback', auth({ required: false }), async ctx => {
     // update the user with fresh details if they just accepted an invite
     if (!user.serviceId || !user.service) {
       await user.update({
-        service: 'google',
+        service: "google",
         serviceId: profile.data.id,
         avatarUrl: profile.data.picture,
       });
@@ -126,25 +126,25 @@ router.get('google.callback', auth({ required: false }), async ctx => {
 
     if (isFirstSignin) {
       await Event.create({
-        name: 'users.create',
+        name: "users.create",
         actorId: user.id,
         userId: user.id,
         teamId: team.id,
         data: {
           name: user.name,
-          service: 'google',
+          service: "google",
         },
         ip: ctx.request.ip,
       });
     }
 
     // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, 'google', isFirstSignin);
+    ctx.signIn(user, team, "google", isFirstSignin);
   } catch (err) {
     if (err instanceof Sequelize.UniqueConstraintError) {
       const exists = await User.findOne({
         where: {
-          service: 'email',
+          service: "email",
           email: profile.data.email,
           teamId: team.id,
         },

@@ -1,19 +1,19 @@
 // @flow
-import * as React from 'react';
-import { debounce } from 'lodash';
-import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
-import Input from 'components/Input';
-import Subheading from 'components/Subheading';
-import NotificationListItem from './components/NotificationListItem';
-import Notice from 'shared/components/Notice';
+import * as React from "react";
+import { debounce } from "lodash";
+import { observer, inject } from "mobx-react";
+import styled from "styled-components";
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import Subheading from "components/Subheading";
+import NotificationListItem from "./components/NotificationListItem";
+import Notice from "shared/components/Notice";
 
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import NotificationSettingsStore from 'stores/NotificationSettingsStore';
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import NotificationSettingsStore from "stores/NotificationSettingsStore";
 
 type Props = {
   ui: UiStore,
@@ -23,33 +23,33 @@ type Props = {
 
 const options = [
   {
-    event: 'documents.publish',
-    title: 'Document published',
-    description: 'Receive a notification whenever a new document is published',
+    event: "documents.publish",
+    title: "Document published",
+    description: "Receive a notification whenever a new document is published",
   },
   {
-    event: 'documents.update',
-    title: 'Document updated',
-    description: 'Receive a notification when a document you created is edited',
+    event: "documents.update",
+    title: "Document updated",
+    description: "Receive a notification when a document you created is edited",
   },
   {
-    event: 'collections.create',
-    title: 'Collection created',
-    description: 'Receive a notification whenever a new collection is created',
+    event: "collections.create",
+    title: "Collection created",
+    description: "Receive a notification whenever a new collection is created",
   },
   {
     separator: true,
   },
   {
-    event: 'emails.onboarding',
-    title: 'Getting started',
+    event: "emails.onboarding",
+    title: "Getting started",
     description:
-      'Tips on getting started with Outline`s features and functionality',
+      "Tips on getting started with Outline`s features and functionality",
   },
   {
-    event: 'emails.features',
-    title: 'New features',
-    description: 'Receive an email when new features of note are added',
+    event: "emails.features",
+    title: "New features",
+    description: "Receive an email when new features of note are added",
   },
 ];
 
@@ -75,12 +75,12 @@ class Notifications extends React.Component<Props> {
   };
 
   showSuccessMessage = debounce(() => {
-    this.props.ui.showToast('Notifications saved');
+    this.props.ui.showToast("Notifications saved");
   }, 500);
 
   render() {
     const { notificationSettings, auth } = this.props;
-    const showSuccessNotice = window.location.search === '?success';
+    const showSuccessNotice = window.location.search === "?success";
     const { user, team } = auth;
     if (!team || !user) return null;
 
@@ -97,8 +97,8 @@ class Notifications extends React.Component<Props> {
 
         <HelpText>
           Manage when and where you receive email notifications from Outline.
-          Your email address can be updated in your{' '}
-          {team.slackConnected ? 'Slack' : 'Google'} account.
+          Your email address can be updated in your{" "}
+          {team.slackConnected ? "Slack" : "Google"} account.
         </HelpText>
 
         <Input
@@ -137,4 +137,4 @@ const Separator = styled.hr`
   padding-bottom: 12px;
 `;
 
-export default inject('notificationSettings', 'auth', 'ui')(Notifications);
+export default inject("notificationSettings", "auth", "ui")(Notifications);

@@ -1,22 +1,22 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
-import { inject, observer } from 'mobx-react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import { EditIcon } from 'outline-icons';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import Modal from 'components/Modal';
-import Button from 'components/Button';
-import Avatar from 'components/Avatar';
-import Badge from 'components/Badge';
-import PaginatedDocumentList from 'components/PaginatedDocumentList';
-import Subheading from 'components/Subheading';
-import User from 'models/User';
-import DocumentsStore from 'stores/DocumentsStore';
-import AuthStore from 'stores/AuthStore';
-import { settings } from 'shared/utils/routeHelpers';
+import * as React from "react";
+import styled from "styled-components";
+import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import { inject, observer } from "mobx-react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import { EditIcon } from "outline-icons";
+import Flex from "shared/components/Flex";
+import HelpText from "components/HelpText";
+import Modal from "components/Modal";
+import Button from "components/Button";
+import Avatar from "components/Avatar";
+import Badge from "components/Badge";
+import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Subheading from "components/Subheading";
+import User from "models/User";
+import DocumentsStore from "stores/DocumentsStore";
+import AuthStore from "stores/AuthStore";
+import { settings } from "shared/utils/routeHelpers";
 
 type Props = {
   user: User,
@@ -46,8 +46,8 @@ class UserProfile extends React.Component<Props> {
         <Flex column>
           <Meta>
             {isCurrentUser
-              ? 'You joined'
-              : user.lastActiveAt ? 'Joined' : 'Invited'}{' '}
+              ? "You joined"
+              : user.lastActiveAt ? "Joined" : "Invited"}{" "}
             {distanceInWordsToNow(new Date(user.createdAt))} ago.
             {user.isAdmin && (
               <StyledBadge admin={user.isAdmin}>Admin</StyledBadge>
@@ -96,4 +96,4 @@ const Meta = styled(HelpText)`
   margin-top: -12px;
 `;
 
-export default inject('documents', 'auth')(withRouter(UserProfile));
+export default inject("documents", "auth")(withRouter(UserProfile));

@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import BaseModal from 'components/Modal';
-import UiStore from 'stores/UiStore';
-import CollectionNew from 'scenes/CollectionNew';
-import CollectionEdit from 'scenes/CollectionEdit';
-import CollectionDelete from 'scenes/CollectionDelete';
-import CollectionExport from 'scenes/CollectionExport';
-import DocumentDelete from 'scenes/DocumentDelete';
-import DocumentShare from 'scenes/DocumentShare';
+import * as React from "react";
+import { observer } from "mobx-react";
+import BaseModal from "components/Modal";
+import UiStore from "stores/UiStore";
+import CollectionNew from "scenes/CollectionNew";
+import CollectionEdit from "scenes/CollectionEdit";
+import CollectionDelete from "scenes/CollectionDelete";
+import CollectionExport from "scenes/CollectionExport";
+import DocumentDelete from "scenes/DocumentDelete";
+import DocumentShare from "scenes/DocumentShare";
 
 type Props = {
   ui: UiStore,

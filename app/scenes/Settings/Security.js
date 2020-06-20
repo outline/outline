@@ -1,15 +1,15 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { debounce } from 'lodash';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { debounce } from "lodash";
 
-import AuthStore from 'stores/AuthStore';
-import UiStore from 'stores/UiStore';
-import Checkbox from 'components/Checkbox';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
+import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
+import Checkbox from "components/Checkbox";
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import HelpText from "components/HelpText";
 
 type Props = {
   auth: AuthStore,
@@ -35,13 +35,13 @@ class Security extends React.Component<Props> {
 
   handleChange = async (ev: SyntheticInputEvent<*>) => {
     switch (ev.target.name) {
-      case 'sharing':
+      case "sharing":
         this.sharing = ev.target.checked;
         break;
-      case 'documentEmbeds':
+      case "documentEmbeds":
         this.documentEmbeds = ev.target.checked;
         break;
-      case 'guestSignin':
+      case "guestSignin":
         this.guestSignin = ev.target.checked;
         break;
       default:
@@ -56,7 +56,7 @@ class Security extends React.Component<Props> {
   };
 
   showSuccessMessage = debounce(() => {
-    this.props.ui.showToast('Settings saved');
+    this.props.ui.showToast("Settings saved");
   }, 500);
 
   render() {
@@ -77,7 +77,7 @@ class Security extends React.Component<Props> {
           checked={this.guestSignin}
           onChange={this.handleChange}
           note={`When enabled guests can be invited by email address and are able to signin without ${
-            team ? team.signinMethods : 'SSO'
+            team ? team.signinMethods : "SSO"
           }`}
         />
         <Checkbox
@@ -99,4 +99,4 @@ class Security extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'ui')(Security);
+export default inject("auth", "ui")(Security);

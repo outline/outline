@@ -1,17 +1,17 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import styled from 'styled-components';
-import Document from 'models/Document';
-import DocumentMenu from 'menus/DocumentMenu';
-import SidebarLink from './SidebarLink';
-import DropToImport from 'components/DropToImport';
-import Fade from 'components/Fade';
-import Collection from 'models/Collection';
-import DocumentsStore from 'stores/DocumentsStore';
-import Flex from 'shared/components/Flex';
-import { type NavigationNode } from 'types';
+import * as React from "react";
+import { observer } from "mobx-react";
+import { observable } from "mobx";
+import styled from "styled-components";
+import Document from "models/Document";
+import DocumentMenu from "menus/DocumentMenu";
+import SidebarLink from "./SidebarLink";
+import DropToImport from "components/DropToImport";
+import Fade from "components/Fade";
+import Collection from "models/Collection";
+import DocumentsStore from "stores/DocumentsStore";
+import Flex from "shared/components/Flex";
+import { type NavigationNode } from "types";
 
 type Props = {
   node: NavigationNode,
@@ -96,7 +96,7 @@ class DocumentLink extends React.Component<Props> {
               state: { title: node.title },
             }}
             expanded={showChildren ? true : undefined}
-            label={node.title || 'Untitled'}
+            label={node.title || "Untitled"}
             depth={depth}
             exact={false}
             menuOpen={this.menuOpen}

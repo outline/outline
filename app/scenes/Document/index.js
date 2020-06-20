@@ -1,3 +1,3 @@
 // @flow
-import DataLoader from './components/DataLoader';
+import DataLoader from "./components/DataLoader";
 export default DataLoader;

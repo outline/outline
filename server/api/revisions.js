@@ -1,18 +1,18 @@
 // @flow
-import Router from 'koa-router';
-import auth from '../middlewares/authentication';
-import pagination from './middlewares/pagination';
-import { presentRevision } from '../presenters';
-import { Document, Revision } from '../models';
-import { NotFoundError } from '../errors';
-import policy from '../policies';
+import Router from "koa-router";
+import auth from "../middlewares/authentication";
+import pagination from "./middlewares/pagination";
+import { presentRevision } from "../presenters";
+import { Document, Revision } from "../models";
+import { NotFoundError } from "../errors";
+import policy from "../policies";
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post('revisions.info', auth(), async ctx => {
+router.post("revisions.info", auth(), async ctx => {
   let { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
   const revision = await Revision.findByPk(id);
@@ -23,7 +23,7 @@ router.post('revisions.info', auth(), async ctx => {
   const document = await Document.findByPk(revision.documentId, {
     userId: user.id,
   });
-  authorize(user, 'read', document);
+  authorize(user, "read", document);
 
   ctx.body = {
     pagination: ctx.state.pagination,
@@ -31,14 +31,14 @@ router.post('revisions.info', auth(), async ctx => {
   };
 });
 
-router.post('revisions.list', auth(), pagination(), async ctx => {
-  let { documentId, sort = 'updatedAt', direction } = ctx.body;
-  if (direction !== 'ASC') direction = 'DESC';
-  ctx.assertPresent(documentId, 'documentId is required');
+router.post("revisions.list", auth(), pagination(), async ctx => {
+  let { documentId, sort = "updatedAt", direction } = ctx.body;
+  if (direction !== "ASC") direction = "DESC";
+  ctx.assertPresent(documentId, "documentId is required");
 
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, { userId: user.id });
-  authorize(user, 'read', document);
+  authorize(user, "read", document);
 
   const revisions = await Revision.findAll({
     where: { documentId: document.id },

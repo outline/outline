@@ -1,15 +1,15 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb, seed } from '../test/support';
-import { buildUser } from '../test/factories';
-import { ApiKey } from '../models';
-import randomstring from 'randomstring';
-import auth from './authentication';
+import { flushdb, seed } from "../test/support";
+import { buildUser } from "../test/factories";
+import { ApiKey } from "../models";
+import randomstring from "randomstring";
+import auth from "./authentication";
 
 beforeEach(flushdb);
 
-describe('Authentication middleware', async () => {
-  describe('with JWT', () => {
-    it('should authenticate with correct token', async () => {
+describe("Authentication middleware", async () => {
+  describe("with JWT", () => {
+    it("should authenticate with correct token", async () => {
       const state = {};
       const { user } = await seed();
       const authMiddleware = auth();
@@ -27,7 +27,7 @@ describe('Authentication middleware', async () => {
       expect(state.user.id).toEqual(user.id);
     });
 
-    it('should return error with invalid token', async () => {
+    it("should return error with invalid token", async () => {
       const state = {};
       const { user } = await seed();
       const authMiddleware = auth();
@@ -44,13 +44,13 @@ describe('Authentication middleware', async () => {
           jest.fn()
         );
       } catch (e) {
-        expect(e.message).toBe('Invalid token');
+        expect(e.message).toBe("Invalid token");
       }
     });
   });
 
-  describe('with API key', () => {
-    it('should authenticate user with valid API key', async () => {
+  describe("with API key", () => {
+    it("should authenticate user with valid API key", async () => {
       const state = {};
       const { user } = await seed();
       const authMiddleware = auth();
@@ -71,7 +71,7 @@ describe('Authentication middleware', async () => {
       expect(state.user.id).toEqual(user.id);
     });
 
-    it('should return error with invalid API key', async () => {
+    it("should return error with invalid API key", async () => {
       const state = {};
       const authMiddleware = auth();
 
@@ -87,12 +87,12 @@ describe('Authentication middleware', async () => {
           jest.fn()
         );
       } catch (e) {
-        expect(e.message).toBe('Invalid API key');
+        expect(e.message).toBe("Invalid API key");
       }
     });
   });
 
-  it('should return error message if no auth token is available', async () => {
+  it("should return error message if no auth token is available", async () => {
     const state = {};
     const authMiddleware = auth();
 
@@ -100,7 +100,7 @@ describe('Authentication middleware', async () => {
       await authMiddleware(
         {
           request: {
-            get: jest.fn(() => 'error'),
+            get: jest.fn(() => "error"),
           },
           state,
           cache: {},
@@ -114,7 +114,7 @@ describe('Authentication middleware', async () => {
     }
   });
 
-  it('should allow passing auth token as a GET param', async () => {
+  it("should allow passing auth token as a GET param", async () => {
     const state = {};
     const { user } = await seed();
     const authMiddleware = auth();
@@ -136,7 +136,7 @@ describe('Authentication middleware', async () => {
     expect(state.user.id).toEqual(user.id);
   });
 
-  it('should allow passing auth token in body params', async () => {
+  it("should allow passing auth token in body params", async () => {
     const state = {};
     const { user } = await seed();
     const authMiddleware = auth();
@@ -157,7 +157,7 @@ describe('Authentication middleware', async () => {
     expect(state.user.id).toEqual(user.id);
   });
 
-  it('should return an error for suspended users', async () => {
+  it("should return an error for suspended users", async () => {
     const state = {};
     const admin = await buildUser({});
     const user = await buildUser({
@@ -179,7 +179,7 @@ describe('Authentication middleware', async () => {
       );
     } catch (e) {
       expect(e.message).toEqual(
-        'Your access has been suspended by the team admin'
+        "Your access has been suspended by the team admin"
       );
       expect(e.errorData.adminEmail).toEqual(admin.email);
     }

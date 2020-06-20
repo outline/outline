@@ -1,23 +1,23 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { PlusIcon } from 'outline-icons';
-import Flex from 'shared/components/Flex';
-import Empty from 'components/Empty';
-import HelpText from 'components/HelpText';
-import Subheading from 'components/Subheading';
-import Button from 'components/Button';
-import PaginatedList from 'components/PaginatedList';
-import Modal from 'components/Modal';
-import Group from 'models/Group';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import GroupMembershipsStore from 'stores/GroupMembershipsStore';
-import UsersStore from 'stores/UsersStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import GroupMemberListItem from './components/GroupMemberListItem';
-import AddPeopleToGroup from './AddPeopleToGroup';
+import * as React from "react";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
+import Flex from "shared/components/Flex";
+import Empty from "components/Empty";
+import HelpText from "components/HelpText";
+import Subheading from "components/Subheading";
+import Button from "components/Button";
+import PaginatedList from "components/PaginatedList";
+import Modal from "components/Modal";
+import Group from "models/Group";
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import GroupMembershipsStore from "stores/GroupMembershipsStore";
+import UsersStore from "stores/UsersStore";
+import PoliciesStore from "stores/PoliciesStore";
+import GroupMemberListItem from "./components/GroupMemberListItem";
+import AddPeopleToGroup from "./AddPeopleToGroup";
 
 type Props = {
   ui: UiStore,
@@ -48,7 +48,7 @@ class GroupMembers extends React.Component<Props> {
       });
       this.props.ui.showToast(`${user.name} was removed from the group`);
     } catch (err) {
-      this.props.ui.showToast('Could not remove user');
+      this.props.ui.showToast("Could not remove user");
     }
   };
 
@@ -64,7 +64,7 @@ class GroupMembers extends React.Component<Props> {
         {can.update ? (
           <React.Fragment>
             <HelpText>
-              Add and remove team members in the <strong>{group.name}</strong>{' '}
+              Add and remove team members in the <strong>{group.name}</strong>{" "}
               group. Adding people to the group will give them access to any
               collections this group has been given access to.
             </HelpText>
@@ -119,6 +119,6 @@ class GroupMembers extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'users', 'policies', 'groupMemberships', 'ui')(
+export default inject("auth", "users", "policies", "groupMemberships", "ui")(
   GroupMembers
 );

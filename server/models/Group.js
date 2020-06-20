@@ -1,9 +1,9 @@
 // @flow
-import { Op, DataTypes, sequelize } from '../sequelize';
-import { CollectionGroup, GroupUser } from '../models';
+import { Op, DataTypes, sequelize } from "../sequelize";
+import { CollectionGroup, GroupUser } from "../models";
 
 const Group = sequelize.define(
-  'group',
+  "group",
   {
     id: {
       type: DataTypes.UUID,
@@ -32,7 +32,7 @@ const Group = sequelize.define(
           },
         });
         if (foundItem) {
-          throw new Error('The name of this group is already in use');
+          throw new Error("The name of this group is already in use");
         }
       },
     },
@@ -41,39 +41,39 @@ const Group = sequelize.define(
 
 Group.associate = models => {
   Group.hasMany(models.GroupUser, {
-    as: 'groupMemberships',
-    foreignKey: 'groupId',
+    as: "groupMemberships",
+    foreignKey: "groupId",
   });
   Group.hasMany(models.CollectionGroup, {
-    as: 'collectionGroupMemberships',
-    foreignKey: 'groupId',
+    as: "collectionGroupMemberships",
+    foreignKey: "groupId",
   });
   Group.belongsTo(models.Team, {
-    as: 'team',
-    foreignKey: 'teamId',
+    as: "team",
+    foreignKey: "teamId",
   });
   Group.belongsTo(models.User, {
-    as: 'createdBy',
-    foreignKey: 'createdById',
+    as: "createdBy",
+    foreignKey: "createdById",
   });
   Group.belongsToMany(models.User, {
-    as: 'users',
+    as: "users",
     through: models.GroupUser,
-    foreignKey: 'groupId',
+    foreignKey: "groupId",
   });
-  Group.addScope('defaultScope', {
+  Group.addScope("defaultScope", {
     include: [
       {
-        association: 'groupMemberships',
+        association: "groupMemberships",
         required: false,
       },
     ],
-    order: [['name', 'ASC']],
+    order: [["name", "ASC"]],
   });
 };
 
 // Cascade deletes to group and collection relations
-Group.addHook('afterDestroy', async (group, options) => {
+Group.addHook("afterDestroy", async (group, options) => {
   if (!group.deletedAt) return;
 
   await GroupUser.destroy({ where: { groupId: group.id } });

@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import styled, { withTheme } from 'styled-components';
-import { ExpandedIcon } from 'outline-icons';
-import Flex from 'shared/components/Flex';
-import TeamLogo from 'shared/components/TeamLogo';
+import * as React from "react";
+import styled, { withTheme } from "styled-components";
+import { ExpandedIcon } from "outline-icons";
+import Flex from "shared/components/Flex";
+import TeamLogo from "shared/components/TeamLogo";
 
 type Props = {
   teamName: string,
@@ -26,7 +26,7 @@ function HeaderBlock({
       <TeamLogo alt={`${teamName} logo`} src={logoUrl} />
       <Flex align="flex-start" column>
         <TeamName showDisclosure>
-          {teamName}{' '}
+          {teamName}{" "}
           {showDisclosure && <StyledExpandedIcon color={theme.text} />}
         </TeamName>
         <Subheading>{subheading}</Subheading>

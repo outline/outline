@@ -1,42 +1,42 @@
 // @flow
-import * as React from 'react';
-import { debounce } from 'lodash';
-import styled, { withTheme } from 'styled-components';
-import breakpoint from 'styled-components-breakpoint';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { Prompt, Route, withRouter } from 'react-router-dom';
-import type { Location, RouterHistory } from 'react-router-dom';
-import keydown from 'react-keydown';
-import Flex from 'shared/components/Flex';
+import * as React from "react";
+import { debounce } from "lodash";
+import styled, { withTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { Prompt, Route, withRouter } from "react-router-dom";
+import type { Location, RouterHistory } from "react-router-dom";
+import keydown from "react-keydown";
+import Flex from "shared/components/Flex";
 import {
   collectionUrl,
   documentMoveUrl,
   documentHistoryUrl,
   documentEditUrl,
   documentUrl,
-} from 'utils/routeHelpers';
-import { emojiToUrl } from 'utils/emoji';
+} from "utils/routeHelpers";
+import { emojiToUrl } from "utils/emoji";
 
-import Header from './Header';
-import DocumentMove from './DocumentMove';
-import KeyboardShortcutsButton from './KeyboardShortcutsButton';
-import References from './References';
-import Loading from './Loading';
-import Container from './Container';
-import Contents from './Contents';
-import MarkAsViewed from './MarkAsViewed';
-import ErrorBoundary from 'components/ErrorBoundary';
-import LoadingIndicator from 'components/LoadingIndicator';
-import PageTitle from 'components/PageTitle';
-import Branding from 'shared/components/Branding';
-import Notice from 'shared/components/Notice';
-import Time from 'shared/components/Time';
+import Header from "./Header";
+import DocumentMove from "./DocumentMove";
+import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
+import References from "./References";
+import Loading from "./Loading";
+import Container from "./Container";
+import Contents from "./Contents";
+import MarkAsViewed from "./MarkAsViewed";
+import ErrorBoundary from "components/ErrorBoundary";
+import LoadingIndicator from "components/LoadingIndicator";
+import PageTitle from "components/PageTitle";
+import Branding from "shared/components/Branding";
+import Notice from "shared/components/Notice";
+import Time from "shared/components/Time";
 
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import Document from 'models/Document';
-import Revision from 'models/Revision';
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import Document from "models/Document";
+import Revision from "models/Revision";
 
 let EditorImport;
 const AUTOSAVE_DELAY = 3000;
@@ -104,7 +104,7 @@ class DocumentScene extends React.Component<Props> {
           {
             timeout: 30 * 1000,
             action: {
-              text: 'Reload',
+              text: "Reload",
               onClick: () => {
                 window.location.href = documentUrl(document);
               },
@@ -123,7 +123,7 @@ class DocumentScene extends React.Component<Props> {
     window.document.body.style.background = this.props.theme.background;
   }
 
-  @keydown('m')
+  @keydown("m")
   goToMove(ev) {
     if (!this.props.readOnly) return;
 
@@ -135,7 +135,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  @keydown('e')
+  @keydown("e")
   goToEdit(ev) {
     if (!this.props.readOnly) return;
 
@@ -147,7 +147,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  @keydown('esc')
+  @keydown("esc")
   goBack(ev) {
     if (this.props.readOnly) return;
 
@@ -155,7 +155,7 @@ class DocumentScene extends React.Component<Props> {
     this.props.history.goBack();
   }
 
-  @keydown('h')
+  @keydown("h")
   goToHistory(ev) {
     if (!this.props.readOnly) return;
 
@@ -169,7 +169,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  @keydown('meta+shift+p')
+  @keydown("meta+shift+p")
   onPublish(ev) {
     ev.preventDefault();
     const { document } = this.props;
@@ -177,7 +177,7 @@ class DocumentScene extends React.Component<Props> {
     this.onSave({ publish: true, done: true });
   }
 
-  @keydown('meta+ctrl+h')
+  @keydown("meta+ctrl+h")
   onToggleTableOfContents(ev) {
     if (!this.props.readOnly) return;
 
@@ -195,7 +195,7 @@ class DocumentScene extends React.Component<Props> {
     if (this.editorComponent) return;
 
     try {
-      const EditorImport = await import('./Editor');
+      const EditorImport = await import("./Editor");
       this.editorComponent = EditorImport.default;
     } catch (err) {
       console.error(err);
@@ -227,7 +227,7 @@ class DocumentScene extends React.Component<Props> {
     const title = this.title;
 
     // prevent save before anything has been written (single hash is empty doc)
-    if (text.trim() === '' && title.trim === '') return;
+    if (text.trim() === "" && title.trim === "") return;
 
     // prevent autosave if nothing has changed
     if (
@@ -278,7 +278,7 @@ class DocumentScene extends React.Component<Props> {
     const bodyChanged = editorText !== document.text.trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty = (!editorText || editorText === '#') && !this.title;
+    this.isEmpty = (!editorText || editorText === "#") && !this.title;
     this.isDirty = bodyChanged || titleChanged;
   };
 
@@ -351,7 +351,7 @@ class DocumentScene extends React.Component<Props> {
             )}
           />
           <PageTitle
-            title={document.title.replace(document.emoji, '') || 'Untitled'}
+            title={document.title.replace(document.emoji, "") || "Untitled"}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
@@ -394,18 +394,18 @@ class DocumentScene extends React.Component<Props> {
               {document.archivedAt &&
                 !document.deletedAt && (
                   <Notice muted>
-                    Archived by {document.updatedBy.name}{' '}
+                    Archived by {document.updatedBy.name}{" "}
                     <Time dateTime={document.archivedAt} /> ago
                   </Notice>
                 )}
               {document.deletedAt && (
                 <Notice muted>
-                  Deleted by {document.updatedBy.name}{' '}
+                  Deleted by {document.updatedBy.name}{" "}
                   <Time dateTime={document.deletedAt} /> ago
                   {document.permanentlyDeletedAt && (
                     <React.Fragment>
                       <br />
-                      This document will be permanently deleted in{' '}
+                      This document will be permanently deleted in{" "}
                       <Time dateTime={document.permanentlyDeletedAt} /> unless
                       restored.
                     </React.Fragment>
@@ -427,7 +427,7 @@ class DocumentScene extends React.Component<Props> {
                     }
                   }}
                   isDraft={document.isDraft}
-                  key={disableEmbeds ? 'embeds-disabled' : 'embeds-enabled'}
+                  key={disableEmbeds ? "embeds-disabled" : "embeds-enabled"}
                   title={revision ? revision.title : this.title}
                   document={document}
                   value={readOnly ? value : undefined}
@@ -470,7 +470,7 @@ const Background = styled(Container)`
   transition: ${props => props.theme.backgroundTransition};
 `;
 
-const ReferencesWrapper = styled('div')`
+const ReferencesWrapper = styled("div")`
   margin-top: ${props => (props.isOnlyTitle ? -45 : 16)}px;
 
   @media print {
@@ -485,17 +485,17 @@ const MaxWidth = styled(Flex)`
   max-width: 100vw;
   width: 100%;
 
-  ${breakpoint('tablet')`	
+  ${breakpoint("tablet")`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: calc(48px + ${props => (props.tocVisible ? '64em' : '46em')});
+    max-width: calc(48px + ${props => (props.tocVisible ? "64em" : "46em")});
   `};
 
-  ${breakpoint('desktopLarge')`
+  ${breakpoint("desktopLarge")`
     max-width: calc(48px + 46em);
   `};
 `;
 
 export default withRouter(
-  inject('ui', 'auth', 'policies', 'revisions')(withTheme(DocumentScene))
+  inject("ui", "auth", "policies", "revisions")(withTheme(DocumentScene))
 );

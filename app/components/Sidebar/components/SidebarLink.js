@@ -1,11 +1,11 @@
 // @flow
-import * as React from 'react';
-import { observable, action } from 'mobx';
-import { observer } from 'mobx-react';
-import { withRouter, NavLink } from 'react-router-dom';
-import { CollapsedIcon } from 'outline-icons';
-import styled, { withTheme } from 'styled-components';
-import Flex from 'shared/components/Flex';
+import * as React from "react";
+import { observable, action } from "mobx";
+import { observer } from "mobx-react";
+import { withRouter, NavLink } from "react-router-dom";
+import { CollapsedIcon } from "outline-icons";
+import styled, { withTheme } from "styled-components";
+import Flex from "shared/components/Flex";
 
 type Props = {
   to?: string | Object,
@@ -82,7 +82,7 @@ class SidebarLink extends React.Component<Props> {
           onClick={onClick}
           exact={exact !== false}
           to={to}
-          as={to ? undefined : href ? 'a' : 'div'}
+          as={to ? undefined : href ? "a" : "div"}
           href={href}
         >
           {icon && <IconWrapper>{icon}</IconWrapper>}
@@ -108,7 +108,7 @@ const IconWrapper = styled.span`
 `;
 
 const Action = styled.span`
-  display: ${props => (props.menuOpen ? 'inline' : 'none')};
+  display: ${props => (props.menuOpen ? "inline" : "none")};
   position: absolute;
   top: 4px;
   right: 4px;
@@ -168,7 +168,7 @@ const Disclosure = styled(CollapsedIcon)`
   position: absolute;
   left: -24px;
 
-  ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'};
+  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
 
 export default withRouter(withTheme(SidebarLink));

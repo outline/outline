@@ -1,14 +1,14 @@
 // @flow
-import { action, set, observable, computed } from 'mobx';
-import addDays from 'date-fns/add_days';
-import invariant from 'invariant';
-import { client } from 'utils/ApiClient';
-import parseTitle from 'shared/utils/parseTitle';
-import unescape from 'shared/utils/unescape';
-import BaseModel from 'models/BaseModel';
-import Revision from 'models/Revision';
-import User from 'models/User';
-import DocumentsStore from 'stores/DocumentsStore';
+import { action, set, observable, computed } from "mobx";
+import addDays from "date-fns/add_days";
+import invariant from "invariant";
+import { client } from "utils/ApiClient";
+import parseTitle from "shared/utils/parseTitle";
+import unescape from "shared/utils/unescape";
+import BaseModel from "models/BaseModel";
+import Revision from "models/Revision";
+import User from "models/User";
+import DocumentsStore from "stores/DocumentsStore";
 
 type SaveOptions = {
   publish?: boolean,
@@ -90,8 +90,8 @@ export default class Document extends BaseModel {
 
   @action
   share = async () => {
-    const res = await client.post('/shares.create', { documentId: this.id });
-    invariant(res && res.data, 'Share data should be available');
+    const res = await client.post("/shares.create", { documentId: this.id });
+    invariant(res && res.data, "Share data should be available");
     this.shareUrl = res.data.url;
     return this.shareUrl;
   };
@@ -125,7 +125,7 @@ export default class Document extends BaseModel {
     this.pinned = true;
     try {
       const res = await this.store.pin(this);
-      invariant(res && res.data, 'Data should be available');
+      invariant(res && res.data, "Data should be available");
       this.updateFromJson(res.data);
     } catch (err) {
       this.pinned = false;
@@ -138,7 +138,7 @@ export default class Document extends BaseModel {
     this.pinned = false;
     try {
       const res = await this.store.unpin(this);
-      invariant(res && res.data, 'Data should be available');
+      invariant(res && res.data, "Data should be available");
       this.updateFromJson(res.data);
     } catch (err) {
       this.pinned = true;
@@ -163,8 +163,8 @@ export default class Document extends BaseModel {
 
   @action
   fetch = async () => {
-    const res = await client.post('/documents.info', { id: this.id });
-    invariant(res && res.data, 'Data should be available');
+    const res = await client.post("/documents.info", { id: this.id });
+    invariant(res && res.data, "Data should be available");
     this.updateFromJson(res.data);
   };
 
@@ -196,7 +196,7 @@ export default class Document extends BaseModel {
         });
       }
 
-      throw new Error('Attempting to update without a lastRevision');
+      throw new Error("Attempting to update without a lastRevision");
     } finally {
       this.isSaving = false;
     }
@@ -216,15 +216,15 @@ export default class Document extends BaseModel {
 
     const body = unescape(this.text);
     const blob = new Blob([`# ${this.title}\n\n${body}`], {
-      type: 'text/markdown',
+      type: "text/markdown",
     });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
 
     // Firefox support requires the anchor tag be in the DOM to trigger the dl
     if (document.body) document.body.appendChild(a);
     a.href = url;
-    a.download = `${this.title || 'Untitled'}.md`;
+    a.download = `${this.title || "Untitled"}.md`;
     a.click();
   };
 }

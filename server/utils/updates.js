@@ -1,25 +1,25 @@
 // @flow
-import crypto from 'crypto';
-import invariant from 'invariant';
-import fetch from 'isomorphic-fetch';
-import { client } from '../redis';
-import packageInfo from '../../package.json';
+import crypto from "crypto";
+import invariant from "invariant";
+import fetch from "isomorphic-fetch";
+import { client } from "../redis";
+import packageInfo from "../../package.json";
 
-import { User, Team, Collection, Document } from '../models';
+import { User, Team, Collection, Document } from "../models";
 
-const UPDATES_URL = 'https://updates.getoutline.com';
-const UPDATES_KEY = 'UPDATES_KEY';
+const UPDATES_URL = "https://updates.getoutline.com";
+const UPDATES_KEY = "UPDATES_KEY";
 
 export default async () => {
   invariant(
     process.env.SECRET_KEY && process.env.URL,
-    'SECRET_KEY or URL env var is not set'
+    "SECRET_KEY or URL env var is not set"
   );
   const secret = process.env.SECRET_KEY.slice(0, 6) + process.env.URL;
   const id = crypto
-    .createHash('sha256')
+    .createHash("sha256")
     .update(secret)
-    .digest('hex');
+    .digest("hex");
 
   const [
     userCount,
@@ -45,14 +45,14 @@ export default async () => {
     },
   });
 
-  await client.del('UPDATES_KEY');
+  await client.del("UPDATES_KEY");
 
   try {
     const response = await fetch(UPDATES_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
       body,
     });

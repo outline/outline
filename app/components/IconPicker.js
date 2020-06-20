@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import { TwitterPicker } from 'react-color';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import { TwitterPicker } from "react-color";
 import {
   CollectionIcon,
   CoinsIcon,
@@ -22,99 +22,99 @@ import {
   QuestionMarkIcon,
   SunIcon,
   VehicleIcon,
-} from 'outline-icons';
-import styled from 'styled-components';
-import { LabelText } from 'components/Input';
-import { DropdownMenu } from 'components/DropdownMenu';
-import NudeButton from 'components/NudeButton';
-import Flex from 'shared/components/Flex';
+} from "outline-icons";
+import styled from "styled-components";
+import { LabelText } from "components/Input";
+import { DropdownMenu } from "components/DropdownMenu";
+import NudeButton from "components/NudeButton";
+import Flex from "shared/components/Flex";
 
 export const icons = {
   collection: {
     component: CollectionIcon,
-    keywords: 'collection',
+    keywords: "collection",
   },
   coins: {
     component: CoinsIcon,
-    keywords: 'coins money finance sales income revenue cash',
+    keywords: "coins money finance sales income revenue cash",
   },
   academicCap: {
     component: AcademicCapIcon,
-    keywords: 'learn teach lesson guide tutorial onboarding training',
+    keywords: "learn teach lesson guide tutorial onboarding training",
   },
   beaker: {
     component: BeakerIcon,
-    keywords: 'lab research experiment test',
+    keywords: "lab research experiment test",
   },
   buildingBlocks: {
     component: BuildingBlocksIcon,
-    keywords: 'app blocks product prototype',
+    keywords: "app blocks product prototype",
   },
   cloud: {
     component: CloudIcon,
-    keywords: 'cloud service aws infrastructure',
+    keywords: "cloud service aws infrastructure",
   },
   code: {
     component: CodeIcon,
-    keywords: 'developer api code development engineering programming',
+    keywords: "developer api code development engineering programming",
   },
   eye: {
     component: EyeIcon,
-    keywords: 'eye view',
+    keywords: "eye view",
   },
   leaf: {
     component: LeafIcon,
-    keywords: 'leaf plant outdoors nature ecosystem climate',
+    keywords: "leaf plant outdoors nature ecosystem climate",
   },
   lightbulb: {
     component: LightBulbIcon,
-    keywords: 'lightbulb idea',
+    keywords: "lightbulb idea",
   },
   moon: {
     component: MoonIcon,
-    keywords: 'night moon dark',
+    keywords: "night moon dark",
   },
   notepad: {
     component: NotepadIcon,
-    keywords: 'journal notepad write notes',
+    keywords: "journal notepad write notes",
   },
   padlock: {
     component: PadlockIcon,
-    keywords: 'padlock private security authentication authorization auth',
+    keywords: "padlock private security authentication authorization auth",
   },
   palette: {
     component: PaletteIcon,
-    keywords: 'design palette art brand',
+    keywords: "design palette art brand",
   },
   pencil: {
     component: EditIcon,
-    keywords: 'copy writing post blog',
+    keywords: "copy writing post blog",
   },
   question: {
     component: QuestionMarkIcon,
-    keywords: 'question help support faq',
+    keywords: "question help support faq",
   },
   sun: {
     component: SunIcon,
-    keywords: 'day sun weather',
+    keywords: "day sun weather",
   },
   vehicle: {
     component: VehicleIcon,
-    keywords: 'truck car travel transport',
+    keywords: "truck car travel transport",
   },
 };
 
 const colors = [
-  '#4E5C6E',
-  '#0366d6',
-  '#7F6BFF',
-  '#E76F51',
-  '#FC2D2D',
-  '#FFBE0B',
-  '#2A9D8F',
-  '#00D084',
-  '#EE84F0',
-  '#2F362F',
+  "#4E5C6E",
+  "#0366d6",
+  "#7F6BFF",
+  "#E76F51",
+  "#FC2D2D",
+  "#FFBE0B",
+  "#2A9D8F",
+  "#00D084",
+  "#EE84F0",
+  "#2F362F",
 ];
 
 type Props = {
@@ -134,11 +134,11 @@ class IconPicker extends React.Component<Props> {
   node: ?HTMLElement;
 
   componentDidMount() {
-    window.addEventListener('click', this.handleClickOutside);
+    window.addEventListener("click", this.handleClickOutside);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('click', this.handleClickOutside);
+    window.removeEventListener("click", this.handleClickOutside);
   }
 
   handleClose = () => {
@@ -163,7 +163,7 @@ class IconPicker extends React.Component<Props> {
   };
 
   render() {
-    const Component = icons[this.props.icon || 'collection'].component;
+    const Component = icons[this.props.icon || "collection"].component;
 
     return (
       <Wrapper ref={ref => (this.node = ref)}>
@@ -230,7 +230,7 @@ const ColorPicker = styled(TwitterPicker)`
   background: transparent !important;
 `;
 
-const Wrapper = styled('div')`
+const Wrapper = styled("div")`
   display: inline-block;
   position: relative;
 `;

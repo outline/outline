@@ -1,18 +1,18 @@
 // @flow
-import crypto from 'crypto';
-import uuid from 'uuid';
-import JWT from 'jsonwebtoken';
-import subMinutes from 'date-fns/sub_minutes';
-import { ValidationError } from '../errors';
-import { DataTypes, sequelize, encryptedFields } from '../sequelize';
-import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
-import { sendEmail } from '../mailer';
-import { Star, Team, Collection, NotificationSetting, ApiKey } from '.';
+import crypto from "crypto";
+import uuid from "uuid";
+import JWT from "jsonwebtoken";
+import subMinutes from "date-fns/sub_minutes";
+import { ValidationError } from "../errors";
+import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
+import { sendEmail } from "../mailer";
+import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
 
-const DEFAULT_AVATAR_HOST = 'https://tiley.herokuapp.com';
+const DEFAULT_AVATAR_HOST = "https://tiley.herokuapp.com";
 
 const User = sequelize.define(
-  'user',
+  "user",
   {
     id: {
       type: DataTypes.UUID,
@@ -27,7 +27,7 @@ const User = sequelize.define(
     service: { type: DataTypes.STRING, allowNull: true },
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
     slackData: DataTypes.JSONB,
-    jwtSecret: encryptedFields.vault('jwtSecret'),
+    jwtSecret: encryptedFields.vault("jwtSecret"),
     lastActiveAt: DataTypes.DATE,
     lastActiveIp: { type: DataTypes.STRING, allowNull: true },
     lastSignedInAt: DataTypes.DATE,
@@ -43,15 +43,15 @@ const User = sequelize.define(
         return !!this.suspendedAt;
       },
       avatarUrl() {
-        const original = this.getDataValue('avatarUrl');
+        const original = this.getDataValue("avatarUrl");
         if (original) {
           return original;
         }
 
         const hash = crypto
-          .createHash('md5')
-          .update(this.email || '')
-          .digest('hex');
+          .createHash("md5")
+          .update(this.email || "")
+          .digest("hex");
         return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${this.name[0]}.png`;
       },
     },
@@ -60,22 +60,22 @@ const User = sequelize.define(
 
 // Class methods
 User.associate = models => {
-  User.hasMany(models.ApiKey, { as: 'apiKeys', onDelete: 'cascade' });
+  User.hasMany(models.ApiKey, { as: "apiKeys", onDelete: "cascade" });
   User.hasMany(models.NotificationSetting, {
-    as: 'notificationSettings',
-    onDelete: 'cascade',
+    as: "notificationSettings",
+    onDelete: "cascade",
   });
-  User.hasMany(models.Document, { as: 'documents' });
-  User.hasMany(models.View, { as: 'views' });
+  User.hasMany(models.Document, { as: "documents" });
+  User.hasMany(models.View, { as: "views" });
   User.belongsTo(models.Team);
 };
 
 // Instance methods
 User.prototype.collectionIds = async function(paranoid: boolean = true) {
   const collectionStubs = await Collection.scope({
-    method: ['withMembership', this.id],
+    method: ["withMembership", this.id],
   }).findAll({
-    attributes: ['id', 'private'],
+    attributes: ["id", "private"],
     where: { teamId: this.teamId },
     paranoid,
   });
@@ -113,8 +113,8 @@ User.prototype.getJwtToken = function() {
 };
 
 User.prototype.getEmailSigninToken = function() {
-  if (this.service && this.service !== 'email') {
-    throw new Error('Cannot generate email signin token for OAuth user');
+  if (this.service && this.service !== "email") {
+    throw new Error("Cannot generate email signin token for OAuth user");
   }
 
   return JWT.sign(
@@ -129,7 +129,7 @@ const uploadAvatar = async model => {
 
   if (
     avatarUrl &&
-    !avatarUrl.startsWith('/api') &&
+    !avatarUrl.startsWith("/api") &&
     !avatarUrl.startsWith(endpoint) &&
     !avatarUrl.startsWith(DEFAULT_AVATAR_HOST)
   ) {
@@ -137,7 +137,7 @@ const uploadAvatar = async model => {
       const newUrl = await uploadToS3FromUrl(
         avatarUrl,
         `avatars/${model.id}/${uuid.v4()}`,
-        'public-read'
+        "public-read"
       );
       if (newUrl) model.avatarUrl = newUrl;
     } catch (err) {
@@ -148,7 +148,7 @@ const uploadAvatar = async model => {
 };
 
 const setRandomJwtSecret = model => {
-  model.jwtSecret = crypto.randomBytes(64).toString('hex');
+  model.jwtSecret = crypto.randomBytes(64).toString("hex");
 };
 
 const removeIdentifyingInfo = async (model, options) => {
@@ -166,8 +166,8 @@ const removeIdentifyingInfo = async (model, options) => {
   });
 
   model.email = null;
-  model.name = 'Unknown';
-  model.avatarUrl = '';
+  model.name = "Unknown";
+  model.avatarUrl = "";
   model.serviceId = null;
   model.username = null;
   model.slackData = null;
@@ -188,7 +188,7 @@ const checkLastAdmin = async model => {
 
     if (userCount > 1 && adminCount <= 1) {
       throw new ValidationError(
-        'Cannot delete account as only admin. Please transfer admin permissions to another user and try again.'
+        "Cannot delete account as only admin. Please transfer admin permissions to another user and try again."
       );
     }
   }
@@ -204,8 +204,8 @@ User.afterCreate(async user => {
   // From Slack support:
   // If you wish to contact users at an email address obtained through Slack,
   // you need them to opt-in through a clear and separate process.
-  if (user.service && user.service !== 'slack') {
-    sendEmail('welcome', user.email, { teamUrl: team.url });
+  if (user.service && user.service !== "slack") {
+    sendEmail("welcome", user.email, { teamUrl: team.url });
   }
 });
 
@@ -217,7 +217,7 @@ User.afterCreate(async (user, options) => {
       where: {
         userId: user.id,
         teamId: user.teamId,
-        event: 'documents.update',
+        event: "documents.update",
       },
       transaction: options.transaction,
     }),
@@ -225,7 +225,7 @@ User.afterCreate(async (user, options) => {
       where: {
         userId: user.id,
         teamId: user.teamId,
-        event: 'emails.onboarding',
+        event: "emails.onboarding",
       },
       transaction: options.transaction,
     }),

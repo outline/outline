@@ -1,12 +1,12 @@
 // @flow
-import semver from 'semver';
-import { type Context } from 'koa';
-import pkg from 'rich-markdown-editor/package.json';
-import { EditorUpdateError } from '../../errors';
+import semver from "semver";
+import { type Context } from "koa";
+import pkg from "rich-markdown-editor/package.json";
+import { EditorUpdateError } from "../../errors";
 
 export default function editor() {
   return async function editorMiddleware(ctx: Context, next: () => Promise<*>) {
-    const clientVersion = ctx.headers['x-editor-version'];
+    const clientVersion = ctx.headers["x-editor-version"];
 
     // If the editor version on the client is behind the current version being
     // served in production by either a minor (new features), or major (breaking

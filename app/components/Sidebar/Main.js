@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import styled from "styled-components";
 import {
   ArchiveIcon,
   HomeIcon,
@@ -10,25 +10,25 @@ import {
   StarredIcon,
   TrashIcon,
   PlusIcon,
-} from 'outline-icons';
+} from "outline-icons";
 
-import Flex from 'shared/components/Flex';
-import Modal from 'components/Modal';
-import Invite from 'scenes/Invite';
-import AccountMenu from 'menus/AccountMenu';
-import Sidebar from './Sidebar';
-import Scrollable from 'components/Scrollable';
-import Section from './components/Section';
-import Collections from './components/Collections';
-import SidebarLink from './components/SidebarLink';
-import HeaderBlock from './components/HeaderBlock';
-import Bubble from './components/Bubble';
+import Flex from "shared/components/Flex";
+import Modal from "components/Modal";
+import Invite from "scenes/Invite";
+import AccountMenu from "menus/AccountMenu";
+import Sidebar from "./Sidebar";
+import Scrollable from "components/Scrollable";
+import Section from "./components/Section";
+import Collections from "./components/Collections";
+import SidebarLink from "./components/SidebarLink";
+import HeaderBlock from "./components/HeaderBlock";
+import Bubble from "./components/Bubble";
 
-import AuthStore from 'stores/AuthStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import UiStore from 'stores/UiStore';
-import { observable } from 'mobx';
+import AuthStore from "stores/AuthStore";
+import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import { observable } from "mobx";
 
 type Props = {
   auth: AuthStore,
@@ -47,7 +47,7 @@ class MainSidebar extends React.Component<Props> {
 
   handleCreateCollection = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
-    this.props.ui.setActiveModal('collection-new');
+    this.props.ui.setActiveModal("collection-new");
   };
 
   handleInviteModalOpen = (ev: SyntheticEvent<>) => {
@@ -90,7 +90,7 @@ class MainSidebar extends React.Component<Props> {
               />
               <SidebarLink
                 to={{
-                  pathname: '/search',
+                  pathname: "/search",
                   state: { fromMenu: true },
                 }}
                 icon={<SearchIcon color="currentColor" />}
@@ -172,4 +172,4 @@ const Drafts = styled(Flex)`
   height: 24px;
 `;
 
-export default inject('documents', 'policies', 'auth', 'ui')(MainSidebar);
+export default inject("documents", "policies", "auth", "ui")(MainSidebar);

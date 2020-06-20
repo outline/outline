@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import { createGlobalStyle } from 'styled-components';
-import invariant from 'invariant';
-import importFile from 'utils/importFile';
-import Dropzone from 'react-dropzone';
-import DocumentsStore from 'stores/DocumentsStore';
-import LoadingIndicator from 'components/LoadingIndicator';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import { createGlobalStyle } from "styled-components";
+import invariant from "invariant";
+import importFile from "utils/importFile";
+import Dropzone from "react-dropzone";
+import DocumentsStore from "stores/DocumentsStore";
+import LoadingIndicator from "components/LoadingIndicator";
 
 const EMPTY_OBJECT = {};
 let importingLock = false;
@@ -56,7 +56,7 @@ class DropToImport extends React.Component<Props> {
 
       if (documentId && !collectionId) {
         const document = await this.props.documents.fetch(documentId);
-        invariant(document, 'Document not available');
+        invariant(document, "Document not available");
         collectionId = document.collectionId;
       }
 
@@ -110,4 +110,4 @@ class DropToImport extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(withRouter(DropToImport));
+export default inject("documents")(withRouter(DropToImport));

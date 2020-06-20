@@ -1,23 +1,23 @@
 // @flow
-import * as React from 'react';
-import { Link, withRouter, type RouterHistory } from 'react-router-dom';
-import { observable, action } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { CloseIcon } from 'outline-icons';
-import styled from 'styled-components';
-import Flex from 'shared/components/Flex';
-import Button from 'components/Button';
-import Input from 'components/Input';
-import CopyToClipboard from 'components/CopyToClipboard';
-import Checkbox from 'components/Checkbox';
-import HelpText from 'components/HelpText';
-import Tooltip from 'components/Tooltip';
-import NudeButton from 'components/NudeButton';
+import * as React from "react";
+import { Link, withRouter, type RouterHistory } from "react-router-dom";
+import { observable, action } from "mobx";
+import { inject, observer } from "mobx-react";
+import { CloseIcon } from "outline-icons";
+import styled from "styled-components";
+import Flex from "shared/components/Flex";
+import Button from "components/Button";
+import Input from "components/Input";
+import CopyToClipboard from "components/CopyToClipboard";
+import Checkbox from "components/Checkbox";
+import HelpText from "components/HelpText";
+import Tooltip from "components/Tooltip";
+import NudeButton from "components/NudeButton";
 
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import UsersStore from 'stores/UsersStore';
-import PoliciesStore from 'stores/PoliciesStore';
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import UsersStore from "stores/UsersStore";
+import PoliciesStore from "stores/PoliciesStore";
 
 const MAX_INVITES = 20;
 
@@ -42,9 +42,9 @@ class Invite extends React.Component<Props> {
   @observable linkCopied: boolean = false;
   @observable
   invites: InviteRequest[] = [
-    { email: '', name: '', guest: false },
-    { email: '', name: '', guest: false },
-    { email: '', name: '', guest: false },
+    { email: "", name: "", guest: false },
+    { email: "", name: "", guest: false },
+    { email: "", name: "", guest: false },
   ];
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
@@ -54,7 +54,7 @@ class Invite extends React.Component<Props> {
     try {
       await this.props.users.invite(this.invites);
       this.props.onSubmit();
-      this.props.ui.showToast('We sent out your invites!');
+      this.props.ui.showToast("We sent out your invites!");
     } catch (err) {
       this.props.ui.showToast(err.message);
     } finally {
@@ -80,7 +80,7 @@ class Invite extends React.Component<Props> {
       );
     }
 
-    this.invites.push({ email: '', name: '', guest: false });
+    this.invites.push({ email: "", name: "", guest: false });
   };
 
   @action
@@ -91,14 +91,14 @@ class Invite extends React.Component<Props> {
 
   handleCopy = () => {
     this.linkCopied = true;
-    this.props.ui.showToast('A link was copied to your clipboard');
+    this.props.ui.showToast("A link was copied to your clipboard");
   };
 
   render() {
     const { team, user } = this.props.auth;
     if (!team || !user) return null;
 
-    const predictedDomain = user.email.split('@')[1];
+    const predictedDomain = user.email.split("@")[1];
     const can = this.props.policies.abilities(team.id);
 
     return (
@@ -112,10 +112,10 @@ class Invite extends React.Component<Props> {
         ) : (
           <HelpText>
             Invite team members to join your knowledge base. They will need to
-            sign in with {team.signinMethods}.{' '}
+            sign in with {team.signinMethods}.{" "}
             {can.update && (
               <React.Fragment>
-                As an admin you can also{' '}
+                As an admin you can also{" "}
                 <Link to="/settings/security">enable guest invites</Link>.
               </React.Fragment>
             )}
@@ -128,7 +128,7 @@ class Invite extends React.Component<Props> {
               <Input type="text" value={team.url} readOnly flex />&nbsp;&nbsp;
               <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
                 <Button type="button" neutral>
-                  {this.linkCopied ? 'Link copied' : 'Copy link'}
+                  {this.linkCopied ? "Link copied" : "Copy link"}
                 </Button>
               </CopyToClipboard>
             </Flex>
@@ -165,7 +165,7 @@ class Invite extends React.Component<Props> {
                 <Tooltip
                   tooltip={
                     <span>
-                      Guests can sign in with email and <br />do not require{' '}
+                      Guests can sign in with email and <br />do not require{" "}
                       {team.signinMethods} accounts
                     </span>
                   }
@@ -210,7 +210,7 @@ class Invite extends React.Component<Props> {
             data-event-category="invite"
             data-event-action="sendInvites"
           >
-            {this.isSaving ? 'Inviting…' : 'Send Invites'}
+            {this.isSaving ? "Inviting…" : "Send Invites"}
           </Button>
         </Flex>
         <br />
@@ -219,7 +219,7 @@ class Invite extends React.Component<Props> {
   }
 }
 
-const CopyBlock = styled('div')`
+const CopyBlock = styled("div")`
   font-size: 14px;
   background: ${props => props.theme.secondaryBackground};
   padding: 8px 16px 4px;
@@ -232,16 +232,16 @@ const CopyBlock = styled('div')`
   }
 `;
 
-const Guest = styled('div')`
+const Guest = styled("div")`
   padding-top: 4px;
   margin: 0 4px 16px;
   align-self: flex-end;
 `;
 
-const Remove = styled('div')`
+const Remove = styled("div")`
   margin-top: 6px;
   position: absolute;
   right: -32px;
 `;
 
-export default inject('auth', 'users', 'policies', 'ui')(withRouter(Invite));
+export default inject("auth", "users", "policies", "ui")(withRouter(Invite));

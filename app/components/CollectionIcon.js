@@ -1,11 +1,11 @@
 // @flow
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
-import { getLuminance } from 'polished';
-import { PrivateCollectionIcon, CollectionIcon } from 'outline-icons';
-import Collection from 'models/Collection';
-import { icons } from 'components/IconPicker';
-import UiStore from 'stores/UiStore';
+import * as React from "react";
+import { inject, observer } from "mobx-react";
+import { getLuminance } from "polished";
+import { PrivateCollectionIcon, CollectionIcon } from "outline-icons";
+import Collection from "models/Collection";
+import { icons } from "components/IconPicker";
+import UiStore from "stores/UiStore";
 
 type Props = {
   collection: Collection,
@@ -18,18 +18,18 @@ function ResolvedCollectionIcon({ collection, expanded, size, ui }: Props) {
   // If the chosen icon color is very dark then we invert it in dark mode
   // otherwise it will be impossible to see against the dark background.
   const color =
-    ui.resolvedTheme === 'dark'
+    ui.resolvedTheme === "dark"
       ? getLuminance(collection.color) > 0.12
         ? collection.color
-        : 'currentColor'
+        : "currentColor"
       : collection.color;
 
-  if (collection.icon && collection.icon !== 'collection') {
+  if (collection.icon && collection.icon !== "collection") {
     try {
       const Component = icons[collection.icon].component;
       return <Component color={color} size={size} />;
     } catch (error) {
-      console.warn('Failed to render custom icon ' + collection.icon);
+      console.warn("Failed to render custom icon " + collection.icon);
     }
   }
 
@@ -42,4 +42,4 @@ function ResolvedCollectionIcon({ collection, expanded, size, ui }: Props) {
   return <CollectionIcon color={color} expanded={expanded} size={size} />;
 }
 
-export default inject('ui')(observer(ResolvedCollectionIcon));
+export default inject("ui")(observer(ResolvedCollectionIcon));

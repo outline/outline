@@ -1,12 +1,12 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import FilterOptions from './FilterOptions';
-import CollectionsStore from 'stores/CollectionsStore';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import FilterOptions from "./FilterOptions";
+import CollectionsStore from "stores/CollectionsStore";
 
 const defaultOption = {
   key: undefined,
-  label: 'Any collection',
+  label: "Any collection",
 };
 
 type Props = {
@@ -36,4 +36,4 @@ class CollectionFilter extends React.Component<Props> {
   }
 }
 
-export default inject('collections')(CollectionFilter);
+export default inject("collections")(CollectionFilter);

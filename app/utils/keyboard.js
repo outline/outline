@@ -1,3 +1,3 @@
 // @flow
 
-export const meta = window.navigator.platform === 'MacIntel' ? '⌘' : 'Ctrl';
+export const meta = window.navigator.platform === "MacIntel" ? "⌘" : "Ctrl";

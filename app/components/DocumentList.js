@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import Document from 'models/Document';
-import DocumentPreview from 'components/DocumentPreview';
-import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
+import * as React from "react";
+import Document from "models/Document";
+import DocumentPreview from "components/DocumentPreview";
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 
 type Props = {
   documents: Document[],

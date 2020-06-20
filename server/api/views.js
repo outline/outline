@@ -1,20 +1,20 @@
 // @flow
-import Router from 'koa-router';
-import auth from '../middlewares/authentication';
-import { presentView } from '../presenters';
-import { View, Document, Event } from '../models';
-import policy from '../policies';
+import Router from "koa-router";
+import auth from "../middlewares/authentication";
+import { presentView } from "../presenters";
+import { View, Document, Event } from "../models";
+import policy from "../policies";
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post('views.list', auth(), async ctx => {
+router.post("views.list", auth(), async ctx => {
   const { documentId } = ctx.body;
-  ctx.assertUuid(documentId, 'documentId is required');
+  ctx.assertUuid(documentId, "documentId is required");
 
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, { userId: user.id });
-  authorize(user, 'read', document);
+  authorize(user, "read", document);
 
   const views = await View.findByDocument(documentId);
 
@@ -23,18 +23,18 @@ router.post('views.list', auth(), async ctx => {
   };
 });
 
-router.post('views.create', auth(), async ctx => {
+router.post("views.create", auth(), async ctx => {
   const { documentId } = ctx.body;
-  ctx.assertUuid(documentId, 'documentId is required');
+  ctx.assertUuid(documentId, "documentId is required");
 
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, { userId: user.id });
-  authorize(user, 'read', document);
+  authorize(user, "read", document);
 
   const view = await View.increment({ documentId, userId: user.id });
 
   await Event.create({
-    name: 'views.create',
+    name: "views.create",
     actorId: user.id,
     documentId: document.id,
     collectionId: document.collectionId,

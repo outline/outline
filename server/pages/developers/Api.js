@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import Grid from 'styled-components-grid';
-import PageTitle from '../components/PageTitle';
-import Header from '../components/Header';
-import Content from '../components/Content';
+import * as React from "react";
+import styled from "styled-components";
+import Grid from "styled-components-grid";
+import PageTitle from "../components/PageTitle";
+import Header from "../components/Header";
+import Content from "../components/Content";
 
 export default function Api() {
   return (
@@ -386,7 +386,7 @@ export default function Api() {
             <Description>
               This method allows you to publish a new document under an existing
               collection. By default a document is set to the parent collection
-              root. If you want to create a subdocument, you can pass{' '}
+              root. If you want to create a subdocument, you can pass{" "}
               <Code>parentDocumentId</Code> to set parent document.
             </Description>
             <Arguments>
@@ -958,7 +958,7 @@ const Argument = (props: ArgumentProps) => (
       <Code>{props.id}</Code>
     </td>
     <td>
-      <i>{props.required ? 'required' : 'optional'}</i>
+      <i>{props.required ? "required" : "optional"}</i>
     </td>
     <td>{props.description}</td>
   </tr>

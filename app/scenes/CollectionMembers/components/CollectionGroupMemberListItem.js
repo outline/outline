@@ -1,15 +1,15 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import InputSelect from 'components/InputSelect';
-import GroupListItem from 'components/GroupListItem';
-import Group from 'models/Group';
-import CollectionGroupMembership from 'models/CollectionGroupMembership';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import * as React from "react";
+import styled from "styled-components";
+import InputSelect from "components/InputSelect";
+import GroupListItem from "components/GroupListItem";
+import Group from "models/Group";
+import CollectionGroupMembership from "models/CollectionGroupMembership";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 const PERMISSIONS = [
-  { label: 'Read only', value: 'read' },
-  { label: 'Read & Edit', value: 'read_write' },
+  { label: "Read only", value: "read" },
+  { label: "Read & Edit", value: "read_write" },
 ];
 type Props = {
   group: Group,

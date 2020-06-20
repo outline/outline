@@ -1,14 +1,14 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
+import { DataTypes, sequelize } from "../sequelize";
 
 const CollectionUser = sequelize.define(
-  'collection_user',
+  "collection_user",
   {
     permission: {
       type: DataTypes.STRING,
-      defaultValue: 'read_write',
+      defaultValue: "read_write",
       validate: {
-        isIn: [['read', 'read_write', 'maintainer']],
+        isIn: [["read", "read_write", "maintainer"]],
       },
     },
   },
@@ -19,16 +19,16 @@ const CollectionUser = sequelize.define(
 
 CollectionUser.associate = models => {
   CollectionUser.belongsTo(models.Collection, {
-    as: 'collection',
-    foreignKey: 'collectionId',
+    as: "collection",
+    foreignKey: "collectionId",
   });
   CollectionUser.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
+    as: "user",
+    foreignKey: "userId",
   });
   CollectionUser.belongsTo(models.User, {
-    as: 'createdBy',
-    foreignKey: 'createdById',
+    as: "createdBy",
+    foreignKey: "createdById",
   });
 };
 

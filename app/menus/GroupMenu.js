@@ -1,16 +1,16 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import Modal from 'components/Modal';
-import GroupEdit from 'scenes/GroupEdit';
-import GroupDelete from 'scenes/GroupDelete';
+import * as React from "react";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import Modal from "components/Modal";
+import GroupEdit from "scenes/GroupEdit";
+import GroupDelete from "scenes/GroupDelete";
 
-import Group from 'models/Group';
-import UiStore from 'stores/UiStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import Group from "models/Group";
+import UiStore from "stores/UiStore";
+import PoliciesStore from "stores/PoliciesStore";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
   ui: UiStore,
@@ -99,4 +99,4 @@ class GroupMenu extends React.Component<Props> {
   }
 }
 
-export default inject('policies')(withRouter(GroupMenu));
+export default inject("policies")(withRouter(GroupMenu));

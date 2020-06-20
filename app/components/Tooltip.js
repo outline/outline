@@ -1,12 +1,12 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import Tippy from '@tippy.js/react';
+import * as React from "react";
+import styled from "styled-components";
+import Tippy from "@tippy.js/react";
 
 type Props = {
   tooltip: React.Node,
   shortcut?: React.Node,
-  placement?: 'top' | 'bottom' | 'left' | 'right',
+  placement?: "top" | "bottom" | "left" | "right",
   children: React.Node,
   delay?: number,
   className?: string,
@@ -47,7 +47,7 @@ const Shortcut = styled.kbd`
 
   display: inline-block;
   padding: 2px 4px;
-  font: 10px 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier,
+  font: 10px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
     monospace;
   line-height: 10px;
   color: ${props => props.theme.tooltipBackground};

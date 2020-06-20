@@ -1,10 +1,10 @@
 // @flow
-import fs from 'fs';
-import JSZip from 'jszip';
-import tmp from 'tmp';
-import * as Sentry from '@sentry/node';
-import { Attachment, Collection, Document } from '../models';
-import { getImageByKey } from './s3';
+import fs from "fs";
+import JSZip from "jszip";
+import tmp from "tmp";
+import * as Sentry from "@sentry/node";
+import { Attachment, Collection, Document } from "../models";
+import { getImageByKey } from "./s3";
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
@@ -20,7 +20,7 @@ async function addToArchive(zip, documents) {
       text = text.replace(attachment.redirectUrl, encodeURI(attachment.key));
     }
 
-    zip.file(`${document.title || 'Untitled'}.md`, text);
+    zip.file(`${document.title || "Untitled"}.md`, text);
 
     if (doc.children && doc.children.length) {
       const folder = zip.folder(document.title);
@@ -44,14 +44,14 @@ async function addImageToArchive(zip, key) {
 
 async function archiveToPath(zip) {
   return new Promise((resolve, reject) => {
-    tmp.file({ prefix: 'export-', postfix: '.zip' }, (err, path) => {
+    tmp.file({ prefix: "export-", postfix: ".zip" }, (err, path) => {
       if (err) return reject(err);
 
       zip
-        .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
+        .generateNodeStream({ type: "nodebuffer", streamFiles: true })
         .pipe(fs.createWriteStream(path))
-        .on('finish', () => resolve(path))
-        .on('error', reject);
+        .on("finish", () => resolve(path))
+        .on("error", reject);
     });
   });
 }

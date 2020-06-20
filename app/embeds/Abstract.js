@@ -1,6 +1,6 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
 type Props = {|
   attrs: {|
@@ -11,8 +11,8 @@ type Props = {|
 
 export default class Abstract extends React.Component<Props> {
   static ENABLED = [
-    new RegExp('https?://share.(?:go)?abstract.com/(.*)$'),
-    new RegExp('https?://app.(?:go)?abstract.com/(?:share|embed)/(.*)$'),
+    new RegExp("https?://share.(?:go)?abstract.com/(.*)$"),
+    new RegExp("https?://app.(?:go)?abstract.com/(?:share|embed)/(.*)$"),
   ];
 
   render() {

@@ -1,14 +1,14 @@
 // @flow
-import { observable, action, computed, autorun, runInAction } from 'mobx';
-import invariant from 'invariant';
-import { getCookie, setCookie, removeCookie } from 'tiny-cookie';
-import { client } from 'utils/ApiClient';
-import { getCookieDomain } from 'shared/utils/domains';
-import RootStore from 'stores/RootStore';
-import User from 'models/User';
-import Team from 'models/Team';
+import { observable, action, computed, autorun, runInAction } from "mobx";
+import invariant from "invariant";
+import { getCookie, setCookie, removeCookie } from "tiny-cookie";
+import { client } from "utils/ApiClient";
+import { getCookieDomain } from "shared/utils/domains";
+import RootStore from "stores/RootStore";
+import User from "models/User";
+import Team from "models/Team";
 
-const AUTH_STORE = 'AUTH_STORE';
+const AUTH_STORE = "AUTH_STORE";
 
 export default class AuthStore {
   @observable user: ?User;
@@ -23,7 +23,7 @@ export default class AuthStore {
     // Rehydrate
     let data = {};
     try {
-      data = JSON.parse(localStorage.getItem(AUTH_STORE) || '{}');
+      data = JSON.parse(localStorage.getItem(AUTH_STORE) || "{}");
     } catch (_) {
       // no-op Safari private mode
     }
@@ -31,7 +31,7 @@ export default class AuthStore {
     this.rootStore = rootStore;
     this.user = new User(data.user);
     this.team = new Team(data.team);
-    this.token = getCookie('accessToken');
+    this.token = getCookie("accessToken");
 
     if (this.token) setImmediate(() => this.fetch());
 
@@ -66,10 +66,10 @@ export default class AuthStore {
   @action
   fetch = async () => {
     try {
-      const res = await client.post('/auth.info');
-      invariant(res && res.data, 'Auth not available');
+      const res = await client.post("/auth.info");
+      invariant(res && res.data, "Auth not available");
 
-      runInAction('AuthStore#fetch', () => {
+      runInAction("AuthStore#fetch", () => {
         this.addPolicies(res.policies);
         const { user, team } = res.data;
         this.user = new User(user);
@@ -78,20 +78,20 @@ export default class AuthStore {
         if (window.Sentry) {
           Sentry.configureScope(function(scope) {
             scope.setUser({ id: user.id });
-            scope.setExtra('team', team.name);
-            scope.setExtra('teamId', team.id);
+            scope.setExtra("team", team.name);
+            scope.setExtra("teamId", team.id);
           });
         }
 
         // If we came from a redirect then send the user immediately there
-        const postLoginRedirectPath = getCookie('postLoginRedirectPath');
+        const postLoginRedirectPath = getCookie("postLoginRedirectPath");
         if (postLoginRedirectPath) {
-          removeCookie('postLoginRedirectPath');
+          removeCookie("postLoginRedirectPath");
           window.location.href = postLoginRedirectPath;
         }
       });
     } catch (err) {
-      if (err.error === 'user_suspended') {
+      if (err.error === "user_suspended") {
         this.isSuspended = true;
         this.suspendedContactEmail = err.data.adminEmail;
       }
@@ -102,7 +102,7 @@ export default class AuthStore {
   deleteUser = async () => {
     await client.post(`/users.delete`, { confirmation: true });
 
-    runInAction('AuthStore#updateUser', () => {
+    runInAction("AuthStore#updateUser", () => {
       this.user = null;
       this.team = null;
       this.token = null;
@@ -115,9 +115,9 @@ export default class AuthStore {
 
     try {
       const res = await client.post(`/users.update`, params);
-      invariant(res && res.data, 'User response not available');
+      invariant(res && res.data, "User response not available");
 
-      runInAction('AuthStore#updateUser', () => {
+      runInAction("AuthStore#updateUser", () => {
         this.addPolicies(res.policies);
         this.user = res.data;
       });
@@ -136,9 +136,9 @@ export default class AuthStore {
 
     try {
       const res = await client.post(`/team.update`, params);
-      invariant(res && res.data, 'Team response not available');
+      invariant(res && res.data, "Team response not available");
 
-      runInAction('AuthStore#updateTeam', () => {
+      runInAction("AuthStore#updateTeam", () => {
         this.addPolicies(res.policies);
         this.team = new Team(res.data);
       });
@@ -161,19 +161,19 @@ export default class AuthStore {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
-      setCookie('postLoginRedirectPath', window.location.pathname);
+      setCookie("postLoginRedirectPath", window.location.pathname);
     }
 
     // remove authentication token itself
-    removeCookie('accessToken', { path: '/' });
+    removeCookie("accessToken", { path: "/" });
 
     // remove session record on apex cookie
     const team = this.team;
     if (team) {
-      const sessions = JSON.parse(getCookie('sessions') || '{}');
+      const sessions = JSON.parse(getCookie("sessions") || "{}");
       delete sessions[team.id];
 
-      setCookie('sessions', JSON.stringify(sessions), {
+      setCookie("sessions", JSON.stringify(sessions), {
         domain: getCookieDomain(window.location.hostname),
       });
       this.team = null;
