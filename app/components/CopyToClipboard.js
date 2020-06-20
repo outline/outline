@@ -1,6 +1,6 @@
 // @flow
-import * as React from 'react';
-import copy from 'copy-to-clipboard';
+import * as React from "react";
+import copy from "copy-to-clipboard";
 
 type Props = {
   text: string,
@@ -19,7 +19,7 @@ class CopyToClipboard extends React.PureComponent<Props> {
 
     if (onCopy) onCopy();
 
-    if (elem && elem.props && typeof elem.props.onClick === 'function') {
+    if (elem && elem.props && typeof elem.props.onClick === "function") {
       elem.props.onClick(ev);
     }
   };

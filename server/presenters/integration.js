@@ -1,5 +1,5 @@
 // @flow
-import { Integration } from '../models';
+import { Integration } from "../models";
 
 export default function present(integration: Integration) {
   return {

@@ -1,18 +1,18 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import styled from "styled-components";
 
-import AuthStore from 'stores/AuthStore';
-import UiStore from 'stores/UiStore';
-import ImageUpload from './components/ImageUpload';
-import Input, { LabelText } from 'components/Input';
-import Button from 'components/Button';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import UserDelete from 'scenes/UserDelete';
-import Flex from 'shared/components/Flex';
+import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
+import ImageUpload from "./components/ImageUpload";
+import Input, { LabelText } from "components/Input";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import UserDelete from "scenes/UserDelete";
+import Flex from "shared/components/Flex";
 
 type Props = {
   auth: AuthStore,
@@ -45,7 +45,7 @@ class Profile extends React.Component<Props> {
       name: this.name,
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast('Profile saved');
+    this.props.ui.showToast("Profile saved");
   };
 
   handleNameChange = (ev: SyntheticInputEvent<*>) => {
@@ -58,11 +58,11 @@ class Profile extends React.Component<Props> {
     await this.props.auth.updateUser({
       avatarUrl: this.avatarUrl,
     });
-    this.props.ui.showToast('Profile picture updated');
+    this.props.ui.showToast("Profile picture updated");
   };
 
   handleAvatarError = (error: ?string) => {
-    this.props.ui.showToast(error || 'Unable to upload new avatar');
+    this.props.ui.showToast(error || "Unable to upload new avatar");
   };
 
   toggleDeleteAccount = () => {
@@ -106,7 +106,7 @@ class Profile extends React.Component<Props> {
             short
           />
           <Button type="submit" disabled={isSaving || !this.isValid}>
-            {isSaving ? 'Saving…' : 'Save'}
+            {isSaving ? "Saving…" : "Save"}
           </Button>
         </form>
 
@@ -114,7 +114,7 @@ class Profile extends React.Component<Props> {
           <LabelText>Delete Account</LabelText>
           <p>
             You may delete your account at any time, note that this is
-            unrecoverable.{' '}
+            unrecoverable.{" "}
             <a onClick={this.toggleDeleteAccount}>Delete account</a>.
           </p>
         </DangerZone>
@@ -170,4 +170,4 @@ const Avatar = styled.img`
   ${avatarStyles};
 `;
 
-export default inject('auth', 'ui')(Profile);
+export default inject("auth", "ui")(Profile);

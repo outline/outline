@@ -1,20 +1,20 @@
 // @flow
-import * as React from 'react';
-import { observable, action } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import type { RouterHistory } from 'react-router-dom';
-import styled from 'styled-components';
-import { Waypoint } from 'react-waypoint';
-import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
+import * as React from "react";
+import { observable, action } from "mobx";
+import { observer, inject } from "mobx-react";
+import type { RouterHistory } from "react-router-dom";
+import styled from "styled-components";
+import { Waypoint } from "react-waypoint";
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 
-import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import RevisionsStore from 'stores/RevisionsStore';
+import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
+import DocumentsStore from "stores/DocumentsStore";
+import RevisionsStore from "stores/RevisionsStore";
 
-import Flex from 'shared/components/Flex';
-import { ListPlaceholder } from 'components/LoadingPlaceholder';
-import Revision from './components/Revision';
-import { documentHistoryUrl } from 'utils/routeHelpers';
+import Flex from "shared/components/Flex";
+import { ListPlaceholder } from "components/LoadingPlaceholder";
+import Revision from "./components/Revision";
+import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
   match: Object,
@@ -146,4 +146,4 @@ const Sidebar = styled(Flex)`
   z-index: 1;
 `;
 
-export default inject('documents', 'revisions')(DocumentHistory);
+export default inject("documents", "revisions")(DocumentHistory);

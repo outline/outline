@@ -1,5 +1,5 @@
 // @flow
-import { NotificationSetting } from '../models';
+import { NotificationSetting } from "../models";
 
 export default function present(setting: NotificationSetting) {
   return {

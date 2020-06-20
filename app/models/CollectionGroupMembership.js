@@ -1,6 +1,6 @@
 // @flow
-import { computed } from 'mobx';
-import BaseModel from './BaseModel';
+import { computed } from "mobx";
+import BaseModel from "./BaseModel";
 
 class CollectionGroupMembership extends BaseModel {
   id: string;
@@ -10,12 +10,12 @@ class CollectionGroupMembership extends BaseModel {
 
   @computed
   get isEditor(): boolean {
-    return this.permission === 'read_write';
+    return this.permission === "read_write";
   }
 
   @computed
   get isMaintainer(): boolean {
-    return this.permission === 'maintainer';
+    return this.permission === "maintainer";
   }
 }
 

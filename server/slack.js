@@ -1,9 +1,9 @@
 // @flow
-import fetch from 'isomorphic-fetch';
-import querystring from 'querystring';
-import { InvalidRequestError } from './errors';
+import fetch from "isomorphic-fetch";
+import querystring from "querystring";
+import { InvalidRequestError } from "./errors";
 
-const SLACK_API_URL = 'https://slack.com/api';
+const SLACK_API_URL = "https://slack.com/api";
 
 export async function post(endpoint: string, body: Object) {
   let data;
@@ -11,10 +11,10 @@ export async function post(endpoint: string, body: Object) {
   const token = body.token;
   try {
     const response = await fetch(`${SLACK_API_URL}/${endpoint}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
     });
@@ -44,9 +44,9 @@ export async function request(endpoint: string, body: Object) {
 
 export async function oauthAccess(
   code: string,
-  redirect_uri: string = `${process.env.URL || ''}/auth/slack.callback`
+  redirect_uri: string = `${process.env.URL || ""}/auth/slack.callback`
 ) {
-  return request('oauth.access', {
+  return request("oauth.access", {
     client_id: process.env.SLACK_KEY,
     client_secret: process.env.SLACK_SECRET,
     redirect_uri,

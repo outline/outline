@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import { darken } from 'polished';
-import { fadeAndScaleIn } from 'shared/styles/animations';
-import type { Toast as TToast } from '../../../types';
+import * as React from "react";
+import styled from "styled-components";
+import { darken } from "polished";
+import { fadeAndScaleIn } from "shared/styles/animations";
+import type { Toast as TToast } from "../../../types";
 
 type Props = {
   onRequestClose: () => void,
@@ -33,7 +33,7 @@ class Toast extends React.Component<Props> {
     const { toast, onRequestClose } = this.props;
     const { action } = toast;
     const message =
-      typeof toast.message === 'string'
+      typeof toast.message === "string"
         ? toast.message
         : toast.message.toString();
 
@@ -41,11 +41,11 @@ class Toast extends React.Component<Props> {
       <li>
         <Container
           onClick={action ? undefined : onRequestClose}
-          type={toast.type || 'success'}
+          type={toast.type || "success"}
         >
           <Message>{message}</Message>
           {action && (
-            <Action type={toast.type || 'success'} onClick={action.onClick}>
+            <Action type={toast.type || "success"} onClick={action.onClick}>
               {action.text}
             </Action>
           )}

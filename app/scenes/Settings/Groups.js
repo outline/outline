@@ -1,27 +1,27 @@
 // @flow
-import * as React from 'react';
-import invariant from 'invariant';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { PlusIcon } from 'outline-icons';
+import * as React from "react";
+import invariant from "invariant";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 
-import Empty from 'components/Empty';
-import { ListPlaceholder } from 'components/LoadingPlaceholder';
-import Modal from 'components/Modal';
-import Button from 'components/Button';
-import GroupNew from 'scenes/GroupNew';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
-import GroupListItem from 'components/GroupListItem';
-import List from 'components/List';
-import Tabs from 'components/Tabs';
-import Tab from 'components/Tab';
-import GroupMenu from 'menus/GroupMenu';
+import Empty from "components/Empty";
+import { ListPlaceholder } from "components/LoadingPlaceholder";
+import Modal from "components/Modal";
+import Button from "components/Button";
+import GroupNew from "scenes/GroupNew";
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import HelpText from "components/HelpText";
+import GroupListItem from "components/GroupListItem";
+import List from "components/List";
+import Tabs from "components/Tabs";
+import Tab from "components/Tab";
+import GroupMenu from "menus/GroupMenu";
 
-import AuthStore from 'stores/AuthStore';
-import GroupsStore from 'stores/GroupsStore';
-import PoliciesStore from 'stores/PoliciesStore';
+import AuthStore from "stores/AuthStore";
+import GroupsStore from "stores/GroupsStore";
+import PoliciesStore from "stores/PoliciesStore";
 
 type Props = {
   auth: AuthStore,
@@ -51,8 +51,8 @@ class Groups extends React.Component<Props> {
     const currentUser = auth.user;
     const team = auth.team;
 
-    invariant(currentUser, 'User should exist');
-    invariant(team, 'Team should exist');
+    invariant(currentUser, "User should exist");
+    invariant(team, "Team should exist");
 
     const showLoading = groups.isFetching && !groups.orderedData.length;
     const showEmpty = groups.isLoaded && !groups.orderedData.length;
@@ -111,4 +111,4 @@ class Groups extends React.Component<Props> {
   }
 }
 
-export default inject('auth', 'groups', 'policies')(Groups);
+export default inject("auth", "groups", "policies")(Groups);

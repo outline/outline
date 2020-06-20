@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import { darken } from 'polished';
-import breakpoint from 'styled-components-breakpoint';
-import useWindowScrollPosition from '@rehooks/window-scroll-position';
-import HelpText from 'components/HelpText';
-import styled from 'styled-components';
+import * as React from "react";
+import { darken } from "polished";
+import breakpoint from "styled-components-breakpoint";
+import useWindowScrollPosition from "@rehooks/window-scroll-position";
+import HelpText from "components/HelpText";
+import styled from "styled-components";
 
 const HEADING_OFFSET = 20;
 
@@ -72,7 +72,7 @@ export default function Contents({ headings }: Props) {
   );
 }
 
-const Wrapper = styled('div')`
+const Wrapper = styled("div")`
   display: none;
   position: sticky;
   top: 80px;
@@ -82,16 +82,16 @@ const Wrapper = styled('div')`
   margin-right: 2em;
   min-height: 40px;
 
-  ${breakpoint('desktopLarge')`
+  ${breakpoint("desktopLarge")`
     margin-left: -16em;
   `};
 
-  ${breakpoint('tablet')`
+  ${breakpoint("tablet")`
     display: block;
   `};
 `;
 
-const Heading = styled('h3')`
+const Heading = styled("h3")`
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -107,16 +107,16 @@ const Empty = styled(HelpText)`
   font-size: 14px;
 `;
 
-const ListItem = styled('li')`
+const ListItem = styled("li")`
   margin-left: ${props => (props.level - 1) * 10}px;
   margin-bottom: 8px;
   padding-right: 2em;
   line-height: 1.3;
   border-right: 3px solid
-    ${props => (props.active ? props.theme.textSecondary : 'transparent')};
+    ${props => (props.active ? props.theme.textSecondary : "transparent")};
 `;
 
-const Link = styled('a')`
+const Link = styled("a")`
   color: ${props => props.theme.text};
   font-size: 14px;
 
@@ -125,7 +125,7 @@ const Link = styled('a')`
   }
 `;
 
-const List = styled('ol')`
+const List = styled("ol")`
   min-width: 14em;
   width: 14em;
   padding: 0;

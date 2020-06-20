@@ -1,9 +1,9 @@
 // @flow
-import crypto from 'crypto';
-import { DataTypes, sequelize } from '../sequelize';
+import crypto from "crypto";
+import { DataTypes, sequelize } from "../sequelize";
 
 const NotificationSetting = sequelize.define(
-  'notification_setting',
+  "notification_setting",
   {
     id: {
       type: DataTypes.UUID,
@@ -15,11 +15,11 @@ const NotificationSetting = sequelize.define(
       validate: {
         isIn: [
           [
-            'documents.publish',
-            'documents.update',
-            'collections.create',
-            'emails.onboarding',
-            'emails.features',
+            "documents.publish",
+            "documents.update",
+            "collections.create",
+            "emails.onboarding",
+            "emails.features",
           ],
         ],
       },
@@ -43,20 +43,20 @@ const NotificationSetting = sequelize.define(
 );
 
 NotificationSetting.getUnsubscribeToken = userId => {
-  const hash = crypto.createHash('sha256');
+  const hash = crypto.createHash("sha256");
   hash.update(`${userId}-${process.env.SECRET_KEY}`);
-  return hash.digest('hex');
+  return hash.digest("hex");
 };
 
 NotificationSetting.associate = models => {
   NotificationSetting.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
-    onDelete: 'cascade',
+    as: "user",
+    foreignKey: "userId",
+    onDelete: "cascade",
   });
   NotificationSetting.belongsTo(models.Team, {
-    as: 'team',
-    foreignKey: 'teamId',
+    as: "team",
+    foreignKey: "teamId",
   });
 };
 

@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import { inject } from 'mobx-react';
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import { inject } from "mobx-react";
 
-import CopyToClipboard from 'components/CopyToClipboard';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import { documentHistoryUrl } from 'utils/routeHelpers';
-import Revision from 'models/Revision';
-import Document from 'models/Document';
-import UiStore from 'stores/UiStore';
+import CopyToClipboard from "components/CopyToClipboard";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import { documentHistoryUrl } from "utils/routeHelpers";
+import Revision from "models/Revision";
+import Document from "models/Document";
+import UiStore from "stores/UiStore";
 
 type Props = {
   onOpen?: () => void,
@@ -25,12 +25,12 @@ class RevisionMenu extends React.Component<Props> {
   handleRestore = async (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     await this.props.document.restore(this.props.revision);
-    this.props.ui.showToast('Document restored');
+    this.props.ui.showToast("Document restored");
     this.props.history.push(this.props.document.url);
   };
 
   handleCopy = () => {
-    this.props.ui.showToast('Link copied');
+    this.props.ui.showToast("Link copied");
   };
 
   render() {
@@ -59,4 +59,4 @@ class RevisionMenu extends React.Component<Props> {
   }
 }
 
-export default withRouter(inject('ui')(RevisionMenu));
+export default withRouter(inject("ui")(RevisionMenu));

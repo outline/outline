@@ -1,13 +1,13 @@
 // @flow
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
-import styled from 'styled-components';
-import Document from 'models/Document';
-import Flex from 'shared/components/Flex';
-import Time from 'shared/components/Time';
-import Breadcrumb from 'shared/components/Breadcrumb';
-import CollectionsStore from 'stores/CollectionsStore';
-import AuthStore from 'stores/AuthStore';
+import * as React from "react";
+import { inject, observer } from "mobx-react";
+import styled from "styled-components";
+import Document from "models/Document";
+import Flex from "shared/components/Flex";
+import Time from "shared/components/Time";
+import Breadcrumb from "shared/components/Breadcrumb";
+import CollectionsStore from "stores/CollectionsStore";
+import AuthStore from "stores/AuthStore";
 
 const Container = styled(Flex)`
   color: ${props => props.theme.textTertiary};
@@ -19,7 +19,7 @@ const Container = styled(Flex)`
 const Modified = styled.span`
   color: ${props =>
     props.highlight ? props.theme.text : props.theme.textTertiary};
-  font-weight: ${props => (props.highlight ? '600' : '400')};
+  font-weight: ${props => (props.highlight ? "600" : "400")};
 `;
 
 type Props = {
@@ -102,7 +102,7 @@ function PublishingInfo({
 
   return (
     <Container align="center" {...rest}>
-      {updatedByMe ? 'You' : updatedBy.name}&nbsp;
+      {updatedByMe ? "You" : updatedBy.name}&nbsp;
       {content}
       {showCollection &&
         collection && (
@@ -118,4 +118,4 @@ function PublishingInfo({
   );
 }
 
-export default inject('collections', 'auth')(observer(PublishingInfo));
+export default inject("collections", "auth")(observer(PublishingInfo));

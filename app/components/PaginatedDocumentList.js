@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import Document from 'models/Document';
-import DocumentPreview from 'components/DocumentPreview';
-import PaginatedList from 'components/PaginatedList';
+import * as React from "react";
+import { observer } from "mobx-react";
+import Document from "models/Document";
+import DocumentPreview from "components/DocumentPreview";
+import PaginatedList from "components/PaginatedList";
 
 type Props = {
   documents: Document[],

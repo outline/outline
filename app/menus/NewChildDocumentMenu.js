@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import { Redirect } from 'react-router-dom';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { MoreIcon } from 'outline-icons';
+import * as React from "react";
+import { Redirect } from "react-router-dom";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { MoreIcon } from "outline-icons";
 
-import { newDocumentUrl } from 'utils/routeHelpers';
-import Document from 'models/Document';
-import CollectionsStore from 'stores/CollectionsStore';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import { newDocumentUrl } from "utils/routeHelpers";
+import Document from "models/Document";
+import CollectionsStore from "stores/CollectionsStore";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
   label?: React.Node,
@@ -44,8 +44,8 @@ class NewChildDocumentMenu extends React.Component<Props> {
       <DropdownMenu label={label || <MoreIcon />} {...rest}>
         <DropdownMenuItem onClick={this.handleNewDocument}>
           <span>
-            New document in{' '}
-            <strong>{collection ? collection.name : 'collection'}</strong>
+            New document in{" "}
+            <strong>{collection ? collection.name : "collection"}</strong>
           </span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={this.handleNewChild}>
@@ -56,4 +56,4 @@ class NewChildDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject('collections')(NewChildDocumentMenu);
+export default inject("collections")(NewChildDocumentMenu);

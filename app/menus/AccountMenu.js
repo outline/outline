@@ -1,16 +1,16 @@
 // @flow
-import * as React from 'react';
-import { Link } from 'react-router-dom';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { SunIcon, MoonIcon } from 'outline-icons';
-import styled from 'styled-components';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import Flex from 'shared/components/Flex';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import Modal from 'components/Modal';
-import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
+import * as React from "react";
+import { Link } from "react-router-dom";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { SunIcon, MoonIcon } from "outline-icons";
+import styled from "styled-components";
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import Flex from "shared/components/Flex";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Modal from "components/Modal";
+import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import {
   developers,
   changelog,
@@ -18,7 +18,7 @@ import {
   mailToUrl,
   spectrumUrl,
   settings,
-} from '../../shared/utils/routeHelpers';
+} from "../../shared/utils/routeHelpers";
 
 type Props = {
   label: React.Node,
@@ -85,34 +85,34 @@ class AccountMenu extends React.Component<Props> {
             position="right"
             style={{
               left: 170,
-              position: 'relative',
+              position: "relative",
               top: -34,
             }}
             label={
               <DropdownMenuItem>
                 <ChangeTheme justify="space-between">
                   Appearance
-                  {ui.resolvedTheme === 'light' ? <SunIcon /> : <MoonIcon />}
+                  {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
                 </ChangeTheme>
               </DropdownMenuItem>
             }
             hover
           >
             <DropdownMenuItem
-              onClick={() => ui.setTheme('system')}
-              selected={ui.theme === 'system'}
+              onClick={() => ui.setTheme("system")}
+              selected={ui.theme === "system"}
             >
               System
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => ui.setTheme('light')}
-              selected={ui.theme === 'light'}
+              onClick={() => ui.setTheme("light")}
+              selected={ui.theme === "light"}
             >
               Light
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => ui.setTheme('dark')}
-              selected={ui.theme === 'dark'}
+              onClick={() => ui.setTheme("dark")}
+              selected={ui.theme === "dark"}
             >
               Dark
             </DropdownMenuItem>
@@ -131,4 +131,4 @@ const ChangeTheme = styled(Flex)`
   width: 100%;
 `;
 
-export default inject('ui', 'auth')(AccountMenu);
+export default inject("ui", "auth")(AccountMenu);

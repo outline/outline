@@ -1,6 +1,6 @@
 // @flow
-import * as React from 'react';
-import { Helmet } from 'react-helmet';
+import * as React from "react";
+import { Helmet } from "react-helmet";
 
 function PageTitle({ title }: { title: string }) {
   return (

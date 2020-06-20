@@ -1,13 +1,13 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import HelpText from 'components/HelpText';
-import Button from 'components/Button';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import { githubIssuesUrl } from '../../shared/utils/routeHelpers';
+import * as React from "react";
+import styled from "styled-components";
+import { observer } from "mobx-react";
+import { observable } from "mobx";
+import HelpText from "components/HelpText";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
 
 type Props = {
   children: React.Node,
@@ -49,12 +49,12 @@ class ErrorBoundary extends React.Component<Props> {
           <h1>Something Unexpected Happened</h1>
           <HelpText>
             Sorry, an unrecoverable error occurred{isReported &&
-              ' – our engineers have been notified'}. Please try reloading the
+              " – our engineers have been notified"}. Please try reloading the
             page, it may have been a temporary glitch.
           </HelpText>
           {this.showDetails && <Pre>{this.error.toString()}</Pre>}
           <p>
-            <Button onClick={this.handleReload}>Reload</Button>{' '}
+            <Button onClick={this.handleReload}>Reload</Button>{" "}
             {this.showDetails ? (
               <Button onClick={this.handleReportBug} neutral>
                 Report a Bug…

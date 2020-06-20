@@ -1,7 +1,7 @@
 // @flow
-import { action } from 'mobx';
-import BaseModel from './BaseModel';
-import User from './User';
+import { action } from "mobx";
+import BaseModel from "./BaseModel";
+import User from "./User";
 
 class View extends BaseModel {
   id: string;

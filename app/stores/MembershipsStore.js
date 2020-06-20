@@ -1,14 +1,14 @@
 // @flow
-import invariant from 'invariant';
-import { action, runInAction } from 'mobx';
-import { client } from 'utils/ApiClient';
-import BaseStore from './BaseStore';
-import RootStore from './RootStore';
-import Membership from 'models/Membership';
-import type { PaginationParams } from 'types';
+import invariant from "invariant";
+import { action, runInAction } from "mobx";
+import { client } from "utils/ApiClient";
+import BaseStore from "./BaseStore";
+import RootStore from "./RootStore";
+import Membership from "models/Membership";
+import type { PaginationParams } from "types";
 
 export default class MembershipsStore extends BaseStore<Membership> {
-  actions = ['create', 'delete'];
+  actions = ["create", "delete"];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Membership);
@@ -21,7 +21,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
     try {
       const res = await client.post(`/collections.memberships`, params);
 
-      invariant(res && res.data, 'Data not available');
+      invariant(res && res.data, "Data not available");
 
       runInAction(`/collections.memberships`, () => {
         res.data.users.forEach(this.rootStore.users.add);
@@ -44,12 +44,12 @@ export default class MembershipsStore extends BaseStore<Membership> {
     userId: string,
     permission: string,
   }) {
-    const res = await client.post('/collections.add_user', {
+    const res = await client.post("/collections.add_user", {
       id: collectionId,
       userId,
       permission,
     });
-    invariant(res && res.data, 'Membership data should be available');
+    invariant(res && res.data, "Membership data should be available");
 
     res.data.users.forEach(this.rootStore.users.add);
     res.data.memberships.forEach(this.add);
@@ -63,7 +63,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
     collectionId: string,
     userId: string,
   }) {
-    await client.post('/collections.remove_user', {
+    await client.post("/collections.remove_user", {
       id: collectionId,
       userId,
     });

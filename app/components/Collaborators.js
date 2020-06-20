@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import { sortBy, keyBy } from 'lodash';
-import { MAX_AVATAR_DISPLAY } from 'shared/constants';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import { sortBy, keyBy } from "lodash";
+import { MAX_AVATAR_DISPLAY } from "shared/constants";
 
-import { AvatarWithPresence } from 'components/Avatar';
-import Facepile from 'components/Facepile';
-import Document from 'models/Document';
-import ViewsStore from 'stores/ViewsStore';
-import DocumentPresenceStore from 'stores/DocumentPresenceStore';
+import { AvatarWithPresence } from "components/Avatar";
+import Facepile from "components/Facepile";
+import Document from "models/Document";
+import ViewsStore from "stores/ViewsStore";
+import DocumentPresenceStore from "stores/DocumentPresenceStore";
 
 type Props = {
   views: ViewsStore,
@@ -73,4 +73,4 @@ class Collaborators extends React.Component<Props> {
   }
 }
 
-export default inject('views', 'presence')(Collaborators);
+export default inject("views", "presence")(Collaborators);

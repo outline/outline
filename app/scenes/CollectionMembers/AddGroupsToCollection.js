@@ -1,23 +1,23 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import { inject, observer } from 'mobx-react';
-import { observable } from 'mobx';
-import { debounce } from 'lodash';
-import Button from 'components/Button';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import Input from 'components/Input';
-import Modal from 'components/Modal';
-import Empty from 'components/Empty';
-import PaginatedList from 'components/PaginatedList';
-import GroupNew from 'scenes/GroupNew';
-import Collection from 'models/Collection';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import GroupsStore from 'stores/GroupsStore';
-import CollectionGroupMembershipsStore from 'stores/CollectionGroupMembershipsStore';
-import GroupListItem from 'components/GroupListItem';
+import * as React from "react";
+import styled from "styled-components";
+import { inject, observer } from "mobx-react";
+import { observable } from "mobx";
+import { debounce } from "lodash";
+import Button from "components/Button";
+import Flex from "shared/components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import Modal from "components/Modal";
+import Empty from "components/Empty";
+import PaginatedList from "components/PaginatedList";
+import GroupNew from "scenes/GroupNew";
+import Collection from "models/Collection";
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import GroupsStore from "stores/GroupsStore";
+import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
+import GroupListItem from "components/GroupListItem";
 
 type Props = {
   ui: UiStore,
@@ -31,7 +31,7 @@ type Props = {
 @observer
 class AddGroupsToCollection extends React.Component<Props> {
   @observable newGroupModalOpen: boolean = false;
-  @observable query: string = '';
+  @observable query: string = "";
 
   handleNewGroupModalOpen = () => {
     this.newGroupModalOpen = true;
@@ -57,11 +57,11 @@ class AddGroupsToCollection extends React.Component<Props> {
       this.props.collectionGroupMemberships.create({
         collectionId: this.props.collection.id,
         groupId: group.id,
-        permission: 'read_write',
+        permission: "read_write",
       });
       this.props.ui.showToast(`${group.name} was added to the collection`);
     } catch (err) {
-      this.props.ui.showToast('Could not add user');
+      this.props.ui.showToast("Could not add user");
       console.error(err);
     }
   };
@@ -74,7 +74,7 @@ class AddGroupsToCollection extends React.Component<Props> {
     return (
       <Flex column>
         <HelpText>
-          Can’t find the group you’re looking for?{' '}
+          Can’t find the group you’re looking for?{" "}
           <a role="button" onClick={this.handleNewGroupModalOpen}>
             Create a group
           </a>.
@@ -130,6 +130,6 @@ const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
 
-export default inject('auth', 'groups', 'collectionGroupMemberships', 'ui')(
+export default inject("auth", "groups", "collectionGroupMemberships", "ui")(
   AddGroupsToCollection
 );

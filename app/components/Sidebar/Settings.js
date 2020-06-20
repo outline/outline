@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import type { RouterHistory } from 'react-router-dom';
-import styled from 'styled-components';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import type { RouterHistory } from "react-router-dom";
+import styled from "styled-components";
 import {
   DocumentIcon,
   EmailIcon,
@@ -15,20 +15,20 @@ import {
   TeamIcon,
   BulletedListIcon,
   ExpandedIcon,
-} from 'outline-icons';
-import ZapierIcon from './icons/Zapier';
-import SlackIcon from './icons/Slack';
+} from "outline-icons";
+import ZapierIcon from "./icons/Zapier";
+import SlackIcon from "./icons/Slack";
 
-import Flex from 'shared/components/Flex';
-import Sidebar from './Sidebar';
-import Scrollable from 'components/Scrollable';
-import Section from './components/Section';
-import Header from './components/Header';
-import SidebarLink from './components/SidebarLink';
-import HeaderBlock from './components/HeaderBlock';
-import Version from './components/Version';
-import PoliciesStore from 'stores/PoliciesStore';
-import AuthStore from 'stores/AuthStore';
+import Flex from "shared/components/Flex";
+import Sidebar from "./Sidebar";
+import Scrollable from "components/Scrollable";
+import Section from "./components/Section";
+import Header from "./components/Header";
+import SidebarLink from "./components/SidebarLink";
+import HeaderBlock from "./components/HeaderBlock";
+import Version from "./components/Version";
+import PoliciesStore from "stores/PoliciesStore";
+import AuthStore from "stores/AuthStore";
 
 type Props = {
   history: RouterHistory,
@@ -39,7 +39,7 @@ type Props = {
 @observer
 class SettingsSidebar extends React.Component<Props> {
   returnToDashboard = () => {
-    this.props.history.push('/');
+    this.props.history.push("/");
   };
 
   render() {
@@ -146,7 +146,7 @@ class SettingsSidebar extends React.Component<Props> {
               </Section>
             )}
             {can.update &&
-              process.env.DEPLOYMENT !== 'hosted' && (
+              process.env.DEPLOYMENT !== "hosted" && (
                 <Section>
                   <Header>Installation</Header>
                   <Version />
@@ -168,4 +168,4 @@ const ReturnToApp = styled(Flex)`
   height: 16px;
 `;
 
-export default inject('auth', 'policies')(SettingsSidebar);
+export default inject("auth", "policies")(SettingsSidebar);

@@ -1,5 +1,5 @@
 // @flow
-import { set, observable } from 'mobx';
+import { set, observable } from "mobx";
 
 export default class BaseModel {
   @observable id: string;

@@ -1,3 +1,3 @@
 // @flow
-import DocumentHistory from './DocumentHistory';
+import DocumentHistory from "./DocumentHistory";
 export default DocumentHistory;

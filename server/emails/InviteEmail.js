@@ -1,12 +1,12 @@
 // @flow
-import * as React from 'react';
-import EmailTemplate from './components/EmailLayout';
-import Body from './components/Body';
-import Button from './components/Button';
-import Heading from './components/Heading';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import EmptySpace from './components/EmptySpace';
+import * as React from "react";
+import EmailTemplate from "./components/EmailLayout";
+import Body from "./components/Body";
+import Button from "./components/Button";
+import Heading from "./components/Heading";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import EmptySpace from "./components/EmptySpace";
 
 export type Props = {
   name: string,
@@ -30,7 +30,7 @@ ${actorName} (${
   actorEmail
 }) has invited you to join Outline, a place for your team to build and share knowledge.
 
-Join now: ${teamUrl}${guest ? '?guest=true' : ''}
+Join now: ${teamUrl}${guest ? "?guest=true" : ""}
 `;
 
 export const InviteEmail = ({
@@ -52,7 +52,7 @@ export const InviteEmail = ({
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${teamUrl}${guest ? '?guest=true' : ''}`}>
+          <Button href={`${teamUrl}${guest ? "?guest=true" : ""}`}>
             Join now
           </Button>
         </p>

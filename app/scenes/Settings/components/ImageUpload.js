@@ -1,16 +1,16 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
-import Dropzone from 'react-dropzone';
-import LoadingIndicator from 'components/LoadingIndicator';
-import Flex from 'shared/components/Flex';
-import Modal from 'components/Modal';
-import Button from 'components/Button';
-import AvatarEditor from 'react-avatar-editor';
-import { uploadFile, dataUrlToBlob } from 'utils/uploadFile';
-import UiStore from 'stores/UiStore';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import styled from "styled-components";
+import Dropzone from "react-dropzone";
+import LoadingIndicator from "components/LoadingIndicator";
+import Flex from "shared/components/Flex";
+import Modal from "components/Modal";
+import Button from "components/Button";
+import AvatarEditor from "react-avatar-editor";
+import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
+import UiStore from "stores/UiStore";
 
 type Props = {
   children?: React.Node,
@@ -30,7 +30,7 @@ class ImageUpload extends React.Component<Props> {
   avatarEditorRef: AvatarEditor;
 
   static defaultProps = {
-    submitText: 'Crop Picture',
+    submitText: "Crop Picture",
     borderRadius: 150,
   };
 
@@ -92,7 +92,7 @@ class ImageUpload extends React.Component<Props> {
               border={25}
               borderRadius={this.props.borderRadius}
               color={
-                ui.theme === 'light' ? [255, 255, 255, 0.6] : [0, 0, 0, 0.6]
+                ui.theme === "light" ? [255, 255, 255, 0.6] : [0, 0, 0, 0.6]
               } // RGBA
               scale={this.zoom}
               rotate={0}
@@ -107,7 +107,7 @@ class ImageUpload extends React.Component<Props> {
             onChange={this.handleZoom}
           />
           <CropButton onClick={this.handleCrop} disabled={this.isUploading}>
-            {this.isUploading ? 'Uploading…' : submitText}
+            {this.isUploading ? "Uploading…" : submitText}
           </CropButton>
         </Flex>
       </Modal>
@@ -167,4 +167,4 @@ const CropButton = styled(Button)`
   width: 300px;
 `;
 
-export default inject('ui')(ImageUpload);
+export default inject("ui")(ImageUpload);

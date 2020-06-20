@@ -1,7 +1,7 @@
 // @flow
-import styled from 'styled-components';
-import breakpoint from 'styled-components-breakpoint';
-import Flex from 'shared/components/Flex';
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import Flex from "shared/components/Flex";
 
 export const Action = styled(Flex)`
   justify-content: center;
@@ -40,7 +40,7 @@ const Actions = styled(Flex)`
     display: none;
   }
 
-  ${breakpoint('tablet')`
+  ${breakpoint("tablet")`
     left: auto;
     padding: 24px;
   `};

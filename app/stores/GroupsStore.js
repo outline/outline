@@ -1,13 +1,13 @@
 // @flow
-import BaseStore from './BaseStore';
-import RootStore from './RootStore';
-import naturalSort from 'shared/utils/naturalSort';
-import Group from 'models/Group';
-import { client } from 'utils/ApiClient';
-import invariant from 'invariant';
-import { filter } from 'lodash';
-import { action, runInAction, computed } from 'mobx';
-import type { PaginationParams } from 'types';
+import BaseStore from "./BaseStore";
+import RootStore from "./RootStore";
+import naturalSort from "shared/utils/naturalSort";
+import Group from "models/Group";
+import { client } from "utils/ApiClient";
+import invariant from "invariant";
+import { filter } from "lodash";
+import { action, runInAction, computed } from "mobx";
+import type { PaginationParams } from "types";
 
 export default class GroupsStore extends BaseStore<Group> {
   constructor(rootStore: RootStore) {
@@ -16,7 +16,7 @@ export default class GroupsStore extends BaseStore<Group> {
 
   @computed
   get orderedData(): Group[] {
-    return naturalSort(Array.from(this.data.values()), 'name');
+    return naturalSort(Array.from(this.data.values()), "name");
   }
 
   @action
@@ -26,7 +26,7 @@ export default class GroupsStore extends BaseStore<Group> {
     try {
       const res = await client.post(`/groups.list`, params);
 
-      invariant(res && res.data, 'Data not available');
+      invariant(res && res.data, "Data not available");
 
       runInAction(`GroupsStore#fetchPage`, () => {
         this.addPolicies(res.policies);
@@ -54,7 +54,7 @@ export default class GroupsStore extends BaseStore<Group> {
     return queriedGroups(groups, query);
   };
 
-  notInCollection = (collectionId: string, query: string = '') => {
+  notInCollection = (collectionId: string, query: string = "") => {
     const memberships = filter(
       this.rootStore.collectionGroupMemberships.orderedData,
       member => member.collectionId === collectionId

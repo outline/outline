@@ -1,9 +1,9 @@
 // @flow
-import pkg from 'rich-markdown-editor/package.json';
-import { map, trim } from 'lodash';
-import invariant from 'invariant';
-import stores from 'stores';
-import download from './download';
+import pkg from "rich-markdown-editor/package.json";
+import { map, trim } from "lodash";
+import invariant from "invariant";
+import stores from "stores";
+import download from "./download";
 import {
   AuthorizationError,
   NetworkError,
@@ -11,7 +11,7 @@ import {
   OfflineError,
   RequestError,
   UpdateRequiredError,
-} from './errors';
+} from "./errors";
 
 type Options = {
   baseUrl?: string,
@@ -22,8 +22,8 @@ class ApiClient {
   userAgent: string;
 
   constructor(options: Options = {}) {
-    this.baseUrl = options.baseUrl || '/api';
-    this.userAgent = 'OutlineFrontend';
+    this.baseUrl = options.baseUrl || "/api";
+    this.userAgent = "OutlineFrontend";
   }
 
   fetch = async (
@@ -35,27 +35,27 @@ class ApiClient {
     let body;
     let modifiedPath;
 
-    if (method === 'GET') {
+    if (method === "GET") {
       if (data) {
         modifiedPath = `${path}?${data && this.constructQueryString(data)}`;
       } else {
         modifiedPath = path;
       }
-    } else if (method === 'POST' || method === 'PUT') {
+    } else if (method === "POST" || method === "PUT") {
       body = data ? JSON.stringify(data) : undefined;
     }
 
     // Construct headers
     const headers = new Headers({
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'cache-control': 'no-cache',
-      'x-editor-version': pkg.version,
-      pragma: 'no-cache',
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "cache-control": "no-cache",
+      "x-editor-version": pkg.version,
+      pragma: "no-cache",
     });
     if (stores.auth.authenticated) {
-      invariant(stores.auth.token, 'JWT token not set properly');
-      headers.set('Authorization', `Bearer ${stores.auth.token}`);
+      invariant(stores.auth.token, "JWT token not set properly");
+      headers.set("Authorization", `Bearer ${stores.auth.token}`);
     }
 
     let response;
@@ -64,15 +64,15 @@ class ApiClient {
         method,
         body,
         headers,
-        redirect: 'follow',
-        credentials: 'omit',
-        cache: 'no-cache',
+        redirect: "follow",
+        credentials: "omit",
+        cache: "no-cache",
       });
     } catch (err) {
       if (window.navigator.onLine) {
-        throw new NetworkError('A network error occurred, try again?');
+        throw new NetworkError("A network error occurred, try again?");
       } else {
-        throw new OfflineError('No internet connection available');
+        throw new OfflineError("No internet connection available");
       }
     }
 
@@ -81,8 +81,8 @@ class ApiClient {
     if (options.download && success) {
       const blob = await response.blob();
       const fileName = (
-        response.headers.get('content-disposition') || ''
-      ).split('filename=')[1];
+        response.headers.get("content-disposition") || ""
+      ).split("filename=")[1];
 
       download(blob, trim(fileName, '"'));
       return;
@@ -103,14 +103,14 @@ class ApiClient {
 
     try {
       const parsed = await response.json();
-      error.message = parsed.message || '';
+      error.message = parsed.message || "";
       error.error = parsed.error;
       error.data = parsed.data;
     } catch (_err) {
       // we're trying to parse an error so JSON may not be valid
     }
 
-    if (response.status === 400 && error.error === 'editor_update_required') {
+    if (response.status === 400 && error.error === "editor_update_required") {
       window.location.reload(true);
       throw new UpdateRequiredError(error.message);
     }
@@ -127,11 +127,11 @@ class ApiClient {
   };
 
   get = (path: string, data: ?Object, options?: Object) => {
-    return this.fetch(path, 'GET', data, options);
+    return this.fetch(path, "GET", data, options);
   };
 
   post = (path: string, data: ?Object, options?: Object) => {
-    return this.fetch(path, 'POST', data, options);
+    return this.fetch(path, "POST", data, options);
   };
 
   // Helpers
@@ -139,7 +139,7 @@ class ApiClient {
     return map(
       data,
       (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
-    ).join('&');
+    ).join("&");
   };
 }
 

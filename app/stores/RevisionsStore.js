@@ -1,15 +1,15 @@
 // @flow
-import { action, runInAction } from 'mobx';
-import { filter } from 'lodash';
-import invariant from 'invariant';
-import { client } from 'utils/ApiClient';
-import BaseStore from 'stores/BaseStore';
-import RootStore from 'stores/RootStore';
-import Revision from 'models/Revision';
-import type { FetchOptions, PaginationParams } from 'types';
+import { action, runInAction } from "mobx";
+import { filter } from "lodash";
+import invariant from "invariant";
+import { client } from "utils/ApiClient";
+import BaseStore from "stores/BaseStore";
+import RootStore from "stores/RootStore";
+import Revision from "models/Revision";
+import type { FetchOptions, PaginationParams } from "types";
 
 export default class RevisionsStore extends BaseStore<Revision> {
-  actions = ['list'];
+  actions = ["list"];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Revision);
@@ -22,19 +22,19 @@ export default class RevisionsStore extends BaseStore<Revision> {
   @action
   fetch = async (id: string, options?: FetchOptions): Promise<?Revision> => {
     this.isFetching = true;
-    invariant(id, 'Id is required');
+    invariant(id, "Id is required");
 
     try {
       const rev = this.data.get(id);
       if (rev) return rev;
 
-      const res = await client.post('/revisions.info', {
+      const res = await client.post("/revisions.info", {
         id,
       });
-      invariant(res && res.data, 'Revision not available');
+      invariant(res && res.data, "Revision not available");
       this.add(res.data);
 
-      runInAction('RevisionsStore#fetch', () => {
+      runInAction("RevisionsStore#fetch", () => {
         this.isLoaded = true;
       });
 
@@ -49,9 +49,9 @@ export default class RevisionsStore extends BaseStore<Revision> {
     this.isFetching = true;
 
     try {
-      const res = await client.post('/revisions.list', options);
-      invariant(res && res.data, 'Document revisions not available');
-      runInAction('RevisionsStore#fetchPage', () => {
+      const res = await client.post("/revisions.list", options);
+      invariant(res && res.data, "Document revisions not available");
+      runInAction("RevisionsStore#fetchPage", () => {
         res.data.forEach(revision => this.add(revision));
         this.isLoaded = true;
       });

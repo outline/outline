@@ -1,16 +1,16 @@
 // @flow
-import * as React from 'react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import { lighten } from 'polished';
-import styled, { withTheme } from 'styled-components';
-import RichMarkdownEditor from 'rich-markdown-editor';
-import { uploadFile } from 'utils/uploadFile';
-import isInternalUrl from 'utils/isInternalUrl';
-import Tooltip from 'components/Tooltip';
-import UiStore from 'stores/UiStore';
-import embeds from '../../embeds';
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import { lighten } from "polished";
+import styled, { withTheme } from "styled-components";
+import RichMarkdownEditor from "rich-markdown-editor";
+import { uploadFile } from "utils/uploadFile";
+import isInternalUrl from "utils/isInternalUrl";
+import Tooltip from "components/Tooltip";
+import UiStore from "stores/UiStore";
+import embeds from "../../embeds";
 
 const EMPTY_ARRAY = [];
 
@@ -36,7 +36,7 @@ class Editor extends React.Component<Props> {
 
   onClickLink = (href: string) => {
     // on page hash
-    if (href[0] === '#') {
+    if (href[0] === "#") {
       window.location.href = href;
       return;
     }
@@ -46,7 +46,7 @@ class Editor extends React.Component<Props> {
       let navigateTo = href;
 
       // probably absolute
-      if (href[0] !== '/') {
+      if (href[0] !== "/") {
         try {
           const url = new URL(href);
           navigateTo = url.pathname + url.hash;
@@ -57,7 +57,7 @@ class Editor extends React.Component<Props> {
 
       this.props.history.push(navigateTo);
     } else {
-      window.open(href, '_blank');
+      window.open(href, "_blank");
     }
   };
 

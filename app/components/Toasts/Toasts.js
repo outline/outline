@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import styled from 'styled-components';
-import Toast from './components/Toast';
-import UiStore from '../../stores/UiStore';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import styled from "styled-components";
+import Toast from "./components/Toast";
+import UiStore from "../../stores/UiStore";
 
 type Props = {
   ui: UiStore,
@@ -37,4 +37,4 @@ const List = styled.ol`
   z-index: 1000;
 `;
 
-export default inject('ui')(Toasts);
+export default inject("ui")(Toasts);

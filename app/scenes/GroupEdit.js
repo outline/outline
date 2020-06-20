@@ -1,15 +1,15 @@
 // @flow
-import * as React from 'react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import Button from 'components/Button';
-import Input from 'components/Input';
-import HelpText from 'components/HelpText';
-import Flex from 'shared/components/Flex';
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import Button from "components/Button";
+import Input from "components/Input";
+import HelpText from "components/HelpText";
+import Flex from "shared/components/Flex";
 
-import Group from 'models/Group';
-import UiStore from 'stores/UiStore';
+import Group from "models/Group";
+import UiStore from "stores/UiStore";
 
 type Props = {
   history: RouterHistory,
@@ -61,11 +61,11 @@ class GroupEdit extends React.Component<Props> {
         </Flex>
 
         <Button type="submit" disabled={this.isSaving || !this.name}>
-          {this.isSaving ? 'Saving…' : 'Save'}
+          {this.isSaving ? "Saving…" : "Save"}
         </Button>
       </form>
     );
   }
 }
 
-export default inject('ui')(withRouter(GroupEdit));
+export default inject("ui")(withRouter(GroupEdit));

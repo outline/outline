@@ -1,17 +1,17 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import Collection from 'models/Collection';
-import Document from 'models/Document';
-import CollectionMenu from 'menus/CollectionMenu';
-import UiStore from 'stores/UiStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import SidebarLink from './SidebarLink';
-import DocumentLink from './DocumentLink';
-import CollectionIcon from 'components/CollectionIcon';
-import DropToImport from 'components/DropToImport';
-import Flex from 'shared/components/Flex';
+import * as React from "react";
+import { observer } from "mobx-react";
+import { observable } from "mobx";
+import Collection from "models/Collection";
+import Document from "models/Document";
+import CollectionMenu from "menus/CollectionMenu";
+import UiStore from "stores/UiStore";
+import DocumentsStore from "stores/DocumentsStore";
+import SidebarLink from "./SidebarLink";
+import DocumentLink from "./DocumentLink";
+import CollectionIcon from "components/CollectionIcon";
+import DropToImport from "components/DropToImport";
+import Flex from "shared/components/Flex";
 
 type Props = {
   collection: Collection,

@@ -1,22 +1,22 @@
 // @flow
-import { Op } from '../sequelize';
-import type { DocumentEvent, CollectionEvent, Event } from '../events';
+import { Op } from "../sequelize";
+import type { DocumentEvent, CollectionEvent, Event } from "../events";
 import {
   Document,
   Team,
   Collection,
   User,
   NotificationSetting,
-} from '../models';
-import mailer from '../mailer';
+} from "../models";
+import mailer from "../mailer";
 
 export default class Notifications {
   async on(event: Event) {
     switch (event.name) {
-      case 'documents.publish':
-      case 'documents.update':
+      case "documents.publish":
+      case "documents.update":
         return this.documentUpdated(event);
-      case 'collections.create':
+      case "collections.create":
         return this.collectionCreated(event);
       default:
     }
@@ -50,20 +50,20 @@ export default class Notifications {
         {
           model: User,
           required: true,
-          as: 'user',
+          as: "user",
         },
       ],
     });
 
     const eventName =
-      event.name === 'documents.publish' ? 'published' : 'updated';
+      event.name === "documents.publish" ? "published" : "updated";
 
     notificationSettings.forEach(setting => {
       // For document updates we only want to send notifications if
       // the document has been edited by the user with this notification setting
       // This could be replaced with ability to "follow" in the future
       if (
-        event.name === 'documents.update' &&
+        event.name === "documents.update" &&
         !document.collaboratorIds.includes(setting.userId)
       ) {
         return;
@@ -87,7 +87,7 @@ export default class Notifications {
         {
           model: User,
           required: true,
-          as: 'user',
+          as: "user",
         },
       ],
     });
@@ -106,7 +106,7 @@ export default class Notifications {
         {
           model: User,
           required: true,
-          as: 'user',
+          as: "user",
         },
       ],
     });
@@ -114,7 +114,7 @@ export default class Notifications {
     notificationSettings.forEach(setting =>
       mailer.collectionNotification({
         to: setting.user.email,
-        eventName: 'created',
+        eventName: "created",
         collection,
         actor: collection.user,
         unsubscribeUrl: setting.unsubscribeUrl,

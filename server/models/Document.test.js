@@ -1,13 +1,13 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb } from '../test/support';
-import { Document } from '../models';
-import { buildDocument, buildCollection, buildTeam } from '../test/factories';
+import { flushdb } from "../test/support";
+import { Document } from "../models";
+import { buildDocument, buildCollection, buildTeam } from "../test/factories";
 
 beforeEach(flushdb);
 beforeEach(jest.resetAllMocks);
 
-describe('#getSummary', () => {
-  test('should strip markdown', async () => {
+describe("#getSummary", () => {
+  test("should strip markdown", async () => {
     const document = await buildDocument({
       version: 1,
       text: `*paragraph*
@@ -15,10 +15,10 @@ describe('#getSummary', () => {
 paragraph 2`,
     });
 
-    expect(document.getSummary()).toBe('paragraph');
+    expect(document.getSummary()).toBe("paragraph");
   });
 
-  test('should strip title when no version', async () => {
+  test("should strip title when no version", async () => {
     const document = await buildDocument({
       version: null,
       text: `# Heading
@@ -26,12 +26,12 @@ paragraph 2`,
 *paragraph*`,
     });
 
-    expect(document.getSummary()).toBe('paragraph');
+    expect(document.getSummary()).toBe("paragraph");
   });
 });
 
-describe('#migrateVersion', () => {
-  test('should maintain empty paragraph under headings', async () => {
+describe("#migrateVersion", () => {
+  test("should maintain empty paragraph under headings", async () => {
     const document = await buildDocument({
       version: 1,
       text: `# Heading
@@ -44,7 +44,7 @@ paragraph`,
 paragraph`);
   });
 
-  test('should add breaks under headings with extra paragraphs', async () => {
+  test("should add breaks under headings with extra paragraphs", async () => {
     const document = await buildDocument({
       version: 1,
       text: `# Heading
@@ -60,7 +60,7 @@ paragraph`,
 paragraph`);
   });
 
-  test('should add breaks between paragraphs', async () => {
+  test("should add breaks between paragraphs", async () => {
     const document = await buildDocument({
       version: 1,
       text: `paragraph
@@ -74,7 +74,7 @@ paragraph`,
 paragraph`);
   });
 
-  test('should add breaks for multiple empty paragraphs', async () => {
+  test("should add breaks for multiple empty paragraphs", async () => {
     const document = await buildDocument({
       version: 1,
       text: `paragraph
@@ -90,7 +90,7 @@ paragraph`,
 paragraph`);
   });
 
-  test('should add breaks with non-latin characters', async () => {
+  test("should add breaks with non-latin characters", async () => {
     const document = await buildDocument({
       version: 1,
       text: `除。
@@ -104,7 +104,7 @@ paragraph`);
 通`);
   });
 
-  test('should update task list formatting', async () => {
+  test("should update task list formatting", async () => {
     const document = await buildDocument({
       version: 1,
       text: `[ ] list item
@@ -115,7 +115,7 @@ paragraph`);
 `);
   });
 
-  test('should update task list with multiple items', async () => {
+  test("should update task list with multiple items", async () => {
     const document = await buildDocument({
       version: 1,
       text: `[ ] list item
@@ -128,7 +128,7 @@ paragraph`);
 `);
   });
 
-  test('should update checked task list formatting', async () => {
+  test("should update checked task list formatting", async () => {
     const document = await buildDocument({
       version: 1,
       text: `[x] list item
@@ -139,7 +139,7 @@ paragraph`);
 `);
   });
 
-  test('should update nested task list formatting', async () => {
+  test("should update nested task list formatting", async () => {
     const document = await buildDocument({
       version: 1,
       text: `[x] list item
@@ -155,22 +155,22 @@ paragraph`);
   });
 });
 
-describe('#searchForTeam', () => {
-  test('should return search results from public collections', async () => {
+describe("#searchForTeam", () => {
+  test("should return search results from public collections", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({ teamId: team.id });
     const document = await buildDocument({
       teamId: team.id,
       collectionId: collection.id,
-      title: 'test',
+      title: "test",
     });
 
-    const results = await Document.searchForTeam(team, 'test');
+    const results = await Document.searchForTeam(team, "test");
     expect(results.length).toBe(1);
     expect(results[0].document.id).toBe(document.id);
   });
 
-  test('should not return search results from private collections', async () => {
+  test("should not return search results from private collections", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({
       private: true,
@@ -179,16 +179,16 @@ describe('#searchForTeam', () => {
     await buildDocument({
       teamId: team.id,
       collectionId: collection.id,
-      title: 'test',
+      title: "test",
     });
 
-    const results = await Document.searchForTeam(team, 'test');
+    const results = await Document.searchForTeam(team, "test");
     expect(results.length).toBe(0);
   });
 
-  test('should handle no collections', async () => {
+  test("should handle no collections", async () => {
     const team = await buildTeam();
-    const results = await Document.searchForTeam(team, 'test');
+    const results = await Document.searchForTeam(team, "test");
     expect(results.length).toBe(0);
   });
 });

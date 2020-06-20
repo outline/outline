@@ -1,5 +1,5 @@
 // @flow
-import { Group } from '../models';
+import { Group } from "../models";
 
 export default function present(group: Group) {
   return {

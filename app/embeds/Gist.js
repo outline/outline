@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
+import * as React from "react";
 
 const URL_REGEX = new RegExp(
-  '^https://gist.github.com/([a-zd](?:[a-zd]|-(?=[a-zd])){0,38})/(.*)$'
+  "^https://gist.github.com/([a-zd](?:[a-zd]|-(?=[a-zd])){0,38})/(.*)$"
 );
 
 type Props = {|
@@ -23,7 +23,7 @@ class Gist extends React.Component<Props> {
 
   get id() {
     const gistUrl = new URL(this.props.attrs.href);
-    return gistUrl.pathname.split('/')[2];
+    return gistUrl.pathname.split("/")[2];
   }
 
   updateIframeContent() {
@@ -33,9 +33,9 @@ class Gist extends React.Component<Props> {
 
     // We need to add some temporary content to the iframe for the document
     // to be available, otherwise it's undefined on first load
-    const temp = document.getElementById('gist');
+    const temp = document.getElementById("gist");
     if (temp) {
-      temp.innerHTML = '';
+      temp.innerHTML = "";
       temp.appendChild(iframe);
     }
 
@@ -52,7 +52,7 @@ class Gist extends React.Component<Props> {
       gistLink
     }"></script>`;
     const styles =
-      '<style>*{ font-size:12px; } body { margin: 0; } .gist .blob-wrapper.data { max-height:150px; overflow:auto; }</style>';
+      "<style>*{ font-size:12px; } body { margin: 0; } .gist .blob-wrapper.data { max-height:150px; overflow:auto; }</style>";
     const iframeHtml = `<html><head><base target="_parent">${
       styles
     }</head><body>${gistScript}</body></html>`;

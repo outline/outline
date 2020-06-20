@@ -1,15 +1,15 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import styled from 'styled-components';
-import VisuallyHidden from 'components/VisuallyHidden';
-import Flex from 'shared/components/Flex';
+import * as React from "react";
+import { observer } from "mobx-react";
+import { observable } from "mobx";
+import styled from "styled-components";
+import VisuallyHidden from "components/VisuallyHidden";
+import Flex from "shared/components/Flex";
 
 const RealTextarea = styled.textarea`
   border: 0;
   flex: 1;
-  padding: 8px 12px 8px ${props => (props.hasIcon ? '8px' : '12px')};
+  padding: 8px 12px 8px ${props => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
   color: ${props => props.theme.text};
@@ -23,7 +23,7 @@ const RealTextarea = styled.textarea`
 const RealInput = styled.input`
   border: 0;
   flex: 1;
-  padding: 8px 12px 8px ${props => (props.hasIcon ? '8px' : '12px')};
+  padding: 8px 12px 8px ${props => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
   color: ${props => props.theme.text};
@@ -40,10 +40,10 @@ const RealInput = styled.input`
 `;
 
 const Wrapper = styled.div`
-  flex: ${props => (props.flex ? '1' : '0')};
-  max-width: ${props => (props.short ? '350px' : '100%')};
-  min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : '0')};
-  max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : 'initial')};
+  flex: ${props => (props.flex ? "1" : "0")};
+  max-width: ${props => (props.short ? "350px" : "100%")};
+  min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : "0")};
+  max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : "initial")};
 `;
 
 const IconWrapper = styled.span`
@@ -56,13 +56,13 @@ const IconWrapper = styled.span`
 export const Outline = styled(Flex)`
   display: flex;
   flex: 1;
-  margin: ${props => (props.margin !== undefined ? props.margin : '0 0 16px')};
+  margin: ${props => (props.margin !== undefined ? props.margin : "0 0 16px")};
   color: inherit;
   border-width: 1px;
   border-style: solid;
   border-color: ${props =>
     props.hasError
-      ? 'red'
+      ? "red"
       : props.focused
         ? props.theme.inputBorderFocused
         : props.theme.inputBorder};
@@ -118,7 +118,7 @@ class Input extends React.Component<Props> {
 
   render() {
     const {
-      type = 'text',
+      type = "text",
       icon,
       label,
       margin,
@@ -131,7 +131,7 @@ class Input extends React.Component<Props> {
       ...rest
     } = this.props;
 
-    const InputComponent = type === 'textarea' ? RealTextarea : RealInput;
+    const InputComponent = type === "textarea" ? RealTextarea : RealInput;
     const wrappedLabel = <LabelText>{label}</LabelText>;
 
     return (
@@ -149,7 +149,7 @@ class Input extends React.Component<Props> {
               ref={ref => (this.input = ref)}
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
-              type={type === 'textarea' ? undefined : type}
+              type={type === "textarea" ? undefined : type}
               hasIcon={!!icon}
               {...rest}
             />

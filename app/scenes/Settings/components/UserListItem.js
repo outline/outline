@@ -1,15 +1,15 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import UserMenu from 'menus/UserMenu';
-import Avatar from 'components/Avatar';
-import Badge from 'components/Badge';
-import UserProfile from 'scenes/UserProfile';
-import ListItem from 'components/List/Item';
-import Time from 'shared/components/Time';
-import User from 'models/User';
+import * as React from "react";
+import styled from "styled-components";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import UserMenu from "menus/UserMenu";
+import Avatar from "components/Avatar";
+import Badge from "components/Badge";
+import UserProfile from "scenes/UserProfile";
+import ListItem from "components/List/Item";
+import Time from "shared/components/Time";
+import User from "models/User";
 
 type Props = {
   user: User,
@@ -56,7 +56,7 @@ class UserListItem extends React.Component<Props> {
                 Active <Time dateTime={user.lastActiveAt} /> ago
               </React.Fragment>
             ) : (
-              'Invited'
+              "Invited"
             )}
             {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
             {user.isSuspended && <Badge>Suspended</Badge>}

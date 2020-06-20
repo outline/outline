@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import styled, { withTheme } from 'styled-components';
-import Flex from 'shared/components/Flex';
-import Avatar from 'components/Avatar';
-import User from 'models/User';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import styled, { withTheme } from "styled-components";
+import Flex from "shared/components/Flex";
+import Avatar from "components/Avatar";
+import User from "models/User";
 
 type Props = {
   users: User[],
@@ -73,4 +73,4 @@ const Avatars = styled(Flex)`
   cursor: pointer;
 `;
 
-export default inject('views', 'presence')(withTheme(Facepile));
+export default inject("views", "presence")(withTheme(Facepile));

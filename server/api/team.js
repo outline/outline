@@ -1,15 +1,15 @@
 // @flow
-import Router from 'koa-router';
-import { Team } from '../models';
+import Router from "koa-router";
+import { Team } from "../models";
 
-import auth from '../middlewares/authentication';
-import { presentTeam, presentPolicies } from '../presenters';
-import policy from '../policies';
+import auth from "../middlewares/authentication";
+import { presentTeam, presentPolicies } from "../presenters";
+import policy from "../policies";
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post('team.update', auth(), async ctx => {
+router.post("team.update", auth(), async ctx => {
   const {
     name,
     avatarUrl,
@@ -20,10 +20,10 @@ router.post('team.update', auth(), async ctx => {
   } = ctx.body;
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
-  authorize(user, 'update', team);
+  authorize(user, "update", team);
 
-  if (subdomain !== undefined && process.env.SUBDOMAINS_ENABLED === 'true') {
-    team.subdomain = subdomain === '' ? null : subdomain;
+  if (subdomain !== undefined && process.env.SUBDOMAINS_ENABLED === "true") {
+    team.subdomain = subdomain === "" ? null : subdomain;
   }
 
   if (name) team.name = name;

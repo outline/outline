@@ -1,19 +1,19 @@
 // @flow
-import * as React from 'react';
-import { observable, action } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { Waypoint } from 'react-waypoint';
+import * as React from "react";
+import { observable, action } from "mobx";
+import { observer, inject } from "mobx-react";
+import { Waypoint } from "react-waypoint";
 
-import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
-import EventsStore from 'stores/EventsStore';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
-import List from 'components/List';
-import Tabs from 'components/Tabs';
-import Tab from 'components/Tab';
-import { ListPlaceholder } from 'components/LoadingPlaceholder';
-import EventListItem from './components/EventListItem';
+import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
+import EventsStore from "stores/EventsStore";
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import HelpText from "components/HelpText";
+import List from "components/List";
+import Tabs from "components/Tabs";
+import Tab from "components/Tab";
+import { ListPlaceholder } from "components/LoadingPlaceholder";
+import EventListItem from "./components/EventListItem";
 
 type Props = {
   events: EventsStore,
@@ -96,4 +96,4 @@ class Events extends React.Component<Props> {
   }
 }
 
-export default inject('events')(Events);
+export default inject("events")(Events);

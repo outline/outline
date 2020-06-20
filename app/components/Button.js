@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import { darken, lighten } from 'polished';
-import { ExpandedIcon } from 'outline-icons';
+import * as React from "react";
+import styled from "styled-components";
+import { darken, lighten } from "polished";
+import { ExpandedIcon } from "outline-icons";
 
 const RealButton = styled.button`
   display: inline-block;
@@ -54,10 +54,10 @@ const RealButton = styled.button`
     background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.buttonNeutralText};
     box-shadow: ${
-      props.borderOnHover ? 'none' : 'rgba(0, 0, 0, 0.07) 0px 1px 2px'
+      props.borderOnHover ? "none" : "rgba(0, 0, 0, 0.07) 0px 1px 2px"
     };
     border: 1px solid ${
-      props.borderOnHover ? 'transparent' : props.theme.buttonNeutralBorder
+      props.borderOnHover ? "transparent" : props.theme.buttonNeutralBorder
     };
 
     svg {
@@ -102,7 +102,7 @@ const Label = styled.span`
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  ${props => props.hasIcon && 'padding-left: 4px;'};
+  ${props => props.hasIcon && "padding-left: 4px;"};
 `;
 
 export const Inner = styled.span`
@@ -113,8 +113,8 @@ export const Inner = styled.span`
   justify-content: center;
   align-items: center;
 
-  ${props => props.hasIcon && props.hasText && 'padding-left: 4px;'};
-  ${props => props.hasIcon && !props.hasText && 'padding: 0 4px;'};
+  ${props => props.hasIcon && props.hasText && "padding-left: 4px;"};
+  ${props => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
 
 export type Props = {
@@ -130,7 +130,7 @@ export type Props = {
 };
 
 function Button({
-  type = 'text',
+  type = "text",
   icon,
   children,
   value,

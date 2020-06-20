@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import HelpText from 'components/HelpText';
-import VisuallyHidden from 'components/VisuallyHidden';
+import * as React from "react";
+import styled from "styled-components";
+import HelpText from "components/HelpText";
+import VisuallyHidden from "components/VisuallyHidden";
 
 export type Props = {
   checked?: boolean,
@@ -15,13 +15,13 @@ export type Props = {
 
 const LabelText = styled.span`
   font-weight: 500;
-  margin-left: ${props => (props.small ? '6px' : '10px')};
-  ${props => (props.small ? `color: ${props.theme.textSecondary}` : '')};
+  margin-left: ${props => (props.small ? "6px" : "10px")};
+  ${props => (props.small ? `color: ${props.theme.textSecondary}` : "")};
 `;
 
 const Wrapper = styled.div`
   padding-bottom: 8px;
-  ${props => (props.small ? 'font-size: 14px' : '')};
+  ${props => (props.small ? "font-size: 14px" : "")};
 `;
 
 const Label = styled.label`

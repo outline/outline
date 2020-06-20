@@ -1,21 +1,21 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import styled from 'styled-components';
-import { GoToIcon } from 'outline-icons';
-import Flex from 'shared/components/Flex';
+import * as React from "react";
+import { observer } from "mobx-react";
+import styled from "styled-components";
+import { GoToIcon } from "outline-icons";
+import Flex from "shared/components/Flex";
 
-import Document from 'models/Document';
-import Collection from 'models/Collection';
-import type { DocumentPath } from 'stores/CollectionsStore';
-import CollectionIcon from 'components/CollectionIcon';
+import Document from "models/Document";
+import Collection from "models/Collection";
+import type { DocumentPath } from "stores/CollectionsStore";
+import CollectionIcon from "components/CollectionIcon";
 
 type Props = {
   result: DocumentPath,
   document?: ?Document,
   collection: ?Collection,
   onSuccess?: () => void,
-  ref?: (?React.ElementRef<'div'>) => void,
+  ref?: (?React.ElementRef<"div">) => void,
 };
 
 @observer
@@ -25,7 +25,7 @@ class PathToDocument extends React.Component<Props> {
     const { document, result, onSuccess } = this.props;
     if (!document) return;
 
-    if (result.type === 'document') {
+    if (result.type === "document") {
       await document.move(result.collectionId, result.id);
     } else {
       await document.move(result.collectionId, null);
@@ -48,7 +48,7 @@ class PathToDocument extends React.Component<Props> {
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
         {document && (
           <Flex>
-            {' '}
+            {" "}
             <StyledGoToIcon /> <Title>{document.title}</Title>
           </Flex>
         )}
@@ -77,7 +77,7 @@ const ResultWrapper = styled.div`
   cursor: default;
 `;
 
-const ResultWrapperLink = styled(ResultWrapper.withComponent('a'))`
+const ResultWrapperLink = styled(ResultWrapper.withComponent("a"))`
   margin: 0 -8px;
   padding: 8px 4px;
   border-radius: 8px;

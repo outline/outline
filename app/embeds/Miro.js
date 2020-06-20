@@ -1,6 +1,6 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
 const URL_REGEX = /^https:\/\/(?:realtimeboard|miro).com\/app\/board\/(.*)$/;
 

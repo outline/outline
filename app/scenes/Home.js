@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import { Redirect } from 'react-router-dom';
-import AuthStore from 'stores/AuthStore';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import { Redirect } from "react-router-dom";
+import AuthStore from "stores/AuthStore";
 
 type Props = {
   auth: AuthStore,
@@ -14,4 +14,4 @@ const Home = observer(({ auth }: Props) => {
   return null;
 });
 
-export default inject('auth')(Home);
+export default inject("auth")(Home);

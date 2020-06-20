@@ -1,20 +1,20 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import Avatar from 'components/Avatar';
-import Flex from 'shared/components/Flex';
-import Time from 'shared/components/Time';
-import Badge from 'components/Badge';
-import Button from 'components/Button';
-import InputSelect from 'components/InputSelect';
-import ListItem from 'components/List/Item';
-import User from 'models/User';
-import Membership from 'models/Membership';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import * as React from "react";
+import styled from "styled-components";
+import Avatar from "components/Avatar";
+import Flex from "shared/components/Flex";
+import Time from "shared/components/Time";
+import Badge from "components/Badge";
+import Button from "components/Button";
+import InputSelect from "components/InputSelect";
+import ListItem from "components/List/Item";
+import User from "models/User";
+import Membership from "models/Membership";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 const PERMISSIONS = [
-  { label: 'Read only', value: 'read' },
-  { label: 'Read & Edit', value: 'read_write' },
+  { label: "Read only", value: "read" },
+  { label: "Read & Edit", value: "read_write" },
 ];
 type Props = {
   user: User,
@@ -43,7 +43,7 @@ const MemberListItem = ({
               Active <Time dateTime={user.lastActiveAt} /> ago
             </React.Fragment>
           ) : (
-            'Never signed in'
+            "Never signed in"
           )}
           {!user.lastActiveAt && <Badge>Invited</Badge>}
           {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}

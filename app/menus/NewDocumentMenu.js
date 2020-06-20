@@ -1,16 +1,16 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { Redirect } from 'react-router-dom';
-import { PlusIcon } from 'outline-icons';
+import * as React from "react";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { Redirect } from "react-router-dom";
+import { PlusIcon } from "outline-icons";
 
-import { newDocumentUrl } from 'utils/routeHelpers';
-import CollectionsStore from 'stores/CollectionsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import Button from 'components/Button';
-import CollectionIcon from 'components/CollectionIcon';
+import { newDocumentUrl } from "utils/routeHelpers";
+import CollectionsStore from "stores/CollectionsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Button from "components/Button";
+import CollectionIcon from "components/CollectionIcon";
 
 type Props = {
   label?: React.Node,
@@ -74,4 +74,4 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject('collections', 'policies')(NewDocumentMenu);
+export default inject("collections", "policies")(NewDocumentMenu);

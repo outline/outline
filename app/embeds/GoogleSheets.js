@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp(
-  '^https?://docs.google.com/spreadsheets/d/(.*)/pub(.*)$'
+  "^https?://docs.google.com/spreadsheets/d/(.*)/pub(.*)$"
 );
 
 type Props = {|

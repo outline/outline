@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import Mask from 'components/Mask';
+import * as React from "react";
+import styled from "styled-components";
+import Mask from "components/Mask";
 
 function CollectionsLoading() {
   return (

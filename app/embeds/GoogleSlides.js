@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import Frame from './components/Frame';
+import * as React from "react";
+import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp(
-  '^https?://docs.google.com/presentation/d/(.*)/pub(.*)$'
+  "^https?://docs.google.com/presentation/d/(.*)/pub(.*)$"
 );
 
 type Props = {|
@@ -19,7 +19,7 @@ export default class GoogleSlides extends React.Component<Props> {
   render() {
     return (
       <Frame
-        src={this.props.attrs.href.replace('/pub', '/embed')}
+        src={this.props.attrs.href.replace("/pub", "/embed")}
         title="Google Slides Embed"
         border
       />

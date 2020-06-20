@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
+import * as React from "react";
 
 const style = {
   fontWeight: 500,
-  fontSize: '18px',
+  fontSize: "18px",
 };
 
 type Props = {

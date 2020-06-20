@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import { Redirect } from 'react-router-dom';
-import { inject, observer } from 'mobx-react';
-import { observable } from 'mobx';
+import * as React from "react";
+import { Redirect } from "react-router-dom";
+import { inject, observer } from "mobx-react";
+import { observable } from "mobx";
 
-import CopyToClipboard from 'components/CopyToClipboard';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import SharesStore from 'stores/SharesStore';
-import UiStore from 'stores/UiStore';
-import Share from 'models/Share';
+import CopyToClipboard from "components/CopyToClipboard";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import SharesStore from "stores/SharesStore";
+import UiStore from "stores/UiStore";
+import Share from "models/Share";
 
 type Props = {
   onOpen?: () => void,
@@ -34,11 +34,11 @@ class ShareMenu extends React.Component<Props> {
   handleRevoke = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     this.props.shares.revoke(this.props.share);
-    this.props.ui.showToast('Share link revoked');
+    this.props.ui.showToast("Share link revoked");
   };
 
   handleCopy = () => {
-    this.props.ui.showToast('Share link copied');
+    this.props.ui.showToast("Share link copied");
   };
 
   render() {
@@ -63,4 +63,4 @@ class ShareMenu extends React.Component<Props> {
   }
 }
 
-export default inject('shares', 'ui')(ShareMenu);
+export default inject("shares", "ui")(ShareMenu);

@@ -1,27 +1,27 @@
 // @flow
-import * as React from 'react';
-import { Redirect } from 'react-router-dom';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
+import * as React from "react";
+import { Redirect } from "react-router-dom";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
 
-import Document from 'models/Document';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import CollectionStore from 'stores/CollectionsStore';
-import PoliciesStore from 'stores/PoliciesStore';
+import Document from "models/Document";
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import CollectionStore from "stores/CollectionsStore";
+import PoliciesStore from "stores/PoliciesStore";
 import {
   documentUrl,
   documentMoveUrl,
   documentEditUrl,
   documentHistoryUrl,
   newDocumentUrl,
-} from 'utils/routeHelpers';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+} from "utils/routeHelpers";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
   ui: UiStore,
   auth: AuthStore,
-  position?: 'left' | 'right' | 'center',
+  position?: "left" | "right" | "center",
   document: Document,
   collections: CollectionStore,
   policies: PoliciesStore,
@@ -49,7 +49,7 @@ class DocumentMenu extends React.Component<Props> {
 
   handleDelete = (ev: SyntheticEvent<>) => {
     const { document } = this.props;
-    this.props.ui.setActiveModal('document-delete', { document });
+    this.props.ui.setActiveModal("document-delete", { document });
   };
 
   handleDocumentHistory = () => {
@@ -73,17 +73,17 @@ class DocumentMenu extends React.Component<Props> {
 
     // when duplicating, go straight to the duplicated document content
     this.redirectTo = duped.url;
-    this.props.ui.showToast('Document duplicated');
+    this.props.ui.showToast("Document duplicated");
   };
 
   handleArchive = async (ev: SyntheticEvent<>) => {
     await this.props.document.archive();
-    this.props.ui.showToast('Document archived');
+    this.props.ui.showToast("Document archived");
   };
 
   handleRestore = async (ev: SyntheticEvent<>) => {
     await this.props.document.restore();
-    this.props.ui.showToast('Document restored');
+    this.props.ui.showToast("Document restored");
   };
 
   handlePin = (ev: SyntheticEvent<>) => {
@@ -112,7 +112,7 @@ class DocumentMenu extends React.Component<Props> {
     const { document } = this.props;
     if (!document.shareUrl) await document.share();
 
-    this.props.ui.setActiveModal('document-share', { document });
+    this.props.ui.setActiveModal("document-share", { document });
   };
 
   render() {
@@ -242,4 +242,4 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject('ui', 'auth', 'collections', 'policies')(DocumentMenu);
+export default inject("ui", "auth", "collections", "policies")(DocumentMenu);

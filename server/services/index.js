@@ -1,22 +1,22 @@
 // @flow
-import debug from 'debug';
-import fs from 'fs-extra';
-import path from 'path';
+import debug from "debug";
+import fs from "fs-extra";
+import path from "path";
 
-const log = debug('services');
+const log = debug("services");
 const services = {};
 
 fs
   .readdirSync(__dirname)
   .filter(
     file =>
-      file.indexOf('.') !== 0 &&
+      file.indexOf(".") !== 0 &&
       file !== path.basename(__filename) &&
-      !file.includes('.test')
+      !file.includes(".test")
   )
   .forEach(fileName => {
     const servicePath = path.join(__dirname, fileName);
-    const name = path.basename(servicePath.replace(/\.js$/, ''));
+    const name = path.basename(servicePath.replace(/\.js$/, ""));
     // $FlowIssue
     const Service = require(servicePath).default;
     services[name] = new Service();

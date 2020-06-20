@@ -1,11 +1,11 @@
 // @flow
-import { computed } from 'mobx';
-import { filter } from 'lodash';
+import { computed } from "mobx";
+import { filter } from "lodash";
 
-import naturalSort from 'shared/utils/naturalSort';
-import BaseStore from 'stores/BaseStore';
-import RootStore from 'stores/RootStore';
-import Integration from 'models/Integration';
+import naturalSort from "shared/utils/naturalSort";
+import BaseStore from "stores/BaseStore";
+import RootStore from "stores/RootStore";
+import Integration from "models/Integration";
 
 class IntegrationsStore extends BaseStore<Integration> {
   constructor(rootStore: RootStore) {
@@ -14,12 +14,12 @@ class IntegrationsStore extends BaseStore<Integration> {
 
   @computed
   get orderedData(): Integration[] {
-    return naturalSort(Array.from(this.data.values()), 'name');
+    return naturalSort(Array.from(this.data.values()), "name");
   }
 
   @computed
   get slackIntegrations(): Integration[] {
-    return filter(this.orderedData, { service: 'slack' });
+    return filter(this.orderedData, { service: "slack" });
   }
 }
 

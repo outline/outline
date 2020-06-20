@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import { LabelText } from 'components/Input';
+import * as React from "react";
+import styled from "styled-components";
+import { LabelText } from "components/Input";
 
 type Props = {
   width?: number,
@@ -57,7 +57,7 @@ const Slider = styled.span`
 
   &:before {
     position: absolute;
-    content: '';
+    content: "";
     height: ${props => props.height - 8}px;
     width: ${props => props.height - 8}px;
     left: 4px;

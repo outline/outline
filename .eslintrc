@@ -6,7 +6,10 @@
     "plugin:import/warnings",
     "plugin:flowtype/recommended"
   ],
-  "plugins": ["prettier", "flowtype"],
+  "plugins": [
+    "prettier",
+    "flowtype"
+  ],
   "rules": {
     "eqeqeq": 2,
     "no-unused-vars": 2,
@@ -18,14 +21,19 @@
         "annotationStyle": "line"
       }
     ],
-    "flowtype/space-after-type-colon": [2, "always"],
-    "flowtype/space-before-type-colon": [2, "never"],
+    "flowtype/space-after-type-colon": [
+      2,
+      "always"
+    ],
+    "flowtype/space-before-type-colon": [
+      2,
+      "never"
+    ],
     "prettier/prettier": [
       "error",
       {
         "printWidth": 80,
-        "trailingComma": "es5",
-        "singleQuote": true
+        "trailingComma": "es5"
       }
     ]
   },
@@ -34,11 +42,14 @@
       "createClass": "createReactClass",
       "pragma": "React",
       "version": "detect",
-      "flowVersion": "0.86" 
+      "flowVersion": "0.86"
     },
     "import/resolver": {
       "node": {
-        "paths": ["app", "."]
+        "paths": [
+          "app",
+          "."
+        ]
       }
     },
     "flowtype": {

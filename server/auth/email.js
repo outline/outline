@@ -1,23 +1,23 @@
 // @flow
-import Router from 'koa-router';
-import mailer from '../mailer';
-import subMinutes from 'date-fns/sub_minutes';
-import { getUserForEmailSigninToken } from '../utils/jwt';
-import { User, Team } from '../models';
-import methodOverride from '../middlewares/methodOverride';
-import validation from '../middlewares/validation';
-import auth from '../middlewares/authentication';
-import { AuthorizationError } from '../errors';
+import Router from "koa-router";
+import mailer from "../mailer";
+import subMinutes from "date-fns/sub_minutes";
+import { getUserForEmailSigninToken } from "../utils/jwt";
+import { User, Team } from "../models";
+import methodOverride from "../middlewares/methodOverride";
+import validation from "../middlewares/validation";
+import auth from "../middlewares/authentication";
+import { AuthorizationError } from "../errors";
 
 const router = new Router();
 
 router.use(methodOverride());
 router.use(validation());
 
-router.post('email', async ctx => {
+router.post("email", async ctx => {
   const { email } = ctx.body;
 
-  ctx.assertEmail(email, 'email is required');
+  ctx.assertEmail(email, "email is required");
 
   const user = await User.findOne({
     where: { email: email.toLowerCase() },
@@ -29,7 +29,7 @@ router.post('email', async ctx => {
     // If the user matches an email address associated with an SSO
     // signin then just forward them directly to that service's
     // login page
-    if (user.service && user.service !== 'email') {
+    if (user.service && user.service !== "email") {
       return ctx.redirect(`${team.url}/auth/${user.service}`);
     }
 
@@ -63,10 +63,10 @@ router.post('email', async ctx => {
   }
 });
 
-router.get('email.callback', auth({ required: false }), async ctx => {
+router.get("email.callback", auth({ required: false }), async ctx => {
   const { token } = ctx.request.query;
 
-  ctx.assertPresent(token, 'token is required');
+  ctx.assertPresent(token, "token is required");
 
   try {
     const user = await getUserForEmailSigninToken(token);
@@ -77,12 +77,12 @@ router.get('email.callback', auth({ required: false }), async ctx => {
     }
 
     if (!user.service) {
-      user.service = 'email';
+      user.service = "email";
       await user.save();
     }
 
     // set cookies on response and redirect to team subdomain
-    ctx.signIn(user, team, 'email', false);
+    ctx.signIn(user, team, "email", false);
   } catch (err) {
     ctx.redirect(`${process.env.URL}?notice=expired-token`);
   }

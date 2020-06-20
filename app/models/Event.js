@@ -1,6 +1,6 @@
 // @flow
-import BaseModel from './BaseModel';
-import User from './User';
+import BaseModel from "./BaseModel";
+import User from "./User";
 
 class Event extends BaseModel {
   id: string;
@@ -20,16 +20,16 @@ class Event extends BaseModel {
   };
 
   get model() {
-    return this.name.split('.')[0];
+    return this.name.split(".")[0];
   }
 
   get verb() {
-    return this.name.split('.')[1];
+    return this.name.split(".")[1];
   }
 
   get verbPastTense() {
     const v = this.verb;
-    if (v.endsWith('e')) return `${v}d`;
+    if (v.endsWith("e")) return `${v}d`;
     return `${v}ed`;
   }
 }

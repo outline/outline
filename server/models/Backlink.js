@@ -1,7 +1,7 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
+import { DataTypes, sequelize } from "../sequelize";
 
-const Backlink = sequelize.define('backlink', {
+const Backlink = sequelize.define("backlink", {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -11,16 +11,16 @@ const Backlink = sequelize.define('backlink', {
 
 Backlink.associate = models => {
   Backlink.belongsTo(models.Document, {
-    as: 'document',
-    foreignKey: 'documentId',
+    as: "document",
+    foreignKey: "documentId",
   });
   Backlink.belongsTo(models.Document, {
-    as: 'reverseDocument',
-    foreignKey: 'reverseDocumentId',
+    as: "reverseDocument",
+    foreignKey: "reverseDocumentId",
   });
   Backlink.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
+    as: "user",
+    foreignKey: "userId",
   });
 };
 

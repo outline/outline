@@ -1,6 +1,6 @@
 // @flow
-import { GroupUser } from '../models';
-import { presentUser } from '.';
+import { GroupUser } from "../models";
+import { presentUser } from ".";
 
 type GroupMembership = {
   id: string,

@@ -1,6 +1,6 @@
 // @flow
-import styled from 'styled-components';
-import Centered from './Centered';
+import styled from "styled-components";
+import Centered from "./Centered";
 
 const Hero = styled(Centered)`
   width: 100%;

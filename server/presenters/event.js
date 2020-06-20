@@ -1,6 +1,6 @@
 // @flow
-import { Event } from '../models';
-import presentUser from './user';
+import { Event } from "../models";
+import presentUser from "./user";
 
 export default function present(event: Event, auditLog: boolean = false) {
   let data = {

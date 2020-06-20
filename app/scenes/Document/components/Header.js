@@ -1,32 +1,32 @@
 // @flow
-import * as React from 'react';
-import { throttle } from 'lodash';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { Redirect } from 'react-router-dom';
-import styled from 'styled-components';
-import breakpoint from 'styled-components-breakpoint';
-import { TableOfContentsIcon, EditIcon, PlusIcon } from 'outline-icons';
-import { transparentize, darken } from 'polished';
-import Document from 'models/Document';
-import AuthStore from 'stores/AuthStore';
-import { documentEditUrl } from 'utils/routeHelpers';
-import { meta } from 'utils/keyboard';
+import * as React from "react";
+import { throttle } from "lodash";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { Redirect } from "react-router-dom";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import { TableOfContentsIcon, EditIcon, PlusIcon } from "outline-icons";
+import { transparentize, darken } from "polished";
+import Document from "models/Document";
+import AuthStore from "stores/AuthStore";
+import { documentEditUrl } from "utils/routeHelpers";
+import { meta } from "utils/keyboard";
 
-import Flex from 'shared/components/Flex';
-import Breadcrumb, { Slash } from 'shared/components/Breadcrumb';
-import DocumentMenu from 'menus/DocumentMenu';
-import NewChildDocumentMenu from 'menus/NewChildDocumentMenu';
-import DocumentShare from 'scenes/DocumentShare';
-import Button from 'components/Button';
-import Tooltip from 'components/Tooltip';
-import Modal from 'components/Modal';
-import Fade from 'components/Fade';
-import Badge from 'components/Badge';
-import Collaborators from 'components/Collaborators';
-import { Action, Separator } from 'components/Actions';
-import PoliciesStore from 'stores/PoliciesStore';
-import UiStore from 'stores/UiStore';
+import Flex from "shared/components/Flex";
+import Breadcrumb, { Slash } from "shared/components/Breadcrumb";
+import DocumentMenu from "menus/DocumentMenu";
+import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
+import DocumentShare from "scenes/DocumentShare";
+import Button from "components/Button";
+import Tooltip from "components/Tooltip";
+import Modal from "components/Modal";
+import Fade from "components/Fade";
+import Badge from "components/Badge";
+import Collaborators from "components/Collaborators";
+import { Action, Separator } from "components/Actions";
+import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
 
 type Props = {
   auth: AuthStore,
@@ -55,11 +55,11 @@ class Header extends React.Component<Props> {
   @observable redirectTo: ?string;
 
   componentDidMount() {
-    window.addEventListener('scroll', this.handleScroll);
+    window.addEventListener("scroll", this.handleScroll);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('scroll', this.handleScroll);
+    window.removeEventListener("scroll", this.handleScroll);
   }
 
   updateIsScrolled = () => {
@@ -95,7 +95,7 @@ class Header extends React.Component<Props> {
   handleClickTitle = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   };
 
@@ -145,7 +145,7 @@ class Header extends React.Component<Props> {
             <React.Fragment>
               <Slash />
               <Tooltip
-                tooltip={ui.tocVisible ? 'Hide contents' : 'Show contents'}
+                tooltip={ui.tocVisible ? "Hide contents" : "Show contents"}
                 shortcut={`ctrl+${meta}+h`}
                 delay={250}
                 placement="bottom"
@@ -215,7 +215,7 @@ class Header extends React.Component<Props> {
                     neutral={isDraft}
                     small
                   >
-                    {isDraft ? 'Save Draft' : 'Done Editing'}
+                    {isDraft ? "Save Draft" : "Done Editing"}
                   </Button>
                 </Tooltip>
               </Action>
@@ -237,7 +237,7 @@ class Header extends React.Component<Props> {
                     disabled={publishingIsDisabled}
                     small
                   >
-                    {isPublishing ? 'Publishing…' : 'Publish'}
+                    {isPublishing ? "Publishing…" : "Publish"}
                   </Button>
                 </Tooltip>
               </Action>
@@ -307,7 +307,7 @@ const Status = styled.div`
 const BreadcrumbAndContents = styled(Flex)`
   display: none;
 
-  ${breakpoint('tablet')`	
+  ${breakpoint("tablet")`	
     display: flex;
     width: 33.3%;
   `};
@@ -318,7 +318,7 @@ const Wrapper = styled(Flex)`
   align-self: flex-end;
   height: 32px;
 
-  ${breakpoint('tablet')`	
+  ${breakpoint("tablet")`	
     width: 33.3%;
   `};
 `;
@@ -334,7 +334,7 @@ const Actions = styled(Flex)`
     ${props =>
       props.isCompact
         ? darken(0.05, props.theme.sidebarBackground)
-        : 'transparent'};
+        : "transparent"};
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
@@ -344,8 +344,8 @@ const Actions = styled(Flex)`
     display: none;
   }
 
-  ${breakpoint('tablet')`
-    padding: ${props => (props.isCompact ? '12px' : `24px 24px 0`)};
+  ${breakpoint("tablet")`
+    padding: ${props => (props.isCompact ? "12px" : `24px 24px 0`)};
   `};
 `;
 
@@ -361,10 +361,10 @@ const Title = styled.div`
   display: none;
   width: 0;
 
-  ${breakpoint('tablet')`	
+  ${breakpoint("tablet")`	
     display: flex;
     flex-grow: 1;
   `};
 `;
 
-export default inject('auth', 'ui', 'policies')(Header);
+export default inject("auth", "ui", "policies")(Header);

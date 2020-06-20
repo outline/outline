@@ -1,5 +1,5 @@
 // @flow
-import styled from 'styled-components';
+import styled from "styled-components";
 
 const HeroText = styled.p`
   font-size: 22px;

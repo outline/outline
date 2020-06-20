@@ -1,22 +1,22 @@
 // @flow
-import http from 'http';
-import IO from 'socket.io';
-import SocketAuth from 'socketio-auth';
-import socketRedisAdapter from 'socket.io-redis';
-import { getUserForJWT } from './utils/jwt';
-import { Document, Collection, View } from './models';
-import { client, subscriber } from './redis';
-import app from './app';
-import policy from './policies';
+import http from "http";
+import IO from "socket.io";
+import SocketAuth from "socketio-auth";
+import socketRedisAdapter from "socket.io-redis";
+import { getUserForJWT } from "./utils/jwt";
+import { Document, Collection, View } from "./models";
+import { client, subscriber } from "./redis";
+import app from "./app";
+import policy from "./policies";
 
 const server = http.createServer(app.callback());
 let io;
 
-if (process.env.WEBSOCKETS_ENABLED === 'true') {
+if (process.env.WEBSOCKETS_ENABLED === "true") {
   const { can } = policy;
 
   io = IO(server, {
-    path: '/realtime',
+    path: "/realtime",
     serveClient: false,
     cookie: false,
   });
@@ -38,7 +38,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
 
         // store the mapping between socket id and user id in redis
         // so that it is accessible across multiple server nodes
-        await client.hset(socket.id, 'userId', user.id);
+        await client.hset(socket.id, "userId", user.id);
 
         return callback(null, true);
       } catch (err) {
@@ -64,15 +64,15 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
       socket.join(rooms);
 
       // allow the client to request to join rooms
-      socket.on('join', async event => {
+      socket.on("join", async event => {
         // user is joining a collection channel, because their permissions have
         // changed, granting them access.
         if (event.collectionId) {
           const collection = await Collection.scope({
-            method: ['withMembership', user.id],
+            method: ["withMembership", user.id],
           }).findByPk(event.collectionId);
 
-          if (can(user, 'read', collection)) {
+          if (can(user, "read", collection)) {
             socket.join(`collection-${event.collectionId}`);
           }
         }
@@ -84,7 +84,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
             userId: user.id,
           });
 
-          if (can(user, 'read', document)) {
+          if (can(user, "read", document)) {
             const room = `document-${event.documentId}`;
 
             await View.touch(event.documentId, user.id, event.isEditing);
@@ -94,7 +94,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
 
             socket.join(room, () => {
               // let everyone else in the room know that a new user joined
-              io.to(room).emit('user.join', {
+              io.to(room).emit("user.join", {
                 userId: user.id,
                 documentId: event.documentId,
                 isEditing: event.isEditing,
@@ -109,10 +109,10 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
                 // makes this easy.
                 let userIds = new Map();
                 for (const socketId of sockets) {
-                  const userId = await client.hget(socketId, 'userId');
+                  const userId = await client.hget(socketId, "userId");
                   userIds.set(userId, userId);
                 }
-                socket.emit('document.presence', {
+                socket.emit("document.presence", {
                   documentId: event.documentId,
                   userIds: Array.from(userIds.keys()),
                   editingIds: editing.map(view => view.userId),
@@ -124,14 +124,14 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
       });
 
       // allow the client to request to leave rooms
-      socket.on('leave', event => {
+      socket.on("leave", event => {
         if (event.collectionId) {
           socket.leave(`collection-${event.collectionId}`);
         }
         if (event.documentId) {
           const room = `document-${event.documentId}`;
           socket.leave(room, () => {
-            io.to(room).emit('user.leave', {
+            io.to(room).emit("user.leave", {
               userId: user.id,
               documentId: event.documentId,
             });
@@ -139,13 +139,13 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
         }
       });
 
-      socket.on('disconnecting', () => {
+      socket.on("disconnecting", () => {
         const rooms = Object.keys(socket.rooms);
 
         rooms.forEach(room => {
-          if (room.startsWith('document-')) {
-            const documentId = room.replace('document-', '');
-            io.to(room).emit('user.leave', {
+          if (room.startsWith("document-")) {
+            const documentId = room.replace("document-", "");
+            io.to(room).emit("user.leave", {
               userId: user.id,
               documentId,
             });
@@ -153,7 +153,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
         });
       });
 
-      socket.on('presence', async event => {
+      socket.on("presence", async event => {
         const room = `document-${event.documentId}`;
 
         if (event.documentId && socket.rooms[room]) {
@@ -164,7 +164,7 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
           );
           view.user = user;
 
-          io.to(room).emit('user.presence', {
+          io.to(room).emit("user.presence", {
             userId: user.id,
             documentId: event.documentId,
             isEditing: event.isEditing,
@@ -175,16 +175,16 @@ if (process.env.WEBSOCKETS_ENABLED === 'true') {
   });
 }
 
-server.on('error', err => {
+server.on("error", err => {
   throw err;
 });
 
-server.on('listening', () => {
+server.on("listening", () => {
   const address = server.address();
   console.log(`\n> Listening on http://localhost:${address.port}\n`);
 });
 
-server.listen(process.env.PORT || '3000');
+server.listen(process.env.PORT || "3000");
 
 export const socketio = io;
 
