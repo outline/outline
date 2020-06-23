@@ -78,6 +78,7 @@ router.get("email.callback", auth({ required: false }), async ctx => {
 
     if (!user.service) {
       user.service = "email";
+      user.lastActiveAt = new Date();
       await user.save();
     }
 
