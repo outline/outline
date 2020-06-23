@@ -107,13 +107,13 @@ export const icons = {
 const colors = [
   "#4E5C6E",
   "#0366d6",
-  "#7F6BFF",
-  "#E76F51",
-  "#FC2D2D",
+  "#9E5CF7",
+  "#FF825C",
+  "#FF5C80",
   "#FFBE0B",
-  "#2A9D8F",
+  "#42DED1",
   "#00D084",
-  "#EE84F0",
+  "#FF4DFA",
   "#2F362F",
 ];
 
