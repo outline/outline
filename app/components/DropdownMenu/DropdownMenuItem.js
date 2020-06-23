@@ -75,6 +75,12 @@ const MenuItem = styled.a`
       fill: ${props.theme.white};
     }
   }
+
+  &:focus {
+    color: ${props.theme.white};
+    background: ${props.theme.primary};
+    outline: none;
+  }
   `};
 `;
 

@@ -5,6 +5,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { PortalWithState } from "react-portal";
 import { MoreIcon } from "outline-icons";
+import { rgba } from "polished";
 import styled from "styled-components";
 import Flex from "shared/components/Flex";
 import { fadeAndScaleIn } from "shared/styles/animations";
@@ -252,11 +253,10 @@ const Position = styled.div`
 const Menu = styled.div`
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: ${props => (props.left !== undefined ? "25%" : "75%")} 0;
-  background: ${props => props.theme.menuBackground};
-  ${props =>
-    props.theme.menuBorder
-      ? `border: 1px solid ${props.theme.menuBorder}`
-      : ""};
+  backdrop-filter: blur(10px);
+  background: ${props => rgba(props.theme.menuBackground, 0.8)};
+  border: ${props =>
+    props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   border-radius: 2px;
   padding: 0.5em 0;
   min-width: 180px;
