@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from "react";
 
 type Props = {
   size?: number,
@@ -7,7 +7,7 @@ type Props = {
   className?: string,
 };
 
-function OutlineLogo({ size = 32, fill = '#333', className }: Props) {
+function OutlineLogo({ size = 32, fill = "#333", className }: Props) {
   return (
     <svg
       fill={fill}

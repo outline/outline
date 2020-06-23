@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import OutlineLogo from './OutlineLogo';
+import * as React from "react";
+import styled from "styled-components";
+import OutlineLogo from "./OutlineLogo";
 
 type Props = {
   href?: string,

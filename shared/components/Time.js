@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import Tooltip from 'components/Tooltip';
-import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
-import format from 'date-fns/format';
+import * as React from "react";
+import Tooltip from "components/Tooltip";
+import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import format from "date-fns/format";
 
 let callbacks = [];
 
@@ -41,7 +41,7 @@ class Time extends React.Component<Props> {
   render() {
     return (
       <Tooltip
-        tooltip={format(this.props.dateTime, 'MMMM Do, YYYY h:mm a')}
+        tooltip={format(this.props.dateTime, "MMMM Do, YYYY h:mm a")}
         placement="bottom"
       >
         <time dateTime={this.props.dateTime}>

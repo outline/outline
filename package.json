@@ -9,7 +9,7 @@
     "build": "npm run clean && npm run build:webpack",
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development nodemon --watch server index.js",
-    "lint": "eslint app server",
+    "lint": "eslint app server shared",
     "flow": "flow",
     "deploy": "git push heroku master",
     "heroku-postbuild": "npm run build && npm run sequelize:migrate",
