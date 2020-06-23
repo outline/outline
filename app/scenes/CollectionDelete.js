@@ -49,7 +49,7 @@ class CollectionDelete extends React.Component<Props> {
             <strong>{collection.name}</strong> collection is permanent and will
             also delete all of the documents within it, so be extra careful.
           </HelpText>
-          <Button type="submit" danger>
+          <Button type="submit" disabled={this.isDeleting} danger>
             {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}
           </Button>
         </form>
