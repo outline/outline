@@ -1,15 +1,22 @@
 // @flow
 import * as React from "react";
 import { Helmet } from "react-helmet";
+import PoliciesStore from "stores/PoliciesStore";
+import AuthStore from "stores/AuthStore";
 
 type Props = {
   title: string,
   favicon?: string,
+  policies: PoliciesStore,
+  auth: AuthStore,
 };
+
+const { policies, auth } = this.props;
+const { team } = auth;
 
 const PageTitle = ({ title, favicon }: Props) => (
   <Helmet>
-    <title>{`${title} - Outline`}</title>
+    <title>{`${title} - ${team.name}`}</title>
     <link
       rel="shortcut icon"
       type="image/png"

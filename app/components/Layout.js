@@ -97,7 +97,7 @@ class Layout extends React.Component<Props> {
     return (
       <Container column auto>
         <Helmet>
-          <title>Outline</title>
+          <title>{team.name}</title>
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0"
