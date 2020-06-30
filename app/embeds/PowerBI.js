@@ -2,7 +2,7 @@
 import * as React from "react";
 import Frame from "./components/Frame";
 
-const URL_REGEX = /(?:https?:\/\/)?(?:www\.)?app\.powerbi\.com\/view\?r=([a-zA-Z0-9]*)/i;
+const URL_REGEX = /(?:https?:\/\/)?(?:www\.)?app\.powerbi\.com\/view\?r=(\w{1,120})$/i;
 
 type Props = {|
   attrs: {|
