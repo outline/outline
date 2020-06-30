@@ -11,7 +11,7 @@ type Props = {|
   |},
 |};
 
-export default class YouTube extends React.Component<Props> {
+export default class PowerBI extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
 
   render() {
