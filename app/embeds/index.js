@@ -17,6 +17,7 @@ import Marvel from "./Marvel";
 import Mindmeister from "./Mindmeister";
 import Miro from "./Miro";
 import ModeAnalytics from "./ModeAnalytics";
+import PowerBI from "./PowerBI";
 import Prezi from "./Prezi";
 import Spotify from "./Spotify";
 import Trello from "./Trello";
@@ -153,6 +154,13 @@ export default [
     icon: () => <Img src="/images/mode-analytics.png" />,
     component: ModeAnalytics,
     matcher: matcher(ModeAnalytics),
+  },
+  {
+    title: "PowerBI",
+    keywords: "powerbi",
+    icon: () => <Img src="/images/power-bi.png" />,
+    component: PowerBI,
+    matcher: matcher(PowerBI),
   },
   {
     title: "Prezi",
