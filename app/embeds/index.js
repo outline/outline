@@ -157,7 +157,7 @@ export default [
   },
   {
     title: "PowerBI",
-    keywords: "powerbi",
+    keywords: "bi analytics",
     icon: () => <Img src="/images/power-bi.png" />,
     component: PowerBI,
     matcher: matcher(PowerBI),
