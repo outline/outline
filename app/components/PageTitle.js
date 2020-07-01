@@ -14,7 +14,7 @@ const { team } = auth;
 
 const PageTitle = ({ title, favicon }: Props) => (
   <Helmet>
-    <title>{`${title} - ${team.name}` | `${title} - Outline`}</title>
+    <title>{`${title} - ${team.name} | Outline` | `${title} - Outline`}</title>
     <link
       rel="shortcut icon"
       type="image/png"
