@@ -1,5 +1,6 @@
 // @flow
 import * as React from "react";
+import { observer, inject } from "mobx-react";
 import { Helmet } from "react-helmet";
 import AuthStore from "stores/AuthStore";
 
@@ -12,7 +13,7 @@ type Props = {
 const { auth } = this.props;
 const { team } = auth;
 
-const PageTitle = ({ title, favicon }: Props) => (
+const PageTitle = observer(({ auth, title, favicon }: Props) => (
   <Helmet>
     <title>{`${title} - ${team.name} | Outline` | `${title} - Outline`}</title>
     <link
@@ -25,4 +26,4 @@ const PageTitle = ({ title, favicon }: Props) => (
   </Helmet>
 );
 
-export default PageTitle;
+export default inject("auth")(PageTitle);
