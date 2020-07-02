@@ -10,6 +10,18 @@ import Team from "models/Team";
 
 const AUTH_STORE = "AUTH_STORE";
 
+type Service = {
+  id: string,
+  name: string,
+  authUrl: string,
+};
+
+type Config = {
+  name?: string,
+  logoUrl?: string,
+  services: Service[],
+};
+
 export default class AuthStore {
   @observable user: ?User;
   @observable team: ?Team;
@@ -18,6 +30,7 @@ export default class AuthStore {
   @observable isSaving: boolean = false;
   @observable isSuspended: boolean = false;
   @observable suspendedContactEmail: ?string;
+  @observable config: ?Config;
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
@@ -34,8 +47,11 @@ export default class AuthStore {
     this.team = new Team(data.team);
     this.token = getCookie("accessToken");
     this.lastSignedIn = getCookie("lastSignedIn");
+    setImmediate(() => this.fetchConfig());
 
-    if (this.token) setImmediate(() => this.fetch());
+    if (this.token) {
+      setImmediate(() => this.fetch());
+    }
 
     autorun(() => {
       try {
@@ -64,6 +80,13 @@ export default class AuthStore {
       team: this.team,
     });
   }
+
+  @action
+  fetchConfig = async () => {
+    const res = await client.post("/auth.config");
+    invariant(res && res.data, "Config not available");
+    this.config = res.data;
+  };
 
   @action
   fetch = async () => {

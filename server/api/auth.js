@@ -26,12 +26,44 @@ if (process.env.SLACK_KEY) {
 }
 
 router.post("auth.config", async ctx => {
-  // TODO: Check if SELF HOSTED
-  // Return results based on first team
-  // return guest signin based on subdomain
+  // If self hosted and there is only one team then that team becomes the
+  // brand for the knowledge base and it's guest signin option is used for the
+  // root login page
+  if (process.env.DEPLOYMENT !== "hosted") {
+    const teams = await Team.findAll();
+
+    if (teams.length === 1) {
+      const team = teams[0];
+      const name = team.name;
+      const logoUrl = team.avatarUrl;
+
+      const email = team.guestSignin
+        ? [
+            {
+              id: "email",
+              name: "Email",
+              authUrl: "",
+            },
+          ]
+        : [];
+
+      ctx.body = {
+        data: {
+          name,
+          logoUrl,
+          services: [...services, ...email],
+        },
+      };
+      return;
+    }
+  }
+
+  // TODO: Return config for subdomain
 
   ctx.body = {
-    data: { services },
+    data: {
+      services,
+    },
   };
 });
 
