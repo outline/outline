@@ -7,7 +7,7 @@ export default function apexRedirect() {
     next: () => Promise<*>
   ) {
     if (ctx.headers.host === "getoutline.com") {
-      ctx.redirect(`https://www.${ctx.headers.host}${ctx.path}`);
+      ctx.redirect(`https://app.${ctx.headers.host}${ctx.path}`);
     } else {
       return next();
     }

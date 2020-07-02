@@ -14,6 +14,7 @@ export default class AuthStore {
   @observable user: ?User;
   @observable team: ?Team;
   @observable token: ?string;
+  @observable lastSignedIn: ?string;
   @observable isSaving: boolean = false;
   @observable isSuspended: boolean = false;
   @observable suspendedContactEmail: ?string;
@@ -32,6 +33,7 @@ export default class AuthStore {
     this.user = new User(data.user);
     this.team = new Team(data.team);
     this.token = getCookie("accessToken");
+    this.lastSignedIn = getCookie("lastSignedIn");
 
     if (this.token) setImmediate(() => this.fetch());
 
@@ -158,6 +160,8 @@ export default class AuthStore {
       })
     );
 
+    this.token = null;
+
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
@@ -178,8 +182,5 @@ export default class AuthStore {
       });
       this.team = null;
     }
-
-    // add a timestamp to force reload from server
-    window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
   };
 }
