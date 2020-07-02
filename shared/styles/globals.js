@@ -5,11 +5,6 @@ import { createGlobalStyle } from "styled-components";
 export default createGlobalStyle`
   ${styledNormalize}
 
-  @font-face {
-    font-family: 'Lato';
-    src: url('/fonts/LatoLatin-Semibold.woff') format('woff');
-  }
-
   * {
     box-sizing: border-box;
   }
@@ -54,7 +49,6 @@ export default createGlobalStyle`
   h4,
   h5,
   h6 {
-    font-family: 'Lato',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen, Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif;
     font-weight: 500;
     line-height: 1.25;
     margin-top: 1em;
