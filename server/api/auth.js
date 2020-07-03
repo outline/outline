@@ -61,7 +61,6 @@ router.post("auth.config", async ctx => {
       ctx.body = {
         data: {
           name: team.name,
-          logoUrl: team.avatarUrl,
           services: filterServices(team),
         },
       };

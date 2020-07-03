@@ -55,12 +55,12 @@ router.post("email", async ctx => {
 
     user.lastSigninEmailSentAt = new Date();
     await user.save();
-
-    // respond with success regardless of whether an email was sent
-    ctx.redirect(`${team.url}?notice=guest-success`);
-  } else {
-    ctx.redirect(`${process.env.URL}?notice=guest-success`);
   }
+
+  // respond with success regardless of whether an email was sent
+  ctx.body = {
+    success: true,
+  };
 });
 
 router.get("email.callback", auth({ required: false }), async ctx => {

@@ -18,7 +18,7 @@ type Service = {
 
 type Config = {
   name?: string,
-  logoUrl?: string,
+  hostname?: string,
   services: Service[],
 };
 

@@ -12,8 +12,8 @@ const definePlugin = new webpack.DefinePlugin({
   SLACK_APP_ID: JSON.stringify(process.env.SLACK_APP_ID),
   BASE_URL: JSON.stringify(process.env.URL),
   SENTRY_DSN: JSON.stringify(process.env.SENTRY_DSN),
-  DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT || 'hosted'),
   'process.env': {
+    DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT),
     URL: JSON.stringify(process.env.URL),
     SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
     SUBDOMAINS_ENABLED: JSON.stringify(process.env.SUBDOMAINS_ENABLED === 'true'),
