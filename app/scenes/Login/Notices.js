@@ -6,7 +6,7 @@ type Props = {
   notice?: string,
 };
 
-export default function AuthNotices({ notice }: Props) {
+export default function Notices({ notice }: Props) {
   return (
     <React.Fragment>
       {notice === "google-hd" && (

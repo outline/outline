@@ -14,7 +14,7 @@ import ButtonLarge from "components/ButtonLarge";
 import HelpText from "components/HelpText";
 import Fade from "components/Fade";
 import Service from "./Service";
-import AuthNotices from "./AuthNotices";
+import Notices from "./Notices";
 import AuthStore from "stores/AuthStore";
 import getQueryVariable from "shared/utils/getQueryVariable";
 
@@ -24,21 +24,21 @@ type Props = {
 };
 
 type State = {
-  signinLinkSent: string,
+  emailLinkSentTo: string,
 };
 
 @observer
 class Login extends React.Component<Props, State> {
   state = {
-    signinLinkSent: "",
+    emailLinkSentTo: "",
   };
 
   handleReset = () => {
-    this.setState({ signinLinkSent: "" });
+    this.setState({ emailLinkSentTo: "" });
   };
 
   handleEmailSuccess = email => {
-    this.setState({ signinLinkSent: email });
+    this.setState({ emailLinkSentTo: email });
   };
 
   render() {
@@ -83,7 +83,7 @@ class Login extends React.Component<Props, State> {
         </Back>
       ));
 
-    if (this.state.signinLinkSent) {
+    if (this.state.emailLinkSentTo) {
       return (
         <Background>
           {header}
@@ -94,7 +94,7 @@ class Login extends React.Component<Props, State> {
             <Heading>Check your email</Heading>
             <Note>
               A magic sign-in link has been sent to the email{" "}
-              <em>{this.state.signinLinkSent}</em>, no password needed.
+              <em>{this.state.emailLinkSentTo}</em>, no password needed.
             </Note>
             <br />
             <ButtonLarge onClick={this.handleReset} fullwidth neutral>
@@ -105,8 +105,6 @@ class Login extends React.Component<Props, State> {
       );
     }
 
-    console.log(getQueryVariable("notice"));
-
     return (
       <Background>
         {header}
@@ -114,14 +112,13 @@ class Login extends React.Component<Props, State> {
           <PageTitle title="Login" />
           {logo}
 
-          {/* TODO: Auth notices */}
           {isCreate ? (
             <Heading>Create an account</Heading>
           ) : (
             <Heading>Login to {config.name || "Outline"}</Heading>
           )}
 
-          <AuthNotices notice={getQueryVariable("notice")} />
+          <Notices notice={getQueryVariable("notice")} />
 
           {defaultService && (
             <React.Fragment key={defaultService.id}>
@@ -141,7 +138,6 @@ class Login extends React.Component<Props, State> {
             </React.Fragment>
           )}
 
-          {/* TODO: Email login */}
           {config.services.map(service => {
             if (service.id === auth.lastSignedIn) {
               return null;
