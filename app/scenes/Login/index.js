@@ -14,7 +14,9 @@ import ButtonLarge from "components/ButtonLarge";
 import HelpText from "components/HelpText";
 import Fade from "components/Fade";
 import Service from "./Service";
+import AuthNotices from "./AuthNotices";
 import AuthStore from "stores/AuthStore";
+import getQueryVariable from "shared/utils/getQueryVariable";
 
 type Props = {
   auth: AuthStore,
@@ -103,6 +105,8 @@ class Login extends React.Component<Props, State> {
       );
     }
 
+    console.log(getQueryVariable("notice"));
+
     return (
       <Background>
         {header}
@@ -116,6 +120,8 @@ class Login extends React.Component<Props, State> {
           ) : (
             <Heading>Login to {config.name || "Outline"}</Heading>
           )}
+
+          <AuthNotices notice={getQueryVariable("notice")} />
 
           {defaultService && (
             <React.Fragment key={defaultService.id}>
@@ -218,9 +224,10 @@ const Or = styled.hr`
 `;
 
 const Centered = styled(Flex)`
+  user-select: none;
   width: 90vw;
   height: 100%;
-  max-width: 300px;
+  max-width: 320px;
   margin: 0 auto;
 `;
 
