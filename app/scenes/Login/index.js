@@ -63,7 +63,7 @@ class Login extends React.Component<Props, State> {
 
     const logo = (
       <Logo>
-        {process.env.TEAM_LOGO ? (
+        {process.env.TEAM_LOGO && process.env.DEPLOYMENT !== "hosted" ? (
           <TeamLogo src={process.env.TEAM_LOGO} />
         ) : (
           <OutlineLogo size={38} fill="currentColor" />
@@ -167,7 +167,6 @@ const Background = styled(Fade)`
 
 const Logo = styled.div`
   margin-bottom: -1.5em;
-  width: 38px;
   height: 38px;
 `;
 

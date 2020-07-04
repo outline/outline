@@ -15,6 +15,7 @@ const definePlugin = new webpack.DefinePlugin({
   'process.env': {
     DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT),
     URL: JSON.stringify(process.env.URL),
+    TEAM_LOGO: JSON.stringify(process.env.TEAM_LOGO),
     SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
     SUBDOMAINS_ENABLED: JSON.stringify(process.env.SUBDOMAINS_ENABLED === 'true'),
     WEBSOCKETS_ENABLED: JSON.stringify(process.env.WEBSOCKETS_ENABLED === 'true')

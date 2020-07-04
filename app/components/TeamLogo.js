@@ -2,7 +2,7 @@
 import styled from "styled-components";
 
 const TeamLogo = styled.img`
-  width: 38px;
+  width: auto;
   height: 38px;
   border-radius: 4px;
   background: ${props => props.theme.background};
