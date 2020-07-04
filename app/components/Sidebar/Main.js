@@ -12,7 +12,7 @@ import {
   PlusIcon,
 } from "outline-icons";
 
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Modal from "components/Modal";
 import Invite from "scenes/Invite";
 import AccountMenu from "menus/AccountMenu";

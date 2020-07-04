@@ -5,7 +5,7 @@ import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import { inject, observer } from "mobx-react";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import { EditIcon } from "outline-icons";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Modal from "components/Modal";
 import Button from "components/Button";

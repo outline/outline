@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { PlusIcon } from "outline-icons";
-import Time from "shared/components/Time";
+import Time from "components/Time";
 import Avatar from "components/Avatar";
 import Button from "components/Button";
 import Badge from "components/Badge";

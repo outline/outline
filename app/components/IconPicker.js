@@ -27,7 +27,7 @@ import styled from "styled-components";
 import { LabelText } from "components/Input";
 import { DropdownMenu } from "components/DropdownMenu";
 import NudeButton from "components/NudeButton";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 export const icons = {
   collection: {

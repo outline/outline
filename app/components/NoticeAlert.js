@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import Notice from "shared/components/Notice";
+import Notice from "components/Notice";
 
 export default function AlertNotice({ children }: { children: React.Node }) {
   return (

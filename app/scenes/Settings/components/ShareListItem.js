@@ -2,7 +2,7 @@
 import * as React from "react";
 import ShareMenu from "menus/ShareMenu";
 import ListItem from "components/List/Item";
-import Time from "shared/components/Time";
+import Time from "components/Time";
 import Share from "models/Share";
 
 type Props = {

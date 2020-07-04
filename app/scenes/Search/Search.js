@@ -19,7 +19,7 @@ import UsersStore from "stores/UsersStore";
 import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
 import { meta } from "utils/keyboard";
 
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Button from "components/Button";
 import Empty from "components/Empty";
 import Fade from "components/Fade";

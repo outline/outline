@@ -10,7 +10,7 @@ import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
 import Collection from "models/Collection";
 import DocumentsStore from "stores/DocumentsStore";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import { type NavigationNode } from "types";
 
 type Props = {

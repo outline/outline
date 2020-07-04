@@ -4,8 +4,8 @@ import styled from "styled-components";
 import { EmailIcon } from "outline-icons";
 import { client } from "utils/ApiClient";
 import ButtonLarge from "components/ButtonLarge";
-import SlackLogo from "shared/components/SlackLogo";
-import GoogleLogo from "shared/components/GoogleLogo";
+import SlackLogo from "components/SlackLogo";
+import GoogleLogo from "components/GoogleLogo";
 import InputLarge from "components/InputLarge";
 
 type Props = {
@@ -55,7 +55,11 @@ class Service extends React.Component<Props, State> {
   render() {
     const { isCreate, id, name, authUrl } = this.props;
 
-    if (id === "email" && !isCreate) {
+    if (id === "email") {
+      if (isCreate) {
+        return null;
+      }
+
       return (
         <Wrapper key="email">
           <Form

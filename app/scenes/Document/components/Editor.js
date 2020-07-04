@@ -5,7 +5,7 @@ import Textarea from "react-autosize-textarea";
 import { observer } from "mobx-react";
 import Editor from "components/Editor";
 import ClickablePadding from "components/ClickablePadding";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import DocumentMeta from "./DocumentMeta";

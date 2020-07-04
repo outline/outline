@@ -5,7 +5,7 @@ import { observable, action } from "mobx";
 import { inject, observer } from "mobx-react";
 import { CloseIcon } from "outline-icons";
 import styled from "styled-components";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Button from "components/Button";
 import Input from "components/Input";
 import CopyToClipboard from "components/CopyToClipboard";

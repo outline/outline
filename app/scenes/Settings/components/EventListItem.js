@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import { capitalize } from "lodash";
 import styled from "styled-components";
-import Time from "shared/components/Time";
+import Time from "components/Time";
 import ListItem from "components/List/Item";
 import Avatar from "components/Avatar";
 import Event from "models/Event";

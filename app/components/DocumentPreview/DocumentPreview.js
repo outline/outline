@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 import { Link } from "react-router-dom";
 import { StarredIcon } from "outline-icons";
 import styled, { withTheme } from "styled-components";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Badge from "components/Badge";
 import Tooltip from "components/Tooltip";
 import Highlight from "components/Highlight";

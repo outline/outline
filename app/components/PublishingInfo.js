@@ -3,9 +3,9 @@ import * as React from "react";
 import { inject, observer } from "mobx-react";
 import styled from "styled-components";
 import Document from "models/Document";
-import Flex from "shared/components/Flex";
-import Time from "shared/components/Time";
-import Breadcrumb from "shared/components/Breadcrumb";
+import Flex from "components/Flex";
+import Time from "components/Time";
+import Breadcrumb from "components/Breadcrumb";
 import CollectionsStore from "stores/CollectionsStore";
 import AuthStore from "stores/AuthStore";
 

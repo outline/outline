@@ -5,8 +5,8 @@ import styled, { withTheme } from "styled-components";
 import format from "date-fns/format";
 import { MoreIcon } from "outline-icons";
 
-import Flex from "shared/components/Flex";
-import Time from "shared/components/Time";
+import Flex from "components/Flex";
+import Time from "components/Time";
 import Avatar from "components/Avatar";
 import RevisionMenu from "menus/RevisionMenu";
 import Document from "models/Document";

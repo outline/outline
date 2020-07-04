@@ -9,7 +9,7 @@ import { PadlockIcon, GoToIcon, MoreIcon } from "outline-icons";
 import Document from "models/Document";
 import CollectionsStore from "stores/CollectionsStore";
 import { collectionUrl } from "utils/routeHelpers";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import BreadcrumbMenu from "./BreadcrumbMenu";
 import CollectionIcon from "components/CollectionIcon";
 

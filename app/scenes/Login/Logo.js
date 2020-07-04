@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import OutlineLogo from "shared/components/OutlineLogo";
+import OutlineLogo from "components/OutlineLogo";
 
 const Link = styled.a`
   display: flex;

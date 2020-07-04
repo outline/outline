@@ -3,7 +3,7 @@ import * as React from "react";
 import { inject, observer } from "mobx-react";
 import { observable } from "mobx";
 import { debounce } from "lodash";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";

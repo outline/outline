@@ -8,7 +8,7 @@ import { observer, inject } from "mobx-react";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { Location, RouterHistory } from "react-router-dom";
 import keydown from "react-keydown";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import {
   collectionUrl,
   documentMoveUrl,
@@ -29,9 +29,9 @@ import MarkAsViewed from "./MarkAsViewed";
 import ErrorBoundary from "components/ErrorBoundary";
 import LoadingIndicator from "components/LoadingIndicator";
 import PageTitle from "components/PageTitle";
-import Branding from "shared/components/Branding";
-import Notice from "shared/components/Notice";
-import Time from "shared/components/Time";
+import Branding from "components/Branding";
+import Notice from "components/Notice";
+import Time from "components/Time";
 
 import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";

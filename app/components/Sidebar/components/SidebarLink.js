@@ -5,7 +5,7 @@ import { observer } from "mobx-react";
 import { withRouter, NavLink } from "react-router-dom";
 import { CollapsedIcon } from "outline-icons";
 import styled, { withTheme } from "styled-components";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 type Props = {
   to?: string | Object,

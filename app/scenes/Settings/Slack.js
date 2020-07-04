@@ -12,7 +12,7 @@ import SlackButton from "./components/SlackButton";
 import CollectionsStore from "stores/CollectionsStore";
 import IntegrationsStore from "stores/IntegrationsStore";
 import AuthStore from "stores/AuthStore";
-import Notice from "shared/components/Notice";
+import Notice from "components/Notice";
 import getQueryVariable from "shared/utils/getQueryVariable";
 
 type Props = {
