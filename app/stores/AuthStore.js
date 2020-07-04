@@ -188,7 +188,11 @@ export default class AuthStore {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
-      setCookie("postLoginRedirectPath", window.location.pathname);
+      const pathName = window.location.pathname;
+
+      if (pathName !== "/" && pathName !== "/create") {
+        setCookie("postLoginRedirectPath", pathName);
+      }
     }
 
     // remove authentication token itself

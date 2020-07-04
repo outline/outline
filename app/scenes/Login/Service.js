@@ -1,10 +1,12 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
+import { EmailIcon } from "outline-icons";
 import { client } from "utils/ApiClient";
 import ButtonLarge from "components/ButtonLarge";
-import Input from "components/Input";
-import Fade from "components/Fade";
+import SlackLogo from "shared/components/SlackLogo";
+import GoogleLogo from "shared/components/GoogleLogo";
+import InputLarge from "components/InputLarge";
 
 type Props = {
   id: string,
@@ -61,9 +63,9 @@ class Service extends React.Component<Props, State> {
             action="/auth/email"
             onSubmit={this.handleSubmitEmail}
           >
-            {this.state.showEmailSignin && (
-              <Fade>
-                <Input
+            {this.state.showEmailSignin ? (
+              <React.Fragment>
+                <InputLarge
                   type="email"
                   name="email"
                   placeholder="me@domain.com"
@@ -72,30 +74,56 @@ class Service extends React.Component<Props, State> {
                   disabled={this.state.isSubmitting}
                   autoFocus
                   required
+                  short
                 />
-              </Fade>
+                <ButtonLarge type="submit" disabled={this.state.isSubmitting}>
+                  Sign In →
+                </ButtonLarge>
+              </React.Fragment>
+            ) : (
+              <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth>
+                Continue with Email
+              </ButtonLarge>
             )}
-            <ButtonLarge
-              type="submit"
-              disabled={this.state.isSubmitting}
-              fullwidth
-            >
-              Continue with email
-            </ButtonLarge>
           </Form>
         </Wrapper>
       );
     }
 
+    const icon =
+      id === "slack" ? (
+        <Logo>
+          <SlackLogo size={16} />
+        </Logo>
+      ) : id === "google" ? (
+        <Logo>
+          <GoogleLogo size={16} />
+        </Logo>
+      ) : (
+        undefined
+      );
+
     return (
       <Wrapper key={id}>
-        <ButtonLarge onClick={() => (window.location.href = authUrl)} fullwidth>
+        <ButtonLarge
+          onClick={() => (window.location.href = authUrl)}
+          icon={icon}
+          fullwidth
+        >
           {isCreate ? "Sign up" : "Continue"} with {name}
         </ButtonLarge>
       </Wrapper>
     );
   }
 }
+
+const Logo = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+`;
 
 const Wrapper = styled.div`
   margin-bottom: 1em;
@@ -104,6 +132,8 @@ const Wrapper = styled.div`
 
 const Form = styled.form`
   width: 100%;
+  display: flex;
+  justify-content: space-between;
 `;
 
 export default Service;

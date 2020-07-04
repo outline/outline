@@ -48,8 +48,8 @@ class Login extends React.Component<Props, State> {
       return <Redirect to="/home" />;
     }
 
+    // we're counting on the config request being fast
     if (!config) {
-      // TODO: loading state
       return null;
     }
 
@@ -59,10 +59,14 @@ class Login extends React.Component<Props, State> {
       service => service.id === auth.lastSignedIn
     );
 
-    const logo = process.env.TEAM_LOGO ? (
-      <TeamLogo src={process.env.TEAM_LOGO} />
-    ) : (
-      <OutlineLogo size={38} />
+    const logo = (
+      <Logo>
+        {process.env.TEAM_LOGO ? (
+          <TeamLogo src={process.env.TEAM_LOGO} />
+        ) : (
+          <OutlineLogo size={38} fill="currentColor" />
+        )}
+      </Logo>
     );
 
     const header =
@@ -79,7 +83,7 @@ class Login extends React.Component<Props, State> {
 
     if (this.state.signinLinkSent) {
       return (
-        <Fade>
+        <Background>
           {header}
           <Centered align="center" justify="center" column auto>
             <PageTitle title="Check your email" />
@@ -95,19 +99,23 @@ class Login extends React.Component<Props, State> {
               Back to login
             </ButtonLarge>
           </Centered>
-        </Fade>
+        </Background>
       );
     }
 
     return (
-      <Fade>
+      <Background>
         {header}
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Login" />
           {logo}
 
           {/* TODO: Auth notices */}
-          <Heading>Login to {config.name || "Outline"}</Heading>
+          {isCreate ? (
+            <Heading>Create an account</Heading>
+          ) : (
+            <Heading>Login to {config.name || "Outline"}</Heading>
+          )}
 
           {defaultService && (
             <React.Fragment key={defaultService.id}>
@@ -143,10 +151,23 @@ class Login extends React.Component<Props, State> {
             );
           })}
         </Centered>
-      </Fade>
+      </Background>
     );
   }
 }
+
+const Background = styled(Fade)`
+  width: 100vw;
+  height: 100vh;
+  background: ${props => props.theme.background};
+  display: flex;
+`;
+
+const Logo = styled.div`
+  margin-bottom: -1.5em;
+  width: 38px;
+  height: 38px;
+`;
 
 const Note = styled(HelpText)`
   text-align: center;
