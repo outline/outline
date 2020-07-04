@@ -126,7 +126,6 @@ Backend is driven by [Koa](http://koajs.com/) (API, web server), [Sequelize](htt
 - `server/commands` - Domain logic, currently being refactored from /models
 - `server/emails`  - React rendered email templates
 - `server/models` - Database models
-- `server/pages` - Server-side rendered public pages
 - `server/policies` - Authorization logic
 - `server/presenters` - API responses for database models
 - `server/test` - Test helps and support
