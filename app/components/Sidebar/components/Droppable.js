@@ -1,12 +1,12 @@
 // @flow
-import * as React from 'react';
-import * as dnd from 'react-beautiful-dnd';
-import styled, { withTheme } from 'styled-components';
+import * as React from "react";
+import * as dnd from "react-beautiful-dnd";
+import styled, { withTheme } from "styled-components";
 import {
   DROPPABLE_COLLECTION_SUFFIX,
   DROPPABLE_DOCUMENT_SUFFIX,
   DROPPABLE_DOCUMENT_SEPARATOR,
-} from 'utils/dnd';
+} from "utils/dnd";
 
 type Props = {
   collectionId: string,

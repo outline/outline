@@ -172,7 +172,7 @@ const Disclosure = styled(CollapsedIcon)`
 `;
 
 const ChildrenWrapper = styled.div(({ expanded }) => ({
-  display: expanded ? 'block' : 'none',
+  display: expanded ? "block" : "none",
 }));
 
 export default withRouter(withTheme(SidebarLink));
