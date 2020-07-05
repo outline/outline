@@ -43,26 +43,28 @@ class CollectionLink extends React.Component<Props> {
         collectionId={collection.id}
         activeClassName="activeDropZone"
       >
-        <SidebarLink
-          key={collection.id}
-          to={collection.url}
-          icon={<CollectionIcon collection={collection} expanded={expanded} />}
-          iconColor={collection.color}
-          expanded={expanded}
-          hideDisclosure
-          menuOpen={this.menuOpen}
-          label={collection.name}
-          exact={false}
-          menu={
-            <CollectionMenu
-              position="right"
-              collection={collection}
-              onOpen={() => (this.menuOpen = true)}
-              onClose={() => (this.menuOpen = false)}
-            />
-          }
-        >
-          <Droppable collectionId={collection.id}>
+        <Droppable collectionId={collection.id}>
+          <SidebarLink
+            key={collection.id}
+            to={collection.url}
+            icon={
+              <CollectionIcon collection={collection} expanded={expanded} />
+            }
+            iconColor={collection.color}
+            expanded={expanded}
+            hideDisclosure
+            menuOpen={this.menuOpen}
+            label={collection.name}
+            exact={false}
+            menu={
+              <CollectionMenu
+                position="right"
+                collection={collection}
+                onOpen={() => (this.menuOpen = true)}
+                onClose={() => (this.menuOpen = false)}
+              />
+            }
+          >
             <Flex column>
               <Observer>
                 {() =>
@@ -94,8 +96,8 @@ class CollectionLink extends React.Component<Props> {
                 }
               </Observer>
             </Flex>
-          </Droppable>
-        </SidebarLink>
+          </SidebarLink>
+        </Droppable>
       </DropToImport>
     );
   }

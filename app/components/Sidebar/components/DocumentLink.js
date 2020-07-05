@@ -100,42 +100,42 @@ class DocumentLink extends React.Component<Props> {
         onMouseEnter={this.handleMouseEnter}
       >
         <DropToImport documentId={node.id} activeClassName="activeDropZone">
-          <SidebarLink
-            to={{
-              pathname: node.url,
-              state: { title: node.title },
-            }}
-            expanded={showChildren ? true : undefined}
-            hideDisclosure={hideDisclosure}
-            label={node.title || "Untitled"}
-            depth={depth}
-            exact={false}
-            menuOpen={this.menuOpen}
-            menu={
-              document ? (
-                <Fade>
-                  <DocumentMenu
-                    position="right"
-                    document={document}
-                    onOpen={() => (this.menuOpen = true)}
-                    onClose={() => (this.menuOpen = false)}
-                  />
-                </Fade>
-              ) : (
-                undefined
-              )
-            }
-          >
-            <DraggingDocumentIdContext.Consumer>
-              {draggingDocumentId => {
-                const disableChildDrops =
-                  isDropDisabled || draggingDocumentId === node.id;
+          <DraggingDocumentIdContext.Consumer>
+            {draggingDocumentId => {
+              const disableChildDrops =
+                isDropDisabled || draggingDocumentId === node.id;
 
-                return (
-                  <Droppable
-                    collectionId={collection.id}
-                    documentId={node.id}
-                    isDropDisabled={disableChildDrops}
+              return (
+                <Droppable
+                  collectionId={collection.id}
+                  documentId={node.id}
+                  isDropDisabled={disableChildDrops}
+                >
+                  <SidebarLink
+                    to={{
+                      pathname: node.url,
+                      state: { title: node.title },
+                    }}
+                    expanded={showChildren ? true : undefined}
+                    hideDisclosure={hideDisclosure}
+                    label={node.title || "Untitled"}
+                    depth={depth}
+                    exact={false}
+                    menuOpen={this.menuOpen}
+                    menu={
+                      document ? (
+                        <Fade>
+                          <DocumentMenu
+                            position="right"
+                            document={document}
+                            onOpen={() => (this.menuOpen = true)}
+                            onClose={() => (this.menuOpen = false)}
+                          />
+                        </Fade>
+                      ) : (
+                        undefined
+                      )
+                    }
                   >
                     {this.hasChildDocuments() && (
                       <DocumentChildren column>
@@ -171,11 +171,11 @@ class DocumentLink extends React.Component<Props> {
                         </Observer>
                       </DocumentChildren>
                     )}
-                  </Droppable>
-                );
-              }}
-            </DraggingDocumentIdContext.Consumer>
-          </SidebarLink>
+                  </SidebarLink>
+                </Droppable>
+              );
+            }}
+          </DraggingDocumentIdContext.Consumer>
         </DropToImport>
       </Flex>
     );
