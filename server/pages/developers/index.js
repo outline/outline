@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import Grid from 'styled-components-grid';
-import styled from 'styled-components';
-import PageTitle from '../components/PageTitle';
-import Header from '../components/Header';
-import Content from '../components/Content';
+import * as React from "react";
+import Grid from "styled-components-grid";
+import styled from "styled-components";
+import PageTitle from "../components/PageTitle";
+import Header from "../components/Header";
+import Content from "../components/Content";
 
 export default function Developers() {
   return (
@@ -48,23 +48,23 @@ export default function Developers() {
               small adjustments, including breaking changes to the API.
             </p>
 
-            <h2>Making requests</h2>
+            <h2 id="requests">Making requests</h2>
             <p>
               Outline’s API follows simple RPC style conventions where each API
-              endpoint is a method on{' '}
-              <Code>https://www.getoutline.com/api/&lt;METHOD&gt;</Code>. Both{' '}
+              endpoint is a method on{" "}
+              <Code>https://www.getoutline.com/api/&lt;METHOD&gt;</Code>. Both{" "}
               <Code>GET</Code> and <Code>POST</Code> methods are supported but
-              it’s recommeded that you make all call using <Code>POST</Code>.
+              it’s recommended that you make all calls using <Code>POST</Code>.
               Only HTTPS is supported in production.
             </p>
 
             <p>
               For <Code>GET</Code> requests query string parameters are expected
               (e.g.
-              <Code>/api/document.info?id=...&token=...</Code>). When making{' '}
+              <Code>/api/document.info?id=...&token=...</Code>). When making{" "}
               <Code>POST</Code> requests, request parameters are parsed
               depending on <Code>Content-Type</Code> header. To make a call
-              using JSON payload, one must pass{' '}
+              using JSON payload, one must pass{" "}
               <Code>Content-Type: application/json</Code> header:
             </p>
 
@@ -93,11 +93,11 @@ export default function Developers() {
               </Code>
             </Pre>
 
-            <h2>Authentication</h2>
+            <h2 id="authentication">Authentication</h2>
 
             <p>
               To access private API endpoints, you must provide a valid API key.
-              You can create new API keys in your{' '}
+              You can create new API keys in your{" "}
               <a href={`${process.env.URL}/settings`}>account settings</a>. Be
               careful when handling your keys as they give access to all of your
               documents.
@@ -116,10 +116,10 @@ export default function Developers() {
               resources and they can be called without an API key.
             </p>
 
-            <h2>Errors</h2>
+            <h2 id="errors">Errors</h2>
 
             <p>
-              All successful API requests will be returned with <Code>200</Code>{' '}
+              All successful API requests will be returned with <Code>200</Code>{" "}
               status code and <Code>ok: true</Code> in the response payload. If
               there’s an error while making the request, appropriate status code
               is returned with the <Code>error</Code> message:

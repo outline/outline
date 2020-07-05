@@ -1,29 +1,29 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import keydown from 'react-keydown';
-import { DragDropContext } from 'react-beautiful-dnd';
-import type { DropResult, DragStart } from 'react-beautiful-dnd';
-import Flex from 'shared/components/Flex';
-import { PlusIcon } from 'outline-icons';
-import { newDocumentUrl } from 'utils/routeHelpers';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import keydown from "react-keydown";
+import { DragDropContext } from "react-beautiful-dnd";
+import type { DropResult, DragStart } from "react-beautiful-dnd";
+import Flex from "shared/components/Flex";
+import { PlusIcon } from "outline-icons";
+import { newDocumentUrl } from "utils/routeHelpers";
 import {
   DROPPABLE_COLLECTION_SUFFIX,
   DROPPABLE_DOCUMENT_SUFFIX,
   DROPPABLE_DOCUMENT_SEPARATOR,
-} from 'utils/dnd';
+} from "utils/dnd";
 
-import Header from './Header';
-import SidebarLink from './SidebarLink';
-import CollectionLink from './CollectionLink';
-import CollectionsLoading from './CollectionsLoading';
-import Fade from 'components/Fade';
+import Header from "./Header";
+import SidebarLink from "./SidebarLink";
+import CollectionLink from "./CollectionLink";
+import CollectionsLoading from "./CollectionsLoading";
+import Fade from "components/Fade";
 
-import CollectionsStore from 'stores/CollectionsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import UiStore from 'stores/UiStore';
-import DocumentsStore from 'stores/DocumentsStore';
+import CollectionsStore from "stores/CollectionsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import DocumentsStore from "stores/DocumentsStore";
 
 export const DraggingDocumentIdContext = React.createContext();
 
@@ -53,7 +53,7 @@ class Collections extends React.Component<Props, State> {
     }
   }
 
-  @keydown('n')
+  @keydown("n")
   goToNewDocument() {
     if (this.props.ui.editMode) return;
 
@@ -174,7 +174,7 @@ class Collections extends React.Component<Props, State> {
         <SidebarLink
           to="/collections"
           onClick={this.props.onCreateCollection}
-          icon={<PlusIcon />}
+          icon={<PlusIcon color="currentColor" />}
           label="New collection…"
           exact
         />
@@ -198,6 +198,6 @@ class Collections extends React.Component<Props, State> {
   }
 }
 
-export default inject('collections', 'ui', 'documents', 'policies')(
+export default inject("collections", "ui", "documents", "policies")(
   withRouter(Collections)
 );

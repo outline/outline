@@ -9,7 +9,7 @@
     "build": "npm run clean && npm run build:webpack",
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development nodemon --watch server index.js",
-    "lint": "eslint app server",
+    "lint": "eslint app server shared",
     "flow": "flow",
     "deploy": "git push heroku master",
     "heroku-postbuild": "npm run build && npm run sequelize:migrate",
@@ -121,11 +121,11 @@
     "mobx-react": "^5.4.2",
     "natural-sort": "^1.0.0",
     "nodemailer": "^4.4.0",
-    "outline-icons": "^1.16.0",
+    "outline-icons": "^1.18.0",
     "oy-vey": "^0.10.0",
     "pg": "^6.1.5",
     "pg-hstore": "2.3.2",
-    "polished": "1.2.1",
+    "polished": "3.6.4",
     "query-string": "^4.3.4",
     "randomstring": "1.1.5",
     "raw-loader": "^0.5.1",
@@ -142,7 +142,8 @@
     "react-portal": "^4.0.0",
     "react-router-dom": "^5.1.2",
     "react-waypoint": "^9.0.2",
-    "rich-markdown-editor": "^10.0.3-1",
+    "rich-markdown-editor": "^10.2.1-0",
+    "semver": "^7.3.2",
     "sequelize": "^5.21.1",
     "sequelize-cli": "^5.5.0",
     "sequelize-encrypted": "^0.1.0",
@@ -191,5 +192,5 @@
     "micromatch": "^3.1.10",
     "js-yaml": "^3.13.1"
   },
-  "version": "0.18.0"
+  "version": "0.44.0"
 }

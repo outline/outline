@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { groupSettings } from 'shared/utils/routeHelpers';
-import Button from 'components/Button';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import Group from 'models/Group';
-import UiStore from 'stores/UiStore';
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { groupSettings } from "shared/utils/routeHelpers";
+import Button from "components/Button";
+import Flex from "shared/components/Flex";
+import HelpText from "components/HelpText";
+import Group from "models/Group";
+import UiStore from "stores/UiStore";
 
 type Props = {
   history: RouterHistory,
@@ -43,12 +43,12 @@ class GroupDelete extends React.Component<Props> {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            Are you sure about that? Deleting the <strong>{group.name}</strong>{' '}
+            Are you sure about that? Deleting the <strong>{group.name}</strong>{" "}
             group will cause its members to lose access to collections and
             documents that it is associated with.
           </HelpText>
           <Button type="submit" danger>
-            {this.isDeleting ? 'Deleting…' : 'I’m sure – Delete'}
+            {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}
           </Button>
         </form>
       </Flex>
@@ -56,4 +56,4 @@ class GroupDelete extends React.Component<Props> {
   }
 }
 
-export default inject('ui')(withRouter(GroupDelete));
+export default inject("ui")(withRouter(GroupDelete));

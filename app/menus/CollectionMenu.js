@@ -1,23 +1,23 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import Modal from 'components/Modal';
-import VisuallyHidden from 'components/VisuallyHidden';
-import CollectionMembers from 'scenes/CollectionMembers';
+import * as React from "react";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import Modal from "components/Modal";
+import VisuallyHidden from "components/VisuallyHidden";
+import CollectionMembers from "scenes/CollectionMembers";
 
-import { newDocumentUrl } from 'utils/routeHelpers';
-import getDataTransferFiles from 'utils/getDataTransferFiles';
-import importFile from 'utils/importFile';
-import Collection from 'models/Collection';
-import UiStore from 'stores/UiStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import { newDocumentUrl } from "utils/routeHelpers";
+import getDataTransferFiles from "utils/getDataTransferFiles";
+import importFile from "utils/importFile";
+import Collection from "models/Collection";
+import UiStore from "stores/UiStore";
+import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
-  position?: 'left' | 'right' | 'center',
+  position?: "left" | "right" | "center",
   ui: UiStore,
   policies: PoliciesStore,
   documents: DocumentsStore,
@@ -64,19 +64,19 @@ class CollectionMenu extends React.Component<Props> {
   onEdit = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { collection } = this.props;
-    this.props.ui.setActiveModal('collection-edit', { collection });
+    this.props.ui.setActiveModal("collection-edit", { collection });
   };
 
   onDelete = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { collection } = this.props;
-    this.props.ui.setActiveModal('collection-delete', { collection });
+    this.props.ui.setActiveModal("collection-delete", { collection });
   };
 
   onExport = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { collection } = this.props;
-    this.props.ui.setActiveModal('collection-export', { collection });
+    this.props.ui.setActiveModal("collection-export", { collection });
   };
 
   onPermissions = (ev: SyntheticEvent<>) => {
@@ -153,6 +153,6 @@ class CollectionMenu extends React.Component<Props> {
   }
 }
 
-export default inject('ui', 'documents', 'policies')(
+export default inject("ui", "documents", "policies")(
   withRouter(CollectionMenu)
 );

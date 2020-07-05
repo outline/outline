@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import Empty from 'components/Empty';
+import * as React from "react";
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import Empty from "components/Empty";
 
 const Error404 = () => {
   return (

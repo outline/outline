@@ -1,15 +1,15 @@
 // @flow
-import * as React from 'react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import Button from 'components/Button';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import Document from 'models/Document';
-import DocumentsStore from 'stores/DocumentsStore';
-import UiStore from 'stores/UiStore';
-import { collectionUrl } from 'utils/routeHelpers';
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import Button from "components/Button";
+import Flex from "shared/components/Flex";
+import HelpText from "components/HelpText";
+import Document from "models/Document";
+import DocumentsStore from "stores/DocumentsStore";
+import UiStore from "stores/UiStore";
+import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
@@ -49,7 +49,7 @@ class DocumentDelete extends React.Component<Props> {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            Are you sure about that? Deleting the{' '}
+            Are you sure about that? Deleting the{" "}
             <strong>{document.title}</strong> document will delete all of its
             history, and any nested documents.
           </HelpText>
@@ -61,7 +61,7 @@ class DocumentDelete extends React.Component<Props> {
               </HelpText>
             )}
           <Button type="submit" danger>
-            {this.isDeleting ? 'Deleting…' : 'I’m sure – Delete'}
+            {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}
           </Button>
         </form>
       </Flex>
@@ -69,4 +69,4 @@ class DocumentDelete extends React.Component<Props> {
   }
 }
 
-export default inject('documents', 'ui')(withRouter(DocumentDelete));
+export default inject("documents", "ui")(withRouter(DocumentDelete));

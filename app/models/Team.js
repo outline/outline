@@ -1,6 +1,6 @@
 // @flow
-import { computed } from 'mobx';
-import BaseModel from './BaseModel';
+import { computed } from "mobx";
+import BaseModel from "./BaseModel";
 
 class Team extends BaseModel {
   id: string;
@@ -17,10 +17,10 @@ class Team extends BaseModel {
   @computed
   get signinMethods(): string {
     if (this.slackConnected && this.googleConnected) {
-      return 'Slack or Google';
+      return "Slack or Google";
     }
-    if (this.slackConnected) return 'Slack';
-    return 'Google';
+    if (this.slackConnected) return "Slack";
+    return "Google";
   }
 }
 

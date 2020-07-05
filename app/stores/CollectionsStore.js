@@ -1,19 +1,19 @@
 // @flow
-import { computed } from 'mobx';
-import { concat, filter, last } from 'lodash';
-import { client } from 'utils/ApiClient';
+import { computed } from "mobx";
+import { concat, filter, last } from "lodash";
+import { client } from "utils/ApiClient";
 
-import BaseStore from './BaseStore';
-import RootStore from './RootStore';
-import Collection from 'models/Collection';
-import naturalSort from 'shared/utils/naturalSort';
+import BaseStore from "./BaseStore";
+import RootStore from "./RootStore";
+import Collection from "models/Collection";
+import naturalSort from "shared/utils/naturalSort";
 
 export type DocumentPathItem = {
   id: string,
   collectionId: string,
   title: string,
   url: string,
-  type: 'collection' | 'document',
+  type: "collection" | "document",
 };
 
 export type DocumentPath = DocumentPathItem & {
@@ -35,7 +35,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
   @computed
   get orderedData(): Collection[] {
     return filter(
-      naturalSort(Array.from(this.data.values()), 'name'),
+      naturalSort(Array.from(this.data.values()), "name"),
       d => !d.deletedAt
     );
   }
@@ -59,7 +59,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
     const travelDocuments = (documentList, collectionId, path) =>
       documentList.forEach(document => {
         const { id, title, url } = document;
-        const node = { id, collectionId, title, url, type: 'document' };
+        const node = { id, collectionId, title, url, type: "document" };
         results.push(concat(path, node));
         travelDocuments(document.children, collectionId, concat(path, [node]));
       });
@@ -72,7 +72,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
           collectionId: id,
           title: name,
           url,
-          type: 'collection',
+          type: "collection",
         };
         results.push([node]);
         travelDocuments(collection.documents, id, [node]);
@@ -105,6 +105,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   export = () => {
-    return client.post('/collections.exportAll');
+    return client.post("/collections.export_all");
   };
 }

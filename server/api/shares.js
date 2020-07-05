@@ -1,19 +1,32 @@
 // @flow
-import Router from 'koa-router';
-import Sequelize from 'sequelize';
-import auth from '../middlewares/authentication';
-import pagination from './middlewares/pagination';
-import { presentShare } from '../presenters';
-import { Document, User, Event, Share, Team } from '../models';
-import policy from '../policies';
+import Router from "koa-router";
+import Sequelize from "sequelize";
+import auth from "../middlewares/authentication";
+import pagination from "./middlewares/pagination";
+import { presentShare } from "../presenters";
+import { Document, User, Event, Share, Team } from "../models";
+import policy from "../policies";
 
 const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
 
-router.post('shares.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction } = ctx.body;
-  if (direction !== 'ASC') direction = 'DESC';
+router.post("shares.info", auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertUuid(id, "id is required");
+
+  const user = ctx.state.user;
+  const share = await Share.findByPk(id);
+  authorize(user, "read", share);
+
+  ctx.body = {
+    data: presentShare(share),
+  };
+});
+
+router.post("shares.list", auth(), pagination(), async ctx => {
+  let { sort = "updatedAt", direction } = ctx.body;
+  if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;
   const where = {
@@ -34,7 +47,7 @@ router.post('shares.list', auth(), pagination(), async ctx => {
       {
         model: Document,
         required: true,
-        as: 'document',
+        as: "document",
         where: {
           collectionId: collectionIds,
         },
@@ -42,7 +55,7 @@ router.post('shares.list', auth(), pagination(), async ctx => {
       {
         model: User,
         required: true,
-        as: 'user',
+        as: "user",
       },
     ],
     offset: ctx.state.pagination.offset,
@@ -55,15 +68,15 @@ router.post('shares.list', auth(), pagination(), async ctx => {
   };
 });
 
-router.post('shares.create', auth(), async ctx => {
+router.post("shares.create", auth(), async ctx => {
   const { documentId } = ctx.body;
-  ctx.assertPresent(documentId, 'documentId is required');
+  ctx.assertPresent(documentId, "documentId is required");
 
   const user = ctx.state.user;
   const document = await Document.findByPk(documentId, { userId: user.id });
   const team = await Team.findByPk(user.teamId);
-  authorize(user, 'share', document);
-  authorize(user, 'share', team);
+  authorize(user, "share", document);
+  authorize(user, "share", team);
 
   const [share] = await Share.findOrCreate({
     where: {
@@ -75,7 +88,7 @@ router.post('shares.create', auth(), async ctx => {
   });
 
   await Event.create({
-    name: 'shares.create',
+    name: "shares.create",
     documentId,
     collectionId: document.collectionId,
     modelId: share.id,
@@ -93,20 +106,20 @@ router.post('shares.create', auth(), async ctx => {
   };
 });
 
-router.post('shares.revoke', auth(), async ctx => {
+router.post("shares.revoke", auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
   const share = await Share.findByPk(id);
-  authorize(user, 'revoke', share);
+  authorize(user, "revoke", share);
 
   await share.revoke(user.id);
 
   const document = await Document.findByPk(share.documentId);
 
   await Event.create({
-    name: 'shares.revoke',
+    name: "shares.revoke",
     documentId: document.id,
     collectionId: document.collectionId,
     modelId: share.id,

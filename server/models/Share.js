@@ -1,8 +1,8 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
+import { DataTypes, sequelize } from "../sequelize";
 
 const Share = sequelize.define(
-  'share',
+  "share",
   {
     id: {
       type: DataTypes.UUID,
@@ -23,16 +23,16 @@ const Share = sequelize.define(
 
 Share.associate = models => {
   Share.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
+    as: "user",
+    foreignKey: "userId",
   });
   Share.belongsTo(models.Team, {
-    as: 'team',
-    foreignKey: 'teamId',
+    as: "team",
+    foreignKey: "teamId",
   });
   Share.belongsTo(models.Document, {
-    as: 'document',
-    foreignKey: 'documentId',
+    as: "document",
+    foreignKey: "documentId",
   });
 };
 

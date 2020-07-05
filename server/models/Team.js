@@ -1,25 +1,25 @@
 // @flow
-import uuid from 'uuid';
-import { URL } from 'url';
-import fs from 'fs';
-import util from 'util';
-import path from 'path';
-import { DataTypes, sequelize, Op } from '../sequelize';
-import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
+import uuid from "uuid";
+import { URL } from "url";
+import fs from "fs";
+import util from "util";
+import path from "path";
+import { DataTypes, sequelize, Op } from "../sequelize";
+import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
-} from '../../shared/utils/domains';
-import { ValidationError } from '../errors';
+} from "../../shared/utils/domains";
+import { ValidationError } from "../errors";
 
-import Collection from './Collection';
-import Document from './Document';
-import User from './User';
+import Collection from "./Collection";
+import Document from "./Document";
+import User from "./User";
 
 const readFile = util.promisify(fs.readFile);
 
 const Team = sequelize.define(
-  'team',
+  "team",
   {
     id: {
       type: DataTypes.UUID,
@@ -33,16 +33,16 @@ const Team = sequelize.define(
       validate: {
         isLowercase: true,
         is: {
-          args: [/^[a-z\d-]+$/, 'i'],
-          msg: 'Must be only alphanumeric and dashes',
+          args: [/^[a-z\d-]+$/, "i"],
+          msg: "Must be only alphanumeric and dashes",
         },
         len: {
           args: [4, 32],
-          msg: 'Must be between 4 and 32 characters',
+          msg: "Must be between 4 and 32 characters",
         },
         notIn: {
           args: [RESERVED_SUBDOMAINS],
-          msg: 'You chose a restricted word, please try another.',
+          msg: "You chose a restricted word, please try another.",
         },
       },
       unique: true,
@@ -66,13 +66,13 @@ const Team = sequelize.define(
   {
     getterMethods: {
       url() {
-        if (!this.subdomain || process.env.SUBDOMAINS_ENABLED !== 'true') {
+        if (!this.subdomain || process.env.SUBDOMAINS_ENABLED !== "true") {
           return process.env.URL;
         }
 
         const url = new URL(process.env.URL);
         url.host = `${this.subdomain}.${stripSubdomain(url.host)}`;
-        return url.href.replace(/\/$/, '');
+        return url.href.replace(/\/$/, "");
       },
       logoUrl() {
         return (
@@ -84,9 +84,9 @@ const Team = sequelize.define(
 );
 
 Team.associate = models => {
-  Team.hasMany(models.Collection, { as: 'collections' });
-  Team.hasMany(models.Document, { as: 'documents' });
-  Team.hasMany(models.User, { as: 'users' });
+  Team.hasMany(models.Collection, { as: "collections" });
+  Team.hasMany(models.Document, { as: "documents" });
+  Team.hasMany(models.User, { as: "users" });
 };
 
 const uploadAvatar = async model => {
@@ -95,14 +95,14 @@ const uploadAvatar = async model => {
 
   if (
     avatarUrl &&
-    !avatarUrl.startsWith('/api') &&
+    !avatarUrl.startsWith("/api") &&
     !avatarUrl.startsWith(endpoint)
   ) {
     try {
       const newUrl = await uploadToS3FromUrl(
         avatarUrl,
         `avatars/${model.id}/${uuid.v4()}`,
-        'public-read'
+        "public-read"
       );
       if (newUrl) model.avatarUrl = newUrl;
     } catch (err) {
@@ -131,10 +131,10 @@ Team.prototype.provisionSubdomain = async function(subdomain) {
 
 Team.prototype.provisionFirstCollection = async function(userId) {
   const collection = await Collection.create({
-    name: 'Welcome',
+    name: "Welcome",
     description:
-      'This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!',
-    type: 'atlas',
+      "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
+    type: "atlas",
     teamId: this.id,
     creatorId: userId,
   });
@@ -142,15 +142,15 @@ Team.prototype.provisionFirstCollection = async function(userId) {
   // For the first collection we go ahead and create some intitial documents to get
   // the team started. You can edit these in /server/onboarding/x.md
   const onboardingDocs = [
-    '❤️ Support',
-    '🚀 Integrations & API',
-    '📝 Our Editor',
-    '👋 What is Outline',
+    "❤️ Support",
+    "🚀 Integrations & API",
+    "📝 Our Editor",
+    "👋 What is Outline",
   ];
   for (const title of onboardingDocs) {
     const text = await readFile(
-      path.join(__dirname, '..', 'onboarding', `${title}.md`),
-      'utf8'
+      path.join(__dirname, "..", "onboarding", `${title}.md`),
+      "utf8"
     );
     const document = await Document.create({
       version: 1,
@@ -186,13 +186,13 @@ Team.prototype.removeAdmin = async function(user: User) {
   if (res.count >= 1) {
     return user.update({ isAdmin: false });
   } else {
-    throw new ValidationError('At least one admin is required');
+    throw new ValidationError("At least one admin is required");
   }
 };
 
 Team.prototype.suspendUser = async function(user: User, admin: User) {
   if (user.id === admin.id)
-    throw new ValidationError('Unable to suspend the current user');
+    throw new ValidationError("Unable to suspend the current user");
   return user.update({
     suspendedById: admin.id,
     suspendedAt: new Date(),
@@ -208,7 +208,7 @@ Team.prototype.activateUser = async function(user: User, admin: User) {
 
 Team.prototype.collectionIds = async function(paranoid: boolean = true) {
   let models = await Collection.findAll({
-    attributes: ['id', 'private'],
+    attributes: ["id", "private"],
     where: { teamId: this.id, private: false },
     paranoid,
   });

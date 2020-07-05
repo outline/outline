@@ -1,11 +1,11 @@
 // @flow
-import Document from 'models/Document';
+import Document from "models/Document";
 
 export type Toast = {
   id: string,
   createdAt: string,
   message: string,
-  type: 'warning' | 'error' | 'info' | 'success',
+  type: "warning" | "error" | "info" | "success",
   timeout?: number,
   action?: {
     text: string,
@@ -39,7 +39,7 @@ export type PaginationParams = {
   limit?: number,
   offset?: number,
   sort?: string,
-  direction?: 'ASC' | 'DESC',
+  direction?: "ASC" | "DESC",
 };
 
 export type SearchResult = {

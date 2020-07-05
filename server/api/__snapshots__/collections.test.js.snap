@@ -43,7 +43,7 @@ Object {
 }
 `;
 
-exports[`#collections.exportAll should require authentication 1`] = `
+exports[`#collections.export_all should require authentication 1`] = `
 Object {
   "error": "authentication_required",
   "message": "Authentication required",

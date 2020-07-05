@@ -1,20 +1,20 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import Grid from 'styled-components-grid';
-import Hero from './components/Hero';
-import HeroText from './components/HeroText';
-import Button from './components/Button';
-import SigninButtons from './components/SigninButtons';
-import AuthNotices from './components/AuthNotices';
-import Centered from './components/Centered';
-import PageTitle from './components/PageTitle';
-import { Team } from '../models';
+import * as React from "react";
+import styled from "styled-components";
+import Grid from "styled-components-grid";
+import Hero from "./components/Hero";
+import HeroText from "./components/HeroText";
+import Button from "./components/Button";
+import SigninButtons from "./components/SigninButtons";
+import AuthNotices from "./components/AuthNotices";
+import Centered from "./components/Centered";
+import PageTitle from "./components/PageTitle";
+import { Team } from "../models";
 
 type Props = {
   team: Team,
   guest?: boolean,
-  notice?: 'google-hd' | 'auth-error' | 'hd-not-allowed' | 'guest-success',
+  notice?: "google-hd" | "auth-error" | "hd-not-allowed" | "guest-success",
   lastSignedIn: string,
   googleSigninEnabled: boolean,
   slackSigninEnabled: boolean,
@@ -37,7 +37,7 @@ function SubdomainSignin({
   const guestSigninForm = (
     <div>
       <form method="POST" action="/auth/email">
-        <EmailInput type="email" name="email" placeholder="jane@domain.com" />{' '}
+        <EmailInput type="email" name="email" placeholder="jane@domain.com" />{" "}
         <Button type="submit" as="button">
           Sign In
         </Button>
@@ -54,7 +54,7 @@ function SubdomainSignin({
       <PageTitle title={`Sign in to ${team.name}`} />
       <Grid>
         <Hero>
-          <h1>{lastSignedIn ? 'Welcome back,' : 'Hey there,'}</h1>
+          <h1>{lastSignedIn ? "Welcome back," : "Hey there,"}</h1>
           <AuthNotices notice={notice} />
           {guest && guestSigninEnabled ? (
             <React.Fragment>
@@ -100,7 +100,7 @@ function SubdomainSignin({
       </Grid>
       <Alternative>
         <p>
-          Trying to create or sign in to a different team?{' '}
+          Trying to create or sign in to a different team?{" "}
           <a href={process.env.URL}>Head to the homepage</a>.
         </p>
       </Alternative>

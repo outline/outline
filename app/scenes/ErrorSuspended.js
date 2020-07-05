@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
+import * as React from "react";
+import { inject, observer } from "mobx-react";
 
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import AuthStore from 'stores/AuthStore';
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import AuthStore from "stores/AuthStore";
 
 const ErrorSuspended = observer(({ auth }: { auth: AuthStore }) => {
   return (
@@ -13,7 +13,7 @@ const ErrorSuspended = observer(({ auth }: { auth: AuthStore }) => {
       <h1>
         <span role="img" aria-label="Warning sign">
           ⚠️
-        </span>{' '}
+        </span>{" "}
         Your account has been suspended
       </h1>
 
@@ -26,4 +26,4 @@ const ErrorSuspended = observer(({ auth }: { auth: AuthStore }) => {
   );
 });
 
-export default inject('auth')(ErrorSuspended);
+export default inject("auth")(ErrorSuspended);

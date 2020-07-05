@@ -1,6 +1,6 @@
 // @flow
-import { Revision } from '../models';
-import presentUser from './user';
+import { Revision } from "../models";
+import presentUser from "./user";
 
 export default async function present(revision: Revision) {
   await revision.migrateVersion();

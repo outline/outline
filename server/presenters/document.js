@@ -1,8 +1,8 @@
 // @flow
-import { takeRight } from 'lodash';
-import { User, Document, Attachment } from '../models';
-import { getSignedImageUrl } from '../utils/s3';
-import presentUser from './user';
+import { takeRight } from "lodash";
+import { User, Document, Attachment } from "../models";
+import { getSignedImageUrl } from "../utils/s3";
+import presentUser from "./user";
 
 type Options = {
   isPublic?: boolean,

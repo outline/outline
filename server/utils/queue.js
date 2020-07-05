@@ -1,15 +1,15 @@
 // @flow
-import Redis from 'ioredis';
-import Queue from 'bull';
-import { client, subscriber } from '../redis';
+import Redis from "ioredis";
+import Queue from "bull";
+import { client, subscriber } from "../redis";
 
 export function createQueue(name: string) {
   return new Queue(name, {
     createClient(type) {
       switch (type) {
-        case 'client':
+        case "client":
           return client;
-        case 'subscriber':
+        case "subscriber":
           return subscriber;
         default:
           return new Redis(process.env.REDIS_URL);

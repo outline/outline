@@ -1,13 +1,13 @@
 // @flow
-import * as React from 'react';
-import { Table, TBody, TR, TD } from 'oy-vey';
+import * as React from "react";
+import { Table, TBody, TR, TD } from "oy-vey";
 
 const EmptySpace = ({ height }: { height?: number }) => {
   height = height || 16;
   const style = {
     lineHeight: `${height}px`,
-    fontSize: '1px',
-    msoLineHeightRule: 'exactly',
+    fontSize: "1px",
+    msoLineHeightRule: "exactly",
   };
 
   return (
@@ -18,7 +18,7 @@ const EmptySpace = ({ height }: { height?: number }) => {
             width="100%"
             height={`${height}px`}
             style={style}
-            dangerouslySetInnerHTML={{ __html: '&nbsp;' }}
+            dangerouslySetInnerHTML={{ __html: "&nbsp;" }}
           />
         </TR>
       </TBody>

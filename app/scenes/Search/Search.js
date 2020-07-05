@@ -1,39 +1,39 @@
 // @flow
-import * as React from 'react';
-import ReactDOM from 'react-dom';
-import keydown from 'react-keydown';
-import { Waypoint } from 'react-waypoint';
-import { withRouter, Link } from 'react-router-dom';
-import type { Location, RouterHistory } from 'react-router-dom';
-import { PlusIcon } from 'outline-icons';
-import { observable, action } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { debounce } from 'lodash';
-import queryString from 'query-string';
-import styled from 'styled-components';
-import ArrowKeyNavigation from 'boundless-arrow-key-navigation';
+import * as React from "react";
+import ReactDOM from "react-dom";
+import keydown from "react-keydown";
+import { Waypoint } from "react-waypoint";
+import { withRouter, Link } from "react-router-dom";
+import type { Location, RouterHistory } from "react-router-dom";
+import { PlusIcon } from "outline-icons";
+import { observable, action } from "mobx";
+import { observer, inject } from "mobx-react";
+import { debounce } from "lodash";
+import queryString from "query-string";
+import styled from "styled-components";
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 
-import { DEFAULT_PAGINATION_LIMIT } from 'stores/BaseStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import UsersStore from 'stores/UsersStore';
-import { newDocumentUrl, searchUrl } from 'utils/routeHelpers';
-import { meta } from 'utils/keyboard';
+import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
+import DocumentsStore from "stores/DocumentsStore";
+import UsersStore from "stores/UsersStore";
+import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
+import { meta } from "utils/keyboard";
 
-import Flex from 'shared/components/Flex';
-import Button from 'components/Button';
-import Empty from 'components/Empty';
-import Fade from 'components/Fade';
-import HelpText from 'components/HelpText';
-import CenteredContent from 'components/CenteredContent';
-import LoadingIndicator from 'components/LoadingIndicator';
-import DocumentPreview from 'components/DocumentPreview';
-import NewDocumentMenu from 'menus/NewDocumentMenu';
-import PageTitle from 'components/PageTitle';
-import SearchField from './components/SearchField';
-import StatusFilter from './components/StatusFilter';
-import CollectionFilter from './components/CollectionFilter';
-import UserFilter from './components/UserFilter';
-import DateFilter from './components/DateFilter';
+import Flex from "shared/components/Flex";
+import Button from "components/Button";
+import Empty from "components/Empty";
+import Fade from "components/Fade";
+import HelpText from "components/HelpText";
+import CenteredContent from "components/CenteredContent";
+import LoadingIndicator from "components/LoadingIndicator";
+import DocumentPreview from "components/DocumentPreview";
+import NewDocumentMenu from "menus/NewDocumentMenu";
+import PageTitle from "components/PageTitle";
+import SearchField from "./components/SearchField";
+import StatusFilter from "./components/StatusFilter";
+import CollectionFilter from "./components/CollectionFilter";
+import UserFilter from "./components/UserFilter";
+import DateFilter from "./components/DateFilter";
 
 type Props = {
   history: RouterHistory,
@@ -49,7 +49,7 @@ class Search extends React.Component<Props> {
   firstDocument: ?DocumentPreview;
 
   @observable
-  query: string = decodeURIComponent(this.props.match.params.term || '');
+  query: string = decodeURIComponent(this.props.match.params.term || "");
   @observable params: URLSearchParams = new URLSearchParams();
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
@@ -73,7 +73,7 @@ class Search extends React.Component<Props> {
     }
   }
 
-  @keydown('esc')
+  @keydown("esc")
   goBack() {
     this.props.history.goBack();
   }
@@ -107,8 +107,8 @@ class Search extends React.Component<Props> {
   };
 
   handleTermChange = () => {
-    const query = decodeURIComponent(this.props.match.params.term || '');
-    this.query = query ? query : '';
+    const query = decodeURIComponent(this.props.match.params.term || "");
+    this.query = query ? query : "";
     this.offset = 0;
     this.allowLoadMore = true;
 
@@ -135,21 +135,21 @@ class Search extends React.Component<Props> {
   };
 
   get includeArchived() {
-    return this.params.get('includeArchived') === 'true';
+    return this.params.get("includeArchived") === "true";
   }
 
   get collectionId() {
-    const id = this.params.get('collectionId');
+    const id = this.params.get("collectionId");
     return id ? id : undefined;
   }
 
   get userId() {
-    const id = this.params.get('userId');
+    const id = this.params.get("userId");
     return id ? id : undefined;
   }
 
   get dateFilter() {
-    const id = this.params.get('dateFilter');
+    const id = this.params.get("dateFilter");
     return id ? id : undefined;
   }
 
@@ -164,7 +164,7 @@ class Search extends React.Component<Props> {
 
   get title() {
     const query = this.query;
-    const title = 'Search';
+    const title = "Search";
     if (query) return `${query} – ${title}`;
     return title;
   }
@@ -361,14 +361,14 @@ const Container = styled(CenteredContent)`
 const ResultsWrapper = styled(Flex)`
   position: absolute;
   transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
-  top: ${props => (props.pinToTop ? '0%' : '50%')};
-  margin-top: ${props => (props.pinToTop ? '40px' : '-75px')};
+  top: ${props => (props.pinToTop ? "0%" : "50%")};
+  margin-top: ${props => (props.pinToTop ? "40px" : "-75px")};
   width: 100%;
 `;
 
 const ResultList = styled(Flex)`
   margin-bottom: 150px;
-  opacity: ${props => (props.visible ? '1' : '0')};
+  opacity: ${props => (props.visible ? "1" : "0")};
   transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
 `;
 
@@ -388,4 +388,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withRouter(inject('documents')(Search));
+export default withRouter(inject("documents")(Search));

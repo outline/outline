@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import breakpoint from 'styled-components-breakpoint';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import { KeyboardIcon } from 'outline-icons';
-import Modal from 'components/Modal';
-import Tooltip from 'components/Tooltip';
-import NudeButton from 'components/NudeButton';
-import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
+import * as React from "react";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import { KeyboardIcon } from "outline-icons";
+import Modal from "components/Modal";
+import Tooltip from "components/Tooltip";
+import NudeButton from "components/NudeButton";
+import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 
 type Props = {};
 
@@ -56,7 +56,7 @@ const Button = styled(NudeButton)`
   right: 0;
   margin: 24px;
 
-  ${breakpoint('tablet')`
+  ${breakpoint("tablet")`
     display: block;
   `};
 

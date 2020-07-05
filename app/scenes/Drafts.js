@@ -1,17 +1,17 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
 
-import Heading from 'components/Heading';
-import CenteredContent from 'components/CenteredContent';
-import Empty from 'components/Empty';
-import PageTitle from 'components/PageTitle';
-import PaginatedDocumentList from 'components/PaginatedDocumentList';
-import Subheading from 'components/Subheading';
-import InputSearch from 'components/InputSearch';
-import NewDocumentMenu from 'menus/NewDocumentMenu';
-import Actions, { Action } from 'components/Actions';
-import DocumentsStore from 'stores/DocumentsStore';
+import Heading from "components/Heading";
+import CenteredContent from "components/CenteredContent";
+import Empty from "components/Empty";
+import PageTitle from "components/PageTitle";
+import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Subheading from "components/Subheading";
+import InputSearch from "components/InputSearch";
+import NewDocumentMenu from "menus/NewDocumentMenu";
+import Actions, { Action } from "components/Actions";
+import DocumentsStore from "stores/DocumentsStore";
 
 type Props = {
   documents: DocumentsStore,
@@ -48,4 +48,4 @@ class Drafts extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(Drafts);
+export default inject("documents")(Drafts);

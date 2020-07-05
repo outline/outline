@@ -1,12 +1,12 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import FilterOptions from './FilterOptions';
-import UsersStore from 'stores/UsersStore';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import FilterOptions from "./FilterOptions";
+import UsersStore from "stores/UsersStore";
 
 const defaultOption = {
   key: undefined,
-  label: 'Any author',
+  label: "Any author",
 };
 
 type Props = {
@@ -40,4 +40,4 @@ class UserFilter extends React.Component<Props> {
   }
 }
 
-export default inject('users')(UserFilter);
+export default inject("users")(UserFilter);

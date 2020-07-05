@@ -1,20 +1,20 @@
 // @flow
-import Router from 'koa-router';
+import Router from "koa-router";
 
-import auth from '../middlewares/authentication';
-import { NotificationSetting } from '../models';
-import { presentNotificationSetting } from '../presenters';
-import policy from '../policies';
+import auth from "../middlewares/authentication";
+import { NotificationSetting } from "../models";
+import { presentNotificationSetting } from "../presenters";
+import policy from "../policies";
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post('notificationSettings.create', auth(), async ctx => {
+router.post("notificationSettings.create", auth(), async ctx => {
   const { event } = ctx.body;
-  ctx.assertPresent(event, 'event is required');
+  ctx.assertPresent(event, "event is required");
 
   const user = ctx.state.user;
-  authorize(user, 'create', NotificationSetting);
+  authorize(user, "create", NotificationSetting);
 
   const [setting] = await NotificationSetting.findOrCreate({
     where: {
@@ -29,7 +29,7 @@ router.post('notificationSettings.create', auth(), async ctx => {
   };
 });
 
-router.post('notificationSettings.list', auth(), async ctx => {
+router.post("notificationSettings.list", auth(), async ctx => {
   const user = ctx.state.user;
   const settings = await NotificationSetting.findAll({
     where: {
@@ -42,13 +42,13 @@ router.post('notificationSettings.list', auth(), async ctx => {
   };
 });
 
-router.post('notificationSettings.delete', auth(), async ctx => {
+router.post("notificationSettings.delete", auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
   const setting = await NotificationSetting.findByPk(id);
-  authorize(user, 'delete', setting);
+  authorize(user, "delete", setting);
 
   await setting.destroy();
 
@@ -57,10 +57,10 @@ router.post('notificationSettings.delete', auth(), async ctx => {
   };
 });
 
-router.post('notificationSettings.unsubscribe', async ctx => {
+router.post("notificationSettings.unsubscribe", async ctx => {
   const { id, token } = ctx.body;
-  ctx.assertUuid(id, 'id is required');
-  ctx.assertPresent(token, 'token is required');
+  ctx.assertUuid(id, "id is required");
+  ctx.assertPresent(token, "token is required");
 
   const setting = await NotificationSetting.findByPk(id);
   if (setting) {

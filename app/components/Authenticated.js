@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import AuthStore from 'stores/AuthStore';
-import LoadingIndicator from 'components/LoadingIndicator';
-import { isCustomSubdomain } from 'shared/utils/domains';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import AuthStore from "stores/AuthStore";
+import LoadingIndicator from "components/LoadingIndicator";
+import { isCustomSubdomain } from "shared/utils/domains";
 
 type Props = {
   auth: AuthStore,
@@ -38,4 +38,4 @@ const Authenticated = observer(({ auth, children }: Props) => {
   return null;
 });
 
-export default inject('auth')(Authenticated);
+export default inject("auth")(Authenticated);

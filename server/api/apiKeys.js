@@ -1,21 +1,21 @@
 // @flow
-import Router from 'koa-router';
+import Router from "koa-router";
 
-import auth from '../middlewares/authentication';
-import pagination from './middlewares/pagination';
-import { presentApiKey } from '../presenters';
-import { ApiKey, Event } from '../models';
-import policy from '../policies';
+import auth from "../middlewares/authentication";
+import pagination from "./middlewares/pagination";
+import { presentApiKey } from "../presenters";
+import { ApiKey, Event } from "../models";
+import policy from "../policies";
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post('apiKeys.create', auth(), async ctx => {
+router.post("apiKeys.create", auth(), async ctx => {
   const { name } = ctx.body;
-  ctx.assertPresent(name, 'name is required');
+  ctx.assertPresent(name, "name is required");
 
   const user = ctx.state.user;
-  authorize(user, 'create', ApiKey);
+  authorize(user, "create", ApiKey);
 
   const key = await ApiKey.create({
     name,
@@ -23,7 +23,7 @@ router.post('apiKeys.create', auth(), async ctx => {
   });
 
   await Event.create({
-    name: 'api_keys.create',
+    name: "api_keys.create",
     modelId: key.id,
     teamId: user.teamId,
     actorId: user.id,
@@ -36,13 +36,13 @@ router.post('apiKeys.create', auth(), async ctx => {
   };
 });
 
-router.post('apiKeys.list', auth(), pagination(), async ctx => {
+router.post("apiKeys.list", auth(), pagination(), async ctx => {
   const user = ctx.state.user;
   const keys = await ApiKey.findAll({
     where: {
       userId: user.id,
     },
-    order: [['createdAt', 'DESC']],
+    order: [["createdAt", "DESC"]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
@@ -53,18 +53,18 @@ router.post('apiKeys.list', auth(), pagination(), async ctx => {
   };
 });
 
-router.post('apiKeys.delete', auth(), async ctx => {
+router.post("apiKeys.delete", auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
   const key = await ApiKey.findByPk(id);
-  authorize(user, 'delete', key);
+  authorize(user, "delete", key);
 
   await key.destroy();
 
   await Event.create({
-    name: 'api_keys.delete',
+    name: "api_keys.delete",
     modelId: key.id,
     teamId: user.teamId,
     actorId: user.id,

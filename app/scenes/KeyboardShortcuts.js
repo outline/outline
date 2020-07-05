@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import Key from 'components/Key';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import { meta } from 'utils/keyboard';
+import * as React from "react";
+import styled from "styled-components";
+import Key from "components/Key";
+import Flex from "shared/components/Flex";
+import HelpText from "components/HelpText";
+import { meta } from "utils/keyboard";
 
 function KeyboardShortcuts() {
   return (
@@ -136,7 +136,7 @@ function KeyboardShortcuts() {
         </Keys>
         <Label>Horizontal divider</Label>
         <Keys>
-          <Key>{'```'}</Key>
+          <Key>{"```"}</Key>
         </Keys>
         <Label>Code block</Label>
 
@@ -146,7 +146,7 @@ function KeyboardShortcuts() {
         <Label>Bold</Label>
         <Keys>~~strikethrough~~</Keys>
         <Label>Strikethrough</Label>
-        <Keys>{'`code`'}</Keys>
+        <Keys>{"`code`"}</Keys>
         <Label>Inline code</Label>
         <Keys>==highlight==</Keys>
         <Label>highlight</Label>

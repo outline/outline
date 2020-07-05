@@ -1,18 +1,18 @@
 // @flow
-import Router from 'koa-router';
-import Integration from '../models/Integration';
-import pagination from './middlewares/pagination';
-import auth from '../middlewares/authentication';
-import { Event } from '../models';
-import { presentIntegration } from '../presenters';
-import policy from '../policies';
+import Router from "koa-router";
+import Integration from "../models/Integration";
+import pagination from "./middlewares/pagination";
+import auth from "../middlewares/authentication";
+import { Event } from "../models";
+import { presentIntegration } from "../presenters";
+import policy from "../policies";
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post('integrations.list', auth(), pagination(), async ctx => {
-  let { sort = 'updatedAt', direction } = ctx.body;
-  if (direction !== 'ASC') direction = 'DESC';
+router.post("integrations.list", auth(), pagination(), async ctx => {
+  let { sort = "updatedAt", direction } = ctx.body;
+  if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;
   const integrations = await Integration.findAll({
@@ -28,18 +28,18 @@ router.post('integrations.list', auth(), pagination(), async ctx => {
   };
 });
 
-router.post('integrations.delete', auth(), async ctx => {
+router.post("integrations.delete", auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertUuid(id, 'id is required');
+  ctx.assertUuid(id, "id is required");
 
   const user = ctx.state.user;
   const integration = await Integration.findByPk(id);
-  authorize(user, 'delete', integration);
+  authorize(user, "delete", integration);
 
   await integration.destroy();
 
   await Event.create({
-    name: 'integrations.delete',
+    name: "integrations.delete",
     modelId: integration.id,
     teamId: integration.teamId,
     actorId: user.id,

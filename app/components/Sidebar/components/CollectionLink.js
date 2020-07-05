@@ -1,19 +1,19 @@
 // @flow
-import * as React from 'react';
-import { observer, Observer } from 'mobx-react';
-import { observable } from 'mobx';
-import { CollectionIcon, PrivateCollectionIcon } from 'outline-icons';
-import { Draggable } from 'react-beautiful-dnd';
-import Collection from 'models/Collection';
-import Document from 'models/Document';
-import CollectionMenu from 'menus/CollectionMenu';
-import UiStore from 'stores/UiStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import SidebarLink from './SidebarLink';
-import DocumentLink from './DocumentLink';
-import DropToImport from 'components/DropToImport';
-import Droppable from './Droppable';
-import Flex from 'shared/components/Flex';
+import * as React from "react";
+import { observer, Observer } from "mobx-react";
+import { observable } from "mobx";
+import { Draggable } from "react-beautiful-dnd";
+import Collection from "models/Collection";
+import Document from "models/Document";
+import CollectionMenu from "menus/CollectionMenu";
+import UiStore from "stores/UiStore";
+import DocumentsStore from "stores/DocumentsStore";
+import SidebarLink from "./SidebarLink";
+import DocumentLink from "./DocumentLink";
+import CollectionIcon from "components/CollectionIcon";
+import DropToImport from "components/DropToImport";
+import Droppable from "./Droppable";
+import Flex from "shared/components/Flex";
 
 type Props = {
   collection: Collection,
@@ -46,16 +46,7 @@ class CollectionLink extends React.Component<Props> {
         <SidebarLink
           key={collection.id}
           to={collection.url}
-          icon={
-            collection.private ? (
-              <PrivateCollectionIcon
-                expanded={expanded}
-                color={collection.color}
-              />
-            ) : (
-              <CollectionIcon expanded={expanded} color={collection.color} />
-            )
-          }
+          icon={<CollectionIcon collection={collection} expanded={expanded} />}
           iconColor={collection.color}
           expanded={expanded}
           hideDisclosure

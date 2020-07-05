@@ -1,12 +1,12 @@
 // @flow
-import * as React from 'react';
-import { Link } from 'react-router-dom';
-import { capitalize } from 'lodash';
-import styled from 'styled-components';
-import Time from 'shared/components/Time';
-import ListItem from 'components/List/Item';
-import Avatar from 'components/Avatar';
-import Event from 'models/Event';
+import * as React from "react";
+import { Link } from "react-router-dom";
+import { capitalize } from "lodash";
+import styled from "styled-components";
+import Time from "shared/components/Time";
+import ListItem from "components/List/Item";
+import Avatar from "components/Avatar";
+import Event from "models/Event";
 
 type Props = {
   event: Event,
@@ -14,104 +14,104 @@ type Props = {
 
 const description = event => {
   switch (event.name) {
-    case 'api_keys.create':
+    case "api_keys.create":
       return (
         <React.Fragment>
           Created the API token <strong>{event.data.name}</strong>
         </React.Fragment>
       );
-    case 'api_keys.delete':
+    case "api_keys.delete":
       return (
         <React.Fragment>
           Revoked the API token <strong>{event.data.name}</strong>
         </React.Fragment>
       );
-    case 'teams.create':
-      return 'Created the team';
-    case 'shares.create':
-    case 'shares.revoke':
+    case "teams.create":
+      return "Created the team";
+    case "shares.create":
+    case "shares.revoke":
       return (
         <React.Fragment>
-          {capitalize(event.verbPastTense)} a{' '}
-          <Link to={`/share/${event.modelId || ''}`}>public link</Link> to the{' '}
-          <Link to={`/doc/${event.documentId}`}>{event.data.name}</Link>{' '}
+          {capitalize(event.verbPastTense)} a{" "}
+          <Link to={`/share/${event.modelId || ""}`}>public link</Link> to the{" "}
+          <Link to={`/doc/${event.documentId}`}>{event.data.name}</Link>{" "}
           document
         </React.Fragment>
       );
-    case 'users.create':
+    case "users.create":
       return (
         <React.Fragment>{event.data.name} created an account</React.Fragment>
       );
-    case 'users.invite':
+    case "users.invite":
       return (
         <React.Fragment>
           {capitalize(event.verbPastTense)} {event.data.name} (<a
-            href={`mailto:${event.data.email || ''}`}
+            href={`mailto:${event.data.email || ""}`}
           >
-            {event.data.email || ''}
+            {event.data.email || ""}
           </a>)
         </React.Fragment>
       );
-    case 'users.suspend':
+    case "users.suspend":
       return (
         <React.Fragment>
           Suspended <strong>{event.data.name}’s</strong> account
         </React.Fragment>
       );
-    case 'users.activate':
+    case "users.activate":
       return (
         <React.Fragment>
           Unsuspended <strong>{event.data.name}’s</strong> account
         </React.Fragment>
       );
-    case 'users.promote':
+    case "users.promote":
       return (
         <React.Fragment>
           Made <strong>{event.data.name}</strong> an admin
         </React.Fragment>
       );
-    case 'users.demote':
+    case "users.demote":
       return (
         <React.Fragment>
           Made <strong>{event.data.name}</strong> a member
         </React.Fragment>
       );
-    case 'users.delete':
-      return 'Deleted their account';
-    case 'groups.create':
+    case "users.delete":
+      return "Deleted their account";
+    case "groups.create":
       return (
         <React.Fragment>
           Created the group <strong>{event.data.name}</strong>
         </React.Fragment>
       );
-    case 'groups.update':
+    case "groups.update":
       return (
         <React.Fragment>
           Update the group <strong>{event.data.name}</strong>
         </React.Fragment>
       );
-    case 'groups.delete':
+    case "groups.delete":
       return (
         <React.Fragment>
           Deleted the group <strong>{event.data.name}</strong>
         </React.Fragment>
       );
-    case 'collections.add_user':
-    case 'collections.add_group':
+    case "collections.add_user":
+    case "collections.add_group":
       return (
         <React.Fragment>
-          Granted <strong>{event.data.name}</strong> access to a{' '}
-          <Link to={`/collections/${event.collectionId || ''}`}>
+          Granted <strong>{event.data.name}</strong> access to a{" "}
+          <Link to={`/collections/${event.collectionId || ""}`}>
             collection
           </Link>
         </React.Fragment>
       );
-    case 'collections.remove_user':
-    case 'collections.remove_group':
+    case "collections.remove_user":
+    case "collections.remove_group":
       return (
         <React.Fragment>
-          Revoked <strong>{event.data.name}</strong> access to a{' '}
-          <Link to={`/collections/${event.collectionId || ''}`}>
+          Revoked <strong>{event.data.name}</strong> access to a{" "}
+          <Link to={`/collections/${event.collectionId || ""}`}>
             collection
           </Link>
         </React.Fragment>
@@ -120,7 +120,7 @@ const description = event => {
   }
 
   if (event.documentId) {
-    if (event.name === 'documents.delete') {
+    if (event.name === "documents.delete") {
       return (
         <React.Fragment>
           Deleted the <strong>{event.data.title}</strong> document
@@ -129,13 +129,13 @@ const description = event => {
     }
     return (
       <React.Fragment>
-        {capitalize(event.verbPastTense)} the{' '}
+        {capitalize(event.verbPastTense)} the{" "}
         <Link to={`/doc/${event.documentId}`}>{event.data.title}</Link> document
       </React.Fragment>
     );
   }
   if (event.collectionId) {
-    if (event.name === 'collections.delete') {
+    if (event.name === "collections.delete") {
       return (
         <React.Fragment>
           Deleted the <strong>{event.data.name}</strong> collection
@@ -144,10 +144,10 @@ const description = event => {
     }
     return (
       <React.Fragment>
-        {capitalize(event.verbPastTense)} the{' '}
-        <Link to={`/collections/${event.collectionId || ''}`}>
+        {capitalize(event.verbPastTense)} the{" "}
+        <Link to={`/collections/${event.collectionId || ""}`}>
           {event.data.name}
-        </Link>{' '}
+        </Link>{" "}
         collection
       </React.Fragment>
     );
@@ -159,7 +159,7 @@ const description = event => {
       </React.Fragment>
     );
   }
-  return '';
+  return "";
 };
 
 const EventListItem = ({ event }: Props) => {
@@ -170,7 +170,7 @@ const EventListItem = ({ event }: Props) => {
       image={<Avatar src={event.actor.avatarUrl} size={32} />}
       subtitle={
         <React.Fragment>
-          {description(event)} <Time dateTime={event.createdAt} /> ago &middot;{' '}
+          {description(event)} <Time dateTime={event.createdAt} /> ago &middot;{" "}
           <strong>{event.name}</strong>
         </React.Fragment>
       }
@@ -193,7 +193,7 @@ const EventListItem = ({ event }: Props) => {
   );
 };
 
-const IP = styled('span')`
+const IP = styled("span")`
   color: ${props => props.theme.textTertiary};
   font-size: 12px;
 `;

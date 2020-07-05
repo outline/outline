@@ -1,13 +1,13 @@
 // @flow
-import * as React from 'react';
-import { User, Document, Team, Collection } from '../models';
-import EmailTemplate from './components/EmailLayout';
-import Body from './components/Body';
-import Button from './components/Button';
-import Heading from './components/Heading';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import EmptySpace from './components/EmptySpace';
+import * as React from "react";
+import { User, Document, Team, Collection } from "../models";
+import EmailTemplate from "./components/EmailLayout";
+import Body from "./components/Body";
+import Button from "./components/Button";
+import Heading from "./components/Heading";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import EmptySpace from "./components/EmptySpace";
 
 export type Props = {
   actor: User,
@@ -23,7 +23,7 @@ export const documentNotificationEmailText = ({
   team,
   document,
   collection,
-  eventName = 'published',
+  eventName = "published",
 }: Props) => `
 "${document.title}" ${eventName}
 
@@ -39,7 +39,7 @@ export const DocumentNotificationEmail = ({
   team,
   document,
   collection,
-  eventName = 'published',
+  eventName = "published",
   unsubscribeUrl,
 }: Props) => {
   return (
@@ -51,7 +51,7 @@ export const DocumentNotificationEmail = ({
           "{document.title}" {eventName}
         </Heading>
         <p>
-          {actor.name} {eventName} the document "{document.title}", in the{' '}
+          {actor.name} {eventName} the document "{document.title}", in the{" "}
           {collection.name} collection.
         </p>
         <hr />

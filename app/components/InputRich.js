@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import styled, { withTheme } from 'styled-components';
-import { LabelText, Outline } from 'components/Input';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import styled, { withTheme } from "styled-components";
+import { LabelText, Outline } from "components/Input";
 
 type Props = {
   label: string,
@@ -31,7 +31,7 @@ class InputRich extends React.Component<Props> {
 
   loadEditor = async () => {
     try {
-      const EditorImport = await import('./Editor');
+      const EditorImport = await import("./Editor");
       this.editorComponent = EditorImport.default;
     } catch (err) {
       console.error(err);
@@ -64,7 +64,7 @@ class InputRich extends React.Component<Props> {
               {...rest}
             />
           ) : (
-            'Loading…'
+            "Loading…"
           )}
         </StyledOutline>
       </React.Fragment>
@@ -74,8 +74,8 @@ class InputRich extends React.Component<Props> {
 
 const StyledOutline = styled(Outline)`
   padding: 8px 12px;
-  min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : '0')};
-  max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : 'auto')};
+  min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : "0")};
+  max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : "auto")};
   overflow-y: auto;
 
   > * {

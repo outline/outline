@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import styled, { withTheme } from 'styled-components';
-import { NavLink } from 'react-router-dom';
-import { lighten } from 'polished';
+import * as React from "react";
+import styled, { withTheme } from "styled-components";
+import { NavLink } from "react-router-dom";
+import { lighten } from "polished";
 
 type Props = {
   theme: Object,
@@ -35,7 +35,7 @@ const StyledNavLink = styled(NavLink)`
 
 function Tab(props: Props) {
   const activeStyle = {
-    paddingBottom: '5px',
+    paddingBottom: "5px",
     borderBottom: `3px solid ${props.theme.textSecondary}`,
     color: props.theme.textSecondary,
   };

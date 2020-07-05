@@ -1,15 +1,15 @@
 // @flow
-import { Team, User, Collection, Document, Group } from '../models';
-import policy from './policy';
-import './apiKey';
-import './collection';
-import './document';
-import './integration';
-import './notificationSetting';
-import './share';
-import './user';
-import './team';
-import './group';
+import { Team, User, Collection, Document, Group } from "../models";
+import policy from "./policy";
+import "./apiKey";
+import "./collection";
+import "./document";
+import "./integration";
+import "./notificationSetting";
+import "./share";
+import "./user";
+import "./team";
+import "./group";
 
 const { can, abilities } = policy;
 

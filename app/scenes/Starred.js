@@ -1,18 +1,18 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
 
-import CenteredContent from 'components/CenteredContent';
-import Empty from 'components/Empty';
-import PageTitle from 'components/PageTitle';
-import Heading from 'components/Heading';
-import PaginatedDocumentList from 'components/PaginatedDocumentList';
-import InputSearch from 'components/InputSearch';
-import Tabs from 'components/Tabs';
-import Tab from 'components/Tab';
-import NewDocumentMenu from 'menus/NewDocumentMenu';
-import Actions, { Action } from 'components/Actions';
-import DocumentsStore from 'stores/DocumentsStore';
+import CenteredContent from "components/CenteredContent";
+import Empty from "components/Empty";
+import PageTitle from "components/PageTitle";
+import Heading from "components/Heading";
+import PaginatedDocumentList from "components/PaginatedDocumentList";
+import InputSearch from "components/InputSearch";
+import Tabs from "components/Tabs";
+import Tab from "components/Tab";
+import NewDocumentMenu from "menus/NewDocumentMenu";
+import Actions, { Action } from "components/Actions";
+import DocumentsStore from "stores/DocumentsStore";
 
 type Props = {
   documents: DocumentsStore,
@@ -42,7 +42,7 @@ class Starred extends React.Component<Props> {
           }
           empty={<Empty>You’ve not starred any documents yet.</Empty>}
           fetch={fetchStarred}
-          documents={sort === 'alphabetical' ? starredAlphabetical : starred}
+          documents={sort === "alphabetical" ? starredAlphabetical : starred}
           showCollection
         />
 
@@ -59,4 +59,4 @@ class Starred extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(Starred);
+export default inject("documents")(Starred);

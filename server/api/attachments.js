@@ -1,17 +1,96 @@
 // @flow
-import Router from 'koa-router';
-import auth from '../middlewares/authentication';
-import { Attachment, Document } from '../models';
-import { getSignedImageUrl } from '../utils/s3';
-import { NotFoundError } from '../errors';
-import policy from '../policies';
+import Router from "koa-router";
+import uuid from "uuid";
+import format from "date-fns/format";
+import { Attachment, Document, Event } from "../models";
+import {
+  makePolicy,
+  getSignature,
+  publicS3Endpoint,
+  makeCredential,
+  getSignedImageUrl,
+} from "../utils/s3";
+import auth from "../middlewares/authentication";
+import { NotFoundError } from "../errors";
+import policy from "../policies";
 
 const { authorize } = policy;
 const router = new Router();
+const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
 
-router.post('attachments.redirect', auth(), async ctx => {
+router.post("attachments.create", auth(), async ctx => {
+  let { name, documentId, contentType, size } = ctx.body;
+
+  ctx.assertPresent(name, "name is required");
+  ctx.assertPresent(contentType, "contentType is required");
+  ctx.assertPresent(size, "size is required");
+
+  const { user } = ctx.state;
+  const s3Key = uuid.v4();
+  const key = `uploads/${user.id}/${s3Key}/${name}`;
+  const acl =
+    ctx.body.public === undefined
+      ? AWS_S3_ACL
+      : ctx.body.public ? "public-read" : "private";
+  const credential = makeCredential();
+  const longDate = format(new Date(), "YYYYMMDDTHHmmss\\Z");
+  const policy = makePolicy(credential, longDate, acl);
+  const endpoint = publicS3Endpoint();
+  const url = `${endpoint}/${key}`;
+
+  if (documentId) {
+    const document = await Document.findByPk(documentId, { userId: user.id });
+    authorize(user, "update", document);
+  }
+
+  const attachment = await Attachment.create({
+    key,
+    acl,
+    size,
+    url,
+    contentType,
+    documentId,
+    teamId: user.teamId,
+    userId: user.id,
+  });
+
+  await Event.create({
+    name: "attachments.create",
+    data: { name },
+    teamId: user.teamId,
+    userId: user.id,
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    data: {
+      maxUploadSize: process.env.AWS_S3_UPLOAD_MAX_SIZE,
+      uploadUrl: endpoint,
+      form: {
+        "Cache-Control": "max-age=31557600",
+        "Content-Type": contentType,
+        acl,
+        key,
+        policy,
+        "x-amz-algorithm": "AWS4-HMAC-SHA256",
+        "x-amz-credential": credential,
+        "x-amz-date": longDate,
+        "x-amz-signature": getSignature(policy),
+      },
+      attachment: {
+        documentId,
+        contentType,
+        name,
+        url: attachment.redirectUrl,
+        size,
+      },
+    },
+  };
+});
+
+router.post("attachments.redirect", auth(), async ctx => {
   const { id } = ctx.body;
-  ctx.assertPresent(id, 'id is required');
+  ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
   const attachment = await Attachment.findByPk(id);
@@ -24,7 +103,7 @@ router.post('attachments.redirect', auth(), async ctx => {
       const document = await Document.findByPk(attachment.documentId, {
         userId: user.id,
       });
-      authorize(user, 'read', document);
+      authorize(user, "read", document);
     }
 
     const accessUrl = await getSignedImageUrl(attachment.key);

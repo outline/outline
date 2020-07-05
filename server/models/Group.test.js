@@ -1,13 +1,13 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb } from '../test/support';
-import { CollectionGroup, GroupUser } from '../models';
-import { buildUser, buildGroup, buildCollection } from '../test/factories';
+import { flushdb } from "../test/support";
+import { CollectionGroup, GroupUser } from "../models";
+import { buildUser, buildGroup, buildCollection } from "../test/factories";
 
 beforeEach(flushdb);
 beforeEach(jest.resetAllMocks);
 
-describe('afterDestroy hook', () => {
-  test('should destroy associated group and collection join relations', async () => {
+describe("afterDestroy hook", () => {
+  test("should destroy associated group and collection join relations", async () => {
     const group = await buildGroup();
     const teamId = group.teamId;
 

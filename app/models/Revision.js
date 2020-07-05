@@ -1,6 +1,6 @@
 // @flow
-import BaseModel from './BaseModel';
-import User from './User';
+import BaseModel from "./BaseModel";
+import User from "./User";
 
 class Revision extends BaseModel {
   id: string;

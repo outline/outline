@@ -1,5 +1,5 @@
 // @flow
-import { parser } from 'rich-markdown-editor';
+import { parser } from "rich-markdown-editor";
 
 export default function parseDocumentIds(text: string): string[] {
   const value = parser.parse(text);
@@ -7,15 +7,15 @@ export default function parseDocumentIds(text: string): string[] {
 
   function findLinks(node) {
     // get text nodes
-    if (node.type.name === 'text') {
+    if (node.type.name === "text") {
       // get marks for text nodes
       node.marks.forEach(mark => {
         // any of the marks links?
-        if (mark.type.name === 'link') {
+        if (mark.type.name === "link") {
           const { href } = mark.attrs;
           // any of the links to other docs?
-          if (href.startsWith('/doc')) {
-            const tokens = href.replace(/\/$/, '').split('/');
+          if (href.startsWith("/doc")) {
+            const tokens = href.replace(/\/$/, "").split("/");
             const lastToken = tokens[tokens.length - 1];
 
             // don't return the same link more than once

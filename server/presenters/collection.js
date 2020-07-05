@@ -1,5 +1,5 @@
 // @flow
-import { Collection } from '../models';
+import { Collection } from "../models";
 
 type Document = {
   children: Document[],
@@ -14,7 +14,8 @@ export default function present(collection: Collection) {
     url: collection.url,
     name: collection.name,
     description: collection.description,
-    color: collection.color || '#4E5C6E',
+    icon: collection.icon,
+    color: collection.color || "#4E5C6E",
     type: collection.type,
     private: collection.private,
     createdAt: collection.createdAt,
@@ -23,7 +24,7 @@ export default function present(collection: Collection) {
     documents: undefined,
   };
 
-  if (collection.type === 'atlas') {
+  if (collection.type === "atlas") {
     data.documents = collection.documentStructure
       ? collection.documentStructure
       : [];

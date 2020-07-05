@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import Grid from 'styled-components-grid';
-import PageTitle from '../components/PageTitle';
-import Header from '../components/Header';
-import Content from '../components/Content';
+import * as React from "react";
+import styled from "styled-components";
+import Grid from "styled-components-grid";
+import PageTitle from "../components/PageTitle";
+import Header from "../components/Header";
+import Content from "../components/Content";
 
 export default function Api() {
   return (
@@ -49,7 +49,7 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method method="users.s3Upload" label="Get S3 upload credentials">
+          <Method method="attachments.create" label="Get S3 upload credentials">
             <Description>
               You can upload small files and images as part of your documents.
               All files are stored using Amazon S3. Instead of uploading files
@@ -84,7 +84,7 @@ export default function Api() {
               Promote a user to be a team admin. This endpoint is only available
               for admin users.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument id="id" description="User ID to be promoted" required />
             </Arguments>
           </Method>
@@ -95,7 +95,7 @@ export default function Api() {
               is always required. This endpoint is only available for admin
               users.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument id="id" description="User ID to be demoted" required />
             </Arguments>
           </Method>
@@ -105,7 +105,7 @@ export default function Api() {
               Admin can suspend users to reduce the number of accounts on their
               billing plan or prevent them from accessing documention.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument
                 id="id"
                 description="User ID to be suspended"
@@ -122,7 +122,7 @@ export default function Api() {
               Admin can re-active a suspended user. This will update the billing
               plan and re-enable their access to the documention.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument
                 id="id"
                 description="User ID to be activated"
@@ -173,7 +173,10 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method method="collections.exportAll" label="Export all collections">
+          <Method
+            method="collections.export_all"
+            label="Export all collections"
+          >
             <Description>
               Returns a zip file of all the collections or creates an async job
               to send a zip file via email to the authenticated user. If
@@ -383,7 +386,7 @@ export default function Api() {
             <Description>
               This method allows you to publish a new document under an existing
               collection. By default a document is set to the parent collection
-              root. If you want to create a subdocument, you can pass{' '}
+              root. If you want to create a subdocument, you can pass{" "}
               <Code>parentDocumentId</Code> to set parent document.
             </Description>
             <Arguments>
@@ -527,20 +530,6 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method method="documents.info" label="Get a document">
-            <Description>
-              Get a document with its ID or URL identifier from user’s
-              collections.
-            </Description>
-            <Arguments>
-              <Argument
-                id="id"
-                description="Document ID or URI identifier"
-                required
-              />
-            </Arguments>
-          </Method>
-
           <Method
             method="documents.restore"
             label="Restore a previous revision"
@@ -651,32 +640,21 @@ export default function Api() {
             </Arguments>
           </Method>
 
-          <Method
-            method="documents.revision"
-            label="Get revision for a document"
-          >
+          <Method method="revisions.info" label="Get revision for a document">
             <Description>Return a specific revision of a document.</Description>
             <Arguments>
-              <Argument
-                id="id"
-                description="Document ID or URI identifier"
-                required
-              />
-              <Argument id="revisionId" description="Revision ID" required />
+              <Argument id="id" description="Revision ID" required />
             </Arguments>
           </Method>
 
-          <Method
-            method="documents.revisions"
-            label="Get revisions for a document"
-          >
+          <Method method="revisions.list" label="Get revisions for a document">
             <Description>
               Return revisions for a document. Upon each edit, a new revision is
               stored.
             </Description>
             <Arguments pagination>
               <Argument
-                id="id"
+                id="documentId"
                 description="Document ID or URI identifier"
                 required
               />
@@ -688,7 +666,7 @@ export default function Api() {
               This method allows you to create a new group to organize people in
               the team.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument
                 id="name"
                 description="The name of the group"
@@ -702,7 +680,7 @@ export default function Api() {
               This method allows you to update an existing group. At this time
               the only field that can be edited is the name.
             </Description>
-            <Arguments pagination>
+            <Arguments>
               <Argument id="id" description="Group ID" required />
               <Argument
                 id="name"
@@ -980,7 +958,7 @@ const Argument = (props: ArgumentProps) => (
       <Code>{props.id}</Code>
     </td>
     <td>
-      <i>{props.required ? 'required' : 'optional'}</i>
+      <i>{props.required ? "required" : "optional"}</i>
     </td>
     <td>{props.description}</td>
   </tr>

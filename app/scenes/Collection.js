@@ -1,47 +1,42 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { Redirect, Link, Switch, Route } from 'react-router-dom';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { Redirect, Link, Switch, Route } from "react-router-dom";
 
-import styled, { withTheme } from 'styled-components';
-import {
-  CollectionIcon,
-  PrivateCollectionIcon,
-  NewDocumentIcon,
-  PlusIcon,
-  PinIcon,
-} from 'outline-icons';
-import RichMarkdownEditor from 'rich-markdown-editor';
+import styled, { withTheme } from "styled-components";
+import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
+import RichMarkdownEditor from "rich-markdown-editor";
 
-import { newDocumentUrl, collectionUrl } from 'utils/routeHelpers';
-import CollectionsStore from 'stores/CollectionsStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import UiStore from 'stores/UiStore';
-import Collection from 'models/Collection';
+import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
+import CollectionsStore from "stores/CollectionsStore";
+import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import Collection from "models/Collection";
 
-import Search from 'scenes/Search';
-import CollectionEdit from 'scenes/CollectionEdit';
-import CollectionMenu from 'menus/CollectionMenu';
-import Actions, { Action, Separator } from 'components/Actions';
-import Heading from 'components/Heading';
-import Tooltip from 'components/Tooltip';
-import CenteredContent from 'components/CenteredContent';
-import { ListPlaceholder } from 'components/LoadingPlaceholder';
-import InputSearch from 'components/InputSearch';
-import Mask from 'components/Mask';
-import Button from 'components/Button';
-import HelpText from 'components/HelpText';
-import DocumentList from 'components/DocumentList';
-import Subheading from 'components/Subheading';
-import PageTitle from 'components/PageTitle';
-import Flex from 'shared/components/Flex';
-import Modal from 'components/Modal';
-import CollectionMembers from 'scenes/CollectionMembers';
-import Tabs from 'components/Tabs';
-import Tab from 'components/Tab';
-import PaginatedDocumentList from 'components/PaginatedDocumentList';
+import Search from "scenes/Search";
+import CollectionEdit from "scenes/CollectionEdit";
+import CollectionMenu from "menus/CollectionMenu";
+import Actions, { Action, Separator } from "components/Actions";
+import Heading from "components/Heading";
+import Tooltip from "components/Tooltip";
+import CenteredContent from "components/CenteredContent";
+import { ListPlaceholder } from "components/LoadingPlaceholder";
+import InputSearch from "components/InputSearch";
+import Mask from "components/Mask";
+import Button from "components/Button";
+import HelpText from "components/HelpText";
+import DocumentList from "components/DocumentList";
+import Subheading from "components/Subheading";
+import PageTitle from "components/PageTitle";
+import Flex from "shared/components/Flex";
+import Modal from "components/Modal";
+import CollectionMembers from "scenes/CollectionMembers";
+import Tabs from "components/Tabs";
+import Tab from "components/Tab";
+import PaginatedDocumentList from "components/PaginatedDocumentList";
+import CollectionIcon from "components/CollectionIcon";
 
 type Props = {
   ui: UiStore,
@@ -210,19 +205,7 @@ class CollectionScene extends React.Component<Props> {
             ) : (
               <React.Fragment>
                 <Heading>
-                  {collection.private ? (
-                    <PrivateCollectionIcon
-                      color={collection.color}
-                      size={40}
-                      expanded
-                    />
-                  ) : (
-                    <CollectionIcon
-                      color={collection.color}
-                      size={40}
-                      expanded
-                    />
-                  )}{' '}
+                  <CollectionIcon collection={collection} size={40} expanded />{" "}
                   {collection.name}
                 </Heading>
 
@@ -249,47 +232,47 @@ class CollectionScene extends React.Component<Props> {
                   <Tab to={collectionUrl(collection.id)} exact>
                     Recently updated
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, 'recent')} exact>
+                  <Tab to={collectionUrl(collection.id, "recent")} exact>
                     Recently published
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, 'old')} exact>
+                  <Tab to={collectionUrl(collection.id, "old")} exact>
                     Least recently updated
                   </Tab>
-                  <Tab to={collectionUrl(collection.id, 'alphabetical')} exact>
+                  <Tab to={collectionUrl(collection.id, "alphabetical")} exact>
                     A–Z
                   </Tab>
                 </Tabs>
                 <Switch>
-                  <Route path={collectionUrl(collection.id, 'alphabetical')}>
+                  <Route path={collectionUrl(collection.id, "alphabetical")}>
                     <PaginatedDocumentList
                       key="alphabetical"
                       documents={documents.alphabeticalInCollection(
                         collection.id
                       )}
                       fetch={documents.fetchAlphabetical}
-                      options={{ collection: collection.id }}
+                      options={{ collectionId: collection.id }}
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id, 'old')}>
+                  <Route path={collectionUrl(collection.id, "old")}>
                     <PaginatedDocumentList
                       key="old"
                       documents={documents.leastRecentlyUpdatedInCollection(
                         collection.id
                       )}
                       fetch={documents.fetchLeastRecentlyUpdated}
-                      options={{ collection: collection.id }}
+                      options={{ collectionId: collection.id }}
                       showPin
                     />
                   </Route>
-                  <Route path={collectionUrl(collection.id, 'recent')}>
+                  <Route path={collectionUrl(collection.id, "recent")}>
                     <PaginatedDocumentList
                       key="recent"
                       documents={documents.recentlyPublishedInCollection(
                         collection.id
                       )}
                       fetch={documents.fetchRecentlyPublished}
-                      options={{ collection: collection.id }}
+                      options={{ collectionId: collection.id }}
                       showPublished
                       showPin
                     />
@@ -300,7 +283,7 @@ class CollectionScene extends React.Component<Props> {
                         collection.id
                       )}
                       fetch={documents.fetchRecentlyUpdated}
-                      options={{ collection: collection.id }}
+                      options={{ collectionId: collection.id }}
                       showPin
                     />
                   </Route>
@@ -341,6 +324,6 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject('collections', 'policies', 'documents', 'ui')(
+export default inject("collections", "policies", "documents", "ui")(
   withTheme(CollectionScene)
 );

@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
 
-import CenteredContent from 'components/CenteredContent';
-import Empty from 'components/Empty';
-import PageTitle from 'components/PageTitle';
-import Heading from 'components/Heading';
-import PaginatedDocumentList from 'components/PaginatedDocumentList';
-import Subheading from 'components/Subheading';
-import DocumentsStore from 'stores/DocumentsStore';
+import CenteredContent from "components/CenteredContent";
+import Empty from "components/Empty";
+import PageTitle from "components/PageTitle";
+import Heading from "components/Heading";
+import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Subheading from "components/Subheading";
+import DocumentsStore from "stores/DocumentsStore";
 
 type Props = {
   documents: DocumentsStore,
@@ -35,4 +35,4 @@ class Trash extends React.Component<Props> {
   }
 }
 
-export default inject('documents')(Trash);
+export default inject("documents")(Trash);

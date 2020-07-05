@@ -1,23 +1,24 @@
 // @flow
-import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import type { Location, RouterHistory } from 'react-router-dom';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { matchDocumentEdit, updateDocumentUrl } from 'utils/routeHelpers';
-import DocumentComponent from './Document';
-import Revision from 'models/Revision';
-import Document from 'models/Document';
-import SocketPresence from './SocketPresence';
-import Loading from './Loading';
-import HideSidebar from './HideSidebar';
-import Error404 from 'scenes/Error404';
-import ErrorOffline from 'scenes/ErrorOffline';
-import DocumentsStore from 'stores/DocumentsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import RevisionsStore from 'stores/RevisionsStore';
-import UiStore from 'stores/UiStore';
-import { OfflineError } from 'utils/errors';
+import * as React from "react";
+import invariant from "invariant";
+import { withRouter } from "react-router-dom";
+import type { Location, RouterHistory } from "react-router-dom";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
+import DocumentComponent from "./Document";
+import Revision from "models/Revision";
+import Document from "models/Document";
+import SocketPresence from "./SocketPresence";
+import Loading from "./Loading";
+import HideSidebar from "./HideSidebar";
+import Error404 from "scenes/Error404";
+import ErrorOffline from "scenes/ErrorOffline";
+import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import RevisionsStore from "stores/RevisionsStore";
+import UiStore from "stores/UiStore";
+import { OfflineError } from "utils/errors";
 
 type Props = {|
   match: Object,
@@ -73,18 +74,31 @@ class DataLoader extends React.Component<Props> {
   onSearchLink = async (term: string) => {
     const results = await this.props.documents.search(term);
 
-    return results.map((result, index) => ({
-      title: result.document.title,
-      url: result.document.url,
-    }));
+    return results
+      .filter(result => result.document.title)
+      .map((result, index) => ({
+        title: result.document.title,
+        url: result.document.url,
+      }));
+  };
+
+  onCreateLink = async (title: string) => {
+    const document = this.document;
+    invariant(document, "document must be loaded to create link");
+
+    const newDocument = await this.props.documents.create({
+      collectionId: document.collectionId,
+      parentDocumentId: document.parentDocumentId,
+      title,
+      text: "",
+    });
+
+    return newDocument.url;
   };
 
   loadRevision = async () => {
-    const { documentSlug, revisionId } = this.props.match.params;
-
-    this.revision = await this.props.revisions.fetch(documentSlug, {
-      revisionId,
-    });
+    const { revisionId } = this.props.match.params;
+    this.revision = await this.props.revisions.fetch(revisionId);
   };
 
   loadDocument = async () => {
@@ -152,7 +166,7 @@ class DataLoader extends React.Component<Props> {
     }
 
     const abilities = policies.abilities(document.id);
-    const key = this.isEditing ? 'editing' : 'read-only';
+    const key = this.isEditing ? "editing" : "read-only";
 
     return (
       <SocketPresence documentId={document.id} isEditing={this.isEditing}>
@@ -165,6 +179,7 @@ class DataLoader extends React.Component<Props> {
           location={location}
           readOnly={!this.isEditing}
           onSearchLink={this.onSearchLink}
+          onCreateLink={this.onCreateLink}
         />
       </SocketPresence>
     );
@@ -172,5 +187,5 @@ class DataLoader extends React.Component<Props> {
 }
 
 export default withRouter(
-  inject('ui', 'auth', 'documents', 'revisions', 'policies')(DataLoader)
+  inject("ui", "auth", "documents", "revisions", "policies")(DataLoader)
 );

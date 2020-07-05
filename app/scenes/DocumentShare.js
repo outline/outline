@@ -1,13 +1,13 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import { Link } from 'react-router-dom';
-import Input from 'components/Input';
-import Button from 'components/Button';
-import CopyToClipboard from 'components/CopyToClipboard';
-import HelpText from 'components/HelpText';
-import Document from 'models/Document';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import { Link } from "react-router-dom";
+import Input from "components/Input";
+import Button from "components/Button";
+import CopyToClipboard from "components/CopyToClipboard";
+import HelpText from "components/HelpText";
+import Document from "models/Document";
 
 type Props = {
   document: Document,
@@ -40,7 +40,7 @@ class DocumentShare extends React.Component<Props> {
         <HelpText>
           The link below allows anyone in the world to access a read-only
           version of the document <strong>{document.title}</strong>. You can
-          revoke this link in settings at any time.{' '}
+          revoke this link in settings at any time.{" "}
           <Link to="/settings/shares" onClick={onSubmit}>
             Manage share links
           </Link>.
@@ -48,15 +48,15 @@ class DocumentShare extends React.Component<Props> {
         <Input
           type="text"
           label="Share link"
-          value={document.shareUrl || 'Loading…'}
+          value={document.shareUrl || "Loading…"}
           readOnly
         />
         <CopyToClipboard
-          text={document.shareUrl || ''}
+          text={document.shareUrl || ""}
           onCopy={this.handleCopied}
         >
           <Button type="submit" disabled={this.isCopied} primary>
-            {this.isCopied ? 'Copied!' : 'Copy Link'}
+            {this.isCopied ? "Copied!" : "Copy Link"}
           </Button>
         </CopyToClipboard>
       </div>

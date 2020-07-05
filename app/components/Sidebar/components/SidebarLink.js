@@ -1,14 +1,15 @@
 // @flow
-import * as React from 'react';
-import { observable, action } from 'mobx';
-import { observer } from 'mobx-react';
-import { withRouter, NavLink } from 'react-router-dom';
-import { CollapsedIcon } from 'outline-icons';
-import styled, { withTheme } from 'styled-components';
-import Flex from 'shared/components/Flex';
+import * as React from "react";
+import { observable, action } from "mobx";
+import { observer } from "mobx-react";
+import { withRouter, NavLink } from "react-router-dom";
+import { CollapsedIcon } from "outline-icons";
+import styled, { withTheme } from "styled-components";
+import Flex from "shared/components/Flex";
 
 type Props = {
   to?: string | Object,
+  href?: string | Object,
   onClick?: (SyntheticEvent<>) => void,
   children?: React.Node,
   icon?: React.Node,
@@ -63,6 +64,7 @@ class SidebarLink extends React.Component<Props> {
       menuOpen,
       hideDisclosure,
       exact,
+      href,
     } = this.props;
     const showDisclosure = !!children && !hideDisclosure;
     const activeStyle = {
@@ -80,7 +82,8 @@ class SidebarLink extends React.Component<Props> {
           onClick={onClick}
           exact={exact !== false}
           to={to}
-          as={to ? undefined : 'div'}
+          as={to ? undefined : href ? "a" : "div"}
+          href={href}
         >
           {icon && <IconWrapper>{icon}</IconWrapper>}
           <Label onClick={this.handleExpand}>
@@ -105,7 +108,7 @@ const IconWrapper = styled.span`
 `;
 
 const Action = styled.span`
-  display: ${props => (props.menuOpen ? 'inline' : 'none')};
+  display: ${props => (props.menuOpen ? "inline" : "none")};
   position: absolute;
   top: 4px;
   right: 4px;
@@ -139,7 +142,7 @@ const StyledNavLink = styled(NavLink)`
 
   &:focus {
     color: ${props => props.theme.text};
-    background: ${props => props.theme.sidebarItemBackground};
+    background: ${props => props.theme.black05};
     outline: none;
   }
 
@@ -165,7 +168,7 @@ const Disclosure = styled(CollapsedIcon)`
   position: absolute;
   left: -24px;
 
-  ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'};
+  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
 
 const ChildrenWrapper = styled.div(({ expanded }) => ({

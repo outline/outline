@@ -1,10 +1,10 @@
 // @flow
-import { pick } from 'lodash';
-import { action, computed, observable } from 'mobx';
-import BaseModel from 'models/BaseModel';
-import Document from 'models/Document';
-import { client } from 'utils/ApiClient';
-import type { NavigationNode } from 'types';
+import { pick } from "lodash";
+import { action, computed, observable } from "mobx";
+import BaseModel from "models/BaseModel";
+import Document from "models/Document";
+import { client } from "utils/ApiClient";
+import type { NavigationNode } from "types";
 
 export default class Collection extends BaseModel {
   @observable isSaving: boolean;
@@ -13,9 +13,10 @@ export default class Collection extends BaseModel {
   id: string;
   name: string;
   description: string;
+  icon: string;
   color: string;
   private: boolean;
-  type: 'atlas' | 'journal';
+  type: "atlas" | "journal";
   documents: NavigationNode[];
   createdAt: ?string;
   updatedAt: ?string;
@@ -155,12 +156,19 @@ export default class Collection extends BaseModel {
   }
 
   toJS = () => {
-    return pick(this, ['id', 'name', 'color', 'description', 'private']);
+    return pick(this, [
+      "id",
+      "name",
+      "color",
+      "description",
+      "icon",
+      "private",
+    ]);
   };
 
   export = () => {
     return client.get(
-      '/collections.export',
+      "/collections.export",
       { id: this.id },
       { download: true }
     );

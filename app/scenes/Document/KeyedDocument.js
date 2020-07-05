@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import { inject } from 'mobx-react';
-import DataLoader from './components/DataLoader';
+import * as React from "react";
+import { inject } from "mobx-react";
+import DataLoader from "./components/DataLoader";
 
 class KeyedDocument extends React.Component<*> {
   componentWillUnmount() {
@@ -15,11 +15,11 @@ class KeyedDocument extends React.Component<*> {
     // we only want to force a re-mount of the document component when the
     // document changes, not when the title does so only this portion is used
     // for the key.
-    const urlParts = documentSlug ? documentSlug.split('-') : [];
+    const urlParts = documentSlug ? documentSlug.split("-") : [];
     const urlId = urlParts.length ? urlParts[urlParts.length - 1] : undefined;
 
-    return <DataLoader key={[urlId, revisionId].join('/')} {...this.props} />;
+    return <DataLoader key={[urlId, revisionId].join("/")} {...this.props} />;
   }
 }
 
-export default inject('ui')(KeyedDocument);
+export default inject("ui")(KeyedDocument);

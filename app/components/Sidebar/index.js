@@ -1,3 +1,3 @@
 // @flow
-import Sidebar from './Main';
+import Sidebar from "./Main";
 export default Sidebar;

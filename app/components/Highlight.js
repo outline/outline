@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import replace from 'string-replace-to-array';
-import styled from 'styled-components';
+import * as React from "react";
+import replace from "string-replace-to-array";
+import styled from "styled-components";
 
 type Props = {
   highlight: ?string | RegExp,
@@ -22,8 +22,8 @@ function Highlight({
     regex = highlight;
   } else {
     regex = new RegExp(
-      (highlight || '').replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'),
-      caseSensitive ? 'g' : 'gi'
+      (highlight || "").replace(/[-\\^$*+?.()|[\]{}]/g, "\\$&"),
+      caseSensitive ? "g" : "gi"
     );
   }
   return (

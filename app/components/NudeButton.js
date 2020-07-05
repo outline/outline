@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import { lighten } from 'polished';
+import * as React from "react";
+import styled from "styled-components";
+import { lighten } from "polished";
 
 const Button = styled.button`
   width: 24px;

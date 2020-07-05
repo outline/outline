@@ -1,5 +1,5 @@
 // @flow
-import styled from 'styled-components';
+import styled from "styled-components";
 
 const List = styled.ol`
   margin: 0;

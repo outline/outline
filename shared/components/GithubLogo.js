@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from "react";
 
 type Props = {
   size?: number,
@@ -7,7 +7,7 @@ type Props = {
   className?: string,
 };
 
-function GithubLogo({ size = 34, fill = '#FFF', className }: Props) {
+function GithubLogo({ size = 34, fill = "#FFF", className }: Props) {
   return (
     <svg
       fill={fill}

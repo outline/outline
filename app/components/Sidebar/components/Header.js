@@ -1,6 +1,6 @@
 // @flow
-import Flex from 'shared/components/Flex';
-import styled from 'styled-components';
+import Flex from "shared/components/Flex";
+import styled from "styled-components";
 
 const Header = styled(Flex)`
   font-size: 11px;

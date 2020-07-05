@@ -123,9 +123,16 @@
     regenerator-runtime "^0.13.4"
 
 "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.4":
-  version "7.9.6"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.9.6.tgz#a9102eb5cadedf3f31d08a9ecf294af7827ea29f"
-  integrity sha512-64AF1xY3OAkFHqOb9s4jpgk1Mm5vDZ4L3acHvAml+53nO1XbXLuDodsVpO4OIUsmemlUHMxNdYMNJmsvOwLrvQ==
+  version "7.10.4"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.10.4.tgz#a6724f1a6b8d2f6ea5236dbfe58c7d7ea9c5eb99"
+  integrity sha512-UpTN5yUJr9b4EX2CnGNWIvER7Ab83ibv0pcvvHc4UOdrBI5jb8bj+32cCwPX6xu0mt2daFNjYhoi+X7beH0RSw==
+  dependencies:
+    regenerator-runtime "^0.13.4"
+
+"@babel/runtime@^7.9.2":
+  version "7.10.1"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.10.1.tgz#b6eb75cac279588d3100baecd1b9894ea2840822"
+  integrity sha512-nQbbCbQc9u/rpg1XCxoMYQTbSMVZjCDxErQ1ClCn9Pvcmv1lGads19ep0a2VsEiIJeHqjZley6EQGEC3Yo1xMA==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -7178,10 +7185,10 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-outline-icons@^1.15.0, outline-icons@^1.16.0:
-  version "1.16.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.16.0.tgz#0a71d2fe32170f0e00b8775681f0339f4fc8777a"
-  integrity sha512-6bAk5rBGVtYiFP6AONx7NdmpFP+daKUJEev7PAjdfTVmE3bPXeSzzaGY51Y1XM8UdP5XqJICWncktRHeSfn1Pw==
+outline-icons@^1.15.0, outline-icons@^1.18.0:
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.18.0.tgz#2f128d668b0874725b5c0656a04fd73a7f8fe418"
+  integrity sha512-odEYBLN+zFcTDhfs4af2RHUGneQBYbVgaBuI/I30BLaJQsKT2jBw2Shjie/HR8MYpZtgMwixP51XPPlGBSIqgw==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -7568,10 +7575,12 @@ pn@^1.1.0:
   resolved "https://registry.yarnpkg.com/pn/-/pn-1.1.0.tgz#e2f4cef0e219f463c179ab37463e4e1ecdccbafb"
   integrity sha512-2qHaIQr2VLRFoxe2nASzsV6ef4yOOH+Fi9FBOVH6cqeSgUnoyySPZkxzLuzd+RYOQTRpROA0ztTMqxROKSb/nA==
 
-polished@1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/polished/-/polished-1.2.1.tgz#83c18a85bf9d7023477cfc7049763b657d50f0f7"
-  integrity sha1-g8GKhb+dcCNHfPxwSXY7ZX1Q8Pc=
+polished@3.6.4:
+  version "3.6.4"
+  resolved "https://registry.yarnpkg.com/polished/-/polished-3.6.4.tgz#cec6bc0fbffc5d6ce5799c85bcc1bca5e63f1dee"
+  integrity sha512-21moJXCm/7EvjeKQz5w89QDDKNPCoimc83CqwZZGJluFdMXsFlMQl9lPA/OMRkoceZ19kU0anKlMgZmY7LJSJw==
+  dependencies:
+    "@babel/runtime" "^7.9.2"
 
 popper.js@^1.14.7:
   version "1.16.1"
@@ -8651,10 +8660,10 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^10.0.3-1:
-  version "10.0.3-1"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-10.0.3-1.tgz#a0a07900d2c4c37b4f017382c22a9937f7e90e2a"
-  integrity sha512-p59ydbcmQbz2coeDa1LMnZcm0UtAG3d5FExbmLFue85mBZKqrMyQMo0LokW7MZoXTw0KeIvUeFM8inKYc8qdaA==
+rich-markdown-editor@^10.2.1-0:
+  version "10.2.1-0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-10.2.1-0.tgz#014ffd8ea7f12ee6f7f0b3a347b3e50713ec4329"
+  integrity sha512-dVovGiFMFuZN4skRwArL9z7NSSHYpVAryHsD8OafUxFJ/NB4se6z3lxom2mGL88paRJnP2T7VjC8pfAjsDac+A==
   dependencies:
     copy-to-clipboard "^3.0.8"
     lodash "^4.17.11"
@@ -8872,6 +8881,11 @@ semver@^6.3.0:
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
+
+semver@^7.3.2:
+  version "7.3.2"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.3.2.tgz#604962b052b81ed0786aae84389ffba70ffd3938"
+  integrity sha512-OrOb32TeeambH6UrhtShmF7CRDqhL6/5XpPNp2DuRH6+9QLw/orhp72j87v8Qa1ScDkvrrBNpZcDejAirJmfXQ==
 
 sequelize-cli@^5.5.0:
   version "5.5.1"

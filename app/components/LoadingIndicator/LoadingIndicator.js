@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import { inject, observer } from 'mobx-react';
-import UiStore from 'stores/UiStore';
+import * as React from "react";
+import { inject, observer } from "mobx-react";
+import UiStore from "stores/UiStore";
 
 type Props = {
   ui: UiStore,
@@ -22,4 +22,4 @@ class LoadingIndicator extends React.Component<Props> {
   }
 }
 
-export default inject('ui')(LoadingIndicator);
+export default inject("ui")(LoadingIndicator);

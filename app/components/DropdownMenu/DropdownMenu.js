@@ -1,14 +1,15 @@
 // @flow
-import * as React from 'react';
-import invariant from 'invariant';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import { PortalWithState } from 'react-portal';
-import { MoreIcon } from 'outline-icons';
-import styled from 'styled-components';
-import Flex from 'shared/components/Flex';
-import { fadeAndScaleIn } from 'shared/styles/animations';
-import NudeButton from 'components/NudeButton';
+import * as React from "react";
+import invariant from "invariant";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import { PortalWithState } from "react-portal";
+import { MoreIcon } from "outline-icons";
+import { rgba } from "polished";
+import styled from "styled-components";
+import Flex from "shared/components/Flex";
+import { fadeAndScaleIn } from "shared/styles/animations";
+import NudeButton from "components/NudeButton";
 
 let previousClosePortal;
 let counter = 0;
@@ -25,7 +26,7 @@ type Props = {
   className?: string,
   hover?: boolean,
   style?: Object,
-  position?: 'left' | 'right' | 'center',
+  position?: "left" | "right" | "center",
 };
 
 @observer
@@ -37,7 +38,7 @@ class DropdownMenu extends React.Component<Props> {
   @observable bottom: ?number;
   @observable right: ?number;
   @observable left: ?number;
-  @observable position: 'left' | 'right' | 'center';
+  @observable position: "left" | "right" | "center";
   @observable fixed: ?boolean;
   @observable bodyRect: ClientRect;
   @observable labelRect: ClientRect;
@@ -51,21 +52,21 @@ class DropdownMenu extends React.Component<Props> {
     return (ev: SyntheticMouseEvent<HTMLElement>) => {
       ev.preventDefault();
       const currentTarget = ev.currentTarget;
-      invariant(document.body, 'why you not here');
+      invariant(document.body, "why you not here");
 
       if (currentTarget instanceof HTMLDivElement) {
         this.bodyRect = document.body.getBoundingClientRect();
         this.labelRect = currentTarget.getBoundingClientRect();
         this.top = this.labelRect.bottom - this.bodyRect.top;
         this.bottom = undefined;
-        this.position = this.props.position || 'left';
+        this.position = this.props.position || "left";
 
         if (currentTarget.parentElement) {
           const triggerParentStyle = getComputedStyle(
             currentTarget.parentElement
           );
 
-          if (triggerParentStyle.position === 'static') {
+          if (triggerParentStyle.position === "static") {
             this.fixed = true;
             this.top = this.labelRect.bottom;
           }
@@ -84,10 +85,10 @@ class DropdownMenu extends React.Component<Props> {
   };
 
   initPosition() {
-    if (this.position === 'left') {
+    if (this.position === "left") {
       this.right =
         this.bodyRect.width - this.labelRect.left - this.labelRect.width;
-    } else if (this.position === 'center') {
+    } else if (this.position === "center") {
       this.left = this.labelRect.left + this.labelRect.width / 2;
     } else {
       this.left = this.labelRect.left;
@@ -95,7 +96,7 @@ class DropdownMenu extends React.Component<Props> {
   }
 
   onOpen = () => {
-    if (typeof this.props.onOpen === 'function') {
+    if (typeof this.props.onOpen === "function") {
       this.props.onOpen();
     }
     this.fitOnTheScreen();
@@ -114,18 +115,18 @@ class DropdownMenu extends React.Component<Props> {
       this.bottom = undefined;
     }
 
-    if (this.position === 'left' || this.position === 'right') {
+    if (this.position === "left" || this.position === "right") {
       const totalWidth =
-        Math.sign(this.position === 'left' ? -1 : 1) * el.offsetLeft +
+        Math.sign(this.position === "left" ? -1 : 1) * el.offsetLeft +
         el.scrollWidth;
       const isVisible = totalWidth < window.innerWidth;
 
       if (!isVisible) {
-        if (this.position === 'right') {
-          this.position = 'left';
+        if (this.position === "right") {
+          this.position = "left";
           this.left = undefined;
-        } else if (this.position === 'left') {
-          this.position = 'right';
+        } else if (this.position === "left") {
+          this.position = "right";
           this.right = undefined;
         }
       }
@@ -177,7 +178,7 @@ class DropdownMenu extends React.Component<Props> {
                   <NudeButton
                     id={`${this.id}button`}
                     aria-haspopup="true"
-                    aria-expanded={isOpen ? 'true' : 'false'}
+                    aria-expanded={isOpen ? "true" : "false"}
                     aria-controls={this.id}
                   >
                     <MoreIcon />
@@ -201,7 +202,7 @@ class DropdownMenu extends React.Component<Props> {
                       hover ? this.closeAfterTimeout(closePortal) : undefined
                     }
                     onClick={
-                      typeof children === 'function'
+                      typeof children === "function"
                         ? undefined
                         : ev => {
                             ev.stopPropagation();
@@ -213,7 +214,7 @@ class DropdownMenu extends React.Component<Props> {
                     aria-labelledby={`${this.id}button`}
                     role="menu"
                   >
-                    {typeof children === 'function'
+                    {typeof children === "function"
                       ? children({ closePortal })
                       : children}
                   </Menu>
@@ -228,31 +229,34 @@ class DropdownMenu extends React.Component<Props> {
 }
 
 const Label = styled(Flex).attrs({
-  justify: 'center',
-  align: 'center',
+  justify: "center",
+  align: "center",
 })`
   z-index: 1000;
   cursor: pointer;
 `;
 
 const Position = styled.div`
-  position: ${({ fixed }) => (fixed ? 'fixed' : 'absolute')};
+  position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
   display: flex;
-  ${({ left }) => (left !== undefined ? `left: ${left}px` : '')};
-  ${({ right }) => (right !== undefined ? `right: ${right}px` : '')};
-  ${({ top }) => (top !== undefined ? `top: ${top}px` : '')};
-  ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : '')};
+  ${({ left }) => (left !== undefined ? `left: ${left}px` : "")};
+  ${({ right }) => (right !== undefined ? `right: ${right}px` : "")};
+  ${({ top }) => (top !== undefined ? `top: ${top}px` : "")};
+  ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : "")};
   max-height: 75%;
   z-index: 1000;
   transform: ${props =>
-    props.position === 'center' ? 'translateX(-50%)' : 'initial'};
+    props.position === "center" ? "translateX(-50%)" : "initial"};
   pointer-events: none;
 `;
 
 const Menu = styled.div`
   animation: ${fadeAndScaleIn} 200ms ease;
-  transform-origin: ${props => (props.left !== undefined ? '25%' : '75%')} 0;
-  background: ${props => props.theme.menuBackground};
+  transform-origin: ${props => (props.left !== undefined ? "25%" : "75%")} 0;
+  backdrop-filter: blur(10px);
+  background: ${props => rgba(props.theme.menuBackground, 0.8)};
+  border: ${props =>
+    props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   border-radius: 2px;
   padding: 0.5em 0;
   min-width: 180px;
@@ -260,6 +264,10 @@ const Menu = styled.div`
   overflow-y: auto;
   box-shadow: ${props => props.theme.menuShadow};
   pointer-events: all;
+
+  hr {
+    margin: 0.5em 12px;
+  }
 
   @media print {
     display: none;

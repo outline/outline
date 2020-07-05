@@ -1,17 +1,17 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { MAX_AVATAR_DISPLAY } from 'shared/constants';
-import Modal from 'components/Modal';
-import Flex from 'shared/components/Flex';
-import Facepile from 'components/Facepile';
-import GroupMembers from 'scenes/GroupMembers';
-import ListItem from 'components/List/Item';
-import Group from 'models/Group';
-import CollectionGroupMembership from 'models/CollectionGroupMembership';
-import GroupMembershipsStore from 'stores/GroupMembershipsStore';
+import * as React from "react";
+import styled from "styled-components";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { MAX_AVATAR_DISPLAY } from "shared/constants";
+import Modal from "components/Modal";
+import Flex from "shared/components/Flex";
+import Facepile from "components/Facepile";
+import GroupMembers from "scenes/GroupMembers";
+import ListItem from "components/List/Item";
+import Group from "models/Group";
+import CollectionGroupMembership from "models/CollectionGroupMembership";
+import GroupMembershipsStore from "stores/GroupMembershipsStore";
 
 type Props = {
   group: Group,
@@ -53,7 +53,7 @@ class GroupListItem extends React.Component<Props> {
           }
           subtitle={
             <React.Fragment>
-              {memberCount} member{memberCount === 1 ? '' : 's'}
+              {memberCount} member{memberCount === 1 ? "" : "s"}
             </React.Fragment>
           }
           actions={
@@ -91,4 +91,4 @@ const Title = styled.span`
   }
 `;
 
-export default inject('groupMemberships')(GroupListItem);
+export default inject("groupMemberships")(GroupListItem);

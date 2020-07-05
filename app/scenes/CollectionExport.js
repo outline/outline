@@ -1,13 +1,13 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import Button from 'components/Button';
-import Flex from 'shared/components/Flex';
-import HelpText from 'components/HelpText';
-import Collection from 'models/Collection';
-import AuthStore from 'stores/AuthStore';
-import UiStore from 'stores/UiStore';
+import * as React from "react";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import Button from "components/Button";
+import Flex from "shared/components/Flex";
+import HelpText from "components/HelpText";
+import Collection from "models/Collection";
+import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
 
 type Props = {
   collection: Collection,
@@ -42,7 +42,7 @@ class CollectionExport extends React.Component<Props> {
             with files in Markdown format.
           </HelpText>
           <Button type="submit" disabled={this.isLoading} primary>
-            {this.isLoading ? 'Exporting…' : 'Export Collection'}
+            {this.isLoading ? "Exporting…" : "Export Collection"}
           </Button>
         </form>
       </Flex>
@@ -50,4 +50,4 @@ class CollectionExport extends React.Component<Props> {
   }
 }
 
-export default inject('ui', 'auth')(CollectionExport);
+export default inject("ui", "auth")(CollectionExport);

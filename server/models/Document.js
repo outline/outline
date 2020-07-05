@@ -1,17 +1,17 @@
 // @flow
-import { map, find, compact, uniq } from 'lodash';
-import MarkdownSerializer from 'slate-md-serializer';
-import randomstring from 'randomstring';
-import Sequelize, { type Transaction } from 'sequelize';
-import removeMarkdown from '@tommoor/remove-markdown';
+import { map, find, compact, uniq } from "lodash";
+import MarkdownSerializer from "slate-md-serializer";
+import randomstring from "randomstring";
+import Sequelize, { type Transaction } from "sequelize";
+import removeMarkdown from "@tommoor/remove-markdown";
 
-import isUUID from 'validator/lib/isUUID';
-import { Collection, User } from '../models';
-import { DataTypes, sequelize } from '../sequelize';
-import parseTitle from '../../shared/utils/parseTitle';
-import unescape from '../../shared/utils/unescape';
-import slugify from '../utils/slugify';
-import Revision from './Revision';
+import isUUID from "validator/lib/isUUID";
+import { Collection, User } from "../models";
+import { DataTypes, sequelize } from "../sequelize";
+import parseTitle from "../../shared/utils/parseTitle";
+import unescape from "../../shared/utils/unescape";
+import slugify from "../utils/slugify";
+import Revision from "./Revision";
 
 const Op = Sequelize.Op;
 const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
@@ -25,8 +25,8 @@ const createRevision = (doc, options = {}) => {
 
   // we don't create revisions if identical to previous
   if (
-    doc.text === doc.previous('text') &&
-    doc.title === doc.previous('title')
+    doc.text === doc.previous("text") &&
+    doc.title === doc.previous("title")
   ) {
     return;
   }
@@ -64,7 +64,7 @@ const beforeSave = async doc => {
   doc.emoji = emoji;
 
   // ensure documents have a title
-  doc.title = doc.title || '';
+  doc.title = doc.title || "";
 
   // add the current user as a collaborator on this doc
   if (!doc.collaboratorIds) doc.collaboratorIds = [];
@@ -77,7 +77,7 @@ const beforeSave = async doc => {
 };
 
 const Document = sequelize.define(
-  'document',
+  "document",
   {
     id: {
       type: DataTypes.UUID,
@@ -93,7 +93,7 @@ const Document = sequelize.define(
       validate: {
         len: {
           args: [0, 100],
-          msg: 'Document title must be less than 100 characters',
+          msg: "Document title must be less than 100 characters",
         },
       },
     },
@@ -134,45 +134,45 @@ const Document = sequelize.define(
 
 Document.associate = models => {
   Document.belongsTo(models.Collection, {
-    as: 'collection',
-    foreignKey: 'collectionId',
-    onDelete: 'cascade',
+    as: "collection",
+    foreignKey: "collectionId",
+    onDelete: "cascade",
   });
   Document.belongsTo(models.Team, {
-    as: 'team',
-    foreignKey: 'teamId',
+    as: "team",
+    foreignKey: "teamId",
   });
   Document.belongsTo(models.User, {
-    as: 'createdBy',
-    foreignKey: 'createdById',
+    as: "createdBy",
+    foreignKey: "createdById",
   });
   Document.belongsTo(models.User, {
-    as: 'updatedBy',
-    foreignKey: 'lastModifiedById',
+    as: "updatedBy",
+    foreignKey: "lastModifiedById",
   });
   Document.belongsTo(models.User, {
-    as: 'pinnedBy',
-    foreignKey: 'pinnedById',
+    as: "pinnedBy",
+    foreignKey: "pinnedById",
   });
   Document.hasMany(models.Revision, {
-    as: 'revisions',
-    onDelete: 'cascade',
+    as: "revisions",
+    onDelete: "cascade",
   });
   Document.hasMany(models.Backlink, {
-    as: 'backlinks',
-    onDelete: 'cascade',
+    as: "backlinks",
+    onDelete: "cascade",
   });
   Document.hasMany(models.Star, {
-    as: 'starred',
-    onDelete: 'cascade',
+    as: "starred",
+    onDelete: "cascade",
   });
   Document.hasMany(models.View, {
-    as: 'views',
+    as: "views",
   });
-  Document.addScope('defaultScope', {
+  Document.addScope("defaultScope", {
     include: [
-      { model: models.User, as: 'createdBy', paranoid: false },
-      { model: models.User, as: 'updatedBy', paranoid: false },
+      { model: models.User, as: "createdBy", paranoid: false },
+      { model: models.User, as: "updatedBy", paranoid: false },
     ],
     where: {
       publishedAt: {
@@ -180,38 +180,38 @@ Document.associate = models => {
       },
     },
   });
-  Document.addScope('withCollection', userId => {
+  Document.addScope("withCollection", userId => {
     if (userId) {
       return {
         include: [
           {
             model: models.Collection.scope({
-              method: ['withMembership', userId],
+              method: ["withMembership", userId],
             }),
-            as: 'collection',
+            as: "collection",
           },
         ],
       };
     }
 
     return {
-      include: [{ model: models.Collection, as: 'collection' }],
+      include: [{ model: models.Collection, as: "collection" }],
     };
   });
-  Document.addScope('withUnpublished', {
+  Document.addScope("withUnpublished", {
     include: [
-      { model: models.User, as: 'createdBy', paranoid: false },
-      { model: models.User, as: 'updatedBy', paranoid: false },
+      { model: models.User, as: "createdBy", paranoid: false },
+      { model: models.User, as: "updatedBy", paranoid: false },
     ],
   });
-  Document.addScope('withViews', userId => ({
+  Document.addScope("withViews", userId => ({
     include: [
-      { model: models.View, as: 'views', where: { userId }, required: false },
+      { model: models.View, as: "views", where: { userId }, required: false },
     ],
   }));
-  Document.addScope('withStarred', userId => ({
+  Document.addScope("withStarred", userId => ({
     include: [
-      { model: models.Star, as: 'starred', where: { userId }, required: false },
+      { model: models.Star, as: "starred", where: { userId }, required: false },
     ],
   }));
 };
@@ -219,8 +219,8 @@ Document.associate = models => {
 Document.findByPk = async function(id, options = {}) {
   // allow default preloading of collection membership if `userId` is passed in find options
   // almost every endpoint needs the collection membership to determine policy permissions.
-  const scope = this.scope('withUnpublished', {
-    method: ['withCollection', options.userId],
+  const scope = this.scope("withUnpublished", {
+    method: ["withCollection", options.userId],
   });
 
   if (isUUID(id)) {
@@ -248,7 +248,7 @@ type SearchOptions = {
   limit?: number,
   offset?: number,
   collectionId?: string,
-  dateFilter?: 'day' | 'week' | 'month' | 'year',
+  dateFilter?: "day" | "week" | "month" | "year",
   collaboratorIds?: string[],
   includeArchived?: boolean,
   includeDrafts?: boolean,
@@ -257,7 +257,7 @@ type SearchOptions = {
 function escape(query: string): string {
   // replace "\" with escaped "\\" because sequelize.escape doesn't do it
   // https://github.com/sequelize/sequelize/issues/2950
-  return sequelize.escape(query).replace('\\', '\\\\');
+  return sequelize.escape(query).replace("\\", "\\\\");
 }
 
 Document.searchForTeam = async (
@@ -308,12 +308,12 @@ Document.searchForTeam = async (
   // Final query to get associated document data
   const documents = await Document.findAll({
     where: {
-      id: map(results, 'id'),
+      id: map(results, "id"),
     },
     include: [
-      { model: Collection, as: 'collection' },
-      { model: User, as: 'createdBy', paranoid: false },
-      { model: User, as: 'updatedBy', paranoid: false },
+      { model: Collection, as: "collection" },
+      { model: User, as: "createdBy", paranoid: false },
+      { model: User, as: "updatedBy", paranoid: false },
     ],
   });
 
@@ -366,14 +366,14 @@ Document.searchForUser = async (
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${
-      options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ''
+      options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
     }
     ${
       options.collaboratorIds
         ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
-        : ''
+        : ""
     }
-    ${options.includeArchived ? '' : '"archivedAt" IS NULL AND'}
+    ${options.includeArchived ? "" : '"archivedAt" IS NULL AND'}
     "deletedAt" IS NULL AND
     ${
       options.includeDrafts
@@ -404,18 +404,18 @@ Document.searchForUser = async (
   // Final query to get associated document data
   const documents = await Document.scope(
     {
-      method: ['withViews', user.id],
+      method: ["withViews", user.id],
     },
     {
-      method: ['withCollection', user.id],
+      method: ["withCollection", user.id],
     }
   ).findAll({
     where: {
-      id: map(results, 'id'),
+      id: map(results, "id"),
     },
     include: [
-      { model: User, as: 'createdBy', paranoid: false },
-      { model: User, as: 'updatedBy', paranoid: false },
+      { model: User, as: "createdBy", paranoid: false },
+      { model: User, as: "updatedBy", paranoid: false },
     ],
   });
 
@@ -430,21 +430,21 @@ Document.searchForUser = async (
 
 // Hooks
 
-Document.addHook('beforeSave', async model => {
+Document.addHook("beforeSave", async model => {
   if (!model.publishedAt) return;
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== 'atlas') return;
+  if (!collection || collection.type !== "atlas") return;
 
   await collection.updateDocument(model);
   model.collection = collection;
 });
 
-Document.addHook('afterCreate', async model => {
+Document.addHook("afterCreate", async model => {
   if (!model.publishedAt) return;
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== 'atlas') return;
+  if (!collection || collection.type !== "atlas") return;
 
   await collection.addDocumentToStructure(model);
   model.collection = collection;
@@ -470,7 +470,7 @@ Document.prototype.migrateVersion = function() {
   // migrate from document version 0 -> 1
   if (!this.version) {
     // removing the title from the document text attribute
-    this.text = this.text.replace(/^#\s(.*)\n/, '');
+    this.text = this.text.replace(/^#\s(.*)\n/, "");
     this.version = 1;
     migrated = true;
   }
@@ -535,7 +535,7 @@ Document.prototype.publish = async function(options) {
   if (this.publishedAt) return this.save(options);
 
   const collection = await Collection.findByPk(this.collectionId);
-  if (collection.type !== 'atlas') return this.save(options);
+  if (collection.type !== "atlas") return this.save(options);
 
   await collection.addDocumentToStructure(this);
 
@@ -618,14 +618,14 @@ Document.prototype.getSummary = function() {
   const plain = removeMarkdown(unescape(this.text), {
     stripHTML: false,
   });
-  const lines = compact(plain.split('\n'));
+  const lines = compact(plain.split("\n"));
   const notEmpty = lines.length >= 1;
 
   if (this.version) {
-    return notEmpty ? lines[0] : '';
+    return notEmpty ? lines[0] : "";
   }
 
-  return notEmpty ? lines[1] : '';
+  return notEmpty ? lines[1] : "";
 };
 
 Document.prototype.toJSON = function() {

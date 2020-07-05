@@ -1,11 +1,11 @@
 // @flow
-import subMilliseconds from 'date-fns/sub_milliseconds';
-import { Op, DataTypes, sequelize } from '../sequelize';
-import { User } from '../models';
-import { USER_PRESENCE_INTERVAL } from '../../shared/constants';
+import subMilliseconds from "date-fns/sub_milliseconds";
+import { Op, DataTypes, sequelize } from "../sequelize";
+import { User } from "../models";
+import { USER_PRESENCE_INTERVAL } from "../../shared/constants";
 
 const View = sequelize.define(
-  'view',
+  "view",
   {
     id: {
       type: DataTypes.UUID,
@@ -42,7 +42,7 @@ View.increment = async where => {
 View.findByDocument = async documentId => {
   return View.findAll({
     where: { documentId },
-    order: [['updatedAt', 'DESC']],
+    order: [["updatedAt", "DESC"]],
     include: [
       {
         model: User,
@@ -60,7 +60,7 @@ View.findRecentlyEditingByDocument = async documentId => {
         [Op.gt]: subMilliseconds(new Date(), USER_PRESENCE_INTERVAL * 2),
       },
     },
-    order: [['lastEditingAt', 'DESC']],
+    order: [["lastEditingAt", "DESC"]],
   });
 };
 

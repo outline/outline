@@ -1,8 +1,8 @@
 // @flow
-import { uniqBy } from 'lodash';
-import { User, Event, Team } from '../models';
-import mailer from '../mailer';
-import { sequelize } from '../sequelize';
+import { uniqBy } from "lodash";
+import { User, Event, Team } from "../models";
+import mailer from "../mailer";
+import { sequelize } from "../sequelize";
 
 type Invite = { name: string, email: string, guest: boolean };
 
@@ -19,7 +19,7 @@ export default async function userInviter({
 
   // filter out empties and obvious non-emails
   const compactedInvites = invites.filter(
-    invite => !!invite.email.trim() && invite.email.match('@')
+    invite => !!invite.email.trim() && invite.email.match("@")
   );
 
   // normalize to lowercase and remove duplicates
@@ -28,7 +28,7 @@ export default async function userInviter({
       ...invite,
       email: invite.email.toLowerCase(),
     })),
-    'email'
+    "email"
   );
 
   // filter out any existing users in the system
@@ -63,7 +63,7 @@ export default async function userInviter({
         users.push(newUser);
         await Event.create(
           {
-            name: 'users.invite',
+            name: "users.invite",
             actorId: user.id,
             teamId: user.teamId,
             data: {

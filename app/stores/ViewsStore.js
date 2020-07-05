@@ -1,11 +1,11 @@
 // @flow
-import { reduce, filter, find, orderBy } from 'lodash';
-import BaseStore from './BaseStore';
-import RootStore from './RootStore';
-import View from 'models/View';
+import { reduce, filter, find, orderBy } from "lodash";
+import BaseStore from "./BaseStore";
+import RootStore from "./RootStore";
+import View from "models/View";
 
 export default class ViewsStore extends BaseStore<View> {
-  actions = ['list', 'create'];
+  actions = ["list", "create"];
 
   constructor(rootStore: RootStore) {
     super(rootStore, View);
@@ -14,8 +14,8 @@ export default class ViewsStore extends BaseStore<View> {
   inDocument(documentId: string): View[] {
     return orderBy(
       filter(this.orderedData, view => view.documentId === documentId),
-      'lastViewedAt',
-      'desc'
+      "lastViewedAt",
+      "desc"
     );
   }
 

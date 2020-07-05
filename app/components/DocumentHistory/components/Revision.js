@@ -1,18 +1,18 @@
 // @flow
-import * as React from 'react';
-import { NavLink } from 'react-router-dom';
-import styled, { withTheme } from 'styled-components';
-import format from 'date-fns/format';
-import { MoreIcon } from 'outline-icons';
+import * as React from "react";
+import { NavLink } from "react-router-dom";
+import styled, { withTheme } from "styled-components";
+import format from "date-fns/format";
+import { MoreIcon } from "outline-icons";
 
-import Flex from 'shared/components/Flex';
-import Time from 'shared/components/Time';
-import Avatar from 'components/Avatar';
-import RevisionMenu from 'menus/RevisionMenu';
-import Document from 'models/Document';
-import Revision from 'models/Revision';
+import Flex from "shared/components/Flex";
+import Time from "shared/components/Time";
+import Avatar from "components/Avatar";
+import RevisionMenu from "menus/RevisionMenu";
+import Document from "models/Document";
+import Revision from "models/Revision";
 
-import { documentHistoryUrl } from 'utils/routeHelpers';
+import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
   theme: Object,
@@ -32,12 +32,12 @@ class RevisionListItem extends React.Component<Props> {
         activeStyle={{ background: theme.primary, color: theme.white }}
       >
         <Author>
-          <StyledAvatar src={revision.createdBy.avatarUrl} />{' '}
+          <StyledAvatar src={revision.createdBy.avatarUrl} />{" "}
           {revision.createdBy.name}
         </Author>
         <Meta>
           <Time dateTime={revision.createdAt}>
-            {format(revision.createdAt, 'MMMM Do, YYYY h:mm a')}
+            {format(revision.createdAt, "MMMM Do, YYYY h:mm a")}
           </Time>
         </Meta>
         {showMenu && (

@@ -1,10 +1,10 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
-import MarkdownSerializer from 'slate-md-serializer';
+import { DataTypes, sequelize } from "../sequelize";
+import MarkdownSerializer from "slate-md-serializer";
 
 const serializer = new MarkdownSerializer();
 
-const Revision = sequelize.define('revision', {
+const Revision = sequelize.define("revision", {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -23,18 +23,18 @@ const Revision = sequelize.define('revision', {
 
 Revision.associate = models => {
   Revision.belongsTo(models.Document, {
-    as: 'document',
-    foreignKey: 'documentId',
-    onDelete: 'cascade',
+    as: "document",
+    foreignKey: "documentId",
+    onDelete: "cascade",
   });
   Revision.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
+    as: "user",
+    foreignKey: "userId",
   });
   Revision.addScope(
-    'defaultScope',
+    "defaultScope",
     {
-      include: [{ model: models.User, as: 'user', paranoid: false }],
+      include: [{ model: models.User, as: "user", paranoid: false }],
     },
     { override: true }
   );
@@ -46,7 +46,7 @@ Revision.prototype.migrateVersion = function() {
   // migrate from document version 0 -> 1
   if (!this.version) {
     // removing the title from the document text attribute
-    this.text = this.text.replace(/^#\s(.*)\n/, '');
+    this.text = this.text.replace(/^#\s(.*)\n/, "");
     this.version = 1;
     migrated = true;
   }
