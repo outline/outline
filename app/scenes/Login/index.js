@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import { BackIcon } from "outline-icons";
+import { BackIcon, EmailIcon } from "outline-icons";
 import { observer, inject } from "mobx-react";
 import { Redirect } from "react-router-dom";
 import { find } from "lodash";
@@ -61,16 +61,6 @@ class Login extends React.Component<Props, State> {
       service => service.id === auth.lastSignedIn
     );
 
-    const logo = (
-      <Logo>
-        {process.env.TEAM_LOGO && process.env.DEPLOYMENT !== "hosted" ? (
-          <TeamLogo src={process.env.TEAM_LOGO} />
-        ) : (
-          <OutlineLogo size={38} fill="currentColor" />
-        )}
-      </Logo>
-    );
-
     const header =
       process.env.DEPLOYMENT === "hosted" &&
       (config.hostname ? (
@@ -89,7 +79,7 @@ class Login extends React.Component<Props, State> {
           {header}
           <Centered align="center" justify="center" column auto>
             <PageTitle title="Check your email" />
-            {logo}
+            <CheckEmailIcon size={38} color="currentColor" />
 
             <Heading>Check your email</Heading>
             <Note>
@@ -110,7 +100,13 @@ class Login extends React.Component<Props, State> {
         {header}
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Login" />
-          {logo}
+          <Logo>
+            {process.env.TEAM_LOGO && process.env.DEPLOYMENT !== "hosted" ? (
+              <TeamLogo src={process.env.TEAM_LOGO} />
+            ) : (
+              <OutlineLogo size={38} fill="currentColor" />
+            )}
+          </Logo>
 
           {isCreate ? (
             <Heading>Create an account</Heading>
@@ -157,6 +153,10 @@ class Login extends React.Component<Props, State> {
     );
   }
 }
+
+const CheckEmailIcon = styled(EmailIcon)`
+  margin-bottom: -1.5em;
+`;
 
 const Background = styled(Fade)`
   width: 100vw;
@@ -210,7 +210,8 @@ const Or = styled.hr`
     position: absolute;
     left: 50%;
     transform: translate3d(-50%, -50%, 0);
-    font-size: 12px;
+    text-transform: uppercase;
+    font-size: 11px;
     color: ${props => props.theme.textSecondary};
     background: ${props => props.theme.background};
     border-radius: 2px;
