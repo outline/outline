@@ -30,7 +30,10 @@ router.post("email", async ctx => {
     // signin then just forward them directly to that service's
     // login page
     if (user.service && user.service !== "email") {
-      return ctx.redirect(`${team.url}/auth/${user.service}`);
+      ctx.body = {
+        redirect: `${team.url}/auth/${user.service}`,
+      };
+      return;
     }
 
     if (!team.guestSignin) {

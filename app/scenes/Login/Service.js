@@ -40,10 +40,14 @@ class Service extends React.Component<Props, State> {
       this.setState({ isSubmitting: true });
 
       try {
-        await client.post(event.currentTarget.action, {
+        const response = await client.post(event.currentTarget.action, {
           email: this.state.email,
         });
-        this.props.onEmailSuccess(this.state.email);
+        if (response.redirect) {
+          window.location.href = response.redirect;
+        } else {
+          this.props.onEmailSuccess(this.state.email);
+        }
       } finally {
         this.setState({ isSubmitting: false });
       }

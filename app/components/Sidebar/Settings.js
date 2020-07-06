@@ -54,7 +54,7 @@ class SettingsSidebar extends React.Component<Props> {
         <HeaderBlock
           subheading={
             <ReturnToApp align="center">
-              <BackIcon /> Return to App
+              <BackIcon color="currentColor" /> Return to App
             </ReturnToApp>
           }
           teamName={team.name}
