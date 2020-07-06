@@ -141,7 +141,7 @@
     "react-portal": "^4.0.0",
     "react-router-dom": "^5.1.2",
     "react-waypoint": "^9.0.2",
-    "rich-markdown-editor": "^10.2.1-0",
+    "rich-markdown-editor": "^10.2.1",
     "semver": "^7.3.2",
     "sequelize": "^5.21.1",
     "sequelize-cli": "^5.5.0",
