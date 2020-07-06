@@ -1,6 +1,10 @@
 // @flow
 import * as React from "react";
 import { Droppable as DnDDroppable } from "react-beautiful-dnd";
+import type {
+  DroppableProvided,
+  DroppableStateSnapshot,
+} from "react-beautiful-dnd";
 import styled, { withTheme } from "styled-components";
 import {
   DROPPABLE_COLLECTION_SUFFIX,
@@ -13,8 +17,8 @@ type Props = {
   documentId?: string,
   isDropDisabled?: boolean,
   children(
-    provided: dnd.DroppableProvided,
-    snapshot: dnd.DroppableStateSnapshot
+    provided: DroppableProvided,
+    snapshot: DroppableStateSnapshot
   ): React.Node,
 };
 
@@ -36,7 +40,11 @@ class Droppable extends React.Component<Props> {
     }
 
     return (
-      <DnDDroppable droppableId={droppableId} isDropDisabled={isDropDisabled}>
+      <DnDDroppable
+        droppableId={droppableId}
+        isDropDisabled={isDropDisabled}
+        isCombineEnabled={true}
+      >
         {(provided, snapshot) => (
           <DropContainer
             isDraggingOver={snapshot.isDraggingOver}

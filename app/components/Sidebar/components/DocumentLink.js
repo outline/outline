@@ -19,7 +19,7 @@ import { SidebarDnDContext } from "./Collections";
 type Props = {
   node: NavigationNode,
   documents: DocumentsStore,
-  collection?: Collection,
+  collection: Collection,
   activeDocument: ?Document,
   activeDocumentRef?: (?HTMLElement) => void,
   prefetchDocument: (documentId: string) => Promise<void>,
@@ -106,71 +106,68 @@ class DocumentLink extends React.Component<Props> {
                 isDropDisabled || draggingDocumentId === node.id;
 
               return (
-                <Droppable
-                  collectionId={collection.id}
-                  documentId={node.id}
-                  isDropDisabled={disableChildDrops}
+                <SidebarLink
+                  to={{
+                    pathname: node.url,
+                    state: { title: node.title },
+                  }}
+                  expanded={showChildren ? true : undefined}
+                  hideDisclosure={hideDisclosure}
+                  label={node.title || "Untitled"}
+                  depth={depth}
+                  exact={false}
+                  menuOpen={this.menuOpen}
+                  menu={
+                    document ? (
+                      <Fade>
+                        <DocumentMenu
+                          position="right"
+                          document={document}
+                          onOpen={() => (this.menuOpen = true)}
+                          onClose={() => (this.menuOpen = false)}
+                        />
+                      </Fade>
+                    ) : (
+                      undefined
+                    )
+                  }
                 >
-                  {(provided, snapshot) => (
-                    <SidebarLink
-                      to={{
-                        pathname: node.url,
-                        state: { title: node.title },
-                      }}
-                      expanded={
-                        isDragging
-                          ? showChildren || snapshot.isDraggingOver
-                          : showChildren ? true : undefined
-                      }
-                      hideDisclosure={hideDisclosure}
-                      label={node.title || "Untitled"}
-                      depth={depth}
-                      exact={false}
-                      menuOpen={this.menuOpen}
-                      menu={
-                        document ? (
-                          <Fade>
-                            <DocumentMenu
-                              position="right"
-                              document={document}
-                              onOpen={() => (this.menuOpen = true)}
-                              onClose={() => (this.menuOpen = false)}
-                            />
-                          </Fade>
-                        ) : (
-                          undefined
-                        )
-                      }
-                    >
-                      {this.hasChildDocuments() && (
-                        <DocumentChildren column>
-                          <Observer>
-                            {() =>
-                              node.children.map((childNode, index) => (
-                                <Draggable
-                                  key={childNode.id}
-                                  draggableId={childNode.id}
-                                  index={index}
-                                >
-                                  <DocumentLink
+                  {this.hasChildDocuments() &&
+                    !disableChildDrops && (
+                      <Droppable
+                        collectionId={collection.id}
+                        documentId={node.id}
+                        isDropDisabled={disableChildDrops}
+                      >
+                        {(provided, snapshot) => (
+                          <DocumentChildren column>
+                            <Observer>
+                              {() =>
+                                node.children.map((childNode, index) => (
+                                  <Draggable
                                     key={childNode.id}
-                                    collection={collection}
-                                    node={childNode}
-                                    documents={documents}
-                                    activeDocument={activeDocument}
-                                    prefetchDocument={prefetchDocument}
-                                    depth={depth + 1}
-                                    isDropDisabled={disableChildDrops}
-                                  />
-                                </Draggable>
-                              ))
-                            }
-                          </Observer>
-                        </DocumentChildren>
-                      )}
-                    </SidebarLink>
-                  )}
-                </Droppable>
+                                    draggableId={childNode.id}
+                                    index={index}
+                                  >
+                                    <DocumentLink
+                                      key={childNode.id}
+                                      collection={collection}
+                                      node={childNode}
+                                      documents={documents}
+                                      activeDocument={activeDocument}
+                                      prefetchDocument={prefetchDocument}
+                                      depth={depth + 1}
+                                      isDropDisabled={disableChildDrops}
+                                    />
+                                  </Draggable>
+                                ))
+                              }
+                            </Observer>
+                          </DocumentChildren>
+                        )}
+                      </Droppable>
+                    )}
+                </SidebarLink>
               );
             }}
           </SidebarDnDContext.Consumer>
