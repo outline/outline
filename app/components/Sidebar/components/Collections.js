@@ -25,7 +25,19 @@ import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import DocumentsStore from "stores/DocumentsStore";
 
-export const DraggingDocumentIdContext = React.createContext();
+type SidebarDnDContextObject = {
+  isDragging: boolean,
+  draggingDocumentId?: string,
+};
+
+const initialSidebarDnDContextValue: SidebarDnDContextObject = {
+  isDragging: false,
+  draggingDocumentId: undefined,
+};
+
+export const SidebarDnDContext = React.createContext(
+  initialSidebarDnDContextValue
+);
 
 type Props = {
   history: RouterHistory,
@@ -38,11 +50,14 @@ type Props = {
 
 type State = {
   draggingDocumentId?: string,
+  isDragging: boolean,
 };
 
 @observer
 class Collections extends React.Component<Props, State> {
-  state: State = {};
+  state: State = {
+    isDragging: false,
+  };
   isPreloaded: boolean = !!this.props.collections.orderedData.length;
 
   componentDidMount() {
@@ -68,12 +83,14 @@ class Collections extends React.Component<Props, State> {
 
   handleDragStart = (initial: DragStart) => {
     this.setState({
+      isDragging: true,
       draggingDocumentId: initial.draggableId,
     });
   };
 
   reorder = (result: DropResult) => {
     this.setState({
+      isDragging: false,
       draggingDocumentId: undefined,
     });
 
@@ -150,15 +167,21 @@ class Collections extends React.Component<Props, State> {
 
   render() {
     const { collections, ui, documents } = this.props;
-    const { draggingDocumentId } = this.state;
+    const { draggingDocumentId, isDragging } = this.state;
 
     const content = (
       <React.Fragment>
         <DragDropContext
           onDragStart={this.handleDragStart}
+          onDragUpdate={this.handleDragUpdate}
           onDragEnd={this.reorder}
         >
-          <DraggingDocumentIdContext.Provider value={draggingDocumentId}>
+          <SidebarDnDContext.Provider
+            value={{
+              draggingDocumentId,
+              isDragging,
+            }}
+          >
             {collections.orderedData.map(collection => (
               <CollectionLink
                 key={collection.id}
@@ -169,7 +192,8 @@ class Collections extends React.Component<Props, State> {
                 ui={ui}
               />
             ))}
-          </DraggingDocumentIdContext.Provider>
+            <div id="sidebar-collections-portal" />
+          </SidebarDnDContext.Provider>
         </DragDropContext>
         <SidebarLink
           to="/collections"
