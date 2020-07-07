@@ -15,7 +15,9 @@ const { team } = auth;
 
 const PageTitle = observer(({ auth, title, favicon }: Props) => (
   <Helmet>
-    <title>{`${title} - ${team.name} | Outline` | `${title} - Outline`}</title>
+    <title>
+      {team.name ? `${title} - ${team.name} | Outline` : `${title} - Outline`}
+    </title>
     <link
       rel="shortcut icon"
       type="image/png"
@@ -24,6 +26,6 @@ const PageTitle = observer(({ auth, title, favicon }: Props) => (
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </Helmet>
-);
+));
 
 export default inject("auth")(PageTitle);
