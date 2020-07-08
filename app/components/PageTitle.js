@@ -16,7 +16,7 @@ const { team } = auth;
 const PageTitle = observer(({ auth, title, favicon }: Props) => (
   <Helmet>
     <title>
-      {team.name ? `${title} - ${team.name} | Outline` : `${title} - Outline`}
+      {team ? `${title} - ${team.name} - Outline` : `${title} - Outline`}
     </title>
     <link
       rel="shortcut icon"
