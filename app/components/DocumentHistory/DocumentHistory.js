@@ -11,7 +11,7 @@ import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
 import RevisionsStore from "stores/RevisionsStore";
 
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
 import Revision from "./components/Revision";
 import { documentHistoryUrl } from "utils/routeHelpers";

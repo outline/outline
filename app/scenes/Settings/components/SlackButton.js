@@ -2,7 +2,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { slackAuth } from "shared/utils/routeHelpers";
-import SlackLogo from "shared/components/SlackLogo";
+import SlackLogo from "components/SlackLogo";
 import Button from "components/Button";
 
 type Props = {

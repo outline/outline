@@ -2,7 +2,7 @@
 import * as React from "react";
 import { inject } from "mobx-react";
 import type { RouterHistory, Location } from "react-router-dom";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import CenteredContent from "components/CenteredContent";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
 import DocumentsStore from "stores/DocumentsStore";

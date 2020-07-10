@@ -30,7 +30,10 @@ router.post("email", async ctx => {
     // signin then just forward them directly to that service's
     // login page
     if (user.service && user.service !== "email") {
-      return ctx.redirect(`${team.url}/auth/${user.service}`);
+      ctx.body = {
+        redirect: `${team.url}/auth/${user.service}`,
+      };
+      return;
     }
 
     if (!team.guestSignin) {
@@ -55,12 +58,12 @@ router.post("email", async ctx => {
 
     user.lastSigninEmailSentAt = new Date();
     await user.save();
-
-    // respond with success regardless of whether an email was sent
-    ctx.redirect(`${team.url}?notice=guest-success`);
-  } else {
-    ctx.redirect(`${process.env.URL}?notice=guest-success`);
   }
+
+  // respond with success regardless of whether an email was sent
+  ctx.body = {
+    success: true,
+  };
 });
 
 router.get("email.callback", auth({ required: false }), async ctx => {

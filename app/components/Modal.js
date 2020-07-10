@@ -8,7 +8,7 @@ import { transparentize } from "polished";
 import { CloseIcon, BackIcon } from "outline-icons";
 import NudeButton from "components/NudeButton";
 import { fadeAndScaleIn } from "shared/styles/animations";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 ReactModal.setAppElement("#root");
 

@@ -60,8 +60,14 @@ export function stripSubdomain(hostname: string) {
 
 export function isCustomSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
-  if (!parsed) return false;
-  if (!parsed.subdomain || parsed.subdomain === "www") return false;
+  if (
+    !parsed ||
+    !parsed.subdomain ||
+    parsed.subdomain === "app" ||
+    parsed.subdomain === "www"
+  ) {
+    return false;
+  }
   return true;
 }
 
@@ -71,6 +77,7 @@ export const RESERVED_SUBDOMAINS = [
   "admin",
   "advertising",
   "api",
+  "app",
   "assets",
   "archive",
   "beta",

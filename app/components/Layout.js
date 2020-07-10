@@ -8,7 +8,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import keydown from "react-keydown";
 import Analytics from "components/Analytics";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import {
   homeUrl,
   searchUrl,

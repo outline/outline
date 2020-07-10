@@ -3,7 +3,7 @@ import * as React from "react";
 import { CheckmarkIcon } from "outline-icons";
 import styled from "styled-components";
 import HelpText from "components/HelpText";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 type Props = {
   label: string,

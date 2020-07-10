@@ -3,13 +3,12 @@ import * as React from "react";
 import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import { observable, action } from "mobx";
 import { inject, observer } from "mobx-react";
-import { CloseIcon } from "outline-icons";
+import { LinkIcon, CloseIcon } from "outline-icons";
 import styled from "styled-components";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Button from "components/Button";
 import Input from "components/Input";
 import CopyToClipboard from "components/CopyToClipboard";
-import Checkbox from "components/Checkbox";
 import HelpText from "components/HelpText";
 import Tooltip from "components/Tooltip";
 import NudeButton from "components/NudeButton";
@@ -33,7 +32,6 @@ type Props = {
 type InviteRequest = {
   email: string,
   name: string,
-  guest: boolean,
 };
 
 @observer
@@ -42,9 +40,9 @@ class Invite extends React.Component<Props> {
   @observable linkCopied: boolean = false;
   @observable
   invites: InviteRequest[] = [
-    { email: "", name: "", guest: false },
-    { email: "", name: "", guest: false },
-    { email: "", name: "", guest: false },
+    { email: "", name: "" },
+    { email: "", name: "" },
+    { email: "", name: "" },
   ];
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
@@ -80,7 +78,7 @@ class Invite extends React.Component<Props> {
       );
     }
 
-    this.invites.push({ email: "", name: "", guest: false });
+    this.invites.push({ email: "", name: "" });
   };
 
   @action
@@ -106,8 +104,8 @@ class Invite extends React.Component<Props> {
         {team.guestSignin ? (
           <HelpText>
             Invite team members or guests to join your knowledge base. Team
-            members can sign in with {team.signinMethods} and guests can use
-            their email address.
+            members can sign in with {team.signinMethods} or use their email
+            address.
           </HelpText>
         ) : (
           <HelpText>
@@ -116,22 +114,35 @@ class Invite extends React.Component<Props> {
             {can.update && (
               <React.Fragment>
                 As an admin you can also{" "}
-                <Link to="/settings/security">enable guest invites</Link>.
+                <Link to="/settings/security">enable email sign-in</Link>.
               </React.Fragment>
             )}
           </HelpText>
         )}
         {team.subdomain && (
           <CopyBlock>
-            Want a link to share directly with your team?
-            <Flex>
-              <Input type="text" value={team.url} readOnly flex />&nbsp;&nbsp;
+            <Flex align="flex-end">
+              <Input
+                type="text"
+                value={team.url}
+                label="Want a link to share directly with your team?"
+                readOnly
+                flex
+              />&nbsp;&nbsp;
               <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
-                <Button type="button" neutral>
+                <Button
+                  type="button"
+                  icon={<LinkIcon />}
+                  style={{ marginBottom: "16px" }}
+                  neutral
+                >
                   {this.linkCopied ? "Link copied" : "Copy link"}
                 </Button>
               </CopyToClipboard>
             </Flex>
+            <p>
+              <hr />
+            </p>
           </CopyBlock>
         )}
         {this.invites.map((invite, index) => (
@@ -159,29 +170,6 @@ class Invite extends React.Component<Props> {
               required={!!invite.email}
               flex
             />
-            {team.guestSignin && (
-              <React.Fragment>
-                &nbsp;&nbsp;
-                <Tooltip
-                  tooltip={
-                    <span>
-                      Guests can sign in with email and <br />do not require{" "}
-                      {team.signinMethods} accounts
-                    </span>
-                  }
-                  placement="top"
-                >
-                  <Guest>
-                    <Checkbox
-                      name="guest"
-                      label="Guest"
-                      onChange={ev => this.handleGuestChange(ev, index)}
-                      checked={invite.guest}
-                    />
-                  </Guest>
-                </Tooltip>
-              </React.Fragment>
-            )}
             {index !== 0 && (
               <Remove>
                 <Tooltip tooltip="Remove invite" placement="top">
@@ -220,22 +208,8 @@ class Invite extends React.Component<Props> {
 }
 
 const CopyBlock = styled("div")`
+  margin: 2em 0;
   font-size: 14px;
-  background: ${props => props.theme.secondaryBackground};
-  padding: 8px 16px 4px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-
-  input {
-    background: ${props => props.theme.background};
-    border-radius: 4px;
-  }
-`;
-
-const Guest = styled("div")`
-  padding-top: 4px;
-  margin: 0 4px 16px;
-  align-self: flex-end;
 `;
 
 const Remove = styled("div")`

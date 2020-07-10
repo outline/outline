@@ -19,7 +19,7 @@ import {
 import ZapierIcon from "./icons/Zapier";
 import SlackIcon from "./icons/Slack";
 
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Sidebar from "./Sidebar";
 import Scrollable from "components/Scrollable";
 import Section from "./components/Section";
@@ -54,7 +54,7 @@ class SettingsSidebar extends React.Component<Props> {
         <HeaderBlock
           subheading={
             <ReturnToApp align="center">
-              <BackIcon /> Return to App
+              <BackIcon color="currentColor" /> Return to App
             </ReturnToApp>
           }
           teamName={team.name}

@@ -30,7 +30,7 @@ import HelpText from "components/HelpText";
 import DocumentList from "components/DocumentList";
 import Subheading from "components/Subheading";
 import PageTitle from "components/PageTitle";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Modal from "components/Modal";
 import CollectionMembers from "scenes/CollectionMembers";
 import Tabs from "components/Tabs";

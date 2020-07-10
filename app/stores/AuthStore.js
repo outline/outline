@@ -10,13 +10,27 @@ import Team from "models/Team";
 
 const AUTH_STORE = "AUTH_STORE";
 
+type Service = {
+  id: string,
+  name: string,
+  authUrl: string,
+};
+
+type Config = {
+  name?: string,
+  hostname?: string,
+  services: Service[],
+};
+
 export default class AuthStore {
   @observable user: ?User;
   @observable team: ?Team;
   @observable token: ?string;
+  @observable lastSignedIn: ?string;
   @observable isSaving: boolean = false;
   @observable isSuspended: boolean = false;
   @observable suspendedContactEmail: ?string;
+  @observable config: ?Config;
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
@@ -32,8 +46,12 @@ export default class AuthStore {
     this.user = new User(data.user);
     this.team = new Team(data.team);
     this.token = getCookie("accessToken");
+    this.lastSignedIn = getCookie("lastSignedIn");
+    setImmediate(() => this.fetchConfig());
 
-    if (this.token) setImmediate(() => this.fetch());
+    if (this.token) {
+      setImmediate(() => this.fetch());
+    }
 
     autorun(() => {
       try {
@@ -62,6 +80,13 @@ export default class AuthStore {
       team: this.team,
     });
   }
+
+  @action
+  fetchConfig = async () => {
+    const res = await client.post("/auth.config");
+    invariant(res && res.data, "Config not available");
+    this.config = res.data;
+  };
 
   @action
   fetch = async () => {
@@ -158,10 +183,16 @@ export default class AuthStore {
       })
     );
 
+    this.token = null;
+
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
-      setCookie("postLoginRedirectPath", window.location.pathname);
+      const pathName = window.location.pathname;
+
+      if (pathName !== "/" && pathName !== "/create") {
+        setCookie("postLoginRedirectPath", pathName);
+      }
     }
 
     // remove authentication token itself
@@ -178,8 +209,5 @@ export default class AuthStore {
       });
       this.team = null;
     }
-
-    // add a timestamp to force reload from server
-    window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
   };
 }

@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 import { observer, inject } from "mobx-react";
+import { Redirect } from "react-router-dom";
 import AuthStore from "stores/AuthStore";
 import LoadingIndicator from "components/LoadingIndicator";
 import { isCustomSubdomain } from "shared/utils/domains";
@@ -35,7 +36,7 @@ const Authenticated = observer(({ auth, children }: Props) => {
   }
 
   auth.logout(true);
-  return null;
+  return <Redirect to="/" />;
 });
 
 export default inject("auth")(Authenticated);

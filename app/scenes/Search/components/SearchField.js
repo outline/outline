@@ -2,7 +2,7 @@
 import * as React from "react";
 import styled, { withTheme } from "styled-components";
 import { SearchIcon } from "outline-icons";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 type Props = {
   onChange: string => void,

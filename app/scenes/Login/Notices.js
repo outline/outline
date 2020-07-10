@@ -1,61 +1,55 @@
 // @flow
 import * as React from "react";
-import Notice from "../../../shared/components/Notice";
+import NoticeAlert from "components/NoticeAlert";
 
 type Props = {
   notice?: string,
 };
 
-export default function AuthNotices({ notice }: Props) {
+export default function Notices({ notice }: Props) {
   return (
     <React.Fragment>
-      {notice === "guest-success" && (
-        <Notice>
-          A magic sign-in link has been sent to your email address, no password
-          needed.
-        </Notice>
-      )}
       {notice === "google-hd" && (
-        <Notice>
+        <NoticeAlert>
           Sorry, Google sign in cannot be used with a personal email. Please try
-          signing in with your company Google account.
-        </Notice>
+          signing in with your company GSuite account.
+        </NoticeAlert>
       )}
       {notice === "hd-not-allowed" && (
-        <Notice>
+        <NoticeAlert>
           Sorry, your Google apps domain is not allowed. Please try again with
           an allowed company domain.
-        </Notice>
+        </NoticeAlert>
       )}
       {notice === "email-auth-required" && (
-        <Notice>
+        <NoticeAlert>
           Your account uses email sign-in, please sign-in with email to
           continue.
-        </Notice>
+        </NoticeAlert>
       )}
       {notice === "email-auth-ratelimit" && (
-        <Notice>
-          An email sign-in link was recently sent, please check your inbox and
+        <NoticeAlert>
+          An email sign-in link was recently sent, please check your inbox or
           try again in a few minutes.
-        </Notice>
+        </NoticeAlert>
       )}
       {notice === "auth-error" && (
-        <Notice>
+        <NoticeAlert>
           Authentication failed - we were unable to sign you in at this time.
           Please try again.
-        </Notice>
+        </NoticeAlert>
       )}
       {notice === "expired-token" && (
-        <Notice>
+        <NoticeAlert>
           Sorry, it looks like that sign-in link is no longer valid, please try
           requesting another.
-        </Notice>
+        </NoticeAlert>
       )}
       {notice === "suspended" && (
-        <Notice>
+        <NoticeAlert>
           Your Outline account has been suspended. To re-activate your account,
           please contact a team admin.
-        </Notice>
+        </NoticeAlert>
       )}
     </React.Fragment>
   );

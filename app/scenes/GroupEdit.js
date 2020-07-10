@@ -6,7 +6,7 @@ import { inject, observer } from "mobx-react";
 import Button from "components/Button";
 import Input from "components/Input";
 import HelpText from "components/HelpText";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 import Group from "models/Group";
 import UiStore from "stores/UiStore";

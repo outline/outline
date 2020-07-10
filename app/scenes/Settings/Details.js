@@ -12,7 +12,7 @@ import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
 import HelpText from "components/HelpText";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 type Props = {
   auth: AuthStore,
