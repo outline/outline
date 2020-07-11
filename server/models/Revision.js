@@ -1,6 +1,7 @@
 // @flow
 import { DataTypes, sequelize } from "../sequelize";
 import MarkdownSerializer from "slate-md-serializer";
+import unescape from "../../shared/utils/unescape";
 
 const serializer = new MarkdownSerializer();
 
@@ -63,6 +64,16 @@ Revision.prototype.migrateVersion = function() {
   if (migrated) {
     return this.save({ silent: true, hooks: false });
   }
+};
+
+Revision.prototype.toMarkdown = function() {
+  const text = unescape(this.text);
+
+  if (this.version) {
+    return `# ${this.title}\n\n${text}`;
+  }
+
+  return text;
 };
 
 export default Revision;

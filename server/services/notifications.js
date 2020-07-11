@@ -7,6 +7,7 @@ import {
   Collection,
   User,
   NotificationSetting,
+  Revision,
 } from "../models";
 import mailer from "../mailer";
 
@@ -31,6 +32,15 @@ export default class Notifications {
 
     const document = await Document.findByPk(event.documentId);
     if (!document) return;
+
+    const previous = await Revision.findOne({
+      where: {
+        documentId: event.documentId,
+      },
+      order: [["createdAt", "DESC"]],
+      offset: 1,
+      limit: 1,
+    });
 
     const { collection } = document;
     if (!collection) return;
@@ -73,6 +83,7 @@ export default class Notifications {
         to: setting.user.email,
         eventName,
         document,
+        previous,
         team,
         collection,
         actor: document.updatedBy,

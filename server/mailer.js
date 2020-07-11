@@ -50,7 +50,7 @@ type EmailJob = {
 /**
  * Mailer
  *
- * Mailer class to contruct and send emails.
+ * Mailer class to construct and send emails.
  *
  * To preview emails, add a new preview to `emails/index.js` if they
  * require additional data (properties). Otherwise preview will work automatically.
@@ -118,7 +118,7 @@ export class Mailer {
       to: opts.to,
       title: `${opts.actorName} invited you to join ${
         opts.teamName
-      }’s knowledgebase`,
+      }’s knowledge base`,
       previewText:
         "Outline is a place for your team to build and share knowledge.",
       html: <InviteEmail {...opts} />,

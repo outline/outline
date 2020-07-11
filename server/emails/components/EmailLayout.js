@@ -23,4 +23,14 @@ export const baseStyles = `
     font-size: 16px;
     line-height: 1.5;
   }
+
+  ins {
+    background-color: #d4fcbc;
+    text-decoration: none;
+  }
+
+  del {
+    text-decoration: line-through;
+    background-color: #fbb6c2;
+  }
 `;
