@@ -9,6 +9,7 @@ import User from "models/User";
 import Team from "models/Team";
 
 const AUTH_STORE = "AUTH_STORE";
+const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
 
 type Service = {
   id: string,
@@ -112,7 +113,10 @@ export default class AuthStore {
         const postLoginRedirectPath = getCookie("postLoginRedirectPath");
         if (postLoginRedirectPath) {
           removeCookie("postLoginRedirectPath");
-          window.location.href = postLoginRedirectPath;
+
+          if (!NO_REDIRECT_PATHS.includes(postLoginRedirectPath)) {
+            window.location.href = postLoginRedirectPath;
+          }
         }
       });
     } catch (err) {
@@ -190,7 +194,7 @@ export default class AuthStore {
     if (savePath) {
       const pathName = window.location.pathname;
 
-      if (pathName !== "/" && pathName !== "/create") {
+      if (!NO_REDIRECT_PATHS.includes(pathName)) {
         setCookie("postLoginRedirectPath", pathName);
       }
     }
