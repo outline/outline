@@ -210,6 +210,188 @@ describe("#documents.info", async () => {
   });
 });
 
+describe("#documents.export", async () => {
+  it("should return published document", async () => {
+    const { user, document } = await seed();
+    const res = await server.post("/api/documents.export", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toEqual(document.toMarkdown());
+  });
+
+  it("should return archived document", async () => {
+    const { user, document } = await seed();
+    await document.archive(user.id);
+    const res = await server.post("/api/documents.export", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toEqual(document.toMarkdown());
+  });
+
+  it("should not return published document in collection not a member of", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      private: true,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({ collectionId: collection.id });
+
+    const res = await server.post("/api/documents.export", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should return drafts", async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post("/api/documents.export", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toEqual(document.toMarkdown());
+  });
+
+  it("should return document from shareId without token", async () => {
+    const { document, user } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/documents.export", {
+      body: { shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toEqual(document.toMarkdown());
+  });
+
+  it("should not return document from revoked shareId", async () => {
+    const { document, user } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+    await share.revoke(user.id);
+
+    const res = await server.post("/api/documents.export", {
+      body: { shareId: share.id },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not return document from archived shareId", async () => {
+    const { document, user } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+    await document.archive(user.id);
+
+    const res = await server.post("/api/documents.export", {
+      body: { shareId: share.id },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should return document from shareId with token", async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/documents.export", {
+      body: { token: user.getJwtToken(), shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toEqual(document.toMarkdown());
+  });
+
+  it("should return draft document from shareId with token", async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/documents.export", {
+      body: { token: user.getJwtToken(), shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toEqual(document.toMarkdown());
+  });
+
+  it("should return document from shareId in collection not a member of", async () => {
+    const { user, document, collection } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+      userId: user.id,
+    });
+
+    collection.private = true;
+    await collection.save();
+
+    const res = await server.post("/api/documents.export", {
+      body: { token: user.getJwtToken(), shareId: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data).toEqual(document.toMarkdown());
+  });
+
+  it("should require authorization without token", async () => {
+    const { document } = await seed();
+    const res = await server.post("/api/documents.export", {
+      body: { id: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authorization with incorrect token", async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post("/api/documents.export", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require a valid shareId", async () => {
+    const res = await server.post("/api/documents.export", {
+      body: { shareId: 123 },
+    });
+    expect(res.status).toEqual(400);
+  });
+});
+
 describe("#documents.list", async () => {
   it("should return documents", async () => {
     const { user, document } = await seed();
