@@ -210,6 +210,13 @@ export default class Document extends BaseModel {
     return this.store.duplicate(this);
   };
 
+  getSummary = (paragraphs: number = 4) => {
+    return this.text
+      .split("\n")
+      .slice(0, paragraphs)
+      .join("\n");
+  };
+
   download = async () => {
     // Ensure the document is upto date with latest server contents
     await this.fetch();

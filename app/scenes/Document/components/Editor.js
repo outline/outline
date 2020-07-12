@@ -2,10 +2,12 @@
 import * as React from "react";
 import styled from "styled-components";
 import Textarea from "react-autosize-textarea";
+import { observable } from "mobx";
 import { observer } from "mobx-react";
 import Editor from "components/Editor";
 import ClickablePadding from "components/ClickablePadding";
 import Flex from "components/Flex";
+import HoverPreview from "components/HoverPreview";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import DocumentMeta from "./DocumentMeta";
@@ -21,6 +23,7 @@ type Props = {
 
 @observer
 class DocumentEditor extends React.Component<Props> {
+  @observable activeLinkEvent: ?MouseEvent;
   editor: ?Editor;
 
   focusAtStart = () => {
@@ -50,6 +53,18 @@ class DocumentEditor extends React.Component<Props> {
     }
   };
 
+  handleLinkActive = (event: MouseEvent) => {
+    if (this.activeLinkEvent && this.activeLinkEvent.target === event.target) {
+      return;
+    }
+
+    this.activeLinkEvent = event;
+  };
+
+  handleLinkInactive = () => {
+    this.activeLinkEvent = null;
+  };
+
   render() {
     const { document, title, onChangeTitle, isDraft, readOnly } = this.props;
     const { emoji } = parseTitle(title);
@@ -73,10 +88,18 @@ class DocumentEditor extends React.Component<Props> {
           ref={ref => (this.editor = ref)}
           autoFocus={title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
+          onHoverLink={this.handleLinkActive}
           grow
           {...this.props}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
+        {this.activeLinkEvent && (
+          <HoverPreview
+            node={this.activeLinkEvent.target}
+            event={this.activeLinkEvent}
+            onClose={this.handleLinkInactive}
+          />
+        )}
       </Flex>
     );
   }

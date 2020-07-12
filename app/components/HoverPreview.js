@@ -1,9 +1,11 @@
 // @flow
 import * as React from "react";
-import { rgba } from "polished";
-import { inject, observer } from "mobx-react";
+import { inject } from "mobx-react";
+import Editor from "components/Editor";
 import styled from "styled-components";
 import { Portal } from "react-portal";
+import { fadeAndScaleIn } from "shared/styles/animations";
+import isInternalUrl from "utils/isInternalUrl";
 import DocumentsStore from "stores/DocumentsStore";
 
 type Props = {
@@ -13,28 +15,52 @@ type Props = {
   onClose: () => void,
 };
 
-function HoverPreview({ node, onClose, event }: Props) {
+function HoverPreview({ node, documents, onClose, event }: Props) {
   const bounds = node.getBoundingClientRect();
 
+  // previews only work for internal doc links for now
+  if (!isInternalUrl(node.href)) {
+    return null;
+  }
+
   // $FlowFixMe
-  const timer = React.useRef(null);
+  const [isVisible, setVisible] = React.useState(false);
+  const timerClose = React.useRef(null);
+  const timerOpen = React.useRef(null);
 
   // $FlowFixMe
   const cardRef = React.useRef(null);
 
   const startCloseTimer = () => {
-    timer.current = setTimeout(onClose, 1000);
+    stopOpenTimer();
+
+    timerClose.current = setTimeout(() => {
+      if (isVisible) setVisible(false);
+      onClose();
+    }, 1000);
   };
 
   const stopCloseTimer = () => {
-    if (timer.current) {
-      clearTimeout(timer.current);
+    if (timerClose.current) {
+      clearTimeout(timerClose.current);
+    }
+  };
+
+  const startOpenTimer = () => {
+    timerOpen.current = setTimeout(() => setVisible(true), 500);
+  };
+
+  const stopOpenTimer = () => {
+    if (timerOpen.current) {
+      clearTimeout(timerOpen.current);
     }
   };
 
   // $FlowFixMe
   React.useEffect(
     () => {
+      startOpenTimer();
+
       node.addEventListener("mouseout", startCloseTimer, {
         passive: true,
         once: true,
@@ -47,33 +73,61 @@ function HoverPreview({ node, onClose, event }: Props) {
         cardRef.current.removeEventListener("mouseover", stopCloseTimer);
         cardRef.current.removeEventListener("mouseout", startCloseTimer);
 
-        if (timer.current) {
-          clearTimeout(timer.current);
+        if (timerClose.current) {
+          clearTimeout(timerClose.current);
         }
       };
     },
     [node]
   );
 
+  let parsed;
+  try {
+    parsed = new URL(node.href);
+  } catch (err) {
+    // TODO
+  }
+  console.log(parsed);
+  const document = parsed ? documents.getByUrl(parsed.pathname) : undefined;
+
   return (
     <Portal>
-      <Position top={bounds.bottom + window.scrollY} left={event.clientX}>
-        <Card ref={cardRef}>
-          <p>{node.href}</p>
-        </Card>
+      <Position
+        top={bounds.bottom + window.scrollY}
+        left={event.clientX}
+        aria-hidden
+      >
+        <div ref={cardRef}>
+          {document &&
+            isVisible && (
+              <Card>
+                <Heading>{document.title}</Heading>
+                <Editor defaultValue={document.getSummary()} readOnly />
+              </Card>
+            )}
+        </div>
       </Position>
     </Portal>
   );
 }
 
+const Heading = styled.h2`
+  margin-top: 0;
+`;
+
 const Card = styled.div`
+  animation: ${fadeAndScaleIn} 100ms ease;
   backdrop-filter: blur(10px);
-  background: red;
+  background: ${props => props.theme.background};
   border: ${props =>
     props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   border-radius: 4px;
+  box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.3),
+    0 0 1px 1px rgba(0, 0, 0, 0.05);
   padding: 16px;
-  width: 300px;
+  min-width: 300px;
+  max-width: 20vw;
+  font-size: 15px;
   overflow: hidden;
 `;
 
@@ -90,4 +144,4 @@ const Position = styled.div`
     props.position === "center" ? "translateX(-50%)" : "initial"};
 `;
 
-export default HoverPreview;
+export default inject("documents")(HoverPreview);
