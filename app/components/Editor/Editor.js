@@ -9,6 +9,7 @@ import RichMarkdownEditor from "rich-markdown-editor";
 import { uploadFile } from "utils/uploadFile";
 import isInternalUrl from "utils/isInternalUrl";
 import Tooltip from "components/Tooltip";
+import HoverPreview from "components/HoverPreview";
 import UiStore from "stores/UiStore";
 import embeds from "../../embeds";
 
@@ -28,6 +29,7 @@ type Props = {
 @observer
 class Editor extends React.Component<Props> {
   @observable redirectTo: ?string;
+  @observable hoveredLinkEvent: ?HTMLAnchorElement;
 
   onUploadImage = async (file: File) => {
     const result = await uploadFile(file, { documentId: this.props.id });
@@ -61,21 +63,46 @@ class Editor extends React.Component<Props> {
     }
   };
 
+  onHoverLink = (event: MouseEvent) => {
+    if (
+      this.hoveredLinkEvent &&
+      this.hoveredLinkEvent.target === event.target
+    ) {
+      return;
+    }
+
+    this.hoveredLinkEvent = event;
+  };
+
+  onMouseOutLink = () => {
+    this.hoveredLinkEvent = null;
+  };
+
   onShowToast = (message: string) => {
     this.props.ui.showToast(message);
   };
 
   render() {
     return (
-      <StyledEditor
-        ref={this.props.forwardedRef}
-        uploadImage={this.onUploadImage}
-        onClickLink={this.onClickLink}
-        onShowToast={this.onShowToast}
-        embeds={this.props.disableEmbeds ? EMPTY_ARRAY : embeds}
-        tooltip={EditorTooltip}
-        {...this.props}
-      />
+      <React.Fragment>
+        {this.hoveredLinkEvent && (
+          <HoverPreview
+            node={this.hoveredLinkEvent.target}
+            event={this.hoveredLinkEvent}
+            onClose={this.onMouseOutLink}
+          />
+        )}
+        <StyledEditor
+          ref={this.props.forwardedRef}
+          uploadImage={this.onUploadImage}
+          onClickLink={this.onClickLink}
+          onHoverLink={this.onHoverLink}
+          onShowToast={this.onShowToast}
+          embeds={this.props.disableEmbeds ? EMPTY_ARRAY : embeds}
+          tooltip={EditorTooltip}
+          {...this.props}
+        />
+      </React.Fragment>
     );
   }
 }
