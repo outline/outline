@@ -37,6 +37,12 @@
         window.document.querySelector('#root').style.background = "#111319";
       }
     </script>
+    <script type="module">
+      // PWA: https://www.pwabuilder.com/serviceworker
+      import 'https://cdn.jsdelivr.net/npm/@pwabuilder/pwaupdate';
+      const el = document.createElement('pwa-update');
+      document.body.appendChild(el);
+    </script>
     <script src="/static/bundle.js"></script>
   </body>
 </html>
