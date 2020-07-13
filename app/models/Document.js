@@ -1,5 +1,6 @@
 // @flow
 import { action, set, observable, computed } from "mobx";
+import { compact } from "lodash";
 import addDays from "date-fns/add_days";
 import invariant from "invariant";
 import { client } from "utils/ApiClient";
@@ -210,11 +211,12 @@ export default class Document extends BaseModel {
     return this.store.duplicate(this);
   };
 
-  getSummary = (paragraphs: number = 4) => {
-    return this.text
-      .split("\n")
+  getSummary = (paragraphs: number = 3) => {
+    const result = compact(this.text.split("\n"))
       .slice(0, paragraphs)
       .join("\n");
+
+    return result;
   };
 
   download = async () => {

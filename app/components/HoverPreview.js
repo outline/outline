@@ -1,12 +1,18 @@
 // @flow
 import * as React from "react";
 import { inject } from "mobx-react";
+import { transparentize } from "polished";
 import Editor from "components/Editor";
 import styled from "styled-components";
 import { Portal } from "react-portal";
-import { fadeAndScaleIn } from "shared/styles/animations";
+import { fadeAndSlideIn } from "shared/styles/animations";
 import isInternalUrl from "utils/isInternalUrl";
+import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";
 import DocumentsStore from "stores/DocumentsStore";
+import DocumentMeta from "components/DocumentMeta";
+
+const DELAY_OPEN = 500;
+const DELAY_CLOSE = 500;
 
 type Props = {
   node: HTMLAnchorElement,
@@ -23,9 +29,15 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
     return null;
   }
 
+  const slug = parseDocumentSlugFromUrl(node.href);
+
   // $FlowFixMe
   const [isVisible, setVisible] = React.useState(false);
+
+  // $FlowFixMe
   const timerClose = React.useRef(null);
+
+  // $FlowFixMe
   const timerOpen = React.useRef(null);
 
   // $FlowFixMe
@@ -37,7 +49,7 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
     timerClose.current = setTimeout(() => {
       if (isVisible) setVisible(false);
       onClose();
-    }, 1000);
+    }, DELAY_CLOSE);
   };
 
   const stopCloseTimer = () => {
@@ -47,7 +59,7 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
   };
 
   const startOpenTimer = () => {
-    timerOpen.current = setTimeout(() => setVisible(true), 500);
+    timerOpen.current = setTimeout(() => setVisible(true), DELAY_OPEN);
   };
 
   const stopOpenTimer = () => {
@@ -59,6 +71,12 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
   // $FlowFixMe
   React.useEffect(
     () => {
+      if (slug) {
+        documents.prefetchDocument(slug, {
+          prefetch: true,
+        });
+      }
+
       startOpenTimer();
 
       node.addEventListener("mouseout", startCloseTimer, {
@@ -81,14 +99,7 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
     [node]
   );
 
-  let parsed;
-  try {
-    parsed = new URL(node.href);
-  } catch (err) {
-    // TODO
-  }
-  console.log(parsed);
-  const document = parsed ? documents.getByUrl(parsed.pathname) : undefined;
+  const document = slug ? documents.getByUrl(slug) : undefined;
 
   return (
     <Portal>
@@ -102,7 +113,14 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
             isVisible && (
               <Card>
                 <Heading>{document.title}</Heading>
-                <Editor defaultValue={document.getSummary()} readOnly />
+                <DocumentMeta isDraft={document.isDraft} document={document} />
+
+                <Editor
+                  key={document.id}
+                  defaultValue={document.getSummary()}
+                  disableEmbeds
+                  readOnly
+                />
               </Card>
             )}
         </div>
@@ -112,11 +130,11 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
 }
 
 const Heading = styled.h2`
-  margin-top: 0;
+  margin: 0 0 0.75em;
 `;
 
 const Card = styled.div`
-  animation: ${fadeAndScaleIn} 100ms ease;
+  animation: ${fadeAndSlideIn} 150ms ease;
   backdrop-filter: blur(10px);
   background: ${props => props.theme.background};
   border: ${props =>
@@ -126,22 +144,39 @@ const Card = styled.div`
     0 0 1px 1px rgba(0, 0, 0, 0.05);
   padding: 16px;
   min-width: 300px;
-  max-width: 20vw;
-  font-size: 15px;
+  max-width: 350px;
+  max-height: 350px;
+  font-size: 0.9em;
   overflow: hidden;
+  position: relative;
+
+  &:after {
+    content: "";
+    display: block;
+    position: absolute;
+    background: linear-gradient(
+      180deg,
+      ${props => transparentize(1, props.theme.background)} 0%,
+      ${props => props.theme.background} 100%
+    );
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4em;
+    border-bottom: 16px solid ${props => props.theme.background};
+  }
 `;
 
 const Position = styled.div`
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
   display: flex;
+  max-height: 75%;
+  z-index: 1000;
+
   ${({ left }) => (left !== undefined ? `left: ${left}px` : "")};
   ${({ right }) => (right !== undefined ? `right: ${right}px` : "")};
   ${({ top }) => (top !== undefined ? `top: ${top}px` : "")};
   ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : "")};
-  max-height: 75%;
-  z-index: 1000;
-  transform: ${props =>
-    props.position === "center" ? "translateX(-50%)" : "initial"};
 `;
 
 export default inject("documents")(HoverPreview);

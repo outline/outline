@@ -10,7 +10,7 @@ import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
-import DocumentMeta from "./DocumentMeta";
+import DocumentMeta from "components/DocumentMeta";
 
 type Props = {
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
