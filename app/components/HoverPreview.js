@@ -105,23 +105,29 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
     <Portal>
       <Position
         top={bounds.bottom + window.scrollY}
-        left={event.clientX}
+        left={event.clientX - 16}
         aria-hidden
       >
         <div ref={cardRef}>
           {document &&
             isVisible && (
-              <Card>
-                <Heading>{document.title}</Heading>
-                <DocumentMeta isDraft={document.isDraft} document={document} />
+              <Animate>
+                <Card>
+                  <Heading>{document.title}</Heading>
+                  <DocumentMeta
+                    isDraft={document.isDraft}
+                    document={document}
+                  />
 
-                <Editor
-                  key={document.id}
-                  defaultValue={document.getSummary()}
-                  disableEmbeds
-                  readOnly
-                />
-              </Card>
+                  <Editor
+                    key={document.id}
+                    defaultValue={document.getSummary()}
+                    disableEmbeds
+                    readOnly
+                  />
+                </Card>
+                <Pointer />
+              </Animate>
             )}
         </div>
       </Position>
@@ -129,12 +135,15 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
   );
 }
 
+const Animate = styled.div`
+  animation: ${fadeAndSlideIn} 150ms ease;
+`;
+
 const Heading = styled.h2`
   margin: 0 0 0.75em;
 `;
 
 const Card = styled.div`
-  animation: ${fadeAndSlideIn} 150ms ease;
   backdrop-filter: blur(10px);
   background: ${props => props.theme.background};
   border: ${props =>
@@ -172,6 +181,7 @@ const Card = styled.div`
 `;
 
 const Position = styled.div`
+  margin-top: 10px;
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
   display: flex;
   max-height: 75%;
@@ -180,6 +190,34 @@ const Position = styled.div`
   ${({ right }) => (right !== undefined ? `right: ${right}px` : "")};
   ${({ top }) => (top !== undefined ? `top: ${top}px` : "")};
   ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : "")};
+`;
+
+const Pointer = styled.div`
+  top: -21px;
+  width: 22px;
+  height: 22px;
+  position: absolute;
+
+  &:before,
+  &:after {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+
+  &:before {
+    border: 8px solid transparent;
+    border-bottom-color: ${props =>
+      props.theme.menuBorder || "rgba(0, 0, 0, 0.1)"};
+    right: -1px;
+  }
+
+  &:after {
+    border: 7px solid transparent;
+    border-bottom-color: ${props => props.theme.background};
+  }
 `;
 
 export default inject("documents")(HoverPreview);
