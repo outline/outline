@@ -84,12 +84,12 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
         once: true,
       });
 
-      cardRef.current.addEventListener("mouseover", stopCloseTimer);
-      cardRef.current.addEventListener("mouseout", startCloseTimer);
+      cardRef.current.addEventListener("mouseenter", stopCloseTimer);
+      cardRef.current.addEventListener("mouseleave", startCloseTimer);
 
       return () => {
-        cardRef.current.removeEventListener("mouseover", stopCloseTimer);
-        cardRef.current.removeEventListener("mouseout", startCloseTimer);
+        cardRef.current.removeEventListener("mouseenter", stopCloseTimer);
+        cardRef.current.removeEventListener("mouseleave", startCloseTimer);
 
         if (timerClose.current) {
           clearTimeout(timerClose.current);
@@ -137,6 +137,10 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
 
 const Animate = styled.div`
   animation: ${fadeAndSlideIn} 150ms ease;
+
+  @media print {
+    display: none;
+  }
 `;
 
 const Heading = styled.h2`
