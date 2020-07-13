@@ -159,7 +159,8 @@ const Card = styled.div`
   overflow: hidden;
   position: relative;
 
-  .placeholder {
+  .placeholder,
+  .heading-anchor {
     display: none;
   }
 
@@ -186,10 +187,8 @@ const Position = styled.div`
   display: flex;
   max-height: 75%;
 
-  ${({ left }) => (left !== undefined ? `left: ${left}px` : "")};
-  ${({ right }) => (right !== undefined ? `right: ${right}px` : "")};
   ${({ top }) => (top !== undefined ? `top: ${top}px` : "")};
-  ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : "")};
+  ${({ left }) => (left !== undefined ? `left: ${left}px` : "")};
 `;
 
 const Pointer = styled.div`
