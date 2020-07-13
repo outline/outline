@@ -150,6 +150,10 @@ const Card = styled.div`
   overflow: hidden;
   position: relative;
 
+  .placeholder {
+    display: none;
+  }
+
   &:after {
     content: "";
     display: block;
@@ -157,7 +161,7 @@ const Card = styled.div`
     background: linear-gradient(
       180deg,
       ${props => transparentize(1, props.theme.background)} 0%,
-      ${props => props.theme.background} 100%
+      ${props => props.theme.background} 90%
     );
     bottom: 0;
     left: 0;
@@ -171,7 +175,6 @@ const Position = styled.div`
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
   display: flex;
   max-height: 75%;
-  z-index: 1000;
 
   ${({ left }) => (left !== undefined ? `left: ${left}px` : "")};
   ${({ right }) => (right !== undefined ? `right: ${right}px` : "")};
