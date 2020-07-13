@@ -18,6 +18,7 @@ type Props = {
   defaultValue: string,
   document: Document,
   isDraft: boolean,
+  isShare: boolean,
   readOnly?: boolean,
 };
 
@@ -66,7 +67,14 @@ class DocumentEditor extends React.Component<Props> {
   };
 
   render() {
-    const { document, title, onChangeTitle, isDraft, readOnly } = this.props;
+    const {
+      document,
+      title,
+      onChangeTitle,
+      isDraft,
+      isShare,
+      readOnly,
+    } = this.props;
     const { emoji } = parseTitle(title);
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
 
@@ -93,13 +101,14 @@ class DocumentEditor extends React.Component<Props> {
           {...this.props}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent && (
-          <HoverPreview
-            node={this.activeLinkEvent.target}
-            event={this.activeLinkEvent}
-            onClose={this.handleLinkInactive}
-          />
-        )}
+        {this.activeLinkEvent &&
+          !isShare && (
+            <HoverPreview
+              node={this.activeLinkEvent.target}
+              event={this.activeLinkEvent}
+              onClose={this.handleLinkInactive}
+            />
+          )}
       </Flex>
     );
   }
