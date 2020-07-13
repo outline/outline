@@ -142,7 +142,7 @@ app.use(
         "www.google-analytics.com",
         "browser.sentry-cdn.com",
         "cdn.jsdelivr.net",
-        "storage.googleapis.com"
+        "storage.googleapis.com",
       ],
       styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
       imgSrc: ["*", "data:", "blob:"],
