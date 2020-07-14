@@ -366,11 +366,7 @@ router.post("documents.drafts", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("documents.info", auth({ required: false }), async ctx => {
-  const { id, shareId } = ctx.body;
-  ctx.assertPresent(id || shareId, "id or shareId is required");
-
-  const user = ctx.state.user;
+async function loadDocument({ id, shareId, user }) {
   let document;
 
   if (shareId) {
@@ -404,11 +400,32 @@ router.post("documents.info", auth({ required: false }), async ctx => {
     authorize(user, "read", document);
   }
 
+  return document;
+}
+
+router.post("documents.info", auth({ required: false }), async ctx => {
+  const { id, shareId } = ctx.body;
+  ctx.assertPresent(id || shareId, "id or shareId is required");
+
+  const user = ctx.state.user;
+  const document = await loadDocument({ id, shareId, user });
   const isPublic = cannot(user, "read", document);
 
   ctx.body = {
     data: await presentDocument(document, { isPublic }),
     policies: isPublic ? undefined : presentPolicies(user, [document]),
+  };
+});
+
+router.post("documents.export", auth({ required: false }), async ctx => {
+  const { id, shareId } = ctx.body;
+  ctx.assertPresent(id || shareId, "id or shareId is required");
+
+  const user = ctx.state.user;
+  const document = await loadDocument({ id, shareId, user });
+
+  ctx.body = {
+    data: document.toMarkdown(),
   };
 });
 
