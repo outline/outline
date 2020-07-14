@@ -6,10 +6,8 @@ import SidebarLink from "./SidebarLink";
 import { version } from "../../../../package.json";
 
 export default function Version() {
-  // $FlowFixMe
   const [releasesBehind, setReleasesBehind] = React.useState(0);
 
-  // $FlowFixMe
   React.useEffect(() => {
     async function loadReleases() {
       let out = 0;
