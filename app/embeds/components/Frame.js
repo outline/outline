@@ -79,7 +79,6 @@ const StyledIframe = styled(Iframe)`
   border-radius: 3px;
 `;
 
-// $FlowIssue - https://github.com/facebook/flow/issues/6103
 export default React.forwardRef((props, ref) => (
   <Frame {...props} forwardedRef={ref} />
 ));
