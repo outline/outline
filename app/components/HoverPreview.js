@@ -31,16 +31,9 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
 
   const slug = parseDocumentSlugFromUrl(node.href);
 
-  // $FlowFixMe
   const [isVisible, setVisible] = React.useState(false);
-
-  // $FlowFixMe
   const timerClose = React.useRef(null);
-
-  // $FlowFixMe
   const timerOpen = React.useRef(null);
-
-  // $FlowFixMe
   const cardRef = React.useRef(null);
 
   const startCloseTimer = () => {
@@ -68,7 +61,6 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
     }
   };
 
-  // $FlowFixMe
   React.useEffect(
     () => {
       if (slug) {
