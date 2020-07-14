@@ -10,22 +10,23 @@ type Props = {
   auth: AuthStore,
 };
 
-const { auth } = this.props;
-const { team } = auth;
+const PageTitle = observer(({ auth, title, favicon }: Props) => {
+  const { team } = auth;
 
-const PageTitle = observer(({ auth, title, favicon }: Props) => (
-  <Helmet>
-    <title>
-      {team ? `${title} - ${team.name} - Outline` : `${title} - Outline`}
-    </title>
-    <link
-      rel="shortcut icon"
-      type="image/png"
-      href={favicon || "/favicon-32.png"}
-      sizes="32x32"
-    />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </Helmet>
-));
+  return (
+    <Helmet>
+      <title>
+        {team && team.name ? `${title} - ${team.name}` : `${title} - Outline`}
+      </title>
+      <link
+        rel="shortcut icon"
+        type="image/png"
+        href={favicon || "/favicon-32.png"}
+        sizes="32x32"
+      />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </Helmet>
+  );
+});
 
 export default inject("auth")(PageTitle);
