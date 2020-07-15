@@ -39,6 +39,15 @@ export function parseDomain(url: string): ?Domain {
     };
   }
 
+  // one-part domain handler for things like localhost
+  if (parts.length === 1) {
+    return {
+      subdomain: "",
+      domain: cleanTLD(parts.slice(0).join()),
+      tld: cleanTLD(parts.slice(0).join()),
+    };
+  }
+
   return null;
 }
 

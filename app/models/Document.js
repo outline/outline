@@ -118,7 +118,6 @@ export default class Document extends BaseModel {
   @action
   disableEmbeds = () => {
     this.embedsDisabled = true;
-    debugger;
   };
 
   @action
