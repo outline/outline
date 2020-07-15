@@ -115,7 +115,7 @@ class Details extends React.Component<Props> {
             required
             short
           />
-          {process.env.SUBDOMAINS_ENABLED && (
+          {window.env.SUBDOMAINS_ENABLED && (
             <React.Fragment>
               <Input
                 label="Subdomain"
@@ -129,7 +129,7 @@ class Details extends React.Component<Props> {
               />
               {this.subdomain && (
                 <HelpText small>
-                  Your knowledgebase will be accessible at{" "}
+                  Your knowledge base will be accessible at{" "}
                   <strong>{this.subdomain}.getoutline.com</strong>
                 </HelpText>
               )}

@@ -62,7 +62,7 @@ class Login extends React.Component<Props, State> {
     );
 
     const header =
-      process.env.DEPLOYMENT === "hosted" &&
+      window.env.DEPLOYMENT === "hosted" &&
       (config.hostname ? (
         <Back href={process.env.URL}>
           <BackIcon color="currentColor" /> Back to home
@@ -101,8 +101,8 @@ class Login extends React.Component<Props, State> {
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Login" />
           <Logo>
-            {process.env.TEAM_LOGO && process.env.DEPLOYMENT !== "hosted" ? (
-              <TeamLogo src={process.env.TEAM_LOGO} />
+            {window.env.TEAM_LOGO && window.env.DEPLOYMENT !== "hosted" ? (
+              <TeamLogo src={window.env.TEAM_LOGO} />
             ) : (
               <OutlineLogo size={38} fill="currentColor" />
             )}

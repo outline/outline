@@ -68,7 +68,7 @@ class Slack extends React.Component<Props> {
           ) : (
             <SlackButton
               scopes={["commands", "links:read", "links:write"]}
-              redirectUri={`${BASE_URL}/auth/slack.commands`}
+              redirectUri={`${window.env.URL}/auth/slack.commands`}
               state={teamId}
             />
           )}
@@ -105,7 +105,7 @@ class Slack extends React.Component<Props> {
                 <strong>{collection.name}</strong>
                 <SlackButton
                   scopes={["incoming-webhook"]}
-                  redirectUri={`${BASE_URL}/auth/slack.post`}
+                  redirectUri={`${window.env.URL}/auth/slack.post`}
                   state={collection.id}
                   label="Connect"
                 />

@@ -146,7 +146,7 @@ class SettingsSidebar extends React.Component<Props> {
               </Section>
             )}
             {can.update &&
-              process.env.DEPLOYMENT !== "hosted" && (
+              window.env.DEPLOYMENT !== "hosted" && (
                 <Section>
                   <Header>Installation</Header>
                   <Version />

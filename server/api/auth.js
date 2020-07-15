@@ -51,7 +51,7 @@ function filterServices(team) {
 
 router.post("auth.config", async ctx => {
   // If self hosted AND there is only one team then that team becomes the
-  // brand for the knowledgebase and it's guest signin option is used for the
+  // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
   if (process.env.DEPLOYMENT !== "hosted") {
     const teams = await Team.findAll();

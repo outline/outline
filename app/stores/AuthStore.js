@@ -102,7 +102,7 @@ export default class AuthStore {
         this.team = new Team(team);
 
         if (window.Sentry) {
-          Sentry.configureScope(function(scope) {
+          window.Sentry.configureScope(function(scope) {
             scope.setUser({ id: user.id });
             scope.setExtra("team", team.name);
             scope.setExtra("teamId", team.id);

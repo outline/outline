@@ -12,7 +12,7 @@ import Theme from "components/Theme";
 import Routes from "./routes";
 
 let DevTools;
-if (__DEV__) {
+if (process.env.NODE_ENV !== "production") {
   DevTools = require("mobx-react-devtools").default; // eslint-disable-line global-require
 }
 
@@ -44,7 +44,7 @@ if (element) {
 window.addEventListener("load", async () => {
   // installation does not use Google Analytics, or tracking is blocked on client
   // no point loading the rest of the analytics bundles
-  if (!process.env.GOOGLE_ANALYTICS_ID || !window.ga) return;
+  if (!window.env.GOOGLE_ANALYTICS_ID || !window.ga) return;
 
   // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
   await import("autotrack/autotrack.js");

@@ -34,7 +34,7 @@ class SocketProvider extends React.Component<Props> {
   @observable socket;
 
   componentDidMount() {
-    if (!process.env.WEBSOCKETS_ENABLED) return;
+    if (!window.env.WEBSOCKETS_ENABLED) return;
 
     this.socket = io(window.location.origin, {
       path: "/realtime",

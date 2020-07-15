@@ -33,30 +33,33 @@ if (process.env.NODE_ENV === "development") {
   const compile = webpack(config);
   /* eslint-enable global-require */
 
-  app.use(
-    convert(
-      devMiddleware(compile, {
-        // display no info to console (only warnings and errors)
-        noInfo: true,
+  const middleware = devMiddleware(compile, {
+    // display no info to console (only warnings and errors)
+    noInfo: true,
 
-        // display nothing to the console
-        quiet: false,
+    // display nothing to the console
+    quiet: false,
 
-        // switch into lazy mode
-        // that means no watching, but recompilation on every request
-        lazy: false,
+    // switch into lazy mode
+    // that means no watching, but recompilation on every request
+    lazy: false,
 
-        // public path to bind the middleware to
-        // use the same as in webpack
-        publicPath: config.output.publicPath,
+    // public path to bind the middleware to
+    // use the same as in webpack
+    publicPath: config.output.publicPath,
 
-        // options for formatting the statistics
-        stats: {
-          colors: true,
-        },
-      })
-    )
-  );
+    // options for formatting the statistics
+    stats: {
+      colors: true,
+    },
+  });
+
+  app.use(async (ctx, next) => {
+    ctx.webpackConfig = config;
+    ctx.devMiddleware = middleware;
+    await next();
+  });
+  app.use(convert(middleware));
   app.use(
     convert(
       hotMiddleware(compile, {
