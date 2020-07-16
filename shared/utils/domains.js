@@ -12,6 +12,7 @@ type Domain = {
 // unneccessarily for our usecase of trusted input.
 export function parseDomain(url: string): ?Domain {
   if (typeof url !== "string") return null;
+  if (url === "") return null;
 
   // strip extermeties and whitespace from input
   const normalizedDomain = trim(url.replace(/(https?:)?\/\//, ""));
