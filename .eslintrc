@@ -58,8 +58,5 @@
   },
   "env": {
     "jest": true
-  },
-  "globals": {
-    "afterAll": true
   }
 }
