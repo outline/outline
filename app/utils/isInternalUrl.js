@@ -6,6 +6,7 @@ export default function isInternalUrl(href: string) {
 
   const outline = parseDomain(window.location.href);
   const parsed = parseDomain(href);
+
   if (
     parsed &&
     outline &&
