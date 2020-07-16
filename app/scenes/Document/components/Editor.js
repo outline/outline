@@ -105,6 +105,11 @@ class DocumentEditor extends React.Component<Props> {
           !isShare &&
           readOnly && (
             <HoverPreview
+              key={
+                this.activeLinkEvent.target instanceof HTMLAnchorElement
+                  ? this.activeLinkEvent.target.href
+                  : undefined
+              }
               node={this.activeLinkEvent.target}
               event={this.activeLinkEvent}
               onClose={this.handleLinkInactive}
