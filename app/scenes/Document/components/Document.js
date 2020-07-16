@@ -456,6 +456,7 @@ class DocumentScene extends React.Component<Props> {
                     </ReferencesWrapper>
                   </React.Fragment>
                 )}
+              {process.env.DISQUS_SHORTNAME && <div id="disqus_thread" />}
             </MaxWidth>
           </Container>
         </Background>

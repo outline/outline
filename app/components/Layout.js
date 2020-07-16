@@ -8,6 +8,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import keydown from "react-keydown";
 import Analytics from "components/Analytics";
+import Disqus from "components/Disqus";
 import Flex from "components/Flex";
 import {
   homeUrl,
@@ -104,6 +105,7 @@ class Layout extends React.Component<Props> {
           />
         </Helmet>
         <Analytics />
+        {process.env.DISQUS_SHORTNAME && <Disqus />}
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
         {this.props.notifications}
