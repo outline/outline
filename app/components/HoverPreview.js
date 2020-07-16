@@ -11,8 +11,8 @@ import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";
 import DocumentsStore from "stores/DocumentsStore";
 import DocumentMeta from "components/DocumentMeta";
 
-const DELAY_OPEN = 500;
-const DELAY_CLOSE = 500;
+const DELAY_OPEN = 300;
+const DELAY_CLOSE = 300;
 
 type Props = {
   node: HTMLAnchorElement,
@@ -22,8 +22,6 @@ type Props = {
 };
 
 function HoverPreview({ node, documents, onClose, event }: Props) {
-  const bounds = node.getBoundingClientRect();
-
   // previews only work for internal doc links for now
   if (!isInternalUrl(node.href)) {
     return null;
@@ -76,12 +74,16 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
         once: true,
       });
 
-      cardRef.current.addEventListener("mouseenter", stopCloseTimer);
-      cardRef.current.addEventListener("mouseleave", startCloseTimer);
+      if (cardRef.current) {
+        cardRef.current.addEventListener("mouseenter", stopCloseTimer);
+        cardRef.current.addEventListener("mouseleave", startCloseTimer);
+      }
 
       return () => {
-        cardRef.current.removeEventListener("mouseenter", stopCloseTimer);
-        cardRef.current.removeEventListener("mouseleave", startCloseTimer);
+        if (cardRef.current) {
+          cardRef.current.removeEventListener("mouseenter", stopCloseTimer);
+          cardRef.current.removeEventListener("mouseleave", startCloseTimer);
+        }
 
         if (timerClose.current) {
           clearTimeout(timerClose.current);
@@ -91,13 +93,22 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
     [node]
   );
 
+  const anchorBounds = node.getBoundingClientRect();
+  const cardBounds = cardRef.current
+    ? cardRef.current.getBoundingClientRect()
+    : undefined;
+  const left = cardBounds
+    ? Math.min(anchorBounds.left, window.innerWidth - 16 - 350)
+    : anchorBounds.left;
+
+  const leftOffset = anchorBounds.left - left;
   const document = slug ? documents.getByUrl(slug) : undefined;
 
   return (
     <Portal>
       <Position
-        top={bounds.bottom + window.scrollY}
-        left={event.clientX - 16}
+        top={anchorBounds.bottom + window.scrollY}
+        left={left}
         aria-hidden
       >
         <div ref={cardRef}>
@@ -118,7 +129,7 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
                     readOnly
                   />
                 </Card>
-                <Pointer />
+                <Pointer offset={leftOffset + anchorBounds.width / 2} />
               </Animate>
             )}
         </div>
@@ -148,8 +159,7 @@ const Card = styled.div`
   box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.3),
     0 0 1px 1px rgba(0, 0, 0, 0.05);
   padding: 16px;
-  min-width: 300px;
-  max-width: 350px;
+  width: 350px;
   max-height: 350px;
   font-size: 0.9em;
   overflow: hidden;
@@ -188,10 +198,12 @@ const Position = styled.div`
 `;
 
 const Pointer = styled.div`
-  top: -21px;
+  top: -22px;
+  left: ${props => props.offset}px;
   width: 22px;
   height: 22px;
   position: absolute;
+  transform: translateX(-50%);
 
   &:before,
   &:after {
