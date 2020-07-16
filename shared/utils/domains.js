@@ -44,7 +44,7 @@ export function parseDomain(url: string): ?Domain {
     return {
       subdomain: "",
       domain: cleanTLD(parts.slice(0).join()),
-      tld: cleanTLD(parts.slice(0).join()),
+      tld: "",
     };
   }
 
