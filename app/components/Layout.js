@@ -103,7 +103,7 @@ class Layout extends React.Component<Props> {
             content="width=device-width, initial-scale=1.0"
           />
         </Helmet>
-        <Analytics />
+        {process.env.GOOGLE_ANALYTICS_ID && <Analytics />}
 
         {this.props.ui.progressBarVisible && <LoadingIndicatorBar />}
         {this.props.notifications}
