@@ -55,10 +55,6 @@ class DocumentEditor extends React.Component<Props> {
   };
 
   handleLinkActive = (event: MouseEvent) => {
-    if (this.activeLinkEvent && this.activeLinkEvent.target === event.target) {
-      return;
-    }
-
     this.activeLinkEvent = event;
   };
 
@@ -105,11 +101,6 @@ class DocumentEditor extends React.Component<Props> {
           !isShare &&
           readOnly && (
             <HoverPreview
-              key={
-                this.activeLinkEvent.target instanceof HTMLAnchorElement
-                  ? this.activeLinkEvent.target.href
-                  : undefined
-              }
               node={this.activeLinkEvent.target}
               event={this.activeLinkEvent}
               onClose={this.handleLinkInactive}
