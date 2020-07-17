@@ -35,16 +35,18 @@
     integrity="sha384-y+an4eARFKvjzOivf/Z7JtMJhaN6b+lLQ5oFbBbUwZNNVir39cYtkjW1r6Xjbxg3" crossorigin="anonymous">
     </script>
   <script>
-    Sentry.init({
-      dsn: '//inject-sentry-dsn//',
-      ignoreErrors: [
-        'AuthorizationError',
-        'NetworkError',
-        'NotFoundError',
-        'OfflineError',
-        'UpdateRequiredError',
-      ],
-    });
+    if ('//inject-sentry-dsn//') {
+      Sentry.init({
+        dsn: '//inject-sentry-dsn//',
+        ignoreErrors: [
+          'AuthorizationError',
+          'NetworkError',
+          'NotFoundError',
+          'OfflineError',
+          'UpdateRequiredError',
+        ],
+      });
+    }
 
     if (window.localStorage.getItem("theme") === "dark") {
       window.document.querySelector('#root').style.background = "#111319";

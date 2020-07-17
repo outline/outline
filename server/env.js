@@ -4,6 +4,7 @@ export default {
   DEPLOYMENT: process.env.DEPLOYMENT,
   SENTRY_DSN: process.env.SENTRY_DSN,
   TEAM_LOGO: process.env.TEAM_LOGO,
+  SLACK_KEY: process.env.SLACK_KEY,
   SLACK_APP_ID: process.env.SLACK_APP_ID,
   SUBDOMAINS_ENABLED: process.env.SUBDOMAINS_ENABLED === "true",
   WEBSOCKETS_ENABLED: process.env.WEBSOCKETS_ENABLED === "true",

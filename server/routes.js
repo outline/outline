@@ -80,9 +80,9 @@ router.get("*", async (ctx, next) => {
   `;
   ctx.body = page
     .toString()
-    .replace("//inject-env//", env)
-    .replace("//inject-sentry-dsn//", process.env.SENTRY_DSN || "")
-    .replace("//inject-slack-app-id//", process.env.SLACK_APP_ID || "");
+    .replace(/\/\/inject-env\/\//g, env)
+    .replace(/\/\/inject-sentry-dsn\/\//g, process.env.SENTRY_DSN || "")
+    .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 });
 
 // middleware
