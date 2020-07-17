@@ -201,7 +201,7 @@ router.post("documents.deleted", auth(), pagination(), async ctx => {
   if (direction !== "ASC") direction = "DESC";
 
   const user = ctx.state.user;
-  const collectionIds = await user.collectionIds();
+  const collectionIds = await user.collectionIds({ paranoid: false });
 
   const collectionScope = { method: ["withCollection", user.id] };
   const documents = await Document.scope(collectionScope).findAll({

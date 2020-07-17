@@ -20,10 +20,19 @@ type Props = {
 };
 
 const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
-  const collection = collections.get(document.collectionId);
-  if (!collection) return <div />;
+  let collection = collections.get(document.collectionId);
+  if (!collection) {
+    if (!document.deletedAt) return <div />;
 
-  const path = collection.pathToDocument(document).slice(0, -1);
+    collection = {
+      id: document.collectionId,
+      name: "Deleted",
+    };
+  }
+
+  const path = collection.pathToDocument
+    ? collection.pathToDocument(document).slice(0, -1)
+    : [];
 
   if (onlyText === true) {
     return (
@@ -51,7 +60,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
   return (
     <Wrapper justify="flex-start" align="center">
       <CollectionName to={collectionUrl(collection.id)}>
-        <CollectionIcon collection={collection} expanded />{" "}
+        <CollectionIcon collection={collection} expanded />&nbsp;
         <span>{collection.name}</span>
       </CollectionName>
       {isNestedDocument && (
