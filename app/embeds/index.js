@@ -18,6 +18,7 @@ import Mindmeister from "./Mindmeister";
 import Miro from "./Miro";
 import ModeAnalytics from "./ModeAnalytics";
 import Prezi from "./Prezi";
+import SlideShare from "./SlideShare";
 import Spotify from "./Spotify";
 import Trello from "./Trello";
 import Typeform from "./Typeform";
@@ -160,6 +161,13 @@ export default [
     icon: () => <Img src="/images/prezi.png" />,
     component: Prezi,
     matcher: matcher(Prezi),
+  },
+  {
+    title: "SlideShare",
+    keywords: "slides",
+    icon: () => <Img src="/images/slideshare.png" />,
+    component: SlideShare,
+    matcher: matcher(SlideShare),
   },
   {
     title: "Spotify",
