@@ -2,11 +2,11 @@
 import bodyParser from "koa-bodyparser";
 import Koa from "koa";
 import Router from "koa-router";
+import addMonths from "date-fns/add_months";
 import validation from "../middlewares/validation";
 import auth from "../middlewares/authentication";
-import addMonths from "date-fns/add_months";
+import { getCookieDomain } from "../utils/domains";
 import { Team } from "../models";
-import { getCookieDomain } from "../../shared/utils/domains";
 
 import slack from "./slack";
 import google from "./google";

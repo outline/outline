@@ -52,16 +52,6 @@ export function parseDomain(url: string): ?Domain {
   return null;
 }
 
-export function getCookieDomain(domain: string) {
-  // TODO: All the process.env parsing needs centralizing
-  const subdomainsEnabled =
-    typeof window === "undefined"
-      ? process.env.SUBDOMAINS_ENABLED === "true"
-      : window.env.SUBDOMAINS_ENABLED;
-
-  return subdomainsEnabled ? stripSubdomain(domain) : domain;
-}
-
 export function stripSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
   if (!parsed) return hostname;
