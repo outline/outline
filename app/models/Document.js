@@ -210,8 +210,10 @@ export default class Document extends BaseModel {
     return this.store.duplicate(this);
   };
 
-  getSummary = (paragraphs: number = 3) => {
-    const result = compact(this.text.split("\n"))
+  getSummary = (paragraphs: number = 4) => {
+    const result = this.text
+      .trim()
+      .split("\n")
       .slice(0, paragraphs)
       .join("\n");
 
