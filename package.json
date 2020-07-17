@@ -116,7 +116,7 @@
     "koa-sendfile": "2.0.0",
     "koa-sslify": "2.1.2",
     "koa-static": "^4.0.1",
-    "lodash": "^4.17.13",
+    "lodash": "^4.17.19",
     "mobx": "4.6.0",
     "mobx-react": "^5.4.2",
     "natural-sort": "^1.0.0",
