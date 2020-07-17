@@ -117,7 +117,6 @@ export default class Document extends BaseModel {
   @action
   disableEmbeds = () => {
     this.embedsDisabled = true;
-    debugger;
   };
 
   @action
@@ -208,6 +207,16 @@ export default class Document extends BaseModel {
 
   duplicate = () => {
     return this.store.duplicate(this);
+  };
+
+  getSummary = (paragraphs: number = 4) => {
+    const result = this.text
+      .trim()
+      .split("\n")
+      .slice(0, paragraphs)
+      .join("\n");
+
+    return result;
   };
 
   download = async () => {

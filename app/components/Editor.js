@@ -10,7 +10,7 @@ import { uploadFile } from "utils/uploadFile";
 import isInternalUrl from "utils/isInternalUrl";
 import Tooltip from "components/Tooltip";
 import UiStore from "stores/UiStore";
-import embeds from "../../embeds";
+import embeds from "../embeds";
 
 const EMPTY_ARRAY = [];
 

@@ -18,6 +18,18 @@ export const fadeAndScaleIn = keyframes`
   }
 `;
 
+export const fadeAndSlideIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(.98) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0px);
+  }
+`;
+
 export const bounceIn = keyframes`
   from,
   20%,

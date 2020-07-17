@@ -2,13 +2,15 @@
 import * as React from "react";
 import styled from "styled-components";
 import Textarea from "react-autosize-textarea";
+import { observable } from "mobx";
 import { observer } from "mobx-react";
 import Editor from "components/Editor";
 import ClickablePadding from "components/ClickablePadding";
 import Flex from "components/Flex";
+import HoverPreview from "components/HoverPreview";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
-import DocumentMeta from "./DocumentMeta";
+import DocumentMeta from "components/DocumentMeta";
 
 type Props = {
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
@@ -16,11 +18,13 @@ type Props = {
   defaultValue: string,
   document: Document,
   isDraft: boolean,
+  isShare: boolean,
   readOnly?: boolean,
 };
 
 @observer
 class DocumentEditor extends React.Component<Props> {
+  @observable activeLinkEvent: ?MouseEvent;
   editor: ?Editor;
 
   focusAtStart = () => {
@@ -50,8 +54,23 @@ class DocumentEditor extends React.Component<Props> {
     }
   };
 
+  handleLinkActive = (event: MouseEvent) => {
+    this.activeLinkEvent = event;
+  };
+
+  handleLinkInactive = () => {
+    this.activeLinkEvent = null;
+  };
+
   render() {
-    const { document, title, onChangeTitle, isDraft, readOnly } = this.props;
+    const {
+      document,
+      title,
+      onChangeTitle,
+      isDraft,
+      isShare,
+      readOnly,
+    } = this.props;
     const { emoji } = parseTitle(title);
     const startsWithEmojiAndSpace = !!(emoji && title.startsWith(`${emoji} `));
 
@@ -73,10 +92,21 @@ class DocumentEditor extends React.Component<Props> {
           ref={ref => (this.editor = ref)}
           autoFocus={title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
+          onHoverLink={this.handleLinkActive}
+          scrollTo={window.location.hash}
           grow
           {...this.props}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
+        {this.activeLinkEvent &&
+          !isShare &&
+          readOnly && (
+            <HoverPreview
+              node={this.activeLinkEvent.target}
+              event={this.activeLinkEvent}
+              onClose={this.handleLinkInactive}
+            />
+          )}
       </Flex>
     );
   }

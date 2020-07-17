@@ -316,7 +316,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   prefetchDocument = (id: string) => {
-    if (!this.data.get(id)) {
+    if (!this.data.get(id) && !this.getByUrl(id)) {
       return this.fetch(id, { prefetch: true });
     }
   };
