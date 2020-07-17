@@ -12,6 +12,7 @@ type Domain = {
 // unneccessarily for our usecase of trusted input.
 export function parseDomain(url: string): ?Domain {
   if (typeof url !== "string") return null;
+  if (url === "") return null;
 
   // strip extermeties and whitespace from input
   const normalizedDomain = trim(url.replace(/(https?:)?\/\//, ""));
@@ -36,6 +37,15 @@ export function parseDomain(url: string): ?Domain {
       subdomain: "",
       domain: parts[0],
       tld: cleanTLD(parts.slice(1).join(".")),
+    };
+  }
+
+  // one-part domain handler for things like localhost
+  if (parts.length === 1) {
+    return {
+      subdomain: "",
+      domain: cleanTLD(parts.slice(0).join()),
+      tld: "",
     };
   }
 
