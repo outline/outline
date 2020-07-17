@@ -2,14 +2,13 @@
 import * as React from "react";
 import { inject } from "mobx-react";
 import { transparentize } from "polished";
-import Editor from "components/Editor";
+import HoverPreviewDocument from "components/HoverPreviewDocument";
 import styled from "styled-components";
 import { Portal } from "react-portal";
 import { fadeAndSlideIn } from "shared/styles/animations";
 import isInternalUrl from "utils/isInternalUrl";
 import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";
 import DocumentsStore from "stores/DocumentsStore";
-import DocumentMeta from "components/DocumentMeta";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
@@ -102,9 +101,7 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
   const left = cardBounds
     ? Math.min(anchorBounds.left, window.innerWidth - 16 - 350)
     : anchorBounds.left;
-
   const leftOffset = anchorBounds.left - left;
-  const document = slug ? documents.getByUrl(slug) : undefined;
 
   return (
     <Portal>
@@ -114,29 +111,19 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
         aria-hidden
       >
         <div ref={cardRef}>
-          {document &&
-            isVisible && (
-              <Animate>
-                <Card>
-                  <Margin />
-                  <CardContent>
-                    <Heading>{document.title}</Heading>
-                    <DocumentMeta
-                      isDraft={document.isDraft}
-                      document={document}
-                    />
-
-                    <Editor
-                      key={document.id}
-                      defaultValue={document.getSummary()}
-                      disableEmbeds
-                      readOnly
-                    />
-                  </CardContent>
-                </Card>
-                <Pointer offset={leftOffset + anchorBounds.width / 2} />
-              </Animate>
-            )}
+          <HoverPreviewDocument url={node.href}>
+            {content =>
+              isVisible ? (
+                <Animate>
+                  <Card>
+                    <Margin />
+                    <CardContent>{content}</CardContent>
+                  </Card>
+                  <Pointer offset={leftOffset + anchorBounds.width / 2} />
+                </Animate>
+              ) : null
+            }
+          </HoverPreviewDocument>
         </div>
       </Position>
     </Portal>
@@ -151,25 +138,19 @@ const Animate = styled.div`
   }
 `;
 
-const Heading = styled.h2`
-  margin: 0 0 0.75em;
-`;
-
 // fills the gap between the card and pointer to avoid a dead zone
 const Margin = styled.div`
-  content: "";
-  display: block;
   position: absolute;
   top: -11px;
   left: 0;
   right: 0;
   height: 11px;
-  z-index: -1;
 `;
 
 const CardContent = styled.div`
   overflow: hidden;
   max-height: 350px;
+  user-select: none;
 `;
 
 // &:after — gradient mask for overflow text
@@ -195,6 +176,7 @@ const Card = styled.div`
     content: "";
     display: block;
     position: absolute;
+    pointer-events: none;
     background: linear-gradient(
       180deg,
       ${props => transparentize(1, props.theme.background)} 0%,
