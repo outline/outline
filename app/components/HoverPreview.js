@@ -187,6 +187,8 @@ const Card = styled.div`
     right: 0;
     height: 4em;
     border-bottom: 16px solid ${props => props.theme.background};
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
   }
 `;
 
