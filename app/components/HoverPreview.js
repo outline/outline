@@ -36,7 +36,6 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
 
   const startCloseTimer = () => {
     stopOpenTimer();
-
     timerClose.current = setTimeout(() => {
       if (isVisible) setVisible(false);
       onClose();
@@ -69,17 +68,20 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
 
       startOpenTimer();
 
-      node.addEventListener("mouseout", startCloseTimer, {
-        passive: true,
-        once: true,
-      });
-
       if (cardRef.current) {
         cardRef.current.addEventListener("mouseenter", stopCloseTimer);
         cardRef.current.addEventListener("mouseleave", startCloseTimer);
       }
 
+      node.addEventListener("mouseout", startCloseTimer);
+      node.addEventListener("mouseover", stopCloseTimer);
+      node.addEventListener("mouseover", startOpenTimer);
+
       return () => {
+        node.removeEventListener("mouseout", startCloseTimer);
+        node.removeEventListener("mouseover", stopCloseTimer);
+        node.removeEventListener("mouseover", startOpenTimer);
+
         if (cardRef.current) {
           cardRef.current.removeEventListener("mouseenter", stopCloseTimer);
           cardRef.current.removeEventListener("mouseleave", startCloseTimer);
@@ -116,18 +118,21 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
             isVisible && (
               <Animate>
                 <Card>
-                  <Heading>{document.title}</Heading>
-                  <DocumentMeta
-                    isDraft={document.isDraft}
-                    document={document}
-                  />
+                  <Margin />
+                  <CardContent>
+                    <Heading>{document.title}</Heading>
+                    <DocumentMeta
+                      isDraft={document.isDraft}
+                      document={document}
+                    />
 
-                  <Editor
-                    key={document.id}
-                    defaultValue={document.getSummary()}
-                    disableEmbeds
-                    readOnly
-                  />
+                    <Editor
+                      key={document.id}
+                      defaultValue={document.getSummary()}
+                      disableEmbeds
+                      readOnly
+                    />
+                  </CardContent>
                 </Card>
                 <Pointer offset={leftOffset + anchorBounds.width / 2} />
               </Animate>
@@ -150,6 +155,24 @@ const Heading = styled.h2`
   margin: 0 0 0.75em;
 `;
 
+// fills the gap between the card and pointer to avoid a dead zone
+const Margin = styled.div`
+  content: "";
+  display: block;
+  position: absolute;
+  top: -11px;
+  left: 0;
+  right: 0;
+  height: 11px;
+  z-index: -1;
+`;
+
+const CardContent = styled.div`
+  overflow: hidden;
+  max-height: 350px;
+`;
+
+// &:after — gradient mask for overflow text
 const Card = styled.div`
   backdrop-filter: blur(10px);
   background: ${props => props.theme.background};
@@ -160,9 +183,7 @@ const Card = styled.div`
     0 0 1px 1px rgba(0, 0, 0, 0.05);
   padding: 16px;
   width: 350px;
-  max-height: 350px;
   font-size: 0.9em;
-  overflow: hidden;
   position: relative;
 
   .placeholder,
