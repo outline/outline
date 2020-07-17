@@ -54,12 +54,8 @@ export function mailToUrl(): string {
   return "mailto:hello@getoutline.com";
 }
 
-export function features(): string {
-  return `${process.env.URL}/#features`;
-}
-
 export function developers(): string {
-  return `${process.env.URL}/developers`;
+  return `https://www.getoutline.com/developers`;
 }
 
 export function changelog(): string {
