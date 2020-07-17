@@ -93,6 +93,7 @@ class DocumentEditor extends React.Component<Props> {
           autoFocus={title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}
+          scrollTo={window.location.hash}
           grow
           {...this.props}
         />
