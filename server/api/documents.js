@@ -31,7 +31,7 @@ const router = new Router();
 router.post("documents.list", auth(), pagination(), async ctx => {
   const { sort = "updatedAt", backlinkDocumentId, parentDocumentId } = ctx.body;
 
-  // collection and user are here for backwards compatablity
+  // collection and user are here for backwards compatibility
   const collectionId = ctx.body.collectionId || ctx.body.collection;
   const createdById = ctx.body.userId || ctx.body.user;
   let direction = ctx.body.direction;

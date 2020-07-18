@@ -490,7 +490,7 @@ Document.prototype.migrateVersion = function() {
 };
 
 // Note: This method marks the document and it's children as deleted
-// in the database, it does not permanantly delete them OR remove
+// in the database, it does not permanently delete them OR remove
 // from the collection structure.
 Document.prototype.deleteWithChildren = async function(options) {
   // Helper to destroy all child documents for a document
