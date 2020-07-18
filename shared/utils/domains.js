@@ -9,7 +9,7 @@ type Domain = {
 
 // we originally used the parse-domain npm module however this includes
 // a large list of possible TLD's which increase the size of the bundle
-// unneccessarily for our usecase of trusted input.
+// unnecessarily for our usecase of trusted input.
 export function parseDomain(url: string): ?Domain {
   if (typeof url !== "string") return null;
   if (url === "") return null;
