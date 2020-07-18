@@ -65,7 +65,7 @@ class Login extends React.Component<Props, State> {
     const header =
       env.DEPLOYMENT === "hosted" &&
       (config.hostname ? (
-        <Back href={process.env.URL}>
+        <Back href={env.URL}>
           <BackIcon color="currentColor" /> Back to home
         </Back>
       ) : (
