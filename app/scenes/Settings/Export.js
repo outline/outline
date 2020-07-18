@@ -45,7 +45,7 @@ class Export extends React.Component<Props> {
         <h1>Export Data</h1>
         <HelpText>
           Exporting your team’s documents may take a little time depending on
-          the size of your knowledgebase. Consider exporting a single document
+          the size of your knowledge base. Consider exporting a single document
           or collection instead.
         </HelpText>
         <HelpText>
