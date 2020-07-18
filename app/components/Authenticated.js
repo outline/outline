@@ -5,6 +5,7 @@ import { Redirect } from "react-router-dom";
 import AuthStore from "stores/AuthStore";
 import LoadingIndicator from "components/LoadingIndicator";
 import { isCustomSubdomain } from "shared/utils/domains";
+import env from "env";
 
 type Props = {
   auth: AuthStore,
@@ -23,7 +24,7 @@ const Authenticated = observer(({ auth, children }: Props) => {
     // If we're authenticated but viewing a subdomain that doesn't match the
     // currently authenticated team then kick the user to the teams subdomain.
     if (
-      process.env.SUBDOMAINS_ENABLED &&
+      env.SUBDOMAINS_ENABLED &&
       team.subdomain &&
       isCustomSubdomain(hostname) &&
       !hostname.startsWith(`${team.subdomain}.`)

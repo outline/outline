@@ -17,6 +17,7 @@ import Service from "./Service";
 import Notices from "./Notices";
 import AuthStore from "stores/AuthStore";
 import getQueryVariable from "shared/utils/getQueryVariable";
+import env from "env";
 
 type Props = {
   auth: AuthStore,
@@ -62,7 +63,7 @@ class Login extends React.Component<Props, State> {
     );
 
     const header =
-      process.env.DEPLOYMENT === "hosted" &&
+      env.DEPLOYMENT === "hosted" &&
       (config.hostname ? (
         <Back href={process.env.URL}>
           <BackIcon color="currentColor" /> Back to home
@@ -101,8 +102,8 @@ class Login extends React.Component<Props, State> {
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Login" />
           <Logo>
-            {process.env.TEAM_LOGO && process.env.DEPLOYMENT !== "hosted" ? (
-              <TeamLogo src={process.env.TEAM_LOGO} />
+            {env.TEAM_LOGO && env.DEPLOYMENT !== "hosted" ? (
+              <TeamLogo src={env.TEAM_LOGO} />
             ) : (
               <OutlineLogo size={38} fill="currentColor" />
             )}

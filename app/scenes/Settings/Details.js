@@ -13,6 +13,7 @@ import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
 import HelpText from "components/HelpText";
 import Flex from "components/Flex";
+import env from "env";
 
 type Props = {
   auth: AuthStore,
@@ -115,7 +116,7 @@ class Details extends React.Component<Props> {
             required
             short
           />
-          {process.env.SUBDOMAINS_ENABLED && (
+          {env.SUBDOMAINS_ENABLED && (
             <React.Fragment>
               <Input
                 label="Subdomain"
@@ -129,7 +130,7 @@ class Details extends React.Component<Props> {
               />
               {this.subdomain && (
                 <HelpText small>
-                  Your knowledgebase will be accessible at{" "}
+                  Your knowledge base will be accessible at{" "}
                   <strong>{this.subdomain}.getoutline.com</strong>
                 </HelpText>
               )}

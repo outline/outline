@@ -8,11 +8,12 @@ export function slackAuth(
     "identity.avatar",
     "identity.team",
   ],
+  clientId: string = process.env.SLACK_KEY,
   redirectUri: string = `${process.env.URL}/auth/slack.callback`
 ): string {
   const baseUrl = "https://slack.com/oauth/authorize";
   const params = {
-    client_id: process.env.SLACK_KEY,
+    client_id: clientId,
     scope: scopes ? scopes.join(" ") : "",
     redirect_uri: redirectUri,
     state,
@@ -53,12 +54,8 @@ export function mailToUrl(): string {
   return "mailto:hello@getoutline.com";
 }
 
-export function features(): string {
-  return `${process.env.URL}/#features`;
-}
-
 export function developers(): string {
-  return `${process.env.URL}/developers`;
+  return `https://www.getoutline.com/developers`;
 }
 
 export function changelog(): string {
