@@ -178,14 +178,15 @@ const Card = styled.div`
     position: absolute;
     pointer-events: none;
     background: linear-gradient(
-      180deg,
+      90deg,
       ${props => transparentize(1, props.theme.background)} 0%,
+      ${props => transparentize(1, props.theme.background)} 75%,
       ${props => props.theme.background} 90%
     );
     bottom: 0;
     left: 0;
     right: 0;
-    height: 4em;
+    height: 1.7em;
     border-bottom: 16px solid ${props => props.theme.background};
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
