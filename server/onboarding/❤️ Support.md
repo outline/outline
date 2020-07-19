@@ -2,8 +2,8 @@ We hate bugs as much as you and do everything possible to keep the application b
 
 ## GitHub
 
-If you have a GitHub account then you can also submit issues directly to the development team on our [open issue tracker](https://github.com/outline/outline/issues).
+If you have a GitHub account then you can also submit bugs directly to the development team on our public [issue tracker](https://github.com/outline/outline/issues).
 
 ## Ideas
 
-We’d love to hear your ideas about how Outline can be improved and features you would like to see built. The best place to let the team know is through our [Spectrum community](https://spectrum.chat/outline).
+We’d love to hear your ideas about how Outline can be improved and features you would like to see built. The best place to let the team know is through [GitHub discussions](https://github.com/outline/outline/discussions).

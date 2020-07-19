@@ -16,7 +16,6 @@ import {
   changelog,
   githubIssuesUrl,
   mailToUrl,
-  spectrumUrl,
   settings,
 } from "../../shared/utils/routeHelpers";
 
@@ -70,9 +69,6 @@ class AccountMenu extends React.Component<Props> {
           <hr />
           <DropdownMenuItem href={changelog()} target="_blank">
             Changelog
-          </DropdownMenuItem>
-          <DropdownMenuItem href={spectrumUrl()} target="_blank">
-            Community
           </DropdownMenuItem>
           <DropdownMenuItem href={mailToUrl()} target="_blank">
             Send us feedback
