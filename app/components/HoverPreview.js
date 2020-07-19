@@ -180,8 +180,8 @@ const Card = styled.div`
     background: linear-gradient(
       90deg,
       ${props => transparentize(1, props.theme.background)} 0%,
-      ${props => transparentize(1, props.theme.background)} 70%,
-      ${props => props.theme.background} 100%
+      ${props => transparentize(1, props.theme.background)} 75%,
+      ${props => props.theme.background} 90%
     );
     bottom: 0;
     left: 0;
