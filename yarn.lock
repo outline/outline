@@ -6432,6 +6432,11 @@ map-visit@^1.0.0:
   dependencies:
     object-visit "^1.0.0"
 
+markdown-it-container@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/markdown-it-container/-/markdown-it-container-3.0.0.tgz#1d19b06040a020f9a827577bb7dbf67aa5de9a5b"
+  integrity sha512-y6oKTq4BB9OQuY/KLfk/O3ysFhB3IMYoIWhGJEidXt1NQFocFK2sA2t0NYZAMyMShAGL6x5OPIbrmXPIqaN9rw==
+
 markdown-it-mark@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/markdown-it-mark/-/markdown-it-mark-3.0.0.tgz#27c3e39ef3cc310b2dde5375082c9fa912983cda"
@@ -7166,10 +7171,10 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-outline-icons@^1.15.0, outline-icons@^1.18.0:
-  version "1.18.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.18.0.tgz#2f128d668b0874725b5c0656a04fd73a7f8fe418"
-  integrity sha512-odEYBLN+zFcTDhfs4af2RHUGneQBYbVgaBuI/I30BLaJQsKT2jBw2Shjie/HR8MYpZtgMwixP51XPPlGBSIqgw==
+outline-icons@^1.19.0, outline-icons@^1.19.1:
+  version "1.19.1"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.19.1.tgz#5251b966ae9987b18f060b58ce469d248c2313aa"
+  integrity sha512-YeGLDG7KgBvrDy+WOQUqN8rD3qO5u524E0Wj6ejaWNQ8/1ou6kkUrx65mk8LtESfKLMWZHuQG/u6onurY9rKIw==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -8599,15 +8604,16 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^10.4.0-1:
-  version "10.4.0-1"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-10.4.0-1.tgz#1f5dc63262b0bcae4d94e83ec9076dd229a8e199"
-  integrity sha512-donV4yFbS9fCdWhWYI70xo+hbkxdBbYGJKEg3NcnhkdZ7NbE6Cn4R3JmSdg7BpBgIM/7H+UMWqUV5M9vJHaLHQ==
+rich-markdown-editor@^10.4.0:
+  version "10.4.0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-10.4.0.tgz#0a31401cf3f3356c0f365607fba0fd28a8b05da4"
+  integrity sha512-vLghzLnat13TE7xbY2vOENoH3iifO8Z+J8FQ0W2SP4wcL6pqwgMvDSsmVKuEEbh5E9zRwAcsqFybH985Zqg1tQ==
   dependencies:
     copy-to-clipboard "^3.0.8"
     lodash "^4.17.11"
+    markdown-it-container "^3.0.0"
     markdown-it-mark "^3.0.0"
-    outline-icons "^1.15.0"
+    outline-icons "^1.19.1"
     prismjs "^1.19.0"
     prosemirror-commands "^1.1.4"
     prosemirror-dropcursor "^1.3.2"
