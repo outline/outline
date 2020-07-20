@@ -92,6 +92,7 @@ const StyledEditor = styled(RichMarkdownEditor)`
     a {
       color: ${props => props.theme.link};
       border-bottom: 1px solid ${props => lighten(0.5, props.theme.link)};
+      text-decoration: none !important;
       font-weight: 500;
 
       &:hover {
