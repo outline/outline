@@ -88,6 +88,11 @@ const StyledEditor = styled(RichMarkdownEditor)`
     transition: ${props => props.theme.backgroundTransition};
   }
 
+  .notice-block.tip,
+  .notice-block.warning {
+    font-weight: 500;
+  }
+
   p {
     a {
       color: ${props => props.theme.link};

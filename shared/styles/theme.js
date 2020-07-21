@@ -90,7 +90,7 @@ export const base = {
   blockToolbarHoverBackground: colors.slateLight,
   blockToolbarDivider: colors.slateLight,
 
-  noticeTipBackground: colors.brand.purple,
+  noticeTipBackground: "#03c95c",
   noticeTipText: colors.white,
   noticeWarningBackground: colors.danger,
   noticeWarningText: colors.white,
