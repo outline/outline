@@ -110,9 +110,13 @@ const StyledEditor = styled(RichMarkdownEditor)`
 
 const EditorTooltip = ({ children, ...props }) => (
   <Tooltip offset="0, 16" delay={150} {...props}>
-    <span>{children}</span>
+    <Span>{children}</Span>
   </Tooltip>
 );
+
+const Span = styled.span`
+  outline: none;
+`;
 
 const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
 
