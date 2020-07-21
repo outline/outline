@@ -45,6 +45,7 @@ const Content = styled(Link)`
 
 const Heading = styled.h2`
   margin: 0 0 0.75em;
+  color: ${props => props.theme.text};
 `;
 
 export default inject("documents")(observer(HoverPreviewDocument));
