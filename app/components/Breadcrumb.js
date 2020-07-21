@@ -51,7 +51,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
   return (
     <Wrapper justify="flex-start" align="center">
       <CollectionName to={collectionUrl(collection.id)}>
-        <CollectionIcon collection={collection} expanded />{" "}
+        <CollectionIcon collection={collection} expanded />&nbsp;
         <span>{collection.name}</span>
       </CollectionName>
       {isNestedDocument && (
