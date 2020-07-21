@@ -139,6 +139,10 @@ function KeyboardShortcuts() {
           <Key>{"```"}</Key>
         </Keys>
         <Label>Code block</Label>
+        <Keys>
+          <Key>{":::"}</Key>
+        </Keys>
+        <Label>Info notice</Label>
 
         <Keys>_italic_</Keys>
         <Label>Italic</Label>

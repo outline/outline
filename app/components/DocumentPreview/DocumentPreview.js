@@ -82,6 +82,7 @@ const Heading = styled.h3`
   margin-bottom: 0.25em;
   overflow: hidden;
   white-space: nowrap;
+  color: ${props => props.theme.text};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
