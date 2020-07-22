@@ -171,6 +171,7 @@ class IconPicker extends React.Component<Props> {
           <LabelText>Icon</LabelText>
         </label>
         <DropdownMenu
+          onOpen={this.handleOpen}
           label={
             <LabelButton>
               <Component role="button" color={this.props.color} size={30} />
