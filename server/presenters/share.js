@@ -7,6 +7,7 @@ export default function present(share: Share) {
     id: share.id,
     documentTitle: share.document.title,
     documentUrl: share.document.url,
+    published: share.published,
     url: `${process.env.URL}/share/${share.id}`,
     createdBy: presentUser(share.user),
     createdAt: share.createdAt,

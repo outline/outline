@@ -9,6 +9,7 @@ const Share = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    published: DataTypes.BOOLEAN,
     revokedAt: DataTypes.DATE,
     revokedById: DataTypes.UUID,
   },
