@@ -13,7 +13,6 @@ import PoliciesStore from "stores/PoliciesStore";
 import ViewsStore from "stores/ViewsStore";
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
-import env from "env";
 
 export const SocketContext: any = React.createContext();
 
