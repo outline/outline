@@ -13,7 +13,6 @@ import PoliciesStore from "stores/PoliciesStore";
 import ViewsStore from "stores/ViewsStore";
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
-import env from "env";
 
 export const SocketContext: any = React.createContext();
 
@@ -35,8 +34,6 @@ class SocketProvider extends React.Component<Props> {
   @observable socket;
 
   componentDidMount() {
-    if (!env.WEBSOCKETS_ENABLED) return;
-
     this.socket = io(window.location.origin, {
       path: "/realtime",
     });

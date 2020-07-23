@@ -39,11 +39,6 @@
       "value": "true",
       "required": true
     },
-    "WEBSOCKETS_ENABLED": {
-      "value": "true",
-      "required": true,
-      "description": "Allow realtime data to be pushed to clients over websockets"
-    },
     "URL": {
       "description": "https://{your app name}.herokuapp.com",
       "required": true

@@ -13,7 +13,9 @@ import subHours from "date-fns/sub_hours";
 
 export default class Websockets {
   async on(event: Event) {
-    if (process.env.WEBSOCKETS_ENABLED !== "true" || !socketio) return;
+    if (!socketio) {
+      return;
+    }
 
     switch (event.name) {
       case "documents.publish":
