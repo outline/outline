@@ -85,14 +85,14 @@ class DocumentShare extends React.Component<Props> {
               checked={share ? share.published : false}
               disabled={!share || this.isSaving}
             />
-            <Flex align="center">
+            <Privacy>
               {share.published ? <GlobeIcon /> : <PadlockIcon />}
               <PrivacyText>
                 {share.published
                   ? "Anyone with the link can view this document"
                   : "Only team members with access can view this document"}
               </PrivacyText>
-            </Flex>
+            </Privacy>
           </React.Fragment>
         )}
         <br />
@@ -117,6 +117,11 @@ class DocumentShare extends React.Component<Props> {
     );
   }
 }
+
+const Privacy = styled(Flex)`
+  flex-align: center;
+  margin-left: -4px;
+`;
 
 const PrivacyText = styled(HelpText)`
   margin: 0;

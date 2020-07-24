@@ -5,6 +5,7 @@ import auth from "../middlewares/authentication";
 import pagination from "./middlewares/pagination";
 import { presentShare, presentPolicies } from "../presenters";
 import { Document, User, Event, Share, Team } from "../models";
+import { NotFoundError } from "../errors";
 import policy from "../policies";
 
 const Op = Sequelize.Op;
@@ -12,11 +13,25 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("shares.info", auth(), async ctx => {
-  const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  const { id, documentId } = ctx.body;
+  ctx.assertUuid(id || documentId, "id or documentId is required");
 
   const user = ctx.state.user;
-  const share = await Share.findByPk(id);
+  const share = await Share.findOne({
+    where: id
+      ? {
+          id,
+          userId: user.id,
+        }
+      : {
+          documentId,
+          userId: user.id,
+        },
+  });
+  if (!share) {
+    throw new NotFoundError();
+  }
+
   authorize(user, "read", share);
 
   ctx.body = {

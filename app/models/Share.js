@@ -5,7 +5,7 @@ import User from "./User";
 class Share extends BaseModel {
   id: string;
   url: string;
-  public: boolean;
+  published: boolean;
   documentId: string;
   documentTitle: string;
   documentUrl: string;

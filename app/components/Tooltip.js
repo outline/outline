@@ -18,6 +18,10 @@ class Tooltip extends React.Component<Props> {
 
     let content = tooltip;
 
+    if (!tooltip) {
+      return this.props.children;
+    }
+
     if (shortcut) {
       content = (
         <React.Fragment>
