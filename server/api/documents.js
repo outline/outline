@@ -391,7 +391,12 @@ async function loadDocument({ id, shareId, user }) {
     if (!share || share.document.archivedAt) {
       throw new InvalidRequestError("Document could not be found for shareId");
     }
+
     document = share.document;
+
+    if (!share.published) {
+      authorize(user, "read", document);
+    }
   } else {
     document = await Document.findByPk(
       id,

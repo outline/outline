@@ -35,6 +35,13 @@ Share.associate = models => {
     as: "document",
     foreignKey: "documentId",
   });
+  Share.addScope("defaultScope", {
+    include: [
+      { association: "user" },
+      { association: "document" },
+      { association: "team" },
+    ],
+  });
 };
 
 Share.prototype.revoke = function(userId) {

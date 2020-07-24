@@ -7,6 +7,11 @@ module.exports = {
       allowNull: false,
       defaultValue: false
     });
+
+    await queryInterface.sequelize.query(`
+      update shares
+      set "published" = true
+    `);
   },
 
   down: async (queryInterface, Sequelize) => {
