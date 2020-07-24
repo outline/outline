@@ -261,7 +261,7 @@ describe("#shares.update", async () => {
       userId: user.id,
     });
     const res = await server.post("/api/shares.update", {
-      body: { id: share.id },
+      body: { id: share.id, published: true },
     });
     const body = await res.json();
 
@@ -270,10 +270,15 @@ describe("#shares.update", async () => {
   });
 
   it("should require authorization", async () => {
-    const { document } = await seed();
+    const { admin, document } = await seed();
     const user = await buildUser();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
     const res = await server.post("/api/shares.update", {
-      body: { token: user.getJwtToken(), documentId: document.id },
+      body: { token: user.getJwtToken(), id: share.id, published: true },
     });
     expect(res.status).toEqual(403);
   });
@@ -325,10 +330,15 @@ describe("#shares.revoke", async () => {
   });
 
   it("should require authorization", async () => {
-    const { document } = await seed();
+    const { admin, document } = await seed();
     const user = await buildUser();
-    const res = await server.post("/api/shares.create", {
-      body: { token: user.getJwtToken(), documentId: document.id },
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/shares.revoke", {
+      body: { token: user.getJwtToken(), id: share.id },
     });
     expect(res.status).toEqual(403);
   });
