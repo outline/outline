@@ -31,7 +31,7 @@ Share.associate = models => {
     as: "team",
     foreignKey: "teamId",
   });
-  Share.belongsTo(models.Document, {
+  Share.belongsTo(models.Document.scope("withUnpublished"), {
     as: "document",
     foreignKey: "documentId",
   });

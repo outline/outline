@@ -190,12 +190,13 @@ class Header extends React.Component<Props> {
               </Action>
             )}
           &nbsp;
-          <Collaborators
-            document={document}
-            currentUserId={auth.user ? auth.user.id : undefined}
-          />
-          {!isDraft &&
-            !isEditing &&
+          <Fade>
+            <Collaborators
+              document={document}
+              currentUserId={auth.user ? auth.user.id : undefined}
+            />
+          </Fade>
+          {!isEditing &&
             canShareDocuments && (
               <Action>
                 <Tooltip
