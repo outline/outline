@@ -136,6 +136,7 @@ router.post("shares.create", auth(), async ctx => {
     });
   }
 
+  share.team = team;
   share.user = user;
   share.document = document;
 
