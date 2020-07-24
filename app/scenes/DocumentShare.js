@@ -2,10 +2,13 @@
 import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import { GlobeIcon, PadlockIcon } from "outline-icons";
+import styled from "styled-components";
 import invariant from "invariant";
 import { Link } from "react-router-dom";
 import Input from "components/Input";
 import Button from "components/Button";
+import Flex from "components/Flex";
 import Switch from "components/Switch";
 import CopyToClipboard from "components/CopyToClipboard";
 import HelpText from "components/HelpText";
@@ -82,11 +85,14 @@ class DocumentShare extends React.Component<Props> {
               checked={share ? share.published : false}
               disabled={!share || this.isSaving}
             />
-            <HelpText>
-              {share.published
-                ? "Anyone with the link can view this document"
-                : "Only team members with access can view this document"}
-            </HelpText>
+            <Flex align="center">
+              {share.published ? <GlobeIcon /> : <PadlockIcon />}
+              <PrivacyText>
+                {share.published
+                  ? "Anyone with the link can view this document"
+                  : "Only team members with access can view this document"}
+              </PrivacyText>
+            </Flex>
           </React.Fragment>
         )}
         <br />
@@ -94,6 +100,7 @@ class DocumentShare extends React.Component<Props> {
           type="text"
           label="Get link"
           value={share ? share.url : "Loading…"}
+          labelHidden
           readOnly
         />
         <CopyToClipboard
@@ -110,5 +117,11 @@ class DocumentShare extends React.Component<Props> {
     );
   }
 }
+
+const PrivacyText = styled(HelpText)`
+  margin: 0;
+  margin-left: 2px;
+  font-size: 15px;
+`;
 
 export default inject("shares", "ui", "policies")(DocumentShare);
