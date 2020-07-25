@@ -12,13 +12,13 @@ export default function Notices({ notice }: Props) {
       {notice === "google-hd" && (
         <NoticeAlert>
           Sorry, Google sign in cannot be used with a personal email. Please try
-          signing in with your company GSuite account.
+          signing in with your team GSuite account.
         </NoticeAlert>
       )}
       {notice === "hd-not-allowed" && (
         <NoticeAlert>
           Sorry, your Google apps domain is not allowed. Please try again with
-          an allowed company domain.
+          an allowed team domain.
         </NoticeAlert>
       )}
       {notice === "email-auth-required" && (
