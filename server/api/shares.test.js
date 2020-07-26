@@ -216,6 +216,89 @@ describe("#shares.create", async () => {
   });
 });
 
+describe("#shares.info", async () => {
+  it("should allow reading share by id", async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/shares.info", {
+      body: { token: user.getJwtToken(), id: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBe(share.id);
+  });
+
+  it("should allow reading share by documentId", async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/shares.info", {
+      body: { token: user.getJwtToken(), documentId: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBe(share.id);
+    expect(body.data.published).toBe(true);
+  });
+
+  it("should not find share for different user", async () => {
+    const { admin, document } = await seed();
+    const user = await buildUser({
+      teamId: admin.teamId,
+    });
+    await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: { token: user.getJwtToken(), documentId: document.id },
+    });
+    expect(res.status).toEqual(404);
+  });
+
+  it("should require authentication", async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: { id: share.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should require authorization", async () => {
+    const { admin, document } = await seed();
+    const user = await buildUser();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: { token: user.getJwtToken(), id: share.id },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe("#shares.update", async () => {
   it("should allow author to update a share", async () => {
     const { user, document } = await seed();

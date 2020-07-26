@@ -21,7 +21,6 @@ router.post("shares.info", auth(), async ctx => {
     where: id
       ? {
           id,
-          userId: user.id,
         }
       : {
           documentId,
