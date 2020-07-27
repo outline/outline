@@ -2,6 +2,7 @@
 import * as React from "react";
 import { debounce } from "lodash";
 import styled, { withTheme } from "styled-components";
+import { DiscussionEmbed } from 'disqus-react';
 import breakpoint from "styled-components-breakpoint";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
@@ -456,7 +457,19 @@ class DocumentScene extends React.Component<Props> {
                     </ReferencesWrapper>
                   </React.Fragment>
                 )}
-              {process.env.DISQUS_SHORTNAME && <div id="disqus_thread" />}
+              {process.env.DISQUS_SHORTNAME &&
+                <DiscussionEmbed
+                  shortname={process.env.DISQUS_SHORTNAME}
+                  config={
+                    {
+                      url: window.location.href,
+                      identifier: document.id,
+                      title: {revision ? revision.title : this.title},
+                      language: 'en_US'
+                    }
+                  }
+                />
+              }
             </MaxWidth>
           </Container>
         </Background>

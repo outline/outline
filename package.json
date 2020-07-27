@@ -84,6 +84,7 @@
     "copy-to-clipboard": "^3.0.6",
     "date-fns": "1.29.0",
     "debug": "^4.1.1",
+    "disqus-react": "^1.0.9",
     "dotenv": "^4.0.0",
     "emoji-regex": "^6.5.1",
     "es6-error": "^4.1.1",
