@@ -1,15 +1,15 @@
 // @flow
-import * as React from 'react';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import AuthStore from 'stores/AuthStore';
-import CollectionsStore from 'stores/CollectionsStore';
-import UiStore from 'stores/UiStore';
+import * as React from "react";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import AuthStore from "stores/AuthStore";
+import CollectionsStore from "stores/CollectionsStore";
+import UiStore from "stores/UiStore";
 
-import CenteredContent from 'components/CenteredContent';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
-import Button from 'components/Button';
+import CenteredContent from "components/CenteredContent";
+import PageTitle from "components/PageTitle";
+import HelpText from "components/HelpText";
+import Button from "components/Button";
 
 type Props = {
   auth: AuthStore,
@@ -29,7 +29,7 @@ class Export extends React.Component<Props> {
     try {
       await this.props.collections.export();
       this.isExporting = true;
-      this.props.ui.showToast('Export in progress…');
+      this.props.ui.showToast("Export in progress…");
     } finally {
       this.isLoading = false;
     }
@@ -60,12 +60,12 @@ class Export extends React.Component<Props> {
           primary
         >
           {this.isExporting
-            ? 'Export Requested'
-            : this.isLoading ? 'Requesting Export…' : 'Export All Data'}
+            ? "Export Requested"
+            : this.isLoading ? "Requesting Export…" : "Export All Data"}
         </Button>
       </CenteredContent>
     );
   }
 }
 
-export default inject('auth', 'ui', 'collections')(Export);
+export default inject("auth", "ui", "collections")(Export);

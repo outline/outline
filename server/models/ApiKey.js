@@ -1,9 +1,9 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
-import randomstring from 'randomstring';
+import { DataTypes, sequelize } from "../sequelize";
+import randomstring from "randomstring";
 
 const ApiKey = sequelize.define(
-  'apiKeys',
+  "apiKeys",
   {
     id: {
       type: DataTypes.UUID,
@@ -12,16 +12,17 @@ const ApiKey = sequelize.define(
     },
     name: DataTypes.STRING,
     secret: { type: DataTypes.STRING, unique: true },
+    // TODO: remove this, as it's redundant with associate below
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'users',
+        model: "users",
       },
     },
   },
   {
-    tableName: 'apiKeys',
+    tableName: "apiKeys",
     paranoid: true,
     hooks: {
       beforeValidate: key => {
@@ -33,8 +34,8 @@ const ApiKey = sequelize.define(
 
 ApiKey.associate = models => {
   ApiKey.belongsTo(models.User, {
-    as: 'user',
-    foreignKey: 'userId',
+    as: "user",
+    foreignKey: "userId",
   });
 };
 

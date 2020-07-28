@@ -1,8 +1,8 @@
 // @flow
-import * as React from 'react';
-import breakpoint from 'styled-components-breakpoint';
-import styled from 'styled-components';
-import Centered from './Centered';
+import * as React from "react";
+import breakpoint from "styled-components-breakpoint";
+import styled from "styled-components";
+import Centered from "./Centered";
 
 type Props = {
   children: React.Node,
@@ -25,17 +25,17 @@ const Wrapper = styled.div`
   margin-top: -70px;
   margin-bottom: 2em;
   text-align: center;
-  background: ${props => props.background || 'transparent'};
+  background: ${props => props.background || "transparent"};
   z-index: -1;
 
   &:before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -30px;
     width: 100vw;
     height: 100%;
-    background: ${props => props.background || 'transparent'};
+    background: ${props => props.background || "transparent"};
     z-index: -10;
   }
 
@@ -51,7 +51,7 @@ const Wrapper = styled.div`
     margin: 0 0 0.1em;
   }
 
-  ${breakpoint('tablet')`
+  ${breakpoint("tablet")`
     padding: 8em 3em 3em 3em;
 
     h1 {

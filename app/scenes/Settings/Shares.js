@@ -1,16 +1,17 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import { Link } from 'react-router-dom';
-import SharesStore from 'stores/SharesStore';
-import AuthStore from 'stores/AuthStore';
+import * as React from "react";
+import { observer, inject } from "mobx-react";
+import { Link } from "react-router-dom";
+import SharesStore from "stores/SharesStore";
+import AuthStore from "stores/AuthStore";
 
-import ShareListItem from './components/ShareListItem';
-import List from 'components/List';
-import CenteredContent from 'components/CenteredContent';
-import Subheading from 'components/Subheading';
-import PageTitle from 'components/PageTitle';
-import HelpText from 'components/HelpText';
+import ShareListItem from "./components/ShareListItem";
+import Empty from "components/Empty";
+import List from "components/List";
+import CenteredContent from "components/CenteredContent";
+import Subheading from "components/Subheading";
+import PageTitle from "components/PageTitle";
+import HelpText from "components/HelpText";
 
 type Props = {
   shares: SharesStore,
@@ -43,24 +44,24 @@ class Shares extends React.Component<Props> {
             <HelpText>
               {!canShareDocuments && (
                 <strong>Sharing is currently disabled.</strong>
-              )}{' '}
-              You can turn {canShareDocuments ? 'off' : 'on'} public document
+              )}{" "}
+              You can turn {canShareDocuments ? "off" : "on"} public document
               sharing in <Link to="/settings/security">security settings</Link>.
             </HelpText>
           )}
-        {hasSharedDocuments && (
-          <React.Fragment>
-            <Subheading>Shared Documents</Subheading>
-            <List>
-              {shares.orderedData.map(share => (
-                <ShareListItem key={share.id} share={share} />
-              ))}
-            </List>
-          </React.Fragment>
+        <Subheading>Shared Documents</Subheading>
+        {hasSharedDocuments ? (
+          <List>
+            {shares.orderedData.map(share => (
+              <ShareListItem key={share.id} share={share} />
+            ))}
+          </List>
+        ) : (
+          <Empty>No share links, yet.</Empty>
         )}
       </CenteredContent>
     );
   }
 }
 
-export default inject('shares', 'auth')(Shares);
+export default inject("shares", "auth")(Shares);

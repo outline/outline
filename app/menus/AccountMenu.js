@@ -1,16 +1,16 @@
 // @flow
-import * as React from 'react';
-import { Link } from 'react-router-dom';
-import { observable } from 'mobx';
-import { inject, observer } from 'mobx-react';
-import { MoonIcon } from 'outline-icons';
-import styled, { withTheme } from 'styled-components';
-import UiStore from 'stores/UiStore';
-import AuthStore from 'stores/AuthStore';
-import Flex from 'shared/components/Flex';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
-import Modal from 'components/Modal';
-import KeyboardShortcuts from 'scenes/KeyboardShortcuts';
+import * as React from "react";
+import { Link } from "react-router-dom";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { SunIcon, MoonIcon } from "outline-icons";
+import styled from "styled-components";
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import Flex from "shared/components/Flex";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Modal from "components/Modal";
+import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import {
   developers,
   changelog,
@@ -18,13 +18,12 @@ import {
   mailToUrl,
   spectrumUrl,
   settings,
-} from '../../shared/utils/routeHelpers';
+} from "../../shared/utils/routeHelpers";
 
 type Props = {
   label: React.Node,
   ui: UiStore,
   auth: AuthStore,
-  theme: Object,
 };
 
 @observer
@@ -44,8 +43,7 @@ class AccountMenu extends React.Component<Props> {
   };
 
   render() {
-    const { ui, theme } = this.props;
-    const isLightTheme = ui.theme === 'light';
+    const { ui } = this.props;
 
     return (
       <React.Fragment>
@@ -83,14 +81,42 @@ class AccountMenu extends React.Component<Props> {
             Report a bug
           </DropdownMenuItem>
           <hr />
-          <DropdownMenuItem onClick={ui.toggleDarkMode}>
-            <NightMode justify="space-between">
-              Night Mode{' '}
-              <MoonIcon
-                color={isLightTheme ? theme.textSecondary : theme.primary}
-              />
-            </NightMode>
-          </DropdownMenuItem>
+          <DropdownMenu
+            position="right"
+            style={{
+              left: 170,
+              position: "relative",
+              top: -34,
+            }}
+            label={
+              <DropdownMenuItem>
+                <ChangeTheme justify="space-between">
+                  Appearance
+                  {ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
+                </ChangeTheme>
+              </DropdownMenuItem>
+            }
+            hover
+          >
+            <DropdownMenuItem
+              onClick={() => ui.setTheme("system")}
+              selected={ui.theme === "system"}
+            >
+              System
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => ui.setTheme("light")}
+              selected={ui.theme === "light"}
+            >
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => ui.setTheme("dark")}
+              selected={ui.theme === "dark"}
+            >
+              Dark
+            </DropdownMenuItem>
+          </DropdownMenu>
           <hr />
           <DropdownMenuItem onClick={this.handleLogout}>
             Log out
@@ -101,8 +127,8 @@ class AccountMenu extends React.Component<Props> {
   }
 }
 
-const NightMode = styled(Flex)`
+const ChangeTheme = styled(Flex)`
   width: 100%;
 `;
 
-export default inject('ui', 'auth')(withTheme(AccountMenu));
+export default inject("ui", "auth")(AccountMenu);

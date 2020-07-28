@@ -1,9 +1,9 @@
 // @flow
-import * as React from 'react';
-import ShareMenu from 'menus/ShareMenu';
-import ListItem from 'components/List/Item';
-import Time from 'shared/components/Time';
-import Share from 'models/Share';
+import * as React from "react";
+import ShareMenu from "menus/ShareMenu";
+import ListItem from "components/List/Item";
+import Time from "shared/components/Time";
+import Share from "models/Share";
 
 type Props = {
   share: Share,
@@ -16,7 +16,7 @@ const ShareListItem = ({ share }: Props) => {
       title={share.documentTitle}
       subtitle={
         <React.Fragment>
-          Shared <Time dateTime={share.createdAt} /> ago by{' '}
+          Shared <Time dateTime={share.createdAt} /> ago by{" "}
           {share.createdBy.name}
         </React.Fragment>
       }

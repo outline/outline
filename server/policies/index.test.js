@@ -1,11 +1,11 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb } from '../test/support';
-import { buildUser } from '../test/factories';
-import { serialize } from './index';
+import { flushdb } from "../test/support";
+import { buildUser } from "../test/factories";
+import { serialize } from "./index";
 
 beforeEach(flushdb);
 
-it('should serialize policy', async () => {
+it("should serialize policy", async () => {
   const user = await buildUser();
   const response = serialize(user, user);
   expect(response.update).toEqual(true);

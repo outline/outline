@@ -1,12 +1,12 @@
 // @flow
-import * as React from 'react';
-import EmailTemplate from './components/EmailLayout';
-import Body from './components/Body';
-import Button from './components/Button';
-import Heading from './components/Heading';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import EmptySpace from './components/EmptySpace';
+import * as React from "react";
+import EmailTemplate from "./components/EmailLayout";
+import Body from "./components/Body";
+import Button from "./components/Button";
+import Heading from "./components/Heading";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import EmptySpace from "./components/EmptySpace";
 
 export type Props = {
   teamUrl: string,
@@ -21,7 +21,7 @@ To get started, head to your dashboard and try creating a collection to help doc
 
 You can also import existing Markdown documents by dragging and dropping them to your collections.
 
-${teamUrl}/dashboard
+${teamUrl}/home
 `;
 
 export const WelcomeEmail = ({ teamUrl }: Props) => {
@@ -43,7 +43,7 @@ export const WelcomeEmail = ({ teamUrl }: Props) => {
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${teamUrl}/dashboard`}>View my dashboard</Button>
+          <Button href={`${teamUrl}/home`}>View my dashboard</Button>
         </p>
       </Body>
 

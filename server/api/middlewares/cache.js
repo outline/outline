@@ -1,8 +1,8 @@
 // @flow
-import debug from 'debug';
-import { type Context } from 'koa';
+import debug from "debug";
+import { type Context } from "koa";
 
-const log = debug('cache');
+const log = debug("cache");
 
 export default function cache() {
   return async function cacheMiddleware(ctx: Context, next: () => Promise<*>) {

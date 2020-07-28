@@ -1,15 +1,18 @@
 // @flow
-import crypto from 'crypto';
-import uuid from 'uuid';
-import JWT from 'jsonwebtoken';
-import subMinutes from 'date-fns/sub_minutes';
-import { DataTypes, sequelize, encryptedFields } from '../sequelize';
-import { publicS3Endpoint, uploadToS3FromUrl } from '../utils/s3';
-import { sendEmail } from '../mailer';
-import { Star, Team, Collection, NotificationSetting, ApiKey } from '.';
+import crypto from "crypto";
+import uuid from "uuid";
+import JWT from "jsonwebtoken";
+import subMinutes from "date-fns/sub_minutes";
+import { ValidationError } from "../errors";
+import { DataTypes, sequelize, encryptedFields } from "../sequelize";
+import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
+import { sendEmail } from "../mailer";
+import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
+
+const DEFAULT_AVATAR_HOST = "https://tiley.herokuapp.com";
 
 const User = sequelize.define(
-  'user',
+  "user",
   {
     id: {
       type: DataTypes.UUID,
@@ -24,11 +27,12 @@ const User = sequelize.define(
     service: { type: DataTypes.STRING, allowNull: true },
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
     slackData: DataTypes.JSONB,
-    jwtSecret: encryptedFields.vault('jwtSecret'),
+    jwtSecret: encryptedFields.vault("jwtSecret"),
     lastActiveAt: DataTypes.DATE,
     lastActiveIp: { type: DataTypes.STRING, allowNull: true },
     lastSignedInAt: DataTypes.DATE,
     lastSignedInIp: { type: DataTypes.STRING, allowNull: true },
+    lastSigninEmailSentAt: DataTypes.DATE,
     suspendedAt: DataTypes.DATE,
     suspendedById: DataTypes.UUID,
   },
@@ -38,40 +42,52 @@ const User = sequelize.define(
       isSuspended() {
         return !!this.suspendedAt;
       },
+      avatarUrl() {
+        const original = this.getDataValue("avatarUrl");
+        if (original) {
+          return original;
+        }
+
+        const hash = crypto
+          .createHash("md5")
+          .update(this.email || "")
+          .digest("hex");
+        return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${this.name[0]}.png`;
+      },
     },
   }
 );
 
 // Class methods
 User.associate = models => {
-  User.hasMany(models.ApiKey, { as: 'apiKeys', onDelete: 'cascade' });
+  User.hasMany(models.ApiKey, { as: "apiKeys", onDelete: "cascade" });
   User.hasMany(models.NotificationSetting, {
-    as: 'notificationSettings',
-    onDelete: 'cascade',
+    as: "notificationSettings",
+    onDelete: "cascade",
   });
-  User.hasMany(models.Document, { as: 'documents' });
-  User.hasMany(models.View, { as: 'views' });
+  User.hasMany(models.Document, { as: "documents" });
+  User.hasMany(models.View, { as: "views" });
   User.belongsTo(models.Team);
 };
 
 // Instance methods
 User.prototype.collectionIds = async function(paranoid: boolean = true) {
-  let models = await Collection.findAll({
-    attributes: ['id', 'private'],
+  const collectionStubs = await Collection.scope({
+    method: ["withMembership", this.id],
+  }).findAll({
+    attributes: ["id", "private"],
     where: { teamId: this.teamId },
-    include: [
-      {
-        model: User,
-        as: 'users',
-        where: { id: this.id },
-        required: false,
-      },
-    ],
     paranoid,
   });
 
-  // Filter collections that are private and don't have an association
-  return models.filter(c => !c.private || c.users.length).map(c => c.id);
+  return collectionStubs
+    .filter(
+      c =>
+        !c.private ||
+        c.memberships.length > 0 ||
+        c.collectionGroupMemberships.length > 0
+    )
+    .map(c => c.id);
 };
 
 User.prototype.updateActiveAt = function(ip) {
@@ -96,20 +112,43 @@ User.prototype.getJwtToken = function() {
   return JWT.sign({ id: this.id }, this.jwtSecret);
 };
 
+User.prototype.getEmailSigninToken = function() {
+  if (this.service && this.service !== "email") {
+    throw new Error("Cannot generate email signin token for OAuth user");
+  }
+
+  return JWT.sign(
+    { id: this.id, createdAt: new Date().toISOString() },
+    this.jwtSecret
+  );
+};
+
 const uploadAvatar = async model => {
   const endpoint = publicS3Endpoint();
+  const { avatarUrl } = model;
 
-  if (model.avatarUrl && !model.avatarUrl.startsWith(endpoint)) {
-    const newUrl = await uploadToS3FromUrl(
-      model.avatarUrl,
-      `avatars/${model.id}/${uuid.v4()}`
-    );
-    if (newUrl) model.avatarUrl = newUrl;
+  if (
+    avatarUrl &&
+    !avatarUrl.startsWith("/api") &&
+    !avatarUrl.startsWith(endpoint) &&
+    !avatarUrl.startsWith(DEFAULT_AVATAR_HOST)
+  ) {
+    try {
+      const newUrl = await uploadToS3FromUrl(
+        avatarUrl,
+        `avatars/${model.id}/${uuid.v4()}`,
+        "public-read"
+      );
+      if (newUrl) model.avatarUrl = newUrl;
+    } catch (err) {
+      // we can try again next time
+      console.error(err);
+    }
   }
 };
 
 const setRandomJwtSecret = model => {
-  model.jwtSecret = crypto.randomBytes(64).toString('hex');
+  model.jwtSecret = crypto.randomBytes(64).toString("hex");
 };
 
 const removeIdentifyingInfo = async (model, options) => {
@@ -126,9 +165,9 @@ const removeIdentifyingInfo = async (model, options) => {
     transaction: options.transaction,
   });
 
-  model.email = '';
-  model.name = 'Unknown';
-  model.avatarUrl = '';
+  model.email = null;
+  model.name = "Unknown";
+  model.avatarUrl = "";
   model.serviceId = null;
   model.username = null;
   model.slackData = null;
@@ -148,8 +187,8 @@ const checkLastAdmin = async model => {
     const adminCount = await User.count({ where: { isAdmin: true, teamId } });
 
     if (userCount > 1 && adminCount <= 1) {
-      throw new Error(
-        'Cannot delete account as only admin. Please transfer admin permissions to another user and try again.'
+      throw new ValidationError(
+        "Cannot delete account as only admin. Please transfer admin permissions to another user and try again."
       );
     }
   }
@@ -165,8 +204,8 @@ User.afterCreate(async user => {
   // From Slack support:
   // If you wish to contact users at an email address obtained through Slack,
   // you need them to opt-in through a clear and separate process.
-  if (!team.slackId) {
-    sendEmail('welcome', user.email, { teamUrl: team.url });
+  if (user.service && user.service !== "slack") {
+    sendEmail("welcome", user.email, { teamUrl: team.url });
   }
 });
 
@@ -178,7 +217,7 @@ User.afterCreate(async (user, options) => {
       where: {
         userId: user.id,
         teamId: user.teamId,
-        event: 'documents.update',
+        event: "documents.update",
       },
       transaction: options.transaction,
     }),
@@ -186,7 +225,7 @@ User.afterCreate(async (user, options) => {
       where: {
         userId: user.id,
         teamId: user.teamId,
-        event: 'emails.onboarding',
+        event: "emails.onboarding",
       },
       transaction: options.transaction,
     }),

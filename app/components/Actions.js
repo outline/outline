@@ -1,7 +1,7 @@
 // @flow
-import styled from 'styled-components';
-import breakpoint from 'styled-components-breakpoint';
-import Flex from 'shared/components/Flex';
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import Flex from "shared/components/Flex";
 
 export const Action = styled(Flex)`
   justify-content: center;
@@ -18,6 +18,7 @@ export const Action = styled(Flex)`
 `;
 
 export const Separator = styled.div`
+  flex-shrink: 0;
   margin-left: 12px;
   width: 1px;
   height: 28px;
@@ -39,7 +40,7 @@ const Actions = styled(Flex)`
     display: none;
   }
 
-  ${breakpoint('tablet')`
+  ${breakpoint("tablet")`
     left: auto;
     padding: 24px;
   `};

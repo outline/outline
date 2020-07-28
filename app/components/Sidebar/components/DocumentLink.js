@@ -1,17 +1,17 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import styled from 'styled-components';
-import Document from 'models/Document';
-import DocumentMenu from 'menus/DocumentMenu';
-import SidebarLink from './SidebarLink';
-import DropToImport from 'components/DropToImport';
-import Fade from 'components/Fade';
-import Collection from 'models/Collection';
-import DocumentsStore from 'stores/DocumentsStore';
-import Flex from 'shared/components/Flex';
-import { type NavigationNode } from 'types';
+import * as React from "react";
+import { observer } from "mobx-react";
+import { observable } from "mobx";
+import styled from "styled-components";
+import Document from "models/Document";
+import DocumentMenu from "menus/DocumentMenu";
+import SidebarLink from "./SidebarLink";
+import DropToImport from "components/DropToImport";
+import Fade from "components/Fade";
+import Collection from "models/Collection";
+import DocumentsStore from "stores/DocumentsStore";
+import Flex from "shared/components/Flex";
+import { type NavigationNode } from "types";
 
 type Props = {
   node: NavigationNode,
@@ -27,12 +27,37 @@ type Props = {
 class DocumentLink extends React.Component<Props> {
   @observable menuOpen = false;
 
+  componentDidMount() {
+    if (this.isActiveDocument() && this.hasChildDocuments()) {
+      this.props.documents.fetchChildDocuments(this.props.node.id);
+    }
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.activeDocument !== this.props.activeDocument) {
+      if (this.isActiveDocument() && this.hasChildDocuments()) {
+        this.props.documents.fetchChildDocuments(this.props.node.id);
+      }
+    }
+  }
+
   handleMouseEnter = (ev: SyntheticEvent<>) => {
     const { node, prefetchDocument } = this.props;
 
     ev.stopPropagation();
     ev.preventDefault();
     prefetchDocument(node.id);
+  };
+
+  isActiveDocument = () => {
+    return (
+      this.props.activeDocument &&
+      this.props.activeDocument.id === this.props.node.id
+    );
+  };
+
+  hasChildDocuments = () => {
+    return !!this.props.node.children.length;
   };
 
   render() {
@@ -46,7 +71,6 @@ class DocumentLink extends React.Component<Props> {
       depth,
     } = this.props;
 
-    const isActiveDocument = activeDocument && activeDocument.id === node.id;
     const showChildren = !!(
       activeDocument &&
       collection &&
@@ -54,16 +78,15 @@ class DocumentLink extends React.Component<Props> {
         .pathToDocument(activeDocument)
         .map(entry => entry.id)
         .includes(node.id) ||
-        isActiveDocument)
+        this.isActiveDocument())
     );
-    const hasChildren = !!node.children.length;
     const document = documents.get(node.id);
 
     return (
       <Flex
         column
         key={node.id}
-        ref={isActiveDocument ? activeDocumentRef : undefined}
+        ref={this.isActiveDocument() ? activeDocumentRef : undefined}
         onMouseEnter={this.handleMouseEnter}
       >
         <DropToImport documentId={node.id} activeClassName="activeDropZone">
@@ -73,7 +96,7 @@ class DocumentLink extends React.Component<Props> {
               state: { title: node.title },
             }}
             expanded={showChildren ? true : undefined}
-            label={node.title}
+            label={node.title || "Untitled"}
             depth={depth}
             exact={false}
             menuOpen={this.menuOpen}
@@ -92,7 +115,7 @@ class DocumentLink extends React.Component<Props> {
               )
             }
           >
-            {hasChildren && (
+            {this.hasChildDocuments() && (
               <DocumentChildren column>
                 {node.children.map(childNode => (
                   <DocumentLink

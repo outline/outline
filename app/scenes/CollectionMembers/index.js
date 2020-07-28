@@ -1,3 +1,3 @@
 // @flow
-import CollectionMembers from './CollectionMembers';
+import CollectionMembers from "./CollectionMembers";
 export default CollectionMembers;

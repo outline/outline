@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import { Link } from 'react-router-dom';
-import { DropdownMenu, DropdownMenuItem } from 'components/DropdownMenu';
+import * as React from "react";
+import { Link } from "react-router-dom";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
   label: React.Node,

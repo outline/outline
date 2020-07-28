@@ -1,31 +1,70 @@
 // @flow
-import { v4 } from 'uuid';
-import { orderBy } from 'lodash';
-import { observable, action, computed } from 'mobx';
-import Document from 'models/Document';
-import Collection from 'models/Collection';
-import type { Toast } from '../types';
+import { v4 } from "uuid";
+import { orderBy } from "lodash";
+import { observable, action, autorun, computed } from "mobx";
+import Document from "models/Document";
+import Collection from "models/Collection";
+import type { Toast } from "../types";
+
+const UI_STORE = "UI_STORE";
 
 class UiStore {
-  @observable
-  theme: 'light' | 'dark' = (window.localStorage &&
-    window.localStorage.getItem('theme')) ||
-    'light';
+  // theme represents the users UI preference (defaults to system)
+  @observable theme: "light" | "dark" | "system";
+
+  // systemTheme represents the system UI theme (Settings -> General in macOS)
+  @observable systemTheme: "light" | "dark";
   @observable activeModalName: ?string;
   @observable activeModalProps: ?Object;
   @observable activeDocumentId: ?string;
   @observable activeCollectionId: ?string;
   @observable progressBarVisible: boolean = false;
   @observable editMode: boolean = false;
+  @observable tocVisible: boolean = false;
   @observable mobileSidebarVisible: boolean = false;
   @observable toasts: Map<string, Toast> = new Map();
 
+  constructor() {
+    // Rehydrate
+    let data = {};
+    try {
+      data = JSON.parse(localStorage.getItem(UI_STORE) || "{}");
+    } catch (_) {
+      // no-op Safari private mode
+    }
+
+    // system theme listeners
+    const colorSchemeQueryList = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    );
+
+    const setSystemTheme = event => {
+      this.systemTheme = event.matches ? "dark" : "light";
+    };
+    setSystemTheme(colorSchemeQueryList);
+    if (colorSchemeQueryList.addListener) {
+      colorSchemeQueryList.addListener(setSystemTheme);
+    }
+
+    // persisted keys
+    this.tocVisible = data.tocVisible;
+    this.theme = data.theme || "system";
+
+    autorun(() => {
+      try {
+        localStorage.setItem(UI_STORE, this.asJson);
+      } catch (_) {
+        // no-op Safari private mode
+      }
+    });
+  }
+
   @action
-  toggleDarkMode = () => {
-    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+  setTheme = (theme: "light" | "dark" | "system") => {
+    this.theme = theme;
 
     if (window.localStorage) {
-      window.localStorage.setItem('theme', this.theme);
+      window.localStorage.setItem("theme", this.theme);
     }
   };
 
@@ -67,6 +106,16 @@ class UiStore {
   };
 
   @action
+  showTableOfContents = () => {
+    this.tocVisible = true;
+  };
+
+  @action
+  hideTableOfContents = () => {
+    this.tocVisible = false;
+  };
+
+  @action
   enableEditMode() {
     this.editMode = true;
   }
@@ -100,7 +149,7 @@ class UiStore {
   showToast = (
     message: string,
     options?: {
-      type?: 'warning' | 'error' | 'info' | 'success',
+      type?: "warning" | "error" | "info" | "success",
       timeout?: number,
       action?: {
         text: string,
@@ -122,8 +171,25 @@ class UiStore {
   };
 
   @computed
+  get resolvedTheme(): "dark" | "light" {
+    if (this.theme === "system") {
+      return this.systemTheme;
+    }
+
+    return this.theme;
+  }
+
+  @computed
   get orderedToasts(): Toast[] {
-    return orderBy(Array.from(this.toasts.values()), 'createdAt', 'desc');
+    return orderBy(Array.from(this.toasts.values()), "createdAt", "desc");
+  }
+
+  @computed
+  get asJson(): string {
+    return JSON.stringify({
+      tocVisible: this.tocVisible,
+      theme: this.theme,
+    });
   }
 }
 

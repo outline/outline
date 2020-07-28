@@ -14,22 +14,22 @@ export default function download(
   strMimeType?: string
 ) {
   var self = window, // this script is only for browsers anyway...
-    u = 'application/octet-stream', // this default mime also triggers iframe downloads
+    u = "application/octet-stream", // this default mime also triggers iframe downloads
     m = strMimeType || u,
     x = data,
     D = document,
-    a = D.createElement('a'),
+    a = D.createElement("a"),
     z = function(a, o) {
       return String(a);
     },
     B = self.Blob || self.MozBlob || self.WebKitBlob || z,
     BB = self.MSBlobBuilder || self.WebKitBlobBuilder || self.BlobBuilder,
-    fn = strFileName || 'download',
+    fn = strFileName || "download",
     blob,
     b,
     fr;
 
-  if (String(this) === 'true') {
+  if (String(this) === "true") {
     //reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
     x = [x, m];
     m = x[0];
@@ -56,12 +56,12 @@ export default function download(
   }
 
   function d2b(u) {
-    if (typeof u !== 'string') {
-      throw Error('Attempted to pass non-string to d2b');
+    if (typeof u !== "string") {
+      throw Error("Attempted to pass non-string to d2b");
     }
     var p = u.split(/[:;,]/),
       t = p[1],
-      dec = p[2] === 'base64' ? atob : decodeURIComponent,
+      dec = p[2] === "base64" ? atob : decodeURIComponent,
       bin = dec(p.pop()),
       mx = bin.length,
       i = 0,
@@ -73,14 +73,14 @@ export default function download(
   }
 
   function saver(url, winMode) {
-    if (typeof url !== 'string') {
-      throw Error('Attempted to pass non-string url to saver');
+    if (typeof url !== "string") {
+      throw Error("Attempted to pass non-string url to saver");
     }
 
-    if ('download' in a) {
+    if ("download" in a) {
       a.href = url;
-      a.setAttribute('download', fn);
-      a.innerHTML = 'downloading…';
+      a.setAttribute("download", fn);
+      a.innerHTML = "downloading…";
       D.body && D.body.appendChild(a);
       setTimeout(function() {
         a.click();
@@ -95,11 +95,11 @@ export default function download(
     }
 
     //do iframe dataURL download (old ch+FF):
-    var f = D.createElement('iframe');
+    var f = D.createElement("iframe");
     D.body && D.body.appendChild(f);
     if (!winMode) {
       // force a mime that will download:
-      url = 'data:' + url.replace(/^data:([\w\/\-\+]+)/, u);
+      url = "data:" + url.replace(/^data:([\w\/\-\+]+)/, u);
     }
 
     f.src = url;
@@ -121,14 +121,14 @@ export default function download(
     // handle non-Blob()+non-URL browsers:
     if (
       blob &&
-      (typeof blob === 'string' || blob.constructor === z) &&
-      typeof m === 'string'
+      (typeof blob === "string" || blob.constructor === z) &&
+      typeof m === "string"
     ) {
       try {
-        return saver('data:' + m + ';base64,' + self.btoa(blob));
+        return saver("data:" + m + ";base64," + self.btoa(blob));
       } catch (y) {
         // $FlowIssue
-        return saver('data:' + m + ',' + encodeURIComponent(blob));
+        return saver("data:" + m + "," + encodeURIComponent(blob));
       }
     }
 

@@ -1,18 +1,25 @@
 // @flow
-import { action, set, computed } from 'mobx';
-import invariant from 'invariant';
-import { client } from 'utils/ApiClient';
-import parseTitle from 'shared/utils/parseTitle';
-import unescape from 'shared/utils/unescape';
-import BaseModel from 'models/BaseModel';
-import Revision from 'models/Revision';
-import User from 'models/User';
-import DocumentsStore from 'stores/DocumentsStore';
+import { action, set, observable, computed } from "mobx";
+import addDays from "date-fns/add_days";
+import invariant from "invariant";
+import { client } from "utils/ApiClient";
+import parseTitle from "shared/utils/parseTitle";
+import unescape from "shared/utils/unescape";
+import BaseModel from "models/BaseModel";
+import Revision from "models/Revision";
+import User from "models/User";
+import DocumentsStore from "stores/DocumentsStore";
 
-type SaveOptions = { publish?: boolean, done?: boolean, autosave?: boolean };
+type SaveOptions = {
+  publish?: boolean,
+  done?: boolean,
+  autosave?: boolean,
+  lastRevision?: number,
+};
 
 export default class Document extends BaseModel {
-  isSaving: boolean;
+  @observable isSaving: boolean = false;
+  @observable embedsDisabled: boolean = false;
   store: DocumentsStore;
 
   collaborators: User[];
@@ -37,18 +44,14 @@ export default class Document extends BaseModel {
   shareUrl: ?string;
   revision: number;
 
-  constructor(data?: Object = {}, store: DocumentsStore) {
-    super(data, store);
-    this.updateTitle();
+  get emoji() {
+    const { emoji } = parseTitle(this.title);
+    return emoji;
   }
 
-  @action
-  updateTitle() {
-    const { title, emoji } = parseTitle(this.text);
-
-    if (title) {
-      set(this, { title, emoji });
-    }
+  @computed
+  get isOnlyTitle(): boolean {
+    return !this.text.trim();
   }
 
   @computed
@@ -76,10 +79,19 @@ export default class Document extends BaseModel {
     return !this.publishedAt;
   }
 
+  @computed
+  get permanentlyDeletedAt(): ?string {
+    if (!this.deletedAt) {
+      return undefined;
+    }
+
+    return addDays(new Date(this.deletedAt), 30).toString();
+  }
+
   @action
   share = async () => {
-    const res = await client.post('/shares.create', { documentId: this.id });
-    invariant(res && res.data, 'Share data should be available');
+    const res = await client.post("/shares.create", { documentId: this.id });
+    invariant(res && res.data, "Share data should be available");
     this.shareUrl = res.data.url;
     return this.shareUrl;
   };
@@ -87,7 +99,6 @@ export default class Document extends BaseModel {
   @action
   updateFromJson = data => {
     set(this, data);
-    this.updateTitle();
   };
 
   archive = () => {
@@ -99,11 +110,22 @@ export default class Document extends BaseModel {
   };
 
   @action
+  enableEmbeds = () => {
+    this.embedsDisabled = false;
+  };
+
+  @action
+  disableEmbeds = () => {
+    this.embedsDisabled = true;
+    debugger;
+  };
+
+  @action
   pin = async () => {
     this.pinned = true;
     try {
       const res = await this.store.pin(this);
-      invariant(res && res.data, 'Data should be available');
+      invariant(res && res.data, "Data should be available");
       this.updateFromJson(res.data);
     } catch (err) {
       this.pinned = false;
@@ -116,7 +138,7 @@ export default class Document extends BaseModel {
     this.pinned = false;
     try {
       const res = await this.store.unpin(this);
-      invariant(res && res.data, 'Data should be available');
+      invariant(res && res.data, "Data should be available");
       this.updateFromJson(res.data);
     } catch (err) {
       this.pinned = true;
@@ -135,14 +157,14 @@ export default class Document extends BaseModel {
   };
 
   @action
-  view = async () => {
-    await client.post('/views.create', { documentId: this.id });
+  view = () => {
+    return this.store.rootStore.views.create({ documentId: this.id });
   };
 
   @action
   fetch = async () => {
-    const res = await client.post('/documents.info', { id: this.id });
-    invariant(res && res.data, 'Data should be available');
+    const res = await client.post("/documents.info", { id: this.id });
+    invariant(res && res.data, "Data should be available");
     this.updateFromJson(res.data);
   };
 
@@ -152,7 +174,6 @@ export default class Document extends BaseModel {
 
     const isCreating = !this.id;
     this.isSaving = true;
-    this.updateTitle();
 
     try {
       if (isCreating) {
@@ -165,13 +186,17 @@ export default class Document extends BaseModel {
         });
       }
 
-      return await this.store.update({
-        id: this.id,
-        title: this.title,
-        text: this.text,
-        lastRevision: this.revision,
-        ...options,
-      });
+      if (options.lastRevision) {
+        return await this.store.update({
+          id: this.id,
+          title: this.title,
+          text: this.text,
+          lastRevision: options.lastRevision,
+          ...options,
+        });
+      }
+
+      throw new Error("Attempting to update without a lastRevision");
     } finally {
       this.isSaving = false;
     }
@@ -189,14 +214,17 @@ export default class Document extends BaseModel {
     // Ensure the document is upto date with latest server contents
     await this.fetch();
 
-    const blob = new Blob([unescape(this.text)], { type: 'text/markdown' });
+    const body = unescape(this.text);
+    const blob = new Blob([`# ${this.title}\n\n${body}`], {
+      type: "text/markdown",
+    });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
 
     // Firefox support requires the anchor tag be in the DOM to trigger the dl
     if (document.body) document.body.appendChild(a);
     a.href = url;
-    a.download = `${this.title}.md`;
+    a.download = `${this.title || "Untitled"}.md`;
     a.click();
   };
 }

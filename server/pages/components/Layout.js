@@ -1,15 +1,15 @@
 // @flow
-import * as React from 'react';
-import { Helmet } from 'react-helmet';
-import styled from 'styled-components';
-import breakpoint from 'styled-components-breakpoint';
-import Analytics from './Analytics';
-import GlobalStyles from '../../../shared/styles/globals';
-import prefetchTags from '../../utils/prefetchTags';
+import * as React from "react";
+import { Helmet } from "react-helmet";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import Analytics from "./Analytics";
+import GlobalStyles from "../../../shared/styles/globals";
+import prefetchTags from "../../utils/prefetchTags";
 
-export const title = 'Outline';
+export const title = "Outline";
 export const description =
-  'Your team’s knowledge base - Team wiki, documentation, playbooks, onboarding & more…';
+  "Your team’s knowledge base - Team wiki, documentation, playbooks, onboarding & more…";
 export const screenshotUrl = `${process.env.URL}/screenshot.png`;
 
 type Props = {
@@ -62,8 +62,8 @@ function Layout({ children, loggedIn, sessions }: Props) {
         </Helmet>
         <Analytics />
 
-        {'{{HEAD}}'}
-        {'{{CSS}}'}
+        {"{{HEAD}}"}
+        {"{{CSS}}"}
       </head>
       <Body>{children}</Body>
     </html>
@@ -73,7 +73,7 @@ function Layout({ children, loggedIn, sessions }: Props) {
 const Body = styled.body`
   padding: 0 30px;
 
-  ${breakpoint('desktop')`
+  ${breakpoint("desktop")`
     padding: 0;
   `};
 `;

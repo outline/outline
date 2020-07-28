@@ -1,7 +1,7 @@
 // @flow
-import * as React from 'react';
-import { Table, TBody, TR, TD } from 'oy-vey';
-import theme from '../../../shared/styles/theme';
+import * as React from "react";
+import { Table, TBody, TR, TD } from "oy-vey";
+import theme from "../../../shared/styles/theme";
 
 type Props = {
   children: React.Node,

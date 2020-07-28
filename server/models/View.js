@@ -1,13 +1,19 @@
 // @flow
-import { DataTypes, sequelize } from '../sequelize';
+import subMilliseconds from "date-fns/sub_milliseconds";
+import { Op, DataTypes, sequelize } from "../sequelize";
+import { User } from "../models";
+import { USER_PRESENCE_INTERVAL } from "../../shared/constants";
 
 const View = sequelize.define(
-  'view',
+  "view",
   {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
+    },
+    lastEditingAt: {
+      type: DataTypes.DATE,
     },
     count: {
       type: DataTypes.INTEGER,
@@ -31,6 +37,48 @@ View.increment = async where => {
     model.save();
   }
   return model;
+};
+
+View.findByDocument = async documentId => {
+  return View.findAll({
+    where: { documentId },
+    order: [["updatedAt", "DESC"]],
+    include: [
+      {
+        model: User,
+        paranoid: false,
+      },
+    ],
+  });
+};
+
+View.findRecentlyEditingByDocument = async documentId => {
+  return View.findAll({
+    where: {
+      documentId,
+      lastEditingAt: {
+        [Op.gt]: subMilliseconds(new Date(), USER_PRESENCE_INTERVAL * 2),
+      },
+    },
+    order: [["lastEditingAt", "DESC"]],
+  });
+};
+
+View.touch = async (documentId: string, userId: string, isEditing: boolean) => {
+  const [view] = await View.findOrCreate({
+    where: {
+      userId,
+      documentId,
+    },
+  });
+
+  if (isEditing) {
+    const lastEditingAt = new Date();
+    view.lastEditingAt = lastEditingAt;
+    await view.save();
+  }
+
+  return view;
 };
 
 export default View;

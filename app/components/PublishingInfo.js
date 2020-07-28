@@ -1,12 +1,13 @@
 // @flow
-import * as React from 'react';
-import { inject } from 'mobx-react';
-import styled from 'styled-components';
-import Document from 'models/Document';
-import Flex from 'shared/components/Flex';
-import Time from 'shared/components/Time';
-import Breadcrumb from 'shared/components/Breadcrumb';
-import CollectionsStore from 'stores/CollectionsStore';
+import * as React from "react";
+import { inject, observer } from "mobx-react";
+import styled from "styled-components";
+import Document from "models/Document";
+import Flex from "shared/components/Flex";
+import Time from "shared/components/Time";
+import Breadcrumb from "shared/components/Breadcrumb";
+import CollectionsStore from "stores/CollectionsStore";
+import AuthStore from "stores/AuthStore";
 
 const Container = styled(Flex)`
   color: ${props => props.theme.textTertiary};
@@ -18,34 +19,44 @@ const Container = styled(Flex)`
 const Modified = styled.span`
   color: ${props =>
     props.highlight ? props.theme.text : props.theme.textTertiary};
-  font-weight: ${props => (props.highlight ? '600' : '400')};
+  font-weight: ${props => (props.highlight ? "600" : "400")};
 `;
 
 type Props = {
   collections: CollectionsStore,
+  auth: AuthStore,
   showCollection?: boolean,
   showPublished?: boolean,
   document: Document,
-  views?: number,
+  children: React.Node,
 };
 
 function PublishingInfo({
+  auth,
   collections,
   showPublished,
   showCollection,
   document,
+  children,
+  ...rest
 }: Props) {
   const {
     modifiedSinceViewed,
     updatedAt,
     updatedBy,
+    createdAt,
     publishedAt,
     archivedAt,
     deletedAt,
     isDraft,
   } = document;
 
-  const neverUpdated = publishedAt === updatedAt;
+  // Prevent meta information from displaying if updatedBy is not available.
+  // Currently the situation where this is true is rendering share links.
+  if (!updatedBy) {
+    return null;
+  }
+
   let content;
 
   if (deletedAt) {
@@ -60,7 +71,13 @@ function PublishingInfo({
         archived <Time dateTime={archivedAt} /> ago
       </span>
     );
-  } else if (publishedAt && (neverUpdated || showPublished)) {
+  } else if (createdAt === updatedAt) {
+    content = (
+      <span>
+        created <Time dateTime={updatedAt} /> ago
+      </span>
+    );
+  } else if (publishedAt && (publishedAt === updatedAt || showPublished)) {
     content = (
       <span>
         published <Time dateTime={publishedAt} /> ago
@@ -81,10 +98,11 @@ function PublishingInfo({
   }
 
   const collection = collections.get(document.collectionId);
+  const updatedByMe = auth.user && auth.user.id === updatedBy.id;
 
   return (
-    <Container align="center">
-      {updatedBy.name}&nbsp;
+    <Container align="center" {...rest}>
+      {updatedByMe ? "You" : updatedBy.name}&nbsp;
       {content}
       {showCollection &&
         collection && (
@@ -95,8 +113,9 @@ function PublishingInfo({
             </strong>
           </span>
         )}
+      {children}
     </Container>
   );
 }
 
-export default inject('collections')(PublishingInfo);
+export default inject("collections", "auth")(observer(PublishingInfo));

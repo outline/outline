@@ -1,14 +1,14 @@
 // @flow
-import * as React from 'react';
-import { withRouter } from 'react-router-dom';
-import type { Location } from 'react-router-dom';
-import styled from 'styled-components';
-import breakpoint from 'styled-components-breakpoint';
-import { observer, inject } from 'mobx-react';
-import { CloseIcon, MenuIcon } from 'outline-icons';
-import Fade from 'components/Fade';
-import Flex from 'shared/components/Flex';
-import UiStore from 'stores/UiStore';
+import * as React from "react";
+import { withRouter } from "react-router-dom";
+import type { Location } from "react-router-dom";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import { observer, inject } from "mobx-react";
+import { CloseIcon, MenuIcon } from "outline-icons";
+import Fade from "components/Fade";
+import Flex from "shared/components/Flex";
+import UiStore from "stores/UiStore";
 
 let firstRender = true;
 
@@ -42,7 +42,11 @@ class Sidebar extends React.Component<Props> {
           onClick={this.toggleSidebar}
           mobileSidebarVisible={ui.mobileSidebarVisible}
         >
-          {ui.mobileSidebarVisible ? <CloseIcon /> : <MenuIcon />}
+          {ui.mobileSidebarVisible ? (
+            <CloseIcon size={32} />
+          ) : (
+            <MenuIcon size={32} />
+          )}
         </Toggle>
         {children}
       </Container>
@@ -62,12 +66,11 @@ const Container = styled(Flex)`
   position: fixed;
   top: 0;
   bottom: 0;
-  left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
   width: 100%;
   background: ${props => props.theme.sidebarBackground};
   transition: left 100ms ease-out, ${props => props.theme.backgroundTransition};
-  margin-left: ${props => (props.mobileSidebarVisible ? 0 : '-100%')};
-  z-index: 2;
+  margin-left: ${props => (props.mobileSidebarVisible ? 0 : "-100%")};
+  z-index: 1000;
 
   @media print {
     display: none;
@@ -76,7 +79,7 @@ const Container = styled(Flex)`
 
   &:before,
   &:after {
-    content: '';
+    content: "";
     background: ${props => props.theme.sidebarBackground};
     position: absolute;
     top: -50vh;
@@ -90,23 +93,27 @@ const Container = styled(Flex)`
     bottom: -50vh;
   }
 
-  ${breakpoint('tablet')`
+  ${breakpoint("tablet")`
+    left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
     width: ${props => props.theme.sidebarWidth};
     margin: 0;
+    z-index: 3;
   `};
 `;
 
 const Toggle = styled.a`
+  display: flex;
+  align-items: center;
   position: fixed;
   top: 0;
-  left: ${props => (props.mobileSidebarVisible ? 'auto' : 0)};
-  right: ${props => (props.mobileSidebarVisible ? 0 : 'auto')};
+  left: ${props => (props.mobileSidebarVisible ? "auto" : 0)};
+  right: ${props => (props.mobileSidebarVisible ? 0 : "auto")};
   z-index: 1;
   margin: 12px;
 
-  ${breakpoint('tablet')`
+  ${breakpoint("tablet")`
     display: none;
   `};
 `;
 
-export default withRouter(inject('ui')(Sidebar));
+export default withRouter(inject("ui")(Sidebar));

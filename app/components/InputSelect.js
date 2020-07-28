@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import styled from 'styled-components';
-import VisuallyHidden from 'components/VisuallyHidden';
-import { Outline, LabelText } from './Input';
+import * as React from "react";
+import { observer } from "mobx-react";
+import { observable } from "mobx";
+import styled from "styled-components";
+import VisuallyHidden from "components/VisuallyHidden";
+import { Outline, LabelText } from "./Input";
 
 const Select = styled.select`
   border: 0;

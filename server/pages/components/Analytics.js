@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from "react";
 
 function Analytics() {
   if (!process.env.GOOGLE_ANALYTICS_ID) return null;

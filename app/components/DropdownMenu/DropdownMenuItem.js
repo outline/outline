@@ -1,14 +1,22 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
+import * as React from "react";
+import { CheckmarkIcon } from "outline-icons";
+import styled from "styled-components";
 
 type Props = {
   onClick?: (SyntheticEvent<>) => void | Promise<void>,
   children?: React.Node,
+  selected?: boolean,
   disabled?: boolean,
 };
 
-const DropdownMenuItem = ({ onClick, children, disabled, ...rest }: Props) => {
+const DropdownMenuItem = ({
+  onClick,
+  children,
+  selected,
+  disabled,
+  ...rest
+}: Props) => {
   return (
     <MenuItem
       onClick={disabled ? undefined : onClick}
@@ -17,6 +25,13 @@ const DropdownMenuItem = ({ onClick, children, disabled, ...rest }: Props) => {
       tabIndex="-1"
       {...rest}
     >
+      {selected !== undefined && (
+        <React.Fragment>
+          <CheckmarkIcon
+            color={selected === false ? "transparent" : undefined}
+          />&nbsp;
+        </React.Fragment>
+      )}
       {children}
     </MenuItem>
   );
@@ -26,6 +41,7 @@ const MenuItem = styled.a`
   display: flex;
   margin: 0;
   padding: 6px 12px;
+  width: 100%;
   height: 32px;
 
   color: ${props =>
@@ -41,12 +57,12 @@ const MenuItem = styled.a`
   }
 
   svg {
-    opacity: ${props => (props.disabled ? '.5' : 1)};
+    opacity: ${props => (props.disabled ? ".5" : 1)};
   }
 
   ${props =>
     props.disabled
-      ? 'pointer-events: none;'
+      ? "pointer-events: none;"
       : `
 
   &:hover {
@@ -58,6 +74,12 @@ const MenuItem = styled.a`
     svg {
       fill: ${props.theme.white};
     }
+  }
+
+  &:focus {
+    color: ${props.theme.white};
+    background: ${props.theme.primary};
+    outline: none;
   }
   `};
 `;

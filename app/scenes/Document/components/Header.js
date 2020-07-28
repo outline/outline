@@ -1,33 +1,36 @@
 // @flow
-import * as React from 'react';
-import { throttle } from 'lodash';
-import { observable } from 'mobx';
-import { observer, inject } from 'mobx-react';
-import { Redirect } from 'react-router-dom';
-import styled from 'styled-components';
-import breakpoint from 'styled-components-breakpoint';
-import { EditIcon, PlusIcon } from 'outline-icons';
-import { transparentize, darken } from 'polished';
-import Document from 'models/Document';
-import AuthStore from 'stores/AuthStore';
-import { documentEditUrl } from 'utils/routeHelpers';
-import { meta } from 'utils/keyboard';
+import * as React from "react";
+import { throttle } from "lodash";
+import { observable } from "mobx";
+import { observer, inject } from "mobx-react";
+import { Redirect } from "react-router-dom";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import { TableOfContentsIcon, EditIcon, PlusIcon } from "outline-icons";
+import { transparentize, darken } from "polished";
+import Document from "models/Document";
+import AuthStore from "stores/AuthStore";
+import { documentEditUrl } from "utils/routeHelpers";
+import { meta } from "utils/keyboard";
 
-import Flex from 'shared/components/Flex';
-import Breadcrumb from 'shared/components/Breadcrumb';
-import DocumentMenu from 'menus/DocumentMenu';
-import NewChildDocumentMenu from 'menus/NewChildDocumentMenu';
-import DocumentShare from 'scenes/DocumentShare';
-import Button from 'components/Button';
-import Tooltip from 'components/Tooltip';
-import Modal from 'components/Modal';
-import Fade from 'components/Fade';
-import Badge from 'components/Badge';
-import Collaborators from 'components/Collaborators';
-import { Action, Separator } from 'components/Actions';
-import PoliciesStore from 'stores/PoliciesStore';
+import Flex from "shared/components/Flex";
+import Breadcrumb, { Slash } from "shared/components/Breadcrumb";
+import DocumentMenu from "menus/DocumentMenu";
+import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
+import DocumentShare from "scenes/DocumentShare";
+import Button from "components/Button";
+import Tooltip from "components/Tooltip";
+import Modal from "components/Modal";
+import Fade from "components/Fade";
+import Badge from "components/Badge";
+import Collaborators from "components/Collaborators";
+import { Action, Separator } from "components/Actions";
+import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
 
 type Props = {
+  auth: AuthStore,
+  ui: UiStore,
   policies: PoliciesStore,
   document: Document,
   isDraft: boolean,
@@ -43,7 +46,6 @@ type Props = {
     publish?: boolean,
     autosave?: boolean,
   }) => void,
-  auth: AuthStore,
 };
 
 @observer
@@ -53,11 +55,11 @@ class Header extends React.Component<Props> {
   @observable redirectTo: ?string;
 
   componentDidMount() {
-    window.addEventListener('scroll', this.handleScroll);
+    window.addEventListener("scroll", this.handleScroll);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('scroll', this.handleScroll);
+    window.removeEventListener("scroll", this.handleScroll);
   }
 
   updateIsScrolled = () => {
@@ -80,7 +82,9 @@ class Header extends React.Component<Props> {
 
   handleShareLink = async (ev: SyntheticEvent<>) => {
     const { document } = this.props;
-    if (!document.shareUrl) await document.share();
+    if (!document.shareUrl) {
+      await document.share();
+    }
     this.showShareModal = true;
   };
 
@@ -91,7 +95,7 @@ class Header extends React.Component<Props> {
   handleClickTitle = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   };
 
@@ -108,6 +112,7 @@ class Header extends React.Component<Props> {
       isSaving,
       savingIsDisabled,
       publishingIsDisabled,
+      ui,
       auth,
     } = this.props;
 
@@ -134,7 +139,33 @@ class Header extends React.Component<Props> {
             onSubmit={this.handleCloseShareModal}
           />
         </Modal>
-        <Breadcrumb document={document} />
+        <BreadcrumbAndContents align="center" justify="flex-start">
+          <Breadcrumb document={document} />
+          {!isEditing && (
+            <React.Fragment>
+              <Slash />
+              <Tooltip
+                tooltip={ui.tocVisible ? "Hide contents" : "Show contents"}
+                shortcut={`ctrl+${meta}+h`}
+                delay={250}
+                placement="bottom"
+              >
+                <Button
+                  onClick={
+                    ui.tocVisible
+                      ? ui.hideTableOfContents
+                      : ui.showTableOfContents
+                  }
+                  icon={<TableOfContentsIcon />}
+                  iconColor="currentColor"
+                  borderOnHover
+                  neutral
+                  small
+                />
+              </Tooltip>
+            </React.Fragment>
+          )}
+        </BreadcrumbAndContents>
         {this.isScrolled && (
           <Title onClick={this.handleClickTitle}>
             <Fade>
@@ -143,13 +174,17 @@ class Header extends React.Component<Props> {
           </Title>
         )}
         <Wrapper align="center" justify="flex-end">
-          {!isDraft && !isEditing && <Collaborators document={document} />}
           {isSaving &&
             !isPublishing && (
               <Action>
                 <Status>Saving…</Status>
               </Action>
             )}
+          &nbsp;
+          <Collaborators
+            document={document}
+            currentUserId={auth.user ? auth.user.id : undefined}
+          />
           {!isDraft &&
             !isEditing &&
             canShareDocuments && (
@@ -180,14 +215,15 @@ class Header extends React.Component<Props> {
                     neutral={isDraft}
                     small
                   >
-                    {isDraft ? 'Save Draft' : 'Done Editing'}
+                    {isDraft ? "Save Draft" : "Done Editing"}
                   </Button>
                 </Tooltip>
               </Action>
             </React.Fragment>
           )}
           {can.update &&
-            isDraft && (
+            isDraft &&
+            !isRevision && (
               <Action>
                 <Tooltip
                   tooltip="Publish"
@@ -201,7 +237,7 @@ class Header extends React.Component<Props> {
                     disabled={publishingIsDisabled}
                     small
                   >
-                    {isPublishing ? 'Publishing…' : 'Publish'}
+                    {isPublishing ? "Publishing…" : "Publish"}
                   </Button>
                 </Tooltip>
               </Action>
@@ -226,7 +262,7 @@ class Header extends React.Component<Props> {
             </Action>
           )}
           {canEdit &&
-            !isDraft && (
+            can.createChildDocument && (
               <Action>
                 <NewChildDocumentMenu
                   document={document}
@@ -245,7 +281,6 @@ class Header extends React.Component<Props> {
                 />
               </Action>
             )}
-
           {!isEditing && (
             <React.Fragment>
               <Separator />
@@ -269,12 +304,21 @@ const Status = styled.div`
   color: ${props => props.theme.slate};
 `;
 
+const BreadcrumbAndContents = styled(Flex)`
+  display: none;
+
+  ${breakpoint("tablet")`	
+    display: flex;
+    width: 33.3%;
+  `};
+`;
+
 const Wrapper = styled(Flex)`
   width: 100%;
   align-self: flex-end;
   height: 32px;
 
-  ${breakpoint('tablet')`	
+  ${breakpoint("tablet")`	
     width: 33.3%;
   `};
 `;
@@ -284,24 +328,24 @@ const Actions = styled(Flex)`
   top: 0;
   right: 0;
   left: 0;
-  z-index: 1;
-  background: ${props => transparentize(0.1, props.theme.background)};
-  border-bottom: 1px solid
+  z-index: 2;
+  background: ${props => transparentize(0.2, props.theme.background)};
+  box-shadow: 0 1px 0
     ${props =>
       props.isCompact
         ? darken(0.05, props.theme.sidebarBackground)
-        : 'transparent'};
+        : "transparent"};
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
 
   @media print {
     display: none;
   }
 
-  ${breakpoint('tablet')`
-    padding: ${props => (props.isCompact ? '12px' : `24px 24px 0`)};
+  ${breakpoint("tablet")`
+    padding: ${props => (props.isCompact ? "12px" : `24px 24px 0`)};
   `};
 `;
 
@@ -317,10 +361,10 @@ const Title = styled.div`
   display: none;
   width: 0;
 
-  ${breakpoint('tablet')`	
+  ${breakpoint("tablet")`	
     display: flex;
     flex-grow: 1;
   `};
 `;
 
-export default inject('auth', 'policies')(Header);
+export default inject("auth", "ui", "policies")(Header);

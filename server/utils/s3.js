@@ -1,65 +1,77 @@
 // @flow
-import crypto from 'crypto';
-import addHours from 'date-fns/add_hours';
-import format from 'date-fns/format';
-import AWS from 'aws-sdk';
-import invariant from 'invariant';
-import fetch from 'isomorphic-fetch';
-import bugsnag from 'bugsnag';
+import crypto from "crypto";
+import addHours from "date-fns/add_hours";
+import format from "date-fns/format";
+import AWS from "aws-sdk";
+import invariant from "invariant";
+import fetch from "isomorphic-fetch";
+import * as Sentry from "@sentry/node";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 
+const s3 = new AWS.S3({
+  s3ForcePathStyle: true,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
+  signatureVersion: "v4",
+});
+
 const hmac = (key: string, message: string, encoding: any) => {
   return crypto
-    .createHmac('sha256', key)
-    .update(message, 'utf8')
+    .createHmac("sha256", key)
+    .update(message, "utf8")
     .digest(encoding);
 };
 
 export const makeCredential = () => {
   const credential =
     AWS_ACCESS_KEY_ID +
-    '/' +
-    format(new Date(), 'YYYYMMDD') +
-    '/' +
+    "/" +
+    format(new Date(), "YYYYMMDD") +
+    "/" +
     AWS_REGION +
-    '/s3/aws4_request';
+    "/s3/aws4_request";
   return credential;
 };
 
-export const makePolicy = (credential: string, longDate: string) => {
+export const makePolicy = (
+  credential: string,
+  longDate: string,
+  acl: string
+) => {
   const tomorrow = addHours(new Date(), 24);
   const policy = {
     conditions: [
       { bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME },
-      ['starts-with', '$key', ''],
-      { acl: 'public-read' },
-      ['content-length-range', 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
-      ['starts-with', '$Content-Type', 'image'],
-      ['starts-with', '$Cache-Control', ''],
-      { 'x-amz-algorithm': 'AWS4-HMAC-SHA256' },
-      { 'x-amz-credential': credential },
-      { 'x-amz-date': longDate },
+      ["starts-with", "$key", ""],
+      { acl },
+      ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
+      ["starts-with", "$Content-Type", "image"],
+      ["starts-with", "$Cache-Control", ""],
+      { "x-amz-algorithm": "AWS4-HMAC-SHA256" },
+      { "x-amz-credential": credential },
+      { "x-amz-date": longDate },
     ],
-    expiration: format(tomorrow, 'YYYY-MM-DDTHH:mm:ss\\Z'),
+    expiration: format(tomorrow, "YYYY-MM-DDTHH:mm:ss\\Z"),
   };
 
-  return new Buffer(JSON.stringify(policy)).toString('base64');
+  return new Buffer(JSON.stringify(policy)).toString("base64");
 };
 
 export const getSignature = (policy: any) => {
   const kDate = hmac(
-    'AWS4' + AWS_SECRET_ACCESS_KEY,
-    format(new Date(), 'YYYYMMDD')
+    "AWS4" + AWS_SECRET_ACCESS_KEY,
+    format(new Date(), "YYYYMMDD")
   );
   const kRegion = hmac(kDate, AWS_REGION);
-  const kService = hmac(kRegion, 's3');
-  const kCredentials = hmac(kService, 'aws4_request');
+  const kService = hmac(kRegion, "s3");
+  const kCredentials = hmac(kService, "aws4_request");
 
-  const signature = hmac(kCredentials, policy, 'hex');
+  const signature = hmac(kCredentials, policy, "hex");
   return signature;
 };
 
@@ -68,23 +80,21 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   // for access outside of docker containers in local development
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
   const host = process.env.AWS_S3_UPLOAD_BUCKET_URL.replace(
-    's3:',
-    'localhost:'
-  ).replace(/\/$/, '');
+    "s3:",
+    "localhost:"
+  ).replace(/\/$/, "");
 
-  return `${host}/${isServerUpload && isDocker ? 's3/' : ''}${
+  return `${host}/${isServerUpload && isDocker ? "s3/" : ""}${
     process.env.AWS_S3_UPLOAD_BUCKET_NAME
   }`;
 };
 
-export const uploadToS3FromUrl = async (url: string, key: string) => {
-  const s3 = new AWS.S3({
-    s3ForcePathStyle: true,
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
-  });
-  invariant(AWS_S3_UPLOAD_BUCKET_NAME, 'AWS_S3_UPLOAD_BUCKET_NAME not set');
+export const uploadToS3FromUrl = async (
+  url: string,
+  key: string,
+  acl: string
+) => {
+  invariant(AWS_S3_UPLOAD_BUCKET_NAME, "AWS_S3_UPLOAD_BUCKET_NAME not set");
 
   try {
     // $FlowIssue https://github.com/facebook/flow/issues/2171
@@ -92,12 +102,12 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
     const buffer = await res.buffer();
     await s3
       .putObject({
-        ACL: 'public-read',
+        ACL: acl,
         Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
         Key: key,
-        ContentType: res.headers['content-type'],
-        ContentLength: res.headers['content-length'],
-        ServerSideEncryption: 'AES256',
+        ContentType: res.headers["content-type"],
+        ContentLength: res.headers["content-length"],
+        ServerSideEncryption: "AES256",
         Body: buffer,
       })
       .promise();
@@ -105,8 +115,50 @@ export const uploadToS3FromUrl = async (url: string, key: string) => {
     const endpoint = publicS3Endpoint(true);
     return `${endpoint}/${key}`;
   } catch (err) {
-    if (process.env.NODE_ENV === 'production') {
-      bugsnag.notify(err);
+    if (process.env.SENTRY_DSN) {
+      Sentry.captureException(err);
+    } else {
+      throw err;
+    }
+  }
+};
+
+export const deleteFromS3 = (key: string) => {
+  return s3
+    .deleteObject({
+      Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+      Key: key,
+    })
+    .promise();
+};
+
+export const getSignedImageUrl = async (key: string) => {
+  invariant(AWS_S3_UPLOAD_BUCKET_NAME, "AWS_S3_UPLOAD_BUCKET_NAME not set");
+  const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
+
+  const params = {
+    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Key: key,
+    Expires: 60,
+  };
+
+  return isDocker
+    ? `${publicS3Endpoint()}/${key}`
+    : s3.getSignedUrl("getObject", params);
+};
+
+export const getImageByKey = async (key: string) => {
+  const params = {
+    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Key: key,
+  };
+
+  try {
+    const data = await s3.getObject(params).promise();
+    return data.Body;
+  } catch (err) {
+    if (process.env.SENTRY_DSN) {
+      Sentry.captureException(err);
     } else {
       throw err;
     }

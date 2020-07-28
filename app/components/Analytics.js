@@ -1,6 +1,6 @@
 // @flow
 /* global ga */
-import * as React from 'react';
+import * as React from "react";
 
 type Props = {
   children?: React.Node,
@@ -20,12 +20,12 @@ export default class Analytics extends React.Component<Props> {
 
     // $FlowIssue
     ga.l = +new Date();
-    ga('create', process.env.GOOGLE_ANALYTICS_ID, 'auto');
-    ga('set', { dimension1: 'true' });
-    ga('send', 'pageview');
+    ga("create", process.env.GOOGLE_ANALYTICS_ID, "auto");
+    ga("set", { dimension1: "true" });
+    ga("send", "pageview");
 
-    const script = document.createElement('script');
-    script.src = 'https://www.google-analytics.com/analytics.js';
+    const script = document.createElement("script");
+    script.src = "https://www.google-analytics.com/analytics.js";
     script.async = true;
 
     if (document.body) {

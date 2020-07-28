@@ -1,6 +1,6 @@
 // @flow
-import styled from 'styled-components';
-import Flex from 'shared/components/Flex';
+import styled from "styled-components";
+import Flex from "shared/components/Flex";
 
 const Section = styled(Flex)`
   position: relative;

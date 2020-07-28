@@ -1,43 +1,43 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import TestServer from 'fetch-test-server';
-import app from '../app';
-import { Authentication } from '../models';
-import { flushdb, seed } from '../test/support';
-import { buildDocument } from '../test/factories';
-import * as Slack from '../slack';
+import TestServer from "fetch-test-server";
+import app from "../app";
+import { Authentication } from "../models";
+import { flushdb, seed } from "../test/support";
+import { buildDocument } from "../test/factories";
+import * as Slack from "../slack";
 
 const server = new TestServer(app.callback());
 
 beforeEach(flushdb);
 afterAll(server.close);
 
-jest.mock('../slack', () => ({
+jest.mock("../slack", () => ({
   post: jest.fn(),
 }));
 
-describe('#hooks.unfurl', async () => {
-  it('should return documents', async () => {
+describe("#hooks.unfurl", async () => {
+  it("should return documents", async () => {
     const { user, document } = await seed();
     await Authentication.create({
-      service: 'slack',
+      service: "slack",
       userId: user.id,
       teamId: user.teamId,
-      token: '',
+      token: "",
     });
 
-    const res = await server.post('/api/hooks.unfurl', {
+    const res = await server.post("/api/hooks.unfurl", {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
-        team_id: 'TXXXXXXXX',
-        api_app_id: 'AXXXXXXXXX',
+        team_id: "TXXXXXXXX",
+        api_app_id: "AXXXXXXXXX",
         event: {
-          type: 'link_shared',
-          channel: 'Cxxxxxx',
+          type: "link_shared",
+          channel: "Cxxxxxx",
           user: user.serviceId,
-          message_ts: '123456789.9875',
+          message_ts: "123456789.9875",
           links: [
             {
-              domain: 'getoutline.com',
+              domain: "getoutline.com",
               url: document.url,
             },
           ],
@@ -49,16 +49,16 @@ describe('#hooks.unfurl', async () => {
   });
 });
 
-describe('#hooks.slack', async () => {
-  it('should return no matches', async () => {
+describe("#hooks.slack", async () => {
+  it("should return no matches", async () => {
     const { user, team } = await seed();
 
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post("/api/hooks.slack", {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
         user_id: user.serviceId,
         team_id: team.slackId,
-        text: 'dsfkndfskndsfkn',
+        text: "dsfkndfskndsfkn",
       },
     });
     const body = await res.json();
@@ -66,19 +66,19 @@ describe('#hooks.slack', async () => {
     expect(body.attachments).toEqual(undefined);
   });
 
-  it('should return search results with summary if query is in title', async () => {
+  it("should return search results with summary if query is in title", async () => {
     const { user, team } = await seed();
     const document = await buildDocument({
-      title: 'This title contains a search term',
+      title: "This title contains a search term",
       userId: user.id,
       teamId: user.teamId,
     });
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post("/api/hooks.slack", {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
         user_id: user.serviceId,
         team_id: team.slackId,
-        text: 'contains',
+        text: "contains",
       },
     });
     const body = await res.json();
@@ -88,19 +88,19 @@ describe('#hooks.slack', async () => {
     expect(body.attachments[0].text).toEqual(document.getSummary());
   });
 
-  it('should return search results if query is regex-like', async () => {
+  it("should return search results if query is regex-like", async () => {
     const { user, team } = await seed();
     await buildDocument({
-      title: 'This title contains a search term',
+      title: "This title contains a search term",
       userId: user.id,
       teamId: user.teamId,
     });
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post("/api/hooks.slack", {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
         user_id: user.serviceId,
         team_id: team.slackId,
-        text: '*contains',
+        text: "*contains",
       },
     });
     const body = await res.json();
@@ -108,19 +108,19 @@ describe('#hooks.slack', async () => {
     expect(body.attachments.length).toEqual(1);
   });
 
-  it('should return search results with snippet if query is in text', async () => {
+  it("should return search results with snippet if query is in text", async () => {
     const { user, team } = await seed();
     const document = await buildDocument({
-      text: 'This title contains a search term',
+      text: "This title contains a search term",
       userId: user.id,
       teamId: user.teamId,
     });
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post("/api/hooks.slack", {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
         user_id: user.serviceId,
         team_id: team.slackId,
-        text: 'contains',
+        text: "contains",
       },
     });
     const body = await res.json();
@@ -128,62 +128,62 @@ describe('#hooks.slack', async () => {
     expect(body.attachments.length).toEqual(1);
     expect(body.attachments[0].title).toEqual(document.title);
     expect(body.attachments[0].text).toEqual(
-      'This title *contains* a search term'
+      "This title *contains* a search term"
     );
   });
 
-  it('should respond with help content for help keyword', async () => {
+  it("should respond with help content for help keyword", async () => {
     const { user, team } = await seed();
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post("/api/hooks.slack", {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
         user_id: user.serviceId,
         team_id: team.slackId,
-        text: 'help',
+        text: "help",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.text.includes('How to use')).toEqual(true);
+    expect(body.text.includes("How to use")).toEqual(true);
   });
 
-  it('should respond with help content for no keyword', async () => {
+  it("should respond with help content for no keyword", async () => {
     const { user, team } = await seed();
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post("/api/hooks.slack", {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
         user_id: user.serviceId,
         team_id: team.slackId,
-        text: '',
+        text: "",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.text.includes('How to use')).toEqual(true);
+    expect(body.text.includes("How to use")).toEqual(true);
   });
 
-  it('should return search results with snippet for unknown user', async () => {
+  it("should return search results with snippet for unknown user", async () => {
     const { user, team } = await seed();
 
     // unpublished document will not be returned
     await buildDocument({
-      text: 'This title contains a search term',
+      text: "This title contains a search term",
       userId: user.id,
       teamId: user.teamId,
       publishedAt: null,
     });
 
     const document = await buildDocument({
-      text: 'This title contains a search term',
+      text: "This title contains a search term",
       userId: user.id,
       teamId: user.teamId,
     });
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post("/api/hooks.slack", {
       body: {
         token: process.env.SLACK_VERIFICATION_TOKEN,
-        user_id: 'unknown-slack-user-id',
+        user_id: "unknown-slack-user-id",
         team_id: team.slackId,
-        text: 'contains',
+        text: "contains",
       },
     });
     const body = await res.json();
@@ -191,30 +191,30 @@ describe('#hooks.slack', async () => {
     expect(body.attachments.length).toEqual(1);
     expect(body.attachments[0].title).toEqual(document.title);
     expect(body.attachments[0].text).toEqual(
-      'This title *contains* a search term'
+      "This title *contains* a search term"
     );
   });
 
-  it('should error if incorrect verification token', async () => {
+  it("should error if incorrect verification token", async () => {
     const { user, team } = await seed();
 
-    const res = await server.post('/api/hooks.slack', {
+    const res = await server.post("/api/hooks.slack", {
       body: {
-        token: 'wrong-verification-token',
+        token: "wrong-verification-token",
         team_id: team.slackId,
         user_id: user.serviceId,
-        text: 'Welcome',
+        text: "Welcome",
       },
     });
     expect(res.status).toEqual(401);
   });
 });
 
-describe('#hooks.interactive', async () => {
-  it('should respond with replacement message', async () => {
+describe("#hooks.interactive", async () => {
+  it("should respond with replacement message", async () => {
     const { user, team } = await seed();
     const document = await buildDocument({
-      title: 'This title contains a search term',
+      title: "This title contains a search term",
       userId: user.id,
       teamId: user.teamId,
     });
@@ -225,48 +225,48 @@ describe('#hooks.interactive', async () => {
       team: { id: team.slackId },
       callback_id: document.id,
     });
-    const res = await server.post('/api/hooks.interactive', {
+    const res = await server.post("/api/hooks.interactive", {
       body: { payload },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.response_type).toEqual('in_channel');
+    expect(body.response_type).toEqual("in_channel");
     expect(body.attachments.length).toEqual(1);
     expect(body.attachments[0].title).toEqual(document.title);
   });
 
-  it('should respond with replacement message if unknown user', async () => {
+  it("should respond with replacement message if unknown user", async () => {
     const { user, team } = await seed();
     const document = await buildDocument({
-      title: 'This title contains a search term',
+      title: "This title contains a search term",
       userId: user.id,
       teamId: user.teamId,
     });
 
     const payload = JSON.stringify({
       token: process.env.SLACK_VERIFICATION_TOKEN,
-      user: { id: 'unknown-slack-user-id' },
+      user: { id: "unknown-slack-user-id" },
       team: { id: team.slackId },
       callback_id: document.id,
     });
-    const res = await server.post('/api/hooks.interactive', {
+    const res = await server.post("/api/hooks.interactive", {
       body: { payload },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.response_type).toEqual('in_channel');
+    expect(body.response_type).toEqual("in_channel");
     expect(body.attachments.length).toEqual(1);
     expect(body.attachments[0].title).toEqual(document.title);
   });
 
-  it('should error if incorrect verification token', async () => {
+  it("should error if incorrect verification token", async () => {
     const { user } = await seed();
     const payload = JSON.stringify({
-      token: 'wrong-verification-token',
+      token: "wrong-verification-token",
       user: { id: user.serviceId, name: user.name },
-      callback_id: 'doesnt-matter',
+      callback_id: "doesnt-matter",
     });
-    const res = await server.post('/api/hooks.interactive', {
+    const res = await server.post("/api/hooks.interactive", {
       body: { payload },
     });
     expect(res.status).toEqual(401);

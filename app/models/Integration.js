@@ -1,8 +1,8 @@
 // @flow
-import { extendObservable, action } from 'mobx';
+import { extendObservable, action } from "mobx";
 
-import BaseModel from 'models/BaseModel';
-import { client } from 'utils/ApiClient';
+import BaseModel from "models/BaseModel";
+import { client } from "utils/ApiClient";
 
 type Settings = {
   url: string,
@@ -10,7 +10,7 @@ type Settings = {
   channelId: string,
 };
 
-type Events = 'documents.create' | 'collections.create';
+type Events = "documents.create" | "collections.create";
 
 class Integration extends BaseModel {
   id: string;
@@ -21,7 +21,7 @@ class Integration extends BaseModel {
 
   @action
   update = async (data: Object) => {
-    await client.post('/integrations.update', { id: this.id, ...data });
+    await client.post("/integrations.update", { id: this.id, ...data });
     extendObservable(this, data);
     return true;
   };

@@ -1,14 +1,14 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import documentMover from '../commands/documentMover';
-import { flushdb, seed } from '../test/support';
-import { buildDocument, buildCollection } from '../test/factories';
+import documentMover from "../commands/documentMover";
+import { flushdb, seed } from "../test/support";
+import { buildDocument, buildCollection } from "../test/factories";
 
 beforeEach(flushdb);
 
-describe('documentMover', async () => {
-  const ip = '127.0.0.1';
+describe("documentMover", async () => {
+  const ip = "127.0.0.1";
 
-  it('should move within a collection', async () => {
+  it("should move within a collection", async () => {
     const { document, user, collection } = await seed();
 
     const response = await documentMover({
@@ -22,15 +22,15 @@ describe('documentMover', async () => {
     expect(response.documents.length).toEqual(1);
   });
 
-  it('should move with children', async () => {
+  it("should move with children", async () => {
     const { document, user, collection } = await seed();
     const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
       teamId: collection.teamId,
       userId: collection.creatorId,
-      title: 'Child document',
-      text: 'content',
+      title: "Child document",
+      text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
 
@@ -50,7 +50,7 @@ describe('documentMover', async () => {
     expect(response.documents.length).toEqual(1);
   });
 
-  it('should move with children to another collection', async () => {
+  it("should move with children to another collection", async () => {
     const { document, user, collection } = await seed();
     const newCollection = await buildCollection({
       teamId: collection.teamId,
@@ -60,8 +60,8 @@ describe('documentMover', async () => {
       collectionId: collection.id,
       teamId: collection.teamId,
       userId: collection.creatorId,
-      title: 'Child document',
-      text: 'content',
+      title: "Child document",
+      text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
 

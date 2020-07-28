@@ -1,15 +1,26 @@
 // @flow
-import fs from 'fs';
-import JSZip from 'jszip';
-import tmp from 'tmp';
-import unescape from '../../shared/utils/unescape';
-import { Collection, Document } from '../models';
+import fs from "fs";
+import JSZip from "jszip";
+import tmp from "tmp";
+import * as Sentry from "@sentry/node";
+import { Attachment, Collection, Document } from "../models";
+import { getImageByKey } from "./s3";
 
 async function addToArchive(zip, documents) {
   for (const doc of documents) {
     const document = await Document.findByPk(doc.id);
+    let text = document.toMarkdown();
 
-    zip.file(`${document.title}.md`, unescape(document.text));
+    const attachments = await Attachment.findAll({
+      where: { documentId: document.id },
+    });
+
+    for (const attachment of attachments) {
+      await addImageToArchive(zip, attachment.key);
+      text = text.replace(attachment.redirectUrl, encodeURI(attachment.key));
+    }
+
+    zip.file(`${document.title || "Untitled"}.md`, text);
 
     if (doc.children && doc.children.length) {
       const folder = zip.folder(document.title);
@@ -18,16 +29,29 @@ async function addToArchive(zip, documents) {
   }
 }
 
+async function addImageToArchive(zip, key) {
+  try {
+    const img = await getImageByKey(key);
+    zip.file(key, img, { createFolders: true });
+  } catch (err) {
+    if (process.env.SENTRY_DSN) {
+      Sentry.captureException(err);
+    }
+    // error during file retrieval
+    console.error(err);
+  }
+}
+
 async function archiveToPath(zip) {
   return new Promise((resolve, reject) => {
-    tmp.file({ prefix: 'export-', postfix: '.zip' }, (err, path) => {
+    tmp.file({ prefix: "export-", postfix: ".zip" }, (err, path) => {
       if (err) return reject(err);
 
       zip
-        .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
+        .generateNodeStream({ type: "nodebuffer", streamFiles: true })
         .pipe(fs.createWriteStream(path))
-        .on('finish', () => resolve(path))
-        .on('error', reject);
+        .on("finish", () => resolve(path))
+        .on("error", reject);
     });
   });
 }

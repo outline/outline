@@ -1,42 +1,43 @@
 // @flow
-import slug from 'slug';
-import { map, find, compact, uniq } from 'lodash';
-import randomstring from 'randomstring';
-import MarkdownSerializer from 'slate-md-serializer';
-import Plain from 'slate-plain-serializer';
-import Sequelize, { type Transaction } from 'sequelize';
-import removeMarkdown from '@tommoor/remove-markdown';
+import { map, find, compact, uniq } from "lodash";
+import MarkdownSerializer from "slate-md-serializer";
+import randomstring from "randomstring";
+import Sequelize, { type Transaction } from "sequelize";
+import removeMarkdown from "@tommoor/remove-markdown";
 
-import isUUID from 'validator/lib/isUUID';
-import { Collection, User } from '../models';
-import { DataTypes, sequelize } from '../sequelize';
-import parseTitle from '../../shared/utils/parseTitle';
-import unescape from '../../shared/utils/unescape';
-import Revision from './Revision';
+import isUUID from "validator/lib/isUUID";
+import { Collection, User } from "../models";
+import { DataTypes, sequelize } from "../sequelize";
+import parseTitle from "../../shared/utils/parseTitle";
+import unescape from "../../shared/utils/unescape";
+import slugify from "../utils/slugify";
+import Revision from "./Revision";
 
 const Op = Sequelize.Op;
-const Markdown = new MarkdownSerializer();
-const URL_REGEX = /^[a-zA-Z0-9-]*-([a-zA-Z0-9]{10,15})$/;
-const DEFAULT_TITLE = 'Untitled';
+const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
+const serializer = new MarkdownSerializer();
 
-slug.defaults.mode = 'rfc3986';
-const slugify = text =>
-  slug(text, {
-    remove: /[.]/g,
-  });
+export const DOCUMENT_VERSION = 2;
 
 const createRevision = (doc, options = {}) => {
   // we don't create revisions for autosaves
   if (options.autosave) return;
 
   // we don't create revisions if identical to previous
-  if (doc.text === doc.previous('text')) return;
+  if (
+    doc.text === doc.previous("text") &&
+    doc.title === doc.previous("title")
+  ) {
+    return;
+  }
 
   return Revision.create(
     {
       title: doc.title,
       text: doc.text,
       userId: doc.lastModifiedById,
+      editorVersion: doc.editorVersion,
+      version: doc.version,
       documentId: doc.id,
     },
     {
@@ -49,16 +50,21 @@ const createUrlId = doc => {
   return (doc.urlId = doc.urlId || randomstring.generate(10));
 };
 
+const beforeCreate = async doc => {
+  if (doc.version === undefined) {
+    doc.version = DOCUMENT_VERSION;
+  }
+  return beforeSave(doc);
+};
+
 const beforeSave = async doc => {
-  const { emoji, title } = parseTitle(doc.text);
+  const { emoji } = parseTitle(doc.text);
 
   // emoji in the title is split out for easier display
   doc.emoji = emoji;
 
   // ensure documents have a title
-  if (!title) {
-    doc.title = DEFAULT_TITLE;
-  }
+  doc.title = doc.title || "";
 
   // add the current user as a collaborator on this doc
   if (!doc.collaboratorIds) doc.collaboratorIds = [];
@@ -71,7 +77,7 @@ const beforeSave = async doc => {
 };
 
 const Document = sequelize.define(
-  'document',
+  "document",
   {
     id: {
       type: DataTypes.UUID,
@@ -87,11 +93,18 @@ const Document = sequelize.define(
       validate: {
         len: {
           args: [0, 100],
-          msg: 'Document title must be less than 100 characters',
+          msg: "Document title must be less than 100 characters",
         },
       },
     },
+    version: DataTypes.SMALLINT,
+    editorVersion: DataTypes.STRING,
     text: DataTypes.TEXT,
+
+    // backup contains a record of text at the moment it was converted to v2
+    // this is a safety measure during deployment of new editor and will be
+    // dropped in a future update
+    backup: DataTypes.TEXT,
     isWelcome: { type: DataTypes.BOOLEAN, defaultValue: false },
     revisionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     archivedAt: DataTypes.DATE,
@@ -103,7 +116,7 @@ const Document = sequelize.define(
     paranoid: true,
     hooks: {
       beforeValidate: createUrlId,
-      beforeCreate: beforeSave,
+      beforeCreate: beforeCreate,
       beforeUpdate: beforeSave,
       afterCreate: createRevision,
       afterUpdate: createRevision,
@@ -121,43 +134,45 @@ const Document = sequelize.define(
 
 Document.associate = models => {
   Document.belongsTo(models.Collection, {
-    as: 'collection',
-    foreignKey: 'collectionId',
-    onDelete: 'cascade',
+    as: "collection",
+    foreignKey: "collectionId",
+    onDelete: "cascade",
   });
   Document.belongsTo(models.Team, {
-    as: 'team',
-    foreignKey: 'teamId',
+    as: "team",
+    foreignKey: "teamId",
   });
   Document.belongsTo(models.User, {
-    as: 'createdBy',
-    foreignKey: 'createdById',
+    as: "createdBy",
+    foreignKey: "createdById",
   });
   Document.belongsTo(models.User, {
-    as: 'updatedBy',
-    foreignKey: 'lastModifiedById',
+    as: "updatedBy",
+    foreignKey: "lastModifiedById",
   });
   Document.belongsTo(models.User, {
-    as: 'pinnedBy',
-    foreignKey: 'pinnedById',
+    as: "pinnedBy",
+    foreignKey: "pinnedById",
   });
   Document.hasMany(models.Revision, {
-    as: 'revisions',
-    onDelete: 'cascade',
+    as: "revisions",
+    onDelete: "cascade",
   });
   Document.hasMany(models.Backlink, {
-    as: 'backlinks',
+    as: "backlinks",
+    onDelete: "cascade",
   });
   Document.hasMany(models.Star, {
-    as: 'starred',
+    as: "starred",
+    onDelete: "cascade",
   });
   Document.hasMany(models.View, {
-    as: 'views',
+    as: "views",
   });
-  Document.addScope('defaultScope', {
+  Document.addScope("defaultScope", {
     include: [
-      { model: models.User, as: 'createdBy', paranoid: false },
-      { model: models.User, as: 'updatedBy', paranoid: false },
+      { model: models.User, as: "createdBy", paranoid: false },
+      { model: models.User, as: "updatedBy", paranoid: false },
     ],
     where: {
       publishedAt: {
@@ -165,44 +180,38 @@ Document.associate = models => {
       },
     },
   });
-  Document.addScope('withCollection', userId => {
+  Document.addScope("withCollection", userId => {
     if (userId) {
       return {
         include: [
           {
-            model: models.Collection,
-            as: 'collection',
-            include: [
-              {
-                model: models.CollectionUser,
-                as: 'memberships',
-                where: { userId },
-                required: false,
-              },
-            ],
+            model: models.Collection.scope({
+              method: ["withMembership", userId],
+            }),
+            as: "collection",
           },
         ],
       };
     }
 
     return {
-      include: [{ model: models.Collection, as: 'collection' }],
+      include: [{ model: models.Collection, as: "collection" }],
     };
   });
-  Document.addScope('withUnpublished', {
+  Document.addScope("withUnpublished", {
     include: [
-      { model: models.User, as: 'createdBy', paranoid: false },
-      { model: models.User, as: 'updatedBy', paranoid: false },
+      { model: models.User, as: "createdBy", paranoid: false },
+      { model: models.User, as: "updatedBy", paranoid: false },
     ],
   });
-  Document.addScope('withViews', userId => ({
+  Document.addScope("withViews", userId => ({
     include: [
-      { model: models.View, as: 'views', where: { userId }, required: false },
+      { model: models.View, as: "views", where: { userId }, required: false },
     ],
   }));
-  Document.addScope('withStarred', userId => ({
+  Document.addScope("withStarred", userId => ({
     include: [
-      { model: models.Star, as: 'starred', where: { userId }, required: false },
+      { model: models.Star, as: "starred", where: { userId }, required: false },
     ],
   }));
 };
@@ -210,8 +219,8 @@ Document.associate = models => {
 Document.findByPk = async function(id, options = {}) {
   // allow default preloading of collection membership if `userId` is passed in find options
   // almost every endpoint needs the collection membership to determine policy permissions.
-  const scope = this.scope('withUnpublished', {
-    method: ['withCollection', options.userId],
+  const scope = this.scope("withUnpublished", {
+    method: ["withCollection", options.userId],
   });
 
   if (isUUID(id)) {
@@ -239,10 +248,17 @@ type SearchOptions = {
   limit?: number,
   offset?: number,
   collectionId?: string,
-  dateFilter?: 'day' | 'week' | 'month' | 'year',
+  dateFilter?: "day" | "week" | "month" | "year",
   collaboratorIds?: string[],
   includeArchived?: boolean,
+  includeDrafts?: boolean,
 };
+
+function escape(query: string): string {
+  // replace "\" with escaped "\\" because sequelize.escape doesn't do it
+  // https://github.com/sequelize/sequelize/issues/2950
+  return sequelize.escape(query).replace("\\", "\\\\");
+}
 
 Document.searchForTeam = async (
   team,
@@ -251,8 +267,13 @@ Document.searchForTeam = async (
 ): Promise<SearchResult[]> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
-  const wildcardQuery = `${sequelize.escape(query)}:*`;
+  const wildcardQuery = `${escape(query)}:*`;
   const collectionIds = await team.collectionIds();
+
+  // If the team has access no public collections then shortcircuit the rest of this
+  if (!collectionIds.length) {
+    return [];
+  }
 
   // Build the SQL query to get documentIds, ranking, and search term context
   const sql = `
@@ -266,7 +287,7 @@ Document.searchForTeam = async (
       "collectionId" IN(:collectionIds) AND
       "deletedAt" IS NULL AND
       "publishedAt" IS NOT NULL
-    ORDER BY 
+    ORDER BY
       "searchRanking" DESC,
       "updatedAt" DESC
     LIMIT :limit
@@ -287,12 +308,12 @@ Document.searchForTeam = async (
   // Final query to get associated document data
   const documents = await Document.findAll({
     where: {
-      id: map(results, 'id'),
+      id: map(results, "id"),
     },
     include: [
-      { model: Collection, as: 'collection' },
-      { model: User, as: 'createdBy', paranoid: false },
-      { model: User, as: 'updatedBy', paranoid: false },
+      { model: Collection, as: "collection" },
+      { model: User, as: "createdBy", paranoid: false },
+      { model: User, as: "updatedBy", paranoid: false },
     ],
   });
 
@@ -312,7 +333,7 @@ Document.searchForUser = async (
 ): Promise<SearchResult[]> => {
   const limit = options.limit || 15;
   const offset = options.offset || 0;
-  const wildcardQuery = `${sequelize.escape(query)}:*`;
+  const wildcardQuery = `${escape(query)}:*`;
 
   // Ensure we're filtering by the users accessible collections. If
   // collectionId is passed as an option it is assumed that the authorization
@@ -322,6 +343,11 @@ Document.searchForUser = async (
     collectionIds = [options.collectionId];
   } else {
     collectionIds = await user.collectionIds();
+  }
+
+  // If the user has access to no collections then shortcircuit the rest of this
+  if (!collectionIds.length) {
+    return [];
   }
 
   let dateFilter;
@@ -340,17 +366,21 @@ Document.searchForUser = async (
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${
-      options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ''
+      options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
     }
     ${
       options.collaboratorIds
         ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
-        : ''
+        : ""
     }
-    ${options.includeArchived ? '' : '"archivedAt" IS NULL AND'}
+    ${options.includeArchived ? "" : '"archivedAt" IS NULL AND'}
     "deletedAt" IS NULL AND
-    ("publishedAt" IS NOT NULL OR "createdById" = :userId)
-  ORDER BY 
+    ${
+      options.includeDrafts
+        ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
+        : '"publishedAt" IS NOT NULL'
+    }
+  ORDER BY
     "searchRanking" DESC,
     "updatedAt" DESC
   LIMIT :limit
@@ -374,18 +404,18 @@ Document.searchForUser = async (
   // Final query to get associated document data
   const documents = await Document.scope(
     {
-      method: ['withViews', user.id],
+      method: ["withViews", user.id],
     },
     {
-      method: ['withCollection', user.id],
+      method: ["withCollection", user.id],
     }
   ).findAll({
     where: {
-      id: map(results, 'id'),
+      id: map(results, "id"),
     },
     include: [
-      { model: User, as: 'createdBy', paranoid: false },
-      { model: User, as: 'updatedBy', paranoid: false },
+      { model: User, as: "createdBy", paranoid: false },
+      { model: User, as: "updatedBy", paranoid: false },
     ],
   });
 
@@ -400,21 +430,21 @@ Document.searchForUser = async (
 
 // Hooks
 
-Document.addHook('beforeSave', async model => {
+Document.addHook("beforeSave", async model => {
   if (!model.publishedAt) return;
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== 'atlas') return;
+  if (!collection || collection.type !== "atlas") return;
 
   await collection.updateDocument(model);
   model.collection = collection;
 });
 
-Document.addHook('afterCreate', async model => {
+Document.addHook("afterCreate", async model => {
   if (!model.publishedAt) return;
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== 'atlas') return;
+  if (!collection || collection.type !== "atlas") return;
 
   await collection.addDocumentToStructure(model);
   model.collection = collection;
@@ -423,6 +453,41 @@ Document.addHook('afterCreate', async model => {
 });
 
 // Instance methods
+
+Document.prototype.toMarkdown = function() {
+  const text = unescape(this.text);
+
+  if (this.version) {
+    return `# ${this.title}\n\n${text}`;
+  }
+
+  return text;
+};
+
+Document.prototype.migrateVersion = function() {
+  let migrated = false;
+
+  // migrate from document version 0 -> 1
+  if (!this.version) {
+    // removing the title from the document text attribute
+    this.text = this.text.replace(/^#\s(.*)\n/, "");
+    this.version = 1;
+    migrated = true;
+  }
+
+  // migrate from document version 1 -> 2
+  if (this.version === 1) {
+    const nodes = serializer.deserialize(this.text);
+    this.backup = this.text;
+    this.text = serializer.serialize(nodes, { version: 2 });
+    this.version = 2;
+    migrated = true;
+  }
+
+  if (migrated) {
+    return this.save({ silent: true, hooks: false });
+  }
+};
 
 // Note: This method marks the document and it's children as deleted
 // in the database, it does not permanantly delete them OR remove
@@ -470,7 +535,7 @@ Document.prototype.publish = async function(options) {
   if (this.publishedAt) return this.save(options);
 
   const collection = await Collection.findByPk(this.collectionId);
-  if (collection.type !== 'atlas') return this.save(options);
+  if (collection.type !== "atlas") return this.save(options);
 
   await collection.addDocumentToStructure(this);
 
@@ -514,6 +579,10 @@ Document.prototype.unarchive = async function(userId) {
   await collection.addDocumentToStructure(this);
   this.collection = collection;
 
+  if (this.deletedAt) {
+    await this.restore();
+  }
+
   this.archivedAt = null;
   this.lastModifiedById = userId;
   await this.save();
@@ -546,10 +615,17 @@ Document.prototype.getTimestamp = function() {
 };
 
 Document.prototype.getSummary = function() {
-  const value = Markdown.deserialize(this.text);
-  const plain = Plain.serialize(value);
-  const lines = compact(plain.split('\n'));
-  return lines.length >= 1 ? lines[1] : '';
+  const plain = removeMarkdown(unescape(this.text), {
+    stripHTML: false,
+  });
+  const lines = compact(plain.split("\n"));
+  const notEmpty = lines.length >= 1;
+
+  if (this.version) {
+    return notEmpty ? lines[0] : "";
+  }
+
+  return notEmpty ? lines[1] : "";
 };
 
 Document.prototype.toJSON = function() {

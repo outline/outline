@@ -1,16 +1,16 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import styled, { createGlobalStyle } from 'styled-components';
-import breakpoint from 'styled-components-breakpoint';
-import ReactModal from 'react-modal';
-import { transparentize } from 'polished';
-import { CloseIcon } from 'outline-icons';
-import NudeButton from 'components/NudeButton';
-import { fadeAndScaleIn } from 'shared/styles/animations';
-import Flex from 'shared/components/Flex';
+import * as React from "react";
+import { observer } from "mobx-react";
+import styled, { createGlobalStyle } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import ReactModal from "react-modal";
+import { transparentize } from "polished";
+import { CloseIcon, BackIcon } from "outline-icons";
+import NudeButton from "components/NudeButton";
+import { fadeAndScaleIn } from "shared/styles/animations";
+import Flex from "shared/components/Flex";
 
-ReactModal.setAppElement('#root');
+ReactModal.setAppElement("#root");
 
 type Props = {
   children?: React.Node,
@@ -26,6 +26,29 @@ const GlobalStyles = createGlobalStyle`
     z-index: 100;
   }
 
+  ${breakpoint("tablet")`
+    .ReactModalPortal + .ReactModalPortal {
+      .ReactModal__Overlay {
+        margin-left: 12px;
+        box-shadow: 0 -2px 10px ${props => props.theme.shadow};
+        border-radius: 8px 0 0 8px;
+        overflow: hidden;
+      }
+    }
+
+    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal {
+      .ReactModal__Overlay {
+        margin-left: 24px;
+      }
+    }
+
+    .ReactModalPortal + .ReactModalPortal + .ReactModalPortal + .ReactModalPortal {
+      .ReactModal__Overlay {
+        margin-left: 36px;
+      }
+    }
+  `};
+
   .ReactModal__Body--open {
     overflow: hidden;
   }
@@ -34,7 +57,7 @@ const GlobalStyles = createGlobalStyle`
 const Modal = ({
   children,
   isOpen,
-  title = 'Untitled',
+  title = "Untitled",
   onRequestClose,
   ...rest
 }: Props) => {
@@ -49,14 +72,18 @@ const Modal = ({
         isOpen={isOpen}
         {...rest}
       >
-        <Content column>
+        <Content onClick={ev => ev.stopPropagation()} column>
           {title && <h1>{title}</h1>}
-          <Close onClick={onRequestClose}>
-            <CloseIcon size={40} color="currentColor" />
-            <Esc>esc</Esc>
-          </Close>
+
           {children}
         </Content>
+        <Back onClick={onRequestClose}>
+          <BackIcon size={32} color="currentColor" />
+          <Text>Back</Text>
+        </Back>
+        <Close onClick={onRequestClose}>
+          <CloseIcon size={32} color="currentColor" />
+        </Close>
       </StyledModal>
     </React.Fragment>
   );
@@ -84,21 +111,27 @@ const StyledModal = styled(ReactModal)`
   overflow-y: auto;
   background: ${props => props.theme.background};
   transition: ${props => props.theme.backgroundTransition};
-  padding: 13vh 2rem 2rem;
+  padding: 8vh 2rem 2rem;
   outline: none;
+
+  ${breakpoint("tablet")`
+    padding-top: 13vh;
+  `};
 `;
 
-const Esc = styled.span`
-  display: block;
-  text-align: center;
-  font-size: 13px;
-  height: 1em;
+const Text = styled.span`
+  font-size: 16px;
+  font-weight: 500;
+  padding-right: 12px;
+  user-select: none;
 `;
 
 const Close = styled(NudeButton)`
-  position: fixed;
-  top: 16px;
-  right: 16px;
+  position: absolute;
+  display: block;
+  top: 0;
+  right: 0;
+  margin: 12px;
   opacity: 0.75;
   color: ${props => props.theme.text};
   width: auto;
@@ -108,9 +141,28 @@ const Close = styled(NudeButton)`
     opacity: 1;
   }
 
-  ${breakpoint('tablet')`
-    top: 3rem;
-    right: 3rem;
+  ${breakpoint("tablet")`
+    display: none;
+  `};
+`;
+
+const Back = styled(NudeButton)`
+  position: fixed;
+  display: none;
+  align-items: center;
+  top: 2rem;
+  left: 2rem;
+  opacity: 0.75;
+  color: ${props => props.theme.text};
+  width: auto;
+  height: auto;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  ${breakpoint("tablet")`
+    display: flex;
   `};
 `;
 

@@ -1,5 +1,5 @@
 // @flow
-import styled from 'styled-components';
+import styled from "styled-components";
 
 const TeamLogo = styled.img`
   width: 38px;

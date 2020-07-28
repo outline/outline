@@ -1,6 +1,6 @@
 // @flow
-import * as React from 'react';
-import styled from 'styled-components';
+import * as React from "react";
+import styled from "styled-components";
 
 type Props = {
   children: React.Node,
@@ -13,7 +13,7 @@ const H3 = styled.h3`
   line-height: 1;
 `;
 
-const Underline = styled('span')`
+const Underline = styled("span")`
   position: relative;
   top: 1px;
 

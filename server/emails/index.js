@@ -1,13 +1,13 @@
 // @flow
-import Koa from 'koa';
-import Router from 'koa-router';
-import { NotFoundError } from '../errors';
-import { Mailer } from '../mailer';
+import Koa from "koa";
+import Router from "koa-router";
+import { NotFoundError } from "../errors";
+import { Mailer } from "../mailer";
 
 const emailPreviews = new Koa();
 const router = new Router();
 
-router.get('/:type/:format', async ctx => {
+router.get("/:type/:format", async ctx => {
   let mailerOutput;
   let mailer = new Mailer();
   mailer.transporter = {
@@ -21,13 +21,13 @@ router.get('/:type/:format', async ctx => {
     default:
       if (Object.getOwnPropertyNames(mailer).includes(ctx.params.type)) {
         // $FlowIssue flow doesn't like this but we're ok with it
-        mailer[ctx.params.type]('user@example.com');
-      } else throw new NotFoundError('Email template could not be found');
+        mailer[ctx.params.type]("user@example.com");
+      } else throw new NotFoundError("Email template could not be found");
   }
 
   if (!mailerOutput) return;
 
-  if (ctx.params.format === 'text') {
+  if (ctx.params.format === "text") {
     ctx.body = mailerOutput.text;
   } else {
     ctx.body = mailerOutput.html;

@@ -1,23 +1,26 @@
 // @flow
-import * as React from 'react';
-import { Redirect } from 'react-router-dom';
-import { observable } from 'mobx';
-import { observer } from 'mobx-react';
-import { lighten } from 'polished';
-import styled, { withTheme, createGlobalStyle } from 'styled-components';
-import RichMarkdownEditor from 'rich-markdown-editor';
-import Placeholder from 'rich-markdown-editor/lib/components/Placeholder';
-import { uploadFile } from 'utils/uploadFile';
-import isInternalUrl from 'utils/isInternalUrl';
-import Tooltip from 'components/Tooltip';
-import UiStore from 'stores/UiStore';
-import Embed from './Embed';
-import embeds from '../../embeds';
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import { lighten } from "polished";
+import styled, { withTheme } from "styled-components";
+import RichMarkdownEditor from "rich-markdown-editor";
+import { uploadFile } from "utils/uploadFile";
+import isInternalUrl from "utils/isInternalUrl";
+import Tooltip from "components/Tooltip";
+import UiStore from "stores/UiStore";
+import embeds from "../../embeds";
+
+const EMPTY_ARRAY = [];
 
 type Props = {
+  id: string,
   defaultValue?: string,
   readOnly?: boolean,
+  grow?: boolean,
   disableEmbeds?: boolean,
+  history: RouterHistory,
   forwardedRef: React.Ref<RichMarkdownEditor>,
   ui: UiStore,
 };
@@ -27,13 +30,13 @@ class Editor extends React.Component<Props> {
   @observable redirectTo: ?string;
 
   onUploadImage = async (file: File) => {
-    const result = await uploadFile(file);
+    const result = await uploadFile(file, { documentId: this.props.id });
     return result.url;
   };
 
   onClickLink = (href: string) => {
     // on page hash
-    if (href[0] === '#') {
+    if (href[0] === "#") {
       window.location.href = href;
       return;
     }
@@ -43,7 +46,7 @@ class Editor extends React.Component<Props> {
       let navigateTo = href;
 
       // probably absolute
-      if (href[0] !== '/') {
+      if (href[0] !== "/") {
         try {
           const url = new URL(href);
           navigateTo = url.pathname + url.hash;
@@ -52,13 +55,9 @@ class Editor extends React.Component<Props> {
         }
       }
 
-      // protect against redirecting back to the same place
-      const currentLocation = window.location.pathname + window.location.hash;
-      if (currentLocation !== navigateTo) {
-        this.redirectTo = navigateTo;
-      }
+      this.props.history.push(navigateTo);
     } else {
-      window.open(href, '_blank');
+      window.open(href, "_blank");
     }
   };
 
@@ -66,58 +65,27 @@ class Editor extends React.Component<Props> {
     this.props.ui.showToast(message);
   };
 
-  getLinkComponent = node => {
-    if (this.props.disableEmbeds) return;
-
-    const url = node.data.get('href');
-    const keys = Object.keys(embeds);
-
-    for (const key of keys) {
-      const component = embeds[key];
-
-      for (const host of component.ENABLED) {
-        const matches = url.match(host);
-        if (matches) return Embed;
-      }
-    }
-  };
-
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
     return (
-      <React.Fragment>
-        <PrismStyles />
-        <StyledEditor
-          ref={this.props.forwardedRef}
-          uploadImage={this.onUploadImage}
-          onClickLink={this.onClickLink}
-          onShowToast={this.onShowToast}
-          getLinkComponent={this.getLinkComponent}
-          tooltip={EditorTooltip}
-          {...this.props}
-        />
-      </React.Fragment>
+      <StyledEditor
+        ref={this.props.forwardedRef}
+        uploadImage={this.onUploadImage}
+        onClickLink={this.onClickLink}
+        onShowToast={this.onShowToast}
+        embeds={this.props.disableEmbeds ? EMPTY_ARRAY : embeds}
+        tooltip={EditorTooltip}
+        {...this.props}
+      />
     );
   }
 }
 
 const StyledEditor = styled(RichMarkdownEditor)`
+  flex-grow: ${props => (props.grow ? 1 : 0)};
   justify-content: start;
 
   > div {
     transition: ${props => props.theme.backgroundTransition};
-  }
-
-  p {
-    ${Placeholder} {
-      visibility: hidden;
-    }
-  }
-  p:nth-child(2):last-child {
-    ${Placeholder} {
-      visibility: visible;
-    }
   }
 
   p {
@@ -134,155 +102,15 @@ const StyledEditor = styled(RichMarkdownEditor)`
   }
 `;
 
-/*
-Based on Prism template by Bram de Haan (http://atelierbram.github.io/syntax-highlighting/prism/)
-Original Base16 color scheme by Chris Kempson (https://github.com/chriskempson/base16)
-*/
-const PrismStyles = createGlobalStyle`
-  code[class*="language-"],
-  pre[class*="language-"] {
-    -webkit-font-smoothing: initial;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-    font-size: 13px;
-    line-height: 1.375;
-    direction: ltr;
-    text-align: left;
-    white-space: pre;
-    word-spacing: normal;
-    word-break: normal;
-    -moz-tab-size: 4;
-    -o-tab-size: 4;
-    tab-size: 4;
-    -webkit-hyphens: none;
-    -moz-hyphens: none;
-    -ms-hyphens: none;
-    hyphens: none;
-    color: #24292e;
-  }
-
-  /* Code blocks */
-  pre[class*="language-"] {
-    padding: 1em;
-    margin: .5em 0;
-    overflow: auto;
-  }
-
-  /* Inline code */
-  :not(pre) > code[class*="language-"] {
-    padding: .1em;
-    border-radius: .3em;
-  }
-
-  .token.comment,
-  .token.prolog,
-  .token.doctype,
-  .token.cdata {
-    color: #6a737d;
-  }
-
-  .token.punctuation {
-    color: #5e6687;
-  }
-
-  .token.namespace {
-    opacity: .7;
-  }
-
-  .token.operator,
-  .token.boolean,
-  .token.number {
-    color: #d73a49;
-  }
-
-  .token.property {
-    color: #c08b30;
-  }
-
-  .token.tag {
-    color: #3d8fd1;
-  }
-
-  .token.string {
-    color: #032f62;
-  }
-
-  .token.selector {
-    color: #6679cc;
-  }
-
-  .token.attr-name {
-    color: #c76b29;
-  }
-
-  .token.entity,
-  .token.url,
-  .language-css .token.string,
-  .style .token.string {
-    color: #22a2c9;
-  }
-
-  .token.attr-value,
-  .token.keyword,
-  .token.control,
-  .token.directive,
-  .token.unit {
-    color: #d73a49;
-  }
-
-  .token.function {
-    color: #6f42c1;
-  }
-
-  .token.statement,
-  .token.regex,
-  .token.atrule {
-    color: #22a2c9;
-  }
-
-  .token.placeholder,
-  .token.variable {
-    color: #3d8fd1;
-  }
-
-  .token.deleted {
-    text-decoration: line-through;
-  }
-
-  .token.inserted {
-    border-bottom: 1px dotted #202746;
-    text-decoration: none;
-  }
-
-  .token.italic {
-    font-style: italic;
-  }
-
-  .token.important,
-  .token.bold {
-    font-weight: bold;
-  }
-
-  .token.important {
-    color: #c94922;
-  }
-
-  .token.entity {
-    cursor: help;
-  }
-
-  pre > code.highlight {
-    outline: 0.4em solid #c94922;
-    outline-offset: .4em;
-  }
-`;
-
 const EditorTooltip = ({ children, ...props }) => (
   <Tooltip offset="0, 16" delay={150} {...props}>
     <span>{children}</span>
   </Tooltip>
 );
 
-export default withTheme(
-  // $FlowIssue - https://github.com/facebook/flow/issues/6103
-  React.forwardRef((props, ref) => <Editor {...props} forwardedRef={ref} />)
-);
+const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
+
+// $FlowIssue - https://github.com/facebook/flow/issues/6103
+export default React.forwardRef((props, ref) => (
+  <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
+));

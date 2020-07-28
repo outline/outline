@@ -1,39 +1,42 @@
 // @flow
-import * as React from 'react';
-import ImageZoom from 'react-medium-image-zoom';
-import Frame from './components/Frame';
+import * as React from "react";
+import ImageZoom from "react-medium-image-zoom";
+import Frame from "./components/Frame";
 
 const IFRAME_REGEX = new RegExp(
-  '^https://(invis.io/.*)|(projects.invisionapp.com/share/.*)$'
+  "^https://(invis.io/.*)|(projects.invisionapp.com/share/.*)$"
 );
 
 const IMAGE_REGEX = new RegExp(
-  '^https://(opal.invisionapp.com/static-signed/live-embed/.*)$'
+  "^https://(opal.invisionapp.com/static-signed/live-embed/.*)$"
 );
 
-type Props = {
-  url: string,
-};
+type Props = {|
+  attrs: {|
+    href: string,
+    matches: string[],
+  |},
+|};
 
 export default class InVision extends React.Component<Props> {
   static ENABLED = [IFRAME_REGEX, IMAGE_REGEX];
 
   render() {
-    if (IMAGE_REGEX.test(this.props.url)) {
+    if (IMAGE_REGEX.test(this.props.attrs.href)) {
       return (
         <ImageZoom
           image={{
-            src: this.props.url,
-            alt: 'InVision Embed',
+            src: this.props.attrs.href,
+            alt: "InVision Embed",
             style: {
-              maxWidth: '100%',
-              maxHeight: '75vh',
+              maxWidth: "100%",
+              maxHeight: "75vh",
             },
           }}
           shouldRespectMaxDimension
         />
       );
     }
-    return <Frame src={this.props.url} title="InVision Embed" />;
+    return <Frame src={this.props.attrs.href} title="InVision Embed" />;
   }
 }
