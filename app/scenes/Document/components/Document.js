@@ -13,7 +13,7 @@ import {
   collectionUrl,
   documentMoveUrl,
   documentHistoryUrl,
-  documentEditUrl,
+  editDocumentUrl,
   documentUrl,
 } from "utils/routeHelpers";
 import { emojiToUrl } from "utils/emoji";
@@ -143,7 +143,7 @@ class DocumentScene extends React.Component<Props> {
     const { document, abilities } = this.props;
 
     if (abilities.update) {
-      this.props.history.push(documentEditUrl(document));
+      this.props.history.push(editDocumentUrl(document));
     }
   }
 
@@ -256,7 +256,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.history.push(savedDocument.url);
         this.props.ui.setActiveDocument(savedDocument);
       } else if (isNew) {
-        this.props.history.push(documentEditUrl(savedDocument));
+        this.props.history.push(editDocumentUrl(savedDocument));
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {

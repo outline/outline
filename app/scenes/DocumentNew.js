@@ -8,7 +8,7 @@ import CenteredContent from "components/CenteredContent";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
-import { documentEditUrl } from "utils/routeHelpers";
+import { editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
@@ -30,7 +30,7 @@ class DocumentNew extends React.Component<Props> {
         title: "",
         text: "",
       });
-      this.props.history.replace(documentEditUrl(document));
+      this.props.history.replace(editDocumentUrl(document));
     } catch (err) {
       this.props.ui.showToast("Couldn’t create the document, try again?");
       this.props.history.goBack();

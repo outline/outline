@@ -24,7 +24,7 @@ export function documentUrl(doc: Document): string {
   return doc.url;
 }
 
-export function documentEditUrl(doc: Document): string {
+export function editDocumentUrl(doc: Document): string {
   return `${doc.url}/edit`;
 }
 
@@ -50,10 +50,6 @@ export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
     return [newUrl, actions].join("/");
   }
   return newUrl;
-}
-
-export function newTemplateUrl(): string {
-  return `/templates/new`;
 }
 
 export function newDocumentUrl(

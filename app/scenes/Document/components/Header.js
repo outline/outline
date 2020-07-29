@@ -10,7 +10,7 @@ import { TableOfContentsIcon, EditIcon, PlusIcon } from "outline-icons";
 import { transparentize, darken } from "polished";
 import Document from "models/Document";
 import AuthStore from "stores/AuthStore";
-import { documentEditUrl } from "utils/routeHelpers";
+import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 import { meta } from "utils/keyboard";
 
 import Flex from "components/Flex";
@@ -69,7 +69,15 @@ class Header extends React.Component<Props> {
   handleScroll = throttle(this.updateIsScrolled, 50);
 
   handleEdit = () => {
-    this.redirectTo = documentEditUrl(this.props.document);
+    this.redirectTo = editDocumentUrl(this.props.document);
+  };
+
+  handleNewFromTemplate = () => {
+    const { document } = this.props;
+
+    this.redirectTo = newDocumentUrl(document.collectionId, {
+      templateId: document.id,
+    });
   };
 
   handleSave = () => {
@@ -281,25 +289,19 @@ class Header extends React.Component<Props> {
                 />
               </Action>
             )}
-          {canEdit && (
-            <Action>
-              <Tooltip
-                tooltip={`Edit ${document.noun}`}
-                shortcut="e"
-                delay={500}
-                placement="bottom"
-              >
+          {canEdit &&
+            document.template && (
+              <Action>
                 <Button
                   icon={<PlusIcon />}
-                  onClick={this.handleEdit}
+                  onClick={this.handleNewFromTemplate}
                   primary
                   small
                 >
                   New from template
                 </Button>
-              </Tooltip>
-            </Action>
-          )}
+              </Action>
+            )}
           {!isEditing && (
             <React.Fragment>
               <Separator />

@@ -15,7 +15,7 @@ import DocumentTemplatize from "scenes/DocumentTemplatize";
 import {
   documentUrl,
   documentMoveUrl,
-  documentEditUrl,
+  editDocumentUrl,
   documentHistoryUrl,
   newDocumentUrl,
 } from "utils/routeHelpers";
@@ -78,7 +78,7 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   handleEdit = (ev: SyntheticEvent<>) => {
-    this.redirectTo = documentEditUrl(this.props.document);
+    this.redirectTo = editDocumentUrl(this.props.document);
   };
 
   handleDuplicate = async (ev: SyntheticEvent<>) => {
