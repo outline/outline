@@ -83,6 +83,7 @@ class DocumentEditor extends React.Component<Props> {
           placeholder="Start with a title…"
           value={!title && readOnly ? "Untitled" : title}
           style={startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined}
+          readOnlyWriteCheckboxes
           readOnly={readOnly}
           autoFocus={!title}
           maxLength={100}

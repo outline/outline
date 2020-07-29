@@ -294,8 +294,16 @@ class DocumentScene extends React.Component<Props> {
 
   onChange = getEditorText => {
     this.getEditorText = getEditorText;
-    this.updateIsDirtyDebounced();
-    this.autosave();
+
+    // document change while read only is presumed to be a checkbox edit,
+    // in that case we don't delay in saving for a better user experience.
+    if (this.props.readOnly) {
+      this.updateIsDirty();
+      this.onSave({ done: false, autosave: true });
+    } else {
+      this.updateIsDirtyDebounced();
+      this.autosave();
+    }
   };
 
   onChangeTitle = event => {
@@ -320,6 +328,7 @@ class DocumentScene extends React.Component<Props> {
       revision,
       readOnly,
       location,
+      abilities,
       auth,
       ui,
       match,
@@ -443,7 +452,8 @@ class DocumentScene extends React.Component<Props> {
                   onSave={this.onSave}
                   onPublish={this.onPublish}
                   onCancel={this.goBack}
-                  readOnly={readOnly || document.isArchived}
+                  readOnly={readOnly}
+                  readOnlyWriteCheckboxes={readOnly && abilities.update}
                   ui={this.props.ui}
                 />
               </Flex>
