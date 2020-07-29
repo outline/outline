@@ -31,7 +31,9 @@ class NewChildDocumentMenu extends React.Component<Props> {
 
   handleNewChild = () => {
     const { document } = this.props;
-    this.redirectTo = newDocumentUrl(document.collectionId, document.id);
+    this.redirectTo = newDocumentUrl(document.collectionId, {
+      parentDocumentId: document.id,
+    });
   };
 
   render() {

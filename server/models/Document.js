@@ -98,6 +98,7 @@ const Document = sequelize.define(
       },
     },
     version: DataTypes.SMALLINT,
+    template: DataTypes.BOOLEAN,
     editorVersion: DataTypes.STRING,
     text: DataTypes.TEXT,
 

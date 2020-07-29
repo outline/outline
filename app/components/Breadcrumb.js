@@ -4,7 +4,7 @@ import { observer, inject } from "mobx-react";
 import breakpoint from "styled-components-breakpoint";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-import { PadlockIcon, GoToIcon, MoreIcon } from "outline-icons";
+import { PadlockIcon, GoToIcon, MoreIcon, ShapesIcon } from "outline-icons";
 
 import Document from "models/Document";
 import CollectionsStore from "stores/CollectionsStore";
@@ -50,10 +50,17 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
 
   return (
     <Wrapper justify="flex-start" align="center">
-      <CollectionName to={collectionUrl(collection.id)}>
-        <CollectionIcon collection={collection} expanded />&nbsp;
-        <span>{collection.name}</span>
-      </CollectionName>
+      {document.template ? (
+        <CollectionName to="/templates">
+          <ShapesIcon color="currentColor" />&nbsp;
+          <span>Templates</span>
+        </CollectionName>
+      ) : (
+        <CollectionName to={collectionUrl(collection.id)}>
+          <CollectionIcon collection={collection} expanded />&nbsp;
+          <span>{collection.name}</span>
+        </CollectionName>
+      )}
       {isNestedDocument && (
         <React.Fragment>
           <Slash /> <BreadcrumbMenu label={<Overflow />} path={menuPath} />

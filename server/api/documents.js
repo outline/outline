@@ -677,6 +677,8 @@ router.post("documents.create", auth(), async ctx => {
     publish,
     collectionId,
     parentDocumentId,
+    templateId,
+    template,
     index,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"];
@@ -712,6 +714,12 @@ router.post("documents.create", auth(), async ctx => {
     authorize(user, "read", parentDocument, { collection });
   }
 
+  let templateDocument;
+  if (templateId) {
+    templateDocument = await Document.findByPk(templateId, { userId: user.id });
+    authorize(user, "read", templateDocument);
+  }
+
   let document = await Document.create({
     parentDocumentId,
     editorVersion,
@@ -720,8 +728,9 @@ router.post("documents.create", auth(), async ctx => {
     userId: user.id,
     lastModifiedById: user.id,
     createdById: user.id,
-    title,
-    text,
+    template,
+    title: templateDocument ? templateDocument.title : title,
+    text: templateDocument ? templateDocument.text : text,
   });
 
   await Event.create({
@@ -730,7 +739,7 @@ router.post("documents.create", auth(), async ctx => {
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
-    data: { title: document.title },
+    data: { title: document.title, templateId },
     ip: ctx.request.ip,
   });
 
@@ -755,6 +764,48 @@ router.post("documents.create", auth(), async ctx => {
     where: { id: document.id, publishedAt: document.publishedAt },
   });
   document.collection = collection;
+
+  ctx.body = {
+    data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
+  };
+});
+
+router.post("documents.templatize", auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, "id is required");
+
+  const user = ctx.state.user;
+  const document = await Document.findByPk(id, { userId: user.id });
+  authorize(user, "update", document);
+
+  // TODO: Wrap in transaction
+  // remove from collection
+  await document.collection.removeDocumentInStructure(document);
+
+  // remove stars
+  await Star.destroy({
+    where: { documentId: document.id },
+  });
+
+  // remove pinned
+  document.pinnedById = undefined;
+
+  // mark as template
+  document.template = true;
+  await document.save();
+
+  await Event.create({
+    name: "documents.update",
+    documentId: document.id,
+    collectionId: document.collectionId,
+    teamId: document.teamId,
+    actorId: user.id,
+    data: { title: document.title, template: true },
+    ip: ctx.request.ip,
+  });
+
+  document.updatedBy = user;
 
   ctx.body = {
     data: await presentDocument(document),

@@ -8,6 +8,7 @@ import {
   EditIcon,
   SearchIcon,
   StarredIcon,
+  ShapesIcon,
   TrashIcon,
   PlusIcon,
 } from "outline-icons";
@@ -102,6 +103,15 @@ class MainSidebar extends React.Component<Props> {
                 icon={<StarredIcon color="currentColor" />}
                 exact={false}
                 label="Starred"
+              />
+              <SidebarLink
+                to="/templates"
+                icon={<ShapesIcon color="currentColor" />}
+                exact={false}
+                label="Templates"
+                active={
+                  documents.active ? documents.active.template : undefined
+                }
               />
               <SidebarLink
                 to="/drafts"

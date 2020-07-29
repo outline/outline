@@ -245,7 +245,7 @@ class Header extends React.Component<Props> {
           {canEdit && (
             <Action>
               <Tooltip
-                tooltip="Edit document"
+                tooltip={`Edit ${document.noun}`}
                 shortcut="e"
                 delay={500}
                 placement="bottom"
@@ -281,6 +281,25 @@ class Header extends React.Component<Props> {
                 />
               </Action>
             )}
+          {canEdit && (
+            <Action>
+              <Tooltip
+                tooltip={`Edit ${document.noun}`}
+                shortcut="e"
+                delay={500}
+                placement="bottom"
+              >
+                <Button
+                  icon={<PlusIcon />}
+                  onClick={this.handleEdit}
+                  primary
+                  small
+                >
+                  New from template
+                </Button>
+              </Tooltip>
+            </Action>
+          )}
           {!isEditing && (
             <React.Fragment>
               <Separator />

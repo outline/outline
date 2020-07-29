@@ -7171,10 +7171,10 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-outline-icons@^1.19.0, outline-icons@^1.19.1:
-  version "1.19.1"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.19.1.tgz#5251b966ae9987b18f060b58ce469d248c2313aa"
-  integrity sha512-YeGLDG7KgBvrDy+WOQUqN8rD3qO5u524E0Wj6ejaWNQ8/1ou6kkUrx65mk8LtESfKLMWZHuQG/u6onurY9rKIw==
+outline-icons@^1.21.0-3, outline-icons@^1.21.0-4:
+  version "1.21.0-4"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.21.0-4.tgz#d6288d76d24cf96c95cb0e377914fbb7cc96a14c"
+  integrity sha512-XerXkmRZM2H2VgqMJUWF2A+YTx8hH82PwCFqFUM9Mwp1TGyLeiFZWGFJTlyL7MgDvFWnyMlLZhflCtrvkSrj2A==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -8604,16 +8604,16 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
-rich-markdown-editor@^10.4.0:
-  version "10.4.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-10.4.0.tgz#0a31401cf3f3356c0f365607fba0fd28a8b05da4"
-  integrity sha512-vLghzLnat13TE7xbY2vOENoH3iifO8Z+J8FQ0W2SP4wcL6pqwgMvDSsmVKuEEbh5E9zRwAcsqFybH985Zqg1tQ==
+rich-markdown-editor@^10.5.0-0:
+  version "10.5.0-0"
+  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-10.5.0-0.tgz#190c7f0810f5927bf39ee360db7d64b8228ab8c2"
+  integrity sha512-PBDr/HQmm/Y6cu9gb3gxB925u92rq8EKqgAekoA49iTWXUewlfOE7Eg8LldLS/MFlg5jRjRguLxqC1sXB/Ilfg==
   dependencies:
     copy-to-clipboard "^3.0.8"
     lodash "^4.17.11"
     markdown-it-container "^3.0.0"
     markdown-it-mark "^3.0.0"
-    outline-icons "^1.19.1"
+    outline-icons "^1.21.0-3"
     prismjs "^1.19.0"
     prosemirror-commands "^1.1.4"
     prosemirror-dropcursor "^1.3.2"

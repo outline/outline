@@ -2,10 +2,11 @@
 import * as React from "react";
 import { observer } from "mobx-react";
 import { Link } from "react-router-dom";
-import { StarredIcon } from "outline-icons";
+import { StarredIcon, PlusIcon } from "outline-icons";
 import styled, { withTheme } from "styled-components";
 import Flex from "components/Flex";
 import Badge from "components/Badge";
+import Button from "components/Button";
 import Tooltip from "components/Tooltip";
 import Highlight from "components/Highlight";
 import PublishingInfo from "components/PublishingInfo";
@@ -21,90 +22,6 @@ type Props = {
   showPin?: boolean,
   showDraft?: boolean,
 };
-
-const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
-  <StarredIcon color={theme.text} {...props} />
-))`
-  flex-shrink: 0;
-  opacity: ${props => (props.solid ? "1 !important" : 0)};
-  transition: all 100ms ease-in-out;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-  &:active {
-    transform: scale(0.95);
-  }
-`);
-
-const StyledDocumentMenu = styled(DocumentMenu)`
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-`;
-
-const DocumentLink = styled(Link)`
-  display: block;
-  margin: 10px -8px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  max-height: 50vh;
-  min-width: 100%;
-  overflow: hidden;
-  position: relative;
-
-  ${StyledDocumentMenu} {
-    opacity: 0;
-  }
-
-  &:hover,
-  &:active,
-  &:focus {
-    background: ${props => props.theme.listItemHoverBackground};
-    outline: none;
-
-    ${StyledStar}, ${StyledDocumentMenu} {
-      opacity: 0.5;
-
-      &:hover {
-        opacity: 1;
-      }
-    }
-  }
-`;
-
-const Heading = styled.h3`
-  display: flex;
-  align-items: center;
-  height: 24px;
-  margin-top: 0;
-  margin-bottom: 0.25em;
-  overflow: hidden;
-  white-space: nowrap;
-  color: ${props => props.theme.text};
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-`;
-
-const Actions = styled(Flex)`
-  margin-left: 4px;
-  align-items: center;
-`;
-
-const Title = styled(Highlight)`
-  max-width: 90%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const ResultContext = styled(Highlight)`
-  display: block;
-  color: ${props => props.theme.textTertiary};
-  font-size: 14px;
-  margin-top: -0.25em;
-  margin-bottom: 0.25em;
-`;
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
@@ -155,7 +72,8 @@ class DocumentPreview extends React.Component<Props> {
         <Heading>
           <Title text={document.title || "Untitled"} highlight={highlight} />
           {!document.isDraft &&
-            !document.isArchived && (
+            !document.isArchived &&
+            !document.template && (
               <Actions>
                 {document.isStarred ? (
                   <StyledStar onClick={this.unstar} solid />
@@ -174,8 +92,11 @@ class DocumentPreview extends React.Component<Props> {
                 <Badge>Draft</Badge>
               </Tooltip>
             )}
-          <StyledDocumentMenu document={document} showPin={showPin} />
+          <SecondaryActions>
+            <DocumentMenu document={document} showPin={showPin} />
+          </SecondaryActions>
         </Heading>
+
         {!queryIsInTitle && (
           <ResultContext
             text={context}
@@ -192,5 +113,94 @@ class DocumentPreview extends React.Component<Props> {
     );
   }
 }
+
+const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
+  <StarredIcon color={theme.text} {...props} />
+))`
+  flex-shrink: 0;
+  opacity: ${props => (props.solid ? "1 !important" : 0)};
+  transition: all 100ms ease-in-out;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+`);
+
+const SecondaryActions = styled(Flex)`
+  align-items: center;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+`;
+
+const DocumentLink = styled(Link)`
+  display: block;
+  margin: 10px -8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  max-height: 50vh;
+  min-width: 100%;
+  overflow: hidden;
+  position: relative;
+
+  ${SecondaryActions} {
+    opacity: 0;
+  }
+
+  &:hover,
+  &:active,
+  &:focus {
+    background: ${props => props.theme.listItemHoverBackground};
+    outline: none;
+
+    ${SecondaryActions} {
+      opacity: 1;
+    }
+
+    ${StyledStar} {
+      opacity: 0.5;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+`;
+
+const Heading = styled.h3`
+  display: flex;
+  align-items: center;
+  height: 24px;
+  margin-top: 0;
+  margin-bottom: 0.25em;
+  overflow: hidden;
+  white-space: nowrap;
+  color: ${props => props.theme.text};
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+`;
+
+const Actions = styled(Flex)`
+  margin-left: 4px;
+  align-items: center;
+`;
+
+const Title = styled(Highlight)`
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ResultContext = styled(Highlight)`
+  display: block;
+  color: ${props => props.theme.textTertiary};
+  font-size: 14px;
+  margin-top: -0.25em;
+  margin-bottom: 0.25em;
+`;
 
 export default DocumentPreview;

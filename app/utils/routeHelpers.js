@@ -1,4 +1,5 @@
 // @flow
+import queryString from "query-string";
 import Document from "models/Document";
 
 export function homeUrl(): string {
@@ -51,17 +52,19 @@ export function updateDocumentUrl(oldUrl: string, newUrl: string): string {
   return newUrl;
 }
 
+export function newTemplateUrl(): string {
+  return `/templates/new`;
+}
+
 export function newDocumentUrl(
   collectionId: string,
-  parentDocumentId?: string
-): string {
-  let route = `/collections/${collectionId}/new`;
-
-  if (parentDocumentId) {
-    route += `?parentDocumentId=${parentDocumentId}`;
+  params?: {
+    parentDocumentId?: string,
+    templateId?: string,
+    template?: boolean,
   }
-
-  return route;
+): string {
+  return `/collections/${collectionId}/new?${queryString.stringify(params)}`;
 }
 
 export function searchUrl(query?: string, collectionId?: string): string {

@@ -35,6 +35,7 @@ export default class Document extends BaseModel {
   text: string;
   title: string;
   emoji: string;
+  template: boolean;
   parentDocumentId: ?string;
   publishedAt: ?string;
   archivedAt: string;
@@ -47,6 +48,11 @@ export default class Document extends BaseModel {
   get emoji() {
     const { emoji } = parseTitle(this.title);
     return emoji;
+  }
+
+  @computed
+  get noun(): string {
+    return this.template ? "template" : "document";
   }
 
   @computed
@@ -161,10 +167,8 @@ export default class Document extends BaseModel {
   };
 
   @action
-  fetch = async () => {
-    const res = await client.post("/documents.info", { id: this.id });
-    invariant(res && res.data, "Data should be available");
-    this.updateFromJson(res.data);
+  templatize = async () => {
+    return this.store.templatize(this.id);
   };
 
   @action

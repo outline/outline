@@ -241,6 +241,9 @@ class CollectionScene extends React.Component<Props> {
                   <Tab to={collectionUrl(collection.id, "alphabetical")} exact>
                     A–Z
                   </Tab>
+                  <Tab to={collectionUrl(collection.id, "templates")} exact>
+                    Templates
+                  </Tab>
                 </Tabs>
                 <Switch>
                   <Route path={collectionUrl(collection.id, "alphabetical")}>
@@ -275,6 +278,14 @@ class CollectionScene extends React.Component<Props> {
                       options={{ collectionId: collection.id }}
                       showPublished
                       showPin
+                    />
+                  </Route>
+                  <Route path={collectionUrl(collection.id, "templates")}>
+                    <PaginatedDocumentList
+                      key="templates"
+                      documents={documents.templatesInCollection(collection.id)}
+                      fetch={documents.fetchRecentlyUpdated /* TODO */}
+                      options={{ collectionId: collection.id }}
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id)}>
