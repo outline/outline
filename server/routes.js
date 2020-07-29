@@ -2,15 +2,40 @@
 import path from "path";
 import Koa from "koa";
 import Router from "koa-router";
+import fs from "fs";
+import util from "util";
 import sendfile from "koa-sendfile";
 import serve from "koa-static";
 import apexRedirect from "./middlewares/apexRedirect";
 import { robotsResponse } from "./utils/robots";
 import { opensearchResponse } from "./utils/opensearch";
+import environment from "./env";
 
 const isProduction = process.env.NODE_ENV === "production";
 const koa = new Koa();
 const router = new Router();
+const readFile = util.promisify(fs.readFile);
+
+const readIndexFile = async ctx => {
+  if (isProduction) {
+    return readFile(path.join(__dirname, "../dist/index.html"));
+  }
+
+  const middleware = ctx.devMiddleware;
+  await new Promise(resolve => middleware.waitUntilValid(resolve));
+
+  return new Promise((resolve, reject) => {
+    middleware.fileSystem.readFile(
+      `${ctx.webpackConfig.output.path}/index.html`,
+      (err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(result);
+      }
+    );
+  });
+};
 
 // serve static assets
 koa.use(
@@ -49,11 +74,15 @@ router.get("*", async (ctx, next) => {
     return next();
   }
 
-  if (isProduction) {
-    await sendfile(ctx, path.join(__dirname, "../dist/index.html"));
-  } else {
-    await sendfile(ctx, path.join(__dirname, "./static/dev.html"));
-  }
+  const page = await readIndexFile(ctx);
+  const env = `
+    window.env = ${JSON.stringify(environment)};
+  `;
+  ctx.body = page
+    .toString()
+    .replace(/\/\/inject-env\/\//g, env)
+    .replace(/\/\/inject-sentry-dsn\/\//g, process.env.SENTRY_DSN || "")
+    .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 });
 
 // middleware

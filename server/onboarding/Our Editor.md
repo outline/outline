@@ -6,7 +6,10 @@ If you’re comfortable writing markdown then all of the shortcuts you are used 
 
 ![The formatting toolbar](/images/screenshots/formatting-toolbar.png)
 
-*Tip:* You can also paste markdown or html from elsewhere directly into a document.
+:::info
+You can also paste markdown or html from elsewhere directly into a document.
+:::
+
 
 ## Rich documents
 

@@ -1,9 +1,9 @@
 // @flow
 import Sequelize from "sequelize";
 import Router from "koa-router";
-import auth from "../middlewares/authentication";
 import addHours from "date-fns/add_hours";
-import { getCookieDomain } from "../../shared/utils/domains";
+import auth from "../middlewares/authentication";
+import { getCookieDomain } from "../utils/domains";
 import { slackAuth } from "../../shared/utils/routeHelpers";
 import {
   Authentication,

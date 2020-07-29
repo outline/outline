@@ -3,7 +3,7 @@ import { observable, action, computed, autorun, runInAction } from "mobx";
 import invariant from "invariant";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
 import { client } from "utils/ApiClient";
-import { getCookieDomain } from "shared/utils/domains";
+import { getCookieDomain } from "utils/domains";
 import RootStore from "stores/RootStore";
 import User from "models/User";
 import Team from "models/Team";
@@ -102,7 +102,7 @@ export default class AuthStore {
         this.team = new Team(team);
 
         if (window.Sentry) {
-          Sentry.configureScope(function(scope) {
+          window.Sentry.configureScope(function(scope) {
             scope.setUser({ id: user.id });
             scope.setExtra("team", team.name);
             scope.setExtra("teamId", team.id);

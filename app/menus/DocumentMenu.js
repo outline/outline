@@ -110,8 +110,7 @@ class DocumentMenu extends React.Component<Props> {
 
   handleShareLink = async (ev: SyntheticEvent<>) => {
     const { document } = this.props;
-    if (!document.shareUrl) await document.share();
-
+    await document.share();
     this.props.ui.setActiveModal("document-share", { document });
   };
 

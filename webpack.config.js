@@ -1,26 +1,9 @@
 /* eslint-disable */
 const path = require('path');
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 require('dotenv').config({ silent: true });
-
-const definePlugin = new webpack.DefinePlugin({
-  __DEV__: JSON.stringify(JSON.parse(process.env.NODE_ENV !== 'production')),
-  __PRERELEASE__: JSON.stringify(
-    JSON.parse(process.env.BUILD_PRERELEASE || 'false')
-  ),
-  SLACK_APP_ID: JSON.stringify(process.env.SLACK_APP_ID),
-  BASE_URL: JSON.stringify(process.env.URL),
-  SENTRY_DSN: JSON.stringify(process.env.SENTRY_DSN),
-  'process.env': {
-    DEPLOYMENT: JSON.stringify(process.env.DEPLOYMENT),
-    URL: JSON.stringify(process.env.URL),
-    TEAM_LOGO: JSON.stringify(process.env.TEAM_LOGO),
-    SLACK_KEY: JSON.stringify(process.env.SLACK_KEY),
-    SUBDOMAINS_ENABLED: JSON.stringify(process.env.SUBDOMAINS_ENABLED === 'true'),
-    WEBSOCKETS_ENABLED: JSON.stringify(process.env.WEBSOCKETS_ENABLED === 'true')
-  }
-});
 
 module.exports = {
   output: {
@@ -65,11 +48,13 @@ module.exports = {
     }
   },
   plugins: [
-    definePlugin,
     new webpack.ProvidePlugin({
       fetch: 'imports-loader?this=>global!exports-loader?global.fetch!isomorphic-fetch',
     }),
     new webpack.IgnorePlugin(/unicode\/category\/So/),
+    new HtmlWebpackPlugin({
+      template: 'server/static/index.html',
+    }),
   ],
   stats: {
     assets: false,

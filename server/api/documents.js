@@ -31,7 +31,7 @@ const router = new Router();
 router.post("documents.list", auth(), pagination(), async ctx => {
   const { sort = "updatedAt", backlinkDocumentId, parentDocumentId } = ctx.body;
 
-  // collection and user are here for backwards compatablity
+  // collection and user are here for backwards compatibility
   const collectionId = ctx.body.collectionId || ctx.body.collection;
   const createdById = ctx.body.userId || ctx.body.user;
   let direction = ctx.body.direction;
@@ -391,7 +391,12 @@ async function loadDocument({ id, shareId, user }) {
     if (!share || share.document.archivedAt) {
       throw new InvalidRequestError("Document could not be found for shareId");
     }
+
     document = share.document;
+
+    if (!share.published) {
+      authorize(user, "read", document);
+    }
   } else {
     document = await Document.findByPk(
       id,

@@ -6,7 +6,12 @@ import { observer, inject } from "mobx-react";
 import { Redirect } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { TableOfContentsIcon, EditIcon, PlusIcon } from "outline-icons";
+import {
+  TableOfContentsIcon,
+  EditIcon,
+  GlobeIcon,
+  PlusIcon,
+} from "outline-icons";
 import { transparentize, darken } from "polished";
 import Document from "models/Document";
 import AuthStore from "stores/AuthStore";
@@ -26,11 +31,13 @@ import Badge from "components/Badge";
 import Collaborators from "components/Collaborators";
 import { Action, Separator } from "components/Actions";
 import PoliciesStore from "stores/PoliciesStore";
+import SharesStore from "stores/SharesStore";
 import UiStore from "stores/UiStore";
 
 type Props = {
   auth: AuthStore,
   ui: UiStore,
+  shares: SharesStore,
   policies: PoliciesStore,
   document: Document,
   isDraft: boolean,
@@ -82,9 +89,8 @@ class Header extends React.Component<Props> {
 
   handleShareLink = async (ev: SyntheticEvent<>) => {
     const { document } = this.props;
-    if (!document.shareUrl) {
-      await document.share();
-    }
+    await document.share();
+
     this.showShareModal = true;
   };
 
@@ -103,6 +109,7 @@ class Header extends React.Component<Props> {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
     const {
+      shares,
       document,
       policies,
       isEditing,
@@ -116,6 +123,8 @@ class Header extends React.Component<Props> {
       auth,
     } = this.props;
 
+    const share = shares.getByDocumentId(document.id);
+    const isPubliclyShared = share && share.published;
     const can = policies.abilities(document.id);
     const canShareDocuments = auth.team && auth.team.sharing && can.share;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
@@ -181,22 +190,37 @@ class Header extends React.Component<Props> {
               </Action>
             )}
           &nbsp;
-          <Collaborators
-            document={document}
-            currentUserId={auth.user ? auth.user.id : undefined}
-          />
-          {!isDraft &&
-            !isEditing &&
+          <Fade>
+            <Collaborators
+              document={document}
+              currentUserId={auth.user ? auth.user.id : undefined}
+            />
+          </Fade>
+          {!isEditing &&
             canShareDocuments && (
               <Action>
-                <Button
-                  onClick={this.handleShareLink}
-                  title="Share document"
-                  neutral
-                  small
+                <Tooltip
+                  tooltip={
+                    isPubliclyShared ? (
+                      <React.Fragment>
+                        Anyone with the link <br />can view this document
+                      </React.Fragment>
+                    ) : (
+                      ""
+                    )
+                  }
+                  delay={500}
+                  placement="bottom"
                 >
-                  Share
-                </Button>
+                  <Button
+                    icon={isPubliclyShared ? <GlobeIcon /> : undefined}
+                    onClick={this.handleShareLink}
+                    neutral
+                    small
+                  >
+                    Share
+                  </Button>
+                </Tooltip>
               </Action>
             )}
           {isEditing && (
@@ -367,4 +391,4 @@ const Title = styled.div`
   `};
 `;
 
-export default inject("auth", "ui", "policies")(Header);
+export default inject("auth", "ui", "policies", "shares")(Header);

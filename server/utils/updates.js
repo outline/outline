@@ -45,7 +45,7 @@ export default async () => {
     },
   });
 
-  await client.del("UPDATES_KEY");
+  await client.del(UPDATES_KEY);
 
   try {
     const response = await fetch(UPDATES_URL, {

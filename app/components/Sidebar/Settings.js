@@ -29,6 +29,7 @@ import HeaderBlock from "./components/HeaderBlock";
 import Version from "./components/Version";
 import PoliciesStore from "stores/PoliciesStore";
 import AuthStore from "stores/AuthStore";
+import env from "env";
 
 type Props = {
   history: RouterHistory,
@@ -146,7 +147,7 @@ class SettingsSidebar extends React.Component<Props> {
               </Section>
             )}
             {can.update &&
-              process.env.DEPLOYMENT !== "hosted" && (
+              env.DEPLOYMENT !== "hosted" && (
                 <Section>
                   <Header>Installation</Header>
                   <Version />

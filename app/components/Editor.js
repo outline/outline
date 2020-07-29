@@ -10,7 +10,7 @@ import { uploadFile } from "utils/uploadFile";
 import isInternalUrl from "utils/isInternalUrl";
 import Tooltip from "components/Tooltip";
 import UiStore from "stores/UiStore";
-import embeds from "../../embeds";
+import embeds from "../embeds";
 
 const EMPTY_ARRAY = [];
 
@@ -88,14 +88,20 @@ const StyledEditor = styled(RichMarkdownEditor)`
     transition: ${props => props.theme.backgroundTransition};
   }
 
+  .notice-block.tip,
+  .notice-block.warning {
+    font-weight: 500;
+  }
+
   p {
     a {
-      color: ${props => props.theme.link};
-      border-bottom: 1px solid ${props => lighten(0.5, props.theme.link)};
+      color: ${props => props.theme.text};
+      border-bottom: 1px solid ${props => lighten(0.5, props.theme.text)};
+      text-decoration: none !important;
       font-weight: 500;
 
       &:hover {
-        border-bottom: 1px solid ${props => props.theme.link};
+        border-bottom: 1px solid ${props => props.theme.text};
         text-decoration: none;
       }
     }
@@ -104,9 +110,13 @@ const StyledEditor = styled(RichMarkdownEditor)`
 
 const EditorTooltip = ({ children, ...props }) => (
   <Tooltip offset="0, 16" delay={150} {...props}>
-    <span>{children}</span>
+    <Span>{children}</Span>
   </Tooltip>
 );
+
+const Span = styled.span`
+  outline: none;
+`;
 
 const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
 

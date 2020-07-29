@@ -71,7 +71,7 @@ const StyledInput = styled.input`
   color: ${props => props.theme.text};
 
   ::-webkit-search-cancel-button {
-    -webkit-appearance: searchfield-cancel-button;
+    -webkit-appearance: none;
   }
   ::-webkit-input-placeholder {
     color: ${props => props.theme.placeholder};

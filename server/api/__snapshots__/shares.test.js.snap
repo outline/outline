@@ -9,6 +9,15 @@ Object {
 }
 `;
 
+exports[`#shares.info should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#shares.list should require authentication 1`] = `
 Object {
   "error": "authentication_required",
@@ -19,6 +28,15 @@ Object {
 `;
 
 exports[`#shares.revoke should require authentication 1`] = `
+Object {
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#shares.update should require authentication 1`] = `
 Object {
   "error": "authentication_required",
   "message": "Authentication required",

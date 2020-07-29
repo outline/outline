@@ -38,7 +38,7 @@ export default createGlobalStyle`
   }
 
   a {
-    color: ${props => props.theme.primary};
+    color: ${props => props.theme.link};
     text-decoration: none;
     cursor: pointer;
   }
@@ -53,7 +53,6 @@ export default createGlobalStyle`
     line-height: 1.25;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    color: ${props => props.theme.text};
   }
   h1 { font-size: 2.25em; }
   h2 { font-size: 1.5em; }

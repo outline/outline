@@ -142,10 +142,10 @@ Team.prototype.provisionFirstCollection = async function(userId) {
   // For the first collection we go ahead and create some intitial documents to get
   // the team started. You can edit these in /server/onboarding/x.md
   const onboardingDocs = [
-    "❤️ Support",
-    "🚀 Integrations & API",
-    "📝 Our Editor",
-    "👋 What is Outline",
+    "Support",
+    "Integrations & API",
+    "Our Editor",
+    "What is Outline",
   ];
   for (const title of onboardingDocs) {
     const text = await readFile(

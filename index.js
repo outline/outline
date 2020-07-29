@@ -62,12 +62,6 @@ if (!process.env.REDIS_URL) {
   process.exit(1);
 }
 
-if (!process.env.WEBSOCKETS_ENABLED) {
-  console.log(
-    "WARNING: Websockets are disabled. Set WEBSOCKETS_ENABLED env variable to true to enable"
-  );
-}
-
 if (process.env.NODE_ENV === "production") {
   console.log("\n\x1b[33m%s\x1b[0m", "Running Outline in production mode.");
 } else if (process.env.NODE_ENV === "development") {

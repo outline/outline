@@ -435,6 +435,7 @@ class DocumentScene extends React.Component<Props> {
                       this.editor = ref;
                     }
                   }}
+                  isShare={isShare}
                   isDraft={document.isDraft}
                   key={disableEmbeds ? "embeds-disabled" : "embeds-enabled"}
                   title={revision ? revision.title : this.title}

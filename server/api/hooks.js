@@ -116,7 +116,7 @@ router.post("hooks.slack", async ctx => {
       attachments: [
         {
           text:
-            "To search your knowledgebase use `/outline keyword`. \nYou’ve already learned how to get help with `/outline help`.",
+            "To search your knowledge base use `/outline keyword`. \nYou’ve already learned how to get help with `/outline help`.",
         },
       ],
     };

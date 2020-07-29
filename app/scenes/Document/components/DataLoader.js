@@ -15,6 +15,7 @@ import HideSidebar from "./HideSidebar";
 import Error404 from "scenes/Error404";
 import ErrorOffline from "scenes/ErrorOffline";
 import DocumentsStore from "stores/DocumentsStore";
+import SharesStore from "stores/SharesStore";
 import PoliciesStore from "stores/PoliciesStore";
 import RevisionsStore from "stores/RevisionsStore";
 import UiStore from "stores/UiStore";
@@ -23,6 +24,7 @@ import { OfflineError } from "utils/errors";
 type Props = {|
   match: Object,
   location: Location,
+  shares: SharesStore,
   documents: DocumentsStore,
   policies: PoliciesStore,
   revisions: RevisionsStore,
@@ -128,6 +130,8 @@ class DataLoader extends React.Component<Props> {
         return this.goToDocumentCanonical();
       }
 
+      this.props.shares.fetch(document.id);
+
       const isMove = this.props.location.pathname.match(/move$/);
       const canRedirect = !revisionId && !isMove && !shareId;
       if (canRedirect) {
@@ -187,5 +191,7 @@ class DataLoader extends React.Component<Props> {
 }
 
 export default withRouter(
-  inject("ui", "auth", "documents", "revisions", "policies")(DataLoader)
+  inject("ui", "auth", "documents", "revisions", "policies", "shares")(
+    DataLoader
+  )
 );

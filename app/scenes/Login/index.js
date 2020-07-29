@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { BackIcon, EmailIcon } from "outline-icons";
 import { observer, inject } from "mobx-react";
-import { Redirect } from "react-router-dom";
+import { Redirect, Link } from "react-router-dom";
 import { find } from "lodash";
 import Flex from "components/Flex";
 import TeamLogo from "components/TeamLogo";
@@ -17,6 +17,7 @@ import Service from "./Service";
 import Notices from "./Notices";
 import AuthStore from "stores/AuthStore";
 import getQueryVariable from "shared/utils/getQueryVariable";
+import env from "env";
 
 type Props = {
   auth: AuthStore,
@@ -58,13 +59,13 @@ class Login extends React.Component<Props, State> {
     const hasMultipleServices = config.services.length > 1;
     const defaultService = find(
       config.services,
-      service => service.id === auth.lastSignedIn
+      service => service.id === auth.lastSignedIn && !isCreate
     );
 
     const header =
-      process.env.DEPLOYMENT === "hosted" &&
+      env.DEPLOYMENT === "hosted" &&
       (config.hostname ? (
-        <Back href={process.env.URL}>
+        <Back href={env.URL}>
           <BackIcon color="currentColor" /> Back to home
         </Back>
       ) : (
@@ -101,8 +102,8 @@ class Login extends React.Component<Props, State> {
         <Centered align="center" justify="center" column auto>
           <PageTitle title="Login" />
           <Logo>
-            {process.env.TEAM_LOGO && process.env.DEPLOYMENT !== "hosted" ? (
-              <TeamLogo src={process.env.TEAM_LOGO} />
+            {env.TEAM_LOGO && env.DEPLOYMENT !== "hosted" ? (
+              <TeamLogo src={env.TEAM_LOGO} />
             ) : (
               <OutlineLogo size={38} fill="currentColor" />
             )}
@@ -135,7 +136,7 @@ class Login extends React.Component<Props, State> {
           )}
 
           {config.services.map(service => {
-            if (service.id === auth.lastSignedIn) {
+            if (defaultService && service.id === defaultService.id) {
               return null;
             }
 
@@ -148,6 +149,12 @@ class Login extends React.Component<Props, State> {
               />
             );
           })}
+
+          {isCreate && (
+            <Note>
+              Already have an account? Go to <Link to="/">login</Link>.
+            </Note>
+          )}
         </Centered>
       </Background>
     );

@@ -10,7 +10,7 @@ Outline is a place to build your team knowledge base, you could think of it like
 
 ## Structure
 
-Outline allows you to organize documents in "collections", for example these could represent topics like Sales, Product, or HR. Within collections documents can be interlinked and deeply nested to easily build relationships within your knowledgebase.
+Outline allows you to organize documents in "collections", for example these could represent topics like Sales, Product, or HR. Within collections documents can be interlinked and deeply nested to easily build relationships within your knowledge base.
 
 ## Search
 

@@ -52,7 +52,7 @@ class Shares extends React.Component<Props> {
         <Subheading>Shared Documents</Subheading>
         {hasSharedDocuments ? (
           <List>
-            {shares.orderedData.map(share => (
+            {shares.published.map(share => (
               <ShareListItem key={share.id} share={share} />
             ))}
           </List>

@@ -4,11 +4,14 @@ Outline supports many of the most popular tools on the market without any additi
 
 Our integration code is also [open-source](https://github.com/outline/outline) and we encourage third party developers and the community to build support for additional tools! 
 
-*Tip:* Most integrations work by simply pasting a link from a supported service into a document.
+:::info
+Most integrations work by simply pasting a link from a supported service into a document.
+:::
+
 
 ## Slack
 
-If your team is using Slack to communicate then you’ll definitely want to enable our [Slack Integration](/settings/integrations/slack) to get instant link unfurling for Outline documents and access to the `/outline` slash command to search your knowledgebase directly from Slack.
+If your team is using Slack to communicate then you’ll definitely want to enable our [Slack Integration](/settings/integrations/slack) to get instant link unfurling for Outline documents and access to the `/outline` slash command to search your knowledge base directly from Slack.
 
 ## API
 
