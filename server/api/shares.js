@@ -3,8 +3,9 @@ import Router from "koa-router";
 import Sequelize from "sequelize";
 import auth from "../middlewares/authentication";
 import pagination from "./middlewares/pagination";
-import { presentShare } from "../presenters";
+import { presentShare, presentPolicies } from "../presenters";
 import { Document, User, Event, Share, Team } from "../models";
+import { NotFoundError } from "../errors";
 import policy from "../policies";
 
 const Op = Sequelize.Op;
@@ -12,15 +13,29 @@ const { authorize } = policy;
 const router = new Router();
 
 router.post("shares.info", auth(), async ctx => {
-  const { id } = ctx.body;
-  ctx.assertUuid(id, "id is required");
+  const { id, documentId } = ctx.body;
+  ctx.assertUuid(id || documentId, "id or documentId is required");
 
   const user = ctx.state.user;
-  const share = await Share.findByPk(id);
+  const share = await Share.findOne({
+    where: id
+      ? {
+          id,
+        }
+      : {
+          documentId,
+          userId: user.id,
+        },
+  });
+  if (!share) {
+    throw new NotFoundError();
+  }
+
   authorize(user, "read", share);
 
   ctx.body = {
     data: presentShare(share),
+    policies: presentPolicies(user, [share]),
   };
 });
 
@@ -32,6 +47,7 @@ router.post("shares.list", auth(), pagination(), async ctx => {
   const where = {
     teamId: user.teamId,
     userId: user.id,
+    published: true,
     revokedAt: { [Op.eq]: null },
   };
 
@@ -57,6 +73,11 @@ router.post("shares.list", auth(), pagination(), async ctx => {
         required: true,
         as: "user",
       },
+      {
+        model: Team,
+        required: true,
+        as: "team",
+      },
     ],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
@@ -65,6 +86,35 @@ router.post("shares.list", auth(), pagination(), async ctx => {
   ctx.body = {
     pagination: ctx.state.pagination,
     data: shares.map(presentShare),
+    policies: presentPolicies(user, shares),
+  };
+});
+
+router.post("shares.update", auth(), async ctx => {
+  const { id, published } = ctx.body;
+  ctx.assertUuid(id, "id is required");
+  ctx.assertPresent(published, "published is required");
+
+  const user = ctx.state.user;
+  const share = await Share.findByPk(id);
+  authorize(user, "update", share);
+
+  share.published = published;
+  await share.save();
+
+  await Event.create({
+    name: "shares.update",
+    documentId: share.documentId,
+    modelId: share.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: { published },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    data: presentShare(share),
+    policies: presentPolicies(user, [share]),
   };
 });
 
@@ -78,7 +128,7 @@ router.post("shares.create", auth(), async ctx => {
   authorize(user, "share", document);
   authorize(user, "share", team);
 
-  const [share] = await Share.findOrCreate({
+  const [share, isCreated] = await Share.findOrCreate({
     where: {
       documentId,
       userId: user.id,
@@ -87,22 +137,26 @@ router.post("shares.create", auth(), async ctx => {
     },
   });
 
-  await Event.create({
-    name: "shares.create",
-    documentId,
-    collectionId: document.collectionId,
-    modelId: share.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: { name: document.title },
-    ip: ctx.request.ip,
-  });
+  if (isCreated) {
+    await Event.create({
+      name: "shares.create",
+      documentId,
+      collectionId: document.collectionId,
+      modelId: share.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      data: { name: document.title },
+      ip: ctx.request.ip,
+    });
+  }
 
+  share.team = team;
   share.user = user;
   share.document = document;
 
   ctx.body = {
     data: presentShare(share),
+    policies: presentPolicies(user, [share]),
   };
 });
 

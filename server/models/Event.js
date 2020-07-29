@@ -80,6 +80,7 @@ Event.AUDIT_EVENTS = [
   "documents.move",
   "documents.delete",
   "shares.create",
+  "shares.update",
   "shares.revoke",
   "groups.create",
   "groups.update",

@@ -24,7 +24,10 @@ export async function buildShare(overrides: Object = {}) {
     overrides.userId = user.id;
   }
 
-  return Share.create(overrides);
+  return Share.create({
+    published: true,
+    ...overrides,
+  });
 }
 
 export function buildTeam(overrides: Object = {}) {

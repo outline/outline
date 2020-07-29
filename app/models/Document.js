@@ -41,7 +41,6 @@ export default class Document extends BaseModel {
   deletedAt: ?string;
   url: string;
   urlId: string;
-  shareUrl: ?string;
   revision: number;
 
   get emoji() {
@@ -90,10 +89,7 @@ export default class Document extends BaseModel {
 
   @action
   share = async () => {
-    const res = await client.post("/shares.create", { documentId: this.id });
-    invariant(res && res.data, "Share data should be available");
-    this.shareUrl = res.data.url;
-    return this.shareUrl;
+    return this.store.rootStore.shares.create({ documentId: this.id });
   };
 
   @action
