@@ -734,6 +734,7 @@ router.post("documents.create", auth(), async ctx => {
     lastModifiedById: user.id,
     createdById: user.id,
     template,
+    templateId: templateDocument ? templateDocument.id : undefined,
     title: templateDocument ? templateDocument.title : title,
     text: templateDocument ? templateDocument.text : text,
   });
