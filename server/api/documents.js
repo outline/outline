@@ -782,27 +782,24 @@ router.post("documents.templatize", auth(), async ctx => {
   ctx.assertPresent(id, "id is required");
 
   const user = ctx.state.user;
-  const document = await Document.findByPk(id, { userId: user.id });
-  authorize(user, "update", document);
+  const original = await Document.findByPk(id, { userId: user.id });
+  authorize(user, "update", original);
 
-  // TODO: Wrap in transaction
-  // remove from collection
-  await document.collection.removeDocumentInStructure(document);
-
-  // remove stars
-  await Star.destroy({
-    where: { documentId: document.id },
+  let document = await Document.create({
+    editorVersion: original.editorVersion,
+    collectionId: original.collectionId,
+    teamId: original.teamId,
+    userId: user.id,
+    publishedAt: new Date(),
+    lastModifiedById: user.id,
+    createdById: user.id,
+    template: true,
+    title: original.title,
+    text: original.text,
   });
 
-  // remove pinned
-  document.pinnedById = undefined;
-
-  // mark as template
-  document.template = true;
-  await document.save();
-
   await Event.create({
-    name: "documents.update",
+    name: "documents.create",
     documentId: document.id,
     collectionId: document.collectionId,
     teamId: document.teamId,
@@ -811,7 +808,8 @@ router.post("documents.templatize", auth(), async ctx => {
     ip: ctx.request.ip,
   });
 
-  document.updatedBy = user;
+  // reload to get all of the data needed to present (user, collection etc)
+  document = await Document.findByPk(document.id);
 
   ctx.body = {
     data: await presentDocument(document),

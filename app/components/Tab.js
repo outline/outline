@@ -33,14 +33,14 @@ const StyledNavLink = styled(NavLink)`
   }
 `;
 
-function Tab(props: Props) {
+function Tab({ theme, ...rest }: Props) {
   const activeStyle = {
     paddingBottom: "5px",
-    borderBottom: `3px solid ${props.theme.textSecondary}`,
-    color: props.theme.textSecondary,
+    borderBottom: `3px solid ${theme.textSecondary}`,
+    color: theme.textSecondary,
   };
 
-  return <StyledNavLink {...props} activeStyle={activeStyle} />;
+  return <StyledNavLink {...rest} activeStyle={activeStyle} />;
 }
 
 export default withTheme(Tab);

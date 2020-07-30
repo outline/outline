@@ -432,20 +432,28 @@ Document.searchForUser = async (
 // Hooks
 
 Document.addHook("beforeSave", async model => {
-  if (!model.publishedAt) return;
+  if (!model.publishedAt || model.template) {
+    return;
+  }
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== "atlas") return;
+  if (!collection || collection.type !== "atlas") {
+    return;
+  }
 
   await collection.updateDocument(model);
   model.collection = collection;
 });
 
 Document.addHook("afterCreate", async model => {
-  if (!model.publishedAt) return;
+  if (!model.publishedAt || model.template) {
+    return;
+  }
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== "atlas") return;
+  if (!collection || collection.type !== "atlas") {
+    return;
+  }
 
   await collection.addDocumentToStructure(model);
   model.collection = collection;
