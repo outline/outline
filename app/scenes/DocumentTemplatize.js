@@ -2,6 +2,8 @@
 import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import { documentUrl } from "utils/routeHelpers";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
@@ -11,6 +13,7 @@ import UiStore from "stores/UiStore";
 type Props = {
   ui: UiStore,
   document: Document,
+  history: RouterHistory,
   onSubmit: () => void,
 };
 
@@ -23,8 +26,9 @@ class DocumentTemplatize extends React.Component<Props> {
     this.isSaving = true;
 
     try {
-      await this.props.document.templatize();
-      this.props.ui.showToast("Document converted to template!");
+      const template = await this.props.document.templatize();
+      this.props.history.push(documentUrl(template));
+      this.props.ui.showToast("Template created, go ahead and customize it");
       this.props.onSubmit();
     } catch (err) {
       this.props.ui.showToast(err.message);
@@ -40,12 +44,13 @@ class DocumentTemplatize extends React.Component<Props> {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            Are you sure? Converting <strong>{document.title}</strong> to a
-            template will remove the document from the collection navigation –
-            it will become available as a template for new documents.
+            Converting <strong>{document.titleWithDefault}</strong> to a
+            template is a non-destructive action – we'll make a copy of the
+            document and convert it into a template that you can use to starting
+            point for new documents.
           </HelpText>
           <Button type="submit">
-            {this.isSaving ? "Saving…" : "Convert document"}
+            {this.isSaving ? "Saving…" : "Create template"}
           </Button>
         </form>
       </Flex>
@@ -53,4 +58,4 @@ class DocumentTemplatize extends React.Component<Props> {
   }
 }
 
-export default inject("ui")(DocumentTemplatize);
+export default inject("ui")(withRouter(DocumentTemplatize));

@@ -65,12 +65,12 @@ class DocumentPreview extends React.Component<Props> {
       <DocumentLink
         to={{
           pathname: document.url,
-          state: { title: document.title },
+          state: { title: document.titleWithDefault },
         }}
         {...rest}
       >
         <Heading>
-          <Title text={document.title || "Untitled"} highlight={highlight} />
+          <Title text={document.titleWithDefault} highlight={highlight} />
           {!document.isDraft &&
             !document.isArchived &&
             !document.template && (

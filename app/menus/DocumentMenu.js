@@ -238,7 +238,7 @@ class DocumentMenu extends React.Component<Props> {
           {can.update &&
             !document.template && (
               <DropdownMenuItem onClick={this.handleOpenTemplateModal}>
-                Convert to template…
+                Create template…
               </DropdownMenuItem>
             )}
           {can.update && (
@@ -287,7 +287,7 @@ class DocumentMenu extends React.Component<Props> {
           />
         </Modal>
         <Modal
-          title="Convert to template"
+          title="Create template"
           onRequestClose={this.handleCloseTemplateModal}
           isOpen={this.showTemplateModal}
         >

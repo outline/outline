@@ -90,6 +90,11 @@ export default class Document extends BaseModel {
   }
 
   @computed
+  get titleWithDefault(): string {
+    return this.title || "Untitled";
+  }
+
+  @computed
   get permanentlyDeletedAt(): ?string {
     if (!this.deletedAt) {
       return undefined;
@@ -238,7 +243,7 @@ export default class Document extends BaseModel {
     // Firefox support requires the anchor tag be in the DOM to trigger the dl
     if (document.body) document.body.appendChild(a);
     a.href = url;
-    a.download = `${this.title || "Untitled"}.md`;
+    a.download = `${this.titleWithDefault}.md`;
     a.click();
   };
 }

@@ -64,19 +64,21 @@ class DocumentShare extends React.Component<Props> {
     const { document, policies, shares, onSubmit } = this.props;
     const share = shares.getByDocumentId(document.id);
     const can = policies.abilities(share ? share.id : "");
+    const canPublish = can.update && !document.isTemplate;
 
     return (
       <div>
         <HelpText>
           The link below provides a read-only version of the document{" "}
-          <strong>{document.title}</strong>.{" "}
-          {can.update &&
-            "You can optionally make it accessible to anyone with the link."}{" "}
+          <strong>{document.titleWithDefault}</strong>.{" "}
+          {canPublish
+            ? "You can optionally make it accessible to anyone with the link."
+            : "It is only viewable by those that already have access to the collection."}{" "}
           <Link to="/settings/shares" onClick={onSubmit}>
             Manage all share links
           </Link>.
         </HelpText>
-        {can.update && (
+        {canPublish && (
           <React.Fragment>
             <Switch
               id="published"

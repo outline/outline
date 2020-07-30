@@ -360,7 +360,7 @@ class DocumentScene extends React.Component<Props> {
             )}
           />
           <PageTitle
-            title={document.title.replace(document.emoji, "") || "Untitled"}
+            title={document.titleWithDefault.replace(document.emoji, "")}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}

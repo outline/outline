@@ -26,7 +26,7 @@ function HoverPreviewDocument({ url, documents, children }: Props) {
 
   return children(
     <Content to={document.url}>
-      <Heading>{document.title}</Heading>
+      <Heading>{document.titleWithDefault}</Heading>
       <DocumentMeta isDraft={document.isDraft} document={document} />
 
       <Editor
