@@ -38,7 +38,7 @@ export default createGlobalStyle`
   }
 
   a {
-    color: ${props => props.theme.primary};
+    color: ${props => props.theme.link};
     text-decoration: none;
     cursor: pointer;
   }

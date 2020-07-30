@@ -108,7 +108,7 @@ export const light = {
   background: colors.white,
   secondaryBackground: colors.warmGrey,
 
-  link: colors.almostBlack,
+  link: colors.primary,
   text: colors.almostBlack,
   textSecondary: colors.slateDark,
   textTertiary: colors.slate,
@@ -161,7 +161,7 @@ export const dark = {
   background: colors.almostBlack,
   secondaryBackground: colors.black50,
 
-  link: colors.almostWhite,
+  link: "#137FFB",
   text: colors.almostWhite,
   textSecondary: lighten(0.1, colors.slate),
   textTertiary: colors.slate,

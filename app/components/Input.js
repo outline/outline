@@ -75,6 +75,7 @@ export const Outline = styled(Flex)`
 export const LabelText = styled.div`
   font-weight: 500;
   padding-bottom: 4px;
+  display: inline-block;
 `;
 
 export type Props = {

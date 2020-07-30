@@ -48,7 +48,7 @@ class NewDocumentMenu extends React.Component<Props> {
         label={
           label || (
             <Button icon={<PlusIcon />} small>
-              New doc
+              New doc…
             </Button>
           )
         }

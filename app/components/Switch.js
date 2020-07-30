@@ -22,7 +22,7 @@ function Switch({ width = 38, height = 20, label, ...props }: Props) {
     return (
       <Label htmlFor={props.id}>
         {component}
-        <LabelText>&nbsp;{label}</LabelText>
+        <LabelText>{label}</LabelText>
       </Label>
     );
   }
@@ -41,6 +41,7 @@ const Wrapper = styled.label`
   width: ${props => props.width}px;
   height: ${props => props.height}px;
   margin-bottom: 4px;
+  margin-right: 8px;
 `;
 
 const Slider = styled.span`
