@@ -7,9 +7,14 @@ module.exports = {
       allowNull: false,
       defaultValue: false
     });
+    await queryInterface.addColumn('documents', 'templateId', {
+      type: Sequelize.UUID,
+      allowNull: true
+    });
   },
 
   down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('documents', 'templateId');
     await queryInterface.removeColumn('documents', 'template');
   }
 };
