@@ -10,7 +10,7 @@ type Props = {
 
 const StyledNavLink = styled(NavLink)`
   position: relative;
-  top: 1px;
+  bottom: -1px;
 
   display: inline-block;
   font-weight: 500;
@@ -43,4 +43,18 @@ function Tab({ theme, ...rest }: Props) {
   return <StyledNavLink {...rest} activeStyle={activeStyle} />;
 }
 
-export default withTheme(Tab);
+const TabWithTheme = withTheme(Tab);
+
+const RightTabWithTheme = styled(TabWithTheme)`
+  position: absolute;
+  right: 0;
+
+  margin-left: 24px;
+  margin-right: 0;
+`;
+
+export function RightTab(props: Props) {
+  return <RightTabWithTheme {...props} />;
+}
+
+export default TabWithTheme;

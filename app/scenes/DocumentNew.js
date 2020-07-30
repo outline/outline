@@ -27,6 +27,7 @@ class DocumentNew extends React.Component<Props> {
         collectionId: this.props.match.params.id,
         parentDocumentId: params.parentDocumentId,
         templateId: params.templateId,
+        template: params.template,
         title: "",
         text: "",
       });

@@ -1,11 +1,7 @@
 // @flow
 import * as React from "react";
-import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { PlusIcon } from "outline-icons";
-import { Redirect } from "react-router-dom";
 
-import { newTemplateUrl } from "utils/routeHelpers";
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
 import PageTitle from "components/PageTitle";
@@ -13,7 +9,7 @@ import Heading from "components/Heading";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Tabs from "components/Tabs";
 import Tab from "components/Tab";
-import Button from "components/Button";
+import NewTemplateMenu from "menus/NewTemplateMenu";
 import Actions, { Action } from "components/Actions";
 import DocumentsStore from "stores/DocumentsStore";
 
@@ -24,19 +20,7 @@ type Props = {
 
 @observer
 class Starred extends React.Component<Props> {
-  @observable redirectTo: ?string;
-
-  componentDidUpdate() {
-    this.redirectTo = undefined;
-  }
-
-  handleNewTemplate = () => {
-    this.redirectTo = newTemplateUrl();
-  };
-
   render() {
-    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
-
     const {
       fetchTemplates,
       templates,
@@ -65,13 +49,12 @@ class Starred extends React.Component<Props> {
             sort === "alphabetical" ? templatesAlphabetical : templates
           }
           showCollection
+          showDraft
         />
 
         <Actions align="center" justify="flex-end">
           <Action>
-            <Button icon={<PlusIcon />} onClick={this.handleNewTemplate} small>
-              New template
-            </Button>
+            <NewTemplateMenu />
           </Action>
         </Actions>
       </CenteredContent>

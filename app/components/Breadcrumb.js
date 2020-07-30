@@ -51,7 +51,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
   }
 
   const isTemplate = document.template;
-  const isDraft = !document.publishedAt && !document.template;
+  const isDraft = !document.publishedAt && !isTemplate;
   const isNestedDocument = path.length > 1;
   const lastPath = path.length ? path[path.length - 1] : undefined;
   const menuPath = isNestedDocument ? path.slice(0, -1) : [];

@@ -80,6 +80,11 @@ export default class Document extends BaseModel {
   }
 
   @computed
+  get isTemplate(): boolean {
+    return !!this.template;
+  }
+
+  @computed
   get isDraft(): boolean {
     return !this.publishedAt;
   }

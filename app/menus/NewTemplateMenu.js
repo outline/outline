@@ -19,7 +19,7 @@ type Props = {
 };
 
 @observer
-class NewDocumentMenu extends React.Component<Props> {
+class NewTemplateMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
 
   componentDidUpdate() {
@@ -27,33 +27,25 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 
   handleNewDocument = (collectionId: string) => {
-    this.redirectTo = newDocumentUrl(collectionId);
-  };
-
-  onOpen = () => {
-    const { collections } = this.props;
-
-    if (collections.orderedData.length === 1) {
-      this.handleNewDocument(collections.orderedData[0].id);
-    }
+    this.redirectTo = newDocumentUrl(collectionId, {
+      template: true,
+    });
   };
 
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
     const { collections, policies, label, ...rest } = this.props;
-    const singleCollection = collections.orderedData.length === 1;
 
     return (
       <DropdownMenu
         label={
           label || (
             <Button icon={<PlusIcon />} small>
-              New doc{singleCollection ? "" : "…"}
+              New template…
             </Button>
           )
         }
-        onOpen={this.onOpen}
         {...rest}
       >
         <DropdownMenuItem disabled>Choose a collection…</DropdownMenuItem>
@@ -75,4 +67,4 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject("collections", "policies")(NewDocumentMenu);
+export default inject("collections", "policies")(NewTemplateMenu);

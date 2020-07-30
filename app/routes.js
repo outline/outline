@@ -11,7 +11,6 @@ import Trash from "scenes/Trash";
 import Collection from "scenes/Collection";
 import KeyedDocument from "scenes/Document/KeyedDocument";
 import DocumentNew from "scenes/DocumentNew";
-import TemplateNew from "scenes/TemplateNew";
 import Search from "scenes/Search";
 import Settings from "scenes/Settings";
 import Details from "scenes/Settings/Details";
@@ -53,7 +52,6 @@ export default function Routes() {
               <Route exact path="/starred" component={Starred} />
               <Route exact path="/starred/:sort" component={Starred} />
               <Route exact path="/templates" component={Templates} />
-              <Route exact path="/templates/new" component={TemplateNew} />
               <Route exact path="/templates/:sort" component={Templates} />
               <Route exact path="/drafts" component={Drafts} />
               <Route exact path="/archive" component={Archive} />
