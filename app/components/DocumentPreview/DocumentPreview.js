@@ -21,6 +21,7 @@ type Props = {
   showPublished?: boolean,
   showPin?: boolean,
   showDraft?: boolean,
+  showTemplate?: boolean,
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -52,6 +53,7 @@ class DocumentPreview extends React.Component<Props> {
       showPublished,
       showPin,
       showDraft = true,
+      showTemplate,
       highlight,
       context,
       ...rest
@@ -73,7 +75,7 @@ class DocumentPreview extends React.Component<Props> {
           <Title text={document.titleWithDefault} highlight={highlight} />
           {!document.isDraft &&
             !document.isArchived &&
-            !document.template && (
+            !document.isTemplate && (
               <Actions>
                 {document.isStarred ? (
                   <StyledStar onClick={this.unstar} solid />
@@ -92,6 +94,8 @@ class DocumentPreview extends React.Component<Props> {
                 <Badge>Draft</Badge>
               </Tooltip>
             )}
+          {document.isTemplate &&
+            showTemplate && <Badge primary>Template</Badge>}
           <SecondaryActions>
             <DocumentMenu document={document} showPin={showPin} />
           </SecondaryActions>

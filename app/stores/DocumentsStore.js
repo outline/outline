@@ -19,7 +19,6 @@ import RootStore from "stores/RootStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
-import { RequestHeaderFieldsTooLarge } from "http-errors";
 
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];

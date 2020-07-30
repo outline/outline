@@ -414,7 +414,7 @@ class DocumentScene extends React.Component<Props> {
                   {document.permanentlyDeletedAt && (
                     <React.Fragment>
                       <br />
-                      This document will be permanently deleted in{" "}
+                      This {document.noun} will be permanently deleted in{" "}
                       <Time dateTime={document.permanentlyDeletedAt} /> unless
                       restored.
                     </React.Fragment>

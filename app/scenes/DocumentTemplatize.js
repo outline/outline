@@ -46,8 +46,8 @@ class DocumentTemplatize extends React.Component<Props> {
           <HelpText>
             Converting <strong>{document.titleWithDefault}</strong> to a
             template is a non-destructive action – we'll make a copy of the
-            document and convert it into a template that you can use to starting
-            point for new documents.
+            document and convert it into a template that can be used as a
+            starting point for new documents.
           </HelpText>
           <Button type="submit">
             {this.isSaving ? "Saving…" : "Create template"}
