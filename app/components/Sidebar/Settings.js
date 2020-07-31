@@ -9,7 +9,6 @@ import {
   ProfileIcon,
   PadlockIcon,
   CodeIcon,
-  ShapesIcon,
   UserIcon,
   GroupIcon,
   LinkIcon,

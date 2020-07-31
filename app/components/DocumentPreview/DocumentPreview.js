@@ -12,6 +12,7 @@ import Highlight from "components/Highlight";
 import PublishingInfo from "components/PublishingInfo";
 import DocumentMenu from "menus/DocumentMenu";
 import Document from "models/Document";
+import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   document: Document,
@@ -28,16 +29,20 @@ const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 @observer
 class DocumentPreview extends React.Component<Props> {
-  star = (ev: SyntheticEvent<>) => {
+  handleStar = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.document.star();
   };
 
-  unstar = (ev: SyntheticEvent<>) => {
+  handleUnstar = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     ev.stopPropagation();
     this.props.document.unstar();
+  };
+
+  handleNewFromTemplate = () => {
+    //
   };
 
   replaceResultMarks = (tag: string) => {
@@ -78,9 +83,9 @@ class DocumentPreview extends React.Component<Props> {
             !document.isTemplate && (
               <Actions>
                 {document.isStarred ? (
-                  <StyledStar onClick={this.unstar} solid />
+                  <StyledStar onClick={this.handleUnstar} solid />
                 ) : (
-                  <StyledStar onClick={this.star} />
+                  <StyledStar onClick={this.handleStar} />
                 )}
               </Actions>
             )}
@@ -97,6 +102,19 @@ class DocumentPreview extends React.Component<Props> {
           {document.isTemplate &&
             showTemplate && <Badge primary>Template</Badge>}
           <SecondaryActions>
+            {document.isTemplate && (
+              <Button
+                as={Link}
+                to={newDocumentUrl(document.collectionId, {
+                  templateId: document.id,
+                })}
+                icon={<PlusIcon />}
+                onClick={this.handleNewFromTemplate}
+                neutral
+              >
+                New doc
+              </Button>
+            )}&nbsp;
             <DocumentMenu document={document} showPin={showPin} />
           </SecondaryActions>
         </Heading>
