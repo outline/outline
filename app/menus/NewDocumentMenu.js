@@ -10,7 +10,11 @@ import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import NewFromTemplateMenu from "menus/NewFromTemplateMenu";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  Header,
+} from "components/DropdownMenu";
 import Button from "components/Button";
 import CollectionIcon from "components/CollectionIcon";
 
@@ -59,7 +63,7 @@ class NewDocumentMenu extends React.Component<Props> {
         onOpen={this.onOpen}
         {...rest}
       >
-        <DropdownMenuItem disabled>Choose a collection…</DropdownMenuItem>
+        <Header>Choose a collection</Header>
         {collections.orderedData.map(collection => {
           const can = policies.abilities(collection.id);
           const templates = documents.templatesInCollection(collection.id);

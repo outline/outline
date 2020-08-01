@@ -8,7 +8,11 @@ import { PlusIcon } from "outline-icons";
 import { newDocumentUrl } from "utils/routeHelpers";
 import CollectionsStore from "stores/CollectionsStore";
 import PoliciesStore from "stores/PoliciesStore";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  Header,
+} from "components/DropdownMenu";
 import Button from "components/Button";
 import CollectionIcon from "components/CollectionIcon";
 
@@ -48,7 +52,7 @@ class NewTemplateMenu extends React.Component<Props> {
         }
         {...rest}
       >
-        <DropdownMenuItem disabled>Choose a collection…</DropdownMenuItem>
+        <Header>Choose a collection</Header>
         {collections.orderedData.map(collection => {
           const can = policies.abilities(collection.id);
 
