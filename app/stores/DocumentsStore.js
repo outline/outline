@@ -52,7 +52,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     return orderBy(this.all, "updatedAt", "desc");
   }
 
-  @computed
   get templates(): Document[] {
     return orderBy(
       filter(
@@ -130,9 +129,8 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.searchCache.get(query) || [];
   }
 
-  @computed
   get starred(): Document[] {
-    return filter(this.all, d => d.isStarred);
+    return orderBy(filter(this.all, d => d.isStarred), "updatedAt", "desc");
   }
 
   @computed

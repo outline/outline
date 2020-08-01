@@ -71,6 +71,7 @@ class NewDocumentMenu extends React.Component<Props> {
           if (templates.length && can.update) {
             return (
               <NewFromTemplateMenu
+                key={collection.id}
                 templates={templates}
                 collection={collection}
                 style={{

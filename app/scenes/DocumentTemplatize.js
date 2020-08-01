@@ -44,13 +44,13 @@ class DocumentTemplatize extends React.Component<Props> {
       <Flex column>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
-            Converting <strong>{document.titleWithDefault}</strong> to a
-            template is a non-destructive action – we'll make a copy of the
-            document and convert it into a template that can be used as a
-            starting point for new documents.
+            Creating a template from{" "}
+            <strong>{document.titleWithDefault}</strong> is a non-destructive
+            action – we'll make a copy of the document and turn it into a
+            template that can be used as a starting point for new documents.
           </HelpText>
           <Button type="submit">
-            {this.isSaving ? "Saving…" : "Create template"}
+            {this.isSaving ? "Creating…" : "Create template"}
           </Button>
         </form>
       </Flex>

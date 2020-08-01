@@ -54,13 +54,6 @@ class DocumentMenu extends React.Component<Props> {
     });
   };
 
-  handleNewFromTemplate = (ev: SyntheticEvent<>) => {
-    const { document } = this.props;
-    this.redirectTo = newDocumentUrl(document.collectionId, {
-      templateId: document.id,
-    });
-  };
-
   handleDelete = (ev: SyntheticEvent<>) => {
     this.showDeleteModal = true;
   };
@@ -226,12 +219,6 @@ class DocumentMenu extends React.Component<Props> {
               New nested document
             </DropdownMenuItem>
           )}
-          {can.update &&
-            document.template && (
-              <DropdownMenuItem onClick={this.handleNewFromTemplate}>
-                New from template
-              </DropdownMenuItem>
-            )}
           {can.update && (
             <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
           )}
