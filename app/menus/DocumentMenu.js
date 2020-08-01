@@ -209,7 +209,7 @@ class DocumentMenu extends React.Component<Props> {
               )}
             </React.Fragment>
           )}
-          <hr />
+          {!can.restore && <hr />}
 
           {can.createChildDocument && (
             <DropdownMenuItem

@@ -102,19 +102,21 @@ class DocumentPreview extends React.Component<Props> {
           {document.isTemplate &&
             showTemplate && <Badge primary>Template</Badge>}
           <SecondaryActions>
-            {document.isTemplate && (
-              <Button
-                as={Link}
-                to={newDocumentUrl(document.collectionId, {
-                  templateId: document.id,
-                })}
-                icon={<PlusIcon />}
-                onClick={this.handleNewFromTemplate}
-                neutral
-              >
-                New doc
-              </Button>
-            )}&nbsp;
+            {document.isTemplate &&
+              !document.isArchived &&
+              !document.isDeleted && (
+                <Button
+                  as={Link}
+                  to={newDocumentUrl(document.collectionId, {
+                    templateId: document.id,
+                  })}
+                  icon={<PlusIcon />}
+                  onClick={this.handleNewFromTemplate}
+                  neutral
+                >
+                  New doc
+                </Button>
+              )}&nbsp;
             <DocumentMenu document={document} showPin={showPin} />
           </SecondaryActions>
         </Heading>
