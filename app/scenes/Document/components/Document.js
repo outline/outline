@@ -8,6 +8,7 @@ import { observer, inject } from "mobx-react";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { Location, RouterHistory } from "react-router-dom";
 import keydown from "react-keydown";
+import { InputIcon } from "outline-icons";
 import Flex from "components/Flex";
 import {
   collectionUrl,
@@ -400,6 +401,14 @@ class DocumentScene extends React.Component<Props> {
               column
               auto
             >
+              {document.isTemplate &&
+                !readOnly && (
+                  <Notice muted>
+                    You’re editing a template. Highlight text and use the{" "}
+                    <PlaceholderIcon /> icon to add placeholders that can be
+                    filled out when creating new documents from this template.
+                  </Notice>
+                )}
               {document.archivedAt &&
                 !document.deletedAt && (
                   <Notice muted>
@@ -476,6 +485,11 @@ class DocumentScene extends React.Component<Props> {
     );
   }
 }
+
+const PlaceholderIcon = styled(InputIcon)`
+  position: relative;
+  top: 6px;
+`;
 
 const Background = styled(Container)`
   background: ${props => props.theme.background};
