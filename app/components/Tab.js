@@ -53,7 +53,7 @@ const RightTabWithTheme = styled(TabWithTheme)`
   margin-right: 0;
 `;
 
-export function RightTab(props: Props) {
+export function RightTab(props: Object) {
   return <RightTabWithTheme {...props} />;
 }
 

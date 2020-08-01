@@ -42,7 +42,7 @@ const MenuItem = styled.a`
   margin: 0;
   padding: 6px 12px;
   width: 100%;
-  height: 32px;
+  min-height: 32px;
 
   color: ${props =>
     props.disabled ? props.theme.textTertiary : props.theme.textSecondary};

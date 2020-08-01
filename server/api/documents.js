@@ -29,7 +29,12 @@ const { authorize, cannot } = policy;
 const router = new Router();
 
 router.post("documents.list", auth(), pagination(), async ctx => {
-  const { sort = "updatedAt", backlinkDocumentId, parentDocumentId } = ctx.body;
+  const {
+    sort = "updatedAt",
+    template,
+    backlinkDocumentId,
+    parentDocumentId,
+  } = ctx.body;
 
   // collection and user are here for backwards compatibility
   const collectionId = ctx.body.collectionId || ctx.body.collection;
@@ -40,6 +45,10 @@ router.post("documents.list", auth(), pagination(), async ctx => {
   // always filter by the current team
   const user = ctx.state.user;
   let where = { teamId: user.teamId };
+
+  if (template) {
+    where = { ...where, template: true };
+  }
 
   // if a specific user is passed then add to filters. If the user doesn't
   // exist in the team then nothing will be returned, so no need to check auth

@@ -37,6 +37,7 @@ import Tabs from "components/Tabs";
 import Tab, { RightTab } from "components/Tab";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import CollectionIcon from "components/CollectionIcon";
+import NewFromTemplateMenu from "../menus/NewFromTemplateMenu";
 
 type Props = {
   ui: UiStore,
@@ -110,8 +111,13 @@ class CollectionScene extends React.Component<Props> {
   };
 
   renderActions() {
-    const { match, policies } = this.props;
+    const { match, documents, policies } = this.props;
     const can = policies.abilities(match.params.id);
+    const collection = this.collection;
+    const templates = collection
+      ? documents.templatesInCollection(collection.id)
+      : [];
+    const hasTemplates = !!templates.length;
 
     return (
       <Actions align="center" justify="flex-end">
@@ -124,16 +130,25 @@ class CollectionScene extends React.Component<Props> {
               />
             </Action>
             <Action>
-              <Tooltip
-                tooltip="New document"
-                shortcut="n"
-                delay={500}
-                placement="bottom"
-              >
-                <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
-                  New doc
-                </Button>
-              </Tooltip>
+              {hasTemplates && collection ? (
+                <NewFromTemplateMenu
+                  templates={templates}
+                  collection={collection}
+                  label={<Button icon={<PlusIcon />}>New doc…</Button>}
+                  position="left"
+                />
+              ) : (
+                <Tooltip
+                  tooltip="New document"
+                  shortcut="n"
+                  delay={500}
+                  placement="bottom"
+                >
+                  <Button onClick={this.onNewDocument} icon={<PlusIcon />}>
+                    New doc
+                  </Button>
+                </Tooltip>
+              )}
             </Action>
             <Separator />
           </React.Fragment>

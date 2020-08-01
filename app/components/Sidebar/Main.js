@@ -44,6 +44,7 @@ class MainSidebar extends React.Component<Props> {
 
   componentDidMount() {
     this.props.documents.fetchDrafts();
+    this.props.documents.fetchTemplates();
   }
 
   handleCreateCollection = (ev: SyntheticEvent<>) => {

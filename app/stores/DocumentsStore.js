@@ -248,7 +248,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   fetchTemplates = async (options: ?PaginationParams): Promise<*> => {
-    return this.fetchNamedPage("list", options);
+    return this.fetchNamedPage("list", { ...options, template: true });
   };
 
   @action

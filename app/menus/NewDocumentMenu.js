@@ -7,13 +7,16 @@ import { PlusIcon } from "outline-icons";
 
 import { newDocumentUrl } from "utils/routeHelpers";
 import CollectionsStore from "stores/CollectionsStore";
+import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
+import NewFromTemplateMenu from "menus/NewFromTemplateMenu";
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import Button from "components/Button";
 import CollectionIcon from "components/CollectionIcon";
 
 type Props = {
   label?: React.Node,
+  documents: DocumentsStore,
   collections: CollectionsStore,
   policies: PoliciesStore,
 };
@@ -26,8 +29,8 @@ class NewDocumentMenu extends React.Component<Props> {
     this.redirectTo = undefined;
   }
 
-  handleNewDocument = (collectionId: string) => {
-    this.redirectTo = newDocumentUrl(collectionId);
+  handleNewDocument = (collectionId: string, options) => {
+    this.redirectTo = newDocumentUrl(collectionId, options);
   };
 
   onOpen = () => {
@@ -41,7 +44,7 @@ class NewDocumentMenu extends React.Component<Props> {
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { collections, policies, label, ...rest } = this.props;
+    const { collections, documents, policies, label, ...rest } = this.props;
     const singleCollection = collections.orderedData.length === 1;
 
     return (
@@ -59,6 +62,22 @@ class NewDocumentMenu extends React.Component<Props> {
         <DropdownMenuItem disabled>Choose a collection…</DropdownMenuItem>
         {collections.orderedData.map(collection => {
           const can = policies.abilities(collection.id);
+          const templates = documents.templatesInCollection(collection.id);
+
+          if (templates.length && can.update) {
+            return (
+              <NewFromTemplateMenu
+                templates={templates}
+                collection={collection}
+                style={{
+                  right: 170,
+                  position: "relative",
+                  top: -40,
+                }}
+                hover
+              />
+            );
+          }
 
           return (
             <DropdownMenuItem
@@ -75,4 +94,4 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject("collections", "policies")(NewDocumentMenu);
+export default inject("collections", "documents", "policies")(NewDocumentMenu);
