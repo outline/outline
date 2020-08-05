@@ -50,7 +50,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
     );
   }
 
-  const isTemplate = document.template;
+  const isTemplate = document.isTemplate;
   const isDraft = !document.publishedAt && !isTemplate;
   const isNestedDocument = path.length > 1;
   const lastPath = path.length ? path[path.length - 1] : undefined;

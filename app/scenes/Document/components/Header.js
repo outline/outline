@@ -133,7 +133,7 @@ class Header extends React.Component<Props> {
 
     const share = shares.getByDocumentId(document.id);
     const isPubliclyShared = share && share.published;
-    const isTemplate = document.template;
+    const isTemplate = document.isTemplate;
     const can = policies.abilities(document.id);
     const canShareDocuments = auth.team && auth.team.sharing && can.share;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;

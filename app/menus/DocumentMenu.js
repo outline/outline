@@ -219,15 +219,15 @@ class DocumentMenu extends React.Component<Props> {
               New nested document
             </DropdownMenuItem>
           )}
-          {can.update && (
-            <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
-          )}
           {can.update &&
-            !document.template && (
+            !document.isTemplate && (
               <DropdownMenuItem onClick={this.handleOpenTemplateModal}>
                 Create template…
               </DropdownMenuItem>
             )}
+          {can.update && (
+            <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
+          )}
           {can.update && (
             <DropdownMenuItem onClick={this.handleDuplicate}>
               Duplicate

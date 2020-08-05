@@ -51,7 +51,7 @@ class DocumentDelete extends React.Component<Props> {
           <HelpText>
             Are you sure about that? Deleting the{" "}
             <strong>{document.titleWithDefault}</strong> {document.noun} will
-            delete all of its history{document.template
+            delete all of its history{document.isTemplate
               ? ""
               : ", and any nested documents"}.
           </HelpText>
