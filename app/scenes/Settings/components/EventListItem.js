@@ -143,10 +143,29 @@ const description = event => {
         </React.Fragment>
       );
     }
+    if (event.name === "documents.create") {
+      return (
+        <React.Fragment>
+          {capitalize(event.verbPastTense)} the{" "}
+          <Link to={`/doc/${event.documentId}`}>
+            {event.data.title || "Untitled"}
+          </Link>{" "}
+          document{" "}
+          {event.data.templateId && (
+            <React.Fragment>
+              from a <Link to={`/doc/${event.data.templateId}`}>template</Link>
+            </React.Fragment>
+          )}
+        </React.Fragment>
+      );
+    }
     return (
       <React.Fragment>
         {capitalize(event.verbPastTense)} the{" "}
-        <Link to={`/doc/${event.documentId}`}>{event.data.title}</Link> document
+        <Link to={`/doc/${event.documentId}`}>
+          {event.data.title || "Untitled"}
+        </Link>{" "}
+        document
       </React.Fragment>
     );
   }
