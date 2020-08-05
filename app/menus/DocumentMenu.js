@@ -264,7 +264,7 @@ class DocumentMenu extends React.Component<Props> {
           )}
         </DropdownMenu>
         <Modal
-          title="Delete document"
+          title={`Delete ${this.props.document.noun}`}
           onRequestClose={this.handleCloseDeleteModal}
           isOpen={this.showDeleteModal}
         >

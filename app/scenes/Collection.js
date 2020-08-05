@@ -34,7 +34,7 @@ import Flex from "components/Flex";
 import Modal from "components/Modal";
 import CollectionMembers from "scenes/CollectionMembers";
 import Tabs from "components/Tabs";
-import Tab, { RightTab } from "components/Tab";
+import Tab from "components/Tab";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import CollectionIcon from "components/CollectionIcon";
 import NewFromTemplateMenu from "../menus/NewFromTemplateMenu";
@@ -256,12 +256,6 @@ class CollectionScene extends React.Component<Props> {
                   <Tab to={collectionUrl(collection.id, "alphabetical")} exact>
                     A–Z
                   </Tab>
-                  <RightTab
-                    to={collectionUrl(collection.id, "templates")}
-                    exact
-                  >
-                    Templates
-                  </RightTab>
                 </Tabs>
                 <Switch>
                   <Route path={collectionUrl(collection.id, "alphabetical")}>
@@ -296,14 +290,6 @@ class CollectionScene extends React.Component<Props> {
                       options={{ collectionId: collection.id }}
                       showPublished
                       showPin
-                    />
-                  </Route>
-                  <Route path={collectionUrl(collection.id, "templates")}>
-                    <PaginatedDocumentList
-                      key="templates"
-                      documents={documents.templatesInCollection(collection.id)}
-                      fetch={documents.fetchRecentlyUpdated /* TODO */}
-                      options={{ collectionId: collection.id }}
                     />
                   </Route>
                   <Route path={collectionUrl(collection.id)}>

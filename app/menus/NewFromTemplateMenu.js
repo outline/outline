@@ -3,7 +3,7 @@ import * as React from "react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { Redirect } from "react-router-dom";
-import { PlusIcon, DocumentIcon } from "outline-icons";
+import { EditIcon, DocumentIcon } from "outline-icons";
 import styled from "styled-components";
 
 import { newDocumentUrl } from "utils/routeHelpers";
@@ -59,8 +59,8 @@ class NewFromTemplateMenu extends React.Component<Props> {
         {...rest}
       >
         <DropdownMenuItem onClick={() => this.handleNewDocument(collection.id)}>
-          <PlusIcon />
-          <span>New document</span>
+          <EditIcon />
+          <span>Blank document</span>
         </DropdownMenuItem>
         <Header>Start from a template…</Header>
         {templates.map(template => (

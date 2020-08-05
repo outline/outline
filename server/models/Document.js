@@ -143,6 +143,10 @@ Document.associate = models => {
     as: "team",
     foreignKey: "teamId",
   });
+  Document.belongsTo(models.Document, {
+    as: "document",
+    foreignKey: "templateId",
+  });
   Document.belongsTo(models.User, {
     as: "createdBy",
     foreignKey: "createdById",

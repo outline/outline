@@ -55,6 +55,7 @@ export default async function present(document: Document, options: ?Options) {
     deletedAt: document.deletedAt,
     teamId: document.teamId,
     template: document.template,
+    templateId: document.templateId,
     collaborators: [],
     starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,

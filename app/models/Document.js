@@ -35,13 +35,25 @@ export default class Document extends BaseModel {
   title: string;
   emoji: string;
   template: boolean;
+  templateId: ?string;
   parentDocumentId: ?string;
   publishedAt: ?string;
   archivedAt: string;
   deletedAt: ?string;
   url: string;
   urlId: string;
+  originalTitle: string;
   revision: number;
+
+  constructor(fields: Object, store: DocumentsStore) {
+    super(fields, store);
+
+    this.originalTitle = this.title;
+
+    if (this.isNew && this.isFromTemplate) {
+      this.title = "";
+    }
+  }
 
   get emoji() {
     const { emoji } = parseTitle(this.title);
@@ -100,6 +112,23 @@ export default class Document extends BaseModel {
     }
 
     return addDays(new Date(this.deletedAt), 30).toString();
+  }
+
+  @computed
+  get isNew(): boolean {
+    return this.createdAt === this.updatedAt;
+  }
+
+  @computed
+  get isFromTemplate(): boolean {
+    return !!this.templateId;
+  }
+
+  @computed
+  get placeholder(): ?string {
+    return this.isNew && this.isFromTemplate
+      ? this.originalTitle
+      : this.isTemplate ? "Start your template…" : "Start with a title…";
   }
 
   @action
