@@ -7171,12 +7171,7 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-outline-icons@^1.21.0-3:
-  version "1.21.0-4"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.21.0-4.tgz#d6288d76d24cf96c95cb0e377914fbb7cc96a14c"
-  integrity sha512-XerXkmRZM2H2VgqMJUWF2A+YTx8hH82PwCFqFUM9Mwp1TGyLeiFZWGFJTlyL7MgDvFWnyMlLZhflCtrvkSrj2A==
-
-outline-icons@^1.21.0-6:
+outline-icons@^1.21.0-3, outline-icons@^1.21.0-6:
   version "1.21.0-6"
   resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.21.0-6.tgz#bbf63fe6cc88ca2fe391e6ba6cc8b62a948607e3"
   integrity sha512-iEVK2zTEZ3sLFLsko/V6z3AEiM2EAjEUyLIOzAT2cqRglIbaIWdyitotKVMb2hWZo66bSvHxA/Rdvv51sw5RhA==
