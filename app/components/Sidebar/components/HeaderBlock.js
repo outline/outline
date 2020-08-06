@@ -2,8 +2,8 @@
 import * as React from "react";
 import styled, { withTheme } from "styled-components";
 import { ExpandedIcon } from "outline-icons";
-import Flex from "shared/components/Flex";
-import TeamLogo from "shared/components/TeamLogo";
+import Flex from "components/Flex";
+import TeamLogo from "components/TeamLogo";
 
 type Props = {
   teamName: string,

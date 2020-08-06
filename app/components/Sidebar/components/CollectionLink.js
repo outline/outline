@@ -11,7 +11,7 @@ import SidebarLink from "./SidebarLink";
 import DocumentLink from "./DocumentLink";
 import CollectionIcon from "components/CollectionIcon";
 import DropToImport from "components/DropToImport";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 type Props = {
   collection: Collection,

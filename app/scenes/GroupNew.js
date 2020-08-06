@@ -8,7 +8,7 @@ import Input from "components/Input";
 import HelpText from "components/HelpText";
 import Modal from "components/Modal";
 import GroupMembers from "scenes/GroupMembers";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 import Group from "models/Group";
 import GroupsStore from "stores/GroupsStore";

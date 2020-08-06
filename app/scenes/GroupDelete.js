@@ -5,7 +5,7 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { groupSettings } from "shared/utils/routeHelpers";
 import Button from "components/Button";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Group from "models/Group";
 import UiStore from "stores/UiStore";

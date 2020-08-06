@@ -5,7 +5,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { MAX_AVATAR_DISPLAY } from "shared/constants";
 import Modal from "components/Modal";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Facepile from "components/Facepile";
 import GroupMembers from "scenes/GroupMembers";
 import ListItem from "components/List/Item";

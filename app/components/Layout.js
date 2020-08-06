@@ -8,7 +8,7 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import keydown from "react-keydown";
 import Analytics from "components/Analytics";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import {
   homeUrl,
   searchUrl,
@@ -97,7 +97,7 @@ class Layout extends React.Component<Props> {
     return (
       <Container column auto>
         <Helmet>
-          <title>Outline</title>
+          <title>{team && team.name ? team.name : "Outline"}</title>
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0"

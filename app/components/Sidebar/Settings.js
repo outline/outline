@@ -19,7 +19,7 @@ import {
 import ZapierIcon from "./icons/Zapier";
 import SlackIcon from "./icons/Slack";
 
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Sidebar from "./Sidebar";
 import Scrollable from "components/Scrollable";
 import Section from "./components/Section";
@@ -29,6 +29,7 @@ import HeaderBlock from "./components/HeaderBlock";
 import Version from "./components/Version";
 import PoliciesStore from "stores/PoliciesStore";
 import AuthStore from "stores/AuthStore";
+import env from "env";
 
 type Props = {
   history: RouterHistory,
@@ -54,7 +55,7 @@ class SettingsSidebar extends React.Component<Props> {
         <HeaderBlock
           subheading={
             <ReturnToApp align="center">
-              <BackIcon /> Return to App
+              <BackIcon color="currentColor" /> Return to App
             </ReturnToApp>
           }
           teamName={team.name}
@@ -146,7 +147,7 @@ class SettingsSidebar extends React.Component<Props> {
               </Section>
             )}
             {can.update &&
-              process.env.DEPLOYMENT !== "hosted" && (
+              env.DEPLOYMENT !== "hosted" && (
                 <Section>
                   <Header>Installation</Header>
                   <Version />

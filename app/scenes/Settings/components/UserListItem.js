@@ -8,7 +8,7 @@ import Avatar from "components/Avatar";
 import Badge from "components/Badge";
 import UserProfile from "scenes/UserProfile";
 import ListItem from "components/List/Item";
-import Time from "shared/components/Time";
+import Time from "components/Time";
 import User from "models/User";
 
 type Props = {

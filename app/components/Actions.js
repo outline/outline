@@ -1,7 +1,7 @@
 // @flow
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 export const Action = styled(Flex)`
   justify-content: center;

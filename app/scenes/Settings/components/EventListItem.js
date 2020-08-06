@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import { capitalize } from "lodash";
 import styled from "styled-components";
-import Time from "shared/components/Time";
+import Time from "components/Time";
 import ListItem from "components/List/Item";
 import Avatar from "components/Avatar";
 import Event from "models/Event";
@@ -33,9 +33,25 @@ const description = event => {
       return (
         <React.Fragment>
           {capitalize(event.verbPastTense)} a{" "}
-          <Link to={`/share/${event.modelId || ""}`}>public link</Link> to the{" "}
+          <Link to={`/share/${event.modelId || ""}`}>share link</Link> to the{" "}
           <Link to={`/doc/${event.documentId}`}>{event.data.name}</Link>{" "}
           document
+        </React.Fragment>
+      );
+    case "shares.update":
+      return (
+        <React.Fragment>
+          {event.data.published ? (
+            <React.Fragment>
+              Published a document{" "}
+              <Link to={`/share/${event.modelId || ""}`}>share link</Link>
+            </React.Fragment>
+          ) : (
+            <React.Fragment>
+              Unpublished a document{" "}
+              <Link to={`/share/${event.modelId || ""}`}>share link</Link>
+            </React.Fragment>
+          )}
         </React.Fragment>
       );
     case "users.create":

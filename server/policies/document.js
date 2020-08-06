@@ -8,7 +8,7 @@ const { allow, cannot } = policy;
 allow(User, "create", Document);
 
 allow(User, ["read", "download"], Document, (user, document) => {
-  // existance of collection option is not required here to account for share tokens
+  // existence of collection option is not required here to account for share tokens
   if (document.collection && cannot(user, "read", document.collection)) {
     return false;
   }
@@ -20,7 +20,7 @@ allow(User, ["share"], Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
 
-  // existance of collection option is not required here to account for share tokens
+  // existence of collection option is not required here to account for share tokens
   if (document.collection && cannot(user, "read", document.collection)) {
     return false;
   }

@@ -5,7 +5,7 @@ import { observer, inject } from "mobx-react";
 import styled from "styled-components";
 import Dropzone from "react-dropzone";
 import LoadingIndicator from "components/LoadingIndicator";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Modal from "components/Modal";
 import Button from "components/Button";
 import AvatarEditor from "react-avatar-editor";

@@ -46,7 +46,9 @@ class Tokens extends React.Component<Props> {
         <HelpText>
           You can create an unlimited amount of personal tokens to authenticate
           with the API. For more details about the API take a look at the{" "}
-          <a href="/developers">developer documentation</a>.
+          <a href="https://www.getoutline.com/developers">
+            developer documentation
+          </a>.
         </HelpText>
 
         {hasApiKeys && (

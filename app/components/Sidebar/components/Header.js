@@ -1,5 +1,5 @@
 // @flow
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import styled from "styled-components";
 
 const Header = styled(Flex)`

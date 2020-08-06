@@ -7,7 +7,7 @@ import breakpoint from "styled-components-breakpoint";
 import { observer, inject } from "mobx-react";
 import { CloseIcon, MenuIcon } from "outline-icons";
 import Fade from "components/Fade";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import UiStore from "stores/UiStore";
 
 let firstRender = true;

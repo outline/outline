@@ -7,7 +7,7 @@ import { PortalWithState } from "react-portal";
 import { MoreIcon } from "outline-icons";
 import { rgba } from "polished";
 import styled from "styled-components";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import { fadeAndScaleIn } from "shared/styles/animations";
 import NudeButton from "components/NudeButton";
 

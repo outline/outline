@@ -3,7 +3,7 @@ import * as React from "react";
 import { observer } from "mobx-react";
 import styled from "styled-components";
 import { GoToIcon } from "outline-icons";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 import Document from "models/Document";
 import Collection from "models/Collection";

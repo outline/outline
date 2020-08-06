@@ -71,7 +71,7 @@ class Events extends React.Component<Props> {
         <h1>Audit Log</h1>
         <HelpText>
           The audit log details the history of security related and other events
-          across your knowledgebase.
+          across your knowledge base.
         </HelpText>
 
         <Tabs>

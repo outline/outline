@@ -34,6 +34,7 @@ class ApiClient {
   ) => {
     let body;
     let modifiedPath;
+    let urlToFetch;
 
     if (method === "GET") {
       if (data) {
@@ -43,6 +44,12 @@ class ApiClient {
       }
     } else if (method === "POST" || method === "PUT") {
       body = data ? JSON.stringify(data) : undefined;
+    }
+
+    if (path.match(/^http/)) {
+      urlToFetch = modifiedPath || path;
+    } else {
+      urlToFetch = this.baseUrl + (modifiedPath || path);
     }
 
     // Construct headers
@@ -60,7 +67,7 @@ class ApiClient {
 
     let response;
     try {
-      response = await fetch(this.baseUrl + (modifiedPath || path), {
+      response = await fetch(urlToFetch, {
         method,
         body,
         headers,

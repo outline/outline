@@ -13,11 +13,9 @@ type Props = {
 };
 
 export default function Contents({ headings }: Props) {
-  // $FlowFixMe
   const [activeSlug, setActiveSlug] = React.useState();
   const position = useWindowScrollPosition({ throttle: 100 });
 
-  // $FlowFixMe
   React.useEffect(
     () => {
       for (let key = 0; key < headings.length; key++) {

@@ -4,7 +4,7 @@ import { times } from "lodash";
 import styled from "styled-components";
 import Mask from "components/Mask";
 import Fade from "components/Fade";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 type Props = {
   count?: number,

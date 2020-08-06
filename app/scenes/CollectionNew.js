@@ -10,7 +10,7 @@ import Input from "components/Input";
 import InputRich from "components/InputRich";
 import IconPicker, { icons } from "components/IconPicker";
 import HelpText from "components/HelpText";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 import Collection from "models/Collection";
 import CollectionsStore from "stores/CollectionsStore";

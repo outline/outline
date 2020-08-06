@@ -3,7 +3,7 @@ import * as React from "react";
 import { observer, inject } from "mobx-react";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import keydown from "react-keydown";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import { PlusIcon } from "outline-icons";
 import { newDocumentUrl } from "utils/routeHelpers";
 

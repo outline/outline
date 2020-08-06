@@ -1,8 +1,8 @@
 // @flow
 import * as React from "react";
 import Avatar from "components/Avatar";
-import Flex from "shared/components/Flex";
-import Time from "shared/components/Time";
+import Flex from "components/Flex";
+import Time from "components/Time";
 import Badge from "components/Badge";
 import Button from "components/Button";
 import ListItem from "components/List/Item";

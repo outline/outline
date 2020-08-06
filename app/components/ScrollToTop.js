@@ -13,7 +13,7 @@ class ScrollToTop extends React.Component<Props> {
   componentDidUpdate(prevProps) {
     if (this.props.location.pathname === prevProps.location.pathname) return;
 
-    // exception for when entering or exiting document edit, scroll postion should not reset
+    // exception for when entering or exiting document edit, scroll position should not reset
     if (
       this.props.location.pathname.match(/\/edit\/?$/) ||
       prevProps.location.pathname.match(/\/edit\/?$/)

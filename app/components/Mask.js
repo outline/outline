@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { pulsate } from "shared/styles/animations";
 import { randomInteger } from "shared/random";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 type Props = {
   header?: boolean,

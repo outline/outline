@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 import { observable } from "mobx";
 import styled from "styled-components";
 import VisuallyHidden from "components/VisuallyHidden";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 const RealTextarea = styled.textarea`
   border: 0;
@@ -75,6 +75,7 @@ export const Outline = styled(Flex)`
 export const LabelText = styled.div`
   font-weight: 500;
   padding-bottom: 4px;
+  display: inline-block;
 `;
 
 export type Props = {

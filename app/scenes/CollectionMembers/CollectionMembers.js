@@ -4,7 +4,7 @@ import { observable } from "mobx";
 import styled from "styled-components";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Subheading from "components/Subheading";
 import Button from "components/Button";

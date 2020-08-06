@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 import { Link } from "react-router-dom";
 import { StarredIcon } from "outline-icons";
 import styled, { withTheme } from "styled-components";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Badge from "components/Badge";
 import Tooltip from "components/Tooltip";
 import Highlight from "components/Highlight";
@@ -82,6 +82,7 @@ const Heading = styled.h3`
   margin-bottom: 0.25em;
   overflow: hidden;
   white-space: nowrap;
+  color: ${props => props.theme.text};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;

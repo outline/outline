@@ -3,7 +3,7 @@ import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import Empty from "components/Empty";
 import HelpText from "components/HelpText";
 import Subheading from "components/Subheading";

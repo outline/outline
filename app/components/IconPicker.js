@@ -27,7 +27,7 @@ import styled from "styled-components";
 import { LabelText } from "components/Input";
 import { DropdownMenu } from "components/DropdownMenu";
 import NudeButton from "components/NudeButton";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 export const icons = {
   collection: {
@@ -171,6 +171,7 @@ class IconPicker extends React.Component<Props> {
           <LabelText>Icon</LabelText>
         </label>
         <DropdownMenu
+          onOpen={this.handleOpen}
           label={
             <LabelButton>
               <Component role="button" color={this.props.color} size={30} />

@@ -9,7 +9,7 @@ import { PadlockIcon, GoToIcon, MoreIcon } from "outline-icons";
 import Document from "models/Document";
 import CollectionsStore from "stores/CollectionsStore";
 import { collectionUrl } from "utils/routeHelpers";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import BreadcrumbMenu from "./BreadcrumbMenu";
 import CollectionIcon from "components/CollectionIcon";
 
@@ -51,7 +51,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
   return (
     <Wrapper justify="flex-start" align="center">
       <CollectionName to={collectionUrl(collection.id)}>
-        <CollectionIcon collection={collection} expanded />{" "}
+        <CollectionIcon collection={collection} expanded />&nbsp;
         <span>{collection.name}</span>
       </CollectionName>
       {isNestedDocument && (

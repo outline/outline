@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
-import Home from "scenes/Home";
+import Login from "scenes/Login";
 import Dashboard from "scenes/Dashboard";
 import Starred from "scenes/Starred";
 import Drafts from "scenes/Drafts";
@@ -38,7 +38,8 @@ const RedirectDocument = ({ match }: { match: Object }) => (
 export default function Routes() {
   return (
     <Switch>
-      <Route exact path="/" component={Home} />
+      <Route exact path="/" component={Login} />
+      <Route exact path="/create" component={Login} />
       <Route exact path="/share/:shareId" component={KeyedDocument} />
       <Authenticated>
         <SocketProvider>

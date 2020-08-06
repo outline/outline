@@ -12,8 +12,9 @@ import SlackButton from "./components/SlackButton";
 import CollectionsStore from "stores/CollectionsStore";
 import IntegrationsStore from "stores/IntegrationsStore";
 import AuthStore from "stores/AuthStore";
-import Notice from "shared/components/Notice";
+import Notice from "components/Notice";
 import getQueryVariable from "shared/utils/getQueryVariable";
+import env from "env";
 
 type Props = {
   collections: CollectionsStore,
@@ -68,7 +69,7 @@ class Slack extends React.Component<Props> {
           ) : (
             <SlackButton
               scopes={["commands", "links:read", "links:write"]}
-              redirectUri={`${BASE_URL}/auth/slack.commands`}
+              redirectUri={`${env.URL}/auth/slack.commands`}
               state={teamId}
             />
           )}
@@ -105,7 +106,7 @@ class Slack extends React.Component<Props> {
                 <strong>{collection.name}</strong>
                 <SlackButton
                   scopes={["incoming-webhook"]}
-                  redirectUri={`${BASE_URL}/auth/slack.post`}
+                  redirectUri={`${env.URL}/auth/slack.post`}
                   state={collection.id}
                   label="Connect"
                 />

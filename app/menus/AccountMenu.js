@@ -7,7 +7,7 @@ import { SunIcon, MoonIcon } from "outline-icons";
 import styled from "styled-components";
 import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import Modal from "components/Modal";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
@@ -16,7 +16,6 @@ import {
   changelog,
   githubIssuesUrl,
   mailToUrl,
-  spectrumUrl,
   settings,
 } from "../../shared/utils/routeHelpers";
 
@@ -70,9 +69,6 @@ class AccountMenu extends React.Component<Props> {
           <hr />
           <DropdownMenuItem href={changelog()} target="_blank">
             Changelog
-          </DropdownMenuItem>
-          <DropdownMenuItem href={spectrumUrl()} target="_blank">
-            Community
           </DropdownMenuItem>
           <DropdownMenuItem href={mailToUrl()} target="_blank">
             Send us feedback

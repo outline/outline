@@ -3,7 +3,7 @@ import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import Button from "components/Button";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Modal from "components/Modal";
 import AuthStore from "stores/AuthStore";
@@ -37,7 +37,7 @@ class UserDelete extends React.Component<Props> {
         <Flex column>
           <form onSubmit={this.handleSubmit}>
             <HelpText>
-              Are you sure? Deleting your account will destory identifying data
+              Are you sure? Deleting your account will destroy identifying data
               associated with your user and cannot be undone. You will be
               immediately logged out of Outline and all your API tokens will be
               revoked.

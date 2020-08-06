@@ -8,7 +8,7 @@ import { observer, inject } from "mobx-react";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { Location, RouterHistory } from "react-router-dom";
 import keydown from "react-keydown";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import {
   collectionUrl,
   documentMoveUrl,
@@ -29,9 +29,9 @@ import MarkAsViewed from "./MarkAsViewed";
 import ErrorBoundary from "components/ErrorBoundary";
 import LoadingIndicator from "components/LoadingIndicator";
 import PageTitle from "components/PageTitle";
-import Branding from "shared/components/Branding";
-import Notice from "shared/components/Notice";
-import Time from "shared/components/Time";
+import Branding from "components/Branding";
+import Notice from "components/Notice";
+import Time from "components/Time";
 
 import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
@@ -294,8 +294,16 @@ class DocumentScene extends React.Component<Props> {
 
   onChange = getEditorText => {
     this.getEditorText = getEditorText;
-    this.updateIsDirtyDebounced();
-    this.autosave();
+
+    // document change while read only is presumed to be a checkbox edit,
+    // in that case we don't delay in saving for a better user experience.
+    if (this.props.readOnly) {
+      this.updateIsDirty();
+      this.onSave({ done: false, autosave: true });
+    } else {
+      this.updateIsDirtyDebounced();
+      this.autosave();
+    }
   };
 
   onChangeTitle = event => {
@@ -320,6 +328,7 @@ class DocumentScene extends React.Component<Props> {
       revision,
       readOnly,
       location,
+      abilities,
       auth,
       ui,
       match,
@@ -426,6 +435,7 @@ class DocumentScene extends React.Component<Props> {
                       this.editor = ref;
                     }
                   }}
+                  isShare={isShare}
                   isDraft={document.isDraft}
                   key={disableEmbeds ? "embeds-disabled" : "embeds-enabled"}
                   title={revision ? revision.title : this.title}
@@ -442,7 +452,8 @@ class DocumentScene extends React.Component<Props> {
                   onSave={this.onSave}
                   onPublish={this.onPublish}
                   onCancel={this.goBack}
-                  readOnly={readOnly || document.isArchived}
+                  readOnly={readOnly}
+                  readOnlyWriteCheckboxes={readOnly && abilities.update}
                   ui={this.props.ui}
                 />
               </Flex>

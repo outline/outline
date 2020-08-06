@@ -118,7 +118,7 @@ export class Mailer {
       to: opts.to,
       title: `${opts.actorName} invited you to join ${
         opts.teamName
-      }’s knowledgebase`,
+      }’s knowledge base`,
       previewText:
         "Outline is a place for your team to build and share knowledge.",
       html: <InviteEmail {...opts} />,

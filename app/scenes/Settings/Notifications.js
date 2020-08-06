@@ -9,7 +9,7 @@ import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Subheading from "components/Subheading";
 import NotificationListItem from "./components/NotificationListItem";
-import Notice from "shared/components/Notice";
+import Notice from "components/Notice";
 
 import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";

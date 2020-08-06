@@ -20,7 +20,6 @@ const Button = styled.button`
   }
 `;
 
-// $FlowFixMe - need to upgrade to get forwardRef
 export default React.forwardRef((props, ref) => (
   <Button {...props} ref={ref} />
 ));

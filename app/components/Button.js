@@ -5,7 +5,8 @@ import { darken, lighten } from "polished";
 import { ExpandedIcon } from "outline-icons";
 
 const RealButton = styled.button`
-  display: inline-block;
+  display: ${props => (props.fullwidth ? "block" : "inline-block")};
+  width: ${props => (props.fullwidth ? "100%" : "auto")};
   margin: 0;
   padding: 0;
   border: 0;
@@ -126,6 +127,7 @@ export type Props = {
   children?: React.Node,
   innerRef?: React.ElementRef<any>,
   disclosure?: boolean,
+  fullwidth?: boolean,
   borderOnHover?: boolean,
 };
 
@@ -152,7 +154,6 @@ function Button({
   );
 }
 
-// $FlowFixMe - need to upgrade to get forwardRef
 export default React.forwardRef((props, ref) => (
   <Button {...props} innerRef={ref} />
 ));

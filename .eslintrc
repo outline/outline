@@ -58,14 +58,5 @@
   },
   "env": {
     "jest": true
-  },
-  "globals": {
-    "__DEV__": true,
-    "SLACK_KEY": true,
-    "DEPLOYMENT": true,
-    "BASE_URL": true,
-    "SENTRY_DSN": true,
-    "afterAll": true,
-    "Sentry": true
   }
 }

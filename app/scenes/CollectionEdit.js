@@ -6,7 +6,7 @@ import Input from "components/Input";
 import InputRich from "components/InputRich";
 import Button from "components/Button";
 import Switch from "components/Switch";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker from "components/IconPicker";
 import Collection from "models/Collection";
