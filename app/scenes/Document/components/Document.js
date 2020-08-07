@@ -404,9 +404,10 @@ class DocumentScene extends React.Component<Props> {
               {document.isTemplate &&
                 !readOnly && (
                   <Notice muted>
-                    You’re editing a template. Highlight text and use the{" "}
-                    <PlaceholderIcon /> control to add placeholders that can be
-                    filled out when creating new documents from this template.
+                    You’re editing a template. Highlight some text and use the{" "}
+                    <PlaceholderIcon color="currentColor" /> control to add
+                    placeholders that can be filled out when creating new
+                    documents from this template.
                   </Notice>
                 )}
               {document.archivedAt &&
