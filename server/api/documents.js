@@ -818,7 +818,7 @@ router.post("documents.templatize", auth(), async ctx => {
   });
 
   // reload to get all of the data needed to present (user, collection etc)
-  document = await Document.findByPk(document.id);
+  document = await Document.findByPk(document.id, { userId: user.id });
 
   ctx.body = {
     data: await presentDocument(document),
