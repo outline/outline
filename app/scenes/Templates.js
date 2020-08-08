@@ -43,7 +43,12 @@ class Starred extends React.Component<Props> {
               </Tab>
             </Tabs>
           }
-          empty={<Empty>No templates, yet.</Empty>}
+          empty={
+            <Empty>
+              There are no templates just yet. You can create templates to help
+              your team create consistent and accurate documentation.
+            </Empty>
+          }
           fetch={fetchTemplates}
           documents={
             sort === "alphabetical" ? templatesAlphabetical : templates
