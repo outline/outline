@@ -211,9 +211,7 @@ class Header extends React.Component<Props> {
             !isTemplate &&
             isNew && (
               <Action>
-                <Fade>
-                  <TemplatesMenu document={document} />
-                </Fade>
+                <TemplatesMenu document={document} />
               </Action>
             )}
           {!isEditing &&

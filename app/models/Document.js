@@ -43,13 +43,10 @@ export default class Document extends BaseModel {
   deletedAt: ?string;
   url: string;
   urlId: string;
-  originalTitle: string;
   revision: number;
 
   constructor(fields: Object, store: DocumentsStore) {
     super(fields, store);
-
-    this.originalTitle = this.title;
 
     if (this.isNew && this.isFromTemplate) {
       this.title = "";
@@ -127,9 +124,7 @@ export default class Document extends BaseModel {
 
   @computed
   get placeholder(): ?string {
-    return this.isNew && this.isFromTemplate
-      ? this.originalTitle
-      : this.isTemplate ? "Start your template…" : "Start with a title…";
+    return this.isTemplate ? "Start your template…" : "Start with a title…";
   }
 
   @action

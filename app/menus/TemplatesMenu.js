@@ -19,6 +19,10 @@ class TemplatesMenu extends React.Component<Props> {
     const { documents, document, ...rest } = this.props;
     const templates = documents.templatesInCollection(document.collectionId);
 
+    if (!templates.length) {
+      return null;
+    }
+
     return (
       <DropdownMenu
         position="left"
