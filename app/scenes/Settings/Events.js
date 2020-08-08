@@ -3,6 +3,7 @@ import * as React from "react";
 import { observable, action } from "mobx";
 import { observer, inject } from "mobx-react";
 import { Waypoint } from "react-waypoint";
+import { type Match } from "react-router-dom";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import EventsStore from "stores/EventsStore";
@@ -17,7 +18,7 @@ import EventListItem from "./components/EventListItem";
 
 type Props = {
   events: EventsStore,
-  match: Object,
+  match: Match,
 };
 
 @observer

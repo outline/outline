@@ -2,7 +2,7 @@
 import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { Redirect, Link, Switch, Route } from "react-router-dom";
+import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
 
 import styled, { withTheme } from "styled-components";
 import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
@@ -43,7 +43,7 @@ type Props = {
   documents: DocumentsStore,
   collections: CollectionsStore,
   policies: PoliciesStore,
-  match: Object,
+  match: Match,
   theme: Object,
 };
 
@@ -56,12 +56,17 @@ class CollectionScene extends React.Component<Props> {
   @observable redirectTo: ?string;
 
   componentDidMount() {
-    this.loadContent(this.props.match.params.id);
+    const { id } = this.props.match.params;
+    if (id) {
+      this.loadContent(id);
+    }
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.match.params.id !== this.props.match.params.id) {
-      this.loadContent(nextProps.match.params.id);
+    const { id } = nextProps.match.params;
+
+    if (id && id !== this.props.match.params.id) {
+      this.loadContent(id);
     }
   }
 
@@ -111,7 +116,7 @@ class CollectionScene extends React.Component<Props> {
 
   renderActions() {
     const { match, policies } = this.props;
-    const can = policies.abilities(match.params.id);
+    const can = policies.abilities(match.params.id || "");
 
     return (
       <Actions align="center" justify="flex-end">

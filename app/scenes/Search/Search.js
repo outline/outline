@@ -4,7 +4,7 @@ import ReactDOM from "react-dom";
 import keydown from "react-keydown";
 import { Waypoint } from "react-waypoint";
 import { withRouter, Link } from "react-router-dom";
-import type { Location, RouterHistory } from "react-router-dom";
+import type { Location, RouterHistory, Match } from "react-router-dom";
 import { PlusIcon } from "outline-icons";
 import { observable, action } from "mobx";
 import { observer, inject } from "mobx-react";
@@ -37,7 +37,7 @@ import DateFilter from "./components/DateFilter";
 
 type Props = {
   history: RouterHistory,
-  match: Object,
+  match: Match,
   location: Location,
   documents: DocumentsStore,
   users: UsersStore,

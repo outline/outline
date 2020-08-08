@@ -29,9 +29,9 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
   const slug = parseDocumentSlugFromUrl(node.href);
 
   const [isVisible, setVisible] = React.useState(false);
-  const timerClose = React.useRef(null);
-  const timerOpen = React.useRef(null);
-  const cardRef = React.useRef(null);
+  const timerClose = React.useRef();
+  const timerOpen = React.useRef();
+  const cardRef = React.useRef();
 
   const startCloseTimer = () => {
     stopOpenTimer();

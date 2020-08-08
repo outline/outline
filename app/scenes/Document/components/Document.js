@@ -6,7 +6,7 @@ import breakpoint from "styled-components-breakpoint";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { Prompt, Route, withRouter } from "react-router-dom";
-import type { Location, RouterHistory } from "react-router-dom";
+import type { Location, RouterHistory, Match } from "react-router-dom";
 import keydown from "react-keydown";
 import { InputIcon } from "outline-icons";
 import Flex from "components/Flex";
@@ -52,7 +52,7 @@ Are you sure you want to discard them?
 `;
 
 type Props = {
-  match: Object,
+  match: Match,
   history: RouterHistory,
   location: Location,
   abilities: Object,
@@ -322,10 +322,12 @@ class DocumentScene extends React.Component<Props> {
     let url;
     if (this.props.document.url) {
       url = this.props.document.url;
-    } else {
+    } else if (this.props.match.params.id) {
       url = collectionUrl(this.props.match.params.id);
     }
-    this.props.history.push(url);
+    if (url) {
+      this.props.history.push(url);
+    }
   };
 
   render() {

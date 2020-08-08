@@ -1,6 +1,6 @@
 // @flow
 import * as React from "react";
-import { Switch, Route, Redirect } from "react-router-dom";
+import { Switch, Route, Redirect, type Match } from "react-router-dom";
 import Login from "scenes/Login";
 import Dashboard from "scenes/Dashboard";
 import Starred from "scenes/Starred";
@@ -32,8 +32,12 @@ import Authenticated from "components/Authenticated";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
 
 const NotFound = () => <Search notFound />;
-const RedirectDocument = ({ match }: { match: Object }) => (
-  <Redirect to={`/doc/${match.params.documentSlug}`} />
+const RedirectDocument = ({ match }: { match: Match }) => (
+  <Redirect
+    to={
+      match.params.documentSlug ? `/doc/${match.params.documentSlug}` : "/home"
+    }
+  />
 );
 
 export default function Routes() {

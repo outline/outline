@@ -2,7 +2,7 @@
 import * as React from "react";
 import invariant from "invariant";
 import { withRouter } from "react-router-dom";
-import type { Location, RouterHistory } from "react-router-dom";
+import type { Location, RouterHistory, Match } from "react-router-dom";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
@@ -22,7 +22,7 @@ import UiStore from "stores/UiStore";
 import { OfflineError } from "utils/errors";
 
 type Props = {|
-  match: Object,
+  match: Match,
   location: Location,
   shares: SharesStore,
   documents: DocumentsStore,

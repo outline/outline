@@ -4,6 +4,7 @@ import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
+import { type Match } from "react-router-dom";
 
 import Empty from "components/Empty";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
@@ -27,7 +28,7 @@ type Props = {
   auth: AuthStore,
   groups: GroupsStore,
   policies: PoliciesStore,
-  match: Object,
+  match: Match,
 };
 
 @observer

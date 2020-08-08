@@ -2,7 +2,11 @@
 import * as React from "react";
 import { inject } from "mobx-react";
 import queryString from "query-string";
-import type { RouterHistory, Location } from "react-router-dom";
+import {
+  type RouterHistory,
+  type Location,
+  type Match,
+} from "react-router-dom";
 import Flex from "components/Flex";
 import CenteredContent from "components/CenteredContent";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
@@ -15,7 +19,7 @@ type Props = {
   location: Location,
   documents: DocumentsStore,
   ui: UiStore,
-  match: Object,
+  match: Match,
 };
 
 class DocumentNew extends React.Component<Props> {

@@ -1,6 +1,7 @@
 // @flow
 import * as React from "react";
 import { observer, inject } from "mobx-react";
+import { type Match } from "react-router-dom";
 
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
@@ -16,7 +17,7 @@ import DocumentsStore from "stores/DocumentsStore";
 
 type Props = {
   documents: DocumentsStore,
-  match: Object,
+  match: Match,
 };
 
 @observer
