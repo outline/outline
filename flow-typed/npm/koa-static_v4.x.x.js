@@ -1,5 +1,5 @@
-// flow-typed signature: d92c6847dfd001423387c701022de893
-// flow-typed version: 60fd29d2cf/koa-static_v4.x.x/flow_>=v0.56.x
+// flow-typed signature: dc2f591d10c09697ed4c5ee52a131146
+// flow-typed version: c6154227d1/koa-static_v4.x.x/flow_>=v0.104.x
 
 declare module "koa-static" {
   import type { Stats } from "fs";

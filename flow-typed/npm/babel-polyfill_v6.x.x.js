@@ -1,4 +1,4 @@
-// flow-typed signature: 28eccd914ac7bd65de204cb1d8d37cfe
-// flow-typed version: 7b122e75af/babel-polyfill_v6.x.x/flow_>=v0.30.x
+// flow-typed signature: 29a6ec8f7f4b42ab84093c5f7b57d5fd
+// flow-typed version: c6154227d1/babel-polyfill_v6.x.x/flow_>=v0.104.x
 
 declare module 'babel-polyfill' {}

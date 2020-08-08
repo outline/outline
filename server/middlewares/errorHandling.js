@@ -44,7 +44,7 @@ export default function errorHandling() {
         error: snakeCase(err.id || error),
         status: err.status,
         message,
-        data: err.errorData ? err.errorData : undefined,
+        data: err.errorData ? err.errorData : {},
       };
     }
   };
