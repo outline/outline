@@ -8,6 +8,7 @@ import {
   EditIcon,
   SearchIcon,
   StarredIcon,
+  ShapesIcon,
   TrashIcon,
   PlusIcon,
 } from "outline-icons";
@@ -43,6 +44,7 @@ class MainSidebar extends React.Component<Props> {
 
   componentDidMount() {
     this.props.documents.fetchDrafts();
+    this.props.documents.fetchTemplates();
   }
 
   handleCreateCollection = (ev: SyntheticEvent<>) => {
@@ -104,6 +106,15 @@ class MainSidebar extends React.Component<Props> {
                 label="Starred"
               />
               <SidebarLink
+                to="/templates"
+                icon={<ShapesIcon color="currentColor" />}
+                exact={false}
+                label="Templates"
+                active={
+                  documents.active ? documents.active.template : undefined
+                }
+              />
+              <SidebarLink
                 to="/drafts"
                 icon={<EditIcon color="currentColor" />}
                 label={
@@ -116,7 +127,8 @@ class MainSidebar extends React.Component<Props> {
                 active={
                   documents.active
                     ? !documents.active.publishedAt &&
-                      !documents.active.isDeleted
+                      !documents.active.isDeleted &&
+                      !documents.active.isTemplate
                     : undefined
                 }
               />

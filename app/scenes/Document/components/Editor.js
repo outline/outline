@@ -80,8 +80,8 @@ class DocumentEditor extends React.Component<Props> {
           type="text"
           onChange={onChangeTitle}
           onKeyDown={this.handleTitleKeyDown}
-          placeholder="Start with a title…"
-          value={!title && readOnly ? "Untitled" : title}
+          placeholder={document.placeholder}
+          value={!title && readOnly ? document.titleWithDefault : title}
           style={startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined}
           readOnlyWriteCheckboxes
           readOnly={readOnly}

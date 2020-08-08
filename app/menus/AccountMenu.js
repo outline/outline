@@ -82,7 +82,7 @@ class AccountMenu extends React.Component<Props> {
             style={{
               left: 170,
               position: "relative",
-              top: -34,
+              top: -40,
             }}
             label={
               <DropdownMenuItem>

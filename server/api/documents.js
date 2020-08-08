@@ -29,7 +29,12 @@ const { authorize, cannot } = policy;
 const router = new Router();
 
 router.post("documents.list", auth(), pagination(), async ctx => {
-  const { sort = "updatedAt", backlinkDocumentId, parentDocumentId } = ctx.body;
+  const {
+    sort = "updatedAt",
+    template,
+    backlinkDocumentId,
+    parentDocumentId,
+  } = ctx.body;
 
   // collection and user are here for backwards compatibility
   const collectionId = ctx.body.collectionId || ctx.body.collection;
@@ -40,6 +45,10 @@ router.post("documents.list", auth(), pagination(), async ctx => {
   // always filter by the current team
   const user = ctx.state.user;
   let where = { teamId: user.teamId };
+
+  if (template) {
+    where = { ...where, template: true };
+  }
 
   // if a specific user is passed then add to filters. If the user doesn't
   // exist in the team then nothing will be returned, so no need to check auth
@@ -682,6 +691,8 @@ router.post("documents.create", auth(), async ctx => {
     publish,
     collectionId,
     parentDocumentId,
+    templateId,
+    template,
     index,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"];
@@ -717,6 +728,12 @@ router.post("documents.create", auth(), async ctx => {
     authorize(user, "read", parentDocument, { collection });
   }
 
+  let templateDocument;
+  if (templateId) {
+    templateDocument = await Document.findByPk(templateId, { userId: user.id });
+    authorize(user, "read", templateDocument);
+  }
+
   let document = await Document.create({
     parentDocumentId,
     editorVersion,
@@ -725,8 +742,10 @@ router.post("documents.create", auth(), async ctx => {
     userId: user.id,
     lastModifiedById: user.id,
     createdById: user.id,
-    title,
-    text,
+    template,
+    templateId: templateDocument ? templateDocument.id : undefined,
+    title: templateDocument ? templateDocument.title : title,
+    text: templateDocument ? templateDocument.text : text,
   });
 
   await Event.create({
@@ -735,7 +754,7 @@ router.post("documents.create", auth(), async ctx => {
     collectionId: document.collectionId,
     teamId: document.teamId,
     actorId: user.id,
-    data: { title: document.title },
+    data: { title: document.title, templateId },
     ip: ctx.request.ip,
   });
 
@@ -767,6 +786,46 @@ router.post("documents.create", auth(), async ctx => {
   };
 });
 
+router.post("documents.templatize", auth(), async ctx => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, "id is required");
+
+  const user = ctx.state.user;
+  const original = await Document.findByPk(id, { userId: user.id });
+  authorize(user, "update", original);
+
+  let document = await Document.create({
+    editorVersion: original.editorVersion,
+    collectionId: original.collectionId,
+    teamId: original.teamId,
+    userId: user.id,
+    publishedAt: new Date(),
+    lastModifiedById: user.id,
+    createdById: user.id,
+    template: true,
+    title: original.title,
+    text: original.text,
+  });
+
+  await Event.create({
+    name: "documents.create",
+    documentId: document.id,
+    collectionId: document.collectionId,
+    teamId: document.teamId,
+    actorId: user.id,
+    data: { title: document.title, template: true },
+    ip: ctx.request.ip,
+  });
+
+  // reload to get all of the data needed to present (user, collection etc)
+  document = await Document.findByPk(document.id, { userId: user.id });
+
+  ctx.body = {
+    data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
+  };
+});
+
 router.post("documents.update", auth(), async ctx => {
   const {
     id,
@@ -776,6 +835,7 @@ router.post("documents.update", auth(), async ctx => {
     autosave,
     done,
     lastRevision,
+    templateId,
     append,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"];
@@ -795,6 +855,7 @@ router.post("documents.update", auth(), async ctx => {
   // Update document
   if (title) document.title = title;
   if (editorVersion) document.editorVersion = editorVersion;
+  if (templateId) document.templateId = templateId;
 
   if (append) {
     document.text += text;

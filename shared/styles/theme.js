@@ -112,7 +112,7 @@ export const light = {
   text: colors.almostBlack,
   textSecondary: colors.slateDark,
   textTertiary: colors.slate,
-  placeholder: "#B1BECC",
+  placeholder: "#a2b2c3",
 
   sidebarBackground: colors.warmGrey,
   sidebarItemBackground: colors.black10,

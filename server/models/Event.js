@@ -71,6 +71,7 @@ Event.AUDIT_EVENTS = [
   "users.suspend",
   "users.activate",
   "users.delete",
+  "documents.create",
   "documents.publish",
   "documents.update",
   "documents.archive",

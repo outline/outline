@@ -1,13 +1,14 @@
 // @flow
 import * as React from "react";
 import { inject } from "mobx-react";
+import queryString from "query-string";
 import type { RouterHistory, Location } from "react-router-dom";
 import Flex from "components/Flex";
 import CenteredContent from "components/CenteredContent";
 import LoadingPlaceholder from "components/LoadingPlaceholder";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
-import { documentEditUrl } from "utils/routeHelpers";
+import { editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
@@ -19,16 +20,18 @@ type Props = {
 
 class DocumentNew extends React.Component<Props> {
   async componentDidMount() {
+    const params = queryString.parse(this.props.location.search);
+
     try {
       const document = await this.props.documents.create({
         collectionId: this.props.match.params.id,
-        parentDocumentId: new URLSearchParams(this.props.location.search).get(
-          "parentDocumentId"
-        ),
+        parentDocumentId: params.parentDocumentId,
+        templateId: params.templateId,
+        template: params.template,
         title: "",
         text: "",
       });
-      this.props.history.replace(documentEditUrl(document));
+      this.props.history.replace(editDocumentUrl(document));
     } catch (err) {
       this.props.ui.showToast("Couldn’t create the document, try again?");
       this.props.history.goBack();

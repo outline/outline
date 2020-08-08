@@ -15,11 +15,12 @@ import {
 import { transparentize, darken } from "polished";
 import Document from "models/Document";
 import AuthStore from "stores/AuthStore";
-import { documentEditUrl } from "utils/routeHelpers";
+import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 import { meta } from "utils/keyboard";
 
 import Flex from "components/Flex";
 import Breadcrumb, { Slash } from "components/Breadcrumb";
+import TemplatesMenu from "menus/TemplatesMenu";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import DocumentShare from "scenes/DocumentShare";
@@ -76,7 +77,15 @@ class Header extends React.Component<Props> {
   handleScroll = throttle(this.updateIsScrolled, 50);
 
   handleEdit = () => {
-    this.redirectTo = documentEditUrl(this.props.document);
+    this.redirectTo = editDocumentUrl(this.props.document);
+  };
+
+  handleNewFromTemplate = () => {
+    const { document } = this.props;
+
+    this.redirectTo = newDocumentUrl(document.collectionId, {
+      templateId: document.id,
+    });
   };
 
   handleSave = () => {
@@ -125,6 +134,8 @@ class Header extends React.Component<Props> {
 
     const share = shares.getByDocumentId(document.id);
     const isPubliclyShared = share && share.published;
+    const isNew = document.isNew;
+    const isTemplate = document.isTemplate;
     const can = policies.abilities(document.id);
     const canShareDocuments = auth.team && auth.team.sharing && can.share;
     const canToggleEmbeds = auth.team && auth.team.documentEmbeds;
@@ -196,6 +207,13 @@ class Header extends React.Component<Props> {
               currentUserId={auth.user ? auth.user.id : undefined}
             />
           </Fade>
+          {isEditing &&
+            !isTemplate &&
+            isNew && (
+              <Action>
+                <TemplatesMenu document={document} />
+              </Action>
+            )}
           {!isEditing &&
             canShareDocuments && (
               <Action>
@@ -245,31 +263,10 @@ class Header extends React.Component<Props> {
               </Action>
             </React.Fragment>
           )}
-          {can.update &&
-            isDraft &&
-            !isRevision && (
-              <Action>
-                <Tooltip
-                  tooltip="Publish"
-                  shortcut={`${meta}+shift+p`}
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    onClick={this.handlePublish}
-                    title="Publish document"
-                    disabled={publishingIsDisabled}
-                    small
-                  >
-                    {isPublishing ? "Publishing…" : "Publish"}
-                  </Button>
-                </Tooltip>
-              </Action>
-            )}
           {canEdit && (
             <Action>
               <Tooltip
-                tooltip="Edit document"
+                tooltip={`Edit ${document.noun}`}
                 shortcut="e"
                 delay={500}
                 placement="bottom"
@@ -303,6 +300,42 @@ class Header extends React.Component<Props> {
                     </Tooltip>
                   }
                 />
+              </Action>
+            )}
+          {canEdit &&
+            isTemplate &&
+            !isDraft &&
+            !isRevision && (
+              <Action>
+                <Button
+                  icon={<PlusIcon />}
+                  onClick={this.handleNewFromTemplate}
+                  primary
+                  small
+                >
+                  New from template
+                </Button>
+              </Action>
+            )}
+          {can.update &&
+            isDraft &&
+            !isRevision && (
+              <Action>
+                <Tooltip
+                  tooltip="Publish"
+                  shortcut={`${meta}+shift+p`}
+                  delay={500}
+                  placement="bottom"
+                >
+                  <Button
+                    onClick={this.handlePublish}
+                    title="Publish document"
+                    disabled={publishingIsDisabled}
+                    small
+                  >
+                    {isPublishing ? "Publishing…" : "Publish"}
+                  </Button>
+                </Tooltip>
               </Action>
             )}
           {!isEditing && (

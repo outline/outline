@@ -4,6 +4,7 @@ import { Switch, Route, Redirect } from "react-router-dom";
 import Login from "scenes/Login";
 import Dashboard from "scenes/Dashboard";
 import Starred from "scenes/Starred";
+import Templates from "scenes/Templates";
 import Drafts from "scenes/Drafts";
 import Archive from "scenes/Archive";
 import Trash from "scenes/Trash";
@@ -50,6 +51,8 @@ export default function Routes() {
               <Route path="/home" component={Dashboard} />
               <Route exact path="/starred" component={Starred} />
               <Route exact path="/starred/:sort" component={Starred} />
+              <Route exact path="/templates" component={Templates} />
+              <Route exact path="/templates/:sort" component={Templates} />
               <Route exact path="/drafts" component={Drafts} />
               <Route exact path="/archive" component={Archive} />
               <Route exact path="/trash" component={Trash} />

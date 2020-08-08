@@ -4,7 +4,13 @@ import { observer, inject } from "mobx-react";
 import breakpoint from "styled-components-breakpoint";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-import { PadlockIcon, GoToIcon, MoreIcon } from "outline-icons";
+import {
+  PadlockIcon,
+  GoToIcon,
+  MoreIcon,
+  ShapesIcon,
+  EditIcon,
+} from "outline-icons";
 
 import Document from "models/Document";
 import CollectionsStore from "stores/CollectionsStore";
@@ -44,12 +50,32 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
     );
   }
 
+  const isTemplate = document.isTemplate;
+  const isDraft = !document.publishedAt && !isTemplate;
   const isNestedDocument = path.length > 1;
   const lastPath = path.length ? path[path.length - 1] : undefined;
   const menuPath = isNestedDocument ? path.slice(0, -1) : [];
 
   return (
     <Wrapper justify="flex-start" align="center">
+      {isTemplate && (
+        <React.Fragment>
+          <CollectionName to="/templates">
+            <ShapesIcon color="currentColor" />&nbsp;
+            <span>Templates</span>
+          </CollectionName>
+          <Slash />
+        </React.Fragment>
+      )}
+      {isDraft && (
+        <React.Fragment>
+          <CollectionName to="/drafts">
+            <EditIcon color="currentColor" />&nbsp;
+            <span>Drafts</span>
+          </CollectionName>
+          <Slash />
+        </React.Fragment>
+      )}
       <CollectionName to={collectionUrl(collection.id)}>
         <CollectionIcon collection={collection} expanded />&nbsp;
         <span>{collection.name}</span>

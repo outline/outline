@@ -98,6 +98,7 @@ const Document = sequelize.define(
       },
     },
     version: DataTypes.SMALLINT,
+    template: DataTypes.BOOLEAN,
     editorVersion: DataTypes.STRING,
     text: DataTypes.TEXT,
 
@@ -141,6 +142,10 @@ Document.associate = models => {
   Document.belongsTo(models.Team, {
     as: "team",
     foreignKey: "teamId",
+  });
+  Document.belongsTo(models.Document, {
+    as: "document",
+    foreignKey: "templateId",
   });
   Document.belongsTo(models.User, {
     as: "createdBy",
@@ -431,20 +436,28 @@ Document.searchForUser = async (
 // Hooks
 
 Document.addHook("beforeSave", async model => {
-  if (!model.publishedAt) return;
+  if (!model.publishedAt || model.template) {
+    return;
+  }
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== "atlas") return;
+  if (!collection || collection.type !== "atlas") {
+    return;
+  }
 
   await collection.updateDocument(model);
   model.collection = collection;
 });
 
 Document.addHook("afterCreate", async model => {
-  if (!model.publishedAt) return;
+  if (!model.publishedAt || model.template) {
+    return;
+  }
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== "atlas") return;
+  if (!collection || collection.type !== "atlas") {
+    return;
+  }
 
   await collection.addDocumentToStructure(model);
   model.collection = collection;

@@ -29,6 +29,7 @@ class Trash extends React.Component<Props> {
           heading={<Subheading>Documents</Subheading>}
           empty={<Empty>Trash is empty at the moment.</Empty>}
           showCollection
+          showTemplate
         />
       </CenteredContent>
     );

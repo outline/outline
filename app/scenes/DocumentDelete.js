@@ -50,14 +50,16 @@ class DocumentDelete extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Are you sure about that? Deleting the{" "}
-            <strong>{document.title}</strong> document will delete all of its
-            history, and any nested documents.
+            <strong>{document.titleWithDefault}</strong> {document.noun} will
+            delete all of its history{document.isTemplate
+              ? ""
+              : ", and any nested documents"}.
           </HelpText>
           {!document.isDraft &&
             !document.isArchived && (
               <HelpText>
-                If you’d like the option of referencing or restoring this
-                document in the future, consider archiving it instead.
+                If you’d like the option of referencing or restoring this{" "}
+                {document.noun} in the future, consider archiving it instead.
               </HelpText>
             )}
           <Button type="submit" danger>

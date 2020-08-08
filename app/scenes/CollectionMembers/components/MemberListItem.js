@@ -46,7 +46,7 @@ const MemberListItem = ({
             "Never signed in"
           )}
           {!user.lastActiveAt && <Badge>Invited</Badge>}
-          {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
+          {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
         </React.Fragment>
       }
       image={<Avatar src={user.avatarUrl} size={40} />}

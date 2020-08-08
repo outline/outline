@@ -8,12 +8,13 @@ import { observer, inject } from "mobx-react";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { Location, RouterHistory } from "react-router-dom";
 import keydown from "react-keydown";
+import { InputIcon } from "outline-icons";
 import Flex from "components/Flex";
 import {
   collectionUrl,
   documentMoveUrl,
   documentHistoryUrl,
-  documentEditUrl,
+  editDocumentUrl,
   documentUrl,
 } from "utils/routeHelpers";
 import { emojiToUrl } from "utils/emoji";
@@ -68,8 +69,6 @@ type Props = {
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable editor: ?any;
-  getEditorText: () => string = () => this.props.document.text;
-
   @observable editorComponent = EditorImport;
   @observable isUploading: boolean = false;
   @observable isSaving: boolean = false;
@@ -79,6 +78,7 @@ class DocumentScene extends React.Component<Props> {
   @observable moveModalOpen: boolean = false;
   @observable lastRevision: number;
   @observable title: string;
+  getEditorText: () => string = () => this.props.document.text;
 
   constructor(props) {
     super();
@@ -114,6 +114,12 @@ class DocumentScene extends React.Component<Props> {
       }
     }
 
+    if (document.injectTemplate) {
+      this.isDirty = true;
+      this.title = document.title;
+      document.injectTemplate = false;
+    }
+
     this.updateBackground();
   }
 
@@ -143,7 +149,7 @@ class DocumentScene extends React.Component<Props> {
     const { document, abilities } = this.props;
 
     if (abilities.update) {
-      this.props.history.push(documentEditUrl(document));
+      this.props.history.push(editDocumentUrl(document));
     }
   }
 
@@ -256,7 +262,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.history.push(savedDocument.url);
         this.props.ui.setActiveDocument(savedDocument);
       } else if (isNew) {
-        this.props.history.push(documentEditUrl(savedDocument));
+        this.props.history.push(editDocumentUrl(savedDocument));
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
@@ -342,6 +348,7 @@ class DocumentScene extends React.Component<Props> {
     }
 
     const value = revision ? revision.text : document.text;
+    const injectTemplate = document.injectTemplate;
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
@@ -360,7 +367,7 @@ class DocumentScene extends React.Component<Props> {
             )}
           />
           <PageTitle
-            title={document.title.replace(document.emoji, "") || "Untitled"}
+            title={document.titleWithDefault.replace(document.emoji, "")}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
@@ -400,6 +407,15 @@ class DocumentScene extends React.Component<Props> {
               column
               auto
             >
+              {document.isTemplate &&
+                !readOnly && (
+                  <Notice muted>
+                    You’re editing a template. Highlight some text and use the{" "}
+                    <PlaceholderIcon color="currentColor" /> control to add
+                    placeholders that can be filled out when creating new
+                    documents from this template.
+                  </Notice>
+                )}
               {document.archivedAt &&
                 !document.deletedAt && (
                   <Notice muted>
@@ -414,7 +430,7 @@ class DocumentScene extends React.Component<Props> {
                   {document.permanentlyDeletedAt && (
                     <React.Fragment>
                       <br />
-                      This document will be permanently deleted in{" "}
+                      This {document.noun} will be permanently deleted in{" "}
                       <Time dateTime={document.permanentlyDeletedAt} /> unless
                       restored.
                     </React.Fragment>
@@ -437,7 +453,8 @@ class DocumentScene extends React.Component<Props> {
                   }}
                   isShare={isShare}
                   isDraft={document.isDraft}
-                  key={disableEmbeds ? "embeds-disabled" : "embeds-enabled"}
+                  template={document.isTemplate}
+                  key={[injectTemplate, disableEmbeds].join("-")}
                   title={revision ? revision.title : this.title}
                   document={document}
                   value={readOnly ? value : undefined}
@@ -475,6 +492,11 @@ class DocumentScene extends React.Component<Props> {
     );
   }
 }
+
+const PlaceholderIcon = styled(InputIcon)`
+  position: relative;
+  top: 6px;
+`;
 
 const Background = styled(Container)`
   background: ${props => props.theme.background};

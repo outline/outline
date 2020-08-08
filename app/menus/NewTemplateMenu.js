@@ -7,7 +7,6 @@ import { PlusIcon } from "outline-icons";
 
 import { newDocumentUrl } from "utils/routeHelpers";
 import CollectionsStore from "stores/CollectionsStore";
-import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import {
   DropdownMenu,
@@ -19,47 +18,38 @@ import CollectionIcon from "components/CollectionIcon";
 
 type Props = {
   label?: React.Node,
-  documents: DocumentsStore,
   collections: CollectionsStore,
   policies: PoliciesStore,
 };
 
 @observer
-class NewDocumentMenu extends React.Component<Props> {
+class NewTemplateMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
 
   componentDidUpdate() {
     this.redirectTo = undefined;
   }
 
-  handleNewDocument = (collectionId: string, options) => {
-    this.redirectTo = newDocumentUrl(collectionId, options);
-  };
-
-  onOpen = () => {
-    const { collections } = this.props;
-
-    if (collections.orderedData.length === 1) {
-      this.handleNewDocument(collections.orderedData[0].id);
-    }
+  handleNewDocument = (collectionId: string) => {
+    this.redirectTo = newDocumentUrl(collectionId, {
+      template: true,
+    });
   };
 
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { collections, documents, policies, label, ...rest } = this.props;
-    const singleCollection = collections.orderedData.length === 1;
+    const { collections, policies, label, ...rest } = this.props;
 
     return (
       <DropdownMenu
         label={
           label || (
             <Button icon={<PlusIcon />} small>
-              New doc{singleCollection ? "" : "…"}
+              New template…
             </Button>
           )
         }
-        onOpen={this.onOpen}
         {...rest}
       >
         <Header>Choose a collection</Header>
@@ -81,4 +71,4 @@ class NewDocumentMenu extends React.Component<Props> {
   }
 }
 
-export default inject("collections", "documents", "policies")(NewDocumentMenu);
+export default inject("collections", "policies")(NewTemplateMenu);

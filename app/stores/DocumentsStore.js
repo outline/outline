@@ -32,7 +32,10 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(this.orderedData, d => !d.archivedAt && !d.deletedAt);
+    return filter(
+      this.orderedData,
+      d => !d.archivedAt && !d.deletedAt && !d.template
+    );
   }
 
   @computed
@@ -49,6 +52,17 @@ export default class DocumentsStore extends BaseStore<Document> {
     return orderBy(this.all, "updatedAt", "desc");
   }
 
+  get templates(): Document[] {
+    return orderBy(
+      filter(
+        this.orderedData,
+        d => !d.archivedAt && !d.deletedAt && d.template
+      ),
+      "updatedAt",
+      "desc"
+    );
+  }
+
   createdByUser(userId: string): Document[] {
     return orderBy(
       filter(this.all, d => d.createdBy.id === userId),
@@ -59,6 +73,21 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   inCollection(collectionId: string): Document[] {
     return filter(this.all, document => document.collectionId === collectionId);
+  }
+
+  templatesInCollection(collectionId: string): Document[] {
+    return orderBy(
+      filter(
+        this.orderedData,
+        d =>
+          !d.archivedAt &&
+          !d.deletedAt &&
+          d.template === true &&
+          d.collectionId === collectionId
+      ),
+      "updatedAt",
+      "desc"
+    );
   }
 
   pinnedInCollection(collectionId: string): Document[] {
@@ -100,9 +129,8 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.searchCache.get(query) || [];
   }
 
-  @computed
   get starred(): Document[] {
-    return filter(this.all, d => d.isStarred);
+    return orderBy(filter(this.all, d => d.isStarred), "updatedAt", "desc");
   }
 
   @computed
@@ -124,6 +152,11 @@ export default class DocumentsStore extends BaseStore<Document> {
   @computed
   get starredAlphabetical(): Document[] {
     return naturalSort(this.starred, "title");
+  }
+
+  @computed
+  get templatesAlphabetical(): Document[] {
+    return naturalSort(this.templates, "title");
   }
 
   @computed
@@ -209,6 +242,11 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchRecentlyUpdated = async (options: ?PaginationParams): Promise<*> => {
     return this.fetchNamedPage("list", options);
+  };
+
+  @action
+  fetchTemplates = async (options: ?PaginationParams): Promise<*> => {
+    return this.fetchNamedPage("list", { ...options, template: true });
   };
 
   @action
@@ -322,6 +360,24 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
+  templatize = async (id: string): Promise<?Document> => {
+    const doc: ?Document = this.data.get(id);
+    invariant(doc, "Document should exist");
+
+    if (doc.template) {
+      return;
+    }
+
+    const res = await client.post("/documents.templatize", { id });
+    invariant(res && res.data, "Document not available");
+
+    this.addPolicies(res.policies);
+    this.add(res.data);
+
+    return this.data.get(res.data.id);
+  };
+
+  @action
   fetch = async (
     id: string,
     options?: FetchOptions = {}
@@ -377,6 +433,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       publish: !!document.publishedAt,
       parentDocumentId: document.parentDocumentId,
       collectionId: document.collectionId,
+      template: document.template,
       title: `${document.title} (duplicate)`,
       text: document.text,
     });

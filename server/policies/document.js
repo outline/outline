@@ -31,6 +31,7 @@ allow(User, ["share"], Document, (user, document) => {
 allow(User, ["star", "unstar"], Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
+  if (document.template) return false;
   if (!document.publishedAt) return false;
 
   invariant(
@@ -58,6 +59,7 @@ allow(User, "update", Document, (user, document) => {
 allow(User, "createChildDocument", Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.archivedAt) return false;
+  if (document.template) return false;
   if (!document.publishedAt) return false;
 
   invariant(
@@ -72,6 +74,7 @@ allow(User, "createChildDocument", Document, (user, document) => {
 allow(User, ["move", "pin", "unpin"], Document, (user, document) => {
   if (document.archivedAt) return false;
   if (document.deletedAt) return false;
+  if (document.template) return false;
   if (!document.publishedAt) return false;
 
   invariant(

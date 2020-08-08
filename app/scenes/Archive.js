@@ -29,6 +29,7 @@ class Archive extends React.Component<Props> {
           heading={<Subheading>Documents</Subheading>}
           empty={<Empty>The document archive is empty at the moment.</Empty>}
           showCollection
+          showTemplate
         />
       </CenteredContent>
     );

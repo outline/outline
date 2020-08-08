@@ -15,6 +15,10 @@ export const Action = styled(Flex)`
     color: ${props => props.theme.text};
     height: 24px;
   }
+
+  &:empty {
+    display: none;
+  }
 `;
 
 export const Separator = styled.div`
