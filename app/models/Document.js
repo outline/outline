@@ -19,6 +19,7 @@ type SaveOptions = {
 export default class Document extends BaseModel {
   @observable isSaving: boolean = false;
   @observable embedsDisabled: boolean = false;
+  @observable injectTemplate: boolean = false;
   store: DocumentsStore;
 
   collaborators: User[];
@@ -206,6 +207,14 @@ export default class Document extends BaseModel {
   };
 
   @action
+  updateFromTemplate = async (template: Document) => {
+    this.templateId = template.id;
+    this.title = template.title;
+    this.text = template.text;
+    this.injectTemplate = true;
+  };
+
+  @action
   save = async (options: SaveOptions) => {
     if (this.isSaving) return this;
 
@@ -228,6 +237,7 @@ export default class Document extends BaseModel {
           id: this.id,
           title: this.title,
           text: this.text,
+          templateId: this.templateId,
           lastRevision: options.lastRevision,
           ...options,
         });

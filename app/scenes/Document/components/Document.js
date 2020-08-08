@@ -69,8 +69,6 @@ type Props = {
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable editor: ?any;
-  getEditorText: () => string = () => this.props.document.text;
-
   @observable editorComponent = EditorImport;
   @observable isUploading: boolean = false;
   @observable isSaving: boolean = false;
@@ -80,6 +78,7 @@ class DocumentScene extends React.Component<Props> {
   @observable moveModalOpen: boolean = false;
   @observable lastRevision: number;
   @observable title: string;
+  getEditorText: () => string = () => this.props.document.text;
 
   constructor(props) {
     super();
@@ -113,6 +112,12 @@ class DocumentScene extends React.Component<Props> {
           }
         );
       }
+    }
+
+    if (document.injectTemplate) {
+      this.isDirty = true;
+      this.title = document.title;
+      document.injectTemplate = false;
     }
 
     this.updateBackground();
@@ -343,6 +348,7 @@ class DocumentScene extends React.Component<Props> {
     }
 
     const value = revision ? revision.text : document.text;
+    const injectTemplate = document.injectTemplate;
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
@@ -448,7 +454,7 @@ class DocumentScene extends React.Component<Props> {
                   isShare={isShare}
                   isDraft={document.isDraft}
                   template={document.isTemplate}
-                  key={disableEmbeds ? "embeds-disabled" : "embeds-enabled"}
+                  key={[injectTemplate, disableEmbeds].join("-")}
                   title={revision ? revision.title : this.title}
                   document={document}
                   value={readOnly ? value : undefined}

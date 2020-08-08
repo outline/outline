@@ -835,6 +835,7 @@ router.post("documents.update", auth(), async ctx => {
     autosave,
     done,
     lastRevision,
+    templateId,
     append,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"];
@@ -854,6 +855,7 @@ router.post("documents.update", auth(), async ctx => {
   // Update document
   if (title) document.title = title;
   if (editorVersion) document.editorVersion = editorVersion;
+  if (templateId) document.templateId = templateId;
 
   if (append) {
     document.text += text;

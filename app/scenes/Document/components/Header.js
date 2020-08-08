@@ -134,6 +134,7 @@ class Header extends React.Component<Props> {
 
     const share = shares.getByDocumentId(document.id);
     const isPubliclyShared = share && share.published;
+    const isNew = document.isNew;
     const isTemplate = document.isTemplate;
     const can = policies.abilities(document.id);
     const canShareDocuments = auth.team && auth.team.sharing && can.share;
@@ -207,7 +208,8 @@ class Header extends React.Component<Props> {
             />
           </Fade>
           {isEditing &&
-            !isTemplate && (
+            !isTemplate &&
+            isNew && (
               <Action>
                 <Fade>
                   <TemplatesMenu document={document} />
