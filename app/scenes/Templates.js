@@ -19,7 +19,7 @@ type Props = {
 };
 
 @observer
-class Starred extends React.Component<Props> {
+class Templates extends React.Component<Props> {
   render() {
     const {
       fetchTemplates,
@@ -67,4 +67,4 @@ class Starred extends React.Component<Props> {
   }
 }
 
-export default inject("documents")(Starred);
+export default inject("documents")(Templates);

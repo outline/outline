@@ -41,10 +41,6 @@ class DocumentPreview extends React.Component<Props> {
     this.props.document.unstar();
   };
 
-  handleNewFromTemplate = () => {
-    //
-  };
-
   replaceResultMarks = (tag: string) => {
     // don't use SEARCH_RESULT_REGEX here as it causes
     // an infinite loop to trigger a regex inside it's own callback
@@ -111,7 +107,6 @@ class DocumentPreview extends React.Component<Props> {
                     templateId: document.id,
                   })}
                   icon={<PlusIcon />}
-                  onClick={this.handleNewFromTemplate}
                   neutral
                 >
                   New doc
