@@ -44,8 +44,12 @@ export default function errorHandling() {
         error: snakeCase(err.id || error),
         status: err.status,
         message,
-        data: err.errorData ? err.errorData : {},
+        data: err.errorData,
       };
+
+      if (!ctx.body.data) {
+        delete ctx.body.data;
+      }
     }
   };
 }
