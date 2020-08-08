@@ -1,29 +1,24 @@
 // @flow
 import * as React from "react";
 import { observable } from "mobx";
-import { observer } from "mobx-react";
+import { observer, inject } from "mobx-react";
 import { Redirect } from "react-router-dom";
-import { EditIcon, DocumentIcon } from "outline-icons";
+import { DocumentIcon } from "outline-icons";
 import styled from "styled-components";
+import DocumentsStore from "stores/DocumentsStore";
 
 import { newDocumentUrl } from "utils/routeHelpers";
 import Document from "models/Document";
-import Collection from "models/Collection";
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-  Header,
-} from "components/DropdownMenu";
-import CollectionIcon from "components/CollectionIcon";
+import Button from "components/Button";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
-  label?: React.Node,
-  collection: Collection,
-  templates: Document[],
+  document: Document,
+  documents: DocumentsStore,
 };
 
 @observer
-class NewFromTemplateMenu extends React.Component<Props> {
+class TemplatesMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
 
   componentDidUpdate() {
@@ -44,37 +39,31 @@ class NewFromTemplateMenu extends React.Component<Props> {
   render() {
     if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
 
-    const { collection, templates, label, ...rest } = this.props;
+    const { collection, documents, document, label, ...rest } = this.props;
+    const templates = documents.templatesInCollection(document.collectionId);
 
     return (
       <DropdownMenu
-        position="right"
+        position="left"
         label={
-          label || (
-            <DropdownMenuItem key={collection.id}>
-              <CollectionIcon collection={collection} />&nbsp;{collection.name}
-            </DropdownMenuItem>
-          )
+          <Button disclosure neutral>
+            Templates
+          </Button>
         }
         {...rest}
       >
-        <DropdownMenuItem onClick={() => this.handleNewDocument(collection.id)}>
-          <EditIcon />
-          <span>Blank document</span>
-        </DropdownMenuItem>
-        <Header>Start from a template…</Header>
         {templates.map(template => (
           <DropdownMenuItem
             key={template.id}
             onClick={() =>
-              this.handleNewDocument(collection.id, {
+              this.handleNewDocument(document.collectionId, {
                 templateId: template.id,
               })
             }
           >
             <DocumentIcon />
             <div>
-              <strong>{template.title}</strong>
+              <strong>{template.titleWithDefault}</strong>
               <br />
               <Author>By {template.createdBy.name}</Author>
             </div>
@@ -89,4 +78,4 @@ const Author = styled.div`
   font-size: 13px;
 `;
 
-export default NewFromTemplateMenu;
+export default inject("documents")(TemplatesMenu);

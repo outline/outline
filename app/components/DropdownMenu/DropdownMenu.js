@@ -280,7 +280,7 @@ export const Header = styled.h3`
   text-transform: uppercase;
   color: ${props => props.theme.sidebarText};
   letter-spacing: 0.04em;
-  margin: 1.5em 12px 0.5em;
+  margin: 1em 12px 0.5em;
 `;
 
 export default DropdownMenu;

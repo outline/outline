@@ -20,6 +20,7 @@ import { meta } from "utils/keyboard";
 
 import Flex from "components/Flex";
 import Breadcrumb, { Slash } from "components/Breadcrumb";
+import TemplatesMenu from "menus/TemplatesMenu";
 import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import DocumentShare from "scenes/DocumentShare";
@@ -205,6 +206,14 @@ class Header extends React.Component<Props> {
               currentUserId={auth.user ? auth.user.id : undefined}
             />
           </Fade>
+          {isEditing &&
+            !isTemplate && (
+              <Action>
+                <Fade>
+                  <TemplatesMenu document={document} />
+                </Fade>
+              </Action>
+            )}
           {!isEditing &&
             canShareDocuments && (
               <Action>
@@ -254,27 +263,6 @@ class Header extends React.Component<Props> {
               </Action>
             </React.Fragment>
           )}
-          {can.update &&
-            isDraft &&
-            !isRevision && (
-              <Action>
-                <Tooltip
-                  tooltip="Publish"
-                  shortcut={`${meta}+shift+p`}
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    onClick={this.handlePublish}
-                    title="Publish document"
-                    disabled={publishingIsDisabled}
-                    small
-                  >
-                    {isPublishing ? "Publishing…" : "Publish"}
-                  </Button>
-                </Tooltip>
-              </Action>
-            )}
           {canEdit && (
             <Action>
               <Tooltip
@@ -327,6 +315,27 @@ class Header extends React.Component<Props> {
                 >
                   New from template
                 </Button>
+              </Action>
+            )}
+          {can.update &&
+            isDraft &&
+            !isRevision && (
+              <Action>
+                <Tooltip
+                  tooltip="Publish"
+                  shortcut={`${meta}+shift+p`}
+                  delay={500}
+                  placement="bottom"
+                >
+                  <Button
+                    onClick={this.handlePublish}
+                    title="Publish document"
+                    disabled={publishingIsDisabled}
+                    small
+                  >
+                    {isPublishing ? "Publishing…" : "Publish"}
+                  </Button>
+                </Tooltip>
               </Action>
             )}
           {!isEditing && (

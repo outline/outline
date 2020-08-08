@@ -9,7 +9,6 @@ import { newDocumentUrl } from "utils/routeHelpers";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
-import NewFromTemplateMenu from "menus/NewFromTemplateMenu";
 import {
   DropdownMenu,
   DropdownMenuItem,
@@ -66,23 +65,6 @@ class NewDocumentMenu extends React.Component<Props> {
         <Header>Choose a collection</Header>
         {collections.orderedData.map(collection => {
           const can = policies.abilities(collection.id);
-          const templates = documents.templatesInCollection(collection.id);
-
-          if (templates.length && can.update) {
-            return (
-              <NewFromTemplateMenu
-                key={collection.id}
-                templates={templates}
-                collection={collection}
-                style={{
-                  right: 170,
-                  position: "relative",
-                  top: -40,
-                }}
-                hover
-              />
-            );
-          }
 
           return (
             <DropdownMenuItem
