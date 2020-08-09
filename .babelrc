@@ -6,7 +6,7 @@
       "@babel/preset-env",
       {
         "corejs": {
-          "version": "3",
+          "version": "2",
           "proposals": true
         },
         "useBuiltIns": "usage",
@@ -24,8 +24,6 @@
     ],
     "@babel/plugin-transform-destructuring",
     "@babel/plugin-transform-regenerator",
-    "transform-class-properties",
-    // "transform-object-rest-spread",
-    // "syntax-dynamic-import"
+    "transform-class-properties"
   ]
 }
