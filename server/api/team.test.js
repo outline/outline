@@ -9,7 +9,7 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
-describe("#team.update", async () => {
+describe("#team.update", () => {
   it("should update team details", async () => {
     const { admin } = await seed();
     const res = await server.post("/api/team.update", {

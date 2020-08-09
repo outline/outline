@@ -14,7 +14,7 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
-describe("#attachments.redirect", async () => {
+describe("#attachments.redirect", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/attachments.redirect");
     expect(res.status).toEqual(401);

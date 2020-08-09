@@ -12,7 +12,7 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
-describe("#utils.gc", async () => {
+describe("#utils.gc", () => {
   it("should destroy documents deleted more than 30 days ago", async () => {
     const document = await buildDocument({
       publishedAt: new Date(),

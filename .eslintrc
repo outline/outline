@@ -1,5 +1,5 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "extends": [
     "react-app",
     "plugin:import/errors",
@@ -41,8 +41,7 @@
     "react": {
       "createClass": "createReactClass",
       "pragma": "React",
-      "version": "detect",
-      "flowVersion": "0.86"
+      "version": "detect"
     },
     "import/resolver": {
       "node": {

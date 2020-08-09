@@ -9,7 +9,7 @@ const server = new TestServer(app.callback());
 beforeEach(flushdb);
 afterAll(server.close);
 
-describe("#events.list", async () => {
+describe("#events.list", () => {
   it("should only return activity events", async () => {
     const { user, admin, document, collection } = await seed();
 

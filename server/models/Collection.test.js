@@ -19,7 +19,7 @@ describe("#url", () => {
   });
 });
 
-describe("#addDocumentToStructure", async () => {
+describe("#addDocumentToStructure", () => {
   test("should add as last element without index", async () => {
     const { collection } = await seed();
     const id = uuid.v4();
@@ -86,7 +86,7 @@ describe("#addDocumentToStructure", async () => {
     expect(collection.documentStructure[0].children[0].id).toBe(id);
   });
 
-  describe("options: documentJson", async () => {
+  describe("options: documentJson", () => {
     test("should append supplied json over document's own", async () => {
       const { collection } = await seed();
       const id = uuid.v4();

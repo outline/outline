@@ -5,7 +5,7 @@ import { buildDocument, buildCollection } from "../test/factories";
 
 beforeEach(flushdb);
 
-describe("documentMover", async () => {
+describe("documentMover", () => {
   const ip = "127.0.0.1";
 
   it("should move within a collection", async () => {
