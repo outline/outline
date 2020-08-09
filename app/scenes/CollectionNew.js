@@ -85,7 +85,7 @@ class CollectionNew extends React.Component<Props> {
     this.hasOpenedIconPicker = true;
   };
 
-  handleDescriptionChange = getValue => {
+  handleDescriptionChange = (getValue) => {
     this.description = getValue();
   };
 

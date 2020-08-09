@@ -20,7 +20,7 @@ export function slackAuth(
   };
 
   const urlParams = Object.keys(params)
-    .map(key => `${key}=${encodeURIComponent(params[key])}`)
+    .map((key) => `${key}=${encodeURIComponent(params[key])}`)
     .join("&");
 
   return `${baseUrl}?${urlParams}`;

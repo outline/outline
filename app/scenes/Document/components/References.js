@@ -52,7 +52,7 @@ class References extends React.Component<Props> {
             )}
           </Tabs>
           {isBacklinksTab
-            ? backlinks.map(backlinkedDocument => (
+            ? backlinks.map((backlinkedDocument) => (
                 <ReferenceListItem
                   anchor={document.urlId}
                   key={backlinkedDocument.id}
@@ -62,7 +62,7 @@ class References extends React.Component<Props> {
                   }
                 />
               ))
-            : children.map(node => {
+            : children.map((node) => {
                 // If we have the document in the store already then use it to get the extra
                 // contextual info, otherwise the collection node will do (only has title and id)
                 const document = documents.get(node.id);

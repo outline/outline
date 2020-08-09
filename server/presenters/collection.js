@@ -12,7 +12,7 @@ type Document = {
 const sortDocuments = (documents: Document[]): Document[] => {
   const orderedDocs = naturalSort(documents, "title");
 
-  return orderedDocs.map(document => ({
+  return orderedDocs.map((document) => ({
     ...document,
     children: sortDocuments(document.children),
   }));

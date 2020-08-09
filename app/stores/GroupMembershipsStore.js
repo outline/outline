@@ -74,6 +74,6 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
   };
 
   inGroup = (groupId: string) => {
-    return filter(this.orderedData, member => member.groupId === groupId);
+    return filter(this.orderedData, (member) => member.groupId === groupId);
   };
 }

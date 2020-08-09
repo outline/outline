@@ -48,8 +48,8 @@ const IconWrapper = styled.div`
   position: absolute;
   bottom: -2px;
   right: -2px;
-  background: ${props => props.theme.primary};
-  border: 2px solid ${props => props.theme.background};
+  background: ${(props) => props.theme.primary};
+  border: 2px solid ${(props) => props.theme.background};
   border-radius: 100%;
   width: 20px;
   height: 20px;
@@ -57,10 +57,10 @@ const IconWrapper = styled.div`
 
 const CircleImg = styled.img`
   display: block;
-  width: ${props => props.size}px;
-  height: ${props => props.size}px;
+  width: ${(props) => props.size}px;
+  height: ${(props) => props.size}px;
   border-radius: 50%;
-  border: 2px solid ${props => props.theme.background};
+  border: 2px solid ${(props) => props.theme.background};
   flex-shrink: 0;
 `;
 

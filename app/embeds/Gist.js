@@ -48,14 +48,10 @@ class Gist extends React.Component<Props> {
     }
 
     const gistLink = `https://gist.github.com/${id}.js`;
-    const gistScript = `<script type="text/javascript" src="${
-      gistLink
-    }"></script>`;
+    const gistScript = `<script type="text/javascript" src="${gistLink}"></script>`;
     const styles =
       "<style>*{ font-size:12px; } body { margin: 0; } .gist .blob-wrapper.data { max-height:150px; overflow:auto; }</style>";
-    const iframeHtml = `<html><head><base target="_parent">${
-      styles
-    }</head><body>${gistScript}</body></html>`;
+    const iframeHtml = `<html><head><base target="_parent">${styles}</head><body>${gistScript}</body></html>`;
 
     doc.open();
     doc.writeln(iframeHtml);
@@ -67,7 +63,7 @@ class Gist extends React.Component<Props> {
 
     return (
       <iframe
-        ref={ref => {
+        ref={(ref) => {
           this.iframeNode = ref;
         }}
         type="text/html"

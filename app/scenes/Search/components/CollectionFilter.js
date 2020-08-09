@@ -19,7 +19,7 @@ type Props = {
 class CollectionFilter extends React.Component<Props> {
   render() {
     const { onSelect, collectionId, collections } = this.props;
-    const collectionOptions = collections.orderedData.map(user => ({
+    const collectionOptions = collections.orderedData.map((user) => ({
       key: user.id,
       label: user.name,
     }));

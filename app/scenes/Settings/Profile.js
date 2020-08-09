@@ -96,7 +96,7 @@ class Profile extends React.Component<Props> {
             </ImageUpload>
           </AvatarContainer>
         </ProfilePicture>
-        <form onSubmit={this.handleSubmit} ref={ref => (this.form = ref)}>
+        <form onSubmit={this.handleSubmit} ref={(ref) => (this.form = ref)}>
           <Input
             label="Full name"
             autoComplete="name"
@@ -127,8 +127,8 @@ class Profile extends React.Component<Props> {
 }
 
 const DangerZone = styled.div`
-  background: ${props => props.theme.background};
-  transition: ${props => props.theme.backgroundTransition};
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
   position: absolute;
   bottom: 16px;
 `;
@@ -162,7 +162,7 @@ const AvatarContainer = styled(Flex)`
   &:hover div {
     opacity: 1;
     background: rgba(0, 0, 0, 0.75);
-    color: ${props => props.theme.white};
+    color: ${(props) => props.theme.white};
   }
 `;
 

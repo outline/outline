@@ -29,26 +29,24 @@ const NotificationSetting = sequelize.define(
     timestamps: true,
     updatedAt: false,
     getterMethods: {
-      unsubscribeUrl: function() {
+      unsubscribeUrl: function () {
         const token = NotificationSetting.getUnsubscribeToken(this.userId);
-        return `${process.env.URL}/api/notificationSettings.unsubscribe?token=${
-          token
-        }&id=${this.id}`;
+        return `${process.env.URL}/api/notificationSettings.unsubscribe?token=${token}&id=${this.id}`;
       },
-      unsubscribeToken: function() {
+      unsubscribeToken: function () {
         return NotificationSetting.getUnsubscribeToken(this.userId);
       },
     },
   }
 );
 
-NotificationSetting.getUnsubscribeToken = userId => {
+NotificationSetting.getUnsubscribeToken = (userId) => {
   const hash = crypto.createHash("sha256");
   hash.update(`${userId}-${process.env.SECRET_KEY}`);
   return hash.digest("hex");
 };
 
-NotificationSetting.associate = models => {
+NotificationSetting.associate = (models) => {
   NotificationSetting.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",

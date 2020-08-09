@@ -22,7 +22,7 @@ const Notification = sequelize.define(
   }
 );
 
-Notification.associate = models => {
+Notification.associate = (models) => {
   Notification.belongsTo(models.User, {
     as: "actor",
     foreignKey: "actorId",

@@ -41,9 +41,7 @@ export default class Slack {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        text: `👋 Hey there! When documents are published or updated in the *${
-          collection.name
-        }* collection on Outline they will be posted to this channel!`,
+        text: `👋 Hey there! When documents are published or updated in the *${collection.name}* collection on Outline they will be posted to this channel!`,
         attachments: [
           {
             color: collection.color,

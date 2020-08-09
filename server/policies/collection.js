@@ -23,7 +23,7 @@ allow(User, ["read", "export"], Collection, (user, collection) => {
       collection.collectionGroupMemberships
     );
 
-    return some(allMemberships, m =>
+    return some(allMemberships, (m) =>
       ["read", "read_write", "maintainer"].includes(m.permission)
     );
   }
@@ -45,7 +45,7 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
       collection.collectionGroupMemberships
     );
 
-    return some(allMemberships, m =>
+    return some(allMemberships, (m) =>
       ["read_write", "maintainer"].includes(m.permission)
     );
   }
@@ -66,7 +66,7 @@ allow(User, "delete", Collection, (user, collection) => {
       collection.collectionGroupMemberships
     );
 
-    return some(allMemberships, m =>
+    return some(allMemberships, (m) =>
       ["read_write", "maintainer"].includes(m.permission)
     );
   }

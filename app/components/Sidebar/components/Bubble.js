@@ -14,8 +14,8 @@ const Bubble = ({ count }: Props) => {
 const Count = styled.div`
   animation: ${bounceIn} 600ms;
   transform-origin: center center;
-  color: ${props => props.theme.white};
-  background: ${props => props.theme.slateDark};
+  color: ${(props) => props.theme.white};
+  background: ${(props) => props.theme.slateDark};
   display: inline-block;
   font-feature-settings: "tnum";
   font-weight: 600;

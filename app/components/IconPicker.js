@@ -166,7 +166,7 @@ class IconPicker extends React.Component<Props> {
     const Component = icons[this.props.icon || "collection"].component;
 
     return (
-      <Wrapper ref={ref => (this.node = ref)}>
+      <Wrapper ref={(ref) => (this.node = ref)}>
         <label>
           <LabelText>Icon</LabelText>
         </label>
@@ -179,7 +179,7 @@ class IconPicker extends React.Component<Props> {
           }
         >
           <Icons onClick={preventEventBubble}>
-            {Object.keys(icons).map(name => {
+            {Object.keys(icons).map((name) => {
               const Component = icons[name].component;
               return (
                 <IconButton
@@ -195,7 +195,7 @@ class IconPicker extends React.Component<Props> {
           <Flex onClick={preventEventBubble}>
             <ColorPicker
               color={this.props.color}
-              onChange={color =>
+              onChange={(color) =>
                 this.props.onChange(color.hex, this.props.icon)
               }
               colors={colors}
@@ -214,7 +214,7 @@ const Icons = styled.div`
 `;
 
 const LabelButton = styled(NudeButton)`
-  border: 1px solid ${props => props.theme.inputBorder};
+  border: 1px solid ${(props) => props.theme.inputBorder};
   width: 32px;
   height: 32px;
 `;

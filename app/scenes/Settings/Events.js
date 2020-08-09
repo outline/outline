@@ -85,7 +85,9 @@ class Events extends React.Component<Props> {
             <ListPlaceholder count={5} />
           ) : (
             <React.Fragment>
-              {events.orderedData.map(event => <EventListItem event={event} />)}
+              {events.orderedData.map((event) => (
+                <EventListItem event={event} />
+              ))}
               {this.allowLoadMore && (
                 <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
               )}

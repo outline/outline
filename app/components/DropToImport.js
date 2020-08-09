@@ -30,12 +30,12 @@ type Props = {
 export const GlobalStyles = createGlobalStyle`
   .activeDropZone {
     border-radius: 4px;
-    background: ${props => props.theme.slateDark};
-    svg { fill: ${props => props.theme.white}; }
+    background: ${(props) => props.theme.slateDark};
+    svg { fill: ${(props) => props.theme.white}; }
   }
 
   .activeDropZone a {
-    color: ${props => props.theme.white} !important;
+    color: ${(props) => props.theme.white} !important;
   }
 `;
 

@@ -81,11 +81,11 @@ class Editor extends React.Component<Props> {
 }
 
 const StyledEditor = styled(RichMarkdownEditor)`
-  flex-grow: ${props => (props.grow ? 1 : 0)};
+  flex-grow: ${(props) => (props.grow ? 1 : 0)};
   justify-content: start;
 
   > div {
-    transition: ${props => props.theme.backgroundTransition};
+    transition: ${(props) => props.theme.backgroundTransition};
   }
 
   .notice-block.tip,
@@ -95,13 +95,13 @@ const StyledEditor = styled(RichMarkdownEditor)`
 
   p {
     a {
-      color: ${props => props.theme.text};
-      border-bottom: 1px solid ${props => lighten(0.5, props.theme.text)};
+      color: ${(props) => props.theme.text};
+      border-bottom: 1px solid ${(props) => lighten(0.5, props.theme.text)};
       text-decoration: none !important;
       font-weight: 500;
 
       &:hover {
-        border-bottom: 1px solid ${props => props.theme.text};
+        border-bottom: 1px solid ${(props) => props.theme.text};
         text-decoration: none;
       }
     }

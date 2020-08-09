@@ -55,7 +55,7 @@ SocketAuth(io, {
     // has access to on connection. New collection subscriptions
     // are managed from the client as needed through the 'join' event
     const collectionIds = await user.collectionIds();
-    collectionIds.forEach(collectionId =>
+    collectionIds.forEach((collectionId) =>
       rooms.push(`collection-${collectionId}`)
     );
 
@@ -63,7 +63,7 @@ SocketAuth(io, {
     socket.join(rooms);
 
     // allow the client to request to join rooms
-    socket.on("join", async event => {
+    socket.on("join", async (event) => {
       // user is joining a collection channel, because their permissions have
       // changed, granting them access.
       if (event.collectionId) {
@@ -114,7 +114,7 @@ SocketAuth(io, {
               socket.emit("document.presence", {
                 documentId: event.documentId,
                 userIds: Array.from(userIds.keys()),
-                editingIds: editing.map(view => view.userId),
+                editingIds: editing.map((view) => view.userId),
               });
             });
           });
@@ -123,7 +123,7 @@ SocketAuth(io, {
     });
 
     // allow the client to request to leave rooms
-    socket.on("leave", event => {
+    socket.on("leave", (event) => {
       if (event.collectionId) {
         socket.leave(`collection-${event.collectionId}`);
       }
@@ -141,7 +141,7 @@ SocketAuth(io, {
     socket.on("disconnecting", () => {
       const rooms = Object.keys(socket.rooms);
 
-      rooms.forEach(room => {
+      rooms.forEach((room) => {
         if (room.startsWith("document-")) {
           const documentId = room.replace("document-", "");
           io.to(room).emit("user.leave", {
@@ -152,7 +152,7 @@ SocketAuth(io, {
       });
     });
 
-    socket.on("presence", async event => {
+    socket.on("presence", async (event) => {
       const room = `document-${event.documentId}`;
 
       if (event.documentId && socket.rooms[room]) {
@@ -173,7 +173,7 @@ SocketAuth(io, {
   },
 });
 
-server.on("error", err => {
+server.on("error", (err) => {
   throw err;
 });
 

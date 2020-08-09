@@ -8,7 +8,7 @@ import policy from "../policies";
 const { authorize } = policy;
 const router = new Router();
 
-router.post("views.list", auth(), async ctx => {
+router.post("views.list", auth(), async (ctx) => {
   const { documentId } = ctx.body;
   ctx.assertUuid(documentId, "documentId is required");
 
@@ -23,7 +23,7 @@ router.post("views.list", auth(), async ctx => {
   };
 });
 
-router.post("views.create", auth(), async ctx => {
+router.post("views.create", auth(), async (ctx) => {
   const { documentId } = ctx.body;
   ctx.assertUuid(documentId, "documentId is required");
 

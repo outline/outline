@@ -67,9 +67,10 @@ const Container = styled(Flex)`
   top: 0;
   bottom: 0;
   width: 100%;
-  background: ${props => props.theme.sidebarBackground};
-  transition: left 100ms ease-out, ${props => props.theme.backgroundTransition};
-  margin-left: ${props => (props.mobileSidebarVisible ? 0 : "-100%")};
+  background: ${(props) => props.theme.sidebarBackground};
+  transition: left 100ms ease-out,
+    ${(props) => props.theme.backgroundTransition};
+  margin-left: ${(props) => (props.mobileSidebarVisible ? 0 : "-100%")};
   z-index: 1000;
 
   @media print {
@@ -80,7 +81,7 @@ const Container = styled(Flex)`
   &:before,
   &:after {
     content: "";
-    background: ${props => props.theme.sidebarBackground};
+    background: ${(props) => props.theme.sidebarBackground};
     position: absolute;
     top: -50vh;
     left: 0;
@@ -94,8 +95,8 @@ const Container = styled(Flex)`
   }
 
   ${breakpoint("tablet")`
-    left: ${props => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
-    width: ${props => props.theme.sidebarWidth};
+    left: ${(props) => (props.editMode ? `-${props.theme.sidebarWidth}` : 0)};
+    width: ${(props) => props.theme.sidebarWidth};
     margin: 0;
     z-index: 3;
   `};
@@ -106,8 +107,8 @@ const Toggle = styled.a`
   align-items: center;
   position: fixed;
   top: 0;
-  left: ${props => (props.mobileSidebarVisible ? "auto" : 0)};
-  right: ${props => (props.mobileSidebarVisible ? 0 : "auto")};
+  left: ${(props) => (props.mobileSidebarVisible ? "auto" : 0)};
+  right: ${(props) => (props.mobileSidebarVisible ? 0 : "auto")};
   z-index: 1;
   margin: 12px;
 

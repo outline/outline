@@ -7,9 +7,7 @@ import RootStore from "./RootStore";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
 import type { PaginationParams } from "types";
 
-export default class CollectionGroupMembershipsStore extends BaseStore<
-  CollectionGroupMembership
-> {
+export default class CollectionGroupMembershipsStore extends BaseStore<CollectionGroupMembership> {
   actions = ["create", "delete"];
 
   constructor(rootStore: RootStore) {

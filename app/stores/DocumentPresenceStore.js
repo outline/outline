@@ -13,7 +13,7 @@ export default class PresenceStore {
   @action
   init(documentId: string, userIds: string[], editingIds: string[]) {
     this.data.set(documentId, new Map());
-    userIds.forEach(userId =>
+    userIds.forEach((userId) =>
       this.touch(documentId, userId, editingIds.includes(userId))
     );
   }

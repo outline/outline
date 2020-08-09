@@ -9,7 +9,7 @@ import policy from "../policies";
 const { authorize } = policy;
 const router = new Router();
 
-router.post("team.update", auth(), async ctx => {
+router.post("team.update", auth(), async (ctx) => {
   const {
     name,
     avatarUrl,

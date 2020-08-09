@@ -51,17 +51,15 @@ class DocumentDelete extends React.Component<Props> {
           <HelpText>
             Are you sure about that? Deleting the{" "}
             <strong>{document.titleWithDefault}</strong> {document.noun} will
-            delete all of its history{document.isTemplate
-              ? ""
-              : ", and any nested documents"}.
+            delete all of its history
+            {document.isTemplate ? "" : ", and any nested documents"}.
           </HelpText>
-          {!document.isDraft &&
-            !document.isArchived && (
-              <HelpText>
-                If you’d like the option of referencing or restoring this{" "}
-                {document.noun} in the future, consider archiving it instead.
-              </HelpText>
-            )}
+          {!document.isDraft && !document.isArchived && (
+            <HelpText>
+              If you’d like the option of referencing or restoring this{" "}
+              {document.noun} in the future, consider archiving it instead.
+            </HelpText>
+          )}
           <Button type="submit" danger>
             {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}
           </Button>

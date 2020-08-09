@@ -25,14 +25,14 @@ const ApiKey = sequelize.define(
     tableName: "apiKeys",
     paranoid: true,
     hooks: {
-      beforeValidate: key => {
+      beforeValidate: (key) => {
         key.secret = randomstring.generate(38);
       },
     },
   }
 );
 
-ApiKey.associate = models => {
+ApiKey.associate = (models) => {
   ApiKey.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",

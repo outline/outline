@@ -30,7 +30,7 @@ class InputSearch extends React.Component<Props> {
     }
   }
 
-  handleSearchInput = ev => {
+  handleSearchInput = (ev) => {
     ev.preventDefault();
     this.props.history.push(
       searchUrl(ev.target.value, this.props.collectionId)
@@ -50,7 +50,7 @@ class InputSearch extends React.Component<Props> {
 
     return (
       <InputMaxWidth
-        ref={ref => (this.input = ref)}
+        ref={(ref) => (this.input = ref)}
         type="search"
         placeholder={placeholder}
         onInput={this.handleSearchInput}

@@ -48,7 +48,7 @@ class DocumentPreview extends React.Component<Props> {
     return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
   };
 
-  handleNewFromTemplate = event => {
+  handleNewFromTemplate = (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -97,18 +97,14 @@ class DocumentPreview extends React.Component<Props> {
                 )}
               </Actions>
             )}
-          {document.isDraft &&
-            showDraft && (
-              <Tooltip
-                tooltip="Only visible to you"
-                delay={500}
-                placement="top"
-              >
-                <Badge>Draft</Badge>
-              </Tooltip>
-            )}
-          {document.isTemplate &&
-            showTemplate && <Badge primary>Template</Badge>}
+          {document.isDraft && showDraft && (
+            <Tooltip tooltip="Only visible to you" delay={500} placement="top">
+              <Badge>Draft</Badge>
+            </Tooltip>
+          )}
+          {document.isTemplate && showTemplate && (
+            <Badge primary>Template</Badge>
+          )}
           <SecondaryActions>
             {document.isTemplate &&
               !document.isArchived &&
@@ -120,7 +116,8 @@ class DocumentPreview extends React.Component<Props> {
                 >
                   New doc
                 </Button>
-              )}&nbsp;
+              )}
+            &nbsp;
             <DocumentMenu document={document} showPin={showPin} />
           </SecondaryActions>
         </Heading>
@@ -146,7 +143,7 @@ const StyledStar = withTheme(styled(({ solid, theme, ...props }) => (
   <StarredIcon color={theme.text} {...props} />
 ))`
   flex-shrink: 0;
-  opacity: ${props => (props.solid ? "1 !important" : 0)};
+  opacity: ${(props) => (props.solid ? "1 !important" : 0)};
   transition: all 100ms ease-in-out;
 
   &:hover {
@@ -182,7 +179,7 @@ const DocumentLink = styled(Link)`
   &:hover,
   &:active,
   &:focus {
-    background: ${props => props.theme.listItemHoverBackground};
+    background: ${(props) => props.theme.listItemHoverBackground};
     outline: none;
 
     ${SecondaryActions} {
@@ -207,7 +204,7 @@ const Heading = styled.h3`
   margin-bottom: 0.25em;
   overflow: hidden;
   white-space: nowrap;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
@@ -225,7 +222,7 @@ const Title = styled(Highlight)`
 
 const ResultContext = styled(Highlight)`
   display: block;
-  color: ${props => props.theme.textTertiary};
+  color: ${(props) => props.theme.textTertiary};
   font-size: 14px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;

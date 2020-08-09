@@ -119,7 +119,8 @@ class MainSidebar extends React.Component<Props> {
                 icon={<EditIcon color="currentColor" />}
                 label={
                   <Drafts align="center">
-                    Drafts{draftDocumentsCount > 0 && (
+                    Drafts
+                    {draftDocumentsCount > 0 && (
                       <Bubble count={draftDocumentsCount} />
                     )}
                   </Drafts>

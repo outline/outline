@@ -38,7 +38,7 @@ class UiStore {
       "(prefers-color-scheme: dark)"
     );
 
-    const setSystemTheme = event => {
+    const setSystemTheme = (event) => {
       this.systemTheme = event.matches ? "dark" : "light";
     };
     setSystemTheme(colorSchemeQueryList);

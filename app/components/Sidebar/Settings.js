@@ -146,13 +146,12 @@ class SettingsSidebar extends React.Component<Props> {
                 />
               </Section>
             )}
-            {can.update &&
-              env.DEPLOYMENT !== "hosted" && (
-                <Section>
-                  <Header>Installation</Header>
-                  <Version />
-                </Section>
-              )}
+            {can.update && env.DEPLOYMENT !== "hosted" && (
+              <Section>
+                <Header>Installation</Header>
+                <Version />
+              </Section>
+            )}
           </Scrollable>
         </Flex>
       </Sidebar>

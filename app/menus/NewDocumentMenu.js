@@ -63,7 +63,7 @@ class NewDocumentMenu extends React.Component<Props> {
         {...rest}
       >
         <Header>Choose a collection</Header>
-        {collections.orderedData.map(collection => {
+        {collections.orderedData.map((collection) => {
           const can = policies.abilities(collection.id);
 
           return (
@@ -72,7 +72,8 @@ class NewDocumentMenu extends React.Component<Props> {
               onClick={() => this.handleNewDocument(collection.id)}
               disabled={!can.update}
             >
-              <CollectionIcon collection={collection} />&nbsp;{collection.name}
+              <CollectionIcon collection={collection} />
+              &nbsp;{collection.name}
             </DropdownMenuItem>
           );
         })}

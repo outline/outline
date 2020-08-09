@@ -50,7 +50,7 @@ class AddPeopleToGroup extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddUser = async user => {
+  handleAddUser = async (user) => {
     try {
       await this.props.groupMemberships.create({
         groupId: this.props.group.id,
@@ -74,7 +74,8 @@ class AddPeopleToGroup extends React.Component<Props> {
           someone who’s not yet on the team yet?{" "}
           <a role="button" onClick={this.handleInviteModalOpen}>
             Invite them to {team.name}
-          </a>.
+          </a>
+          .
         </HelpText>
 
         <Input
@@ -97,7 +98,7 @@ class AddPeopleToGroup extends React.Component<Props> {
           }
           items={users.notInGroup(group.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
-          renderItem={item => (
+          renderItem={(item) => (
             <GroupMemberListItem
               key={item.id}
               user={item}
@@ -118,6 +119,9 @@ class AddPeopleToGroup extends React.Component<Props> {
   }
 }
 
-export default inject("auth", "users", "groupMemberships", "ui")(
-  AddPeopleToGroup
-);
+export default inject(
+  "auth",
+  "users",
+  "groupMemberships",
+  "ui"
+)(AddPeopleToGroup);

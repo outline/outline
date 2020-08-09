@@ -27,9 +27,9 @@ const ListItem = ({ image, title, subtitle, actions }: Props) => {
 
 const Wrapper = styled.li`
   display: flex;
-  padding: ${props => (props.compact ? "8px" : "12px")} 0;
+  padding: ${(props) => (props.compact ? "8px" : "12px")} 0;
   margin: 0;
-  border-bottom: 1px solid ${props => props.theme.divider};
+  border-bottom: 1px solid ${(props) => props.theme.divider};
 
   &:last-child {
     border-bottom: 0;
@@ -59,7 +59,7 @@ const Content = styled(Flex)`
 const Subtitle = styled.p`
   margin: 0;
   font-size: 14px;
-  color: ${props => props.theme.slate};
+  color: ${(props) => props.theme.slate};
 `;
 
 const Actions = styled.div`

@@ -127,7 +127,7 @@ export default class Websockets {
           },
           paranoid: false,
         });
-        documents.forEach(document => {
+        documents.forEach((document) => {
           socketio.to(`collection-${document.collectionId}`).emit("entities", {
             event: event.name,
             documentIds: [
@@ -138,7 +138,7 @@ export default class Websockets {
             ],
           });
         });
-        event.data.collectionIds.forEach(collectionId => {
+        event.data.collectionIds.forEach((collectionId) => {
           socketio.to(`collection-${collectionId}`).emit("entities", {
             event: event.name,
             collectionIds: [{ id: collectionId }],

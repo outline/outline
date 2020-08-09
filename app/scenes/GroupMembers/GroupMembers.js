@@ -40,7 +40,7 @@ class GroupMembers extends React.Component<Props> {
     this.addModalOpen = false;
   };
 
-  handleRemoveUser = async user => {
+  handleRemoveUser = async (user) => {
     try {
       await this.props.groupMemberships.delete({
         groupId: this.props.group.id,
@@ -91,7 +91,7 @@ class GroupMembers extends React.Component<Props> {
           fetch={groupMemberships.fetchPage}
           options={{ id: group.id }}
           empty={<Empty>This group has no members.</Empty>}
-          renderItem={item => (
+          renderItem={(item) => (
             <GroupMemberListItem
               key={item.id}
               user={item}
@@ -119,6 +119,10 @@ class GroupMembers extends React.Component<Props> {
   }
 }
 
-export default inject("auth", "users", "policies", "groupMemberships", "ui")(
-  GroupMembers
-);
+export default inject(
+  "auth",
+  "users",
+  "policies",
+  "groupMemberships",
+  "ui"
+)(GroupMembers);

@@ -13,7 +13,7 @@ const Integration = sequelize.define("integration", {
   events: DataTypes.ARRAY(DataTypes.STRING),
 });
 
-Integration.associate = models => {
+Integration.associate = (models) => {
   Integration.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",

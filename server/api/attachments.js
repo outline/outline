@@ -18,7 +18,7 @@ const { authorize } = policy;
 const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
 
-router.post("attachments.create", auth(), async ctx => {
+router.post("attachments.create", auth(), async (ctx) => {
   let { name, documentId, contentType, size } = ctx.body;
 
   ctx.assertPresent(name, "name is required");
@@ -31,7 +31,9 @@ router.post("attachments.create", auth(), async ctx => {
   const acl =
     ctx.body.public === undefined
       ? AWS_S3_ACL
-      : ctx.body.public ? "public-read" : "private";
+      : ctx.body.public
+      ? "public-read"
+      : "private";
   const credential = makeCredential();
   const longDate = format(new Date(), "YYYYMMDDTHHmmss\\Z");
   const policy = makePolicy(credential, longDate, acl);
@@ -88,7 +90,7 @@ router.post("attachments.create", auth(), async ctx => {
   };
 });
 
-router.post("attachments.redirect", auth(), async ctx => {
+router.post("attachments.redirect", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
 

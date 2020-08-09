@@ -171,14 +171,17 @@ class CollectionScene extends React.Component<Props> {
               <Centered column>
                 <HelpText>
                   <strong>{collection.name}</strong> doesn’t contain any
-                  documents yet.<br />Get started by creating a new one!
+                  documents yet.
+                  <br />
+                  Get started by creating a new one!
                 </HelpText>
                 <Wrapper>
                   <Link to={newDocumentUrl(collection.id)}>
                     <Button icon={<NewDocumentIcon color={theme.buttonText} />}>
                       Create a document
                     </Button>
-                  </Link>&nbsp;&nbsp;
+                  </Link>
+                  &nbsp;&nbsp;
                   {collection.private && (
                     <Button onClick={this.onPermissions} neutral>
                       Manage members…
@@ -329,6 +332,9 @@ const Wrapper = styled(Flex)`
   margin: 10px 0;
 `;
 
-export default inject("collections", "policies", "documents", "ui")(
-  withTheme(CollectionScene)
-);
+export default inject(
+  "collections",
+  "policies",
+  "documents",
+  "ui"
+)(withTheme(CollectionScene));

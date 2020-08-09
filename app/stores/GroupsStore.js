@@ -43,10 +43,10 @@ export default class GroupsStore extends BaseStore<Group> {
   inCollection = (collectionId: string, query: string) => {
     const memberships = filter(
       this.rootStore.collectionGroupMemberships.orderedData,
-      member => member.collectionId === collectionId
+      (member) => member.collectionId === collectionId
     );
-    const groupIds = memberships.map(member => member.groupId);
-    const groups = filter(this.orderedData, group =>
+    const groupIds = memberships.map((member) => member.groupId);
+    const groups = filter(this.orderedData, (group) =>
       groupIds.includes(group.id)
     );
 
@@ -57,12 +57,12 @@ export default class GroupsStore extends BaseStore<Group> {
   notInCollection = (collectionId: string, query: string = "") => {
     const memberships = filter(
       this.rootStore.collectionGroupMemberships.orderedData,
-      member => member.collectionId === collectionId
+      (member) => member.collectionId === collectionId
     );
-    const groupIds = memberships.map(member => member.groupId);
+    const groupIds = memberships.map((member) => member.groupId);
     const groups = filter(
       this.orderedData,
-      group => !groupIds.includes(group.id)
+      (group) => !groupIds.includes(group.id)
     );
 
     if (!query) return groups;
@@ -71,7 +71,7 @@ export default class GroupsStore extends BaseStore<Group> {
 }
 
 function queriedGroups(groups, query) {
-  return filter(groups, group =>
+  return filter(groups, (group) =>
     group.name.toLowerCase().match(query.toLowerCase())
   );
 }

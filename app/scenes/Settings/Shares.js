@@ -39,20 +39,19 @@ class Shares extends React.Component<Props> {
           public link can access a read-only version of the document until the
           link has been revoked.
         </HelpText>
-        {user &&
-          user.isAdmin && (
-            <HelpText>
-              {!canShareDocuments && (
-                <strong>Sharing is currently disabled.</strong>
-              )}{" "}
-              You can turn {canShareDocuments ? "off" : "on"} public document
-              sharing in <Link to="/settings/security">security settings</Link>.
-            </HelpText>
-          )}
+        {user && user.isAdmin && (
+          <HelpText>
+            {!canShareDocuments && (
+              <strong>Sharing is currently disabled.</strong>
+            )}{" "}
+            You can turn {canShareDocuments ? "off" : "on"} public document
+            sharing in <Link to="/settings/security">security settings</Link>.
+          </HelpText>
+        )}
         <Subheading>Shared Documents</Subheading>
         {hasSharedDocuments ? (
           <List>
-            {shares.published.map(share => (
+            {shares.published.map((share) => (
               <ShareListItem key={share.id} share={share} />
             ))}
           </List>

@@ -11,7 +11,7 @@ const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
 
-router.post("events.list", auth(), pagination(), async ctx => {
+router.post("events.list", auth(), pagination(), async (ctx) => {
   let { sort = "createdAt", direction, auditLog = false } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
 
@@ -53,7 +53,7 @@ router.post("events.list", auth(), pagination(), async ctx => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: events.map(event => presentEvent(event, auditLog)),
+    data: events.map((event) => presentEvent(event, auditLog)),
   };
 });
 

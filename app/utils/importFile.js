@@ -19,7 +19,7 @@ const importFile = async ({
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
-    reader.onload = async ev => {
+    reader.onload = async (ev) => {
       let text = ev.target.result;
       let title;
 

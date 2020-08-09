@@ -298,7 +298,7 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  onChange = getEditorText => {
+  onChange = (getEditorText) => {
     this.getEditorText = getEditorText;
 
     // document change while read only is presumed to be a checkbox edit,
@@ -312,7 +312,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  onChangeTitle = event => {
+  onChangeTitle = (event) => {
     this.title = event.target.value;
     this.updateIsDirtyDebounced();
     this.autosave();
@@ -409,22 +409,20 @@ class DocumentScene extends React.Component<Props> {
               column
               auto
             >
-              {document.isTemplate &&
-                !readOnly && (
-                  <Notice muted>
-                    You’re editing a template. Highlight some text and use the{" "}
-                    <PlaceholderIcon color="currentColor" /> control to add
-                    placeholders that can be filled out when creating new
-                    documents from this template.
-                  </Notice>
-                )}
-              {document.archivedAt &&
-                !document.deletedAt && (
-                  <Notice muted>
-                    Archived by {document.updatedBy.name}{" "}
-                    <Time dateTime={document.archivedAt} /> ago
-                  </Notice>
-                )}
+              {document.isTemplate && !readOnly && (
+                <Notice muted>
+                  You’re editing a template. Highlight some text and use the{" "}
+                  <PlaceholderIcon color="currentColor" /> control to add
+                  placeholders that can be filled out when creating new
+                  documents from this template.
+                </Notice>
+              )}
+              {document.archivedAt && !document.deletedAt && (
+                <Notice muted>
+                  Archived by {document.updatedBy.name}{" "}
+                  <Time dateTime={document.archivedAt} /> ago
+                </Notice>
+              )}
               {document.deletedAt && (
                 <Notice muted>
                   Deleted by {document.updatedBy.name}{" "}
@@ -440,15 +438,14 @@ class DocumentScene extends React.Component<Props> {
                 </Notice>
               )}
               <Flex auto={!readOnly}>
-                {ui.tocVisible &&
-                  readOnly && (
-                    <Contents
-                      headings={this.editor ? this.editor.getHeadings() : []}
-                    />
-                  )}
+                {ui.tocVisible && readOnly && (
+                  <Contents
+                    headings={this.editor ? this.editor.getHeadings() : []}
+                  />
+                )}
                 <Editor
                   id={document.id}
-                  ref={ref => {
+                  ref={(ref) => {
                     if (ref) {
                       this.editor = ref;
                     }
@@ -476,16 +473,14 @@ class DocumentScene extends React.Component<Props> {
                   ui={this.props.ui}
                 />
               </Flex>
-              {readOnly &&
-                !isShare &&
-                !revision && (
-                  <React.Fragment>
-                    <MarkAsViewed document={document} />
-                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                      <References document={document} />
-                    </ReferencesWrapper>
-                  </React.Fragment>
-                )}
+              {readOnly && !isShare && !revision && (
+                <React.Fragment>
+                  <MarkAsViewed document={document} />
+                  <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                    <References document={document} />
+                  </ReferencesWrapper>
+                </React.Fragment>
+              )}
             </MaxWidth>
           </Container>
         </Background>
@@ -501,12 +496,12 @@ const PlaceholderIcon = styled(InputIcon)`
 `;
 
 const Background = styled(Container)`
-  background: ${props => props.theme.background};
-  transition: ${props => props.theme.backgroundTransition};
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
 `;
 
 const ReferencesWrapper = styled("div")`
-  margin-top: ${props => (props.isOnlyTitle ? -45 : 16)}px;
+  margin-top: ${(props) => (props.isOnlyTitle ? -45 : 16)}px;
 
   @media print {
     display: none;
@@ -514,7 +509,7 @@ const ReferencesWrapper = styled("div")`
 `;
 
 const MaxWidth = styled(Flex)`
-  ${props =>
+  ${(props) =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
   padding: 0 16px;
   max-width: 100vw;
@@ -523,7 +518,7 @@ const MaxWidth = styled(Flex)`
   ${breakpoint("tablet")`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: calc(48px + ${props => (props.tocVisible ? "64em" : "46em")});
+    max-width: calc(48px + ${(props) => (props.tocVisible ? "64em" : "46em")});
   `};
 
   ${breakpoint("desktopLarge")`

@@ -27,9 +27,7 @@ export const documentNotificationEmailText = ({
 }: Props) => `
 "${document.title}" ${eventName}
 
-${actor.name} ${eventName} the document "${document.title}", in the ${
-  collection.name
-} collection.
+${actor.name} ${eventName} the document "${document.title}", in the ${collection.name} collection.
 
 Open Document: ${team.url}${document.url}
 `;

@@ -13,7 +13,7 @@ export default class Backlinks {
         const linkIds = parseDocumentIds(document.text);
 
         await Promise.all(
-          linkIds.map(async linkId => {
+          linkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId);
             if (linkedDocument.id === event.documentId) return;
 
@@ -53,7 +53,7 @@ export default class Backlinks {
 
         // add any new backlinks that were created
         await Promise.all(
-          addedLinkIds.map(async linkId => {
+          addedLinkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId);
             if (linkedDocument.id === event.documentId) return;
 
@@ -71,7 +71,7 @@ export default class Backlinks {
 
         // delete any backlinks that were removed
         await Promise.all(
-          removedLinkIds.map(async linkId => {
+          removedLinkIds.map(async (linkId) => {
             const document = await Document.findByPk(linkId, {
               paranoid: false,
             });
@@ -102,7 +102,7 @@ export default class Backlinks {
         });
 
         await Promise.all(
-          backlinks.map(async backlink => {
+          backlinks.map(async (backlink) => {
             const previousUrl = `/doc/${slugify(previousRevision.title)}-${
               document.urlId
             }`;

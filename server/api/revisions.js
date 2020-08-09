@@ -10,7 +10,7 @@ import policy from "../policies";
 const { authorize } = policy;
 const router = new Router();
 
-router.post("revisions.info", auth(), async ctx => {
+router.post("revisions.info", auth(), async (ctx) => {
   let { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
@@ -31,7 +31,7 @@ router.post("revisions.info", auth(), async ctx => {
   };
 });
 
-router.post("revisions.list", auth(), pagination(), async ctx => {
+router.post("revisions.list", auth(), pagination(), async (ctx) => {
   let { documentId, sort = "updatedAt", direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
   ctx.assertPresent(documentId, "documentId is required");
@@ -48,7 +48,7 @@ router.post("revisions.list", auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    revisions.map(revision => presentRevision(revision))
+    revisions.map((revision) => presentRevision(revision))
   );
 
   ctx.body = {

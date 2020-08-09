@@ -65,17 +65,17 @@ class Frame extends React.Component<Props> {
 const Rounded = styled.div`
   border-radius: 3px;
   overflow: hidden;
-  width: ${props => props.width};
-  height: ${props => props.height};
+  width: ${(props) => props.width};
+  height: ${(props) => props.height};
 `;
 
 // This wrapper allows us to pass non-standard HTML attributes through to the DOM element
 // https://www.styled-components.com/docs/basics#passed-props
-const Iframe = props => <iframe {...props} />;
+const Iframe = (props) => <iframe {...props} />;
 
 const StyledIframe = styled(Iframe)`
   border: 1px solid;
-  border-color: ${props => props.theme.embedBorder};
+  border-color: ${(props) => props.theme.embedBorder};
   border-radius: 3px;
 `;
 

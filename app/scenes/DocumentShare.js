@@ -35,7 +35,7 @@ class DocumentShare extends React.Component<Props> {
     clearTimeout(this.timeout);
   }
 
-  handlePublishedChange = async event => {
+  handlePublishedChange = async (event) => {
     const { document, shares } = this.props;
     const share = shares.getByDocumentId(document.id);
     invariant(share, "Share must exist");
@@ -76,7 +76,8 @@ class DocumentShare extends React.Component<Props> {
             : "It is only viewable by those that already have access to the collection."}{" "}
           <Link to="/settings/shares" onClick={onSubmit}>
             Manage all share links
-          </Link>.
+          </Link>
+          .
         </HelpText>
         {canPublish && (
           <React.Fragment>
@@ -112,7 +113,9 @@ class DocumentShare extends React.Component<Props> {
           <Button type="submit" disabled={this.isCopied || !share} primary>
             {this.isCopied ? "Copied!" : "Copy Link"}
           </Button>
-        </CopyToClipboard>&nbsp;&nbsp;&nbsp;<a href={share.url} target="_blank">
+        </CopyToClipboard>
+        &nbsp;&nbsp;&nbsp;
+        <a href={share.url} target="_blank">
           Preview
         </a>
       </div>

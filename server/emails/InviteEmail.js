@@ -24,9 +24,7 @@ export const inviteEmailText = ({
 }: Props) => `
 Join ${teamName} on Outline
 
-${actorName} (${
-  actorEmail
-}) has invited you to join Outline, a place for your team to build and share knowledge.
+${actorName} (${actorEmail}) has invited you to join Outline, a place for your team to build and share knowledge.
 
 Join now: ${teamUrl}
 `;

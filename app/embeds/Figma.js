@@ -19,9 +19,7 @@ export default class Figma extends React.Component<Props> {
   render() {
     return (
       <Frame
-        src={`https://www.figma.com/embed?embed_host=outline&url=${
-          this.props.attrs.href
-        }`}
+        src={`https://www.figma.com/embed?embed_host=outline&url=${this.props.attrs.href}`}
         title="Figma Embed"
         border
       />

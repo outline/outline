@@ -44,7 +44,7 @@ class PathToDocument extends React.Component<Props> {
       <Component ref={ref} onClick={this.handleClick} href="" selectable>
         {collection && <CollectionIcon collection={collection} />}
         {result.path
-          .map(doc => <Title key={doc.id}>{doc.title}</Title>)
+          .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
         {document && (
           <Flex>
@@ -73,7 +73,7 @@ const ResultWrapper = styled.div`
   margin-left: -4px;
   user-select: none;
 
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   cursor: default;
 `;
 
@@ -85,7 +85,7 @@ const ResultWrapperLink = styled(ResultWrapper.withComponent("a"))`
   &:hover,
   &:active,
   &:focus {
-    background: ${props => props.theme.listItemHoverBackground};
+    background: ${(props) => props.theme.listItemHoverBackground};
     outline: none;
   }
 `;

@@ -25,7 +25,7 @@ class PaginatedDocumentList extends React.Component<Props> {
         heading={heading}
         fetch={fetch}
         options={options}
-        renderItem={item => (
+        renderItem={(item) => (
           <DocumentPreview key={item.id} document={item} {...rest} />
         )}
       />

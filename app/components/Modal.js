@@ -21,7 +21,7 @@ type Props = {
 
 const GlobalStyles = createGlobalStyle`
   .ReactModal__Overlay {
-    background-color: ${props =>
+    background-color: ${(props) =>
       transparentize(0.25, props.theme.background)} !important;
     z-index: 100;
   }
@@ -30,7 +30,7 @@ const GlobalStyles = createGlobalStyle`
     .ReactModalPortal + .ReactModalPortal {
       .ReactModal__Overlay {
         margin-left: 12px;
-        box-shadow: 0 -2px 10px ${props => props.theme.shadow};
+        box-shadow: 0 -2px 10px ${(props) => props.theme.shadow};
         border-radius: 8px 0 0 8px;
         overflow: hidden;
       }
@@ -72,7 +72,7 @@ const Modal = ({
         isOpen={isOpen}
         {...rest}
       >
-        <Content onClick={ev => ev.stopPropagation()} column>
+        <Content onClick={(ev) => ev.stopPropagation()} column>
           {title && <h1>{title}</h1>}
 
           {children}
@@ -109,8 +109,8 @@ const StyledModal = styled(ReactModal)`
   align-items: flex-start;
   overflow-x: hidden;
   overflow-y: auto;
-  background: ${props => props.theme.background};
-  transition: ${props => props.theme.backgroundTransition};
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
   padding: 8vh 2rem 2rem;
   outline: none;
 
@@ -133,7 +133,7 @@ const Close = styled(NudeButton)`
   right: 0;
   margin: 12px;
   opacity: 0.75;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   width: auto;
   height: auto;
 
@@ -153,7 +153,7 @@ const Back = styled(NudeButton)`
   top: 2rem;
   left: 2rem;
   opacity: 0.75;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   width: auto;
   height: auto;
 

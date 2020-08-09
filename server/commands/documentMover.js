@@ -53,13 +53,13 @@ export default async function documentMover({
     if (collectionChanged) {
       result.collections.push(newCollection);
 
-      const loopChildren = async documentId => {
+      const loopChildren = async (documentId) => {
         const childDocuments = await Document.findAll({
           where: { parentDocumentId: documentId },
         });
 
         await Promise.all(
-          childDocuments.map(async child => {
+          childDocuments.map(async (child) => {
             await loopChildren(child.id);
             await child.update({ collectionId }, { transaction });
             child.collection = newCollection;
@@ -84,8 +84,8 @@ export default async function documentMover({
       teamId: document.teamId,
       data: {
         title: document.title,
-        collectionIds: result.collections.map(c => c.id),
-        documentIds: result.documents.map(d => d.id),
+        collectionIds: result.collections.map((c) => c.id),
+        documentIds: result.documents.map((d) => d.id),
       },
       ip,
     });

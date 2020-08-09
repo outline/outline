@@ -97,9 +97,9 @@ class CollectionMenu extends React.Component<Props> {
         <VisuallyHidden>
           <input
             type="file"
-            ref={ref => (this.file = ref)}
+            ref={(ref) => (this.file = ref)}
             onChange={this.onFilePicked}
-            onClick={ev => ev.stopPropagation()}
+            onClick={(ev) => ev.stopPropagation()}
             accept="text/markdown, text/plain"
           />
         </VisuallyHidden>
@@ -153,6 +153,8 @@ class CollectionMenu extends React.Component<Props> {
   }
 }
 
-export default inject("ui", "documents", "policies")(
-  withRouter(CollectionMenu)
-);
+export default inject(
+  "ui",
+  "documents",
+  "policies"
+)(withRouter(CollectionMenu));

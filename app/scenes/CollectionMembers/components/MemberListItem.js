@@ -52,29 +52,26 @@ const MemberListItem = ({
       image={<Avatar src={user.avatarUrl} size={40} />}
       actions={
         <Flex align="center">
-          {canEdit &&
-            onUpdate && (
-              <Select
-                label="Permissions"
-                options={PERMISSIONS}
-                value={membership ? membership.permission : undefined}
-                onChange={ev => onUpdate(ev.target.value)}
-                labelHidden
-              />
-            )}
+          {canEdit && onUpdate && (
+            <Select
+              label="Permissions"
+              options={PERMISSIONS}
+              value={membership ? membership.permission : undefined}
+              onChange={(ev) => onUpdate(ev.target.value)}
+              labelHidden
+            />
+          )}
           &nbsp;&nbsp;
-          {canEdit &&
-            onRemove && (
-              <DropdownMenu>
-                <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
-              </DropdownMenu>
-            )}
-          {canEdit &&
-            onAdd && (
-              <Button onClick={onAdd} neutral>
-                Add
-              </Button>
-            )}
+          {canEdit && onRemove && (
+            <DropdownMenu>
+              <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
+            </DropdownMenu>
+          )}
+          {canEdit && onAdd && (
+            <Button onClick={onAdd} neutral>
+              Add
+            </Button>
+          )}
         </Flex>
       }
     />

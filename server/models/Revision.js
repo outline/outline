@@ -21,7 +21,7 @@ const Revision = sequelize.define("revision", {
   backup: DataTypes.TEXT,
 });
 
-Revision.associate = models => {
+Revision.associate = (models) => {
   Revision.belongsTo(models.Document, {
     as: "document",
     foreignKey: "documentId",
@@ -40,7 +40,7 @@ Revision.associate = models => {
   );
 };
 
-Revision.prototype.migrateVersion = function() {
+Revision.prototype.migrateVersion = function () {
   let migrated = false;
 
   // migrate from document version 0 -> 1

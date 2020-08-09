@@ -14,7 +14,7 @@ const Button = styled.button`
 
   &:focus {
     transition-duration: 0.05s;
-    box-shadow: ${props => lighten(0.4, props.theme.buttonBackground)} 0px 0px
+    box-shadow: ${(props) => lighten(0.4, props.theme.buttonBackground)} 0px 0px
       0px 3px;
     outline: none;
   }

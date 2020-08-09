@@ -47,7 +47,9 @@ class AvatarWithPresence extends React.Component<Props> {
               <strong>{user.name}</strong> {isCurrentUser && "(You)"}
               <br />
               {isPresent
-                ? isEditing ? "currently editing" : "currently viewing"
+                ? isEditing
+                  ? "currently editing"
+                  : "currently viewing"
                 : `viewed ${distanceInWordsToNow(new Date(lastViewedAt))} ago`}
             </Centered>
           }
@@ -77,7 +79,7 @@ const Centered = styled.div`
 `;
 
 const AvatarWrapper = styled.div`
-  opacity: ${props => (props.isPresent ? 1 : 0.5)};
+  opacity: ${(props) => (props.isPresent ? 1 : 0.5)};
   transition: opacity 250ms ease-in-out;
 `;
 

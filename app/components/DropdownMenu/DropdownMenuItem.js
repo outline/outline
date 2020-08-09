@@ -29,7 +29,8 @@ const DropdownMenuItem = ({
         <React.Fragment>
           <CheckmarkIcon
             color={selected === false ? "transparent" : undefined}
-          />&nbsp;
+          />
+          &nbsp;
         </React.Fragment>
       )}
       {children}
@@ -44,7 +45,7 @@ const MenuItem = styled.a`
   width: 100%;
   min-height: 32px;
 
-  color: ${props =>
+  color: ${(props) =>
     props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
   justify-content: left;
   align-items: center;
@@ -57,10 +58,10 @@ const MenuItem = styled.a`
   }
 
   svg {
-    opacity: ${props => (props.disabled ? ".5" : 1)};
+    opacity: ${(props) => (props.disabled ? ".5" : 1)};
   }
 
-  ${props =>
+  ${(props) =>
     props.disabled
       ? "pointer-events: none;"
       : `

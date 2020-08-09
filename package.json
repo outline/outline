@@ -183,7 +183,7 @@
     "koa-webpack-hot-middleware": "^1.0.3",
     "mobx-react-devtools": "^6.0.3",
     "nodemon": "^1.19.4",
-    "prettier": "1.8.2",
+    "prettier": "^2.0.5",
     "rimraf": "^2.5.4"
   },
   "resolutions": {

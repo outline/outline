@@ -44,7 +44,7 @@ class DocumentMove extends React.Component<Props> {
 
     // Build index
     const indexeableDocuments = [];
-    paths.forEach(path => indexeableDocuments.push(path));
+    paths.forEach((path) => indexeableDocuments.push(path));
     index.addDocuments(indexeableDocuments);
 
     return index;
@@ -65,20 +65,20 @@ class DocumentMove extends React.Component<Props> {
 
     // Exclude root from search results if document is already at the root
     if (!document.parentDocumentId) {
-      results = results.filter(result => result.id !== document.collectionId);
+      results = results.filter((result) => result.id !== document.collectionId);
     }
 
     // Exclude document if on the path to result, or the same result
     results = results.filter(
-      result =>
-        !result.path.map(doc => doc.id).includes(document.id) &&
-        last(result.path.map(doc => doc.id)) !== document.parentDocumentId
+      (result) =>
+        !result.path.map((doc) => doc.id).includes(document.id) &&
+        last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
     );
 
     return results;
   }
 
-  handleKeyDown = ev => {
+  handleKeyDown = (ev) => {
     // Down
     if (ev.which === 40) {
       ev.preventDefault();
@@ -98,7 +98,7 @@ class DocumentMove extends React.Component<Props> {
     this.searchTerm = ev.target.value;
   };
 
-  setFirstDocumentRef = ref => {
+  setFirstDocumentRef = (ref) => {
     this.firstDocument = ref;
   };
 
@@ -121,50 +121,47 @@ class DocumentMove extends React.Component<Props> {
 
     return (
       <Modal isOpen onRequestClose={onRequestClose} title="Move document">
-        {document &&
-          collections.isLoaded && (
-            <Flex column>
-              <Section>
-                <Labeled label="Current location">
-                  {this.renderPathToCurrentDocument()}
-                </Labeled>
-              </Section>
+        {document && collections.isLoaded && (
+          <Flex column>
+            <Section>
+              <Labeled label="Current location">
+                {this.renderPathToCurrentDocument()}
+              </Labeled>
+            </Section>
 
-              <Section column>
-                <Labeled label="Choose a new location">
-                  <Input
-                    type="search"
-                    placeholder="Search collections & documents…"
-                    onKeyDown={this.handleKeyDown}
-                    onChange={this.handleFilter}
-                    required
-                    autoFocus
-                  />
-                </Labeled>
-                <Flex column>
-                  <StyledArrowKeyNavigation
-                    mode={ArrowKeyNavigation.mode.VERTICAL}
-                    defaultActiveChildIndex={0}
-                  >
-                    {this.results
-                      .slice(0, MAX_RESULTS)
-                      .map((result, index) => (
-                        <PathToDocument
-                          key={result.id}
-                          result={result}
-                          document={document}
-                          collection={collections.get(result.collectionId)}
-                          ref={ref =>
-                            index === 0 && this.setFirstDocumentRef(ref)
-                          }
-                          onSuccess={this.handleSuccess}
-                        />
-                      ))}
-                  </StyledArrowKeyNavigation>
-                </Flex>
-              </Section>
-            </Flex>
-          )}
+            <Section column>
+              <Labeled label="Choose a new location">
+                <Input
+                  type="search"
+                  placeholder="Search collections & documents…"
+                  onKeyDown={this.handleKeyDown}
+                  onChange={this.handleFilter}
+                  required
+                  autoFocus
+                />
+              </Labeled>
+              <Flex column>
+                <StyledArrowKeyNavigation
+                  mode={ArrowKeyNavigation.mode.VERTICAL}
+                  defaultActiveChildIndex={0}
+                >
+                  {this.results.slice(0, MAX_RESULTS).map((result, index) => (
+                    <PathToDocument
+                      key={result.id}
+                      result={result}
+                      document={document}
+                      collection={collections.get(result.collectionId)}
+                      ref={(ref) =>
+                        index === 0 && this.setFirstDocumentRef(ref)
+                      }
+                      onSuccess={this.handleSuccess}
+                    />
+                  ))}
+                </StyledArrowKeyNavigation>
+              </Flex>
+            </Section>
+          </Flex>
+        )}
       </Modal>
     );
   }

@@ -31,7 +31,7 @@ const Wrapper = styled.div`
   overflow-x: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-  box-shadow: ${props =>
+  box-shadow: ${(props) =>
     props.shadow ? "0 1px inset rgba(0,0,0,.1)" : "none"};
   transition: all 250ms ease-in-out;
 `;
