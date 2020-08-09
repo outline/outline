@@ -20,6 +20,8 @@ type Props = {
 @observer
 class PaginatedList extends React.Component<Props> {
   isInitiallyLoaded: boolean = false;
+  timeout: ?TimeoutID;
+  @observable isLongLoading: boolean = false;
   @observable isLoaded: boolean = false;
   @observable isFetchingMore: boolean = false;
   @observable isFetching: boolean = false;
@@ -34,6 +36,11 @@ class PaginatedList extends React.Component<Props> {
 
   componentDidMount() {
     this.fetchResults();
+    this.timeout = setTimeout(() => (this.isLongLoading = true), 200);
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.timeout);
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -90,7 +97,10 @@ class PaginatedList extends React.Component<Props> {
     const { items, heading, empty } = this.props;
 
     const showLoading =
-      this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
+      this.isFetching &&
+      this.isLongLoading &&
+      !this.isFetchingMore &&
+      !this.isInitiallyLoaded;
     const showEmpty = !items.length && !showLoading;
     const showList =
       (this.isLoaded || this.isInitiallyLoaded) && !showLoading && !showEmpty;
