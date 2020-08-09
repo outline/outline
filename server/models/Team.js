@@ -83,13 +83,13 @@ const Team = sequelize.define(
   }
 );
 
-Team.associate = models => {
+Team.associate = (models) => {
   Team.hasMany(models.Collection, { as: "collections" });
   Team.hasMany(models.Document, { as: "documents" });
   Team.hasMany(models.User, { as: "users" });
 };
 
-const uploadAvatar = async model => {
+const uploadAvatar = async (model) => {
   const endpoint = publicS3Endpoint();
   const { avatarUrl } = model;
 
@@ -112,7 +112,7 @@ const uploadAvatar = async model => {
   }
 };
 
-Team.prototype.provisionSubdomain = async function(subdomain) {
+Team.prototype.provisionSubdomain = async function (subdomain) {
   if (this.subdomain) return this.subdomain;
 
   let append = 0;
@@ -129,7 +129,7 @@ Team.prototype.provisionSubdomain = async function(subdomain) {
   return subdomain;
 };
 
-Team.prototype.provisionFirstCollection = async function(userId) {
+Team.prototype.provisionFirstCollection = async function (userId) {
   const collection = await Collection.create({
     name: "Welcome",
     description:
@@ -168,11 +168,11 @@ Team.prototype.provisionFirstCollection = async function(userId) {
   }
 };
 
-Team.prototype.addAdmin = async function(user: User) {
+Team.prototype.addAdmin = async function (user: User) {
   return user.update({ isAdmin: true });
 };
 
-Team.prototype.removeAdmin = async function(user: User) {
+Team.prototype.removeAdmin = async function (user: User) {
   const res = await User.findAndCountAll({
     where: {
       teamId: this.id,
@@ -190,7 +190,7 @@ Team.prototype.removeAdmin = async function(user: User) {
   }
 };
 
-Team.prototype.suspendUser = async function(user: User, admin: User) {
+Team.prototype.suspendUser = async function (user: User, admin: User) {
   if (user.id === admin.id)
     throw new ValidationError("Unable to suspend the current user");
   return user.update({
@@ -199,20 +199,20 @@ Team.prototype.suspendUser = async function(user: User, admin: User) {
   });
 };
 
-Team.prototype.activateUser = async function(user: User, admin: User) {
+Team.prototype.activateUser = async function (user: User, admin: User) {
   return user.update({
     suspendedById: null,
     suspendedAt: null,
   });
 };
 
-Team.prototype.collectionIds = async function(paranoid: boolean = true) {
+Team.prototype.collectionIds = async function (paranoid: boolean = true) {
   let models = await Collection.findAll({
     attributes: ["id", "private"],
     where: { teamId: this.id, private: false },
     paranoid,
   });
-  return models.map(c => c.id);
+  return models.map((c) => c.id);
 };
 
 Team.beforeSave(uploadAvatar);

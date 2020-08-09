@@ -85,7 +85,7 @@ class Groups extends React.Component<Props> {
         </Tabs>
 
         <List>
-          {groups.orderedData.map(group => (
+          {groups.orderedData.map((group) => (
             <GroupListItem
               key={group.id}
               group={group}

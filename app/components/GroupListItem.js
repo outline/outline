@@ -41,7 +41,7 @@ class GroupListItem extends React.Component<Props> {
     const membershipsInGroup = groupMemberships.inGroup(group.id);
     const users = membershipsInGroup
       .slice(0, MAX_AVATAR_DISPLAY)
-      .map(gm => gm.user);
+      .map((gm) => gm.user);
 
     const overflow = memberCount - users.length;
 

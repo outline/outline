@@ -63,9 +63,9 @@ export default class AuthStore {
     });
   }
 
-  addPolicies = policies => {
+  addPolicies = (policies) => {
     if (policies) {
-      policies.forEach(policy => this.rootStore.policies.add(policy));
+      policies.forEach((policy) => this.rootStore.policies.add(policy));
     }
   };
 
@@ -102,7 +102,7 @@ export default class AuthStore {
         this.team = new Team(team);
 
         if (window.Sentry) {
-          window.Sentry.configureScope(function(scope) {
+          window.Sentry.configureScope(function (scope) {
             scope.setUser({ id: user.id });
             scope.setExtra("team", team.name);
             scope.setExtra("teamId", team.id);

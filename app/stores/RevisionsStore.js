@@ -52,7 +52,7 @@ export default class RevisionsStore extends BaseStore<Revision> {
       const res = await client.post("/revisions.list", options);
       invariant(res && res.data, "Document revisions not available");
       runInAction("RevisionsStore#fetchPage", () => {
-        res.data.forEach(revision => this.add(revision));
+        res.data.forEach((revision) => this.add(revision));
         this.isLoaded = true;
       });
       return res.data;

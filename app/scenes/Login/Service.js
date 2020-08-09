@@ -107,9 +107,7 @@ class Service extends React.Component<Props, State> {
         <Logo>
           <GoogleLogo size={16} />
         </Logo>
-      ) : (
-        undefined
-      );
+      ) : undefined;
 
     return (
       <Wrapper key={id}>

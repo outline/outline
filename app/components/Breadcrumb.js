@@ -40,7 +40,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
           </React.Fragment>
         )}
         {collection.name}
-        {path.map(n => (
+        {path.map((n) => (
           <React.Fragment key={n.id}>
             <SmallSlash />
             {n.title}
@@ -61,7 +61,8 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
       {isTemplate && (
         <React.Fragment>
           <CollectionName to="/templates">
-            <ShapesIcon color="currentColor" />&nbsp;
+            <ShapesIcon color="currentColor" />
+            &nbsp;
             <span>Templates</span>
           </CollectionName>
           <Slash />
@@ -70,14 +71,16 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
       {isDraft && (
         <React.Fragment>
           <CollectionName to="/drafts">
-            <EditIcon color="currentColor" />&nbsp;
+            <EditIcon color="currentColor" />
+            &nbsp;
             <span>Drafts</span>
           </CollectionName>
           <Slash />
         </React.Fragment>
       )}
       <CollectionName to={collectionUrl(collection.id)}>
-        <CollectionIcon collection={collection} expanded />&nbsp;
+        <CollectionIcon collection={collection} expanded />
+        &nbsp;
         <span>{collection.name}</span>
       </CollectionName>
       {isNestedDocument && (
@@ -119,7 +122,7 @@ const SmallSlash = styled(GoToIcon)`
 
 export const Slash = styled(GoToIcon)`
   flex-shrink: 0;
-  fill: ${props => props.theme.divider};
+  fill: ${(props) => props.theme.divider};
 `;
 
 const Overflow = styled(MoreIcon)`
@@ -134,7 +137,7 @@ const Overflow = styled(MoreIcon)`
 `;
 
 const Crumb = styled(Link)`
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   font-size: 15px;
   height: 24px;
   text-overflow: ellipsis;
@@ -149,7 +152,7 @@ const Crumb = styled(Link)`
 const CollectionName = styled(Link)`
   display: flex;
   flex-shrink: 0;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   font-size: 15px;
   font-weight: 500;
   white-space: nowrap;

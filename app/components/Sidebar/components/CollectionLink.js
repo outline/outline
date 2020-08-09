@@ -61,7 +61,7 @@ class CollectionLink extends React.Component<Props> {
           }
         >
           <Flex column>
-            {collection.documents.map(node => (
+            {collection.documents.map((node) => (
               <DocumentLink
                 key={node.id}
                 node={node}

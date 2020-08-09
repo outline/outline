@@ -12,7 +12,7 @@ type Props = {
   event: Event,
 };
 
-const description = event => {
+const description = (event) => {
   switch (event.name) {
     case "api_keys.create":
       return (
@@ -61,11 +61,11 @@ const description = event => {
     case "users.invite":
       return (
         <React.Fragment>
-          {capitalize(event.verbPastTense)} {event.data.name} (<a
-            href={`mailto:${event.data.email || ""}`}
-          >
+          {capitalize(event.verbPastTense)} {event.data.name} (
+          <a href={`mailto:${event.data.email || ""}`}>
             {event.data.email || ""}
-          </a>)
+          </a>
+          )
         </React.Fragment>
       );
     case "users.suspend":
@@ -220,16 +220,14 @@ const EventListItem = ({ event }: Props) => {
               {event.actorIpAddress}
             </a>
           </IP>
-        ) : (
-          undefined
-        )
+        ) : undefined
       }
     />
   );
 };
 
 const IP = styled("span")`
-  color: ${props => props.theme.textTertiary};
+  color: ${(props) => props.theme.textTertiary};
   font-size: 12px;
 `;
 

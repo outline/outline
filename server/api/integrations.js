@@ -10,7 +10,7 @@ import policy from "../policies";
 const { authorize } = policy;
 const router = new Router();
 
-router.post("integrations.list", auth(), pagination(), async ctx => {
+router.post("integrations.list", auth(), pagination(), async (ctx) => {
   let { sort = "updatedAt", direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
 
@@ -28,7 +28,7 @@ router.post("integrations.list", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("integrations.delete", auth(), async ctx => {
+router.post("integrations.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertUuid(id, "id is required");
 

@@ -9,7 +9,7 @@ const Star = sequelize.define("star", {
   },
 });
 
-Star.associate = models => {
+Star.associate = (models) => {
   Star.belongsTo(models.Document);
   Star.belongsTo(models.User);
 };

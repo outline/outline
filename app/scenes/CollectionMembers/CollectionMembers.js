@@ -55,7 +55,7 @@ class CollectionMembers extends React.Component<Props> {
     this.addMemberModalOpen = false;
   };
 
-  handleRemoveUser = user => {
+  handleRemoveUser = (user) => {
     try {
       this.props.memberships.delete({
         collectionId: this.props.collection.id,
@@ -80,7 +80,7 @@ class CollectionMembers extends React.Component<Props> {
     }
   };
 
-  handleRemoveGroup = group => {
+  handleRemoveGroup = (group) => {
     try {
       this.props.collectionGroupMemberships.delete({
         collectionId: this.props.collection.id,
@@ -118,7 +118,7 @@ class CollectionMembers extends React.Component<Props> {
     if (!user) return null;
 
     const key = memberships.orderedData
-      .map(m => m.permission)
+      .map((m) => m.permission)
       .concat(collection.private)
       .join("-");
 
@@ -133,7 +133,8 @@ class CollectionMembers extends React.Component<Props> {
               team by{" "}
               <a role="button" onClick={this.props.onEdit}>
                 changing its visibility
-              </a>.
+              </a>
+              .
             </HelpText>
             <span>
               <Button
@@ -153,7 +154,8 @@ class CollectionMembers extends React.Component<Props> {
             collection,{" "}
             <a role="button" onClick={this.props.onEdit}>
               make it private
-            </a>.
+            </a>
+            .
           </HelpText>
         )}
 
@@ -166,7 +168,7 @@ class CollectionMembers extends React.Component<Props> {
               fetch={collectionGroupMemberships.fetchPage}
               options={collection.private ? { id: collection.id } : undefined}
               empty={<Empty>This collection has no groups.</Empty>}
-              renderItem={group => (
+              renderItem={(group) => (
                 <CollectionGroupMemberListItem
                   key={group.id}
                   group={group}
@@ -174,7 +176,7 @@ class CollectionMembers extends React.Component<Props> {
                     `${group.id}-${collection.id}`
                   )}
                   onRemove={() => this.handleRemoveGroup(group)}
-                  onUpdate={permission =>
+                  onUpdate={(permission) =>
                     this.handleUpdateGroup(group, permission)
                   }
                 />
@@ -219,14 +221,14 @@ class CollectionMembers extends React.Component<Props> {
           }
           fetch={collection.private ? memberships.fetchPage : users.fetchPage}
           options={collection.private ? { id: collection.id } : undefined}
-          renderItem={item => (
+          renderItem={(item) => (
             <MemberListItem
               key={item.id}
               user={item}
               membership={memberships.get(`${item.id}-${collection.id}`)}
               canEdit={collection.private && item.id !== user.id}
               onRemove={() => this.handleRemoveUser(item)}
-              onUpdate={permission => this.handleUpdateUser(item, permission)}
+              onUpdate={(permission) => this.handleUpdateUser(item, permission)}
             />
           )}
         />

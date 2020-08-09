@@ -78,7 +78,7 @@ class Search extends React.Component<Props> {
     this.props.history.goBack();
   }
 
-  handleKeyDown = ev => {
+  handleKeyDown = (ev) => {
     // Escape
     if (ev.which === 27) {
       ev.preventDefault();
@@ -118,7 +118,7 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
-  handleFilterChange = search => {
+  handleFilterChange = (search) => {
     this.props.history.replace({
       pathname: this.props.location.pathname,
       search: queryString.stringify({
@@ -214,14 +214,14 @@ class Search extends React.Component<Props> {
     trailing: true,
   });
 
-  updateLocation = query => {
+  updateLocation = (query) => {
     this.props.history.replace({
       pathname: searchUrl(query),
       search: this.props.location.search,
     });
   };
 
-  setFirstDocumentRef = ref => {
+  setFirstDocumentRef = (ref) => {
     this.firstDocument = ref;
   };
 
@@ -260,23 +260,25 @@ class Search extends React.Component<Props> {
             <Filters>
               <StatusFilter
                 includeArchived={this.includeArchived}
-                onSelect={includeArchived =>
+                onSelect={(includeArchived) =>
                   this.handleFilterChange({ includeArchived })
                 }
               />
               <CollectionFilter
                 collectionId={this.collectionId}
-                onSelect={collectionId =>
+                onSelect={(collectionId) =>
                   this.handleFilterChange({ collectionId })
                 }
               />
               <UserFilter
                 userId={this.userId}
-                onSelect={userId => this.handleFilterChange({ userId })}
+                onSelect={(userId) => this.handleFilterChange({ userId })}
               />
               <DateFilter
                 dateFilter={this.dateFilter}
-                onSelect={dateFilter => this.handleFilterChange({ dateFilter })}
+                onSelect={(dateFilter) =>
+                  this.handleFilterChange({ dateFilter })
+                }
               />
             </Filters>
           )}
@@ -285,8 +287,8 @@ class Search extends React.Component<Props> {
               <Empty>
                 <Centered column>
                   <HelpText>
-                    No documents found for your search filters. <br />Create a
-                    new document?
+                    No documents found for your search filters. <br />
+                    Create a new document?
                   </HelpText>
                   <Wrapper>
                     {this.collectionId ? (
@@ -299,7 +301,8 @@ class Search extends React.Component<Props> {
                       </Button>
                     ) : (
                       <NewDocumentMenu />
-                    )}&nbsp;&nbsp;
+                    )}
+                    &nbsp;&nbsp;
                     <Button as={Link} to="/search" neutral>
                       Clear filters
                     </Button>
@@ -319,7 +322,7 @@ class Search extends React.Component<Props> {
 
                 return (
                   <DocumentPreview
-                    ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
+                    ref={(ref) => index === 0 && this.setFirstDocumentRef(ref)}
                     key={document.id}
                     document={document}
                     highlight={this.query}
@@ -361,14 +364,14 @@ const Container = styled(CenteredContent)`
 const ResultsWrapper = styled(Flex)`
   position: absolute;
   transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
-  top: ${props => (props.pinToTop ? "0%" : "50%")};
-  margin-top: ${props => (props.pinToTop ? "40px" : "-75px")};
+  top: ${(props) => (props.pinToTop ? "0%" : "50%")};
+  margin-top: ${(props) => (props.pinToTop ? "40px" : "-75px")};
   width: 100%;
 `;
 
 const ResultList = styled(Flex)`
   margin-bottom: 150px;
-  opacity: ${props => (props.visible ? "1" : "0")};
+  opacity: ${(props) => (props.visible ? "1" : "0")};
   transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
 `;
 

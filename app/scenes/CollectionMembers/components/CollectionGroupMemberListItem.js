@@ -39,7 +39,7 @@ const MemberListItem = ({
                 ? collectionGroupMembership.permission
                 : undefined
             }
-            onChange={ev => onUpdate(ev.target.value)}
+            onChange={(ev) => onUpdate(ev.target.value)}
             labelHidden
           />
           <ButtonWrap>

@@ -142,8 +142,8 @@ class Layout extends React.Component<Props> {
 }
 
 const Container = styled(Flex)`
-  background: ${props => props.theme.background};
-  transition: ${props => props.theme.backgroundTransition};
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
   position: relative;
   width: 100%;
   min-height: 100%;
@@ -158,7 +158,7 @@ const Content = styled(Flex)`
   }
 
   ${breakpoint("tablet")`
-    margin-left: ${props => (props.editMode ? 0 : props.theme.sidebarWidth)};
+    margin-left: ${(props) => (props.editMode ? 0 : props.theme.sidebarWidth)};
   `};
 `;
 

@@ -28,7 +28,7 @@ const Op = Sequelize.Op;
 const { authorize, cannot } = policy;
 const router = new Router();
 
-router.post("documents.list", auth(), pagination(), async ctx => {
+router.post("documents.list", auth(), pagination(), async (ctx) => {
   const {
     sort = "updatedAt",
     template,
@@ -90,7 +90,7 @@ router.post("documents.list", auth(), pagination(), async ctx => {
 
     where = {
       ...where,
-      id: backlinks.map(backlink => backlink.reverseDocumentId),
+      id: backlinks.map((backlink) => backlink.reverseDocumentId),
     };
   }
 
@@ -109,7 +109,7 @@ router.post("documents.list", auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    documents.map(document => presentDocument(document))
+    documents.map((document) => presentDocument(document))
   );
 
   const policies = presentPolicies(user, documents);
@@ -121,7 +121,7 @@ router.post("documents.list", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("documents.pinned", auth(), pagination(), async ctx => {
+router.post("documents.pinned", auth(), pagination(), async (ctx) => {
   const { collectionId, sort = "updatedAt" } = ctx.body;
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
@@ -154,7 +154,7 @@ router.post("documents.pinned", auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    documents.map(document => presentDocument(document))
+    documents.map((document) => presentDocument(document))
   );
 
   const policies = presentPolicies(user, documents);
@@ -166,7 +166,7 @@ router.post("documents.pinned", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("documents.archived", auth(), pagination(), async ctx => {
+router.post("documents.archived", auth(), pagination(), async (ctx) => {
   const { sort = "updatedAt" } = ctx.body;
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
@@ -192,7 +192,7 @@ router.post("documents.archived", auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    documents.map(document => presentDocument(document))
+    documents.map((document) => presentDocument(document))
   );
 
   const policies = presentPolicies(user, documents);
@@ -204,7 +204,7 @@ router.post("documents.archived", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("documents.deleted", auth(), pagination(), async ctx => {
+router.post("documents.deleted", auth(), pagination(), async (ctx) => {
   const { sort = "deletedAt" } = ctx.body;
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
@@ -232,7 +232,7 @@ router.post("documents.deleted", auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    documents.map(document => presentDocument(document))
+    documents.map((document) => presentDocument(document))
   );
 
   const policies = presentPolicies(user, documents);
@@ -244,7 +244,7 @@ router.post("documents.deleted", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("documents.viewed", auth(), pagination(), async ctx => {
+router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   let { sort = "updatedAt", direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
 
@@ -275,9 +275,9 @@ router.post("documents.viewed", auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const documents = views.map(view => view.document);
+  const documents = views.map((view) => view.document);
   const data = await Promise.all(
-    documents.map(document => presentDocument(document))
+    documents.map((document) => presentDocument(document))
   );
 
   const policies = presentPolicies(user, documents);
@@ -289,7 +289,7 @@ router.post("documents.viewed", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("documents.starred", auth(), pagination(), async ctx => {
+router.post("documents.starred", auth(), pagination(), async (ctx) => {
   let { sort = "updatedAt", direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
 
@@ -326,9 +326,9 @@ router.post("documents.starred", auth(), pagination(), async ctx => {
     limit: ctx.state.pagination.limit,
   });
 
-  const documents = stars.map(star => star.document);
+  const documents = stars.map((star) => star.document);
   const data = await Promise.all(
-    documents.map(document => presentDocument(document))
+    documents.map((document) => presentDocument(document))
   );
 
   const policies = presentPolicies(user, documents);
@@ -340,7 +340,7 @@ router.post("documents.starred", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("documents.drafts", auth(), pagination(), async ctx => {
+router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   let { sort = "updatedAt", direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
 
@@ -363,7 +363,7 @@ router.post("documents.drafts", auth(), pagination(), async ctx => {
   });
 
   const data = await Promise.all(
-    documents.map(document => presentDocument(document))
+    documents.map((document) => presentDocument(document))
   );
 
   const policies = presentPolicies(user, documents);
@@ -417,7 +417,7 @@ async function loadDocument({ id, shareId, user }) {
   return document;
 }
 
-router.post("documents.info", auth({ required: false }), async ctx => {
+router.post("documents.info", auth({ required: false }), async (ctx) => {
   const { id, shareId } = ctx.body;
   ctx.assertPresent(id || shareId, "id or shareId is required");
 
@@ -431,7 +431,7 @@ router.post("documents.info", auth({ required: false }), async ctx => {
   };
 });
 
-router.post("documents.export", auth({ required: false }), async ctx => {
+router.post("documents.export", auth({ required: false }), async (ctx) => {
   const { id, shareId } = ctx.body;
   ctx.assertPresent(id || shareId, "id or shareId is required");
 
@@ -443,7 +443,7 @@ router.post("documents.export", auth({ required: false }), async ctx => {
   };
 });
 
-router.post("documents.restore", auth(), async ctx => {
+router.post("documents.restore", auth(), async (ctx) => {
   const { id, revisionId } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
@@ -513,7 +513,7 @@ router.post("documents.restore", auth(), async ctx => {
   };
 });
 
-router.post("documents.search", auth(), pagination(), async ctx => {
+router.post("documents.search", auth(), pagination(), async (ctx) => {
   const {
     query,
     includeArchived,
@@ -559,9 +559,9 @@ router.post("documents.search", auth(), pagination(), async ctx => {
     limit,
   });
 
-  const documents = results.map(result => result.document);
+  const documents = results.map((result) => result.document);
   const data = await Promise.all(
-    results.map(async result => {
+    results.map(async (result) => {
       const document = await presentDocument(result.document);
       return { ...result, document };
     })
@@ -576,7 +576,7 @@ router.post("documents.search", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("documents.pin", auth(), async ctx => {
+router.post("documents.pin", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
@@ -603,7 +603,7 @@ router.post("documents.pin", auth(), async ctx => {
   };
 });
 
-router.post("documents.unpin", auth(), async ctx => {
+router.post("documents.unpin", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
@@ -630,7 +630,7 @@ router.post("documents.unpin", auth(), async ctx => {
   };
 });
 
-router.post("documents.star", auth(), async ctx => {
+router.post("documents.star", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
@@ -657,7 +657,7 @@ router.post("documents.star", auth(), async ctx => {
   };
 });
 
-router.post("documents.unstar", auth(), async ctx => {
+router.post("documents.unstar", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
@@ -684,7 +684,7 @@ router.post("documents.unstar", auth(), async ctx => {
   };
 });
 
-router.post("documents.create", auth(), async ctx => {
+router.post("documents.create", auth(), async (ctx) => {
   const {
     title = "",
     text = "",
@@ -786,7 +786,7 @@ router.post("documents.create", auth(), async ctx => {
   };
 });
 
-router.post("documents.templatize", auth(), async ctx => {
+router.post("documents.templatize", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
@@ -826,7 +826,7 @@ router.post("documents.templatize", auth(), async ctx => {
   };
 });
 
-router.post("documents.update", auth(), async ctx => {
+router.post("documents.update", auth(), async (ctx) => {
   const {
     id,
     title,
@@ -917,7 +917,7 @@ router.post("documents.update", auth(), async ctx => {
   };
 });
 
-router.post("documents.move", auth(), async ctx => {
+router.post("documents.move", auth(), async (ctx) => {
   const { id, collectionId, parentDocumentId, index } = ctx.body;
   ctx.assertUuid(id, "id must be a uuid");
   ctx.assertUuid(collectionId, "collectionId must be a uuid");
@@ -964,17 +964,17 @@ router.post("documents.move", auth(), async ctx => {
   ctx.body = {
     data: {
       documents: await Promise.all(
-        documents.map(document => presentDocument(document))
+        documents.map((document) => presentDocument(document))
       ),
       collections: await Promise.all(
-        collections.map(collection => presentCollection(collection))
+        collections.map((collection) => presentCollection(collection))
       ),
     },
     policies: presentPolicies(user, documents),
   };
 });
 
-router.post("documents.archive", auth(), async ctx => {
+router.post("documents.archive", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
 
@@ -1000,7 +1000,7 @@ router.post("documents.archive", auth(), async ctx => {
   };
 });
 
-router.post("documents.delete", auth(), async ctx => {
+router.post("documents.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertPresent(id, "id is required");
 

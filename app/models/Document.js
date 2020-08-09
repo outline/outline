@@ -133,7 +133,7 @@ export default class Document extends BaseModel {
   };
 
   @action
-  updateFromJson = data => {
+  updateFromJson = (data) => {
     set(this, data);
   };
 
@@ -253,11 +253,7 @@ export default class Document extends BaseModel {
   };
 
   getSummary = (paragraphs: number = 4) => {
-    const result = this.text
-      .trim()
-      .split("\n")
-      .slice(0, paragraphs)
-      .join("\n");
+    const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");
 
     return result;
   };

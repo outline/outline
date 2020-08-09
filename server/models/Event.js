@@ -14,7 +14,7 @@ const Event = sequelize.define("event", {
   data: DataTypes.JSONB,
 });
 
-Event.associate = models => {
+Event.associate = (models) => {
   Event.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",
@@ -37,14 +37,14 @@ Event.associate = models => {
   });
 };
 
-Event.beforeCreate(event => {
+Event.beforeCreate((event) => {
   if (event.ip) {
     // cleanup IPV6 representations of IPV4 addresses
     event.ip = event.ip.replace(/^::ffff:/, "");
   }
 });
 
-Event.afterCreate(event => {
+Event.afterCreate((event) => {
   events.add(event);
 });
 

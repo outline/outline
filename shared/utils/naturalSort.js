@@ -11,7 +11,7 @@ const sorter = naturalSort();
 
 function getSortByField<T: Object>(
   item: T,
-  keyOrCallback: string | (T => string)
+  keyOrCallback: string | ((T) => string)
 ) {
   if (typeof keyOrCallback === "string") {
     return deburr(item[keyOrCallback]);
@@ -22,7 +22,7 @@ function getSortByField<T: Object>(
 
 function naturalSortBy<T>(
   items: T[],
-  key: string | (T => string),
+  key: string | ((T) => string),
   sortOptions?: NaturalSortOptions
 ): T[] {
   if (!items) return [];

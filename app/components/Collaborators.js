@@ -32,27 +32,27 @@ class Collaborators extends React.Component<Props> {
 
     const documentViews = views.inDocument(document.id);
 
-    const presentIds = documentPresence.map(p => p.userId);
+    const presentIds = documentPresence.map((p) => p.userId);
     const editingIds = documentPresence
-      .filter(p => p.isEditing)
-      .map(p => p.userId);
+      .filter((p) => p.isEditing)
+      .map((p) => p.userId);
 
     // ensure currently present via websocket are always ordered first
     const mostRecentViewers = sortBy(
       documentViews.slice(0, MAX_AVATAR_DISPLAY),
-      view => {
+      (view) => {
         return presentIds.includes(view.user.id);
       }
     );
 
-    const viewersKeyedByUserId = keyBy(mostRecentViewers, v => v.user.id);
+    const viewersKeyedByUserId = keyBy(mostRecentViewers, (v) => v.user.id);
     const overflow = documentViews.length - mostRecentViewers.length;
 
     return (
       <Facepile
-        users={mostRecentViewers.map(v => v.user)}
+        users={mostRecentViewers.map((v) => v.user)}
         overflow={overflow}
-        renderAvatar={user => {
+        renderAvatar={(user) => {
           const isPresent = presentIds.includes(user.id);
           const isEditing = editingIds.includes(user.id);
           const { lastViewedAt } = viewersKeyedByUserId[user.id];

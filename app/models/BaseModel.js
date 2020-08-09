@@ -11,7 +11,7 @@ export default class BaseModel {
     this.store = store;
   }
 
-  save = async params => {
+  save = async (params) => {
     this.isSaving = true;
 
     try {

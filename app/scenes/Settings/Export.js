@@ -61,7 +61,9 @@ class Export extends React.Component<Props> {
         >
           {this.isExporting
             ? "Export Requested"
-            : this.isLoading ? "Requesting Export…" : "Export All Data"}
+            : this.isLoading
+            ? "Requesting Export…"
+            : "Export All Data"}
         </Button>
       </CenteredContent>
     );

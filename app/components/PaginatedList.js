@@ -14,7 +14,7 @@ type Props = {
   heading?: React.Node,
   empty?: React.Node,
   items: any[],
-  renderItem: any => React.Node,
+  renderItem: (any) => React.Node,
 };
 
 @observer

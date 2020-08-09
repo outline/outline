@@ -9,7 +9,7 @@ export default function parseDocumentIds(text: string): string[] {
     // get text nodes
     if (node.type.name === "text") {
       // get marks for text nodes
-      node.marks.forEach(mark => {
+      node.marks.forEach((mark) => {
         // any of the marks links?
         if (mark.type.name === "link") {
           const { href } = mark.attrs;

@@ -116,9 +116,7 @@ export class Mailer {
   invite = async (opts: { to: string } & InviteEmailT) => {
     this.sendMail({
       to: opts.to,
-      title: `${opts.actorName} invited you to join ${
-        opts.teamName
-      }’s knowledge base`,
+      title: `${opts.actorName} invited you to join ${opts.teamName}’s knowledge base`,
       previewText:
         "Outline is a place for your team to build and share knowledge.",
       html: <InviteEmail {...opts} />,

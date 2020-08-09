@@ -38,7 +38,7 @@ async function exportAndEmailCollections(teamId: string, email: string) {
   });
 }
 
-logisticsQueue.process(async job => {
+logisticsQueue.process(async (job) => {
   log("Process", job.data);
 
   switch (job.data.type) {

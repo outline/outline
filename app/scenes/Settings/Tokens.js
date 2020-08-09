@@ -48,12 +48,13 @@ class Tokens extends React.Component<Props> {
           with the API. For more details about the API take a look at the{" "}
           <a href="https://www.getoutline.com/developers">
             developer documentation
-          </a>.
+          </a>
+          .
         </HelpText>
 
         {hasApiKeys && (
           <List>
-            {apiKeys.orderedData.map(token => (
+            {apiKeys.orderedData.map((token) => (
               <TokenListItem
                 key={token.id}
                 token={token}

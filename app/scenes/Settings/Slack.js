@@ -83,7 +83,7 @@ class Slack extends React.Component<Props> {
         </HelpText>
 
         <List>
-          {collections.orderedData.map(collection => {
+          {collections.orderedData.map((collection) => {
             const integration = find(integrations.slackIntegrations, {
               collectionId: collection.id,
             });

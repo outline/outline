@@ -56,7 +56,7 @@ router.use("/", attachments.routes());
 router.use("/", utils.routes());
 router.use("/", groups.routes());
 
-router.post("*", ctx => {
+router.post("*", (ctx) => {
   ctx.throw(new NotFoundError("Endpoint not found"));
 });
 

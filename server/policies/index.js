@@ -18,17 +18,17 @@ type Policy = {
 };
 
 /*
-* Given a user and a model – output an object which describes the actions the
-* user may take against the model. This serialized policy is used for testing
-* and sent in API responses to allow clients to adjust which UI is displayed.
-*/
+ * Given a user and a model – output an object which describes the actions the
+ * user may take against the model. This serialized policy is used for testing
+ * and sent in API responses to allow clients to adjust which UI is displayed.
+ */
 export function serialize(
   model: User,
   target: Team | Collection | Document | Group
 ): Policy {
   let output = {};
 
-  abilities.forEach(ability => {
+  abilities.forEach((ability) => {
     if (model instanceof ability.model && target instanceof ability.target) {
       let response = true;
       try {

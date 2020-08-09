@@ -23,7 +23,7 @@ class UserFilter extends React.Component<Props> {
 
   render() {
     const { onSelect, userId, users } = this.props;
-    const userOptions = users.all.map(user => ({
+    const userOptions = users.all.map((user) => ({
       key: user.id,
       label: user.name,
     }));

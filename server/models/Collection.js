@@ -47,7 +47,7 @@ const Collection = sequelize.define(
   }
 );
 
-Collection.addHook("beforeSave", async model => {
+Collection.addHook("beforeSave", async (model) => {
   if (model.icon === "collection") {
     model.icon = null;
   }
@@ -55,7 +55,7 @@ Collection.addHook("beforeSave", async model => {
 
 // Class methods
 
-Collection.associate = models => {
+Collection.associate = (models) => {
   Collection.hasMany(models.Document, {
     as: "documents",
     foreignKey: "collectionId",
@@ -88,7 +88,7 @@ Collection.associate = models => {
   Collection.belongsTo(models.Team, {
     as: "team",
   });
-  Collection.addScope("withMembership", userId => ({
+  Collection.addScope("withMembership", (userId) => ({
     include: [
       {
         model: models.CollectionUser,
@@ -191,20 +191,20 @@ Collection.membershipUserIds = async (collectionId: string) => {
   );
 
   const groupMemberships = collection.collectionGroupMemberships
-    .map(cgm => cgm.group.groupMemberships)
+    .map((cgm) => cgm.group.groupMemberships)
     .flat();
 
   const membershipUserIds = concat(
     groupMemberships,
     collection.memberships
-  ).map(membership => membership.userId);
+  ).map((membership) => membership.userId);
 
   return uniq(membershipUserIds);
 };
 
 // Instance methods
 
-Collection.prototype.addDocumentToStructure = async function(
+Collection.prototype.addDocumentToStructure = async function (
   document: Document,
   index: number,
   options = {}
@@ -237,8 +237,8 @@ Collection.prototype.addDocumentToStructure = async function(
       );
     } else {
       // Recursively place document
-      const placeDocument = documentList => {
-        return documentList.map(childDocument => {
+      const placeDocument = (documentList) => {
+        return documentList.map((childDocument) => {
           if (document.parentDocumentId === childDocument.id) {
             childDocument.children.splice(
               index !== undefined ? index : childDocument.children.length,
@@ -280,7 +280,7 @@ Collection.prototype.addDocumentToStructure = async function(
 /**
  * Update document's title and url in the documentStructure
  */
-Collection.prototype.updateDocument = async function(
+Collection.prototype.updateDocument = async function (
   updatedDocument: Document
 ) {
   if (!this.documentStructure) return;
@@ -293,8 +293,8 @@ Collection.prototype.updateDocument = async function(
 
     const { id } = updatedDocument;
 
-    const updateChildren = documents => {
-      return documents.map(document => {
+    const updateChildren = (documents) => {
+      return documents.map((document) => {
         if (document.id === id) {
           document = {
             ...updatedDocument.toJSON(),
@@ -320,12 +320,12 @@ Collection.prototype.updateDocument = async function(
   return this;
 };
 
-Collection.prototype.deleteDocument = async function(document) {
+Collection.prototype.deleteDocument = async function (document) {
   await this.removeDocumentInStructure(document);
   await document.deleteWithChildren();
 };
 
-Collection.prototype.removeDocumentInStructure = async function(
+Collection.prototype.removeDocumentInStructure = async function (
   document,
   options
 ) {
@@ -339,7 +339,7 @@ Collection.prototype.removeDocumentInStructure = async function(
 
     const removeFromChildren = async (children, id) => {
       children = await Promise.all(
-        children.map(async childDocument => {
+        children.map(async (childDocument) => {
           return {
             ...childDocument,
             children: await removeFromChildren(childDocument.children, id),

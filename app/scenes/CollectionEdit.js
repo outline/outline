@@ -56,7 +56,7 @@ class CollectionEdit extends React.Component<Props> {
     }
   };
 
-  handleDescriptionChange = getValue => {
+  handleDescriptionChange = (getValue) => {
     this.description = getValue();
   };
 

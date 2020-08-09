@@ -66,7 +66,7 @@ const StyledRevisionMenu = styled(RevisionMenu)`
 `;
 
 const StyledNavLink = styled(NavLink)`
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   display: block;
   padding: 8px 16px;
   font-size: 15px;

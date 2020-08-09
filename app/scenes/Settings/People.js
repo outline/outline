@@ -41,7 +41,7 @@ class People extends React.Component<Props> {
     this.inviteModalOpen = false;
   };
 
-  fetchPage = params => {
+  fetchPage = (params) => {
     return this.props.users.fetchPage({ ...params, includeSuspended: true });
   };
 
@@ -116,7 +116,7 @@ class People extends React.Component<Props> {
           items={users}
           empty={<Empty>No people to see here.</Empty>}
           fetch={this.fetchPage}
-          renderItem={item => (
+          renderItem={(item) => (
             <UserListItem
               key={item.id}
               user={item}

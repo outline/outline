@@ -77,7 +77,7 @@ class DataLoader extends React.Component<Props> {
     const results = await this.props.documents.search(term);
 
     return results
-      .filter(result => result.document.title)
+      .filter((result) => result.document.title)
       .map((result, index) => ({
         title: result.document.title,
         url: result.document.url,
@@ -130,7 +130,7 @@ class DataLoader extends React.Component<Props> {
         return this.goToDocumentCanonical();
       }
 
-      this.props.shares.fetch(document.id).catch(err => {
+      this.props.shares.fetch(document.id).catch((err) => {
         if (!(err instanceof NotFoundError)) {
           throw err;
         }
@@ -195,7 +195,12 @@ class DataLoader extends React.Component<Props> {
 }
 
 export default withRouter(
-  inject("ui", "auth", "documents", "revisions", "policies", "shares")(
-    DataLoader
-  )
+  inject(
+    "ui",
+    "auth",
+    "documents",
+    "revisions",
+    "policies",
+    "shares"
+  )(DataLoader)
 );

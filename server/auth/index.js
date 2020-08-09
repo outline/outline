@@ -19,7 +19,7 @@ router.use("/", slack.routes());
 router.use("/", google.routes());
 router.use("/", email.routes());
 
-router.get("/redirect", auth(), async ctx => {
+router.get("/redirect", auth(), async (ctx) => {
   const user = ctx.state.user;
 
   // transfer access token cookie from root to subdomain

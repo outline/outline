@@ -20,7 +20,7 @@ try {
     "utf8"
   );
   const manifestData = JSON.parse(manifest);
-  Object.values(manifestData).forEach(filename => {
+  Object.values(manifestData).forEach((filename) => {
     if (typeof filename !== "string") return;
     if (filename.endsWith(".js")) {
       prefetchTags.push(

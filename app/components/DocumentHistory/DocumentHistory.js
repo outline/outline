@@ -133,16 +133,16 @@ const Wrapper = styled(Flex)`
   top: 0;
   right: 0;
   z-index: 1;
-  min-width: ${props => props.theme.sidebarWidth};
+  min-width: ${(props) => props.theme.sidebarWidth};
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: none;
 `;
 
 const Sidebar = styled(Flex)`
-  background: ${props => props.theme.background};
-  min-width: ${props => props.theme.sidebarWidth};
-  border-left: 1px solid ${props => props.theme.divider};
+  background: ${(props) => props.theme.background};
+  min-width: ${(props) => props.theme.sidebarWidth};
+  border-left: 1px solid ${(props) => props.theme.divider};
   z-index: 1;
 `;
 

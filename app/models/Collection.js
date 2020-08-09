@@ -37,7 +37,7 @@ export default class Collection extends BaseModel {
   get documentIds(): string[] {
     const results = [];
     const travelDocuments = (documentList, path) =>
-      documentList.forEach(document => {
+      documentList.forEach((document) => {
         results.push(document.id);
         travelDocuments(document.children);
       });
@@ -49,7 +49,7 @@ export default class Collection extends BaseModel {
   @action
   updateDocument(document: Document) {
     const travelDocuments = (documentList, path) =>
-      documentList.forEach(d => {
+      documentList.forEach((d) => {
         if (d.id === document.id) {
           d.title = document.title;
           d.url = document.url;
@@ -63,8 +63,8 @@ export default class Collection extends BaseModel {
 
   getDocumentChildren(documentId: string): NavigationNode[] {
     let result = [];
-    const traveler = nodes => {
-      nodes.forEach(childNode => {
+    const traveler = (nodes) => {
+      nodes.forEach((childNode) => {
         if (childNode.id === documentId) {
           result = childNode.children;
           return;
@@ -83,7 +83,7 @@ export default class Collection extends BaseModel {
   pathToDocument(document: Document) {
     let path;
     const traveler = (nodes, previousPath) => {
-      nodes.forEach(childNode => {
+      nodes.forEach((childNode) => {
         const newPath = [...previousPath, childNode];
         if (childNode.id === document.id) {
           path = newPath;

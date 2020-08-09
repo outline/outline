@@ -9,7 +9,7 @@ import { Op } from "../sequelize";
 const router = new Router();
 const log = debug("utils");
 
-router.post("utils.gc", async ctx => {
+router.post("utils.gc", async (ctx) => {
   const { token } = ctx.body;
 
   if (process.env.UTILS_SECRET !== token) {
@@ -28,7 +28,7 @@ router.post("utils.gc", async ctx => {
     attributes: ["id"],
     where,
   });
-  const documentIds = documents.map(d => d.id);
+  const documentIds = documents.map((d) => d.id);
 
   await Attachment.destroy({
     where: {

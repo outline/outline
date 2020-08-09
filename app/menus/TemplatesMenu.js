@@ -33,7 +33,7 @@ class TemplatesMenu extends React.Component<Props> {
         }
         {...rest}
       >
-        {templates.map(template => (
+        {templates.map((template) => (
           <DropdownMenuItem
             key={template.id}
             onClick={() => document.updateFromTemplate(template)}

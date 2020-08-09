@@ -11,7 +11,7 @@ import DocumentMeta from "components/DocumentMeta";
 type Props = {
   url: string,
   documents: DocumentsStore,
-  children: React.Node => React.Node,
+  children: (React.Node) => React.Node,
 };
 
 function HoverPreviewDocument({ url, documents, children }: Props) {
@@ -45,7 +45,7 @@ const Content = styled(Link)`
 
 const Heading = styled.h2`
   margin: 0 0 0.75em;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
 `;
 
 export default inject("documents")(observer(HoverPreviewDocument));

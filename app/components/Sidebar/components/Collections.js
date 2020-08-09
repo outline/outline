@@ -57,7 +57,7 @@ class Collections extends React.Component<Props> {
 
     const content = (
       <React.Fragment>
-        {collections.orderedData.map(collection => (
+        {collections.orderedData.map((collection) => (
           <CollectionLink
             key={collection.id}
             documents={documents}
@@ -94,6 +94,9 @@ class Collections extends React.Component<Props> {
   }
 }
 
-export default inject("collections", "ui", "documents", "policies")(
-  withRouter(Collections)
-);
+export default inject(
+  "collections",
+  "ui",
+  "documents",
+  "policies"
+)(withRouter(Collections));

@@ -38,7 +38,7 @@ class Login extends React.Component<Props, State> {
     this.setState({ emailLinkSentTo: "" });
   };
 
-  handleEmailSuccess = email => {
+  handleEmailSuccess = (email) => {
     this.setState({ emailLinkSentTo: email });
   };
 
@@ -59,7 +59,7 @@ class Login extends React.Component<Props, State> {
     const hasMultipleServices = config.services.length > 1;
     const defaultService = find(
       config.services,
-      service => service.id === auth.lastSignedIn && !isCreate
+      (service) => service.id === auth.lastSignedIn && !isCreate
     );
 
     const header =
@@ -135,7 +135,7 @@ class Login extends React.Component<Props, State> {
             </React.Fragment>
           )}
 
-          {config.services.map(service => {
+          {config.services.map((service) => {
             if (defaultService && service.id === defaultService.id) {
               return null;
             }
@@ -168,7 +168,7 @@ const CheckEmailIcon = styled(EmailIcon)`
 const Background = styled(Fade)`
   width: 100vw;
   height: 100vh;
-  background: ${props => props.theme.background};
+  background: ${(props) => props.theme.background};
   display: flex;
 `;
 
@@ -219,8 +219,8 @@ const Or = styled.hr`
     transform: translate3d(-50%, -50%, 0);
     text-transform: uppercase;
     font-size: 11px;
-    color: ${props => props.theme.textSecondary};
-    background: ${props => props.theme.background};
+    color: ${(props) => props.theme.textSecondary};
+    background: ${(props) => props.theme.background};
     border-radius: 2px;
     padding: 0 4px;
   }

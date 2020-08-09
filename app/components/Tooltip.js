@@ -54,19 +54,19 @@ const Shortcut = styled.kbd`
   font: 10px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
     monospace;
   line-height: 10px;
-  color: ${props => props.theme.tooltipBackground};
+  color: ${(props) => props.theme.tooltipBackground};
   vertical-align: middle;
-  background-color: ${props => props.theme.tooltipText};
+  background-color: ${(props) => props.theme.tooltipText};
   border-radius: 3px;
 `;
 
 const StyledTippy = styled(Tippy)`
   font-size: 13px;
-  background-color: ${props => props.theme.tooltipBackground};
-  color: ${props => props.theme.tooltipText};
+  background-color: ${(props) => props.theme.tooltipBackground};
+  color: ${(props) => props.theme.tooltipText};
 
   svg {
-    fill: ${props => props.theme.tooltipBackground};
+    fill: ${(props) => props.theme.tooltipBackground};
   }
 `;
 

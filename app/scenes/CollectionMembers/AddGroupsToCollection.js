@@ -52,7 +52,7 @@ class AddGroupsToCollection extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddGroup = group => {
+  handleAddGroup = (group) => {
     try {
       this.props.collectionGroupMemberships.create({
         collectionId: this.props.collection.id,
@@ -77,7 +77,8 @@ class AddGroupsToCollection extends React.Component<Props> {
           Can’t find the group you’re looking for?{" "}
           <a role="button" onClick={this.handleNewGroupModalOpen}>
             Create a group
-          </a>.
+          </a>
+          .
         </HelpText>
 
         <Input
@@ -99,7 +100,7 @@ class AddGroupsToCollection extends React.Component<Props> {
           }
           items={groups.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : groups.fetchPage}
-          renderItem={item => (
+          renderItem={(item) => (
             <GroupListItem
               key={item.id}
               group={item}
@@ -130,6 +131,9 @@ const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
 
-export default inject("auth", "groups", "collectionGroupMemberships", "ui")(
-  AddGroupsToCollection
-);
+export default inject(
+  "auth",
+  "groups",
+  "collectionGroupMemberships",
+  "ui"
+)(AddGroupsToCollection);

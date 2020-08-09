@@ -106,7 +106,7 @@ class Details extends React.Component<Props> {
             </ImageUpload>
           </AvatarContainer>
         </ProfilePicture>
-        <form onSubmit={this.handleSubmit} ref={ref => (this.form = ref)}>
+        <form onSubmit={this.handleSubmit} ref={(ref) => (this.form = ref)}>
           <Input
             label="Name"
             name="name"
@@ -159,7 +159,7 @@ const AvatarContainer = styled(Flex)`
   ${avatarStyles};
   position: relative;
   box-shadow: 0 0 0 1px #dae1e9;
-  background: ${props => props.theme.white};
+  background: ${(props) => props.theme.white};
 
   div div {
     ${avatarStyles};
@@ -176,7 +176,7 @@ const AvatarContainer = styled(Flex)`
   &:hover div {
     opacity: 1;
     background: rgba(0, 0, 0, 0.75);
-    color: ${props => props.theme.white};
+    color: ${(props) => props.theme.white};
   }
 `;
 

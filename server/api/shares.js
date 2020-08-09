@@ -12,7 +12,7 @@ const Op = Sequelize.Op;
 const { authorize } = policy;
 const router = new Router();
 
-router.post("shares.info", auth(), async ctx => {
+router.post("shares.info", auth(), async (ctx) => {
   const { id, documentId } = ctx.body;
   ctx.assertUuid(id || documentId, "id or documentId is required");
 
@@ -39,7 +39,7 @@ router.post("shares.info", auth(), async ctx => {
   };
 });
 
-router.post("shares.list", auth(), pagination(), async ctx => {
+router.post("shares.list", auth(), pagination(), async (ctx) => {
   let { sort = "updatedAt", direction } = ctx.body;
   if (direction !== "ASC") direction = "DESC";
 
@@ -90,7 +90,7 @@ router.post("shares.list", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("shares.update", auth(), async ctx => {
+router.post("shares.update", auth(), async (ctx) => {
   const { id, published } = ctx.body;
   ctx.assertUuid(id, "id is required");
   ctx.assertPresent(published, "published is required");
@@ -118,7 +118,7 @@ router.post("shares.update", auth(), async ctx => {
   };
 });
 
-router.post("shares.create", auth(), async ctx => {
+router.post("shares.create", auth(), async (ctx) => {
   const { documentId } = ctx.body;
   ctx.assertPresent(documentId, "documentId is required");
 
@@ -160,7 +160,7 @@ router.post("shares.create", auth(), async ctx => {
   };
 });
 
-router.post("shares.revoke", auth(), async ctx => {
+router.post("shares.revoke", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertUuid(id, "id is required");
 

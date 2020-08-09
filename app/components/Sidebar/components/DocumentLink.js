@@ -76,7 +76,7 @@ class DocumentLink extends React.Component<Props> {
       collection &&
       (collection
         .pathToDocument(activeDocument)
-        .map(entry => entry.id)
+        .map((entry) => entry.id)
         .includes(node.id) ||
         this.isActiveDocument())
     );
@@ -110,14 +110,12 @@ class DocumentLink extends React.Component<Props> {
                     onClose={() => (this.menuOpen = false)}
                   />
                 </Fade>
-              ) : (
-                undefined
-              )
+              ) : undefined
             }
           >
             {this.hasChildDocuments() && (
               <DocumentChildren column>
-                {node.children.map(childNode => (
+                {node.children.map((childNode) => (
                   <DocumentLink
                     key={childNode.id}
                     collection={collection}

@@ -17,7 +17,7 @@ export default function DocumentList({ limit, documents, ...rest }: Props) {
       mode={ArrowKeyNavigation.mode.VERTICAL}
       defaultActiveChildIndex={0}
     >
-      {items.map(document => (
+      {items.map((document) => (
         <DocumentPreview key={document.id} document={document} {...rest} />
       ))}
     </ArrowKeyNavigation>

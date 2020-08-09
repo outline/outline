@@ -13,7 +13,7 @@ type Props = {
 const ListPlaceHolder = ({ count }: Props) => {
   return (
     <Fade>
-      {times(count || 2, index => (
+      {times(count || 2, (index) => (
         <Item key={index} column auto>
           <Mask header />
           <Mask />

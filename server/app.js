@@ -114,12 +114,12 @@ app.on("error", (error, ctx) => {
   }
 
   if (process.env.SENTRY_DSN) {
-    Sentry.withScope(function(scope) {
+    Sentry.withScope(function (scope) {
       const requestId = ctx.headers["x-request-id"];
       if (requestId) {
         scope.setTag("request_id", requestId);
       }
-      scope.addEventProcessor(function(event) {
+      scope.addEventProcessor(function (event) {
         return Sentry.Handlers.parseRequest(event, ctx.request);
       });
       Sentry.captureException(error);

@@ -34,14 +34,14 @@ export default class DocumentsStore extends BaseStore<Document> {
   get all(): Document[] {
     return filter(
       this.orderedData,
-      d => !d.archivedAt && !d.deletedAt && !d.template
+      (d) => !d.archivedAt && !d.deletedAt && !d.template
     );
   }
 
   @computed
   get recentlyViewed(): Document[] {
     return orderBy(
-      compact(this.recentlyViewedIds.map(id => this.data.get(id))),
+      compact(this.recentlyViewedIds.map((id) => this.data.get(id))),
       "updatedAt",
       "desc"
     );
@@ -56,7 +56,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     return orderBy(
       filter(
         this.orderedData,
-        d => !d.archivedAt && !d.deletedAt && d.template
+        (d) => !d.archivedAt && !d.deletedAt && d.template
       ),
       "updatedAt",
       "desc"
@@ -65,21 +65,24 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   createdByUser(userId: string): Document[] {
     return orderBy(
-      filter(this.all, d => d.createdBy.id === userId),
+      filter(this.all, (d) => d.createdBy.id === userId),
       "updatedAt",
       "desc"
     );
   }
 
   inCollection(collectionId: string): Document[] {
-    return filter(this.all, document => document.collectionId === collectionId);
+    return filter(
+      this.all,
+      (document) => document.collectionId === collectionId
+    );
   }
 
   templatesInCollection(collectionId: string): Document[] {
     return orderBy(
       filter(
         this.orderedData,
-        d =>
+        (d) =>
           !d.archivedAt &&
           !d.deletedAt &&
           d.template === true &&
@@ -93,14 +96,14 @@ export default class DocumentsStore extends BaseStore<Document> {
   pinnedInCollection(collectionId: string): Document[] {
     return filter(
       this.recentlyUpdatedInCollection(collectionId),
-      document => document.pinned
+      (document) => document.pinned
     );
   }
 
   publishedInCollection(collectionId: string): Document[] {
     return filter(
       this.all,
-      document =>
+      (document) =>
         document.collectionId === collectionId && !!document.publishedAt
     );
   }
@@ -130,14 +133,18 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   get starred(): Document[] {
-    return orderBy(filter(this.all, d => d.isStarred), "updatedAt", "desc");
+    return orderBy(
+      filter(this.all, (d) => d.isStarred),
+      "updatedAt",
+      "desc"
+    );
   }
 
   @computed
   get archived(): Document[] {
     return filter(
       orderBy(this.orderedData, "archivedAt", "desc"),
-      d => d.archivedAt && !d.deletedAt
+      (d) => d.archivedAt && !d.deletedAt
     );
   }
 
@@ -145,7 +152,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   get deleted(): Document[] {
     return filter(
       orderBy(this.orderedData, "deletedAt", "desc"),
-      d => d.deletedAt
+      (d) => d.deletedAt
     );
   }
 
@@ -163,7 +170,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   get drafts(): Document[] {
     return filter(
       orderBy(this.all, "updatedAt", "desc"),
-      doc => !doc.publishedAt
+      (doc) => !doc.publishedAt
     );
   }
 
@@ -183,14 +190,17 @@ export default class DocumentsStore extends BaseStore<Document> {
     const { data } = res;
     runInAction("DocumentsStore#fetchBacklinks", () => {
       data.forEach(this.add);
-      this.backlinks.set(documentId, data.map(doc => doc.id));
+      this.backlinks.set(
+        documentId,
+        data.map((doc) => doc.id)
+      );
     });
   };
 
   getBacklinedDocuments(documentId: string): Document[] {
     const documentIds = this.backlinks.get(documentId) || [];
     return orderBy(
-      compact(documentIds.map(id => this.data.get(id))),
+      compact(documentIds.map((id) => this.data.get(id))),
       "updatedAt",
       "desc"
     );
@@ -317,7 +327,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     options: PaginationParams = {}
   ): Promise<SearchResult[]> => {
     // $FlowFixMe
-    const compactedOptions = omitBy(options, o => !o);
+    const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.get("/documents.search", {
       ...compactedOptions,
       query,
@@ -325,13 +335,13 @@ export default class DocumentsStore extends BaseStore<Document> {
     invariant(res && res.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    res.data.forEach(result => this.add(result.document));
+    res.data.forEach((result) => this.add(result.document));
     this.addPolicies(res.policies);
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
     const results: SearchResult[] = compact(
-      res.data.map(result => {
+      res.data.map((result) => {
         const document = this.data.get(result.document.id);
         if (!document) return null;
 
@@ -462,8 +472,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   removeCollectionDocuments(collectionId: string) {
     const documents = this.inCollection(collectionId);
-    const documentIds = documents.map(doc => doc.id);
-    documentIds.forEach(id => this.remove(id));
+    const documentIds = documents.map((doc) => doc.id);
+    documentIds.forEach((id) => this.remove(id));
   }
 
   @action
@@ -554,7 +564,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   getByUrl = (url: string = ""): ?Document => {
-    return find(this.orderedData, doc => url.endsWith(doc.urlId));
+    return find(this.orderedData, (doc) => url.endsWith(doc.urlId));
   };
 
   getCollectionForDocument(document: Document) {

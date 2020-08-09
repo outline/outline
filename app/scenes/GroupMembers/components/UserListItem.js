@@ -37,9 +37,7 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
           <Button type="button" onClick={onAdd} icon={<PlusIcon />} neutral>
             Add
           </Button>
-        ) : (
-          undefined
-        )
+        ) : undefined
       }
     />
   );

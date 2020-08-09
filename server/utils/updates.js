@@ -16,10 +16,7 @@ export default async () => {
     "SECRET_KEY or URL env var is not set"
   );
   const secret = process.env.SECRET_KEY.slice(0, 6) + process.env.URL;
-  const id = crypto
-    .createHash("sha256")
-    .update(secret)
-    .digest("hex");
+  const id = crypto.createHash("sha256").update(secret).digest("hex");
 
   const [
     userCount,

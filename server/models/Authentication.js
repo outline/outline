@@ -12,7 +12,7 @@ const Authentication = sequelize.define("authentication", {
   token: encryptedFields.vault("token"),
 });
 
-Authentication.associate = models => {
+Authentication.associate = (models) => {
   Authentication.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",

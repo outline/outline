@@ -128,7 +128,8 @@ class Invite extends React.Component<Props> {
                 label="Want a link to share directly with your team?"
                 readOnly
                 flex
-              />&nbsp;&nbsp;
+              />
+              &nbsp;&nbsp;
               <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
                 <Button
                   type="button"
@@ -152,7 +153,7 @@ class Invite extends React.Component<Props> {
               name="email"
               label="Email"
               labelHidden={index !== 0}
-              onChange={ev => this.handleChange(ev, index)}
+              onChange={(ev) => this.handleChange(ev, index)}
               placeholder={`example@${predictedDomain}`}
               value={invite.email}
               required={index === 0}
@@ -165,7 +166,7 @@ class Invite extends React.Component<Props> {
               name="name"
               label="Full name"
               labelHidden={index !== 0}
-              onChange={ev => this.handleChange(ev, index)}
+              onChange={(ev) => this.handleChange(ev, index)}
               value={invite.name}
               required={!!invite.email}
               flex
@@ -173,7 +174,7 @@ class Invite extends React.Component<Props> {
             {index !== 0 && (
               <Remove>
                 <Tooltip tooltip="Remove invite" placement="top">
-                  <NudeButton onClick={ev => this.handleRemove(ev, index)}>
+                  <NudeButton onClick={(ev) => this.handleRemove(ev, index)}>
                     <CloseIcon />
                   </NudeButton>
                 </Tooltip>

@@ -19,7 +19,7 @@ export default function download(
     x = data,
     D = document,
     a = D.createElement("a"),
-    z = function(a, o) {
+    z = function (a, o) {
       return String(a);
     },
     B = self.Blob || self.MozBlob || self.WebKitBlob || z,
@@ -82,11 +82,11 @@ export default function download(
       a.setAttribute("download", fn);
       a.innerHTML = "downloading…";
       D.body && D.body.appendChild(a);
-      setTimeout(function() {
+      setTimeout(function () {
         a.click();
         D.body && D.body.removeChild(a);
         if (winMode === true) {
-          setTimeout(function() {
+          setTimeout(function () {
             self.URL.revokeObjectURL(a.href);
           }, 250);
         }
@@ -103,7 +103,7 @@ export default function download(
     }
 
     f.src = url;
-    setTimeout(function() {
+    setTimeout(function () {
       D.body && D.body.removeChild(f);
     }, 333);
   }
@@ -134,7 +134,7 @@ export default function download(
 
     // Blob but not URL:
     fr = new FileReader();
-    fr.onload = function(e) {
+    fr.onload = function (e) {
       saver(this.result);
     };
 

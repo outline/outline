@@ -16,13 +16,13 @@ const koa = new Koa();
 const router = new Router();
 const readFile = util.promisify(fs.readFile);
 
-const readIndexFile = async ctx => {
+const readIndexFile = async (ctx) => {
   if (isProduction) {
     return readFile(path.join(__dirname, "../dist/index.html"));
   }
 
   const middleware = ctx.devMiddleware;
-  await new Promise(resolve => middleware.waitUntilValid(resolve));
+  await new Promise((resolve) => middleware.waitUntilValid(resolve));
 
   return new Promise((resolve, reject) => {
     middleware.fileSystem.readFile(
@@ -44,10 +44,10 @@ koa.use(
   })
 );
 
-router.get("/_health", ctx => (ctx.body = "OK"));
+router.get("/_health", (ctx) => (ctx.body = "OK"));
 
 if (process.env.NODE_ENV === "production") {
-  router.get("/static/*", async ctx => {
+  router.get("/static/*", async (ctx) => {
     ctx.set({
       "Cache-Control": `max-age=${356 * 24 * 60 * 60}`,
     });
@@ -59,11 +59,11 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-router.get("/robots.txt", ctx => {
+router.get("/robots.txt", (ctx) => {
   ctx.body = robotsResponse(ctx);
 });
 
-router.get("/opensearch.xml", ctx => {
+router.get("/opensearch.xml", (ctx) => {
   ctx.type = "text/xml";
   ctx.body = opensearchResponse();
 });

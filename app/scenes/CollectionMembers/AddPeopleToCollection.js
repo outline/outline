@@ -50,7 +50,7 @@ class AddPeopleToCollection extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddUser = user => {
+  handleAddUser = (user) => {
     try {
       this.props.memberships.create({
         collectionId: this.props.collection.id,
@@ -74,7 +74,8 @@ class AddPeopleToCollection extends React.Component<Props> {
           Need to add someone who’s not yet on the team yet?{" "}
           <a role="button" onClick={this.handleInviteModalOpen}>
             Invite people to {team.name}
-          </a>.
+          </a>
+          .
         </HelpText>
 
         <Input
@@ -97,7 +98,7 @@ class AddPeopleToCollection extends React.Component<Props> {
           }
           items={users.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
-          renderItem={item => (
+          renderItem={(item) => (
             <MemberListItem
               key={item.id}
               user={item}
@@ -118,6 +119,9 @@ class AddPeopleToCollection extends React.Component<Props> {
   }
 }
 
-export default inject("auth", "users", "memberships", "ui")(
-  AddPeopleToCollection
-);
+export default inject(
+  "auth",
+  "users",
+  "memberships",
+  "ui"
+)(AddPeopleToCollection);

@@ -21,7 +21,7 @@ export default class SharesStore extends BaseStore<Share> {
 
   @computed
   get published(): Share[] {
-    return filter(this.orderedData, share => share.published);
+    return filter(this.orderedData, (share) => share.published);
   }
 
   @action
@@ -57,6 +57,6 @@ export default class SharesStore extends BaseStore<Share> {
   }
 
   getByDocumentId = (documentId): ?Share => {
-    return find(this.orderedData, share => share.documentId === documentId);
+    return find(this.orderedData, (share) => share.documentId === documentId);
   };
 }

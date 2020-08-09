@@ -13,7 +13,7 @@ export default class ViewsStore extends BaseStore<View> {
 
   inDocument(documentId: string): View[] {
     return orderBy(
-      filter(this.orderedData, view => view.documentId === documentId),
+      filter(this.orderedData, (view) => view.documentId === documentId),
       "lastViewedAt",
       "desc"
     );
@@ -27,7 +27,7 @@ export default class ViewsStore extends BaseStore<View> {
   touch(documentId: string, userId: string) {
     const view = find(
       this.orderedData,
-      view => view.documentId === documentId && view.user.id === userId
+      (view) => view.documentId === documentId && view.user.id === userId
     );
     if (!view) return;
     view.touch();

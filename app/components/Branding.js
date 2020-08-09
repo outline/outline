@@ -11,7 +11,8 @@ type Props = {
 function Branding({ href = env.URL }: Props) {
   return (
     <Link href={href}>
-      <OutlineLogo size={16} />&nbsp;Outline
+      <OutlineLogo size={16} />
+      &nbsp;Outline
     </Link>
   );
 }
@@ -25,17 +26,17 @@ const Link = styled.a`
   font-size: 14px;
   text-decoration: none;
   border-top-right-radius: 2px;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   display: flex;
   align-items: center;
   padding: 16px;
 
   svg {
-    fill: ${props => props.theme.text};
+    fill: ${(props) => props.theme.text};
   }
 
   &:hover {
-    background: ${props => props.theme.sidebarBackground};
+    background: ${(props) => props.theme.sidebarBackground};
   }
 `;
 

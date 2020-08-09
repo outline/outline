@@ -14,7 +14,7 @@ export default class Analytics extends React.Component<Props> {
     // standard Google Analytics script
     window.ga =
       window.ga ||
-      function() {
+      function () {
         // $FlowIssue
         (ga.q = ga.q || []).push(arguments);
       };

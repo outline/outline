@@ -89,7 +89,7 @@ class DocumentEditor extends React.Component<Props> {
         />
         <DocumentMeta isDraft={isDraft} document={document} />
         <Editor
-          ref={ref => (this.editor = ref)}
+          ref={(ref) => (this.editor = ref)}
           autoFocus={title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}
@@ -98,15 +98,13 @@ class DocumentEditor extends React.Component<Props> {
           {...this.props}
         />
         {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent &&
-          !isShare &&
-          readOnly && (
-            <HoverPreview
-              node={this.activeLinkEvent.target}
-              event={this.activeLinkEvent}
-              onClose={this.handleLinkInactive}
-            />
-          )}
+        {this.activeLinkEvent && !isShare && readOnly && (
+          <HoverPreview
+            node={this.activeLinkEvent.target}
+            event={this.activeLinkEvent}
+            onClose={this.handleLinkInactive}
+          />
+        )}
       </Flex>
     );
   }
@@ -117,10 +115,10 @@ const Title = styled(Textarea)`
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: 0.5em;
-  text: ${props => props.theme.text};
-  background: ${props => props.theme.background};
-  transition: ${props => props.theme.backgroundTransition};
-  color: ${props => props.theme.text};
+  text: ${(props) => props.theme.text};
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
+  color: ${(props) => props.theme.text};
   font-size: 2.25em;
   font-weight: 500;
   outline: none;
@@ -129,7 +127,7 @@ const Title = styled(Textarea)`
   resize: none;
 
   &::placeholder {
-    color: ${props => props.theme.placeholder};
+    color: ${(props) => props.theme.placeholder};
   }
 `;
 

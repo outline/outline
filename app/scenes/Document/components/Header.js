@@ -194,12 +194,11 @@ class Header extends React.Component<Props> {
           </Title>
         )}
         <Wrapper align="center" justify="flex-end">
-          {isSaving &&
-            !isPublishing && (
-              <Action>
-                <Status>Saving…</Status>
-              </Action>
-            )}
+          {isSaving && !isPublishing && (
+            <Action>
+              <Status>Saving…</Status>
+            </Action>
+          )}
           &nbsp;
           <Fade>
             <Collaborators
@@ -207,40 +206,38 @@ class Header extends React.Component<Props> {
               currentUserId={auth.user ? auth.user.id : undefined}
             />
           </Fade>
-          {isEditing &&
-            !isTemplate &&
-            isNew && (
-              <Action>
-                <TemplatesMenu document={document} />
-              </Action>
-            )}
-          {!isEditing &&
-            canShareDocuments && (
-              <Action>
-                <Tooltip
-                  tooltip={
-                    isPubliclyShared ? (
-                      <React.Fragment>
-                        Anyone with the link <br />can view this document
-                      </React.Fragment>
-                    ) : (
-                      ""
-                    )
-                  }
-                  delay={500}
-                  placement="bottom"
+          {isEditing && !isTemplate && isNew && (
+            <Action>
+              <TemplatesMenu document={document} />
+            </Action>
+          )}
+          {!isEditing && canShareDocuments && (
+            <Action>
+              <Tooltip
+                tooltip={
+                  isPubliclyShared ? (
+                    <React.Fragment>
+                      Anyone with the link <br />
+                      can view this document
+                    </React.Fragment>
+                  ) : (
+                    ""
+                  )
+                }
+                delay={500}
+                placement="bottom"
+              >
+                <Button
+                  icon={isPubliclyShared ? <GlobeIcon /> : undefined}
+                  onClick={this.handleShareLink}
+                  neutral
+                  small
                 >
-                  <Button
-                    icon={isPubliclyShared ? <GlobeIcon /> : undefined}
-                    onClick={this.handleShareLink}
-                    neutral
-                    small
-                  >
-                    Share
-                  </Button>
-                </Tooltip>
-              </Action>
-            )}
+                  Share
+                </Button>
+              </Tooltip>
+            </Action>
+          )}
           {isEditing && (
             <React.Fragment>
               <Action>
@@ -282,62 +279,56 @@ class Header extends React.Component<Props> {
               </Tooltip>
             </Action>
           )}
-          {canEdit &&
-            can.createChildDocument && (
-              <Action>
-                <NewChildDocumentMenu
-                  document={document}
-                  label={
-                    <Tooltip
-                      tooltip="New document"
-                      shortcut="n"
-                      delay={500}
-                      placement="bottom"
-                    >
-                      <Button icon={<PlusIcon />} neutral>
-                        New doc
-                      </Button>
-                    </Tooltip>
-                  }
-                />
-              </Action>
-            )}
-          {canEdit &&
-            isTemplate &&
-            !isDraft &&
-            !isRevision && (
-              <Action>
+          {canEdit && can.createChildDocument && (
+            <Action>
+              <NewChildDocumentMenu
+                document={document}
+                label={
+                  <Tooltip
+                    tooltip="New document"
+                    shortcut="n"
+                    delay={500}
+                    placement="bottom"
+                  >
+                    <Button icon={<PlusIcon />} neutral>
+                      New doc
+                    </Button>
+                  </Tooltip>
+                }
+              />
+            </Action>
+          )}
+          {canEdit && isTemplate && !isDraft && !isRevision && (
+            <Action>
+              <Button
+                icon={<PlusIcon />}
+                onClick={this.handleNewFromTemplate}
+                primary
+                small
+              >
+                New from template
+              </Button>
+            </Action>
+          )}
+          {can.update && isDraft && !isRevision && (
+            <Action>
+              <Tooltip
+                tooltip="Publish"
+                shortcut={`${meta}+shift+p`}
+                delay={500}
+                placement="bottom"
+              >
                 <Button
-                  icon={<PlusIcon />}
-                  onClick={this.handleNewFromTemplate}
-                  primary
+                  onClick={this.handlePublish}
+                  title="Publish document"
+                  disabled={publishingIsDisabled}
                   small
                 >
-                  New from template
+                  {isPublishing ? "Publishing…" : "Publish"}
                 </Button>
-              </Action>
-            )}
-          {can.update &&
-            isDraft &&
-            !isRevision && (
-              <Action>
-                <Tooltip
-                  tooltip="Publish"
-                  shortcut={`${meta}+shift+p`}
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    onClick={this.handlePublish}
-                    title="Publish document"
-                    disabled={publishingIsDisabled}
-                    small
-                  >
-                    {isPublishing ? "Publishing…" : "Publish"}
-                  </Button>
-                </Tooltip>
-              </Action>
-            )}
+              </Tooltip>
+            </Action>
+          )}
           {!isEditing && (
             <React.Fragment>
               <Separator />
@@ -358,7 +349,7 @@ class Header extends React.Component<Props> {
 }
 
 const Status = styled.div`
-  color: ${props => props.theme.slate};
+  color: ${(props) => props.theme.slate};
 `;
 
 const BreadcrumbAndContents = styled(Flex)`
@@ -386,9 +377,9 @@ const Actions = styled(Flex)`
   right: 0;
   left: 0;
   z-index: 2;
-  background: ${props => transparentize(0.2, props.theme.background)};
+  background: ${(props) => transparentize(0.2, props.theme.background)};
   box-shadow: 0 1px 0
-    ${props =>
+    ${(props) =>
       props.isCompact
         ? darken(0.05, props.theme.sidebarBackground)
         : "transparent"};
@@ -402,7 +393,7 @@ const Actions = styled(Flex)`
   }
 
   ${breakpoint("tablet")`
-    padding: ${props => (props.isCompact ? "12px" : `24px 24px 0`)};
+    padding: ${(props) => (props.isCompact ? "12px" : `24px 24px 0`)};
   `};
 `;
 

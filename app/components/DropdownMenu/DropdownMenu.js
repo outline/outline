@@ -204,7 +204,7 @@ class DropdownMenu extends React.Component<Props> {
                     onClick={
                       typeof children === "function"
                         ? undefined
-                        : ev => {
+                        : (ev) => {
                             ev.stopPropagation();
                             closePortal();
                           }
@@ -245,24 +245,24 @@ const Position = styled.div`
   ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : "")};
   max-height: 75%;
   z-index: 1000;
-  transform: ${props =>
+  transform: ${(props) =>
     props.position === "center" ? "translateX(-50%)" : "initial"};
   pointer-events: none;
 `;
 
 const Menu = styled.div`
   animation: ${fadeAndScaleIn} 200ms ease;
-  transform-origin: ${props => (props.left !== undefined ? "25%" : "75%")} 0;
+  transform-origin: ${(props) => (props.left !== undefined ? "25%" : "75%")} 0;
   backdrop-filter: blur(10px);
-  background: ${props => rgba(props.theme.menuBackground, 0.8)};
-  border: ${props =>
+  background: ${(props) => rgba(props.theme.menuBackground, 0.8)};
+  border: ${(props) =>
     props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   border-radius: 2px;
   padding: 0.5em 0;
   min-width: 180px;
   overflow: hidden;
   overflow-y: auto;
-  box-shadow: ${props => props.theme.menuShadow};
+  box-shadow: ${(props) => props.theme.menuShadow};
   pointer-events: all;
 
   hr {
@@ -278,7 +278,7 @@ export const Header = styled.h3`
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  color: ${props => props.theme.sidebarText};
+  color: ${(props) => props.theme.sidebarText};
   letter-spacing: 0.04em;
   margin: 1em 12px 0.5em;
 `;

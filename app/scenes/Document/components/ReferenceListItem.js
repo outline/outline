@@ -26,7 +26,7 @@ const DocumentLink = styled(Link)`
   &:hover,
   &:active,
   &:focus {
-    background: ${props => props.theme.listItemHoverBackground};
+    background: ${(props) => props.theme.listItemHoverBackground};
     outline: none;
   }
 `;
@@ -39,7 +39,7 @@ const Title = styled.h3`
   margin-top: 0;
   margin-bottom: 0.25em;
   white-space: nowrap;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;

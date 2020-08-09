@@ -14,8 +14,8 @@ import UiStore from "stores/UiStore";
 
 type Props = {
   children?: React.Node,
-  onSuccess: string => void | Promise<void>,
-  onError: string => void,
+  onSuccess: (string) => void | Promise<void>,
+  onError: (string) => void,
   submitText: string,
   borderRadius: number,
   ui: UiStore,
@@ -85,7 +85,7 @@ class ImageUpload extends React.Component<Props> {
           {this.isUploading && <LoadingIndicator />}
           <AvatarEditorContainer>
             <AvatarEditor
-              ref={ref => (this.avatarEditorRef = ref)}
+              ref={(ref) => (this.avatarEditorRef = ref)}
               image={this.file}
               width={250}
               height={250}
@@ -154,7 +154,7 @@ const RangeInput = styled.input`
     height: 16px;
     width: 16px;
     border-radius: 50%;
-    background: ${props => props.theme.text};
+    background: ${(props) => props.theme.text};
     cursor: pointer;
   }
 
