@@ -413,11 +413,6 @@ declare module 'styled-components' {
     ElementName
   >;
 
-  declare type ConvenientShorthands = $ObjMap<
-    BuiltinElementInstances,
-    <V>(V) => StyledShorthandFactory<V>
-  >;
-
   declare interface Styled {
     <Comp: React$ComponentType<P>, Theme, OwnProps = React$ElementConfig<Comp>>(
       Comp
