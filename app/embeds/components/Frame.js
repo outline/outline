@@ -7,13 +7,16 @@ import styled from "styled-components";
 type Props = {
   src?: string,
   border?: boolean,
-  forwardedRef: *,
   width?: string,
   height?: string,
 };
 
+type PropsWithRef = Props & {
+  forwardedRef: React.Ref<typeof StyledIframe>,
+};
+
 @observer
-class Frame extends React.Component<Props> {
+class Frame extends React.Component<PropsWithRef> {
   mounted: boolean;
   @observable isLoaded: boolean = false;
 
@@ -79,6 +82,6 @@ const StyledIframe = styled(Iframe)`
   border-radius: 3px;
 `;
 
-export default React.forwardRef((props, ref) => (
+export default React.forwardRef<Props, typeof Frame>((props, ref) => (
   <Frame {...props} forwardedRef={ref} />
 ));

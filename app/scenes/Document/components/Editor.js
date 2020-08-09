@@ -25,23 +25,23 @@ type Props = {
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
-  editor: ?Editor;
+  editor = React.createRef<typeof Editor>();
 
   focusAtStart = () => {
-    if (this.editor) {
-      this.editor.focusAtStart();
+    if (this.editor.current) {
+      this.editor.current.focusAtStart();
     }
   };
 
   focusAtEnd = () => {
-    if (this.editor) {
-      this.editor.focusAtEnd();
+    if (this.editor.current) {
+      this.editor.current.focusAtEnd();
     }
   };
 
   getHeadings = () => {
-    if (this.editor) {
-      return this.editor.getHeadings();
+    if (this.editor.current) {
+      return this.editor.current.getHeadings();
     }
 
     return [];
@@ -89,7 +89,7 @@ class DocumentEditor extends React.Component<Props> {
         />
         <DocumentMeta isDraft={isDraft} document={document} />
         <Editor
-          ref={(ref) => (this.editor = ref)}
+          ref={this.editor}
           autoFocus={title && !this.props.defaultValue}
           placeholder="…the rest is up to you"
           onHoverLink={this.handleLinkActive}

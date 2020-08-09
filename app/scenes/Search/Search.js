@@ -46,7 +46,7 @@ type Props = {
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: ?DocumentPreview;
+  firstDocument: ?typeof DocumentPreview;
 
   @observable
   query: string = decodeURIComponent(this.props.match.params.term || "");

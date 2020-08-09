@@ -10,6 +10,7 @@ export type Props = {
   labelHidden?: boolean,
   className?: string,
   note?: string,
+  short?: boolean,
   small?: boolean,
 };
 

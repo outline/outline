@@ -15,18 +15,21 @@ import { uploadFile } from "utils/uploadFile";
 const EMPTY_ARRAY = [];
 
 type Props = {
-  id: string,
+  id?: string,
   defaultValue?: string,
   readOnly?: boolean,
   grow?: boolean,
   disableEmbeds?: boolean,
-  history: RouterHistory,
+  ui?: UiStore,
+};
+
+type PropsWithRef = Props & {
   forwardedRef: React.Ref<RichMarkdownEditor>,
-  ui: UiStore,
+  history: RouterHistory,
 };
 
 @observer
-class Editor extends React.Component<Props> {
+class Editor extends React.Component<PropsWithRef> {
   @observable redirectTo: ?string;
 
   onUploadImage = async (file: File) => {
@@ -62,7 +65,9 @@ class Editor extends React.Component<Props> {
   };
 
   onShowToast = (message: string) => {
-    this.props.ui.showToast(message);
+    if (this.props.ui) {
+      this.props.ui.showToast(message);
+    }
   };
 
   render() {
@@ -120,6 +125,6 @@ const Span = styled.span`
 
 const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
 
-export default React.forwardRef((props, ref) => (
+export default React.forwardRef<Props, typeof Editor>((props, ref) => (
   <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
 ));

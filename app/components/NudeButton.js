@@ -20,6 +20,6 @@ const Button = styled.button`
   }
 `;
 
-export default React.forwardRef((props, ref) => (
+export default React.forwardRef<any, typeof Button>((props, ref) => (
   <Button {...props} ref={ref} />
 ));
