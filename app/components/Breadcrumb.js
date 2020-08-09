@@ -33,11 +33,11 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
 
   if (onlyText === true) {
     return (
-      <React.Fragment>
+      <>
         {collection.private && (
-          <React.Fragment>
+          <>
             <SmallPadlockIcon color="currentColor" size={16} />{" "}
-          </React.Fragment>
+          </>
         )}
         {collection.name}
         {path.map((n) => (
@@ -46,7 +46,7 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
             {n.title}
           </React.Fragment>
         ))}
-      </React.Fragment>
+      </>
     );
   }
 
@@ -59,24 +59,24 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
   return (
     <Wrapper justify="flex-start" align="center">
       {isTemplate && (
-        <React.Fragment>
+        <>
           <CollectionName to="/templates">
             <ShapesIcon color="currentColor" />
             &nbsp;
             <span>Templates</span>
           </CollectionName>
           <Slash />
-        </React.Fragment>
+        </>
       )}
       {isDraft && (
-        <React.Fragment>
+        <>
           <CollectionName to="/drafts">
             <EditIcon color="currentColor" />
             &nbsp;
             <span>Drafts</span>
           </CollectionName>
           <Slash />
-        </React.Fragment>
+        </>
       )}
       <CollectionName to={collectionUrl(collection.id)}>
         <CollectionIcon collection={collection} expanded />
@@ -84,17 +84,17 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
         <span>{collection.name}</span>
       </CollectionName>
       {isNestedDocument && (
-        <React.Fragment>
+        <>
           <Slash /> <BreadcrumbMenu label={<Overflow />} path={menuPath} />
-        </React.Fragment>
+        </>
       )}
       {lastPath && (
-        <React.Fragment>
+        <>
           <Slash />{" "}
           <Crumb to={lastPath.url} title={lastPath.title}>
             {lastPath.title}
           </Crumb>
-        </React.Fragment>
+        </>
       )}
     </Wrapper>
   );

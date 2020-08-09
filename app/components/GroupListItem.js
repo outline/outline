@@ -46,15 +46,15 @@ class GroupListItem extends React.Component<Props> {
     const overflow = memberCount - users.length;
 
     return (
-      <React.Fragment>
+      <>
         <ListItem
           title={
             <Title onClick={this.handleMembersModalOpen}>{group.name}</Title>
           }
           subtitle={
-            <React.Fragment>
+            <>
               {memberCount} member{memberCount === 1 ? "" : "s"}
-            </React.Fragment>
+            </>
           }
           actions={
             <Flex align="center">
@@ -79,7 +79,7 @@ class GroupListItem extends React.Component<Props> {
         >
           <GroupMembers group={group} onSubmit={this.handleMembersModalClose} />
         </Modal>
-      </React.Fragment>
+      </>
     );
   }
 }

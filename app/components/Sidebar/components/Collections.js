@@ -55,7 +55,7 @@ class Collections extends React.Component<Props> {
     const { collections, ui, documents } = this.props;
 
     const content = (
-      <React.Fragment>
+      <>
         {collections.orderedData.map((collection) => (
           <CollectionLink
             key={collection.id}
@@ -73,7 +73,7 @@ class Collections extends React.Component<Props> {
           label="New collection…"
           exact
         />
-      </React.Fragment>
+      </>
     );
 
     return (

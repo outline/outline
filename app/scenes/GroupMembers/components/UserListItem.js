@@ -20,17 +20,17 @@ const UserListItem = ({ user, onAdd, canEdit }: Props) => {
       title={user.name}
       image={<Avatar src={user.avatarUrl} size={32} />}
       subtitle={
-        <React.Fragment>
+        <>
           {user.lastActiveAt ? (
-            <React.Fragment>
+            <>
               Active <Time dateTime={user.lastActiveAt} /> ago
-            </React.Fragment>
+            </>
           ) : (
             "Never signed in"
           )}
           {!user.lastActiveAt && <Badge>Invited</Badge>}
           {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
-        </React.Fragment>
+        </>
       }
       actions={
         canEdit ? (

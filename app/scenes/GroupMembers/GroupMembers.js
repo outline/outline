@@ -62,7 +62,7 @@ class GroupMembers extends React.Component<Props> {
     return (
       <Flex column>
         {can.update ? (
-          <React.Fragment>
+          <>
             <HelpText>
               Add and remove team members in the <strong>{group.name}</strong>{" "}
               group. Adding people to the group will give them access to any
@@ -78,7 +78,7 @@ class GroupMembers extends React.Component<Props> {
                 Add people…
               </Button>
             </span>
-          </React.Fragment>
+          </>
         ) : (
           <HelpText>
             Listing team members in the <strong>{group.name}</strong> group.

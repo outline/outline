@@ -104,12 +104,12 @@ class People extends React.Component<Props> {
           </Tab>
 
           {can.invite && (
-            <React.Fragment>
+            <>
               <Separator />
               <Tab to="/settings/people/invited" exact>
                 Invited
               </Tab>
-            </React.Fragment>
+            </>
           )}
         </Tabs>
         <PaginatedList

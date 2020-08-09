@@ -15,10 +15,10 @@ const ShareListItem = ({ share }: Props) => {
       key={share.id}
       title={share.documentTitle}
       subtitle={
-        <React.Fragment>
+        <>
           Shared <Time dateTime={share.createdAt} /> ago by{" "}
           {share.createdBy.name}
-        </React.Fragment>
+        </>
       }
       actions={<ShareMenu share={share} />}
     />

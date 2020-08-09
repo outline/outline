@@ -375,7 +375,7 @@ class DocumentScene extends React.Component<Props> {
 
           <Container justify="center" column auto>
             {!readOnly && (
-              <React.Fragment>
+              <>
                 <Prompt
                   when={this.isDirty && !this.isUploading}
                   message={DISCARD_CHANGES}
@@ -384,7 +384,7 @@ class DocumentScene extends React.Component<Props> {
                   when={this.isUploading && !this.isDirty}
                   message={UPLOADING_WARNING}
                 />
-              </React.Fragment>
+              </>
             )}
             {!isShare && (
               <Header
@@ -427,12 +427,12 @@ class DocumentScene extends React.Component<Props> {
                   Deleted by {document.updatedBy.name}{" "}
                   <Time dateTime={document.deletedAt} /> ago
                   {document.permanentlyDeletedAt && (
-                    <React.Fragment>
+                    <>
                       <br />
                       This {document.noun} will be permanently deleted in{" "}
                       <Time dateTime={document.permanentlyDeletedAt} /> unless
                       restored.
-                    </React.Fragment>
+                    </>
                   )}
                 </Notice>
               )}
@@ -473,12 +473,12 @@ class DocumentScene extends React.Component<Props> {
                 />
               </Flex>
               {readOnly && !isShare && !revision && (
-                <React.Fragment>
+                <>
                   <MarkAsViewed document={document} />
                   <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
                     <References document={document} />
                   </ReferencesWrapper>
-                </React.Fragment>
+                </>
               )}
             </MaxWidth>
           </Container>

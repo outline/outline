@@ -125,7 +125,7 @@ class CollectionMembers extends React.Component<Props> {
     return (
       <Flex column>
         {collection.private ? (
-          <React.Fragment>
+          <>
             <HelpText>
               Choose which groups and team members have access to view and edit
               documents in the private <strong>{collection.name}</strong>{" "}
@@ -146,7 +146,7 @@ class CollectionMembers extends React.Component<Props> {
                 Add groups
               </Button>
             </span>
-          </React.Fragment>
+          </>
         ) : (
           <HelpText>
             The <strong>{collection.name}</strong> collection is accessible by
@@ -195,7 +195,7 @@ class CollectionMembers extends React.Component<Props> {
           </GroupsWrap>
         )}
         {collection.private ? (
-          <React.Fragment>
+          <>
             <span>
               <Button
                 type="button"
@@ -208,7 +208,7 @@ class CollectionMembers extends React.Component<Props> {
             </span>
 
             <Subheading>Individual Members</Subheading>
-          </React.Fragment>
+          </>
         ) : (
           <Subheading>Members</Subheading>
         )}

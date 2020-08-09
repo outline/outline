@@ -30,7 +30,7 @@ export default function Version() {
     <SidebarLink
       href="https://github.com/outline/outline/releases"
       label={
-        <React.Fragment>
+        <>
           v{version}
           <br />
           <LilBadge>
@@ -40,7 +40,7 @@ export default function Version() {
                   releasesBehind === 1 ? "" : "s"
                 } behind`}
           </LilBadge>
-        </React.Fragment>
+        </>
       }
     />
   );

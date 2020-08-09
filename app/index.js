@@ -21,23 +21,23 @@ const element = document.getElementById("root");
 
 if (element) {
   render(
-    <React.Fragment>
+    <>
       <ErrorBoundary>
         <Provider {...stores}>
           <Theme>
             <Router>
-              <React.Fragment>
+              <>
                 <ScrollToTop>
                   <Routes />
                 </ScrollToTop>
                 <Toasts />
-              </React.Fragment>
+              </>
             </Router>
           </Theme>
         </Provider>
       </ErrorBoundary>
       {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}
-    </React.Fragment>,
+    </>,
     element
   );
 }

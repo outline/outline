@@ -8,7 +8,7 @@ type Props = {
 
 export default function Notices({ notice }: Props) {
   return (
-    <React.Fragment>
+    <>
       {notice === "google-hd" && (
         <NoticeAlert>
           Sorry, Google sign in cannot be used with a personal email. Please try
@@ -51,6 +51,6 @@ export default function Notices({ notice }: Props) {
           please contact a team admin.
         </NoticeAlert>
       )}
-    </React.Fragment>
+    </>
   );
 }

@@ -121,7 +121,7 @@ class CollectionScene extends React.Component<Props> {
     return (
       <Actions align="center" justify="flex-end">
         {can.update && (
-          <React.Fragment>
+          <>
             <Action>
               <InputSearch
                 placeholder="Search in collection…"
@@ -141,7 +141,7 @@ class CollectionScene extends React.Component<Props> {
               </Tooltip>
             </Action>
             <Separator />
-          </React.Fragment>
+          </>
         )}
         <Action>
           <CollectionMenu collection={this.collection} />
@@ -165,7 +165,7 @@ class CollectionScene extends React.Component<Props> {
     return (
       <CenteredContent>
         {collection ? (
-          <React.Fragment>
+          <>
             <PageTitle title={collection.name} />
             {collection.isEmpty ? (
               <Centered column>
@@ -211,7 +211,7 @@ class CollectionScene extends React.Component<Props> {
                 </Modal>
               </Centered>
             ) : (
-              <React.Fragment>
+              <>
                 <Heading>
                   <CollectionIcon collection={collection} size={40} expanded />{" "}
                   {collection.name}
@@ -228,12 +228,12 @@ class CollectionScene extends React.Component<Props> {
                 )}
 
                 {hasPinnedDocuments && (
-                  <React.Fragment>
+                  <>
                     <Subheading>
                       <TinyPinIcon size={18} /> Pinned
                     </Subheading>
                     <DocumentList documents={pinnedDocuments} showPin />
-                  </React.Fragment>
+                  </>
                 )}
 
                 <Tabs>
@@ -296,18 +296,18 @@ class CollectionScene extends React.Component<Props> {
                     />
                   </Route>
                 </Switch>
-              </React.Fragment>
+              </>
             )}
 
             {this.renderActions()}
-          </React.Fragment>
+          </>
         ) : (
-          <React.Fragment>
+          <>
             <Heading>
               <Mask height={35} />
             </Heading>
             <ListPlaceholder count={5} />
-          </React.Fragment>
+          </>
         )}
       </CenteredContent>
     );

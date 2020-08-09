@@ -166,10 +166,10 @@ class DataLoader extends React.Component<Props> {
 
     if (!document) {
       return (
-        <React.Fragment>
+        <>
           <Loading location={location} />
           {this.isEditing && <HideSidebar ui={ui} />}
-        </React.Fragment>
+        </>
       );
     }
 

@@ -37,17 +37,17 @@ const MemberListItem = ({
     <ListItem
       title={user.name}
       subtitle={
-        <React.Fragment>
+        <>
           {user.lastActiveAt ? (
-            <React.Fragment>
+            <>
               Active <Time dateTime={user.lastActiveAt} /> ago
-            </React.Fragment>
+            </>
           ) : (
             "Never signed in"
           )}
           {!user.lastActiveAt && <Badge>Invited</Badge>}
           {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
-        </React.Fragment>
+        </>
       }
       image={<Avatar src={user.avatarUrl} size={40} />}
       actions={

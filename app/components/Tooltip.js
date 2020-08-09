@@ -24,9 +24,9 @@ class Tooltip extends React.Component<Props> {
 
     if (shortcut) {
       content = (
-        <React.Fragment>
+        <>
           {tooltip} &middot; <Shortcut>{shortcut}</Shortcut>
-        </React.Fragment>
+        </>
       );
     }
 

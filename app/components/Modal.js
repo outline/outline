@@ -64,7 +64,7 @@ const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <React.Fragment>
+    <>
       <GlobalStyles />
       <StyledModal
         contentLabel={title}
@@ -85,7 +85,7 @@ const Modal = ({
           <CloseIcon size={32} color="currentColor" />
         </Close>
       </StyledModal>
-    </React.Fragment>
+    </>
   );
 };
 

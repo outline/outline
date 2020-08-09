@@ -50,7 +50,7 @@ class GroupMenu extends React.Component<Props> {
     const can = policies.abilities(group.id);
 
     return (
-      <React.Fragment>
+      <>
         <Modal
           title="Edit group"
           onRequestClose={this.handleEditModalClose}
@@ -75,7 +75,7 @@ class GroupMenu extends React.Component<Props> {
 
         <DropdownMenu onOpen={onOpen} onClose={onClose}>
           {group && (
-            <React.Fragment>
+            <>
               <DropdownMenuItem onClick={this.props.onMembers}>
                 Members…
               </DropdownMenuItem>
@@ -91,10 +91,10 @@ class GroupMenu extends React.Component<Props> {
                   Delete…
                 </DropdownMenuItem>
               )}
-            </React.Fragment>
+            </>
           )}
         </DropdownMenu>
-      </React.Fragment>
+      </>
     );
   }
 }
