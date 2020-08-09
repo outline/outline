@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
 import { observer } from "mobx-react";
-import { Link } from "react-router-dom";
+import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import { StarredIcon, PlusIcon } from "outline-icons";
 import styled, { withTheme } from "styled-components";
 import Flex from "components/Flex";
@@ -15,6 +15,7 @@ import Document from "models/Document";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
+  history: RouterHistory,
   document: Document,
   highlight?: ?string,
   context?: ?string,
@@ -47,6 +48,19 @@ class DocumentPreview extends React.Component<Props> {
     return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
   };
 
+  handleNewFromTemplate = event => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const { document } = this.props;
+
+    this.props.history.push(
+      newDocumentUrl(document.collectionId, {
+        templateId: document.id,
+      })
+    );
+  };
+
   render() {
     const {
       document,
@@ -57,7 +71,6 @@ class DocumentPreview extends React.Component<Props> {
       showTemplate,
       highlight,
       context,
-      ...rest
     } = this.props;
 
     const queryIsInTitle =
@@ -70,7 +83,6 @@ class DocumentPreview extends React.Component<Props> {
           pathname: document.url,
           state: { title: document.titleWithDefault },
         }}
-        {...rest}
       >
         <Heading>
           <Title text={document.titleWithDefault} highlight={highlight} />
@@ -102,10 +114,7 @@ class DocumentPreview extends React.Component<Props> {
               !document.isArchived &&
               !document.isDeleted && (
                 <Button
-                  as={Link}
-                  to={newDocumentUrl(document.collectionId, {
-                    templateId: document.id,
-                  })}
+                  onClick={this.handleNewFromTemplate}
                   icon={<PlusIcon />}
                   neutral
                 >
@@ -222,4 +231,4 @@ const ResultContext = styled(Highlight)`
   margin-bottom: 0.25em;
 `;
 
-export default DocumentPreview;
+export default withRouter(DocumentPreview);
