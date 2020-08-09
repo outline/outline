@@ -1,17 +1,17 @@
 // @flow
-import * as React from "react";
 import { observer } from "mobx-react";
-import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import { StarredIcon, PlusIcon } from "outline-icons";
+import * as React from "react";
+import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
-import Flex from "components/Flex";
+import Document from "models/Document";
 import Badge from "components/Badge";
 import Button from "components/Button";
-import Tooltip from "components/Tooltip";
+import Flex from "components/Flex";
 import Highlight from "components/Highlight";
 import PublishingInfo from "components/PublishingInfo";
+import Tooltip from "components/Tooltip";
 import DocumentMenu from "menus/DocumentMenu";
-import Document from "models/Document";
 import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {

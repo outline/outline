@@ -1,12 +1,12 @@
 // @flow
-import { observable, action, computed, autorun, runInAction } from "mobx";
 import invariant from "invariant";
+import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
+import RootStore from "stores/RootStore";
+import Team from "models/Team";
+import User from "models/User";
 import { client } from "utils/ApiClient";
 import { getCookieDomain } from "utils/domains";
-import RootStore from "stores/RootStore";
-import User from "models/User";
-import Team from "models/Team";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];

@@ -1,7 +1,7 @@
 // @flow
-import Sequelize from "sequelize";
-import { snakeCase } from "lodash";
 import { type Context } from "koa";
+import { snakeCase } from "lodash";
+import Sequelize from "sequelize";
 
 export default function errorHandling() {
   return async function errorHandlingMiddleware(

@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
 import { observer } from "mobx-react";
+import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import PublishingInfo from "components/PublishingInfo";
 import Document from "models/Document";
+import PublishingInfo from "components/PublishingInfo";
 import type { NavigationNode } from "types";
 
 type Props = {

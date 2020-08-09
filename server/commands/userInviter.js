@@ -1,7 +1,7 @@
 // @flow
 import { uniqBy } from "lodash";
-import { User, Event, Team } from "../models";
 import mailer from "../mailer";
+import { User, Event, Team } from "../models";
 import { sequelize } from "../sequelize";
 
 type Invite = { name: string, email: string };

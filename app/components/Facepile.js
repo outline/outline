@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import styled, { withTheme } from "styled-components";
-import Flex from "components/Flex";
-import Avatar from "components/Avatar";
 import User from "models/User";
+import Avatar from "components/Avatar";
+import Flex from "components/Flex";
 
 type Props = {
   users: User[],

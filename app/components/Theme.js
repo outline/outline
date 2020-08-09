@@ -1,9 +1,9 @@
 // @flow
-import * as React from "react";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
 import { ThemeProvider } from "styled-components";
-import { dark, light } from "shared/styles/theme";
 import GlobalStyles from "shared/styles/globals";
+import { dark, light } from "shared/styles/theme";
 import UiStore from "stores/UiStore";
 
 type Props = {

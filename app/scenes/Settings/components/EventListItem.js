@@ -1,12 +1,12 @@
 // @flow
+import { capitalize } from "lodash";
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { capitalize } from "lodash";
 import styled from "styled-components";
-import Time from "components/Time";
-import ListItem from "components/List/Item";
-import Avatar from "components/Avatar";
 import Event from "models/Event";
+import Avatar from "components/Avatar";
+import ListItem from "components/List/Item";
+import Time from "components/Time";
 
 type Props = {
   event: Event,

@@ -1,9 +1,9 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
-import Toast from "./components/Toast";
 import UiStore from "../../stores/UiStore";
+import Toast from "./components/Toast";
 
 type Props = {
   ui: UiStore,

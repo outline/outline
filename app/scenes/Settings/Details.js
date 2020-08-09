@@ -1,18 +1,18 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
 
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
-import ImageUpload from "./components/ImageUpload";
-import Input, { LabelText } from "components/Input";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
-import HelpText from "components/HelpText";
 import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input, { LabelText } from "components/Input";
+import PageTitle from "components/PageTitle";
+import ImageUpload from "./components/ImageUpload";
 import env from "env";
 
 type Props = {

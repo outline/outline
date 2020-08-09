@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
 import { inject } from "mobx-react";
 import { transparentize } from "polished";
-import HoverPreviewDocument from "components/HoverPreviewDocument";
-import styled from "styled-components";
+import * as React from "react";
 import { Portal } from "react-portal";
+import styled from "styled-components";
 import { fadeAndSlideIn } from "shared/styles/animations";
-import isInternalUrl from "utils/isInternalUrl";
 import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";
 import DocumentsStore from "stores/DocumentsStore";
+import HoverPreviewDocument from "components/HoverPreviewDocument";
+import isInternalUrl from "utils/isInternalUrl";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;

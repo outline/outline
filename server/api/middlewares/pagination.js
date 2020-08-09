@@ -1,7 +1,7 @@
 // @flow
 import querystring from "querystring";
-import { InvalidRequestError } from "../../errors";
 import { type Context } from "koa";
+import { InvalidRequestError } from "../../errors";
 
 export default function pagination(options?: Object) {
   return async function paginationMiddleware(

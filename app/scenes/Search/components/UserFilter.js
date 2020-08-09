@@ -1,8 +1,8 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
-import FilterOptions from "./FilterOptions";
+import * as React from "react";
 import UsersStore from "stores/UsersStore";
+import FilterOptions from "./FilterOptions";
 
 const defaultOption = {
   key: undefined,

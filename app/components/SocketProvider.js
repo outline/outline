@@ -1,18 +1,18 @@
 // @flow
-import * as React from "react";
+import { find } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
-import { find } from "lodash";
+import * as React from "react";
 import io from "socket.io-client";
-import DocumentsStore from "stores/DocumentsStore";
+import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
+import DocumentPresenceStore from "stores/DocumentPresenceStore";
+import DocumentsStore from "stores/DocumentsStore";
 import GroupsStore from "stores/GroupsStore";
 import MembershipsStore from "stores/MembershipsStore";
-import DocumentPresenceStore from "stores/DocumentPresenceStore";
 import PoliciesStore from "stores/PoliciesStore";
-import ViewsStore from "stores/ViewsStore";
-import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
+import ViewsStore from "stores/ViewsStore";
 
 export const SocketContext: any = React.createContext();
 

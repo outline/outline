@@ -1,17 +1,17 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import { Link } from "react-router-dom";
-import SharesStore from "stores/SharesStore";
 import AuthStore from "stores/AuthStore";
+import SharesStore from "stores/SharesStore";
 
-import ShareListItem from "./components/ShareListItem";
-import Empty from "components/Empty";
-import List from "components/List";
 import CenteredContent from "components/CenteredContent";
-import Subheading from "components/Subheading";
-import PageTitle from "components/PageTitle";
+import Empty from "components/Empty";
 import HelpText from "components/HelpText";
+import List from "components/List";
+import PageTitle from "components/PageTitle";
+import Subheading from "components/Subheading";
+import ShareListItem from "./components/ShareListItem";
 
 type Props = {
   shares: SharesStore,

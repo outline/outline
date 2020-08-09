@@ -1,7 +1,7 @@
 // @flow
-import Document from "models/Document";
-import DocumentsStore from "stores/DocumentsStore";
 import parseTitle from "shared/utils/parseTitle";
+import DocumentsStore from "stores/DocumentsStore";
+import Document from "models/Document";
 
 type Options = {
   file: File,

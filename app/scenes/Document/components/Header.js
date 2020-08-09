@@ -1,11 +1,7 @@
 // @flow
-import * as React from "react";
 import { throttle } from "lodash";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { Redirect } from "react-router-dom";
-import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import {
   TableOfContentsIcon,
   EditIcon,
@@ -13,27 +9,31 @@ import {
   PlusIcon,
 } from "outline-icons";
 import { transparentize, darken } from "polished";
-import Document from "models/Document";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import AuthStore from "stores/AuthStore";
-import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
-import { meta } from "utils/keyboard";
-
-import Flex from "components/Flex";
-import Breadcrumb, { Slash } from "components/Breadcrumb";
-import TemplatesMenu from "menus/TemplatesMenu";
-import DocumentMenu from "menus/DocumentMenu";
-import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
-import DocumentShare from "scenes/DocumentShare";
-import Button from "components/Button";
-import Tooltip from "components/Tooltip";
-import Modal from "components/Modal";
-import Fade from "components/Fade";
-import Badge from "components/Badge";
-import Collaborators from "components/Collaborators";
-import { Action, Separator } from "components/Actions";
 import PoliciesStore from "stores/PoliciesStore";
 import SharesStore from "stores/SharesStore";
 import UiStore from "stores/UiStore";
+import Document from "models/Document";
+
+import DocumentShare from "scenes/DocumentShare";
+import { Action, Separator } from "components/Actions";
+import Badge from "components/Badge";
+import Breadcrumb, { Slash } from "components/Breadcrumb";
+import Button from "components/Button";
+import Collaborators from "components/Collaborators";
+import Fade from "components/Fade";
+import Flex from "components/Flex";
+import Modal from "components/Modal";
+import Tooltip from "components/Tooltip";
+import DocumentMenu from "menus/DocumentMenu";
+import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
+import TemplatesMenu from "menus/TemplatesMenu";
+import { meta } from "utils/keyboard";
+import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   auth: AuthStore,

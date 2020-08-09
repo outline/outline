@@ -1,14 +1,13 @@
 // @flow
-import * as React from "react";
 import { observer } from "mobx-react";
-import styled from "styled-components";
 import { GoToIcon } from "outline-icons";
-import Flex from "components/Flex";
-
-import Document from "models/Document";
-import Collection from "models/Collection";
+import * as React from "react";
+import styled from "styled-components";
 import type { DocumentPath } from "stores/CollectionsStore";
+import Collection from "models/Collection";
+import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
+import Flex from "components/Flex";
 
 type Props = {
   result: DocumentPath,

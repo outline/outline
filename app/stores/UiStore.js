@@ -1,9 +1,9 @@
 // @flow
-import { v4 } from "uuid";
 import { orderBy } from "lodash";
 import { observable, action, autorun, computed } from "mobx";
-import Document from "models/Document";
+import { v4 } from "uuid";
 import Collection from "models/Collection";
+import Document from "models/Document";
 import type { Toast } from "../types";
 
 const UI_STORE = "UI_STORE";

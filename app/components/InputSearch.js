@@ -1,13 +1,13 @@
 // @flow
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import keydown from "react-keydown";
-import { observer } from "mobx-react";
-import { observable } from "mobx";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
-import { SearchIcon } from "outline-icons";
-import { searchUrl } from "utils/routeHelpers";
 import Input from "./Input";
+import { searchUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,

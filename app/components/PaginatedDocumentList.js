@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import { observer } from "mobx-react";
+import * as React from "react";
 import Document from "models/Document";
 import DocumentPreview from "components/DocumentPreview";
 import PaginatedList from "components/PaginatedList";

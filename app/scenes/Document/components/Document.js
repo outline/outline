@@ -1,15 +1,35 @@
 // @flow
-import * as React from "react";
 import { debounce } from "lodash";
-import styled, { withTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import { InputIcon } from "outline-icons";
+import * as React from "react";
+import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
 import type { Location, RouterHistory, Match } from "react-router-dom";
-import keydown from "react-keydown";
-import { InputIcon } from "outline-icons";
+import styled, { withTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+
+import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
+import Document from "models/Document";
+import Revision from "models/Revision";
+import Branding from "components/Branding";
+import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
+import LoadingIndicator from "components/LoadingIndicator";
+import Notice from "components/Notice";
+import PageTitle from "components/PageTitle";
+import Time from "components/Time";
+import Container from "./Container";
+import Contents from "./Contents";
+import DocumentMove from "./DocumentMove";
+import Header from "./Header";
+import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
+import Loading from "./Loading";
+import MarkAsViewed from "./MarkAsViewed";
+import References from "./References";
+import { emojiToUrl } from "utils/emoji";
 import {
   collectionUrl,
   documentMoveUrl,
@@ -17,27 +37,6 @@ import {
   editDocumentUrl,
   documentUrl,
 } from "utils/routeHelpers";
-import { emojiToUrl } from "utils/emoji";
-
-import Header from "./Header";
-import DocumentMove from "./DocumentMove";
-import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
-import References from "./References";
-import Loading from "./Loading";
-import Container from "./Container";
-import Contents from "./Contents";
-import MarkAsViewed from "./MarkAsViewed";
-import ErrorBoundary from "components/ErrorBoundary";
-import LoadingIndicator from "components/LoadingIndicator";
-import PageTitle from "components/PageTitle";
-import Branding from "components/Branding";
-import Notice from "components/Notice";
-import Time from "components/Time";
-
-import UiStore from "stores/UiStore";
-import AuthStore from "stores/AuthStore";
-import Document from "models/Document";
-import Revision from "models/Revision";
 
 let EditorImport;
 const AUTOSAVE_DELAY = 3000;

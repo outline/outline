@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
-import { observer } from "mobx-react";
 import { observable } from "mobx";
+import { observer } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
-import VisuallyHidden from "components/VisuallyHidden";
 import Flex from "components/Flex";
+import VisuallyHidden from "components/VisuallyHidden";
 
 const RealTextarea = styled.textarea`
   border: 0;

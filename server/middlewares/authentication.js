@@ -1,12 +1,12 @@
 // @flow
+import addMinutes from "date-fns/add_minutes";
+import addMonths from "date-fns/add_months";
 import JWT from "jsonwebtoken";
 import { type Context } from "koa";
-import { User, ApiKey } from "../models";
-import { getUserForJWT } from "../utils/jwt";
-import { getCookieDomain } from "../utils/domains";
 import { AuthenticationError, UserSuspendedError } from "../errors";
-import addMonths from "date-fns/add_months";
-import addMinutes from "date-fns/add_minutes";
+import { User, ApiKey } from "../models";
+import { getCookieDomain } from "../utils/domains";
+import { getUserForJWT } from "../utils/jwt";
 
 export default function auth(options?: { required?: boolean } = {}) {
   return async function authMiddleware(ctx: Context, next: () => Promise<*>) {

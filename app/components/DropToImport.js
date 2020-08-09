@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
+import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
+import Dropzone from "react-dropzone";
 import { withRouter, type RouterHistory, type Match } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
-import invariant from "invariant";
-import importFile from "utils/importFile";
-import Dropzone from "react-dropzone";
 import DocumentsStore from "stores/DocumentsStore";
 import LoadingIndicator from "components/LoadingIndicator";
+import importFile from "utils/importFile";
 
 const EMPTY_OBJECT = {};
 let importingLock = false;

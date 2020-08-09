@@ -1,15 +1,15 @@
 // @flow
+import fs from "fs";
 import path from "path";
+import util from "util";
 import Koa from "koa";
 import Router from "koa-router";
-import fs from "fs";
-import util from "util";
 import sendfile from "koa-sendfile";
 import serve from "koa-static";
-import apexRedirect from "./middlewares/apexRedirect";
-import { robotsResponse } from "./utils/robots";
-import { opensearchResponse } from "./utils/opensearch";
 import environment from "./env";
+import apexRedirect from "./middlewares/apexRedirect";
+import { opensearchResponse } from "./utils/opensearch";
+import { robotsResponse } from "./utils/robots";
 
 const isProduction = process.env.NODE_ENV === "production";
 const koa = new Koa();

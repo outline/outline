@@ -1,17 +1,9 @@
 // @flow
 import fs from "fs";
 import Router from "koa-router";
-import { Op } from "../sequelize";
+import { ValidationError } from "../errors";
+import { exportCollections } from "../logistics";
 import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
-import {
-  presentCollection,
-  presentUser,
-  presentPolicies,
-  presentMembership,
-  presentGroup,
-  presentCollectionGroupMembership,
-} from "../presenters";
 import {
   Collection,
   CollectionUser,
@@ -21,10 +13,18 @@ import {
   User,
   Group,
 } from "../models";
-import { ValidationError } from "../errors";
-import { exportCollections } from "../logistics";
-import { archiveCollection, archiveCollections } from "../utils/zip";
 import policy from "../policies";
+import {
+  presentCollection,
+  presentUser,
+  presentPolicies,
+  presentMembership,
+  presentGroup,
+  presentCollectionGroupMembership,
+} from "../presenters";
+import { Op } from "../sequelize";
+import { archiveCollection, archiveCollections } from "../utils/zip";
+import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();

@@ -1,7 +1,7 @@
 // @flow
+import Tippy from "@tippy.js/react";
 import * as React from "react";
 import styled from "styled-components";
-import Tippy from "@tippy.js/react";
 
 type Props = {
   tooltip: React.Node,

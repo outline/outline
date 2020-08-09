@@ -1,12 +1,12 @@
 // @flow
 import crypto from "crypto";
-import uuid from "uuid";
-import JWT from "jsonwebtoken";
 import subMinutes from "date-fns/sub_minutes";
+import JWT from "jsonwebtoken";
+import uuid from "uuid";
 import { ValidationError } from "../errors";
+import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields } from "../sequelize";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
-import { sendEmail } from "../mailer";
 import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
 
 const DEFAULT_AVATAR_HOST = "https://tiley.herokuapp.com";

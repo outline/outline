@@ -1,8 +1,8 @@
 // @flow
-import * as React from "react";
 import { observer } from "mobx-react";
-import Flex from "components/Flex";
+import * as React from "react";
 import styled from "styled-components";
+import Flex from "components/Flex";
 
 type Props = {
   label: React.Node | string,

@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import { Redirect } from "react-router-dom";
+import { isCustomSubdomain } from "shared/utils/domains";
 import AuthStore from "stores/AuthStore";
 import LoadingIndicator from "components/LoadingIndicator";
-import { isCustomSubdomain } from "shared/utils/domains";
 import env from "env";
 
 type Props = {

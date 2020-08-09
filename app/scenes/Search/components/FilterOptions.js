@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import { find } from "lodash";
+import * as React from "react";
 import styled from "styled-components";
 import Button, { Inner } from "components/Button";
 import { DropdownMenu } from "components/DropdownMenu";

@@ -1,12 +1,12 @@
 // @flow
 import Router from "koa-router";
-import { Op } from "../sequelize";
-import { Event, User, Team } from "../models";
-import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
 import userInviter from "../commands/userInviter";
-import { presentUser } from "../presenters";
+import auth from "../middlewares/authentication";
+import { Event, User, Team } from "../models";
 import policy from "../policies";
+import { presentUser } from "../presenters";
+import { Op } from "../sequelize";
+import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();

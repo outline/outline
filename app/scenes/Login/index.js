@@ -1,22 +1,22 @@
 // @flow
-import * as React from "react";
-import styled from "styled-components";
-import { BackIcon, EmailIcon } from "outline-icons";
-import { observer, inject } from "mobx-react";
-import { Redirect, Link } from "react-router-dom";
 import { find } from "lodash";
-import Flex from "components/Flex";
-import TeamLogo from "components/TeamLogo";
-import OutlineLogo from "components/OutlineLogo";
-import Heading from "components/Heading";
-import PageTitle from "components/PageTitle";
-import ButtonLarge from "components/ButtonLarge";
-import HelpText from "components/HelpText";
-import Fade from "components/Fade";
-import Service from "./Service";
-import Notices from "./Notices";
-import AuthStore from "stores/AuthStore";
+import { observer, inject } from "mobx-react";
+import { BackIcon, EmailIcon } from "outline-icons";
+import * as React from "react";
+import { Redirect, Link } from "react-router-dom";
+import styled from "styled-components";
 import getQueryVariable from "shared/utils/getQueryVariable";
+import AuthStore from "stores/AuthStore";
+import ButtonLarge from "components/ButtonLarge";
+import Fade from "components/Fade";
+import Flex from "components/Flex";
+import Heading from "components/Heading";
+import HelpText from "components/HelpText";
+import OutlineLogo from "components/OutlineLogo";
+import PageTitle from "components/PageTitle";
+import TeamLogo from "components/TeamLogo";
+import Notices from "./Notices";
+import Service from "./Service";
 import env from "env";
 
 type Props = {

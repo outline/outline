@@ -1,22 +1,21 @@
 // @flow
-import * as React from "react";
-import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import { observable, action } from "mobx";
 import { inject, observer } from "mobx-react";
 import { LinkIcon, CloseIcon } from "outline-icons";
+import * as React from "react";
+import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import styled from "styled-components";
-import Flex from "components/Flex";
-import Button from "components/Button";
-import Input from "components/Input";
-import CopyToClipboard from "components/CopyToClipboard";
-import HelpText from "components/HelpText";
-import Tooltip from "components/Tooltip";
-import NudeButton from "components/NudeButton";
-
-import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
-import UsersStore from "stores/UsersStore";
 import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import UsersStore from "stores/UsersStore";
+import Button from "components/Button";
+import CopyToClipboard from "components/CopyToClipboard";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import NudeButton from "components/NudeButton";
+import Tooltip from "components/Tooltip";
 
 const MAX_INVITES = 20;
 

@@ -1,7 +1,7 @@
 // @flow
+import path from "path";
 import debug from "debug";
 import fs from "fs-extra";
-import path from "path";
 
 const log = debug("services");
 const services = {};

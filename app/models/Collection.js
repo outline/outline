@@ -3,8 +3,8 @@ import { pick } from "lodash";
 import { action, computed, observable } from "mobx";
 import BaseModel from "models/BaseModel";
 import Document from "models/Document";
-import { client } from "utils/ApiClient";
 import type { NavigationNode } from "types";
+import { client } from "utils/ApiClient";
 
 export default class Collection extends BaseModel {
   @observable isSaving: boolean;

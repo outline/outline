@@ -1,13 +1,13 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import { withRouter, type Location } from "react-router-dom";
-import Fade from "components/Fade";
-import Tabs from "components/Tabs";
-import Tab from "components/Tab";
-import DocumentsStore from "stores/DocumentsStore";
 import CollectionsStore from "stores/CollectionsStore";
+import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";
+import Fade from "components/Fade";
+import Tab from "components/Tab";
+import Tabs from "components/Tabs";
 import ReferenceListItem from "./ReferenceListItem";
 
 type Props = {

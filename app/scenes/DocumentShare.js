@@ -1,21 +1,21 @@
 // @flow
-import * as React from "react";
+import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
-import styled from "styled-components";
-import invariant from "invariant";
+import * as React from "react";
 import { Link } from "react-router-dom";
-import Input from "components/Input";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import Switch from "components/Switch";
-import CopyToClipboard from "components/CopyToClipboard";
-import HelpText from "components/HelpText";
-import Document from "models/Document";
+import styled from "styled-components";
+import PoliciesStore from "stores/PoliciesStore";
 import SharesStore from "stores/SharesStore";
 import UiStore from "stores/UiStore";
-import PoliciesStore from "stores/PoliciesStore";
+import Document from "models/Document";
+import Button from "components/Button";
+import CopyToClipboard from "components/CopyToClipboard";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import Switch from "components/Switch";
 
 type Props = {
   document: Document,

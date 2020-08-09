@@ -1,16 +1,16 @@
 // @flow
-import uuid from "uuid";
-import { URL } from "url";
 import fs from "fs";
-import util from "util";
 import path from "path";
-import { DataTypes, sequelize, Op } from "../sequelize";
-import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
+import { URL } from "url";
+import util from "util";
+import uuid from "uuid";
 import {
   stripSubdomain,
   RESERVED_SUBDOMAINS,
 } from "../../shared/utils/domains";
 import { ValidationError } from "../errors";
+import { DataTypes, sequelize, Op } from "../sequelize";
+import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 
 import Collection from "./Collection";
 import Document from "./Document";

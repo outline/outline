@@ -1,26 +1,26 @@
 // @flow
-import * as React from "react";
 import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
+import * as React from "react";
 import { type Match } from "react-router-dom";
 
-import Empty from "components/Empty";
-import Modal from "components/Modal";
-import Button from "components/Button";
-import Invite from "scenes/Invite";
-import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
-import HelpText from "components/HelpText";
-import PaginatedList from "components/PaginatedList";
-import Tabs, { Separator } from "components/Tabs";
-import Tab from "components/Tab";
-import UserListItem from "./components/UserListItem";
-
 import AuthStore from "stores/AuthStore";
-import UsersStore from "stores/UsersStore";
 import PoliciesStore from "stores/PoliciesStore";
+import UsersStore from "stores/UsersStore";
+import Invite from "scenes/Invite";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import Empty from "components/Empty";
+import HelpText from "components/HelpText";
+import Modal from "components/Modal";
+import PageTitle from "components/PageTitle";
+import PaginatedList from "components/PaginatedList";
+import Tab from "components/Tab";
+import Tabs, { Separator } from "components/Tabs";
+
+import UserListItem from "./components/UserListItem";
 
 type Props = {
   auth: AuthStore,

@@ -1,11 +1,11 @@
 // @flow
-import * as React from "react";
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { observable, action } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import { type RouterHistory, type Match } from "react-router-dom";
-import styled from "styled-components";
 import { Waypoint } from "react-waypoint";
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
+import styled from "styled-components";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";

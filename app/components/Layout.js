@@ -1,32 +1,32 @@
 // @flow
-import * as React from "react";
-import { Switch, Route, Redirect } from "react-router-dom";
-import { Helmet } from "react-helmet";
-import styled, { withTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
+import { Helmet } from "react-helmet";
 import keydown from "react-keydown";
+import { Switch, Route, Redirect } from "react-router-dom";
+import styled, { withTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import AuthStore from "stores/AuthStore";
+import DocumentsStore from "stores/DocumentsStore";
+import UiStore from "stores/UiStore";
+import ErrorSuspended from "scenes/ErrorSuspended";
+import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Analytics from "components/Analytics";
+import DocumentHistory from "components/DocumentHistory";
+import { GlobalStyles } from "components/DropToImport";
 import Flex from "components/Flex";
+
+import { LoadingIndicatorBar } from "components/LoadingIndicator";
+import Modal from "components/Modal";
+import Modals from "components/Modals";
+import Sidebar from "components/Sidebar";
+import SettingsSidebar from "components/Sidebar/Settings";
 import {
   homeUrl,
   searchUrl,
   matchDocumentSlug as slug,
 } from "utils/routeHelpers";
-
-import { LoadingIndicatorBar } from "components/LoadingIndicator";
-import { GlobalStyles } from "components/DropToImport";
-import Sidebar from "components/Sidebar";
-import SettingsSidebar from "components/Sidebar/Settings";
-import Modals from "components/Modals";
-import DocumentHistory from "components/DocumentHistory";
-import Modal from "components/Modal";
-import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-import ErrorSuspended from "scenes/ErrorSuspended";
-import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
-import DocumentsStore from "stores/DocumentsStore";
 
 type Props = {
   documents: DocumentsStore,

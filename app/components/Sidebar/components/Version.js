@@ -2,8 +2,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import Badge from "components/Badge";
-import SidebarLink from "./SidebarLink";
 import { version } from "../../../../package.json";
+import SidebarLink from "./SidebarLink";
 
 export default function Version() {
   const [releasesBehind, setReleasesBehind] = React.useState(0);

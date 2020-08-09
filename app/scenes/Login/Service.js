@@ -1,12 +1,12 @@
 // @flow
+import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import { EmailIcon } from "outline-icons";
-import { client } from "utils/ApiClient";
 import ButtonLarge from "components/ButtonLarge";
-import SlackLogo from "components/SlackLogo";
 import GoogleLogo from "components/GoogleLogo";
 import InputLarge from "components/InputLarge";
+import SlackLogo from "components/SlackLogo";
+import { client } from "utils/ApiClient";
 
 type Props = {
   id: string,

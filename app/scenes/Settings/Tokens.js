@@ -1,15 +1,15 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import ApiKeysStore from "stores/ApiKeysStore";
 
 import Button from "components/Button";
-import Input from "components/Input";
 import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
 import HelpText from "components/HelpText";
+import Input from "components/Input";
 import List from "components/List";
+import PageTitle from "components/PageTitle";
 import TokenListItem from "./components/TokenListItem";
 
 type Props = {

@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import { CheckmarkIcon } from "outline-icons";
+import * as React from "react";
 import styled from "styled-components";
 
 type Props = {

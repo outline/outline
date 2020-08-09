@@ -1,4 +1,5 @@
 // @flow
+import uuid from "uuid";
 import {
   Share,
   Team,
@@ -10,7 +11,6 @@ import {
   GroupUser,
   Attachment,
 } from "../models";
-import uuid from "uuid";
 
 let count = 0;
 

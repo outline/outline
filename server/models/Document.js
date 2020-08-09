@@ -1,15 +1,15 @@
 // @flow
+import removeMarkdown from "@tommoor/remove-markdown";
 import { map, find, compact, uniq } from "lodash";
-import MarkdownSerializer from "slate-md-serializer";
 import randomstring from "randomstring";
 import Sequelize, { type Transaction } from "sequelize";
-import removeMarkdown from "@tommoor/remove-markdown";
+import MarkdownSerializer from "slate-md-serializer";
 
 import isUUID from "validator/lib/isUUID";
-import { Collection, User } from "../models";
-import { DataTypes, sequelize } from "../sequelize";
 import parseTitle from "../../shared/utils/parseTitle";
 import unescape from "../../shared/utils/unescape";
+import { Collection, User } from "../models";
+import { DataTypes, sequelize } from "../sequelize";
 import slugify from "../utils/slugify";
 import Revision from "./Revision";
 

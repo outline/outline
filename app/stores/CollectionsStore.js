@@ -1,12 +1,12 @@
 // @flow
-import { computed } from "mobx";
 import { concat, filter, last } from "lodash";
-import { client } from "utils/ApiClient";
+import { computed } from "mobx";
 
+import naturalSort from "shared/utils/naturalSort";
+import Collection from "models/Collection";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import Collection from "models/Collection";
-import naturalSort from "shared/utils/naturalSort";
+import { client } from "utils/ApiClient";
 
 export type DocumentPathItem = {
   id: string,

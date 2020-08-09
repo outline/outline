@@ -1,12 +1,12 @@
 // @flow
-import * as React from "react";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
 import { Link } from "react-router-dom";
-import Editor from "components/Editor";
 import styled from "styled-components";
 import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";
 import DocumentsStore from "stores/DocumentsStore";
 import DocumentMeta from "components/DocumentMeta";
+import Editor from "components/Editor";
 
 type Props = {
   url: string,

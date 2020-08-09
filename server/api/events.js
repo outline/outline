@@ -1,11 +1,11 @@
 // @flow
-import Sequelize from "sequelize";
 import Router from "koa-router";
+import Sequelize from "sequelize";
 import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
-import { presentEvent } from "../presenters";
 import { Event, Team, User } from "../models";
 import policy from "../policies";
+import { presentEvent } from "../presenters";
+import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;
 const { authorize } = policy;

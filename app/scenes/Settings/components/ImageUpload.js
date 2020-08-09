@@ -1,16 +1,16 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import styled from "styled-components";
-import Dropzone from "react-dropzone";
-import LoadingIndicator from "components/LoadingIndicator";
-import Flex from "components/Flex";
-import Modal from "components/Modal";
-import Button from "components/Button";
+import * as React from "react";
 import AvatarEditor from "react-avatar-editor";
-import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
+import Dropzone from "react-dropzone";
+import styled from "styled-components";
 import UiStore from "stores/UiStore";
+import Button from "components/Button";
+import Flex from "components/Flex";
+import LoadingIndicator from "components/LoadingIndicator";
+import Modal from "components/Modal";
+import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 
 type Props = {
   children?: React.Node,

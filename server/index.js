@@ -1,13 +1,13 @@
 // @flow
 import http from "http";
 import IO from "socket.io";
-import SocketAuth from "socketio-auth";
 import socketRedisAdapter from "socket.io-redis";
-import { getUserForJWT } from "./utils/jwt";
-import { Document, Collection, View } from "./models";
-import { client, subscriber } from "./redis";
+import SocketAuth from "socketio-auth";
 import app from "./app";
+import { Document, Collection, View } from "./models";
 import policy from "./policies";
+import { client, subscriber } from "./redis";
+import { getUserForJWT } from "./utils/jwt";
 
 const server = http.createServer(app.callback());
 let io;

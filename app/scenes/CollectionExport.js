@@ -1,13 +1,13 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
+import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
+import Collection from "models/Collection";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import Collection from "models/Collection";
-import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
 
 type Props = {
   collection: Collection,

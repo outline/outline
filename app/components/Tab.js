@@ -1,8 +1,8 @@
 // @flow
-import * as React from "react";
-import styled, { withTheme } from "styled-components";
-import { NavLink } from "react-router-dom";
 import { lighten } from "polished";
+import * as React from "react";
+import { NavLink } from "react-router-dom";
+import styled, { withTheme } from "styled-components";
 
 type Props = {
   theme: Object,

@@ -1,23 +1,23 @@
 // @flow
+import { debounce } from "lodash";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import { inject, observer } from "mobx-react";
-import { observable } from "mobx";
-import { debounce } from "lodash";
+import AuthStore from "stores/AuthStore";
+import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
+import GroupsStore from "stores/GroupsStore";
+import UiStore from "stores/UiStore";
+import Collection from "models/Collection";
+import GroupNew from "scenes/GroupNew";
 import Button from "components/Button";
+import Empty from "components/Empty";
 import Flex from "components/Flex";
+import GroupListItem from "components/GroupListItem";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
-import Empty from "components/Empty";
 import PaginatedList from "components/PaginatedList";
-import GroupNew from "scenes/GroupNew";
-import Collection from "models/Collection";
-import UiStore from "stores/UiStore";
-import AuthStore from "stores/AuthStore";
-import GroupsStore from "stores/GroupsStore";
-import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
-import GroupListItem from "components/GroupListItem";
 
 type Props = {
   ui: UiStore,

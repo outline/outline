@@ -1,20 +1,20 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
 import { withRouter, type RouterHistory } from "react-router-dom";
-import Modal from "components/Modal";
-import VisuallyHidden from "components/VisuallyHidden";
-import CollectionMembers from "scenes/CollectionMembers";
-
-import { newDocumentUrl } from "utils/routeHelpers";
-import getDataTransferFiles from "utils/getDataTransferFiles";
-import importFile from "utils/importFile";
-import Collection from "models/Collection";
-import UiStore from "stores/UiStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import Collection from "models/Collection";
+import CollectionMembers from "scenes/CollectionMembers";
+
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Modal from "components/Modal";
+import VisuallyHidden from "components/VisuallyHidden";
+import getDataTransferFiles from "utils/getDataTransferFiles";
+import importFile from "utils/importFile";
+import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   position?: "left" | "right" | "center",

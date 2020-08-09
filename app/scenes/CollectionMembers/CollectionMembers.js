@@ -1,27 +1,27 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
-import styled from "styled-components";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-import Flex from "components/Flex";
-import HelpText from "components/HelpText";
-import Subheading from "components/Subheading";
+import * as React from "react";
+import styled from "styled-components";
+import AuthStore from "stores/AuthStore";
+import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
+import GroupsStore from "stores/GroupsStore";
+import MembershipsStore from "stores/MembershipsStore";
+import UiStore from "stores/UiStore";
+import UsersStore from "stores/UsersStore";
+import Collection from "models/Collection";
 import Button from "components/Button";
 import Empty from "components/Empty";
-import PaginatedList from "components/PaginatedList";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
 import Modal from "components/Modal";
-import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
-import Collection from "models/Collection";
-import UiStore from "stores/UiStore";
-import AuthStore from "stores/AuthStore";
-import MembershipsStore from "stores/MembershipsStore";
-import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
-import UsersStore from "stores/UsersStore";
-import MemberListItem from "./components/MemberListItem";
-import AddPeopleToCollection from "./AddPeopleToCollection";
+import PaginatedList from "components/PaginatedList";
+import Subheading from "components/Subheading";
 import AddGroupsToCollection from "./AddGroupsToCollection";
-import GroupsStore from "stores/GroupsStore";
+import AddPeopleToCollection from "./AddPeopleToCollection";
+import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
+import MemberListItem from "./components/MemberListItem";
 
 type Props = {
   ui: UiStore,

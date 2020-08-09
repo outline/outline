@@ -1,25 +1,25 @@
 // @flow
-import * as React from "react";
 import invariant from "invariant";
-import { withRouter } from "react-router-dom";
-import type { Location, RouterHistory, Match } from "react-router-dom";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
-import { NotFoundError, OfflineError } from "utils/errors";
-import DocumentComponent from "./Document";
-import Revision from "models/Revision";
-import Document from "models/Document";
-import SocketPresence from "./SocketPresence";
-import Loading from "./Loading";
-import HideSidebar from "./HideSidebar";
-import Error404 from "scenes/Error404";
-import ErrorOffline from "scenes/ErrorOffline";
+import * as React from "react";
+import type { Location, RouterHistory, Match } from "react-router-dom";
+import { withRouter } from "react-router-dom";
 import DocumentsStore from "stores/DocumentsStore";
-import SharesStore from "stores/SharesStore";
 import PoliciesStore from "stores/PoliciesStore";
 import RevisionsStore from "stores/RevisionsStore";
+import SharesStore from "stores/SharesStore";
 import UiStore from "stores/UiStore";
+import Document from "models/Document";
+import Revision from "models/Revision";
+import Error404 from "scenes/Error404";
+import ErrorOffline from "scenes/ErrorOffline";
+import DocumentComponent from "./Document";
+import HideSidebar from "./HideSidebar";
+import Loading from "./Loading";
+import SocketPresence from "./SocketPresence";
+import { NotFoundError, OfflineError } from "utils/errors";
+import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
   match: Match,

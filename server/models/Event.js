@@ -1,6 +1,6 @@
 // @flow
-import { DataTypes, sequelize } from "../sequelize";
 import events from "../events";
+import { DataTypes, sequelize } from "../sequelize";
 
 const Event = sequelize.define("event", {
   id: {

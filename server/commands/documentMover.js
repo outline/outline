@@ -1,7 +1,7 @@
 // @flow
+import { type Context } from "koa";
 import { Document, Collection, Event } from "../models";
 import { sequelize } from "../sequelize";
-import { type Context } from "koa";
 
 export default async function documentMover({
   user,

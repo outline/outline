@@ -1,12 +1,12 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
+import Backlink from "../models/Backlink";
+import { buildDocument } from "../test/factories";
 import { flushdb } from "../test/support";
 import BacklinksService from "./backlinks";
-import { buildDocument } from "../test/factories";
-import Backlink from "../models/Backlink";
 
 const Backlinks = new BacklinksService();
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
 describe("documents.update", () => {

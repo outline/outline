@@ -1,16 +1,16 @@
 // @flow
-import * as React from "react";
-import { observer } from "mobx-react";
 import { observable } from "mobx";
+import { observer } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
+import DocumentsStore from "stores/DocumentsStore";
+import Collection from "models/Collection";
 import Document from "models/Document";
-import DocumentMenu from "menus/DocumentMenu";
-import SidebarLink from "./SidebarLink";
 import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
-import Collection from "models/Collection";
-import DocumentsStore from "stores/DocumentsStore";
 import Flex from "components/Flex";
+import SidebarLink from "./SidebarLink";
+import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
 
 type Props = {

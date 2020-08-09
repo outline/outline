@@ -2,10 +2,10 @@
 import Router from "koa-router";
 
 import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
-import { presentApiKey } from "../presenters";
 import { ApiKey, Event } from "../models";
 import policy from "../policies";
+import { presentApiKey } from "../presenters";
+import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();

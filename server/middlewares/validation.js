@@ -1,8 +1,8 @@
 // @flow
-import validator from "validator";
 import { type Context } from "koa";
-import { ParamRequiredError, ValidationError } from "../errors";
+import validator from "validator";
 import { validateColorHex } from "../../shared/utils/color";
+import { ParamRequiredError, ValidationError } from "../errors";
 
 export default function validation() {
   return function validationMiddleware(ctx: Context, next: () => Promise<*>) {

@@ -1,6 +1,6 @@
 // @flow
-import { Op } from "../sequelize";
 import type { DocumentEvent, CollectionEvent, Event } from "../events";
+import mailer from "../mailer";
 import {
   Document,
   Team,
@@ -8,7 +8,7 @@ import {
   User,
   NotificationSetting,
 } from "../models";
-import mailer from "../mailer";
+import { Op } from "../sequelize";
 
 export default class Notifications {
   async on(event: Event) {

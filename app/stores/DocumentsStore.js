@@ -1,5 +1,5 @@
 // @flow
-import { observable, action, computed, runInAction } from "mobx";
+import invariant from "invariant";
 import {
   without,
   map,
@@ -10,15 +10,15 @@ import {
   omitBy,
   uniq,
 } from "lodash";
-import { client } from "utils/ApiClient";
+import { observable, action, computed, runInAction } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
-import invariant from "invariant";
 
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
+import { client } from "utils/ApiClient";
 
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];

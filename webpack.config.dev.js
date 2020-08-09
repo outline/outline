@@ -6,8 +6,6 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
   devtool: "eval-source-map",
   entry: [
-    "babel-polyfill",
-    "babel-regenerator-runtime",
     "webpack-hot-middleware/client",
     "./app/index",
   ],

@@ -1,16 +1,16 @@
 // @flow
-import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { lighten } from "polished";
-import styled, { withTheme } from "styled-components";
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
 import RichMarkdownEditor from "rich-markdown-editor";
-import { uploadFile } from "utils/uploadFile";
-import isInternalUrl from "utils/isInternalUrl";
-import Tooltip from "components/Tooltip";
+import styled, { withTheme } from "styled-components";
 import UiStore from "stores/UiStore";
+import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
+import isInternalUrl from "utils/isInternalUrl";
+import { uploadFile } from "utils/uploadFile";
 
 const EMPTY_ARRAY = [];
 

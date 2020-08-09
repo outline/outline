@@ -1,7 +1,7 @@
 // @flow
+import { inject } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import { inject } from "mobx-react";
 import ViewsStore from "stores/ViewsStore";
 import Document from "models/Document";
 import PublishingInfo from "components/PublishingInfo";

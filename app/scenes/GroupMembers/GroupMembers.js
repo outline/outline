@@ -1,23 +1,23 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-import Flex from "components/Flex";
-import Empty from "components/Empty";
-import HelpText from "components/HelpText";
-import Subheading from "components/Subheading";
-import Button from "components/Button";
-import PaginatedList from "components/PaginatedList";
-import Modal from "components/Modal";
-import Group from "models/Group";
-import UiStore from "stores/UiStore";
+import * as React from "react";
 import AuthStore from "stores/AuthStore";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
-import UsersStore from "stores/UsersStore";
 import PoliciesStore from "stores/PoliciesStore";
-import GroupMemberListItem from "./components/GroupMemberListItem";
+import UiStore from "stores/UiStore";
+import UsersStore from "stores/UsersStore";
+import Group from "models/Group";
+import Button from "components/Button";
+import Empty from "components/Empty";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Modal from "components/Modal";
+import PaginatedList from "components/PaginatedList";
+import Subheading from "components/Subheading";
 import AddPeopleToGroup from "./AddPeopleToGroup";
+import GroupMemberListItem from "./components/GroupMemberListItem";
 
 type Props = {
   ui: UiStore,

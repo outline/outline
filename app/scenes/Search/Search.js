@@ -1,39 +1,39 @@
 // @flow
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
+import { debounce } from "lodash";
+import { observable, action } from "mobx";
+import { observer, inject } from "mobx-react";
+import { PlusIcon } from "outline-icons";
+import queryString from "query-string";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import keydown from "react-keydown";
-import { Waypoint } from "react-waypoint";
 import { withRouter, Link } from "react-router-dom";
 import type { Location, RouterHistory, Match } from "react-router-dom";
-import { PlusIcon } from "outline-icons";
-import { observable, action } from "mobx";
-import { observer, inject } from "mobx-react";
-import { debounce } from "lodash";
-import queryString from "query-string";
+import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
 import UsersStore from "stores/UsersStore";
-import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
-import { meta } from "utils/keyboard";
 
-import Flex from "components/Flex";
 import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import DocumentPreview from "components/DocumentPreview";
 import Empty from "components/Empty";
 import Fade from "components/Fade";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import CenteredContent from "components/CenteredContent";
 import LoadingIndicator from "components/LoadingIndicator";
-import DocumentPreview from "components/DocumentPreview";
-import NewDocumentMenu from "menus/NewDocumentMenu";
 import PageTitle from "components/PageTitle";
+import CollectionFilter from "./components/CollectionFilter";
+import DateFilter from "./components/DateFilter";
 import SearchField from "./components/SearchField";
 import StatusFilter from "./components/StatusFilter";
-import CollectionFilter from "./components/CollectionFilter";
 import UserFilter from "./components/UserFilter";
-import DateFilter from "./components/DateFilter";
+import NewDocumentMenu from "menus/NewDocumentMenu";
+import { meta } from "utils/keyboard";
+import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,

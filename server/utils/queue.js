@@ -1,6 +1,6 @@
 // @flow
-import Redis from "ioredis";
 import Queue from "bull";
+import Redis from "ioredis";
 import { client, subscriber } from "../redis";
 
 export function createQueue(name: string) {
