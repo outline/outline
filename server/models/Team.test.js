@@ -2,7 +2,7 @@
 import { flushdb } from "../test/support";
 import { buildTeam } from "../test/factories";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 
 it("should set subdomain if available", async () => {
   const team = await buildTeam();

@@ -7,8 +7,8 @@ import { buildUser, buildShare } from "../test/factories";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
 describe("#shares.list", () => {
   it("should only return shares created by user", async () => {

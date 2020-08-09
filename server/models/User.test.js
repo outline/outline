@@ -2,7 +2,7 @@
 import { flushdb } from "../test/support";
 import { buildUser } from "../test/factories";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 
 it("should set JWT secret", async () => {
   const user = await buildUser();

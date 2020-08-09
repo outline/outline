@@ -11,8 +11,8 @@ import {
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
 describe("#attachments.redirect", () => {
   it("should require authentication", async () => {

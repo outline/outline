@@ -3,7 +3,7 @@ import userInviter from "../commands/userInviter";
 import { flushdb } from "../test/support";
 import { buildUser } from "../test/factories";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 
 describe("userInviter", () => {
   const ip = "127.0.0.1";

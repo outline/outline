@@ -5,7 +5,7 @@ import { ApiKey } from "../models";
 import randomstring from "randomstring";
 import auth from "./authentication";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 
 describe("Authentication middleware", () => {
   describe("with JWT", () => {

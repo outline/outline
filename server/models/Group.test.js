@@ -3,7 +3,7 @@ import { flushdb } from "../test/support";
 import { CollectionGroup, GroupUser } from "../models";
 import { buildUser, buildGroup, buildCollection } from "../test/factories";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
 describe("afterDestroy hook", () => {

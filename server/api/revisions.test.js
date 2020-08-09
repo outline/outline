@@ -7,8 +7,8 @@ import Revision from "../models/Revision";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
 describe("#revisions.info", () => {
   it("should return a document revision", async () => {

@@ -3,7 +3,7 @@ import { flushdb } from "../test/support";
 import { buildUser } from "../test/factories";
 import { serialize } from "./index";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 
 it("should serialize policy", async () => {
   const user = await buildUser();

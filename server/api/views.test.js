@@ -7,8 +7,8 @@ import { buildUser } from "../test/factories";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
 describe("#views.list", () => {
   it("should return views for a document", async () => {

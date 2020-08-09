@@ -6,7 +6,7 @@ import Backlink from "../models/Backlink";
 
 const Backlinks = new BacklinksService();
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
 describe("documents.update", () => {

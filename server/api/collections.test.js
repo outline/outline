@@ -6,8 +6,8 @@ import { buildUser, buildGroup, buildCollection } from "../test/factories";
 import { Collection, CollectionUser, CollectionGroup } from "../models";
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
 describe("#collections.list", () => {
   it("should require authentication", async () => {

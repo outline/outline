@@ -7,8 +7,8 @@ import { Event } from "../models";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
 describe("#groups.create", () => {
   it("should create a group", async () => {

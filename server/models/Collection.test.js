@@ -9,7 +9,7 @@ import {
 } from "../test/factories";
 import uuid from "uuid";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
 describe("#url", () => {

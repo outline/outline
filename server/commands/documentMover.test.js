@@ -3,7 +3,7 @@ import documentMover from "../commands/documentMover";
 import { flushdb, seed } from "../test/support";
 import { buildDocument, buildCollection } from "../test/factories";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 
 describe("documentMover", () => {
   const ip = "127.0.0.1";

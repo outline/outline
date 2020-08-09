@@ -9,8 +9,8 @@ import { buildDocument } from "../test/factories";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
 describe("#utils.gc", () => {
   it("should destroy documents deleted more than 30 days ago", async () => {

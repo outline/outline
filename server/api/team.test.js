@@ -6,8 +6,8 @@ import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
 describe("#team.update", () => {
   it("should update team details", async () => {
