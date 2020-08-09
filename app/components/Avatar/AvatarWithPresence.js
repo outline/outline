@@ -40,7 +40,7 @@ class AvatarWithPresence extends React.Component<Props> {
     } = this.props;
 
     return (
-      <React.Fragment>
+      <>
         <Tooltip
           tooltip={
             <Centered>
@@ -69,7 +69,7 @@ class AvatarWithPresence extends React.Component<Props> {
           isOpen={this.isOpen}
           onRequestClose={this.handleCloseProfile}
         />
-      </React.Fragment>
+      </>
     );
   }
 }

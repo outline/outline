@@ -72,7 +72,7 @@ class Service extends React.Component<Props, State> {
             onSubmit={this.handleSubmitEmail}
           >
             {this.state.showEmailSignin ? (
-              <React.Fragment>
+              <>
                 <InputLarge
                   type="email"
                   name="email"
@@ -87,7 +87,7 @@ class Service extends React.Component<Props, State> {
                 <ButtonLarge type="submit" disabled={this.state.isSubmitting}>
                   Sign In →
                 </ButtonLarge>
-              </React.Fragment>
+              </>
             ) : (
               <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth>
                 Continue with Email

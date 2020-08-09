@@ -26,7 +26,7 @@ class KeyboardShortcutsButton extends React.Component<Props> {
 
   render() {
     return (
-      <React.Fragment>
+      <>
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}
@@ -44,7 +44,7 @@ class KeyboardShortcutsButton extends React.Component<Props> {
             <KeyboardIcon />
           </Button>
         </Tooltip>
-      </React.Fragment>
+      </>
     );
   }
 }

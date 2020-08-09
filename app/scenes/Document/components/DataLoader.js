@@ -3,7 +3,7 @@ import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import * as React from "react";
-import type { Location, RouterHistory, Match } from "react-router-dom";
+import type { RouterHistory, Match } from "react-router-dom";
 import { withRouter } from "react-router-dom";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -18,12 +18,13 @@ import DocumentComponent from "./Document";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 import SocketPresence from "./SocketPresence";
+import { type LocationWithState } from "types";
 import { NotFoundError, OfflineError } from "utils/errors";
 import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
   match: Match,
-  location: Location,
+  location: LocationWithState,
   shares: SharesStore,
   documents: DocumentsStore,
   policies: PoliciesStore,
@@ -166,10 +167,10 @@ class DataLoader extends React.Component<Props> {
 
     if (!document) {
       return (
-        <React.Fragment>
+        <>
           <Loading location={location} />
           {this.isEditing && <HideSidebar ui={ui} />}
-        </React.Fragment>
+        </>
       );
     }
 

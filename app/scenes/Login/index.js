@@ -125,12 +125,12 @@ class Login extends React.Component<Props, State> {
                 {...defaultService}
               />
               {hasMultipleServices && (
-                <React.Fragment>
+                <>
                   <Note>
                     You signed in with {defaultService.name} last time.
                   </Note>
                   <Or />
-                </React.Fragment>
+                </>
               )}
             </React.Fragment>
           )}

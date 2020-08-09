@@ -153,7 +153,7 @@ class DocumentMenu extends React.Component<Props> {
     const canViewHistory = can.read && !can.restore;
 
     return (
-      <React.Fragment>
+      <>
         <DropdownMenu
           className={className}
           position={position}
@@ -197,7 +197,7 @@ class DocumentMenu extends React.Component<Props> {
             </DropdownMenuItem>
           )}
           {showToggleEmbeds && (
-            <React.Fragment>
+            <>
               {document.embedsDisabled ? (
                 <DropdownMenuItem onClick={document.enableEmbeds}>
                   Enable embeds
@@ -207,7 +207,7 @@ class DocumentMenu extends React.Component<Props> {
                   Disable embeds
                 </DropdownMenuItem>
               )}
-            </React.Fragment>
+            </>
           )}
           {!can.restore && <hr />}
 
@@ -247,11 +247,11 @@ class DocumentMenu extends React.Component<Props> {
           )}
           <hr />
           {canViewHistory && (
-            <React.Fragment>
+            <>
               <DropdownMenuItem onClick={this.handleDocumentHistory}>
                 History
               </DropdownMenuItem>
-            </React.Fragment>
+            </>
           )}
           {can.download && (
             <DropdownMenuItem onClick={this.handleExport}>
@@ -282,7 +282,7 @@ class DocumentMenu extends React.Component<Props> {
             onSubmit={this.handleCloseTemplateModal}
           />
         </Modal>
-      </React.Fragment>
+      </>
     );
   }
 }

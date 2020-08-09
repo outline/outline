@@ -10,6 +10,7 @@ export type Props = {
   labelHidden?: boolean,
   className?: string,
   note?: string,
+  short?: boolean,
   small?: boolean,
 };
 
@@ -42,7 +43,7 @@ export default function Checkbox({
   const wrappedLabel = <LabelText small={small}>{label}</LabelText>;
 
   return (
-    <React.Fragment>
+    <>
       <Wrapper small={small}>
         <Label>
           <input type="checkbox" {...rest} />
@@ -55,6 +56,6 @@ export default function Checkbox({
         </Label>
         {note && <HelpText small>{note}</HelpText>}
       </Wrapper>
-    </React.Fragment>
+    </>
   );
 }

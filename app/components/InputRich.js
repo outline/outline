@@ -48,7 +48,7 @@ class InputRich extends React.Component<Props> {
     const Editor = this.editorComponent;
 
     return (
-      <React.Fragment>
+      <>
         <LabelText>{label}</LabelText>
 
         <StyledOutline
@@ -67,7 +67,7 @@ class InputRich extends React.Component<Props> {
             "Loading…"
           )}
         </StyledOutline>
-      </React.Fragment>
+      </>
     );
   }
 }

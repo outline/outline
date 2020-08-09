@@ -35,7 +35,7 @@ class UserListItem extends React.Component<Props> {
       <ListItem
         title={<Title onClick={this.handleOpenProfile}>{user.name}</Title>}
         image={
-          <React.Fragment>
+          <>
             <Avatar
               src={user.avatarUrl}
               size={40}
@@ -46,21 +46,21 @@ class UserListItem extends React.Component<Props> {
               isOpen={this.profileOpen}
               onRequestClose={this.handleCloseProfile}
             />
-          </React.Fragment>
+          </>
         }
         subtitle={
-          <React.Fragment>
+          <>
             {user.email ? `${user.email} · ` : undefined}
             {user.lastActiveAt ? (
-              <React.Fragment>
+              <>
                 Active <Time dateTime={user.lastActiveAt} /> ago
-              </React.Fragment>
+              </>
             ) : (
               "Invited"
             )}
             {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
             {user.isSuspended && <Badge>Suspended</Badge>}
-          </React.Fragment>
+          </>
         }
         actions={showMenu ? <UserMenu user={user} /> : undefined}
       />

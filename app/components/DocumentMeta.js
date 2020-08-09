@@ -18,10 +18,10 @@ function DocumentMeta({ views, isDraft, document }: Props) {
   return (
     <Meta document={document}>
       {totalViews && !isDraft ? (
-        <React.Fragment>
+        <>
           &nbsp;&middot; Viewed{" "}
           {totalViews === 1 ? "once" : `${totalViews} times`}
-        </React.Fragment>
+        </>
       ) : null}
     </Meta>
   );

@@ -161,7 +161,7 @@ class DropdownMenu extends React.Component<Props> {
           closeOnEsc
         >
           {({ closePortal, openPortal, isOpen, portal }) => (
-            <React.Fragment>
+            <>
               <Label
                 onMouseMove={hover ? this.clearCloseTimeout : undefined}
                 onMouseOut={
@@ -220,7 +220,7 @@ class DropdownMenu extends React.Component<Props> {
                   </Menu>
                 </Position>
               )}
-            </React.Fragment>
+            </>
           )}
         </PortalWithState>
       </div>

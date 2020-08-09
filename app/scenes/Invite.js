@@ -111,10 +111,10 @@ class Invite extends React.Component<Props> {
             Invite team members to join your knowledge base. They will need to
             sign in with {team.signinMethods}.{" "}
             {can.update && (
-              <React.Fragment>
+              <>
                 As an admin you can also{" "}
                 <Link to="/settings/security">enable email sign-in</Link>.
-              </React.Fragment>
+              </>
             )}
           </HelpText>
         )}

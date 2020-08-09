@@ -45,7 +45,7 @@ class AccountMenu extends React.Component<Props> {
     const { ui } = this.props;
 
     return (
-      <React.Fragment>
+      <>
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}
@@ -118,7 +118,7 @@ class AccountMenu extends React.Component<Props> {
             Log out
           </DropdownMenuItem>
         </DropdownMenu>
-      </React.Fragment>
+      </>
     );
   }
 }

@@ -117,7 +117,7 @@ class Details extends React.Component<Props> {
             short
           />
           {env.SUBDOMAINS_ENABLED && (
-            <React.Fragment>
+            <>
               <Input
                 label="Subdomain"
                 name="subdomain"
@@ -134,7 +134,7 @@ class Details extends React.Component<Props> {
                   <strong>{this.subdomain}.getoutline.com</strong>
                 </HelpText>
               )}
-            </React.Fragment>
+            </>
           )}
           <Button type="submit" disabled={isSaving || !this.isValid}>
             {isSaving ? "Saving…" : "Save"}

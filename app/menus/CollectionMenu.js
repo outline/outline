@@ -93,7 +93,7 @@ class CollectionMenu extends React.Component<Props> {
     const can = policies.abilities(collection.id);
 
     return (
-      <React.Fragment>
+      <>
         <VisuallyHidden>
           <input
             type="file"
@@ -117,7 +117,7 @@ class CollectionMenu extends React.Component<Props> {
         </Modal>
         <DropdownMenu onOpen={onOpen} onClose={onClose} position={position}>
           {collection && (
-            <React.Fragment>
+            <>
               {can.update && (
                 <DropdownMenuItem onClick={this.onNewDocument}>
                   New document
@@ -142,13 +142,13 @@ class CollectionMenu extends React.Component<Props> {
                   Export…
                 </DropdownMenuItem>
               )}
-            </React.Fragment>
+            </>
           )}
           {can.delete && (
             <DropdownMenuItem onClick={this.onDelete}>Delete…</DropdownMenuItem>
           )}
         </DropdownMenu>
-      </React.Fragment>
+      </>
     );
   }
 }

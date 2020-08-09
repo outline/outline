@@ -162,7 +162,7 @@ class Header extends React.Component<Props> {
         <BreadcrumbAndContents align="center" justify="flex-start">
           <Breadcrumb document={document} />
           {!isEditing && (
-            <React.Fragment>
+            <>
               <Slash />
               <Tooltip
                 tooltip={ui.tocVisible ? "Hide contents" : "Show contents"}
@@ -183,7 +183,7 @@ class Header extends React.Component<Props> {
                   small
                 />
               </Tooltip>
-            </React.Fragment>
+            </>
           )}
         </BreadcrumbAndContents>
         {this.isScrolled && (
@@ -216,10 +216,10 @@ class Header extends React.Component<Props> {
               <Tooltip
                 tooltip={
                   isPubliclyShared ? (
-                    <React.Fragment>
+                    <>
                       Anyone with the link <br />
                       can view this document
-                    </React.Fragment>
+                    </>
                   ) : (
                     ""
                   )
@@ -239,7 +239,7 @@ class Header extends React.Component<Props> {
             </Action>
           )}
           {isEditing && (
-            <React.Fragment>
+            <>
               <Action>
                 <Tooltip
                   tooltip="Save"
@@ -258,7 +258,7 @@ class Header extends React.Component<Props> {
                   </Button>
                 </Tooltip>
               </Action>
-            </React.Fragment>
+            </>
           )}
           {canEdit && (
             <Action>
@@ -330,7 +330,7 @@ class Header extends React.Component<Props> {
             </Action>
           )}
           {!isEditing && (
-            <React.Fragment>
+            <>
               <Separator />
               <Action>
                 <DocumentMenu
@@ -340,7 +340,7 @@ class Header extends React.Component<Props> {
                   showPrint
                 />
               </Action>
-            </React.Fragment>
+            </>
           )}
         </Wrapper>
       </Actions>

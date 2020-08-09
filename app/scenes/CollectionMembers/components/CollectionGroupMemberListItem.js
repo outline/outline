@@ -30,7 +30,7 @@ const MemberListItem = ({
       onRemove={onRemove}
       onUpdate={onUpdate}
       renderActions={({ openMembersModal }) => (
-        <React.Fragment>
+        <>
           <Select
             label="Permissions"
             options={PERMISSIONS}
@@ -51,7 +51,7 @@ const MemberListItem = ({
               <DropdownMenuItem onClick={onRemove}>Remove</DropdownMenuItem>
             </DropdownMenu>
           </ButtonWrap>
-        </React.Fragment>
+        </>
       )}
     />
   );

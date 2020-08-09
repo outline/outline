@@ -155,6 +155,6 @@ function Button({
   );
 }
 
-export default React.forwardRef((props, ref) => (
+export default React.forwardRef<Props, typeof Button>((props, ref) => (
   <Button {...props} innerRef={ref} />
 ));

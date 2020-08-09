@@ -31,7 +31,7 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef();
   const timerOpen = React.useRef();
-  const cardRef = React.useRef();
+  const cardRef = React.useRef<?HTMLDivElement>();
 
   const startCloseTimer = () => {
     stopOpenTimer();
@@ -68,6 +68,8 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
 
     if (cardRef.current) {
       cardRef.current.addEventListener("mouseenter", stopCloseTimer);
+    }
+    if (cardRef.current) {
       cardRef.current.addEventListener("mouseleave", startCloseTimer);
     }
 
@@ -82,6 +84,8 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
 
       if (cardRef.current) {
         cardRef.current.removeEventListener("mouseenter", stopCloseTimer);
+      }
+      if (cardRef.current) {
         cardRef.current.removeEventListener("mouseleave", startCloseTimer);
       }
 

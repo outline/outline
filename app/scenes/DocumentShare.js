@@ -80,7 +80,7 @@ class DocumentShare extends React.Component<Props> {
           .
         </HelpText>
         {canPublish && (
-          <React.Fragment>
+          <>
             <Switch
               id="published"
               label="Publish to internet"
@@ -96,7 +96,7 @@ class DocumentShare extends React.Component<Props> {
                   : "Only team members with access can view this document"}
               </PrivacyText>
             </Privacy>
-          </React.Fragment>
+          </>
         )}
         <br />
         <Input

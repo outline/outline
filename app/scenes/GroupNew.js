@@ -51,7 +51,7 @@ class GroupNew extends React.Component<Props> {
 
   render() {
     return (
-      <React.Fragment>
+      <>
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Groups are for organizing your team. They work best when centered
@@ -82,7 +82,7 @@ class GroupNew extends React.Component<Props> {
         >
           <GroupMembers group={this.group} />
         </Modal>
-      </React.Fragment>
+      </>
     );
   }
 }

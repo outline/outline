@@ -16,7 +16,6 @@ const NotificationListItem = ({
   setting,
   title,
   event,
-  enabled,
   onChange,
   disabled,
   description,
