@@ -141,7 +141,7 @@
     "react-portal": "^4.0.0",
     "react-router-dom": "^5.1.2",
     "react-waypoint": "^9.0.2",
-    "rich-markdown-editor": "^10.5.0-1",
+    "rich-markdown-editor": "^10.5.0",
     "semver": "^7.3.2",
     "sequelize": "^5.21.1",
     "sequelize-cli": "^5.5.0",
@@ -187,6 +187,7 @@
     "rimraf": "^2.5.4"
   },
   "resolutions": {
+    "dot-prop": "^5.2.0",
     "micromatch": "^3.1.10",
     "js-yaml": "^3.13.1"
   },
