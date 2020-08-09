@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
 import invariant from "invariant";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import { PortalWithState } from "react-portal";
 import { MoreIcon } from "outline-icons";
 import { rgba } from "polished";
+import * as React from "react";
+import { PortalWithState } from "react-portal";
 import styled from "styled-components";
-import Flex from "components/Flex";
 import { fadeAndScaleIn } from "shared/styles/animations";
+import Flex from "components/Flex";
 import NudeButton from "components/NudeButton";
 
 let previousClosePortal;

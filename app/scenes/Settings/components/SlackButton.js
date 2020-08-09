@@ -2,8 +2,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import { slackAuth } from "shared/utils/routeHelpers";
-import SlackLogo from "components/SlackLogo";
 import Button from "components/Button";
+import SlackLogo from "components/SlackLogo";
 import env from "env";
 
 type Props = {

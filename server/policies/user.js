@@ -1,6 +1,6 @@
 // @flow
-import { User } from "../models";
 import { AdminRequiredError } from "../errors";
+import { User } from "../models";
 import policy from "./policy";
 
 const { allow } = policy;

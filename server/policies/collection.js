@@ -1,8 +1,8 @@
 // @flow
 import invariant from "invariant";
 import { concat, some } from "lodash";
-import { Collection, User } from "../models";
 import { AdminRequiredError } from "../errors";
+import { Collection, User } from "../models";
 import policy from "./policy";
 
 const { allow } = policy;

@@ -1,16 +1,16 @@
 // @flow
-import * as React from "react";
-import styled from "styled-components";
-import Textarea from "react-autosize-textarea";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import Editor from "components/Editor";
-import ClickablePadding from "components/ClickablePadding";
-import Flex from "components/Flex";
-import HoverPreview from "components/HoverPreview";
+import * as React from "react";
+import Textarea from "react-autosize-textarea";
+import styled from "styled-components";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
+import ClickablePadding from "components/ClickablePadding";
 import DocumentMeta from "components/DocumentMeta";
+import Editor from "components/Editor";
+import Flex from "components/Flex";
+import HoverPreview from "components/HoverPreview";
 
 type Props = {
   onChangeTitle: (event: SyntheticInputEvent<>) => void,

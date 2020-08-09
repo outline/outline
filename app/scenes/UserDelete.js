@@ -1,12 +1,12 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
+import AuthStore from "stores/AuthStore";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Modal from "components/Modal";
-import AuthStore from "stores/AuthStore";
 
 type Props = {
   auth: AuthStore,

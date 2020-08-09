@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import copy from "copy-to-clipboard";
+import * as React from "react";
 
 type Props = {
   text: string,

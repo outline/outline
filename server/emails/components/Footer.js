@@ -1,8 +1,8 @@
 // @flow
-import * as React from "react";
 import { Table, TBody, TR, TD } from "oy-vey";
-import { twitterUrl } from "../../../shared/utils/routeHelpers";
+import * as React from "react";
 import theme from "../../../shared/styles/theme";
+import { twitterUrl } from "../../../shared/utils/routeHelpers";
 
 type Props = {
   unsubscribeUrl?: string,

@@ -1,42 +1,42 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
 
-import styled, { withTheme } from "styled-components";
 import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
+import * as React from "react";
+import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
 import RichMarkdownEditor from "rich-markdown-editor";
+import styled, { withTheme } from "styled-components";
 
-import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 
-import Search from "scenes/Search";
 import CollectionEdit from "scenes/CollectionEdit";
-import CollectionMenu from "menus/CollectionMenu";
-import Actions, { Action, Separator } from "components/Actions";
-import Heading from "components/Heading";
-import Tooltip from "components/Tooltip";
-import CenteredContent from "components/CenteredContent";
-import { ListPlaceholder } from "components/LoadingPlaceholder";
-import InputSearch from "components/InputSearch";
-import Mask from "components/Mask";
-import Button from "components/Button";
-import HelpText from "components/HelpText";
-import DocumentList from "components/DocumentList";
-import Subheading from "components/Subheading";
-import PageTitle from "components/PageTitle";
-import Flex from "components/Flex";
-import Modal from "components/Modal";
 import CollectionMembers from "scenes/CollectionMembers";
-import Tabs from "components/Tabs";
-import Tab from "components/Tab";
-import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Search from "scenes/Search";
+import Actions, { Action, Separator } from "components/Actions";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
 import CollectionIcon from "components/CollectionIcon";
+import DocumentList from "components/DocumentList";
+import Flex from "components/Flex";
+import Heading from "components/Heading";
+import HelpText from "components/HelpText";
+import InputSearch from "components/InputSearch";
+import { ListPlaceholder } from "components/LoadingPlaceholder";
+import Mask from "components/Mask";
+import Modal from "components/Modal";
+import PageTitle from "components/PageTitle";
+import PaginatedDocumentList from "components/PaginatedDocumentList";
+import Subheading from "components/Subheading";
+import Tab from "components/Tab";
+import Tabs from "components/Tabs";
+import Tooltip from "components/Tooltip";
+import CollectionMenu from "menus/CollectionMenu";
+import { newDocumentUrl, collectionUrl } from "utils/routeHelpers";
 
 type Props = {
   ui: UiStore,

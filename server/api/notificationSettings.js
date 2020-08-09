@@ -3,8 +3,8 @@ import Router from "koa-router";
 
 import auth from "../middlewares/authentication";
 import { NotificationSetting } from "../models";
-import { presentNotificationSetting } from "../presenters";
 import policy from "../policies";
+import { presentNotificationSetting } from "../presenters";
 
 const { authorize } = policy;
 const router = new Router();

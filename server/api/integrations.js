@@ -1,10 +1,10 @@
 // @flow
 import Router from "koa-router";
-import Integration from "../models/Integration";
 import auth from "../middlewares/authentication";
 import { Event } from "../models";
-import { presentIntegration } from "../presenters";
+import Integration from "../models/Integration";
 import policy from "../policies";
+import { presentIntegration } from "../presenters";
 import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;

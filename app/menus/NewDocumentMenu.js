@@ -1,21 +1,21 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
-import { Redirect } from "react-router-dom";
 import { PlusIcon } from "outline-icons";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
 
-import { newDocumentUrl } from "utils/routeHelpers";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
+import Button from "components/Button";
+import CollectionIcon from "components/CollectionIcon";
 import {
   DropdownMenu,
   DropdownMenuItem,
   Header,
 } from "components/DropdownMenu";
-import Button from "components/Button";
-import CollectionIcon from "components/CollectionIcon";
+import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   label?: React.Node,

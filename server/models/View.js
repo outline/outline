@@ -1,8 +1,8 @@
 // @flow
 import subMilliseconds from "date-fns/sub_milliseconds";
-import { Op, DataTypes, sequelize } from "../sequelize";
-import { User } from "../models";
 import { USER_PRESENCE_INTERVAL } from "../../shared/constants";
+import { User } from "../models";
+import { Op, DataTypes, sequelize } from "../sequelize";
 
 const View = sequelize.define(
   "view",

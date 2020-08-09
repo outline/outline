@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import Mask from "components/Mask";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
+import Mask from "components/Mask";
 
 export default function LoadingPlaceholder(props: Object) {
   return (

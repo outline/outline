@@ -1,17 +1,17 @@
 // @flow
-import * as React from "react";
 import { inject } from "mobx-react";
 import queryString from "query-string";
+import * as React from "react";
 import {
   type RouterHistory,
   type Location,
   type Match,
 } from "react-router-dom";
-import Flex from "components/Flex";
-import CenteredContent from "components/CenteredContent";
-import LoadingPlaceholder from "components/LoadingPlaceholder";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
+import CenteredContent from "components/CenteredContent";
+import Flex from "components/Flex";
+import LoadingPlaceholder from "components/LoadingPlaceholder";
 import { editDocumentUrl } from "utils/routeHelpers";
 
 type Props = {

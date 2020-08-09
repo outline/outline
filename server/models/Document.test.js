@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb } from "../test/support";
 import { Document } from "../models";
 import { buildDocument, buildCollection, buildTeam } from "../test/factories";
+import { flushdb } from "../test/support";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);

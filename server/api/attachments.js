@@ -1,8 +1,11 @@
 // @flow
+import format from "date-fns/format";
 import Router from "koa-router";
 import uuid from "uuid";
-import format from "date-fns/format";
+import { NotFoundError } from "../errors";
+import auth from "../middlewares/authentication";
 import { Attachment, Document, Event } from "../models";
+import policy from "../policies";
 import {
   makePolicy,
   getSignature,
@@ -10,9 +13,6 @@ import {
   makeCredential,
   getSignedImageUrl,
 } from "../utils/s3";
-import auth from "../middlewares/authentication";
-import { NotFoundError } from "../errors";
-import policy from "../policies";
 
 const { authorize } = policy;
 const router = new Router();

@@ -1,7 +1,6 @@
 // @flow
-import * as React from "react";
+import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import styled from "styled-components";
 import {
   ArchiveIcon,
   HomeIcon,
@@ -12,24 +11,24 @@ import {
   TrashIcon,
   PlusIcon,
 } from "outline-icons";
-
-import { observable } from "mobx";
-import Sidebar from "./Sidebar";
-import Section from "./components/Section";
-import Collections from "./components/Collections";
-import SidebarLink from "./components/SidebarLink";
-import HeaderBlock from "./components/HeaderBlock";
-import Bubble from "./components/Bubble";
-import Flex from "components/Flex";
-import Modal from "components/Modal";
-import Invite from "scenes/Invite";
-import AccountMenu from "menus/AccountMenu";
-import Scrollable from "components/Scrollable";
+import * as React from "react";
+import styled from "styled-components";
 
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
+import Invite from "scenes/Invite";
+import Flex from "components/Flex";
+import Modal from "components/Modal";
+import Scrollable from "components/Scrollable";
+import Sidebar from "./Sidebar";
+import Bubble from "./components/Bubble";
+import Collections from "./components/Collections";
+import HeaderBlock from "./components/HeaderBlock";
+import Section from "./components/Section";
+import SidebarLink from "./components/SidebarLink";
+import AccountMenu from "menus/AccountMenu";
 
 type Props = {
   auth: AuthStore,

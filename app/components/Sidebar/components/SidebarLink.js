@@ -1,9 +1,9 @@
 // @flow
-import * as React from "react";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
-import { withRouter, NavLink } from "react-router-dom";
 import { CollapsedIcon } from "outline-icons";
+import * as React from "react";
+import { withRouter, NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Flex from "components/Flex";
 

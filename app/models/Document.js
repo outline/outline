@@ -1,13 +1,13 @@
 // @flow
-import { action, set, observable, computed } from "mobx";
 import addDays from "date-fns/add_days";
 import invariant from "invariant";
+import { action, set, observable, computed } from "mobx";
 import parseTitle from "shared/utils/parseTitle";
 import unescape from "shared/utils/unescape";
+import DocumentsStore from "stores/DocumentsStore";
 import BaseModel from "models/BaseModel";
 import Revision from "models/Revision";
 import User from "models/User";
-import DocumentsStore from "stores/DocumentsStore";
 
 type SaveOptions = {
   publish?: boolean,

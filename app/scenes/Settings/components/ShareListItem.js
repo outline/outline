@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
-import ShareMenu from "menus/ShareMenu";
+import Share from "models/Share";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
-import Share from "models/Share";
+import ShareMenu from "menus/ShareMenu";
 
 type Props = {
   share: Share,

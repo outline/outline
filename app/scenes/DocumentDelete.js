@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import DocumentsStore from "stores/DocumentsStore";
+import UiStore from "stores/UiStore";
+import Document from "models/Document";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import Document from "models/Document";
-import DocumentsStore from "stores/DocumentsStore";
-import UiStore from "stores/UiStore";
 import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {

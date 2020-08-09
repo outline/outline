@@ -1,6 +1,6 @@
 // @flow
-import { computed } from "mobx";
 import { filter } from "lodash";
+import { computed } from "mobx";
 
 import naturalSort from "shared/utils/naturalSort";
 import BaseStore from "stores/BaseStore";

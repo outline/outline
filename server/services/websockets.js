@@ -1,5 +1,6 @@
 // @flow
 import subHours from "date-fns/sub_hours";
+import { socketio } from "../";
 import type { Event } from "../events";
 import {
   Document,
@@ -8,7 +9,6 @@ import {
   CollectionGroup,
   GroupUser,
 } from "../models";
-import { socketio } from "../";
 import { Op } from "../sequelize";
 
 export default class Websockets {

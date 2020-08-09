@@ -1,7 +1,7 @@
 // @flow
+import subDays from "date-fns/sub_days";
 import debug from "debug";
 import Router from "koa-router";
-import subDays from "date-fns/sub_days";
 import { AuthenticationError } from "../errors";
 import { Document, Attachment } from "../models";
 import { Op } from "../sequelize";

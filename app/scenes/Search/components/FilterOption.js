@@ -1,9 +1,9 @@
 // @flow
-import * as React from "react";
 import { CheckmarkIcon } from "outline-icons";
+import * as React from "react";
 import styled from "styled-components";
-import HelpText from "components/HelpText";
 import Flex from "components/Flex";
+import HelpText from "components/HelpText";
 
 type Props = {
   label: string,

@@ -1,7 +1,7 @@
 // @flow
 import * as Sentry from "@sentry/node";
-import { createQueue } from "./utils/queue";
 import services from "./services";
+import { createQueue } from "./utils/queue";
 
 export type UserEvent =
   | {

@@ -1,11 +1,11 @@
 // @flow
 import Router from "koa-router";
 import { reject } from "lodash";
-import auth from "../middlewares/authentication";
-import { presentUser, presentTeam, presentPolicies } from "../presenters";
-import { Team } from "../models";
-import { signin } from "../../shared/utils/routeHelpers";
 import { parseDomain, isCustomSubdomain } from "../../shared/utils/domains";
+import { signin } from "../../shared/utils/routeHelpers";
+import auth from "../middlewares/authentication";
+import { Team } from "../models";
+import { presentUser, presentTeam, presentPolicies } from "../presenters";
 
 const router = new Router();
 

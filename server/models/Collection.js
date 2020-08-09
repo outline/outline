@@ -1,10 +1,10 @@
 // @flow
 import { find, concat, remove, uniq } from "lodash";
-import slug from "slug";
 import randomstring from "randomstring";
+import slug from "slug";
 import { DataTypes, sequelize } from "../sequelize";
-import Document from "./Document";
 import CollectionUser from "./CollectionUser";
+import Document from "./Document";
 
 slug.defaults.mode = "rfc3986";
 

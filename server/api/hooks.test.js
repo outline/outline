@@ -2,9 +2,9 @@
 import TestServer from "fetch-test-server";
 import app from "../app";
 import { Authentication } from "../models";
-import { flushdb, seed } from "../test/support";
-import { buildDocument } from "../test/factories";
 import * as Slack from "../slack";
+import { buildDocument } from "../test/factories";
+import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
 

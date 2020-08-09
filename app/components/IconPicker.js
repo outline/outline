@@ -1,8 +1,6 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import { TwitterPicker } from "react-color";
 import {
   CollectionIcon,
   CoinsIcon,
@@ -23,11 +21,13 @@ import {
   SunIcon,
   VehicleIcon,
 } from "outline-icons";
+import * as React from "react";
+import { TwitterPicker } from "react-color";
 import styled from "styled-components";
-import { LabelText } from "components/Input";
 import { DropdownMenu } from "components/DropdownMenu";
-import NudeButton from "components/NudeButton";
 import Flex from "components/Flex";
+import { LabelText } from "components/Input";
+import NudeButton from "components/NudeButton";
 
 export const icons = {
   collection: {

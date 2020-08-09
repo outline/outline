@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
 import { find } from "lodash";
+import * as React from "react";
 import styled from "styled-components";
-import FilterOption from "./FilterOption";
 import Button, { Inner } from "components/Button";
 import { DropdownMenu } from "components/DropdownMenu";
+import FilterOption from "./FilterOption";
 
 type Props = {
   options: {

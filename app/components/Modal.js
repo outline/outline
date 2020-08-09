@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
 import { observer } from "mobx-react";
+import { CloseIcon, BackIcon } from "outline-icons";
+import { transparentize } from "polished";
+import * as React from "react";
+import ReactModal from "react-modal";
 import styled, { createGlobalStyle } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import ReactModal from "react-modal";
-import { transparentize } from "polished";
-import { CloseIcon, BackIcon } from "outline-icons";
-import NudeButton from "components/NudeButton";
 import { fadeAndScaleIn } from "shared/styles/animations";
 import Flex from "components/Flex";
+import NudeButton from "components/NudeButton";
 
 ReactModal.setAppElement("#root");
 

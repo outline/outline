@@ -1,12 +1,12 @@
 // @flow
 import invariant from "invariant";
-import { action, runInAction } from "mobx";
 import { filter } from "lodash";
+import { action, runInAction } from "mobx";
+import GroupMembership from "models/GroupMembership";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import { client } from "utils/ApiClient";
-import GroupMembership from "models/GroupMembership";
 import type { PaginationParams } from "types";
+import { client } from "utils/ApiClient";
 
 export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
   actions = ["create", "delete"];

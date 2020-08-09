@@ -1,15 +1,15 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import UiStore from "stores/UiStore";
 
-import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
-import HelpText from "components/HelpText";
 import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import HelpText from "components/HelpText";
+import PageTitle from "components/PageTitle";
 
 type Props = {
   auth: AuthStore,

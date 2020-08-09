@@ -9,13 +9,13 @@ import {
   Backlink,
   CollectionUser,
 } from "../models";
-import { flushdb, seed } from "../test/support";
 import {
   buildShare,
   buildCollection,
   buildUser,
   buildDocument,
 } from "../test/factories";
+import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
 

@@ -1,18 +1,18 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import { type Match } from "react-router-dom";
 
+import DocumentsStore from "stores/DocumentsStore";
+import Actions, { Action } from "components/Actions";
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
-import PageTitle from "components/PageTitle";
 import Heading from "components/Heading";
+import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
-import Tabs from "components/Tabs";
 import Tab from "components/Tab";
+import Tabs from "components/Tabs";
 import NewTemplateMenu from "menus/NewTemplateMenu";
-import Actions, { Action } from "components/Actions";
-import DocumentsStore from "stores/DocumentsStore";
 
 type Props = {
   documents: DocumentsStore,

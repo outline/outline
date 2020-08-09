@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
+import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import styled from "styled-components";
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import { EditIcon } from "outline-icons";
-import Avatar from "components/Avatar";
-import Tooltip from "components/Tooltip";
+import * as React from "react";
+import styled from "styled-components";
 import User from "models/User";
 import UserProfile from "scenes/UserProfile";
+import Avatar from "components/Avatar";
+import Tooltip from "components/Tooltip";
 
 type Props = {
   user: User,

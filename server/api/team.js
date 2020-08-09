@@ -1,10 +1,10 @@
 // @flow
 import Router from "koa-router";
+import auth from "../middlewares/authentication";
 import { Team } from "../models";
 
-import auth from "../middlewares/authentication";
-import { presentTeam, presentPolicies } from "../presenters";
 import policy from "../policies";
+import { presentTeam, presentPolicies } from "../presenters";
 
 const { authorize } = policy;
 const router = new Router();

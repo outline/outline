@@ -1,6 +1,6 @@
 // @flow
-import { Op, DataTypes, sequelize } from "../sequelize";
 import { CollectionGroup, GroupUser } from "../models";
+import { Op, DataTypes, sequelize } from "../sequelize";
 
 const Group = sequelize.define(
   "group",

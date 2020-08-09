@@ -1,6 +1,6 @@
 // @flow
-import { Collection } from "../models";
 import naturalSort from "../../shared/utils/naturalSort";
+import { Collection } from "../models";
 
 type Document = {
   children: Document[],

@@ -1,13 +1,9 @@
 // @flow
 import Router from "koa-router";
 import Sequelize from "sequelize";
-import auth from "../middlewares/authentication";
 import documentMover from "../commands/documentMover";
-import {
-  presentDocument,
-  presentCollection,
-  presentPolicies,
-} from "../presenters";
+import { InvalidRequestError } from "../errors";
+import auth from "../middlewares/authentication";
 import {
   Collection,
   Document,
@@ -19,8 +15,12 @@ import {
   Backlink,
   User,
 } from "../models";
-import { InvalidRequestError } from "../errors";
 import policy from "../policies";
+import {
+  presentDocument,
+  presentCollection,
+  presentPolicies,
+} from "../presenters";
 import { sequelize } from "../sequelize";
 import pagination from "./middlewares/pagination";
 

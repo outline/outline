@@ -1,17 +1,18 @@
 // @flow
-import * as React from "react";
-import { Redirect } from "react-router-dom";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
 
-import Document from "models/Document";
-import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
 import CollectionStore from "stores/CollectionsStore";
 import PoliciesStore from "stores/PoliciesStore";
-import Modal from "components/Modal";
+import UiStore from "stores/UiStore";
+import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Modal from "components/Modal";
 import {
   documentUrl,
   documentMoveUrl,
@@ -19,7 +20,6 @@ import {
   documentHistoryUrl,
   newDocumentUrl,
 } from "utils/routeHelpers";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
   ui: UiStore,

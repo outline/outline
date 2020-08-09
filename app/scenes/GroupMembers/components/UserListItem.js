@@ -1,12 +1,12 @@
 // @flow
-import * as React from "react";
 import { PlusIcon } from "outline-icons";
-import Time from "components/Time";
-import Avatar from "components/Avatar";
-import Button from "components/Button";
-import Badge from "components/Badge";
-import ListItem from "components/List/Item";
+import * as React from "react";
 import User from "models/User";
+import Avatar from "components/Avatar";
+import Badge from "components/Badge";
+import Button from "components/Button";
+import ListItem from "components/List/Item";
+import Time from "components/Time";
 
 type Props = {
   user: User,

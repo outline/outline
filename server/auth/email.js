@@ -1,13 +1,13 @@
 // @flow
-import Router from "koa-router";
 import subMinutes from "date-fns/sub_minutes";
+import Router from "koa-router";
+import { AuthorizationError } from "../errors";
 import mailer from "../mailer";
-import { getUserForEmailSigninToken } from "../utils/jwt";
-import { User, Team } from "../models";
+import auth from "../middlewares/authentication";
 import methodOverride from "../middlewares/methodOverride";
 import validation from "../middlewares/validation";
-import auth from "../middlewares/authentication";
-import { AuthorizationError } from "../errors";
+import { User, Team } from "../models";
+import { getUserForEmailSigninToken } from "../utils/jwt";
 
 const router = new Router();
 

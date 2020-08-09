@@ -1,9 +1,9 @@
 // @flow
+import { darken } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import { darken } from "polished";
-import type { Toast as TToast } from "../../../types";
 import { fadeAndScaleIn } from "shared/styles/animations";
+import type { Toast as TToast } from "../../../types";
 
 type Props = {
   onRequestClose: () => void,

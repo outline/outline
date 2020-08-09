@@ -1,22 +1,21 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
-import { withRouter, type RouterHistory } from "react-router-dom";
-import keydown from "react-keydown";
 import { PlusIcon } from "outline-icons";
-
-import Header from "./Header";
-import SidebarLink from "./SidebarLink";
-import CollectionLink from "./CollectionLink";
-import CollectionsLoading from "./CollectionsLoading";
-import { newDocumentUrl } from "utils/routeHelpers";
-import Flex from "components/Flex";
-import Fade from "components/Fade";
+import * as React from "react";
+import keydown from "react-keydown";
+import { withRouter, type RouterHistory } from "react-router-dom";
 
 import CollectionsStore from "stores/CollectionsStore";
+import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
-import DocumentsStore from "stores/DocumentsStore";
+import Fade from "components/Fade";
+import Flex from "components/Flex";
+import CollectionLink from "./CollectionLink";
+import CollectionsLoading from "./CollectionsLoading";
+import Header from "./Header";
+import SidebarLink from "./SidebarLink";
+import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,

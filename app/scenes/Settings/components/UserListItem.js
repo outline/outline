@@ -1,15 +1,15 @@
 // @flow
-import * as React from "react";
-import styled from "styled-components";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import UserMenu from "menus/UserMenu";
+import * as React from "react";
+import styled from "styled-components";
+import User from "models/User";
+import UserProfile from "scenes/UserProfile";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
-import UserProfile from "scenes/UserProfile";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
-import User from "models/User";
+import UserMenu from "menus/UserMenu";
 
 type Props = {
   user: User,

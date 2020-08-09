@@ -1,14 +1,14 @@
 // @flow
+import { observer, inject } from "mobx-react";
+import { CloseIcon, MenuIcon } from "outline-icons";
 import * as React from "react";
 import { withRouter } from "react-router-dom";
 import type { Location } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { observer, inject } from "mobx-react";
-import { CloseIcon, MenuIcon } from "outline-icons";
+import UiStore from "stores/UiStore";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
-import UiStore from "stores/UiStore";
 
 let firstRender = true;
 

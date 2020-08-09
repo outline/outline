@@ -1,10 +1,9 @@
 // @flow
-import Sequelize from "sequelize";
-import Router from "koa-router";
 import addHours from "date-fns/add_hours";
-import auth from "../middlewares/authentication";
-import { getCookieDomain } from "../utils/domains";
+import Router from "koa-router";
+import Sequelize from "sequelize";
 import { slackAuth } from "../../shared/utils/routeHelpers";
+import auth from "../middlewares/authentication";
 import {
   Authentication,
   Collection,
@@ -14,6 +13,7 @@ import {
   Team,
 } from "../models";
 import * as Slack from "../slack";
+import { getCookieDomain } from "../utils/domains";
 
 const Op = Sequelize.Op;
 const router = new Router();

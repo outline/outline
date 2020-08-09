@@ -1,11 +1,11 @@
 // @flow
 import crypto from "crypto";
-import Sequelize from "sequelize";
+import { OAuth2Client } from "google-auth-library";
 import Router from "koa-router";
 import { capitalize } from "lodash";
-import { OAuth2Client } from "google-auth-library";
-import { User, Team, Event } from "../models";
+import Sequelize from "sequelize";
 import auth from "../middlewares/authentication";
+import { User, Team, Event } from "../models";
 
 const Op = Sequelize.Op;
 

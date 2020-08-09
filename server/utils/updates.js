@@ -2,10 +2,10 @@
 import crypto from "crypto";
 import invariant from "invariant";
 import fetch from "isomorphic-fetch";
-import { client } from "../redis";
 import packageInfo from "../../package.json";
 
 import { User, Team, Collection, Document } from "../models";
+import { client } from "../redis";
 
 const UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";

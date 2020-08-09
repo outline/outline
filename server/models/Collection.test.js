@@ -1,6 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import uuid from "uuid";
-import { flushdb, seed } from "../test/support";
 import { Collection, Document } from "../models";
 import {
   buildUser,
@@ -8,6 +7,7 @@ import {
   buildCollection,
   buildTeam,
 } from "../test/factories";
+import { flushdb, seed } from "../test/support";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);

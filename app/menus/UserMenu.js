@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
 
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import UsersStore from "stores/UsersStore";
 import User from "models/User";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
   user: User,

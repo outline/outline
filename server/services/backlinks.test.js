@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb } from "../test/support";
-import { buildDocument } from "../test/factories";
 import Backlink from "../models/Backlink";
+import { buildDocument } from "../test/factories";
+import { flushdb } from "../test/support";
 import BacklinksService from "./backlinks";
 
 const Backlinks = new BacklinksService();

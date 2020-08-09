@@ -1,7 +1,8 @@
 // @flow
-import pkg from "rich-markdown-editor/package.json";
-import { map, trim } from "lodash";
 import invariant from "invariant";
+import { map, trim } from "lodash";
+import pkg from "rich-markdown-editor/package.json";
+import stores from "stores";
 import download from "./download";
 import {
   AuthorizationError,
@@ -11,7 +12,6 @@ import {
   RequestError,
   UpdateRequiredError,
 } from "./errors";
-import stores from "stores";
 
 type Options = {
   baseUrl?: string,

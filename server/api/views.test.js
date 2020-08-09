@@ -2,8 +2,8 @@
 import TestServer from "fetch-test-server";
 import app from "../app";
 import { View, CollectionUser } from "../models";
-import { flushdb, seed } from "../test/support";
 import { buildUser } from "../test/factories";
+import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
 

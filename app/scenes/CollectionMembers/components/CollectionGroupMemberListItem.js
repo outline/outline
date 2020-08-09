@@ -1,11 +1,11 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import InputSelect from "components/InputSelect";
-import GroupListItem from "components/GroupListItem";
-import Group from "models/Group";
 import CollectionGroupMembership from "models/CollectionGroupMembership";
+import Group from "models/Group";
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import GroupListItem from "components/GroupListItem";
+import InputSelect from "components/InputSelect";
 
 const PERMISSIONS = [
   { label: "Read only", value: "read" },

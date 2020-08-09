@@ -1,9 +1,5 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
-import breakpoint from "styled-components-breakpoint";
-import styled from "styled-components";
-import { Link } from "react-router-dom";
 import {
   PadlockIcon,
   GoToIcon,
@@ -11,13 +7,17 @@ import {
   ShapesIcon,
   EditIcon,
 } from "outline-icons";
+import * as React from "react";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 
-import BreadcrumbMenu from "./BreadcrumbMenu";
-import Document from "models/Document";
 import CollectionsStore from "stores/CollectionsStore";
-import { collectionUrl } from "utils/routeHelpers";
-import Flex from "components/Flex";
+import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
+import Flex from "components/Flex";
+import BreadcrumbMenu from "./BreadcrumbMenu";
+import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {
   document: Document,

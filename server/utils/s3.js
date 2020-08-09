@@ -1,11 +1,11 @@
 // @flow
 import crypto from "crypto";
+import * as Sentry from "@sentry/node";
+import AWS from "aws-sdk";
 import addHours from "date-fns/add_hours";
 import format from "date-fns/format";
-import AWS from "aws-sdk";
 import invariant from "invariant";
 import fetch from "isomorphic-fetch";
-import * as Sentry from "@sentry/node";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
