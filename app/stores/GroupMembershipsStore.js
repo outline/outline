@@ -2,9 +2,9 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
 import { filter } from "lodash";
-import { client } from "utils/ApiClient";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import { client } from "utils/ApiClient";
 import GroupMembership from "models/GroupMembership";
 import type { PaginationParams } from "types";
 

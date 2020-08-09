@@ -3,7 +3,6 @@ import fs from "fs";
 import Router from "koa-router";
 import { Op } from "../sequelize";
 import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
 import {
   presentCollection,
   presentUser,
@@ -25,6 +24,7 @@ import { ValidationError } from "../errors";
 import { exportCollections } from "../logistics";
 import { archiveCollection, archiveCollections } from "../utils/zip";
 import policy from "../policies";
+import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();

@@ -2,9 +2,9 @@
 import { filter, orderBy } from "lodash";
 import { computed, action, runInAction } from "mobx";
 import invariant from "invariant";
-import { client } from "utils/ApiClient";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import { client } from "utils/ApiClient";
 import User from "models/User";
 
 export default class UsersStore extends BaseStore<User> {

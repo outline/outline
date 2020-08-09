@@ -3,6 +3,10 @@ import bodyParser from "koa-bodyparser";
 import Koa from "koa";
 import Router from "koa-router";
 
+import { NotFoundError } from "../errors";
+import errorHandling from "../middlewares/errorHandling";
+import validation from "../middlewares/validation";
+import methodOverride from "../middlewares/methodOverride";
 import auth from "./auth";
 import events from "./events";
 import users from "./users";
@@ -20,10 +24,6 @@ import notificationSettings from "./notificationSettings";
 import utils from "./utils";
 import attachments from "./attachments";
 
-import { NotFoundError } from "../errors";
-import errorHandling from "../middlewares/errorHandling";
-import validation from "../middlewares/validation";
-import methodOverride from "../middlewares/methodOverride";
 import apiWrapper from "./middlewares/apiWrapper";
 import editor from "./middlewares/editor";
 

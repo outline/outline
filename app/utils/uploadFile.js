@@ -1,6 +1,6 @@
 // @flow
-import { client } from "./ApiClient";
 import invariant from "invariant";
+import { client } from "./ApiClient";
 
 type Options = {
   name?: string,

@@ -4,9 +4,9 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import styled from "styled-components";
 
+import ImageUpload from "./components/ImageUpload";
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
-import ImageUpload from "./components/ImageUpload";
 import Input, { LabelText } from "components/Input";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";

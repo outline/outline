@@ -2,7 +2,6 @@
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
 import documentMover from "../commands/documentMover";
 import {
   presentDocument,
@@ -23,6 +22,7 @@ import {
 import { InvalidRequestError } from "../errors";
 import policy from "../policies";
 import { sequelize } from "../sequelize";
+import pagination from "./middlewares/pagination";
 
 const Op = Sequelize.Op;
 const { authorize, cannot } = policy;

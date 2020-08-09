@@ -1,9 +1,9 @@
 // @flow
-import uuid from "uuid";
 import { URL } from "url";
 import fs from "fs";
 import util from "util";
 import path from "path";
+import uuid from "uuid";
 import { DataTypes, sequelize, Op } from "../sequelize";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
 import {

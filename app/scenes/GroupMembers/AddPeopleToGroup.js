@@ -3,6 +3,7 @@ import * as React from "react";
 import { inject, observer } from "mobx-react";
 import { observable } from "mobx";
 import { debounce } from "lodash";
+import GroupMemberListItem from "./components/GroupMemberListItem";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
@@ -15,7 +16,6 @@ import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
 import UsersStore from "stores/UsersStore";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
-import GroupMemberListItem from "./components/GroupMemberListItem";
 
 type Props = {
   ui: UiStore,

@@ -3,6 +3,7 @@ import * as React from "react";
 import { Switch, Route } from "react-router-dom";
 import { observer, inject } from "mobx-react";
 
+import PaginatedDocumentList from "../components/PaginatedDocumentList";
 import DocumentsStore from "stores/DocumentsStore";
 import AuthStore from "stores/AuthStore";
 import NewDocumentMenu from "menus/NewDocumentMenu";
@@ -12,7 +13,6 @@ import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
 import Tabs from "components/Tabs";
 import Tab from "components/Tab";
-import PaginatedDocumentList from "../components/PaginatedDocumentList";
 
 type Props = {
   documents: DocumentsStore,

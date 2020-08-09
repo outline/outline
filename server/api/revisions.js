@@ -1,11 +1,11 @@
 // @flow
 import Router from "koa-router";
 import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
 import { presentRevision } from "../presenters";
 import { Document, Revision } from "../models";
 import { NotFoundError } from "../errors";
 import policy from "../policies";
+import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();

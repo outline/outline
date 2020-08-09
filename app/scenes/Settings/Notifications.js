@@ -3,12 +3,12 @@ import * as React from "react";
 import { debounce } from "lodash";
 import { observer, inject } from "mobx-react";
 import styled from "styled-components";
+import NotificationListItem from "./components/NotificationListItem";
 import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Subheading from "components/Subheading";
-import NotificationListItem from "./components/NotificationListItem";
 import Notice from "components/Notice";
 
 import UiStore from "stores/UiStore";

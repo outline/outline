@@ -4,6 +4,10 @@ import { observable } from "mobx";
 import styled from "styled-components";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
+import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
+import MemberListItem from "./components/MemberListItem";
+import AddPeopleToCollection from "./AddPeopleToCollection";
+import AddGroupsToCollection from "./AddGroupsToCollection";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Subheading from "components/Subheading";
@@ -11,16 +15,12 @@ import Button from "components/Button";
 import Empty from "components/Empty";
 import PaginatedList from "components/PaginatedList";
 import Modal from "components/Modal";
-import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
 import Collection from "models/Collection";
 import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
 import MembershipsStore from "stores/MembershipsStore";
 import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
 import UsersStore from "stores/UsersStore";
-import MemberListItem from "./components/MemberListItem";
-import AddPeopleToCollection from "./AddPeopleToCollection";
-import AddGroupsToCollection from "./AddGroupsToCollection";
 import GroupsStore from "stores/GroupsStore";
 
 type Props = {

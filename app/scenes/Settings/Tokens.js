@@ -2,6 +2,7 @@
 import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import TokenListItem from "./components/TokenListItem";
 import ApiKeysStore from "stores/ApiKeysStore";
 
 import Button from "components/Button";
@@ -10,7 +11,6 @@ import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
 import HelpText from "components/HelpText";
 import List from "components/List";
-import TokenListItem from "./components/TokenListItem";
 
 type Props = {
   apiKeys: ApiKeysStore,

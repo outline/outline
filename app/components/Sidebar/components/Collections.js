@@ -3,14 +3,14 @@ import * as React from "react";
 import { observer, inject } from "mobx-react";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import keydown from "react-keydown";
-import Flex from "components/Flex";
 import { PlusIcon } from "outline-icons";
-import { newDocumentUrl } from "utils/routeHelpers";
 
 import Header from "./Header";
 import SidebarLink from "./SidebarLink";
 import CollectionLink from "./CollectionLink";
 import CollectionsLoading from "./CollectionsLoading";
+import { newDocumentUrl } from "utils/routeHelpers";
+import Flex from "components/Flex";
 import Fade from "components/Fade";
 
 import CollectionsStore from "stores/CollectionsStore";

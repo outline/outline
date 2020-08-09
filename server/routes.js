@@ -1,9 +1,9 @@
 // @flow
 import path from "path";
-import Koa from "koa";
-import Router from "koa-router";
 import fs from "fs";
 import util from "util";
+import Koa from "koa";
+import Router from "koa-router";
 import sendfile from "koa-sendfile";
 import serve from "koa-static";
 import apexRedirect from "./middlewares/apexRedirect";

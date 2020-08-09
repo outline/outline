@@ -13,6 +13,11 @@ import queryString from "query-string";
 import styled from "styled-components";
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 
+import SearchField from "./components/SearchField";
+import StatusFilter from "./components/StatusFilter";
+import CollectionFilter from "./components/CollectionFilter";
+import UserFilter from "./components/UserFilter";
+import DateFilter from "./components/DateFilter";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
 import UsersStore from "stores/UsersStore";
@@ -29,11 +34,6 @@ import LoadingIndicator from "components/LoadingIndicator";
 import DocumentPreview from "components/DocumentPreview";
 import NewDocumentMenu from "menus/NewDocumentMenu";
 import PageTitle from "components/PageTitle";
-import SearchField from "./components/SearchField";
-import StatusFilter from "./components/StatusFilter";
-import CollectionFilter from "./components/CollectionFilter";
-import UserFilter from "./components/UserFilter";
-import DateFilter from "./components/DateFilter";
 
 type Props = {
   history: RouterHistory,

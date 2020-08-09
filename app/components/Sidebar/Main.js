@@ -13,23 +13,23 @@ import {
   PlusIcon,
 } from "outline-icons";
 
-import Flex from "components/Flex";
-import Modal from "components/Modal";
-import Invite from "scenes/Invite";
-import AccountMenu from "menus/AccountMenu";
+import { observable } from "mobx";
 import Sidebar from "./Sidebar";
-import Scrollable from "components/Scrollable";
 import Section from "./components/Section";
 import Collections from "./components/Collections";
 import SidebarLink from "./components/SidebarLink";
 import HeaderBlock from "./components/HeaderBlock";
 import Bubble from "./components/Bubble";
+import Flex from "components/Flex";
+import Modal from "components/Modal";
+import Invite from "scenes/Invite";
+import AccountMenu from "menus/AccountMenu";
+import Scrollable from "components/Scrollable";
 
 import AuthStore from "stores/AuthStore";
 import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
-import { observable } from "mobx";
 
 type Props = {
   auth: AuthStore,

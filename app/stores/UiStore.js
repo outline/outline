@@ -2,9 +2,9 @@
 import { v4 } from "uuid";
 import { orderBy } from "lodash";
 import { observable, action, autorun, computed } from "mobx";
+import type { Toast } from "../types";
 import Document from "models/Document";
 import Collection from "models/Collection";
-import type { Toast } from "../types";
 
 const UI_STORE = "UI_STORE";
 

@@ -9,15 +9,6 @@ import { Prompt, Route, withRouter } from "react-router-dom";
 import type { Location, RouterHistory, Match } from "react-router-dom";
 import keydown from "react-keydown";
 import { InputIcon } from "outline-icons";
-import Flex from "components/Flex";
-import {
-  collectionUrl,
-  documentMoveUrl,
-  documentHistoryUrl,
-  editDocumentUrl,
-  documentUrl,
-} from "utils/routeHelpers";
-import { emojiToUrl } from "utils/emoji";
 
 import Header from "./Header";
 import DocumentMove from "./DocumentMove";
@@ -27,6 +18,15 @@ import Loading from "./Loading";
 import Container from "./Container";
 import Contents from "./Contents";
 import MarkAsViewed from "./MarkAsViewed";
+import { emojiToUrl } from "utils/emoji";
+import {
+  collectionUrl,
+  documentMoveUrl,
+  documentHistoryUrl,
+  editDocumentUrl,
+  documentUrl,
+} from "utils/routeHelpers";
+import Flex from "components/Flex";
 import ErrorBoundary from "components/ErrorBoundary";
 import LoadingIndicator from "components/LoadingIndicator";
 import PageTitle from "components/PageTitle";

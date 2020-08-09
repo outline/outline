@@ -2,10 +2,10 @@
 import * as React from "react";
 import { observer, inject } from "mobx-react";
 import { Link } from "react-router-dom";
+import ShareListItem from "./components/ShareListItem";
 import SharesStore from "stores/SharesStore";
 import AuthStore from "stores/AuthStore";
 
-import ShareListItem from "./components/ShareListItem";
 import Empty from "components/Empty";
 import List from "components/List";
 import CenteredContent from "components/CenteredContent";

@@ -19,14 +19,14 @@ import {
 import ZapierIcon from "./icons/Zapier";
 import SlackIcon from "./icons/Slack";
 
-import Flex from "components/Flex";
 import Sidebar from "./Sidebar";
-import Scrollable from "components/Scrollable";
 import Section from "./components/Section";
 import Header from "./components/Header";
 import SidebarLink from "./components/SidebarLink";
 import HeaderBlock from "./components/HeaderBlock";
 import Version from "./components/Version";
+import Scrollable from "components/Scrollable";
+import Flex from "components/Flex";
 import PoliciesStore from "stores/PoliciesStore";
 import AuthStore from "stores/AuthStore";
 import env from "env";

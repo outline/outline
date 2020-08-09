@@ -1,10 +1,10 @@
 // @flow
 import { computed } from "mobx";
 import { concat, filter, last } from "lodash";
-import { client } from "utils/ApiClient";
 
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import { client } from "utils/ApiClient";
 import Collection from "models/Collection";
 import naturalSort from "shared/utils/naturalSort";
 

@@ -1,6 +1,6 @@
 // @flow
-import { DataTypes, sequelize } from "../sequelize";
 import MarkdownSerializer from "slate-md-serializer";
+import { DataTypes, sequelize } from "../sequelize";
 
 const serializer = new MarkdownSerializer();
 

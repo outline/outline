@@ -4,11 +4,11 @@ import { inject, observer } from "mobx-react";
 import { find } from "lodash";
 import styled from "styled-components";
 
+import SlackButton from "./components/SlackButton";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
 import HelpText from "components/HelpText";
-import SlackButton from "./components/SlackButton";
 import CollectionsStore from "stores/CollectionsStore";
 import IntegrationsStore from "stores/IntegrationsStore";
 import AuthStore from "stores/AuthStore";

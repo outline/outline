@@ -3,6 +3,8 @@ import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
+import GroupMemberListItem from "./components/GroupMemberListItem";
+import AddPeopleToGroup from "./AddPeopleToGroup";
 import Flex from "components/Flex";
 import Empty from "components/Empty";
 import HelpText from "components/HelpText";
@@ -16,8 +18,6 @@ import AuthStore from "stores/AuthStore";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
 import UsersStore from "stores/UsersStore";
 import PoliciesStore from "stores/PoliciesStore";
-import GroupMemberListItem from "./components/GroupMemberListItem";
-import AddPeopleToGroup from "./AddPeopleToGroup";
 
 type Props = {
   ui: UiStore,

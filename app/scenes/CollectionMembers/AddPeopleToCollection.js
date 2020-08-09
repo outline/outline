@@ -3,6 +3,7 @@ import * as React from "react";
 import { inject, observer } from "mobx-react";
 import { observable } from "mobx";
 import { debounce } from "lodash";
+import MemberListItem from "./components/MemberListItem";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
@@ -15,7 +16,6 @@ import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
 import UsersStore from "stores/UsersStore";
 import MembershipsStore from "stores/MembershipsStore";
-import MemberListItem from "./components/MemberListItem";
 
 type Props = {
   ui: UiStore,

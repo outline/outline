@@ -3,13 +3,13 @@ import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "mobx-react";
 import { BrowserRouter as Router } from "react-router-dom";
+import Routes from "./routes";
 import stores from "stores";
 
 import ErrorBoundary from "components/ErrorBoundary";
 import ScrollToTop from "components/ScrollToTop";
 import Toasts from "components/Toasts";
 import Theme from "components/Theme";
-import Routes from "./routes";
 import env from "env";
 
 let DevTools;

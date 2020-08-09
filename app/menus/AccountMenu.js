@@ -5,12 +5,6 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { SunIcon, MoonIcon } from "outline-icons";
 import styled from "styled-components";
-import UiStore from "stores/UiStore";
-import AuthStore from "stores/AuthStore";
-import Flex from "components/Flex";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
-import Modal from "components/Modal";
-import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import {
   developers,
   changelog,
@@ -18,6 +12,12 @@ import {
   mailToUrl,
   settings,
 } from "../../shared/utils/routeHelpers";
+import UiStore from "stores/UiStore";
+import AuthStore from "stores/AuthStore";
+import Flex from "components/Flex";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Modal from "components/Modal";
+import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 
 type Props = {
   label: React.Node,

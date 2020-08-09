@@ -4,11 +4,11 @@ import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import styled from "styled-components";
 import Dropzone from "react-dropzone";
+import AvatarEditor from "react-avatar-editor";
 import LoadingIndicator from "components/LoadingIndicator";
 import Flex from "components/Flex";
 import Modal from "components/Modal";
 import Button from "components/Button";
-import AvatarEditor from "react-avatar-editor";
 import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 import UiStore from "stores/UiStore";
 

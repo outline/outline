@@ -12,11 +12,11 @@ import {
   EditIcon,
 } from "outline-icons";
 
+import BreadcrumbMenu from "./BreadcrumbMenu";
 import Document from "models/Document";
 import CollectionsStore from "stores/CollectionsStore";
 import { collectionUrl } from "utils/routeHelpers";
 import Flex from "components/Flex";
-import BreadcrumbMenu from "./BreadcrumbMenu";
 import CollectionIcon from "components/CollectionIcon";
 
 type Props = {

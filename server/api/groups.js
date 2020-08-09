@@ -1,7 +1,6 @@
 // @flow
 import Router from "koa-router";
 import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
 import { Op } from "../sequelize";
 import { MAX_AVATAR_DISPLAY } from "../../shared/constants";
 
@@ -13,6 +12,7 @@ import {
 } from "../presenters";
 import { User, Event, Group, GroupUser } from "../models";
 import policy from "../policies";
+import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();

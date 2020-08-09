@@ -1,6 +1,6 @@
 // @flow
-import Sequelize from "sequelize";
 import crypto from "crypto";
+import Sequelize from "sequelize";
 import Router from "koa-router";
 import { capitalize } from "lodash";
 import { OAuth2Client } from "google-auth-library";

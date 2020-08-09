@@ -1,7 +1,7 @@
 // @flow
 import Router from "koa-router";
-import mailer from "../mailer";
 import subMinutes from "date-fns/sub_minutes";
+import mailer from "../mailer";
 import { getUserForEmailSigninToken } from "../utils/jwt";
 import { User, Team } from "../models";
 import methodOverride from "../middlewares/methodOverride";

@@ -6,11 +6,11 @@ import { observer } from "mobx-react";
 import { lighten } from "polished";
 import styled, { withTheme } from "styled-components";
 import RichMarkdownEditor from "rich-markdown-editor";
+import embeds from "../embeds";
 import { uploadFile } from "utils/uploadFile";
 import isInternalUrl from "utils/isInternalUrl";
 import Tooltip from "components/Tooltip";
 import UiStore from "stores/UiStore";
-import embeds from "../embeds";
 
 const EMPTY_ARRAY = [];
 

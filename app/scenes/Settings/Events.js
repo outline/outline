@@ -5,6 +5,7 @@ import { observer, inject } from "mobx-react";
 import { Waypoint } from "react-waypoint";
 import { type Match } from "react-router-dom";
 
+import EventListItem from "./components/EventListItem";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import EventsStore from "stores/EventsStore";
 import CenteredContent from "components/CenteredContent";
@@ -14,7 +15,6 @@ import List from "components/List";
 import Tabs from "components/Tabs";
 import Tab from "components/Tab";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
-import EventListItem from "./components/EventListItem";
 
 type Props = {
   events: EventsStore,

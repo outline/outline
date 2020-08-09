@@ -3,11 +3,11 @@ import * as React from "react";
 import styled from "styled-components";
 import { observer } from "mobx-react";
 import { observable } from "mobx";
+import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
 import HelpText from "components/HelpText";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
-import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
 
 type Props = {
   children: React.Node,

@@ -1,7 +1,7 @@
 // @flow
-import * as React from "react";
 import fs from "fs";
 import path from "path";
+import * as React from "react";
 import webpackConfig from "../../webpack.config";
 
 const PUBLIC_PATH = webpackConfig.output.publicPath;

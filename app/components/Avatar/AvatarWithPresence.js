@@ -4,11 +4,11 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import styled from "styled-components";
 import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
+import { EditIcon } from "outline-icons";
 import Avatar from "components/Avatar";
 import Tooltip from "components/Tooltip";
 import User from "models/User";
 import UserProfile from "scenes/UserProfile";
-import { EditIcon } from "outline-icons";
 
 type Props = {
   user: User,

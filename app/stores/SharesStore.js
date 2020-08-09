@@ -2,9 +2,9 @@
 import invariant from "invariant";
 import { sortBy, filter, find } from "lodash";
 import { action, computed } from "mobx";
-import { client } from "utils/ApiClient";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import { client } from "utils/ApiClient";
 import Share from "models/Share";
 
 export default class SharesStore extends BaseStore<Share> {

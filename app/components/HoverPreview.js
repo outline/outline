@@ -2,9 +2,9 @@
 import * as React from "react";
 import { inject } from "mobx-react";
 import { transparentize } from "polished";
-import HoverPreviewDocument from "components/HoverPreviewDocument";
 import styled from "styled-components";
 import { Portal } from "react-portal";
+import HoverPreviewDocument from "components/HoverPreviewDocument";
 import { fadeAndSlideIn } from "shared/styles/animations";
 import isInternalUrl from "utils/isInternalUrl";
 import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";

@@ -6,8 +6,8 @@ import { observable } from "mobx";
 import { withRouter, type RouterHistory } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import { SearchIcon } from "outline-icons";
-import { searchUrl } from "utils/routeHelpers";
 import Input from "./Input";
+import { searchUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,

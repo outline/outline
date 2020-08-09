@@ -1,7 +1,7 @@
 // @flow
 import invariant from "invariant";
-import policy from "./policy";
 import { Document, Revision, User } from "../models";
+import policy from "./policy";
 
 const { allow, cannot } = policy;
 

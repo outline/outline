@@ -1,4 +1,5 @@
 // @flow
+import subHours from "date-fns/sub_hours";
 import type { Event } from "../events";
 import {
   Document,
@@ -9,7 +10,6 @@ import {
 } from "../models";
 import { socketio } from "../";
 import { Op } from "../sequelize";
-import subHours from "date-fns/sub_hours";
 
 export default class Websockets {
   async on(event: Event) {

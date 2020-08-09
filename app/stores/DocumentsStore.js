@@ -10,9 +10,9 @@ import {
   omitBy,
   uniq,
 } from "lodash";
+import invariant from "invariant";
 import { client } from "utils/ApiClient";
 import naturalSort from "shared/utils/naturalSort";
-import invariant from "invariant";
 
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";

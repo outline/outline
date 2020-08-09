@@ -3,8 +3,8 @@ import * as React from "react";
 import { darken } from "polished";
 import breakpoint from "styled-components-breakpoint";
 import useWindowScrollPosition from "@rehooks/window-scroll-position";
-import HelpText from "components/HelpText";
 import styled from "styled-components";
+import HelpText from "components/HelpText";
 
 const HEADING_OFFSET = 20;
 

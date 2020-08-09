@@ -2,9 +2,9 @@
 import invariant from "invariant";
 import { observable, set, action, computed, runInAction } from "mobx";
 import { orderBy } from "lodash";
+import BaseModel from "../models/BaseModel";
 import { client } from "utils/ApiClient";
 import RootStore from "stores/RootStore";
-import BaseModel from "../models/BaseModel";
 import type { PaginationParams } from "types";
 
 type Action = "list" | "info" | "create" | "update" | "delete";

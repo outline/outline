@@ -6,6 +6,7 @@ import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import { type Match } from "react-router-dom";
 
+import UserListItem from "./components/UserListItem";
 import Empty from "components/Empty";
 import Modal from "components/Modal";
 import Button from "components/Button";
@@ -16,7 +17,6 @@ import HelpText from "components/HelpText";
 import PaginatedList from "components/PaginatedList";
 import Tabs, { Separator } from "components/Tabs";
 import Tab from "components/Tab";
-import UserListItem from "./components/UserListItem";
 
 import AuthStore from "stores/AuthStore";
 import UsersStore from "stores/UsersStore";
