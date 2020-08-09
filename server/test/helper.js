@@ -1,5 +1,4 @@
 // @flow
-/* global jest */
 require("dotenv").config({ silent: true });
 
 // test environment variables

@@ -1,5 +1,5 @@
 {
-  "parser": "@babel/eslint-parser",
+  "parser": "babel-eslint",
   "extends": [
     "react-app",
     "plugin:import/errors",
