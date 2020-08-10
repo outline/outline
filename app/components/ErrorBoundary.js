@@ -8,6 +8,7 @@ import CenteredContent from "components/CenteredContent";
 import HelpText from "components/HelpText";
 import PageTitle from "components/PageTitle";
 import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
+import env from "env";
 
 type Props = {
   children: React.Node,
@@ -41,7 +42,7 @@ class ErrorBoundary extends React.Component<Props> {
 
   render() {
     if (this.error) {
-      const isReported = !!window.Sentry;
+      const isReported = !!window.Sentry && env.DEPLOYMENT === "hosted";
 
       return (
         <CenteredContent>

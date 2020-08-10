@@ -203,12 +203,15 @@ class DocumentScene extends React.Component<Props> {
       const EditorImport = await import("./Editor");
       this.editorComponent = EditorImport.default;
     } catch (err) {
-      console.error(err);
+      if (err.message && err.message.match(/chunk/)) {
+        // If the editor bundle fails to load then reload the entire window. This
+        // can happen if a deploy happens between the user loading the initial JS
+        // bundle and the async-loaded editor JS bundle as the hash will change.
+        window.location.reload();
+        return;
+      }
 
-      // If the editor bundle fails to load then reload the entire window. This
-      // can happen if a deploy happens between the user loading the initial JS
-      // bundle and the async-loaded editor JS bundle as the hash will change.
-      window.location.reload();
+      throw err;
     }
   };
 
