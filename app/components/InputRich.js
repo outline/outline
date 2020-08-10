@@ -1,8 +1,9 @@
 // @flow
 import { observable } from "mobx";
-import { observer } from "mobx-react";
+import { observer, inject } from "mobx-react";
 import * as React from "react";
 import styled, { withTheme } from "styled-components";
+import UiStore from "stores/UiStore";
 import { LabelText, Outline } from "components/Input";
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
   minHeight?: number,
   maxHeight?: number,
   readOnly?: boolean,
+  ui: UiStore,
 };
 
 @observer
@@ -34,17 +36,19 @@ class InputRich extends React.Component<Props> {
       const EditorImport = await import("./Editor");
       this.editorComponent = EditorImport.default;
     } catch (err) {
-      console.error(err);
-
-      // If the editor bundle fails to load then reload the entire window. This
-      // can happen if a deploy happens between the user loading the initial JS
-      // bundle and the async-loaded editor JS bundle as the hash will change.
-      window.location.reload();
+      if (err.message && err.message.match(/chunk/)) {
+        // If the editor bundle fails to load then reload the entire window. This
+        // can happen if a deploy happens between the user loading the initial JS
+        // bundle and the async-loaded editor JS bundle as the hash will change.
+        window.location.reload();
+        return;
+      }
+      throw err;
     }
   };
 
   render() {
-    const { label, minHeight, maxHeight, ...rest } = this.props;
+    const { label, minHeight, maxHeight, ui, ...rest } = this.props;
     const Editor = this.editorComponent;
 
     return (
@@ -60,6 +64,7 @@ class InputRich extends React.Component<Props> {
             <Editor
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
+              ui={ui}
               grow
               {...rest}
             />
@@ -83,4 +88,4 @@ const StyledOutline = styled(Outline)`
   }
 `;
 
-export default withTheme(InputRich);
+export default inject("ui")(withTheme(InputRich));
