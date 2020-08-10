@@ -1,9 +1,9 @@
 // @flow
-import { v4 } from "uuid";
 import { orderBy } from "lodash";
 import { observable, action, autorun, computed } from "mobx";
-import Document from "models/Document";
+import { v4 } from "uuid";
 import Collection from "models/Collection";
+import Document from "models/Document";
 import type { Toast } from "../types";
 
 const UI_STORE = "UI_STORE";
@@ -38,7 +38,7 @@ class UiStore {
       "(prefers-color-scheme: dark)"
     );
 
-    const setSystemTheme = event => {
+    const setSystemTheme = (event) => {
       this.systemTheme = event.matches ? "dark" : "light";
     };
     setSystemTheme(colorSchemeQueryList);
@@ -84,7 +84,12 @@ class UiStore {
   setActiveDocument = (document: Document): void => {
     this.activeDocumentId = document.id;
 
-    if (document.publishedAt && !document.isArchived && !document.isDeleted) {
+    if (
+      document.publishedAt &&
+      !document.isArchived &&
+      !document.isDeleted &&
+      !document.isTemplate
+    ) {
       this.activeCollectionId = document.collectionId;
     }
   };

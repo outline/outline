@@ -1,15 +1,15 @@
 // @flow
-import * as React from "react";
+import { debounce } from "lodash";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { debounce } from "lodash";
+import * as React from "react";
 
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
-import Checkbox from "components/Checkbox";
 import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
+import Checkbox from "components/Checkbox";
 import HelpText from "components/HelpText";
+import PageTitle from "components/PageTitle";
 
 type Props = {
   auth: AuthStore,
@@ -66,7 +66,7 @@ class Security extends React.Component<Props> {
         <h1>Security</h1>
         <HelpText>
           Settings that impact the access, security, and content of your
-          knowledgebase.
+          knowledge base.
         </HelpText>
 
         <Checkbox

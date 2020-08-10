@@ -1,7 +1,7 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
+import * as React from "react";
 import styled, { withTheme } from "styled-components";
 import { LabelText, Outline } from "components/Input";
 
@@ -48,7 +48,7 @@ class InputRich extends React.Component<Props> {
     const Editor = this.editorComponent;
 
     return (
-      <React.Fragment>
+      <>
         <LabelText>{label}</LabelText>
 
         <StyledOutline
@@ -67,7 +67,7 @@ class InputRich extends React.Component<Props> {
             "Loading…"
           )}
         </StyledOutline>
-      </React.Fragment>
+      </>
     );
   }
 }

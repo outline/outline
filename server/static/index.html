@@ -1,47 +1,43 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <title>Outline</title>
-    <meta name="slack-app-id" content="<%= SLACK_APP_ID %>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="shortcut icon" type="image/png" href="favicon-32.png" sizes="32x32" />
-    <link rel="manifest" href="/manifest.json" />
-    <link
-      rel="search"
-      type="application/opensearchdescription+xml"
-      href="/opensearch.xml"
-      title="Outline"
-    />
-    <style>
-      body,
-      html {
-        margin: 0;
-        padding: 0;
-      }
 
-      body {
-        display: flex;
-        width: 100%;
-        height: 100%;
-      }
+<head>
+  <title>Outline</title>
+  <meta name="slack-app-id" content="//inject-slack-app-id//" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" type="image/png" href="favicon-32.png" sizes="32x32" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="Outline" />
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+    }
 
-      #root {
-        flex: 1;
-        min-height: 100vh;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script
-      src="https://browser.sentry-cdn.com/5.12.1/bundle.min.js"
-      integrity="sha384-y+an4eARFKvjzOivf/Z7JtMJhaN6b+lLQ5oFbBbUwZNNVir39cYtkjW1r6Xjbxg3"
-      crossorigin="anonymous"
-    >
+    body {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    #root {
+      flex: 1;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>//inject-env//</script>
+  <script src="https://browser.sentry-cdn.com/5.12.1/bundle.min.js"
+    integrity="sha384-y+an4eARFKvjzOivf/Z7JtMJhaN6b+lLQ5oFbBbUwZNNVir39cYtkjW1r6Xjbxg3" crossorigin="anonymous">
     </script>
-    <script>
+  <script>
+    if ('//inject-sentry-dsn//') {
       Sentry.init({
-        dsn: '<%= SENTRY_DSN %>',
+        dsn: '//inject-sentry-dsn//',
         ignoreErrors: [
           'AuthorizationError',
           'NetworkError',
@@ -50,10 +46,12 @@
           'UpdateRequiredError',
         ],
       });
+    }
 
-      if (window.localStorage.getItem("theme") === "dark") {
-        window.document.querySelector('#root').style.background = "#111319";
-      }
-    </script>
-  </body>
+    if (window.localStorage.getItem("theme") === "dark") {
+      window.document.querySelector('#root').style.background = "#111319";
+    }
+  </script>
+</body>
+
 </html>

@@ -9,6 +9,7 @@ const Share = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    published: DataTypes.BOOLEAN,
     revokedAt: DataTypes.DATE,
     revokedById: DataTypes.UUID,
   },
@@ -21,7 +22,7 @@ const Share = sequelize.define(
   }
 );
 
-Share.associate = models => {
+Share.associate = (models) => {
   Share.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",
@@ -30,13 +31,20 @@ Share.associate = models => {
     as: "team",
     foreignKey: "teamId",
   });
-  Share.belongsTo(models.Document, {
+  Share.belongsTo(models.Document.scope("withUnpublished"), {
     as: "document",
     foreignKey: "documentId",
   });
+  Share.addScope("defaultScope", {
+    include: [
+      { association: "user" },
+      { association: "document" },
+      { association: "team" },
+    ],
+  });
 };
 
-Share.prototype.revoke = function(userId) {
+Share.prototype.revoke = function (userId) {
   this.revokedAt = new Date();
   this.revokedById = userId;
   return this.save();

@@ -1,21 +1,21 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import styled from "styled-components";
-import Dropzone from "react-dropzone";
-import LoadingIndicator from "components/LoadingIndicator";
-import Flex from "components/Flex";
-import Modal from "components/Modal";
-import Button from "components/Button";
+import * as React from "react";
 import AvatarEditor from "react-avatar-editor";
-import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
+import Dropzone from "react-dropzone";
+import styled from "styled-components";
 import UiStore from "stores/UiStore";
+import Button from "components/Button";
+import Flex from "components/Flex";
+import LoadingIndicator from "components/LoadingIndicator";
+import Modal from "components/Modal";
+import { uploadFile, dataUrlToBlob } from "utils/uploadFile";
 
 type Props = {
   children?: React.Node,
-  onSuccess: string => void | Promise<void>,
-  onError: string => void,
+  onSuccess: (string) => void | Promise<void>,
+  onError: (string) => void,
   submitText: string,
   borderRadius: number,
   ui: UiStore,
@@ -85,7 +85,7 @@ class ImageUpload extends React.Component<Props> {
           {this.isUploading && <LoadingIndicator />}
           <AvatarEditorContainer>
             <AvatarEditor
-              ref={ref => (this.avatarEditorRef = ref)}
+              ref={(ref) => (this.avatarEditorRef = ref)}
               image={this.file}
               width={250}
               height={250}
@@ -154,7 +154,7 @@ const RangeInput = styled.input`
     height: 16px;
     width: 16px;
     border-radius: 50%;
-    background: ${props => props.theme.text};
+    background: ${(props) => props.theme.text};
     cursor: pointer;
   }
 

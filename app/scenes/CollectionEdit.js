@@ -1,16 +1,16 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
-import Input from "components/Input";
-import InputRich from "components/InputRich";
+import * as React from "react";
+import UiStore from "stores/UiStore";
+import Collection from "models/Collection";
 import Button from "components/Button";
-import Switch from "components/Switch";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import IconPicker from "components/IconPicker";
-import Collection from "models/Collection";
-import UiStore from "stores/UiStore";
+import Input from "components/Input";
+import InputRich from "components/InputRich";
+import Switch from "components/Switch";
 
 type Props = {
   collection: Collection,
@@ -56,7 +56,7 @@ class CollectionEdit extends React.Component<Props> {
     }
   };
 
-  handleDescriptionChange = getValue => {
+  handleDescriptionChange = (getValue) => {
     this.description = getValue();
   };
 

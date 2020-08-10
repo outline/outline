@@ -1,11 +1,11 @@
 // @flow
-import * as React from "react";
 import { inject, observer } from "mobx-react";
-import { getLuminance } from "polished";
 import { PrivateCollectionIcon, CollectionIcon } from "outline-icons";
+import { getLuminance } from "polished";
+import * as React from "react";
+import UiStore from "stores/UiStore";
 import Collection from "models/Collection";
 import { icons } from "components/IconPicker";
-import UiStore from "stores/UiStore";
 
 type Props = {
   collection: Collection,

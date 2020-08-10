@@ -1,15 +1,15 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import UiStore from "stores/UiStore";
 
-import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
-import HelpText from "components/HelpText";
 import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import HelpText from "components/HelpText";
+import PageTitle from "components/PageTitle";
 
 type Props = {
   auth: AuthStore,
@@ -45,7 +45,7 @@ class Export extends React.Component<Props> {
         <h1>Export Data</h1>
         <HelpText>
           Exporting your team’s documents may take a little time depending on
-          the size of your knowledgebase. Consider exporting a single document
+          the size of your knowledge base. Consider exporting a single document
           or collection instead.
         </HelpText>
         <HelpText>
@@ -61,7 +61,9 @@ class Export extends React.Component<Props> {
         >
           {this.isExporting
             ? "Export Requested"
-            : this.isLoading ? "Requesting Export…" : "Export All Data"}
+            : this.isLoading
+            ? "Requesting Export…"
+            : "Export All Data"}
         </Button>
       </CenteredContent>
     );

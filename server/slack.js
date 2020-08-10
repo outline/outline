@@ -1,6 +1,6 @@
 // @flow
-import fetch from "isomorphic-fetch";
 import querystring from "querystring";
+import fetch from "isomorphic-fetch";
 import { InvalidRequestError } from "./errors";
 
 const SLACK_API_URL = "https://slack.com/api";

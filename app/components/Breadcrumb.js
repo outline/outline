@@ -1,17 +1,23 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
-import breakpoint from "styled-components-breakpoint";
-import styled from "styled-components";
+import {
+  PadlockIcon,
+  GoToIcon,
+  MoreIcon,
+  ShapesIcon,
+  EditIcon,
+} from "outline-icons";
+import * as React from "react";
 import { Link } from "react-router-dom";
-import { PadlockIcon, GoToIcon, MoreIcon } from "outline-icons";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 
-import Document from "models/Document";
 import CollectionsStore from "stores/CollectionsStore";
-import { collectionUrl } from "utils/routeHelpers";
+import Document from "models/Document";
+import CollectionIcon from "components/CollectionIcon";
 import Flex from "components/Flex";
 import BreadcrumbMenu from "./BreadcrumbMenu";
-import CollectionIcon from "components/CollectionIcon";
+import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {
   document: Document,
@@ -36,45 +42,68 @@ const Breadcrumb = observer(({ document, collections, onlyText }: Props) => {
 
   if (onlyText === true) {
     return (
-      <React.Fragment>
+      <>
         {collection.private && (
-          <React.Fragment>
+          <>
             <SmallPadlockIcon color="currentColor" size={16} />{" "}
-          </React.Fragment>
+          </>
         )}
         {collection.name}
-        {path.map(n => (
+        {path.map((n) => (
           <React.Fragment key={n.id}>
             <SmallSlash />
             {n.title}
           </React.Fragment>
         ))}
-      </React.Fragment>
+      </>
     );
   }
 
+  const isTemplate = document.isTemplate;
+  const isDraft = !document.publishedAt && !isTemplate;
   const isNestedDocument = path.length > 1;
   const lastPath = path.length ? path[path.length - 1] : undefined;
   const menuPath = isNestedDocument ? path.slice(0, -1) : [];
 
   return (
     <Wrapper justify="flex-start" align="center">
+      {isTemplate && (
+        <>
+          <CollectionName to="/templates">
+            <ShapesIcon color="currentColor" />
+            &nbsp;
+            <span>Templates</span>
+          </CollectionName>
+          <Slash />
+        </>
+      )}
+      {isDraft && (
+        <>
+          <CollectionName to="/drafts">
+            <EditIcon color="currentColor" />
+            &nbsp;
+            <span>Drafts</span>
+          </CollectionName>
+          <Slash />
+        </>
+      )}
       <CollectionName to={collectionUrl(collection.id)}>
-        <CollectionIcon collection={collection} expanded />&nbsp;
+        <CollectionIcon collection={collection} expanded />
+        &nbsp;
         <span>{collection.name}</span>
       </CollectionName>
       {isNestedDocument && (
-        <React.Fragment>
+        <>
           <Slash /> <BreadcrumbMenu label={<Overflow />} path={menuPath} />
-        </React.Fragment>
+        </>
       )}
       {lastPath && (
-        <React.Fragment>
+        <>
           <Slash />{" "}
           <Crumb to={lastPath.url} title={lastPath.title}>
             {lastPath.title}
           </Crumb>
-        </React.Fragment>
+        </>
       )}
     </Wrapper>
   );
@@ -102,7 +131,7 @@ const SmallSlash = styled(GoToIcon)`
 
 export const Slash = styled(GoToIcon)`
   flex-shrink: 0;
-  fill: ${props => props.theme.divider};
+  fill: ${(props) => props.theme.divider};
 `;
 
 const Overflow = styled(MoreIcon)`
@@ -117,7 +146,7 @@ const Overflow = styled(MoreIcon)`
 `;
 
 const Crumb = styled(Link)`
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   font-size: 15px;
   height: 24px;
   text-overflow: ellipsis;
@@ -132,7 +161,7 @@ const Crumb = styled(Link)`
 const CollectionName = styled(Link)`
   display: flex;
   flex-shrink: 0;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   font-size: 15px;
   font-weight: 500;
   white-space: nowrap;

@@ -1,9 +1,9 @@
 // @flow
-import * as React from "react";
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
+import * as React from "react";
 import { Waypoint } from "react-waypoint";
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
@@ -14,12 +14,14 @@ type Props = {
   heading?: React.Node,
   empty?: React.Node,
   items: any[],
-  renderItem: any => React.Node,
+  renderItem: (any) => React.Node,
 };
 
 @observer
 class PaginatedList extends React.Component<Props> {
   isInitiallyLoaded: boolean = false;
+  timeout: ?TimeoutID;
+  @observable isLongLoading: boolean = false;
   @observable isLoaded: boolean = false;
   @observable isFetchingMore: boolean = false;
   @observable isFetching: boolean = false;
@@ -34,6 +36,11 @@ class PaginatedList extends React.Component<Props> {
 
   componentDidMount() {
     this.fetchResults();
+    this.timeout = setTimeout(() => (this.isLongLoading = true), 200);
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.timeout);
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -90,16 +97,19 @@ class PaginatedList extends React.Component<Props> {
     const { items, heading, empty } = this.props;
 
     const showLoading =
-      this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
+      this.isFetching &&
+      this.isLongLoading &&
+      !this.isFetchingMore &&
+      !this.isInitiallyLoaded;
     const showEmpty = !items.length && !showLoading;
     const showList =
       (this.isLoaded || this.isInitiallyLoaded) && !showLoading && !showEmpty;
 
     return (
-      <React.Fragment>
+      <>
         {showEmpty && empty}
         {showList && (
-          <React.Fragment>
+          <>
             {heading}
             <ArrowKeyNavigation
               mode={ArrowKeyNavigation.mode.VERTICAL}
@@ -110,10 +120,10 @@ class PaginatedList extends React.Component<Props> {
             {this.allowLoadMore && (
               <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
             )}
-          </React.Fragment>
+          </>
         )}
         {showLoading && <ListPlaceholder count={5} />}
-      </React.Fragment>
+      </>
     );
   }
 }

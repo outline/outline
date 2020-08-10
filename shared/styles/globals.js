@@ -1,6 +1,6 @@
 // @flow
-import styledNormalize from "styled-normalize";
 import { createGlobalStyle } from "styled-components";
+import styledNormalize from "styled-normalize";
 
 export default createGlobalStyle`
   ${styledNormalize}
@@ -30,7 +30,7 @@ export default createGlobalStyle`
   body {
     font-size: 16px;
     line-height: 1.5;
-    color: ${props => props.theme.text};
+    color: ${(props) => props.theme.text};
 
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
@@ -38,7 +38,7 @@ export default createGlobalStyle`
   }
 
   a {
-    color: ${props => props.theme.primary};
+    color: ${(props) => props.theme.link};
     text-decoration: none;
     cursor: pointer;
   }
@@ -53,7 +53,6 @@ export default createGlobalStyle`
     line-height: 1.25;
     margin-top: 1em;
     margin-bottom: 0.5em;
-    color: ${props => props.theme.text};
   }
   h1 { font-size: 2.25em; }
   h2 { font-size: 1.5em; }
@@ -75,6 +74,6 @@ export default createGlobalStyle`
   hr {
     border: 0;
     height: 0;
-    border-top: 1px solid ${props => props.theme.divider};
+    border-top: 1px solid ${(props) => props.theme.divider};
   }
 `;

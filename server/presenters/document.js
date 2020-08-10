@@ -13,7 +13,7 @@ const attachmentRegex = /!\[.*\]\(\/api\/attachments\.redirect\?id=(?<id>.*)\)/g
 // replaces attachments.redirect urls with signed/authenticated url equivalents
 async function replaceImageAttachments(text) {
   const attachmentIds = [...text.matchAll(attachmentRegex)].map(
-    match => match.groups && match.groups.id
+    (match) => match.groups && match.groups.id
   );
 
   for (const id of attachmentIds) {
@@ -54,6 +54,8 @@ export default async function present(document: Document, options: ?Options) {
     archivedAt: document.archivedAt,
     deletedAt: document.deletedAt,
     teamId: document.teamId,
+    template: document.template,
+    templateId: document.templateId,
     collaborators: [],
     starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,

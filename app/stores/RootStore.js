@@ -1,22 +1,22 @@
 // @flow
 import ApiKeysStore from "./ApiKeysStore";
 import AuthStore from "./AuthStore";
+import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
 import CollectionsStore from "./CollectionsStore";
+import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
 import EventsStore from "./EventsStore";
-import GroupsStore from "./GroupsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
+import GroupsStore from "./GroupsStore";
 import IntegrationsStore from "./IntegrationsStore";
 import MembershipsStore from "./MembershipsStore";
 import NotificationSettingsStore from "./NotificationSettingsStore";
-import DocumentPresenceStore from "./DocumentPresenceStore";
 import PoliciesStore from "./PoliciesStore";
 import RevisionsStore from "./RevisionsStore";
 import SharesStore from "./SharesStore";
 import UiStore from "./UiStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
-import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
 
 export default class RootStore {
   apiKeys: ApiKeysStore;

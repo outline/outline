@@ -5,12 +5,8 @@ export const opensearchResponse = (): string => {
   <ShortName>Outline</ShortName>
   <Description>Search Outline</Description>
   <InputEncoding>UTF-8</InputEncoding>
-  <Image width="16" height="16" type="image/x-icon">${
-    process.env.URL
-  }/favicon.ico</Image>
-  <Url type="text/html" method="get" template="${
-    process.env.URL
-  }/search/{searchTerms}?ref=opensearch"/>
+  <Image width="16" height="16" type="image/x-icon">${process.env.URL}/favicon.ico</Image>
+  <Url type="text/html" method="get" template="${process.env.URL}/search/{searchTerms}?ref=opensearch"/>
   <moz:SearchForm>${process.env.URL}/search</moz:SearchForm>
 </OpenSearchDescription>
 `;

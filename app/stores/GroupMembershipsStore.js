@@ -1,12 +1,12 @@
 // @flow
 import invariant from "invariant";
-import { action, runInAction } from "mobx";
 import { filter } from "lodash";
-import { client } from "utils/ApiClient";
+import { action, runInAction } from "mobx";
+import GroupMembership from "models/GroupMembership";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import GroupMembership from "models/GroupMembership";
 import type { PaginationParams } from "types";
+import { client } from "utils/ApiClient";
 
 export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
   actions = ["create", "delete"];
@@ -74,6 +74,6 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
   };
 
   inGroup = (groupId: string) => {
-    return filter(this.orderedData, member => member.groupId === groupId);
+    return filter(this.orderedData, (member) => member.groupId === groupId);
   };
 }

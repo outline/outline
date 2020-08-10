@@ -22,7 +22,7 @@ function Switch({ width = 38, height = 20, label, ...props }: Props) {
     return (
       <Label htmlFor={props.id}>
         {component}
-        <LabelText>&nbsp;{label}</LabelText>
+        <LabelText>{label}</LabelText>
       </Label>
     );
   }
@@ -38,9 +38,10 @@ const Label = styled.label`
 const Wrapper = styled.label`
   position: relative;
   display: inline-block;
-  width: ${props => props.width}px;
-  height: ${props => props.height}px;
+  width: ${(props) => props.width}px;
+  height: ${(props) => props.height}px;
   margin-bottom: 4px;
+  margin-right: 8px;
 `;
 
 const Slider = styled.span`
@@ -50,16 +51,16 @@ const Slider = styled.span`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${props => props.theme.slate};
+  background-color: ${(props) => props.theme.slate};
   -webkit-transition: 0.4s;
   transition: 0.4s;
-  border-radius: ${props => props.height}px;
+  border-radius: ${(props) => props.height}px;
 
   &:before {
     position: absolute;
     content: "";
-    height: ${props => props.height - 8}px;
-    width: ${props => props.height - 8}px;
+    height: ${(props) => props.height - 8}px;
+    width: ${(props) => props.height - 8}px;
     left: 4px;
     bottom: 4px;
     background-color: white;
@@ -76,15 +77,15 @@ const HiddenInput = styled.input`
   visibility: hidden;
 
   &:checked + ${Slider} {
-    background-color: ${props => props.theme.primary};
+    background-color: ${(props) => props.theme.primary};
   }
 
   &:focus + ${Slider} {
-    box-shadow: 0 0 1px ${props => props.theme.primary};
+    box-shadow: 0 0 1px ${(props) => props.theme.primary};
   }
 
   &:checked + ${Slider}:before {
-    transform: translateX(${props => props.width - props.height}px);
+    transform: translateX(${(props) => props.width - props.height}px);
   }
 `;
 

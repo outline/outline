@@ -1,6 +1,7 @@
 // @flow
+import * as Sentry from "@sentry/node";
+import Koa from "koa";
 import compress from "koa-compress";
-import { compact } from "lodash";
 import helmet, {
   contentSecurityPolicy,
   dnsPrefetchControl,
@@ -8,16 +9,15 @@ import helmet, {
 } from "koa-helmet";
 import logger from "koa-logger";
 import mount from "koa-mount";
-import enforceHttps from "koa-sslify";
-import Koa from "koa";
 import onerror from "koa-onerror";
-import * as Sentry from "@sentry/node";
-import updates from "./utils/updates";
+import enforceHttps from "koa-sslify";
+import { compact } from "lodash";
 
-import auth from "./auth";
 import api from "./api";
+import auth from "./auth";
 import emails from "./emails";
 import routes from "./routes";
+import updates from "./utils/updates";
 
 const app = new Koa();
 
@@ -33,30 +33,33 @@ if (process.env.NODE_ENV === "development") {
   const compile = webpack(config);
   /* eslint-enable global-require */
 
-  app.use(
-    convert(
-      devMiddleware(compile, {
-        // display no info to console (only warnings and errors)
-        noInfo: true,
+  const middleware = devMiddleware(compile, {
+    // display no info to console (only warnings and errors)
+    noInfo: true,
 
-        // display nothing to the console
-        quiet: false,
+    // display nothing to the console
+    quiet: false,
 
-        // switch into lazy mode
-        // that means no watching, but recompilation on every request
-        lazy: false,
+    // switch into lazy mode
+    // that means no watching, but recompilation on every request
+    lazy: false,
 
-        // public path to bind the middleware to
-        // use the same as in webpack
-        publicPath: config.output.publicPath,
+    // public path to bind the middleware to
+    // use the same as in webpack
+    publicPath: config.output.publicPath,
 
-        // options for formatting the statistics
-        stats: {
-          colors: true,
-        },
-      })
-    )
-  );
+    // options for formatting the statistics
+    stats: {
+      colors: true,
+    },
+  });
+
+  app.use(async (ctx, next) => {
+    ctx.webpackConfig = config;
+    ctx.devMiddleware = middleware;
+    await next();
+  });
+  app.use(convert(middleware));
   app.use(
     convert(
       hotMiddleware(compile, {
@@ -111,12 +114,12 @@ app.on("error", (error, ctx) => {
   }
 
   if (process.env.SENTRY_DSN) {
-    Sentry.withScope(function(scope) {
+    Sentry.withScope(function (scope) {
       const requestId = ctx.headers["x-request-id"];
       if (requestId) {
         scope.setTag("request_id", requestId);
       }
-      scope.addEventProcessor(function(event) {
+      scope.addEventProcessor(function (event) {
         return Sentry.Handlers.parseRequest(event, ctx.request);
       });
       Sentry.captureException(error);

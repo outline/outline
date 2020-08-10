@@ -1,11 +1,11 @@
 // @flow
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
-import { client } from "utils/ApiClient";
+import Membership from "models/Membership";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import Membership from "models/Membership";
 import type { PaginationParams } from "types";
+import { client } from "utils/ApiClient";
 
 export default class MembershipsStore extends BaseStore<Membership> {
   actions = ["create", "delete"];

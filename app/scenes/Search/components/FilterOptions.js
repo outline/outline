@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import { find } from "lodash";
+import * as React from "react";
 import styled from "styled-components";
 import Button, { Inner } from "components/Button";
 import { DropdownMenu } from "components/DropdownMenu";
@@ -32,7 +32,7 @@ const FilterOptions = ({
     <DropdownButton label={activeKey ? selectedLabel : defaultLabel}>
       {({ closeMenu }) => (
         <List>
-          {options.map(option => (
+          {options.map((option) => (
             <FilterOption
               key={option.key}
               onSelect={() => {
@@ -73,7 +73,7 @@ const StyledButton = styled(Button)`
   }
 `;
 
-const SearchFilter = props => {
+const SearchFilter = (props) => {
   return (
     <DropdownMenu
       className={props.className}

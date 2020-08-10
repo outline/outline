@@ -1,9 +1,9 @@
 // @flow
 import { sortBy } from "lodash";
 import { computed } from "mobx";
+import Event from "models/Event";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import Event from "models/Event";
 
 export default class EventsStore extends BaseStore<Event> {
   actions = ["list"];

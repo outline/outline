@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
+import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
+import { EditIcon } from "outline-icons";
+import * as React from "react";
 import styled from "styled-components";
-import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
-import Avatar from "components/Avatar";
-import Tooltip from "components/Tooltip";
 import User from "models/User";
 import UserProfile from "scenes/UserProfile";
-import { EditIcon } from "outline-icons";
+import Avatar from "components/Avatar";
+import Tooltip from "components/Tooltip";
 
 type Props = {
   user: User,
@@ -40,14 +40,16 @@ class AvatarWithPresence extends React.Component<Props> {
     } = this.props;
 
     return (
-      <React.Fragment>
+      <>
         <Tooltip
           tooltip={
             <Centered>
               <strong>{user.name}</strong> {isCurrentUser && "(You)"}
               <br />
               {isPresent
-                ? isEditing ? "currently editing" : "currently viewing"
+                ? isEditing
+                  ? "currently editing"
+                  : "currently viewing"
                 : `viewed ${distanceInWordsToNow(new Date(lastViewedAt))} ago`}
             </Centered>
           }
@@ -67,7 +69,7 @@ class AvatarWithPresence extends React.Component<Props> {
           isOpen={this.isOpen}
           onRequestClose={this.handleCloseProfile}
         />
-      </React.Fragment>
+      </>
     );
   }
 }
@@ -77,7 +79,7 @@ const Centered = styled.div`
 `;
 
 const AvatarWrapper = styled.div`
-  opacity: ${props => (props.isPresent ? 1 : 0.5)};
+  opacity: ${(props) => (props.isPresent ? 1 : 0.5)};
   transition: opacity 250ms ease-in-out;
 `;
 

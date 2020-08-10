@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import { CheckmarkIcon } from "outline-icons";
+import * as React from "react";
 import styled from "styled-components";
 
 type Props = {
@@ -26,11 +26,12 @@ const DropdownMenuItem = ({
       {...rest}
     >
       {selected !== undefined && (
-        <React.Fragment>
+        <>
           <CheckmarkIcon
             color={selected === false ? "transparent" : undefined}
-          />&nbsp;
-        </React.Fragment>
+          />
+          &nbsp;
+        </>
       )}
       {children}
     </MenuItem>
@@ -42,9 +43,9 @@ const MenuItem = styled.a`
   margin: 0;
   padding: 6px 12px;
   width: 100%;
-  height: 32px;
+  min-height: 32px;
 
-  color: ${props =>
+  color: ${(props) =>
     props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
   justify-content: left;
   align-items: center;
@@ -57,10 +58,10 @@ const MenuItem = styled.a`
   }
 
   svg {
-    opacity: ${props => (props.disabled ? ".5" : 1)};
+    opacity: ${(props) => (props.disabled ? ".5" : 1)};
   }
 
-  ${props =>
+  ${(props) =>
     props.disabled
       ? "pointer-events: none;"
       : `

@@ -1,20 +1,20 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { flushdb } from "../test/support";
 import {
   buildUser,
   buildCollection,
   buildAttachment,
   buildDocument,
 } from "../test/factories";
+import { flushdb } from "../test/support";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
-describe("#attachments.redirect", async () => {
+describe("#attachments.redirect", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/attachments.redirect");
     expect(res.status).toEqual(401);

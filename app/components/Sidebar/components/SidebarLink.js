@@ -1,9 +1,9 @@
 // @flow
-import * as React from "react";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
-import { withRouter, NavLink } from "react-router-dom";
 import { CollapsedIcon } from "outline-icons";
+import * as React from "react";
+import { withRouter, NavLink } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import Flex from "components/Flex";
 
@@ -108,11 +108,11 @@ const IconWrapper = styled.span`
 `;
 
 const Action = styled.span`
-  display: ${props => (props.menuOpen ? "inline" : "none")};
+  display: ${(props) => (props.menuOpen ? "inline" : "none")};
   position: absolute;
   top: 4px;
   right: 4px;
-  color: ${props => props.theme.textTertiary};
+  color: ${(props) => props.theme.textTertiary};
 
   svg {
     opacity: 0.75;
@@ -132,17 +132,17 @@ const StyledNavLink = styled(NavLink)`
   text-overflow: ellipsis;
   padding: 4px 16px;
   border-radius: 4px;
-  color: ${props => props.theme.sidebarText};
+  color: ${(props) => props.theme.sidebarText};
   font-size: 15px;
   cursor: pointer;
 
   &:hover {
-    color: ${props => props.theme.text};
+    color: ${(props) => props.theme.text};
   }
 
   &:focus {
-    color: ${props => props.theme.text};
-    background: ${props => props.theme.black05};
+    color: ${(props) => props.theme.text};
+    background: ${(props) => props.theme.black05};
     outline: none;
   }
 

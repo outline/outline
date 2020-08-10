@@ -1,6 +1,6 @@
 // @flow
-import { Op } from "../sequelize";
 import type { DocumentEvent, CollectionEvent, Event } from "../events";
+import mailer from "../mailer";
 import {
   Document,
   Team,
@@ -8,7 +8,7 @@ import {
   User,
   NotificationSetting,
 } from "../models";
-import mailer from "../mailer";
+import { Op } from "../sequelize";
 
 export default class Notifications {
   async on(event: Event) {
@@ -58,7 +58,7 @@ export default class Notifications {
     const eventName =
       event.name === "documents.publish" ? "published" : "updated";
 
-    notificationSettings.forEach(setting => {
+    notificationSettings.forEach((setting) => {
       // For document updates we only want to send notifications if
       // the document has been edited by the user with this notification setting
       // This could be replaced with ability to "follow" in the future
@@ -111,7 +111,7 @@ export default class Notifications {
       ],
     });
 
-    notificationSettings.forEach(setting =>
+    notificationSettings.forEach((setting) =>
       mailer.collectionNotification({
         to: setting.user.email,
         eventName: "created",

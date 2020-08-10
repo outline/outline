@@ -1,6 +1,6 @@
 // @flow
-import { DataTypes, sequelize } from "../sequelize";
 import events from "../events";
+import { DataTypes, sequelize } from "../sequelize";
 
 const Event = sequelize.define("event", {
   id: {
@@ -14,7 +14,7 @@ const Event = sequelize.define("event", {
   data: DataTypes.JSONB,
 });
 
-Event.associate = models => {
+Event.associate = (models) => {
   Event.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",
@@ -37,14 +37,14 @@ Event.associate = models => {
   });
 };
 
-Event.beforeCreate(event => {
+Event.beforeCreate((event) => {
   if (event.ip) {
     // cleanup IPV6 representations of IPV4 addresses
     event.ip = event.ip.replace(/^::ffff:/, "");
   }
 });
 
-Event.afterCreate(event => {
+Event.afterCreate((event) => {
   events.add(event);
 });
 
@@ -71,6 +71,7 @@ Event.AUDIT_EVENTS = [
   "users.suspend",
   "users.activate",
   "users.delete",
+  "documents.create",
   "documents.publish",
   "documents.update",
   "documents.archive",
@@ -80,6 +81,7 @@ Event.AUDIT_EVENTS = [
   "documents.move",
   "documents.delete",
   "shares.create",
+  "shares.update",
   "shares.revoke",
   "groups.create",
   "groups.update",

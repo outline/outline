@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
 import { inject } from "mobx-react";
 import { transparentize } from "polished";
-import HoverPreviewDocument from "components/HoverPreviewDocument";
-import styled from "styled-components";
+import * as React from "react";
 import { Portal } from "react-portal";
+import styled from "styled-components";
 import { fadeAndSlideIn } from "shared/styles/animations";
-import isInternalUrl from "utils/isInternalUrl";
 import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";
 import DocumentsStore from "stores/DocumentsStore";
+import HoverPreviewDocument from "components/HoverPreviewDocument";
+import isInternalUrl from "utils/isInternalUrl";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
@@ -29,9 +29,9 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
   const slug = parseDocumentSlugFromUrl(node.href);
 
   const [isVisible, setVisible] = React.useState(false);
-  const timerClose = React.useRef(null);
-  const timerOpen = React.useRef(null);
-  const cardRef = React.useRef(null);
+  const timerClose = React.useRef();
+  const timerOpen = React.useRef();
+  const cardRef = React.useRef<?HTMLDivElement>();
 
   const startCloseTimer = () => {
     stopOpenTimer();
@@ -57,42 +57,43 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
     }
   };
 
-  React.useEffect(
-    () => {
-      if (slug) {
-        documents.prefetchDocument(slug, {
-          prefetch: true,
-        });
-      }
+  React.useEffect(() => {
+    if (slug) {
+      documents.prefetchDocument(slug, {
+        prefetch: true,
+      });
+    }
 
-      startOpenTimer();
+    startOpenTimer();
+
+    if (cardRef.current) {
+      cardRef.current.addEventListener("mouseenter", stopCloseTimer);
+    }
+    if (cardRef.current) {
+      cardRef.current.addEventListener("mouseleave", startCloseTimer);
+    }
+
+    node.addEventListener("mouseout", startCloseTimer);
+    node.addEventListener("mouseover", stopCloseTimer);
+    node.addEventListener("mouseover", startOpenTimer);
+
+    return () => {
+      node.removeEventListener("mouseout", startCloseTimer);
+      node.removeEventListener("mouseover", stopCloseTimer);
+      node.removeEventListener("mouseover", startOpenTimer);
 
       if (cardRef.current) {
-        cardRef.current.addEventListener("mouseenter", stopCloseTimer);
-        cardRef.current.addEventListener("mouseleave", startCloseTimer);
+        cardRef.current.removeEventListener("mouseenter", stopCloseTimer);
+      }
+      if (cardRef.current) {
+        cardRef.current.removeEventListener("mouseleave", startCloseTimer);
       }
 
-      node.addEventListener("mouseout", startCloseTimer);
-      node.addEventListener("mouseover", stopCloseTimer);
-      node.addEventListener("mouseover", startOpenTimer);
-
-      return () => {
-        node.removeEventListener("mouseout", startCloseTimer);
-        node.removeEventListener("mouseover", stopCloseTimer);
-        node.removeEventListener("mouseover", startOpenTimer);
-
-        if (cardRef.current) {
-          cardRef.current.removeEventListener("mouseenter", stopCloseTimer);
-          cardRef.current.removeEventListener("mouseleave", startCloseTimer);
-        }
-
-        if (timerClose.current) {
-          clearTimeout(timerClose.current);
-        }
-      };
-    },
-    [node]
-  );
+      if (timerClose.current) {
+        clearTimeout(timerClose.current);
+      }
+    };
+  }, [node]);
 
   const anchorBounds = node.getBoundingClientRect();
   const cardBounds = cardRef.current
@@ -112,7 +113,7 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
       >
         <div ref={cardRef}>
           <HoverPreviewDocument url={node.href}>
-            {content =>
+            {(content) =>
               isVisible ? (
                 <Animate>
                   <Card>
@@ -156,8 +157,8 @@ const CardContent = styled.div`
 // &:after — gradient mask for overflow text
 const Card = styled.div`
   backdrop-filter: blur(10px);
-  background: ${props => props.theme.background};
-  border: ${props =>
+  background: ${(props) => props.theme.background};
+  border: ${(props) =>
     props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   border-radius: 4px;
   box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.3),
@@ -178,15 +179,16 @@ const Card = styled.div`
     position: absolute;
     pointer-events: none;
     background: linear-gradient(
-      180deg,
-      ${props => transparentize(1, props.theme.background)} 0%,
-      ${props => props.theme.background} 90%
+      90deg,
+      ${(props) => transparentize(1, props.theme.background)} 0%,
+      ${(props) => transparentize(1, props.theme.background)} 75%,
+      ${(props) => props.theme.background} 90%
     );
     bottom: 0;
     left: 0;
     right: 0;
-    height: 4em;
-    border-bottom: 16px solid ${props => props.theme.background};
+    height: 1.7em;
+    border-bottom: 16px solid ${(props) => props.theme.background};
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
   }
@@ -204,7 +206,7 @@ const Position = styled.div`
 
 const Pointer = styled.div`
   top: -22px;
-  left: ${props => props.offset}px;
+  left: ${(props) => props.offset}px;
   width: 22px;
   height: 22px;
   position: absolute;
@@ -221,14 +223,14 @@ const Pointer = styled.div`
 
   &:before {
     border: 8px solid transparent;
-    border-bottom-color: ${props =>
+    border-bottom-color: ${(props) =>
       props.theme.menuBorder || "rgba(0, 0, 0, 0.1)"};
     right: -1px;
   }
 
   &:after {
     border: 7px solid transparent;
-    border-bottom-color: ${props => props.theme.background};
+    border-bottom-color: ${(props) => props.theme.background};
   }
 `;
 

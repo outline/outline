@@ -153,7 +153,7 @@ yarn test:app
 
 Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
 
-However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in our [Spectrum community](https://spectrum.chat/outline). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster!
+However, before working on a pull request please let the core team know by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues), and we'd also love to hear from you in the [Discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written and will hopefully help to get your contributions integrated faster!
 
 If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
 
@@ -161,7 +161,6 @@ If you’re looking for ways to get started, here's a list of ways to help us im
 * Performance improvements, both on server and frontend
 * Developer happiness and documentation
 * Bugs and other issues listed on GitHub
-* Helping others on Spectrum
 
 ## License
 

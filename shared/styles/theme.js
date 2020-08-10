@@ -26,10 +26,19 @@ const colors = {
   yellow: "#FBCA04",
   warmGrey: "#EDF2F7",
 
-  danger: "#D0021B",
+  danger: "#ff476f",
   warning: "#f08a24",
   success: "#2f3336",
   info: "#a0d3e8",
+
+  brand: {
+    red: "#FF5C80",
+    pink: "#FF4DFA",
+    purple: "#9E5CF7",
+    blue: "#3633FF",
+    marine: "#2BC2FF",
+    green: "#42DED1",
+  },
 };
 
 const spacing = {
@@ -81,6 +90,11 @@ export const base = {
   blockToolbarHoverBackground: colors.slateLight,
   blockToolbarDivider: colors.slateLight,
 
+  noticeTipBackground: colors.brand.purple,
+  noticeTipText: colors.white,
+  noticeWarningBackground: colors.danger,
+  noticeWarningText: colors.white,
+
   breakpoints: {
     mobile: 0, // targeting all devices
     tablet: 737, // targeting devices that are larger than the iPhone 6 Plus (which is 736px in landscape mode)
@@ -94,11 +108,11 @@ export const light = {
   background: colors.white,
   secondaryBackground: colors.warmGrey,
 
-  link: colors.almostBlack,
+  link: colors.primary,
   text: colors.almostBlack,
   textSecondary: colors.slateDark,
   textTertiary: colors.slate,
-  placeholder: "#B1BECC",
+  placeholder: "#a2b2c3",
 
   sidebarBackground: colors.warmGrey,
   sidebarItemBackground: colors.black10,
@@ -137,6 +151,9 @@ export const light = {
   codeBorder: colors.smokeDark,
   embedBorder: "#DDD #DDD #CCC",
   horizontalRule: colors.smokeDark,
+
+  noticeInfoBackground: colors.warmGrey,
+  noticeInfoText: colors.almostBlack,
 };
 
 export const dark = {
@@ -144,7 +161,7 @@ export const dark = {
   background: colors.almostBlack,
   secondaryBackground: colors.black50,
 
-  link: colors.almostWhite,
+  link: "#137FFB",
   text: colors.almostWhite,
   textSecondary: lighten(0.1, colors.slate),
   textTertiary: colors.slate,
@@ -189,6 +206,9 @@ export const dark = {
   codeString: "#3d8fd1",
   embedBorder: colors.black50,
   horizontalRule: darken(0.2, colors.slate),
+
+  noticeInfoBackground: colors.white10,
+  noticeInfoText: colors.almostWhite,
 };
 
 export default light;

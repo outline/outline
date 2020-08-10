@@ -1,38 +1,43 @@
 // @flow
 import * as React from "react";
-import { Switch, Route, Redirect } from "react-router-dom";
-import Login from "scenes/Login";
-import Dashboard from "scenes/Dashboard";
-import Starred from "scenes/Starred";
-import Drafts from "scenes/Drafts";
+import { Switch, Route, Redirect, type Match } from "react-router-dom";
 import Archive from "scenes/Archive";
-import Trash from "scenes/Trash";
 import Collection from "scenes/Collection";
+import Dashboard from "scenes/Dashboard";
 import KeyedDocument from "scenes/Document/KeyedDocument";
 import DocumentNew from "scenes/DocumentNew";
+import Drafts from "scenes/Drafts";
+import Error404 from "scenes/Error404";
+import Login from "scenes/Login";
 import Search from "scenes/Search";
 import Settings from "scenes/Settings";
 import Details from "scenes/Settings/Details";
-import Notifications from "scenes/Settings/Notifications";
-import Security from "scenes/Settings/Security";
-import People from "scenes/Settings/People";
-import Groups from "scenes/Settings/Groups";
-import Slack from "scenes/Settings/Slack";
-import Zapier from "scenes/Settings/Zapier";
-import Shares from "scenes/Settings/Shares";
-import Tokens from "scenes/Settings/Tokens";
-import Export from "scenes/Settings/Export";
 import Events from "scenes/Settings/Events";
-import Error404 from "scenes/Error404";
+import Export from "scenes/Settings/Export";
+import Groups from "scenes/Settings/Groups";
+import Notifications from "scenes/Settings/Notifications";
+import People from "scenes/Settings/People";
+import Security from "scenes/Settings/Security";
+import Shares from "scenes/Settings/Shares";
+import Slack from "scenes/Settings/Slack";
+import Tokens from "scenes/Settings/Tokens";
+import Zapier from "scenes/Settings/Zapier";
+import Starred from "scenes/Starred";
+import Templates from "scenes/Templates";
+import Trash from "scenes/Trash";
 
+import Authenticated from "components/Authenticated";
 import Layout from "components/Layout";
 import SocketProvider from "components/SocketProvider";
-import Authenticated from "components/Authenticated";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
 
 const NotFound = () => <Search notFound />;
-const RedirectDocument = ({ match }: { match: Object }) => (
-  <Redirect to={`/doc/${match.params.documentSlug}`} />
+const RedirectDocument = ({ match }: { match: Match }) => (
+  <Redirect
+    to={
+      match.params.documentSlug ? `/doc/${match.params.documentSlug}` : "/home"
+    }
+  />
 );
 
 export default function Routes() {
@@ -50,6 +55,8 @@ export default function Routes() {
               <Route path="/home" component={Dashboard} />
               <Route exact path="/starred" component={Starred} />
               <Route exact path="/starred/:sort" component={Starred} />
+              <Route exact path="/templates" component={Templates} />
+              <Route exact path="/templates/:sort" component={Templates} />
               <Route exact path="/drafts" component={Drafts} />
               <Route exact path="/archive" component={Archive} />
               <Route exact path="/trash" component={Trash} />

@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
-import Checkbox from "components/Checkbox";
 import NotificationSetting from "models/NotificationSetting";
+import Checkbox from "components/Checkbox";
 
 type Props = {
   setting?: NotificationSetting,
@@ -16,7 +16,6 @@ const NotificationListItem = ({
   setting,
   title,
   event,
-  enabled,
   onChange,
   disabled,
   description,

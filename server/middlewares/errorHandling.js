@@ -1,7 +1,7 @@
 // @flow
-import Sequelize from "sequelize";
-import { snakeCase } from "lodash";
 import { type Context } from "koa";
+import { snakeCase } from "lodash";
+import Sequelize from "sequelize";
 
 export default function errorHandling() {
   return async function errorHandlingMiddleware(
@@ -44,8 +44,12 @@ export default function errorHandling() {
         error: snakeCase(err.id || error),
         status: err.status,
         message,
-        data: err.errorData ? err.errorData : undefined,
+        data: err.errorData,
       };
+
+      if (!ctx.body.data) {
+        delete ctx.body.data;
+      }
     }
   };
 }

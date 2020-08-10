@@ -1,13 +1,13 @@
 // @flow
 import * as React from "react";
-import type { Location } from "react-router-dom";
-import Container from "./Container";
-import LoadingPlaceholder from "components/LoadingPlaceholder";
 import CenteredContent from "components/CenteredContent";
+import LoadingPlaceholder from "components/LoadingPlaceholder";
 import PageTitle from "components/PageTitle";
+import Container from "./Container";
+import type { LocationWithState } from "types";
 
 type Props = {|
-  location: Location,
+  location: LocationWithState,
 |};
 
 export default function Loading({ location }: Props) {

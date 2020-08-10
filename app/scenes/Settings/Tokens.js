@@ -1,15 +1,15 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import ApiKeysStore from "stores/ApiKeysStore";
 
 import Button from "components/Button";
-import Input from "components/Input";
 import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
 import HelpText from "components/HelpText";
+import Input from "components/Input";
 import List from "components/List";
+import PageTitle from "components/PageTitle";
 import TokenListItem from "./components/TokenListItem";
 
 type Props = {
@@ -46,12 +46,15 @@ class Tokens extends React.Component<Props> {
         <HelpText>
           You can create an unlimited amount of personal tokens to authenticate
           with the API. For more details about the API take a look at the{" "}
-          <a href="/developers">developer documentation</a>.
+          <a href="https://www.getoutline.com/developers">
+            developer documentation
+          </a>
+          .
         </HelpText>
 
         {hasApiKeys && (
           <List>
-            {apiKeys.orderedData.map(token => (
+            {apiKeys.orderedData.map((token) => (
               <TokenListItem
                 key={token.id}
                 token={token}

@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
-import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { KeyboardIcon } from "outline-icons";
-import Modal from "components/Modal";
-import Tooltip from "components/Tooltip";
-import NudeButton from "components/NudeButton";
+import * as React from "react";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
+import Modal from "components/Modal";
+import NudeButton from "components/NudeButton";
+import Tooltip from "components/Tooltip";
 
 type Props = {};
 
@@ -26,7 +26,7 @@ class KeyboardShortcutsButton extends React.Component<Props> {
 
   render() {
     return (
-      <React.Fragment>
+      <>
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}
@@ -44,7 +44,7 @@ class KeyboardShortcutsButton extends React.Component<Props> {
             <KeyboardIcon />
           </Button>
         </Tooltip>
-      </React.Fragment>
+      </>
     );
   }
 }

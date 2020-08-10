@@ -1,17 +1,17 @@
 // @flow
+import { ExpandedIcon } from "outline-icons";
+import { darken, lighten } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import { darken, lighten } from "polished";
-import { ExpandedIcon } from "outline-icons";
 
 const RealButton = styled.button`
-  display: ${props => (props.fullwidth ? "block" : "inline-block")};
-  width: ${props => (props.fullwidth ? "100%" : "auto")};
+  display: ${(props) => (props.fullwidth ? "block" : "inline-block")};
+  width: ${(props) => (props.fullwidth ? "100%" : "auto")};
   margin: 0;
   padding: 0;
   border: 0;
-  background: ${props => props.theme.buttonBackground};
-  color: ${props => props.theme.buttonText};
+  background: ${(props) => props.theme.buttonBackground};
+  color: ${(props) => props.theme.buttonText};
   box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px;
   border-radius: 4px;
   font-size: 14px;
@@ -24,7 +24,7 @@ const RealButton = styled.button`
   user-select: none;
 
   svg {
-    fill: ${props => props.iconColor || props.theme.buttonText};
+    fill: ${(props) => props.iconColor || props.theme.buttonText};
   }
 
   &::-moz-focus-inner {
@@ -33,12 +33,12 @@ const RealButton = styled.button`
   }
 
   &:hover {
-    background: ${props => darken(0.05, props.theme.buttonBackground)};
+    background: ${(props) => darken(0.05, props.theme.buttonBackground)};
   }
 
   &:focus {
     transition-duration: 0.05s;
-    box-shadow: ${props => lighten(0.4, props.theme.buttonBackground)} 0px 0px
+    box-shadow: ${(props) => lighten(0.4, props.theme.buttonBackground)} 0px 0px
       0px 3px;
     outline: none;
   }
@@ -46,10 +46,10 @@ const RealButton = styled.button`
   &:disabled {
     cursor: default;
     pointer-events: none;
-    color: ${props => props.theme.white50};
+    color: ${(props) => props.theme.white50};
   }
 
-  ${props =>
+  ${(props) =>
     props.neutral &&
     `
     background: ${props.theme.buttonNeutralBackground};
@@ -80,9 +80,9 @@ const RealButton = styled.button`
     &:disabled {
       color: ${props.theme.textTertiary};
     }
-  `} ${props =>
-      props.danger &&
-      `
+  `} ${(props) =>
+    props.danger &&
+    `
       background: ${props.theme.danger};
       color: ${props.theme.white};
 
@@ -103,19 +103,20 @@ const Label = styled.span`
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  ${props => props.hasIcon && "padding-left: 4px;"};
+  ${(props) => props.hasIcon && "padding-left: 4px;"};
 `;
 
 export const Inner = styled.span`
   display: flex;
   padding: 0 8px;
-  padding-right: ${props => (props.disclosure ? 2 : 8)}px;
-  line-height: ${props => (props.hasIcon ? 24 : 32)}px;
+  padding-right: ${(props) => (props.disclosure ? 2 : 8)}px;
+  line-height: ${(props) => (props.hasIcon ? 24 : 32)}px;
   justify-content: center;
   align-items: center;
+  min-height: 30px;
 
-  ${props => props.hasIcon && props.hasText && "padding-left: 4px;"};
-  ${props => props.hasIcon && !props.hasText && "padding: 0 4px;"};
+  ${(props) => props.hasIcon && props.hasText && "padding-left: 4px;"};
+  ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
 
 export type Props = {
@@ -154,6 +155,6 @@ function Button({
   );
 }
 
-export default React.forwardRef((props, ref) => (
+export default React.forwardRef<Props, typeof Button>((props, ref) => (
   <Button {...props} innerRef={ref} />
 ));

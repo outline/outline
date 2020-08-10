@@ -1,12 +1,12 @@
 // @flow
 import * as React from "react";
-import EmailTemplate from "./components/EmailLayout";
 import Body from "./components/Body";
 import Button from "./components/Button";
-import Heading from "./components/Heading";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
+import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import Heading from "./components/Heading";
 
 export type Props = {
   name: string,
@@ -24,9 +24,7 @@ export const inviteEmailText = ({
 }: Props) => `
 Join ${teamName} on Outline
 
-${actorName} (${
-  actorEmail
-}) has invited you to join Outline, a place for your team to build and share knowledge.
+${actorName} (${actorEmail}) has invited you to join Outline, a place for your team to build and share knowledge.
 
 Join now: ${teamUrl}
 `;

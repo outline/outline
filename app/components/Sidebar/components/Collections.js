@@ -1,22 +1,21 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
-import { withRouter, type RouterHistory } from "react-router-dom";
-import keydown from "react-keydown";
-import Flex from "components/Flex";
 import { PlusIcon } from "outline-icons";
-import { newDocumentUrl } from "utils/routeHelpers";
-
-import Header from "./Header";
-import SidebarLink from "./SidebarLink";
-import CollectionLink from "./CollectionLink";
-import CollectionsLoading from "./CollectionsLoading";
-import Fade from "components/Fade";
+import * as React from "react";
+import keydown from "react-keydown";
+import { withRouter, type RouterHistory } from "react-router-dom";
 
 import CollectionsStore from "stores/CollectionsStore";
+import DocumentsStore from "stores/DocumentsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
-import DocumentsStore from "stores/DocumentsStore";
+import Fade from "components/Fade";
+import Flex from "components/Flex";
+import CollectionLink from "./CollectionLink";
+import CollectionsLoading from "./CollectionsLoading";
+import Header from "./Header";
+import SidebarLink from "./SidebarLink";
+import { newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
@@ -56,8 +55,8 @@ class Collections extends React.Component<Props> {
     const { collections, ui, documents } = this.props;
 
     const content = (
-      <React.Fragment>
-        {collections.orderedData.map(collection => (
+      <>
+        {collections.orderedData.map((collection) => (
           <CollectionLink
             key={collection.id}
             documents={documents}
@@ -74,7 +73,7 @@ class Collections extends React.Component<Props> {
           label="New collection…"
           exact
         />
-      </React.Fragment>
+      </>
     );
 
     return (
@@ -94,6 +93,9 @@ class Collections extends React.Component<Props> {
   }
 }
 
-export default inject("collections", "ui", "documents", "policies")(
-  withRouter(Collections)
-);
+export default inject(
+  "collections",
+  "ui",
+  "documents",
+  "policies"
+)(withRouter(Collections));

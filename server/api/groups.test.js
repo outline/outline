@@ -1,16 +1,16 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { flushdb } from "../test/support";
-import { buildUser, buildGroup } from "../test/factories";
 import { Event } from "../models";
+import { buildUser, buildGroup } from "../test/factories";
+import { flushdb } from "../test/support";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
-describe("#groups.create", async () => {
+describe("#groups.create", () => {
   it("should create a group", async () => {
     const name = "hello I am a group";
     const user = await buildUser({ isAdmin: true });
@@ -26,7 +26,7 @@ describe("#groups.create", async () => {
   });
 });
 
-describe("#groups.update", async () => {
+describe("#groups.update", () => {
   it("should require authentication", async () => {
     const group = await buildGroup();
     const res = await server.post("/api/groups.update", {
@@ -57,7 +57,7 @@ describe("#groups.update", async () => {
     expect(res.status).toEqual(403);
   });
 
-  describe("when user is admin", async () => {
+  describe("when user is admin", () => {
     let user, group;
 
     beforeEach(async () => {
@@ -112,7 +112,7 @@ describe("#groups.update", async () => {
   });
 });
 
-describe("#groups.list", async () => {
+describe("#groups.list", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/groups.list");
     const body = await res.json();
@@ -173,7 +173,7 @@ describe("#groups.list", async () => {
   });
 });
 
-describe("#groups.info", async () => {
+describe("#groups.info", () => {
   it("should return group if admin", async () => {
     const user = await buildUser({ isAdmin: true });
     const group = await buildGroup({ teamId: user.teamId });
@@ -232,7 +232,7 @@ describe("#groups.info", async () => {
   });
 });
 
-describe("#groups.delete", async () => {
+describe("#groups.delete", () => {
   it("should require authentication", async () => {
     const group = await buildGroup();
     const res = await server.post("/api/groups.delete", {
@@ -277,7 +277,7 @@ describe("#groups.delete", async () => {
   });
 });
 
-describe("#groups.memberships", async () => {
+describe("#groups.memberships", () => {
   it("should return members in a group", async () => {
     const user = await buildUser();
     const group = await buildGroup({ teamId: user.teamId });
@@ -342,7 +342,7 @@ describe("#groups.memberships", async () => {
   });
 });
 
-describe("#groups.add_user", async () => {
+describe("#groups.add_user", () => {
   it("should add user to group", async () => {
     const user = await buildUser({ isAdmin: true });
     const group = await buildGroup({
@@ -410,7 +410,7 @@ describe("#groups.add_user", async () => {
   });
 });
 
-describe("#groups.remove_user", async () => {
+describe("#groups.remove_user", () => {
   it("should remove user from group", async () => {
     const user = await buildUser({ isAdmin: true });
     const group = await buildGroup({

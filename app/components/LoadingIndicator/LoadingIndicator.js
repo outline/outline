@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
 import UiStore from "stores/UiStore";
 
 type Props = {

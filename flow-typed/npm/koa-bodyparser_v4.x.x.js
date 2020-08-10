@@ -1,5 +1,5 @@
-// flow-typed signature: db2ab32952e719c6656cef681be04c96
-// flow-typed version: e969a7af52/koa-bodyparser_v4.x.x/flow_>=v0.56.x
+// flow-typed signature: a58f72097622ee04c396fbb8bb02db81
+// flow-typed version: c6154227d1/koa-bodyparser_v4.x.x/flow_>=v0.104.x
 
 declare module "koa-bodyparser" {
   declare type Context = Object;
@@ -19,7 +19,8 @@ declare module "koa-bodyparser" {
     extendTypes?: {
       json?: Array<string>,
       form?: Array<string>,
-      text?: Array<string>
+      text?: Array<string>,
+      ...
     },
     onerror?: (err: Error, ctx: Context) => void
   |};

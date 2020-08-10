@@ -1,6 +1,6 @@
 // @flow
-import policy from "./policy";
 import { NotificationSetting, User } from "../models";
+import policy from "./policy";
 
 const { allow } = policy;
 

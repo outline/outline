@@ -1,22 +1,21 @@
 // @flow
-import * as React from "react";
-import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import { observable, action } from "mobx";
 import { inject, observer } from "mobx-react";
 import { LinkIcon, CloseIcon } from "outline-icons";
+import * as React from "react";
+import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import styled from "styled-components";
-import Flex from "components/Flex";
-import Button from "components/Button";
-import Input from "components/Input";
-import CopyToClipboard from "components/CopyToClipboard";
-import HelpText from "components/HelpText";
-import Tooltip from "components/Tooltip";
-import NudeButton from "components/NudeButton";
-
-import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
-import UsersStore from "stores/UsersStore";
 import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import UsersStore from "stores/UsersStore";
+import Button from "components/Button";
+import CopyToClipboard from "components/CopyToClipboard";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import NudeButton from "components/NudeButton";
+import Tooltip from "components/Tooltip";
 
 const MAX_INVITES = 20;
 
@@ -112,10 +111,10 @@ class Invite extends React.Component<Props> {
             Invite team members to join your knowledge base. They will need to
             sign in with {team.signinMethods}.{" "}
             {can.update && (
-              <React.Fragment>
+              <>
                 As an admin you can also{" "}
                 <Link to="/settings/security">enable email sign-in</Link>.
-              </React.Fragment>
+              </>
             )}
           </HelpText>
         )}
@@ -128,7 +127,8 @@ class Invite extends React.Component<Props> {
                 label="Want a link to share directly with your team?"
                 readOnly
                 flex
-              />&nbsp;&nbsp;
+              />
+              &nbsp;&nbsp;
               <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
                 <Button
                   type="button"
@@ -152,7 +152,7 @@ class Invite extends React.Component<Props> {
               name="email"
               label="Email"
               labelHidden={index !== 0}
-              onChange={ev => this.handleChange(ev, index)}
+              onChange={(ev) => this.handleChange(ev, index)}
               placeholder={`example@${predictedDomain}`}
               value={invite.email}
               required={index === 0}
@@ -165,7 +165,7 @@ class Invite extends React.Component<Props> {
               name="name"
               label="Full name"
               labelHidden={index !== 0}
-              onChange={ev => this.handleChange(ev, index)}
+              onChange={(ev) => this.handleChange(ev, index)}
               value={invite.name}
               required={!!invite.email}
               flex
@@ -173,7 +173,7 @@ class Invite extends React.Component<Props> {
             {index !== 0 && (
               <Remove>
                 <Tooltip tooltip="Remove invite" placement="top">
-                  <NudeButton onClick={ev => this.handleRemove(ev, index)}>
+                  <NudeButton onClick={(ev) => this.handleRemove(ev, index)}>
                     <CloseIcon />
                   </NudeButton>
                 </Tooltip>

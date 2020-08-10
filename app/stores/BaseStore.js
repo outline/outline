@@ -1,11 +1,11 @@
 // @flow
 import invariant from "invariant";
-import { observable, set, action, computed, runInAction } from "mobx";
 import { orderBy } from "lodash";
-import { client } from "utils/ApiClient";
+import { observable, set, action, computed, runInAction } from "mobx";
 import RootStore from "stores/RootStore";
 import BaseModel from "../models/BaseModel";
 import type { PaginationParams } from "types";
+import { client } from "utils/ApiClient";
 
 type Action = "list" | "info" | "create" | "update" | "delete";
 
@@ -37,9 +37,9 @@ export default class BaseStore<T: BaseModel> {
     this.data.clear();
   }
 
-  addPolicies = policies => {
+  addPolicies = (policies) => {
     if (policies) {
-      policies.forEach(policy => this.rootStore.policies.add(policy));
+      policies.forEach((policy) => this.rootStore.policies.add(policy));
     }
   };
 
