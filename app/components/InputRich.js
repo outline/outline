@@ -78,6 +78,7 @@ class InputRich extends React.Component<Props> {
 }
 
 const StyledOutline = styled(Outline)`
+  display: block;
   padding: 8px 12px;
   min-height: ${({ minHeight }) => (minHeight ? `${minHeight}px` : "0")};
   max-height: ${({ maxHeight }) => (maxHeight ? `${maxHeight}px` : "auto")};
