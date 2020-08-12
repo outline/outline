@@ -82,7 +82,7 @@ class Login extends React.Component<Props, State> {
             <PageTitle title="Check your email" />
             <CheckEmailIcon size={38} color="currentColor" />
 
-            <Heading>Check your email</Heading>
+            <Heading centered>Check your email</Heading>
             <Note>
               A magic sign-in link has been sent to the email{" "}
               <em>{this.state.emailLinkSentTo}</em>, no password needed.
@@ -110,9 +110,9 @@ class Login extends React.Component<Props, State> {
           </Logo>
 
           {isCreate ? (
-            <Heading>Create an account</Heading>
+            <Heading centered>Create an account</Heading>
           ) : (
-            <Heading>Login to {config.name || "Outline"}</Heading>
+            <Heading centered>Login to {config.name || "Outline"}</Heading>
           )}
 
           <Notices notice={getQueryVariable("notice")} />
