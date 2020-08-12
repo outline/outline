@@ -18,7 +18,7 @@ const CollectionGroup = sequelize.define(
   }
 );
 
-CollectionGroup.associate = models => {
+CollectionGroup.associate = (models) => {
   CollectionGroup.belongsTo(models.Collection, {
     as: "collection",
     foreignKey: "collectionId",

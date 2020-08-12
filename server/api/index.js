@@ -1,32 +1,31 @@
 // @flow
-import bodyParser from "koa-bodyparser";
 import Koa from "koa";
+import bodyParser from "koa-bodyparser";
 import Router from "koa-router";
-
-import auth from "./auth";
-import events from "./events";
-import users from "./users";
-import collections from "./collections";
-import documents from "./documents";
-import revisions from "./revisions";
-import views from "./views";
-import hooks from "./hooks";
-import apiKeys from "./apiKeys";
-import shares from "./shares";
-import groups from "./groups";
-import team from "./team";
-import integrations from "./integrations";
-import notificationSettings from "./notificationSettings";
-import utils from "./utils";
-import attachments from "./attachments";
 
 import { NotFoundError } from "../errors";
 import errorHandling from "../middlewares/errorHandling";
-import validation from "../middlewares/validation";
 import methodOverride from "../middlewares/methodOverride";
-import cache from "./middlewares/cache";
+import validation from "../middlewares/validation";
+import apiKeys from "./apiKeys";
+import attachments from "./attachments";
+import auth from "./auth";
+import collections from "./collections";
+import documents from "./documents";
+import events from "./events";
+import groups from "./groups";
+import hooks from "./hooks";
+import integrations from "./integrations";
+
 import apiWrapper from "./middlewares/apiWrapper";
 import editor from "./middlewares/editor";
+import notificationSettings from "./notificationSettings";
+import revisions from "./revisions";
+import shares from "./shares";
+import team from "./team";
+import users from "./users";
+import utils from "./utils";
+import views from "./views";
 
 const api = new Koa();
 const router = new Router();
@@ -35,7 +34,6 @@ const router = new Router();
 api.use(errorHandling());
 api.use(bodyParser());
 api.use(methodOverride());
-api.use(cache());
 api.use(validation());
 api.use(apiWrapper());
 api.use(editor());
@@ -58,7 +56,7 @@ router.use("/", attachments.routes());
 router.use("/", utils.routes());
 router.use("/", groups.routes());
 
-router.post("*", ctx => {
+router.post("*", (ctx) => {
   ctx.throw(new NotFoundError("Endpoint not found"));
 });
 

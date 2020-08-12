@@ -17,7 +17,7 @@ const CollectionUser = sequelize.define(
   }
 );
 
-CollectionUser.associate = models => {
+CollectionUser.associate = (models) => {
   CollectionUser.belongsTo(models.Collection, {
     as: "collection",
     foreignKey: "collectionId",

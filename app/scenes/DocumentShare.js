@@ -1,21 +1,21 @@
 // @flow
-import * as React from "react";
+import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
-import styled from "styled-components";
-import invariant from "invariant";
+import * as React from "react";
 import { Link } from "react-router-dom";
-import Input from "components/Input";
-import Button from "components/Button";
-import Flex from "components/Flex";
-import Switch from "components/Switch";
-import CopyToClipboard from "components/CopyToClipboard";
-import HelpText from "components/HelpText";
-import Document from "models/Document";
+import styled from "styled-components";
+import PoliciesStore from "stores/PoliciesStore";
 import SharesStore from "stores/SharesStore";
 import UiStore from "stores/UiStore";
-import PoliciesStore from "stores/PoliciesStore";
+import Document from "models/Document";
+import Button from "components/Button";
+import CopyToClipboard from "components/CopyToClipboard";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import Switch from "components/Switch";
 
 type Props = {
   document: Document,
@@ -35,7 +35,7 @@ class DocumentShare extends React.Component<Props> {
     clearTimeout(this.timeout);
   }
 
-  handlePublishedChange = async event => {
+  handlePublishedChange = async (event) => {
     const { document, shares } = this.props;
     const share = shares.getByDocumentId(document.id);
     invariant(share, "Share must exist");
@@ -64,20 +64,23 @@ class DocumentShare extends React.Component<Props> {
     const { document, policies, shares, onSubmit } = this.props;
     const share = shares.getByDocumentId(document.id);
     const can = policies.abilities(share ? share.id : "");
+    const canPublish = can.update && !document.isTemplate;
 
     return (
       <div>
         <HelpText>
           The link below provides a read-only version of the document{" "}
-          <strong>{document.title}</strong>.{" "}
-          {can.update &&
-            "You can optionally make it accessible to anyone with the link."}{" "}
+          <strong>{document.titleWithDefault}</strong>.{" "}
+          {canPublish
+            ? "You can optionally make it accessible to anyone with the link."
+            : "It is only viewable by those that already have access to the collection."}{" "}
           <Link to="/settings/shares" onClick={onSubmit}>
             Manage all share links
-          </Link>.
+          </Link>
+          .
         </HelpText>
-        {can.update && (
-          <React.Fragment>
+        {canPublish && (
+          <>
             <Switch
               id="published"
               label="Publish to internet"
@@ -93,7 +96,7 @@ class DocumentShare extends React.Component<Props> {
                   : "Only team members with access can view this document"}
               </PrivacyText>
             </Privacy>
-          </React.Fragment>
+          </>
         )}
         <br />
         <Input
@@ -110,7 +113,9 @@ class DocumentShare extends React.Component<Props> {
           <Button type="submit" disabled={this.isCopied || !share} primary>
             {this.isCopied ? "Copied!" : "Copy Link"}
           </Button>
-        </CopyToClipboard>&nbsp;&nbsp;&nbsp;<a href={share.url} target="_blank">
+        </CopyToClipboard>
+        &nbsp;&nbsp;&nbsp;
+        <a href={share.url} target="_blank">
           Preview
         </a>
       </div>

@@ -1,29 +1,30 @@
 // @flow
-import * as React from "react";
 import invariant from "invariant";
-import { withRouter } from "react-router-dom";
-import type { Location, RouterHistory } from "react-router-dom";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
-import DocumentComponent from "./Document";
-import Revision from "models/Revision";
-import Document from "models/Document";
-import SocketPresence from "./SocketPresence";
-import Loading from "./Loading";
-import HideSidebar from "./HideSidebar";
-import Error404 from "scenes/Error404";
-import ErrorOffline from "scenes/ErrorOffline";
+import * as React from "react";
+import type { RouterHistory, Match } from "react-router-dom";
+import { withRouter } from "react-router-dom";
 import DocumentsStore from "stores/DocumentsStore";
-import SharesStore from "stores/SharesStore";
 import PoliciesStore from "stores/PoliciesStore";
 import RevisionsStore from "stores/RevisionsStore";
+import SharesStore from "stores/SharesStore";
 import UiStore from "stores/UiStore";
-import { OfflineError } from "utils/errors";
+import Document from "models/Document";
+import Revision from "models/Revision";
+import Error404 from "scenes/Error404";
+import ErrorOffline from "scenes/ErrorOffline";
+import DocumentComponent from "./Document";
+import HideSidebar from "./HideSidebar";
+import Loading from "./Loading";
+import SocketPresence from "./SocketPresence";
+import { type LocationWithState } from "types";
+import { NotFoundError, OfflineError } from "utils/errors";
+import { matchDocumentEdit, updateDocumentUrl } from "utils/routeHelpers";
 
 type Props = {|
-  match: Object,
-  location: Location,
+  match: Match,
+  location: LocationWithState,
   shares: SharesStore,
   documents: DocumentsStore,
   policies: PoliciesStore,
@@ -77,7 +78,7 @@ class DataLoader extends React.Component<Props> {
     const results = await this.props.documents.search(term);
 
     return results
-      .filter(result => result.document.title)
+      .filter((result) => result.document.title)
       .map((result) => ({
         title: result.document.title,
         url: result.document.url,
@@ -130,7 +131,11 @@ class DataLoader extends React.Component<Props> {
         return this.goToDocumentCanonical();
       }
 
-      this.props.shares.fetch(document.id);
+      this.props.shares.fetch(document.id).catch((err) => {
+        if (!(err instanceof NotFoundError)) {
+          throw err;
+        }
+      });
 
       const isMove = this.props.location.pathname.match(/move$/);
       const canRedirect = !revisionId && !isMove && !shareId;
@@ -162,10 +167,10 @@ class DataLoader extends React.Component<Props> {
 
     if (!document) {
       return (
-        <React.Fragment>
+        <>
           <Loading location={location} />
           {this.isEditing && <HideSidebar ui={ui} />}
-        </React.Fragment>
+        </>
       );
     }
 
@@ -191,7 +196,12 @@ class DataLoader extends React.Component<Props> {
 }
 
 export default withRouter(
-  inject("ui", "auth", "documents", "revisions", "policies", "shares")(
-    DataLoader
-  )
+  inject(
+    "ui",
+    "auth",
+    "documents",
+    "revisions",
+    "policies",
+    "shares"
+  )(DataLoader)
 );

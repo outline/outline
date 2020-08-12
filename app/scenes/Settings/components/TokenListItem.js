@@ -1,12 +1,12 @@
 // @flow
 import * as React from "react";
+import ApiKey from "models/ApiKey";
 import Button from "components/Button";
 import ListItem from "components/List/Item";
-import ApiKey from "models/ApiKey";
 
 type Props = {
   token: ApiKey,
-  onDelete: (tokenId: string) => void,
+  onDelete: (tokenId: string) => Promise<void>,
 };
 
 const TokenListItem = ({ token, onDelete }: Props) => {

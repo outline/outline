@@ -1,11 +1,11 @@
 // @flow
-import * as React from "react";
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { observable, action } from "mobx";
 import { observer, inject } from "mobx-react";
-import type { RouterHistory } from "react-router-dom";
-import styled from "styled-components";
+import * as React from "react";
+import { type RouterHistory, type Match } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
+import styled from "styled-components";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
@@ -17,7 +17,7 @@ import Revision from "./components/Revision";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
-  match: Object,
+  match: Match,
   documents: DocumentsStore,
   revisions: RevisionsStore,
   history: RouterHistory,
@@ -133,16 +133,16 @@ const Wrapper = styled(Flex)`
   top: 0;
   right: 0;
   z-index: 1;
-  min-width: ${props => props.theme.sidebarWidth};
+  min-width: ${(props) => props.theme.sidebarWidth};
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: none;
 `;
 
 const Sidebar = styled(Flex)`
-  background: ${props => props.theme.background};
-  min-width: ${props => props.theme.sidebarWidth};
-  border-left: 1px solid ${props => props.theme.divider};
+  background: ${(props) => props.theme.background};
+  min-width: ${(props) => props.theme.sidebarWidth};
+  border-left: 1px solid ${(props) => props.theme.divider};
   z-index: 1;
 `;
 

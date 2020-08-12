@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
+import DocumentsStore from "stores/DocumentsStore";
+import UiStore from "stores/UiStore";
+import Document from "models/Document";
 import Button from "components/Button";
 import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import Document from "models/Document";
-import DocumentsStore from "stores/DocumentsStore";
-import UiStore from "stores/UiStore";
 import { collectionUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -50,16 +50,16 @@ class DocumentDelete extends React.Component<Props> {
         <form onSubmit={this.handleSubmit}>
           <HelpText>
             Are you sure about that? Deleting the{" "}
-            <strong>{document.title}</strong> document will delete all of its
-            history, and any nested documents.
+            <strong>{document.titleWithDefault}</strong> {document.noun} will
+            delete all of its history
+            {document.isTemplate ? "" : ", and any nested documents"}.
           </HelpText>
-          {!document.isDraft &&
-            !document.isArchived && (
-              <HelpText>
-                If you’d like the option of referencing or restoring this
-                document in the future, consider archiving it instead.
-              </HelpText>
-            )}
+          {!document.isDraft && !document.isArchived && (
+            <HelpText>
+              If you’d like the option of referencing or restoring this{" "}
+              {document.noun} in the future, consider archiving it instead.
+            </HelpText>
+          )}
           <Button type="submit" danger>
             {this.isDeleting ? "Deleting…" : "I’m sure – Delete"}
           </Button>

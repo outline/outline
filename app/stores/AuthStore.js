@@ -1,12 +1,12 @@
 // @flow
-import { observable, action, computed, autorun, runInAction } from "mobx";
 import invariant from "invariant";
+import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
+import RootStore from "stores/RootStore";
+import Team from "models/Team";
+import User from "models/User";
 import { client } from "utils/ApiClient";
 import { getCookieDomain } from "utils/domains";
-import RootStore from "stores/RootStore";
-import User from "models/User";
-import Team from "models/Team";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
@@ -63,9 +63,9 @@ export default class AuthStore {
     });
   }
 
-  addPolicies = policies => {
+  addPolicies = (policies) => {
     if (policies) {
-      policies.forEach(policy => this.rootStore.policies.add(policy));
+      policies.forEach((policy) => this.rootStore.policies.add(policy));
     }
   };
 
@@ -102,7 +102,7 @@ export default class AuthStore {
         this.team = new Team(team);
 
         if (window.Sentry) {
-          window.Sentry.configureScope(function(scope) {
+          window.Sentry.configureScope(function (scope) {
             scope.setUser({ id: user.id });
             scope.setExtra("team", team.name);
             scope.setExtra("teamId", team.id);

@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
 
+import AuthStore from "stores/AuthStore";
 import CenteredContent from "components/CenteredContent";
 import PageTitle from "components/PageTitle";
-import AuthStore from "stores/AuthStore";
 
 const ErrorSuspended = observer(({ auth }: { auth: AuthStore }) => {
   return (

@@ -1,14 +1,14 @@
 // @flow
+import { inject } from "mobx-react";
 import * as React from "react";
 import { withRouter, type RouterHistory } from "react-router-dom";
-import { inject } from "mobx-react";
 
+import UiStore from "stores/UiStore";
+import Document from "models/Document";
+import Revision from "models/Revision";
 import CopyToClipboard from "components/CopyToClipboard";
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import { documentHistoryUrl } from "utils/routeHelpers";
-import Revision from "models/Revision";
-import Document from "models/Document";
-import UiStore from "stores/UiStore";
 
 type Props = {
   onOpen?: () => void,

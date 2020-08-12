@@ -1,9 +1,9 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb } from "../test/support";
 import { buildUser } from "../test/factories";
+import { flushdb } from "../test/support";
 import { serialize } from "./index";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 
 it("should serialize policy", async () => {
   const user = await buildUser();

@@ -1,6 +1,6 @@
 // @flow
-import { Op, DataTypes, sequelize } from "../sequelize";
 import { CollectionGroup, GroupUser } from "../models";
+import { Op, DataTypes, sequelize } from "../sequelize";
 
 const Group = sequelize.define(
   "group",
@@ -23,7 +23,7 @@ const Group = sequelize.define(
     timestamps: true,
     paranoid: true,
     validate: {
-      isUniqueNameInTeam: async function() {
+      isUniqueNameInTeam: async function () {
         const foundItem = await Group.findOne({
           where: {
             teamId: this.teamId,
@@ -39,7 +39,7 @@ const Group = sequelize.define(
   }
 );
 
-Group.associate = models => {
+Group.associate = (models) => {
   Group.hasMany(models.GroupUser, {
     as: "groupMemberships",
     foreignKey: "groupId",

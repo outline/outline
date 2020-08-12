@@ -1,22 +1,22 @@
 // @flow
-import * as React from "react";
-import styled from "styled-components";
-import { BackIcon, EmailIcon } from "outline-icons";
-import { observer, inject } from "mobx-react";
-import { Redirect, Link } from "react-router-dom";
 import { find } from "lodash";
-import Flex from "components/Flex";
-import TeamLogo from "components/TeamLogo";
-import OutlineLogo from "components/OutlineLogo";
-import Heading from "components/Heading";
-import PageTitle from "components/PageTitle";
-import ButtonLarge from "components/ButtonLarge";
-import HelpText from "components/HelpText";
-import Fade from "components/Fade";
-import Service from "./Service";
-import Notices from "./Notices";
-import AuthStore from "stores/AuthStore";
+import { observer, inject } from "mobx-react";
+import { BackIcon, EmailIcon } from "outline-icons";
+import * as React from "react";
+import { Redirect, Link } from "react-router-dom";
+import styled from "styled-components";
 import getQueryVariable from "shared/utils/getQueryVariable";
+import AuthStore from "stores/AuthStore";
+import ButtonLarge from "components/ButtonLarge";
+import Fade from "components/Fade";
+import Flex from "components/Flex";
+import Heading from "components/Heading";
+import HelpText from "components/HelpText";
+import OutlineLogo from "components/OutlineLogo";
+import PageTitle from "components/PageTitle";
+import TeamLogo from "components/TeamLogo";
+import Notices from "./Notices";
+import Service from "./Service";
 import env from "env";
 
 type Props = {
@@ -38,7 +38,7 @@ class Login extends React.Component<Props, State> {
     this.setState({ emailLinkSentTo: "" });
   };
 
-  handleEmailSuccess = email => {
+  handleEmailSuccess = (email) => {
     this.setState({ emailLinkSentTo: email });
   };
 
@@ -59,7 +59,7 @@ class Login extends React.Component<Props, State> {
     const hasMultipleServices = config.services.length > 1;
     const defaultService = find(
       config.services,
-      service => service.id === auth.lastSignedIn && !isCreate
+      (service) => service.id === auth.lastSignedIn && !isCreate
     );
 
     const header =
@@ -125,17 +125,17 @@ class Login extends React.Component<Props, State> {
                 {...defaultService}
               />
               {hasMultipleServices && (
-                <React.Fragment>
+                <>
                   <Note>
                     You signed in with {defaultService.name} last time.
                   </Note>
                   <Or />
-                </React.Fragment>
+                </>
               )}
             </React.Fragment>
           )}
 
-          {config.services.map(service => {
+          {config.services.map((service) => {
             if (defaultService && service.id === defaultService.id) {
               return null;
             }
@@ -168,7 +168,7 @@ const CheckEmailIcon = styled(EmailIcon)`
 const Background = styled(Fade)`
   width: 100vw;
   height: 100vh;
-  background: ${props => props.theme.background};
+  background: ${(props) => props.theme.background};
   display: flex;
 `;
 
@@ -219,8 +219,8 @@ const Or = styled.hr`
     transform: translate3d(-50%, -50%, 0);
     text-transform: uppercase;
     font-size: 11px;
-    color: ${props => props.theme.textSecondary};
-    background: ${props => props.theme.background};
+    color: ${(props) => props.theme.textSecondary};
+    background: ${(props) => props.theme.background};
     border-radius: 2px;
     padding: 0 4px;
   }

@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
-import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
-import HelpText from "components/HelpText";
 import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import HelpText from "components/HelpText";
+import PageTitle from "components/PageTitle";
 
 class Zapier extends React.Component<*> {
   goToZapier = () => {

@@ -1,13 +1,14 @@
 // @flow
+import { observable } from "mobx";
+import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import { observer } from "mobx-react";
-import { observable } from "mobx";
-import HelpText from "components/HelpText";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
+import HelpText from "components/HelpText";
 import PageTitle from "components/PageTitle";
 import { githubIssuesUrl } from "../../shared/utils/routeHelpers";
+import env from "env";
 
 type Props = {
   children: React.Node,
@@ -41,16 +42,16 @@ class ErrorBoundary extends React.Component<Props> {
 
   render() {
     if (this.error) {
-      const isReported = !!window.Sentry;
+      const isReported = !!window.Sentry && env.DEPLOYMENT === "hosted";
 
       return (
         <CenteredContent>
           <PageTitle title="Something Unexpected Happened" />
           <h1>Something Unexpected Happened</h1>
           <HelpText>
-            Sorry, an unrecoverable error occurred{isReported &&
-              " – our engineers have been notified"}. Please try reloading the
-            page, it may have been a temporary glitch.
+            Sorry, an unrecoverable error occurred
+            {isReported && " – our engineers have been notified"}. Please try
+            reloading the page, it may have been a temporary glitch.
           </HelpText>
           {this.showDetails && <Pre>{this.error.toString()}</Pre>}
           <p>
@@ -73,7 +74,7 @@ class ErrorBoundary extends React.Component<Props> {
 }
 
 const Pre = styled.pre`
-  background: ${props => props.theme.smoke};
+  background: ${(props) => props.theme.smoke};
   padding: 16px;
   border-radius: 4px;
   font-size: 12px;

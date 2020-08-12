@@ -10,7 +10,7 @@ const GroupUser = sequelize.define(
   }
 );
 
-GroupUser.associate = models => {
+GroupUser.associate = (models) => {
   GroupUser.belongsTo(models.Group, {
     as: "group",
     foreignKey: "groupId",

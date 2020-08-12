@@ -1,25 +1,25 @@
 // @flow
-import * as React from "react";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
+import AuthStore from "stores/AuthStore";
+import CollectionsStore from "stores/CollectionsStore";
 import Document from "models/Document";
+import Breadcrumb from "components/Breadcrumb";
 import Flex from "components/Flex";
 import Time from "components/Time";
-import Breadcrumb from "components/Breadcrumb";
-import CollectionsStore from "stores/CollectionsStore";
-import AuthStore from "stores/AuthStore";
 
 const Container = styled(Flex)`
-  color: ${props => props.theme.textTertiary};
+  color: ${(props) => props.theme.textTertiary};
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
 `;
 
 const Modified = styled.span`
-  color: ${props =>
+  color: ${(props) =>
     props.highlight ? props.theme.text : props.theme.textTertiary};
-  font-weight: ${props => (props.highlight ? "600" : "400")};
+  font-weight: ${(props) => (props.highlight ? "600" : "400")};
 `;
 
 type Props = {
@@ -104,15 +104,14 @@ function PublishingInfo({
     <Container align="center" {...rest}>
       {updatedByMe ? "You" : updatedBy.name}&nbsp;
       {content}
-      {showCollection &&
-        collection && (
-          <span>
-            &nbsp;in&nbsp;
-            <strong>
-              <Breadcrumb document={document} onlyText />
-            </strong>
-          </span>
-        )}
+      {showCollection && collection && (
+        <span>
+          &nbsp;in&nbsp;
+          <strong>
+            <Breadcrumb document={document} onlyText />
+          </strong>
+        </span>
+      )}
       {children}
     </Container>
   );

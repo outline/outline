@@ -1,13 +1,13 @@
 // @flow
 import * as React from "react";
 import { User, Document, Team, Collection } from "../models";
-import EmailTemplate from "./components/EmailLayout";
 import Body from "./components/Body";
 import Button from "./components/Button";
-import Heading from "./components/Heading";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
+import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import Heading from "./components/Heading";
 
 export type Props = {
   actor: User,
@@ -27,9 +27,7 @@ export const documentNotificationEmailText = ({
 }: Props) => `
 "${document.title}" ${eventName}
 
-${actor.name} ${eventName} the document "${document.title}", in the ${
-  collection.name
-} collection.
+${actor.name} ${eventName} the document "${document.title}", in the ${collection.name} collection.
 
 Open Document: ${team.url}${document.url}
 `;

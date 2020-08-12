@@ -1,42 +1,43 @@
 // @flow
-import * as React from "react";
 import { debounce } from "lodash";
-import styled, { withTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { Prompt, Route, withRouter } from "react-router-dom";
-import type { Location, RouterHistory } from "react-router-dom";
+import { InputIcon } from "outline-icons";
+import * as React from "react";
 import keydown from "react-keydown";
+import { Prompt, Route, withRouter } from "react-router-dom";
+import type { RouterHistory, Match } from "react-router-dom";
+import styled, { withTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+
+import AuthStore from "stores/AuthStore";
+import UiStore from "stores/UiStore";
+import Document from "models/Document";
+import Revision from "models/Revision";
+import Branding from "components/Branding";
+import ErrorBoundary from "components/ErrorBoundary";
 import Flex from "components/Flex";
+import LoadingIndicator from "components/LoadingIndicator";
+import Notice from "components/Notice";
+import PageTitle from "components/PageTitle";
+import Time from "components/Time";
+import Container from "./Container";
+import Contents from "./Contents";
+import DocumentMove from "./DocumentMove";
+import Header from "./Header";
+import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
+import Loading from "./Loading";
+import MarkAsViewed from "./MarkAsViewed";
+import References from "./References";
+import { type LocationWithState } from "types";
+import { emojiToUrl } from "utils/emoji";
 import {
   collectionUrl,
   documentMoveUrl,
   documentHistoryUrl,
-  documentEditUrl,
+  editDocumentUrl,
   documentUrl,
 } from "utils/routeHelpers";
-import { emojiToUrl } from "utils/emoji";
-
-import Header from "./Header";
-import DocumentMove from "./DocumentMove";
-import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
-import References from "./References";
-import Loading from "./Loading";
-import Container from "./Container";
-import Contents from "./Contents";
-import MarkAsViewed from "./MarkAsViewed";
-import ErrorBoundary from "components/ErrorBoundary";
-import LoadingIndicator from "components/LoadingIndicator";
-import PageTitle from "components/PageTitle";
-import Branding from "components/Branding";
-import Notice from "components/Notice";
-import Time from "components/Time";
-
-import UiStore from "stores/UiStore";
-import AuthStore from "stores/AuthStore";
-import Document from "models/Document";
-import Revision from "models/Revision";
 
 let EditorImport;
 const AUTOSAVE_DELAY = 3000;
@@ -51,9 +52,9 @@ Are you sure you want to discard them?
 `;
 
 type Props = {
-  match: Object,
+  match: Match,
   history: RouterHistory,
-  location: Location,
+  location: LocationWithState,
   abilities: Object,
   document: Document,
   revision: Revision,
@@ -68,8 +69,6 @@ type Props = {
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable editor: ?any;
-  getEditorText: () => string = () => this.props.document.text;
-
   @observable editorComponent = EditorImport;
   @observable isUploading: boolean = false;
   @observable isSaving: boolean = false;
@@ -79,6 +78,7 @@ class DocumentScene extends React.Component<Props> {
   @observable moveModalOpen: boolean = false;
   @observable lastRevision: number;
   @observable title: string;
+  getEditorText: () => string = () => this.props.document.text;
 
   constructor(props) {
     super();
@@ -114,6 +114,12 @@ class DocumentScene extends React.Component<Props> {
       }
     }
 
+    if (document.injectTemplate) {
+      this.isDirty = true;
+      this.title = document.title;
+      document.injectTemplate = false;
+    }
+
     this.updateBackground();
   }
 
@@ -143,7 +149,7 @@ class DocumentScene extends React.Component<Props> {
     const { document, abilities } = this.props;
 
     if (abilities.update) {
-      this.props.history.push(documentEditUrl(document));
+      this.props.history.push(editDocumentUrl(document));
     }
   }
 
@@ -198,12 +204,15 @@ class DocumentScene extends React.Component<Props> {
       const EditorImport = await import("./Editor");
       this.editorComponent = EditorImport.default;
     } catch (err) {
-      console.error(err);
+      if (err.message && err.message.match(/chunk/)) {
+        // If the editor bundle fails to load then reload the entire window. This
+        // can happen if a deploy happens between the user loading the initial JS
+        // bundle and the async-loaded editor JS bundle as the hash will change.
+        window.location.reload();
+        return;
+      }
 
-      // If the editor bundle fails to load then reload the entire window. This
-      // can happen if a deploy happens between the user loading the initial JS
-      // bundle and the async-loaded editor JS bundle as the hash will change.
-      window.location.reload();
+      throw err;
     }
   };
 
@@ -256,7 +265,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.history.push(savedDocument.url);
         this.props.ui.setActiveDocument(savedDocument);
       } else if (isNew) {
-        this.props.history.push(documentEditUrl(savedDocument));
+        this.props.history.push(editDocumentUrl(savedDocument));
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
@@ -292,7 +301,7 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  onChange = getEditorText => {
+  onChange = (getEditorText) => {
     this.getEditorText = getEditorText;
 
     // document change while read only is presumed to be a checkbox edit,
@@ -306,7 +315,7 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  onChangeTitle = event => {
+  onChangeTitle = (event) => {
     this.title = event.target.value;
     this.updateIsDirtyDebounced();
     this.autosave();
@@ -316,10 +325,12 @@ class DocumentScene extends React.Component<Props> {
     let url;
     if (this.props.document.url) {
       url = this.props.document.url;
-    } else {
+    } else if (this.props.match.params.id) {
       url = collectionUrl(this.props.match.params.id);
     }
-    this.props.history.push(url);
+    if (url) {
+      this.props.history.push(url);
+    }
   };
 
   render() {
@@ -342,6 +353,7 @@ class DocumentScene extends React.Component<Props> {
     }
 
     const value = revision ? revision.text : document.text;
+    const injectTemplate = document.injectTemplate;
     const disableEmbeds =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
@@ -360,14 +372,14 @@ class DocumentScene extends React.Component<Props> {
             )}
           />
           <PageTitle
-            title={document.title.replace(document.emoji, "") || "Untitled"}
+            title={document.titleWithDefault.replace(document.emoji, "")}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
 
           <Container justify="center" column auto>
             {!readOnly && (
-              <React.Fragment>
+              <>
                 <Prompt
                   when={this.isDirty && !this.isUploading}
                   message={DISCARD_CHANGES}
@@ -376,7 +388,7 @@ class DocumentScene extends React.Component<Props> {
                   when={this.isUploading && !this.isDirty}
                   message={UPLOADING_WARNING}
                 />
-              </React.Fragment>
+              </>
             )}
             {!isShare && (
               <Header
@@ -400,44 +412,51 @@ class DocumentScene extends React.Component<Props> {
               column
               auto
             >
-              {document.archivedAt &&
-                !document.deletedAt && (
-                  <Notice muted>
-                    Archived by {document.updatedBy.name}{" "}
-                    <Time dateTime={document.archivedAt} /> ago
-                  </Notice>
-                )}
+              {document.isTemplate && !readOnly && (
+                <Notice muted>
+                  You’re editing a template. Highlight some text and use the{" "}
+                  <PlaceholderIcon color="currentColor" /> control to add
+                  placeholders that can be filled out when creating new
+                  documents from this template.
+                </Notice>
+              )}
+              {document.archivedAt && !document.deletedAt && (
+                <Notice muted>
+                  Archived by {document.updatedBy.name}{" "}
+                  <Time dateTime={document.archivedAt} /> ago
+                </Notice>
+              )}
               {document.deletedAt && (
                 <Notice muted>
                   Deleted by {document.updatedBy.name}{" "}
                   <Time dateTime={document.deletedAt} /> ago
                   {document.permanentlyDeletedAt && (
-                    <React.Fragment>
+                    <>
                       <br />
-                      This document will be permanently deleted in{" "}
+                      This {document.noun} will be permanently deleted in{" "}
                       <Time dateTime={document.permanentlyDeletedAt} /> unless
                       restored.
-                    </React.Fragment>
+                    </>
                   )}
                 </Notice>
               )}
               <Flex auto={!readOnly}>
-                {ui.tocVisible &&
-                  readOnly && (
-                    <Contents
-                      headings={this.editor ? this.editor.getHeadings() : []}
-                    />
-                  )}
+                {ui.tocVisible && readOnly && (
+                  <Contents
+                    headings={this.editor ? this.editor.getHeadings() : []}
+                  />
+                )}
                 <Editor
                   id={document.id}
-                  ref={ref => {
+                  ref={(ref) => {
                     if (ref) {
                       this.editor = ref;
                     }
                   }}
                   isShare={isShare}
                   isDraft={document.isDraft}
-                  key={disableEmbeds ? "embeds-disabled" : "embeds-enabled"}
+                  template={document.isTemplate}
+                  key={[injectTemplate, disableEmbeds].join("-")}
                   title={revision ? revision.title : this.title}
                   document={document}
                   value={readOnly ? value : undefined}
@@ -457,16 +476,14 @@ class DocumentScene extends React.Component<Props> {
                   ui={this.props.ui}
                 />
               </Flex>
-              {readOnly &&
-                !isShare &&
-                !revision && (
-                  <React.Fragment>
-                    <MarkAsViewed document={document} />
-                    <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                      <References document={document} />
-                    </ReferencesWrapper>
-                  </React.Fragment>
-                )}
+              {readOnly && !isShare && !revision && (
+                <>
+                  <MarkAsViewed document={document} />
+                  <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                    <References document={document} />
+                  </ReferencesWrapper>
+                </>
+              )}
             </MaxWidth>
           </Container>
         </Background>
@@ -476,13 +493,18 @@ class DocumentScene extends React.Component<Props> {
   }
 }
 
+const PlaceholderIcon = styled(InputIcon)`
+  position: relative;
+  top: 6px;
+`;
+
 const Background = styled(Container)`
-  background: ${props => props.theme.background};
-  transition: ${props => props.theme.backgroundTransition};
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
 `;
 
 const ReferencesWrapper = styled("div")`
-  margin-top: ${props => (props.isOnlyTitle ? -45 : 16)}px;
+  margin-top: ${(props) => (props.isOnlyTitle ? -45 : 16)}px;
 
   @media print {
     display: none;
@@ -490,7 +512,7 @@ const ReferencesWrapper = styled("div")`
 `;
 
 const MaxWidth = styled(Flex)`
-  ${props =>
+  ${(props) =>
     props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
   padding: 0 16px;
   max-width: 100vw;
@@ -499,7 +521,7 @@ const MaxWidth = styled(Flex)`
   ${breakpoint("tablet")`	
     padding: 0 24px;
     margin: 4px auto 12px;
-    max-width: calc(48px + ${props => (props.tocVisible ? "64em" : "46em")});
+    max-width: calc(48px + ${(props) => (props.tocVisible ? "64em" : "46em")});
   `};
 
   ${breakpoint("desktopLarge")`

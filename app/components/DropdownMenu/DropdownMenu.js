@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
 import invariant from "invariant";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import { PortalWithState } from "react-portal";
 import { MoreIcon } from "outline-icons";
 import { rgba } from "polished";
+import * as React from "react";
+import { PortalWithState } from "react-portal";
 import styled from "styled-components";
-import Flex from "components/Flex";
 import { fadeAndScaleIn } from "shared/styles/animations";
+import Flex from "components/Flex";
 import NudeButton from "components/NudeButton";
 
 let previousClosePortal;
@@ -161,7 +161,7 @@ class DropdownMenu extends React.Component<Props> {
           closeOnEsc
         >
           {({ closePortal, openPortal, isOpen, portal }) => (
-            <React.Fragment>
+            <>
               <Label
                 onMouseMove={hover ? this.clearCloseTimeout : undefined}
                 onMouseOut={
@@ -204,7 +204,7 @@ class DropdownMenu extends React.Component<Props> {
                     onClick={
                       typeof children === "function"
                         ? undefined
-                        : ev => {
+                        : (ev) => {
                             ev.stopPropagation();
                             closePortal();
                           }
@@ -220,7 +220,7 @@ class DropdownMenu extends React.Component<Props> {
                   </Menu>
                 </Position>
               )}
-            </React.Fragment>
+            </>
           )}
         </PortalWithState>
       </div>
@@ -245,24 +245,24 @@ const Position = styled.div`
   ${({ bottom }) => (bottom !== undefined ? `bottom: ${bottom}px` : "")};
   max-height: 75%;
   z-index: 1000;
-  transform: ${props =>
+  transform: ${(props) =>
     props.position === "center" ? "translateX(-50%)" : "initial"};
   pointer-events: none;
 `;
 
 const Menu = styled.div`
   animation: ${fadeAndScaleIn} 200ms ease;
-  transform-origin: ${props => (props.left !== undefined ? "25%" : "75%")} 0;
+  transform-origin: ${(props) => (props.left !== undefined ? "25%" : "75%")} 0;
   backdrop-filter: blur(10px);
-  background: ${props => rgba(props.theme.menuBackground, 0.8)};
-  border: ${props =>
+  background: ${(props) => rgba(props.theme.menuBackground, 0.8)};
+  border: ${(props) =>
     props.theme.menuBorder ? `1px solid ${props.theme.menuBorder}` : "none"};
   border-radius: 2px;
   padding: 0.5em 0;
   min-width: 180px;
   overflow: hidden;
   overflow-y: auto;
-  box-shadow: ${props => props.theme.menuShadow};
+  box-shadow: ${(props) => props.theme.menuShadow};
   pointer-events: all;
 
   hr {
@@ -272,6 +272,15 @@ const Menu = styled.div`
   @media print {
     display: none;
   }
+`;
+
+export const Header = styled.h3`
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: ${(props) => props.theme.sidebarText};
+  letter-spacing: 0.04em;
+  margin: 1em 12px 0.5em;
 `;
 
 export default DropdownMenu;

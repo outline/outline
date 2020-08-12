@@ -1,7 +1,7 @@
 // @flow
+import debug from "debug";
 import Sequelize from "sequelize";
 import EncryptedField from "sequelize-encrypted";
-import debug from "debug";
 
 export const encryptedFields = EncryptedField(
   Sequelize,

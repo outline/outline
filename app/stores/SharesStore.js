@@ -2,10 +2,10 @@
 import invariant from "invariant";
 import { sortBy, filter, find } from "lodash";
 import { action, computed } from "mobx";
-import { client } from "utils/ApiClient";
+import Share from "models/Share";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import Share from "models/Share";
+import { client } from "utils/ApiClient";
 
 export default class SharesStore extends BaseStore<Share> {
   actions = ["info", "list", "create", "update"];
@@ -21,7 +21,7 @@ export default class SharesStore extends BaseStore<Share> {
 
   @computed
   get published(): Share[] {
-    return filter(this.orderedData, share => share.published);
+    return filter(this.orderedData, (share) => share.published);
   }
 
   @action
@@ -57,6 +57,6 @@ export default class SharesStore extends BaseStore<Share> {
   }
 
   getByDocumentId = (documentId): ?Share => {
-    return find(this.orderedData, share => share.documentId === documentId);
+    return find(this.orderedData, (share) => share.documentId === documentId);
   };
 }

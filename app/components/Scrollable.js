@@ -1,7 +1,7 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
 
 type Props = {
@@ -31,7 +31,7 @@ const Wrapper = styled.div`
   overflow-x: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-  box-shadow: ${props =>
+  box-shadow: ${(props) =>
     props.shadow ? "0 1px inset rgba(0,0,0,.1)" : "none"};
   transition: all 250ms ease-in-out;
 `;

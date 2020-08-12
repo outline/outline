@@ -1,11 +1,11 @@
 // @flow
 import Router from "koa-router";
 import { reject } from "lodash";
-import auth from "../middlewares/authentication";
-import { presentUser, presentTeam, presentPolicies } from "../presenters";
-import { Team } from "../models";
-import { signin } from "../../shared/utils/routeHelpers";
 import { parseDomain, isCustomSubdomain } from "../../shared/utils/domains";
+import { signin } from "../../shared/utils/routeHelpers";
+import auth from "../middlewares/authentication";
+import { Team } from "../models";
+import { presentUser, presentTeam, presentPolicies } from "../presenters";
 
 const router = new Router();
 
@@ -37,19 +37,19 @@ function filterServices(team) {
   let output = services;
 
   if (team && !team.googleId) {
-    output = reject(output, service => service.id === "google");
+    output = reject(output, (service) => service.id === "google");
   }
   if (team && !team.slackId) {
-    output = reject(output, service => service.id === "slack");
+    output = reject(output, (service) => service.id === "slack");
   }
   if (!team || !team.guestSignin) {
-    output = reject(output, service => service.id === "email");
+    output = reject(output, (service) => service.id === "email");
   }
 
   return output;
 }
 
-router.post("auth.config", async ctx => {
+router.post("auth.config", async (ctx) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
@@ -100,7 +100,7 @@ router.post("auth.config", async ctx => {
   };
 });
 
-router.post("auth.info", auth(), async ctx => {
+router.post("auth.info", auth(), async (ctx) => {
   const user = ctx.state.user;
   const team = await Team.findByPk(user.teamId);
 

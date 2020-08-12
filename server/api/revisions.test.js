@@ -1,16 +1,16 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { flushdb, seed } from "../test/support";
-import { buildDocument, buildUser } from "../test/factories";
 import Revision from "../models/Revision";
+import { buildDocument, buildUser } from "../test/factories";
+import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
-describe("#revisions.info", async () => {
+describe("#revisions.info", () => {
   it("should return a document revision", async () => {
     const { user, document } = await seed();
     const revision = await Revision.findOne({
@@ -49,7 +49,7 @@ describe("#revisions.info", async () => {
   });
 });
 
-describe("#revisions.list", async () => {
+describe("#revisions.list", () => {
   it("should return a document's revisions", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/revisions.list", {

@@ -1,5 +1,5 @@
 // @flow
-import { observable, action, computed, runInAction } from "mobx";
+import invariant from "invariant";
 import {
   without,
   map,
@@ -10,15 +10,15 @@ import {
   omitBy,
   uniq,
 } from "lodash";
-import { client } from "utils/ApiClient";
+import { observable, action, computed, runInAction } from "mobx";
 import naturalSort from "shared/utils/naturalSort";
-import invariant from "invariant";
 
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Document from "models/Document";
 import Revision from "models/Revision";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
+import { client } from "utils/ApiClient";
 
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
@@ -32,13 +32,16 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(this.orderedData, d => !d.archivedAt && !d.deletedAt);
+    return filter(
+      this.orderedData,
+      (d) => !d.archivedAt && !d.deletedAt && !d.template
+    );
   }
 
   @computed
   get recentlyViewed(): Document[] {
     return orderBy(
-      compact(this.recentlyViewedIds.map(id => this.data.get(id))),
+      compact(this.recentlyViewedIds.map((id) => this.data.get(id))),
       "updatedAt",
       "desc"
     );
@@ -49,29 +52,58 @@ export default class DocumentsStore extends BaseStore<Document> {
     return orderBy(this.all, "updatedAt", "desc");
   }
 
+  get templates(): Document[] {
+    return orderBy(
+      filter(
+        this.orderedData,
+        (d) => !d.archivedAt && !d.deletedAt && d.template
+      ),
+      "updatedAt",
+      "desc"
+    );
+  }
+
   createdByUser(userId: string): Document[] {
     return orderBy(
-      filter(this.all, d => d.createdBy.id === userId),
+      filter(this.all, (d) => d.createdBy.id === userId),
       "updatedAt",
       "desc"
     );
   }
 
   inCollection(collectionId: string): Document[] {
-    return filter(this.all, document => document.collectionId === collectionId);
+    return filter(
+      this.all,
+      (document) => document.collectionId === collectionId
+    );
+  }
+
+  templatesInCollection(collectionId: string): Document[] {
+    return orderBy(
+      filter(
+        this.orderedData,
+        (d) =>
+          !d.archivedAt &&
+          !d.deletedAt &&
+          d.template === true &&
+          d.collectionId === collectionId
+      ),
+      "updatedAt",
+      "desc"
+    );
   }
 
   pinnedInCollection(collectionId: string): Document[] {
     return filter(
       this.recentlyUpdatedInCollection(collectionId),
-      document => document.pinned
+      (document) => document.pinned
     );
   }
 
   publishedInCollection(collectionId: string): Document[] {
     return filter(
       this.all,
-      document =>
+      (document) =>
         document.collectionId === collectionId && !!document.publishedAt
     );
   }
@@ -100,16 +132,19 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.searchCache.get(query) || [];
   }
 
-  @computed
   get starred(): Document[] {
-    return filter(this.all, d => d.isStarred);
+    return orderBy(
+      filter(this.all, (d) => d.isStarred),
+      "updatedAt",
+      "desc"
+    );
   }
 
   @computed
   get archived(): Document[] {
     return filter(
       orderBy(this.orderedData, "archivedAt", "desc"),
-      d => d.archivedAt && !d.deletedAt
+      (d) => d.archivedAt && !d.deletedAt
     );
   }
 
@@ -117,7 +152,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   get deleted(): Document[] {
     return filter(
       orderBy(this.orderedData, "deletedAt", "desc"),
-      d => d.deletedAt
+      (d) => d.deletedAt
     );
   }
 
@@ -127,10 +162,15 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @computed
+  get templatesAlphabetical(): Document[] {
+    return naturalSort(this.templates, "title");
+  }
+
+  @computed
   get drafts(): Document[] {
     return filter(
       orderBy(this.all, "updatedAt", "desc"),
-      doc => !doc.publishedAt
+      (doc) => !doc.publishedAt
     );
   }
 
@@ -150,14 +190,17 @@ export default class DocumentsStore extends BaseStore<Document> {
     const { data } = res;
     runInAction("DocumentsStore#fetchBacklinks", () => {
       data.forEach(this.add);
-      this.backlinks.set(documentId, data.map(doc => doc.id));
+      this.backlinks.set(
+        documentId,
+        data.map((doc) => doc.id)
+      );
     });
   };
 
   getBacklinedDocuments(documentId: string): Document[] {
     const documentIds = this.backlinks.get(documentId) || [];
     return orderBy(
-      compact(documentIds.map(id => this.data.get(id))),
+      compact(documentIds.map((id) => this.data.get(id))),
       "updatedAt",
       "desc"
     );
@@ -209,6 +252,11 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchRecentlyUpdated = async (options: ?PaginationParams): Promise<*> => {
     return this.fetchNamedPage("list", options);
+  };
+
+  @action
+  fetchTemplates = async (options: ?PaginationParams): Promise<*> => {
+    return this.fetchNamedPage("list", { ...options, template: true });
   };
 
   @action
@@ -279,7 +327,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     options: PaginationParams = {}
   ): Promise<SearchResult[]> => {
     // $FlowFixMe
-    const compactedOptions = omitBy(options, o => !o);
+    const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.get("/documents.search", {
       ...compactedOptions,
       query,
@@ -287,13 +335,13 @@ export default class DocumentsStore extends BaseStore<Document> {
     invariant(res && res.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    res.data.forEach(result => this.add(result.document));
+    res.data.forEach((result) => this.add(result.document));
     this.addPolicies(res.policies);
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
     const results: SearchResult[] = compact(
-      res.data.map(result => {
+      res.data.map((result) => {
         const document = this.data.get(result.document.id);
         if (!document) return null;
 
@@ -319,6 +367,24 @@ export default class DocumentsStore extends BaseStore<Document> {
     if (!this.data.get(id) && !this.getByUrl(id)) {
       return this.fetch(id, { prefetch: true });
     }
+  };
+
+  @action
+  templatize = async (id: string): Promise<?Document> => {
+    const doc: ?Document = this.data.get(id);
+    invariant(doc, "Document should exist");
+
+    if (doc.template) {
+      return;
+    }
+
+    const res = await client.post("/documents.templatize", { id });
+    invariant(res && res.data, "Document not available");
+
+    this.addPolicies(res.policies);
+    this.add(res.data);
+
+    return this.data.get(res.data.id);
   };
 
   @action
@@ -377,6 +443,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       publish: !!document.publishedAt,
       parentDocumentId: document.parentDocumentId,
       collectionId: document.collectionId,
+      template: document.template,
       title: `${document.title} (duplicate)`,
       text: document.text,
     });
@@ -405,8 +472,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   removeCollectionDocuments(collectionId: string) {
     const documents = this.inCollection(collectionId);
-    const documentIds = documents.map(doc => doc.id);
-    documentIds.forEach(id => this.remove(id));
+    const documentIds = documents.map((doc) => doc.id);
+    documentIds.forEach((id) => this.remove(id));
   }
 
   @action
@@ -497,7 +564,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   getByUrl = (url: string = ""): ?Document => {
-    return find(this.orderedData, doc => url.endsWith(doc.urlId));
+    return find(this.orderedData, (doc) => url.endsWith(doc.urlId));
   };
 
   getCollectionForDocument(document: Document) {

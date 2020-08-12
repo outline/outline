@@ -22,7 +22,7 @@ const Share = sequelize.define(
   }
 );
 
-Share.associate = models => {
+Share.associate = (models) => {
   Share.belongsTo(models.User, {
     as: "user",
     foreignKey: "userId",
@@ -44,7 +44,7 @@ Share.associate = models => {
   });
 };
 
-Share.prototype.revoke = function(userId) {
+Share.prototype.revoke = function (userId) {
   this.revokedAt = new Date();
   this.revokedById = userId;
   return this.save();

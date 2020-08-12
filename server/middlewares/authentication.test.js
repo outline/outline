@@ -1,13 +1,13 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb, seed } from "../test/support";
-import { buildUser } from "../test/factories";
-import { ApiKey } from "../models";
 import randomstring from "randomstring";
+import { ApiKey } from "../models";
+import { buildUser } from "../test/factories";
+import { flushdb, seed } from "../test/support";
 import auth from "./authentication";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 
-describe("Authentication middleware", async () => {
+describe("Authentication middleware", () => {
   describe("with JWT", () => {
     it("should authenticate with correct token", async () => {
       const state = {};

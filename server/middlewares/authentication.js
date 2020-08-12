@@ -1,12 +1,12 @@
 // @flow
+import addMinutes from "date-fns/add_minutes";
+import addMonths from "date-fns/add_months";
 import JWT from "jsonwebtoken";
 import { type Context } from "koa";
-import { User, ApiKey } from "../models";
-import { getUserForJWT } from "../utils/jwt";
-import { getCookieDomain } from "../utils/domains";
 import { AuthenticationError, UserSuspendedError } from "../errors";
-import addMonths from "date-fns/add_months";
-import addMinutes from "date-fns/add_minutes";
+import { User, ApiKey } from "../models";
+import { getCookieDomain } from "../utils/domains";
+import { getUserForJWT } from "../utils/jwt";
 
 export default function auth(options?: { required?: boolean } = {}) {
   return async function authMiddleware(ctx: Context, next: () => Promise<*>) {
@@ -60,7 +60,8 @@ export default function auth(options?: { required?: boolean } = {}) {
         user = await User.findByPk(apiKey.userId);
         if (!user) throw new AuthenticationError("Invalid API key");
       } else {
-        // JWT
+        /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
+         * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
         user = await getUserForJWT(token);
       }
 
@@ -75,9 +76,17 @@ export default function auth(options?: { required?: boolean } = {}) {
       // not awaiting the promise here so that the request is not blocked
       user.updateActiveAt(ctx.request.ip);
 
+      /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
+       * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
       ctx.state.token = token;
+
+      /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
+       * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
       ctx.state.user = user;
       if (!ctx.cache) ctx.cache = {};
+
+      /* $FlowFixMeNowPlease This comment suppresses an error found when upgrading
+       * flow-bin@0.104.0. To view the error, delete this comment and run Flow. */
       ctx.cache[user.id] = user;
     }
 

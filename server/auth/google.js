@@ -1,11 +1,11 @@
 // @flow
-import Sequelize from "sequelize";
 import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
 import Router from "koa-router";
 import { capitalize } from "lodash";
-import { OAuth2Client } from "google-auth-library";
-import { User, Team, Event } from "../models";
+import Sequelize from "sequelize";
 import auth from "../middlewares/authentication";
+import { User, Team, Event } from "../models";
 
 const Op = Sequelize.Op;
 
@@ -18,7 +18,7 @@ const client = new OAuth2Client(
 const allowedDomainsEnv = process.env.GOOGLE_ALLOWED_DOMAINS;
 
 // start the oauth process and redirect user to Google
-router.get("google", async ctx => {
+router.get("google", async (ctx) => {
   // Generate the url that will be used for the consent dialog.
   const authorizeUrl = client.generateAuthUrl({
     access_type: "offline",
@@ -32,7 +32,7 @@ router.get("google", async ctx => {
 });
 
 // signin callback from Google
-router.get("google.callback", auth({ required: false }), async ctx => {
+router.get("google.callback", auth({ required: false }), async (ctx) => {
   const { code } = ctx.request.query;
   ctx.assertPresent(code, "code is required");
   const response = await client.getToken(code);
@@ -64,9 +64,7 @@ router.get("google.callback", auth({ required: false }), async ctx => {
   hash.update(googleId);
   const hashedGoogleId = hash.digest("hex");
   const cbUrl = `https://logo.clearbit.com/${profile.data.hd}`;
-  const tileyUrl = `https://tiley.herokuapp.com/avatar/${hashedGoogleId}/${
-    teamName[0]
-  }.png`;
+  const tileyUrl = `https://tiley.herokuapp.com/avatar/${hashedGoogleId}/${teamName[0]}.png`;
   const cbResponse = await fetch(cbUrl);
   const avatarUrl = cbResponse.status === 200 ? cbUrl : tileyUrl;
 

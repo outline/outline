@@ -1,44 +1,45 @@
 // @flow
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
+import { debounce } from "lodash";
+import { observable, action } from "mobx";
+import { observer, inject } from "mobx-react";
+import { PlusIcon } from "outline-icons";
+import queryString from "query-string";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import keydown from "react-keydown";
-import { Waypoint } from "react-waypoint";
 import { withRouter, Link } from "react-router-dom";
-import type { Location, RouterHistory } from "react-router-dom";
-import { PlusIcon } from "outline-icons";
-import { observable, action } from "mobx";
-import { observer, inject } from "mobx-react";
-import { debounce } from "lodash";
-import queryString from "query-string";
+import type { RouterHistory, Match } from "react-router-dom";
+import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
 import UsersStore from "stores/UsersStore";
-import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
-import { meta } from "utils/keyboard";
 
-import Flex from "components/Flex";
 import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import DocumentPreview from "components/DocumentPreview";
 import Empty from "components/Empty";
 import Fade from "components/Fade";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import CenteredContent from "components/CenteredContent";
 import LoadingIndicator from "components/LoadingIndicator";
-import DocumentPreview from "components/DocumentPreview";
-import NewDocumentMenu from "menus/NewDocumentMenu";
 import PageTitle from "components/PageTitle";
+import CollectionFilter from "./components/CollectionFilter";
+import DateFilter from "./components/DateFilter";
 import SearchField from "./components/SearchField";
 import StatusFilter from "./components/StatusFilter";
-import CollectionFilter from "./components/CollectionFilter";
 import UserFilter from "./components/UserFilter";
-import DateFilter from "./components/DateFilter";
+import NewDocumentMenu from "menus/NewDocumentMenu";
+import { type LocationWithState } from "types";
+import { meta } from "utils/keyboard";
+import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
-  match: Object,
-  location: Location,
+  match: Match,
+  location: LocationWithState,
   documents: DocumentsStore,
   users: UsersStore,
   notFound: ?boolean,
@@ -46,7 +47,7 @@ type Props = {
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: ?DocumentPreview;
+  firstDocument: ?React.Component<typeof DocumentPreview>;
 
   @observable
   query: string = decodeURIComponent(this.props.match.params.term || "");
@@ -78,7 +79,7 @@ class Search extends React.Component<Props> {
     this.props.history.goBack();
   }
 
-  handleKeyDown = ev => {
+  handleKeyDown = (ev) => {
     // Escape
     if (ev.which === 27) {
       ev.preventDefault();
@@ -118,7 +119,7 @@ class Search extends React.Component<Props> {
     this.fetchResultsDebounced();
   };
 
-  handleFilterChange = search => {
+  handleFilterChange = (search) => {
     this.props.history.replace({
       pathname: this.props.location.pathname,
       search: queryString.stringify({
@@ -214,14 +215,15 @@ class Search extends React.Component<Props> {
     trailing: true,
   });
 
-  updateLocation = query => {
+  updateLocation = (query) => {
     this.props.history.replace({
       pathname: searchUrl(query),
       search: this.props.location.search,
     });
   };
 
-  setFirstDocumentRef = ref => {
+  setFirstDocumentRef = (ref) => {
+    // $FlowFixMe
     this.firstDocument = ref;
   };
 
@@ -260,23 +262,25 @@ class Search extends React.Component<Props> {
             <Filters>
               <StatusFilter
                 includeArchived={this.includeArchived}
-                onSelect={includeArchived =>
+                onSelect={(includeArchived) =>
                   this.handleFilterChange({ includeArchived })
                 }
               />
               <CollectionFilter
                 collectionId={this.collectionId}
-                onSelect={collectionId =>
+                onSelect={(collectionId) =>
                   this.handleFilterChange({ collectionId })
                 }
               />
               <UserFilter
                 userId={this.userId}
-                onSelect={userId => this.handleFilterChange({ userId })}
+                onSelect={(userId) => this.handleFilterChange({ userId })}
               />
               <DateFilter
                 dateFilter={this.dateFilter}
-                onSelect={dateFilter => this.handleFilterChange({ dateFilter })}
+                onSelect={(dateFilter) =>
+                  this.handleFilterChange({ dateFilter })
+                }
               />
             </Filters>
           )}
@@ -285,8 +289,8 @@ class Search extends React.Component<Props> {
               <Empty>
                 <Centered column>
                   <HelpText>
-                    No documents found for your search filters. <br />Create a
-                    new document?
+                    No documents found for your search filters. <br />
+                    Create a new document?
                   </HelpText>
                   <Wrapper>
                     {this.collectionId ? (
@@ -299,7 +303,8 @@ class Search extends React.Component<Props> {
                       </Button>
                     ) : (
                       <NewDocumentMenu />
-                    )}&nbsp;&nbsp;
+                    )}
+                    &nbsp;&nbsp;
                     <Button as={Link} to="/search" neutral>
                       Clear filters
                     </Button>
@@ -319,7 +324,7 @@ class Search extends React.Component<Props> {
 
                 return (
                   <DocumentPreview
-                    ref={ref => index === 0 && this.setFirstDocumentRef(ref)}
+                    ref={(ref) => index === 0 && this.setFirstDocumentRef(ref)}
                     key={document.id}
                     document={document}
                     highlight={this.query}
@@ -361,14 +366,14 @@ const Container = styled(CenteredContent)`
 const ResultsWrapper = styled(Flex)`
   position: absolute;
   transition: all 300ms cubic-bezier(0.65, 0.05, 0.36, 1);
-  top: ${props => (props.pinToTop ? "0%" : "50%")};
-  margin-top: ${props => (props.pinToTop ? "40px" : "-75px")};
+  top: ${(props) => (props.pinToTop ? "0%" : "50%")};
+  margin-top: ${(props) => (props.pinToTop ? "40px" : "-75px")};
   width: 100%;
 `;
 
 const ResultList = styled(Flex)`
   margin-bottom: 150px;
-  opacity: ${props => (props.visible ? "1" : "0")};
+  opacity: ${(props) => (props.visible ? "1" : "0")};
   transition: all 400ms cubic-bezier(0.65, 0.05, 0.36, 1);
 `;
 

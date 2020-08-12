@@ -1,14 +1,13 @@
 // @flow
-import * as React from "react";
 import { observer } from "mobx-react";
-import styled from "styled-components";
 import { GoToIcon } from "outline-icons";
-import Flex from "components/Flex";
-
-import Document from "models/Document";
-import Collection from "models/Collection";
+import * as React from "react";
+import styled from "styled-components";
 import type { DocumentPath } from "stores/CollectionsStore";
+import Collection from "models/Collection";
+import Document from "models/Document";
 import CollectionIcon from "components/CollectionIcon";
+import Flex from "components/Flex";
 
 type Props = {
   result: DocumentPath,
@@ -44,7 +43,7 @@ class PathToDocument extends React.Component<Props> {
       <Component ref={ref} onClick={this.handleClick} href="" selectable>
         {collection && <CollectionIcon collection={collection} />}
         {result.path
-          .map(doc => <Title key={doc.id}>{doc.title}</Title>)
+          .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
         {document && (
           <Flex>
@@ -73,7 +72,7 @@ const ResultWrapper = styled.div`
   margin-left: -4px;
   user-select: none;
 
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   cursor: default;
 `;
 
@@ -85,7 +84,7 @@ const ResultWrapperLink = styled(ResultWrapper.withComponent("a"))`
   &:hover,
   &:active,
   &:focus {
-    background: ${props => props.theme.listItemHoverBackground};
+    background: ${(props) => props.theme.listItemHoverBackground};
     outline: none;
   }
 `;

@@ -1,14 +1,14 @@
 // @flow
+import { Provider } from "mobx-react";
 import * as React from "react";
 import { render } from "react-dom";
-import { Provider } from "mobx-react";
 import { BrowserRouter as Router } from "react-router-dom";
-import stores from "stores";
 
+import stores from "stores";
 import ErrorBoundary from "components/ErrorBoundary";
 import ScrollToTop from "components/ScrollToTop";
-import Toasts from "components/Toasts";
 import Theme from "components/Theme";
+import Toasts from "components/Toasts";
 import Routes from "./routes";
 import env from "env";
 
@@ -21,23 +21,23 @@ const element = document.getElementById("root");
 
 if (element) {
   render(
-    <React.Fragment>
+    <>
       <ErrorBoundary>
         <Provider {...stores}>
           <Theme>
             <Router>
-              <React.Fragment>
+              <>
                 <ScrollToTop>
                   <Routes />
                 </ScrollToTop>
                 <Toasts />
-              </React.Fragment>
+              </>
             </Router>
           </Theme>
         </Provider>
       </ErrorBoundary>
       {DevTools && <DevTools position={{ bottom: 0, right: 0 }} />}
-    </React.Fragment>,
+    </>,
     element
   );
 }

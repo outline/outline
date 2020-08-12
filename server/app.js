@@ -1,6 +1,7 @@
 // @flow
+import * as Sentry from "@sentry/node";
+import Koa from "koa";
 import compress from "koa-compress";
-import { compact } from "lodash";
 import helmet, {
   contentSecurityPolicy,
   dnsPrefetchControl,
@@ -8,16 +9,15 @@ import helmet, {
 } from "koa-helmet";
 import logger from "koa-logger";
 import mount from "koa-mount";
-import enforceHttps from "koa-sslify";
-import Koa from "koa";
 import onerror from "koa-onerror";
-import * as Sentry from "@sentry/node";
-import updates from "./utils/updates";
+import enforceHttps from "koa-sslify";
+import { compact } from "lodash";
 
-import auth from "./auth";
 import api from "./api";
+import auth from "./auth";
 import emails from "./emails";
 import routes from "./routes";
+import updates from "./utils/updates";
 
 const app = new Koa();
 
@@ -114,12 +114,12 @@ app.on("error", (error, ctx) => {
   }
 
   if (process.env.SENTRY_DSN) {
-    Sentry.withScope(function(scope) {
+    Sentry.withScope(function (scope) {
       const requestId = ctx.headers["x-request-id"];
       if (requestId) {
         scope.setTag("request_id", requestId);
       }
-      scope.addEventProcessor(function(event) {
+      scope.addEventProcessor(function (event) {
         return Sentry.Handlers.parseRequest(event, ctx.request);
       });
       Sentry.captureException(error);

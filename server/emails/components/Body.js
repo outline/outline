@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import { Table, TBody, TR, TD } from "oy-vey";
+import * as React from "react";
 
 import EmptySpace from "./EmptySpace";
 

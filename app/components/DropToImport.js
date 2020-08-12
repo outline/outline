@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
+import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
-import { withRouter, type RouterHistory } from "react-router-dom";
-import { createGlobalStyle } from "styled-components";
-import invariant from "invariant";
-import importFile from "utils/importFile";
+import * as React from "react";
 import Dropzone from "react-dropzone";
+import { withRouter, type RouterHistory, type Match } from "react-router-dom";
+import { createGlobalStyle } from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
 import LoadingIndicator from "components/LoadingIndicator";
+import importFile from "utils/importFile";
 
 const EMPTY_OBJECT = {};
 let importingLock = false;
@@ -22,7 +22,7 @@ type Props = {
   documents: DocumentsStore,
   disabled: boolean,
   location: Object,
-  match: Object,
+  match: Match,
   history: RouterHistory,
   staticContext: Object,
 };
@@ -30,12 +30,12 @@ type Props = {
 export const GlobalStyles = createGlobalStyle`
   .activeDropZone {
     border-radius: 4px;
-    background: ${props => props.theme.slateDark};
-    svg { fill: ${props => props.theme.white}; }
+    background: ${(props) => props.theme.slateDark};
+    svg { fill: ${(props) => props.theme.white}; }
   }
 
   .activeDropZone a {
-    color: ${props => props.theme.white} !important;
+    color: ${(props) => props.theme.white} !important;
   }
 `;
 

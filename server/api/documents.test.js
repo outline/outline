@@ -9,20 +9,20 @@ import {
   Backlink,
   CollectionUser,
 } from "../models";
-import { flushdb, seed } from "../test/support";
 import {
   buildShare,
   buildCollection,
   buildUser,
   buildDocument,
 } from "../test/factories";
+import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
-describe("#documents.info", async () => {
+describe("#documents.info", () => {
   it("should return published document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.info", {
@@ -210,7 +210,7 @@ describe("#documents.info", async () => {
   });
 });
 
-describe("#documents.export", async () => {
+describe("#documents.export", () => {
   it("should return published document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.export", {
@@ -392,7 +392,7 @@ describe("#documents.export", async () => {
   });
 });
 
-describe("#documents.list", async () => {
+describe("#documents.list", () => {
   it("should return documents", async () => {
     const { user, document } = await seed();
 
@@ -524,7 +524,7 @@ describe("#documents.list", async () => {
   });
 });
 
-describe("#documents.pinned", async () => {
+describe("#documents.pinned", () => {
   it("should return pinned documents", async () => {
     const { user, document } = await seed();
     document.pinnedById = user.id;
@@ -585,7 +585,7 @@ describe("#documents.pinned", async () => {
   });
 });
 
-describe("#documents.drafts", async () => {
+describe("#documents.drafts", () => {
   it("should return unpublished documents", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -618,7 +618,7 @@ describe("#documents.drafts", async () => {
   });
 });
 
-describe("#documents.search", async () => {
+describe("#documents.search", () => {
   it("should return results", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.search", {
@@ -947,7 +947,7 @@ describe("#documents.search", async () => {
   });
 });
 
-describe("#documents.archived", async () => {
+describe("#documents.archived", () => {
   it("should return archived documents", async () => {
     const { user } = await seed();
     const document = await buildDocument({
@@ -1007,7 +1007,7 @@ describe("#documents.archived", async () => {
   });
 });
 
-describe("#documents.viewed", async () => {
+describe("#documents.viewed", () => {
   it("should return empty result if no views", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.viewed", {
@@ -1071,7 +1071,7 @@ describe("#documents.viewed", async () => {
   });
 });
 
-describe("#documents.starred", async () => {
+describe("#documents.starred", () => {
   it("should return empty result if no stars", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.starred", {
@@ -1107,7 +1107,7 @@ describe("#documents.starred", async () => {
   });
 });
 
-describe("#documents.pin", async () => {
+describe("#documents.pin", () => {
   it("should pin the document", async () => {
     const { user, document } = await seed();
 
@@ -1224,7 +1224,7 @@ describe("#documents.restore", () => {
   });
 });
 
-describe("#documents.unpin", async () => {
+describe("#documents.unpin", () => {
   it("should unpin the document", async () => {
     const { user, document } = await seed();
     document.pinnedBy = user;
@@ -1256,7 +1256,7 @@ describe("#documents.unpin", async () => {
   });
 });
 
-describe("#documents.star", async () => {
+describe("#documents.star", () => {
   it("should star the document", async () => {
     const { user, document } = await seed();
 
@@ -1288,7 +1288,7 @@ describe("#documents.star", async () => {
   });
 });
 
-describe("#documents.unstar", async () => {
+describe("#documents.unstar", () => {
   it("should unstar the document", async () => {
     const { user, document } = await seed();
     await Star.create({ documentId: document.id, userId: user.id });
@@ -1320,7 +1320,7 @@ describe("#documents.unstar", async () => {
   });
 });
 
-describe("#documents.create", async () => {
+describe("#documents.create", () => {
   it("should create as a new document", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/documents.create", {
@@ -1406,7 +1406,7 @@ describe("#documents.create", async () => {
   });
 });
 
-describe("#documents.update", async () => {
+describe("#documents.update", () => {
   it("should update document details in the root", async () => {
     const { user, document } = await seed();
 
@@ -1677,7 +1677,7 @@ describe("#documents.update", async () => {
   });
 });
 
-describe("#documents.archive", async () => {
+describe("#documents.archive", () => {
   it("should allow archiving document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.archive", {
@@ -1699,7 +1699,7 @@ describe("#documents.archive", async () => {
   });
 });
 
-describe("#documents.delete", async () => {
+describe("#documents.delete", () => {
   it("should allow deleting document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.delete", {

@@ -1,15 +1,15 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 import TestServer from "fetch-test-server";
 import app from "../app";
-import { flushdb, seed } from "../test/support";
 import { buildEvent } from "../test/factories";
+import { flushdb, seed } from "../test/support";
 
 const server = new TestServer(app.callback());
 
-beforeEach(flushdb);
-afterAll(server.close);
+beforeEach(() => flushdb());
+afterAll(() => server.close());
 
-describe("#events.list", async () => {
+describe("#events.list", () => {
   it("should only return activity events", async () => {
     const { user, admin, document, collection } = await seed();
 

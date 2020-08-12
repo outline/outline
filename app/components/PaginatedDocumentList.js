@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import { observer } from "mobx-react";
+import * as React from "react";
 import Document from "models/Document";
 import DocumentPreview from "components/DocumentPreview";
 import PaginatedList from "components/PaginatedList";
@@ -25,7 +25,7 @@ class PaginatedDocumentList extends React.Component<Props> {
         heading={heading}
         fetch={fetch}
         options={options}
-        renderItem={item => (
+        renderItem={(item) => (
           <DocumentPreview key={item.id} document={item} {...rest} />
         )}
       />

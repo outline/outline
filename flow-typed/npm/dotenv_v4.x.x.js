@@ -1,10 +1,11 @@
-// flow-typed signature: cf11c66b2c3d752c24fdf3eae1b44e1c
-// flow-typed version: 21e1db763b/dotenv_v4.x.x/flow_>=v0.34.x
+// flow-typed signature: c7992a5788422caaab5074361a292df3
+// flow-typed version: c6154227d1/dotenv_v4.x.x/flow_>=v0.104.x
 
 declare module "dotenv" {
   declare type DotenvOptions = {
     encoding?: string,
-    path?: string
+    path?: string,
+    ...
   };
 
   declare function config(options?: DotenvOptions): boolean;
@@ -12,6 +13,7 @@ declare module "dotenv" {
   declare module.exports: {
     config: typeof config,
     load: typeof config,
-    parse: (src: string | Buffer) => { [string]: string }
+    parse: (src: string | Buffer) => { [string]: string, ... },
+    ...
   }
 }

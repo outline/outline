@@ -1,34 +1,32 @@
 // @flow
+import { lighten } from "polished";
 import * as React from "react";
 import { withRouter, type RouterHistory } from "react-router-dom";
-import { observable } from "mobx";
-import { observer } from "mobx-react";
-import { lighten } from "polished";
-import styled, { withTheme } from "styled-components";
 import RichMarkdownEditor from "rich-markdown-editor";
-import { uploadFile } from "utils/uploadFile";
-import isInternalUrl from "utils/isInternalUrl";
-import Tooltip from "components/Tooltip";
+import styled, { withTheme } from "styled-components";
 import UiStore from "stores/UiStore";
+import Tooltip from "components/Tooltip";
 import embeds from "../embeds";
+import isInternalUrl from "utils/isInternalUrl";
+import { uploadFile } from "utils/uploadFile";
 
 const EMPTY_ARRAY = [];
 
 type Props = {
-  id: string,
+  id?: string,
   defaultValue?: string,
   readOnly?: boolean,
   grow?: boolean,
   disableEmbeds?: boolean,
-  history: RouterHistory,
-  forwardedRef: React.Ref<RichMarkdownEditor>,
-  ui: UiStore,
+  ui?: UiStore,
 };
 
-@observer
-class Editor extends React.Component<Props> {
-  @observable redirectTo: ?string;
+type PropsWithRef = Props & {
+  forwardedRef: React.Ref<RichMarkdownEditor>,
+  history: RouterHistory,
+};
 
+class Editor extends React.Component<PropsWithRef> {
   onUploadImage = async (file: File) => {
     const result = await uploadFile(file, { documentId: this.props.id });
     return result.url;
@@ -62,7 +60,9 @@ class Editor extends React.Component<Props> {
   };
 
   onShowToast = (message: string) => {
-    this.props.ui.showToast(message);
+    if (this.props.ui) {
+      this.props.ui.showToast(message);
+    }
   };
 
   render() {
@@ -81,11 +81,11 @@ class Editor extends React.Component<Props> {
 }
 
 const StyledEditor = styled(RichMarkdownEditor)`
-  flex-grow: ${props => (props.grow ? 1 : 0)};
+  flex-grow: ${(props) => (props.grow ? 1 : 0)};
   justify-content: start;
 
   > div {
-    transition: ${props => props.theme.backgroundTransition};
+    transition: ${(props) => props.theme.backgroundTransition};
   }
 
   .notice-block.tip,
@@ -95,13 +95,13 @@ const StyledEditor = styled(RichMarkdownEditor)`
 
   p {
     a {
-      color: ${props => props.theme.text};
-      border-bottom: 1px solid ${props => lighten(0.5, props.theme.text)};
+      color: ${(props) => props.theme.text};
+      border-bottom: 1px solid ${(props) => lighten(0.5, props.theme.text)};
       text-decoration: none !important;
       font-weight: 500;
 
       &:hover {
-        border-bottom: 1px solid ${props => props.theme.text};
+        border-bottom: 1px solid ${(props) => props.theme.text};
         text-decoration: none;
       }
     }
@@ -120,6 +120,6 @@ const Span = styled.span`
 
 const EditorWithRouterAndTheme = withRouter(withTheme(Editor));
 
-export default React.forwardRef((props, ref) => (
+export default React.forwardRef<Props, typeof Editor>((props, ref) => (
   <EditorWithRouterAndTheme {...props} forwardedRef={ref} />
 ));

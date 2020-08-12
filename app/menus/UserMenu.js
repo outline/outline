@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
 
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import UsersStore from "stores/UsersStore";
 import User from "models/User";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
   user: User,
@@ -18,9 +18,7 @@ class UserMenu extends React.Component<Props> {
     const { user, users } = this.props;
     if (
       !window.confirm(
-        `Are you want to make ${
-          user.name
-        } an admin? Admins can modify team and billing information.`
+        `Are you want to make ${user.name} an admin? Admins can modify team and billing information.`
       )
     ) {
       return;
@@ -72,12 +70,11 @@ class UserMenu extends React.Component<Props> {
             Make {user.name} a member…
           </DropdownMenuItem>
         )}
-        {!user.isAdmin &&
-          !user.isSuspended && (
-            <DropdownMenuItem onClick={this.handlePromote}>
-              Make {user.name} an admin…
-            </DropdownMenuItem>
-          )}
+        {!user.isAdmin && !user.isSuspended && (
+          <DropdownMenuItem onClick={this.handlePromote}>
+            Make {user.name} an admin…
+          </DropdownMenuItem>
+        )}
         {!user.lastActiveAt && (
           <DropdownMenuItem onClick={this.handleRevoke}>
             Revoke invite…

@@ -1,23 +1,24 @@
 // @flow
-import * as React from "react";
 import { observable, action } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
+import { type Match } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import EventsStore from "stores/EventsStore";
 import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
 import HelpText from "components/HelpText";
 import List from "components/List";
-import Tabs from "components/Tabs";
-import Tab from "components/Tab";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
+import PageTitle from "components/PageTitle";
+import Tab from "components/Tab";
+import Tabs from "components/Tabs";
 import EventListItem from "./components/EventListItem";
 
 type Props = {
   events: EventsStore,
-  match: Object,
+  match: Match,
 };
 
 @observer
@@ -83,12 +84,14 @@ class Events extends React.Component<Props> {
           {showLoading ? (
             <ListPlaceholder count={5} />
           ) : (
-            <React.Fragment>
-              {events.orderedData.map(event => <EventListItem event={event} />)}
+            <>
+              {events.orderedData.map((event) => (
+                <EventListItem event={event} />
+              ))}
               {this.allowLoadMore && (
                 <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
               )}
-            </React.Fragment>
+            </>
           )}
         </List>
       </CenteredContent>

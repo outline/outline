@@ -4,7 +4,7 @@ import Flex from "components/Flex";
 
 const Container = styled(Flex)`
   position: relative;
-  margin-top: ${props => (props.isShare ? "50px" : "0")};
+  margin-top: ${(props) => (props.isShare ? "50px" : "0")};
 `;
 
 export default Container;

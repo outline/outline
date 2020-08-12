@@ -14,7 +14,7 @@ export default class BreadcrumbMenu extends React.Component<Props> {
 
     return (
       <DropdownMenu label={this.props.label} position="center">
-        {path.map(item => (
+        {path.map((item) => (
           <DropdownMenuItem as={Link} to={item.url} key={item.id}>
             {item.title}
           </DropdownMenuItem>

@@ -1,7 +1,7 @@
 // @flow
-import policy from "./policy";
-import { Team, User } from "../models";
 import { AdminRequiredError } from "../errors";
+import { Team, User } from "../models";
+import policy from "./policy";
 
 const { allow } = policy;
 
@@ -12,18 +12,18 @@ allow(User, "share", Team, (user, team) => {
   return team.sharing;
 });
 
-allow(User, "auditLog", Team, user => {
+allow(User, "auditLog", Team, (user) => {
   if (user.isAdmin) return true;
   return false;
 });
 
-allow(User, "invite", Team, user => {
+allow(User, "invite", Team, (user) => {
   if (user.isAdmin) return true;
   return false;
 });
 
 // ??? policy for creating new groups, I don't know how to do this other than on the team level
-allow(User, "group", Team, user => {
+allow(User, "group", Team, (user) => {
   if (user.isAdmin) return true;
   throw new AdminRequiredError();
 });

@@ -1,5 +1,4 @@
 // @flow
-/* global jest */
 require("dotenv").config({ silent: true });
 
 // test environment variables
@@ -7,8 +6,8 @@ process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
 process.env.NODE_ENV = "test";
 
 const Sequelize = require("sequelize");
-const sequelize = require("../sequelize").sequelize;
 const Umzug = require("umzug");
+const sequelize = require("../sequelize").sequelize;
 
 const queryInterface = sequelize.getQueryInterface();
 

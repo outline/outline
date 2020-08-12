@@ -1,22 +1,22 @@
 // @flow
-import * as React from "react";
-import Tooltip from "components/Tooltip";
 import distanceInWordsToNow from "date-fns/distance_in_words_to_now";
 import format from "date-fns/format";
+import * as React from "react";
+import Tooltip from "components/Tooltip";
 
 let callbacks = [];
 
 // This is a shared timer that fires every minute, used for
 // updating all Time components across the page all at once.
 setInterval(() => {
-  callbacks.forEach(cb => cb());
+  callbacks.forEach((cb) => cb());
 }, 1000 * 60);
 
 function eachMinute(fn) {
   callbacks.push(fn);
 
   return () => {
-    callbacks = callbacks.filter(cb => cb !== fn);
+    callbacks = callbacks.filter((cb) => cb !== fn);
   };
 }
 

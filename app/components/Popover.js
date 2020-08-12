@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import BoundlessPopover from "boundless-popover";
+import * as React from "react";
 import styled, { keyframes } from "styled-components";
 
 const fadeIn = keyframes`

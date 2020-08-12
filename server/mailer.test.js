@@ -11,7 +11,7 @@ describe("Mailer", () => {
     jest.resetModules();
 
     fakeMailer.transporter = {
-      sendMail: output => (sendMailOutput = output),
+      sendMail: (output) => (sendMailOutput = output),
     };
   });
 
