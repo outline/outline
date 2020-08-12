@@ -718,7 +718,7 @@ router.post("documents.create", auth(), async (ctx) => {
   authorize(user, "publish", collection);
 
   let parentDocument;
-  if (parentDocumentId && collection.type === "atlas") {
+  if (parentDocumentId) {
     parentDocument = await Document.findOne({
       where: {
         id: parentDocumentId,
@@ -937,13 +937,6 @@ router.post("documents.move", auth(), async (ctx) => {
   const user = ctx.state.user;
   const document = await Document.findByPk(id, { userId: user.id });
   authorize(user, "move", document);
-
-  const { collection } = document;
-  if (collection.type !== "atlas" && parentDocumentId) {
-    throw new InvalidRequestError(
-      "Document cannot be nested in this collection type"
-    );
-  }
 
   if (parentDocumentId) {
     const parent = await Document.findByPk(parentDocumentId, {
