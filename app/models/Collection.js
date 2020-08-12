@@ -16,7 +16,6 @@ export default class Collection extends BaseModel {
   icon: string;
   color: string;
   private: boolean;
-  type: "atlas" | "journal";
   documents: NavigationNode[];
   createdAt: ?string;
   updatedAt: ?string;

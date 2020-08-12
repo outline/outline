@@ -60,7 +60,6 @@ const seed = async () => {
     urlId: "collection",
     teamId: team.id,
     creatorId: user.id,
-    type: "atlas",
   });
 
   const document = await Document.create({

@@ -441,7 +441,7 @@ Document.addHook("beforeSave", async (model) => {
   }
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== "atlas") {
+  if (!collection) {
     return;
   }
 
@@ -455,7 +455,7 @@ Document.addHook("afterCreate", async (model) => {
   }
 
   const collection = await Collection.findByPk(model.collectionId);
-  if (!collection || collection.type !== "atlas") {
+  if (!collection) {
     return;
   }
 
@@ -548,8 +548,6 @@ Document.prototype.publish = async function (options) {
   if (this.publishedAt) return this.save(options);
 
   const collection = await Collection.findByPk(this.collectionId);
-  if (collection.type !== "atlas") return this.save(options);
-
   await collection.addDocumentToStructure(this);
 
   this.publishedAt = new Date();

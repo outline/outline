@@ -23,12 +23,6 @@ const Collection = sequelize.define(
     color: DataTypes.STRING,
     private: DataTypes.BOOLEAN,
     maintainerApprovalRequired: DataTypes.BOOLEAN,
-    type: {
-      type: DataTypes.STRING,
-      validate: { isIn: [["atlas", "journal"]] },
-    },
-
-    /* type: atlas */
     documentStructure: DataTypes.JSONB,
   },
   {

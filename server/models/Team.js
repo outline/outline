@@ -134,7 +134,6 @@ Team.prototype.provisionFirstCollection = async function (userId) {
     name: "Welcome",
     description:
       "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
-    type: "atlas",
     teamId: this.id,
     creatorId: userId,
   });
