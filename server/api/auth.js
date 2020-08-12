@@ -11,6 +11,14 @@ const router = new Router();
 
 let services = [];
 
+if (process.env.GITHUB_CLIENT_ID) {
+  services.push({
+    id: "github",
+    name: "GitHub",
+    authUrl: signin("github"),
+  });
+}
+
 if (process.env.GOOGLE_CLIENT_ID) {
   services.push({
     id: "google",
@@ -36,6 +44,9 @@ services.push({
 function filterServices(team) {
   let output = services;
 
+  if (team && !team.githubId) {
+    output = reject(output, (service) => service.id === "github");
+  }
   if (team && !team.googleId) {
     output = reject(output, (service) => service.id === "google");
   }

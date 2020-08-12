@@ -1,5 +1,3 @@
-
-
 <p align="center">
   <img src="https://user-images.githubusercontent.com/31465/34380645-bd67f474-eb0b-11e7-8d03-0151c1730654.png" height="29" />
 </p>
@@ -26,29 +24,27 @@ Outline requires the following dependencies:
 - Postgres >=9.5
 - Redis >= 4
 - AWS S3 storage bucket for media and other attachments
-- Slack or Google developer application for authentication
-
+- Slack, GitHub, or Google developer application for authentication
 
 ### Development
 
 In development you can quickly get an environment running using Docker by following these steps:
 
 1. Install these dependencies if you don't already have them
-  1. [Docker for Desktop](https://www.docker.com)
-  1. [Node.js](https://nodejs.org/) (v12 LTS preferred)
-  1. [Yarn](https://yarnpkg.com)
+1. [Docker for Desktop](https://www.docker.com)
+1. [Node.js](https://nodejs.org/) (v12 LTS preferred)
+1. [Yarn](https://yarnpkg.com)
 1. Clone this repo
-1. Register a Slack app at https://api.slack.com/apps
+1. Register a [GitHub](https://github.com/settings/apps) or [Slack](https://api.slack.com/apps) app for authentication
 1. Copy the file `.env.sample` to `.env`
 1. Fill out the following fields:
-    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
-    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
-1. Configure your Slack app's Oauth & Permissions settings 
-    1. Add `http://localhost:3000/auth/slack.callback` as an Oauth redirect URL
-    1. Ensure that the bot token scope contains at least `users:read`
+   1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
+   1. `GITHUB_CLIENT_ID` or `SLACK_KEY` (this is called "Client ID" in Slack admin)
+   1. `GITHUB_CLIENT_SECRET` or `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
+1. Configure your Slack app's Oauth & Permissions settings
+   1. Add `http://localhost:3000/auth/slack.callback` as an Oauth redirect URL
+   1. Ensure that the bot token scope contains at least `users:read`
 1. Run `make up`. This will download dependencies, build and launch a development version of Outline
-
 
 ### Production
 
@@ -60,21 +56,20 @@ For a self-hosted production installation there is more flexibility, but these a
 
 1. Build the web app with `yarn build:webpack` or `npm run build:webpack`
 1. Using the `.env.sample` as a reference, set the required variables in your production environment. The following are required as a minimum:
-    1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
-    1. `SLACK_KEY` (this is called "Client ID" in Slack admin)
-    1. `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
-    1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
-    1. `REDIS_URL`  (run your own local copy of Redis, or use a cloud service)
-    1. `URL` (the public facing URL of your installation)
-    1. `AWS_` (all of the keys beginning with AWS)
-1. Migrate database schema with `yarn sequelize:migrate` or `npm run sequelize:migrate `
-1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start index.js --name outline `
+   1. `SECRET_KEY` (follow instructions in the comments at the top of `.env`)
+   1. `GITHUB_CLIENT_ID` or `SLACK_KEY` (this is called "Client ID" in Slack admin)
+   1. `GITHUB_CLIENT_SECRET` or `SLACK_SECRET` (this is called "Client Secret" in Slack admin)
+   1. `DATABASE_URL` (run your own local copy of Postgres, or use a cloud service)
+   1. `REDIS_URL` (run your own local copy of Redis, or use a cloud service)
+   1. `URL` (the public facing URL of your installation)
+   1. `AWS_` (all of the keys beginning with AWS)
+1. Migrate database schema with `yarn sequelize:migrate` or `npm run sequelize:migrate`
+1. Start the service with any daemon tools you prefer. Take PM2 for example, `NODE_ENV=production pm2 start index.js --name outline`
 1. Visit http://you_server_ip:3000 and you should be able to see Outline page
 
    > Port number can be changed in the `.env` file
 
 1. (Optional) You can add an `nginx` reverse proxy to serve your instance of Outline for a clean URL without the port number, support SSL, etc.
-
 
 ## Development
 
@@ -124,7 +119,7 @@ Backend is driven by [Koa](http://koajs.com/) (API, web server), [Sequelize](htt
 
 - `server/api` - API endpoints
 - `server/commands` - Domain logic, currently being refactored from /models
-- `server/emails`  - React rendered email templates
+- `server/emails` - React rendered email templates
 - `server/models` - Database models
 - `server/policies` - Authorization logic
 - `server/presenters` - API responses for database models
@@ -157,10 +152,10 @@ However, before working on a pull request please let the core team know by creat
 
 If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
 
-* Issues with [`good first issue`](https://github.com/outline/outline/labels/good%20first%20issue) label
-* Performance improvements, both on server and frontend
-* Developer happiness and documentation
-* Bugs and other issues listed on GitHub
+- Issues with [`good first issue`](https://github.com/outline/outline/labels/good%20first%20issue) label
+- Performance improvements, both on server and frontend
+- Developer happiness and documentation
+- Bugs and other issues listed on GitHub
 
 ## License
 

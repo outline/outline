@@ -9,6 +9,7 @@ import { Team } from "../models";
 import { getCookieDomain } from "../utils/domains";
 
 import email from "./email";
+import github from "./github";
 import google from "./google";
 import slack from "./slack";
 
@@ -16,6 +17,7 @@ const app = new Koa();
 const router = new Router();
 
 router.use("/", slack.routes());
+router.use("/", github.routes());
 router.use("/", google.routes());
 router.use("/", email.routes());
 
