@@ -79,7 +79,7 @@ class DataLoader extends React.Component<Props> {
 
     return results
       .filter((result) => result.document.title)
-      .map((result, index) => ({
+      .map((result) => ({
         title: result.document.title,
         url: result.document.url,
       }));
