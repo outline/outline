@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";
 import DocumentsStore from "stores/DocumentsStore";
-import DocumentMeta from "components/DocumentMeta";
+import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
 
 type Props = {
@@ -27,7 +27,7 @@ function HoverPreviewDocument({ url, documents, children }: Props) {
   return children(
     <Content to={document.url}>
       <Heading>{document.titleWithDefault}</Heading>
-      <DocumentMeta isDraft={document.isDraft} document={document} />
+      <DocumentMetaWithViews isDraft={document.isDraft} document={document} />
 
       <Editor
         key={document.id}

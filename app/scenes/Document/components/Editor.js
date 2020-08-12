@@ -8,10 +8,11 @@ import styled from "styled-components";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
 import ClickablePadding from "components/ClickablePadding";
-import DocumentMeta from "components/DocumentMeta";
+import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
+import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
   onChangeTitle: (event: SyntheticInputEvent<>) => void,
@@ -88,7 +89,11 @@ class DocumentEditor extends React.Component<Props> {
           autoFocus={!title}
           maxLength={100}
         />
-        <DocumentMeta isDraft={isDraft} document={document} />
+        <DocumentMetaWithViews
+          isDraft={isDraft}
+          document={document}
+          to={documentHistoryUrl(document)}
+        />
         <Editor
           ref={this.editor}
           autoFocus={title && !this.props.defaultValue}

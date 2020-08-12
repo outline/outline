@@ -7,9 +7,9 @@ import styled, { withTheme } from "styled-components";
 import Document from "models/Document";
 import Badge from "components/Badge";
 import Button from "components/Button";
+import DocumentMeta from "components/DocumentMeta";
 import Flex from "components/Flex";
 import Highlight from "components/Highlight";
-import PublishingInfo from "components/PublishingInfo";
 import Tooltip from "components/Tooltip";
 import DocumentMenu from "menus/DocumentMenu";
 import { newDocumentUrl } from "utils/routeHelpers";
@@ -129,7 +129,7 @@ class DocumentPreview extends React.Component<Props> {
             processResult={this.replaceResultMarks}
           />
         )}
-        <PublishingInfo
+        <DocumentMeta
           document={document}
           showCollection={showCollection}
           showPublished={showPublished}
