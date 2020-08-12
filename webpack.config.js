@@ -2,6 +2,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { RelativeCiAgentWebpackPlugin } = require('@relative-ci/agent');
 
 require('dotenv').config({ silent: true });
 
@@ -27,7 +28,6 @@ module.exports = {
           cacheDirectory: true
         }
       },
-      { test: /\.json$/, loader: 'json-loader' },
       // inline base64 URLs for <=8k images, direct URLs for the rest
       { test: /\.(png|jpg|svg)$/, loader: 'url-loader' },
       {
@@ -55,6 +55,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: 'server/static/index.html',
     }),
+    new RelativeCiAgentWebpackPlugin(),
   ],
   stats: {
     assets: false,
