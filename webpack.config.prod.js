@@ -1,13 +1,13 @@
 /* eslint-disable */
 const path = require('path');
 const webpack = require('webpack');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
 
 commonWebpackConfig = require('./webpack.config');
 
 productionWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
+  mode: "production",
   devtool: 'source-map',
   entry: ['./app/index'],
   output: {
@@ -19,17 +19,7 @@ productionWebpackConfig = Object.assign(commonWebpackConfig, {
 });
 productionWebpackConfig.plugins = [
   ...productionWebpackConfig.plugins,
-  new ManifestPlugin(),
-  new UglifyJsPlugin({
-    sourceMap: true,
-    uglifyOptions: {
-      compress: true,
-      keep_fnames: true
-    }
-  }),
-  new webpack.DefinePlugin({
-    'process.env.NODE_ENV': JSON.stringify('production'),
-  }),
+  new ManifestPlugin()
 ];
 
 module.exports = productionWebpackConfig;

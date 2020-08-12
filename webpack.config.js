@@ -28,7 +28,6 @@ module.exports = {
           cacheDirectory: true
         }
       },
-      { test: /\.json$/, loader: 'json-loader' },
       // inline base64 URLs for <=8k images, direct URLs for the rest
       { test: /\.(png|jpg|svg)$/, loader: 'url-loader' },
       {

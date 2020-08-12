@@ -4,6 +4,7 @@ const commonWebpackConfig = require("./webpack.config");
 
 const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
   cache: true,
+  mode: "development",
   devtool: "eval-source-map",
   entry: [
     "webpack-hot-middleware/client",
@@ -13,10 +14,7 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
 
 developmentWebpackConfig.plugins = [
   ...developmentWebpackConfig.plugins,
-  new webpack.HotModuleReplacementPlugin(),
-  new webpack.DefinePlugin({
-    "process.env.NODE_ENV": JSON.stringify("development"),
-  }),
+  new webpack.HotModuleReplacementPlugin()
 ];
 
 module.exports = developmentWebpackConfig;
