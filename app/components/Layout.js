@@ -19,7 +19,6 @@ import Flex from "components/Flex";
 
 import { LoadingIndicatorBar } from "components/LoadingIndicator";
 import Modal from "components/Modal";
-import Modals from "components/Modals";
 import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
 import {
@@ -127,7 +126,6 @@ class Layout extends React.Component<Props> {
             />
           </Switch>
         </Container>
-        <Modals ui={ui} />
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}

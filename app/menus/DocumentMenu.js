@@ -10,6 +10,7 @@ import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import Document from "models/Document";
 import DocumentDelete from "scenes/DocumentDelete";
+import DocumentShare from "scenes/DocumentShare";
 import DocumentTemplatize from "scenes/DocumentTemplatize";
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import Modal from "components/Modal";
@@ -40,8 +41,9 @@ type Props = {
 @observer
 class DocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
-  @observable showDeleteModal: boolean = false;
-  @observable showTemplateModal: boolean = false;
+  @observable showDeleteModal = false;
+  @observable showTemplateModal = false;
+  @observable showShareModal = false;
 
   componentDidUpdate() {
     this.redirectTo = undefined;
@@ -129,7 +131,11 @@ class DocumentMenu extends React.Component<Props> {
   handleShareLink = async (ev: SyntheticEvent<>) => {
     const { document } = this.props;
     await document.share();
-    this.props.ui.setActiveModal("document-share", { document });
+    this.showShareModal = true;
+  };
+
+  handleCloseShareModal = () => {
+    this.showShareModal = false;
   };
 
   render() {
@@ -280,6 +286,16 @@ class DocumentMenu extends React.Component<Props> {
           <DocumentTemplatize
             document={this.props.document}
             onSubmit={this.handleCloseTemplateModal}
+          />
+        </Modal>
+        <Modal
+          title="Share document"
+          onRequestClose={this.handleCloseShareModal}
+          isOpen={this.showShareModal}
+        >
+          <DocumentShare
+            document={this.props.document}
+            onSubmit={this.handleCloseShareModal}
           />
         </Modal>
       </>
