@@ -2,6 +2,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { RelativeCiAgentWebpackPlugin } = require('@relative-ci/agent');
 
 require('dotenv').config({ silent: true });
 
@@ -55,6 +56,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: 'server/static/index.html',
     }),
+    new RelativeCiAgentWebpackPlugin(),
   ],
   stats: {
     assets: false,
