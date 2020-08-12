@@ -3,6 +3,7 @@ import addHours from "date-fns/add_hours";
 import Router from "koa-router";
 import Sequelize from "sequelize";
 import { githubAuth } from "../../shared/utils/routeHelpers";
+import * as Github from "../github";
 import auth from "../middlewares/authentication";
 import {
   Authentication,
@@ -12,7 +13,6 @@ import {
   Event,
   Team,
 } from "../models";
-import * as Github from "../github";
 import { getCookieDomain } from "../utils/domains";
 
 const Op = Sequelize.Op;
