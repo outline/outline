@@ -1,6 +1,4 @@
 // @flow
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import { lighten } from "polished";
 import * as React from "react";
 import { withRouter, type RouterHistory } from "react-router-dom";
@@ -28,10 +26,7 @@ type PropsWithRef = Props & {
   history: RouterHistory,
 };
 
-@observer
 class Editor extends React.Component<PropsWithRef> {
-  @observable redirectTo: ?string;
-
   onUploadImage = async (file: File) => {
     const result = await uploadFile(file, { documentId: this.props.id });
     return result.url;

@@ -6,7 +6,7 @@ import { InputIcon } from "outline-icons";
 import * as React from "react";
 import keydown from "react-keydown";
 import { Prompt, Route, withRouter } from "react-router-dom";
-import type { Location, RouterHistory, Match } from "react-router-dom";
+import type { RouterHistory, Match } from "react-router-dom";
 import styled, { withTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
@@ -29,6 +29,7 @@ import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
 import References from "./References";
+import { type LocationWithState } from "types";
 import { emojiToUrl } from "utils/emoji";
 import {
   collectionUrl,
@@ -53,7 +54,7 @@ Are you sure you want to discard them?
 type Props = {
   match: Match,
   history: RouterHistory,
-  location: Location,
+  location: LocationWithState,
   abilities: Object,
   document: Document,
   revision: Revision,

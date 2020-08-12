@@ -9,7 +9,7 @@ import * as React from "react";
 import ReactDOM from "react-dom";
 import keydown from "react-keydown";
 import { withRouter, Link } from "react-router-dom";
-import type { Location, RouterHistory, Match } from "react-router-dom";
+import type { RouterHistory, Match } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 
@@ -32,13 +32,14 @@ import SearchField from "./components/SearchField";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 import NewDocumentMenu from "menus/NewDocumentMenu";
+import { type LocationWithState } from "types";
 import { meta } from "utils/keyboard";
 import { newDocumentUrl, searchUrl } from "utils/routeHelpers";
 
 type Props = {
   history: RouterHistory,
   match: Match,
-  location: Location,
+  location: LocationWithState,
   documents: DocumentsStore,
   users: UsersStore,
   notFound: ?boolean,
@@ -46,7 +47,7 @@ type Props = {
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: ?typeof DocumentPreview;
+  firstDocument: ?React.Component<typeof DocumentPreview>;
 
   @observable
   query: string = decodeURIComponent(this.props.match.params.term || "");
@@ -222,6 +223,7 @@ class Search extends React.Component<Props> {
   };
 
   setFirstDocumentRef = (ref) => {
+    // $FlowFixMe
     this.firstDocument = ref;
   };
 
