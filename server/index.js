@@ -9,8 +9,12 @@ import policy from "./policies";
 import { client, subscriber } from "./redis";
 import { getUserForJWT } from "./utils/jwt";
 
+console.log("before createServer");
+
 const server = http.createServer(app.callback());
 let io;
+
+console.log("before IO");
 
 const { can } = policy;
 
@@ -181,6 +185,8 @@ server.on("listening", () => {
   const address = server.address();
   console.log(`\n> Listening on http://localhost:${address.port}\n`);
 });
+
+console.log("Before server.listen");
 
 server.listen(process.env.PORT || "3000");
 

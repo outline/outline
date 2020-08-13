@@ -21,6 +21,8 @@ import updates from "./utils/updates";
 
 const app = new Koa();
 
+console.log("Before compress middleware");
+
 app.use(compress());
 
 if (process.env.NODE_ENV === "development") {
@@ -91,6 +93,8 @@ if (process.env.NODE_ENV === "development") {
 // catch errors in one place, automatically set status and response headers
 onerror(app);
 
+console.log("Before Sentry middleware");
+
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -129,8 +133,15 @@ app.on("error", (error, ctx) => {
   }
 });
 
+console.log("Before mounting auth routes");
+
 app.use(mount("/auth", auth));
+
+console.log("Before mounting api routes");
+
 app.use(mount("/api", api));
+
+console.log("Before mounting CSP middlewares");
 
 app.use(helmet());
 app.use(
@@ -160,7 +171,12 @@ app.use(
 );
 app.use(dnsPrefetchControl({ allow: true }));
 app.use(referrerPolicy({ policy: "no-referrer" }));
+
+console.log("Before mounting routes");
+
 app.use(mount(routes));
+
+console.log("Before updates check");
 
 /**
  * Production updates and anonymous analytics.
