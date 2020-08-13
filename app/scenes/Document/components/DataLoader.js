@@ -64,12 +64,6 @@ class DataLoader extends React.Component<Props> {
     }
   }
 
-  goToDocumentCanonical = () => {
-    if (this.document) {
-      this.props.history.push(this.document.url);
-    }
-  };
-
   get isEditing() {
     return this.props.match.path === matchDocumentEdit;
   }
@@ -125,17 +119,28 @@ class DataLoader extends React.Component<Props> {
     const document = this.document;
 
     if (document) {
+      const can = this.props.policies.abilities(document.id);
+
+      // sets the document as active in the sidebar, ideally in the future this
+      // will be route driven.
       this.props.ui.setActiveDocument(document);
 
-      if (document.isArchived && this.isEditing) {
-        return this.goToDocumentCanonical();
+      // If we're attempting to update an archived, deleted, or otherwise
+      // uneditable document then forward to the canonical read url.
+      if (!can.update && this.isEditing) {
+        this.props.history.push(this.document.url);
+        return;
       }
 
-      this.props.shares.fetch(document.id).catch((err) => {
-        if (!(err instanceof NotFoundError)) {
-          throw err;
-        }
-      });
+      // Prevents unauthorized request to load share information for the document
+      // when viewing a public share link
+      if (can.read) {
+        this.props.shares.fetch(document.id).catch((err) => {
+          if (!(err instanceof NotFoundError)) {
+            throw err;
+          }
+        });
+      }
 
       const isMove = this.props.location.pathname.match(/move$/);
       const canRedirect = !revisionId && !isMove && !shareId;
