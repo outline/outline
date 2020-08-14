@@ -69,7 +69,7 @@ class Editor extends React.Component<PropsWithRef> {
 
   render() {
     return (
-      <ErrorBoundary allowReload>
+      <ErrorBoundary reloadOnChunkMissing>
         <StyledEditor
           ref={this.props.forwardedRef}
           uploadImage={this.onUploadImage}
