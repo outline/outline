@@ -22,12 +22,16 @@ import {
   VehicleIcon,
 } from "outline-icons";
 import * as React from "react";
-import { TwitterPicker } from "react-color";
 import styled from "styled-components";
 import { DropdownMenu } from "components/DropdownMenu";
 import Flex from "components/Flex";
+import HelpText from "components/HelpText";
 import { LabelText } from "components/Input";
 import NudeButton from "components/NudeButton";
+
+const TwitterPicker = React.lazy(() =>
+  import("react-color/lib/components/twitter/Twitter")
+);
 
 export const icons = {
   collection: {
@@ -193,14 +197,16 @@ class IconPicker extends React.Component<Props> {
             })}
           </Icons>
           <Flex onClick={preventEventBubble}>
-            <ColorPicker
-              color={this.props.color}
-              onChange={(color) =>
-                this.props.onChange(color.hex, this.props.icon)
-              }
-              colors={colors}
-              triangle="hide"
-            />
+            <React.Suspense fallback={<Loading>Loading…</Loading>}>
+              <ColorPicker
+                color={this.props.color}
+                onChange={(color) =>
+                  this.props.onChange(color.hex, this.props.icon)
+                }
+                colors={colors}
+                triangle="hide"
+              />
+            </React.Suspense>
           </Flex>
         </DropdownMenu>
       </Wrapper>
@@ -224,6 +230,10 @@ const IconButton = styled(NudeButton)`
   margin: 0px 6px 6px 0px;
   width: 30px;
   height: 30px;
+`;
+
+const Loading = styled(HelpText)`
+  padding: 16px;
 `;
 
 const ColorPicker = styled(TwitterPicker)`

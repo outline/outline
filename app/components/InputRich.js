@@ -5,6 +5,7 @@ import * as React from "react";
 import styled, { withTheme } from "styled-components";
 import UiStore from "stores/UiStore";
 import Editor from "components/Editor";
+import HelpText from "components/HelpText";
 import { LabelText, Outline } from "components/Input";
 
 type Props = {
@@ -40,6 +41,7 @@ class InputRich extends React.Component<Props> {
           focused={this.focused}
         >
           <Editor
+            loadingPlaceholder={<HelpText>Loading editor…</HelpText>}
             onBlur={this.handleBlur}
             onFocus={this.handleFocus}
             ui={ui}

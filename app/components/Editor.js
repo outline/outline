@@ -20,6 +20,7 @@ type Props = {
   readOnly?: boolean,
   grow?: boolean,
   disableEmbeds?: boolean,
+  loadingPlaceholder?: React.Node,
   ui?: UiStore,
 };
 
@@ -70,7 +71,7 @@ class Editor extends React.Component<PropsWithRef> {
   render() {
     return (
       <ErrorBoundary>
-        <React.Suspense fallback={<div />}>
+        <React.Suspense fallback={this.props.loadingPlaceholder || <div />}>
           <StyledEditor
             ref={this.props.forwardedRef}
             uploadImage={this.onUploadImage}
