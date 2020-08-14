@@ -23,6 +23,14 @@ class ErrorBoundary extends React.Component<Props> {
     this.error = error;
     console.error(error);
 
+    if (error.message && error.message.match(/chunk/)) {
+      // If the editor bundle fails to load then reload the entire window. This
+      // can happen if a deploy happens between the user loading the initial JS
+      // bundle and the async-loaded editor JS bundle as the hash will change.
+      window.location.reload();
+      return;
+    }
+
     if (window.Sentry) {
       window.Sentry.captureException(error);
     }

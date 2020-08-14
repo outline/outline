@@ -24,9 +24,9 @@ import Time from "components/Time";
 import Container from "./Container";
 import Contents from "./Contents";
 import DocumentMove from "./DocumentMove";
+import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
-import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
 import References from "./References";
 import { type LocationWithState } from "types";
@@ -39,7 +39,6 @@ import {
   documentUrl,
 } from "utils/routeHelpers";
 
-let EditorImport;
 const AUTOSAVE_DELAY = 3000;
 const IS_DIRTY_DELAY = 500;
 const DISCARD_CHANGES = `
@@ -69,7 +68,6 @@ type Props = {
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable editor: ?any;
-  @observable editorComponent = EditorImport;
   @observable isUploading: boolean = false;
   @observable isSaving: boolean = false;
   @observable isPublishing: boolean = false;
@@ -84,7 +82,6 @@ class DocumentScene extends React.Component<Props> {
     super();
     this.title = props.document.title;
     this.lastRevision = props.document.revision;
-    this.loadEditor();
   }
 
   componentDidMount() {
@@ -196,25 +193,6 @@ class DocumentScene extends React.Component<Props> {
       ui.showTableOfContents();
     }
   }
-
-  loadEditor = async () => {
-    if (this.editorComponent) return;
-
-    try {
-      const EditorImport = await import("./Editor");
-      this.editorComponent = EditorImport.default;
-    } catch (err) {
-      if (err.message && err.message.match(/chunk/)) {
-        // If the editor bundle fails to load then reload the entire window. This
-        // can happen if a deploy happens between the user loading the initial JS
-        // bundle and the async-loaded editor JS bundle as the hash will change.
-        window.location.reload();
-        return;
-      }
-
-      throw err;
-    }
-  };
 
   handleCloseMoveModal = () => (this.moveModalOpen = false);
   handleOpenMoveModal = () => (this.moveModalOpen = true);
@@ -338,19 +316,13 @@ class DocumentScene extends React.Component<Props> {
       document,
       revision,
       readOnly,
-      location,
       abilities,
       auth,
       ui,
       match,
     } = this.props;
     const team = auth.team;
-    const Editor = this.editorComponent;
     const isShare = !!match.params.shareId;
-
-    if (!Editor) {
-      return <Loading location={location} />;
-    }
 
     const value = revision ? revision.text : document.text;
     const injectTemplate = document.injectTemplate;
