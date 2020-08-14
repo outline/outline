@@ -9,25 +9,17 @@ import DocumentNew from "scenes/DocumentNew";
 import Drafts from "scenes/Drafts";
 import Error404 from "scenes/Error404";
 import Search from "scenes/Search";
-import Settings from "scenes/Settings";
-import Details from "scenes/Settings/Details";
-import Events from "scenes/Settings/Events";
-import Export from "scenes/Settings/Export";
-import Groups from "scenes/Settings/Groups";
-import Notifications from "scenes/Settings/Notifications";
-import People from "scenes/Settings/People";
-import Security from "scenes/Settings/Security";
-import Shares from "scenes/Settings/Shares";
-import Slack from "scenes/Settings/Slack";
-import Tokens from "scenes/Settings/Tokens";
-import Zapier from "scenes/Settings/Zapier";
 import Starred from "scenes/Starred";
 import Templates from "scenes/Templates";
 import Trash from "scenes/Trash";
 
+import CenteredContent from "components/CenteredContent";
 import Layout from "components/Layout";
+import LoadingPlaceholder from "components/LoadingPlaceholder";
 import SocketProvider from "components/SocketProvider";
 import { matchDocumentSlug as slug } from "utils/routeHelpers";
+
+const SettingsRoutes = React.lazy(() => import("./settings"));
 
 const NotFound = () => <Search notFound />;
 const RedirectDocument = ({ match }: { match: Match }) => (
@@ -53,27 +45,6 @@ export default function AuthenticatedRoutes() {
           <Route exact path="/drafts" component={Drafts} />
           <Route exact path="/archive" component={Archive} />
           <Route exact path="/trash" component={Trash} />
-          <Route exact path="/settings" component={Settings} />
-          <Route exact path="/settings/details" component={Details} />
-          <Route exact path="/settings/security" component={Security} />
-          <Route exact path="/settings/people" component={People} />
-          <Route exact path="/settings/people/:filter" component={People} />
-          <Route exact path="/settings/groups" component={Groups} />
-          <Route exact path="/settings/shares" component={Shares} />
-          <Route exact path="/settings/tokens" component={Tokens} />
-          <Route exact path="/settings/events" component={Events} />
-          <Route
-            exact
-            path="/settings/notifications"
-            component={Notifications}
-          />
-          <Route exact path="/settings/integrations/slack" component={Slack} />
-          <Route
-            exact
-            path="/settings/integrations/zapier"
-            component={Zapier}
-          />
-          <Route exact path="/settings/export" component={Export} />
           <Route exact path="/collections/:id/new" component={DocumentNew} />
           <Route exact path="/collections/:id/:tab" component={Collection} />
           <Route exact path="/collections/:id" component={Collection} />
@@ -88,6 +59,15 @@ export default function AuthenticatedRoutes() {
           <Route exact path="/search" component={Search} />
           <Route exact path="/search/:term" component={Search} />
           <Route path="/404" component={Error404} />
+          <React.Suspense
+            fallback={
+              <CenteredContent>
+                <LoadingPlaceholder />
+              </CenteredContent>
+            }
+          >
+            <SettingsRoutes />
+          </React.Suspense>
           <Route component={NotFound} />
         </Switch>
       </Layout>

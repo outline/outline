@@ -20,7 +20,6 @@ type Props = {
   readOnly?: boolean,
   grow?: boolean,
   disableEmbeds?: boolean,
-  loadingPlaceholder?: React.Node,
   ui?: UiStore,
 };
 
@@ -70,18 +69,16 @@ class Editor extends React.Component<PropsWithRef> {
 
   render() {
     return (
-      <ErrorBoundary>
-        <React.Suspense fallback={this.props.loadingPlaceholder || <div />}>
-          <StyledEditor
-            ref={this.props.forwardedRef}
-            uploadImage={this.onUploadImage}
-            onClickLink={this.onClickLink}
-            onShowToast={this.onShowToast}
-            embeds={this.props.disableEmbeds ? EMPTY_ARRAY : embeds}
-            tooltip={EditorTooltip}
-            {...this.props}
-          />
-        </React.Suspense>
+      <ErrorBoundary allowReload>
+        <StyledEditor
+          ref={this.props.forwardedRef}
+          uploadImage={this.onUploadImage}
+          onClickLink={this.onClickLink}
+          onShowToast={this.onShowToast}
+          embeds={this.props.disableEmbeds ? EMPTY_ARRAY : embeds}
+          tooltip={EditorTooltip}
+          {...this.props}
+        />
       </ErrorBoundary>
     );
   }

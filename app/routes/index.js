@@ -5,7 +5,7 @@ import DelayedMount from "components/DelayedMount";
 import FullscreenLoading from "components/FullscreenLoading";
 
 const Authenticated = React.lazy(() => import("components/Authenticated"));
-const AuthenticatedRoutes = React.lazy(() => import("./authenticated-routes"));
+const AuthenticatedRoutes = React.lazy(() => import("./authenticated"));
 const KeyedDocument = React.lazy(() => import("scenes/Document/KeyedDocument"));
 const Login = React.lazy(() => import("scenes/Login"));
 

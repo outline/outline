@@ -40,14 +40,15 @@ class InputRich extends React.Component<Props> {
           minHeight={minHeight}
           focused={this.focused}
         >
-          <Editor
-            loadingPlaceholder={<HelpText>Loading editor…</HelpText>}
-            onBlur={this.handleBlur}
-            onFocus={this.handleFocus}
-            ui={ui}
-            grow
-            {...rest}
-          />
+          <React.Suspense fallback={<HelpText>Loading editor…</HelpText>}>
+            <Editor
+              onBlur={this.handleBlur}
+              onFocus={this.handleFocus}
+              ui={ui}
+              grow
+              {...rest}
+            />
+          </React.Suspense>
         </StyledOutline>
       </>
     );

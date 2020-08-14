@@ -11,6 +11,7 @@ import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
 import Flex from "components/Flex";
 import HoverPreview from "components/HoverPreview";
+import LoadingPlaceholder from "components/LoadingPlaceholder";
 import { documentHistoryUrl } from "utils/routeHelpers";
 
 type Props = {
@@ -77,39 +78,43 @@ class DocumentEditor extends React.Component<Props> {
 
     return (
       <Flex auto column>
-        <Title
-          type="text"
-          onChange={onChangeTitle}
-          onKeyDown={this.handleTitleKeyDown}
-          placeholder={document.placeholder}
-          value={!title && readOnly ? document.titleWithDefault : title}
-          style={startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined}
-          readOnly={readOnly}
-          autoFocus={!title}
-          maxLength={100}
-        />
-        <DocumentMetaWithViews
-          isDraft={isDraft}
-          document={document}
-          to={documentHistoryUrl(document)}
-        />
-        <Editor
-          ref={this.editor}
-          autoFocus={title && !this.props.defaultValue}
-          placeholder="…the rest is up to you"
-          onHoverLink={this.handleLinkActive}
-          scrollTo={window.location.hash}
-          grow
-          {...this.props}
-        />
-        {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent && !isShare && readOnly && (
-          <HoverPreview
-            node={this.activeLinkEvent.target}
-            event={this.activeLinkEvent}
-            onClose={this.handleLinkInactive}
+        <React.Suspense fallback={<LoadingPlaceholder />}>
+          <Title
+            type="text"
+            onChange={onChangeTitle}
+            onKeyDown={this.handleTitleKeyDown}
+            placeholder={document.placeholder}
+            value={!title && readOnly ? document.titleWithDefault : title}
+            style={
+              startsWithEmojiAndSpace ? { marginLeft: "-1.2em" } : undefined
+            }
+            readOnly={readOnly}
+            autoFocus={!title}
+            maxLength={100}
           />
-        )}
+          <DocumentMetaWithViews
+            isDraft={isDraft}
+            document={document}
+            to={documentHistoryUrl(document)}
+          />
+          <Editor
+            ref={this.editor}
+            autoFocus={title && !this.props.defaultValue}
+            placeholder="…the rest is up to you"
+            onHoverLink={this.handleLinkActive}
+            scrollTo={window.location.hash}
+            grow
+            {...this.props}
+          />
+          {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
+          {this.activeLinkEvent && !isShare && readOnly && (
+            <HoverPreview
+              node={this.activeLinkEvent.target}
+              event={this.activeLinkEvent}
+              onClose={this.handleLinkInactive}
+            />
+          )}
+        </React.Suspense>
       </Flex>
     );
   }

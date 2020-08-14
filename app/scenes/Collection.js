@@ -218,12 +218,14 @@ class CollectionScene extends React.Component<Props> {
                 </Heading>
 
                 {collection.description && (
-                  <Editor
-                    id={collection.id}
-                    key={collection.description}
-                    defaultValue={collection.description}
-                    readOnly
-                  />
+                  <React.Suspense fallback={<p>Loading…</p>}>
+                    <Editor
+                      id={collection.id}
+                      key={collection.description}
+                      defaultValue={collection.description}
+                      readOnly
+                    />
+                  </React.Suspense>
                 )}
 
                 {hasPinnedDocuments && (

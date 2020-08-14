@@ -29,12 +29,14 @@ function HoverPreviewDocument({ url, documents, children }: Props) {
       <Heading>{document.titleWithDefault}</Heading>
       <DocumentMetaWithViews isDraft={document.isDraft} document={document} />
 
-      <Editor
-        key={document.id}
-        defaultValue={document.getSummary()}
-        disableEmbeds
-        readOnly
-      />
+      <React.Suspense fallback={<div />}>
+        <Editor
+          key={document.id}
+          defaultValue={document.getSummary()}
+          disableEmbeds
+          readOnly
+        />
+      </React.Suspense>
     </Content>
   );
 }
