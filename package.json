@@ -190,5 +190,6 @@
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.13.1"
   },
+  "sideEffects": false,
   "version": "0.46.0"
 }

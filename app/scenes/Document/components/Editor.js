@@ -3,7 +3,6 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import Textarea from "react-autosize-textarea";
-import RichMarkdownEditor from "rich-markdown-editor";
 import styled from "styled-components";
 import parseTitle from "shared/utils/parseTitle";
 import Document from "models/Document";
@@ -27,7 +26,7 @@ type Props = {
 @observer
 class DocumentEditor extends React.Component<Props> {
   @observable activeLinkEvent: ?MouseEvent;
-  editor = React.createRef<RichMarkdownEditor>();
+  editor = React.createRef<any>();
 
   focusAtStart = () => {
     if (this.editor.current) {
