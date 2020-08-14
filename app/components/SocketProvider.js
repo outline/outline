@@ -36,7 +36,11 @@ class SocketProvider extends React.Component<Props> {
   componentDidMount() {
     this.socket = io(window.location.origin, {
       path: "/realtime",
+      transports: ["websocket"],
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 10000,
     });
+
     this.socket.authenticated = false;
 
     const {
@@ -71,6 +75,12 @@ class SocketProvider extends React.Component<Props> {
         // manually, else the socket will automatically try to reconnect
         this.socket.connect();
       }
+    });
+
+    // on reconnection, reset the transports option, as the Websocket
+    // connection may have failed (caused by proxy, firewall, browser, ...)
+    this.socket.on("reconnect_attempt", () => {
+      this.socket.io.opts.transports = ["polling", "websocket"];
     });
 
     this.socket.on("authenticated", () => {
