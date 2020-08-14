@@ -5,7 +5,7 @@ import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import { fadeAndSlideIn } from "shared/styles/animations";
-import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";
+import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import HoverPreviewDocument from "components/HoverPreviewDocument";
 import isInternalUrl from "utils/isInternalUrl";
