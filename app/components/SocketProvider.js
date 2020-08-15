@@ -38,7 +38,7 @@ class SocketProvider extends React.Component<Props> {
       path: "/realtime",
       transports: ["websocket"],
       reconnectionDelay: 1000,
-      reconnectionDelayMax: 10000,
+      reconnectionDelayMax: 30000,
     });
 
     this.socket.authenticated = false;
@@ -69,12 +69,6 @@ class SocketProvider extends React.Component<Props> {
       // when the socket is disconnected we need to clear all presence state as
       // it's no longer reliable.
       presence.clear();
-
-      if (reason === "io server disconnect") {
-        // the disconnection was initiated by the server, need to reconnect
-        // manually, else the socket will automatically try to reconnect
-        this.socket.connect();
-      }
     });
 
     // on reconnection, reset the transports option, as the Websocket
