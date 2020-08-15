@@ -97,5 +97,8 @@
   },
   "env": {
     "jest": true
+  },
+  "globals": {
+    "EDITOR_VERSION": true
   }
 }

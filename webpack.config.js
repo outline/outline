@@ -3,6 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { RelativeCiAgentWebpackPlugin } = require('@relative-ci/agent');
+const pkg = require("rich-markdown-editor/package.json");
 
 require('dotenv').config({ silent: true });
 
@@ -48,6 +49,9 @@ module.exports = {
     }
   },
   plugins: [
+    new webpack.DefinePlugin({
+      EDITOR_VERSION: JSON.stringify(pkg.version)
+    }),
     new webpack.ProvidePlugin({
       fetch: 'imports-loader?this=>global!exports-loader?global.fetch!isomorphic-fetch',
     }),

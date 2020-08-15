@@ -10,6 +10,9 @@ const developmentWebpackConfig = Object.assign(commonWebpackConfig, {
     "webpack-hot-middleware/client",
     "./app/index",
   ],
+  optimization: {
+    usedExports: true,
+  },
 });
 
 developmentWebpackConfig.plugins = [
