@@ -1,16 +1,15 @@
 // @flow
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
-import styled, { withTheme } from "styled-components";
+import styled from "styled-components";
 import Flex from "components/Flex";
 import TeamLogo from "components/TeamLogo";
 
 type Props = {
   teamName: string,
-  subheading: string,
+  subheading: React.Node,
   showDisclosure?: boolean,
   logoUrl: string,
-  theme: Object,
 };
 
 function HeaderBlock({
@@ -18,7 +17,6 @@ function HeaderBlock({
   teamName,
   subheading,
   logoUrl,
-  theme,
   ...rest
 }: Props) {
   return (
@@ -27,7 +25,7 @@ function HeaderBlock({
       <Flex align="flex-start" column>
         <TeamName showDisclosure>
           {teamName}{" "}
-          {showDisclosure && <StyledExpandedIcon color={theme.text} />}
+          {showDisclosure && <StyledExpandedIcon color="currentColor" />}
         </TeamName>
         <Subheading>{subheading}</Subheading>
       </Flex>
@@ -73,4 +71,4 @@ const Header = styled(Flex)`
   }
 `;
 
-export default withTheme(HeaderBlock);
+export default HeaderBlock;
