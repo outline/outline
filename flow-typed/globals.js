@@ -4,3 +4,5 @@ declare var process: {
     [string]: string,
   },
 };
+
+declare var EDITOR_VERSION: string;

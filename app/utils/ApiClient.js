@@ -1,7 +1,6 @@
 // @flow
 import invariant from "invariant";
 import { map, trim } from "lodash";
-import pkg from "rich-markdown-editor/package.json";
 import stores from "stores";
 import download from "./download";
 import {
@@ -57,7 +56,7 @@ class ApiClient {
       Accept: "application/json",
       "Content-Type": "application/json",
       "cache-control": "no-cache",
-      "x-editor-version": pkg.version,
+      "x-editor-version": EDITOR_VERSION,
       pragma: "no-cache",
     });
     if (stores.auth.authenticated) {

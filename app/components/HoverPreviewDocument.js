@@ -3,7 +3,7 @@ import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentIds";
+import { parseDocumentSlugFromUrl } from "shared/utils/parseDocumentSlug";
 import DocumentsStore from "stores/DocumentsStore";
 import DocumentMetaWithViews from "components/DocumentMetaWithViews";
 import Editor from "components/Editor";
@@ -29,12 +29,14 @@ function HoverPreviewDocument({ url, documents, children }: Props) {
       <Heading>{document.titleWithDefault}</Heading>
       <DocumentMetaWithViews isDraft={document.isDraft} document={document} />
 
-      <Editor
-        key={document.id}
-        defaultValue={document.getSummary()}
-        disableEmbeds
-        readOnly
-      />
+      <React.Suspense fallback={<div />}>
+        <Editor
+          key={document.id}
+          defaultValue={document.getSummary()}
+          disableEmbeds
+          readOnly
+        />
+      </React.Suspense>
     </Content>
   );
 }

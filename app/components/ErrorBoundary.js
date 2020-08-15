@@ -12,6 +12,7 @@ import env from "env";
 
 type Props = {
   children: React.Node,
+  reloadOnChunkMissing?: boolean,
 };
 
 @observer
@@ -23,13 +24,25 @@ class ErrorBoundary extends React.Component<Props> {
     this.error = error;
     console.error(error);
 
+    if (
+      this.props.reloadOnChunkMissing &&
+      error.message &&
+      error.message.match(/chunk/)
+    ) {
+      // If the editor bundle fails to load then reload the entire window. This
+      // can happen if a deploy happens between the user loading the initial JS
+      // bundle and the async-loaded editor JS bundle as the hash will change.
+      window.location.reload(true);
+      return;
+    }
+
     if (window.Sentry) {
       window.Sentry.captureException(error);
     }
   }
 
   handleReload = () => {
-    window.location.reload();
+    window.location.reload(true);
   };
 
   handleShowDetails = () => {

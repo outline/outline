@@ -6,7 +6,7 @@ type Props = {
   children: React.Node,
 };
 
-export default function DelayedMount({ delay = 150, children }: Props) {
+export default function DelayedMount({ delay = 250, children }: Props) {
   const [isShowing, setShowing] = React.useState(false);
 
   React.useEffect(() => {

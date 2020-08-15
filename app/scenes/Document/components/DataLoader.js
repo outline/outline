@@ -128,7 +128,7 @@ class DataLoader extends React.Component<Props> {
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
       if (!can.update && this.isEditing) {
-        this.props.history.push(this.document.url);
+        this.props.history.push(document.url);
         return;
       }
 

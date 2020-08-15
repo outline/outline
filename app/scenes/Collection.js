@@ -5,7 +5,6 @@ import { observer, inject } from "mobx-react";
 import { NewDocumentIcon, PlusIcon, PinIcon } from "outline-icons";
 import * as React from "react";
 import { Redirect, Link, Switch, Route, type Match } from "react-router-dom";
-import RichMarkdownEditor from "rich-markdown-editor";
 import styled, { withTheme } from "styled-components";
 
 import CollectionsStore from "stores/CollectionsStore";
@@ -22,6 +21,7 @@ import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
 import CollectionIcon from "components/CollectionIcon";
 import DocumentList from "components/DocumentList";
+import Editor from "components/Editor";
 import Flex from "components/Flex";
 import Heading from "components/Heading";
 import HelpText from "components/HelpText";
@@ -218,13 +218,14 @@ class CollectionScene extends React.Component<Props> {
                 </Heading>
 
                 {collection.description && (
-                  <RichMarkdownEditor
-                    id={collection.id}
-                    key={collection.description}
-                    defaultValue={collection.description}
-                    theme={theme}
-                    readOnly
-                  />
+                  <React.Suspense fallback={<p>Loading…</p>}>
+                    <Editor
+                      id={collection.id}
+                      key={collection.description}
+                      defaultValue={collection.description}
+                      readOnly
+                    />
+                  </React.Suspense>
                 )}
 
                 {hasPinnedDocuments && (
