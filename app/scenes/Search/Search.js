@@ -12,6 +12,7 @@ import { withRouter, Link } from "react-router-dom";
 import type { RouterHistory, Match } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
@@ -387,6 +388,12 @@ const Filters = styled(Flex)`
   margin-bottom: 12px;
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
+  overflow-y: auto;
+  padding: 8px 0;
+
+  ${breakpoint("tablet")`	
+    padding: 0;
+  `};
 
   &:hover {
     opacity: 1;

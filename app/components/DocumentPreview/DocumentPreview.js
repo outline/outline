@@ -169,6 +169,7 @@ const DocumentLink = styled(Link)`
   border-radius: 8px;
   max-height: 50vh;
   min-width: 100%;
+  max-width: calc(100vw - 40px);
   overflow: hidden;
   position: relative;
 
