@@ -23,7 +23,7 @@ const GlobalStyles = createGlobalStyle`
   .ReactModal__Overlay {
     background-color: ${(props) =>
       transparentize(0.25, props.theme.background)} !important;
-    z-index: 100;
+    z-index: ${(props) => props.theme.depths.modalOverlay};
   }
 
   ${breakpoint("tablet")`
@@ -103,7 +103,7 @@ const StyledModal = styled(ReactModal)`
   left: 0;
   bottom: 0;
   right: 0;
-  z-index: 100;
+  z-index: ${(props) => props.theme.depths.modal};
   display: flex;
   justify-content: center;
   align-items: flex-start;

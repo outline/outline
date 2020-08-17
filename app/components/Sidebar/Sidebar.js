@@ -71,7 +71,7 @@ const Container = styled(Flex)`
   transition: left 100ms ease-out,
     ${(props) => props.theme.backgroundTransition};
   margin-left: ${(props) => (props.mobileSidebarVisible ? 0 : "-100%")};
-  z-index: 1000;
+  z-index: ${(props) => props.theme.depths.sidebar};
 
   @media print {
     display: none;
