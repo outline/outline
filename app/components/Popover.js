@@ -22,7 +22,7 @@ const StyledPopover = styled(BoundlessPopover)`
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 9999;
+  z-index: ${(props) => props.theme.depths.popover};
 
   svg {
     height: 16px;

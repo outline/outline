@@ -32,16 +32,18 @@ class UiStore {
     }
 
     // system theme listeners
-    const colorSchemeQueryList = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    );
+    if (window.matchMedia) {
+      const colorSchemeQueryList = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      );
 
-    const setSystemTheme = (event) => {
-      this.systemTheme = event.matches ? "dark" : "light";
-    };
-    setSystemTheme(colorSchemeQueryList);
-    if (colorSchemeQueryList.addListener) {
-      colorSchemeQueryList.addListener(setSystemTheme);
+      const setSystemTheme = (event) => {
+        this.systemTheme = event.matches ? "dark" : "light";
+      };
+      setSystemTheme(colorSchemeQueryList);
+      if (colorSchemeQueryList.addListener) {
+        colorSchemeQueryList.addListener(setSystemTheme);
+      }
     }
 
     // persisted keys

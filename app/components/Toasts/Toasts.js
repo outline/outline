@@ -34,7 +34,7 @@ const List = styled.ol`
   list-style: none;
   margin: 0;
   padding: 0;
-  z-index: 1000;
+  z-index: ${(props) => props.theme.depths.toasts};
 `;
 
 export default inject("ui")(Toasts);
