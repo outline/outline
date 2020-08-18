@@ -179,26 +179,26 @@ class DocumentMenu extends React.Component<Props> {
           {showPin &&
             (document.pinned
               ? can.unpin && (
-                <DropdownMenuItem onClick={this.handleUnpin}>
-                  Unpin
-                </DropdownMenuItem>
-              )
+                  <DropdownMenuItem onClick={this.handleUnpin}>
+                    Unpin
+                  </DropdownMenuItem>
+                )
               : can.pin && (
-                <DropdownMenuItem onClick={this.handlePin}>
-                  Pin to collection
-                </DropdownMenuItem>
-              ))}
+                  <DropdownMenuItem onClick={this.handlePin}>
+                    Pin to collection
+                  </DropdownMenuItem>
+                ))}
           {document.isStarred
             ? can.unstar && (
-              <DropdownMenuItem onClick={this.handleUnstar}>
-                Unstar
-              </DropdownMenuItem>
-            )
+                <DropdownMenuItem onClick={this.handleUnstar}>
+                  Unstar
+                </DropdownMenuItem>
+              )
             : can.star && (
-              <DropdownMenuItem onClick={this.handleStar}>
-                Star
-              </DropdownMenuItem>
-            )}
+                <DropdownMenuItem onClick={this.handleStar}>
+                  Star
+                </DropdownMenuItem>
+              )}
           {canShareDocuments && (
             <DropdownMenuItem
               onClick={this.handleShareLink}
@@ -214,10 +214,10 @@ class DocumentMenu extends React.Component<Props> {
                   Enable embeds
                 </DropdownMenuItem>
               ) : (
-                  <DropdownMenuItem onClick={document.disableEmbeds}>
-                    Disable embeds
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem onClick={document.disableEmbeds}>
+                  Disable embeds
+                </DropdownMenuItem>
+              )}
             </>
           )}
           {!can.restore && <hr />}
