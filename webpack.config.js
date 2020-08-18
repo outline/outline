@@ -10,7 +10,7 @@ require('dotenv').config({ silent: true });
 module.exports = {
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: '[name].[contenthash].js',
+    filename: '[name].[hash].js',
     publicPath: '/static/',
   },
   module: {
@@ -72,7 +72,7 @@ module.exports = {
         vendor: {
           test: /[\\/]node_modules[\\/]/,
           name: 'vendors',
-          chunks: 'all',
+          chunks: 'initial',
         },
       },
     },
