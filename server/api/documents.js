@@ -5,20 +5,20 @@ import documentMover from "../commands/documentMover";
 import { InvalidRequestError } from "../errors";
 import auth from "../middlewares/authentication";
 import {
+  Backlink,
   Collection,
   Document,
   Event,
+  Revision,
   Share,
   Star,
-  View,
-  Revision,
-  Backlink,
   User,
+  View,
 } from "../models";
 import policy from "../policies";
 import {
-  presentDocument,
   presentCollection,
+  presentDocument,
   presentPolicies,
 } from "../presenters";
 import { sequelize } from "../sequelize";
@@ -1015,6 +1015,33 @@ router.post("documents.delete", auth(), async (ctx) => {
 
   ctx.body = {
     success: true,
+  };
+});
+
+router.post("documents.unpublish", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  ctx.assertPresent(id, "id is required");
+
+  const user = ctx.state.user;
+  const document = await Document.findByPk(id, { userId: user.id });
+
+  authorize(user, "unpublish", document);
+
+  await document.unpublish();
+
+  await Event.create({
+    name: "documents.unpublish",
+    documentId: document.id,
+    collectionId: document.collectionId,
+    teamId: document.teamId,
+    actorId: user.id,
+    data: { title: document.title },
+    ip: ctx.request.ip,
+  });
+
+  ctx.body = {
+    data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
   };
 });
 

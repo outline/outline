@@ -535,6 +535,22 @@ export default class DocumentsStore extends BaseStore<Document> {
     if (collection) collection.refresh();
   };
 
+  @action
+  unpublish = async (document: Document) => {
+    const res = await client.post("/documents.unpublish", {
+      id: document.id,
+    });
+
+    runInAction("Document#unpublish", () => {
+      invariant(res && res.data, "Data should be available");
+      document.updateFromJson(res.data);
+      this.addPolicies(res.policies);
+    });
+
+    const collection = this.getCollectionForDocument(document);
+    if (collection) collection.refresh();
+  };
+
   pin = (document: Document) => {
     return client.post("/documents.pin", { id: document.id });
   };

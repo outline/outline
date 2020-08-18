@@ -143,3 +143,19 @@ allow(
   Revision,
   (document, revision) => document.id === revision.documentId
 );
+
+allow(User, "unpublish", Document, (user, document) => {
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+
+  if (!document.publishedAt || !!document.deletedAt || !!document.archivedAt)
+    return false;
+
+  if (cannot(user, "update", document.collection)) return false;
+
+  // TODO Block unpublish a document that has nested documents
+
+  return user.teamId === document.teamId;
+});

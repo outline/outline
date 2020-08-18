@@ -106,6 +106,11 @@ class DocumentMenu extends React.Component<Props> {
     this.props.ui.showToast("Document restored");
   };
 
+  handleUnpublish = async (ev: SyntheticEvent<>) => {
+    await this.props.document.unpublish();
+    this.props.ui.showToast("Document unpublished");
+  };
+
   handlePin = (ev: SyntheticEvent<>) => {
     this.props.document.pin();
   };
@@ -174,26 +179,26 @@ class DocumentMenu extends React.Component<Props> {
           {showPin &&
             (document.pinned
               ? can.unpin && (
-                  <DropdownMenuItem onClick={this.handleUnpin}>
-                    Unpin
-                  </DropdownMenuItem>
-                )
-              : can.pin && (
-                  <DropdownMenuItem onClick={this.handlePin}>
-                    Pin to collection
-                  </DropdownMenuItem>
-                ))}
-          {document.isStarred
-            ? can.unstar && (
-                <DropdownMenuItem onClick={this.handleUnstar}>
-                  Unstar
+                <DropdownMenuItem onClick={this.handleUnpin}>
+                  Unpin
                 </DropdownMenuItem>
               )
-            : can.star && (
-                <DropdownMenuItem onClick={this.handleStar}>
-                  Star
+              : can.pin && (
+                <DropdownMenuItem onClick={this.handlePin}>
+                  Pin to collection
                 </DropdownMenuItem>
-              )}
+              ))}
+          {document.isStarred
+            ? can.unstar && (
+              <DropdownMenuItem onClick={this.handleUnstar}>
+                Unstar
+              </DropdownMenuItem>
+            )
+            : can.star && (
+              <DropdownMenuItem onClick={this.handleStar}>
+                Star
+              </DropdownMenuItem>
+            )}
           {canShareDocuments && (
             <DropdownMenuItem
               onClick={this.handleShareLink}
@@ -209,10 +214,10 @@ class DocumentMenu extends React.Component<Props> {
                   Enable embeds
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem onClick={document.disableEmbeds}>
-                  Disable embeds
-                </DropdownMenuItem>
-              )}
+                  <DropdownMenuItem onClick={document.disableEmbeds}>
+                    Disable embeds
+                  </DropdownMenuItem>
+                )}
             </>
           )}
           {!can.restore && <hr />}
@@ -223,6 +228,11 @@ class DocumentMenu extends React.Component<Props> {
               title="Create a nested document inside the current document"
             >
               New nested document
+            </DropdownMenuItem>
+          )}
+          {!document.isArchived && !document.isDeleted && !document.isDraft && (
+            <DropdownMenuItem onClick={this.handleUnpublish}>
+              Unpublish
             </DropdownMenuItem>
           )}
           {can.update && !document.isTemplate && (

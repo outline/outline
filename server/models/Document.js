@@ -1,10 +1,9 @@
 // @flow
 import removeMarkdown from "@tommoor/remove-markdown";
-import { map, find, compact, uniq } from "lodash";
+import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
-import Sequelize, { type Transaction } from "sequelize";
+import Sequelize, { Transaction } from "sequelize";
 import MarkdownSerializer from "slate-md-serializer";
-
 import isUUID from "validator/lib/isUUID";
 import parseTitle from "../../shared/utils/parseTitle";
 import unescape from "../../shared/utils/unescape";
@@ -12,6 +11,7 @@ import { Collection, User } from "../models";
 import { DataTypes, sequelize } from "../sequelize";
 import slugify from "../utils/slugify";
 import Revision from "./Revision";
+
 
 const Op = Sequelize.Op;
 const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
@@ -371,19 +371,19 @@ Document.searchForUser = async (
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${
-      options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
+    options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
     }
     ${
-      options.collaboratorIds
-        ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
-        : ""
+    options.collaboratorIds
+      ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
+      : ""
     }
     ${options.includeArchived ? "" : '"archivedAt" IS NULL AND'}
     "deletedAt" IS NULL AND
     ${
-      options.includeDrafts
-        ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
-        : '"publishedAt" IS NOT NULL'
+    options.includeDrafts
+      ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
+      : '"publishedAt" IS NOT NULL'
     }
   ORDER BY
     "searchRanking" DESC,
@@ -551,6 +551,18 @@ Document.prototype.publish = async function (options) {
   await collection.addDocumentToStructure(this);
 
   this.publishedAt = new Date();
+  await this.save(options);
+
+  return this;
+};
+
+Document.prototype.unpublish = async function (options) {
+  if (!this.publishedAt) return this.save(options);
+
+  const collection = await this.getCollection();
+  await collection.removeDocumentInStructure(this);
+
+  this.publishedAt = null;
   await this.save(options);
 
   return this;
