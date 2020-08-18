@@ -52,6 +52,7 @@ class DocumentMove extends React.Component<Props> {
   @computed
   get results(): DocumentPath[] {
     const { document, collections } = this.props;
+    const onlyShowCollections = document.isTemplate;
 
     let results = [];
     if (collections.isLoaded) {
@@ -62,17 +63,23 @@ class DocumentMove extends React.Component<Props> {
       }
     }
 
-    // Exclude root from search results if document is already at the root
-    if (!document.parentDocumentId) {
-      results = results.filter((result) => result.id !== document.collectionId);
-    }
+    if (onlyShowCollections) {
+      results = results.filter((result) => result.type === "collection");
+    } else {
+      // Exclude root from search results if document is already at the root
+      if (!document.parentDocumentId) {
+        results = results.filter(
+          (result) => result.id !== document.collectionId
+        );
+      }
 
-    // Exclude document if on the path to result, or the same result
-    results = results.filter(
-      (result) =>
-        !result.path.map((doc) => doc.id).includes(document.id) &&
-        last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
-    );
+      // Exclude document if on the path to result, or the same result
+      results = results.filter(
+        (result) =>
+          !result.path.map((doc) => doc.id).includes(document.id) &&
+          last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
+      );
+    }
 
     return results;
   }
