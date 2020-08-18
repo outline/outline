@@ -9,7 +9,7 @@ const Authentication = sequelize.define("authentication", {
   },
   service: DataTypes.STRING,
   scopes: DataTypes.ARRAY(DataTypes.STRING),
-  token: encryptedFields.vault("token"),
+  token: encryptedFields().vault("token"),
 });
 
 Authentication.associate = (models) => {
