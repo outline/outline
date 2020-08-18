@@ -12,7 +12,6 @@ import { DataTypes, sequelize } from "../sequelize";
 import slugify from "../utils/slugify";
 import Revision from "./Revision";
 
-
 const Op = Sequelize.Op;
 const URL_REGEX = /^[0-9a-zA-Z-_~]*-([a-zA-Z0-9]{10,15})$/;
 const serializer = new MarkdownSerializer();
@@ -371,19 +370,19 @@ Document.searchForUser = async (
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${
-    options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
+      options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
     }
     ${
-    options.collaboratorIds
-      ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
-      : ""
+      options.collaboratorIds
+        ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
+        : ""
     }
     ${options.includeArchived ? "" : '"archivedAt" IS NULL AND'}
     "deletedAt" IS NULL AND
     ${
-    options.includeDrafts
-      ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
-      : '"publishedAt" IS NOT NULL'
+      options.includeDrafts
+        ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
+        : '"publishedAt" IS NOT NULL'
     }
   ORDER BY
     "searchRanking" DESC,
