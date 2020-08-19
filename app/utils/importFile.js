@@ -18,11 +18,8 @@ const importFile = async ({
   collectionId,
 }: Options): Promise<Document> => {
   return new Promise(async (resolve, reject) => {
-    // docx support
-    if (
-      file.type ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ) {
+    // non plain text support
+    if (documents.importFiletypes.includes(file.type)) {
       try {
         const newFileMarkdown = await getMarkdownFromDocx(file);
         const document = await processAndSaveDocument(newFileMarkdown, {

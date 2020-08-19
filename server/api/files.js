@@ -39,11 +39,6 @@ router.post("files.import", auth(), async (ctx) => {
   const { path, type } = file;
 
   const fileInfo = allSupportedFiles.find((t) => t.type === type);
-  if (!fileInfo) {
-    const error = new Error(`Invalid file type`);
-    error.status = 400;
-    throw error;
-  }
 
   const markdown = await fileInfo.getMarkdown(path);
   ctx.body = { markdown };
