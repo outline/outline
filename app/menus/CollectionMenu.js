@@ -114,7 +114,7 @@ class CollectionMenu extends React.Component<Props> {
             ref={(ref) => (this.file = ref)}
             onChange={this.onFilePicked}
             onClick={(ev) => ev.stopPropagation()}
-            accept="text/markdown, text/plain"
+            accept="text/markdown, text/plain, application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           />
         </VisuallyHidden>
 
