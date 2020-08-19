@@ -60,7 +60,7 @@ const importFile = async ({
 async function getMarkdownFromDocx(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
-  const { markdown } = await client.post("/files.docx.import", formData);
+  const { markdown } = await client.post("/files.import", formData);
   return markdown;
 }
 

@@ -37,6 +37,10 @@ class CollectionMenu extends React.Component<Props> {
   @observable showCollectionDelete = false;
   @observable showCollectionExport = false;
 
+  componentDidMount() {
+    this.props.documents.fetchImportFiletypeSupport();
+  }
+
   onNewDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { collection } = this.props;
@@ -114,7 +118,9 @@ class CollectionMenu extends React.Component<Props> {
             ref={(ref) => (this.file = ref)}
             onChange={this.onFilePicked}
             onClick={(ev) => ev.stopPropagation()}
-            accept="text/markdown, text/plain, application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            accept={["text/markdown", "text/plain"]
+              .concat(this.props.documents.importFiletypes)
+              .join(", ")}
           />
         </VisuallyHidden>
 

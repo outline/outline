@@ -25,6 +25,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @observable searchCache: Map<string, SearchResult[]> = new Map();
   @observable starredIds: Map<string, boolean> = new Map();
   @observable backlinks: Map<string, string[]> = new Map();
+  @observable importFiletypes: string[] = [];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
@@ -180,6 +181,12 @@ export default class DocumentsStore extends BaseStore<Document> {
       ? this.data.get(this.rootStore.ui.activeDocumentId)
       : undefined;
   }
+
+  @action
+  fetchImportFiletypeSupport = async (): Promise<void> => {
+    const { types } = await client.post(`/files.support`);
+    this.importFiletypes = types;
+  };
 
   @action
   fetchBacklinks = async (documentId: string): Promise<?(Document[])> => {
