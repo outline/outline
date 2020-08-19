@@ -9,20 +9,17 @@ const router = new Router();
 const turndownService = new TurndownService();
 
 interface FiletypeSupporter {
-  extension: string | string[];
   type: string;
   getMarkdown: FileToMarkdown;
 }
 
 const allSupportedFiles: FiletypeSupporter[] = [
   {
-    extension: ".docx",
     type:
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     getMarkdown: getDocxMardown,
   },
   {
-    extension: [".htm", ".html"],
     type: "text/html",
     getMarkdown: getHtmlMardown,
   },
@@ -30,15 +27,17 @@ const allSupportedFiles: FiletypeSupporter[] = [
 
 router.post("files.support", async (ctx) => {
   ctx.body = {
-    types: allSupportedFiles.map((t) => t.type),
+    types: allSupportedFiles.map((t: FiletypeSupporter) => t.type),
   };
 });
 
 router.post("files.import", auth(), async (ctx) => {
-  const file = Object.values(ctx.request.files)[0];
+  const file: any = Object.values(ctx.request.files)[0];
   const { path, type } = file;
 
-  const fileInfo = allSupportedFiles.find((t) => t.type === type);
+  const fileInfo: FiletypeSupporter = allSupportedFiles.filter(
+    (t: FiletypeSupporter) => t.type === type
+  )[0];
 
   const markdown = await fileInfo.getMarkdown(path);
   ctx.body = { markdown };
