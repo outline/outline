@@ -21,7 +21,7 @@ const importFile = async ({
     // non plain text support
     if (documents.importFiletypes.includes(file.type)) {
       try {
-        const newFileMarkdown = await getMarkdownFromDocx(file);
+        const newFileMarkdown = await getMarkdownFromBackend(file);
         const document = await processAndSaveDocument(newFileMarkdown, {
           documents,
           file,
@@ -54,7 +54,7 @@ const importFile = async ({
   });
 };
 
-async function getMarkdownFromDocx(file: File): Promise<string> {
+async function getMarkdownFromBackend(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
   const { markdown } = await client.post("/files.import", formData);
