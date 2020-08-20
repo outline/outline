@@ -13,6 +13,7 @@ import MembershipsStore from "stores/MembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import ViewsStore from "stores/ViewsStore";
+import { getVisibilityListener, getPageVisible } from "utils/pageVisibility";
 
 export const SocketContext: any = React.createContext();
 
@@ -34,12 +35,36 @@ class SocketProvider extends React.Component<Props> {
   @observable socket;
 
   componentDidMount() {
+    this.createConnection();
+
+    document.addEventListener(getVisibilityListener(), this.checkConnection);
+  }
+
+  componentWillUnmount() {
+    if (this.socket) {
+      this.socket.authenticated = false;
+      this.socket.disconnect();
+    }
+
+    document.removeEventListener(getVisibilityListener(), this.checkConnection);
+  }
+
+  checkConnection = () => {
+    if (this.socket && !this.socket.connected && getPageVisible()) {
+      this.createConnection();
+    }
+  };
+
+  createConnection = () => {
     this.socket = io(window.location.origin, {
       path: "/realtime",
       transports: ["websocket"],
       reconnectionDelay: 1000,
       reconnectionDelayMax: 30000,
     });
+
+    // leaving this in for production debugging purposes
+    window.socket = this.socket;
 
     this.socket.authenticated = false;
 
@@ -264,14 +289,7 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("user.presence", (event) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
     });
-  }
-
-  componentWillUnmount() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket.authenticated = false;
-    }
-  }
+  };
 
   render() {
     return (
