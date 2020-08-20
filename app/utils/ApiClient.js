@@ -44,7 +44,10 @@ class ApiClient {
       }
     } else if (method === "POST" || method === "PUT") {
       body = data || undefined;
-      if (typeof data === "object" && data.toString() === "[object Object]") {
+      if (
+        typeof data === "object" &&
+        (data || "").toString() === "[object Object]"
+      ) {
         isJson = true;
         body = JSON.stringify(data);
       }
@@ -56,7 +59,7 @@ class ApiClient {
       urlToFetch = this.baseUrl + (modifiedPath || path);
     }
 
-    let headerOptions = {
+    let headerOptions: any = {
       Accept: "application/json",
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,

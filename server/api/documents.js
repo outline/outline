@@ -1,6 +1,9 @@
 // @flow
+import fs from "fs";
 import Router from "koa-router";
+import mammoth from "mammoth";
 import Sequelize from "sequelize";
+import TurndownService from "turndown";
 import documentMover from "../commands/documentMover";
 import { InvalidRequestError } from "../errors";
 import auth from "../middlewares/authentication";
@@ -27,6 +30,26 @@ import pagination from "./middlewares/pagination";
 const Op = Sequelize.Op;
 const { authorize, cannot } = policy;
 const router = new Router();
+const turndownService = new TurndownService();
+
+interface ImportableFile {
+  type: string;
+  getMarkdown: FileToMarkdown;
+}
+
+const allImportableFiles: ImportableFile[] = [
+  {
+    type:
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    getMarkdown: getDocxMardown,
+  },
+  {
+    type: "text/html",
+    getMarkdown: getHtmlMardown,
+  },
+];
+
+type FileToMarkdown = (filePath: string) => Promise<string>;
 
 router.post("documents.list", auth(), pagination(), async (ctx) => {
   const {
@@ -684,106 +707,19 @@ router.post("documents.unstar", auth(), async (ctx) => {
   };
 });
 
-router.post("documents.create", auth(), async (ctx) => {
-  const {
-    title = "",
-    text = "",
-    publish,
-    collectionId,
-    parentDocumentId,
-    templateId,
-    template,
-    index,
-  } = ctx.body;
-  const editorVersion = ctx.headers["x-editor-version"];
+router.post("documents.create", auth(), createDocumentFromContext);
+router.post("documents.import", auth(), async (ctx) => {
+  const file: any = Object.values(ctx.request.files)[0];
+  const { path, type } = file;
 
-  ctx.assertUuid(collectionId, "collectionId must be an uuid");
-  if (parentDocumentId) {
-    ctx.assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
-  }
+  const fileInfo: ImportableFile = allImportableFiles.filter(
+    (t: ImportableFile) => t.type === type
+  )[0];
 
-  if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
+  const markdown = await fileInfo.getMarkdown(path);
+  ctx.body.text = markdown;
 
-  const user = ctx.state.user;
-  authorize(user, "create", Document);
-
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findOne({
-    where: {
-      id: collectionId,
-      teamId: user.teamId,
-    },
-  });
-  authorize(user, "publish", collection);
-
-  let parentDocument;
-  if (parentDocumentId) {
-    parentDocument = await Document.findOne({
-      where: {
-        id: parentDocumentId,
-        collectionId: collection.id,
-      },
-    });
-    authorize(user, "read", parentDocument, { collection });
-  }
-
-  let templateDocument;
-  if (templateId) {
-    templateDocument = await Document.findByPk(templateId, { userId: user.id });
-    authorize(user, "read", templateDocument);
-  }
-
-  let document = await Document.create({
-    parentDocumentId,
-    editorVersion,
-    collectionId: collection.id,
-    teamId: user.teamId,
-    userId: user.id,
-    lastModifiedById: user.id,
-    createdById: user.id,
-    template,
-    templateId: templateDocument ? templateDocument.id : undefined,
-    title: templateDocument ? templateDocument.title : title,
-    text: templateDocument ? templateDocument.text : text,
-  });
-
-  await Event.create({
-    name: "documents.create",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: { title: document.title, templateId },
-    ip: ctx.request.ip,
-  });
-
-  if (publish) {
-    await document.publish();
-
-    await Event.create({
-      name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: { title: document.title },
-      ip: ctx.request.ip,
-    });
-  }
-
-  // reload to get all of the data needed to present (user, collection etc)
-  // we need to specify publishedAt to bypass default scope that only returns
-  // published documents
-  document = await Document.findOne({
-    where: { id: document.id, publishedAt: document.publishedAt },
-  });
-  document.collection = collection;
-
-  ctx.body = {
-    data: await presentDocument(document),
-    policies: presentPolicies(user, [document]),
-  };
+  await createDocumentFromContext(ctx);
 });
 
 router.post("documents.templatize", auth(), async (ctx) => {
@@ -1019,3 +955,116 @@ router.post("documents.delete", auth(), async (ctx) => {
 });
 
 export default router;
+
+// TODO: update to actual `ctx` type
+export async function createDocumentFromContext(ctx: any) {
+  const {
+    title = "",
+    text = "",
+    publish,
+    collectionId,
+    parentDocumentId,
+    templateId,
+    template,
+    index,
+  } = ctx.body;
+  const editorVersion = ctx.headers["x-editor-version"];
+
+  ctx.assertUuid(collectionId, "collectionId must be an uuid");
+  if (parentDocumentId) {
+    ctx.assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
+  }
+
+  if (index) ctx.assertPositiveInteger(index, "index must be an integer (>=0)");
+
+  const user = ctx.state.user;
+  authorize(user, "create", Document);
+
+  const collection = await Collection.scope({
+    method: ["withMembership", user.id],
+  }).findOne({
+    where: {
+      id: collectionId,
+      teamId: user.teamId,
+    },
+  });
+  authorize(user, "publish", collection);
+
+  let parentDocument;
+  if (parentDocumentId) {
+    parentDocument = await Document.findOne({
+      where: {
+        id: parentDocumentId,
+        collectionId: collection.id,
+      },
+    });
+    authorize(user, "read", parentDocument, { collection });
+  }
+
+  let templateDocument;
+  if (templateId) {
+    templateDocument = await Document.findByPk(templateId, { userId: user.id });
+    authorize(user, "read", templateDocument);
+  }
+
+  let document = await Document.create({
+    parentDocumentId,
+    editorVersion,
+    collectionId: collection.id,
+    teamId: user.teamId,
+    userId: user.id,
+    lastModifiedById: user.id,
+    createdById: user.id,
+    template,
+    templateId: templateDocument ? templateDocument.id : undefined,
+    title: templateDocument ? templateDocument.title : title,
+    text: templateDocument ? templateDocument.text : text,
+  });
+
+  await Event.create({
+    name: "documents.create",
+    documentId: document.id,
+    collectionId: document.collectionId,
+    teamId: document.teamId,
+    actorId: user.id,
+    data: { title: document.title, templateId },
+    ip: ctx.request.ip,
+  });
+
+  if (publish) {
+    await document.publish();
+
+    await Event.create({
+      name: "documents.publish",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      data: { title: document.title },
+      ip: ctx.request.ip,
+    });
+  }
+
+  // reload to get all of the data needed to present (user, collection etc)
+  // we need to specify publishedAt to bypass default scope that only returns
+  // published documents
+  document = await Document.findOne({
+    where: { id: document.id, publishedAt: document.publishedAt },
+  });
+  document.collection = collection;
+
+  return (ctx.body = {
+    data: await presentDocument(document),
+    policies: presentPolicies(user, [document]),
+  });
+}
+
+async function getDocxMardown(filePath: string): Promise<string> {
+  const { value } = await mammoth.convertToHtml({ path: filePath });
+  return turndownService.turndown(value);
+}
+
+async function getHtmlMardown(filePath: string): Promise<string> {
+  const value = await fs.promises.readFile(filePath, "utf8");
+  return turndownService.turndown(value);
+}

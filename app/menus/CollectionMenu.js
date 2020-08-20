@@ -37,10 +37,6 @@ class CollectionMenu extends React.Component<Props> {
   @observable showCollectionDelete = false;
   @observable showCollectionExport = false;
 
-  componentDidMount() {
-    this.props.documents.fetchImportFiletypeSupport();
-  }
-
   onNewDocument = (ev: SyntheticEvent<>) => {
     ev.preventDefault();
     const { collection } = this.props;

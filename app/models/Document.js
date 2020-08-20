@@ -8,12 +8,14 @@ import DocumentsStore from "stores/DocumentsStore";
 import BaseModel from "models/BaseModel";
 import Revision from "models/Revision";
 import User from "models/User";
+import { client } from "../utils/ApiClient";
 
 type SaveOptions = {
   publish?: boolean,
   done?: boolean,
   autosave?: boolean,
   lastRevision?: number,
+  file?: File,
 };
 
 export default class Document extends BaseModel {
@@ -207,6 +209,43 @@ export default class Document extends BaseModel {
     this.title = template.title;
     this.text = template.text;
     this.injectTemplate = true;
+  };
+
+  @action
+  import = async (options: SaveOptions) => {
+    const formData = new FormData();
+
+    [
+      { key: "parentDocumentId", value: this.parentDocumentId },
+      { key: "collectionId", value: this.collectionId },
+      { key: "title", value: this.title },
+      { key: "text", value: this.text },
+    ].map((info) => {
+      if (typeof info.value === "string" && info.value) {
+        formData.append(info.key, info.value);
+      }
+    });
+
+    Object.keys(options).forEach((key) =>
+      formData.append(
+        key,
+        options[key] instanceof File
+          ? options[key]
+          : (options[key] || "").toString()
+      )
+    );
+
+    this.isSaving = true;
+
+    try {
+      const res = await client.post("/documents.import", formData);
+      invariant(res && res.data, "Data should be available");
+
+      this.store.addPolicies(res.policies);
+      return this.store.add(res.data);
+    } catch (err) {
+      this.isSaving = false;
+    }
   };
 
   @action

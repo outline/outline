@@ -2,7 +2,6 @@
 import parseTitle from "shared/utils/parseTitle";
 import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";
-import { client } from "./ApiClient";
 
 type Options = {
   file: File,
@@ -21,13 +20,16 @@ const importFile = async ({
     // non plain text support
     if (documents.importFiletypes.includes(file.type)) {
       try {
-        const newFileMarkdown = await getMarkdownFromBackend(file);
-        const document = await processAndSaveDocument(newFileMarkdown, {
-          documents,
-          file,
-          documentId,
-          collectionId,
-        });
+        const document = await processAndSaveDocument(
+          null,
+          {
+            documents,
+            file,
+            documentId,
+            collectionId,
+          },
+          true
+        );
         resolve(document);
       } catch (err) {
         reject(err);
@@ -54,18 +56,12 @@ const importFile = async ({
   });
 };
 
-async function getMarkdownFromBackend(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append("file", file);
-  const { markdown } = await client.post("/files.import", formData);
-  return markdown;
-}
-
 async function processAndSaveDocument(
   ev,
-  { documents, file, documentId, collectionId }: Options
+  { documents, file, documentId, collectionId }: Options,
+  isUpload = false
 ) {
-  let text = typeof ev === "string" ? ev : ev.target.result;
+  let text = (ev && ev.target.result) || "";
   let title;
 
   // If the first line of the imported file looks like a markdown heading
@@ -90,7 +86,12 @@ async function processAndSaveDocument(
     documents
   );
 
-  document = await document.save({ publish: true });
+  const saveOpts = { publish: true };
+  if (isUpload) {
+    document = await document.import({ ...saveOpts, file });
+  } else {
+    document = await document.save(saveOpts);
+  }
   return document;
 }
 

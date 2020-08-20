@@ -13,7 +13,6 @@ import auth from "./auth";
 import collections from "./collections";
 import documents from "./documents";
 import events from "./events";
-import files from "./files";
 import groups from "./groups";
 import hooks from "./hooks";
 import integrations from "./integrations";
@@ -47,7 +46,6 @@ api.use(editor());
 // routes
 router.use("/", auth.routes());
 router.use("/", events.routes());
-router.use("/", files.routes());
 router.use("/", users.routes());
 router.use("/", collections.routes());
 router.use("/", documents.routes());
