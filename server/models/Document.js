@@ -556,7 +556,7 @@ Document.prototype.publish = async function (options) {
 };
 
 Document.prototype.unpublish = async function (options) {
-  if (!this.publishedAt) return this.save(options);
+  if (!this.publishedAt) return this;
 
   const collection = await this.getCollection();
   await collection.removeDocumentInStructure(this);

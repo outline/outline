@@ -3,7 +3,6 @@ import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
-
 import AuthStore from "stores/AuthStore";
 import CollectionStore from "stores/CollectionsStore";
 import PoliciesStore from "stores/PoliciesStore";
@@ -15,10 +14,10 @@ import DocumentTemplatize from "scenes/DocumentTemplatize";
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 import Modal from "components/Modal";
 import {
-  documentUrl,
-  documentMoveUrl,
-  editDocumentUrl,
   documentHistoryUrl,
+  documentMoveUrl,
+  documentUrl,
+  editDocumentUrl,
   newDocumentUrl,
 } from "utils/routeHelpers";
 
@@ -230,7 +229,7 @@ class DocumentMenu extends React.Component<Props> {
               New nested document
             </DropdownMenuItem>
           )}
-          {!document.isArchived && !document.isDeleted && !document.isDraft && (
+          {can.unpublish && (
             <DropdownMenuItem onClick={this.handleUnpublish}>
               Unpublish
             </DropdownMenuItem>
