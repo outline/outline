@@ -13,13 +13,13 @@ import {
   Share,
   Star,
   User,
-  View,
+  View
 } from "../models";
 import policy from "../policies";
 import {
   presentCollection,
   presentDocument,
-  presentPolicies,
+  presentPolicies
 } from "../presenters";
 import { sequelize } from "../sequelize";
 import { subtractDate } from "../utils/date";
@@ -387,6 +387,8 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
     whereConditions.updatedAt = {
       [Op.gte]: subtractDate(new Date(), dateFilter),
     };
+  } else {
+    delete whereConditions.updatedAt;
   }
 
   const collectionScope = { method: ["withCollection", user.id] };
