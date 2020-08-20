@@ -374,6 +374,7 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
     userId: userId ?? user.id,
     collectionId: collectionIds,
     publishedAt: { [Op.eq]: null },
+    updatedAt: undefined,
   };
 
   if (dateFilter) {
@@ -383,7 +384,7 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
       "dateFilter must be one of day,week,month,year"
     );
 
-    whereConditions["updatedAt"] = {
+    whereConditions.updatedAt = {
       [Op.gte]: subtractDate(new Date(), dateFilter),
     };
   }
