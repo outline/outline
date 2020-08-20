@@ -3,7 +3,7 @@ import * as React from "react";
 import Frame from "./components/Frame";
 
 const URL_REGEX = new RegExp(
-  "^https://share.clickup.com/b/h/(.*)/(.*)$"
+  "^https://share.clickup.com/[a-z]/[a-z]/(.*)/(.*)$"
 );
 
 type Props = {|
