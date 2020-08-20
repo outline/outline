@@ -63,9 +63,6 @@ class SocketProvider extends React.Component<Props> {
       reconnectionDelayMax: 30000,
     });
 
-    // leaving this in for production debugging purposes
-    window.socket = this.socket;
-
     this.socket.authenticated = false;
 
     const {
