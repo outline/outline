@@ -13,13 +13,13 @@ import {
   Share,
   Star,
   User,
-  View
+  View,
 } from "../models";
 import policy from "../policies";
 import {
   presentCollection,
   presentDocument,
-  presentPolicies
+  presentPolicies,
 } from "../presenters";
 import { sequelize } from "../sequelize";
 import { subtractDate } from "../utils/date";
