@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Document from "models/Document";
 import DocumentMeta from "components/DocumentMeta";
+import Badge from "../../../components/Badge";
+import Tooltip from "../../../components/Tooltip";
 import type { NavigationNode } from "types";
 
 type Props = {
@@ -58,7 +60,15 @@ class ReferenceListItem extends React.Component<Props> {
         }}
         {...rest}
       >
-        <Title>{document.title}</Title>
+        <Title>
+          {document.title}
+          {document.isDraft && (
+            <Tooltip tooltip="Only visible to you" delay={500} placement="top">
+              <Badge>Draft</Badge>
+            </Tooltip>
+          )}
+        </Title>
+
         {document.updatedBy && (
           <DocumentMeta document={document} showCollection={showCollection} />
         )}

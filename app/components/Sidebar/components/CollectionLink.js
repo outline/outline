@@ -1,6 +1,7 @@
 // @flow
 import { observable } from "mobx";
 import { observer } from "mobx-react";
+import { EditIcon } from "outline-icons";
 import * as React from "react";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
@@ -31,9 +32,14 @@ class CollectionLink extends React.Component<Props> {
       documents,
       activeDocument,
       prefetchDocument,
+      // activeDocumentRef,
       ui,
     } = this.props;
     const expanded = collection.id === ui.activeCollectionId;
+    const draftDocuments = documents
+      .draftsInCollection(collection.id)
+      .filter((document) => !document.parentDocumentId);
+    const hasDraftDocuments = !!draftDocuments.length;
 
     return (
       <DropToImport
@@ -61,6 +67,18 @@ class CollectionLink extends React.Component<Props> {
           }
         >
           <Flex column>
+            {hasDraftDocuments &&
+              draftDocuments.map((document) => (
+                <SidebarLink
+                  // ref={!!activeDocument && activeDocument.id === document.id ? activeDocumentRef : undefined}
+                  key={document.id}
+                  to={document.url}
+                  icon={<EditIcon color="currentColor" />}
+                  label={document.title}
+                  active={!!activeDocument && activeDocument.id === document.id}
+                  exact
+                />
+              ))}
             {collection.documents.map((node) => (
               <DocumentLink
                 key={node.id}

@@ -1,6 +1,7 @@
 // @flow
 import { observable } from "mobx";
 import { observer } from "mobx-react";
+import { EditIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import DocumentsStore from "stores/DocumentsStore";
@@ -57,7 +58,7 @@ class DocumentLink extends React.Component<Props> {
   };
 
   hasChildDocuments = () => {
-    return !!this.props.node.children.length;
+    return !!this.props.node.children?.length;
   };
 
   render() {
@@ -81,6 +82,14 @@ class DocumentLink extends React.Component<Props> {
         this.isActiveDocument())
     );
     const document = documents.get(node.id);
+
+    const draftDocuments = documents
+      .draftsInCollection(collection.id)
+      .filter(
+        (_document) =>
+          !!_document.parentDocumentId && _document.parentDocumentId === node.id
+      );
+    const hasDraftDocuments = !!draftDocuments.length;
 
     return (
       <Flex
@@ -113,8 +122,23 @@ class DocumentLink extends React.Component<Props> {
               ) : undefined
             }
           >
-            {this.hasChildDocuments() && (
+            {(this.hasChildDocuments(draftDocuments) || hasDraftDocuments) && (
               <DocumentChildren column>
+                {hasDraftDocuments &&
+                  draftDocuments.map((document) => (
+                    <SidebarLink
+                      // ref={!!activeDocument && activeDocument.id === document.id ? activeDocumentRef : undefined}
+                      key={document.id}
+                      to={document.url}
+                      icon={<EditIcon color="currentColor" />}
+                      label={document.title}
+                      depth={depth + 1}
+                      active={
+                        !!activeDocument && activeDocument.id === document.id
+                      }
+                      exact
+                    />
+                  ))}
                 {node.children.map((childNode) => (
                   <DocumentLink
                     key={childNode.id}

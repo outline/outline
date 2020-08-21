@@ -84,6 +84,10 @@ class CollectionScene extends React.Component<Props> {
       await this.props.documents.fetchPinned({
         collectionId: id,
       });
+
+      await this.props.documents.fetchDrafts({
+        collectionId: id,
+      });
     }
 
     this.isFetching = false;
@@ -250,8 +254,20 @@ class CollectionScene extends React.Component<Props> {
                   <Tab to={collectionUrl(collection.id, "alphabetical")} exact>
                     A–Z
                   </Tab>
+                  <Tab to={collectionUrl(collection.id, "drafts")} exact>
+                    Drafts
+                  </Tab>
                 </Tabs>
                 <Switch>
+                  <Route path={collectionUrl(collection.id, "drafts")}>
+                    <PaginatedDocumentList
+                      key="drafts"
+                      documents={documents.draftsInCollection(collection.id)}
+                      fetch={documents.fetchDrafts}
+                      options={{ collectionId: collection.id }}
+                      showPin
+                    />
+                  </Route>
                   <Route path={collectionUrl(collection.id, "alphabetical")}>
                     <PaginatedDocumentList
                       key="alphabetical"

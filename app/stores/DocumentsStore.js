@@ -100,6 +100,14 @@ export default class DocumentsStore extends BaseStore<Document> {
     );
   }
 
+  draftsInCollection(collectionId: string): Document[] {
+    return filter(
+      this.all,
+      (document) =>
+        document.collectionId === collectionId && !document.publishedAt
+    );
+  }
+
   publishedInCollection(collectionId: string): Document[] {
     return filter(
       this.all,

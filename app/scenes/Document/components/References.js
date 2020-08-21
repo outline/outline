@@ -1,7 +1,7 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { inject, observer } from "mobx-react";
 import * as React from "react";
-import { withRouter, type Location } from "react-router-dom";
+import { type Location, withRouter } from "react-router-dom";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";
@@ -21,11 +21,17 @@ type Props = {
 class References extends React.Component<Props> {
   componentDidMount() {
     this.props.documents.fetchBacklinks(this.props.document.id);
+    // this.props.documents.fetchDrafts({
+    //   collectionId: this.props.document.collectionId,
+    // });
   }
 
   render() {
     const { documents, collections, document } = this.props;
     const backlinks = documents.getBacklinedDocuments(document.id);
+    const drafts = documents
+      .draftsInCollection(document.collectionId)
+      .filter((doc) => doc.parentDocumentId === document.id);
     const collection = collections.get(document.collectionId);
     const children = collection
       ? collection.getDocumentChildren(document.id)
@@ -51,18 +57,27 @@ class References extends React.Component<Props> {
               </Tab>
             )}
           </Tabs>
-          {isBacklinksTab
-            ? backlinks.map((backlinkedDocument) => (
+          {isBacklinksTab ? (
+            backlinks.map((backlinkedDocument) => (
+              <ReferenceListItem
+                anchor={document.urlId}
+                key={backlinkedDocument.id}
+                document={backlinkedDocument}
+                showCollection={
+                  backlinkedDocument.collectionId !== document.collectionId
+                }
+              />
+            ))
+          ) : (
+            <>
+              {drafts.map((document) => (
                 <ReferenceListItem
-                  anchor={document.urlId}
-                  key={backlinkedDocument.id}
-                  document={backlinkedDocument}
-                  showCollection={
-                    backlinkedDocument.collectionId !== document.collectionId
-                  }
+                  key={document.id}
+                  document={document}
+                  showCollection={false}
                 />
-              ))
-            : children.map((node) => {
+              ))}
+              {children.map((node) => {
                 // If we have the document in the store already then use it to get the extra
                 // contextual info, otherwise the collection node will do (only has title and id)
                 const document = documents.get(node.id);
@@ -74,6 +89,8 @@ class References extends React.Component<Props> {
                   />
                 );
               })}
+            </>
+          )}
         </Fade>
       )
     );
