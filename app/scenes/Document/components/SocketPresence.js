@@ -41,7 +41,7 @@ export default class SocketPresence extends React.Component<Props> {
   }
 
   setupOnce = () => {
-    if (this.context && !this.previousContext) {
+    if (this.context && this.context !== this.previousContext) {
       this.previousContext = this.context;
 
       if (this.context.authenticated) {

@@ -28,5 +28,4 @@ function runMigrations() {
 runMigrations();
 
 // This is needed for the relative manual mock to be picked up
-// $FlowFixMe
 jest.mock("../events");

@@ -3,7 +3,7 @@ import { find } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentPresenceStore from "stores/DocumentPresenceStore";
@@ -13,6 +13,7 @@ import MembershipsStore from "stores/MembershipsStore";
 import PoliciesStore from "stores/PoliciesStore";
 import UiStore from "stores/UiStore";
 import ViewsStore from "stores/ViewsStore";
+import { getVisibilityListener, getPageVisible } from "utils/pageVisibility";
 
 export const SocketContext: any = React.createContext();
 
@@ -31,9 +32,35 @@ type Props = {
 
 @observer
 class SocketProvider extends React.Component<Props> {
-  @observable socket;
+  @observable socket: Socket;
 
   componentDidMount() {
+    this.createConnection();
+
+    document.addEventListener(getVisibilityListener(), this.checkConnection);
+  }
+
+  componentWillUnmount() {
+    if (this.socket) {
+      this.socket.authenticated = false;
+      this.socket.disconnect();
+    }
+
+    document.removeEventListener(getVisibilityListener(), this.checkConnection);
+  }
+
+  checkConnection = () => {
+    if (this.socket && this.socket.disconnected && getPageVisible()) {
+      // null-ifying this reference is important, do not remove. Without it
+      // references to old sockets are potentially held in context
+      this.socket.close();
+      this.socket = null;
+
+      this.createConnection();
+    }
+  };
+
+  createConnection = () => {
     this.socket = io(window.location.origin, {
       path: "/realtime",
       transports: ["websocket"],
@@ -264,14 +291,7 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("user.presence", (event) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
     });
-  }
-
-  componentWillUnmount() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket.authenticated = false;
-    }
-  }
+  };
 
   render() {
     return (
