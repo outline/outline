@@ -7,17 +7,18 @@ const TerserPlugin = require('terser-webpack-plugin');
 commonWebpackConfig = require('./webpack.config');
 
 productionWebpackConfig = Object.assign(commonWebpackConfig, {
+  output: {
+    path: path.join(__dirname, 'dist'),
+    filename: '[name].[contenthash].js',
+    publicPath: '/static/',
+  },
   cache: true,
   mode: "production",
   devtool: 'source-map',
   entry: ['./app/index'],
-  output: {
-    path: path.join(__dirname, 'dist'),
-    filename: 'bundle.[hash].js',
-    publicPath: '/static/',
-  },
   stats: "normal",
   optimization: {
+    ...commonWebpackConfig.optimization,
     minimizer: [
       new TerserPlugin({
         terserOptions: {

@@ -63,7 +63,7 @@ const Title = styled.span`
 `;
 
 const StyledGoToIcon = styled(GoToIcon)`
-  opacity: 0.25;
+  fill: ${(props) => props.theme.divider};
 `;
 
 const ResultWrapper = styled.div`
