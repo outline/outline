@@ -40,9 +40,12 @@ export default async function documentMover({
       const collection = await Collection.findByPk(document.collectionId, {
         transaction,
       });
-      const documentJson = await collection.removeDocumentInStructure(document, {
-        save: false,
-      });
+      const documentJson = await collection.removeDocumentInStructure(
+        document,
+        {
+          save: false,
+        }
+      );
 
       // if the collection is the same then it will get saved below, this
       // line prevents a pointless intermediate save from occurring.
