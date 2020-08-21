@@ -133,7 +133,7 @@ class DocumentScene extends React.Component<Props> {
     ev.preventDefault();
     const { document, abilities } = this.props;
 
-    if (abilities.update) {
+    if (abilities.move) {
       this.props.history.push(documentMoveUrl(document));
     }
   }
