@@ -37,7 +37,9 @@ export default async function documentMover({
       transaction = await sequelize.transaction();
 
       // remove from original collection
-      const collection = await document.getCollection({ transaction });
+      const collection = await Collection.findByPk(document.collectionId, {
+        transaction,
+      });
       const documentJson = await collection.removeDocumentInStructure(
         document,
         {

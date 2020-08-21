@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/outline
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:14
       - image: circleci/redis:latest
       - image: circleci/postgres:9.6.5-alpine-ram
     environment:

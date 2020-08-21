@@ -48,7 +48,7 @@
     ]
   },
   "engines": {
-    "node": ">= 12 <14"
+    "node": ">= 12 <15"
   },
   "repository": {
     "type": "git",
@@ -120,8 +120,8 @@
     "nodemailer": "^4.4.0",
     "outline-icons": "^1.21.0-6",
     "oy-vey": "^0.10.0",
-    "pg": "^6.1.5",
-    "pg-hstore": "2.3.2",
+    "pg": "^8.3.0",
+    "pg-hstore": "^2.3.3",
     "polished": "3.6.5",
     "query-string": "^4.3.4",
     "randomstring": "1.1.5",
@@ -140,9 +140,9 @@
     "react-waypoint": "^9.0.2",
     "rich-markdown-editor": "^10.6.1",
     "semver": "^7.3.2",
-    "sequelize": "^5.21.1",
-    "sequelize-cli": "^5.5.0",
-    "sequelize-encrypted": "^0.1.0",
+    "sequelize": "^6.3.4",
+    "sequelize-cli": "^6.2.0",
+    "sequelize-encrypted": "^1.0.0",
     "slate": "0.45.0",
     "slate-md-serializer": "5.5.4",
     "slug": "^1.0.0",

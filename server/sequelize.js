@@ -3,10 +3,8 @@ import debug from "debug";
 import Sequelize from "sequelize";
 import EncryptedField from "sequelize-encrypted";
 
-export const encryptedFields = EncryptedField(
-  Sequelize,
-  process.env.SECRET_KEY
-);
+export const encryptedFields = () =>
+  EncryptedField(Sequelize, process.env.SECRET_KEY);
 
 export const DataTypes = Sequelize;
 export const Op = Sequelize.Op;
