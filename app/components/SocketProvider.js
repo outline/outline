@@ -3,7 +3,7 @@ import { find } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import * as React from "react";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import DocumentPresenceStore from "stores/DocumentPresenceStore";
@@ -32,7 +32,7 @@ type Props = {
 
 @observer
 class SocketProvider extends React.Component<Props> {
-  @observable socket;
+  @observable socket: Socket;
 
   componentDidMount() {
     this.createConnection();
@@ -50,7 +50,12 @@ class SocketProvider extends React.Component<Props> {
   }
 
   checkConnection = () => {
-    if (this.socket && !this.socket.connected && getPageVisible()) {
+    if (this.socket && this.socket.disconnected && getPageVisible()) {
+      // null-ifying this reference is important, do not remove. Without it
+      // references to old sockets are potentially held in context
+      this.socket.close();
+      this.socket = null;
+
       this.createConnection();
     }
   };
