@@ -7,12 +7,16 @@ import Event from "models/Event";
 import Avatar from "components/Avatar";
 import ListItem from "components/List/Item";
 import Time from "components/Time";
+import CollectionsStore from "../../../stores/CollectionsStore";
+import DocumentsStore from "../../../stores/DocumentsStore";
 
 type Props = {
   event: Event,
+  collections?: ?CollectionsStore,
+  documents?: ?DocumentsStore,
 };
 
-const description = (event) => {
+const description = (event, collections, documents) => {
   switch (event.name) {
     case "api_keys.create":
       return (
@@ -157,6 +161,37 @@ const description = (event) => {
         </>
       );
     }
+    if (event.name === "documents.move") {
+      const moveFromCollection = event.data.collectionIds?.length > 1;
+
+      let source, target;
+      if (moveFromCollection) {
+        source = collections.get(event.data.collectionIds[0]).name;
+        target = collections.get(event.data.collectionIds[1]).name;
+      }
+
+      return (
+        <>
+          {capitalize(event.verbPastTense)} the{" "}
+          <Link to={`/doc/${event.documentId}`}>
+            {event.data.title || "Untitled"}
+          </Link>{" "}
+          document{" "}
+          {moveFromCollection && (
+            <>
+              from{" "}
+              <Link to={`/collections/${event.data.collectionIds[0]}`}>
+                {source}
+              </Link>{" "}
+              to{" "}
+              <Link to={`/collections/${event.data.collectionIds[1]}`}>
+                {target}
+              </Link>
+            </>
+          )}
+        </>
+      );
+    }
     return (
       <>
         {capitalize(event.verbPastTense)} the{" "}
@@ -195,7 +230,7 @@ const description = (event) => {
   return "";
 };
 
-const EventListItem = ({ event }: Props) => {
+const EventListItem = ({ event, collections, documents }: Props) => {
   return (
     <ListItem
       key={event.id}
@@ -203,7 +238,8 @@ const EventListItem = ({ event }: Props) => {
       image={<Avatar src={event.actor.avatarUrl} size={32} />}
       subtitle={
         <>
-          {description(event)} <Time dateTime={event.createdAt} /> ago &middot;{" "}
+          {description(event, collections, documents)}{" "}
+          <Time dateTime={event.createdAt} /> ago &middot;{" "}
           <strong>{event.name}</strong>
         </>
       }

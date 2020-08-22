@@ -21,6 +21,7 @@ import { LoadingIndicatorBar } from "components/LoadingIndicator";
 import Modal from "components/Modal";
 import Sidebar from "components/Sidebar";
 import SettingsSidebar from "components/Sidebar/Settings";
+import DocumentEvents from "./DocumentEvents";
 import {
   homeUrl,
   searchUrl,
@@ -124,6 +125,7 @@ class Layout extends React.Component<Props> {
               path={`/doc/${slug}/history/:revisionId?`}
               component={DocumentHistory}
             />
+            <Route path={`/doc/${slug}/events`} component={DocumentEvents} />
           </Switch>
         </Container>
         <Modal

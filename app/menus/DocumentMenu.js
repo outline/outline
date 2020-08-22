@@ -20,6 +20,7 @@ import {
   editDocumentUrl,
   documentHistoryUrl,
   newDocumentUrl,
+  documentEventsUrl,
 } from "utils/routeHelpers";
 
 type Props = {
@@ -66,6 +67,10 @@ class DocumentMenu extends React.Component<Props> {
     } else {
       this.redirectTo = documentHistoryUrl(this.props.document);
     }
+  };
+
+  handleDocumentEvents = () => {
+    this.redirectTo = documentEventsUrl(this.props.document);
   };
 
   handleMove = (ev: SyntheticEvent<>) => {
@@ -256,6 +261,13 @@ class DocumentMenu extends React.Component<Props> {
             <>
               <DropdownMenuItem onClick={this.handleDocumentHistory}>
                 History
+              </DropdownMenuItem>
+            </>
+          )}
+          {can.update && (
+            <>
+              <DropdownMenuItem onClick={this.handleDocumentEvents}>
+                Events
               </DropdownMenuItem>
             </>
           )}

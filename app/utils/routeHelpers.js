@@ -32,6 +32,10 @@ export function documentMoveUrl(doc: Document): string {
   return `${doc.url}/move`;
 }
 
+export function documentEventsUrl(doc: Document): string {
+  return `${doc.url}/events`;
+}
+
 export function documentHistoryUrl(doc: Document, revisionId?: string): string {
   let base = `${doc.url}/history`;
   if (revisionId) base += `/${revisionId}`;
