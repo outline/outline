@@ -6,7 +6,7 @@
     "clean": "rimraf dist",
     "build:webpack": "NODE_ENV=production webpack --config webpack.config.prod.js",
     "build:analyze": "NODE_ENV=production webpack --config webpack.config.prod.js --json > stats.json",
-    "build": "npm run clean && npm run build:webpack",
+    "build": "yarn clean && yarn build:webpack",
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development nodemon --watch server index.js",
     "lint": "eslint app server shared",
