@@ -1,5 +1,5 @@
 // @flow
-import { inject } from "mobx-react";
+import { observer, inject } from "mobx-react";
 import { CloseIcon, MenuIcon } from "outline-icons";
 import * as React from "react";
 import { withRouter } from "react-router-dom";
@@ -28,10 +28,6 @@ function Sidebar({ location, children, ui }: Props) {
     }
   }, [ui, location]);
 
-  const toggleSidebar = React.useCallback(() => {
-    ui.toggleMobileSidebar();
-  }, []);
-
   const content = (
     <Container
       editMode={ui.editMode}
@@ -39,7 +35,7 @@ function Sidebar({ location, children, ui }: Props) {
       column
     >
       <Toggle
-        onClick={toggleSidebar}
+        onClick={ui.toggleMobileSidebar}
         mobileSidebarVisible={ui.mobileSidebarVisible}
       >
         {ui.mobileSidebarVisible ? (
@@ -116,4 +112,4 @@ const Toggle = styled.a`
   `};
 `;
 
-export default withRouter(inject("ui")(Sidebar));
+export default withRouter(inject("ui")(observer(Sidebar)));
