@@ -49,7 +49,7 @@ function SidebarLink({
   }, [depth]);
 
   React.useEffect(() => {
-    if (rest.expanded) {
+    if (rest.expanded !== undefined) {
       setExpanded(rest.expanded);
     }
   }, [rest.expanded]);
