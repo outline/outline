@@ -54,11 +54,14 @@ function SidebarLink({
     }
   }, [rest.expanded]);
 
-  const handleClick = React.useCallback((ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-    setExpanded(!expanded);
-  }, []);
+  const handleClick = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      setExpanded(!expanded);
+    },
+    [expanded]
+  );
 
   const handleExpand = React.useCallback(() => {
     setExpanded(true);
