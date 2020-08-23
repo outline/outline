@@ -1,25 +1,25 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { CloseIcon, MenuIcon } from "outline-icons";
 import * as React from "react";
 import { withRouter } from "react-router-dom";
 import type { Location } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import UiStore from "stores/UiStore";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
 import usePrevious from "hooks/usePrevious";
+import useStores from "hooks/useStores";
 
 let firstRender = true;
 
 type Props = {
   children: React.Node,
   location: Location,
-  ui: UiStore,
 };
 
-function Sidebar({ location, children, ui }: Props) {
+function Sidebar({ location, children }: Props) {
+  const { ui } = useStores();
   const previousLocation = usePrevious(location);
 
   React.useEffect(() => {
@@ -112,4 +112,4 @@ const Toggle = styled.a`
   `};
 `;
 
-export default withRouter(inject("ui")(observer(Sidebar)));
+export default withRouter(observer(Sidebar));
