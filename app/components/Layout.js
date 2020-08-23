@@ -44,7 +44,8 @@ class Layout extends React.Component<Props> {
   @observable redirectTo: ?string;
   @observable keyboardShortcutsOpen: boolean = false;
 
-  componentWillMount() {
+  constructor() {
+    super();
     this.updateBackground();
   }
 

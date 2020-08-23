@@ -17,7 +17,8 @@ class Mask extends React.Component<Props> {
     return false;
   }
 
-  componentWillMount() {
+  constructor() {
+    super();
     this.width = randomInteger(75, 100);
   }
 
