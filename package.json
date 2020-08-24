@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist && rimraf build",
-    "build:server": "babel -d ./build/server ./server && babel -d ./build/shared ./shared && ln -sf \"$(pwd)/package.json\" ./build && ln -sf \"$(pwd)/webpack.config.dev.js\" ./build",
+    "build:server": "babel -d ./build/server ./server && babel -d ./build/shared ./shared && cp package.json ./build && ln -sf \"$(pwd)/webpack.config.dev.js\" ./build",
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build:analyze": "webpack --config webpack.config.prod.js --json > stats.json",
     "build": "yarn clean && yarn build:webpack && yarn build:server",
