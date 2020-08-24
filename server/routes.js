@@ -18,7 +18,7 @@ const readFile = util.promisify(fs.readFile);
 
 const readIndexFile = async (ctx) => {
   if (isProduction) {
-    return readFile(path.join(__dirname, "../dist/index.html"));
+    return readFile(path.join(__dirname, "../build/app/index.html"));
   }
 
   const middleware = ctx.devMiddleware;
@@ -54,7 +54,7 @@ if (process.env.NODE_ENV === "production") {
 
     await sendfile(
       ctx,
-      path.join(__dirname, "../dist/", ctx.path.substring(8))
+      path.join(__dirname, "../build/app/", ctx.path.substring(8))
     );
   });
 }
