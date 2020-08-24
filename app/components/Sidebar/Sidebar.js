@@ -1,65 +1,60 @@
 // @flow
-import { observer, inject } from "mobx-react";
+import { observer } from "mobx-react";
 import { CloseIcon, MenuIcon } from "outline-icons";
 import * as React from "react";
 import { withRouter } from "react-router-dom";
 import type { Location } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import UiStore from "stores/UiStore";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
+import usePrevious from "hooks/usePrevious";
+import useStores from "hooks/useStores";
 
 let firstRender = true;
 
 type Props = {
   children: React.Node,
   location: Location,
-  ui: UiStore,
 };
 
-@observer
-class Sidebar extends React.Component<Props> {
-  componentWillReceiveProps = (nextProps: Props) => {
-    if (this.props.location !== nextProps.location) {
-      this.props.ui.hideMobileSidebar();
+function Sidebar({ location, children }: Props) {
+  const { ui } = useStores();
+  const previousLocation = usePrevious(location);
+
+  React.useEffect(() => {
+    if (location !== previousLocation) {
+      ui.hideMobileSidebar();
     }
-  };
+  }, [ui, location]);
 
-  toggleSidebar = () => {
-    this.props.ui.toggleMobileSidebar();
-  };
-
-  render() {
-    const { children, ui } = this.props;
-    const content = (
-      <Container
-        editMode={ui.editMode}
+  const content = (
+    <Container
+      editMode={ui.editMode}
+      mobileSidebarVisible={ui.mobileSidebarVisible}
+      column
+    >
+      <Toggle
+        onClick={ui.toggleMobileSidebar}
         mobileSidebarVisible={ui.mobileSidebarVisible}
-        column
       >
-        <Toggle
-          onClick={this.toggleSidebar}
-          mobileSidebarVisible={ui.mobileSidebarVisible}
-        >
-          {ui.mobileSidebarVisible ? (
-            <CloseIcon size={32} />
-          ) : (
-            <MenuIcon size={32} />
-          )}
-        </Toggle>
-        {children}
-      </Container>
-    );
+        {ui.mobileSidebarVisible ? (
+          <CloseIcon size={32} />
+        ) : (
+          <MenuIcon size={32} />
+        )}
+      </Toggle>
+      {children}
+    </Container>
+  );
 
-    // Fade in the sidebar on first render after page load
-    if (firstRender) {
-      firstRender = false;
-      return <Fade>{content}</Fade>;
-    }
-
-    return content;
+  // Fade in the sidebar on first render after page load
+  if (firstRender) {
+    firstRender = false;
+    return <Fade>{content}</Fade>;
   }
+
+  return content;
 }
 
 const Container = styled(Flex)`
@@ -117,4 +112,4 @@ const Toggle = styled.a`
   `};
 `;
 
-export default withRouter(inject("ui")(Sidebar));
+export default withRouter(observer(Sidebar));

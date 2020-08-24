@@ -109,34 +109,34 @@ class UiStore {
   };
 
   @action
-  enableEditMode() {
+  enableEditMode = () => {
     this.editMode = true;
-  }
+  };
 
   @action
-  disableEditMode() {
+  disableEditMode = () => {
     this.editMode = false;
-  }
+  };
 
   @action
-  enableProgressBar() {
+  enableProgressBar = () => {
     this.progressBarVisible = true;
-  }
+  };
 
   @action
-  disableProgressBar() {
+  disableProgressBar = () => {
     this.progressBarVisible = false;
-  }
+  };
 
   @action
-  toggleMobileSidebar() {
+  toggleMobileSidebar = () => {
     this.mobileSidebarVisible = !this.mobileSidebarVisible;
-  }
+  };
 
   @action
-  hideMobileSidebar() {
+  hideMobileSidebar = () => {
     this.mobileSidebarVisible = false;
-  }
+  };
 
   @action
   showToast = (

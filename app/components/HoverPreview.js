@@ -20,12 +20,7 @@ type Props = {
   onClose: () => void,
 };
 
-function HoverPreview({ node, documents, onClose, event }: Props) {
-  // previews only work for internal doc links for now
-  if (!isInternalUrl(node.href)) {
-    return null;
-  }
-
+function HoverPreviewInternal({ node, documents, onClose, event }: Props) {
   const slug = parseDocumentSlugFromUrl(node.href);
 
   const [isVisible, setVisible] = React.useState(false);
@@ -129,6 +124,15 @@ function HoverPreview({ node, documents, onClose, event }: Props) {
       </Position>
     </Portal>
   );
+}
+
+function HoverPreview({ node, ...rest }: Props) {
+  // previews only work for internal doc links for now
+  if (!isInternalUrl(node.href)) {
+    return null;
+  }
+
+  return <HoverPreviewInternal {...rest} node={node} />;
 }
 
 const Animate = styled.div`

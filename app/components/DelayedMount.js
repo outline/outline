@@ -14,7 +14,7 @@ export default function DelayedMount({ delay = 250, children }: Props) {
     return () => {
       clearTimeout(timeout);
     };
-  }, []);
+  }, [delay]);
 
   if (!isShowing) {
     return null;
