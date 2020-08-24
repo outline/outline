@@ -39,7 +39,7 @@ const readIndexFile = async (ctx) => {
 
 // serve static assets
 koa.use(
-  serve(path.resolve(__dirname, "../public"), {
+  serve(path.resolve(__dirname, "../../public"), {
     maxage: 60 * 60 * 24 * 30 * 1000,
   })
 );
