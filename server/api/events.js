@@ -33,7 +33,6 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
   const paranoid = false;
   const collectionIds = await user.collectionIds(paranoid);
 
-
   let where = {
     name: Event.ACTIVITY_EVENTS,
     teamId: user.teamId,

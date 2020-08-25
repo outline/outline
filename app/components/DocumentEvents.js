@@ -7,6 +7,7 @@ import { type Match, Redirect, type RouterHistory } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 
+import breakpoint from "styled-components-breakpoint";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import EventListItem from "scenes/Settings/components/EventListItem";
 import Button from "components/Button";
@@ -83,7 +84,7 @@ class DocumentEvents extends React.Component<Props> {
     return (
       <Sidebar>
         <Wrapper column>
-          <Header justify={"center"}>
+          <Header>
             <Title>Events</Title>
             <CloseButton
               icon={<CloseIcon />}
@@ -92,23 +93,25 @@ class DocumentEvents extends React.Component<Props> {
               borderOnHover
             />
           </Header>
-          {showLoading ? (
-            <ListPlaceholder count={5} />
-          ) : (
-            <>
-              {events.orderedData.map((event) => (
-                <EventListItem
-                  key={event.id}
-                  event={event}
-                  documents={documents}
-                  collections={collections}
-                />
-              ))}
-              {this.allowLoadMore && (
-                <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
-              )}
-            </>
-          )}
+          <EventWrapper>
+            {showLoading ? (
+              <ListPlaceholder count={5} />
+            ) : (
+              <>
+                {events.orderedData.map((event) => (
+                  <EventListItem
+                    key={event.id}
+                    event={event}
+                    documents={documents}
+                    collections={collections}
+                  />
+                ))}
+                {this.allowLoadMore && (
+                  <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
+                )}
+              </>
+            )}
+          </EventWrapper>
         </Wrapper>
       </Sidebar>
     );
@@ -125,7 +128,6 @@ const Wrapper = styled(Flex)`
   right: 0;
   z-index: 1;
   width: ${(props) => props.theme.sidebarWidth};
-  padding: 5px;
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: none;
@@ -138,22 +140,27 @@ const Sidebar = styled(Flex)`
   z-index: 1;
 `;
 
-const Title = styled.h3`
-  max-width: 90%;
-  overflow: hidden;
+const Title = styled.div`
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  align-items: center;
+  justify-content: flex-start;
   text-overflow: ellipsis;
-  font-size: 20px;
-  margin-top: 0;
-  margin-bottom: 0.25em;
   white-space: nowrap;
-  color: ${(props) => props.theme.text};
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  overflow: hidden;
+  display: none;
+  width: 0;
+
+  ${breakpoint("tablet")`	
+    display: flex;
+    flex-grow: 1;
+  `};
 `;
 
 const Header = styled(Flex)`
   position: relative;
-  padding: 20px;
+  padding: 15.8px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
 `;
 
@@ -161,6 +168,10 @@ const CloseButton = styled(Button)`
   position: absolute;
   top: 10px;
   right: 10px;
+`;
+
+const EventWrapper = styled.div`
+  padding: 5px;
 `;
 
 export default inject("documents", "collections", "events")(DocumentEvents);

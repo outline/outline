@@ -1,14 +1,14 @@
 // @flow
 import { throttle } from "lodash";
 import { observable } from "mobx";
-import { observer, inject } from "mobx-react";
+import { inject, observer } from "mobx-react";
 import {
-  TableOfContentsIcon,
   EditIcon,
   GlobeIcon,
   PlusIcon,
+  TableOfContentsIcon,
 } from "outline-icons";
-import { transparentize, darken } from "polished";
+import { transparentize } from "polished";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 import styled from "styled-components";
@@ -33,7 +33,7 @@ import DocumentMenu from "menus/DocumentMenu";
 import NewChildDocumentMenu from "menus/NewChildDocumentMenu";
 import TemplatesMenu from "menus/TemplatesMenu";
 import { meta } from "utils/keyboard";
-import { newDocumentUrl, editDocumentUrl } from "utils/routeHelpers";
+import { editDocumentUrl, newDocumentUrl } from "utils/routeHelpers";
 
 type Props = {
   auth: AuthStore,
@@ -379,10 +379,7 @@ const Actions = styled(Flex)`
   z-index: 2;
   background: ${(props) => transparentize(0.2, props.theme.background)};
   box-shadow: 0 1px 0
-    ${(props) =>
-      props.isCompact
-        ? darken(0.05, props.theme.sidebarBackground)
-        : "transparent"};
+    ${(props) => (props.isCompact ? props.theme.divider : "transparent")};
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
