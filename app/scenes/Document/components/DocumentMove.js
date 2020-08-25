@@ -34,14 +34,19 @@ class DocumentMove extends React.Component<Props> {
 
   @computed
   get searchIndex() {
-    const { collections } = this.props;
+    const { collections, documents } = this.props;
     const paths = collections.pathsToDocuments;
     const index = new Search("id");
     index.addIndex("title");
 
     // Build index
     const indexeableDocuments = [];
-    paths.forEach((path) => indexeableDocuments.push(path));
+    paths.forEach((path) => {
+      const doc = documents.get(path.id);
+      if (!doc || !doc.isTemplate) {
+        indexeableDocuments.push(path);
+      }
+    });
     index.addDocuments(indexeableDocuments);
 
     return index;
