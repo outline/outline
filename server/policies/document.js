@@ -155,7 +155,15 @@ allow(User, "unpublish", Document, (user, document) => {
 
   if (cannot(user, "update", document.collection)) return false;
 
-  // TODO Block unpublish a document that has nested documents
+  const documentID = document.id;
+  const hasChild = (documents) =>
+    documents.some((doc) => {
+      if (doc.id === documentID) return doc.children.length > 0;
+      return hasChild(doc.children);
+    });
 
-  return user.teamId === document.teamId;
+  return (
+    !hasChild(document.collection.documentStructure) &&
+    user.teamId === document.teamId
+  );
 });
