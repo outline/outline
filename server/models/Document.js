@@ -570,7 +570,7 @@ Document.prototype.archive = async function (userId) {
 };
 
 // Restore an archived document back to being visible to the team
-Document.prototype.unarchive = async function (userId) {
+Document.prototype.unarchive = async function (userId: string) {
   const collection = await this.getCollection();
 
   // check to see if the documents parent hasn't been archived also
@@ -602,23 +602,27 @@ Document.prototype.unarchive = async function (userId) {
 };
 
 // Delete a document, archived or otherwise.
-Document.prototype.delete = function (options) {
-  return sequelize.transaction(async (transaction: Transaction): Promise<*> => {
-    if (!this.archivedAt) {
-      // delete any children and remove from the document structure
-      const collection = await this.getCollection();
-      if (collection) await collection.deleteDocument(this, { transaction });
+Document.prototype.delete = function (userId: string) {
+  return sequelize.transaction(
+    async (transaction: Transaction): Promise<Document> => {
+      if (!this.archivedAt && !this.template) {
+        // delete any children and remove from the document structure
+        const collection = await this.getCollection();
+        if (collection) await collection.deleteDocument(this, { transaction });
+      }
+
+      await Revision.destroy({
+        where: { documentId: this.id },
+        transaction,
+      });
+
+      this.lastModifiedById = userId;
+      this.deletedAt = new Date();
+
+      await this.save({ transaction });
+      return this;
     }
-
-    await Revision.destroy({
-      where: { documentId: this.id },
-      transaction,
-    });
-
-    await this.destroy({ transaction, ...options });
-
-    return this;
-  });
+  );
 };
 
 Document.prototype.getTimestamp = function () {
