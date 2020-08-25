@@ -9,7 +9,7 @@ const URL_REGEX = new RegExp(
 type Props = {|
   attrs: {|
     href: string,
-      matches: string[],
+    matches: string[],
   |},
 |};
 
