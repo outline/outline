@@ -47,15 +47,17 @@ class PathToDocument extends React.Component<Props> {
           .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
         {document && (
-          <Flex>
+          <DocumentTitle>
             {" "}
             <StyledGoToIcon /> <Title>{document.title}</Title>
-          </Flex>
+          </DocumentTitle>
         )}
       </Component>
     );
   }
 }
+
+const DocumentTitle = styled(Flex)``;
 
 const Title = styled.span`
   white-space: nowrap;
@@ -80,13 +82,20 @@ const ResultWrapper = styled.div`
 const ResultWrapperLink = styled(ResultWrapper.withComponent("a"))`
   margin: 0 -8px;
   padding: 8px 4px;
-  border-radius: 8px;
+
+  ${DocumentTitle} {
+    display: none;
+  }
 
   &:hover,
   &:active,
   &:focus {
     background: ${(props) => props.theme.listItemHoverBackground};
     outline: none;
+
+    ${DocumentTitle} {
+      display: flex;
+    }
   }
 `;
 
