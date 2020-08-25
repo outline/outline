@@ -20,17 +20,16 @@ const importFile = async ({
     // non plain text support
     if (documents.importFiletypes.includes(file.type)) {
       try {
-        const document = await processAndSaveDocument(
-          null,
+        const document = new Document(
           {
-            documents,
-            file,
-            documentId,
+            parentDocumentId: documentId,
             collectionId,
+            title: file.name.replace(/\.[^/.]+$/, ""),
           },
-          true
+          documents
         );
-        resolve(document);
+
+        resolve(await documents.import(document, { publish: true, file }));
       } catch (err) {
         reject(err);
       }
@@ -41,12 +40,32 @@ const importFile = async ({
 
     reader.onload = async (ev) => {
       try {
-        const document = await processAndSaveDocument(ev, {
-          documents,
-          file,
-          documentId,
-          collectionId,
-        });
+        let text = ev.target.result;
+        let title;
+
+        // If the first line of the imported file looks like a markdown heading
+        // then we can use this as the document title
+        if (text.trim().startsWith("# ")) {
+          const result = parseTitle(text);
+          title = result.title;
+          text = text.replace(`# ${title}\n`, "");
+
+          // otherwise, just use the filename without the extension as our best guess
+        } else {
+          title = file.name.replace(/\.[^/.]+$/, "");
+        }
+
+        let document = new Document(
+          {
+            parentDocumentId: documentId,
+            collectionId,
+            text,
+            title,
+          },
+          documents
+        );
+
+        document = await document.save({ publish: true });
         resolve(document);
       } catch (err) {
         reject(err);
@@ -61,38 +80,34 @@ async function processAndSaveDocument(
   { documents, file, documentId, collectionId }: Options,
   isUpload = false
 ) {
-  let text = (ev && ev.target.result) || "";
-  let title;
-
-  // If the first line of the imported file looks like a markdown heading
-  // then we can use this as the document title
-  if (text.trim().startsWith("# ")) {
-    const result = parseTitle(text);
-    title = result.title;
-    text = text.replace(`# ${title}\n`, "");
-
-    // otherwise, just use the filename without the extension as our best guess
-  } else {
-    title = file.name.replace(/\.[^/.]+$/, "");
-  }
-
-  let document = new Document(
-    {
-      parentDocumentId: documentId,
-      collectionId,
-      text,
-      title,
-    },
-    documents
-  );
-
-  const saveOpts = { publish: true };
-  if (isUpload) {
-    document = await document.import({ ...saveOpts, file });
-  } else {
-    document = await document.save(saveOpts);
-  }
-  return document;
+  // let text = (ev && ev.target.result) || "";
+  // let title;
+  // // If the first line of the imported file looks like a markdown heading
+  // // then we can use this as the document title
+  // if (text.trim().startsWith("# ")) {
+  //   const result = parseTitle(text);
+  //   title = result.title;
+  //   text = text.replace(`# ${title}\n`, "");
+  //   // otherwise, just use the filename without the extension as our best guess
+  // } else {
+  //   title = file.name.replace(/\.[^/.]+$/, "");
+  // }
+  // let document = new Document(
+  //   {
+  //     parentDocumentId: documentId,
+  //     collectionId,
+  //     text,
+  //     title,
+  //   },
+  //   documents
+  // );
+  // const saveOpts = { publish: true };
+  // if (isUpload) {
+  //   document = await document.import({ ...saveOpts, file });
+  // } else {
+  //   document = await document.save(saveOpts);
+  // }
+  // return document;
 }
 
 export default importFile;

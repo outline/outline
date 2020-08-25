@@ -28,7 +28,7 @@ class ApiClient {
   fetch = async (
     path: string,
     method: string,
-    data: ?Object,
+    data: ?Object | FormData | void,
     options: Object = {}
   ) => {
     let body;
@@ -44,6 +44,10 @@ class ApiClient {
       }
     } else if (method === "POST" || method === "PUT") {
       body = data || undefined;
+
+      // Only stringify data if its a normal object and
+      // not if it's [object FormData], in addition to
+      // toggling Content-Type to application/json
       if (
         typeof data === "object" &&
         (data || "").toString() === "[object Object]"

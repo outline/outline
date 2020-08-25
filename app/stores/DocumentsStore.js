@@ -15,17 +15,21 @@ import naturalSort from "shared/utils/naturalSort";
 
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
-import Document from "models/Document";
+import Document, { type SaveOptions } from "models/Document";
 import Revision from "models/Revision";
 import type { FetchOptions, PaginationParams, SearchResult } from "types";
 import { client } from "utils/ApiClient";
+
+type ImportOptions = SaveOptions & {
+  file: File,
+};
 
 export default class DocumentsStore extends BaseStore<Document> {
   @observable recentlyViewedIds: string[] = [];
   @observable searchCache: Map<string, SearchResult[]> = new Map();
   @observable starredIds: Map<string, boolean> = new Map();
   @observable backlinks: Map<string, string[]> = new Map();
-  @observable importFiletypes: string[] = [
+  importFiletypes: string[] = [
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "text/html",
   ];
@@ -455,6 +459,37 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
+
+    this.addPolicies(res.policies);
+    return this.add(res.data);
+  };
+
+  @action
+  import = async (document: Document, options: ImportOptions) => {
+    const formData = new FormData();
+
+    [
+      { key: "parentDocumentId", value: document.parentDocumentId },
+      { key: "collectionId", value: document.collectionId },
+      { key: "title", value: document.title },
+      { key: "text", value: document.text },
+    ].map((info) => {
+      if (typeof info.value === "string" && info.value) {
+        formData.append(info.key, info.value);
+      }
+    });
+
+    Object.keys(options).forEach((key) =>
+      formData.append(
+        key,
+        options[key] instanceof File
+          ? options[key]
+          : (options[key] || "").toString()
+      )
+    );
+
+    const res = await client.post("/documents.import", formData);
+    invariant(res && res.data, "Data should be available");
 
     this.addPolicies(res.policies);
     return this.add(res.data);
