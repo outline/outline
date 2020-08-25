@@ -42,6 +42,7 @@ class PathToDocument extends React.Component<Props> {
     return (
       <Component ref={ref} onClick={this.handleClick} href="" selectable>
         {collection && <CollectionIcon collection={collection} />}
+        &nbsp;
         {result.path
           .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
