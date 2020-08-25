@@ -1,20 +1,23 @@
 // @flow
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
-import { observable, action } from "mobx";
-import { observer, inject } from "mobx-react";
+import { action, observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { CloseIcon } from "outline-icons";
 import * as React from "react";
-import { type RouterHistory, type Match } from "react-router-dom";
+import { type Match, Redirect, type RouterHistory } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
 import RevisionsStore from "stores/RevisionsStore";
+import Document from "models/Document";
 
 import Flex from "components/Flex";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
+import Button from "../Button";
 import Revision from "./components/Revision";
-import { documentHistoryUrl } from "utils/routeHelpers";
+import { documentHistoryUrl, documentUrl } from "utils/routeHelpers";
 
 type Props = {
   match: Match,
@@ -29,6 +32,7 @@ class DocumentHistory extends React.Component<Props> {
   @observable isFetching: boolean = false;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
+  @observable redirectTo: ?string;
 
   async componentDidMount() {
     await this.loadMoreResults();
@@ -86,15 +90,30 @@ class DocumentHistory extends React.Component<Props> {
     return this.props.revisions.getDocumentRevisions(document.id);
   }
 
+  onCloseHistory = (document: Document) => {
+    this.redirectTo = documentUrl(document);
+  };
+
   render() {
     const document = this.props.documents.getByUrl(
       this.props.match.params.documentSlug
     );
     const showLoading = (!this.isLoaded && this.isFetching) || !document;
 
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
     return (
       <Sidebar>
         <Wrapper column>
+          <Header justify={"center"}>
+            <Title>History</Title>
+            <CloseButton
+              icon={<CloseIcon />}
+              onClick={() => this.onCloseHistory(document)}
+              neutral
+              borderOnHover
+            />
+          </Header>
           {showLoading ? (
             <Loading>
               <ListPlaceholder count={5} />
@@ -144,6 +163,31 @@ const Sidebar = styled(Flex)`
   min-width: ${(props) => props.theme.sidebarWidth};
   border-left: 1px solid ${(props) => props.theme.divider};
   z-index: 1;
+`;
+
+const Title = styled.h3`
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 20px;
+  margin-top: 0;
+  margin-bottom: 0.25em;
+  white-space: nowrap;
+  color: ${(props) => props.theme.text};
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+`;
+
+const Header = styled(Flex)`
+  position: relative;
+  padding: 20px;
+  border-bottom: 1px solid ${(props) => props.theme.divider};
+`;
+
+const CloseButton = styled(Button)`
+  position: absolute;
+  top: 10px;
+  right: 10px;
 `;
 
 export default inject("documents", "revisions")(DocumentHistory);
