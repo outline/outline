@@ -12,11 +12,10 @@ import breakpoint from "styled-components-breakpoint";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
 import RevisionsStore from "stores/RevisionsStore";
-import Document from "models/Document";
 
+import Button from "components/Button";
 import Flex from "components/Flex";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
-import Button from "../Button";
 import Revision from "./components/Revision";
 import { documentHistoryUrl, documentUrl } from "utils/routeHelpers";
 
@@ -91,7 +90,11 @@ class DocumentHistory extends React.Component<Props> {
     return this.props.revisions.getDocumentRevisions(document.id);
   }
 
-  onCloseHistory = (document: Document) => {
+  onCloseHistory = () => {
+    const document = this.props.documents.getByUrl(
+      this.props.match.params.documentSlug
+    );
+
     this.redirectTo = documentUrl(document);
   };
 
@@ -108,11 +111,11 @@ class DocumentHistory extends React.Component<Props> {
         <Wrapper column>
           <Header>
             <Title>History</Title>
-            <CloseButton
+            <Button
               icon={<CloseIcon />}
-              onClick={() => this.onCloseHistory(document)}
-              neutral
+              onClick={this.onCloseHistory}
               borderOnHover
+              neutral
             />
           </Header>
           {showLoading ? (
@@ -160,13 +163,18 @@ const Wrapper = styled(Flex)`
 `;
 
 const Sidebar = styled(Flex)`
+  display: none;
   background: ${(props) => props.theme.background};
   min-width: ${(props) => props.theme.sidebarWidth};
   border-left: 1px solid ${(props) => props.theme.divider};
   z-index: 1;
+
+  ${breakpoint("tablet")`
+    display: flex;
+  `};
 `;
 
-const Title = styled.div`
+const Title = styled(Flex)`
   font-size: 16px;
   font-weight: 600;
   text-align: center;
@@ -175,25 +183,16 @@ const Title = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  display: none;
   width: 0;
-
-  ${breakpoint("tablet")`	
-    display: flex;
-    flex-grow: 1;
-  `};
+  flex-grow: 1;
 `;
 
 const Header = styled(Flex)`
+  align-items: center;
   position: relative;
-  padding: 15.8px;
+  padding: 12px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
-`;
-
-const CloseButton = styled(Button)`
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  color: ${(props) => props.theme.text};
 `;
 
 export default inject("documents", "revisions")(DocumentHistory);
