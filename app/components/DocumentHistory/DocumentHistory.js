@@ -1,20 +1,23 @@
 // @flow
 import ArrowKeyNavigation from "boundless-arrow-key-navigation";
-import { observable, action } from "mobx";
-import { observer, inject } from "mobx-react";
+import { action, observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import { CloseIcon } from "outline-icons";
 import * as React from "react";
-import { type RouterHistory, type Match } from "react-router-dom";
+import { type Match, Redirect, type RouterHistory } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 
+import breakpoint from "styled-components-breakpoint";
 import { DEFAULT_PAGINATION_LIMIT } from "stores/BaseStore";
 import DocumentsStore from "stores/DocumentsStore";
 import RevisionsStore from "stores/RevisionsStore";
 
+import Button from "components/Button";
 import Flex from "components/Flex";
 import { ListPlaceholder } from "components/LoadingPlaceholder";
 import Revision from "./components/Revision";
-import { documentHistoryUrl } from "utils/routeHelpers";
+import { documentHistoryUrl, documentUrl } from "utils/routeHelpers";
 
 type Props = {
   match: Match,
@@ -29,6 +32,7 @@ class DocumentHistory extends React.Component<Props> {
   @observable isFetching: boolean = false;
   @observable offset: number = 0;
   @observable allowLoadMore: boolean = true;
+  @observable redirectTo: ?string;
 
   async componentDidMount() {
     await this.loadMoreResults();
@@ -86,15 +90,34 @@ class DocumentHistory extends React.Component<Props> {
     return this.props.revisions.getDocumentRevisions(document.id);
   }
 
+  onCloseHistory = () => {
+    const document = this.props.documents.getByUrl(
+      this.props.match.params.documentSlug
+    );
+
+    this.redirectTo = documentUrl(document);
+  };
+
   render() {
     const document = this.props.documents.getByUrl(
       this.props.match.params.documentSlug
     );
     const showLoading = (!this.isLoaded && this.isFetching) || !document;
 
+    if (this.redirectTo) return <Redirect to={this.redirectTo} push />;
+
     return (
       <Sidebar>
         <Wrapper column>
+          <Header>
+            <Title>History</Title>
+            <Button
+              icon={<CloseIcon />}
+              onClick={this.onCloseHistory}
+              borderOnHover
+              neutral
+            />
+          </Header>
           {showLoading ? (
             <Loading>
               <ListPlaceholder count={5} />
@@ -140,10 +163,36 @@ const Wrapper = styled(Flex)`
 `;
 
 const Sidebar = styled(Flex)`
+  display: none;
   background: ${(props) => props.theme.background};
   min-width: ${(props) => props.theme.sidebarWidth};
   border-left: 1px solid ${(props) => props.theme.divider};
   z-index: 1;
+
+  ${breakpoint("tablet")`
+    display: flex;
+  `};
+`;
+
+const Title = styled(Flex)`
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  align-items: center;
+  justify-content: flex-start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 0;
+  flex-grow: 1;
+`;
+
+const Header = styled(Flex)`
+  align-items: center;
+  position: relative;
+  padding: 12px;
+  border-bottom: 1px solid ${(props) => props.theme.divider};
+  color: ${(props) => props.theme.text};
 `;
 
 export default inject("documents", "revisions")(DocumentHistory);
