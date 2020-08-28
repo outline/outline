@@ -1736,3 +1736,59 @@ describe("#documents.delete", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe("#documents.unpublish", () => {
+  it("should unpublish a document", async () => {
+    const { user, document } = await seed();
+    const res = await server.post("/api/documents.unpublish", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+    expect(body.data.publishedAt).toBeNull();
+  });
+
+  it("should fail to unpublish a draft document", async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+
+    const res = await server.post("/api/documents.unpublish", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should fail to unpublish a deleted document", async () => {
+    const { user, document } = await seed();
+    await document.delete();
+
+    const res = await server.post("/api/documents.unpublish", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should fail to unpublish a archived document", async () => {
+    const { user, document } = await seed();
+    await document.archive();
+
+    const res = await server.post("/api/documents.unpublish", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authentication", async () => {
+    const { document } = await seed();
+    const res = await server.post("/api/documents.unpublish", {
+      body: { id: document.id },
+    });
+    expect(res.status).toEqual(401);
+  });
+});
