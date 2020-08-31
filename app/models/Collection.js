@@ -137,8 +137,8 @@ export default class Collection extends BaseModel {
 
   @action
   removeDocumentInStructure(documentId: string) {
-    const recursivelyRemoveDocument = nodes => {
-      const index = nodes.findIndex(item => item.id === documentId);
+    const recursivelyRemoveDocument = (nodes) => {
+      const index = nodes.findIndex((item) => item.id === documentId);
       if (index !== -1) {
         nodes.splice(index, 1);
         return true;

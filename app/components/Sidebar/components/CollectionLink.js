@@ -1,20 +1,20 @@
 // @flow
-import { observable, Observer } from 'mobx';
-import { observer } from 'mobx-react';
-import * as React from 'react';
-import DocumentsStore from 'stores/DocumentsStore';
-import UiStore from 'stores/UiStore';
-import Collection from 'models/Collection';
-import Document from 'models/Document';
-import CollectionIcon from 'components/CollectionIcon';
-import DropToImport from 'components/DropToImport';
-import Droppable from './Droppable';
-import Draggable from './Draggable';
-import { SidebarDnDContext } from './Collections';
-import Flex from 'components/Flex';
-import DocumentLink from './DocumentLink';
-import SidebarLink from './SidebarLink';
-import CollectionMenu from 'menus/CollectionMenu';
+import { observable } from "mobx";
+import { observer, Observer } from "mobx-react";
+import * as React from "react";
+import DocumentsStore from "stores/DocumentsStore";
+import UiStore from "stores/UiStore";
+import Collection from "models/Collection";
+import Document from "models/Document";
+import CollectionIcon from "components/CollectionIcon";
+import DropToImport from "components/DropToImport";
+import Flex from "components/Flex";
+import { SidebarDnDContext } from "./Collections";
+import DocumentLink from "./DocumentLink";
+import Draggable from "./Draggable";
+import Droppable from "./Droppable";
+import SidebarLink from "./SidebarLink";
+import CollectionMenu from "menus/CollectionMenu";
 
 type Props = {
   collection: Collection,

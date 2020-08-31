@@ -1,20 +1,20 @@
 // @flow
-import * as React from 'react';
-import { observer, Observer } from 'mobx-react';
-import { observable } from 'mobx';
-import styled from 'styled-components';
-import DocumentsStore from 'stores/DocumentsStore';
-import Collection from 'models/Collection';
-import Document from 'models/Document';
-import DocumentMenu from 'menus/DocumentMenu';
-import SidebarLink from './SidebarLink';
-import Droppable from './Droppable';
-import Draggable from './Draggable';
-import DropToImport from 'components/DropToImport';
-import Fade from 'components/Fade';
-import Flex from 'components/Flex';
-import { type NavigationNode } from 'types';
-import { SidebarDnDContext } from './Collections';
+import { observable } from "mobx";
+import { observer, Observer } from "mobx-react";
+import * as React from "react";
+import styled from "styled-components";
+import DocumentsStore from "stores/DocumentsStore";
+import Collection from "models/Collection";
+import Document from "models/Document";
+import DropToImport from "components/DropToImport";
+import Fade from "components/Fade";
+import Flex from "components/Flex";
+import { SidebarDnDContext } from "./Collections";
+import Draggable from "./Draggable";
+import Droppable from "./Droppable";
+import SidebarLink from "./SidebarLink";
+import DocumentMenu from "menus/DocumentMenu";
+import { type NavigationNode } from "types";
 
 type Props = {
   node: NavigationNode,
@@ -113,7 +113,7 @@ class DocumentLink extends React.Component<Props> {
                   }}
                   expanded={showChildren ? true : undefined}
                   hideDisclosure={hideDisclosure}
-                  label={node.title || 'Untitled'}
+                  label={node.title || "Untitled"}
                   depth={depth}
                   exact={false}
                   menuOpen={this.menuOpen}

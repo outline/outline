@@ -1,29 +1,28 @@
 // @flow
-import * as React from 'react';
-import { observer, inject } from 'mobx-react';
-import { withRouter, type RouterHistory } from 'react-router-dom';
-import keydown from 'react-keydown';
-import { DragDropContext } from 'react-beautiful-dnd';
-import type { DropResult, BeforeCapture } from 'react-beautiful-dnd';
-import { PlusIcon } from 'outline-icons';
-import { newDocumentUrl } from 'utils/routeHelpers';
+import { observer, inject } from "mobx-react";
+import { PlusIcon } from "outline-icons";
+import * as React from "react";
+import type { DropResult, BeforeCapture } from "react-beautiful-dnd";
+import { DragDropContext } from "react-beautiful-dnd";
+import keydown from "react-keydown";
+import { withRouter, type RouterHistory } from "react-router-dom";
+
+import CollectionsStore from "stores/CollectionsStore";
+import DocumentsStore from "stores/DocumentsStore";
+import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import Fade from "components/Fade";
+import Flex from "components/Flex";
+import CollectionLink from "./CollectionLink";
+import CollectionsLoading from "./CollectionsLoading";
+import Header from "./Header";
+import SidebarLink from "./SidebarLink";
 import {
   DROPPABLE_COLLECTION_SUFFIX,
   DROPPABLE_DOCUMENT_SUFFIX,
   DROPPABLE_DOCUMENT_SEPARATOR,
-} from 'utils/dnd';
-
-import Header from './Header';
-import SidebarLink from './SidebarLink';
-import CollectionLink from './CollectionLink';
-import CollectionsLoading from './CollectionsLoading';
-
-import CollectionsStore from 'stores/CollectionsStore';
-import DocumentsStore from 'stores/DocumentsStore';
-import PoliciesStore from 'stores/PoliciesStore';
-import UiStore from 'stores/UiStore';
-import Flex from 'components/Flex';
-import Fade from 'components/Fade';
+} from "utils/dnd";
+import { newDocumentUrl } from "utils/routeHelpers";
 
 type SidebarDnDContextObject = {
   isDragging: boolean,
@@ -37,7 +36,7 @@ const initialSidebarDnDContextValue: SidebarDnDContextObject = {
 
 //$FlowFixMe
 export const SidebarDnDContext = React.createContext(
-  initialSidebarDnDContextValue,
+  initialSidebarDnDContextValue
 );
 
 type Props = {
@@ -69,7 +68,7 @@ class Collections extends React.Component<Props, State> {
     }
   }
 
-  @keydown('n')
+  @keydown("n")
   goToNewDocument() {
     if (this.props.ui.editMode) return;
 
@@ -88,7 +87,7 @@ class Collections extends React.Component<Props, State> {
 
     if (droppableId.indexOf(DROPPABLE_COLLECTION_SUFFIX) === 0) {
       collection = collections.get(
-        droppableId.substring(DROPPABLE_COLLECTION_SUFFIX.length),
+        droppableId.substring(DROPPABLE_COLLECTION_SUFFIX.length)
       );
     } else if (
       droppableId.indexOf(DROPPABLE_DOCUMENT_SUFFIX) === 0 &&
@@ -242,8 +241,8 @@ class Collections extends React.Component<Props, State> {
 }
 
 export default inject(
-  'collections',
-  'ui',
-  'documents',
-  'policies',
+  "collections",
+  "ui",
+  "documents",
+  "policies"
 )(withRouter(Collections));

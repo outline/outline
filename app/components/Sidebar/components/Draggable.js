@@ -1,11 +1,11 @@
 // @flow
 import * as React from "react";
-import ReactDOM from "react-dom";
 import { Draggable as DnDDraggable } from "react-beautiful-dnd";
 import type {
   DraggableProvided,
   DraggableStateSnapshot,
 } from "react-beautiful-dnd";
+import ReactDOM from "react-dom";
 import styled, { withTheme } from "styled-components";
 
 type Props = {
@@ -63,7 +63,7 @@ class Draggable extends React.Component<Props> {
   }
 }
 
-const DropContainer = styled.div(props => ({
+const DropContainer = styled.div((props) => ({
   backgroundColor: props.isDraggingOver
     ? props.theme.sidebarDroppableBackground
     : undefined,

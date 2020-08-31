@@ -1,10 +1,10 @@
 // @flow
-import * as React from 'react';
-import { observer } from 'mobx-react';
-import { CollapsedIcon } from 'outline-icons';
-import { withRouter, NavLink } from 'react-router-dom';
-import styled, { withTheme } from 'styled-components';
-import Flex from 'components/Flex';
+import { observer } from "mobx-react";
+import { CollapsedIcon } from "outline-icons";
+import * as React from "react";
+import { withRouter, NavLink } from "react-router-dom";
+import styled, { withTheme } from "styled-components";
+import Flex from "components/Flex";
 
 type Props = {
   to?: string | Object,
@@ -60,7 +60,7 @@ function SidebarLink({
       ev.stopPropagation();
       setExpanded(!expanded);
     },
-    [expanded],
+    [expanded]
   );
 
   const handleExpand = React.useCallback(() => {
@@ -79,23 +79,23 @@ function SidebarLink({
     <Wrapper column>
       <StyledNavLink
         activeStyle={activeStyle}
-        style={active ? activeStyle : this.style}
+        style={active ? activeStyle : style}
         onClick={onClick}
         exact={exact !== false}
         to={to}
-        as={to ? undefined : href ? 'a' : 'div'}
+        as={to ? undefined : href ? "a" : "div"}
         href={href}
       >
         {icon && <IconWrapper>{icon}</IconWrapper>}
-        <Label onClick={this.handleExpand}>
+        <Label onClick={handleExpand}>
           {showDisclosure && (
-            <Disclosure expanded={this.expanded} onClick={this.handleClick} />
+            <Disclosure expanded={expanded} onClick={handleClick} />
           )}
           {label}
         </Label>
         {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
       </StyledNavLink>
-      <ChildrenWrapper expanded={this.expanded}>{children}</ChildrenWrapper>
+      <ChildrenWrapper expanded={expanded}>{children}</ChildrenWrapper>
     </Wrapper>
   );
 }
@@ -108,7 +108,7 @@ const IconWrapper = styled.span`
 `;
 
 const Action = styled.span`
-  display: ${(props) => (props.menuOpen ? 'inline' : 'none')};
+  display: ${(props) => (props.menuOpen ? "inline" : "none")};
   position: absolute;
   top: 4px;
   right: 4px;
@@ -168,11 +168,11 @@ const Disclosure = styled(CollapsedIcon)`
   position: absolute;
   left: -24px;
 
-  ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'};
+  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
 `;
 
 const ChildrenWrapper = styled.div(({ expanded }) => ({
-  display: expanded ? 'block' : 'none',
+  display: expanded ? "block" : "none",
 }));
 
 export default withRouter(withTheme(observer(SidebarLink)));
