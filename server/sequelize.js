@@ -4,8 +4,15 @@ import Sequelize from "sequelize";
 import EncryptedField from "sequelize-encrypted";
 
 const isProduction = process.env.NODE_ENV === "production";
-const isEncryptedConnection =
-  isProduction && process.env.PGSSLMODE !== "disable";
+
+const isPGSqlEnabled =
+  typeof process.env.PGSSLMODE === "undefined" ||
+  process.env.PGSSLMODE === null ||
+  process.env.PGSSLMODE !== "disable";
+
+const isEncryptedConnection = isProduction && isPGSqlEnabled;
+
+console.log(isEncryptedConnection);
 
 export const encryptedFields = () =>
   EncryptedField(Sequelize, process.env.SECRET_KEY);
