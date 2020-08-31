@@ -2,7 +2,6 @@
 import debug from "debug";
 import mailer from "./mailer";
 import { Collection, Team } from "./models";
-import { archiveCollections } from "./utils/zip";
 import { createQueue } from "./utils/queue";
 
 const log = debug("logistics");
@@ -18,6 +17,7 @@ const queueOptions = {
 
 async function exportAndEmailCollections(teamId: string, email: string) {
   log("Archiving team", teamId);
+  const { archiveCollections } = require("./utils/zip");
   const team = await Team.findByPk(teamId);
   const collections = await Collection.findAll({
     where: { teamId },
@@ -38,7 +38,7 @@ async function exportAndEmailCollections(teamId: string, email: string) {
   });
 }
 
-logisticsQueue.process(async job => {
+logisticsQueue.process(async (job) => {
   log("Process", job.data);
 
   switch (job.data.type) {

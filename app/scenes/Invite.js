@@ -1,23 +1,21 @@
 // @flow
-import * as React from "react";
-import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import { observable, action } from "mobx";
 import { inject, observer } from "mobx-react";
-import { CloseIcon } from "outline-icons";
+import { LinkIcon, CloseIcon } from "outline-icons";
+import * as React from "react";
+import { Link, withRouter, type RouterHistory } from "react-router-dom";
 import styled from "styled-components";
-import Flex from "shared/components/Flex";
-import Button from "components/Button";
-import Input from "components/Input";
-import CopyToClipboard from "components/CopyToClipboard";
-import Checkbox from "components/Checkbox";
-import HelpText from "components/HelpText";
-import Tooltip from "components/Tooltip";
-import NudeButton from "components/NudeButton";
-
-import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
-import UsersStore from "stores/UsersStore";
 import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import UsersStore from "stores/UsersStore";
+import Button from "components/Button";
+import CopyToClipboard from "components/CopyToClipboard";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import NudeButton from "components/NudeButton";
+import Tooltip from "components/Tooltip";
 
 const MAX_INVITES = 20;
 
@@ -33,7 +31,6 @@ type Props = {
 type InviteRequest = {
   email: string,
   name: string,
-  guest: boolean,
 };
 
 @observer
@@ -42,9 +39,9 @@ class Invite extends React.Component<Props> {
   @observable linkCopied: boolean = false;
   @observable
   invites: InviteRequest[] = [
-    { email: "", name: "", guest: false },
-    { email: "", name: "", guest: false },
-    { email: "", name: "", guest: false },
+    { email: "", name: "" },
+    { email: "", name: "" },
+    { email: "", name: "" },
   ];
 
   handleSubmit = async (ev: SyntheticEvent<>) => {
@@ -80,7 +77,7 @@ class Invite extends React.Component<Props> {
       );
     }
 
-    this.invites.push({ email: "", name: "", guest: false });
+    this.invites.push({ email: "", name: "" });
   };
 
   @action
@@ -106,32 +103,46 @@ class Invite extends React.Component<Props> {
         {team.guestSignin ? (
           <HelpText>
             Invite team members or guests to join your knowledge base. Team
-            members can sign in with {team.signinMethods} and guests can use
-            their email address.
+            members can sign in with {team.signinMethods} or use their email
+            address.
           </HelpText>
         ) : (
           <HelpText>
             Invite team members to join your knowledge base. They will need to
             sign in with {team.signinMethods}.{" "}
             {can.update && (
-              <React.Fragment>
+              <>
                 As an admin you can also{" "}
-                <Link to="/settings/security">enable guest invites</Link>.
-              </React.Fragment>
+                <Link to="/settings/security">enable email sign-in</Link>.
+              </>
             )}
           </HelpText>
         )}
         {team.subdomain && (
           <CopyBlock>
-            Want a link to share directly with your team?
-            <Flex>
-              <Input type="text" value={team.url} readOnly flex />&nbsp;&nbsp;
+            <Flex align="flex-end">
+              <Input
+                type="text"
+                value={team.url}
+                label="Want a link to share directly with your team?"
+                readOnly
+                flex
+              />
+              &nbsp;&nbsp;
               <CopyToClipboard text={team.url} onCopy={this.handleCopy}>
-                <Button type="button" neutral>
+                <Button
+                  type="button"
+                  icon={<LinkIcon />}
+                  style={{ marginBottom: "16px" }}
+                  neutral
+                >
                   {this.linkCopied ? "Link copied" : "Copy link"}
                 </Button>
               </CopyToClipboard>
             </Flex>
+            <p>
+              <hr />
+            </p>
           </CopyBlock>
         )}
         {this.invites.map((invite, index) => (
@@ -141,7 +152,7 @@ class Invite extends React.Component<Props> {
               name="email"
               label="Email"
               labelHidden={index !== 0}
-              onChange={ev => this.handleChange(ev, index)}
+              onChange={(ev) => this.handleChange(ev, index)}
               placeholder={`example@${predictedDomain}`}
               value={invite.email}
               required={index === 0}
@@ -154,38 +165,15 @@ class Invite extends React.Component<Props> {
               name="name"
               label="Full name"
               labelHidden={index !== 0}
-              onChange={ev => this.handleChange(ev, index)}
+              onChange={(ev) => this.handleChange(ev, index)}
               value={invite.name}
               required={!!invite.email}
               flex
             />
-            {team.guestSignin && (
-              <React.Fragment>
-                &nbsp;&nbsp;
-                <Tooltip
-                  tooltip={
-                    <span>
-                      Guests can sign in with email and <br />do not require{" "}
-                      {team.signinMethods} accounts
-                    </span>
-                  }
-                  placement="top"
-                >
-                  <Guest>
-                    <Checkbox
-                      name="guest"
-                      label="Guest"
-                      onChange={ev => this.handleGuestChange(ev, index)}
-                      checked={invite.guest}
-                    />
-                  </Guest>
-                </Tooltip>
-              </React.Fragment>
-            )}
             {index !== 0 && (
               <Remove>
                 <Tooltip tooltip="Remove invite" placement="top">
-                  <NudeButton onClick={ev => this.handleRemove(ev, index)}>
+                  <NudeButton onClick={(ev) => this.handleRemove(ev, index)}>
                     <CloseIcon />
                   </NudeButton>
                 </Tooltip>
@@ -220,22 +208,8 @@ class Invite extends React.Component<Props> {
 }
 
 const CopyBlock = styled("div")`
+  margin: 2em 0;
   font-size: 14px;
-  background: ${props => props.theme.secondaryBackground};
-  padding: 8px 16px 4px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-
-  input {
-    background: ${props => props.theme.background};
-    border-radius: 4px;
-  }
-`;
-
-const Guest = styled("div")`
-  padding-top: 4px;
-  margin: 0 4px 16px;
-  align-self: flex-end;
 `;
 
 const Remove = styled("div")`

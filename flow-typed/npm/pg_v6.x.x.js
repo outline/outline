@@ -1,5 +1,5 @@
-// flow-typed signature: 054aac13189fe3a826a6d6c3a5952f6c
-// flow-typed version: 14df781cee/pg_v6.x.x/flow_>=v0.28.x
+// flow-typed signature: 9643e4394ce85a9a44feac8a1d4819bb
+// flow-typed version: c6154227d1/pg_v6.x.x/flow_>=v0.104.x
 
 declare module pg {
   // Note: Currently There are some issues in Function overloading.
@@ -49,7 +49,6 @@ declare module pg {
     validate: Function,
     validateAsync: Function,
     log: Function,
-
     // node-postgres Client ------
     //database user's name
     user: string,
@@ -69,11 +68,11 @@ declare module pg {
     // fallback value for the application_name configuration parameter
     // default value: false
     fallback_application_name?: string,
-
     // pg-pool
     Client: mixed,
     Promise: mixed,
     onCreate: Function,
+    ...
   };
 
   /*
@@ -82,17 +81,16 @@ declare module pg {
   */
   declare type PoolClient = {
     release(error?: mixed): void,
-
     query:
     ( (query: QueryConfig|string, callback?: QueryCallback) => Query ) &
     ( (text: string, values: Array<any>, callback?: QueryCallback) => Query ),
-
     on:
     ((event: 'drain', listener: () => void) => events$EventEmitter )&
     ((event: 'error', listener: (err: PG_ERROR) => void) => events$EventEmitter )&
     ((event: 'notification', listener: (message: any) => void) => events$EventEmitter )&
     ((event: 'notice', listener: (message: any) => void) => events$EventEmitter )&
     ((event: 'end', listener: () => void) => events$EventEmitter ),
+    ...
   }
 
   declare type PoolConnectCallback = (error: PG_ERROR|null,
@@ -148,7 +146,8 @@ declare module pg {
     constraint: string|void,
     file: string|void,
     line: string|void,
-    routine: string|void
+    routine: string|void,
+    ...
   };
 
   declare type ClientConfig = {
@@ -170,16 +169,16 @@ declare module pg {
     // fallback value for the application_name configuration parameter
     // default value: false
     fallback_application_name?: string,
+    ...
   }
 
-  declare type Row = {
-    [key: string]: mixed,
-  };
+  declare type Row = { [key: string]: mixed, ... };
   declare type ResultSet = {
     command: string,
     rowCount: number,
     oid: number,
     rows: Array<Row>,
+    ...
   };
   declare type ResultBuilder = {
     command: string,
@@ -187,11 +186,13 @@ declare module pg {
     oid: number,
     rows: Array<Row>,
     addRow: (row: Row) => void,
+    ...
   };
   declare type QueryConfig = {
     name?: string,
     text: string,
     values?: any[],
+    ...
   };
 
   declare type QueryCallback = (err: PG_ERROR|null, result: ResultSet|void) => void;
@@ -264,12 +265,12 @@ declare module pg {
   declare type Types = {
     getTypeParser:
       ((oid: number, format?: 'text') => TypeParserText )&
-      ((oid: number, format: 'binary') => TypeParserBinary );
-
+      ((oid: number, format: 'binary') => TypeParserBinary ),
     setTypeParser:
       ((oid: number, format?: 'text', parseFn: TypeParserText) => void )&
       ((oid: number, format: 'binary', parseFn: TypeParserBinary) => void)&
       ((oid: number, parseFn: TypeParserText) => void),
+    ...
   }
 
   /*
@@ -281,11 +282,13 @@ declare module pg {
     Pool: Class<Pool>;
     Connection: mixed; //Connection is used internally by the Client.
     constructor(client: Client): void;
-    native: { // native binding, have the same capability like PG
-      types: Types;
-      Client: Class<Client>;
-      Pool: Class<Pool>;
-      Connection: mixed;
+    native: {
+      // native binding, have the same capability like PG
+      types: Types,
+      Client: Class<Client>,
+      Pool: Class<Pool>,
+      Connection: mixed,
+      ...
     };
   // The end(),connect(),cancel() in PG is abandoned ?
   }

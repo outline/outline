@@ -1,14 +1,14 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 
+import DocumentsStore from "stores/DocumentsStore";
 import CenteredContent from "components/CenteredContent";
 import Empty from "components/Empty";
-import PageTitle from "components/PageTitle";
 import Heading from "components/Heading";
+import PageTitle from "components/PageTitle";
 import PaginatedDocumentList from "components/PaginatedDocumentList";
 import Subheading from "components/Subheading";
-import DocumentsStore from "stores/DocumentsStore";
 
 type Props = {
   documents: DocumentsStore,
@@ -29,6 +29,7 @@ class Archive extends React.Component<Props> {
           heading={<Subheading>Documents</Subheading>}
           empty={<Empty>The document archive is empty at the moment.</Empty>}
           showCollection
+          showTemplate
         />
       </CenteredContent>
     );

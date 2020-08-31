@@ -1,7 +1,7 @@
 // @flow
-import policy from "./policy";
-import { User } from "../models";
 import { AdminRequiredError } from "../errors";
+import { User } from "../models";
+import policy from "./policy";
 
 const { allow } = policy;
 
@@ -12,7 +12,7 @@ allow(
   (actor, user) => user && user.teamId === actor.teamId
 );
 
-allow(User, "invite", User, actor => {
+allow(User, "invite", User, (actor) => {
   return true;
 });
 

@@ -1,21 +1,21 @@
 // @flow
 import crypto from "crypto";
+import * as Sentry from "@sentry/node";
+import AWS from "aws-sdk";
 import addHours from "date-fns/add_hours";
 import format from "date-fns/format";
-import AWS from "aws-sdk";
-import invariant from "invariant";
 import fetch from "isomorphic-fetch";
-import * as Sentry from "@sentry/node";
 
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION;
-const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
+const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME || "";
+const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE !== "false";
 
 const s3 = new AWS.S3({
-  s3ForcePathStyle: true,
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  s3ForcePathStyle: AWS_S3_FORCE_PATH_STYLE,
+  accessKeyId: AWS_ACCESS_KEY_ID,
+  secretAccessKey: AWS_SECRET_ACCESS_KEY,
   endpoint: new AWS.Endpoint(process.env.AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
@@ -84,9 +84,9 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
     "localhost:"
   ).replace(/\/$/, "");
 
-  return `${host}/${isServerUpload && isDocker ? "s3/" : ""}${
-    process.env.AWS_S3_UPLOAD_BUCKET_NAME
-  }`;
+  return `${host}/${
+    isServerUpload && isDocker ? "s3/" : ""
+  }${AWS_S3_UPLOAD_BUCKET_NAME}`;
 };
 
 export const uploadToS3FromUrl = async (
@@ -94,8 +94,6 @@ export const uploadToS3FromUrl = async (
   key: string,
   acl: string
 ) => {
-  invariant(AWS_S3_UPLOAD_BUCKET_NAME, "AWS_S3_UPLOAD_BUCKET_NAME not set");
-
   try {
     // $FlowIssue https://github.com/facebook/flow/issues/2171
     const res = await fetch(url);
@@ -103,7 +101,7 @@ export const uploadToS3FromUrl = async (
     await s3
       .putObject({
         ACL: acl,
-        Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+        Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
         Key: key,
         ContentType: res.headers["content-type"],
         ContentLength: res.headers["content-length"],
@@ -126,18 +124,17 @@ export const uploadToS3FromUrl = async (
 export const deleteFromS3 = (key: string) => {
   return s3
     .deleteObject({
-      Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+      Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
       Key: key,
     })
     .promise();
 };
 
 export const getSignedImageUrl = async (key: string) => {
-  invariant(AWS_S3_UPLOAD_BUCKET_NAME, "AWS_S3_UPLOAD_BUCKET_NAME not set");
   const isDocker = process.env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
 
   const params = {
-    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
     Expires: 60,
   };
@@ -149,7 +146,7 @@ export const getSignedImageUrl = async (key: string) => {
 
 export const getImageByKey = async (key: string) => {
   const params = {
-    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
   };
 

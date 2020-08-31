@@ -1,9 +1,14 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb } from "../test/support";
 import { Document } from "../models";
-import { buildDocument, buildCollection, buildTeam } from "../test/factories";
+import {
+  buildDocument,
+  buildCollection,
+  buildTeam,
+  buildUser,
+} from "../test/factories";
+import { flushdb } from "../test/support";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
 describe("#getSummary", () => {
@@ -190,5 +195,18 @@ describe("#searchForTeam", () => {
     const team = await buildTeam();
     const results = await Document.searchForTeam(team, "test");
     expect(results.length).toBe(0);
+  });
+});
+
+describe("#delete", () => {
+  test("should soft delete and set last modified", async () => {
+    let document = await buildDocument();
+    let user = await buildUser();
+
+    await document.delete(user.id);
+
+    document = await Document.findByPk(document.id, { paranoid: false });
+    expect(document.lastModifiedById).toBe(user.id);
+    expect(document.deletedAt).toBeTruthy();
   });
 });

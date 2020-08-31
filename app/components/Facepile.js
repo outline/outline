@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import styled, { withTheme } from "styled-components";
-import Flex from "shared/components/Flex";
-import Avatar from "components/Avatar";
 import User from "models/User";
+import Avatar from "components/Avatar";
+import Flex from "components/Flex";
 
 type Props = {
   users: User[],
@@ -31,7 +31,7 @@ class Facepile extends React.Component<Props> {
             <span>+{overflow}</span>
           </More>
         )}
-        {users.map(user => (
+        {users.map((user) => (
           <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
         ))}
       </Avatars>
@@ -56,12 +56,12 @@ const More = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: ${props => props.size}px;
-  height: ${props => props.size}px;
+  min-width: ${(props) => props.size}px;
+  height: ${(props) => props.size}px;
   border-radius: 100%;
-  background: ${props => props.theme.slate};
-  color: ${props => props.theme.text};
-  border: 2px solid ${props => props.theme.background};
+  background: ${(props) => props.theme.slate};
+  color: ${(props) => props.theme.text};
+  border: 2px solid ${(props) => props.theme.background};
   text-align: center;
   font-size: 11px;
   font-weight: 600;

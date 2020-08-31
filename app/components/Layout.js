@@ -1,32 +1,31 @@
 // @flow
-import * as React from "react";
-import { Switch, Route, Redirect } from "react-router-dom";
-import { Helmet } from "react-helmet";
-import styled, { withTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
+import { Helmet } from "react-helmet";
 import keydown from "react-keydown";
+import { Switch, Route, Redirect } from "react-router-dom";
+import styled, { withTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import AuthStore from "stores/AuthStore";
+import DocumentsStore from "stores/DocumentsStore";
+import UiStore from "stores/UiStore";
+import ErrorSuspended from "scenes/ErrorSuspended";
+import KeyboardShortcuts from "scenes/KeyboardShortcuts";
 import Analytics from "components/Analytics";
-import Flex from "shared/components/Flex";
+import DocumentHistory from "components/DocumentHistory";
+import { GlobalStyles } from "components/DropToImport";
+import Flex from "components/Flex";
+
+import { LoadingIndicatorBar } from "components/LoadingIndicator";
+import Modal from "components/Modal";
+import Sidebar from "components/Sidebar";
+import SettingsSidebar from "components/Sidebar/Settings";
 import {
   homeUrl,
   searchUrl,
   matchDocumentSlug as slug,
 } from "utils/routeHelpers";
-
-import { LoadingIndicatorBar } from "components/LoadingIndicator";
-import { GlobalStyles } from "components/DropToImport";
-import Sidebar from "components/Sidebar";
-import SettingsSidebar from "components/Sidebar/Settings";
-import Modals from "components/Modals";
-import DocumentHistory from "components/DocumentHistory";
-import Modal from "components/Modal";
-import KeyboardShortcuts from "scenes/KeyboardShortcuts";
-import ErrorSuspended from "scenes/ErrorSuspended";
-import AuthStore from "stores/AuthStore";
-import UiStore from "stores/UiStore";
-import DocumentsStore from "stores/DocumentsStore";
 
 type Props = {
   documents: DocumentsStore,
@@ -45,21 +44,22 @@ class Layout extends React.Component<Props> {
   @observable redirectTo: ?string;
   @observable keyboardShortcutsOpen: boolean = false;
 
-  componentWillMount() {
-    this.updateBackground();
+  constructor(props) {
+    super();
+    this.updateBackground(props);
   }
 
   componentDidUpdate() {
-    this.updateBackground();
+    this.updateBackground(this.props);
 
     if (this.redirectTo) {
       this.redirectTo = undefined;
     }
   }
 
-  updateBackground() {
+  updateBackground(props) {
     // ensure the wider page color always matches the theme
-    window.document.body.style.background = this.props.theme.background;
+    window.document.body.style.background = props.theme.background;
   }
 
   @keydown("shift+/")
@@ -97,7 +97,7 @@ class Layout extends React.Component<Props> {
     return (
       <Container column auto>
         <Helmet>
-          <title>Outline</title>
+          <title>{team && team.name ? team.name : "Outline"}</title>
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0"
@@ -127,7 +127,6 @@ class Layout extends React.Component<Props> {
             />
           </Switch>
         </Container>
-        <Modals ui={ui} />
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}
@@ -142,8 +141,8 @@ class Layout extends React.Component<Props> {
 }
 
 const Container = styled(Flex)`
-  background: ${props => props.theme.background};
-  transition: ${props => props.theme.backgroundTransition};
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
   position: relative;
   width: 100%;
   min-height: 100%;
@@ -158,7 +157,7 @@ const Content = styled(Flex)`
   }
 
   ${breakpoint("tablet")`
-    margin-left: ${props => (props.editMode ? 0 : props.theme.sidebarWidth)};
+    margin-left: ${(props) => (props.editMode ? 0 : props.theme.sidebarWidth)};
   `};
 `;
 

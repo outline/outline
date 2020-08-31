@@ -1,6 +1,6 @@
 // @flow
-import * as React from "react";
 import BoundlessPopover from "boundless-popover";
+import * as React from "react";
 import styled, { keyframes } from "styled-components";
 
 const fadeIn = keyframes`
@@ -22,7 +22,7 @@ const StyledPopover = styled(BoundlessPopover)`
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 9999;
+  z-index: ${(props) => props.theme.depths.popover};
 
   svg {
     height: 16px;

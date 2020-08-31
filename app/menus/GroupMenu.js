@@ -1,16 +1,16 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
 import { withRouter, type RouterHistory } from "react-router-dom";
-import Modal from "components/Modal";
-import GroupEdit from "scenes/GroupEdit";
-import GroupDelete from "scenes/GroupDelete";
-
-import Group from "models/Group";
-import UiStore from "stores/UiStore";
 import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import Group from "models/Group";
+import GroupDelete from "scenes/GroupDelete";
+import GroupEdit from "scenes/GroupEdit";
+
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Modal from "components/Modal";
 
 type Props = {
   ui: UiStore,
@@ -50,7 +50,7 @@ class GroupMenu extends React.Component<Props> {
     const can = policies.abilities(group.id);
 
     return (
-      <React.Fragment>
+      <>
         <Modal
           title="Edit group"
           onRequestClose={this.handleEditModalClose}
@@ -75,7 +75,7 @@ class GroupMenu extends React.Component<Props> {
 
         <DropdownMenu onOpen={onOpen} onClose={onClose}>
           {group && (
-            <React.Fragment>
+            <>
               <DropdownMenuItem onClick={this.props.onMembers}>
                 Members…
               </DropdownMenuItem>
@@ -91,10 +91,10 @@ class GroupMenu extends React.Component<Props> {
                   Delete…
                 </DropdownMenuItem>
               )}
-            </React.Fragment>
+            </>
           )}
         </DropdownMenu>
-      </React.Fragment>
+      </>
     );
   }
 }

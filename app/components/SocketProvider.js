@@ -1,18 +1,19 @@
 // @flow
-import * as React from "react";
+import { find } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
-import { find } from "lodash";
-import io from "socket.io-client";
-import DocumentsStore from "stores/DocumentsStore";
+import * as React from "react";
+import io, { Socket } from "socket.io-client";
+import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
+import DocumentPresenceStore from "stores/DocumentPresenceStore";
+import DocumentsStore from "stores/DocumentsStore";
 import GroupsStore from "stores/GroupsStore";
 import MembershipsStore from "stores/MembershipsStore";
-import DocumentPresenceStore from "stores/DocumentPresenceStore";
 import PoliciesStore from "stores/PoliciesStore";
-import ViewsStore from "stores/ViewsStore";
-import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
+import ViewsStore from "stores/ViewsStore";
+import { getVisibilityListener, getPageVisible } from "utils/pageVisibility";
 
 export const SocketContext: any = React.createContext();
 
@@ -31,14 +32,42 @@ type Props = {
 
 @observer
 class SocketProvider extends React.Component<Props> {
-  @observable socket;
+  @observable socket: Socket;
 
   componentDidMount() {
-    if (!process.env.WEBSOCKETS_ENABLED) return;
+    this.createConnection();
 
+    document.addEventListener(getVisibilityListener(), this.checkConnection);
+  }
+
+  componentWillUnmount() {
+    if (this.socket) {
+      this.socket.authenticated = false;
+      this.socket.disconnect();
+    }
+
+    document.removeEventListener(getVisibilityListener(), this.checkConnection);
+  }
+
+  checkConnection = () => {
+    if (this.socket && this.socket.disconnected && getPageVisible()) {
+      // null-ifying this reference is important, do not remove. Without it
+      // references to old sockets are potentially held in context
+      this.socket.close();
+      this.socket = null;
+
+      this.createConnection();
+    }
+  };
+
+  createConnection = () => {
     this.socket = io(window.location.origin, {
       path: "/realtime",
+      transports: ["websocket"],
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 30000,
     });
+
     this.socket.authenticated = false;
 
     const {
@@ -63,23 +92,29 @@ class SocketProvider extends React.Component<Props> {
       });
     });
 
-    this.socket.on("disconnect", () => {
+    this.socket.on("disconnect", (reason: string) => {
       // when the socket is disconnected we need to clear all presence state as
       // it's no longer reliable.
       presence.clear();
+    });
+
+    // on reconnection, reset the transports option, as the Websocket
+    // connection may have failed (caused by proxy, firewall, browser, ...)
+    this.socket.on("reconnect_attempt", () => {
+      this.socket.io.opts.transports = ["polling", "websocket"];
     });
 
     this.socket.on("authenticated", () => {
       this.socket.authenticated = true;
     });
 
-    this.socket.on("unauthorized", err => {
+    this.socket.on("unauthorized", (err) => {
       this.socket.authenticated = false;
       ui.showToast(err.message);
       throw err;
     });
 
-    this.socket.on("entities", async event => {
+    this.socket.on("entities", async (event) => {
       if (event.documentIds) {
         for (const documentDescriptor of event.documentIds) {
           const documentId = documentDescriptor.id;
@@ -184,23 +219,23 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("documents.star", event => {
+    this.socket.on("documents.star", (event) => {
       documents.starredIds.set(event.documentId, true);
     });
 
-    this.socket.on("documents.unstar", event => {
+    this.socket.on("documents.unstar", (event) => {
       documents.starredIds.set(event.documentId, false);
     });
 
     // received when a user is given access to a collection
     // if the user is us then we go ahead and load the collection from API.
-    this.socket.on("collections.add_user", event => {
+    this.socket.on("collections.add_user", (event) => {
       if (auth.user && event.userId === auth.user.id) {
         collections.fetch(event.collectionId, { force: true });
       }
 
       // Document policies might need updating as the permission changes
-      documents.inCollection(event.collectionId).forEach(document => {
+      documents.inCollection(event.collectionId).forEach((document) => {
         policies.remove(document.id);
       });
     });
@@ -208,7 +243,7 @@ class SocketProvider extends React.Component<Props> {
     // received when a user is removed from having access to a collection
     // to keep state in sync we must update our UI if the user is us,
     // or otherwise just remove any membership state we have for that user.
-    this.socket.on("collections.remove_user", event => {
+    this.socket.on("collections.remove_user", (event) => {
       if (auth.user && event.userId === auth.user.id) {
         collections.remove(event.collectionId);
         memberships.removeCollectionMemberships(event.collectionId);
@@ -220,32 +255,32 @@ class SocketProvider extends React.Component<Props> {
 
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.
-    this.socket.on("join", event => {
+    this.socket.on("join", (event) => {
       this.socket.emit("join", event);
     });
 
     // received a message from the API server that we should request
     // to leave a specific room. Forward that to the ws server.
-    this.socket.on("leave", event => {
+    this.socket.on("leave", (event) => {
       this.socket.emit("leave", event);
     });
 
     // received whenever we join a document room, the payload includes
     // userIds that are present/viewing and those that are editing.
-    this.socket.on("document.presence", event => {
+    this.socket.on("document.presence", (event) => {
       presence.init(event.documentId, event.userIds, event.editingIds);
     });
 
     // received whenever a new user joins a document room, aka they
     // navigate to / start viewing a document
-    this.socket.on("user.join", event => {
+    this.socket.on("user.join", (event) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
       views.touch(event.documentId, event.userId);
     });
 
     // received whenever a new user leaves a document room, aka they
     // navigate away / stop viewing a document
-    this.socket.on("user.leave", event => {
+    this.socket.on("user.leave", (event) => {
       presence.leave(event.documentId, event.userId);
       views.touch(event.documentId, event.userId);
     });
@@ -253,17 +288,10 @@ class SocketProvider extends React.Component<Props> {
     // received when another client in a document room wants to change
     // or update it's presence. Currently the only property is whether
     // the client is in editing state or not.
-    this.socket.on("user.presence", event => {
+    this.socket.on("user.presence", (event) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
     });
-  }
-
-  componentWillUnmount() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket.authenticated = false;
-    }
-  }
+  };
 
   render() {
     return (

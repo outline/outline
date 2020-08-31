@@ -1,10 +1,10 @@
 // @flow
-import * as React from "react";
-import { darken } from "polished";
-import breakpoint from "styled-components-breakpoint";
 import useWindowScrollPosition from "@rehooks/window-scroll-position";
-import HelpText from "components/HelpText";
+import { darken } from "polished";
+import * as React from "react";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
+import HelpText from "components/HelpText";
 
 const HEADING_OFFSET = 20;
 
@@ -13,31 +13,26 @@ type Props = {
 };
 
 export default function Contents({ headings }: Props) {
-  // $FlowFixMe
   const [activeSlug, setActiveSlug] = React.useState();
   const position = useWindowScrollPosition({ throttle: 100 });
 
-  // $FlowFixMe
-  React.useEffect(
-    () => {
-      for (let key = 0; key < headings.length; key++) {
-        const heading = headings[key];
-        const element = window.document.getElementById(
-          decodeURIComponent(heading.id)
-        );
+  React.useEffect(() => {
+    for (let key = 0; key < headings.length; key++) {
+      const heading = headings[key];
+      const element = window.document.getElementById(
+        decodeURIComponent(heading.id)
+      );
 
-        if (element) {
-          const bounding = element.getBoundingClientRect();
-          if (bounding.top > HEADING_OFFSET) {
-            const last = headings[Math.max(0, key - 1)];
-            setActiveSlug(last.id);
-            return;
-          }
+      if (element) {
+        const bounding = element.getBoundingClientRect();
+        if (bounding.top > HEADING_OFFSET) {
+          const last = headings[Math.max(0, key - 1)];
+          setActiveSlug(last.id);
+          return;
         }
       }
-    },
-    [position, headings]
-  );
+    }
+  }, [position, headings]);
 
   // calculate the minimum heading level and adjust all the headings to make
   // that the top-most. This prevents the contents from being weirdly indented
@@ -54,7 +49,7 @@ export default function Contents({ headings }: Props) {
         <Heading>Contents</Heading>
         {headings.length ? (
           <List>
-            {headings.map(heading => (
+            {headings.map((heading) => (
               <ListItem
                 key={heading.id}
                 level={heading.level - headingAdjustment}
@@ -77,7 +72,7 @@ const Wrapper = styled("div")`
   position: sticky;
   top: 80px;
 
-  box-shadow: 1px 0 0 ${props => darken(0.05, props.theme.sidebarBackground)};
+  box-shadow: 1px 0 0 ${(props) => darken(0.05, props.theme.sidebarBackground)};
   margin-top: 40px;
   margin-right: 2em;
   min-height: 40px;
@@ -95,7 +90,7 @@ const Heading = styled("h3")`
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  color: ${props => props.theme.sidebarText};
+  color: ${(props) => props.theme.sidebarText};
   letter-spacing: 0.04em;
 `;
 
@@ -108,20 +103,20 @@ const Empty = styled(HelpText)`
 `;
 
 const ListItem = styled("li")`
-  margin-left: ${props => (props.level - 1) * 10}px;
+  margin-left: ${(props) => (props.level - 1) * 10}px;
   margin-bottom: 8px;
   padding-right: 2em;
   line-height: 1.3;
   border-right: 3px solid
-    ${props => (props.active ? props.theme.textSecondary : "transparent")};
+    ${(props) => (props.active ? props.theme.textSecondary : "transparent")};
 `;
 
 const Link = styled("a")`
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   font-size: 14px;
 
   &:hover {
-    color: ${props => props.theme.primary};
+    color: ${(props) => props.theme.primary};
   }
 `;
 

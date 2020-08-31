@@ -1,14 +1,14 @@
 // @flow
 import * as React from "react";
+import GroupMembership from "models/GroupMembership";
+import User from "models/User";
 import Avatar from "components/Avatar";
-import Flex from "shared/components/Flex";
-import Time from "shared/components/Time";
 import Badge from "components/Badge";
 import Button from "components/Button";
-import ListItem from "components/List/Item";
-import User from "models/User";
-import GroupMembership from "models/GroupMembership";
 import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Flex from "components/Flex";
+import ListItem from "components/List/Item";
+import Time from "components/Time";
 
 type Props = {
   user: User,
@@ -27,17 +27,17 @@ const GroupMemberListItem = ({
     <ListItem
       title={user.name}
       subtitle={
-        <React.Fragment>
+        <>
           {user.lastActiveAt ? (
-            <React.Fragment>
+            <>
               Active <Time dateTime={user.lastActiveAt} /> ago
-            </React.Fragment>
+            </>
           ) : (
             "Never signed in"
           )}
           {!user.lastActiveAt && <Badge>Invited</Badge>}
-          {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
-        </React.Fragment>
+          {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
+        </>
       }
       image={<Avatar src={user.avatarUrl} size={40} />}
       actions={

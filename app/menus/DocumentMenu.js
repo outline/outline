@@ -1,22 +1,26 @@
 // @flow
-import * as React from "react";
-import { Redirect } from "react-router-dom";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
 
-import Document from "models/Document";
-import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
 import CollectionStore from "stores/CollectionsStore";
 import PoliciesStore from "stores/PoliciesStore";
+import UiStore from "stores/UiStore";
+import Document from "models/Document";
+import DocumentDelete from "scenes/DocumentDelete";
+import DocumentShare from "scenes/DocumentShare";
+import DocumentTemplatize from "scenes/DocumentTemplatize";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Modal from "components/Modal";
 import {
   documentUrl,
   documentMoveUrl,
-  documentEditUrl,
+  editDocumentUrl,
   documentHistoryUrl,
   newDocumentUrl,
 } from "utils/routeHelpers";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
 
 type Props = {
   ui: UiStore,
@@ -37,6 +41,9 @@ type Props = {
 @observer
 class DocumentMenu extends React.Component<Props> {
   @observable redirectTo: ?string;
+  @observable showDeleteModal = false;
+  @observable showTemplateModal = false;
+  @observable showShareModal = false;
 
   componentDidUpdate() {
     this.redirectTo = undefined;
@@ -44,12 +51,13 @@ class DocumentMenu extends React.Component<Props> {
 
   handleNewChild = (ev: SyntheticEvent<>) => {
     const { document } = this.props;
-    this.redirectTo = newDocumentUrl(document.collectionId, document.id);
+    this.redirectTo = newDocumentUrl(document.collectionId, {
+      parentDocumentId: document.id,
+    });
   };
 
   handleDelete = (ev: SyntheticEvent<>) => {
-    const { document } = this.props;
-    this.props.ui.setActiveModal("document-delete", { document });
+    this.showDeleteModal = true;
   };
 
   handleDocumentHistory = () => {
@@ -65,7 +73,7 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   handleEdit = (ev: SyntheticEvent<>) => {
-    this.redirectTo = documentEditUrl(this.props.document);
+    this.redirectTo = editDocumentUrl(this.props.document);
   };
 
   handleDuplicate = async (ev: SyntheticEvent<>) => {
@@ -74,6 +82,18 @@ class DocumentMenu extends React.Component<Props> {
     // when duplicating, go straight to the duplicated document content
     this.redirectTo = duped.url;
     this.props.ui.showToast("Document duplicated");
+  };
+
+  handleOpenTemplateModal = () => {
+    this.showTemplateModal = true;
+  };
+
+  handleCloseTemplateModal = () => {
+    this.showTemplateModal = false;
+  };
+
+  handleCloseDeleteModal = () => {
+    this.showDeleteModal = false;
   };
 
   handleArchive = async (ev: SyntheticEvent<>) => {
@@ -110,9 +130,12 @@ class DocumentMenu extends React.Component<Props> {
 
   handleShareLink = async (ev: SyntheticEvent<>) => {
     const { document } = this.props;
-    if (!document.shareUrl) await document.share();
+    await document.share();
+    this.showShareModal = true;
+  };
 
-    this.props.ui.setActiveModal("document-share", { document });
+  handleCloseShareModal = () => {
+    this.showShareModal = false;
   };
 
   render() {
@@ -136,108 +159,146 @@ class DocumentMenu extends React.Component<Props> {
     const canViewHistory = can.read && !can.restore;
 
     return (
-      <DropdownMenu
-        className={className}
-        position={position}
-        onOpen={onOpen}
-        onClose={onClose}
-      >
-        {(can.unarchive || can.restore) && (
-          <DropdownMenuItem onClick={this.handleRestore}>
-            Restore
-          </DropdownMenuItem>
-        )}
-        {showPin &&
-          (document.pinned
-            ? can.unpin && (
-                <DropdownMenuItem onClick={this.handleUnpin}>
-                  Unpin
+      <>
+        <DropdownMenu
+          className={className}
+          position={position}
+          onOpen={onOpen}
+          onClose={onClose}
+        >
+          {(can.unarchive || can.restore) && (
+            <DropdownMenuItem onClick={this.handleRestore}>
+              Restore
+            </DropdownMenuItem>
+          )}
+          {showPin &&
+            (document.pinned
+              ? can.unpin && (
+                  <DropdownMenuItem onClick={this.handleUnpin}>
+                    Unpin
+                  </DropdownMenuItem>
+                )
+              : can.pin && (
+                  <DropdownMenuItem onClick={this.handlePin}>
+                    Pin to collection
+                  </DropdownMenuItem>
+                ))}
+          {document.isStarred
+            ? can.unstar && (
+                <DropdownMenuItem onClick={this.handleUnstar}>
+                  Unstar
                 </DropdownMenuItem>
               )
-            : can.pin && (
-                <DropdownMenuItem onClick={this.handlePin}>
-                  Pin to collection
+            : can.star && (
+                <DropdownMenuItem onClick={this.handleStar}>
+                  Star
                 </DropdownMenuItem>
-              ))}
-        {document.isStarred
-          ? can.unstar && (
-              <DropdownMenuItem onClick={this.handleUnstar}>
-                Unstar
-              </DropdownMenuItem>
-            )
-          : can.star && (
-              <DropdownMenuItem onClick={this.handleStar}>
-                Star
-              </DropdownMenuItem>
-            )}
-        {canShareDocuments && (
-          <DropdownMenuItem
-            onClick={this.handleShareLink}
-            title="Create a public share link"
-          >
-            Share link…
-          </DropdownMenuItem>
-        )}
-        {showToggleEmbeds && (
-          <React.Fragment>
-            {document.embedsDisabled ? (
-              <DropdownMenuItem onClick={document.enableEmbeds}>
-                Enable embeds
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={document.disableEmbeds}>
-                Disable embeds
-              </DropdownMenuItem>
-            )}
-          </React.Fragment>
-        )}
-        {canViewHistory && (
-          <React.Fragment>
-            <hr />
-            <DropdownMenuItem onClick={this.handleDocumentHistory}>
-              Document history
+              )}
+          {canShareDocuments && (
+            <DropdownMenuItem
+              onClick={this.handleShareLink}
+              title="Create a public share link"
+            >
+              Share link…
             </DropdownMenuItem>
-          </React.Fragment>
-        )}
-        {can.createChildDocument && (
-          <DropdownMenuItem
-            onClick={this.handleNewChild}
-            title="Create a nested document inside the current document"
-          >
-            New nested document
-          </DropdownMenuItem>
-        )}
-        {can.update && (
-          <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
-        )}
-        {can.update && (
-          <DropdownMenuItem onClick={this.handleDuplicate}>
-            Duplicate
-          </DropdownMenuItem>
-        )}
-        {can.archive && (
-          <DropdownMenuItem onClick={this.handleArchive}>
-            Archive
-          </DropdownMenuItem>
-        )}
-        {can.delete && (
-          <DropdownMenuItem onClick={this.handleDelete}>
-            Delete…
-          </DropdownMenuItem>
-        )}
-        {can.move && (
-          <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
-        )}
-        <hr />
-        {can.download && (
-          <DropdownMenuItem onClick={this.handleExport}>
-            Download
-          </DropdownMenuItem>
-        )}
-        {showPrint && (
-          <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
-        )}
-      </DropdownMenu>
+          )}
+          {showToggleEmbeds && (
+            <>
+              {document.embedsDisabled ? (
+                <DropdownMenuItem onClick={document.enableEmbeds}>
+                  Enable embeds
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={document.disableEmbeds}>
+                  Disable embeds
+                </DropdownMenuItem>
+              )}
+            </>
+          )}
+          {!can.restore && <hr />}
+
+          {can.createChildDocument && (
+            <DropdownMenuItem
+              onClick={this.handleNewChild}
+              title="Create a nested document inside the current document"
+            >
+              New nested document
+            </DropdownMenuItem>
+          )}
+          {can.update && !document.isTemplate && (
+            <DropdownMenuItem onClick={this.handleOpenTemplateModal}>
+              Create template…
+            </DropdownMenuItem>
+          )}
+          {can.update && (
+            <DropdownMenuItem onClick={this.handleEdit}>Edit</DropdownMenuItem>
+          )}
+          {can.update && (
+            <DropdownMenuItem onClick={this.handleDuplicate}>
+              Duplicate
+            </DropdownMenuItem>
+          )}
+          {can.archive && (
+            <DropdownMenuItem onClick={this.handleArchive}>
+              Archive
+            </DropdownMenuItem>
+          )}
+          {can.delete && (
+            <DropdownMenuItem onClick={this.handleDelete}>
+              Delete…
+            </DropdownMenuItem>
+          )}
+          {can.move && (
+            <DropdownMenuItem onClick={this.handleMove}>Move…</DropdownMenuItem>
+          )}
+          <hr />
+          {canViewHistory && (
+            <>
+              <DropdownMenuItem onClick={this.handleDocumentHistory}>
+                History
+              </DropdownMenuItem>
+            </>
+          )}
+          {can.download && (
+            <DropdownMenuItem onClick={this.handleExport}>
+              Download
+            </DropdownMenuItem>
+          )}
+          {showPrint && (
+            <DropdownMenuItem onClick={window.print}>Print</DropdownMenuItem>
+          )}
+        </DropdownMenu>
+        <Modal
+          title={`Delete ${this.props.document.noun}`}
+          onRequestClose={this.handleCloseDeleteModal}
+          isOpen={this.showDeleteModal}
+        >
+          <DocumentDelete
+            document={this.props.document}
+            onSubmit={this.handleCloseDeleteModal}
+          />
+        </Modal>
+        <Modal
+          title="Create template"
+          onRequestClose={this.handleCloseTemplateModal}
+          isOpen={this.showTemplateModal}
+        >
+          <DocumentTemplatize
+            document={this.props.document}
+            onSubmit={this.handleCloseTemplateModal}
+          />
+        </Modal>
+        <Modal
+          title="Share document"
+          onRequestClose={this.handleCloseShareModal}
+          isOpen={this.showShareModal}
+        >
+          <DocumentShare
+            document={this.props.document}
+            onSubmit={this.handleCloseShareModal}
+          />
+        </Modal>
+      </>
     );
   }
 }

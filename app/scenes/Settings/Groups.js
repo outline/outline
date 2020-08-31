@@ -1,33 +1,33 @@
 // @flow
-import * as React from "react";
 import invariant from "invariant";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-
-import Empty from "components/Empty";
-import { ListPlaceholder } from "components/LoadingPlaceholder";
-import Modal from "components/Modal";
-import Button from "components/Button";
-import GroupNew from "scenes/GroupNew";
-import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
-import HelpText from "components/HelpText";
-import GroupListItem from "components/GroupListItem";
-import List from "components/List";
-import Tabs from "components/Tabs";
-import Tab from "components/Tab";
-import GroupMenu from "menus/GroupMenu";
+import * as React from "react";
+import { type Match } from "react-router-dom";
 
 import AuthStore from "stores/AuthStore";
 import GroupsStore from "stores/GroupsStore";
 import PoliciesStore from "stores/PoliciesStore";
+import GroupNew from "scenes/GroupNew";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import Empty from "components/Empty";
+import GroupListItem from "components/GroupListItem";
+import HelpText from "components/HelpText";
+import List from "components/List";
+import { ListPlaceholder } from "components/LoadingPlaceholder";
+import Modal from "components/Modal";
+import PageTitle from "components/PageTitle";
+import Tab from "components/Tab";
+import Tabs from "components/Tabs";
+import GroupMenu from "menus/GroupMenu";
 
 type Props = {
   auth: AuthStore,
   groups: GroupsStore,
   policies: PoliciesStore,
-  match: Object,
+  match: Match,
 };
 
 @observer
@@ -84,7 +84,7 @@ class Groups extends React.Component<Props> {
         </Tabs>
 
         <List>
-          {groups.orderedData.map(group => (
+          {groups.orderedData.map((group) => (
             <GroupListItem
               key={group.id}
               group={group}

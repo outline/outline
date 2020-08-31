@@ -9,7 +9,7 @@ const Backlink = sequelize.define("backlink", {
   },
 });
 
-Backlink.associate = models => {
+Backlink.associate = (models) => {
   Backlink.belongsTo(models.Document, {
     as: "document",
     foreignKey: "documentId",

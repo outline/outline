@@ -2,10 +2,10 @@
 import crypto from "crypto";
 import invariant from "invariant";
 import fetch from "isomorphic-fetch";
-import { client } from "../redis";
 import packageInfo from "../../package.json";
 
 import { User, Team, Collection, Document } from "../models";
+import { client } from "../redis";
 
 const UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";
@@ -16,10 +16,7 @@ export default async () => {
     "SECRET_KEY or URL env var is not set"
   );
   const secret = process.env.SECRET_KEY.slice(0, 6) + process.env.URL;
-  const id = crypto
-    .createHash("sha256")
-    .update(secret)
-    .digest("hex");
+  const id = crypto.createHash("sha256").update(secret).digest("hex");
 
   const [
     userCount,
@@ -45,7 +42,7 @@ export default async () => {
     },
   });
 
-  await client.del("UPDATES_KEY");
+  await client.del(UPDATES_KEY);
 
   try {
     const response = await fetch(UPDATES_URL, {

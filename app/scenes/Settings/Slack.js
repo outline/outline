@@ -1,19 +1,20 @@
 // @flow
-import * as React from "react";
-import { inject, observer } from "mobx-react";
 import { find } from "lodash";
+import { inject, observer } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
 
-import Button from "components/Button";
-import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
-import HelpText from "components/HelpText";
-import SlackButton from "./components/SlackButton";
+import getQueryVariable from "shared/utils/getQueryVariable";
+import AuthStore from "stores/AuthStore";
 import CollectionsStore from "stores/CollectionsStore";
 import IntegrationsStore from "stores/IntegrationsStore";
-import AuthStore from "stores/AuthStore";
-import Notice from "shared/components/Notice";
-import getQueryVariable from "shared/utils/getQueryVariable";
+import Button from "components/Button";
+import CenteredContent from "components/CenteredContent";
+import HelpText from "components/HelpText";
+import Notice from "components/Notice";
+import PageTitle from "components/PageTitle";
+import SlackButton from "./components/SlackButton";
+import env from "env";
 
 type Props = {
   collections: CollectionsStore,
@@ -68,7 +69,7 @@ class Slack extends React.Component<Props> {
           ) : (
             <SlackButton
               scopes={["commands", "links:read", "links:write"]}
-              redirectUri={`${BASE_URL}/auth/slack.commands`}
+              redirectUri={`${env.URL}/auth/slack.commands`}
               state={teamId}
             />
           )}
@@ -82,7 +83,7 @@ class Slack extends React.Component<Props> {
         </HelpText>
 
         <List>
-          {collections.orderedData.map(collection => {
+          {collections.orderedData.map((collection) => {
             const integration = find(integrations.slackIntegrations, {
               collectionId: collection.id,
             });
@@ -105,7 +106,7 @@ class Slack extends React.Component<Props> {
                 <strong>{collection.name}</strong>
                 <SlackButton
                   scopes={["incoming-webhook"]}
-                  redirectUri={`${BASE_URL}/auth/slack.post`}
+                  redirectUri={`${env.URL}/auth/slack.post`}
                   state={collection.id}
                   label="Connect"
                 />

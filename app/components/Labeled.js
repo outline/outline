@@ -1,8 +1,8 @@
 // @flow
-import * as React from "react";
 import { observer } from "mobx-react";
-import Flex from "shared/components/Flex";
+import * as React from "react";
 import styled from "styled-components";
+import Flex from "components/Flex";
 
 type Props = {
   label: React.Node | string,
@@ -21,7 +21,7 @@ export const Label = styled(Flex)`
   font-size: 13px;
   font-weight: 500;
   text-transform: uppercase;
-  color: ${props => props.theme.textTertiary};
+  color: ${(props) => props.theme.textTertiary};
   letter-spacing: 0.04em;
 `;
 

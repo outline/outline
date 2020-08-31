@@ -1,23 +1,23 @@
 // @flow
+import { debounce } from "lodash";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import { inject, observer } from "mobx-react";
-import { observable } from "mobx";
-import { debounce } from "lodash";
+import AuthStore from "stores/AuthStore";
+import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
+import GroupsStore from "stores/GroupsStore";
+import UiStore from "stores/UiStore";
+import Collection from "models/Collection";
+import GroupNew from "scenes/GroupNew";
 import Button from "components/Button";
-import Flex from "shared/components/Flex";
+import Empty from "components/Empty";
+import Flex from "components/Flex";
+import GroupListItem from "components/GroupListItem";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
-import Empty from "components/Empty";
 import PaginatedList from "components/PaginatedList";
-import GroupNew from "scenes/GroupNew";
-import Collection from "models/Collection";
-import UiStore from "stores/UiStore";
-import AuthStore from "stores/AuthStore";
-import GroupsStore from "stores/GroupsStore";
-import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
-import GroupListItem from "components/GroupListItem";
 
 type Props = {
   ui: UiStore,
@@ -52,7 +52,7 @@ class AddGroupsToCollection extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddGroup = group => {
+  handleAddGroup = (group) => {
     try {
       this.props.collectionGroupMemberships.create({
         collectionId: this.props.collection.id,
@@ -77,7 +77,8 @@ class AddGroupsToCollection extends React.Component<Props> {
           Can’t find the group you’re looking for?{" "}
           <a role="button" onClick={this.handleNewGroupModalOpen}>
             Create a group
-          </a>.
+          </a>
+          .
         </HelpText>
 
         <Input
@@ -99,7 +100,7 @@ class AddGroupsToCollection extends React.Component<Props> {
           }
           items={groups.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : groups.fetchPage}
-          renderItem={item => (
+          renderItem={(item) => (
             <GroupListItem
               key={item.id}
               group={item}
@@ -130,6 +131,9 @@ const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
 
-export default inject("auth", "groups", "collectionGroupMemberships", "ui")(
-  AddGroupsToCollection
-);
+export default inject(
+  "auth",
+  "groups",
+  "collectionGroupMemberships",
+  "ui"
+)(AddGroupsToCollection);

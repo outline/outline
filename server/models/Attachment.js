@@ -38,24 +38,24 @@ const Attachment = sequelize.define(
   },
   {
     getterMethods: {
-      name: function() {
+      name: function () {
         return path.parse(this.key).base;
       },
-      redirectUrl: function() {
+      redirectUrl: function () {
         return `/api/attachments.redirect?id=${this.id}`;
       },
-      isPrivate: function() {
+      isPrivate: function () {
         return this.acl === "private";
       },
     },
   }
 );
 
-Attachment.beforeDestroy(async model => {
+Attachment.beforeDestroy(async (model) => {
   await deleteFromS3(model.key);
 });
 
-Attachment.associate = models => {
+Attachment.associate = (models) => {
   Attachment.belongsTo(models.Team);
   Attachment.belongsTo(models.Document);
   Attachment.belongsTo(models.User);

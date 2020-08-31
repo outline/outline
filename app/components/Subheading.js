@@ -7,7 +7,7 @@ type Props = {
 };
 
 const H3 = styled.h3`
-  border-bottom: 1px solid ${props => props.theme.divider};
+  border-bottom: 1px solid ${(props) => props.theme.divider};
   margin-top: 22px;
   margin-bottom: 12px;
   line-height: 1;
@@ -21,8 +21,8 @@ const Underline = styled("span")`
   font-weight: 500;
   font-size: 14px;
   line-height: 1.5;
-  color: ${props => props.theme.textSecondary};
-  border-bottom: 3px solid ${props => props.theme.textSecondary};
+  color: ${(props) => props.theme.textSecondary};
+  border-bottom: 3px solid ${(props) => props.theme.textSecondary};
   padding-bottom: 5px;
 `;
 

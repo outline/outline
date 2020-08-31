@@ -1,29 +1,29 @@
 // @flow
-import * as React from "react";
-import debug from "debug";
 import * as Sentry from "@sentry/node";
+import debug from "debug";
 import nodemailer from "nodemailer";
 import Oy from "oy-vey";
-import { createQueue } from "./utils/queue";
-import { baseStyles } from "./emails/components/EmailLayout";
-import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
-import { ExportEmail, exportEmailText } from "./emails/ExportEmail";
-import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
-import {
-  type Props as InviteEmailT,
-  InviteEmail,
-  inviteEmailText,
-} from "./emails/InviteEmail";
-import {
-  type Props as DocumentNotificationEmailT,
-  DocumentNotificationEmail,
-  documentNotificationEmailText,
-} from "./emails/DocumentNotificationEmail";
+import * as React from "react";
 import {
   type Props as CollectionNotificationEmailT,
   CollectionNotificationEmail,
   collectionNotificationEmailText,
 } from "./emails/CollectionNotificationEmail";
+import {
+  type Props as DocumentNotificationEmailT,
+  DocumentNotificationEmail,
+  documentNotificationEmailText,
+} from "./emails/DocumentNotificationEmail";
+import { ExportEmail, exportEmailText } from "./emails/ExportEmail";
+import {
+  type Props as InviteEmailT,
+  InviteEmail,
+  inviteEmailText,
+} from "./emails/InviteEmail";
+import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
+import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
+import { baseStyles } from "./emails/components/EmailLayout";
+import { createQueue } from "./utils/queue";
 
 const log = debug("emails");
 
@@ -116,9 +116,7 @@ export class Mailer {
   invite = async (opts: { to: string } & InviteEmailT) => {
     this.sendMail({
       to: opts.to,
-      title: `${opts.actorName} invited you to join ${
-        opts.teamName
-      }’s knowledgebase`,
+      title: `${opts.actorName} invited you to join ${opts.teamName}’s knowledge base`,
       previewText:
         "Outline is a place for your team to build and share knowledge.",
       html: <InviteEmail {...opts} />,

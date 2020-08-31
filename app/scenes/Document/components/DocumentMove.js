@@ -1,25 +1,22 @@
 // @flow
-import * as React from "react";
-import ReactDOM from "react-dom";
-import { observable, computed } from "mobx";
-import { observer, inject } from "mobx-react";
+import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { Search } from "js-search";
 import { last } from "lodash";
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
+import { observable, computed } from "mobx";
+import { observer, inject } from "mobx-react";
+import * as React from "react";
+import ReactDOM from "react-dom";
 import styled from "styled-components";
 
-import Modal from "components/Modal";
-import Input from "components/Input";
-import Labeled from "components/Labeled";
-import PathToDocument from "components/PathToDocument";
-import Flex from "shared/components/Flex";
-
-import Document from "models/Document";
+import CollectionsStore, { type DocumentPath } from "stores/CollectionsStore";
 import DocumentsStore from "stores/DocumentsStore";
 import UiStore from "stores/UiStore";
-import CollectionsStore, { type DocumentPath } from "stores/CollectionsStore";
-
-const MAX_RESULTS = 8;
+import Document from "models/Document";
+import Flex from "components/Flex";
+import { Outline } from "components/Input";
+import Labeled from "components/Labeled";
+import Modal from "components/Modal";
+import PathToDocument from "components/PathToDocument";
 
 type Props = {|
   document: Document,
@@ -37,14 +34,19 @@ class DocumentMove extends React.Component<Props> {
 
   @computed
   get searchIndex() {
-    const { collections } = this.props;
+    const { collections, documents } = this.props;
     const paths = collections.pathsToDocuments;
     const index = new Search("id");
     index.addIndex("title");
 
     // Build index
     const indexeableDocuments = [];
-    paths.forEach(path => indexeableDocuments.push(path));
+    paths.forEach((path) => {
+      const doc = documents.get(path.id);
+      if (!doc || !doc.isTemplate) {
+        indexeableDocuments.push(path);
+      }
+    });
     index.addDocuments(indexeableDocuments);
 
     return index;
@@ -53,6 +55,7 @@ class DocumentMove extends React.Component<Props> {
   @computed
   get results(): DocumentPath[] {
     const { document, collections } = this.props;
+    const onlyShowCollections = document.isTemplate;
 
     let results = [];
     if (collections.isLoaded) {
@@ -63,22 +66,28 @@ class DocumentMove extends React.Component<Props> {
       }
     }
 
-    // Exclude root from search results if document is already at the root
-    if (!document.parentDocumentId) {
-      results = results.filter(result => result.id !== document.collectionId);
-    }
+    if (onlyShowCollections) {
+      results = results.filter((result) => result.type === "collection");
+    } else {
+      // Exclude root from search results if document is already at the root
+      if (!document.parentDocumentId) {
+        results = results.filter(
+          (result) => result.id !== document.collectionId
+        );
+      }
 
-    // Exclude document if on the path to result, or the same result
-    results = results.filter(
-      result =>
-        !result.path.map(doc => doc.id).includes(document.id) &&
-        last(result.path.map(doc => doc.id)) !== document.parentDocumentId
-    );
+      // Exclude document if on the path to result, or the same result
+      results = results.filter(
+        (result) =>
+          !result.path.map((doc) => doc.id).includes(document.id) &&
+          last(result.path.map((doc) => doc.id)) !== document.parentDocumentId
+      );
+    }
 
     return results;
   }
 
-  handleKeyDown = ev => {
+  handleKeyDown = (ev) => {
     // Down
     if (ev.which === 40) {
       ev.preventDefault();
@@ -98,7 +107,7 @@ class DocumentMove extends React.Component<Props> {
     this.searchTerm = ev.target.value;
   };
 
-  setFirstDocumentRef = ref => {
+  setFirstDocumentRef = (ref) => {
     this.firstDocument = ref;
   };
 
@@ -121,17 +130,18 @@ class DocumentMove extends React.Component<Props> {
 
     return (
       <Modal isOpen onRequestClose={onRequestClose} title="Move document">
-        {document &&
-          collections.isLoaded && (
-            <Flex column>
-              <Section>
-                <Labeled label="Current location">
-                  {this.renderPathToCurrentDocument()}
-                </Labeled>
-              </Section>
+        {document && collections.isLoaded && (
+          <Flex column>
+            <Section>
+              <Labeled label="Current location">
+                {this.renderPathToCurrentDocument()}
+              </Labeled>
+            </Section>
 
-              <Section column>
-                <Labeled label="Choose a new location">
+            <Section column>
+              <Labeled label="Choose a new location" />
+              <NewLocation>
+                <InputWrapper>
                   <Input
                     type="search"
                     placeholder="Search collections & documents…"
@@ -140,35 +150,68 @@ class DocumentMove extends React.Component<Props> {
                     required
                     autoFocus
                   />
-                </Labeled>
-                <Flex column>
-                  <StyledArrowKeyNavigation
-                    mode={ArrowKeyNavigation.mode.VERTICAL}
-                    defaultActiveChildIndex={0}
-                  >
-                    {this.results
-                      .slice(0, MAX_RESULTS)
-                      .map((result, index) => (
+                </InputWrapper>
+
+                <Results>
+                  <Flex column>
+                    <StyledArrowKeyNavigation
+                      mode={ArrowKeyNavigation.mode.VERTICAL}
+                      defaultActiveChildIndex={0}
+                    >
+                      {this.results.map((result, index) => (
                         <PathToDocument
                           key={result.id}
                           result={result}
                           document={document}
                           collection={collections.get(result.collectionId)}
-                          ref={ref =>
+                          ref={(ref) =>
                             index === 0 && this.setFirstDocumentRef(ref)
                           }
                           onSuccess={this.handleSuccess}
                         />
                       ))}
-                  </StyledArrowKeyNavigation>
-                </Flex>
-              </Section>
-            </Flex>
-          )}
+                    </StyledArrowKeyNavigation>
+                  </Flex>
+                </Results>
+              </NewLocation>
+            </Section>
+          </Flex>
+        )}
       </Modal>
     );
   }
 }
+
+const InputWrapper = styled("div")`
+  padding: 8px;
+  width: 100%;
+`;
+
+const Input = styled("input")`
+  width: 100%;
+  outline: none;
+  background: none;
+  border-radius: 4px;
+  height: 30px;
+  border: 0;
+  color: ${(props) => props.theme.text};
+
+  &::placeholder {
+    color: ${(props) => props.theme.placeholder};
+  }
+`;
+
+const NewLocation = styled(Outline)`
+  flex-direction: column;
+`;
+
+const Results = styled(Flex)`
+  display: block;
+  width: 100%;
+  max-height: 40vh;
+  overflow-y: auto;
+  padding: 8px;
+`;
 
 const Section = styled(Flex)`
   margin-bottom: 24px;

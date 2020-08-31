@@ -1,17 +1,17 @@
 // @flow
-import * as React from "react";
-import styled from "styled-components";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
+import styled from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "shared/constants";
-import Modal from "components/Modal";
-import Flex from "shared/components/Flex";
-import Facepile from "components/Facepile";
-import GroupMembers from "scenes/GroupMembers";
-import ListItem from "components/List/Item";
-import Group from "models/Group";
-import CollectionGroupMembership from "models/CollectionGroupMembership";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
+import CollectionGroupMembership from "models/CollectionGroupMembership";
+import Group from "models/Group";
+import GroupMembers from "scenes/GroupMembers";
+import Facepile from "components/Facepile";
+import Flex from "components/Flex";
+import ListItem from "components/List/Item";
+import Modal from "components/Modal";
 
 type Props = {
   group: Group,
@@ -41,20 +41,20 @@ class GroupListItem extends React.Component<Props> {
     const membershipsInGroup = groupMemberships.inGroup(group.id);
     const users = membershipsInGroup
       .slice(0, MAX_AVATAR_DISPLAY)
-      .map(gm => gm.user);
+      .map((gm) => gm.user);
 
     const overflow = memberCount - users.length;
 
     return (
-      <React.Fragment>
+      <>
         <ListItem
           title={
             <Title onClick={this.handleMembersModalOpen}>{group.name}</Title>
           }
           subtitle={
-            <React.Fragment>
+            <>
               {memberCount} member{memberCount === 1 ? "" : "s"}
-            </React.Fragment>
+            </>
           }
           actions={
             <Flex align="center">
@@ -79,7 +79,7 @@ class GroupListItem extends React.Component<Props> {
         >
           <GroupMembers group={group} onSubmit={this.handleMembersModalClose} />
         </Modal>
-      </React.Fragment>
+      </>
     );
   }
 }

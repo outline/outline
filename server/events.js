@@ -1,7 +1,7 @@
 // @flow
 import * as Sentry from "@sentry/node";
-import { createQueue } from "./utils/queue";
 import services from "./services";
+import { createQueue } from "./utils/queue";
 
 export type UserEvent =
   | {
@@ -126,9 +126,9 @@ const globalEventsQueue = createQueue("global events");
 const serviceEventsQueue = createQueue("service events");
 
 // this queue processes global events and hands them off to service hooks
-globalEventsQueue.process(async job => {
+globalEventsQueue.process(async (job) => {
   const names = Object.keys(services);
-  names.forEach(name => {
+  names.forEach((name) => {
     const service = services[name];
     if (service.on) {
       serviceEventsQueue.add(
@@ -140,14 +140,14 @@ globalEventsQueue.process(async job => {
 });
 
 // this queue processes an individual event for a specific service
-serviceEventsQueue.process(async job => {
+serviceEventsQueue.process(async (job) => {
   const event = job.data;
   const service = services[event.service];
 
   if (service.on) {
-    service.on(event).catch(error => {
+    service.on(event).catch((error) => {
       if (process.env.SENTRY_DSN) {
-        Sentry.withScope(function(scope) {
+        Sentry.withScope(function (scope) {
           scope.setExtra("event", event);
           Sentry.captureException(error);
         });

@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import { pulsate } from "shared/styles/animations";
 import { randomInteger } from "shared/random";
-import Flex from "shared/components/Flex";
+import { pulsate } from "shared/styles/animations";
+import Flex from "components/Flex";
 
 type Props = {
   header?: boolean,
@@ -17,7 +17,8 @@ class Mask extends React.Component<Props> {
     return false;
   }
 
-  componentWillMount() {
+  constructor() {
+    super();
     this.width = randomInteger(75, 100);
   }
 
@@ -27,10 +28,11 @@ class Mask extends React.Component<Props> {
 }
 
 const Redacted = styled(Flex)`
-  width: ${props => (props.header ? props.width / 2 : props.width)}%;
-  height: ${props => (props.height ? props.height : props.header ? 24 : 18)}px;
+  width: ${(props) => (props.header ? props.width / 2 : props.width)}%;
+  height: ${(props) =>
+    props.height ? props.height : props.header ? 24 : 18}px;
   margin-bottom: 6px;
-  background-color: ${props => props.theme.divider};
+  background-color: ${(props) => props.theme.divider};
   animation: ${pulsate} 1.3s infinite;
 
   &:last-child {

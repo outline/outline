@@ -4,7 +4,8 @@
     "react-app",
     "plugin:import/errors",
     "plugin:import/warnings",
-    "plugin:flowtype/recommended"
+    "plugin:flowtype/recommended",
+    "plugin:react-hooks/recommended"
   ],
   "plugins": [
     "prettier",
@@ -14,6 +15,46 @@
     "eqeqeq": 2,
     "no-unused-vars": 2,
     "no-mixed-operators": "off",
+    "import/order": [
+      "error",
+      {
+        "alphabetize": {
+          "order": "asc"
+        },
+        "pathGroups": [
+          {
+            "pattern": "shared/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "stores",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "stores/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "models/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "scenes/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "components/**",
+            "group": "external",
+            "position": "after"
+          }
+        ]
+      }
+    ],
     "flowtype/require-valid-file-annotation": [
       2,
       "always",
@@ -41,8 +82,7 @@
     "react": {
       "createClass": "createReactClass",
       "pragma": "React",
-      "version": "detect",
-      "flowVersion": "0.86"
+      "version": "detect"
     },
     "import/resolver": {
       "node": {
@@ -60,12 +100,6 @@
     "jest": true
   },
   "globals": {
-    "__DEV__": true,
-    "SLACK_KEY": true,
-    "DEPLOYMENT": true,
-    "BASE_URL": true,
-    "SENTRY_DSN": true,
-    "afterAll": true,
-    "Sentry": true
+    "EDITOR_VERSION": true
   }
 }

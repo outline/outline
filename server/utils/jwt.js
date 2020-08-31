@@ -1,6 +1,6 @@
 // @flow
-import JWT from "jsonwebtoken";
 import subMinutes from "date-fns/sub_minutes";
+import JWT from "jsonwebtoken";
 import { AuthenticationError } from "../errors";
 import { User } from "../models";
 

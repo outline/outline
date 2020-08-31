@@ -1,7 +1,7 @@
 // @flow
-import Document from "models/Document";
-import DocumentsStore from "stores/DocumentsStore";
 import parseTitle from "shared/utils/parseTitle";
+import DocumentsStore from "stores/DocumentsStore";
+import Document from "models/Document";
 
 type Options = {
   file: File,
@@ -19,7 +19,7 @@ const importFile = async ({
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
-    reader.onload = async ev => {
+    reader.onload = async (ev) => {
       let text = ev.target.result;
       let title;
 

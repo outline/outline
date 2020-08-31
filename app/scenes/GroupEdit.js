@@ -1,15 +1,14 @@
 // @flow
-import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
-import Button from "components/Button";
-import Input from "components/Input";
-import HelpText from "components/HelpText";
-import Flex from "shared/components/Flex";
-
-import Group from "models/Group";
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
 import UiStore from "stores/UiStore";
+import Group from "models/Group";
+import Button from "components/Button";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
 
 type Props = {
   history: RouterHistory,

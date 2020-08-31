@@ -1,12 +1,12 @@
 // @flow
-import { action, runInAction } from "mobx";
-import { filter } from "lodash";
 import invariant from "invariant";
-import { client } from "utils/ApiClient";
+import { filter } from "lodash";
+import { action, runInAction } from "mobx";
 import BaseStore from "stores/BaseStore";
 import RootStore from "stores/RootStore";
 import Revision from "models/Revision";
 import type { FetchOptions, PaginationParams } from "types";
+import { client } from "utils/ApiClient";
 
 export default class RevisionsStore extends BaseStore<Revision> {
   actions = ["list"];
@@ -52,7 +52,7 @@ export default class RevisionsStore extends BaseStore<Revision> {
       const res = await client.post("/revisions.list", options);
       invariant(res && res.data, "Document revisions not available");
       runInAction("RevisionsStore#fetchPage", () => {
-        res.data.forEach(revision => this.add(revision));
+        res.data.forEach((revision) => this.add(revision));
         this.isLoaded = true;
       });
       return res.data;

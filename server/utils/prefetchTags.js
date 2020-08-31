@@ -1,7 +1,7 @@
 // @flow
-import * as React from "react";
 import fs from "fs";
 import path from "path";
+import * as React from "react";
 import webpackConfig from "../../webpack.config";
 
 const PUBLIC_PATH = webpackConfig.output.publicPath;
@@ -20,7 +20,7 @@ try {
     "utf8"
   );
   const manifestData = JSON.parse(manifest);
-  Object.values(manifestData).forEach(filename => {
+  Object.values(manifestData).forEach((filename) => {
     if (typeof filename !== "string") return;
     if (filename.endsWith(".js")) {
       prefetchTags.push(

@@ -1,18 +1,18 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
 
 import AuthStore from "stores/AuthStore";
 import UiStore from "stores/UiStore";
-import ImageUpload from "./components/ImageUpload";
-import Input, { LabelText } from "components/Input";
+import UserDelete from "scenes/UserDelete";
 import Button from "components/Button";
 import CenteredContent from "components/CenteredContent";
+import Flex from "components/Flex";
+import Input, { LabelText } from "components/Input";
 import PageTitle from "components/PageTitle";
-import UserDelete from "scenes/UserDelete";
-import Flex from "shared/components/Flex";
+import ImageUpload from "./components/ImageUpload";
 
 type Props = {
   auth: AuthStore,
@@ -96,7 +96,7 @@ class Profile extends React.Component<Props> {
             </ImageUpload>
           </AvatarContainer>
         </ProfilePicture>
-        <form onSubmit={this.handleSubmit} ref={ref => (this.form = ref)}>
+        <form onSubmit={this.handleSubmit} ref={(ref) => (this.form = ref)}>
           <Input
             label="Full name"
             autoComplete="name"
@@ -127,8 +127,8 @@ class Profile extends React.Component<Props> {
 }
 
 const DangerZone = styled.div`
-  background: ${props => props.theme.background};
-  transition: ${props => props.theme.backgroundTransition};
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
   position: absolute;
   bottom: 16px;
 `;
@@ -162,7 +162,7 @@ const AvatarContainer = styled(Flex)`
   &:hover div {
     opacity: 1;
     background: rgba(0, 0, 0, 0.75);
-    color: ${props => props.theme.white};
+    color: ${(props) => props.theme.white};
   }
 `;
 

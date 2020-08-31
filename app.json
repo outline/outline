@@ -39,11 +39,6 @@
       "value": "true",
       "required": true
     },
-    "WEBSOCKETS_ENABLED": {
-      "value": "true",
-      "required": true,
-      "description": "Allow realtime data to be pushed to clients over websockets"
-    },
     "URL": {
       "description": "https://{your app name}.herokuapp.com",
       "required": true
@@ -95,6 +90,11 @@
     "AWS_S3_UPLOAD_MAX_SIZE": {
       "description": "Maximum file upload size in bytes",
       "value": "26214400",
+      "required": false
+    },
+    "AWS_S3_FORCE_PATH_STYLE": {
+      "description": "Use path-style URL's for connecting to S3 instead of subdomain. This is useful for S3-compatible storage.",
+      "value": "true",
       "required": false
     },
     "AWS_REGION": {

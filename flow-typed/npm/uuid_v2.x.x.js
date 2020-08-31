@@ -1,5 +1,5 @@
-// flow-typed signature: 7af6723fc9db45a9ff15454c1ca56557
-// flow-typed version: b43dff3e0e/uuid_v2.x.x/flow_>=v0.32.x
+// flow-typed signature: a36ecc712f81ebaf81889f2dfaff56b6
+// flow-typed version: c6154227d1/uuid_v2.x.x/flow_>=v0.104.x
 
 declare module 'uuid' {
   declare function v1(options?: {|

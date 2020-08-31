@@ -1,12 +1,12 @@
 // @flow
 import crypto from "crypto";
-import uuid from "uuid";
-import JWT from "jsonwebtoken";
 import subMinutes from "date-fns/sub_minutes";
+import JWT from "jsonwebtoken";
+import uuid from "uuid";
 import { ValidationError } from "../errors";
+import { sendEmail } from "../mailer";
 import { DataTypes, sequelize, encryptedFields } from "../sequelize";
 import { publicS3Endpoint, uploadToS3FromUrl } from "../utils/s3";
-import { sendEmail } from "../mailer";
 import { Star, Team, Collection, NotificationSetting, ApiKey } from ".";
 
 const DEFAULT_AVATAR_HOST = "https://tiley.herokuapp.com";
@@ -27,7 +27,7 @@ const User = sequelize.define(
     service: { type: DataTypes.STRING, allowNull: true },
     serviceId: { type: DataTypes.STRING, allowNull: true, unique: true },
     slackData: DataTypes.JSONB,
-    jwtSecret: encryptedFields.vault("jwtSecret"),
+    jwtSecret: encryptedFields().vault("jwtSecret"),
     lastActiveAt: DataTypes.DATE,
     lastActiveIp: { type: DataTypes.STRING, allowNull: true },
     lastSignedInAt: DataTypes.DATE,
@@ -59,7 +59,7 @@ const User = sequelize.define(
 );
 
 // Class methods
-User.associate = models => {
+User.associate = (models) => {
   User.hasMany(models.ApiKey, { as: "apiKeys", onDelete: "cascade" });
   User.hasMany(models.NotificationSetting, {
     as: "notificationSettings",
@@ -71,7 +71,7 @@ User.associate = models => {
 };
 
 // Instance methods
-User.prototype.collectionIds = async function(paranoid: boolean = true) {
+User.prototype.collectionIds = async function (paranoid: boolean = true) {
   const collectionStubs = await Collection.scope({
     method: ["withMembership", this.id],
   }).findAll({
@@ -82,15 +82,15 @@ User.prototype.collectionIds = async function(paranoid: boolean = true) {
 
   return collectionStubs
     .filter(
-      c =>
+      (c) =>
         !c.private ||
         c.memberships.length > 0 ||
         c.collectionGroupMemberships.length > 0
     )
-    .map(c => c.id);
+    .map((c) => c.id);
 };
 
-User.prototype.updateActiveAt = function(ip) {
+User.prototype.updateActiveAt = function (ip) {
   const fiveMinutesAgo = subMinutes(new Date(), 5);
 
   // ensure this is updated only every few minutes otherwise
@@ -102,17 +102,17 @@ User.prototype.updateActiveAt = function(ip) {
   }
 };
 
-User.prototype.updateSignedIn = function(ip) {
+User.prototype.updateSignedIn = function (ip) {
   this.lastSignedInAt = new Date();
   this.lastSignedInIp = ip;
   return this.save({ hooks: false });
 };
 
-User.prototype.getJwtToken = function() {
+User.prototype.getJwtToken = function () {
   return JWT.sign({ id: this.id }, this.jwtSecret);
 };
 
-User.prototype.getEmailSigninToken = function() {
+User.prototype.getEmailSigninToken = function () {
   if (this.service && this.service !== "email") {
     throw new Error("Cannot generate email signin token for OAuth user");
   }
@@ -123,7 +123,7 @@ User.prototype.getEmailSigninToken = function() {
   );
 };
 
-const uploadAvatar = async model => {
+const uploadAvatar = async (model) => {
   const endpoint = publicS3Endpoint();
   const { avatarUrl } = model;
 
@@ -147,7 +147,7 @@ const uploadAvatar = async model => {
   }
 };
 
-const setRandomJwtSecret = model => {
+const setRandomJwtSecret = (model) => {
   model.jwtSecret = crypto.randomBytes(64).toString("hex");
 };
 
@@ -179,7 +179,7 @@ const removeIdentifyingInfo = async (model, options) => {
   await model.save({ hooks: false, transaction: options.transaction });
 };
 
-const checkLastAdmin = async model => {
+const checkLastAdmin = async (model) => {
   const teamId = model.teamId;
 
   if (model.isAdmin) {
@@ -198,7 +198,7 @@ User.beforeDestroy(checkLastAdmin);
 User.beforeDestroy(removeIdentifyingInfo);
 User.beforeSave(uploadAvatar);
 User.beforeCreate(setRandomJwtSecret);
-User.afterCreate(async user => {
+User.afterCreate(async (user) => {
   const team = await Team.findByPk(user.teamId);
 
   // From Slack support:

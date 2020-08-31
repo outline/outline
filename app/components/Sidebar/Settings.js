@@ -1,8 +1,5 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
-import type { RouterHistory } from "react-router-dom";
-import styled from "styled-components";
 import {
   DocumentIcon,
   EmailIcon,
@@ -16,19 +13,23 @@ import {
   BulletedListIcon,
   ExpandedIcon,
 } from "outline-icons";
-import ZapierIcon from "./icons/Zapier";
-import SlackIcon from "./icons/Slack";
-
-import Flex from "shared/components/Flex";
-import Sidebar from "./Sidebar";
-import Scrollable from "components/Scrollable";
-import Section from "./components/Section";
-import Header from "./components/Header";
-import SidebarLink from "./components/SidebarLink";
-import HeaderBlock from "./components/HeaderBlock";
-import Version from "./components/Version";
-import PoliciesStore from "stores/PoliciesStore";
+import * as React from "react";
+import type { RouterHistory } from "react-router-dom";
+import styled from "styled-components";
 import AuthStore from "stores/AuthStore";
+import PoliciesStore from "stores/PoliciesStore";
+import Flex from "components/Flex";
+import Scrollable from "components/Scrollable";
+
+import Sidebar from "./Sidebar";
+import Header from "./components/Header";
+import HeaderBlock from "./components/HeaderBlock";
+import Section from "./components/Section";
+import SidebarLink from "./components/SidebarLink";
+import Version from "./components/Version";
+import SlackIcon from "./icons/Slack";
+import ZapierIcon from "./icons/Zapier";
+import env from "env";
 
 type Props = {
   history: RouterHistory,
@@ -39,7 +40,7 @@ type Props = {
 @observer
 class SettingsSidebar extends React.Component<Props> {
   returnToDashboard = () => {
-    this.props.history.push("/");
+    this.props.history.push("/home");
   };
 
   render() {
@@ -54,7 +55,7 @@ class SettingsSidebar extends React.Component<Props> {
         <HeaderBlock
           subheading={
             <ReturnToApp align="center">
-              <BackIcon /> Return to App
+              <BackIcon color="currentColor" /> Return to App
             </ReturnToApp>
           }
           teamName={team.name}
@@ -145,13 +146,12 @@ class SettingsSidebar extends React.Component<Props> {
                 />
               </Section>
             )}
-            {can.update &&
-              process.env.DEPLOYMENT !== "hosted" && (
-                <Section>
-                  <Header>Installation</Header>
-                  <Version />
-                </Section>
-              )}
+            {can.update && env.DEPLOYMENT !== "hosted" && (
+              <Section>
+                <Header>Installation</Header>
+                <Version />
+              </Section>
+            )}
           </Scrollable>
         </Flex>
       </Sidebar>

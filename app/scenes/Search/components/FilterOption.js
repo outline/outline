@@ -1,9 +1,9 @@
 // @flow
-import * as React from "react";
 import { CheckmarkIcon } from "outline-icons";
+import * as React from "react";
 import styled from "styled-components";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
-import Flex from "shared/components/Flex";
 
 type Props = {
   label: string,
@@ -31,7 +31,7 @@ const FilterOption = ({ label, note, onSelect, active }: Props) => {
 const Checkmark = styled(CheckmarkIcon)`
   flex-shrink: 0;
   padding-left: 4px;
-  fill: ${props => props.theme.text};
+  fill: ${(props) => props.theme.text};
 `;
 
 const Anchor = styled("a")`
@@ -39,7 +39,7 @@ const Anchor = styled("a")`
   flex-direction: column;
   font-size: 15px;
   padding: 4px 8px;
-  color: ${props => props.theme.text};
+  color: ${(props) => props.theme.text};
   min-height: 32px;
 
   ${HelpText} {
@@ -48,13 +48,13 @@ const Anchor = styled("a")`
   }
 
   &:hover {
-    background: ${props => props.theme.listItemHoverBackground};
+    background: ${(props) => props.theme.listItemHoverBackground};
   }
 `;
 
 const ListItem = styled("li")`
   list-style: none;
-  font-weight: ${props => (props.active ? "600" : "normal")};
+  font-weight: ${(props) => (props.active ? "600" : "normal")};
 `;
 
 export default FilterOption;

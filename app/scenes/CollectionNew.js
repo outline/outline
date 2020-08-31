@@ -1,20 +1,19 @@
 // @flow
-import * as React from "react";
-import { withRouter, type RouterHistory } from "react-router-dom";
+import { intersection } from "lodash";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
-import { intersection } from "lodash";
-import Button from "components/Button";
-import Switch from "components/Switch";
-import Input from "components/Input";
-import InputRich from "components/InputRich";
-import IconPicker, { icons } from "components/IconPicker";
-import HelpText from "components/HelpText";
-import Flex from "shared/components/Flex";
-
-import Collection from "models/Collection";
+import * as React from "react";
+import { withRouter, type RouterHistory } from "react-router-dom";
 import CollectionsStore from "stores/CollectionsStore";
 import UiStore from "stores/UiStore";
+import Collection from "models/Collection";
+import Button from "components/Button";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import IconPicker, { icons } from "components/IconPicker";
+import Input from "components/Input";
+import InputRich from "components/InputRich";
+import Switch from "components/Switch";
 
 type Props = {
   history: RouterHistory,
@@ -85,7 +84,7 @@ class CollectionNew extends React.Component<Props> {
     this.hasOpenedIconPicker = true;
   };
 
-  handleDescriptionChange = getValue => {
+  handleDescriptionChange = (getValue) => {
     this.description = getValue();
   };
 

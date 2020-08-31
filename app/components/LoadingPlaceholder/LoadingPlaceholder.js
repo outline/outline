@@ -1,21 +1,24 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import Mask from "components/Mask";
+import DelayedMount from "components/DelayedMount";
 import Fade from "components/Fade";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
+import Mask from "components/Mask";
 
 export default function LoadingPlaceholder(props: Object) {
   return (
-    <Wrapper>
-      <Flex column auto {...props}>
-        <Mask height={34} />
-        <br />
-        <Mask />
-        <Mask />
-        <Mask />
-      </Flex>
-    </Wrapper>
+    <DelayedMount>
+      <Wrapper>
+        <Flex column auto {...props}>
+          <Mask height={34} />
+          <br />
+          <Mask />
+          <Mask />
+          <Mask />
+        </Flex>
+      </Wrapper>
+    </DelayedMount>
   );
 }
 

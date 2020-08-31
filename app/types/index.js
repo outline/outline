@@ -1,5 +1,12 @@
 // @flow
+import { type Location } from "react-router-dom";
 import Document from "models/Document";
+
+export type LocationWithState = Location & {
+  state: {
+    [key: string]: string,
+  },
+};
 
 export type Toast = {
   id: string,

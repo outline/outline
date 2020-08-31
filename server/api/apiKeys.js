@@ -2,15 +2,15 @@
 import Router from "koa-router";
 
 import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
-import { presentApiKey } from "../presenters";
 import { ApiKey, Event } from "../models";
 import policy from "../policies";
+import { presentApiKey } from "../presenters";
+import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post("apiKeys.create", auth(), async ctx => {
+router.post("apiKeys.create", auth(), async (ctx) => {
   const { name } = ctx.body;
   ctx.assertPresent(name, "name is required");
 
@@ -36,7 +36,7 @@ router.post("apiKeys.create", auth(), async ctx => {
   };
 });
 
-router.post("apiKeys.list", auth(), pagination(), async ctx => {
+router.post("apiKeys.list", auth(), pagination(), async (ctx) => {
   const user = ctx.state.user;
   const keys = await ApiKey.findAll({
     where: {
@@ -53,7 +53,7 @@ router.post("apiKeys.list", auth(), pagination(), async ctx => {
   };
 });
 
-router.post("apiKeys.delete", auth(), async ctx => {
+router.post("apiKeys.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   ctx.assertUuid(id, "id is required");
 

@@ -1,22 +1,21 @@
 // @flow
-import * as React from "react";
-import { Link } from "react-router-dom";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { SunIcon, MoonIcon } from "outline-icons";
+import * as React from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
-import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
-import Flex from "shared/components/Flex";
-import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
-import Modal from "components/Modal";
+import UiStore from "stores/UiStore";
 import KeyboardShortcuts from "scenes/KeyboardShortcuts";
+import { DropdownMenu, DropdownMenuItem } from "components/DropdownMenu";
+import Flex from "components/Flex";
+import Modal from "components/Modal";
 import {
   developers,
   changelog,
   githubIssuesUrl,
   mailToUrl,
-  spectrumUrl,
   settings,
 } from "../../shared/utils/routeHelpers";
 
@@ -46,7 +45,7 @@ class AccountMenu extends React.Component<Props> {
     const { ui } = this.props;
 
     return (
-      <React.Fragment>
+      <>
         <Modal
           isOpen={this.keyboardShortcutsOpen}
           onRequestClose={this.handleCloseKeyboardShortcuts}
@@ -71,9 +70,6 @@ class AccountMenu extends React.Component<Props> {
           <DropdownMenuItem href={changelog()} target="_blank">
             Changelog
           </DropdownMenuItem>
-          <DropdownMenuItem href={spectrumUrl()} target="_blank">
-            Community
-          </DropdownMenuItem>
           <DropdownMenuItem href={mailToUrl()} target="_blank">
             Send us feedback
           </DropdownMenuItem>
@@ -86,7 +82,7 @@ class AccountMenu extends React.Component<Props> {
             style={{
               left: 170,
               position: "relative",
-              top: -34,
+              top: -40,
             }}
             label={
               <DropdownMenuItem>
@@ -122,7 +118,7 @@ class AccountMenu extends React.Component<Props> {
             Log out
           </DropdownMenuItem>
         </DropdownMenu>
-      </React.Fragment>
+      </>
     );
   }
 }

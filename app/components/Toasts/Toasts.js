@@ -1,9 +1,9 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
-import Toast from "./components/Toast";
 import UiStore from "../../stores/UiStore";
+import Toast from "./components/Toast";
 
 type Props = {
   ui: UiStore,
@@ -15,7 +15,7 @@ class Toasts extends React.Component<Props> {
 
     return (
       <List>
-        {ui.orderedToasts.map(toast => (
+        {ui.orderedToasts.map((toast) => (
           <Toast
             key={toast.id}
             toast={toast}
@@ -29,12 +29,12 @@ class Toasts extends React.Component<Props> {
 
 const List = styled.ol`
   position: fixed;
-  left: ${props => props.theme.hpadding};
-  bottom: ${props => props.theme.vpadding};
+  left: ${(props) => props.theme.hpadding};
+  bottom: ${(props) => props.theme.vpadding};
   list-style: none;
   margin: 0;
   padding: 0;
-  z-index: 1000;
+  z-index: ${(props) => props.theme.depths.toasts};
 `;
 
 export default inject("ui")(Toasts);

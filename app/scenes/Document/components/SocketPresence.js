@@ -1,7 +1,7 @@
 // @flow
 import * as React from "react";
-import { SocketContext } from "components/SocketProvider";
 import { USER_PRESENCE_INTERVAL } from "shared/constants";
+import { SocketContext } from "components/SocketProvider";
 
 type Props = {
   children?: React.Node,
@@ -41,7 +41,7 @@ export default class SocketPresence extends React.Component<Props> {
   }
 
   setupOnce = () => {
-    if (this.context && !this.previousContext) {
+    if (this.context && this.context !== this.previousContext) {
       this.previousContext = this.context;
 
       if (this.context.authenticated) {

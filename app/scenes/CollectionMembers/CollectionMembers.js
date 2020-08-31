@@ -1,27 +1,27 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
-import styled from "styled-components";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-import Flex from "shared/components/Flex";
-import HelpText from "components/HelpText";
-import Subheading from "components/Subheading";
+import * as React from "react";
+import styled from "styled-components";
+import AuthStore from "stores/AuthStore";
+import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
+import GroupsStore from "stores/GroupsStore";
+import MembershipsStore from "stores/MembershipsStore";
+import UiStore from "stores/UiStore";
+import UsersStore from "stores/UsersStore";
+import Collection from "models/Collection";
 import Button from "components/Button";
 import Empty from "components/Empty";
-import PaginatedList from "components/PaginatedList";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
 import Modal from "components/Modal";
-import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
-import Collection from "models/Collection";
-import UiStore from "stores/UiStore";
-import AuthStore from "stores/AuthStore";
-import MembershipsStore from "stores/MembershipsStore";
-import CollectionGroupMembershipsStore from "stores/CollectionGroupMembershipsStore";
-import UsersStore from "stores/UsersStore";
-import MemberListItem from "./components/MemberListItem";
-import AddPeopleToCollection from "./AddPeopleToCollection";
+import PaginatedList from "components/PaginatedList";
+import Subheading from "components/Subheading";
 import AddGroupsToCollection from "./AddGroupsToCollection";
-import GroupsStore from "stores/GroupsStore";
+import AddPeopleToCollection from "./AddPeopleToCollection";
+import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
+import MemberListItem from "./components/MemberListItem";
 
 type Props = {
   ui: UiStore,
@@ -55,7 +55,7 @@ class CollectionMembers extends React.Component<Props> {
     this.addMemberModalOpen = false;
   };
 
-  handleRemoveUser = user => {
+  handleRemoveUser = (user) => {
     try {
       this.props.memberships.delete({
         collectionId: this.props.collection.id,
@@ -80,7 +80,7 @@ class CollectionMembers extends React.Component<Props> {
     }
   };
 
-  handleRemoveGroup = group => {
+  handleRemoveGroup = (group) => {
     try {
       this.props.collectionGroupMemberships.delete({
         collectionId: this.props.collection.id,
@@ -118,22 +118,23 @@ class CollectionMembers extends React.Component<Props> {
     if (!user) return null;
 
     const key = memberships.orderedData
-      .map(m => m.permission)
+      .map((m) => m.permission)
       .concat(collection.private)
       .join("-");
 
     return (
       <Flex column>
         {collection.private ? (
-          <React.Fragment>
+          <>
             <HelpText>
               Choose which groups and team members have access to view and edit
               documents in the private <strong>{collection.name}</strong>{" "}
               collection. You can make this collection visible to the entire
               team by{" "}
               <a role="button" onClick={this.props.onEdit}>
-                changing its visibility
-              </a>.
+                changing the visibility
+              </a>
+              .
             </HelpText>
             <span>
               <Button
@@ -145,7 +146,7 @@ class CollectionMembers extends React.Component<Props> {
                 Add groups
               </Button>
             </span>
-          </React.Fragment>
+          </>
         ) : (
           <HelpText>
             The <strong>{collection.name}</strong> collection is accessible by
@@ -153,7 +154,8 @@ class CollectionMembers extends React.Component<Props> {
             collection,{" "}
             <a role="button" onClick={this.props.onEdit}>
               make it private
-            </a>.
+            </a>
+            .
           </HelpText>
         )}
 
@@ -166,7 +168,7 @@ class CollectionMembers extends React.Component<Props> {
               fetch={collectionGroupMemberships.fetchPage}
               options={collection.private ? { id: collection.id } : undefined}
               empty={<Empty>This collection has no groups.</Empty>}
-              renderItem={group => (
+              renderItem={(group) => (
                 <CollectionGroupMemberListItem
                   key={group.id}
                   group={group}
@@ -174,7 +176,7 @@ class CollectionMembers extends React.Component<Props> {
                     `${group.id}-${collection.id}`
                   )}
                   onRemove={() => this.handleRemoveGroup(group)}
-                  onUpdate={permission =>
+                  onUpdate={(permission) =>
                     this.handleUpdateGroup(group, permission)
                   }
                 />
@@ -193,7 +195,7 @@ class CollectionMembers extends React.Component<Props> {
           </GroupsWrap>
         )}
         {collection.private ? (
-          <React.Fragment>
+          <>
             <span>
               <Button
                 type="button"
@@ -206,7 +208,7 @@ class CollectionMembers extends React.Component<Props> {
             </span>
 
             <Subheading>Individual Members</Subheading>
-          </React.Fragment>
+          </>
         ) : (
           <Subheading>Members</Subheading>
         )}
@@ -219,14 +221,14 @@ class CollectionMembers extends React.Component<Props> {
           }
           fetch={collection.private ? memberships.fetchPage : users.fetchPage}
           options={collection.private ? { id: collection.id } : undefined}
-          renderItem={item => (
+          renderItem={(item) => (
             <MemberListItem
               key={item.id}
               user={item}
               membership={memberships.get(`${item.id}-${collection.id}`)}
               canEdit={collection.private && item.id !== user.id}
               onRemove={() => this.handleRemoveUser(item)}
-              onUpdate={permission => this.handleUpdateUser(item, permission)}
+              onUpdate={(permission) => this.handleUpdateUser(item, permission)}
             />
           )}
         />

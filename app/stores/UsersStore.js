@@ -1,11 +1,11 @@
 // @flow
+import invariant from "invariant";
 import { filter, orderBy } from "lodash";
 import { computed, action, runInAction } from "mobx";
-import invariant from "invariant";
-import { client } from "utils/ApiClient";
+import User from "models/User";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
-import User from "models/User";
+import { client } from "utils/ApiClient";
 
 export default class UsersStore extends BaseStore<User> {
   constructor(rootStore: RootStore) {
@@ -16,33 +16,33 @@ export default class UsersStore extends BaseStore<User> {
   get active(): User[] {
     return filter(
       this.orderedData,
-      user => !user.isSuspended && user.lastActiveAt
+      (user) => !user.isSuspended && user.lastActiveAt
     );
   }
 
   @computed
   get suspended(): User[] {
-    return filter(this.orderedData, user => user.isSuspended);
+    return filter(this.orderedData, (user) => user.isSuspended);
   }
 
   @computed
   get activeOrInvited(): User[] {
-    return filter(this.orderedData, user => !user.isSuspended);
+    return filter(this.orderedData, (user) => !user.isSuspended);
   }
 
   @computed
   get invited(): User[] {
-    return filter(this.orderedData, user => !user.lastActiveAt);
+    return filter(this.orderedData, (user) => !user.lastActiveAt);
   }
 
   @computed
   get admins(): User[] {
-    return filter(this.orderedData, user => user.isAdmin);
+    return filter(this.orderedData, (user) => user.isAdmin);
   }
 
   @computed
   get all(): User[] {
-    return filter(this.orderedData, user => user.lastActiveAt);
+    return filter(this.orderedData, (user) => user.lastActiveAt);
   }
 
   @computed
@@ -83,12 +83,12 @@ export default class UsersStore extends BaseStore<User> {
   notInCollection = (collectionId: string, query: string = "") => {
     const memberships = filter(
       this.rootStore.memberships.orderedData,
-      member => member.collectionId === collectionId
+      (member) => member.collectionId === collectionId
     );
-    const userIds = memberships.map(member => member.userId);
+    const userIds = memberships.map((member) => member.userId);
     const users = filter(
       this.activeOrInvited,
-      user => !userIds.includes(user.id)
+      (user) => !userIds.includes(user.id)
     );
 
     if (!query) return users;
@@ -98,10 +98,10 @@ export default class UsersStore extends BaseStore<User> {
   inCollection = (collectionId: string, query: string) => {
     const memberships = filter(
       this.rootStore.memberships.orderedData,
-      member => member.collectionId === collectionId
+      (member) => member.collectionId === collectionId
     );
-    const userIds = memberships.map(member => member.userId);
-    const users = filter(this.activeOrInvited, user =>
+    const userIds = memberships.map((member) => member.userId);
+    const users = filter(this.activeOrInvited, (user) =>
       userIds.includes(user.id)
     );
 
@@ -112,12 +112,12 @@ export default class UsersStore extends BaseStore<User> {
   notInGroup = (groupId: string, query: string = "") => {
     const memberships = filter(
       this.rootStore.groupMemberships.orderedData,
-      member => member.groupId === groupId
+      (member) => member.groupId === groupId
     );
-    const userIds = memberships.map(member => member.userId);
+    const userIds = memberships.map((member) => member.userId);
     const users = filter(
       this.activeOrInvited,
-      user => !userIds.includes(user.id)
+      (user) => !userIds.includes(user.id)
     );
 
     if (!query) return users;
@@ -127,10 +127,10 @@ export default class UsersStore extends BaseStore<User> {
   inGroup = (groupId: string, query: string) => {
     const groupMemberships = filter(
       this.rootStore.groupMemberships.orderedData,
-      member => member.groupId === groupId
+      (member) => member.groupId === groupId
     );
-    const userIds = groupMemberships.map(member => member.userId);
-    const users = filter(this.activeOrInvited, user =>
+    const userIds = groupMemberships.map((member) => member.userId);
+    const users = filter(this.activeOrInvited, (user) =>
       userIds.includes(user.id)
     );
 
@@ -152,7 +152,7 @@ export default class UsersStore extends BaseStore<User> {
 }
 
 function queriedUsers(users, query) {
-  return filter(users, user =>
+  return filter(users, (user) =>
     user.name.toLowerCase().includes(query.toLowerCase())
   );
 }

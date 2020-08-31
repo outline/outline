@@ -1,23 +1,23 @@
 // @flow
-import * as React from "react";
 import { observable } from "mobx";
 import { inject, observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-import Flex from "shared/components/Flex";
-import Empty from "components/Empty";
-import HelpText from "components/HelpText";
-import Subheading from "components/Subheading";
-import Button from "components/Button";
-import PaginatedList from "components/PaginatedList";
-import Modal from "components/Modal";
-import Group from "models/Group";
-import UiStore from "stores/UiStore";
+import * as React from "react";
 import AuthStore from "stores/AuthStore";
 import GroupMembershipsStore from "stores/GroupMembershipsStore";
-import UsersStore from "stores/UsersStore";
 import PoliciesStore from "stores/PoliciesStore";
-import GroupMemberListItem from "./components/GroupMemberListItem";
+import UiStore from "stores/UiStore";
+import UsersStore from "stores/UsersStore";
+import Group from "models/Group";
+import Button from "components/Button";
+import Empty from "components/Empty";
+import Flex from "components/Flex";
+import HelpText from "components/HelpText";
+import Modal from "components/Modal";
+import PaginatedList from "components/PaginatedList";
+import Subheading from "components/Subheading";
 import AddPeopleToGroup from "./AddPeopleToGroup";
+import GroupMemberListItem from "./components/GroupMemberListItem";
 
 type Props = {
   ui: UiStore,
@@ -40,7 +40,7 @@ class GroupMembers extends React.Component<Props> {
     this.addModalOpen = false;
   };
 
-  handleRemoveUser = async user => {
+  handleRemoveUser = async (user) => {
     try {
       await this.props.groupMemberships.delete({
         groupId: this.props.group.id,
@@ -62,7 +62,7 @@ class GroupMembers extends React.Component<Props> {
     return (
       <Flex column>
         {can.update ? (
-          <React.Fragment>
+          <>
             <HelpText>
               Add and remove team members in the <strong>{group.name}</strong>{" "}
               group. Adding people to the group will give them access to any
@@ -78,7 +78,7 @@ class GroupMembers extends React.Component<Props> {
                 Add people…
               </Button>
             </span>
-          </React.Fragment>
+          </>
         ) : (
           <HelpText>
             Listing team members in the <strong>{group.name}</strong> group.
@@ -91,7 +91,7 @@ class GroupMembers extends React.Component<Props> {
           fetch={groupMemberships.fetchPage}
           options={{ id: group.id }}
           empty={<Empty>This group has no members.</Empty>}
-          renderItem={item => (
+          renderItem={(item) => (
             <GroupMemberListItem
               key={item.id}
               user={item}
@@ -119,6 +119,10 @@ class GroupMembers extends React.Component<Props> {
   }
 }
 
-export default inject("auth", "users", "policies", "groupMemberships", "ui")(
-  GroupMembers
-);
+export default inject(
+  "auth",
+  "users",
+  "policies",
+  "groupMemberships",
+  "ui"
+)(GroupMembers);

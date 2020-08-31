@@ -7,11 +7,11 @@ import { Mailer } from "../mailer";
 const emailPreviews = new Koa();
 const router = new Router();
 
-router.get("/:type/:format", async ctx => {
+router.get("/:type/:format", async (ctx) => {
   let mailerOutput;
   let mailer = new Mailer();
   mailer.transporter = {
-    sendMail: data => (mailerOutput = data),
+    sendMail: (data) => (mailerOutput = data),
   };
 
   switch (ctx.params.type) {

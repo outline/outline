@@ -1,15 +1,15 @@
 // @flow
-import * as React from "react";
-import styled from "styled-components";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import UserMenu from "menus/UserMenu";
+import * as React from "react";
+import styled from "styled-components";
+import User from "models/User";
+import UserProfile from "scenes/UserProfile";
 import Avatar from "components/Avatar";
 import Badge from "components/Badge";
-import UserProfile from "scenes/UserProfile";
 import ListItem from "components/List/Item";
-import Time from "shared/components/Time";
-import User from "models/User";
+import Time from "components/Time";
+import UserMenu from "menus/UserMenu";
 
 type Props = {
   user: User,
@@ -35,7 +35,7 @@ class UserListItem extends React.Component<Props> {
       <ListItem
         title={<Title onClick={this.handleOpenProfile}>{user.name}</Title>}
         image={
-          <React.Fragment>
+          <>
             <Avatar
               src={user.avatarUrl}
               size={40}
@@ -46,21 +46,21 @@ class UserListItem extends React.Component<Props> {
               isOpen={this.profileOpen}
               onRequestClose={this.handleCloseProfile}
             />
-          </React.Fragment>
+          </>
         }
         subtitle={
-          <React.Fragment>
+          <>
             {user.email ? `${user.email} · ` : undefined}
             {user.lastActiveAt ? (
-              <React.Fragment>
+              <>
                 Active <Time dateTime={user.lastActiveAt} /> ago
-              </React.Fragment>
+              </>
             ) : (
               "Invited"
             )}
-            {user.isAdmin && <Badge admin={user.isAdmin}>Admin</Badge>}
+            {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
             {user.isSuspended && <Badge>Suspended</Badge>}
-          </React.Fragment>
+          </>
         }
         actions={showMenu ? <UserMenu user={user} /> : undefined}
       />

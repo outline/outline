@@ -1,17 +1,17 @@
 // @flow
 import Router from "koa-router";
-import { Op } from "../sequelize";
-import { Event, User, Team } from "../models";
-import auth from "../middlewares/authentication";
-import pagination from "./middlewares/pagination";
 import userInviter from "../commands/userInviter";
-import { presentUser } from "../presenters";
+import auth from "../middlewares/authentication";
+import { Event, User, Team } from "../models";
 import policy from "../policies";
+import { presentUser } from "../presenters";
+import { Op } from "../sequelize";
+import pagination from "./middlewares/pagination";
 
 const { authorize } = policy;
 const router = new Router();
 
-router.post("users.list", auth(), pagination(), async ctx => {
+router.post("users.list", auth(), pagination(), async (ctx) => {
   const { sort = "createdAt", query, includeSuspended = false } = ctx.body;
   let direction = ctx.body.direction;
   if (direction !== "ASC") direction = "DESC";
@@ -48,19 +48,19 @@ router.post("users.list", auth(), pagination(), async ctx => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: users.map(listUser =>
+    data: users.map((listUser) =>
       presentUser(listUser, { includeDetails: user.isAdmin })
     ),
   };
 });
 
-router.post("users.info", auth(), async ctx => {
+router.post("users.info", auth(), async (ctx) => {
   ctx.body = {
     data: presentUser(ctx.state.user),
   };
 });
 
-router.post("users.update", auth(), async ctx => {
+router.post("users.update", auth(), async (ctx) => {
   const { user } = ctx.state;
   const { name, avatarUrl } = ctx.body;
 
@@ -76,7 +76,7 @@ router.post("users.update", auth(), async ctx => {
 
 // Admin specific
 
-router.post("users.promote", auth(), async ctx => {
+router.post("users.promote", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, "id is required");
@@ -101,7 +101,7 @@ router.post("users.promote", auth(), async ctx => {
   };
 });
 
-router.post("users.demote", auth(), async ctx => {
+router.post("users.demote", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
   ctx.assertPresent(userId, "id is required");
@@ -126,7 +126,7 @@ router.post("users.demote", auth(), async ctx => {
   };
 });
 
-router.post("users.suspend", auth(), async ctx => {
+router.post("users.suspend", auth(), async (ctx) => {
   const admin = ctx.state.user;
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
@@ -152,7 +152,7 @@ router.post("users.suspend", auth(), async ctx => {
   };
 });
 
-router.post("users.activate", auth(), async ctx => {
+router.post("users.activate", auth(), async (ctx) => {
   const admin = ctx.state.user;
   const userId = ctx.body.id;
   const teamId = ctx.state.user.teamId;
@@ -178,7 +178,7 @@ router.post("users.activate", auth(), async ctx => {
   };
 });
 
-router.post("users.invite", auth(), async ctx => {
+router.post("users.invite", auth(), async (ctx) => {
   const { invites } = ctx.body;
   ctx.assertPresent(invites, "invites is required");
 
@@ -190,12 +190,12 @@ router.post("users.invite", auth(), async ctx => {
   ctx.body = {
     data: {
       sent: response.sent,
-      users: response.users.map(user => presentUser(user)),
+      users: response.users.map((user) => presentUser(user)),
     },
   };
 });
 
-router.post("users.delete", auth(), async ctx => {
+router.post("users.delete", auth(), async (ctx) => {
   const { confirmation, id } = ctx.body;
   ctx.assertPresent(confirmation, "confirmation is required");
 

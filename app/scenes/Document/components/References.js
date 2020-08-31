@@ -1,13 +1,13 @@
 // @flow
-import * as React from "react";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import { withRouter, type Location } from "react-router-dom";
-import Fade from "components/Fade";
-import Tabs from "components/Tabs";
-import Tab from "components/Tab";
-import DocumentsStore from "stores/DocumentsStore";
 import CollectionsStore from "stores/CollectionsStore";
+import DocumentsStore from "stores/DocumentsStore";
 import Document from "models/Document";
+import Fade from "components/Fade";
+import Tab from "components/Tab";
+import Tabs from "components/Tabs";
 import ReferenceListItem from "./ReferenceListItem";
 
 type Props = {
@@ -52,7 +52,7 @@ class References extends React.Component<Props> {
             )}
           </Tabs>
           {isBacklinksTab
-            ? backlinks.map(backlinkedDocument => (
+            ? backlinks.map((backlinkedDocument) => (
                 <ReferenceListItem
                   anchor={document.urlId}
                   key={backlinkedDocument.id}
@@ -62,7 +62,7 @@ class References extends React.Component<Props> {
                   }
                 />
               ))
-            : children.map(node => {
+            : children.map((node) => {
                 // If we have the document in the store already then use it to get the extra
                 // contextual info, otherwise the collection node will do (only has title and id)
                 const document = documents.get(node.id);

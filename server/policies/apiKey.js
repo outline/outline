@@ -1,6 +1,6 @@
 // @flow
-import policy from "./policy";
 import { ApiKey, User } from "../models";
+import policy from "./policy";
 
 const { allow } = policy;
 

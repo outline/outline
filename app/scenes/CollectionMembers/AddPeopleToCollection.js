@@ -1,20 +1,20 @@
 // @flow
-import * as React from "react";
-import { inject, observer } from "mobx-react";
-import { observable } from "mobx";
 import { debounce } from "lodash";
-import Flex from "shared/components/Flex";
+import { observable } from "mobx";
+import { inject, observer } from "mobx-react";
+import * as React from "react";
+import AuthStore from "stores/AuthStore";
+import MembershipsStore from "stores/MembershipsStore";
+import UiStore from "stores/UiStore";
+import UsersStore from "stores/UsersStore";
+import Collection from "models/Collection";
+import Invite from "scenes/Invite";
+import Empty from "components/Empty";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
 import Input from "components/Input";
 import Modal from "components/Modal";
-import Empty from "components/Empty";
 import PaginatedList from "components/PaginatedList";
-import Invite from "scenes/Invite";
-import Collection from "models/Collection";
-import UiStore from "stores/UiStore";
-import AuthStore from "stores/AuthStore";
-import UsersStore from "stores/UsersStore";
-import MembershipsStore from "stores/MembershipsStore";
 import MemberListItem from "./components/MemberListItem";
 
 type Props = {
@@ -50,7 +50,7 @@ class AddPeopleToCollection extends React.Component<Props> {
     });
   }, 250);
 
-  handleAddUser = user => {
+  handleAddUser = (user) => {
     try {
       this.props.memberships.create({
         collectionId: this.props.collection.id,
@@ -74,7 +74,8 @@ class AddPeopleToCollection extends React.Component<Props> {
           Need to add someone who’s not yet on the team yet?{" "}
           <a role="button" onClick={this.handleInviteModalOpen}>
             Invite people to {team.name}
-          </a>.
+          </a>
+          .
         </HelpText>
 
         <Input
@@ -97,7 +98,7 @@ class AddPeopleToCollection extends React.Component<Props> {
           }
           items={users.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
-          renderItem={item => (
+          renderItem={(item) => (
             <MemberListItem
               key={item.id}
               user={item}
@@ -118,6 +119,9 @@ class AddPeopleToCollection extends React.Component<Props> {
   }
 }
 
-export default inject("auth", "users", "memberships", "ui")(
-  AddPeopleToCollection
-);
+export default inject(
+  "auth",
+  "users",
+  "memberships",
+  "ui"
+)(AddPeopleToCollection);

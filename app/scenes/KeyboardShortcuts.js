@@ -1,9 +1,9 @@
 // @flow
 import * as React from "react";
 import styled from "styled-components";
-import Key from "components/Key";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 import HelpText from "components/HelpText";
+import Key from "components/Key";
 import { meta } from "utils/keyboard";
 
 function KeyboardShortcuts() {
@@ -139,6 +139,10 @@ function KeyboardShortcuts() {
           <Key>{"```"}</Key>
         </Keys>
         <Label>Code block</Label>
+        <Keys>
+          <Key>{":::"}</Key>
+        </Keys>
+        <Label>Info notice</Label>
 
         <Keys>_italic_</Keys>
         <Label>Italic</Label>

@@ -2,14 +2,12 @@
 import * as React from "react";
 import styled from "styled-components";
 import Badge from "components/Badge";
-import SidebarLink from "./SidebarLink";
 import { version } from "../../../../package.json";
+import SidebarLink from "./SidebarLink";
 
 export default function Version() {
-  // $FlowFixMe
   const [releasesBehind, setReleasesBehind] = React.useState(0);
 
-  // $FlowFixMe
   React.useEffect(() => {
     async function loadReleases() {
       let out = 0;
@@ -32,7 +30,7 @@ export default function Version() {
     <SidebarLink
       href="https://github.com/outline/outline/releases"
       label={
-        <React.Fragment>
+        <>
           v{version}
           <br />
           <LilBadge>
@@ -42,7 +40,7 @@ export default function Version() {
                   releasesBehind === 1 ? "" : "s"
                 } behind`}
           </LilBadge>
-        </React.Fragment>
+        </>
       }
     />
   );

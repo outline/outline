@@ -1,11 +1,10 @@
 // @flow
-import * as React from "react";
-import { observable, action } from "mobx";
-import { observer } from "mobx-react";
-import { withRouter, NavLink } from "react-router-dom";
-import { CollapsedIcon } from "outline-icons";
-import styled, { withTheme } from "styled-components";
-import Flex from "shared/components/Flex";
+import * as React from 'react';
+import { observer } from 'mobx-react';
+import { CollapsedIcon } from 'outline-icons';
+import { withRouter, NavLink } from 'react-router-dom';
+import styled, { withTheme } from 'styled-components';
+import Flex from 'components/Flex';
 
 type Props = {
   to?: string | Object,
@@ -25,79 +24,80 @@ type Props = {
   depth?: number,
 };
 
-@observer
-class SidebarLink extends React.Component<Props> {
-  @observable expanded: ?boolean = this.props.expanded;
+function SidebarLink({
+  icon,
+  children,
+  onClick,
+  to,
+  label,
+  active,
+  menu,
+  menuOpen,
+  hideDisclosure,
+  theme,
+  exact,
+  href,
+  depth,
+  ...rest
+}: Props) {
+  const [expanded, setExpanded] = React.useState(rest.expanded);
 
-  style = {
-    paddingLeft: `${(this.props.depth || 0) * 16 + 16}px`,
-  };
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.expanded !== undefined) {
-      this.expanded = nextProps.expanded;
-    }
-  }
-
-  @action
-  handleClick = (ev: SyntheticEvent<>) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-
-    this.expanded = !this.expanded;
-  };
-
-  @action
-  handleExpand = () => {
-    this.expanded = true;
-  };
-
-  render() {
-    const {
-      icon,
-      children,
-      onClick,
-      to,
-      label,
-      active,
-      menu,
-      menuOpen,
-      hideDisclosure,
-      exact,
-      href,
-    } = this.props;
-    const showDisclosure = !!children && !hideDisclosure;
-    const activeStyle = {
-      color: this.props.theme.text,
-      background: this.props.theme.sidebarItemBackground,
-      fontWeight: 600,
-      ...this.style,
+  const style = React.useMemo(() => {
+    return {
+      paddingLeft: `${(depth || 0) * 16 + 16}px`,
     };
+  }, [depth]);
 
-    return (
-      <Wrapper column>
-        <StyledNavLink
-          activeStyle={activeStyle}
-          style={active ? activeStyle : this.style}
-          onClick={onClick}
-          exact={exact !== false}
-          to={to}
-          as={to ? undefined : href ? "a" : "div"}
-          href={href}
-        >
-          {icon && <IconWrapper>{icon}</IconWrapper>}
-          <Label onClick={this.handleExpand}>
-            {showDisclosure && (
-              <Disclosure expanded={this.expanded} onClick={this.handleClick} />
-            )}
-            {label}
-          </Label>
-          {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
-        </StyledNavLink>
-        <ChildrenWrapper expanded={this.expanded}>{children}</ChildrenWrapper>
-      </Wrapper>
-    );
-  }
+  React.useEffect(() => {
+    if (rest.expanded !== undefined) {
+      setExpanded(rest.expanded);
+    }
+  }, [rest.expanded]);
+
+  const handleClick = React.useCallback(
+    (ev: SyntheticEvent<>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      setExpanded(!expanded);
+    },
+    [expanded],
+  );
+
+  const handleExpand = React.useCallback(() => {
+    setExpanded(true);
+  }, []);
+
+  const showDisclosure = !!children && !hideDisclosure;
+  const activeStyle = {
+    color: theme.text,
+    background: theme.sidebarItemBackground,
+    fontWeight: 600,
+    ...style,
+  };
+
+  return (
+    <Wrapper column>
+      <StyledNavLink
+        activeStyle={activeStyle}
+        style={active ? activeStyle : this.style}
+        onClick={onClick}
+        exact={exact !== false}
+        to={to}
+        as={to ? undefined : href ? 'a' : 'div'}
+        href={href}
+      >
+        {icon && <IconWrapper>{icon}</IconWrapper>}
+        <Label onClick={this.handleExpand}>
+          {showDisclosure && (
+            <Disclosure expanded={this.expanded} onClick={this.handleClick} />
+          )}
+          {label}
+        </Label>
+        {menu && <Action menuOpen={menuOpen}>{menu}</Action>}
+      </StyledNavLink>
+      <ChildrenWrapper expanded={this.expanded}>{children}</ChildrenWrapper>
+    </Wrapper>
+  );
 }
 
 // accounts for whitespace around icon
@@ -108,11 +108,11 @@ const IconWrapper = styled.span`
 `;
 
 const Action = styled.span`
-  display: ${props => (props.menuOpen ? "inline" : "none")};
+  display: ${(props) => (props.menuOpen ? 'inline' : 'none')};
   position: absolute;
   top: 4px;
   right: 4px;
-  color: ${props => props.theme.textTertiary};
+  color: ${(props) => props.theme.textTertiary};
 
   svg {
     opacity: 0.75;
@@ -132,17 +132,17 @@ const StyledNavLink = styled(NavLink)`
   text-overflow: ellipsis;
   padding: 4px 16px;
   border-radius: 4px;
-  color: ${props => props.theme.sidebarText};
+  color: ${(props) => props.theme.sidebarText};
   font-size: 15px;
   cursor: pointer;
 
   &:hover {
-    color: ${props => props.theme.text};
+    color: ${(props) => props.theme.text};
   }
 
   &:focus {
-    color: ${props => props.theme.text};
-    background: ${props => props.theme.black05};
+    color: ${(props) => props.theme.text};
+    background: ${(props) => props.theme.black05};
     outline: none;
   }
 
@@ -168,11 +168,11 @@ const Disclosure = styled(CollapsedIcon)`
   position: absolute;
   left: -24px;
 
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+  ${({ expanded }) => !expanded && 'transform: rotate(-90deg);'};
 `;
 
 const ChildrenWrapper = styled.div(({ expanded }) => ({
-  display: expanded ? "block" : "none",
+  display: expanded ? 'block' : 'none',
 }));
 
-export default withRouter(withTheme(SidebarLink));
+export default withRouter(withTheme(observer(SidebarLink)));

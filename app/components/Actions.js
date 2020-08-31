@@ -1,7 +1,7 @@
 // @flow
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Flex from "shared/components/Flex";
+import Flex from "components/Flex";
 
 export const Action = styled(Flex)`
   justify-content: center;
@@ -12,8 +12,12 @@ export const Action = styled(Flex)`
   flex-shrink: 0;
 
   a {
-    color: ${props => props.theme.text};
+    color: ${(props) => props.theme.text};
     height: 24px;
+  }
+
+  &:empty {
+    display: none;
   }
 `;
 
@@ -22,7 +26,7 @@ export const Separator = styled.div`
   margin-left: 12px;
   width: 1px;
   height: 28px;
-  background: ${props => props.theme.divider};
+  background: ${(props) => props.theme.divider};
 `;
 
 const Actions = styled(Flex)`
@@ -31,8 +35,8 @@ const Actions = styled(Flex)`
   right: 0;
   left: 0;
   border-radius: 3px;
-  background: ${props => props.theme.background};
-  transition: ${props => props.theme.backgroundTransition};
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
   padding: 12px;
   -webkit-backdrop-filter: blur(20px);
 

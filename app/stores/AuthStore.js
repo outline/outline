@@ -1,22 +1,37 @@
 // @flow
-import { observable, action, computed, autorun, runInAction } from "mobx";
 import invariant from "invariant";
+import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
-import { client } from "utils/ApiClient";
-import { getCookieDomain } from "shared/utils/domains";
 import RootStore from "stores/RootStore";
-import User from "models/User";
 import Team from "models/Team";
+import User from "models/User";
+import { client } from "utils/ApiClient";
+import { getCookieDomain } from "utils/domains";
 
 const AUTH_STORE = "AUTH_STORE";
+const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
+
+type Service = {
+  id: string,
+  name: string,
+  authUrl: string,
+};
+
+type Config = {
+  name?: string,
+  hostname?: string,
+  services: Service[],
+};
 
 export default class AuthStore {
   @observable user: ?User;
   @observable team: ?Team;
   @observable token: ?string;
+  @observable lastSignedIn: ?string;
   @observable isSaving: boolean = false;
   @observable isSuspended: boolean = false;
   @observable suspendedContactEmail: ?string;
+  @observable config: ?Config;
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
@@ -32,8 +47,12 @@ export default class AuthStore {
     this.user = new User(data.user);
     this.team = new Team(data.team);
     this.token = getCookie("accessToken");
+    this.lastSignedIn = getCookie("lastSignedIn");
+    setImmediate(() => this.fetchConfig());
 
-    if (this.token) setImmediate(() => this.fetch());
+    if (this.token) {
+      setImmediate(() => this.fetch());
+    }
 
     autorun(() => {
       try {
@@ -44,9 +63,9 @@ export default class AuthStore {
     });
   }
 
-  addPolicies = policies => {
+  addPolicies = (policies) => {
     if (policies) {
-      policies.forEach(policy => this.rootStore.policies.add(policy));
+      policies.forEach((policy) => this.rootStore.policies.add(policy));
     }
   };
 
@@ -64,6 +83,13 @@ export default class AuthStore {
   }
 
   @action
+  fetchConfig = async () => {
+    const res = await client.post("/auth.config");
+    invariant(res && res.data, "Config not available");
+    this.config = res.data;
+  };
+
+  @action
   fetch = async () => {
     try {
       const res = await client.post("/auth.info");
@@ -76,7 +102,7 @@ export default class AuthStore {
         this.team = new Team(team);
 
         if (window.Sentry) {
-          Sentry.configureScope(function(scope) {
+          window.Sentry.configureScope(function (scope) {
             scope.setUser({ id: user.id });
             scope.setExtra("team", team.name);
             scope.setExtra("teamId", team.id);
@@ -87,7 +113,10 @@ export default class AuthStore {
         const postLoginRedirectPath = getCookie("postLoginRedirectPath");
         if (postLoginRedirectPath) {
           removeCookie("postLoginRedirectPath");
-          window.location.href = postLoginRedirectPath;
+
+          if (!NO_REDIRECT_PATHS.includes(postLoginRedirectPath)) {
+            window.location.href = postLoginRedirectPath;
+          }
         }
       });
     } catch (err) {
@@ -158,10 +187,16 @@ export default class AuthStore {
       })
     );
 
+    this.token = null;
+
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
-      setCookie("postLoginRedirectPath", window.location.pathname);
+      const pathName = window.location.pathname;
+
+      if (!NO_REDIRECT_PATHS.includes(pathName)) {
+        setCookie("postLoginRedirectPath", pathName);
+      }
     }
 
     // remove authentication token itself
@@ -178,8 +213,5 @@ export default class AuthStore {
       });
       this.team = null;
     }
-
-    // add a timestamp to force reload from server
-    window.location.href = `${BASE_URL}?done=${new Date().getTime()}`;
   };
 }

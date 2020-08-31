@@ -1,19 +1,19 @@
 // @flow
-import * as React from "react";
 import { debounce } from "lodash";
 import { observer, inject } from "mobx-react";
+import * as React from "react";
 import styled from "styled-components";
-import CenteredContent from "components/CenteredContent";
-import PageTitle from "components/PageTitle";
-import HelpText from "components/HelpText";
-import Input from "components/Input";
-import Subheading from "components/Subheading";
-import NotificationListItem from "./components/NotificationListItem";
-import Notice from "shared/components/Notice";
-
-import UiStore from "stores/UiStore";
 import AuthStore from "stores/AuthStore";
 import NotificationSettingsStore from "stores/NotificationSettingsStore";
+import UiStore from "stores/UiStore";
+import CenteredContent from "components/CenteredContent";
+import HelpText from "components/HelpText";
+import Input from "components/Input";
+import Notice from "components/Notice";
+import PageTitle from "components/PageTitle";
+import Subheading from "components/Subheading";
+
+import NotificationListItem from "./components/NotificationListItem";
 
 type Props = {
   ui: UiStore,

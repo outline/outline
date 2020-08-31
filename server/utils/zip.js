@@ -1,8 +1,8 @@
 // @flow
 import fs from "fs";
+import * as Sentry from "@sentry/node";
 import JSZip from "jszip";
 import tmp from "tmp";
-import * as Sentry from "@sentry/node";
 import { Attachment, Collection, Document } from "../models";
 import { getImageByKey } from "./s3";
 

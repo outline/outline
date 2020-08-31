@@ -1,9 +1,9 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-import { flushdb } from "../test/support";
 import { CollectionGroup, GroupUser } from "../models";
 import { buildUser, buildGroup, buildCollection } from "../test/factories";
+import { flushdb } from "../test/support";
 
-beforeEach(flushdb);
+beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
 describe("afterDestroy hook", () => {
