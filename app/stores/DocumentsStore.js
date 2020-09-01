@@ -500,6 +500,13 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.recentlyViewedIds = without(this.recentlyViewedIds, document.id);
     });
 
+    // check to see if we have any shares related to this document already
+    // loaded in local state. If so we can go ahead and remove those too.
+    const share = this.rootStore.shares.getByDocumentId(document.id);
+    if (share) {
+      this.rootStore.shares.remove(share.id);
+    }
+
     const collection = this.getCollectionForDocument(document);
     if (collection) collection.refresh();
   }
