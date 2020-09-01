@@ -29,7 +29,7 @@ async function replaceImageAttachments(text) {
 
 export default async function present(
   document: Document,
-  userId: string,
+  userId: ?string,
   options: ?Options
 ) {
   options = {
