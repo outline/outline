@@ -426,7 +426,7 @@ router.post("documents.info", auth({ required: false }), async (ctx) => {
   const isPublic = cannot(user, "read", document);
 
   ctx.body = {
-    data: await presentDocument(document, user.id, { isPublic }),
+    data: await presentDocument(document, user?.id, { isPublic }),
     policies: isPublic ? undefined : presentPolicies(user, [document]),
   };
 });
