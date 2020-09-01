@@ -86,7 +86,7 @@ class Events extends React.Component<Props> {
           ) : (
             <>
               {events.orderedData.map((event) => (
-                <EventListItem event={event} />
+                <EventListItem event={event} key={event.id} />
               ))}
               {this.allowLoadMore && (
                 <Waypoint key={this.offset} onEnter={this.loadMoreResults} />
