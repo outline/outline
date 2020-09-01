@@ -1,6 +1,6 @@
 // @flow
 import { takeRight } from "lodash";
-import { User, Document, Attachment } from "../models";
+import { User, Document, Attachment, View } from "../models";
 import { getSignedImageUrl } from "../utils/s3";
 import presentUser from "./user";
 
@@ -27,7 +27,11 @@ async function replaceImageAttachments(text) {
   return text;
 }
 
-export default async function present(document: Document, options: ?Options) {
+export default async function present(
+  document: Document,
+  userId: string,
+  options: ?Options
+) {
   options = {
     isPublic: false,
     ...options,
@@ -62,7 +66,11 @@ export default async function present(document: Document, options: ?Options) {
     pinned: undefined,
     collectionId: undefined,
     parentDocumentId: undefined,
+    lastViewedAt: undefined,
   };
+
+  const view = await View.findByDocumentAndUser(document.id, userId);
+  if (!!view) data.lastViewedAt = view.updatedAt;
 
   if (!options.isPublic) {
     data.pinned = !!document.pinnedById;

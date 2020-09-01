@@ -9,6 +9,7 @@ import Document from "models/Document";
 import DropToImport from "components/DropToImport";
 import Fade from "components/Fade";
 import Flex from "components/Flex";
+import Badge from "../../Badge";
 import SidebarLink from "./SidebarLink";
 import DocumentMenu from "menus/DocumentMenu";
 import { type NavigationNode } from "types";
@@ -96,7 +97,12 @@ class DocumentLink extends React.Component<Props> {
               state: { title: node.title },
             }}
             expanded={showChildren ? true : undefined}
-            label={node.title || "Untitled"}
+            label={
+              <Title bold={document?.modifiedSinceViewed || document?.new}>
+                {node.title || "Untitled"}
+                {document?.new && <Badge>New</Badge>}
+              </Title>
+            }
             depth={depth}
             exact={false}
             menuOpen={this.menuOpen}
@@ -136,5 +142,9 @@ class DocumentLink extends React.Component<Props> {
 }
 
 const DocumentChildren = styled(Flex)``;
+
+const Title = styled.div`
+  font-weight: ${(props) => (props.bold ? 900 : "normal")};
+`;
 
 export default DocumentLink;

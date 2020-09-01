@@ -8,6 +8,7 @@ import DocumentsStore from "stores/DocumentsStore";
 import BaseModel from "models/BaseModel";
 import Revision from "models/Revision";
 import User from "models/User";
+import View from "./View";
 
 type SaveOptions = {
   publish?: boolean,
@@ -24,7 +25,7 @@ export default class Document extends BaseModel {
 
   collaborators: User[];
   collectionId: string;
-  lastViewedAt: ?string;
+  @observable lastViewedAt: ?string;
   createdAt: string;
   createdBy: User;
   updatedAt: string;
@@ -71,6 +72,11 @@ export default class Document extends BaseModel {
   @computed
   get modifiedSinceViewed(): boolean {
     return !!this.lastViewedAt && this.lastViewedAt < this.updatedAt;
+  }
+
+  @computed
+  get new(): boolean {
+    return !this.lastViewedAt;
   }
 
   @computed
@@ -198,6 +204,11 @@ export default class Document extends BaseModel {
   @action
   view = () => {
     return this.store.rootStore.views.create({ documentId: this.id });
+  };
+
+  @action
+  updateLastViewed = (view: View) => {
+    this.lastViewedAt = view.lastViewedAt;
   };
 
   @action

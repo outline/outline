@@ -2,7 +2,7 @@
 import subMilliseconds from "date-fns/sub_milliseconds";
 import { USER_PRESENCE_INTERVAL } from "../../shared/constants";
 import { User } from "../models";
-import { Op, DataTypes, sequelize } from "../sequelize";
+import { DataTypes, Op, sequelize } from "../sequelize";
 
 const View = sequelize.define(
   "view",
@@ -42,6 +42,19 @@ View.increment = async (where) => {
 View.findByDocument = async (documentId) => {
   return View.findAll({
     where: { documentId },
+    order: [["updatedAt", "DESC"]],
+    include: [
+      {
+        model: User,
+        paranoid: false,
+      },
+    ],
+  });
+};
+
+View.findByDocumentAndUser = async (documentId, userId) => {
+  return View.findOne({
+    where: { documentId, userId },
     order: [["updatedAt", "DESC"]],
     include: [
       {
