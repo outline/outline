@@ -1,4 +1,5 @@
 // @flow
+import "mobx-react-lite/batchingForReactDom";
 import { Provider } from "mobx-react";
 import * as React from "react";
 import { render } from "react-dom";
