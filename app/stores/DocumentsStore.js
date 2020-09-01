@@ -29,7 +29,9 @@ export default class DocumentsStore extends BaseStore<Document> {
   @observable searchCache: Map<string, SearchResult[]> = new Map();
   @observable starredIds: Map<string, boolean> = new Map();
   @observable backlinks: Map<string, string[]> = new Map();
-  importFiletypes: string[] = [
+
+  importFiletypesClient: string[] = ["text/markdown", "text/plain"];
+  importFiletypesServer: string[] = [
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "text/html",
   ];
@@ -465,14 +467,20 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  import = async (document: Document, options: ImportOptions) => {
+  import = async (
+    options: ImportOptions,
+    collectionId: string,
+    title: string,
+    text: ?string,
+    parentDocumentId: ?string
+  ) => {
     const formData = new FormData();
 
     [
-      { key: "parentDocumentId", value: document.parentDocumentId },
-      { key: "collectionId", value: document.collectionId },
-      { key: "title", value: document.title },
-      { key: "text", value: document.text },
+      { key: "parentDocumentId", value: parentDocumentId },
+      { key: "collectionId", value: collectionId },
+      { key: "title", value: title },
+      { key: "text", value: text },
     ].map((info) => {
       if (typeof info.value === "string" && info.value) {
         formData.append(info.key, info.value);

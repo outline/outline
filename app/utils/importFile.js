@@ -16,26 +16,18 @@ const importFile = async ({
   documentId,
   collectionId,
 }: Options): Promise<Document> => {
-  return new Promise(async (resolve, reject) => {
-    // non plain text support
-    if (documents.importFiletypes.includes(file.type)) {
-      try {
-        const document = new Document(
-          {
-            parentDocumentId: documentId,
-            collectionId,
-            title: file.name.replace(/\.[^/.]+$/, ""),
-          },
-          documents
-        );
+  // non plain text support
+  if (documents.importFiletypesServer.includes(file.type)) {
+    return await documents.import(
+      { publish: true, file },
+      collectionId,
+      file.name.replace(/\.[^/.]+$/, ""),
+      null,
+      documentId
+    );
+  }
 
-        resolve(await documents.import(document, { publish: true, file }));
-      } catch (err) {
-        reject(err);
-      }
-      return;
-    }
-
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
     reader.onload = async (ev) => {

@@ -41,11 +41,11 @@ const allImportableFiles: ImportableFile[] = [
   {
     type:
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    getMarkdown: getDocxMardown,
+    getMarkdown: getDocxMarkdown,
   },
   {
     type: "text/html",
-    getMarkdown: getHtmlMardown,
+    getMarkdown: getHtmlMarkdown,
   },
 ];
 
@@ -1086,12 +1086,12 @@ export async function createDocumentFromContext(ctx: any) {
   });
 }
 
-async function getDocxMardown(filePath: string): Promise<string> {
+async function getDocxMarkdown(filePath: string): Promise<string> {
   const { value } = await mammoth.convertToHtml({ path: filePath });
   return turndownService.turndown(value);
 }
 
-async function getHtmlMardown(filePath: string): Promise<string> {
+async function getHtmlMarkdown(filePath: string): Promise<string> {
   const value = await fs.promises.readFile(filePath, "utf8");
   return turndownService.turndown(value);
 }
